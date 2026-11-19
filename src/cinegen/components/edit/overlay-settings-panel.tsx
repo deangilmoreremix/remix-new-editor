@@ -8,8 +8,9 @@ import { renderAddonEditor } from '../../../lib/editor/addons/addonEditor.js';
 import { applyOptinToLeadForm, switchListBuilderKind } from '../../../lib/editor/addons/listBuilder.js';
 import type { MgPropField } from '@cinegen/lib/occ/mg-templates';
 import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
+import { LottieEditSection } from './lottie-edit-section';
 import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
-import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
+import { isRegistryOverlay, gatesOnTimeline } from '@cinegen/lib/overlays/overlays';
 import { hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers
 import { HF_FITS, HF_FIT_LABELS, normalizeGeom, isReactItem } from '../../../lib/hyperframes/placement.js';
@@ -133,7 +134,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       <style>{`
         .addon-panel .addon-tabs{display:flex;gap:6px;margin:6px 0 10px;flex-wrap:wrap}
         .addon-panel .addon-tab{border:1px solid var(--border-medium,rgba(255,255,255,.18));background:transparent;color:var(--text-secondary);border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer}
-        .addon-panel .addon-tab.active{border-color:#eb5054;color:#fff;background:rgba(235,80,84,.18)}
+        .addon-panel .addon-tab.active{border-color:rgba(217,255,0,.25);color:#fff;background:rgba(217,255,0,.08)}
         .addon-panel .addon-field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:11px;color:var(--text-secondary)}
         .addon-panel .addon-field input[type=text],.addon-panel .addon-field input[type=url],.addon-panel .addon-field textarea,.addon-panel .addon-field select{width:100%;box-sizing:border-box;background:var(--bg-raised,#10141c);color:var(--text-primary,#fff);border:1px solid var(--border-medium,rgba(255,255,255,.18));border-radius:6px;padding:6px 8px;font:inherit}
         .addon-panel .addon-fieldlist__row{display:flex;gap:4px;align-items:center;margin-bottom:4px}
@@ -147,6 +148,9 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
         </span>
       </div>
       {(overlay.type === 'list-builder' || overlay.type === 'lead-form') && <FormLeadsButton overlayId={overlay.id} type={overlay.type} />}
+      {overlay.type === 'lead-form' && !gatesOnTimeline(overlay) && (
+        <p data-testid="trigger-note" style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '0 12px 8px' }}>On the published page this form appears {overlay.trigger === 'end' ? 'at the end of the video' : overlay.trigger === 'pause' ? 'when the viewer pauses' : 'when the viewer is about to leave'}. Here it shows while the video is stopped inside this time range, and does not pause playback.</p>
+      )}
       {overlay.type === 'list-builder' ? (
         <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '0 12px 8px' }}>Viewers fill this out before the video plays. It sits at the start of the timeline and takes no video time.</p>
       ) : (
@@ -163,6 +167,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       )}
       {overlay.type === 'hyperframes' && <HfPlacementControls overlay={overlay} duration={duration} onUpdate={onUpdate} />}
       {overlay.type === 'mg-template' || overlay.type === 'hyperframes' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} style={{ padding: '0 12px 16px' }} />}
+      {overlay.type === 'overlay-sticker' && (overlay.addon as { kind?: string } | undefined)?.kind === 'lottie' && <LottieEditSection addon={overlay.addon as never} onChange={(next) => onUpdate({ addon: next })} />}
     </aside>
   );
 }

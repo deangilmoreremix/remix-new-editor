@@ -455,7 +455,10 @@ function securityHeaders() {
 
                 const isProduction = process.env.NODE_ENV === 'production';
                 const devConnectSrc = !isProduction ? ' http://localhost:5173 ws://localhost:5173 http://localhost:3000' : '';
-                const devFrameSrc = !isProduction ? ' http://localhost:5173 http://localhost:3000 https://ai-vfx.smartvid.app' : '';
+                // Booking sites a landing page may embed under its video (Video Pages, src/lib/landingPages/templates.js CALENDAR_HOSTS).
+                // Dev only: production sends no frame-src restriction.
+                const bookingFrameSrc = ' https://calendly.com https://*.calendly.com https://cal.com https://*.cal.com https://*.hubspot.com https://tidycal.com https://*.tidycal.com https://youcanbook.me https://*.youcanbook.me https://savvycal.com https://*.savvycal.com https://calendar.google.com https://calendar.app.google https://zcal.co https://*.zcal.co https://chilipiper.com https://*.chilipiper.com https://*.acuityscheduling.com https://outlook.office365.com https://outlook.office.com';
+                const devFrameSrc = !isProduction ? ` http://localhost:5173 http://localhost:3000 https://ai-vfx.smartvid.app${bookingFrameSrc}` : '';
 
                 const csp = [
                   "default-src 'self'",
@@ -472,7 +475,7 @@ function securityHeaders() {
                   // https: so the Remotion Player (@remotion/media) can fetch clip
                   // media from stock/storage CDNs, as production (no CSP) allows.
                   "connect-src 'self' https: blob: data: ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com https://raw.githubusercontent.com http://localhost:8787" + (process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : '') + clerkHostSrc,
-                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:5199 http://localhost:5174 http://localhost:8787 https://ai-vfx.smartvid.app https://video-agent.smartvid.app${process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : ''}`,
+                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com http://localhost:5173 http://localhost:3000 http://localhost:5199 http://localhost:5174 http://localhost:8787 https://ai-vfx.smartvid.app https://video-agent.smartvid.app${process.env.VITE_CINEGEN_WEB_URL ? ' ' + new URL(process.env.VITE_CINEGEN_WEB_URL).origin : ''}${bookingFrameSrc}`,
                   "media-src 'self' https: blob: data:", // data: so a video picked while storage is unavailable (stored in the project as a data URL) plays, as in production (no CSP)
                 ].join('; ');
                 res.setHeader('Content-Security-Policy', csp);
@@ -497,9 +500,10 @@ function securityHeaders() {
                 
                 // Permissions Policy
                 // [remix] microphone=(self): the timeline's voice-over recorder and Voice Director use the mic (same origin only)
+                // camera=(self): the Video Outreach studio and the recorders record the webcam (same origin only)
                 res.setHeader(
                     'Permissions-Policy',
-                    'camera=(), microphone=(self)'
+                    'camera=(self), microphone=(self)'
                 );
                 
                 next();
@@ -1442,6 +1446,10 @@ export default defineConfig({
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },
+            '/api/proxy/thumbnail-generate': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
             // OpenHiggsBolt MuAPI proxy, upload route and template preview clips,
             // served by the same personalization function.
             '/api/api/v1/': {
@@ -1463,6 +1471,11 @@ export default defineConfig({
             },
             // Motion Director: director chat + page capture (netlify/functions/personalization-api.mts).
             '/api/motion-studio/': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+            },
+            // Video Outreach: website screenshots for backgrounds (netlify/functions/personalization-api.mts).
+            '/api/outreach/': {
                 target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
                 changeOrigin: true,
             },

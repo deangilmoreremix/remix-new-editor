@@ -9,6 +9,7 @@ import { buildEffectShaderFrame } from './shaderFrame';
 import { glPreviewFailureReason } from './previewAdapter';
 import type { SelectedPreviewFallbackReason, SelectedPreviewStatusListener } from './previewAdapter';
 import { ALL_FX } from './fx/effects';
+import { warnGlFxSkipped } from './fx/glSupport';
 
 // [remix] OpenChatCut's ClipFx, decoupled from its TimelineItem: the host passes the clip's media + a plain effect list
 // (id + slider overrides). Used by the Remotion composition so effects/LUTs are burned into the exported MP4.
@@ -195,7 +196,11 @@ export function ClipFx({ item, fit, width, height, frameOffset = 0, onPreviewSta
         if (isRendering && mirror) {
           if (mirror.width !== canvas.width) mirror.width = canvas.width;
           if (mirror.height !== canvas.height) mirror.height = canvas.height;
-          mirror.getContext('2d')?.drawImage(canvas, 0, 0);
+          // [remix] Fix C: clear first - drawImage() composites source-over, so without this every frame's opaque pixels stay in the mirror and
+          // a mask / key whose transparent area changes over time (animated masks, corner-pin) could only ever grow in the export.
+          const mctx = mirror.getContext('2d');
+          mctx?.clearRect(0, 0, mirror.width, mirror.height);
+          mctx?.drawImage(canvas, 0, 0);
           mirror.style.opacity = '1';
           canvas.style.opacity = '0';
         } else canvas.style.opacity = '1';
@@ -210,7 +215,8 @@ export function ClipFx({ item, fit, width, height, frameOffset = 0, onPreviewSta
         failedAdapterRef.current = { definitionKey, reason };
         disposeRuntimeSlot(runtimeRef);
         report('fallback', reason);
-        console.error('[clip-fx]', error);
+        if (reason === 'webgl-unavailable') warnGlFxSkipped(); // [remix] one warning; the clip keeps its source picture
+        else console.error('[clip-fx]', error);
       }
       finish();
     };

@@ -1,0 +1,24 @@
+PASS clip placed on the timeline
+source marks before reload: 00:00:00:00 to 00:00:02:23
+PASS source marks set
+pixels per second 50
+timeline range before reload: 00:00:01:00 - 00:00:03:00
+PASS timeline I / O (timeline focused) set the range
+PASS timeline I / O did not touch the source marks
+PASS blob store holds the imported file (entries: 1)
+url after reload: http://127.0.0.1:3100/?project=d3c0d38f-25b0-47b7-a472-0323cf81bd86&storage=db#/timeline pm-window: 0
+project card found: false
+PASS clip still on the timeline after reload
+videos after reload: {"n":1,"out":[{"s":"blob:http://127.0.0.1:3100/a82351d0-5fb2","ok":true}],"ready":[4],"dur":[6]}
+PASS a <video> loaded a live restored blob: URL (no relink)
+PASS media decodes with its 6 s duration
+PASS timeline range persisted: 00:00:01:00 - 00:00:03:00
+PASS source marks persisted after reload: 00:00:00:00 to 00:00:02:23
+render panel after 8 s: ck the finished export (duration, size, black / frozen frames, silence, peak level) RENDER Export FCPXML For Final Cut Pro, Premiere and DaVinci Resolve. Relink the media after import. Publish an interactive version (forms, buttons) and collect leads in the Leads tab. Rendering... 95% Ask SmartVideo
+PASS export produced a download after reload (no relink)
+export duration 2.005333 size 1472852
+PASS export honours the 1 s to 3 s range: duration 2.005333 s (full clip is 6 s)
+PASS export file has content
+media health: ck drops frames mode: auto Media and proxies Check media Relink missing… clipA.mp4 Make proxy Running jobs None. Thumbnail cache 0 cached thumbnails (0 KB, indexeddb) Clear 0 of 1 sources are missing.
+PASS Check media: 0 of 1 sources missing after reload
+done

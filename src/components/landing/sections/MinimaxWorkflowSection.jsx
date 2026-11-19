@@ -8,7 +8,7 @@
 import { getDemoBySlug, getCreateTarget as minimaxGetCreateTarget, loadDemoPrompt } from '../../../data/beatapiMinimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, prefersReducedMotion, revealOnScroll } from './minimax/mediaFrame.js';
 import { injectMinimaxStyles, sectionHeading, createStyleLink, createStudioIcon, escapeHtml } from './minimax/ui.js';
-import { createViewPromptButton } from './minimax/ui.js';
+import { createViewPromptButton, createPersonalizeButton } from './minimax/ui.js';
 import { handleViewPrompt } from './minimax/DemoPromptModal.js';
 
 const DEMO_SLUG = 'ice-gunslinger-interactive-web-loop';
@@ -151,6 +151,7 @@ export function MinimaxWorkflowSection() {
   const studioIconsHost = section.querySelector('[data-mmx-studio-icons]');
 
   primaryActions.appendChild(createViewPromptButton(demo, handleViewPrompt));
+  primaryActions.appendChild(createPersonalizeButton(demo, { loadPrompt: loadDemoPrompt }));
   primaryActions.appendChild(createStyleLink(demo, { label: 'Create This Type of Video', loadPrompt: loadDemoPrompt }));
 
   const target = minimaxGetCreateTarget(demo);

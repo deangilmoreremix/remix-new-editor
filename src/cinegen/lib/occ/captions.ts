@@ -12,9 +12,9 @@ export async function generateClipCaptions(
   clip: Clip, asset: Asset,
   opts: { template?: CaptionTemplate; motion?: CaptionMotionPreset; translateTo?: string } = {},
 ): Promise<CaptionsData> {
-  const { transcribeInBrowser, WHISPER_MODELS } = await import('../../../lib/editor/remotion/transcribe.js');
-  const model = (navigator as Navigator & { gpu?: unknown }).gpu ? WHISPER_MODELS[0][0] : WHISPER_MODELS[1][0];
-  const out = await transcribeInBrowser(toFileUrl(asset.fileRef || asset.url), { model, onProgress: () => {} });
+  // [remix] Port I1: on-device Whisper from the Local AI model manager (consent + licence shown there); throws ConsentRequiredError if no model is installed
+  const { transcribeAsset } = await import('../local-ai/clip-transcribe');
+  const out = await transcribeAsset(toFileUrl(asset.fileRef || asset.url));
   const sp = clip.speed || 1;
   const end = (clip.startTime + (clip.duration - clip.trimStart - clip.trimEnd) / sp) * 1000;
   const words = (out.captions as Array<{ text: string; startMs: number; endMs: number }>)

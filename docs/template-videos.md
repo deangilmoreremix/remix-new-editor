@@ -7,8 +7,8 @@ two places, both reading the same generated data:
 - **Timeline editor** (CineGen, EDIT → *Add to timeline* → **Template videos** tab): category and subcategory chips, search, length / **Logo** / aspect
   filters; picking a card adds the clip to the timeline as a normal video clip. Each card shows a No logo / Has logo badge.
 - **Personalization modal, step 2** (*Your video* → **AI Demos**): the same 539 clips (the original catalog demos reuse the hosted media), with the
-  step's own business categories, plus a **Logo** filter and the same badge. Catalog demos whose video files were never shipped
-  (29 PromptFeed, 14 Seedance 1, 1 MiniMax) are hidden until their files exist; see `EXCLUDED_DEMO_COLLECTIONS` in `demoLibraryRegistry.ts`.
+  step's own business categories, plus a **Logo** filter and the same badge. The old PromptFeed and Seedance 1 catalogs (43 demos whose video files never existed in the repo) were removed;
+  one MiniMax catalog entry with no file stays out of the registry.
 
 ## Where the data lives
 - `src/data/templateVideoLibrary.js` — **generated**, do not edit. Regenerate with `node scripts/generate-template-video-library.mjs`.

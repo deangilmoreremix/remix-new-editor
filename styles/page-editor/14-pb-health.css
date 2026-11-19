@@ -1,0 +1,9 @@
+.pk-d-pb-health { --pk-bg-grad: linear-gradient(180deg,#cfdcff 0%,#e9f0ff 60%,#f6f9ff 100%); --pk-h1: none; --pk-h1-color: transparent; --pk-h1-fill: transparent; --pk-h1-accent: #fff; --pk-form-bg: #ffffff; --pk-form-text: #0f2350; --pk-bar: linear-gradient(90deg,#8fdcf0,#c4eef8); --pk-bar-text: #08324a; --pk-cta: #1f5fe0; --pk-cta-text: #ffffff; --pk-tile: #1f5fe0; }
+.pk-d-pb-health .pk-hero--duo .pk-headline { -webkit-text-fill-color: currentColor; background: none; color: inherit; }
+.pk-d-pb-health .pk-hero--duo .pk-form-sub { display: none; }
+.pk-d-pb-health .pk-hero--duo .pk-headline { white-space: pre-line; }
+.pk-d-pb-health .pk-hero--duo .pk-video video { object-position: 60% 30%; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22%); mask-image: linear-gradient(90deg, transparent 0, #000 22%); }
+.pk-d-pb-health .pk-logo-word { color: #0f2350; opacity: .8; }
+.pk-d-pb-health { font-family: "Plus Jakarta Sans Variable", "Inter Variable", system-ui, sans-serif; }
+.pk-d-pb-health .pk-hero--duo .pk-headline { font-size: clamp(32px, 8vw, 56px); font-weight: 800; }
+.pk-d-pb-health .pk-brand img { width: 30px; height: 30px; object-fit: cover; border-radius: 6px; }

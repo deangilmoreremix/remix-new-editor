@@ -2,10 +2,12 @@ import type { Timeline, Clip, Track } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 import { resolveFit } from '@cinegen/lib/occ/frame-geometry';
-import { clipTransformCss, clipTransformClipPath, fillCss } from '@cinegen/lib/occ/transform';
+import { fillCss } from '@cinegen/lib/occ/transform';
+import { clipPoseCss } from './stage2/anim'; // [remix] Stage 2: keys + motion modifiers on top of the clip transform
 import { interpolateProperty } from './timeline-operations';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { mediaDebug, mediaDebugWarn } from '@cinegen/lib/debug/media-debug';
+import { AudioFxGraph } from '@cinegen/lib/audio/audio-graph'; // [remix] Stage 4: master gain, clip EQ, meters
 
 export interface ActiveClipEntry {
   clip: Clip;
@@ -62,6 +64,9 @@ export class PlaybackEngine {
   private audioContainer: HTMLDivElement | null = null;
   private trackVolumes = new Map<string, number>();
   private audioContext: AudioContext | null = null;
+  private fx: AudioFxGraph | null = null; // [remix] Stage 4
+  /** [remix] Stage 4: meters / master volume graph; null until the first audio starts */
+  getAudioFx(): AudioFxGraph | null { return this.fx; }
   private mediaAudioNodes = new Map<HTMLMediaElement, { source: MediaElementAudioSourceNode; gain: GainNode }>();
   private audioGraphUnavailable = false;
 
@@ -480,6 +485,7 @@ export class PlaybackEngine {
 
     try {
       this.audioContext = new AudioContextCtor();
+      this.fx = new AudioFxGraph(this.audioContext); this.fx.setMaster(this.timeline?.masterVolume ?? 1); // [remix] Stage 4
       return this.audioContext;
     } catch (error) {
       this.audioGraphUnavailable = true;
@@ -498,8 +504,8 @@ export class PlaybackEngine {
     try {
       const source = audioContext.createMediaElementSource(el);
       const gain = audioContext.createGain();
-      source.connect(gain);
-      gain.connect(audioContext.destination);
+      if (this.fx) this.fx.wire(el, source, gain); // [remix] Stage 4: source -> [EQ] -> gain -> master -> destination
+      else { source.connect(gain); gain.connect(audioContext.destination); }
       const node = { source, gain };
       this.mediaAudioNodes.set(el, node);
       return node;
@@ -532,6 +538,7 @@ export class PlaybackEngine {
     try {
       node.gain.disconnect();
     } catch {}
+    this.fx?.release(el); // [remix] Stage 4
     this.mediaAudioNodes.delete(el);
   }
 
@@ -711,6 +718,7 @@ export class PlaybackEngine {
     if (!cv) {
       cv = document.createElement('canvas'); cv.width = 64; cv.height = 36;
       cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;';
+      cv.dataset.fillFor = clipId; // [remix] Fix E: the GL transition layer draws this fill itself inside its window
       el.parentElement?.insertBefore(cv, el);
       this.fillCanvases.set(clipId, cv);
     }
@@ -779,13 +787,14 @@ export class PlaybackEngine {
       const scaleX = entry.clip.flipH ? -1 : 1;
       const scaleY = entry.clip.flipV ? -1 : 1;
       // [remix] clip position / scale / rotation / crop (and tracked path) per video element, so layouts with several visible clips work
-      const tcss = clipTransformCss(entry.clip.transform, clipTime);
-      el.style.transform = `scale(${scaleX}, ${scaleY})${tcss ? ` ${tcss}` : ''}`;
-      el.style.clipPath = clipTransformClipPath(entry.clip.transform) ?? '';
+      const pose = clipPoseCss(entry.clip, clipTime);
+      el.style.transform = `scale(${scaleX}, ${scaleY})${pose.transform ? ` ${pose.transform}` : ''}`;
+      el.style.clipPath = pose.clipPath ?? '';
       el.style.objectFit = resolveFit(entry.clip, this.timeline);
       this.syncFill(entry.clip.id, el, entry.clip.transform, opacity);
 
       el.style.opacity = String(opacity);
+      el.style.mixBlendMode = entry.clip.blendMode && entry.clip.blendMode !== 'normal' ? entry.clip.blendMode : ''; // [remix] Fix E: a clip's blend mode shows in the preview even without effects (as in the export)
       el.style.zIndex = String(z++);
       if (!isVideoAsset) {
         el.pause();
@@ -998,6 +1007,7 @@ export class PlaybackEngine {
 
   private updateAudioGraph(): void {
     if (!this.timeline) return;
+    this.fx?.setMaster(this.timeline.masterVolume ?? 1); // [remix] Stage 4
     // Cache track volumes and mute state for use in syncAudio
     for (const track of this.timeline.tracks) {
       if (track.kind !== 'audio') continue;
@@ -1058,6 +1068,8 @@ export class PlaybackEngine {
       if (videoEl && entry.asset.type === 'video' && timingMatches) {
         // Use the video element for audio — unmute it and set volume
         this.setMediaElementGain(videoEl, vol, vol === 0);
+        this.fx?.setEq(videoEl, entry.clip.eq); // [remix] Stage 4
+        this.fx?.setPitch(videoEl, entry.clip.pitch, videoEl); // [remix] Stage 11
         newVideoElsUsedForAudio.add(poolEntry.clipId);
 
         // Clean up any stale <audio> element for this clip
@@ -1085,6 +1097,8 @@ export class PlaybackEngine {
       }
 
       this.setMediaElementGain(el, vol);
+      this.fx?.setEq(el, entry.clip.eq); // [remix] Stage 4
+      this.fx?.setPitch(el, entry.clip.pitch, el); // [remix] Stage 11
       const ready = el.readyState >= 2;
       const driftThreshold = entry.asset.type === 'video'
         ? PlaybackEngine.VIDEO_AUDIO_DRIFT_CORRECTION_SECONDS
@@ -1254,6 +1268,7 @@ export class PlaybackEngine {
     this.audioContainer = null;
     this.audioContext?.close().catch(() => {});
     this.audioContext = null;
+    this.fx = null; // [remix] Stage 4
     this.mediaAudioNodes.clear();
 
     this.clearMetadataPreloadCache();

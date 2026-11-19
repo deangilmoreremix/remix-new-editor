@@ -57,7 +57,7 @@ export function VideoWatermarkPage() {
     </div>
 
     <!-- Features -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Powerful Removal Tools</h2>
       <p class="text-sm text-muted mb-6">Everything you need to clean up your videos</p>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -72,7 +72,7 @@ export function VideoWatermarkPage() {
     </div>
 
     <!-- How It Works -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">How It Works</h2>
       <p class="text-sm text-muted mb-6">Remove watermarks in three simple steps</p>
       <div class="grid md:grid-cols-3 gap-4">
@@ -87,7 +87,7 @@ export function VideoWatermarkPage() {
     </div>
 
     <!-- Available Tools -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Available Tools</h2>
       <p class="text-sm text-muted mb-6">Professional video cleaning tools</p>
       <div class="grid md:grid-cols-3 gap-4">
@@ -104,7 +104,7 @@ export function VideoWatermarkPage() {
     </div>
 
     <!-- Final CTA -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
       <h2 class="text-2xl font-black text-white mb-2">Clean Your Videos Today</h2>
       <p class="text-white/60 text-sm mb-6 max-w-md mx-auto">Remove watermarks and unwanted content with powerful AI</p>
       <button class="cta-btn btn-primary-modern">

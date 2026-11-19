@@ -104,6 +104,7 @@
     "Go to #/motion-director.",
     "Check that your OpenAI key is saved in Settings.",
     "Describe the film in 'Describe your motion video' and include your site address and length.",
+    "To use a customer's landing page, paste its full address (https://...) into that description; the director captures the page and uses the screenshots, words and logo in the film.",
     "Optionally set Aspect ratio, Templates, attached files or Use My Brand.",
     "Click Generate and answer the director's questions.",
     "Review and adjust the storyboard in chat.",
@@ -116,9 +117,30 @@
     "If unsure about style, choose Use Ink Press or Work it out together.",
     "Use the one-click example prompts under the composer to see good phrasing."
   ],
-  "inputs": ["Prompt", "Website address", "Aspect ratio", "Templates (shot cards)", "Attached media", "Brand kit (Use My Brand)", "Edit agent instructions", "Project JSON"],
-  "requiredInputs": ["Prompt", "OpenAI API key (saved in Settings)", "Plan that includes SmartVideo GO"],
-  "optionalInputs": ["Website address", "Aspect ratio", "Templates (shot cards)", "Attached media", "Brand kit (Use My Brand)", "Edit agent instructions", "Project JSON"],
+  "inputs": [
+    "Prompt",
+    "Website address",
+    "Aspect ratio",
+    "Templates (shot cards)",
+    "Attached media",
+    "Brand kit (Use My Brand)",
+    "Edit agent instructions",
+    "Project JSON"
+  ],
+  "requiredInputs": [
+    "Prompt",
+    "OpenAI API key (saved in Settings)",
+    "Plan that includes SmartVideo GO"
+  ],
+  "optionalInputs": [
+    "Website address",
+    "Aspect ratio",
+    "Templates (shot cards)",
+    "Attached media",
+    "Brand kit (Use My Brand)",
+    "Edit agent instructions",
+    "Project JSON"
+  ],
   "inputDetails": [
     {
       "name": "Prompt",
@@ -163,7 +185,13 @@
       "restrictions": "Size limits not confirmed."
     }
   ],
-  "generationModes": ["Use Ink Press", "Let the director pick shots", "Work it out together", "Named or picked shot cards", "Edit agent (in Workbench)"],
+  "generationModes": [
+    "Use Ink Press",
+    "Let the director pick shots",
+    "Work it out together",
+    "Named or picked shot cards",
+    "Edit agent (in Workbench)"
+  ],
   "modeExplanations": [
     {
       "mode": "Use Ink Press",
@@ -231,6 +259,9 @@
     }
   ],
   "troubleshooting": [
+    "Message 'Could not capture <address>: ...': the film will use sample pages instead. Send the full address again, or attach screenshots of the landing page with 'Attach image / video / audio', and the director re-captures.",
+    "Message that the page was too slow to screenshot in time: the film uses sample pages with your site's own words. Try again later or attach screenshots to use the real pages.",
+    "Capture error 'it took longer than 2½ minutes': the page was too heavy or slow; retry, pick a lighter page of the site, or attach screenshots.",
     "Generate shows an upgrade prompt: your account lacks the SmartVideo GO entitlement; upgrade your plan.",
     "Error 'Add your OpenAI API key in SmartVideo GO Settings to use the Motion Studio director.': save your OpenAI key in Settings and retry.",
     "Error 'OpenAI rejected the API key': replace the saved key with a valid one.",
@@ -269,6 +300,11 @@
   ],
   "commonProblems": [
     {
+      "problem": "My customer's landing page is not in the film",
+      "whyItHappens": "The address was not in the message, was not a full https:// address, the capture failed or timed out, or the chosen shots do not show site pages.",
+      "howToFix": "Paste the full address into 'Describe your motion video', wait for the director's 'I captured ...' message, and pick shot cards tagged 'Shows your site's pages' in Templates. If the capture fails, attach screenshots of the page."
+    },
+    {
       "problem": "The film does not look like my site",
       "whyItHappens": "No site address was given or the capture failed, so generic shots were used.",
       "howToFix": "Include your full website address and ask the director to use real page shots, or use Use My Brand for colors and logos."
@@ -285,6 +321,19 @@
     }
   ],
   "exampleWorkflows": [
+    {
+      "title": "Turn my customer's landing page into a film",
+      "steps": [
+        "Open #/motion-director and check your OpenAI key is saved in Settings.",
+        "In 'Describe your motion video' type the length and goal and paste the page's full address, for example 'Make a 30 second promo for https://customer-site.com'. The director reads the first web address in your message.",
+        "Optionally set the Aspect ratio, and open Templates to pick shot cards tagged 'Shows your site's pages' so the real page appears in the film.",
+        "Click Generate. The progress list shows 'Capturing https://customer-site.com' with a running seconds counter while the page is read and screenshotted; this usually takes about 2 minutes.",
+        "Read the director's message: it says what it read from the page (title, headline, calls to action) and what it captured (pages, card crops, found pictures, site images, the logo).",
+        "Answer the director's questions (for example Use Ink Press, Let the director pick shots or Work it out together) and review the storyboard; it says 'using your captured pages' when the real screenshots are in it.",
+        "Ask for changes in the chat, then approve to build and play the film.",
+        "Click Open in Motion Workbench to edit text and timing, then click Export video."
+      ]
+    },
     {
       "title": "Launch film from my website",
       "steps": [
@@ -329,6 +378,10 @@
     }
   ],
   "faqs": [
+    {
+      "question": "How do I add a customer's landing page to the video?",
+      "answer": "Paste the page's full web address into 'Describe your motion video', for example 'Make a 30 second promo for https://customer-site.com', and click Generate. Motion Director captures the page in the background (the progress list shows 'Capturing <address>' with a seconds counter, normally about 2 minutes), reads its title, headline and calls to action, takes page screenshots, card crops, pictures and the logo, and then writes a storyboard that uses them. The director's message lists what it captured, and the storyboard says it uses your captured pages. If you have no address, attach screenshots with 'Attach image / video / audio' instead. Shots tagged 'Shows your site's pages' use the real screenshots; shots tagged 'Draws a sample screen; your site appears beside it' show a sample screen next to your site."
+    },
     {
       "question": "Where is Motion Director in the menu?",
       "answer": "It is not in the side menu. Open it at #/motion-director. The editor is at #/motion-director/workbench."
@@ -379,7 +432,15 @@
     "Hold key moments at least a second so viewers can read them.",
     "Keep the tab open during export."
   ],
-  "relatedStudios": ["video-agent", "workbench", "timeline", "director", "brand", "find-my-brand", "video"],
+  "relatedStudios": [
+    "video-agent",
+    "workbench",
+    "timeline",
+    "director",
+    "brand",
+    "find-my-brand",
+    "video"
+  ],
   "relatedStudioGuidance": [
     {
       "studio": "video-agent",
@@ -408,7 +469,9 @@
     "The exact count of shot recipes in each category and the precise total (about 150 per the app notes).",
     "The full list of every label in the Motion Workbench panels and the Edit agent's exact abilities beyond clip and text edits.",
     "Whether a deployment overrides the default director model gpt-6-astra with an environment variable.",
-    "Exact wording of all director chat messages, which are generated by the AI."
+    "Exact wording of all director chat messages, which are generated by the AI.",
+    "Which pages of a site beyond the one you link are captured, and the exact limit on pictures or crops taken: the capture reports counts but the page selection rules were not confirmed.",
+    "Whether the capture has been run against a live site in the deployed app: the code path exists and has unit tests, but its own notes say it has not been verified live."
   ],
   "sourceFiles": [
     "src/components/MotionDirectorPage.js",

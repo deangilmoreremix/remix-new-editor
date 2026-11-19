@@ -99,21 +99,22 @@ export const chipStyle = (active: boolean): CSSProperties => ({
   minHeight: 34,
   padding: '0 12px',
   borderRadius: 999,
-  border: `1px solid ${active ? C.cyanBorder : C.border}`,
-  background: active ? C.cyanSoft : 'transparent',
+  border: `1px solid ${active ? C.cyan : C.border}`,
+  background: 'transparent',
   color: active ? C.cyan : C.muted,
   fontSize: 11,
   fontWeight: 700,
   cursor: 'pointer',
 })
 
+/** Buttons are outlined, never filled: yellow border + yellow text on the dark surface. */
 export const primaryButtonStyle: CSSProperties = {
   minHeight: 44,
   padding: '0 20px',
   border: `1px solid ${C.cyan}`,
   borderRadius: 10,
-  background: C.cyan,
-  color: '#000000',
+  background: 'transparent',
+  color: C.cyan,
   fontSize: 12,
   fontWeight: 800,
   textTransform: 'uppercase',
@@ -138,9 +139,9 @@ export const secondaryButtonStyle: CSSProperties = {
 /** Tile used for selectable cards (video picks, layouts, layers...). */
 export const tileStyle = (active: boolean): CSSProperties => ({
   padding: 12,
-  border: `1px solid ${active ? C.cyanBorder : C.border}`,
+  border: `1px solid ${active ? C.cyan : C.border}`,
   borderRadius: 12,
-  background: active ? 'rgba(217,255,0,.07)' : C.panelSoft,
+  background: C.panelSoft,
   color: C.text,
   textAlign: 'left',
   cursor: 'pointer',
@@ -158,10 +159,10 @@ export const badgeStyle = (tone: 'cyan' | 'green' | 'muted' = 'cyan'): CSSProper
   textTransform: 'uppercase',
   letterSpacing: '.04em',
   border: `1px solid ${
-    tone === 'cyan' ? C.cyanBorder : tone === 'green' ? 'rgba(34,197,94,.45)' : C.border
+    tone === 'cyan' ? C.cyan : tone === 'green' ? 'rgba(34,197,94,.45)' : C.border
   }`,
   background:
-    tone === 'cyan' ? C.cyanSoft : tone === 'green' ? 'rgba(34,197,94,.12)' : 'rgba(255,255,255,.04)',
+    tone === 'cyan' ? 'transparent' : tone === 'green' ? 'rgba(34,197,94,.12)' : 'rgba(255,255,255,.04)',
   color: tone === 'cyan' ? C.cyan : tone === 'green' ? C.green : C.muted,
 })
 

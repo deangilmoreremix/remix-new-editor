@@ -24,10 +24,10 @@ describe('demo library registry', () => {
     }
   })
 
-  it('hides the catalog demos whose video files were never shipped, and records why', () => {
-    expect(demoCollections.filter((collection) => collection.count > 0).map((collection) => collection.id)).toEqual(['minimax-h3', 'seedance-25', 'template-library'])
-    expect(DEMO_LIBRARY_REGISTRY.some((entry) => entry.collectionId === 'promptfeed' || entry.collectionId === 'seedance-1')).toBe(false)
-    expect(EXCLUDED_DEMO_COLLECTIONS.map((collection) => collection.id)).toEqual(expect.arrayContaining(['promptfeed', 'seedance-1']))
+  it('no longer carries the dead PromptFeed / Seedance 1 catalogs (their video files never existed)', () => {
+    expect(demoCollections.map((collection) => collection.id)).not.toEqual(expect.arrayContaining(['promptfeed']))
+    expect(DEMO_LIBRARY_REGISTRY.some((entry) => entry.collectionId === ('promptfeed' as string) || entry.collectionId === ('seedance-1' as string))).toBe(false)
+    expect(EXCLUDED_DEMO_COLLECTIONS.map((collection) => collection.id)).not.toEqual(expect.arrayContaining(['promptfeed']))
   })
 
   it('labels every demo No logo or Has logo (a logo label names its mark)', () => {

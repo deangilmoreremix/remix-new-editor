@@ -1,0 +1,103 @@
+=== /home/user/wt-fixB/docs/stage-1/smoke/stage1-smoke.cjs
+%cYou can ignore this warning if you are subs
+PASS source monitor shows the mark in/out strip for a media-pool item
+readout: 00:00:00:00 to 00:00:02:23
+PASS I and O keys set the marks
+clip cards after insert: 2
+PASS insert edit placed a clip on the timeline
+undo 1 -> cards 0
+clip cards after undo: 0
+PASS undo removes the inserted clips
+PASS redo restores them
+shuttle: ▶ 1x | ▶ 2x | JKL | ◀ 1x
+PASS L, L, K, J drive the shuttle readout
+notice after Ctrl+G: Grouped
+PASS Ctrl+G groups the selected clips
+cards after nest: 1 Nested into a compound clip
+PASS Nest turns the selection into one compound clip
+cards after expand: 2 Expanded
+PASS Expand restores the two clips
+cards after ramp: 16 Speed ramp: Slow dip (1x, 0.25x, 1x)
+PASS Speed ramp cuts the clip into stepped pieces
+PASS undo of the ramp restores the clip
+after overwrite: 4 Overwritten
+PASS Overwrite places the marked range at the playhead
+=== /home/user/wt-fixB/docs/stage-4/smoke/stage4-lib-browser.cjs
+UA Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36
+scenes {"ms":834,"scenes":[{"a":0,"b":2.000000000000001,"thumb":"data:image/jpeg;base64","thumbLen":1159},{"a":2.000000000000001,"b":4.399999999999992,"thumb":"data:image/jpeg;base64","thumbLen":1159},{"a":4.399999999999992,"b":5.999999999999987,"thumb":"data:image/jpeg;base64","thumbLen":1159},{"a":5.999999999999987,"b":8,"thumb":"data:image/jpeg;base64","thumbLen":1159}]}
+PASS real mp4: 4 scenes (3 cuts) found
+PASS cut times within 0.1 s of 2.0 / 4.4 / 6.0: 2.000, 4.400, 6.000
+PASS each scene has a JPEG thumbnail
+PASS scene scan is cancellable (AbortError): AbortError
+EQ vs BiquadFilterNode [{"type":"peaking","maxDiff":0},{"type":"peaking","maxDiff":0},{"type":"lowshelf","maxDiff":0},{"type":"highshelf","maxDiff":0},{"type":"highpass","maxDiff":0},{"type":"lowpass","maxDiff":0},{"type":"notch","maxDiff":0}]
+PASS EQ response matches BiquadFilterNode.getFrequencyResponse within 0.05 dB for all 7 band types
+bake {"ms":23,"cached":true,"flatIsSource":true,"db200":-0.007128183952714662,"db5k":-12.000441155755341,"isWav":true}
+PASS 200 Hz untouched by a 5 kHz notch-ish cut: -0.01 dB
+PASS 5 kHz reduced by about 12 dB in the baked file: -12.00 dB
+PASS bake is cached per (source, EQ); a flat EQ returns the source unchanged
+meters {"state":"running","a":[-6.020653756260616,-6.020653756260616],"b":[-12.041249527760623,-12.041249527760623],"c":[-18.020642418767995],"d":[-6.020640813205866]}
+PASS AudioContext running
+PASS mono 0.5 sine meters -6 dBFS on both L and R: -6.0,-6.0
+PASS master 0.5 lowers the meter by 6 dB: -6.02
+PASS EQ -12 dB at 1 kHz in the live graph lowers the meter by about 12 dB: -12.00
+PASS removing the EQ restores the level
+PASS thumbnail cache persists in real IndexedDB: {"count":1,"bytes":27,"backend":"indexeddb"}
+capabilities webcodecs=yes webgl2=yes opfs=yes audioworklet=yes webaudio=yes indexeddb=yes workers=yes isolation=no webgpu=yes mediacapabilities=yes hardware=yes
+PASS capability detector runs against the real window
+proxy {"size":76143,"type":"video/mp4","cancel":"AbortError"}
+PASS proxy generation is cancellable
+PASS proxy blob produced: 76143 bytes
+=== /home/user/wt-fixB/docs/stage-4/smoke/stage4-ui-smoke.cjs
+%cYou can ignore this warning if you are subs
+assets in scene picker: [ 'cuts.mp4' ]
+PASS imported clip is in the scene browser asset list
+scene msg early: 4 scenes found.
+scene msg: 4 scenes found.
+PASS scene browser lists 4 scenes for the 3-cut clip (got 4)
+PASS every scene card has a thumbnail
+PASS search tag:sunset finds the tagged scene only
+PASS search by time 0:03 finds the scene that contains it
+frame stepping: 0:02.0 · frame 50 -> 0:02.1 · frame 52 -> 0:02.0 · frame 51 (clip is 25 fps)
+PASS frame numbers use the clip's real frame rate (25 fps, not the 30 the import assumes)
+PASS frame inspector steps exactly one frame per click
+clip cards 0 -> 2
+PASS Add to timeline placed the scene (video + linked audio)
+PASS audio tab shows the EQ for the selected clip
+PASS EQ response curve drawn after choosing a preset
+band 4 gain after Voice clarity preset: 3.5
+PASS Voice clarity preset sets band 4 to +3.5 dB
+PASS master volume shows 50%
+media elements: [["VIDEO",false,3.51,false,1]]
+meters during playback (dBFS): -25.1 -25
+PASS stereo meters move while the timeline plays (the clip has a 440 Hz tone)
+capability rows: 11 WebCodecs
+VideoDecoder + VideoEncoder present
+WebGL2
+context created
+Origin private file system (OPFS)
+origin private file system available
+AudioWorklet
+AudioWorklet available
+Web Audio (live + offline)
+AudioContext yes, OfflineAudioContext yes
+IndexedDB
+available
+Workers + OffscreenCanvas
+Worker yes, OffscreenCanvas yes
+Cross-origin isolation (SharedArrayBuffer)
+not isolated (multi-threaded ffmpeg.wasm unavailable; the editor does not need it)
+WebGPU
+navigator.gpu present
+Media Capabilities (decode)
+H.264 1080p30: smooth; VP9 1080p30: smooth; H.264 4K30: smooth
+Device
+4 logical cores, 16 GB memory (rounded)
+PASS capabilities listed in one place
+0 of 1 sources are missing.
+PASS Check media reports no missing sources for a fresh import
+cancelled via registry: true
+row after cancel: cuts.mp4Make proxy
+PASS cancelling a running proxy leaves the asset without a proxy
+PASS a proxy generated through the app path is attached to the asset (Has proxy)
+media rows: ["cuts.mp4Has proxy"] jobs: []
+ALLDONE

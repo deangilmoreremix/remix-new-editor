@@ -18,7 +18,7 @@ import { attachDragResize } from '../../../lib/editor/addons/dragResize.js';
 // @ts-expect-error plain JS: the same CTA box helper the export uses
 import { ctaBox } from '../../../lib/editor/addons/ctaLottie.js';
 import { mgOverlayLayer } from '@cinegen/lib/occ/mg-templates';
-import { overlaysAt, isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
+import { overlaysAt, isRegistryOverlay, gatesOnTimeline } from '@cinegen/lib/overlays/overlays';
 import { hyperframesOverlayLayer, hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers (same math the renderer and the export use)
 import { hfPlacement, isReactItem } from '../../../lib/hyperframes/placement.js';
@@ -65,10 +65,10 @@ function HfHandle({ overlay, frame, onGeometry }: { overlay: OverlayClip; frame:
     const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); setDraft(null); onGeometry?.(overlay.id, { x: Math.round(last.x * 10) / 10, y: Math.round(last.y * 10) / 10, scale: Math.round(last.scale * 100) / 100 }); };
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
   };
-  const grip: CSSProperties = { position: 'absolute', pointerEvents: 'auto', background: 'rgba(8,11,17,.82)', color: '#22d3ee', border: '1px solid #22d3ee', fontSize: 11, lineHeight: 1, padding: '3px 7px', borderRadius: 6, userSelect: 'none', touchAction: 'none' };
+  const grip: CSSProperties = { position: 'absolute', pointerEvents: 'auto', background: 'rgba(8,11,17,.82)', color: '#d9ff00', border: '1px solid #d9ff00', fontSize: 11, lineHeight: 1, padding: '3px 7px', borderRadius: 6, userSelect: 'none', touchAction: 'none' };
   return (
     <div data-hf-handle-root style={{ position: 'absolute', inset: 0, zIndex: 7, pointerEvents: 'none' }}>
-      <div data-testid="hf-handle-box" style={{ position: 'absolute', left: pct(p.left, frame.width), top: pct(p.top, frame.height), width: pct(p.w, frame.width), height: pct(p.h, frame.height), outline: '1.5px dashed rgba(34,211,238,.85)', pointerEvents: 'none' }}>
+      <div data-testid="hf-handle-box" style={{ position: 'absolute', left: pct(p.left, frame.width), top: pct(p.top, frame.height), width: pct(p.w, frame.width), height: pct(p.h, frame.height), outline: '1.5px dashed rgba(217, 255, 0,.85)', pointerEvents: 'none' }}>
         <div data-testid="hf-handle-move" title="Drag to move" onPointerDown={start('move')} style={{ ...grip, left: 6, top: 6, cursor: 'move' }}>✥ Move</div>
         <div data-testid="hf-handle-scale" title="Drag to resize" onPointerDown={start('scale')} style={{ ...grip, right: 4, bottom: 4, width: 12, height: 12, padding: 0, borderRadius: 3, cursor: 'nwse-resize' }} />
       </div>
@@ -115,6 +115,7 @@ export function OverlayLayer({ overlays, currentTime, isPlaying, previewPlaying,
       };
       const live = isPlaying || gating.current === o.id;
       if (o.type === 'lead-form') {
+        if (!gatesOnTimeline(o) && isPlaying) continue; // 'at the end' / 'on pause' / 'exit intent': a published-page behaviour, so playing past it here must not stop the preview
         showLeadForm(host, o, { preview: !live, onEditText: onEditText ? (key: string, value: string) => onEditText(o.id, key, value) : undefined, onSubmit: async (data: Record<string, unknown>) => { const r = await sendLead(o, data); done(); return r; }, onSkip: done });
         gated = true; if (isPlaying) gating.current ??= o.id;
       } else if (o.type === 'list-builder') {

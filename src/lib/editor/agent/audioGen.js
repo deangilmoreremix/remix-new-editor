@@ -79,16 +79,28 @@ export async function generateAudio(kind, params, { fetchImpl, signal, pollMs = 
   const missing = missingKeyMessage(kind, params, keyManager);
   if (missing) throw new Error(missing);
   const first = await call({ action: 'submit', kind, ...params }, { fetchImpl, signal, keyManager });
-  if (first.status === 'done' && first.url) return first.url;
+  if (first.status === 'done' && (first.url || kind === 'voice-clone')) return first.url || '';
   const started = Date.now();
   for (;;) {
     if (Date.now() - started > timeoutMs) throw new Error('Audio generation timed out — try again');
     await sleep(pollMs, signal);
     onProgress?.({ elapsedSec: Math.round((Date.now() - started) / 1000) });
-    const res = await call({ action: 'status', requestId: first.requestId }, { fetchImpl, signal, keyManager });
+    // `kind` lets the server treat a finished voice clone (a saved voice, maybe with no audio file) as done.
+    const res = await call({ action: 'status', requestId: first.requestId, kind }, { fetchImpl, signal, keyManager });
     if (res.status === 'done' && res.url) return res.url;
+    if (res.status === 'done' && kind === 'voice-clone') return '';
     if (res.status === 'failed') throw new Error(res.error || 'Audio generation failed');
   }
+}
+
+/**
+ * Clone the user's own voice from a sample at a public https URL (MiniMax
+ * through MuAPI, on the user's own key). The caller must have collected the
+ * speaker's consent: the server refuses the request without it.
+ * Resolves to the provider's preview audio URL, or '' when it gives none.
+ */
+export function cloneVoice({ audioUrl, voiceId, sampleText }, opts = {}) {
+  return generateAudio('voice-clone', { audioUrl, voiceId, consent: true, ...(sampleText ? { sampleText } : {}) }, opts);
 }
 
 /** Copy remote audio into storage (falls back to the provider URL). */

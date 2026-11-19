@@ -1,0 +1,86 @@
+{
+ "results": [
+  {
+   "ok": true,
+   "m": "Download disabled until the consent box is ticked"
+  },
+  {
+   "ok": true,
+   "m": "nothing was requested from huggingface.co before consent"
+  },
+  {
+   "ok": true,
+   "m": "licence (apache-2.0) and size are shown"
+  },
+  {
+   "ok": true,
+   "m": "MusicGen shows CC-BY-NC-4.0"
+  },
+  {
+   "ok": true,
+   "m": "MusicGen download stays disabled without the non-commercial acknowledgement"
+  },
+  {
+   "ok": true,
+   "m": "model reports installed after download"
+  },
+  {
+   "ok": true,
+   "m": "weights are in browser Cache Storage (transformers-cache)"
+  },
+  {
+   "ok": true,
+   "m": "generation finished without error "
+  },
+  {
+   "ok": true,
+   "m": "an audio asset and clip exist in the saved project"
+  },
+  {
+   "ok": true,
+   "m": "clip duration is sensible: 6.12"
+  },
+  {
+   "ok": true,
+   "m": "asset records model + licence"
+  },
+  {
+   "ok": true,
+   "m": "generated WAV is not silent (max_volume -4.8 dB)"
+  },
+  {
+   "ok": true,
+   "m": "exported file contains the narration (max_volume -4.7 dB)"
+  },
+  {
+   "ok": true,
+   "m": "generated audio is kept in the IndexedDB blob store (Fix B) across reload: [\"asset-mwic8c7r-z4qgm\",\"asset-mwic9r78-fmwn4\"]"
+  },
+  {
+   "ok": true,
+   "m": "after reload the model is still listed as downloaded (browser cache)"
+  },
+  {
+   "ok": true,
+   "m": "progress + Cancel shown while downloading"
+  },
+  {
+   "ok": true,
+   "m": "Cancel returns the model to \"not downloaded\""
+  },
+  {
+   "ok": true,
+   "m": "Delete removes the weights from Cache Storage"
+  }
+ ],
+ "requested": [
+  "HF config.json",
+  "HF tokenizer_config.json",
+  "HF onnx/model_quantized.onnx",
+  "HF tokenizer.json",
+  "CDN ort-wasm-simd-threaded.asyncify.wasm",
+  "CDN ort-wasm-simd-threaded.asyncify.mjs",
+  "HF voices/af_heart.bin",
+  "HF onnx/model.onnx"
+ ]
+}

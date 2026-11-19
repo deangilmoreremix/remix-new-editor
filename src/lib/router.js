@@ -17,6 +17,7 @@ const ROUTE_MAP = {
   'Smart Video Scheduler': 'smart-video-scheduler',
 
   'Personalizer': 'personalizer',
+  'Video Pages': 'video-pages',
   'Contacts': 'contacts',
   'Social': 'social',
   'Landing': 'landing',
@@ -84,11 +85,15 @@ const pageLoaders = {
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
   leadfinder: () => import('../components/LeadFinderStudio.js').then(m => m.LeadFinderStudio()),
+  outreach: () => import('../components/OutreachStudio.js').then(m => m.OutreachStudio()),
+  recorder: () => import('../components/RecorderStudioPage.js').then(m => m.RecorderStudioPage()),
   'find-my-brand': () => import('../components/FindMyBrandPage.js').then(m => m.FindMyBrandPage()),
   // Motion Director (ported from OpenHiggsBolt): the chat and its Motion Workbench editor.
   'motion-director': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   'motion-director/workbench': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   personalizer: () => import('../components/Personalizer.js').then(m => m.Personalizer()),
+  // Video landing pages (public pages live at /p/<slug>, mounted from main.js).
+  'video-pages': () => import('../components/LandingPagesStudio.js').then(m => m.LandingPagesStudio()),
   'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
@@ -120,9 +125,10 @@ const pageLoaders = {
     return import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio());
   },
   // The Timeline Editor is CineGen's workspace (vendored in src/cinegen, our colours + features). The unmodified clone can still be shown
-  // in an iframe via components/CineGenFramePage.js (VITE_CINEGEN_URL); the previous editor stays at #/timeline-classic.
+  // in an iframe via components/CineGenFramePage.js (VITE_CINEGEN_URL); #/timeline-classic now redirects here.
   timeline: () => import('../cinegen/mount.tsx').then(m => m.CineGenEditorPage()),
-  'timeline-classic': () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
+  // Old links/bookmarks to the previous editor open the new one (the classic page is no longer reachable from the app).
+  'timeline-classic': () => import('../cinegen/mount.tsx').then(m => m.CineGenEditorPage()),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),

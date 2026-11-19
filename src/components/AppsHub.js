@@ -1,6 +1,7 @@
 import { navigate } from '../lib/router.js';
 import { getStudioThumbnail, getHeroThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 import { NAV_GROUPS } from '../lib/studioRoutes.js';
+import { COLLAB_APPS } from '../lib/collabSuite.js';
 
 const CORE_STUDIOS = [
   { id: 'image', name: 'Image Studio', description: 'Generate images with 20+ AI models', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: '20+ models', color: 'bg-primary/10 text-primary border-primary/20' },
@@ -25,6 +26,7 @@ const AI_APPS = [
   { id: 'videotools', name: 'Video Tools', description: 'Upscale, edit, translate, and enhance videos', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 9l5 3-5 3V9z"/></svg>', badge: 'Video Tools', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' },
   { id: 'lipsync', name: 'Lip Sync Studio', description: 'Animate portraits or sync lips to audio with AI', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>', badge: 'Lip Sync', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
   { id: 'personalizer', name: 'Personalizer', description: 'Personalize templates and assets with your data', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>', badge: 'Personalize', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' },
+  { id: 'video-pages', name: 'Video Pages', description: 'Turn any video into a branded landing page with a CTA and lead form', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 8h18"/><path d="M10 12.5l4 2.5-4 2.5z"/></svg>', badge: 'Landing pages', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
   { id: 'video-agent', name: 'Video Agent', description: 'AI-powered video production assistant', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', badge: 'Agent', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
   { id: 'ai-vfx', name: 'AI VFX Studio', description: 'Camera moves, VFX and AI effects from one image', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.39 6.95H22l-6.19 4.5L18.18 22 12 17.5 5.82 22l2.37-8.55L2 8.95h7.61L12 2z"/><circle cx="12" cy="12" r="3"/></svg>', badge: 'VFX', color: 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20' },
   { id: 'brand', name: 'Brand Studio', description: 'Brand-consistent content generation', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>', badge: 'Brand', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
@@ -48,6 +50,8 @@ const pick = (ids) => ids.map((id) => ALL_APPS[id]).filter(Boolean);
 // The first group (Apps / Explore / Templates) is navigation, not an app.
 const APP_SECTIONS = NAV_GROUPS.slice(1).map((g) => [`${g.title} apps`.replace('My Work apps', 'My Work'), pick(g.items.map((it) => it.id))]);
 
+if (COLLAB_APPS.length) APP_SECTIONS.push(['Collaboration apps', COLLAB_APPS]);
+
 export function AppsHub() {
   const container = document.createElement('div');
   container.className = 'w-full h-full overflow-y-auto bg-app-bg';
@@ -70,7 +74,7 @@ export function AppsHub() {
         ['2', 'Create', 'Describe what you want, pick a model and press Generate.'],
         ['3', 'Keep it', 'Results land in your Library, ready to edit, render or publish.'],
       ].map(([n, t, d]) => `
-        <div class="rounded-2xl p-6 bg-[#111]/80 border border-white/10">
+        <div class="rounded-2xl p-6 bg-card-bg/80 border border-white/10">
           <div class="w-7 h-7 rounded-full bg-primary/15 text-primary text-xs font-black flex items-center justify-center mb-3">${n}</div>
           <div class="text-sm font-bold text-white mb-1">${t}</div>
           <div class="text-xs text-white/50 leading-relaxed">${d}</div>
@@ -96,7 +100,7 @@ export function AppsHub() {
     inner.appendChild(createSection(title, apps.map(s => ({
       ...s,
       thumbnail: getStudioThumbnail(s.id) || getHeroThumbnail(s.id),
-      onClick: () => { saveRecent(s.id, s.name); navigate(s.id); },
+      onClick: () => (s.href ? window.open(s.href, '_blank', 'noopener') : (saveRecent(s.id, s.name), navigate(s.id))),
     })), true));
   });
 
@@ -146,7 +150,7 @@ function createSection(title, items, isStudio = false) {
 
   items.forEach(item => {
     const card = document.createElement('div');
-    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group overflow-hidden';
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group overflow-hidden';
     card.dataset.searchable = `${item.name} ${item.description || ''}`;
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');

@@ -437,6 +437,18 @@ export function LibraryPage() {
           label: 'Download',
           onClick: () => downloadItem(item),
         },
+        // Any generated video can become a landing page (public link, CTA, lead form, analytics).
+        ...(item.type === 'video' || item.type === 'image' ? [{
+          id: 'landing-page',
+          label: 'Create landing page',
+          onClick: async () => {
+            // Opens the landing page picker (all designs, full view + editor) with this video attached.
+            const { openLandingPagePicker, toPickerVideo } = await import('../lib/landingPages/pickerModal.js');
+            if (!toPickerVideo(item)) { showToast('This video has no shareable link yet.', 'warning', 3000); return; }
+            detailView.hide();
+            openLandingPagePicker({ video: item });
+          },
+        }] : []),
       ],
     });
     detailView.show();

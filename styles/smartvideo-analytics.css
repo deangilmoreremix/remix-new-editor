@@ -31,6 +31,39 @@
 @media(max-width:600px){.sv-tabs button{padding:9px 4px;min-width:0}.sv-segment button{padding:9px 6px}}
 @media(max-width:600px){.sv-segment{flex-wrap:nowrap;flex:1 1 100%}.sv-segment button{padding:9px 2px;font-size:11.5px;min-width:0}.sv-toolbar-actions .sv-secondary-btn{flex:1 1 100%;justify-content:center}}
 
+/* Retention markers, audience breakdown, version comparison, insight list. Token-only colours: they follow both themes. */
+.sv-marker{cursor:help;outline:none}
+.sv-marker-line{stroke:var(--sv-green);stroke-width:2;stroke-dasharray:5 3}
+.sv-marker-list-builder .sv-marker-line{stroke:var(--sv-muted);stroke-dasharray:2 3}
+.sv-marker-cta .sv-marker-line{stroke:var(--sv-blue);stroke-dasharray:1 0}
+.sv-marker-window{fill:var(--sv-green);opacity:.14}
+.sv-marker-dot{fill:var(--sv-panel);stroke:var(--sv-green);stroke-width:2.5}
+.sv-marker-text{fill:var(--sv-text);font-weight:650}
+.sv-marker:hover .sv-marker-line,.sv-marker:focus-visible .sv-marker-line{stroke-width:4}
+.sv-marker:focus-visible .sv-marker-text{text-decoration:underline}
+.sv-marker-list{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:12px}
+.sv-marker-list li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.sv-marker-list small{color:var(--sv-muted)}
+.sv-marker-chip{padding:2px 8px;border-radius:99px;background:var(--sv-panel-soft);border:1px solid var(--sv-green);font-weight:650}
+.sv-marker-chip.sv-marker-list-builder{border-color:var(--sv-muted);border-style:dotted}
+.sv-marker-chip.sv-marker-cta{border-color:var(--sv-blue);border-style:solid}
+.sv-audience-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:16px}
+.sv-audience-col h4{margin:0 0 10px}
+.sv-audience-bars{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.sv-audience-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:5px}
+.sv-audience-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sv-audience-num{color:var(--sv-muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.sv-audience-bars .sv-progress{height:9px}
+.sv-table-wrap{overflow-x:auto;margin-top:14px}
+.sv-versions{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.sv-versions th,.sv-versions td{padding:9px 10px;text-align:left;border-top:1px solid var(--sv-border);white-space:nowrap}
+.sv-versions thead th{border-top:0;color:var(--sv-muted);font-size:11px;font-weight:650}
+.sv-versions td small{display:block;font-size:11px;color:var(--sv-muted)}
+.sv-versions th small{color:var(--sv-muted);font-weight:400}
+.sv-versions td small.sv-delta-up{color:var(--sv-green);font-weight:650}
+.sv-versions td small.sv-delta-down{color:var(--sv-text);font-weight:650}
+.sv-insight-list{margin:12px 0 16px;padding-left:18px;font-size:13px;display:flex;flex-direction:column;gap:8px}
+@media(max-width:700px){.sv-audience-grid{grid-template-columns:1fr}}
 /* ===== EDITOR THEME START: Timeline Editor palette. Accent colours are read from the editor's live tokens
    (--cyan / --emerald / --cyan-soft / --accent-grad), which the editor overrides at runtime with its lime brand,
    so nothing here hard-codes an accent. ===== */

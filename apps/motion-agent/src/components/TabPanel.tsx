@@ -35,8 +35,8 @@ export function TabPanel({
               "flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors",
               index > 0 && "border-l border-border",
               activeTab === tab.id
-                ? "bg-accent text-foreground"
-                : "bg-transparent text-muted-foreground hover:text-foreground hover:bg-accent/30",
+                ? "bg-primary/10 text-foreground shadow-[inset_0_0_0_1px_rgba(217,255,0,0.25)]"
+                : "bg-transparent text-muted-foreground hover:text-foreground hover:bg-primary/5",
             )}
           >
             <tab.icon className="w-4 h-4" />

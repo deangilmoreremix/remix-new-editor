@@ -428,18 +428,18 @@ export function Personalizer() {
       padding: 10px 6px;
       border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04);
+      background: transparent;
       color: rgba(255,255,255,0.8);
       cursor: grab;
       transition: all 0.15s ease;
       font-family: inherit;
     `;
     btn.addEventListener('mouseenter', () => {
-      btn.style.background = 'rgba(255,255,255,0.08)';
-      btn.style.borderColor = 'rgba(255,255,255,0.2)';
+      btn.style.background = 'transparent';
+      btn.style.borderColor = 'rgba(255,255,255,0.32)';
     });
     btn.addEventListener('mouseleave', () => {
-      btn.style.background = 'rgba(255,255,255,0.04)';
+      btn.style.background = 'transparent';
       btn.style.borderColor = 'rgba(255,255,255,0.08)';
     });
     btn.draggable = true;
@@ -484,7 +484,7 @@ export function Personalizer() {
       padding: 6px 10px;
       border-radius: 6px;
       border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04);
+      background: transparent;
       color: rgba(255,255,255,0.7);
       font-size: 11px;
       cursor: pointer;
@@ -535,8 +535,8 @@ export function Personalizer() {
     margin: 0 12px 12px;
     padding: 6px 10px;
     border-radius: 6px;
-    border: none;
-    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    background: transparent;
     color: #fff;
     font-size: 12px;
     cursor: pointer;
@@ -555,8 +555,8 @@ export function Personalizer() {
     margin: 0 12px 12px;
     padding: 6px 10px;
     border-radius: 6px;
-    border: none;
-    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    background: transparent;
     color: #fff;
     font-size: 12px;
     cursor: pointer;
@@ -579,8 +579,8 @@ export function Personalizer() {
     margin: 0 12px 12px;
     padding: 6px 10px;
     border-radius: 6px;
-    border: none;
-    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    background: transparent;
     color: #fff;
     font-size: 12px;
     cursor: pointer;
@@ -688,7 +688,7 @@ export function Personalizer() {
       padding: 3px 8px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
+      background: transparent;
       color: rgba(255,255,255,0.8);
       font-size: 10px;
       font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
@@ -771,9 +771,9 @@ export function Personalizer() {
   previewBtn.style.cssText = `
     padding: 8px 12px;
     border-radius: 6px;
-    border: none;
-    background: #d9ff00;
-    color: #000;
+    border: 1px solid rgba(217,255,0,0.55);
+    background: transparent;
+    color: #d9ff00;
     font-weight: 600;
     font-size: 12px;
     cursor: pointer;
@@ -791,7 +791,7 @@ export function Personalizer() {
     padding: 8px 12px;
     border-radius: 6px;
     border: 1px solid rgba(255,255,255,0.12);
-    background: rgba(255,255,255,0.04);
+    background: transparent;
     color: #fff;
     font-size: 12px;
     cursor: pointer;
@@ -805,8 +805,8 @@ export function Personalizer() {
   clearBtn.style.cssText = `
     padding: 8px 12px;
     border-radius: 6px;
-    border: 1px solid rgba(239,68,68,0.3);
-    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.45);
+    background: transparent;
     color: #fca5a5;
     font-size: 12px;
     cursor: pointer;

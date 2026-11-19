@@ -62,6 +62,28 @@ async function callScriptEndpoint(payload) {
   return { ok: true, text: json.text, responseId: json.responseId || null, model: json.model || null };
 }
 
+/**
+ * Clean an AI answer into exactly one line per scene: strips "Scene 2:" / "2." / bullets / wrapping quotes and blank lines,
+ * merges extra lines into the last scene, and splits the longest multi-sentence lines when there are too few.
+ */
+export function normalizeSceneLines(text, sceneCount) {
+  let lines = String(text || '').replace(/\r/g, '').split(/\n+/)
+    .map((l) => l.trim().replace(/^(?:scene\s*\d+\s*[:.\-–—]\s*|\d+\s*[.):\-]\s+|[-*•]\s+)/i, '').replace(/^["“](.*)["”]$/s, '$1').trim())
+    .filter(Boolean);
+  const n = Number(sceneCount) || 0;
+  if (n < 1 || !lines.length) return lines;
+  if (lines.length > n) lines = [...lines.slice(0, n - 1), lines.slice(n - 1).join(' ')];
+  while (lines.length < n) {
+    let idx = -1; let best = 0;
+    lines.forEach((l, i) => { if (l.split(/(?<=[.!?])\s+/).length > 1 && l.length > best) { best = l.length; idx = i; } });
+    if (idx < 0) break;
+    const sents = lines[idx].split(/(?<=[.!?])\s+/);
+    const mid = Math.ceil(sents.length / 2);
+    lines.splice(idx, 1, sents.slice(0, mid).join(' '), sents.slice(mid).join(' '));
+  }
+  return lines;
+}
+
 export async function generateScript({
   niche,
   templateContext,
@@ -72,6 +94,8 @@ export async function generateScript({
   platform,
   aspectRatio,
   personalizationEnabled = false,
+  scenes,
+  business,
 } = {}) {
   return callScriptEndpoint({
     action: 'generate',
@@ -85,6 +109,8 @@ export async function generateScript({
     aspectRatio,
     templateContext,
     personalizationEnabled,
+    scenes,
+    business,
   });
 }
 
@@ -117,6 +143,7 @@ export async function optimizeForVoice(params = {}) {
 }
 
 export default {
+  normalizeSceneLines,
   generateScript,
   rewriteScript,
   shortenScript,

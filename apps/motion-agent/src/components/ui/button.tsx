@@ -10,13 +10,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary-hover",
-        destructive: "bg-destructive text-foreground hover:bg-destructive/90",
+        // Outlined, never filled: primary = white hairline + 2px lime left edge (app's .btn-primary-modern)
+        default:
+          "bg-transparent text-foreground border border-white/12 border-l-2 border-l-primary shadow-[0_0_14px_rgba(217,255,0,0.14)] hover:border-primary/50 hover:-translate-y-px hover:shadow-[0_0_20px_rgba(217,255,0,0.22)]",
+        destructive:
+          "bg-transparent text-destructive border border-destructive/45 hover:bg-destructive/10 hover:border-destructive/70",
         outline:
-          "border border-border bg-transparent text-foreground hover:bg-accent",
+          "border border-primary/25 bg-transparent text-foreground hover:border-primary/50 hover:bg-primary/5",
+        // secondary = the same Generate look (white hairline + lime left edge) as `default`, but without the glow. This is deliberate:
+        // action buttons all share the Generate look (matches the Image Studio); `default` marks the screen's main action.
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "text-foreground hover:bg-accent",
+          "bg-transparent text-foreground/90 border border-white/12 border-l-2 border-l-primary hover:text-foreground hover:border-primary/50 hover:-translate-y-px hover:shadow-[0_0_16px_rgba(217,255,0,0.08)]",
+        ghost: "text-foreground border border-primary/25 hover:border-primary/50 hover:bg-primary/5 hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -28,6 +33,16 @@ const buttonVariants = cva(
         "icon-lg": "size-11",
       },
     },
+    // Icon-only buttons (send arrow, paperclip...) are not "actions with a label": they get the symmetric Personalize outline
+    // instead of the asymmetric lime left edge, and they do not lift on hover.
+    compoundVariants: [
+      {
+        variant: ["default", "secondary"],
+        size: ["icon", "icon-sm", "icon-lg"],
+        class:
+          "border-primary/25 border-l border-l-primary/25 shadow-none hover:translate-y-0 hover:shadow-none hover:bg-primary/5",
+      },
+    ],
     defaultVariants: {
       variant: "default",
       size: "default",
