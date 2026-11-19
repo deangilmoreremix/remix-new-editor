@@ -32,17 +32,17 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
   const shareLink = pub.info ? canonicalUrl({ ...pub.info, id: pub.id }) : '';
   const domainLink = pub.info ? customDomainUrl(pub.info) : null;
   const saveDomain = async () => {
+    setLinkMsg('');
     if (domain.trim() && !normalizeDomain(domain)) { setLinkMsg('Enter a domain like videos.yourbusiness.com (no https:// or path).'); return; }
-    await pub.setDomain(domain);
-    setLinkMsg(domain.trim() ? 'Domain saved. Point its DNS (CNAME) at smartvid.app; we then connect it.' : 'Domain removed.');
+    if (await pub.setDomain(domain)) setLinkMsg(domain.trim() ? 'Domain saved. It goes live after we connect and verify it.' : 'Domain removed.');
   };
   const saveLink = async () => {
     const bizErr = !pub.info?.business && business ? validateSlug(business.trim().toLowerCase()) : null;
     const err = bizErr || validateSlug(slug.trim().toLowerCase());
     if (!pub.info?.business && !business.trim()) { setLinkMsg('Choose a business name first.'); return; }
     if (err) { setLinkMsg(err); return; }
-    await pub.saveLink(pub.info?.business ? '' : business.trim().toLowerCase(), slug.trim().toLowerCase());
-    setLinkMsg('Link saved. Old links keep working.');
+    if (await pub.saveLink(pub.info?.business ? '' : business.trim().toLowerCase(), slug.trim().toLowerCase())) setLinkMsg('Link saved. Old links keep working.');
+    else setLinkMsg('');
   };
   const live = !!pub.info?.published;
   const addQrCard = async () => {
@@ -91,7 +91,7 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
                     <input className="leads-input" value={domain} onChange={(e) => setDomain(e.target.value)} maxLength={253} placeholder="videos.yourbusiness.com" aria-label="Your own domain" data-testid="link-domain" />
                     <button type="button" className="leads-btn" disabled={pub.busy} onClick={() => void saveDomain()} data-testid="save-domain">Save domain</button>
                   </div>
-                  {domainLink && <p className="leads-note" data-testid="domain-link">Link on your domain once connected: {domainLink}</p>}
+                  {domainLink && <p className="leads-note" data-testid="domain-link">{pub.info.customDomainVerified ? `Live on your domain: ${domainLink}` : `Waiting for us to connect and verify your domain. Then: ${domainLink}`}</p>}
                 </div>
               )}
               <label className="leads-label">Who can find it

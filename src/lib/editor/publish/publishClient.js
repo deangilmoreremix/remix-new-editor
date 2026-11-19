@@ -57,7 +57,7 @@ export function canonicalUrl(video, origin = globalThis.location?.origin || '') 
   return watchUrl(video.id, origin);
 }
 
-/** The link on the business's own domain (only once the domain is connected), or null. */
+/** The link on the business's own domain, or null until a domain is set. Live only once it is verified (customDomainVerified). */
 export const customDomainUrl = (video) => (video?.customDomain && video?.slug ? `https://${video.customDomain}/${encodeURIComponent(video.slug)}` : null);
 
 const SLUG_ERRORS = {
@@ -237,14 +237,14 @@ export async function getMyVideo(client, id) {
   const { data, error } = await client.from('published_videos').select('id, title, published, view_count, updated_at, slug, privacy, revision').eq('id', id).maybeSingle();
   fail(error, 'Could not load the video');
   if (!data) return data;
-  const { business, customDomain } = await getMyBusiness(client).catch(() => ({ business: null, customDomain: null }));
-  return { ...data, business, customDomain };
+  const { business, customDomain, customDomainVerified } = await getMyBusiness(client).catch(() => ({ business: null, customDomain: null, customDomainVerified: false }));
+  return { ...data, business, customDomain, customDomainVerified };
 }
 
 export async function getMyBusiness(client) {
-  const { data, error } = await client.from('video_owner_profiles').select('business_slug, display_name, custom_domain').maybeSingle();
+  const { data, error } = await client.from('video_owner_profiles').select('business_slug, display_name, custom_domain, custom_domain_verified').maybeSingle();
   fail(error, 'Could not load your business name');
-  return { business: data?.business_slug || null, displayName: data?.display_name || null, customDomain: data?.custom_domain || null };
+  return { business: data?.business_slug || null, displayName: data?.display_name || null, customDomain: data?.custom_domain || null, customDomainVerified: !!data?.custom_domain_verified };
 }
 
 export async function claimBusinessSlug(client, slug, displayName = null) {

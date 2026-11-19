@@ -30,7 +30,7 @@ const fail = (error, fallback) => {
 /**
  * A link id that reads like the contact ("acme-dental-k7x2p9ab") yet stays unguessable: the id gates a contact's
  * details, so a readable prefix is always followed by at least 8 random characters (16-32 chars in all, the
- * database's rule). Without a usable label it is plain random.
+ * database's rule). Pass a business name, never a person's name. Without a usable label it is plain random.
  */
 export function readableLinkId(label, rand) {
   const base = slugify(label, '').slice(0, 20).replace(/-+$/g, '');
@@ -101,7 +101,7 @@ export async function syncPersonalLinks(client, videoId, items, { makeId = newLi
     const variables = item.variables && typeof item.variables === 'object' ? item.variables : {};
     const have = byContact.get(contactId);
     if (!have) {
-      inserts.push({ id: makeId(item.company || name), video_id: videoId, contact_id: contactId, name, variables });
+      inserts.push({ id: makeId(item.company), video_id: videoId, contact_id: contactId, name, variables });
     } else if (have.name !== name || JSON.stringify(have.variables) !== JSON.stringify(variables)) {
       const { error } = await client.from('video_personalizations').update({ name, variables }).eq('id', have.id);
       fail(error, 'Could not update a personal link');
@@ -134,8 +134,8 @@ export async function updatePersonalLink(client, id, patch = {}) {
 
 /** Give a link a new address. The old address stops working; the values stay. */
 export async function regeneratePersonalLink(client, id, { makeId = newLinkId } = {}) {
-  const { data: cur } = await client.from('video_personalizations').select('name, variables').eq('id', id).maybeSingle();
-  const next = makeId(cur?.variables?.businessName || cur?.name || '');
+  const { data: cur } = await client.from('video_personalizations').select('variables').eq('id', id).maybeSingle();
+  const next = makeId(cur?.variables?.businessName || '');
   const { data, error } = await client.from('video_personalizations').update({ id: next, revoked: false }).eq('id', id).select(COLS).maybeSingle();
   fail(error, 'Could not change the link');
   if (!data) throw new Error('That link no longer exists.');

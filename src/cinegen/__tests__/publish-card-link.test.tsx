@@ -13,7 +13,7 @@ import { PublishCard } from '../components/leads/publish-card';
 const type = (input: HTMLInputElement, v: string) => act(() => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, v); input.dispatchEvent(new Event('input', { bubbles: true })); });
 const makePub = (info: Record<string, unknown>) => ({
   id: 'abcdefgh12', info: { id: 'abcdefgh12', title: 'Intro', published: true, view_count: 0, ...info }, busy: false, error: '', loaded: true,
-  publish: vi.fn(), setLive: vi.fn(), saveLink: vi.fn().mockResolvedValue(undefined), setDomain: vi.fn().mockResolvedValue(undefined), setPrivacy: vi.fn(),
+  publish: vi.fn(), setLive: vi.fn(), saveLink: vi.fn().mockResolvedValue(true), setDomain: vi.fn().mockResolvedValue(true), setPrivacy: vi.fn(),
   reload: vi.fn(), title: 'Intro', signedIn: true, guest: false,
 });
 const mount = (pub: ReturnType<typeof makePub>) => {
@@ -58,6 +58,32 @@ describe('PublishCard link editing', () => {
     await act(async () => { q(host, 'save-domain').click(); });
     expect(pub.setDomain).toHaveBeenCalledWith('https://videos.acme.com/');
     cleanup();
+  });
+  it('does not say "saved" when the save failed', async () => {
+    const pub = makePub({});
+    pub.saveLink.mockResolvedValue(false); // the hook shows the error itself and resolves false
+    const { host, cleanup } = mount(pub);
+    type(q(host, 'link-business') as HTMLInputElement, 'acme');
+    type(q(host, 'link-slug') as HTMLInputElement, 'intro');
+    await act(async () => { q(host, 'save-link').click(); });
+    expect(pub.saveLink).toHaveBeenCalled();
+    expect(host.textContent).not.toMatch(/Link saved/);
+    cleanup();
+  });
+  it('says "saved" only after a successful domain save, and shows whether the domain is verified yet', async () => {
+    const pub = makePub({ business: 'acme', slug: 'intro', customDomain: 'videos.acme.com', customDomainVerified: false });
+    pub.setDomain.mockResolvedValueOnce(false);
+    const { host, cleanup } = mount(pub);
+    expect(q(host, 'domain-link').textContent).toMatch(/Waiting for us to connect and verify/);
+    type(q(host, 'link-domain') as HTMLInputElement, 'videos.acme.com');
+    await act(async () => { q(host, 'save-domain').click(); });
+    expect(host.textContent).not.toMatch(/Domain saved/);
+    await act(async () => { q(host, 'save-domain').click(); });
+    expect(host.textContent).toMatch(/Domain saved/);
+    cleanup();
+    const live = mount(makePub({ business: 'acme', slug: 'intro', customDomain: 'videos.acme.com', customDomainVerified: true }));
+    expect(q(live.host, 'domain-link').textContent).toMatch(/Live on your domain: https:\/\/videos\.acme\.com\/intro/);
+    live.cleanup();
   });
   it('Download MP4 jumps to the Export tab', () => {
     const { host, cleanup } = mount(makePub({}));

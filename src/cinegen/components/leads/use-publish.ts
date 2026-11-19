@@ -17,7 +17,7 @@ const KEY = 'remix.cinegen.published.v1';
 const readIds = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
 const signedIn = () => !!(window as unknown as { Clerk?: { user?: unknown } }).Clerk?.user;
 
-export interface PublishInfo { id: string; title: string; published: boolean; view_count: number; updated_at?: string; slug?: string | null; privacy?: string; business?: string | null; customDomain?: string | null }
+export interface PublishInfo { id: string; title: string; published: boolean; view_count: number; updated_at?: string; slug?: string | null; privacy?: string; business?: string | null; customDomain?: string | null; customDomainVerified?: boolean }
 
 /**
  * The client that owns the published video: the account's when signed in, otherwise a private guest identity
@@ -89,7 +89,8 @@ export function usePublished() {
   useEffect(() => { setLoaded(false); void reload(); }, [reload]);
   useEffect(() => { void offerGuestClaim().then((moved) => { if (moved) void reload(); }); }, [reload]);
 
-  const run = async (fn: () => Promise<void>) => { setBusy(true); setError(''); try { await fn(); } catch (e) { setError(friendlyPublishError(e)); } finally { setBusy(false); } };
+  /** Runs an action, showing its error on failure. Resolves to whether it succeeded (it never throws). */
+  const run = async (fn: () => Promise<void>): Promise<boolean> => { setBusy(true); setError(''); try { await fn(); return true; } catch (e) { setError(friendlyPublishError(e)); return false; } finally { setBusy(false); } };
   const publish = (title: string) => run(async () => {
     const c = await getClient();
     const { tl: t, state: s } = latest.current;

@@ -6,7 +6,7 @@ import {
 import { mountWatchPage } from '../../../../pages/WatchPage.jsx';
 import { renderSharePanel } from '../sharePanel.js';
 import { normalizeDomain, setCustomDomain, customDomainUrl } from '../publishClient.js';
-import { readableLinkId, newLinkId } from '../personalLinksClient.js';
+import { readableLinkId, newLinkId, syncPersonalLinks } from '../personalLinksClient.js';
 
 describe('slug helpers', () => {
   it('validates like the database', () => {
@@ -157,6 +157,23 @@ describe('custom domain', () => {
     expect(customDomainUrl({ customDomain: 'videos.acme.com', slug: 'intro' })).toBe('https://videos.acme.com/intro');
     expect(customDomainUrl({ slug: 'intro' })).toBeNull();
     expect(customDomainUrl({ customDomain: 'videos.acme.com' })).toBeNull();
+  });
+});
+
+describe('personal link ids from contacts', () => {
+  const rule = /^[A-Za-z0-9_-]{16,32}$/;
+  it('labels a new link with the company, never the person\'s name', async () => {
+    const inserted = [];
+    const list = { eq: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) };
+    const client = { from: () => ({ select: () => list, insert: (rows) => { inserted.push(...rows); return Promise.resolve({ error: null }); } }) };
+    await syncPersonalLinks(client, 'abcdefgh12', [
+      { contactId: 'c1', name: 'John Smith', company: 'Acme Dental', variables: {} },
+      { contactId: 'c2', name: 'Jane Doe', company: '', variables: {} },
+    ]);
+    expect(inserted).toHaveLength(2);
+    expect(inserted[0].id).toMatch(/^acme-dental-/);
+    expect(inserted[1].id).toMatch(rule);
+    for (const r of inserted) expect(r.id).not.toMatch(/john|smith|jane|doe/i);
   });
 });
 

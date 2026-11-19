@@ -6,7 +6,8 @@
  * The host's business comes from resolve_custom_domain() (anon key, returns only a slug). The domain must
  * also be added to this Netlify site as a domain alias with DNS pointing here; that step is what allows
  * traffic. The app reads <meta name="sv-route"> to open the right player (src/main.js).
- * Hosts of the app itself, previews and anything that does not resolve pass through untouched.
+ * Only a host an administrator has verified resolves (see 20261119170000_custom_domain_verified.sql). Hosts of the
+ * app itself, previews and anything that does not resolve pass through untouched.
  */
 const OWN = /(^|\.)(smartvid\.app|netlify\.app|netlify\.live|localhost)$/;
 const SLUG_PATH = /^\/([a-z0-9][a-z0-9-]{1,46}[a-z0-9])\/?$/;
@@ -51,4 +52,6 @@ export default async (request, context) => {
   return new Response(html, { status: response.status, headers });
 };
 
-export const config = { path: '/*', excludedPath: ['/assets/*', '/.netlify/*'] };
+// Only top-level single-segment paths (videos.acme.com/intro). A broader path would invoke this function, and count
+// toward the site's edge-function usage, for every page, script and API call.
+export const config = { path: ['/:slug', '/:slug/'] };
