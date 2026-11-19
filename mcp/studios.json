@@ -389,7 +389,7 @@
   "video-agent-studio": "Each step runs a tool loop inside the browser against the user's own timeline; there is nothing to do without that editor open.",
   "director": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
   "workbench": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
-  "cinegen": "Editor (replaced by the Workbench). Its fill-gap/extend actions are the Timeline AI tools; its own function calls generic /image-to-video and /generate-image routes the live API does not have.",
+  "cinegen": "Editor (replaced by the Workbench). Its fill-gap/extend actions are the Timeline AI tools. Its own function calls generic /image-to-video and /generate-image routes, which frameModels.js notes do not exist upstream (not checked live).",
   "timeline": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
   "timeline-classic": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
   "viral": "A static gallery of example videos; nothing to generate."

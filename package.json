@@ -48,7 +48,8 @@
     "predev": "npm run gen:motion-sources && npm run sync:mg-thumbs",
     "mcp:catalog": "node scripts/build-mcp-catalog.mjs",
     "mcp:start": "node mcp/index.js",
-    "test:mcp": "vitest run tests/mcp"
+    "test:mcp": "vitest run tests/mcp",
+    "mcp:coverage": "node scripts/build-mcp-coverage.mjs"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.29.9",
