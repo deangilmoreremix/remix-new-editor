@@ -134,6 +134,9 @@ async function waitForStudio(page) {
 }
 
 async function open(page, route) {
+  // ?dev= is the form the app rewrites ?dev to (no navigation race). Going via about:blank forces a
+  // real load even when only the hash changes, so seeded localStorage is read again.
+  await page.goto('about:blank');
   await page.goto(`${BASE}/?dev=#/${route}`, { waitUntil: 'domcontentloaded' });
   await waitForStudio(page);
   await dismissOverlays(page);

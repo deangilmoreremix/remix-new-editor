@@ -14,8 +14,10 @@
     "text": "Export video"
   },
   "edit-in-workbench-hand-off": {
-    "setup": "(()=>{const u=location.origin+'/media/awesome-seedance/videos/vicky.mp4';localStorage.setItem('smartvideo_generation_notifications',JSON.stringify([{id:'saved:guide-demo',type:'success',studio:'video',label:'Video Studio',url:u,message:'Chef plating a dessert in a warm kitchen, slow push-in',workbench:{url:u,type:'video',prompt:'Chef plating a dessert in a warm kitchen, slow push-in',parameters:{}},expiresAt:Date.now()+3600000}]))})()",
-    "selector": "[data-notification='success']"
+    "setup": "(async()=>{window.dispatchEvent(new CustomEvent('generation:saved',{detail:{studio:'video',entry:{id:'guide-demo',url:location.origin+'/media/awesome-seedance/videos/vicky.mp4',type:'video',prompt:'Chef plating a dessert in a warm kitchen, slow push-in',studio:'video'}}}));await new Promise(r=>setTimeout(r,800));})()",
+    "reload": false,
+    "selector": "[data-notification='success']",
+    "click": false
   },
   "project-tools": {
     "selector": "div.app > header.topbar"
