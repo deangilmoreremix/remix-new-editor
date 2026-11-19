@@ -28,12 +28,8 @@ export const toolIds = () => buildToolGroups().flatMap((g) => g.items.map((t) =>
 
 // Step 1: what the person wants to do (sets which video types are offered first).
 export const GOAL_CARDS = Object.freeze([
-  { id: 'ai-video', title: 'Create AI videos', text: 'Turn a prompt, an image or a script into a finished video.', tags: ['Text to video', 'Image to video'] },
-  { id: 'images', title: 'Create and edit images', text: 'Generate, edit, upscale and brand images and product shots.', tags: ['Image Studio', 'Edit Studio'] },
-  { id: 'personal', title: 'Personalised videos', text: 'Record once and send a version for every prospect, with their name and website.', tags: ['Video Outreach', 'Landing pages'] },
-  { id: 'edit', title: 'Edit and polish footage', text: 'Cut, caption, enhance and finish videos you already have.', tags: ['Timeline', 'Video Tools'] },
-  { id: 'marketing', title: 'Ads and marketing content', text: 'Product videos, social clips, landing pages and brand content.', tags: ['Product shots', 'Viral clips'] },
-  { id: 'explore', title: 'Explore everything', text: 'See every tool and decide as you go.', tags: ['All tools'] },
+  { id: 'ai-video', title: 'Create AI videos and images', text: 'Turn a prompt, an image or a script into finished videos and pictures. Pick a studio, describe it, press Generate.', tags: ['Text to video', 'Image studio'] },
+  { id: 'personal', title: 'Personalised videos', text: 'Record once. SmartVideo makes one version for each prospect, with their name and their website.', tags: ['Video Outreach', 'Landing pages'] },
 ]);
 
 // Step 6a: the kind of video. Each lists the tools to put first (ids from NAV_GROUPS), best first.
@@ -50,12 +46,8 @@ export const VIDEO_TYPES = Object.freeze([
 
 // Which video types each goal puts first.
 export const GOAL_TO_TYPES = Object.freeze({
-  'ai-video': ['text-to-video', 'cinematic', 'talking', 'effects'],
-  images: ['images', 'product'],
+  'ai-video': ['text-to-video', 'cinematic', 'talking', 'effects', 'images', 'product'],
   personal: ['outreach', 'talking', 'agent-edit'],
-  edit: ['agent-edit', 'effects', 'talking'],
-  marketing: ['product', 'outreach', 'text-to-video'],
-  explore: [],
 });
 
 /** Video types in display order for a goal: the goal's own first, then the rest. */

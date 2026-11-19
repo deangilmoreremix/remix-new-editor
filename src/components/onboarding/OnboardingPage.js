@@ -68,10 +68,11 @@ export async function mountOnboardingPage(host, { redo = false } = {}) {
       await flush(a);
       leaveTo(destinationFor(a));
     },
-    onDismiss: async (a) => {
-      track('onboarding_skip', { atStep: a.step });
+    // The person left early (the Academy button): remember it, then open where they asked to go.
+    onDismiss: async (a, destination) => {
+      track('onboarding_skip', { atStep: a.step, to: destination || SKIP_DEST });
       await flush(a);
-      leaveTo(SKIP_DEST);
+      leaveTo(destination || SKIP_DEST);
     },
   });
 }

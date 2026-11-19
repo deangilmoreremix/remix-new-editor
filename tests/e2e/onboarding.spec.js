@@ -54,10 +54,11 @@ test.describe('App-wide onboarding', () => {
     await expect(page.locator('[data-onboarding]')).toHaveCount(0);
   });
 
-  test('Skip onboarding takes you to the app and it does not come back', async ({ page }) => {
+  test('step 1 is two large cards; the Academy button leaves to the Academy and onboarding does not come back', async ({ page }) => {
     await open(page);
-    await page.click('[data-onb-dismiss]');
-    await page.waitForFunction(() => location.hash === '#/image', null, { timeout: 30_000 });
+    await expect(page.locator('[data-onb-goal]')).toHaveCount(2);
+    await page.click('[data-onb-academy]');
+    await page.waitForFunction(() => location.hash === '#/academy', null, { timeout: 30_000 });
     await expect(page.locator('[data-onboarding]')).toHaveCount(0);
     // going back to the onboarding link sends a skipped user straight on
     await page.goto(OPEN, { waitUntil: 'domcontentloaded' });
@@ -66,7 +67,7 @@ test.describe('App-wide onboarding', () => {
 
   test('reloading resumes at the saved step with the saved answers', async ({ page }) => {
     await open(page);
-    await page.click('[data-onb-goal="images"]');
+    await page.click('[data-onb-goal="personal"]');
     await page.click('[data-onb-team="solo"]');
     await expect(stepText(page)).toHaveText('Step 3 of 6');
     await page.reload({ waitUntil: 'domcontentloaded' });

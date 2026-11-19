@@ -43,7 +43,7 @@ describe('app onboarding flow', () => {
     const video = $$('[data-onb-group="Video"] [data-onb-tool]').map((c) => c.getAttribute('data-onb-tool'));
     expect(video.slice(0, 2)).toEqual(['avatar', 'lipsync']);
     expect($('[data-onb-tool="avatar"] img')).not.toBeNull();
-    expect($('[data-onb-start]').textContent).toBe('Explore all tools');
+    expect($('[data-onb-start]').textContent).toBe('Explore all studios');
     $('[data-onb-tool="lipsync"]').click();
     $('[data-onb-tool="avatar"]').click();
     expect($('[data-onb-start]').textContent).toBe('Start');
@@ -83,12 +83,29 @@ describe('app onboarding flow', () => {
     expect($('[data-onb-tool="library"]').getAttribute('aria-pressed')).toBe('false');
   });
 
-  it('skipping the whole onboarding reports it and removes the screen', () => {
+  it('step 1 is two large cards and the orange Academy button; the Academy button leaves to #/academy', () => {
     const onDismiss = vi.fn();
     mountOnboarding($('#host'), { onDismiss });
-    $('[data-onb-dismiss]').click();
+    expect($$('[data-onb-goal]')).toHaveLength(2);
+    expect($$('[data-onb-goal]').map((c) => c.getAttribute('data-onb-goal'))).toEqual(['ai-video', 'personal']);
+    expect($('[data-onb-dismiss]')).toBeNull(); // no "skip onboarding" link in the design
+    expect($('[data-onb-academy]').textContent).toContain('Not sure? Learn it in the SmartVideo Academy');
+    $('[data-onb-academy]').click();
     expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(onDismiss.mock.calls[0][1]).toBe('academy');
     expect(onDismiss.mock.calls[0][0].skippedAt).toBeTruthy();
     expect($('[data-onboarding]')).toBeNull();
+  });
+
+  it('uses the light design: .ob root, purple progress fill, two-card step 1, logo on step 1 and Back after', () => {
+    mountOnboarding($('#host'), {});
+    expect($('.ob')).not.toBeNull();
+    expect($('.ob-bar > i').style.width).toBe(`${(1 / 6) * 100}%`);
+    expect($('.ob-logo')).not.toBeNull();
+    expect($('[data-onb-back]')).toBeNull();
+    $('[data-onb-skip]').click();
+    expect($('[data-onb-back]')).not.toBeNull();
+    expect($('.ob-logo')).toBeNull();
+    expect(document.body.classList.contains('ob-active')).toBe(true);
   });
 });

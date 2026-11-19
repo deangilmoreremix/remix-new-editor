@@ -51,8 +51,8 @@ describe('app onboarding answers', () => {
   });
   it('keeps one browser copy per user', () => {
     const s = mem();
-    saveLocalAppOnboarding('u1', { goal: 'images', step: 2 }, s);
-    expect(loadLocalAppOnboarding('u1', s).goal).toBe('images');
+    saveLocalAppOnboarding('u1', { goal: 'personal', step: 2 }, s);
+    expect(loadLocalAppOnboarding('u1', s).goal).toBe('personal');
     expect(loadLocalAppOnboarding('u2', s)).toBeNull();
   });
 });
