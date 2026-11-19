@@ -58,6 +58,8 @@ export function createGatewayClient({ gatewayUrl, apiKey, brandName, fetchImpl =
     balance: () => call('/balance'),
     /** Run one of the brand's studio functions (as the signed-in key owner). Returns the function's own JSON. */
     studio: (name, body) => call(`/studio/${encodeURIComponent(name)}`, { method: 'POST', body }),
+    /** Allow-listed passthrough to the brand's workflow / agent API: { method, path, body } → upstream JSON. */
+    raw: (method, path, body) => call('/raw', { method: 'POST', body: { method, path, body } }),
     sleep,
     async upload({ url, filePath }) {
       if (url) return call('/upload', { method: 'POST', body: { source_url: url } });

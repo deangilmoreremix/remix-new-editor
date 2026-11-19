@@ -109,3 +109,33 @@ customTools.push({
     return r;
   },
 });
+
+// ── Voiceover (netlify/functions/agent-audio.js, run as the key's owner) ─────────────────────────────
+async function audioWait(client, requestId, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const r = await client.studio('agent-audio', { action: 'status', requestId });
+    if (r.status === 'done') return { status: 'completed', request_id: requestId, url: r.url };
+    if (r.status === 'failed') return { status: 'failed', request_id: requestId, error: r.error };
+    if (Date.now() >= deadline) return { status: 'processing', request_id: requestId };
+    await client.sleep(3000);
+  }
+}
+
+customTools.push({
+  name: 'voiceover_create',
+  description: 'Narrate text with a natural voice (MiniMax voices by default; provider "openai" uses your OpenAI key and returns the audio as a data URL). Max 3000 characters.',
+  input: {
+    text: z.string().min(1).max(3000),
+    voice: z.string().optional().describe('e.g. Wise_Woman, Deep_Voice_Man, Calm_Woman (OpenAI: marin, alloy, nova...)'),
+    speed: z.number().min(0.25).max(4).optional(), pitch: z.number().int().min(-12).max(12).optional(),
+    provider: z.enum(['minimax', 'openai']).optional(), instructions: z.string().max(500).optional().describe('OpenAI only: how to speak'),
+    wait: z.boolean().optional().describe('Wait for the result (default true)'),
+  },
+  run: async (a, client) => {
+    const r = await client.studio('agent-audio', { action: 'submit', kind: 'tts', text: a.text, voice: a.voice, speed: a.speed, pitch: a.pitch, provider: a.provider === 'openai' ? 'openai' : undefined, instructions: a.instructions });
+    if (r.status === 'done') return { status: 'completed', url: r.url };
+    if (!r.requestId) return r;
+    return a.wait === false ? { status: 'processing', request_id: r.requestId } : audioWait(client, r.requestId, 300_000);
+  },
+});

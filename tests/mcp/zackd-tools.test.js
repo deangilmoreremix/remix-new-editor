@@ -72,3 +72,18 @@ describe('brand_scrape', () => {
     expect(full.data.screenshot).toBe('AAAA');
   });
 });
+
+describe('voiceover_create', () => {
+  it('sends a request agent-audio accepts, waits for the job, and passes OpenAI through', async () => {
+    const { buildRequest } = await import('../../netlify/functions/agent-audio.js');
+    let polls = 0;
+    const { mcp, calls } = await setup((path, body) => (body.action === 'submit' ? (body.provider === 'openai' ? { ok: true, status: 'done', url: 'data:audio/mp3;base64,AAA' } : { ok: true, requestId: 'aud12345' }) : ++polls < 2 ? { ok: true, status: 'pending' } : { ok: true, status: 'done', url: 'https://cdn.example.com/v.mp3' }));
+    const r = text(await mcp.callTool({ name: 'smartvid_voiceover_create', arguments: { text: 'Hello world', voice: 'Calm_Woman', speed: 1.1 } }));
+    expect(r).toEqual({ status: 'completed', request_id: 'aud12345', url: 'https://cdn.example.com/v.mp3' });
+    expect(calls[0].path).toBe('/studio/agent-audio');
+    expect(buildRequest(calls[0].body).error).toBeUndefined();
+    const o = text(await mcp.callTool({ name: 'smartvid_voiceover_create', arguments: { text: 'Hi', provider: 'openai', voice: 'marin' } }));
+    expect(o).toEqual({ status: 'completed', url: 'data:audio/mp3;base64,AAA' });
+    expect(buildRequest(calls.at(-1).body).error).toBeUndefined();
+  });
+});
