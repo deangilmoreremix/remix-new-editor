@@ -86,6 +86,7 @@ export function LipSyncStudio() {
     videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
     videoModeBtn.textContent = '🎬 Video';
 
+    modeToggleRow.dataset.tour = 'mode'; // guided tours (src/lib/tours)
     modeToggleRow.appendChild(modeLabel);
     modeToggleRow.appendChild(imageModeBtn);
     modeToggleRow.appendChild(videoModeBtn);

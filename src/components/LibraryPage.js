@@ -77,6 +77,7 @@ export function LibraryPage() {
 
   const gridArea = document.createElement('div');
   gridArea.className = 'flex-1 overflow-y-auto px-4 md:px-8 pb-8';
+  gridArea.dataset.tour = 'library-grid'; // guided tours (src/lib/tours)
   container.appendChild(gridArea);
 
   async function loadHistory() {

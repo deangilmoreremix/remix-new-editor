@@ -111,6 +111,7 @@ export function LandingPagesStudio() {
     );
     const newBtn = el('button', BTN_PRIMARY, '+ New page');
     newBtn.type = 'button';
+    newBtn.dataset.tour = 'new-page'; // guided tours (src/lib/tours)
     newBtn.addEventListener('click', () => showNew());
     head.append(titleWrap, newBtn);
 

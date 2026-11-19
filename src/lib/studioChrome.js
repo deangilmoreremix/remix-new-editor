@@ -60,8 +60,10 @@ export function createStudioNavCluster({ onBack, onMenu, drawer } = {}) {
 // File drag-and-drop delegation is always enabled.
 // Returns { topbar, drawer, fileDrop } (`topbar` is null without a title;
 // `drawer` is always null and kept only for backward compatibility).
-export function mountStudioChrome(rootContainer, { title } = {}) {
+export function mountStudioChrome(rootContainer, { title, currentRoute } = {}) {
   const fileDrop = enableStudioFileDropDelegation(rootContainer);
+  // Root hook for the guided tours (src/lib/tours): which studio this page is.
+  if (currentRoute) rootContainer.dataset.studio = currentRoute;
 
   let topbar = null;
   if (title) {

@@ -269,7 +269,19 @@ try {
       window._thumbModal.close();
       window._thumbModal = null;
     }
+    // Window-level "a page is on screen" signal (route-changed above is scoped to the header and sidebar).
+    // The guided tours (src/lib/tours) start from it.
+    window.dispatchEvent(new CustomEvent('app:route-ready', { detail: { page } }));
   });
+
+  // Guided tours: the app tour once, then each studio's tour the first time it is opened. Set up before the first
+  // navigation so the first page is covered; a failure here must never stop the app.
+  try {
+    const { initTours } = await import('./lib/tours/autoStart.js');
+    window.__tours = initTours({ getPage: () => getCurrentPage() || '' });
+  } catch (err) {
+    console.warn('[App] Guided tours unavailable:', err.message);
+  }
 
   // Sync the router with hash changes so deep links and browser back/forward
   // work even when the initial hash was not yet populated during page load.

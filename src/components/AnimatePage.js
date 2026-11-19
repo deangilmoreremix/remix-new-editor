@@ -88,6 +88,7 @@ export function AnimatePage() {
   // ---- Source Type Tabs ----
   const sourceTabs = document.createElement('div');
   sourceTabs.className = 'flex gap-2 mb-4';
+  sourceTabs.dataset.tour = 'source'; // guided tours (src/lib/tours)
   SOURCE_TYPES.forEach(st => {
     const tab = document.createElement('button');
     tab.type = 'button';
@@ -311,6 +312,7 @@ export function AnimatePage() {
 
   optionRow.appendChild(createSelect('Duration', String(state.duration), DURATIONS, (v) => { state.duration = parseInt(v, 10); }));
   optionRow.appendChild(createSelect('Resolution', state.resolution, RESOLUTIONS, (v) => { state.resolution = v; }));
+  optionRow.dataset.tour = 'settings';
   controls.appendChild(optionRow);
 
   // ---- MuAPI Mode Toggle ----
@@ -427,6 +429,7 @@ export function AnimatePage() {
 
   const generateBtn = document.createElement('button');
   generateBtn.className = 'btn-primary-modern w-full';
+  generateBtn.dataset.tour = 'generate';
   generateBtn.textContent = 'Animate';
   generateBtn.onclick = async () => {
     if (!state.sourceImageUrl) {

@@ -1,0 +1,36 @@
+/* Guided tours (driver.js). On-brand dark popover with the lime accent; sits above modals (9999/10000) and toasts. */
+.driver-overlay, .driver-active .driver-overlay { z-index: 10100 !important; }
+.driver-stage, .driver-active-element { z-index: 10101 !important; }
+.driver-popover.sv-tour { z-index: 10102 !important; }
+
+.driver-popover.sv-tour {
+  background: #0d0d0f;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.65);
+  max-width: min(340px, calc(100vw - 24px));
+  padding: 18px 18px 14px;
+  font-family: inherit;
+}
+.driver-popover.sv-tour .driver-popover-title { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em; color: #fff; }
+.driver-popover.sv-tour .driver-popover-description { font-size: 0.875rem; line-height: 1.6; color: rgba(255, 255, 255, 0.68); margin-top: 6px; }
+.driver-popover.sv-tour .driver-popover-description a { color: #d9ff00; text-decoration: underline; text-underline-offset: 2px; }
+.driver-popover.sv-tour .driver-popover-progress-text { color: rgba(255, 255, 255, 0.45); font-size: 0.75rem; }
+.driver-popover.sv-tour .driver-popover-footer { margin-top: 14px; }
+.driver-popover.sv-tour .driver-popover-navigation-btns button {
+  background: transparent; color: #fff; text-shadow: none; font-weight: 700; font-size: 0.8125rem;
+  border: 1px solid rgba(255, 255, 255, 0.14); border-left: 2px solid #d9ff00; border-radius: 10px; padding: 0.45rem 0.9rem;
+}
+.driver-popover.sv-tour .driver-popover-navigation-btns button:hover { background: rgba(255, 255, 255, 0.06); }
+.driver-popover.sv-tour .driver-popover-prev-btn { border-left-color: rgba(255, 255, 255, 0.14); color: rgba(255, 255, 255, 0.7); }
+.driver-popover.sv-tour .driver-popover-close-btn { color: rgba(255, 255, 255, 0.5); }
+.driver-popover.sv-tour .driver-popover-close-btn:hover { color: #fff; }
+.driver-popover.sv-tour .driver-popover-arrow-side-left.driver-popover-arrow { border-left-color: #0d0d0f; }
+.driver-popover.sv-tour .driver-popover-arrow-side-right.driver-popover-arrow { border-right-color: #0d0d0f; }
+.driver-popover.sv-tour .driver-popover-arrow-side-top.driver-popover-arrow { border-top-color: #0d0d0f; }
+.driver-popover.sv-tour .driver-popover-arrow-side-bottom.driver-popover-arrow { border-bottom-color: #0d0d0f; }
+.sv-tour-off { margin-top: 10px; background: none; border: 0; padding: 0; font-size: 0.75rem; color: rgba(255, 255, 255, 0.4); cursor: pointer; }
+.sv-tour-off:hover { color: rgba(255, 255, 255, 0.8); text-decoration: underline; }
+/* Hover tooltips (data-tooltip) and the Timeline help layer must not sit on top of a tour step. */
+body.sv-tour-active [data-tooltip]::after, body.sv-tour-active [data-tooltip]::before, body.sv-tour-active .help-tip { display: none !important; }

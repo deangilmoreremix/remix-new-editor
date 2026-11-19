@@ -73,6 +73,7 @@ const COMMERCIAL_MODELS = [
 
   const triggerBtn = document.createElement('button');
   triggerBtn.type = 'button';
+  triggerBtn.dataset.tour = 'model'; // guided tours (src/lib/tours)
   triggerBtn.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
   const updateTrigger = () => {
     const model = COMMERCIAL_MODELS.find(m => m.id === selectedModel) || COMMERCIAL_MODELS[0];

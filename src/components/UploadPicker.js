@@ -236,6 +236,7 @@ export function createUploadPicker({
     // ── Trigger button ────────────────────────────────────────────────────────
     const trigger = document.createElement('button');
     trigger.type = 'button';
+    trigger.dataset.tour = 'upload'; // guided tours (src/lib/tours) point at this
     trigger.title = 'Reference media';
     trigger.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center relative overflow-hidden mt-1.5 bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group';
 

@@ -70,6 +70,7 @@ export function ContentLibraryPage() {
   filters.forEach(f => {
     const btn = document.createElement('button');
     btn.className = 'px-4 py-2 rounded-full text-xs font-bold transition-all';
+    if (f === 'all') btn.dataset.tour = 'content-filters'; // guided tours (src/lib/tours)
     safeSetText(btn, f === 'pdfs' ? 'PDFs' : f.charAt(0).toUpperCase() + f.slice(1));
     btn.onclick = () => { activeFilter = f; updateFilters(); renderGrid(); };
     filterBtns[f] = btn;

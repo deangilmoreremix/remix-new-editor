@@ -41,6 +41,7 @@ export function BrandStudio() {
   tools.appendChild(toolsTitle);
   const toolsGrid = document.createElement('div');
   toolsGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
+  toolsGrid.dataset.tour = 'brand-tools'; // guided tours (src/lib/tours)
   const brandTools = [
     { route: 'brand-dna', label: 'Brand DNA', description: 'Review and edit your brand identity' },
     { route: 'campaign', label: 'Campaigns', description: 'Create on-brand campaigns' },

@@ -600,6 +600,7 @@ export function AudioStudio() {
   // Model selector
   const modelWrapper = document.createElement('div');
   modelWrapper.className = 'w-full mb-6 animate-fade-in-up';
+  modelWrapper.dataset.tour = 'model'; // guided tours (src/lib/tours)
   modelWrapper.style.animationDelay = '0.1s';
   container.appendChild(modelWrapper);
 

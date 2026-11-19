@@ -351,6 +351,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
   function renderTemplateCard(template) {
     const card = document.createElement('div');
     card.className = 'group bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 cursor-pointer transition-colors';
+    card.dataset.tour = 'template-card'; // guided tours (src/lib/tours)
 
     const thumbnailEl = document.createElement('div');
     thumbnailEl.className = 'w-full aspect-video rounded-lg bg-black/40 overflow-hidden flex items-center justify-center mb-3 relative';
@@ -1908,6 +1909,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
 
     const triggerBtn = document.createElement('button');
     triggerBtn.type = 'button';
+    triggerBtn.dataset.tour = 'model'; // guided tours (src/lib/tours)
     triggerBtn.className = 'w-full flex items-center gap-3 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition';
     const updateTrigger = () => {
       const model = getModel(selectedModel);

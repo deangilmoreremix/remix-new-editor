@@ -195,6 +195,7 @@ async function EffectsCatalogStudio() {
 
   const effectsGrid = document.createElement('div');
   effectsGrid.className = 'grid grid-cols-2 gap-2';
+  effectsGrid.dataset.tour = 'effects-grid'; // guided tours (src/lib/tours)
   effectsPanel.appendChild(effectsGrid);
 
   const previewPanel = document.createElement('div');
@@ -1656,6 +1657,7 @@ export async function EffectsStudio() {
   };
 
   const toggle = createSegmented([{ value: 'effects', label: 'Effects' }, { value: 'motion', label: 'Motion graphics' }], 'effects', show);
+  toggle.setAttribute('data-tour', 'mode'); // guided tours (src/lib/tours)
   bar.appendChild(toggle);
 
   catalog.classList.add('absolute', 'inset-0');

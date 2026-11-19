@@ -322,6 +322,38 @@ export function SettingsModal(onClose) {
         window.location.assign(`${window.location.pathname}?redo=1#/onboarding`); // the query changes, so this loads the page afresh
     };
     modal.appendChild(redoBtn);
+
+    // Guided tours: replay the app tour, show every tour again, or turn tours off / on.
+    const toursRow = document.createElement('div');
+    toursRow.className = 'flex flex-wrap items-center gap-x-4 gap-y-1';
+    const tourLink = (label, attr, onClick) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.setAttribute(attr, '');
+        b.className = 'text-xs font-semibold text-white/45 hover:text-white underline-offset-2 hover:underline';
+        b.onclick = onClick;
+        return b;
+    };
+    const tourUser = () => window.Clerk?.user?.id || '';
+    toursRow.appendChild(tourLink('Replay app tour', 'data-replay-app-tour', () => {
+        removeModal();
+        window.dispatchEvent(new CustomEvent('tour:replay-shell'));
+    }));
+    toursRow.appendChild(tourLink('Reset all tours', 'data-reset-tours', async () => {
+        const { resetTours } = await import('../lib/tours/tourState.js');
+        await resetTours(tourUser());
+        window.dispatchEvent(new CustomEvent('tour:state-changed'));
+        showToast('Tours reset. Each studio will show its tour again.', 'success', 3000);
+    }));
+    toursRow.appendChild(tourLink('Turn guided tours off or on', 'data-toggle-tours', async () => {
+        const t = await import('../lib/tours/tourState.js');
+        const off = t.toursDisabled(t.loadLocalTours(tourUser()));
+        await t.setToursDisabled(tourUser(), !off);
+        window.dispatchEvent(new CustomEvent('tour:state-changed'));
+        showToast(off ? 'Guided tours are on.' : 'Guided tours are off.', 'success', 3000);
+    }));
+    modal.appendChild(toursRow);
     modal.appendChild(closeRow);
     modal.appendChild(closeX);
 

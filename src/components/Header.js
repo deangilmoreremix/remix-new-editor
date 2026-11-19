@@ -31,6 +31,7 @@ export function Header(navigate) {
   logoContainer.onclick = () => navigate('apps');
   logoContainer.setAttribute('role', 'link');
   logoContainer.setAttribute('aria-label', 'All apps');
+  logoContainer.setAttribute('data-tour', 'logo');
 
   leftPart.appendChild(logoContainer);
 
@@ -76,12 +77,24 @@ export function Header(navigate) {
     navigate,
     getClient: async () => { await primeSupabaseIdentity(); return supabase; },
   });
+  // Replay the guided tour for the page you are on (src/lib/tours).
+  const tourBtn = document.createElement('button');
+  tourBtn.type = 'button';
+  tourBtn.className = 'grid h-8 w-8 place-items-center rounded-full border border-white/10 text-sm font-bold text-secondary hover:text-white hover:border-white/30 transition-colors';
+  tourBtn.textContent = '?';
+  tourBtn.title = 'Replay the guided tour for this page';
+  tourBtn.setAttribute('aria-label', 'Replay guided tour');
+  tourBtn.setAttribute('data-tour', 'replay');
+  tourBtn.onclick = () => window.dispatchEvent(new CustomEvent('tour:replay', { detail: {} }));
+
+  rightPart.appendChild(tourBtn);
   rightPart.appendChild(bell.element);
   rightPart.appendChild(balanceChip);
   rightPart.appendChild(keyBtn);
 
   const headerAuthSlot = document.createElement('div');
   headerAuthSlot.className = 'flex items-center';
+  headerAuthSlot.setAttribute('data-tour', 'account');
   rightPart.appendChild(headerAuthSlot);
 
   navBar.appendChild(leftPart);

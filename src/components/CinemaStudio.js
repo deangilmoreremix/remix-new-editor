@@ -629,6 +629,7 @@ export function CinemaStudio() {
 
     // Model picker — same catalog-driven dropdown used by Video Studio.
     const modelBtn = document.createElement('button');
+    modelBtn.dataset.tour = 'model'; // guided tours (src/lib/tours)
     modelBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     const updateModelBtn = () => {
         const m = (currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model)
@@ -793,6 +794,7 @@ export function CinemaStudio() {
     const cameraBuilderBtn = document.createElement('button');
     cameraBuilderBtn.className = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
     cameraBuilderBtn.setAttribute('data-tooltip', 'Quick camera builder');
+    cameraBuilderBtn.dataset.tour = 'camera';
     cameraBuilderBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg> Builder`;
     settingsToolbar.appendChild(cameraBuilderBtn);
 

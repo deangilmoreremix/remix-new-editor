@@ -61,6 +61,7 @@ export function AppsHub() {
 
   const heroSection = document.createElement('div');
   heroSection.className = 'mb-10 animate-fade-in-up flex flex-col items-center text-center';
+  heroSection.dataset.tour = 'apps-hero'; // guided tours (src/lib/tours)
   // Upstream Explore Apps layout: badge pill, large hero, three step cards.
   heroSection.innerHTML = `
     <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider mb-5">
