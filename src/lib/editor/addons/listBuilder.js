@@ -209,6 +209,7 @@ export function defaultOptin(kind = 'list-builder') {
     autoReplyEnabled: false,
     autoReplySubject: 'Thanks for signing up',
     autoReplyBody: 'Hi {{first_name}}, thanks for signing up! Here is your video: {{video_link}}',
+    autoReplyReplyTo: '',
     requireConsent: false,
     consentText: 'I agree to receive emails and updates.',
     trigger: 'time',
@@ -350,7 +351,7 @@ export function listBuilderFields(config) {
   if (!personalizer) {
     fields.push(
       { key: 'webhookEnabled', label: 'Webhook Call', type: 'toggle', tab: 'Integrations' },
-      { key: 'webhook', label: 'Webhook Address (a Slack, Discord or Teams webhook URL sends a readable alert)', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
+      { key: 'webhook', label: 'Webhook Address (a Slack, Discord or Microsoft Teams webhook URL sends a readable alert)', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'webhook2', label: 'Webhook Address 2', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: 'webhook3', label: 'Webhook Address 3', type: 'url', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
       { key: '_webhookTest', label: 'Test Webhook', type: 'action', action: 'testWebhooks', tab: 'Integrations', showIf: (o) => o.webhookEnabled },
@@ -366,6 +367,7 @@ export function listBuilderFields(config) {
       { key: 'gtmId', label: 'Google Tag Manager ID (GTM-XXXXXXX)', type: 'text', tab: 'Integrations' },
       { key: 'autoReplyEnabled', label: 'Email each lead a thank-you with the video link (published videos; needs email set up)', type: 'toggle', tab: 'Integrations' },
       { key: 'autoReplySubject', label: 'Thank-you email subject', type: 'text', tab: 'Integrations', showIf: (o) => o.autoReplyEnabled },
+      { key: 'autoReplyReplyTo', label: 'Replies go to (your email address)', type: 'text', tab: 'Integrations', showIf: (o) => o.autoReplyEnabled },
       { key: 'autoReplyBody', label: 'Thank-you email text ({{first_name}} and {{video_link}} are filled in; plain text, one email per address per day)', type: 'textarea', rows: 4, tab: 'Integrations', showIf: (o) => o.autoReplyEnabled },
       { key: 'blockDisposableEmails', label: 'Block throwaway email addresses (published videos)', type: 'toggle', tab: 'Integrations' },
       { key: 'espProvider', label: 'Add leads to an email list (published videos)', type: 'select', options: ESP_PROVIDERS, tab: 'Integrations' },
@@ -427,6 +429,7 @@ const CLIP_KEYS = {
   autoReplyEnabled: 'autoReplyEnabled',
   autoReplySubject: 'autoReplySubject',
   autoReplyBody: 'autoReplyBody',
+  autoReplyReplyTo: 'autoReplyReplyTo',
   trigger: 'trigger',
 };
 

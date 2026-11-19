@@ -27,7 +27,7 @@ export function openDrawModal({ onDone, backgroundUrl, width = 1024, height = 10
   overlay.setAttribute('aria-label', 'Draw a reference');
   overlay.dataset.drawModal = '';
   overlay.innerHTML = `
-    <div class="w-full max-w-[860px] max-h-full flex flex-col gap-3 rounded-3xl bg-[#111] border border-white/10 p-4">
+    <div class="w-full max-w-[860px] max-h-full flex flex-col gap-3 rounded-3xl bg-card-bg border border-white/10 p-4">
       <div class="flex items-center gap-2 flex-wrap" data-toolbar></div>
       <div class="flex-1 min-h-0 overflow-auto flex justify-center"><canvas data-canvas class="max-w-full max-h-[62vh] rounded-xl bg-white touch-none cursor-crosshair"></canvas></div>
       <div class="flex justify-end gap-2">

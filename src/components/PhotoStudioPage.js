@@ -175,7 +175,7 @@ export function PhotoStudioPage() {
     advancedMuapiRow.classList.remove('hidden');
 
     const card = document.createElement('div');
-    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-3';
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-3';
 
     const addField = (label, type, value, onChange, placeholder) => {
       const row = document.createElement('div');
@@ -481,7 +481,7 @@ export function PhotoStudioPage() {
 
     state.results.forEach((result, idx) => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden mb-4';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden mb-4';
 
       if (result.imageUrl) {
         const img = createSafeImage(result.imageUrl, 'Generated product photo', 'w-full h-64 md:h-80 object-cover');

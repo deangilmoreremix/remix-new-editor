@@ -40,6 +40,13 @@ export const startAfterGate = (overlays: OverlayClip[], startSec: number) => (fi
 const KINDS = new Set<string>([...OVERLAY_KINDS.map((k) => k.kind), 'mg-template', 'hyperframes']);
 
 /** Add-ons driven by the old registry's schema (options live under `addon`), as opposed to the flat forms. */
+/**
+ * Whether a form holds the video at its place on the timeline. A Lead Generator can instead appear "at the end", "when the viewer
+ * pauses" or "on exit intent" (published video only), so the editor must not pause the preview for it at its timeline spot.
+ * The List Builder and every other kind always follow the timeline.
+ */
+export const gatesOnTimeline = (o: { type: string; trigger?: unknown }): boolean => o.type !== 'lead-form' || !o.trigger || o.trigger === 'time';
+
 export const isRegistryOverlay = (kind: string) => !['lead-form', 'list-builder', 'click-to-call'].includes(kind) && !!getAddon(kind);
 
 export function normalizeOverlays(value: unknown): OverlayClip[] {

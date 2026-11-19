@@ -77,3 +77,9 @@ a.leads-btn{text-decoration:none;display:inline-block}
 /* the preview wraps the real card: drop its own frame and heading so it reads as one card */
 .leads-preview .leads-card{border:0;background:none;padding:0}
 .leads-preview .leads-card__title{display:none}
+.leads-perf{background:rgba(0,0,0,.25);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.leads-perf__row{display:flex;justify-content:space-between;gap:10px;font-size:12px}
+.leads-perf__row span{color:var(--text-secondary,#9aa4b5)}
+.leads-tag--hot{background:rgba(239,68,68,.2);color:#fca5a5;margin-left:6px}
+.leads-tag--warm{background:rgba(245,158,11,.2);color:#fcd34d;margin-left:6px}
+.leads-tag--cold{background:rgba(96,165,250,.2);color:#93c5fd;margin-left:6px}

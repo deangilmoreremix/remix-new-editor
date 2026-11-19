@@ -5,11 +5,11 @@ import { createRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 
 vi.hoisted(() => { globalThis.IS_REACT_ACT_ENVIRONMENT = true; globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }; });
-import { Render } from '@puckeditor/core';
-import { puckConfig } from '../puck/config.jsx';
-import { PageContext } from '../puck/context.js';
-import { VideoPlayer, isPlayableVideo } from '../puck/components.jsx';
-import { PUCK_TEMPLATES } from '../puck/designs.js';
+import { Render } from '@page-editor/core';
+import { editorConfig } from '../editor/config.jsx';
+import { PageContext } from '../editor/context.js';
+import { VideoPlayer, isPlayableVideo } from '../editor/components.jsx';
+import { EDITABLE_TEMPLATES } from '../editor/designs.js';
 
 const VIDEO = 'https://x.supabase.co/storage/v1/object/public/uploads/u/clip.mp4';
 const ctx = (page, extra = {}) => ({ page, tokens: {}, handlers: {}, preview: false, ...extra });
@@ -77,12 +77,12 @@ describe('the play button works', () => {
 
 describe('every design shows a video slot people can recognise', () => {
   const page = { id: 'a', title: 'T', video_url: '', poster_url: null };
-  PUCK_TEMPLATES.forEach((t) => {
+  EDITABLE_TEMPLATES.forEach((t) => {
     it(`${t.id}: each video card has a play button (or its picture draws one)`, () => {
-      const out = renderToString(<PageContext.Provider value={ctx(page, { preview: true })}><Render config={puckConfig} data={t.puckData} /></PageContext.Provider>);
+      const out = renderToString(<PageContext.Provider value={ctx(page, { preview: true })}><Render config={editorConfig} data={t.editorData} /></PageContext.Provider>);
       const cards = (out.match(/class="pk-video[ "]/g) || []).length;
       const buttons = (out.match(/class="pk-video-play"/g) || []).length;
-      const baked = JSON.stringify(t.puckData).includes('"bakedPlay": "yes"') || JSON.stringify(t.puckData).includes('"bakedPlay":"yes"');
+      const baked = JSON.stringify(t.editorData).includes('"bakedPlay": "yes"') || JSON.stringify(t.editorData).includes('"bakedPlay":"yes"');
       if (cards) expect(baked ? true : buttons >= cards).toBe(true);
     });
   });

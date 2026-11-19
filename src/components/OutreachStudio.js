@@ -839,7 +839,7 @@ export function OutreachStudio() {
     if (draft.page && !designs.loaded) loadDesigns();
     const tplName = draft.page ? (designs.list.find((t) => t.id === draft.page.template)?.name || 'Your landing page') : '';
     apply.innerHTML = `<span class="truncate">${draft.page ? '' : 'Apply template…'}</span><span class="text-primary">${icon('plus', 18)}</span>`;
-    if (draft.page) apply.firstChild.textContent = `Template: ${tplName}${draft.page.puck ? ' (edited)' : ''}`;
+    if (draft.page) apply.firstChild.textContent = `Template: ${tplName}${draft.page.editor ? ' (edited)' : ''}`;
     apply.addEventListener('click', chooseLandingPage);
     tpl.appendChild(apply);
     if (draft.page) { const ed = el('button', 'self-start text-xs font-semibold text-primary hover:underline', 'Edit page'); ed.type = 'button'; ed.addEventListener('click', openPageEditor); tpl.appendChild(ed); }
@@ -1790,7 +1790,7 @@ export function OutreachStudio() {
   }
 
   // ---- Landing page (like Sendspark, the page belongs to this dynamic video) -----------------------
-  // draft.page = { template, puck } is one of your 33 landing page designs, edited right here (Edit page).
+  // draft.page = { template, editor } is one of your 33 landing page designs, edited right here (Edit page).
   // Generate publishes it once as the campaign's page, whose video is the campaign's personal player, so each
   // prospect sees their own video in it. Every later change updates that page, so every prospect's link shows it
   // straight away. Nothing is saved in Video Pages (src/lib/outreach/landingPage.js builds the links).
@@ -1801,7 +1801,7 @@ export function OutreachStudio() {
     designs.loading = true;
     try {
       tpl = await import('../lib/landingPages/templates.js');
-      designs.list = tpl.TEMPLATES.filter((t) => t.puck);
+      designs.list = tpl.TEMPLATES.filter((t) => t.editable);
       await adoptOldPage();
     } catch (err) { designs.error = err?.message || 'Could not load the landing pages.'; }
     designs.loaded = true;
@@ -1815,14 +1815,14 @@ export function OutreachStudio() {
     try {
       const { listPages } = await import('../lib/landingPages/client.js');
       const row = (await listPages(await ownerClient())).find((r) => r.id === id);
-      if (row?.config?.puck) draft.page = cleanPage({ template: row.config.template, puck: row.config.puck });
+      if (row?.config?.editor) draft.page = cleanPage({ template: row.config.template, editor: row.config.editor });
     } catch { /* signed out or offline: the plain video page until a design is chosen */ }
     delete draft.pageId;
     persist();
   }
   const designOf = (id) => designs.list.find((t) => t.id === id) || null;
   // The page as it stands: your edits, else the design as it comes.
-  const pagePuck = (page = draft.page) => (page ? page.puck || designOf(page.template)?.puckData || null : null);
+  const pageEditorData = (page = draft.page) => (page ? page.editor || designOf(page.template)?.editorData || null : null);
   const pageName = () => designOf(draft.page?.template)?.name || 'Your landing page';
   const livePage = () => (draft.campaign?.page?.url ? draft.campaign.page : null);
 
@@ -1830,7 +1830,7 @@ export function OutreachStudio() {
   const previewHandles = [];
   const dropPreviewHandles = () => previewHandles.splice(0).forEach((h) => h.destroy());
   const pagePreview = (host, width) => {
-    const data = pagePuck();
+    const data = pageEditorData();
     if (!data) return;
     import('../lib/landingPages/designPreview.js').then((m) => { previewHandles.push(m.attachDesignPreview(host, data)); if (width) host.style.width = width; });
   };
@@ -1856,8 +1856,8 @@ export function OutreachStudio() {
       selected: page?.template || '',
       onPick: (id) => {
         if (id === (page?.template || '')) return;
-        if (page?.puck && !window.confirm('Replace your edited page? Your changes to it will be lost.')) return;
-        setPage(id ? { template: id, puck: null } : null);
+        if (page?.editor && !window.confirm('Replace your edited page? Your changes to it will be lost.')) return;
+        setPage(id ? { template: id, editor: null } : null);
       },
     });
   }
@@ -1868,9 +1868,9 @@ export function OutreachStudio() {
     import('../lib/landingPages/pickerModal.js').then(({ openLandingPagePicker }) => openLandingPagePicker({
       video: draft.video?.url ? { url: draft.video.url, title: draft.name || 'My outreach video', duration: draft.video.duration, studio: 'outreach' } : null,
       template,
-      data: pagePuck(),
+      data: pageEditorData(),
       saveLabel: livePage() ? 'Save and update every link' : 'Save page',
-      onEdit: (puck) => setPage({ template, puck }),
+      onEdit: (editor) => setPage({ template, editor }),
     }));
   }
 
@@ -1895,7 +1895,7 @@ export function OutreachStudio() {
     const name = el('div', 'min-w-0 flex-1');
     name.append(
       el('div', 'truncate text-sm font-bold', design ? design.name : 'Plain video page'),
-      el('div', 'truncate text-[11px] text-secondary', design ? (page.puck ? 'Your edited page' : design.description) : 'No landing page: prospects open the personal video page.'),
+      el('div', 'truncate text-[11px] text-secondary', design ? (page.editor ? 'Your edited page' : design.description) : 'No landing page: prospects open the personal video page.'),
     );
     const choose = button('Choose landing page', { small: true, primary: !page });
     choose.setAttribute('data-outreach-choose-page', '');
@@ -1954,12 +1954,12 @@ export function OutreachStudio() {
       if (!quiet) setBusy('Updating your landing page…');
       if (!tpl) tpl = await import('../lib/landingPages/templates.js');
       // The design straight from the templates: the Page step (which loads the list) may not have been opened.
-      const design = tpl.TEMPLATES.find((t) => t.puck && t.id === draft.page.template);
-      const data = draft.page.puck || design?.puckData || null;
+      const design = tpl.TEMPLATES.find((t) => t.editable && t.id === draft.page.template);
+      const data = draft.page.editor || design?.editorData || null;
       if (!data) throw new Error('That landing page design was not found. Choose your landing page again.');
       const client = await ownerClient();
       const title = String(draft.name || '').trim() || pageName();
-      const config = { ...tpl.defaultConfig(draft.page.template, { title }), puck: JSON.parse(JSON.stringify(data)) };
+      const config = { ...tpl.defaultConfig(draft.page.template, { title }), editor: JSON.parse(JSON.stringify(data)) };
       let row;
       if (existing?.id) {
         row = await updatePage(client, existing.id, { config, published: true });
@@ -2522,7 +2522,7 @@ export function OutreachStudio() {
   // ---- Your first video (src/components/outreach/OutreachFirstVideo.js) ------------------
   // Like Sendspark, the person is the first prospect: Video Outreach's own Generate makes their personal video
   // from the SmartVideo sample presenter, with their website behind it and a landing page, on their MuAPI key.
-  const SAMPLE_PAGE = 'puck-enterprise';
+  const SAMPLE_PAGE = 'editable-enterprise';
   const SAMPLE_SECONDS = 26.5;
   async function showFirstVideo(a) {
     const [{ mountFirstVideo, SAMPLE_PRESENTER }] = await Promise.all([import('./outreach/OutreachFirstVideo.js')]);
@@ -2565,7 +2565,7 @@ export function OutreachStudio() {
       cta: { enabled: true, label: 'Make my first campaign', url: `${origin}/#/outreach`, embed: false },
       contacts: [me],
       background: { ...next.background, mode: 'website', fallbackSite: d.website, cursor: true },
-      page: { template: SAMPLE_PAGE, puck: null },
+      page: { template: SAMPLE_PAGE, editor: null },
     });
     replaceDraft(next);
     const ok = await generateCampaign({ confirmed: true, onStage });

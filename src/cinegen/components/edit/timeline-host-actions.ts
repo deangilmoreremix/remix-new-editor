@@ -111,8 +111,12 @@ export function useHostTimelineActions(d: HostActionDeps) {
 
   // Template Generator (classic editor's wizard): its composition is placed on this timeline in one undo step
   const handleOpenGenerator = useCallback(async () => {
-    const { TemplateGeneratorModal } = await import('../../../components/modals/TemplateGeneratorModal.jsx');
+    const [{ TemplateGeneratorModal }, { generatorHostOptions }] = await Promise.all([
+      import('../../../components/modals/TemplateGeneratorModal.jsx'),
+      import('@cinegen/lib/occ/template-generator-host'),
+    ]);
     const modal = new TemplateGeneratorModal({
+      ...generatorHostOptions(assets), // [remix] this editor's libraries, GL transitions, project media ("My media") and video export
       onConfirm: (result: { composition?: Composition }) => {
         if (!result?.composition) return;
         // [remix] starts at the playhead and is ONE undo step (a BATCH), so a single Undo removes everything the generator added
@@ -124,10 +128,6 @@ export function useHostTimelineActions(d: HostActionDeps) {
         ] });
       },
     });
-    // "My Media" in the wizard lists the project's own clips and images (as it listed the classic editor's media)
-    (modal as unknown as { data: { media: unknown[] } }).data.media = assets
-      .filter((x) => x.type === 'video' || x.type === 'image')
-      .map((x) => ({ id: x.id, assetId: x.id, type: x.type, name: x.name, url: x.url, duration: x.duration, thumbnail: x.thumbnailUrl ?? x.url, width: x.width, height: x.height }));
     modal.open();
   }, [dispatch, setTimeline, timelineRef, assets, currentTime]);
 

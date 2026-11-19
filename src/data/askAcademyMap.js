@@ -179,7 +179,6 @@ export const STUDIO_ACADEMY = {
   },
   'video-agent': { tracks: [], lessons: [] },
   zackd: { tracks: [T13], lessons: [] },
-  'video-pages': { tracks: [], lessons: [] },
   'motion-director': { tracks: [], lessons: [] },
   director: { tracks: [], lessons: [] },
   timeline: {
@@ -209,6 +208,12 @@ export const STUDIO_ACADEMY = {
     lessons: [
       { track: T14, lesson: '03-finding-and-closing-clients', why: 'Find and win clients for your services.' },
       { track: T09, lesson: '03-selling-to-realtors-and-agencies', why: 'Example of selling to a specific local niche.' },
+    ],
+  },
+  'video-pages': {
+    tracks: [T14],
+    lessons: [
+      { track: T14, lesson: '03-finding-and-closing-clients', why: 'Turn a video into a page that brings in leads and clients.' },
     ],
   },
   'find-my-brand': { tracks: [], lessons: [] },

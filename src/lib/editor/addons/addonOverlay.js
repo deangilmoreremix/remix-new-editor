@@ -332,6 +332,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   buttonsInner.className = 'buttons-inner';
   const submitButton = document.createElement('button');
   submitButton.type = 'submit';
+  submitButton.setAttribute('data-keep-fill', ''); // the creator chooses this button's colour; the app-wide outline-only rule must not strip it
   submitButton.textContent = config.btnText ?? 'Play';
   submitButton.dataset.editKey = 'btnText';
   Object.assign(submitButton.style, {
@@ -705,7 +706,7 @@ export function attachTextEditing(wrap, onEditText) {
  * (default 5, as upstream; 0 = stays until clicked) or on click.
  * Options: prefill, preview (editor: see-through backdrop).
  */
-export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, prefill = {}, preview = false, name = 'list-builder', allowRedirect = false, isActive = () => true } = {}) {
+export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, prefill = {}, preview = false, name = 'list-builder', allowRedirect = false, isActive = () => true, ctaId = name === 'list-builder' ? 'list-builder' : '' } = {}) {
   clearOverlay(layer, name);
   const wrap = document.createElement('div');
   wrap.className = 'addon-overlay addon-overlay--optin';
@@ -716,6 +717,7 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
   wrap.style.background = backdropStyle(config, { preview });
   const compact = (layer.clientWidth || 1000) < 480;
   const form = buildOptinForm(config, { prefill, compact });
+  if (ctaId && !preview) form.dataset.ctaId = String(ctaId); // lets the heatmap count how many viewers saw THIS form
   // Bot traps: a hidden field people never see or fill, and how long the form was open. They go to onSubmit as `signals`
   // (not as answers): the server drops submissions that fill the trap or finish faster than a person can.
   const trap = document.createElement('input');

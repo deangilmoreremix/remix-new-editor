@@ -6,6 +6,14 @@ export interface DeployResult {
   siteId: string
 }
 
+/** Thrown when the user has not connected their own Cloudflare account yet. */
+export class CloudflareNotConnectedError extends Error {
+  constructor(message = 'Connect your Cloudflare account in Settings → Hosting to publish.') {
+    super(message)
+    this.name = 'CloudflareNotConnectedError'
+  }
+}
+
 export async function deploySite(
   projectId: string,
   html: string,
@@ -25,6 +33,12 @@ export async function deploySite(
     },
     body: JSON.stringify({ projectId, html, existingSiteId }),
   })
+
+  if (res.status === 409 || res.status === 503) {
+    const info = (await res.json().catch(() => ({}))) as { error?: string; message?: string }
+    if (info.error === 'cloudflare_not_connected') throw new CloudflareNotConnectedError(info.message)
+    if (info.error === 'cloudflare_not_configured') throw new Error(info.message || "Publishing isn't set up on this site yet.")
+  }
 
   if (!res.ok) {
     const body = await res.text().catch(() => res.statusText)

@@ -24,6 +24,18 @@ vi.mock('studio/src/muapi', () => ({
   uploadFile: vi.fn(),
 }))
 
+// The SSRF gate resolves each host with dns.promises.resolve4/resolve6 before fetching it. These tests are about discovery, not the
+// network, so DNS is answered locally with a public address (same approach as businessDiscovery.test.ts) and they pass without network access.
+vi.mock('node:dns', async (importOriginal) => {
+  const actual = (await importOriginal()) as typeof import('dns') & { default: { promises: Record<string, unknown> } }
+  const promises = {
+    ...actual.default.promises,
+    resolve4: vi.fn(async () => ['93.184.216.34']),
+    resolve6: vi.fn(async () => { const e = new Error('no AAAA') as Error & { code: string }; e.code = 'ENODATA'; throw e }),
+  }
+  return { ...actual, default: { ...actual.default, promises } }
+})
+
 // Mock Playwright for unit tests to avoid launching real browsers
 vi.mock('playwright', () => ({
   chromium: {
