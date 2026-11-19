@@ -7,6 +7,116 @@
   const post = (path, body) =>
     fetch(`${base}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), credentials: 'same-origin' });
 
+
+  // ── What Electron did natively, done by the browser (server side: host/electron-stub.mjs, host/server.ts) ──
+  const uploadsByToken = new Map(); // upload://… token → File
+  const uploadedPath = new Map();   // token → server path (upload once)
+  let uploadSeq = 0;
+  const registerUpload = (file) => { const token = `upload://${++uploadSeq}/${encodeURIComponent(file.name)}`; uploadsByToken.set(token, file); return token; };
+  const uploadFile = async (file) => {
+    const response = await fetch(`${base}upload?name=${encodeURIComponent(file.name)}`, { method: 'POST', body: file, credentials: 'same-origin' });
+    if (!response.ok) throw new Error(`Upload failed (${response.status})`);
+    return (await response.json()).path;
+  };
+  // Dropped files reach upstream's code as upload:// tokens (window.api.getPathForFile); they're uploaded when an IPC call carries them.
+  const resolveUploads = async (value) => {
+    if (typeof value === 'string' && value.startsWith('upload://')) {
+      const file = uploadsByToken.get(value);
+      if (!file) return value;
+      if (!uploadedPath.has(value)) uploadedPath.set(value, uploadFile(file));
+      return uploadedPath.get(value);
+    }
+    if (Array.isArray(value)) return Promise.all(value.map(resolveUploads));
+    if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+      const out = {};
+      for (const [key, inner] of Object.entries(value)) out[key] = await resolveUploads(inner);
+      return out;
+    }
+    return value;
+  };
+
+  const overlay = (build) => new Promise((resolve) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;font:14px Inter,system-ui,sans-serif';
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;color:#111;border-radius:14px;padding:20px;min-width:320px;max-width:560px;max-height:80vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)';
+    wrap.append(card); document.body.append(wrap);
+    const close = (result) => { wrap.remove(); resolve(result); };
+    build(card, close);
+  });
+  const button = (label, onClick, primary) => {
+    const b = document.createElement('button'); b.textContent = label; b.onclick = onClick;
+    b.style.cssText = `padding:8px 14px;border-radius:10px;border:1px solid #d4d4d8;cursor:pointer;font:inherit;${primary ? 'background:#111;color:#fff;border-color:#111' : 'background:#fff;color:#111'}`;
+    return b;
+  };
+  const heading = (card, text) => { const h = document.createElement('div'); h.textContent = text; h.style.cssText = 'font-weight:600;margin-bottom:12px;word-break:break-word'; card.append(h); };
+  const row = (...kids) => { const r = document.createElement('div'); r.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap'; r.append(...kids); return r; };
+
+  const pickServerFolder = (title) => overlay((card, close) => {
+    heading(card, title || 'Choose a folder on the server');
+    const where = document.createElement('div'); where.style.cssText = 'font-size:12px;color:#52525b;margin-bottom:8px;word-break:break-all';
+    const list = document.createElement('div'); list.style.cssText = 'border:1px solid #e4e4e7;border-radius:10px;max-height:300px;overflow:auto';
+    let current = '';
+    const load = async (dir) => {
+      const r = await fetch(`${base}host/list?path=${encodeURIComponent(dir)}`, { credentials: 'same-origin' });
+      if (!r.ok) return;
+      const data = await r.json(); current = data.path; where.textContent = current; list.replaceChildren();
+      const add = (label, target) => { const item = document.createElement('div'); item.textContent = label; item.style.cssText = 'padding:8px 12px;cursor:pointer;border-bottom:1px solid #f4f4f5'; item.onclick = () => load(target); list.append(item); };
+      if (data.parent) add('⬑  ..', data.parent);
+      for (const name of data.directories) add(`📁  ${name}`, `${current.replace(/\/$/, '')}/${name}`);
+    };
+    card.append(where, list, row(button('Cancel', () => close({ canceled: true, filePaths: [] })), button('Select this folder', () => close({ canceled: false, filePaths: [current] }), true)));
+    load('');
+  });
+
+  const pickFiles = (payload) => overlay((card, close) => {
+    const multi = (payload.properties || []).includes('multiSelections');
+    const extensions = (payload.filters || []).flatMap((f) => f.extensions || []).filter((e) => e && e !== '*');
+    heading(card, payload.title || (multi ? 'Choose files' : 'Choose a file'));
+    const input = document.createElement('input'); input.type = 'file'; input.multiple = multi;
+    if (extensions.length) input.accept = extensions.map((e) => `.${e}`).join(',');
+    const status = document.createElement('div'); status.style.cssText = 'font-size:12px;color:#52525b;margin-top:8px';
+    input.onchange = async () => {
+      if (!input.files.length) return;
+      status.textContent = 'Uploading…';
+      try { close({ canceled: false, filePaths: await Promise.all([...input.files].map(uploadFile)) }); } catch (error) { status.textContent = String(error.message || error); }
+    };
+    card.append(input, status, row(button('Cancel', () => close({ canceled: true, filePaths: [] }))));
+  });
+
+  const messageBox = (payload) => overlay((card, close) => {
+    heading(card, payload.message || '');
+    if (payload.detail) { const d = document.createElement('div'); d.textContent = payload.detail; d.style.cssText = 'font-size:13px;color:#52525b;white-space:pre-wrap'; card.append(d); }
+    card.append(row(...(payload.buttons || ['OK']).map((label, index) => button(label, () => close({ response: index }), index === (payload.defaultId || 0)))));
+  });
+
+  const answer = (id, result) => post('ipc/response', { id, result });
+  const hostEvent = async (channel, args) => {
+    const data = (args && args[0]) || {};
+    if (channel === 'host:request') {
+      const { id, kind, payload } = data;
+      try {
+        if (kind === 'open') answer(id, (payload.properties || []).includes('openDirectory') ? await pickServerFolder(payload.title) : await pickFiles(payload));
+        else if (kind === 'message') answer(id, await messageBox(payload));
+        else answer(id, null);
+      } catch { answer(id, null); }
+    } else if (channel === 'host:download') {
+      const a = document.createElement('a'); a.href = `${base}${data.url}`; a.download = ''; document.body.append(a); a.click(); a.remove();
+    } else if (channel === 'host:open') {
+      window.open(data.href || `${base}${data.url}`, '_blank', 'noopener');
+    } else if (channel === 'host:clipboard') {
+      try {
+        if (data.text !== undefined) await navigator.clipboard.writeText(data.text);
+        else if (data.image) { const bytes = Uint8Array.from(atob(data.image), (c) => c.charCodeAt(0)); await navigator.clipboard.write([new ClipboardItem({ 'image/png': new Blob([bytes], { type: 'image/png' }) })]); }
+      } catch (error) { console.warn('[web-shim] clipboard write was blocked by the browser', error); }
+    } else if (channel === 'host:notify') {
+      try {
+        if (Notification.permission === 'default') await Notification.requestPermission();
+        if (Notification.permission === 'granted') new Notification(data.title || 'VidBee', { body: data.body || '' });
+      } catch { /* notifications unavailable */ }
+    }
+  };
+
   const listeners = new Map(); // channel -> Set<callback>
   const dispatch = (channel, args) => {
     for (const cb of Array.from(listeners.get(channel) ?? [])) {
@@ -17,7 +127,7 @@
   const connect = () => {
     source = new EventSource(`${base}ipc/events`, { withCredentials: true });
     source.onmessage = (event) => {
-      try { const { channel, args } = JSON.parse(event.data); dispatch(channel, args ?? []); } catch { /* ignore malformed */ }
+      try { const { channel, args } = JSON.parse(event.data); if (channel.startsWith('host:')) void hostEvent(channel, args); else dispatch(channel, args ?? []); } catch { /* ignore malformed */ }
     };
     source.onerror = () => { /* EventSource reconnects by itself */ };
   };
@@ -31,13 +141,13 @@
   const removeListener = (channel, callback) => { listeners.get(channel)?.delete(callback); };
 
   const invoke = async (channel, ...args) => {
-    const response = await post('ipc/invoke', { channel, args });
+    const response = await post('ipc/invoke', { channel, args: await resolveUploads(args) });
     if (!response.ok) throw new Error(`IPC ${channel} failed (${response.status})`);
     const data = await response.json();
     if (!data.ok) throw new Error(data.error || `IPC ${channel} failed`);
     return data.result;
   };
-  const send = (channel, ...args) => { void post('ipc/send', { channel, args }); };
+  const send = (channel, ...args) => { void resolveUploads(args).then((resolved) => post('ipc/send', { channel, args: resolved })); };
 
   // 'darwin' selects upstream's mac chrome: no minimize/maximize/close buttons (Electron-only). Settings reads the real platform from main.
   // Upstream loads thumbnails / chat artifacts through custom protocols (vidbee://, agent-artifact://). Browsers can't, so rewrite those URLs to
@@ -75,7 +185,7 @@
     on,
     removeListener,
     send,
-    // Browsers never expose local file paths for dropped files.
-    getPathForFile: () => null,
+    // Browsers never expose local file paths: dropped files become upload:// tokens that are uploaded when an IPC call uses them.
+    getPathForFile: (file) => (file ? registerUpload(file) : null),
   };
 })();

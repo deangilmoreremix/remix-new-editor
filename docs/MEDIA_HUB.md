@@ -34,7 +34,7 @@ The host server is therefore only reachable through `backend/services/vidbeeProx
 The bridge binds to 127.0.0.1 by default; expose it only through the gate.
 
 ## What differs from the Electron app
-No window chrome, tray, dock, auto-update, protocol handlers or native file pickers; local-path drag-and-drop is unavailable; VidBee Cloud sign-in, analytics and crash reporting are removed.
+No window chrome, tray, dock, auto-update or OS protocol handlers; local-path drag-and-drop becomes browser file drop (uploaded to the server); VidBee Cloud sign-in, analytics and crash reporting are removed.
 Upstream's custom `vidbee://` / `agent-artifact://` URLs (cached thumbnails, chat artifacts) are served through the host's `/protocol/…` route using the handlers upstream registered.
 Upstream's Content-Security-Policy is kept as shipped (`VIDBEE_CSP_IMG_SRC` can extend its image sources, used only for the demo). Needs a long-running Node host (not serverless).
 Transcription models and yt-dlp updates download from the internet on first use.
@@ -42,3 +42,23 @@ Transcription models and yt-dlp updates download from the internet on first use.
 ## Tested
 In a real browser through the access gate: add URL → download → transcript with speakers → AI skill via upstream's runner; Chat, Subscribe, Settings and About load without errors.
 Real speech models and a real AI provider were not available in the sandbox (upstream's fake transcription backend and a stand-in provider were used). `npm run test:vidbee-gate` covers the gate.
+
+## Everything upstream ships is vendored
+`apps/vidbee/apps/` now holds all of upstream's apps, unmodified: `desktop` (served here), `api` (REST/Nitro), `web` (the upstream web edition), `cli` and `extension` (browser extension), plus
+upstream's `docker-compose.yml` and `biome.json`. Root scripts: `build:api|web|cli|extension`, `start:api|web`. All of them build with zero errors. The `dist/`, `.output/`, `.wxt/` build folders are gitignored.
+
+## Browser backend (round trips the desktop app does natively)
+The host bridges Electron-only calls to the browser instead of stubbing them:
+- **File / folder pickers**: `dialog.showOpenDialog` opens a browser file picker; the file is uploaded and the server path is returned to upstream's code. Folder picking uses a server-side folder browser.
+- **Drag and drop**: dropped `File`s are uploaded when an IPC call uses them.
+- **Exports** (transcripts, subtitles, …): `showSaveDialog` writes under the data dir and the browser downloads the file.
+- **Open file/URL, clipboard, notifications, message boxes**: routed to browser equivalents (new tab, Clipboard API, Notification API, modal).
+- **CLI**: upstream's CLI connects to the host through upstream's automation descriptor and creates tasks.
+
+## Standalone use and Docker
+`VIDBEE_ACCESS_TOKEN` gates the bridge when it is run without the Next/Express gate (`?token=` once, then a cookie; Bearer also works). The server refuses to listen on a non-loopback address
+without a token (or `VIDBEE_ALLOW_OPEN=1`). `apps/desktop/host/docker/` has a Dockerfile and compose file; **they have not been built or run**.
+
+## Not ported
+Share-image / diagram capture (`main/lib/share-capture-window.ts`) needs Electron's offscreen rendering and is not available. Not exercised here (no internet in the sandbox): real speech models, a real AI provider,
+real video sites, Docker.

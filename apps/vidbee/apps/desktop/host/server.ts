@@ -3,10 +3,11 @@
 //   POST /ipc/send     { channel, args }     → ipcRenderer.send(channel, ...args)
 //   GET  /ipc/events                         → server-sent events: every main→renderer `webContents.send`
 // The main process itself is upstream's apps/desktop/src/main/index.ts, imported unchanged and run under host/electron-stub.mjs.
+import crypto from 'node:crypto'
 import http from 'node:http'
-import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs'
+import { createReadStream, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
-import { __invoke, __protocolHandlers, hub, ipcMain } from 'electron'
+import { __invoke, __protocolHandlers, exportsDir, hub, ipcMain } from 'electron'
 import log from 'electron-log/main'
 import { realpathSync } from 'node:fs'
 import { settingsManager } from '../src/main/settings'
@@ -16,6 +17,18 @@ import '../src/main/index'
 const port = Number(process.env.VIDBEE_PORT || 3300)
 const host = process.env.VIDBEE_HOST || '127.0.0.1'
 const basePath = (process.env.VIDBEE_BASE_PATH ?? '').trim().replace(/\/+$/, '')
+// Standalone access control. Upstream VidBee has no login, so listening beyond loopback requires VIDBEE_ACCESS_TOKEN (or an explicit
+// VIDBEE_ALLOW_OPEN=1 when something else, e.g. a reverse proxy or the host app's gate, already authenticates every request).
+const accessToken = (process.env.VIDBEE_ACCESS_TOKEN ?? '').trim()
+const isLoopback = ['127.0.0.1', '::1', 'localhost'].includes(process.env.VIDBEE_HOST || '127.0.0.1')
+if (!isLoopback && !accessToken && process.env.VIDBEE_ALLOW_OPEN !== '1') {
+  console.error('Refusing to listen on a non-loopback address without VIDBEE_ACCESS_TOKEN (set it, or set VIDBEE_ALLOW_OPEN=1 behind your own auth).')
+  process.exit(1)
+}
+const tokenOk = (req: http.IncomingMessage): boolean => {
+  const given = [String(req.headers.authorization ?? '').replace(/^Bearer\s+/i, ''), /(?:^|;\s*)vidbee_token=([^;]+)/.exec(String(req.headers.cookie ?? ''))?.[1] ?? ''].map((v) => decodeURIComponent(v))
+  return given.some((v) => v.length === accessToken.length && crypto.timingSafeEqual(Buffer.from(v), Buffer.from(accessToken)))
+}
 const imgExtra = (process.env.VIDBEE_CSP_IMG_SRC ?? '').trim()
 const staticDir = process.env.VIDBEE_STATIC_DIR ? path.resolve(process.env.VIDBEE_STATIC_DIR) : ''
 const sender = { id: 1, send: (channel: string, ...args: unknown[]) => hub.emit(channel, args), isDestroyed: () => false }
@@ -38,7 +51,7 @@ const sse = (req: http.IncomingMessage, res: http.ServerResponse) => {
 }
 
 /** Stream one file with HTTP Range support. */
-const serveFile = (req: http.IncomingMessage, res: http.ServerResponse, real: string): void => {
+const serveFile = (req: http.IncomingMessage, res: http.ServerResponse, real: string, disposition?: string): void => {
   const size = statSync(real).size
   const range = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range ?? ''))
   let start = 0, end = size - 1, status = 200
@@ -49,9 +62,54 @@ const serveFile = (req: http.IncomingMessage, res: http.ServerResponse, real: st
     if (start > end || start >= size) { res.writeHead(416, { 'content-range': `bytes */${size}` }); return void res.end() }
     status = 206; headers['content-range'] = `bytes ${start}-${end}/${size}`
   }
+  if (disposition) headers['content-disposition'] = disposition
   headers['content-length'] = end - start + 1
   res.writeHead(status, headers)
   createReadStream(real, { start, end }).pipe(res)
+}
+
+
+/* ── browser ↔ server helpers for what Electron did natively ─────────────────────────────────────────── */
+const dataRoot = path.resolve(process.env.VIDBEE_DATA_DIR || path.join(process.env.HOME ?? '.', '.vidbee-web'))
+const uploadsDir = path.join(dataRoot, 'uploads')
+const maxUploadBytes = Number(process.env.VIDBEE_MAX_UPLOAD_MB || 4096) * 1024 * 1024
+const safeName = (name: string): string => path.basename(name).replace(/[^\w.\- ()\[\]]+/g, '_').slice(0, 180) || 'file'
+
+/** POST /upload?name=… (raw body) → saves under <data>/uploads/<id>/ and returns the server path (used for dropped / picked files). */
+const handleUpload = (req: http.IncomingMessage, res: http.ServerResponse, name: string): void => {
+  const id = crypto.randomUUID()
+  const dir = path.join(uploadsDir, id)
+  mkdirSync(dir, { recursive: true })
+  const target = path.join(dir, safeName(name))
+  let size = 0
+  const out = createWriteStream(target)
+  req.on('data', (chunk: Buffer) => {
+    size += chunk.length
+    if (size > maxUploadBytes) { req.destroy(); out.destroy(); res.writeHead(413); res.end('Too large') }
+  })
+  req.pipe(out)
+  out.on('finish', () => { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ path: target })) })
+  out.on('error', () => { if (!res.headersSent) res.writeHead(500); res.end('Upload failed') })
+}
+
+/** GET /host/list?path=… → sub-directories, for the browser's server-folder picker. */
+const handleList = (res: http.ServerResponse, rawPath: string): void => {
+  const dir = path.resolve(rawPath || (settingsManager.get('downloadPath') as string) || '/')
+  try {
+    const entries = readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith('.')).map((e) => e.name).sort((a, b) => a.localeCompare(b))
+    res.writeHead(200, { 'content-type': 'application/json' })
+    res.end(JSON.stringify({ path: dir, parent: path.dirname(dir) === dir ? null : path.dirname(dir), directories: entries }))
+  } catch {
+    res.writeHead(404, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: 'Cannot read directory' }))
+  }
+}
+
+/** GET /exports/<id>/<name> → a file the main process "saved"; delivered to the browser as a download. */
+const handleExport = (req: http.IncomingMessage, res: http.ServerResponse, id: string, name: string): void => {
+  if (!/^[0-9a-f-]{36}$/.test(id)) { res.writeHead(404); return void res.end('Not found') }
+  const file = path.join(exportsDir, id, safeName(decodeURIComponent(name)))
+  if (!existsSync(file) || !statSync(file).isFile()) { res.writeHead(404); return void res.end('Not found') }
+  serveFile(req, res, file, `attachment; filename*=UTF-8''${encodeURIComponent(path.basename(file))}`)
 }
 
 /** Stream a file from the configured download folders — replaces the file:// URLs the desktop renderer used. */
@@ -113,6 +171,16 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', 'http://x')
   // Mounted behind a host app under a sub-path (e.g. /vidbee): serve it as if it were the root.
   if (basePath && (url.pathname === basePath || url.pathname.startsWith(`${basePath}/`))) url.pathname = url.pathname.slice(basePath.length) || '/'
+  if (accessToken && url.pathname !== '/health' && !tokenOk(req)) {
+    if (url.searchParams.get('token') === accessToken) {
+      // First visit with ?token=…: remember it in a cookie and drop it from the URL.
+      url.searchParams.delete('token')
+      res.writeHead(302, { 'set-cookie': `vidbee_token=${encodeURIComponent(accessToken)}; Path=/; HttpOnly; SameSite=Lax`, location: `${basePath}${url.pathname}${url.search}` || '/' })
+      return void res.end()
+    }
+    res.writeHead(401, { 'content-type': 'text/plain' })
+    return void res.end('Unauthorized. Open the app with ?token=<VIDBEE_ACCESS_TOKEN> once.')
+  }
   try {
     if (req.method === 'POST' && url.pathname === '/ipc/invoke') {
       const { channel, args = [] } = await readJson(req)
@@ -131,6 +199,15 @@ const server = http.createServer(async (req, res) => {
       if (channel) ipcMain.emit(channel, { sender, reply: sender.send }, ...args)
       res.writeHead(204); return res.end()
     }
+    if (req.method === 'POST' && url.pathname === '/ipc/response') {
+      const { id, result } = (await readJson(req)) as { id?: string; result?: unknown }
+      if (id) hub.respond(id, result)
+      res.writeHead(204); return res.end()
+    }
+    if (req.method === 'POST' && url.pathname === '/upload') return handleUpload(req, res, url.searchParams.get('name') ?? 'file')
+    if (req.method === 'GET' && url.pathname === '/host/list') return handleList(res, url.searchParams.get('path') ?? '')
+    const exp = /^\/exports\/([^/]+)\/(.+)$/.exec(url.pathname)
+    if (req.method === 'GET' && exp) return handleExport(req, res, exp[1], exp[2])
     if (req.method === 'GET' && url.pathname === '/ipc/events') return sse(req, res)
     const proto = /^\/protocol\/([a-z-]+)\/(.*)$/.exec(url.pathname)
     if ((req.method === 'GET' || req.method === 'HEAD') && proto) return void (await serveProtocol(req, res, proto[1], decodeURIComponent(proto[2]), url.search))
