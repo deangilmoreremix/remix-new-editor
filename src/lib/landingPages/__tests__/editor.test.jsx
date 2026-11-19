@@ -242,3 +242,25 @@ describe('calendar weekday labels', () => {
     expect(heads(card('a, b, c, d, e, f, g, h'))).toEqual(defaults);
   });
 });
+
+describe('booking calendar', () => {
+  const one = (type, props) => html({ root: { props: {} }, content: [{ type, props: { id: 'b', ...props } }], zones: {} });
+  it('embeds a Cal.com link in its embed view', () => {
+    const out = one('BookingCalendar', { title: 'Book', url: 'https://cal.com/ann/intro' });
+    expect(out).toContain('<iframe');
+    expect(out).toContain('https://cal.com/ann/intro?embed=true');
+    expect(out).toContain('id="book"');
+  });
+  it('shows a self-hosted Cal.com as given, and nothing for a missing or unsafe link', () => {
+    expect(one('BookingCalendar', { url: 'https://book.example.com/ann/intro' })).toContain('src="https://book.example.com/ann/intro"');
+    expect(one('BookingCalendar', { url: '' })).not.toContain('<iframe');
+    expect(one('BookingCalendar', { url: 'javascript:alert(1)' })).not.toContain('<iframe');
+    expect(one('BookingCalendar', { url: 'http://cal.com/ann' })).not.toContain('<iframe');
+  });
+  it('the date-picker card button opens the booking link, #book, or falls back to the form', () => {
+    const base = { columns: 1, title: 'Book', text: '', month: '', weekdays: '', days: '1', time: '', buttonLabel: 'Go' };
+    expect(one('ScheduleCard', { ...base, bookingUrl: 'https://cal.com/ann/intro' })).toContain('href="https://cal.com/ann/intro"');
+    expect(one('ScheduleCard', { ...base, bookingUrl: '#book' })).toContain('href="#book"');
+    expect(one('ScheduleCard', { ...base, bookingUrl: '' })).toContain('href="#lead"');
+  });
+});

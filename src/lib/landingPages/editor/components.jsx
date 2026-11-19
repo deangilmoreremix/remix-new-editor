@@ -9,6 +9,17 @@ import { fillTokens, splitAccent, prefillFor, safeUrl, safeImageUrl } from '../t
 import { usePage, useThanks, useAfterSubmit } from './context.js';
 import { resolveAfterSubmit, scheduleRedirect, linkTarget } from '../afterSubmit.js';
 import { ICON_PATHS } from '../siteIcons.js';
+import { calendarEmbedUrl } from '../../outreach/draft.js';
+
+/**
+ * Address to show a booking page in an iframe: known booking sites (Cal.com, Calendly, ...) get their embed view;
+ * any other https link (e.g. a self-hosted Cal.com) is shown as given. '' when missing or not https.
+ */
+export const bookingEmbedSrc = (v) => {
+  const s = String(v || '').trim();
+  if (!/^https:\/\//i.test(s)) return '';
+  return calendarEmbedUrl(s) || safeUrl(s);
+};
 
 const MARKS = [{ at: 0.25, kind: 'progress_25' }, { at: 0.5, kind: 'progress_50' }, { at: 0.75, kind: 'progress_75' }];
 
@@ -460,7 +471,7 @@ export function KpiCard({ columns, title, value, note }) {
   );
 }
 
-export function ScheduleCard({ columns, title, text, month, days, time, buttonLabel , weekdays }) {
+export function ScheduleCard({ columns, title, text, month, days, time, buttonLabel, weekdays, bookingUrl }) {
   const t = useTokens();
   return (
     <CardShell columns={columns}>
@@ -470,7 +481,7 @@ export function ScheduleCard({ columns, title, text, month, days, time, buttonLa
       <div className="pk-cal-grid pk-cal-head">{(split(weekdays).length === 7 ? split(weekdays) : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((d, i) => <span key={i}>{d}</span>)}</div>
       <div className="pk-cal-grid">{split(days).map((d, i) => <span key={i} className={`pk-cal-day${d.startsWith('*') ? ' is-on' : ''}`}>{d.replace(/^\*/, '')}</span>)}</div>
       {time ? <div className="pk-cal-time">{t(time)}</div> : null}
-      {buttonLabel ? <a className="pk-btn pk-btn--primary" href="#lead">{t(buttonLabel)}</a> : null}
+      {buttonLabel ? <SafeLink className="pk-btn pk-btn--primary" href={(/^https:\/\//i.test(String(bookingUrl || '').trim()) && safeUrl(bookingUrl)) || anchor(bookingUrl) || '#lead'}>{t(buttonLabel)}</SafeLink> : null}
     </CardShell>
   );
 }
@@ -546,7 +557,7 @@ export function OutreachActions({ senderName, senderTitle, senderPhoto, like = '
   const t = useTokens();
   const { handlers, preview } = usePage();
   const [liked, setLiked] = useState(false);
-  const cal = /^https:\/\//i.test(String(calendarUrl || '')) ? safeUrl(calendarUrl) : '';
+  const cal = bookingEmbedSrc(calendarUrl);
   const href = safeUrl(ctaUrl);
   const photo = imgUrl(senderPhoto);
   const name = t(senderName);
@@ -579,6 +590,27 @@ export function OutreachActions({ senderName, senderTitle, senderPhoto, like = '
           <iframe src={cal} title={t(calendarTitle) || 'Book a time'} loading="lazy" referrerPolicy="no-referrer-when-downgrade" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" />
         </div>
       ) : null}
+    </section>
+  );
+}
+
+/**
+ * A live booking calendar (Cal.com, Calendly, Google appointments, HubSpot, a self-hosted Cal.com, ...) embedded
+ * in the page, so a viewer can book a time right under the video. Buttons can link to "#book" to scroll here.
+ */
+export function BookingCalendar({ title, text, url, height = 680 }) {
+  const t = useTokens();
+  const { preview } = usePage();
+  const src = bookingEmbedSrc(url);
+  const h = Math.min(1200, Math.max(400, Number(height) || 680));
+  if (!src && !preview) return null;
+  return (
+    <section className="pk-booking pk-outreach-calendar" id="book">
+      {title ? <AccentText as="h2" className="pk-h2" text={title} /> : null}
+      {text ? <p className="pk-card-text">{t(text)}</p> : null}
+      {src
+        ? <iframe src={src} title={t(title) || 'Book a time'} loading="lazy" style={{ height: h }} referrerPolicy="no-referrer-when-downgrade" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" />
+        : <p className="pk-booking-empty">Paste your Cal.com (or other booking) link to show your calendar here.</p>}
     </section>
   );
 }

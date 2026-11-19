@@ -57,7 +57,7 @@ export const editorConfig = {
     },
   },
   categories: {
-    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'CtaBar', 'Showcase', 'Footer', 'PageImage'] },
+    sections: { title: 'Sections', components: ['NavBar', 'Hero', 'Strip', 'TextBlock', 'Grid', 'Band', 'ContactBand', 'BookingCalendar', 'CtaBar', 'Showcase', 'Footer', 'PageImage'] },
     extras: { title: 'Design extras', components: Object.keys(EXT_COMPONENTS), defaultExpanded: false },
     cards: { title: 'Cards (drop into a Grid)', components: ['LeadMagnetCard', 'TableCard', 'StatsCard', 'ChecklistCard', 'QuoteCard', 'StepsCard', 'FeaturesCard', 'FaqCard', 'KpiCard', 'ScheduleCard', 'ButtonCard'] },
   },
@@ -129,6 +129,12 @@ export const editorConfig = {
     },
     CtaBar: { label: 'Bottom button bar', fields: { text: T('Text beside the button (empty = button only)'), label: T('Button text'), url: T('Link (https, mailto:, tel: or #lead)'), icon: iconField, icons: { type: 'array', label: 'Social icons (button-only bar)', arrayFields: { icon: iconField, url: T('Link (https)') }, getItemSummary: (i) => i.icon || 'Icon', defaultItemProps: { icon: 'facebook', url: '' } } }, defaultProps: { text: '', label: 'Book a Free Consultation', url: '#lead', icon: 'calendar', icons: [] }, render: (p) => <C.CtaBar {...p} /> },
     Footer: { label: 'Footer', fields: { text: T('Footer text'), links: linkArray('Footer links') }, defaultProps: { text: 'Sent by {{sender|us}} · {{brand|your brand}}', links: [] }, render: (p) => <C.Footer {...p} /> },
+    BookingCalendar: {
+      label: 'Booking calendar (Cal.com, Calendly, ...)',
+      fields: { title: T('Heading (wrap words in [[double brackets]] to highlight)'), text: T('Text under the heading'), url: T('Booking link (https, e.g. https://cal.com/you/30min)'), height: { type: 'number', label: 'Height in pixels (400-1200)' } },
+      defaultProps: { title: 'Pick a [[time]] that works for you', text: '', url: '', height: 680 },
+      render: (p) => <C.BookingCalendar {...p} />,
+    },
     OutreachActions: {
       label: 'Video outreach: sender, Like, booking',
       fields: { senderName: T('Your name'), senderTitle: T('Your title and company'), senderPhoto: T('Your photo (https link)'), like: { type: 'radio', label: 'Like button', options: [{ label: 'Show', value: 'yes' }, { label: 'Hide', value: 'no' }] }, ctaLabel: T('Button text'), ctaUrl: T('Button link (https)'), calendarUrl: T('Booking calendar to embed (https, empty = none)'), calendarTitle: T('Calendar heading') },
@@ -164,7 +170,7 @@ export const editorConfig = {
     FeaturesCard: { label: 'Feature list card', fields: { columns: cols, title: T('Title'), items: { type: 'array', label: 'Features', arrayFields: { icon: iconField, title: T('Title'), text: T('Text') }, getItemSummary: (i) => i.title || 'Feature', defaultItemProps: { icon: 'check', title: 'Feature', text: '' } } }, defaultProps: { columns: 2, title: 'Key features', items: [{ icon: 'video', title: 'Personalized video', text: 'One-to-one videos in minutes.' }, { icon: 'chart', title: 'Insights', text: 'Track views and replies.' }] }, render: (p) => <C.FeaturesCard {...p} /> },
     FaqCard: { label: 'Questions card', fields: { columns: cols, title: T('Title'), items: { type: 'array', label: 'Questions', arrayFields: { q: T('Question'), a: A('Answer') }, getItemSummary: (i) => i.q || 'Question', defaultItemProps: { q: 'Question?', a: 'Answer.' } } }, defaultProps: { columns: 2, title: 'Frequently asked questions', items: [{ q: 'Is there a free trial?', a: 'Add your answer here.' }] }, render: (p) => <C.FaqCard {...p} /> },
     KpiCard: { label: 'Single big number card', fields: { columns: cols, title: T('Title'), value: T('Number'), note: T('Note') }, defaultProps: { columns: 1, title: 'Leads captured', value: '128,349', note: '+37% in the last 30 days' }, render: (p) => <C.KpiCard {...p} /> },
-    ScheduleCard: { label: 'Date-picker card', fields: { columns: cols, title: T('Title'), text: T('Text'), month: T('Month label'), weekdays: T('Weekday labels, comma separated (7)'), days: T('Days, comma separated (start the selected one with *)'), time: T('Time line'), buttonLabel: T('Button text (scrolls to the form)') }, defaultProps: { columns: 1, title: 'Book a demo', text: 'Pick a time that works for you.', month: 'Mar 2025', weekdays: 'Sun, Mon, Tue, Wed, Thu, Fri, Sat', days: '9, 10, 11, *12, 13, 14, 15', time: '10:00 AM (30 min)', buttonLabel: 'Confirm demo' }, render: (p) => <C.ScheduleCard {...p} /> },
+    ScheduleCard: { label: 'Date-picker card', fields: { columns: cols, title: T('Title'), text: T('Text'), month: T('Month label'), weekdays: T('Weekday labels, comma separated (7)'), days: T('Days, comma separated (start the selected one with *)'), time: T('Time line'), buttonLabel: T('Button text'), bookingUrl: T('Button link: your booking page (https), or #book for the calendar section; empty = the form') }, defaultProps: { bookingUrl: '', columns: 1, title: 'Book a demo', text: 'Pick a time that works for you.', month: 'Mar 2025', weekdays: 'Sun, Mon, Tue, Wed, Thu, Fri, Sat', days: '9, 10, 11, *12, 13, 14, 15', time: '10:00 AM (30 min)', buttonLabel: 'Confirm demo' }, render: (p) => <C.ScheduleCard {...p} /> },
     ButtonCard: { label: 'Text and buttons card', fields: { columns: cols, eyebrow: T('Small label'), title: T('Title'), text: A('Text'), buttons: buttonArray }, defaultProps: { columns: 2, eyebrow: 'Have a question?', title: "Let's connect", text: 'Our team is here to help.', buttons: [{ label: 'Contact our team', url: 'mailto:hello@example.com', style: 'secondary' }] }, render: (p) => <C.ButtonCard {...p} /> },
   },
 };
