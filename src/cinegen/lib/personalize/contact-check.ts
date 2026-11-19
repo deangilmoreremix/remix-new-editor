@@ -105,6 +105,8 @@ export function compressDataUrl(dataUrl: string, { maxSide = 1600, quality = 0.9
 
 export interface FillResult { made: number; total: number; message: string }
 
+const inFlight = new Set<string>(); // contactId:slot being made now, so reopening the panel cannot start the same paid call twice
+
 /** Make each missing picture with AI, one at a time, on the user's OpenAI key; each is saved on the contact as "AI, needs review".
  *  A sign-in or key problem fails every job the same way, so it stops early and says so. */
 export async function fillMissingWithAi(jobs: AiJob[], host: ImageHost & { onProgress?: (text: string) => void }): Promise<FillResult> {
@@ -112,6 +114,9 @@ export async function fillMissingWithAi(jobs: AiJob[], host: ImageHost & { onPro
   const failures: string[] = [];
   for (let i = 0; i < jobs.length; i += 1) {
     const job = jobs[i];
+    const slot = `${job.contactId}:${job.key}`;
+    if (inFlight.has(slot)) continue;
+    inFlight.add(slot);
     host.onProgress?.(`Making ${job.label} for ${job.contactName} (${i + 1} of ${jobs.length})…`);
     try {
       const result = await generateImage({ prompt: job.prompt, aspectRatio: job.aspectRatio, quality: 'medium', n: 1 }) as { ok?: boolean; error?: string; assets?: Array<{ url?: string; src?: string }> };
@@ -132,7 +137,7 @@ export async function fillMissingWithAi(jobs: AiJob[], host: ImageHost & { onPro
       if (/sign in/i.test(raw)) { failures.push('Sign in to save AI images to your contacts'); break; }
       if (/key/i.test(raw)) { failures.push(raw); break; }
       failures.push(`${job.contactName}: ${raw}`);
-    }
+    } finally { inFlight.delete(slot); }
   }
   const message = `Made ${made} of ${jobs.length} images with AI${made ? '. Review them before sending.' : '.'}${failures.length ? ` ${failures[0]}` : ''}`;
   host.onProgress?.(message);

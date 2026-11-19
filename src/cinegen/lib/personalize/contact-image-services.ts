@@ -41,7 +41,10 @@ export async function measureLogoFor(profile: Profile | null): Promise<void> {
   const lum = await measureImageLuminance(logo.url);
   measuring.delete(logo.url);
   if (lum == null) return;
-  saveContactAsset((contactStore.getProfile?.(profile.id) as Profile) || profile, logo.id, (a) => ({ ...a, luminance: lum }));
+  // the logo may have been replaced (Video Ready) while this was measured: only keep a measurement of the picture that is still there
+  const fresh = (contactStore.getProfile?.(profile.id) as Profile) || profile;
+  if ((assetForImageToken(fresh, 'logoUrl') as { url?: string } | null)?.url !== logo.url) return;
+  saveContactAsset(fresh, logo.id, (a) => ({ ...a, luminance: lum }));
 }
 
 /** Measure the logo of the contact being previewed (after a layout added a logo with an Auto backing). */
@@ -110,7 +113,10 @@ export function contactImageServices(host: ImageHost) {
       let profile = active();
       try {
         const imported = await importDiscoveredAsset(image.discovered, { name: image.discovered.altText || image.discovered.category });
-        profile = addPersonalizationAsset(profile, imported);
+        // the contact may have changed while the picture was being saved: add to its latest version, never recreate a deleted one
+        const latestProfile = contactStore.getProfile?.((profile as Profile).id) as Profile | null;
+        if (!latestProfile) throw new Error('the contact was removed');
+        profile = addPersonalizationAsset(latestProfile, imported);
         profile = setDiscoveredPersonalizationAssets(profile, ((profile as { personalization: { discoveredAssets?: Array<{ id: string }> } }).personalization.discoveredAssets || [])
           .map((c) => (c.id === image.discovered!.id ? { ...c, importedAssetId: imported.id, selected: false, importError: null } : c)));
         contactStore.saveProfile(profile);

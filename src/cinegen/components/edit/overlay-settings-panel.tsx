@@ -148,9 +148,10 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       },
     });
     editorRef.current = editor;
-    void refreshSystemFontsIfAllowed().then((f: string[]) => { if (f.length) editor?.setOptions?.(overlaySchema(latest.current).options); }); // already allowed earlier: no prompt
-    void loadUserFonts().then((f) => { if (f.length) editor?.setOptions?.(overlaySchema(latest.current).options); }); // fonts imported earlier appear in the list
-    return () => { editor?.destroy?.(); editorRef.current = null; };
+    let alive = true; // a font list that finishes loading after another overlay was picked must not redraw this (destroyed) editor
+    void refreshSystemFontsIfAllowed().then((f: string[]) => { if (alive && f.length) editor?.setOptions?.(overlaySchema(latest.current).options); }); // already allowed earlier: no prompt
+    void loadUserFonts().then((f) => { if (alive && f.length) editor?.setOptions?.(overlaySchema(latest.current).options); }); // fonts imported earlier appear in the list
+    return () => { alive = false; editor?.destroy?.(); editorRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay.id]);
 
