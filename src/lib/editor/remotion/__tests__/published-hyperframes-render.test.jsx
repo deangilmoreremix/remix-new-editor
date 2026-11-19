@@ -2,6 +2,8 @@
 // End to end for the published viewer: CineGen timeline + a HyperFrames animation
 // overlay -> buildPublishState -> buildViewerModel -> the SAME Player/TimelineComposition
 // the watch page mounts. The animation layer must actually reach the renderer.
+// lottie-web (pulled in through the composition) draws to a canvas when it is imported; jsdom has none, so give it a blank 2D context first
+vi.hoisted(() => { HTMLCanvasElement.prototype.getContext = () => ({ fillRect: () => undefined }); });
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { createRoot } from 'react-dom/client';
