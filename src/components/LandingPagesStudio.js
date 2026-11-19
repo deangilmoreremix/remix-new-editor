@@ -6,6 +6,7 @@
 // src/pages/VideoPage.jsx.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
 import { uploadFileToSupabase } from '../lib/uploadService.js';
@@ -77,6 +78,7 @@ async function copy(text, label) {
 export function LandingPagesStudio() {
   const container = el('div', 'w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
   mountStudioChrome(container, { title: 'Video Pages', currentRoute: 'video-pages' });
+  container.appendChild(demoteBannerHeading(createEditorBanner('video-pages', 'Video Pages', 'Turn any video into a branded landing page with a CTA and lead form')));
   const scroll = el('div', 'flex-1 overflow-y-auto');
   const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 py-8 flex flex-col gap-6');
   scroll.appendChild(inner);

@@ -1,3 +1,4 @@
+import { getStudioLabel } from './studioRoutes.js';
 // Module-level set of already-assigned thumbnail image paths.
 // getTemplateThumbnailCandidates drains this across successive template renders
 // so that sequential cards in a browse session don't repeat a thumbnail until
@@ -386,24 +387,16 @@ const HERO_THUMBNAILS = {
 
 // Where to aim the banner crop (CSS object-position) per page. The default is the
 // centre; pages whose picture has its subject elsewhere are listed here.
+export const STUDIO_BANNER_HEIGHT = 'h-32 md:h-[clamp(176px,14vw,264px)]';
+
 const BANNER_FOCUS = {
-  // Apps-page (studios/) pictures are ~1.8:1 and the banner box ~2.4:1, so only a
-  // little is cropped; aim at the subject.
+  // Studio pictures are ~1.8:1 and the banner box ~2.4:1, so only a little is cropped;
+  // aim at the subject where it is not centred.
   character: '50% 25%', // faces are in the upper half
   audio: '50% 40%',
   avatar: '50% 40%',
   edit: '50% 40%',
   lipsync: '50% 40%',
-  // hero (heroes/) pictures for pages without Apps-page art
-  workbench: '50% 58%',
-  personalizer: '50% 67%',
-  'website-builder': '50% 41%',
-  'video-agent': '50% 45%',
-  timeline: '50% 50%',
-  library: '50% 40%',
-  'content-library': '50% 40%',
-  brand: '50% 75%',
-  'ai-vfx': '50% 38%',
 };
 
 const TOOL_THUMBNAILS = {
@@ -444,16 +437,11 @@ const PAGE_THUMBNAILS = {
   placeholder: '/thumbnails/pages/placeholder.webp',
 };
 
-// Pages whose banner uses the same picture as their Apps-page card (studios/*): clean
-// photo-style art with no baked-in captions or black bars. Pages not listed keep their
-// hero picture (heroes/*), because the studio map only has a stand-in for them.
-const BANNER_USES_STUDIO_ART = new Set([
-  'image', 'video', 'cinema', 'storyboard', 'effects', 'edit', 'upscale', 'character',
-  'commercial', 'audio', 'avatar', 'training', 'videotools', 'lipsync', 'render', 'chat',
-]);
-
+// Every studio banner shows the same picture as its Apps-page card (studios/*): clean
+// photo-style art with no baked-in captions. Hero pictures (heroes/*) are only a fallback
+// for pages that have no studio art.
 export function getBannerThumbnail(studioId) {
-  return (BANNER_USES_STUDIO_ART.has(studioId) && getStudioThumbnail(studioId)) || getHeroThumbnail(studioId) || getStudioThumbnail(studioId);
+  return getStudioThumbnail(studioId) || getHeroThumbnail(studioId) || null;
 }
 
 export function getStudioThumbnail(studioId) {
@@ -689,17 +677,17 @@ export function createThumbnailImg(src, alt, className = '', fallbackTemplate = 
 }
 
 export function createHeroSection(studioId, className = '') {
-  const src = getBannerThumbnail(studioId);
-  if (!src) return null;
-  const wrapper = document.createElement('div');
-  wrapper.className = `hero-banner relative w-full overflow-hidden rounded-2xl ${className}`;
-  wrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
-  const img = createThumbnailImg(src, `${studioId} studio`, 'w-full h-full object-cover');
-  wrapper.appendChild(img);
+  if (!getBannerThumbnail(studioId)) return null;
+  // Alias pages (text-to-image, upscale-page, ...) lay their own title, text and button over the
+  // banner, so this one carries only the picture. It is the same component, size and crop as
+  // every studio banner; the callers' height classes are ignored.
+  const extra = String(className).split(/\s+/).filter((c) => c && !/^(\w+:)*h-/.test(c)).join(' ');
+  const banner = createStudioHeader(studioId, '', '', extra);
+  banner.querySelector('h1')?.parentElement?.remove();
   const overlay = document.createElement('div');
-  overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent';
-  wrapper.appendChild(overlay);
-  return wrapper;
+  overlay.className = 'absolute inset-0 pointer-events-none bg-gradient-to-t from-black/70 via-black/15 to-transparent';
+  banner.appendChild(overlay);
+  return banner;
 }
 
 /**
@@ -711,12 +699,11 @@ export function createHeroSection(studioId, className = '') {
  * It carries the page's h1. Returns a `.hero-banner` so shared layouts can
  * shrink it further once results exist.
  */
-export function createStudioHeader(studioId, title, subtitle = '', className = '', size = 'default') {
+export function createStudioHeader(studioId, title, subtitle = '', className = '') {
   const src = getBannerThumbnail(studioId);
   const wrapper = document.createElement('div');
-  // 'compact' is for the full-screen editors (Director, Timeline, Workbench, Video Agent,
-  // Website Builder), which need every pixel of height for the editor itself.
-  const height = size === 'compact' ? 'h-20 md:h-24' : 'h-32 md:h-[clamp(176px,14vw,264px)]';
+  // One size for every studio, editors included.
+  const height = STUDIO_BANNER_HEIGHT;
   wrapper.className = `hero-banner studio-header relative w-full ${height} overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d10] shrink-0 ${className}`;
   wrapper.dataset.studioHeader = studioId;
   if (src) {
@@ -776,12 +763,12 @@ export function demoteBannerHeading(el) {
 }
 
 /**
- * The banner for a full-screen editor: the compact studio banner inside a padded,
+ * The banner for a full-screen editor: the standard studio banner inside a padded,
  * non-shrinking row so it sits above the editor without squeezing it sideways.
  */
 export function createEditorBanner(studioId, title, subtitle = '') {
   const row = document.createElement('div');
   row.className = 'px-3 pt-3 shrink-0';
-  row.appendChild(createStudioHeader(studioId, title, subtitle, '', 'compact'));
+  row.appendChild(createStudioHeader(studioId, title, subtitle));
   return row;
 }

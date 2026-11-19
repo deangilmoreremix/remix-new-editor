@@ -14,7 +14,7 @@
  ],
  "whenToUseAnother": [
   "If you want ready-made starting points with your own photo or video, use Templates (#/templates).",
-  "If you want inspiration and sample prompts, use Explore (#/explore).",
+  "If you want inspiration and sample prompts, use Templates (#/templates) and its Prompts filter.",
   "If you want your finished files, use Library (#/library) or Content (#/content-library)."
  ],
  "keyFeatures": [
@@ -181,7 +181,6 @@
   "Open Library after generating to find your results."
  ],
  "relatedStudios": [
-  "explore",
   "templates",
   "image",
   "video",
@@ -191,12 +190,6 @@
   "video-agent"
  ],
  "relatedStudioGuidance": [
-  {
-   "studio": "explore",
-   "relationship": "Inspiration page",
-   "whenToMove": "You want sample prompts or trending templates.",
-   "why": "Explore has a prompt library with Try this prompt buttons."
-  },
   {
    "studio": "templates",
    "relationship": "Ready-made starts",

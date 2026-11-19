@@ -190,7 +190,7 @@
     {
       "id": "side-menu-navigation",
       "title": "The side menu and how to navigate",
-      "text": "The left side menu is the main way to move around (on phones it opens with the menu button at the top left). It has five groups. Top, with no heading: Apps, Explore, Templates, Academy (courses and guides). Image: Image, Edit, Upscale, Character, Product Shot, Brand. Video: Video, Cinema, Cinema Templates, Storyboard, Effects, AI VFX, Animate, Lip Sync, Video Tools, Avatar, Audio. Agents: Video Agent, Director, Timeline, Workbench, Viral, Personalizer, Website. My Work: Library, Content. The current page is highlighted. The Apps page lists the same tools as cards with a search box, and clicking the logo at the top left of the header opens Apps. Pages use addresses like #/image. Some routes are part of a menu entry: for example Brand DNA, Campaign and Photo Studio belong to Brand, and text-to-image or image-to-image belong to Image.",
+      "text": "The left side menu is the main way to move around (on phones it opens with the menu button at the top left). It has five groups. Top, with no heading: Apps, Templates, Academy (courses and guides). Image: Image, Edit, Upscale, Character, AI Influencer, Product Shot, Brand. Video: Video, Cinema, Cinema Templates, Storyboard, Effects, AI VFX, Animate, Lip Sync, Video Tools, Avatar, Audio. Agents: Video Agent, Zack D, Motion Director, Director, Timeline, Workbench, Viral, Personalizer, Video Pages, Lead Finder, Video Outreach, Recorder, Find My Brand, Website. My Work: Library, Content. The current page is highlighted. The Apps page lists the same tools as cards with a search box, and clicking the logo at the top left of the header opens Apps. Pages use addresses like #/image. Some routes are part of a menu entry: for example Brand DNA, Campaign and Photo Studio belong to Brand, and text-to-image or image-to-image belong to Image.",
       "route": "apps",
       "intents": [
         "how do I navigate",
@@ -214,7 +214,7 @@
     {
       "id": "retired-routes",
       "title": "Chat, Assist, Training and Community pages were retired",
-      "text": "Several older pages no longer exist and old links redirect to the closest live page: Training, Chat and Assist open the Apps hub; Community opens Explore; and the old pexels-media page opens Library. If you were looking for a chat assistant, use Ask SmartVideo (the floating help button) for questions about the app, or the Video Agent and Director apps for AI-driven video work. Stock photos and videos from Pexels are now reached through \"Browse Stock Media\" on the Content page.",
+      "text": "Several older pages no longer exist and old links redirect to the closest live page: Training, Chat and Assist open the Apps hub; Community and Explore open Templates (the prompt library is under its Prompts filter); and the old pexels-media page opens Library. If you were looking for a chat assistant, use Ask SmartVideo (the floating help button) for questions about the app, or the Video Agent and Director apps for AI-driven video work. Stock photos and videos from Pexels are now reached through \"Browse Stock Media\" on the Content page.",
       "route": "apps",
       "intents": [
         "where did chat go",
@@ -292,7 +292,7 @@
       "id": "prompt-keyboard-tips",
       "title": "Prompt and keyboard tips that exist in the app",
       "text": "In studios that use the floating prompt composer (for example Video Studio, Cinema Studio, Effects Studio and Video Tools) the box says \"Describe what you want to create\" and pressing Ctrl+Enter (or Cmd+Enter on Mac) submits like the Generate button. Esc closes open pop-overs. Explore has a Prompt Library of 12 sample prompts with a \"Try this prompt\" button that opens Image Studio with the prompt filled in. Template Studio keeps an \"AI Enhancer\" switch ON by default, which expands short prompts, and shows the final text in the \"Enhanced Prompt\" tab. Ask SmartVideo uses Enter to send and Shift+Enter for a new line. The Timeline editor Settings has a Keyboard tab; its listed defaults include Space for Play/Pause, Home and End to jump, Ctrl+Z / Ctrl+Y undo and redo, S to split a clip and Ctrl+E to export.",
-      "route": "explore",
+      "route": "templates",
       "intents": [
         "keyboard shortcuts",
         "how to write a good prompt",
@@ -304,7 +304,7 @@
       ],
       "sources": [
         "src/components/studio/promptComposer.js",
-        "src/components/ExplorePage.js",
+        "src/components/TemplatesPage.js",
         "src/components/TemplateStudio.js",
         "src/components/modals/SettingsModal.jsx",
         "src/features/ask-smartvideo/AskSmartVideo.js"
