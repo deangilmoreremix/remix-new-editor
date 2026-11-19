@@ -26,7 +26,7 @@ export function CineGenEditorPage(): HTMLElement {
   // Same studio banner as every other page; the editor renders in the host below it.
   const banner = createEditorBanner('timeline', 'Timeline Editor', 'Edit, caption, personalise and export your video');
   // CineGen's unlayered `* { padding: 0 }` reset beats Tailwind's layered px-*/pt-* utilities, so set the banner's padding inline.
-  banner.style.padding = '12px 12px 0';
+  banner.style.padding = '24px 24px 0';
   const bannerText = banner.querySelector('h1')?.parentElement as HTMLElement | null;
   if (bannerText) bannerText.style.paddingLeft = '28px';
   el.appendChild(banner);

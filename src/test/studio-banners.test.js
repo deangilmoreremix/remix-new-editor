@@ -46,6 +46,7 @@ describe('studio banners', () => {
   it('the editor banner is the same size as every other studio banner, inside a non-shrinking row', () => {
     const row = createEditorBanner('director', 'Director', 'AI editor');
     expect(row.className).toContain('shrink-0');
+    expect(row.className).toContain('px-6 pt-6'); // same 24px inset as the studio pages
     const banner = row.querySelector('.hero-banner');
     expect(banner.className).toContain(STUDIO_BANNER_HEIGHT);
     expect(banner.className).not.toContain('h-20');

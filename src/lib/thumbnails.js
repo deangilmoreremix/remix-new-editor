@@ -768,7 +768,7 @@ export function demoteBannerHeading(el) {
  */
 export function createEditorBanner(studioId, title, subtitle = '') {
   const row = document.createElement('div');
-  row.className = 'px-3 pt-3 shrink-0';
+  row.className = 'px-6 pt-6 shrink-0';
   row.appendChild(createStudioHeader(studioId, title, subtitle));
   return row;
 }
