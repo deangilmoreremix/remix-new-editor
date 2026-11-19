@@ -369,7 +369,9 @@ export function renderAddonEditor(container, {
   const ui = {};
   let activeTab = null;
   let drawnFields = [];
+  let disposed = false; // async results (font loads / imports, searches) that arrive after destroy() must not touch the container, now owned by a newer editor
   const draw = () => {
+    if (disposed) return;
     const all = ((fieldsFor ? fieldsFor(current) : fields) || []).filter((f) => !f.showIf || f.showIf(current));
     drawnFields = all;
     // Upstream settings panels are tabbed (Basic / Styles / Fields /
@@ -393,7 +395,6 @@ export function renderAddonEditor(container, {
   const applyHook = (key) => {
     if (onFieldChange) current = onFieldChange(key, current) || current;
   };
-  let disposed = false; // a font import / load that finishes after destroy() must not touch a newer editor's state
   const emit = (structural, key) => {
     if (disposed) return;
     if (key) applyHook(key);
