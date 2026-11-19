@@ -1,4 +1,5 @@
 // studioRoutes.js
+import { GUIDE_ROUTES } from '../data/guideRoutes.js';
 // Single source of truth for the "all studios" side menu / drawer.
 // Drives both the global Sidebar (src/components/Sidebar.js) and the in-studio
 // drawer (src/lib/studioChrome.js). Every SPA route is listed so the menu shows
@@ -239,6 +240,7 @@ export function getNavItemForRoute(route) {
   const page = String(route).replace(/^#?\/?/, '').split('?')[0];
   if (page.startsWith('template/')) return 'templates';
   if (page === 'academy' || page.startsWith('academy/')) return 'academy';
+  if (page.startsWith('guide/')) return GUIDE_ROUTES[page.slice(6)] && NAV_GROUPS.some((g) => g.items.some((it) => it.id === GUIDE_ROUTES[page.slice(6)])) ? GUIDE_ROUTES[page.slice(6)] : null;
   const id = NAV_ALIASES[page] || page;
   return NAV_GROUPS.some((g) => g.items.some((it) => it.id === id)) ? id : null;
 }

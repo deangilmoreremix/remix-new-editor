@@ -2,6 +2,8 @@ import { navigate } from '../lib/router.js';
 import { getStudioThumbnail, getHeroThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 import { NAV_GROUPS } from '../lib/studioRoutes.js';
 import { COLLAB_APPS } from '../lib/collabSuite.js';
+import { getStudioIcon } from '../lib/studioRoutes.js';
+import { guideSlugForRoute } from '../data/guideRoutes.js';
 
 const CORE_STUDIOS = [
   { id: 'image', name: 'Image Studio', description: 'Generate images with 20+ AI models', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: '20+ models', color: 'bg-primary/10 text-primary border-primary/20' },
@@ -49,12 +51,26 @@ const MENU_APPS = [
   { id: 'content-library', name: 'Content', description: 'Browse and reuse your saved content', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>', badge: 'My work', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
 ];
 
-const ALL_APPS = Object.fromEntries([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS, ...MENU_APPS].map((a) => [a.id, a]));
+// Studios that had no card: Zack D, plus Templates, Academy and Video Render (listed here, not in the menu groups).
+const icon24 = (route) => getStudioIcon(route).replace(/width="18" height="18"/, 'width="24" height="24"');
+const MORE_APPS = [
+  { id: 'zackd', name: 'Zack D Studio', description: 'Turn one question into a 3D animated explainer short', icon: icon24('zackd'), badge: 'Explainers', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+  { id: 'templates', name: 'Templates', description: 'Ready-to-use image and video templates: pick one, add your media, generate', icon: icon24('templates'), badge: 'Templates', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
+  { id: 'academy', name: 'Academy', description: 'Courses and guides for making AI video, with templates to try', icon: icon24('academy'), badge: 'Learn', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+  { id: 'render', name: 'Video Render', description: 'Export, queue and publish finished videos', icon: icon24('render'), badge: 'Render', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' },
+];
+
+const ALL_APPS = Object.fromEntries([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS, ...MENU_APPS, ...MORE_APPS].map((a) => [a.id, a]));
 const pick = (ids) => ids.map((id) => ALL_APPS[id]).filter(Boolean);
 
 // Built from the side menu itself (NAV_GROUPS) so the two can't drift apart.
 // The first group (Apps / Explore / Templates) is navigation, not an app.
 const APP_SECTIONS = NAV_GROUPS.slice(1).map((g) => [`${g.title} apps`.replace('My Work apps', 'My Work'), pick(g.items.map((it) => it.id))]);
+
+// Templates and Academy sit at the top of the side menu (no heading), so they get their own section;
+// Video Render has a guide but is not in the menu, so it joins the Video apps.
+APP_SECTIONS.unshift(['Start here', pick(['templates', 'academy'])]);
+APP_SECTIONS.find(([title]) => title === 'Video apps')?.[1].push(ALL_APPS.render);
 
 if (COLLAB_APPS.length) APP_SECTIONS.push(['Collaboration apps', COLLAB_APPS]);
 
@@ -106,6 +122,7 @@ export function AppsHub() {
     inner.appendChild(createSection(title, apps.map(s => ({
       ...s,
       thumbnail: getStudioThumbnail(s.id) || getHeroThumbnail(s.id),
+      guide: guideSlugForRoute(s.id),
       onClick: () => (s.href ? window.open(s.href, '_blank', 'noopener') : (saveRecent(s.id, s.name), navigate(s.id))),
     })), true));
   });
@@ -189,10 +206,21 @@ function createSection(title, items, isStudio = false) {
       </div>
       ${item.badge ? `<div class="text-[10px] font-bold text-muted mt-1 ml-11">${item.badge}</div>` : ''}
     `;
+    if (item.guide) {
+      const guideLink = document.createElement('a');
+      guideLink.href = `#/guide/${item.guide}`;
+      guideLink.textContent = 'Guide';
+      guideLink.dataset.guideLink = item.guide;
+      guideLink.setAttribute('aria-label', `${item.name} guide`);
+      guideLink.className = 'inline-block mt-1.5 ml-11 text-[11px] font-bold text-primary hover:underline';
+      guideLink.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); navigate(`guide/${item.guide}`); });
+      content.appendChild(guideLink);
+    }
     card.appendChild(content);
 
     card.onclick = item.onClick;
     card.onkeydown = (e) => {
+      if (e.target !== card) return; // the Guide link handles its own keys
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         item.onClick();

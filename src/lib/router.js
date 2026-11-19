@@ -142,10 +142,17 @@ const pageLoaders = {
   animate: () => import('../components/AnimatePage.js').then(m => m.AnimatePage()),
   // Academy: the page parses its own #/academy/track/<track>[/lesson|template/<id>] hash.
   academy: () => import('../components/academy/AcademyPage.jsx').then(m => m.AcademyPage()),
+  guide: () => import('../components/GuidePage.js').then(m => m.GuidePage()),
 };
 
 // Sub-paths like 'academy/track/<t>/lesson/<id>' are handled by the Academy page itself.
-export const academyKey = (page) => (typeof page === 'string' && page.startsWith('academy/') ? 'academy' : page);
+// 'guide/<slug>' is the studio guide page, which reads its own slug from the hash.
+export const academyKey = (page) => {
+  if (typeof page !== 'string') return page;
+  if (page.startsWith('academy/')) return 'academy';
+  if (page.startsWith('guide/')) return 'guide';
+  return page;
+};
 
 /** True when navigate(page) opens a real page rather than the placeholder. */
 export const isKnownPage = (page) => typeof page === 'string' && (page.startsWith('template/') || Boolean(pageLoaders[academyKey(RETIRED_ROUTES[page] || page)]));
