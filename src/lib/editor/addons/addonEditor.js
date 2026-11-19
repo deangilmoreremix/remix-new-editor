@@ -171,7 +171,7 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
       const options = typeof field.options === 'function' ? field.options(services) : (field.options || []);
       const imported = services.userFonts?.() ?? [];
       const installed = services.systemFonts?.() ?? [];
-      const opt = ([v, l]) => `<option value="${esc(v)}" ${String(v) === String(value) ? 'selected' : ''}>${esc(l)}</option>`;
+      const opt = ([v, l]) => `<option value="${esc(v)}" ${String(v).toLowerCase() === String(value).toLowerCase() ? 'selected' : ''}>${esc(l)}</option>`;
       // options carry an optional group; consecutive options of one group share an <optgroup> (a plain list stays plain)
       const grouped = options.some((o) => o[2]);
       const list = grouped
@@ -393,7 +393,9 @@ export function renderAddonEditor(container, {
   const applyHook = (key) => {
     if (onFieldChange) current = onFieldChange(key, current) || current;
   };
+  let disposed = false; // a font import / load that finishes after destroy() must not touch a newer editor's state
   const emit = (structural, key) => {
+    if (disposed) return;
     if (key) applyHook(key);
     onChange?.(JSON.parse(JSON.stringify(current)), { structural });
     if (structural) draw();
@@ -661,8 +663,8 @@ export function renderAddonEditor(container, {
       el.value = '';
       if (!file || !services.importFont) return;
       Promise.resolve(services.importFont(file))
-        .then((family) => { ui.fontError = ''; if (family) setAndEmit(fontKey, family); else draw(); })
-        .catch((err) => { ui.fontError = err?.message || 'That font could not be added.'; draw(); });
+        .then((family) => { if (disposed) return; ui.fontError = ''; if (family) setAndEmit(fontKey, family); else draw(); })
+        .catch((err) => { if (disposed) return; ui.fontError = err?.message || 'That font could not be added.'; draw(); });
       return;
     }
     if (e.type === 'change' && (el.dataset?.imageUpload || el.dataset?.lottieUpload)) {
@@ -765,7 +767,13 @@ export function renderAddonEditor(container, {
     if (kind === 'rich-tokens') { setPath(current, key, htmlToTokens(el)); emit(false, key); return; }
     if (kind === 'points') return; // committed on change (above)
     if (kind === 'toggle') setPath(current, key, el.checked);
-    else if (kind === 'number') {
+    else if (kind === 'text' && el.type === 'color') {
+      // dragging the picker does not redraw, so bring the hex box and the chosen swatch along
+      setPath(current, key, el.value);
+      const hex = container.querySelector(`input[data-kind="hex"][data-key="${key}"]`);
+      if (hex) hex.value = el.value.toUpperCase();
+      container.querySelectorAll(`[data-swatch-key="${key}"]`).forEach((b) => b.classList.toggle('is-on', b.dataset.swatchValue.toLowerCase() === el.value.toLowerCase()));
+    } else if (kind === 'number') {
       const n = Number(el.value);
       setPath(current, key, Number.isFinite(n) ? n : 0);
     } else setPath(current, key, el.value);
@@ -819,6 +827,7 @@ export function renderAddonEditor(container, {
   draw();
   return {
     destroy() {
+      disposed = true;
       container.removeEventListener('input', handle);
       container.removeEventListener('change', handle);
       container.removeEventListener('click', handle);
@@ -833,6 +842,7 @@ export function renderAddonEditor(container, {
       container.removeEventListener('paste', onPaste);
     },
     setOptions(next) {
+      if (disposed) return;
       current = JSON.parse(JSON.stringify(next || {}));
       draw();
     },

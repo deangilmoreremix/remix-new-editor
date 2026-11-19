@@ -3262,7 +3262,7 @@ export function TimelineEditor({
               return { ok: r.ok, message: r.message };
             },
             onPickPreset: (preset) => { // My presets tab
-              const made = presetOverlays(preset, currentTime, Math.max(sequenceDuration, 10));
+              const made = presetOverlays(preset, startAfterGate(state.overlays, currentTime), Math.max(sequenceDuration, 10)); // not over a List Builder gate marker
               made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
               if (made.length) selectOverlay(made[made.length - 1].id);
             },

@@ -8,6 +8,8 @@ import * as contactStore from '../../../lib/contactStore.js';
 import { contactName, listContactProfiles } from '../../../lib/editor/personalize/perContact.js';
 // @ts-expect-error plain JS image helpers
 import { assetForImageToken, imageTokenChoices } from '../../../lib/personalization/timelineAssets.js';
+// @ts-expect-error plain JS token schema (the same lookup the preview and export use)
+import { resolveToken } from '../../../components/personalize/tokenSchema.js';
 // @ts-expect-error plain JS AI picture planning and review state
 import { markAiGenerated, needsReview, planAiImages } from '../../../lib/personalization/aiContactImages.js';
 // @ts-expect-error plain JS profile helpers
@@ -38,7 +40,9 @@ export function buildContactCheck(overlays: Array<{ type: string; addon?: unknow
     name: contactName(p) as string,
     cells: keys.map((key): CheckCell => {
       const a = assetForImageToken(p, key) as { id?: string; url?: string; aiGenerated?: boolean; needsReview?: boolean; videoReady?: boolean; aiPrompt?: string } | null;
-      return { key, url: a?.url ?? null, assetId: a?.id ?? null, aiGenerated: !!a?.aiGenerated, needsReview: !!(a?.aiGenerated && a?.needsReview), videoReady: !!a?.videoReady, aiPrompt: a?.aiPrompt ?? null };
+      // the picture the preview would show (an asset, or an older cached value), so a filled slot is never reported missing
+      const shown = (resolveToken(p, key) as string | null) || a?.url || null;
+      return { key, url: shown, assetId: a?.id ?? null, aiGenerated: !!a?.aiGenerated, needsReview: !!(a?.aiGenerated && a?.needsReview), videoReady: !!a?.videoReady, aiPrompt: a?.aiPrompt ?? null };
     }),
   }));
   const { jobs, skipped } = planAiImages(keys, contacts) as { jobs: AiJob[]; skipped: Skipped[] };
@@ -60,7 +64,14 @@ export function approveAiImage(contactId: string, assetId: string): boolean {
 export function removeContactImage(contactId: string, assetId: string): boolean {
   const profile = contactStore.getProfile?.(contactId) as Profile | null;
   if (!profile) return false;
-  contactStore.saveProfile(removePersonalizationAsset(profile, assetId));
+  const gone = ((profile.personalization as { assets?: Record<string, Array<{ id?: string; url?: string }>> } | undefined)?.assets);
+  const url = gone ? Object.values(gone).flat().find((a) => a?.id === assetId)?.url : null;
+  const next = removePersonalizationAsset(profile, assetId) as Profile;
+  // saveProfile keeps `variables` as a seed, so a cached copy of the removed picture would keep showing in the preview and export
+  if (url && next.variables) {
+    next.variables = Object.fromEntries(Object.entries(next.variables as Record<string, unknown>).filter(([, v]) => v !== url));
+  }
+  contactStore.saveProfile(next);
   announce(contactId);
   return true;
 }
@@ -108,7 +119,8 @@ export async function fillMissingWithAi(jobs: AiJob[], host: ImageHost & { onPro
       if (!url) throw new Error(result?.error || 'No image came back');
       const stored = await persistPersonalizationAssetVersion({ sourceUrl: await compressDataUrl(url), role: job.role, name: `${job.label} (AI)` });
       const profile = contactStore.getProfile?.(job.contactId) as Profile | null;
-      if (!profile) continue;
+      // someone may have added this picture while it was being made: keep theirs
+      if (!profile || !(planAiImages([job.key], [profile]) as { jobs: AiJob[] }).jobs.length) continue;
       const asset = markAiGenerated(createPersonalizationAsset({
         role: job.role, name: `${job.label[0].toUpperCase()}${job.label.slice(1)} (AI)`, url: stored.url, sourceType: 'AI_GENERATED', mimeType: stored.mimeType || 'image/jpeg',
       }), { prompt: job.prompt });

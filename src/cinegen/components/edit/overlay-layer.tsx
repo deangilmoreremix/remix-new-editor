@@ -148,7 +148,8 @@ export function OverlayLayer({ overlays, profile = null, profileVersion = 0, cur
   // drag / resize handles when selected, and the geometry is saved back (kept in % of the frame).
   // [remix] id -> animation of the add-ons shown last time: an overlay that has just appeared while playing, or whose animation was just changed, plays its In / Idle effect (as the old editor did)
   const lastAnimations = useRef(new Map<string, string>());
-  const addonSignature = `${String(profile?.id ?? '')}#${profileVersion}|` + active.filter((o) => isRegistryOverlay(o.type)).map((o) => `${o.id}:${JSON.stringify(o.addon)}:${selected === o.id}`).join('|');
+  const wasPlaying = useRef(false);
+  const addonSignature = `${String(profile?.id ?? '')}#${profileVersion}#${addonPlaying ? 'play' : 'pause'}|` + active.filter((o) => isRegistryOverlay(o.type)).map((o) => `${o.id}:${JSON.stringify(o.addon)}:${selected === o.id}`).join('|');
   useEffect(() => {
     const layer = addonRef.current;
     if (!layer) return;
@@ -157,6 +158,8 @@ export function OverlayLayer({ overlays, profile = null, profileVersion = 0, cur
     [...layer.children].forEach((c) => destroyOverlayElement(c));
     const cleanups: Array<() => void> = [];
     const shown = new Map<string, string>();
+    const justStarted = addonPlaying && !wasPlaying.current; // pressing Play starts the effects of overlays already on screen
+    wasPlaying.current = addonPlaying;
     for (const o of active.filter((x) => isRegistryOverlay(x.type))) {
       const el = buildOverlayElement(o, { editor: true, profile }) as HTMLElement | null;
       if (!el) continue;
@@ -167,7 +170,7 @@ export function OverlayLayer({ overlays, profile = null, profileVersion = 0, cur
       const before = lastAnimations.current.get(String(o.id));
       shown.set(String(o.id), key);
       // appeared during playback, or the animation was just changed in the settings (shown once even when paused, as a preview)
-      if (animation && (animation.in || animation.idle) && ((addonPlaying && before === undefined) || (before !== undefined && before !== key))) playInAnimation(el, animation);
+      if (animation && (animation.in || animation.idle) && ((addonPlaying && (before === undefined || justStarted)) || (before !== undefined && before !== key))) playInAnimation(el, animation);
       el.addEventListener('pointerdown', () => selectOverlay(o.id));
       const geometry = (o.addon as { geometry?: Record<string, number> } | undefined)?.geometry;
       if (selected === o.id && geometry && o.type !== 'overlay-background' && o.type !== 'overlay-text-mask') {

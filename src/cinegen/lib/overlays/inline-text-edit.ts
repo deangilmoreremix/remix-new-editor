@@ -32,6 +32,7 @@ export function beginInlineTextEdit(el: HTMLElement, text: string, onCommit: (te
   };
   const onKey = (e: KeyboardEvent) => {
     e.stopPropagation(); // Space / E / V / Backspace are typing here, not editor shortcuts
+    if (e.isComposing || e.keyCode === 229) return; // Enter that confirms an IME candidate is not "done editing"
     if (e.key === 'Escape') { e.preventDefault(); finish(false); } else if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finish(true); }
   };
   const onBlur = () => finish(true);
