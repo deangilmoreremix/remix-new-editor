@@ -74,10 +74,15 @@ export function loadTemplateCatalog({ fetchImpl = (typeof fetch === 'function' ?
     const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
     let timer;
     const timeout = new Promise((_, reject) => { timer = setTimeout(() => { ctrl?.abort(); reject(new Error('The template library took too long to answer')); }, timeoutMs); });
-    let res;
-    try { res = await Promise.race([fetchImpl(url, ctrl ? { signal: ctrl.signal } : undefined), timeout]); } finally { clearTimeout(timer); }
-    if (!res.ok) throw new Error(`The template library answered ${res.status}`);
-    const data = await res.json();
+    // The timer covers the whole exchange: waiting for headers AND reading the JSON body.
+    const exchange = (async () => {
+      const res = await fetchImpl(url, ctrl ? { signal: ctrl.signal } : undefined);
+      if (!res.ok) throw new Error(`The template library answered ${res.status}`);
+      return res.json();
+    })();
+    exchange.catch(() => {}); // if the timeout wins, a later failure of the abandoned request must not go unhandled
+    let data;
+    try { data = await Promise.race([exchange, timeout]); } finally { clearTimeout(timer); }
     if (!Array.isArray(data?.clips) || !data.clips.length) throw new Error('The template library looks empty');
     return normalizeCatalog(data);
   })();

@@ -175,6 +175,17 @@ describe('catalog links and timeout', () => {
     await expect(loadTemplateCatalog({ fetchImpl: ok })).resolves.toBeTruthy(); // the next try asks again
     expect(hang).toHaveBeenCalledTimes(1); expect(ok).toHaveBeenCalledTimes(1);
   });
+  it('a host that sends headers but stalls on the body also times out, and is not cached', async () => {
+    vi.useFakeTimers();
+    const stall = vi.fn(async () => ({ ok: true, json: () => new Promise(() => {}) }));
+    const first = loadTemplateCatalog({ fetchImpl: stall, timeoutMs: 1000 });
+    const caught = expect(first).rejects.toThrow(/took too long/);
+    await vi.advanceTimersByTimeAsync(1001);
+    await caught;
+    vi.useRealTimers();
+    const ok = vi.fn(async () => ({ ok: true, json: async () => fixture }));
+    await expect(loadTemplateCatalog({ fetchImpl: ok })).resolves.toBeTruthy();
+  });
   it('passes an abort signal to the request', async () => {
     const ok = vi.fn(async () => ({ ok: true, json: async () => fixture }));
     await loadTemplateCatalog({ fetchImpl: ok });
