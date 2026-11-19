@@ -22,13 +22,15 @@ function makeRes() {
 const req = (method: string, body?: unknown) => ({ method, headers: { authorization: 'Bearer t' }, body })
 
 /** In-memory stand-in for Supabase auth + the wb_cloudflare_credentials table + Cloudflare. */
-function stub(opts: { cf?: 'ok' | 'unauthorized' | 'badaccount' } = {}) {
+function stub(opts: { cf?: 'ok' | 'unauthorized' | 'badaccount'; suspended?: boolean } = {}) {
   let row: { user_id: string; account_id: string; token_enc: string; token_last4: string } | null = null
   const calls: Array<{ url: string; init?: RequestInit }> = []
   fetchMock.mockImplementation(async (url: unknown, init?: RequestInit) => {
     const u = String(url)
     calls.push({ url: u, init })
     if (u.includes('/auth/v1/user')) return jsonResponse({ id: USER, email: 'a@b.dev' })
+    // verifyUser() also checks the builder profile's suspended flag (fails closed when the lookup errors)
+    if (u.includes('/rest/v1/wb_profiles')) return jsonResponse([{ suspended: opts.suspended === true }])
     if (u.startsWith('https://api.cloudflare.com/')) {
       const mode = opts.cf ?? 'ok'
       if (mode === 'ok') return jsonResponse({ success: true, result: [] })
@@ -53,6 +55,14 @@ describe('api/cloudflare', () => {
     process.env.SUPABASE_ANON_KEY = 'anon'
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service'
     process.env.KEY_ENCRYPTION_SECRET = 'x'.repeat(48)
+  })
+
+  it('a suspended builder user is refused, even with a valid session', async () => {
+    stub({ suspended: true })
+    const { default: handler } = await import('../../../api/cloudflare')
+    const res = makeRes()
+    await handler(req('GET') as never, res as never)
+    expect(res.statusCode).toBe(401)
   })
 
   it('401 without a session', async () => {
@@ -163,6 +173,7 @@ describe('api/deploy uses the caller\'s own Cloudflare account', () => {
     fetchMock.mockImplementation(async (url: unknown) => {
       const u = String(url)
       if (u.includes('/auth/v1/user')) return jsonResponse({ id: USER })
+      if (u.includes('/rest/v1/wb_profiles')) return jsonResponse([{ suspended: false }]) // verifyUser() checks the suspended flag
       if (u.includes('/rest/v1/wb_projects')) return jsonResponse([{ cf_pages_project_name: null, title: 'T' }])
       if (u.includes('/rest/v1/wb_cloudflare_credentials')) return jsonResponse([])
       return jsonResponse({}, false, 500)
@@ -179,6 +190,7 @@ describe('api/deploy uses the caller\'s own Cloudflare account', () => {
     fetchMock.mockImplementation(async (url: unknown) => {
       const u = String(url)
       if (u.includes('/auth/v1/user')) return jsonResponse({ id: USER })
+      if (u.includes('/rest/v1/wb_profiles')) return jsonResponse([{ suspended: false }]) // verifyUser() checks the suspended flag
       if (u.includes('/rest/v1/wb_projects')) return jsonResponse([])
       return jsonResponse({}, false, 500)
     })
@@ -195,6 +207,7 @@ describe('api/deploy uses the caller\'s own Cloudflare account', () => {
     fetchMock.mockImplementation(async (url: unknown) => {
       const u = String(url)
       if (u.includes('/auth/v1/user')) return jsonResponse({ id: USER })
+      if (u.includes('/rest/v1/wb_profiles')) return jsonResponse([{ suspended: false }]) // verifyUser() checks the suspended flag
       if (u.includes('/rest/v1/wb_projects')) return jsonResponse([{ cf_pages_project_name: 'my-site', title: 'T' }])
       if (u.includes('/rest/v1/wb_cloudflare_credentials')) return jsonResponse([{ account_id: ACCOUNT, token_enc: enc }])
       // Fail the first Cloudflare call: enough to see whose credentials the deploy used.
