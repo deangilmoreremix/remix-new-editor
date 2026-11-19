@@ -28,6 +28,31 @@ describe('quiet hours and backoff', () => {
     expect(inQuietHours(null, NOW)).toBe(false);
     expect(inQuietHours({ start: 'x', end: 'y' }, NOW)).toBe(false);
   });
+  it('prefers timeZone (IANA): overnight range in New York', () => {
+    const q = { start: '22:00', end: '07:00', timeZone: 'America/New_York' };
+    expect(inQuietHours(q, new Date('2026-11-11T12:00:00Z'))).toBe(false); // 07:00 EST: ends exactly
+    expect(inQuietHours(q, new Date('2026-11-11T11:59:00Z'))).toBe(true);  // 06:59 EST
+    expect(inQuietHours(q, new Date('2026-11-12T03:30:00Z'))).toBe(true);  // 22:30 EST
+    expect(inQuietHours(q, new Date('2026-11-11T20:00:00Z'))).toBe(false); // 15:00 EST
+  });
+  it('timeZone is DST-correct where a fixed offset is not (America/New_York, 2026 spring forward on 8 March)', () => {
+    const q = { start: '22:00', end: '07:00', timeZone: 'America/New_York', utcOffsetMinutes: -300 }; // -300 is only right in winter
+    expect(inQuietHours(q, new Date('2026-03-07T11:59:00Z'))).toBe(true);   // 06:59 EST
+    expect(inQuietHours(q, new Date('2026-03-07T12:00:00Z'))).toBe(false);  // 07:00 EST
+    expect(inQuietHours(q, new Date('2026-03-09T10:59:00Z'))).toBe(true);   // 06:59 EDT
+    expect(inQuietHours(q, new Date('2026-03-09T11:00:00Z'))).toBe(false);  // 07:00 EDT (the stale -300 offset would still say 06:00 = quiet)
+    expect(inQuietHours({ start: q.start, end: q.end, utcOffsetMinutes: -300 }, new Date('2026-03-09T11:00:00Z'))).toBe(true); // old behaviour unchanged
+  });
+  it('invalid or missing timeZone falls back to utcOffsetMinutes, then UTC, and never throws', () => {
+    const base = { start: '22:00', end: '07:00' };
+    const noon = new Date('2026-11-11T12:00:00Z');
+    expect(() => inQuietHours({ ...base, timeZone: 'Not/AZone' }, noon)).not.toThrow();
+    expect(inQuietHours({ ...base, timeZone: 'Not/AZone', utcOffsetMinutes: -300 }, new Date('2026-11-11T11:59:00Z'))).toBe(true); // 06:59 at -5h
+    expect(inQuietHours({ ...base, timeZone: 'Not/AZone' }, new Date('2026-11-11T23:30:00Z'))).toBe(true); // UTC
+    expect(inQuietHours({ ...base, timeZone: '' }, noon)).toBe(false);
+    expect(inQuietHours({ ...base, timeZone: 42 }, noon)).toBe(false);
+    expect(inQuietHours({ start: '08:00', end: '08:00', timeZone: 'UTC' }, new Date('2026-11-11T08:00:00Z'))).toBe(false); // start == end is off
+  });
   it('backs off exponentially, capped', () => {
     expect(backoffMs(1)).toBe(60_000);
     expect(backoffMs(2)).toBe(240_000);
@@ -66,11 +91,13 @@ describe('drain', () => {
       mark: async (id, patch) => { marks.push([id, patch]); },
     };
   };
-  it('sends, marks sent, and includes the suggestion', async () => {
+  it('sends, marks sent, and includes the suggestion (the e-mail now also carries html, the Open alerts link and the footer)', async () => {
     const a = fake();
     const db = mkdb([{ id: 'q1', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 }]);
     expect(await drainEmailQueue({ adapter: a, db, now: NOW })).toMatchObject({ sent: 1, failed: 0 });
-    expect(a.send).toHaveBeenCalledWith({ to: 'owner@example.test', subject: 'New lead captured', text: 'A viewer submitted a form.\n\nReview it.' });
+    expect(a.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'owner@example.test', subject: 'New lead captured', idempotencyKey: 'n1', html: expect.stringContaining('Open alerts') }));
+    const { text } = a.send.mock.calls[0][0];
+    expect(text.startsWith('New lead captured\n\nA viewer submitted a form.\n\nReview it.\n\nOpen alerts: https://smartvid.app/#/timeline')).toBe(true);
     expect(db.marks[0][1]).toMatchObject({ status: 'sent', attempts: 1 });
   });
   it('retries a failure with backoff, then fails permanently after the attempt limit', async () => {
@@ -146,10 +173,11 @@ describe('scheduled job', () => {
     const f = vi.fn(async (url, init) => {
       const name = url.split('/rest/v1/')[1]; calls.push([name, init.method]);
       let data = [];
-      if (name.startsWith('owner_notifications?select=id,clerk_user_id')) data = [{ id: 'n1', clerk_user_id: 'u1', type: 'new_lead' }];
+      if (name.startsWith('owner_notifications?select=id,clerk_user_id')) data = [{ id: 'n1', clerk_user_id: 'u1', type: 'daily_digest' }, { id: 'n2', clerk_user_id: 'u1', type: 'new_lead' }]; // alerts are e-mailed right away, the daily sweep only queues digests
       if (name.startsWith('retarget_preferences')) data = [{ clerk_user_id: 'u1', email: true, digest_frequency: 'daily' }];
       if (name.startsWith('notification_email_queue?select=*')) data = [{ id: 'q1', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 }];
-      if (name.startsWith('owner_notifications?select=id,title')) data = [{ id: 'n1', title: 'T', summary: 'S' }];
+      if (name.startsWith('notification_email_queue?id=eq.q1') && init.method === 'PATCH') data = [{ id: 'q1' }]; // the lease claim succeeds
+      if (name.startsWith('owner_notifications?select=id,type,title')) data = [{ id: 'n1', type: 'daily_digest', title: 'T', summary: 'S' }];
       if (name.startsWith('rpc/')) data = 0;
       return { ok: true, status: 200, text: async () => JSON.stringify(data) };
     });

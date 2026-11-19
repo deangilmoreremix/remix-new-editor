@@ -1427,10 +1427,10 @@
 /* With the Remotion player on, overlay children are hidden (it draws them); the label of these boxes stays. */
 .addon-overlay-layer.engine-on > .addon-overlay-clip > .addon-placeholder__tag.addon-placeholder__tag { visibility: visible; }
 /* dropdown, checkbox field and consent checkbox (they sit with the other boxes) */
-.addon-overlay-layer .retarget-form select { cursor: pointer; }
+.addon-overlay-layer .retarget-form select { cursor: pointer; font-size: 60%; } /* same size as the text boxes (they are 60% of the form font) */
 .addon-overlay-layer .retarget-form .optin-check,
 .addon-overlay-layer .retarget-form .optin-consent {
-  display: flex; align-items: center; gap: 0.5em; text-align: left; color: inherit; font-size: 0.85em; line-height: 1.3; cursor: pointer;
+  display: flex; align-items: center; gap: 0.5em; text-align: left; color: inherit; font-size: 0.55em; line-height: 1.35; cursor: pointer;
 }
 .addon-overlay-layer .retarget-form .optin-check input,
 .addon-overlay-layer .retarget-form .optin-consent input { width: 1.1em; height: 1.1em; flex: 0 0 auto; padding: 0; margin: 0; }

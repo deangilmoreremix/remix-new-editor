@@ -240,7 +240,9 @@
     "three": "^0.187.0",
     "timeline": "^3.4.1",
     "validator": "^13.15.35",
+    "web-push": "^3.6.7",
     "wavesurfer.js": "^7.12.7",
+    "write-excel-file": "^4.1.1",
     "xstate": "^5.31.1",
     "zod": "^4.4.3",
     "zustand": "^5.0.8"

@@ -7,7 +7,8 @@ import { usePublished, getClient } from '@cinegen/components/leads/use-publish';
 // @ts-expect-error plain JS
 import * as contactStore from '../../../lib/contactStore.js';
 // @ts-expect-error plain JS
-import { listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, personalVariables, linksCsv } from '../../../lib/editor/personalize/perContact.js';
+import { listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, linksCsv } from '../../../lib/editor/personalize/perContact.js';
+import { overlayProject, tokensIn, personalLinkItems } from '@cinegen/lib/personal-links-deps';
 // @ts-expect-error plain JS
 import { contactImageGaps } from '../../../lib/personalization/imageReadiness.js';
 // @ts-expect-error plain JS
@@ -40,21 +41,18 @@ export function PersonalizedOutput({ renderRef, busy, hasClips }: Props) {
 
   useEffect(() => {
     if (!host.current) return undefined;
-    const project = () => ({ tracks: [{ items: latest.current.overlays }] });
-    const items = (contacts: unknown[]) => {
-      const tokens = projectTokens(project());
-      return (contacts as Array<{ id: unknown }>).map((p) => ({ contactId: String(p.id), name: contactName(p), variables: personalVariables(p, tokens, { maxLength: 500 }) }));
-    };
+    const project = () => overlayProject(latest.current.overlays as never[]);
+    const items = (contacts: unknown[]) => personalLinkItems(latest.current.overlays as never[], contacts as Array<{ id: unknown }>);
     const describe = (p: { contact?: { company?: string }; personalization?: { business?: { businessName?: string } } }) => ({ name: contactName(p), email: contactEmail(p), company: p?.contact?.company || p?.personalization?.business?.businessName || '' });
     hubRef.current = renderBatchHub(host.current, {
       contacts: () => listContactProfiles(contactStore),
-      tokensUsed: () => projectTokens(project()),
+      tokensUsed: () => tokensIn(latest.current.overlays as never[]),
       issues: (p: unknown) => {
         const gaps = new Map((contactImageGaps(project(), [p]) as Array<{ id: unknown; missing: string[] }>).map((g) => [String(g.id), g.missing]));
         const own = gaps.get(String((p as { id: unknown }).id)) || [];
         // pictures the AI made for this contact that nobody has approved yet (Check contacts, in the editor's Add to timeline window)
         const review = unreviewedFor(p as never, personalizedImageKeys(latest.current.overlays as never)).length ? ['AI picture needs review'] : [];
-        return [...own.map((m) => `no ${m}`), ...review, ...(personalLinkIssues(p, projectTokens(project())).length ? ['image only in this browser (links)'] : [])];
+        return [...own.map((m) => `no ${m}`), ...review, ...(personalLinkIssues(p, tokensIn(latest.current.overlays as never[])).length ? ['image only in this browser (links)'] : [])];
       },
       guest: () => !(window as unknown as { Clerk?: { user?: unknown } }).Clerk?.user,
       exportEach: () => { if (!latest.current.busy && latest.current.hasClips) renderRef.current?.(listContactProfiles(contactStore).map((p: { id: unknown }) => String(p.id))); },
@@ -82,7 +80,7 @@ export function PersonalizedOutput({ renderRef, busy, hasClips }: Props) {
           if ((err as { code?: string })?.code !== 'links_unavailable') throw err;
           const base = publishClient.canonicalUrl(info);
           return {
-            rows: contacts.map((p) => ({ ...describe(p as never), link: personalLink(base, p, projectTokens(project())), note: '' })),
+            rows: contacts.map((p) => ({ ...describe(p as never), link: personalLink(base, p, tokensIn(latest.current.overlays as never[])), note: '' })),
             notice: 'Saved links turn on once the database update is installed; these links carry the details in the address.',
           };
         }

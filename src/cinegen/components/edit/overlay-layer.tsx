@@ -18,7 +18,7 @@ import { attachDragResize } from '../../../lib/editor/addons/dragResize.js';
 // @ts-expect-error plain JS: the same CTA box helper the export uses
 import { ctaBox } from '../../../lib/editor/addons/ctaLottie.js';
 import { mgOverlayLayer } from '@cinegen/lib/occ/mg-templates';
-import { overlaysAt, isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
+import { overlaysAt, isRegistryOverlay, gatesOnTimeline } from '@cinegen/lib/overlays/overlays';
 import { hyperframesOverlayLayer, hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers (same math the renderer and the export use)
 import { hfPlacement, isReactItem } from '../../../lib/hyperframes/placement.js';
@@ -116,6 +116,7 @@ export function OverlayLayer({ overlays, profile = null, profileVersion = 0, cur
       };
       const live = isPlaying || gating.current === o.id;
       if (o.type === 'lead-form') {
+        if (!gatesOnTimeline(o) && isPlaying) continue; // 'at the end' / 'on pause' / 'exit intent': a published-page behaviour, so playing past it here must not stop the preview
         showLeadForm(host, o, { preview: !live, onEditText: onEditText ? (key: string, value: string) => onEditText(o.id, key, value) : undefined, onSubmit: async (data: Record<string, unknown>) => { const r = await sendLead(o, data); done(); return r; }, onSkip: done });
         gated = true; if (isPlaying) gating.current ??= o.id;
       } else if (o.type === 'list-builder') {

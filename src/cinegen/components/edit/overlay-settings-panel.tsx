@@ -12,7 +12,7 @@ import type { MgPropField } from '@cinegen/lib/occ/mg-templates';
 import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
 import { LottieEditSection } from './lottie-edit-section';
 import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
-import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
+import { isRegistryOverlay, gatesOnTimeline } from '@cinegen/lib/overlays/overlays';
 import { SavePresetRow } from './save-preset-row';
 import { contactImageServices, measureLogoFor, makeAllVideoReady } from '@cinegen/lib/personalize/contact-image-services';
 import { overlayMediaServices } from '@cinegen/lib/overlays/overlay-media-services';
@@ -187,6 +187,9 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
         </span>
       </div>
       {(overlay.type === 'list-builder' || overlay.type === 'lead-form') && <FormLeadsButton overlayId={overlay.id} type={overlay.type} />}
+      {overlay.type === 'lead-form' && !gatesOnTimeline(overlay) && (
+        <p data-testid="trigger-note" style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '0 12px 8px' }}>On the published page this form appears {overlay.trigger === 'end' ? 'at the end of the video' : overlay.trigger === 'pause' ? 'when the viewer pauses' : 'when the viewer is about to leave'}. Here it shows while the video is stopped inside this time range, and does not pause playback.</p>
+      )}
       {overlay.type === 'list-builder' ? (
         <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '0 12px 8px' }}>Viewers fill this out before the video plays. It sits at the start of the timeline and takes no video time.</p>
       ) : (
