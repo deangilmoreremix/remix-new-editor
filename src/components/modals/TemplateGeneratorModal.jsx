@@ -1339,7 +1339,8 @@ export class TemplateGeneratorModal extends BaseModal {
       const it = this.itemsById.get(p.id);
       if (!it) return '';
       const selected = this.s.selectedVideos.some((v) => v.id === it.id);
-      const credit = it.source === TEMPLATE_SOURCE ? (it.user || it.pageURL ? `Original by ${esc(it.user || 'the author')}${safeHttpUrl(it.pageURL) ? ` · <a href="${esc(safeHttpUrl(it.pageURL))}" target="_blank" rel="noopener">original post</a>` : ''}` : '')
+      const creditLink = safeHttpUrl(it.pageURL);
+      const credit = it.source === TEMPLATE_SOURCE ? (it.user || it.pageURL ? `Original by ${esc(it.user || 'the author')}${creditLink ? ` · <a href="${esc(creditLink)}" target="_blank" rel="noopener">original post</a>` : ''}` : '')
         : it.user ? `${it.kind === 'video' ? 'Video' : 'Photo'} by ${esc(it.user)}${it.source === 'pexels' || it.source === 'pixabay' ? ` on <a href="${esc(safeHttpUrl(it.pageURL) || STOCK_HOME[it.source])}" target="_blank" rel="noopener">${it.source === 'pexels' ? 'Pexels' : 'Pixabay'}</a>` : ''}` : '';
       return `
         <div class="tg-popup" role="dialog" aria-modal="true" aria-label="Preview ${esc(it.title)}" data-act="popup-backdrop">
