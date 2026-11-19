@@ -329,26 +329,66 @@ Deno.serve(async (req: Request) => {
       .select("id, clerk_user_id, config").eq("id", pageId).eq("published", true).maybeSingle();
     if (pageError || !pageRow) return json(req, { ok: false, error: "Unknown page" }, 404);
     const form = ((pageRow.config as Json | null)?.form ?? null) as Json | null;
-    if (!form || form.enabled !== true) return json(req, { ok: false, error: "This page has no form" }, 400);
+    // A Puck page keeps its forms inside the design (no config.form); only the old template pages can switch the form off.
+    if (form && form.enabled === false) return json(req, { ok: false, error: "This page has no form" }, 400);
+    // The same kinds as the timeline: Lead Generator = lead-form, List Builder = list-builder, Personalizer = personalizer.
+    const pageKind = typeof body.kind === "string" && KINDS.has(body.kind) && body.kind !== "call-attempt" ? body.kind : "lead-form";
+    const pageClip = pageKind === "list-builder" || pageKind === "personalizer" ? "list-builder" : "landing-page";
+    // The OpenHiggsBolt app stores its own copy and asks only for delivery, with the service key (a visitor can never do this).
+    const trusted = !!SUPABASE_SERVICE_ROLE_KEY && req.headers.get("authorization") === `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`;
+    const deliverOnly = trusted && body.skipStore === true;
+    if (!deliverOnly) {
+      const [perPage, perClient] = await Promise.all([
+        admin.rpc("rate_limit_check", { p_scope: "lead-page", p_key: pageId, p_limit: 60, p_window_seconds: 60 }),
+        admin.rpc("rate_limit_check", { p_scope: "lead-page-client", p_key: await hashKey(clientKey(req), pageId), p_limit: 8, p_window_seconds: 60 }),
+      ]);
+      if (perPage.data?.allowed === false || perClient.data?.allowed === false) {
+        return json(req, { ok: false, error: "Too many submissions — try again shortly" }, 429);
+      }
+    }
     const contactId = typeof body.contactId === "string" && /^[A-Za-z0-9_-]{6,40}$/.test(body.contactId) ? body.contactId : null;
     const src = body.source && typeof body.source === "object" ? body.source as Json : {};
-    const { error: insertError } = await admin.from("video_leads").insert({
-      clerk_user_id: pageRow.clerk_user_id,
-      project_id: pageId,
-      clip_id: "landing-page",
-      kind: "lead-form",
-      data: leadData,
-      source: {
-        page: typeof src.page === "string" ? src.page.slice(0, 512) : null,
-        userAgent: typeof src.userAgent === "string" ? src.userAgent.slice(0, 512) : null,
-        published: true,
-        landingPage: true,
-        contactId,
-      },
-      preview: false,
-    });
-    if (insertError) console.warn("[lead-capture] landing page insert failed:", insertError.code);
-    return json(req, { ok: true, stored: !insertError, forwarded: 0, failed: 0, email: null });
+    const attribution = attributionOf(sanitizeSource(body.source));
+    let insertError: { code?: string } | null = null;
+    if (!deliverOnly) {
+      const r = await admin.from("video_leads").insert({
+        clerk_user_id: pageRow.clerk_user_id,
+        project_id: pageId,
+        clip_id: pageClip,
+        kind: pageKind,
+        data: leadData,
+        source: {
+          page: typeof src.page === "string" ? src.page.slice(0, 512) : null,
+          userAgent: typeof src.userAgent === "string" ? src.userAgent.slice(0, 512) : null,
+          published: true,
+          landingPage: true,
+          contactId,
+        },
+        preview: false,
+      });
+      insertError = r.error;
+      if (insertError) console.warn("[lead-capture] landing page insert failed:", insertError.code);
+    }
+    const ownerId = String(pageRow.clerk_user_id ?? "");
+    const afterSave = (async () => {
+      const { data: row } = await admin.from("landing_page_form_settings").select("settings").eq("page_id", pageId).maybeSingle();
+      const settings = ((row?.settings ?? null) as Json | null);
+      if (!settings) return;
+      // The settings use the List Builder's shape (webhookEnabled/webhook..., emailEnabled/emailAddress..., espProvider/espListId).
+      const hooks = savedWebhooks(settings, true);
+      const notifyTo = savedNotifyEmails(settings, true);
+      const [sent] = await Promise.all([
+        hooks.length
+          // The same event and payload the timeline's forms send, so one receiver can serve both.
+          ? forward(hooks, { event: "video_opted_in", kind: pageKind, projectId: pageId, clipId: pageClip, pageId, contactId, data: leadData, submittedAt: new Date().toISOString(), ...(Object.keys(attribution).length ? { source: attribution } : {}) }, { secret: await ownerSecret(ownerId) })
+          : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
+        notify(notifyTo, pageKind, leadData, attribution),
+        pushToEsp(admin, ownerId, savedEsp(settings), leadData),
+      ]);
+      await logDeliveries(admin, ownerId, { projectId: pageId, clipId: pageClip, kind: pageKind }, sent.deliveries);
+    })().catch((err) => console.warn("[lead-capture] landing page after-save work failed:", (err as Error)?.name));
+    await afterResponse(afterSave);
+    return json(req, { ok: true, stored: deliverOnly ? true : !insertError });
   }
 
   if (body.publishedId !== undefined) {
