@@ -38,10 +38,11 @@ test.describe('App-wide onboarding', () => {
 
     // 6b: grouped like the side menu, recommended first, every card has a picture
     const groups = await page.locator('[data-onb-group]').evaluateAll((n) => n.map((e) => e.getAttribute('data-onb-group')));
-    expect(groups).toEqual(['Image', 'Video', 'Agents', 'My Work']);
+    expect(groups).toEqual(['Discover', 'Image', 'Video', 'Agents', 'My Work']);
     const firstVideo = await page.locator('[data-onb-group="Video"] [data-onb-tool]').first().getAttribute('data-onb-tool');
     expect(firstVideo).toBe('avatar');
-    expect(await page.locator('[data-onb-tool]').count()).toBeGreaterThanOrEqual(26);
+    expect(await page.locator('[data-onb-tool]').count()).toBe(38);
+    expect(await page.locator('[data-onb-open]').count()).toBe(38);
     await page.locator('[data-onb-tool]').last().scrollIntoViewIfNeeded();
     await expect.poll(() => page.locator('[data-onb-tool] img').evaluateAll((imgs) => imgs.filter((i) => i.complete && i.naturalWidth === 0).length)).toBe(0);
 

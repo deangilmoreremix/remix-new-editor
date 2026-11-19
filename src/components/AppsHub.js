@@ -1,6 +1,6 @@
 import { navigate } from '../lib/router.js';
 import { getStudioThumbnail, getHeroThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
-import { NAV_GROUPS } from '../lib/studioRoutes.js';
+import { directoryByGroup, STUDIO_DIRECTORY } from '../lib/studioDirectory.js';
 import { COLLAB_APPS } from '../lib/collabSuite.js';
 
 const CORE_STUDIOS = [
@@ -44,13 +44,10 @@ const MENU_APPS = [
 ];
 
 export const ALL_APPS = Object.fromEntries([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS, ...MENU_APPS].map((a) => [a.id, a]));
-const pick = (ids) => ids.map((id) => ALL_APPS[id]).filter(Boolean);
-
-// Built from the side menu itself (NAV_GROUPS) so the two can't drift apart.
-// The first group (Apps / Explore / Templates) is navigation, not an app.
-const APP_SECTIONS = NAV_GROUPS.slice(1).map((g) => [`${g.title} apps`.replace('My Work apps', 'My Work'), pick(g.items.map((it) => it.id))]);
-
-if (COLLAB_APPS.length) APP_SECTIONS.push(['Collaboration apps', COLLAB_APPS]);
+// The studio sections come from the studio directory (src/lib/studioDirectory.js): all 38 studios, grouped like the
+// side menu (Discover, Image, Video, Agents, My Work), each with its guide screenshot and a link.
+// Only the Collaboration apps (links to other sites) are still listed here.
+const COLLAB_SECTIONS = COLLAB_APPS.length ? [['Collaboration apps', COLLAB_APPS]] : [];
 
 export function AppsHub() {
   const container = document.createElement('div');
@@ -94,10 +91,19 @@ export function AppsHub() {
   searchWrapper.appendChild(searchInput);
   inner.appendChild(searchWrapper);
 
+  const total = document.createElement('p');
+  total.className = 'text-center text-xs text-muted -mt-5 mb-8';
+  total.setAttribute('data-studio-total', '');
+  total.textContent = `${STUDIO_DIRECTORY.length} studios`;
+  inner.appendChild(total);
+
   const recentRow = createRecentRow();
   if (recentRow) inner.appendChild(recentRow);
 
-  APP_SECTIONS.forEach(([title, apps]) => {
+  directoryByGroup().forEach(({ title, items }) => {
+    inner.appendChild(createStudioSection(title, items));
+  });
+  COLLAB_SECTIONS.forEach(([title, apps]) => {
     inner.appendChild(createSection(title, apps.map(s => ({
       ...s,
       thumbnail: getStudioThumbnail(s.id) || getHeroThumbnail(s.id),
@@ -132,6 +138,68 @@ export function AppsHub() {
   };
 
   return container;
+}
+
+// One studio card: its screenshot, name and description, as a real link (#/<route>) so it also opens in a new tab.
+function createStudioCard(studio) {
+  const card = document.createElement('a');
+  card.href = studio.href;
+  card.className = 'group block bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden hover:bg-white/[0.06] hover:border-primary/30 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50';
+  card.dataset.searchable = `${studio.name} ${studio.description || ''}`;
+  card.dataset.studioCard = studio.id;
+  card.setAttribute('data-studio-link', studio.href);
+  card.setAttribute('aria-label', `Open ${studio.name}`);
+  card.addEventListener('click', () => saveRecent(studio.id, studio.name)); // the link itself does the navigation
+
+  const frame = document.createElement('div');
+  frame.className = 'relative aspect-[16/10] w-full overflow-hidden bg-white/[0.04]';
+  const skeleton = document.createElement('div');
+  skeleton.className = 'thumb-skeleton absolute inset-0';
+  frame.appendChild(skeleton);
+  if (studio.image) {
+    const img = document.createElement('img');
+    img.alt = `${studio.name} screenshot`;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.className = 'absolute inset-0 h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]';
+    let triedFallback = false;
+    img.onerror = () => {
+      if (!triedFallback && studio.fallback && !img.src.endsWith(studio.fallback)) { triedFallback = true; img.src = studio.fallback; return; }
+      img.style.display = 'none';
+      frame.classList.add('thumb-fallback');
+    };
+    img.onload = () => skeleton.remove();
+    img.src = studio.image;
+    frame.appendChild(img);
+  }
+  card.appendChild(frame);
+
+  const text = document.createElement('div');
+  text.className = 'p-3';
+  const name = document.createElement('div');
+  name.className = 'text-sm font-bold text-white group-hover:text-primary transition-colors truncate';
+  name.textContent = studio.name;
+  const desc = document.createElement('div');
+  desc.className = 'text-[11px] text-muted mt-0.5 line-clamp-2';
+  desc.textContent = studio.description;
+  text.append(name, desc);
+  card.appendChild(text);
+  return card;
+}
+
+function createStudioSection(title, studios) {
+  const section = document.createElement('div');
+  section.className = 'mb-10 animate-fade-in-up';
+  section.dataset.appSection = title;
+  const heading = document.createElement('h2');
+  heading.className = 'text-lg font-bold text-white mb-4 flex items-center gap-2';
+  heading.innerHTML = `${title} <span class="text-xs font-medium text-muted" data-app-count>${studios.length}</span>`;
+  section.appendChild(heading);
+  const grid = document.createElement('div');
+  grid.className = 'grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4';
+  studios.forEach((s) => grid.appendChild(createStudioCard(s)));
+  section.appendChild(grid);
+  return section;
 }
 
 function createSection(title, items, isStudio = false) {

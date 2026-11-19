@@ -214,6 +214,12 @@
   [headers.values]
     Cache-Control = "public, max-age=604800"
 
+# Studio guide screenshots (public/guides/<studio>/<file>.webp): the Apps page and the onboarding show them.
+[[headers]]
+  for = "/guides/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
 # Built JS/CSS are public; the Remotion export runner loads them from a
 # sandboxed iframe (opaque origin), which needs CORS for module scripts.
 [[headers]]

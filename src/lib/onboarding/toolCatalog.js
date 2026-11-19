@@ -1,48 +1,27 @@
 // src/lib/onboarding/toolCatalog.js
 //
-// What the onboarding tool picker shows: every side-menu tool (NAV_GROUPS, same groups, same order) with its
-// label, one-line description and thumbnail. Nothing here lists tools by hand except the descriptions that the
-// Apps page does not have, and the "video type" -> recommended tools map used to sort the picker.
-import { NAV_GROUPS, getStudioIcon } from '../studioRoutes.js';
-import { getStudioThumbnail, getHeroThumbnail } from '../thumbnails.js';
-import { ALL_APPS } from '../../components/AppsHub.js';
+// What the onboarding tool picker shows: all 38 studios (src/lib/studioDirectory.js, the same list as the Apps page)
+// with name, one-line description, image and link. Here: the goals, the "video type" -> recommended studios map used
+// to sort the picker, and the helpers around them.
+import { directoryByGroup } from '../studioDirectory.js';
 
-// Descriptions for menu items the Apps page has no card for.
-const EXTRA_DESCRIPTIONS = Object.freeze({
-  zackd: 'Directed, multi-beat AI videos from a template and a short brief',
-  viral: 'AI-powered viral short-form video generation',
-  personalizer: 'Personalise templates and assets with your own data',
-  'video-pages': 'Turn any video into a branded landing page with a CTA and lead form',
-  'website-builder': 'Generate and publish a website from a prompt',
-  library: 'Everything you have generated, in one place',
-  'content-library': 'Browse and reuse your saved content',
-  'ai-vfx': 'Camera moves, VFX and AI effects from a single image',
-});
-
-// These share a studio picture with another tool on the Apps page; the picker uses their own hero picture so no two
-// cards look the same (viral = Video Studio's picture, personalizer = Video Agent's).
-const PREFER_HERO = new Set(['viral', 'personalizer']);
-const thumbFor = (id) => (PREFER_HERO.has(id) && getHeroThumbnail(id)) || getStudioThumbnail(id) || getHeroThumbnail(id) || null;
-
-/** The picker's menu: [{ title, items: [{ id, label, name, description, thumb, icon, group }] }], Home skipped. */
+/** The picker's menu: [{ title, items: [{ id, label, name, description, thumb, fallback, icon, group, href }] }].
+ *  All 38 studios from the studio directory (src/lib/studioDirectory.js), grouped Discover / Image / Video / Agents / My Work. */
 export function buildToolGroups() {
-  return NAV_GROUPS
-    .filter((g) => g.title) // the first group (Apps / Explore / Templates / Academy) is navigation, not a tool
-    .map((g) => ({
-      title: g.title,
-      items: g.items.map((it) => {
-        const app = ALL_APPS[it.id];
-        return {
-          id: it.id,
-          label: it.label,
-          name: app?.name || it.label,
-          description: app?.description || EXTRA_DESCRIPTIONS[it.id] || '',
-          thumb: thumbFor(it.id),
-          icon: getStudioIcon(it.id),
-          group: g.title,
-        };
-      }),
-    }));
+  return directoryByGroup().map((g) => ({
+    title: g.title,
+    items: g.items.map((s) => ({
+      id: s.id,
+      label: s.name,
+      name: s.name,
+      description: s.description,
+      thumb: s.image,
+      fallback: s.fallback,
+      icon: s.icon,
+      group: g.title,
+      href: s.href,
+    })),
+  }));
 }
 
 export const toolIds = () => buildToolGroups().flatMap((g) => g.items.map((t) => t.id));
@@ -60,13 +39,13 @@ export const GOAL_CARDS = Object.freeze([
 // Step 6a: the kind of video. Each lists the tools to put first (ids from NAV_GROUPS), best first.
 export const VIDEO_TYPES = Object.freeze([
   { id: 'text-to-video', title: 'AI video from text or an image', text: 'Generate clips from a prompt or a still.', tools: ['video', 'cinema', 'animate', 'video-agent'] },
-  { id: 'talking', title: 'Talking avatar or lip sync', text: 'Presenters, avatars and dubbed speech.', tools: ['avatar', 'lipsync', 'audio', 'character'] },
+  { id: 'talking', title: 'Talking avatar or lip sync', text: 'Presenters, avatars and dubbed speech.', tools: ['avatar', 'lipsync', 'audio', 'character', 'influencer'] },
   { id: 'cinematic', title: 'Cinematic scenes and trailers', text: 'Camera control, storyboards and ready-made cinema templates.', tools: ['cinema', 'cinema-template', 'storyboard', 'zackd'] },
   { id: 'effects', title: 'Effects and VFX', text: 'Motion effects, camera moves and AI VFX.', tools: ['effects', 'ai-vfx', 'animate', 'videotools'] },
-  { id: 'product', title: 'Product and ad videos', text: 'Product shots, brand content and ad creative.', tools: ['commercial', 'brand', 'video-agent', 'viral'] },
-  { id: 'outreach', title: 'Personalised outreach videos', text: 'One recording, a personal version per prospect.', tools: ['personalizer', 'video-pages', 'avatar', 'website-builder'] },
-  { id: 'agent-edit', title: 'Let an agent make or edit it', text: 'Describe the video and let an AI agent build or cut it.', tools: ['video-agent', 'director', 'workbench', 'timeline'] },
-  { id: 'images', title: 'Images and photos', text: 'Generate, edit, upscale and brand pictures.', tools: ['image', 'edit', 'upscale', 'character', 'commercial', 'brand'] },
+  { id: 'product', title: 'Product and ad videos', text: 'Product shots, brand content and ad creative.', tools: ['commercial', 'brand', 'video-agent', 'viral', 'find-my-brand'] },
+  { id: 'outreach', title: 'Personalised outreach videos', text: 'One recording, a personal version per prospect.', tools: ['outreach', 'personalizer', 'video-pages', 'recorder', 'leadfinder', 'avatar', 'website-builder'] },
+  { id: 'agent-edit', title: 'Let an agent make or edit it', text: 'Describe the video and let an AI agent build or cut it.', tools: ['video-agent', 'director', 'motion-director', 'workbench', 'timeline', 'render'] },
+  { id: 'images', title: 'Images and photos', text: 'Generate, edit, upscale and brand pictures.', tools: ['image', 'edit', 'upscale', 'character', 'commercial', 'brand', 'influencer'] },
 ]);
 
 // Which video types each goal puts first.

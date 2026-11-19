@@ -36,7 +36,10 @@ describe('app onboarding flow', () => {
     expect($('[data-onb-type="talking"]').getAttribute('aria-pressed')).toBe('true');
     $('[data-onb-continue]').click();
     // 6b: tools grouped like the side menu, recommended first, with images
-    expect($$('[data-onb-group]').map((s) => s.getAttribute('data-onb-group'))).toEqual(['Image', 'Video', 'Agents', 'My Work']);
+    expect($$('[data-onb-group]').map((s) => s.getAttribute('data-onb-group'))).toEqual(['Discover', 'Image', 'Video', 'Agents', 'My Work']);
+    expect($$('[data-onb-tool]')).toHaveLength(38);
+    expect($$('[data-onb-open]')).toHaveLength(38);
+    expect($('[data-onb-open="avatar"]').getAttribute('href')).toBe('#/avatar');
     const video = $$('[data-onb-group="Video"] [data-onb-tool]').map((c) => c.getAttribute('data-onb-tool'));
     expect(video.slice(0, 2)).toEqual(['avatar', 'lipsync']);
     expect($('[data-onb-tool="avatar"] img')).not.toBeNull();
@@ -60,6 +63,24 @@ describe('app onboarding flow', () => {
     expect(document.body.textContent).toContain('Step 5 of 6');
     $('[data-onb-skip]').click();
     expect(document.body.textContent).toContain('Step 6 of 6');
+  });
+
+  it('Open goes straight to that studio: it finishes with that studio first and keeps other picks', () => {
+    const onFinish = vi.fn();
+    mountOnboarding($('#host'), { initial: { step: 6, videoTypes: ['talking'], tools: ['avatar'], primaryTool: 'avatar' }, onFinish });
+    $('[data-onb-open="outreach"]').click();
+    expect(onFinish).toHaveBeenCalledTimes(1);
+    expect(onFinish.mock.calls[0][0]).toMatchObject({ primaryTool: 'outreach', tools: ['outreach', 'avatar'] });
+    expect($('[data-onboarding]')).toBeNull();
+  });
+
+  it('a card can be picked with the keyboard (Enter) and a modified click on Open does not toggle it', () => {
+    mountOnboarding($('#host'), { initial: { step: 6, videoTypes: ['talking'] } });
+    const card = $('[data-onb-tool="influencer"]');
+    card.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(card.getAttribute('aria-pressed')).toBe('true');
+    $('[data-onb-open="library"]').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true }));
+    expect($('[data-onb-tool="library"]').getAttribute('aria-pressed')).toBe('false');
   });
 
   it('skipping the whole onboarding reports it and removes the screen', () => {

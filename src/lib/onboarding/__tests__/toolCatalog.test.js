@@ -6,16 +6,24 @@ import { join } from 'node:path';
 vi.mock('../../muapi.js', () => ({ muapi: {} }));
 
 const { NAV_GROUPS } = await import('../../studioRoutes.js');
+const { directoryByGroup } = await import('../../studioDirectory.js');
 const { buildToolGroups, toolIds, VIDEO_TYPES, GOAL_CARDS, GOAL_TO_TYPES, orderedVideoTypes, recommendedTools } = await import('../toolCatalog.js');
 
 const onDisk = (p) => existsSync(join(process.cwd(), 'public', p)) || existsSync(join(process.cwd(), 'public', `${p}.png`));
 
 describe('onboarding tool catalog', () => {
-  it('lists every side-menu tool, in the same groups and order (Home is navigation, not a tool)', () => {
-    const menu = NAV_GROUPS.filter((g) => g.title).map((g) => [g.title, g.items.map((i) => i.id)]);
-    const cat = buildToolGroups().map((g) => [g.title, g.items.map((i) => i.id)]);
-    expect(cat).toEqual(menu);
-    expect(buildToolGroups().map((g) => g.title)).toEqual(['Image', 'Video', 'Agents', 'My Work']);
+  it('lists all 38 studios, grouped Discover / Image / Video / Agents / My Work, the same as the studio directory', () => {
+    const cat = buildToolGroups();
+    expect(cat.map((g) => [g.title, g.items.length])).toEqual([['Discover', 3], ['Image', 7], ['Video', 11], ['Agents', 15], ['My Work', 2]]);
+    expect(toolIds()).toHaveLength(38);
+    expect(new Set(toolIds()).size).toBe(38);
+    expect(cat.map((g) => [g.title, g.items.map((i) => i.id)])).toEqual(directoryByGroup().map((g) => [g.title, g.items.map((i) => i.id)]));
+    // every side-menu studio (all but the Apps hub) is in the picker, plus the 7 that are not in the side menu
+    for (const id of NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id)).filter((id) => id !== 'apps')) expect(toolIds()).toContain(id);
+    for (const id of ['influencer', 'motion-director', 'leadfinder', 'outreach', 'recorder', 'find-my-brand', 'render']) expect(toolIds()).toContain(id);
+  });
+  it('gives every studio a link to it (#/<id>)', () => {
+    for (const t of buildToolGroups().flatMap((g) => g.items)) expect(t.href, t.id).toBe(`#/${t.id}`);
   });
   it('gives every tool a name, a description and a thumbnail that exists on disk', () => {
     for (const t of buildToolGroups().flatMap((g) => g.items)) {
@@ -25,11 +33,10 @@ describe('onboarding tool catalog', () => {
       expect(onDisk(t.thumb), `${t.id}: ${t.thumb}`).toBe(true);
     }
   });
-  it('gives every tool its own picture (no two cards share one)', () => {
+  it('gives every studio its own picture (no two cards share one)', () => {
     const thumbs = buildToolGroups().flatMap((g) => g.items).map((t) => t.thumb);
-    const dupes = thumbs.filter((t, i) => thumbs.indexOf(t) !== i);
-    // Known stand-ins that reuse another tool's art until dedicated images exist (see the plan's follow-ups).
-    expect(new Set(dupes).size, `shared pictures: ${[...new Set(dupes)].join(', ')}`).toBeLessThanOrEqual(2);
+    const dupes = [...new Set(thumbs.filter((t, i) => thumbs.indexOf(t) !== i))];
+    expect(dupes, `shared pictures: ${dupes.join(', ')}`).toEqual([]);
   });
   it('only recommends tools that are in the menu, and every goal maps to known video types', () => {
     const ids = new Set(toolIds());

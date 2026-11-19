@@ -246,7 +246,13 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
       sec.appendChild(el('h2', 'text-sm font-bold uppercase tracking-wider text-white/50', g.title));
       const grid = el('div', 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3');
       items.forEach((t) => {
-        const c = ToolCard(t, { selected: a.tools.includes(t.id), recommended: rec.includes(t.id), onToggle: toggle });
+        const c = ToolCard(t, {
+          selected: a.tools.includes(t.id),
+          recommended: rec.includes(t.id),
+          onToggle: toggle,
+          // "Open": finish now and go straight to this studio (it becomes the first choice; other picks are kept).
+          onOpen: (id) => { change({ tools: [id, ...a.tools.filter((x) => x !== id)], primaryTool: id }); finish(); },
+        });
         cards.set(t.id, c);
         grid.appendChild(c);
       });

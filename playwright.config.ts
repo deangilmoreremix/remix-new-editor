@@ -21,6 +21,7 @@ export default defineConfig({
     '**/website-builder-navigation.spec.js',
     '**/projects-analytics.spec.js',
     '**/onboarding.spec.js',
+    '**/apps-studios.spec.js',
   ],
   testIgnore: '**/node_modules/**',
 
