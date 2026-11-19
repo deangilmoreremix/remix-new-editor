@@ -134,7 +134,7 @@ async function waitForStudio(page) {
 }
 
 async function open(page, route) {
-  await page.goto(`${BASE}/?dev#/${route}`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${BASE}/?dev=#/${route}`, { waitUntil: 'domcontentloaded' });
   await waitForStudio(page);
   await dismissOverlays(page);
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -226,6 +226,12 @@ for (const guide of GUIDES) {
     };
 
     await open(page, guide.route);
+    // Optional "__overview": { "setup": "..." } seeds state (e.g. skip a welcome wizard) before the overview shot.
+    const ov = (TARGETS[guide.slug] || {}).__overview;
+    if (ov?.setup) {
+      await page.evaluate(ov.setup).catch((e) => console.log(`    overview setup error: ${e.message.split('\n')[0]}`));
+      if (ov.reload !== false) await open(page, guide.route);
+    }
     shot.overview = await save('overview');
     let here = guide.route;
 

@@ -24,6 +24,7 @@ import { fileURLToPath } from 'node:url';
 //     "steps": [{ "text": "Label" }, { "selector": "css", "wait": 1500 }]
 //                                                       clicks to run first (menus, sub-tabs, wizard steps);
 //                                                       with no text/selector the result itself is the shot
+//     "__overview": { "setup": "..." }                  (guide level) seed state before the overview shot
 //     "setup": "js expression"                          run in the page first (e.g. seed a sample result in
 //                                                       localStorage), then the studio is reloaded
 //                                                       ("reload": false to skip the reload)
