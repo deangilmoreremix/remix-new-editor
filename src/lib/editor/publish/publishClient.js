@@ -57,12 +57,17 @@ export function canonicalUrl(video, origin = globalThis.location?.origin || '') 
   return watchUrl(video.id, origin);
 }
 
+/** The link on the business's own domain (only once the domain is connected), or null. */
+export const customDomainUrl = (video) => (video?.customDomain && video?.slug ? `https://${video.customDomain}/${encodeURIComponent(video.slug)}` : null);
+
 const SLUG_ERRORS = {
   slug_taken: 'That name is already taken. Try another.',
   invalid_slug: 'That name is not allowed. Use 3-48 lowercase letters, numbers and hyphens.',
   business_required: 'Choose a business name first.',
   not_found: 'Publish the video first.',
   not_authenticated: 'Sign in to change your link.',
+  domain_taken: 'That domain is already used by another business.',
+  invalid_domain: 'Enter a domain like videos.yourbusiness.com (no https:// or path).',
 };
 const slugFail = (error) => {
   if (!error) return;
@@ -232,14 +237,14 @@ export async function getMyVideo(client, id) {
   const { data, error } = await client.from('published_videos').select('id, title, published, view_count, updated_at, slug, privacy, revision').eq('id', id).maybeSingle();
   fail(error, 'Could not load the video');
   if (!data) return data;
-  const { business } = await getMyBusiness(client).catch(() => ({ business: null }));
-  return { ...data, business };
+  const { business, customDomain } = await getMyBusiness(client).catch(() => ({ business: null, customDomain: null }));
+  return { ...data, business, customDomain };
 }
 
 export async function getMyBusiness(client) {
-  const { data, error } = await client.from('video_owner_profiles').select('business_slug, display_name').maybeSingle();
+  const { data, error } = await client.from('video_owner_profiles').select('business_slug, display_name, custom_domain').maybeSingle();
   fail(error, 'Could not load your business name');
-  return { business: data?.business_slug || null, displayName: data?.display_name || null };
+  return { business: data?.business_slug || null, displayName: data?.display_name || null, customDomain: data?.custom_domain || null };
 }
 
 export async function claimBusinessSlug(client, slug, displayName = null) {
@@ -252,6 +257,21 @@ export async function setVideoSlug(client, id, slug) {
   const { data, error } = await client.rpc('set_video_slug', { p_video_id: id, p_slug: slug });
   slugFail(error);
   return data;
+}
+
+/** Hostname for a business's own video domain, or null when it is not a plain domain. */
+export function normalizeDomain(raw) {
+  const d = String(raw ?? '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  return /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/.test(d) && !/(^|\.)(smartvid\.app|netlify\.app|netlify\.com|localhost)$/.test(d) ? d : null;
+}
+
+/** Set (or clear with an empty value) the business's own domain. Resolves to the saved hostname or null. */
+export async function setCustomDomain(client, domain) {
+  const d = String(domain ?? '').trim() ? normalizeDomain(domain) : null;
+  if (String(domain ?? '').trim() && !d) throw new Error(SLUG_ERRORS.invalid_domain);
+  const { data, error } = await client.rpc('set_custom_domain', { p_domain: d });
+  slugFail(error);
+  return data || null;
 }
 
 export async function setVideoPrivacy(client, id, privacy) {
