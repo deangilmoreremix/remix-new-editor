@@ -38,6 +38,7 @@ const GUIDES = buildGuides(kb).filter((g) => (only.length ? only.includes(g.slug
 test.use({
   viewport: { width: 1440, height: 900 },
   deviceScaleFactor: 1,
+  bypassCSP: true, // dev CSP lacks unsafe-eval, which the /motion-agent/ player needs (production sends none)
   ...(process.env.PW_CHROMIUM_PATH ? { launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH, args: ['--no-sandbox'] } } : {}),
 });
 test.setTimeout(15 * 60 * 1000);
