@@ -190,7 +190,7 @@
     {
       "id": "side-menu-navigation",
       "title": "The side menu and how to navigate",
-      "text": "The left side menu is the main way to move around (on phones it opens with the menu button at the top left). It has five groups. Top, with no heading: Apps, Templates, Academy (courses and guides). Image: Image, Edit, Upscale, Character, AI Influencer, Product Shot, Brand. Video: Video, Cinema, Cinema Templates, Storyboard, Effects, AI VFX, Animate, Lip Sync, Video Tools, Avatar, Audio. Agents: Video Agent, Zack D, Motion Director, Director, Timeline, Workbench, Viral, Personalizer, Video Pages, Lead Finder, Video Outreach, Recorder, Find My Brand, Website. My Work: Library, Content. The current page is highlighted. The Apps page lists the same tools as cards with a search box, and clicking the logo at the top left of the header opens Apps. Pages use addresses like #/image. Some routes are part of a menu entry: for example Brand DNA, Campaign and Photo Studio belong to Brand, and text-to-image or image-to-image belong to Image.",
+      "text": "The left side menu is the main way to move around (on phones it opens with the menu button at the top left). It has five groups. Top, with no heading: Apps, Explore, Templates, Academy (courses and guides). Image: Image, Edit, Upscale, Character, AI Influencer, Product Shot, Brand. Video: Video, Cinema, Cinema Templates, Storyboard, Effects, AI VFX, Animate, Lip Sync, Video Tools, Avatar, Audio. Agents: Video Agent, Zack D, Motion Director, Director, Timeline, Workbench, Viral, Personalizer, Video Pages, Lead Finder, Video Outreach, Recorder, Find My Brand, Website. My Work: Library, Content. The current page is highlighted. The Apps page lists the same tools as cards with a search box, and clicking the logo at the top left of the header opens Apps. Pages use addresses like #/image. Some routes are part of a menu entry: for example Brand DNA, Campaign and Photo Studio belong to Brand, and text-to-image or image-to-image belong to Image.",
       "route": "apps",
       "intents": [
         "how do I navigate",
@@ -214,7 +214,7 @@
     {
       "id": "retired-routes",
       "title": "Chat, Assist, Training and Community pages were retired",
-      "text": "Several older pages no longer exist and old links redirect to the closest live page: Training, Chat and Assist open the Apps hub; Community and Explore open Templates (the prompt library is under its Prompts filter); and the old pexels-media page opens Library. If you were looking for a chat assistant, use Ask SmartVideo (the floating help button) for questions about the app, or the Video Agent and Director apps for AI-driven video work. Stock photos and videos from Pexels are now reached through \"Browse Stock Media\" on the Content page.",
+      "text": "Several older pages no longer exist and old links redirect to the closest live page: Training, Chat and Assist open the Apps hub; Community opens Explore; and the old pexels-media page opens Library. If you were looking for a chat assistant, use Ask SmartVideo (the floating help button) for questions about the app, or the Video Agent and Director apps for AI-driven video work. Stock photos and videos from Pexels are now reached through \"Browse Stock Media\" on the Content page.",
       "route": "apps",
       "intents": [
         "where did chat go",

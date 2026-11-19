@@ -73,6 +73,15 @@ APP_SECTIONS.find(([title]) => title === 'Video apps')?.[1].push(ALL_APPS.render
 
 if (COLLAB_APPS.length) APP_SECTIONS.push(['Collaboration apps', COLLAB_APPS]);
 
+/** Every studio as a card (thumbnail + click target), shared with the Explore page. */
+export function studioCards() {
+  return APP_SECTIONS.flatMap(([, apps]) => apps).filter((s) => !s.href).map((s) => ({
+    ...s,
+    thumbnail: getStudioThumbnail(s.id) || getHeroThumbnail(s.id),
+    onClick: () => { saveRecent(s.id, s.name); navigate(s.id); },
+  }));
+}
+
 export function AppsHub() {
   const container = document.createElement('div');
   container.className = 'w-full h-full overflow-y-auto bg-app-bg';
@@ -154,7 +163,7 @@ export function AppsHub() {
   return container;
 }
 
-function createSection(title, items, isStudio = false) {
+export function createSection(title, items, isStudio = false) {
   const section = document.createElement('div');
   section.className = 'mb-10 animate-fade-in-up';
 

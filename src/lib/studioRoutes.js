@@ -70,10 +70,10 @@ const FALLBACK_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="non
 // All SPA route -> { label, category }. Icons resolved from ICONS above.
 // 'category' groups the drawer the same way the global sidebar is grouped.
 // Retired from the menus: Training, Chat, Assist, Stock Media, Community
-// (their routes redirect, see RETIRED_ROUTES in router.js). Explore is retired
-// too: its prompt library now lives on the Templates page.
+// (their routes redirect, see RETIRED_ROUTES in router.js).
 export const STUDIO_ROUTES = {
   apps: { label: 'Apps', category: 'Home' },
+  explore: { label: 'Explore', category: 'Home' },
   templates: { label: 'Templates', category: 'Home' },
   image: { label: 'Image Studio', category: 'Image' },
   edit: { label: 'Edit Studio', category: 'Image' },
@@ -167,6 +167,7 @@ export function getGroupedStudioRoutes() {
 export const NAV_GROUPS = [
   { title: '', items: [
     { id: 'apps', label: 'Apps' },
+    { id: 'explore', label: 'Explore' },
     { id: 'templates', label: 'Templates' },
     { id: 'academy', label: 'Academy' },
   ] },

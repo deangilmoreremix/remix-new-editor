@@ -58,8 +58,7 @@ export const RETIRED_ROUTES = {
   training: 'apps',
   chat: 'apps',
   assist: 'apps',
-  community: 'templates',
-  explore: 'templates',
+  community: 'explore',
   'pexels-media': 'library',
 };
 
@@ -69,6 +68,7 @@ const pageLoaders = {
   cinema: () => import('../components/CinemaStudio.js').then(m => m.CinemaStudio()),
   'cinema-template': () => import('../components/CinemaTemplateStudio.js').then(m => m.CinemaTemplateStudio()),
   apps: () => import('../components/AppsHub.js').then(m => m.AppsHub()),
+  explore: () => import('../components/ExplorePage.js').then(m => m.ExplorePage()),
   templates: () => import('../components/TemplatesPage.js').then(m => m.TemplatesPage()),
   effects: () => import('../components/EffectsStudio.js').then(m => m.EffectsStudio()),
   edit: () => import('../components/EditStudio.js').then(m => m.EditStudio()),

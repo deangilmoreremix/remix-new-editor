@@ -61,3 +61,21 @@ describe('Get started guide', () => {
     expect([...page.querySelectorAll('section img')].every((i) => i.getAttribute('src').startsWith('/guides/'))).toBe(true);
   });
 });
+
+describe('Explore page', () => {
+  it('is back in the side menu and routes to the Explore page', () => {
+    expect(NAV_GROUPS[0].items.map((i) => i.id)).toContain('explore');
+    expect(isKnownPage('explore')).toBe(true);
+  });
+  it('keeps the old Explore design and adds a card with a picture for every studio', async () => {
+    const { ExplorePage } = await import('../components/ExplorePage.js');
+    const page = ExplorePage();
+    const text = page.textContent;
+    for (const heading of ['Trending Templates', 'Prompt Library', 'Browse by Category', 'All studios']) expect(text).toContain(heading);
+    const studios = page.querySelector('[data-explore-studios]');
+    expect(Number(studios.dataset.exploreStudios)).toBe(EXPECTED.length);
+    const cards = [...studios.querySelectorAll('[data-searchable]')];
+    expect(cards.length).toBe(EXPECTED.length);
+    expect(cards.every((c) => c.querySelector('img'))).toBe(true);
+  });
+});

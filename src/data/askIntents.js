@@ -40,6 +40,7 @@ export const STUDIO_INTENTS = {
   library: ['find the image I made earlier', 'where did my video go', 'download something I generated', 'see my history', 'reuse a past generation', 'see all my past creations'],
   'content-library': ['find my saved content', 'reuse my saved assets', 'keep my favourites in one place', 'browse the things I saved', 'find the media I stored', 'pick an asset I saved before'],
   apps: ['where do I start', 'see all the tools', 'what can this app do', 'find the right tool for my idea', 'show me every studio', 'browse by what I want to make'],
+  explore: ['show me examples', 'get ideas of what to make', 'see what other people made', 'browse inspiration', 'find a style I like', 'see example videos and images for ideas', 'see every studio'],
   templates: ['start from a template', 'make something without writing a prompt', 'quick start with a ready-made design', 'add my own photo to a template', 'pick a template for my niche', 'see what templates are available'],
 };
 

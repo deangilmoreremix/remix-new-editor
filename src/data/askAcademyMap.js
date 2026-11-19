@@ -225,6 +225,7 @@ export const STUDIO_ACADEMY = {
   library: { tracks: [], lessons: [] },
   'content-library': { tracks: [], lessons: [] },
   apps: { tracks: [], lessons: [] },
+  explore: { tracks: [], lessons: [] },
   templates: {
     tracks: [T01],
     lessons: [
