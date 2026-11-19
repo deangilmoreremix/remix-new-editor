@@ -62,6 +62,48 @@ function readManifest() {
   try { return JSON.parse(fs.readFileSync(MANIFEST, 'utf8')); } catch { return {}; }
 }
 
+const API_MODAL = /set up your API keys/i;
+
+// Is the "Welcome — set up your API keys" modal visible in the page or any iframe?
+async function apiModalOpen(page) {
+  for (const frame of page.frames()) {
+    const t = frame.getByText(API_MODAL).first();
+    if (await t.isVisible().catch(() => false)) return true;
+  }
+  return false;
+}
+
+// Close the API-key modal the way a user does: click its X (aria-label="Close",
+// src/components/SettingsModal.js). It opens on first load and again whenever
+// a control needs a key (AuthModal), in the page and in studio iframes.
+// Returns true if the modal is gone.
+async function closeApiModal(page) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    let found = false;
+    for (const frame of page.frames()) {
+      const title = frame.getByText(API_MODAL).first();
+      if (!(await title.isVisible().catch(() => false))) continue;
+      found = true;
+      const overlay = frame.locator('div.fixed').filter({ has: title }).last();
+      const x = overlay.locator('button[aria-label="Close"]').first();
+      const skip = overlay.getByRole('button', { name: /skip for now/i }).first();
+      const where = frame === page.mainFrame() ? 'page' : 'iframe';
+      if (await x.isVisible().catch(() => false)) {
+        await x.click({ timeout: 3000 }).catch(() => {});
+        console.log(`    · closed API key modal with its X (${where})`);
+      }
+      else if (await skip.isVisible().catch(() => false)) {
+        await skip.click({ timeout: 3000 }).catch(() => {});
+        console.log(`    · closed API key modal with Skip (${where})`);
+      }
+      await title.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+    }
+    if (!found) return true;
+    await page.waitForTimeout(500);
+  }
+  return !(await apiModalOpen(page));
+}
+
 async function dismissOverlays(page) {
   for (let i = 0; i < 3; i++) {
     const skip = page.getByRole('button', { name: /skip for now|maybe later|not now|got it|dismiss/i }).first();
@@ -69,18 +111,7 @@ async function dismissOverlays(page) {
     break;
   }
   await page.keyboard.press('Escape').catch(() => {});
-  // The first-run "set up your API keys" modal (dev mode has a placeholder key),
-  // also inside embedded studio iframes (Workbench, Video Agent).
-  for (const frame of page.frames()) {
-    await frame.evaluate(() => {
-      for (const h of document.querySelectorAll('h1,h2,h3,div,p')) {
-        if (h.children.length || !/set up your API keys/i.test(h.textContent)) continue;
-        let n = h;
-        while (n && n !== document.body && getComputedStyle(n).position !== 'fixed') n = n.parentElement;
-        if (n && n !== document.body) n.remove();
-      }
-    }).catch(() => {});
-  }
+  await closeApiModal(page);
   // Hide the floating assistant button so it doesn't cover the studio.
   await page.addStyleTag({ content: '[data-ask-smartvideo],.ask-smartvideo-launcher,#ask-smartvideo-root{display:none!important}' }).catch(() => {});
 }
@@ -180,7 +211,10 @@ for (const guide of GUIDES) {
     fs.rmSync(dir, { recursive: true, force: true });
     fs.mkdirSync(dir, { recursive: true });
     const shot = { features: {} };
+    // Every image is taken with the API-key modal closed via its X; never save one with it open.
     const save = async (name) => {
+      await page.waitForTimeout(800); // AuthModal opens asynchronously after a click
+      if (!(await closeApiModal(page))) throw new Error('API key modal still open');
       const png = path.join(dir, `${name}.png`);
       await page.screenshot({ path: png });
       toWebp(png, path.join(dir, `${name}.webp`));
@@ -200,8 +234,12 @@ for (const guide of GUIDES) {
 
       // The feature is its own page (e.g. Brand → Campaign Studio at #/campaign).
       if (target?.route && !target.text && !target.selector) {
-        shot.features[f.id] = await save(f.id);
-        console.log(`  ✓ ${guide.slug}/${f.id} ← page #/${route}`);
+        try {
+          shot.features[f.id] = await save(f.id);
+          console.log(`  ✓ ${guide.slug}/${f.id} ← page #/${route}`);
+        } catch (e) {
+          console.log(`  - ${guide.slug}/${f.id}: capture failed (${e.message.split('\n')[0]}), uses overview`);
+        }
         continue;
       }
 
@@ -213,9 +251,12 @@ for (const guide of GUIDES) {
       // An explicit click: true in the targets file is trusted; auto-detected openers are filtered.
       const opened = target?.click === true || (target?.click !== false && isOpener && !DANGEROUS.test(label));
       const urlBefore = page.url();
+      let needsKey = false;
       if (opened) {
         await el.click({ timeout: 3000 }).catch(() => {});
-        await page.waitForTimeout(1200);
+        await page.waitForTimeout(1500);
+        needsKey = await apiModalOpen(page);
+        if (needsKey) await closeApiModal(page);
       }
       // A click that navigated away: reload the studio and move on.
       if (page.url() !== urlBefore) {
@@ -226,7 +267,7 @@ for (const guide of GUIDES) {
       try {
         await highlight(page, el, opened);
         shot.features[f.id] = await save(f.id);
-        console.log(`  ✓ ${guide.slug}/${f.id} ← "${label.slice(0, 40).replace(/\s+/g, ' ')}"${opened ? ' (opened)' : ''}`);
+        console.log(`  ✓ ${guide.slug}/${f.id} ← "${label.slice(0, 40).replace(/\s+/g, ' ')}"${opened ? ' (opened)' : ''}${needsKey ? ' (needs API key: modal closed)' : ''}`);
       } catch (e) {
         console.log(`  - ${guide.slug}/${f.id}: capture failed (${e.message.split('\n')[0]}), uses overview`);
         await open(page, here);
