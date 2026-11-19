@@ -43,6 +43,16 @@ const DEFAULT_TOKEN_TTL_MS = 60 * 60 * 1000;
 
 let cachedToken = null; // { value, subject, expiresAt }
 let tokenInFlight = null;
+let lastExchangeFailure = null; // why the most recent token exchange yielded no token (null after a success)
+
+/**
+ * Human-readable reason the last token exchange failed, or null. Lets callers
+ * say *why* a signed-in session has no verified identity instead of surfacing
+ * the database's generic "permission denied".
+ */
+export function getTokenExchangeFailure() {
+  return lastExchangeFailure;
+}
 
 /**
  * Authenticated user id from the Clerk singleton (null when signed out).
@@ -176,17 +186,28 @@ export async function getSupabaseAccessToken({ forceRefresh = false } = {}) {
 
   tokenInFlight = (async () => {
     try {
+      lastExchangeFailure = null;
       const clerkToken = await fetchClerkSessionToken();
-      if (!clerkToken) return null;
-      if (typeof fetch !== 'function' || !TOKEN_ENDPOINT) return null;
+      if (!clerkToken) { lastExchangeFailure = 'Your sign-in session could not be read. Refresh the page and sign in again.'; return null; }
+      if (typeof fetch !== 'function' || !TOKEN_ENDPOINT) { lastExchangeFailure = 'The identity service address is not configured.'; return null; }
       const response = await fetch(TOKEN_ENDPOINT, {
         method: 'GET',
         headers: { Authorization: `Bearer ${clerkToken}` },
       });
-      if (!response || !response.ok) return null;
+      if (!response || !response.ok) {
+        const status = response ? response.status : 0;
+        lastExchangeFailure = status === 503
+          ? 'The server is missing SUPABASE_JWT_SECRET, so it cannot issue a database token (HTTP 503).'
+          : status === 401 || status === 403
+            ? `The identity service rejected your sign-in (HTTP ${status}). Check the Clerk keys / JWKS URL on the server.`
+            : status === 404
+              ? 'The identity service (supabase-token function) is not deployed (HTTP 404).'
+              : `The identity service failed (HTTP ${status || 'no response'}).`;
+        return null;
+      }
       const payload = await response.json();
       const value = payload?.token;
-      if (!value) return null;
+      if (!value) { lastExchangeFailure = 'The identity service returned no token.'; return null; }
       const ttlSeconds = Number(payload?.expires_in) > 0 ? Number(payload.expires_in) : 3600;
       cachedToken = {
         value,
@@ -201,6 +222,7 @@ export async function getSupabaseAccessToken({ forceRefresh = false } = {}) {
       return cachedToken.value;
     } catch {
       // Exchange unavailable — the caller falls back to the header identity.
+      lastExchangeFailure = 'The identity service could not be reached. Check your connection.';
       return null;
     } finally {
       tokenInFlight = null;

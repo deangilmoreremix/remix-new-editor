@@ -7,6 +7,7 @@ import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { usePublished, getClient } from '@cinegen/components/leads/use-publish';
 import { buildPublishState } from '@cinegen/lib/leads/publish-state';
 import { PublishedOverview } from '@cinegen/components/overview/published-overview';
+import { SampleAnalytics } from './sample-analytics';
 import { captureRowThumbnail } from '@cinegen/lib/leads/thumbnail';
 import { ensureProjectRow, linkVideoToProject, linkedProjectId, rowName } from '@cinegen/lib/leads/project-link';
 // @ts-expect-error plain JS
@@ -108,10 +109,12 @@ export function AnalyticsTab() {
     return () => { cancelled = true; try { stop?.(); } catch { /* already unmounted */ } };
   }, [view, opts, linked, rowId, pub.id, dispatch, openView]);
 
-  const empty = (title: string, text: string) => (
+  const empty = (title: string, text: string, sample = false) => (
     <>
       <div className="cg-analytics__empty"><h3>{title}</h3><p>{text}</p>
         <button type="button" className="cg-analytics__btn" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Open Publish &amp; Leads</button></div>
+      {/* Nothing to measure yet: show what this tab will look like, clearly labelled as sample data. */}
+      {sample && <SampleAnalytics />}
       {/* Not published yet: still show how all your published videos are doing. */}
       {pub.signedIn && <PublishedOverview onPublish={() => dispatch({ type: 'SET_TAB', tab: 'leads' })} />}
     </>
@@ -125,7 +128,7 @@ export function AnalyticsTab() {
     <div className="cg-analytics" data-testid="analytics-tab">
       {!pub.signedIn ? empty('Sign in to see analytics', 'Viewer data belongs to your account.')
         : !pub.loaded || linked === 'checking' ? <div className="cg-analytics__empty" aria-busy="true"><p>Loading…</p></div>
-        : !pub.info ? empty('Publish this video first', 'Viewer data is collected on the published video page. Publish it, share the link, and plays, watch time, clicks and forms show up here.')
+        : !pub.info ? empty('Publish this video first', 'Viewer data is collected on the published video page. Publish it, share the link, and plays, watch time, clicks and forms show up here.', true)
         : linked === 'unavailable' ? failed(toast || 'This project could not be linked to its published video.')
         : (
           <>

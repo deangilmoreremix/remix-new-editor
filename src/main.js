@@ -90,6 +90,11 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
+// Notification clicks from the service worker (Web Push): open the owner's alerts like the header bell does.
+import { installPushMessageListener, consumeAlertsMarker } from './lib/push/openAlerts.js';
+installPushMessageListener();
+consumeAlertsMarker();
+
 // Visibility change handler - pause/resume operations when tab is hidden
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {

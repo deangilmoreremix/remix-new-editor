@@ -338,12 +338,12 @@ const DISPOSABLE_DOMAINS = new Set([
   "33mail.com", "anonbox.net", "getairmail.com", "jetable.org", "meltmail.com", "mailcatch.com", "mailnull.com", "trbvm.com",
 ]);
 
-export function isDisposableEmail(raw: unknown): boolean {
+export function isDisposableEmail(raw: unknown, extraDomains: readonly string[] = []): boolean {
   if (typeof raw !== "string") return false;
-  const at = raw.trim().toLowerCase().lastIndexOf("@");
-  if (at < 0) return false;
-  const domain = raw.trim().toLowerCase().slice(at + 1);
-  return DISPOSABLE_DOMAINS.has(domain) || [...DISPOSABLE_DOMAINS].some((d) => domain.endsWith(`.${d}`));
+  const domain = emailDomain(raw);
+  if (!domain) return false;
+  const all = [...DISPOSABLE_DOMAINS, ...extraDomains];
+  return all.some((d) => domain === d || domain.endsWith(`.${d}`));
 }
 
 /**
@@ -377,14 +377,126 @@ export function declaredEmailKeys(config: Json | null | undefined): Set<string> 
  * those answers are checked; without it, every answer whose field name contains "email" is. With `blockDisposable` (an owner
  * setting) throwaway inboxes are refused too.
  */
-export function emailProblem(data: Record<string, string>, opts: { blockDisposable?: boolean; emailKeys?: Set<string> | null } = {}): string {
+export function emailProblem(data: Record<string, string>, opts: { blockDisposable?: boolean; emailKeys?: Set<string> | null; extraDisposable?: readonly string[] } = {}): string {
   for (const [key, value] of Object.entries(data)) {
     const isEmail = opts.emailKeys ? opts.emailKeys.has(key.trim().toUpperCase()) : /e-?mail/i.test(key);
     if (!isEmail) continue;
     if (!isValidEmail(value)) return "Please enter a valid email address.";
-    if (opts.blockDisposable && isDisposableEmail(value)) return "Please use a permanent email address.";
+    if (opts.blockDisposable && isDisposableEmail(value, opts.extraDisposable)) return "Please use a permanent email address.";
   }
   return "";
+}
+
+/** The owner of a published page or video is a guest (a visitor with no account). Guests may not have leads relayed to webhooks. */
+export function isGuestOwner(ownerId: unknown): boolean {
+  return String(ownerId ?? "").startsWith("guest_");
+}
+
+/**
+ * Whether a submission must pass the human check (Turnstile) when it is configured. A call-attempt is only the record of a
+ * viewer tapping "call": it comes from a button with no form or widget to complete, carries no email, and is rate limited,
+ * so it is not asked for a token (otherwise every call-attempt would be rejected once Turnstile is switched on).
+ */
+export function needsHumanCheck(kind: unknown): boolean {
+  return kind !== "call-attempt";
+}
+
+/** Extra throwaway domains an operator can add without a code change (comma-separated, e.g. env LEAD_EXTRA_DISPOSABLE_DOMAINS). */
+export function parseExtraDomains(raw: string | undefined | null): string[] {
+  return String(raw ?? "").split(",").map((d) => d.trim().toLowerCase().replace(/^@/, "")).filter((d) => /^[a-z0-9.-]+\.[a-z]{2,}$/.test(d));
+}
+
+/** The email lead (first valid email answer) as a case-insensitive key, or "" when the lead gave none. */
+export function emailKeyOf(data: Record<string, string>): string {
+  return leadContact(data)?.email.toLowerCase() ?? "";
+}
+
+/** Postgres unique_violation: the same email already signed up on this form (see the email_key unique index). */
+export function isDuplicateError(err: { code?: string } | null | undefined): boolean {
+  return err?.code === "23505";
+}
+
+/** PostgREST / Postgres "column does not exist" (a migration not applied yet): callers retry without the new column. */
+export function isMissingColumnError(err: { code?: string } | null | undefined): boolean {
+  return err?.code === "42703" || err?.code === "PGRST204";
+}
+
+/** The domain part of an address, lower-cased ("" when there is none). */
+export function emailDomain(raw: string): string {
+  const s = raw.trim().toLowerCase();
+  const at = s.lastIndexOf("@");
+  return at < 0 ? "" : s.slice(at + 1);
+}
+
+// ---------------------------------------------------------------------------------------------- MX check (fail open)
+export type DnsLookup = "records" | "none" | "unknown";
+export type DnsResolver = (name: string, type: "MX" | "A" | "AAAA") => Promise<unknown[]>;
+
+/** A resolver error that means "this name has no such records" (NXDOMAIN / NODATA), as opposed to a timeout or outage. */
+export function isNoRecordsError(err: unknown): boolean {
+  const e = err as { name?: string; message?: string } | null;
+  return e?.name === "NotFound" || /no records?|nxdomain|not found|no data|nodata/i.test(String(e?.message ?? ""));
+}
+
+/** One lookup, bounded by `timeoutMs`. Anything that is not a clear "no records" answer is "unknown" so callers fail open. */
+export async function lookup(resolve: DnsResolver, name: string, type: "MX" | "A" | "AAAA", timeoutMs: number): Promise<DnsLookup> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const timeout = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("timeout")), timeoutMs); });
+    const records = await Promise.race([resolve(name, type), timeout]);
+    const real = (Array.isArray(records) ? records : []).filter((r) => {
+      const ex = r && typeof r === "object" ? (r as { exchange?: string }).exchange : r;
+      return type !== "MX" || (typeof ex === "string" && ex.replace(/\.$/, "") !== ""); // a lone "." MX means "no mail" (RFC 7505)
+    });
+    return real.length ? "records" : "none";
+  } catch (err) {
+    return isNoRecordsError(err) ? "none" : "unknown";
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/** False only when the domain definitively has no MX, A or AAAA records. Errors and timeouts never reject a lead. */
+export async function domainAcceptsMail(domain: string, resolve: DnsResolver | null, timeoutMs = 2000): Promise<boolean> {
+  if (!domain || !resolve) return true;
+  const mx = await lookup(resolve, domain, "MX", timeoutMs);
+  if (mx !== "none") return true;
+  const [a, aaaa] = await Promise.all([lookup(resolve, domain, "A", timeoutMs), lookup(resolve, domain, "AAAA", timeoutMs)]);
+  return !(a === "none" && aaaa === "none");
+}
+
+// ------------------------------------------------------------------------------------------ Cloudflare Turnstile (optional)
+export const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+export type TurnstileVerdict = { ok: true; skipped?: boolean; unavailable?: boolean } | { ok: false; reason: "missing" | "rejected" };
+
+/**
+ * Verify a Turnstile token with Cloudflare. With no secret configured this is a no-op (ok, skipped). A missing token or a
+ * `success: false` answer rejects; if Cloudflare itself is unreachable the lead is let through (an outage must not stop
+ * every sign-up; the honeypot, timing and rate limits still apply).
+ */
+export async function verifyTurnstile(
+  secret: string | undefined | null,
+  token: unknown,
+  remoteIp: string,
+  fetchFn: (url: string, init: { method: string; headers: Record<string, string>; body: string; signal: AbortSignal }) => Promise<{ ok: boolean; json: () => Promise<unknown> }>,
+  timeoutMs = 4000,
+): Promise<TurnstileVerdict> {
+  if (!secret) return { ok: true, skipped: true };
+  if (typeof token !== "string" || !token.trim() || token.length > 2048) return { ok: false, reason: "missing" };
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const form = new URLSearchParams({ secret, response: token.trim() });
+    if (remoteIp && remoteIp !== "anonymous") form.set("remoteip", remoteIp);
+    const res = await fetchFn(TURNSTILE_VERIFY_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: form.toString(), signal: ctrl.signal });
+    if (!res.ok) return { ok: true, unavailable: true };
+    const out = await res.json() as { success?: boolean } | null;
+    return out?.success === true ? { ok: true } : { ok: false, reason: "rejected" };
+  } catch {
+    return { ok: true, unavailable: true };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /** Valid addresses only, trimmed, de-duplicated ignoring case, at most MAX_NOTIFY_EMAILS. */
