@@ -1,5 +1,5 @@
 // src/components/onboarding/ToolCard.js
-// One studio in the onboarding picker (light design, src/styles/onboarding.css): its screenshot, name and one-line
+// One studio in the onboarding picker (src/styles/onboarding.css): its screenshot, name and one-line
 // description. Click (or Enter / Space) selects it; "Open" goes straight to the studio (a real link, so it also
 // works in a new tab).
 import { el, svg, ICONS } from './obIcons.js';
@@ -11,7 +11,6 @@ import { el, svg, ICONS } from './obIcons.js';
 export function ToolCard(tool, { selected = false, recommended = false, onToggle = () => {}, onOpen = null } = {}) {
   const b = el('div', 'ob-tool');
   b.setAttribute('role', 'button');
-  b.setAttribute('data-keep-fill', ''); // keep the design's fill (src/styles/outline-buttons.css would clear it)
   b.tabIndex = 0;
   b.setAttribute('data-onb-tool', tool.id);
 

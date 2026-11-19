@@ -1,5 +1,5 @@
 // src/components/onboarding/obIcons.js
-// Small helpers and the line-icon set for the light onboarding (see src/styles/onboarding.css).
+// Small helpers and the line-icon set for the onboarding (see src/styles/onboarding.css).
 export const el = (tag, cls = '', txt) => {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
@@ -29,10 +29,10 @@ export const ICONS = {
   image: '<rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>',
 };
 
-/** The SmartVideo mark (black rounded square with the layered-stack icon) and wordmark. */
+/** The SmartVideo mark (white rounded square with the layered-stack icon, as in the app header) and wordmark. */
 export const logo = () => {
   const n = el('div', 'ob-logo');
-  n.innerHTML = `<span class="ob-logo-mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5Z" fill="#fff"/><path d="m2 17 10 5 10-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m2 12 10 5 10-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>SmartVideo</span>`;
+  n.innerHTML = `<span class="ob-logo-mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5Z" fill="#000"/><path d="m2 17 10 5 10-5" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m2 12 10 5 10-5" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>SmartVideo</span>`;
   return n;
 };
 

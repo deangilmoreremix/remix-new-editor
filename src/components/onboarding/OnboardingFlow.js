@@ -1,6 +1,6 @@
 // src/components/onboarding/OnboardingFlow.js
 //
-// The app-wide SmartVideo onboarding, in the light cream + purple design from the reference screenshots
+// The app-wide SmartVideo onboarding, in the layout of the reference screenshots, built in the application's own colours and outline-only buttons
 // (styles: src/styles/onboarding.css). One question per screen with a progress bar, Back and Skip.
 //   1 what to do first (two large cards)   2 team size   3 videos per month   4 where you work   5 how you heard
 //   6 what to make first: the kind of video, then the studios (all 38, grouped like the side menu, with images)
@@ -8,11 +8,6 @@
 import { TEAM_SIZES, VOLUMES, SOURCES } from '../../lib/outreach/onboarding.js';
 import { APP_ONBOARDING_STEPS, cleanAppOnboarding, workReady, normalizeWebsite } from '../../lib/onboarding/store.js';
 import { GOAL_CARDS, buildToolGroups, orderedVideoTypes, recommendedTools } from '../../lib/onboarding/toolCatalog.js';
-// Lexend, self-hosted (bundled by Vite like the other @fontsource fonts), for the light design.
-import '@fontsource/lexend/400.css';
-import '@fontsource/lexend/500.css';
-import '@fontsource/lexend/600.css';
-import '@fontsource/lexend/700.css';
 import '../../styles/onboarding.css';
 import { ToolCard } from './ToolCard.js';
 import { el, svg, ICONS, TYPE_ICONS, logo } from './obIcons.js';
@@ -46,7 +41,6 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
   // The floating purple help bubble (bottom right) opens the Ask SmartVideo assistant.
   const chat = el('button', 'ob-chat');
   chat.type = 'button';
-  chat.setAttribute('data-keep-fill', '');
   chat.setAttribute('aria-label', 'Ask SmartVideo');
   chat.setAttribute('data-onb-chat', '');
   chat.innerHTML = svg(ICONS.chat, 22);
@@ -100,18 +94,10 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
     main.append(el('h1', 'ob-title', t), el('p', 'ob-sub', sub), content);
   };
   const pressed = (b, on) => { b.setAttribute('aria-pressed', String(on)); return b; };
-  // A selectable card. It is a div with role="button" (not a <button>): the app's global outline-only button rules
-  // (src/styles/outline-buttons.css) paint every button[aria-pressed="true"] neon, which this design does not want.
-  const choice = (cls) => {
-    const b = el('div', cls);
-    b.setAttribute('role', 'button');
-    b.tabIndex = 0;
-    b.setAttribute('data-keep-fill', '');
-    b.addEventListener('keydown', (e) => { if (e.target === b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); b.click(); } });
-    return b;
-  };
-  // A real button that keeps the design's fill (the global rules would make it transparent).
-  const filled = (cls, text) => { const b = el('button', cls, text); b.type = 'button'; b.setAttribute('data-keep-fill', ''); return b; };
+  // Choice cards and actions are real <button>s: the app's outline-only rules (src/styles/outline-buttons.css) give them
+  // a transparent fill, a thin border, and a neon border and neon text while aria-pressed="true".
+  const choice = (cls) => { const b = el('button', cls); b.type = 'button'; return b; };
+  const filled = (cls, text) => { const b = el('button', cls, text); b.type = 'button'; return b; };
 
   // 1 -- what to do first: two large cards
   function step1() {
@@ -220,7 +206,6 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
     i.value = a.heard === 'other' ? a.heardOther : '';
     const send = el('button');
     send.type = 'submit';
-    send.setAttribute('data-keep-fill', '');
     send.setAttribute('aria-label', 'Send');
     send.innerHTML = svg(ICONS.arrow, 16);
     other.append(i, send);

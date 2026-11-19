@@ -97,7 +97,7 @@ describe('app onboarding flow', () => {
     expect($('[data-onboarding]')).toBeNull();
   });
 
-  it('uses the light design: .ob root, purple progress fill, two-card step 1, logo on step 1 and Back after', () => {
+  it('uses the onboarding layout: .ob root, progress fill, logo on step 1 and Back after, real buttons for choices', () => {
     mountOnboarding($('#host'), {});
     expect($('.ob')).not.toBeNull();
     expect($('.ob-bar > i').style.width).toBe(`${(1 / 6) * 100}%`);
@@ -107,5 +107,8 @@ describe('app onboarding flow', () => {
     expect($('[data-onb-back]')).not.toBeNull();
     expect($('.ob-logo')).toBeNull();
     expect(document.body.classList.contains('ob-active')).toBe(true);
+    // choices are real <button>s with no fill opt-out, so the app's outline-only button design applies
+    expect($('[data-onb-team]').tagName).toBe('BUTTON');
+    expect($('[data-keep-fill]')).toBeNull();
   });
 });
