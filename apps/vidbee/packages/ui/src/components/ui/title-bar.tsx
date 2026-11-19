@@ -12,6 +12,8 @@ interface TitleBarProps {
   onClose?: () => void
   className?: string
   children?: React.ReactNode
+  /** [host patch] extra controls shown at the end of the bar, before the window buttons */
+  extra?: React.ReactNode
   icons?: {
     minimize?: React.ComponentType<{ className?: string }>
     maximize?: React.ComponentType<{ className?: string }>
@@ -31,6 +33,7 @@ export function TitleBar({
   onClose,
   className,
   children,
+  extra,
   icons
 }: TitleBarProps) {
   const MinimizeIcon = icons?.minimize ?? Minus
@@ -53,9 +56,10 @@ export function TitleBar({
     <DragRegion className={containerClass}>
       {hasContent ? (
         <div className="flex min-w-0 flex-1 items-center gap-2">{children}</div>
-      ) : isMac ? null : (
+      ) : isMac && !extra ? null : (
         <div className="flex-1" />
       )}
+      {extra ? <NoDrag className="flex items-center">{extra}</NoDrag> : null}
       {isMac ? null : (
         <NoDrag className="flex items-center gap-1">
           <Button

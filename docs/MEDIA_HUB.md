@@ -64,6 +64,5 @@ real video sites, Docker.
 
 ## Colour scheme and light / dark mode
 Upstream's layout and components are unchanged; only its design tokens are re-coloured with this app's palette (neon yellow-green #d9ff00 on dark, a deeper olive #6b7d00 on light), in **both** a light and a dark mode, and its buttons are outlined like the rest of this app's studios
-(`host-theme.css` + the button patches listed in `apps/vidbee/UPSTREAM.md`). Modes follow upstream's own *Settings → Theme* (Light / Dark / System). The Media Hub tab also has a Light / Dark / System switch
-that applies it live (the page posts `vidbee-theme` to the iframe; the choice is remembered in the browser and saved as upstream's `theme` setting, which is shared by everyone using the same library). Default: dark.
+(`host-theme.css`, the button patches and the title-bar toggle `host-theme-toggle.tsx`, all listed in `apps/vidbee/UPSTREAM.md`). Modes follow upstream's own *Settings → Theme* (Light / Dark / System), and VidBee's own title bar has a button that cycles Light → Dark → System (top right, next to the page's actions; it saves the same `theme` setting, which is shared by everyone using the same library). Default: dark. The host pages (Media Hub tab) carry no theme controls of their own.
 Screenshots: `docs/media-hub-screenshots/theme-{dark,light}-{home,transcript,settings}.png`. Regenerate the vendored copy with: `HOST_THEME=1 python3 vendor.py apps/vidbee`

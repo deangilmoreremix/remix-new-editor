@@ -6,6 +6,7 @@ import IconFluentSquareMultiple20Regular from '~icons/fluent/square-multiple-20-
 import IconFluentSubtract20Regular from '~icons/fluent/subtract-20-regular'
 import { ipcEvents, ipcServices } from '../../lib/ipc'
 import '../../assets/title-bar.css'
+import { HostThemeToggle } from './host-theme-toggle'
 
 interface TitleBarProps {
   className?: string
@@ -37,6 +38,7 @@ export function TitleBar({ children, className, platform }: TitleBarProps) {
   return (
     <SharedTitleBar
       className={className}
+      extra={<HostThemeToggle />}
       icons={{
         close: IconFluentDismiss20Regular,
         maximize: IconFluentMaximize20Regular,
