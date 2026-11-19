@@ -137,3 +137,100 @@ describe('notifications bell realtime: owner changes', () => {
     bell.destroy();
   });
 });
+
+describe('notifications bell realtime: synchronous owner id', () => {
+  it('an alert is dropped when the owner changes while its lookup is still pending', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1'; let slow = false; let release; const gate = new Promise((r) => { release = r; });
+    const getRealtime = vi.fn(async () => { if (slow) await gate; return rt.getRealtime(); });
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime, getCurrentUserId: () => cur });
+    await tick(); await tick();
+    slow = true;
+    rt.handlers.forEach((h) => h({ new: { id: 'n7', type: 'new_lead', title: 'Previous owner lead', read_at: null } })); // lookup now pending
+    cur = 'user_2';                                  // the account switched meanwhile
+    release(); await tick(); await tick();
+    expect(bell._count()).toBe(0);
+    expect(toast()).toBeNull();
+    expect(rt.removed.length).toBeGreaterThan(0);
+    bell.destroy();
+  });
+  it('a sign-out removes the channel within seconds, with no alert arriving', async () => {
+    const rt = fakeRealtime(); let signedIn = true; let cur = 'user_1';
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => signedIn, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 20 });
+    await tick(); await tick();
+    expect(rt.removed.length).toBe(0);
+    signedIn = false; cur = '';
+    await wait(120);
+    expect(rt.removed.length).toBeGreaterThan(0);
+    bell.destroy();
+  });
+  it('an account switch with no alert replaces the channel with one for the new owner', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1';
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 20 });
+    await tick(); await tick();
+    cur = 'user_2'; rt.userId = 'user_2';
+    await wait(150);
+    expect(rt.removed.length).toBeGreaterThan(0);
+    expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
+    bell.destroy();
+  });
+  it('the previous owner\'s unread number is cleared when the channel is dropped', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1';
+    const srv = live(7);
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur });
+    await tick(); await tick();
+    expect(bell._count()).toBe(7);
+    cur = 'user_2'; rt.userId = 'user_2'; srv.s.n = 0;   // another account (nothing unread), and an alert for the old one arrives
+    rt.handlers.forEach((h) => h({ new: { id: 'n3', type: 'new_lead', title: 'x', read_at: null } }));
+    await tick(); await tick();
+    expect(bell._count()).toBe(0);
+    expect(bell.element.querySelector('[role=status]').classList.contains('hidden')).toBe(true);   // the badge is hidden, not showing the old owner's number
+    bell.destroy();
+  });
+  it('after an account switch the new owner\'s existing unread count appears without waiting for another alert', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1';
+    const srv = live(7);
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 20 });
+    await tick(); await tick();
+    expect(bell._count()).toBe(7);
+    cur = 'user_2'; rt.userId = 'user_2'; srv.s.n = 3;   // the other account already has 3 unread
+    await wait(150);
+    expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
+    expect(bell._count()).toBe(3);
+    bell.destroy();
+  });
+  it('an alert on the old channel after an account switch drops it and reconnects for the new owner', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1';
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 100000 });
+    await tick(); await tick();
+    cur = 'user_2'; rt.userId = 'user_2';
+    rt.handlers[0]({ new: { id: 'n9', type: 'new_lead', title: 'x', read_at: null } });
+    await wait(50);
+    expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
+    bell.destroy();
+  });
+  it('the badge is also cleared when the owner changes during the asynchronous lookup', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1'; let slow = false; let release; const gate = new Promise((r) => { release = r; });
+    const getRealtime = vi.fn(async () => { if (slow) await gate; return rt.getRealtime(); });
+    const srv = live(5);
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime, getCurrentUserId: () => cur });
+    await tick(); await tick();
+    expect(bell._count()).toBe(5);
+    slow = true;
+    rt.handlers.forEach((h) => h({ new: { id: 'n4', type: 'new_lead', title: 'x', read_at: null } }));
+    cur = 'user_2'; rt.userId = 'user_2'; srv.s.n = 0; release(); await tick(); await tick();
+    expect(bell._count()).toBe(0);
+    bell.destroy();
+  });
+  it('a getCurrentUserId that throws never breaks alerts or the identity timer', async () => {
+    const rt = fakeRealtime(); let boom = false;
+    const srv = live(0);
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => { if (boom) throw new Error('host failure'); return 'user_1'; }, identityCheckMs: 20 });
+    await tick(); await tick();
+    boom = true; srv.s.n = 1;
+    await insert(rt, { id: 'n5', type: 'milestone', title: 'still works', read_at: null });
+    await wait(80);                                   // the timer ran several times without an uncaught error
+    expect(bell._count()).toBe(1);
+    expect(rt.removed.length).toBe(0);                // an unreadable id is treated as "unchanged"
+    bell.destroy();
+  });
+});

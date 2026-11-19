@@ -75,6 +75,8 @@ export function Header(navigate) {
   const bell = createNotificationsBell({
     navigate,
     getClient: async () => { await primeSupabaseIdentity(); return supabase; },
+    // The signed-in owner's id, read synchronously, so the bell drops alerts for a previous account immediately.
+    getCurrentUserId: getClerkUserId,
     // Live alerts: the Realtime socket is authenticated with the same minted token as REST calls (null -> polling only).
     getRealtime: async () => {
       const userId = getClerkUserId();
