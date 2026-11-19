@@ -174,8 +174,8 @@ export function registerWebApi() {
               } catch (err) { (job.failures ??= []).push(`${who}: ${err instanceof Error ? err.message : String(err)}`); }
             }
             job.label = undefined;
+            if (!job.done) throw new Error(job.failures?.[0] || 'No video could be made');
             job.progress = 100;
-            if (!job.done) throw new Error(job.failures[0] || 'No video could be made');
             job.status = 'complete';
             job.completedAt = new Date().toISOString();
             return;

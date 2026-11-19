@@ -1,6 +1,6 @@
 
 
-import { useState, type MutableRefObject } from 'react';
+import { useEffect, useState, type MutableRefObject } from 'react';
 import type { ExportPreset } from '@cinegen/types/export';
 // [remix] OpenChatCut export bitrate modes (export/bitrate.ts) and auto-QA preference (export/autoQa.ts)
 import { DEFAULT_CUSTOM_BITRATE_MBPS, MAX_VIDEO_BITRATE_MBPS, MIN_VIDEO_BITRATE_MBPS, requestedVideoBitrateBps, type VideoBitrateMode } from '../../../openchatcut/export/bitrate';
@@ -47,7 +47,12 @@ export function ExportSettings({ hasClips, blockedReason, onRender, aspect = '16
   const [w, h] = aspectFrame(pw, ph, aspect);
   const requested = requestedVideoBitrateBps({ mode: bitrateMode, width: w, height: h, fps, customMbps });
 
-  if (renderRef) renderRef.current = hasClips ? (contactIds) => onRender(preset, fps, { videoBitrate: requested, qa: contactIds?.length ? false : qa, aspect, ...(contactIds?.length ? { contactIds } : {}) }) : null;
+  // Hand the current options to Personalized output after each render, not during it.
+  useEffect(() => {
+    if (!renderRef) return undefined;
+    renderRef.current = hasClips ? (contactIds) => onRender(preset, fps, { videoBitrate: requested, qa: contactIds?.length ? false : qa, aspect, ...(contactIds?.length ? { contactIds } : {}) }) : null;
+    return () => { renderRef.current = null; };
+  });
 
   const presets: { value: ExportPreset; label: string; resolution: string }[] = [
     { value: 'draft', label: 'Draft', resolution: '720p' },
