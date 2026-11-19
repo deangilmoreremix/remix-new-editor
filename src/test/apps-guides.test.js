@@ -42,9 +42,9 @@ describe('Apps page', () => {
     expect(cards.every((c) => c.querySelector('img'))).toBe(true);
     expect(page.querySelectorAll('[data-guide-link]').length).toBe(0);
   });
-  it('links to the Get started guide from the top of the page', async () => {
+  it('has no Get started banner above the apps', async () => {
     const { AppsHub } = await import('../components/AppsHub.js');
-    expect(AppsHub().querySelector('[data-get-started]').getAttribute('href')).toBe('#/guide');
+    expect(AppsHub().querySelector('[data-get-started]')).toBeNull();
   });
 });
 

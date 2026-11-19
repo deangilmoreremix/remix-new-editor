@@ -104,14 +104,6 @@ export function AppsHub() {
   `;
   inner.appendChild(heroSection);
 
-  const started = document.createElement('a');
-  started.href = '#/guide';
-  started.dataset.getStarted = '';
-  started.className = 'mb-8 mx-auto flex w-full max-w-4xl items-center justify-between gap-4 rounded-2xl border border-primary/30 bg-primary/10 px-5 py-4 text-left hover:bg-primary/15 transition-colors';
-  started.innerHTML = '<span><span class="block text-sm font-bold text-white">New here? Get started</span><span class="block text-xs text-white/60">A short walkthrough from your first picture to a finished video.</span></span><span class="shrink-0 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-black">Start the guide</span>';
-  started.addEventListener('click', (e) => { e.preventDefault(); navigate('guide'); });
-  inner.appendChild(started);
-
   const searchWrapper = document.createElement('div');
   searchWrapper.className = 'mb-8 animate-fade-in-up flex justify-center';
   searchWrapper.style.animationDelay = '0.1s';
