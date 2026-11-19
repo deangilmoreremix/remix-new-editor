@@ -8,10 +8,10 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-        outline: 'border bg-background hover:bg-accent hover:text-accent-foreground',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        default: 'border border-foreground/15 bg-transparent font-bold text-foreground/85 hover:border-primary/50 hover:bg-transparent hover:text-foreground hover:shadow-[0_0_16px_color-mix(in_oklab,var(--primary)_14%,transparent)] active:scale-[0.98] border-l-2 border-l-primary hover:border-l-primary',
+        destructive: 'border border-destructive/40 bg-transparent font-bold text-destructive hover:bg-destructive/10',
+        outline: 'border border-foreground/12 bg-transparent font-bold text-foreground/75 hover:border-foreground/30 hover:bg-transparent hover:text-foreground',
+        secondary: 'border border-foreground/12 bg-transparent font-bold text-foreground/75 hover:border-foreground/30 hover:bg-transparent hover:text-foreground',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline'
       },

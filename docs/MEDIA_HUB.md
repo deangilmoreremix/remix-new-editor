@@ -8,7 +8,6 @@ Media Hub is **upstream's VidBee desktop app** ([nexmoe/VidBee](https://github.c
 and `packages/`, `skills/` and `patches/` have zero differences. The one changed file is `src/renderer/src/lib/local-file-src.ts` (browsers can't load `file://` URLs, so media goes through the host's `/media` route).
 Everything else added is in `apps/vidbee/apps/desktop/host/` (see `apps/vidbee/UPSTREAM.md`). Mounted at `#/media-hub` (Video menu), as an iframe of `/vidbee/`.
 
-An optional palette/button re-theme exists (`HOST_THEME=1 PRIMARY=… python3 vendor.py`) but is **off**; the default is upstream's own look.
 
 ## Feature screenshots
 `docs/media-hub-screenshots/compare-*.png` put upstream's official screenshots (from the upstream repo's `screenshots/`, the images used on vidbee.org) next to the same screens in this app:
@@ -62,3 +61,9 @@ without a token (or `VIDBEE_ALLOW_OPEN=1`). `apps/desktop/host/docker/` has a Do
 ## Not ported
 Share-image / diagram capture (`main/lib/share-capture-window.ts`) needs Electron's offscreen rendering and is not available. Not exercised here (no internet in the sandbox): real speech models, a real AI provider,
 real video sites, Docker.
+
+## Colour scheme and light / dark mode
+Upstream's layout and components are unchanged; only its design tokens are re-coloured with this app's palette (neon yellow-green #d9ff00 on dark, a deeper olive #6b7d00 on light), in **both** a light and a dark mode, and its buttons are outlined like the rest of this app's studios
+(`host-theme.css` + the button patches listed in `apps/vidbee/UPSTREAM.md`). Modes follow upstream's own *Settings → Theme* (Light / Dark / System). The Media Hub tab also has a Light / Dark / System switch
+that applies it live (the page posts `vidbee-theme` to the iframe; the choice is remembered in the browser and saved as upstream's `theme` setting, which is shared by everyone using the same library). Default: dark.
+Screenshots: `docs/media-hub-screenshots/theme-{dark,light}-{home,transcript,settings}.png`. Regenerate the vendored copy with: `HOST_THEME=1 python3 vendor.py apps/vidbee`

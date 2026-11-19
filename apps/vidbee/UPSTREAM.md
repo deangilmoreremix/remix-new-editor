@@ -24,9 +24,9 @@ So the screens, features, downloads, transcripts with speaker labels, AI prompts
 
 ## `[host patch]` edits to upstream files
 - `src/renderer/src/lib/local-file-src.ts`: media URLs use the host `/media` route instead of `file://`.
-- (only with `HOST_THEME=1`) `src/renderer/src/assets/global.css` + new `host-theme.css`: host palette (dark).
+- (only with `HOST_THEME=1`) `src/renderer/src/assets/global.css` + new `host-theme.css`: remix neon palette (light + dark).
 - (only with `HOST_THEME=1`) `packages/ui/src/components/ui/{button,sonner}.tsx`, `agent-chat-composer.css`: outlined, transparent buttons.
-- (only with `HOST_THEME=1`) `host/web-shim.js` keeps the `.dark` class on `<html>`.
+- (only with `HOST_THEME=1`) `host/web-shim.js` syncs upstream's theme setting (default dark; `?theme=` / postMessage from the embedding page).
 - `package.json` (desktop): `electron-ga4-telemetry` removed (telemetry), scripts replaced; workspace files trimmed.
 
 ## Not available in the web port

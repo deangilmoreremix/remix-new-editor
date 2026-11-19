@@ -2,6 +2,23 @@
 // `window.electron.ipcRenderer` (electron-ipc-decorator proxies → invoke) and `window.api` (events); both are implemented here over
 // HTTP + server-sent events against the host server (host/server.ts). Loaded as a classic script before the app bundle.
 (() => {
+  // Host theme: upstream's own light / dark / system setting (next-themes, `.dark` class) drives the palette. The embedding page can pass
+  // ?theme=light|dark|system for a visit and later postMessage({ type: 'vidbee-theme', theme }) (same origin only). Default: dark.
+  const hostTheme = (t) => {
+    try {
+      localStorage.setItem('theme', t);
+      window.dispatchEvent(new StorageEvent('storage', { key: 'theme', newValue: t, storageArea: localStorage }));
+    } catch { /* storage unavailable: upstream's setting still works */ }
+    // upstream re-applies its persisted `theme` setting (app-layout.tsx), so persist it there too (one shared library → one shared setting)
+    queueMicrotask(() => post('ipc/invoke', { channel: 'settings.set', args: ['theme', t] }).catch(() => {}));
+  };
+  const valid = (t) => t === 'light' || t === 'dark' || t === 'system';
+  const wanted = new URLSearchParams(location.search).get('theme');
+  if (valid(wanted)) hostTheme(wanted);
+  else { let first = false; try { first = !localStorage.getItem('theme'); } catch { /* ignore */ } if (first) hostTheme('dark'); }
+  window.addEventListener('message', (e) => { if (e.origin === location.origin && e.data && e.data.type === 'vidbee-theme' && valid(e.data.theme)) hostTheme(e.data.theme); });
+  // end host theme
+
   const script = document.currentScript;
   const base = new URL('.', script ? script.src : location.href).href;
   const post = (path, body) =>
