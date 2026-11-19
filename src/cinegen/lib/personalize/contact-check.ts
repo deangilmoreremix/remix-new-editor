@@ -116,6 +116,9 @@ export async function fillMissingWithAi(jobs: AiJob[], host: ImageHost & { onPro
     const job = jobs[i];
     const slot = `${job.contactId}:${job.key}`;
     if (inFlight.has(slot)) continue;
+    // another run (the panel was reopened) may have made this picture since the list was planned: check before paying for it
+    const before = contactStore.getProfile?.(job.contactId) as Profile | null;
+    if (!before || !(planAiImages([job.key], [before]) as { jobs: AiJob[] }).jobs.length) continue;
     inFlight.add(slot);
     host.onProgress?.(`Making ${job.label} for ${job.contactName} (${i + 1} of ${jobs.length})…`);
     try {
