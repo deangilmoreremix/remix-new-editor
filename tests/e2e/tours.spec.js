@@ -21,6 +21,7 @@ const openApp = async (page, route) => {
 };
 
 test.describe('Guided tours', () => {
+  test.setTimeout(120_000);
   test.beforeEach(async ({ page }) => {
     // The app tour and the setup popup are not the subject of these tests.
     await page.addInitScript(() => {
@@ -34,7 +35,8 @@ test.describe('Guided tours', () => {
       page.on('pageerror', (e) => errors.push(e.message));
       await openApp(page, route);
       // The tour starts by itself the first time. Wait for it, then count what resolved.
-      await page.waitForSelector('.driver-popover.sv-tour', { timeout: 30_000 });
+      // Motion Director lazy-loads a large React app; the dev server needs longer on a cold start.
+      await page.waitForSelector('.driver-popover.sv-tour', { timeout: route === 'motion-director' ? 85_000 : 30_000 });
       const shown = (await page.locator('.driver-popover-progress-text').first().textContent()) || '';
       const m = shown.match(/(\d+) of (\d+)/);
       const steps = m ? Number(m[2]) : 1;

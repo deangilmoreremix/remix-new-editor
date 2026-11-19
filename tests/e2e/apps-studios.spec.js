@@ -48,7 +48,9 @@ test.describe('Apps page: the 38 studios', () => {
       await page.locator(`[data-studio-card="${id}"]`).click();
       await page.waitForFunction((x) => location.hash.startsWith(`#/${x}`), id, { timeout: 15_000 });
       await expect(page.locator('#content-area')).not.toBeEmpty();
-      await page.goBack();
+      // Back to the Apps page through the logo (the browser Back button is not used: with ?dev in the URL the
+      // router's own history entries differ by more than the hash, which is a test-only artifact).
+      await page.locator('[aria-label="All apps"]').click();
       await page.waitForSelector('[data-studio-card]', { timeout: 20_000 });
     }
   });
