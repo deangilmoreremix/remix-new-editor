@@ -11,7 +11,7 @@
  */
 export const OPEN_FLAG = 'remix_open_projects';
 
-export function createNotificationsBell({ getClient, isSignedIn = () => !!globalThis.window?.Clerk?.user, navigate, intervalMs = 180000, doc = globalThis.document, getRealtime = null, realtimeCheckMs = 300000, toastMs = 6000 }) {
+export function createNotificationsBell({ getClient, isSignedIn = () => !!globalThis.window?.Clerk?.user, navigate, intervalMs = 180000, doc = globalThis.document, getRealtime = null, realtimeCheckMs = 300000, toastMs = 6000, getCurrentUserId = null, identityCheckMs = 3000 }) {
   const btn = doc.createElement('button');
   btn.type = 'button';
   btn.className = 'hidden relative p-2 text-secondary hover:text-white transition-colors';
@@ -78,13 +78,16 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   };
   // An alert is only shown while the channel still belongs to the signed-in owner. After a sign-out or an account switch
   // the old channel can outlive the change until the next periodic check, so each alert re-checks who is signed in.
+  // getCurrentUserId() is a synchronous source of the signed-in owner's id (when the host provides one), so a channel that
+  // belongs to someone else is noticed immediately, without waiting for the asynchronous lookup below.
+  const ownerChanged = (mine) => typeof getCurrentUserId === 'function' && (getCurrentUserId() || '') !== mine.userId;
   async function guardedInsert(payload, mine) {
     if (!alive || rt !== mine) return;
-    if (!isSignedIn()) { stopRealtime(); return; }                                   // signed out: drop the channel now
+    if (!isSignedIn() || ownerChanged(mine)) { stopRealtime(); return; }              // signed out or another account: drop the channel now
     try {
       const info = await getRealtime();
       if (!alive || rt !== mine) return;
-      if (!isSignedIn() || !info?.userId || info.userId !== mine.userId) { stopRealtime(); return; } // signed out meanwhile, or another account
+      if (!isSignedIn() || ownerChanged(mine) || !info?.userId || info.userId !== mine.userId) { stopRealtime(); return; } // changed while the lookup was pending
     } catch { return; }
     onInsert(payload);
   }
@@ -118,8 +121,12 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   globalThis.addEventListener?.('remix:notifications-changed', onRead);
   timer = setInterval(() => { if (!doc.hidden) refresh(true); }, intervalMs);
   const rtTimer = getRealtime ? setInterval(ensureRealtime, realtimeCheckMs) : null;
+  // A sign-out or account switch removes the channel within seconds, even when no alert arrives to trigger the check.
+  const identityTimer = getRealtime && typeof getCurrentUserId === 'function'
+    ? setInterval(() => { const cur = rt; if (cur && (!isSignedIn() || ownerChanged(cur))) { stopRealtime().then(() => ensureRealtime()); } }, identityCheckMs)
+    : null;
   refresh(true); ensureRealtime();
   // Clerk usually finishes loading after the header is created: re-check a few times so a signed-in owner sees the bell soon.
   [1500, 4000, 9000].forEach((ms) => setTimeout(() => { if (alive && !isSignedIn()) return; refresh(true); ensureRealtime(); }, ms));
-  return { element: btn, refresh: () => refresh(true), destroy() { alive = false; clearInterval(timer); clearInterval(rtTimer); clearTimeout(toastTimer); toastEl?.remove(); stopRealtime(); globalThis.removeEventListener?.('focus', onFocus); globalThis.removeEventListener?.('remix:notifications-changed', onRead); }, _count: () => count };
+  return { element: btn, refresh: () => refresh(true), destroy() { alive = false; clearInterval(timer); clearInterval(rtTimer); clearInterval(identityTimer); clearTimeout(toastTimer); toastEl?.remove(); stopRealtime(); globalThis.removeEventListener?.('focus', onFocus); globalThis.removeEventListener?.('remix:notifications-changed', onRead); }, _count: () => count };
 }

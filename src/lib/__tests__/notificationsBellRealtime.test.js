@@ -137,3 +137,40 @@ describe('notifications bell realtime: owner changes', () => {
     bell.destroy();
   });
 });
+
+describe('notifications bell realtime: synchronous owner id', () => {
+  it('an alert is dropped when the owner changes while its lookup is still pending', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1'; let slow = false; let release; const gate = new Promise((r) => { release = r; });
+    const getRealtime = vi.fn(async () => { if (slow) await gate; return rt.getRealtime(); });
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime, getCurrentUserId: () => cur });
+    await tick(); await tick();
+    slow = true;
+    rt.handlers.forEach((h) => h({ new: { id: 'n7', type: 'new_lead', title: 'Previous owner lead', read_at: null } })); // lookup now pending
+    cur = 'user_2';                                  // the account switched meanwhile
+    release(); await tick(); await tick();
+    expect(bell._count()).toBe(0);
+    expect(toast()).toBeNull();
+    expect(rt.removed.length).toBeGreaterThan(0);
+    bell.destroy();
+  });
+  it('a sign-out removes the channel within seconds, with no alert arriving', async () => {
+    const rt = fakeRealtime(); let signedIn = true; let cur = 'user_1';
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => signedIn, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 20 });
+    await tick(); await tick();
+    expect(rt.removed.length).toBe(0);
+    signedIn = false; cur = '';
+    await wait(120);
+    expect(rt.removed.length).toBeGreaterThan(0);
+    bell.destroy();
+  });
+  it('an account switch with no alert replaces the channel with one for the new owner', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1';
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 20 });
+    await tick(); await tick();
+    cur = 'user_2'; rt.userId = 'user_2';
+    await wait(150);
+    expect(rt.removed.length).toBeGreaterThan(0);
+    expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
+    bell.destroy();
+  });
+});
