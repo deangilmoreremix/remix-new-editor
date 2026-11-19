@@ -15,7 +15,15 @@
   const valid = (t) => t === 'light' || t === 'dark' || t === 'system';
   const wanted = new URLSearchParams(location.search).get('theme');
   if (valid(wanted)) hostTheme(wanted);
-  else { let first = false; try { first = !localStorage.getItem('theme'); } catch { /* ignore */ } if (first) hostTheme('dark'); }
+  else {
+    // first visit in this browser: default to dark, unless the shared library already has an explicit light/dark choice saved
+    let first = false; try { first = !localStorage.getItem('theme'); } catch { /* ignore */ }
+    if (first) {
+      queueMicrotask(() => post('ipc/invoke', { channel: 'settings.get', args: ['theme'] }).then((r) => r.json())
+        .then((j) => { if (!j || (j.result !== 'light' && j.result !== 'dark')) hostTheme('dark'); else { try { localStorage.setItem('theme', j.result); } catch { /* ignore */ } } })
+        .catch(() => hostTheme('dark')));
+    }
+  }
   window.addEventListener('message', (e) => { if (e.origin === location.origin && e.data && e.data.type === 'vidbee-theme' && valid(e.data.theme)) hostTheme(e.data.theme); });
   // end host theme
 
