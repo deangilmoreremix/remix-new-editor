@@ -8,8 +8,9 @@ import image from './defs/image.js';
 import video from './defs/video.js';
 import agents from './defs/agents.js';
 import mywork from './defs/mywork.js';
+import more from './defs/more.js';
 
-export const TOUR_LIST = Object.freeze([...shell, ...home, ...image, ...video, ...agents, ...mywork]);
+export const TOUR_LIST = Object.freeze([...shell, ...home, ...image, ...video, ...agents, ...mywork, ...more]);
 export const TOURS = Object.freeze(Object.fromEntries(TOUR_LIST.map((t) => [t.id, t])));
 
 // Routes that show another route's page.

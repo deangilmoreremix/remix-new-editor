@@ -149,7 +149,14 @@ function createStudioCard(studio) {
   card.dataset.studioCard = studio.id;
   card.setAttribute('data-studio-link', studio.href);
   card.setAttribute('aria-label', `Open ${studio.name}`);
-  card.addEventListener('click', () => saveRecent(studio.id, studio.name)); // the link itself does the navigation
+  card.addEventListener('click', (e) => {
+    saveRecent(studio.id, studio.name);
+    // A plain click goes through the router (one history entry, so Back returns here). Ctrl/Cmd/middle-click keep the
+    // link's own behaviour and open the studio in a new tab.
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    navigate(studio.id);
+  });
 
   const frame = document.createElement('div');
   frame.className = 'relative aspect-[16/10] w-full overflow-hidden bg-white/[0.04]';

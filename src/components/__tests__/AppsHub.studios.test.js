@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('../../lib/muapi.js', () => ({ muapi: {} }));
 vi.mock('../../lib/router.js', () => ({ navigate: vi.fn() }));
+const { navigate } = await import('../../lib/router.js');
 const { AppsHub } = await import('../AppsHub.js');
 const { STUDIO_DIRECTORY } = await import('../../lib/studioDirectory.js');
 
@@ -40,6 +41,19 @@ describe('Apps page: all 38 studios', () => {
     const visible = all('[data-studio-card]').filter((c) => c.style.display !== 'none').map((c) => c.dataset.studioCard);
     expect(visible).toContain('lipsync');
     expect(visible.length).toBeLessThan(10);
+  });
+  it('a plain click opens the studio through the router (one history entry); a ctrl-click is left to the browser', () => {
+    navigate.mockClear();
+    const card = document.querySelector('[data-studio-card="avatar"]');
+    const plain = new MouseEvent('click', { bubbles: true, cancelable: true });
+    card.dispatchEvent(plain);
+    expect(plain.defaultPrevented).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('avatar');
+    navigate.mockClear();
+    const modified = new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true });
+    card.dispatchEvent(modified);
+    expect(modified.defaultPrevented).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
   });
   it('remembers a studio you opened under Recently Used', () => {
     document.querySelector('[data-studio-card="image"]').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));

@@ -59,6 +59,6 @@ const onScreen = (el) => {
 
 /** True when something modal is ON SCREEN (API-key popup, Settings, a welcome overlay): a tour should wait for it. */
 export function blockingOverlayOpen(root = document) {
-  const sel = '[data-onboarding],[data-outreach-welcome],[role="dialog"][aria-modal="true"],div.fixed.inset-0[class*="z-[100]"],.driver-popover';
+  const sel = '[data-onboarding],[data-outreach-welcome],[role="dialog"][aria-modal="true"]:not([aria-labelledby="personalize-title"]),div.fixed.inset-0[class*="z-[100]"],.driver-popover';
   return [...root.querySelectorAll(sel)].some((el) => onScreen(el));
 }

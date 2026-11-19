@@ -60,7 +60,7 @@ export async function startTour(def, { onFinish = () => {}, replay = false } = {
   const controller = { stop: (reason = 'skipped') => { abort.abort(); lastReason = reason; try { drv?.destroy(); } catch { /* ignore */ } finish(reason); } };
   active = { id: def.id, controller };
 
-  const steps = await resolveSteps(def, { signal: abort.signal });
+  const steps = await resolveSteps(def, { signal: abort.signal, firstWait: def.firstWait ?? 6000 });
   if (finished) return { started: false, steps: 0, stop() {} };
   if (!steps.length) { finish('empty'); return { started: false, steps: 0, stop() {} }; }
 

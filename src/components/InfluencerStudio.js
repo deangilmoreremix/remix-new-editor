@@ -350,6 +350,7 @@ export async function InfluencerStudio() {
 
   const modelSelectorContainer = document.createElement('div');
   modelSelectorContainer.className = 'w-full mb-6';
+  modelSelectorContainer.dataset.tour = 'model'; // guided tours (src/lib/tours)
   container.appendChild(modelSelectorContainer);
 
   mountModelSelector(modelSelectorContainer, {

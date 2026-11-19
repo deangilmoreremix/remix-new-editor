@@ -103,10 +103,12 @@ export function LeadFinderStudio() {
   const heroActions = el('div', 'flex flex-col sm:flex-row gap-2 shrink-0');
   const findBtn = el('button', 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-black shadow-glow hover:bg-[var(--color-primary-hover)] transition-colors', 'Find businesses');
   findBtn.type = 'button';
+  findBtn.dataset.tour = 'lf-find'; // guided tours (src/lib/tours)
   findBtn.addEventListener('click', () => openLeadFinder(findBtn));
   heroActions.appendChild(findBtn);
   const brandBtn = el('button', 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-5 py-3 text-sm font-bold text-white hover:border-primary/60 hover:text-primary transition-colors', '✦ Find My Brand');
   brandBtn.type = 'button';
+  brandBtn.dataset.tour = 'lf-brand';
   brandBtn.title = 'Paste a business website to pull its logo, photos and branding (free)';
   brandBtn.addEventListener('click', async () => {
     const { openFreeDiscovery } = await import('../features/personalization/mount.jsx');
@@ -118,6 +120,7 @@ export function LeadFinderStudio() {
 
   // Saved leads
   const leadsSection = el('section', 'rounded-2xl border border-white/10 bg-panel-bg overflow-hidden');
+  leadsSection.dataset.tour = 'lf-leads';
   const leadsHeader = el('div', 'flex items-center justify-between gap-3 px-4 py-3 border-b border-white/10');
   const leadsTitle = el('h2', 'text-sm font-extrabold uppercase tracking-wide text-white', 'Saved leads');
   const refreshBtn = el('button', 'rounded-lg px-3 py-1.5 text-xs font-bold text-white/70 hover:text-white hover:bg-white/10 transition-colors', 'Refresh');

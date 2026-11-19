@@ -8,10 +8,11 @@ const ROUTES = [
   'image', 'edit', 'upscale', 'character', 'commercial', 'brand',
   'video', 'cinema', 'cinema-template', 'storyboard', 'effects', 'ai-vfx', 'animate', 'lipsync', 'videotools', 'avatar', 'audio',
   'video-agent', 'zackd', 'director', 'timeline', 'workbench', 'viral', 'personalizer', 'video-pages', 'website-builder', 'outreach',
+  'influencer', 'motion-director', 'leadfinder', 'recorder', 'find-my-brand', 'render',
   'library', 'content-library',
 ];
 // Steps that may legitimately be missing in a signed-out, empty, offline test run (they depend on data or iframes).
-const MIN_STEPS = { 'video-agent': 2, workbench: 2, 'website-builder': 2, outreach: 2, viral: 3, templates: 3, timeline: 2, 'video-pages': 1, 'content-library': 3 };
+const MIN_STEPS = { 'video-agent': 2, workbench: 2, 'website-builder': 2, outreach: 2, viral: 3, templates: 3, timeline: 2, 'video-pages': 1, 'content-library': 3, 'motion-director': 2, recorder: 2, 'find-my-brand': 2, leadfinder: 3, render: 4, influencer: 4 };
 
 const openApp = async (page, route) => {
   await page.goto(`/?dev#/${route}`, { waitUntil: 'domcontentloaded' });

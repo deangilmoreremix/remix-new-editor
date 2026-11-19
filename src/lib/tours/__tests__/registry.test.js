@@ -8,12 +8,16 @@ vi.mock('../../muapi.js', () => ({ muapi: {} }));
 const { NAV_GROUPS } = await import('../../studioRoutes.js');
 const { TOUR_LIST, TOURS, routeId, tourForPage, shellTour } = await import('../registry.js');
 
+const { STUDIO_DIRECTORY } = await import('../../studioDirectory.js');
 const navIds = NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id));
 
 describe('tour registry', () => {
-  it('has the app tour and a tour for every side-menu item, plus Outreach', () => {
+  it('has the app tour and a tour for every side-menu item and for each of the 38 studios', () => {
     expect(shellTour().steps.length).toBeGreaterThanOrEqual(8);
-    for (const id of [...navIds, 'outreach']) expect(TOURS[id], `missing tour for ${id}`).toBeTruthy();
+    for (const id of navIds.filter((x) => x !== 'apps')) expect(TOURS[id], `missing tour for ${id}`).toBeTruthy();
+    expect(STUDIO_DIRECTORY).toHaveLength(38);
+    for (const s of STUDIO_DIRECTORY) expect(TOURS[s.id], `missing tour for ${s.id}`).toBeTruthy();
+    expect(TOURS.apps).toBeTruthy();
   });
   it('every tour is well formed: unique id, matching route, version, 2+ steps with a title and a body', () => {
     const ids = TOUR_LIST.map((t) => t.id);
