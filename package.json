@@ -47,7 +47,7 @@
     "sync:mg-thumbs": "node scripts/sync-mg-thumbs.mjs",
     "predev": "npm run gen:motion-sources && npm run sync:mg-thumbs",
     "build:studio-guides": "node scripts/build-studio-guides.mjs",
-    "capture:guides": "playwright test tests/e2e/guide-screenshots.spec.js --config=playwright.screenshots.config.js --trace off"
+    "capture:guides": "playwright test tests/e2e/guide-screenshots.spec.js --config=playwright.screenshots.config.js --trace off --output=node_modules/.cache/guide-capture"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.29.9",

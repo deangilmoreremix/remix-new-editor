@@ -5,7 +5,7 @@
 // feature's control highlighted (and opened, for safe tabs and dropdowns).
 //
 //   1. npm run dev                      (http://localhost:3100)
-//   2. npm run capture:guides           (all studios)
+//   2. npm run capture:guides           (all studios, ~25 min)
 //      GUIDES=image-studio,video-studio npm run capture:guides   (some)
 //   3. node scripts/build-studio-guides.mjs --index-only
 //
@@ -18,13 +18,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { buildGuides } from '../../src/data/studioGuides.core.js';
-import { TARGETS, DANGEROUS } from './guide-screenshot-targets.js';
+import { TARGETS, DANGEROUS, SKIP_STUDIOS } from './guide-screenshot-targets.js';
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, 'public/guides');
 const MANIFEST = path.join(ROOT, 'src/data/guideScreenshots.json');
 const BASE = process.env.GUIDE_BASE_URL || 'http://localhost:3100';
-const LOAD_MS = Number(process.env.GUIDE_LOAD_MS || 18000);
+const MAX_LOAD_MS = Number(process.env.GUIDE_MAX_LOAD_MS || 45000);
 
 const kbDir = path.join(ROOT, 'src/data/askKb');
 const kb = Object.fromEntries(
@@ -32,7 +32,7 @@ const kb = Object.fromEntries(
     .map((f) => [f.slice(0, -5), JSON.parse(fs.readFileSync(path.join(kbDir, f), 'utf8'))]),
 );
 const only = (process.env.GUIDES || '').split(',').filter(Boolean);
-const GUIDES = buildGuides(kb).filter((g) => !only.length || only.includes(g.slug));
+const GUIDES = buildGuides(kb).filter((g) => (only.length ? only.includes(g.slug) : !SKIP_STUDIOS.includes(g.slug)));
 
 test.use({
   viewport: { width: 1440, height: 900 },
@@ -64,13 +64,42 @@ function readManifest() {
 
 async function dismissOverlays(page) {
   for (let i = 0; i < 3; i++) {
-    const skip = page.getByRole('button', { name: /skip for now|maybe later|not now|got it|dismiss|close/i }).first();
+    const skip = page.getByRole('button', { name: /skip for now|maybe later|not now|got it|dismiss/i }).first();
     if (await skip.isVisible().catch(() => false)) { await skip.click().catch(() => {}); await page.waitForTimeout(400); continue; }
     break;
   }
   await page.keyboard.press('Escape').catch(() => {});
+  await page.evaluate(() => {
+    // The first-run "set up your API keys" modal (dev mode has a placeholder key).
+    for (const h of document.querySelectorAll('h2')) {
+      if (/set up your API keys/i.test(h.textContent)) h.closest('.fixed')?.remove();
+    }
+  }).catch(() => {});
   // Hide the floating assistant button so it doesn't cover the studio.
   await page.addStyleTag({ content: '[data-ask-smartvideo],.ask-smartvideo-launcher,#ask-smartvideo-root{display:none!important}' }).catch(() => {});
+}
+
+// Wait until the studio has rendered: its text stops changing (max MAX_LOAD_MS).
+async function waitForStudio(page) {
+  const start = Date.now();
+  let last = -1; let stable = 0;
+  await page.waitForTimeout(4000);
+  while (Date.now() - start < MAX_LOAD_MS) {
+    const n = await page.evaluate(() => (document.getElementById('content-area') || document.body).innerText.length).catch(() => -1);
+    stable = n === last && n > 150 ? stable + 1 : 0;
+    if (stable >= 3) break;
+    last = n;
+    await page.waitForTimeout(1500);
+  }
+  await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(1500); // images and entrance animations
+}
+
+async function open(page, route) {
+  await page.goto(`${BASE}/?dev#/${route}`, { waitUntil: 'domcontentloaded' });
+  await waitForStudio(page);
+  await dismissOverlays(page);
+  await page.evaluate(() => window.scrollTo(0, 0));
 }
 
 // Find the best visible control for a feature. Returns an element handle or null.
@@ -133,69 +162,67 @@ const clearHighlight = (page) => page.evaluate(() => document.getElementById('__
 for (const guide of GUIDES) {
   test(`guide screenshots: ${guide.slug}`, async ({ page }) => {
     const dir = path.join(OUT, guide.slug);
+    fs.rmSync(dir, { recursive: true, force: true });
     fs.mkdirSync(dir, { recursive: true });
-    const url = `${BASE}/?dev#/${guide.route}`;
     const shot = { features: {} };
+    const save = async (name) => {
+      const png = path.join(dir, `${name}.png`);
+      await page.screenshot({ path: png });
+      toWebp(png, path.join(dir, `${name}.webp`));
+      return `/guides/${guide.slug}/${name}.webp`;
+    };
 
-    await page.goto(url, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(LOAD_MS);
-    await dismissOverlays(page);
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await page.screenshot({ path: path.join(dir, 'overview.png') });
-    toWebp(path.join(dir, 'overview.png'), path.join(dir, 'overview.webp'));
-    shot.overview = `/guides/${guide.slug}/overview.webp`;
+    await open(page, guide.route);
+    shot.overview = await save('overview');
+    let here = guide.route;
 
     const targets = TARGETS[guide.slug] || {};
     for (const f of guide.features) {
       const target = targets[f.id];
       if (target?.skip) continue;
-      if (target?.route) {
-        // The feature is its own page (e.g. Brand → Campaign Studio at #/campaign).
-        await page.goto(`${BASE}/?dev#/${target.route}`, { waitUntil: 'domcontentloaded' });
-        await page.waitForTimeout(LOAD_MS);
-        await dismissOverlays(page);
-        const png = path.join(dir, `${f.id}.png`);
-        await page.screenshot({ path: png });
-        toWebp(png, path.join(dir, `${f.id}.webp`));
-        shot.features[f.id] = `/guides/${guide.slug}/${f.id}.webp`;
-        console.log(`  ✓ ${guide.slug}/${f.id} ← page #/${target.route}`);
-        await page.goto(url, { waitUntil: 'domcontentloaded' });
-        await page.waitForTimeout(LOAD_MS);
-        await dismissOverlays(page);
+      const route = target?.route || guide.route;
+      if (route !== here) { await open(page, route); here = route; }
+
+      // The feature is its own page (e.g. Brand → Campaign Studio at #/campaign).
+      if (target?.route && !target.text && !target.selector) {
+        shot.features[f.id] = await save(f.id);
+        console.log(`  ✓ ${guide.slug}/${f.id} ← page #/${route}`);
         continue;
       }
+
       const el = await findControl(page, f, target);
       if (!el) { console.log(`  - ${guide.slug}/${f.id}: no matching control, uses overview`); continue; }
 
       const label = (await el.evaluate((n) => (n.innerText || n.getAttribute('aria-label') || '').trim()).catch(() => '')) || '';
       const isOpener = await el.evaluate((n) => n.getAttribute('role') === 'tab' || n.hasAttribute('aria-haspopup') || n.tagName === 'SUMMARY' || !!n.querySelector('svg polyline, svg path[d*="M6 9"]')).catch(() => false);
-      const shouldClick = target?.click ?? (isOpener && !DANGEROUS.test(label));
-      const hashBefore = await page.evaluate(() => location.hash);
-
-      const opened = Boolean(shouldClick && !DANGEROUS.test(label));
+      // An explicit click: true in the targets file is trusted; auto-detected openers are filtered.
+      const opened = target?.click === true || (target?.click !== false && isOpener && !DANGEROUS.test(label));
+      const urlBefore = page.url();
       if (opened) {
         await el.click({ timeout: 3000 }).catch(() => {});
         await page.waitForTimeout(1200);
       }
-      // A click that navigated away: go back and only highlight.
-      if ((await page.evaluate(() => location.hash)) !== hashBefore) {
-        await page.goto(url, { waitUntil: 'domcontentloaded' });
-        await page.waitForTimeout(LOAD_MS);
-        await dismissOverlays(page);
+      // A click that navigated away: reload the studio and move on.
+      if (page.url() !== urlBefore) {
+        console.log(`  - ${guide.slug}/${f.id}: "${label.slice(0, 30)}" navigates away, uses overview`);
+        await open(page, here);
         continue;
       }
-      await highlight(page, el, opened);
-      const png = path.join(dir, `${f.id}.png`);
-      await page.screenshot({ path: png });
+      try {
+        await highlight(page, el, opened);
+        shot.features[f.id] = await save(f.id);
+        console.log(`  ✓ ${guide.slug}/${f.id} ← "${label.slice(0, 40).replace(/\s+/g, ' ')}"${opened ? ' (opened)' : ''}`);
+      } catch (e) {
+        console.log(`  - ${guide.slug}/${f.id}: capture failed (${e.message.split('\n')[0]}), uses overview`);
+        await open(page, here);
+        continue;
+      }
       await clearHighlight(page);
-      toWebp(png, path.join(dir, `${f.id}.webp`));
-      shot.features[f.id] = `/guides/${guide.slug}/${f.id}.webp`;
-      console.log(`  ✓ ${guide.slug}/${f.id} ← "${label.slice(0, 40).replace(/\s+/g, ' ')}"${opened ? ' (opened)' : ''}`);
-
+      // Close whatever was opened: Escape, and if the page still changed, reload.
       await page.keyboard.press('Escape').catch(() => {});
       await page.keyboard.press('Escape').catch(() => {});
-      await page.evaluate(() => window.scrollTo(0, 0));
-      await page.waitForTimeout(300);
+      if (opened) await open(page, here);
+      else await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
     }
 
     const manifest = readManifest();
