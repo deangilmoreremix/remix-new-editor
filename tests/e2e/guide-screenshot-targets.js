@@ -28,6 +28,69 @@ export const TARGETS = {
   },
   'video-studio': {
     'animate-image-image-to-video': { route: 'image-to-video' },
+    'edit-video-extend-uploaded-video-motion-transfer': { skip: true },
+  },
+  'upscale-suite': {
+    'scale-factor': { skip: true },
+    'upscale-image': { skip: true },
+  },
+  'ai-vfx-studio': {
+    'prompt-box': { selector: 'textarea' },
+  },
+  'animate-studio': {
+    'advanced-model-fields': { skip: true },
+  },
+  'audio-studio': {
+    'style-music': { skip: true },
+    'model-specific-controls': { skip: true },
+  },
+  'cinema-studio': {
+    'camera-and-lens-controls': { skip: true },
+    'camera-movement': { skip: true },
+    'video-image-switch': { skip: true },
+  },
+  'cinema-templates': {
+    'scene-timeline-and-scene-builder': { skip: true },
+    'storyboard-hand-off': { skip: true },
+  },
+  'effects-studio': {
+    'video-effects-tab': { text: 'Video Effects', click: true },
+  },
+  'lip-sync-studio': {
+    'model-selector': { skip: true },
+  },
+  'storyboard-studio': {
+    'frame-cards': { skip: true },
+    'compare-frames': { skip: true },
+  },
+  'video-tools': {
+    'wan-2-2-animate': { skip: true },
+  },
+  'find-my-brand': {
+    'website-url-discovery': { skip: true },
+  },
+  'motion-director': {
+    'open-in-motion-workbench': { skip: true },
+  },
+  'personalizer': {
+    'personalization-hub': { skip: true },
+  },
+  'timeline-editor': {
+    'export-fcpxml': { skip: true },
+  },
+  'video-agent': {
+    'follow-up-chat-tune-your-animation': { skip: true },
+    'auto-save-to-library': { skip: true },
+  },
+  'workbench': {
+    'library-media-motion-sound-themes': { text: 'Motion', click: true },
+    'edit-with-ai-chat': { text: 'AI Chat', click: true },
+    'timeline': { text: '+ Track' },
+    'export-video': { text: 'Export video' },
+  },
+  'templates': {
+    'template-categories-standard': { text: 'Standard' },
+    'template-studio-model-and-media-sources': { skip: true },
   },
   'smart-video-academy': {
     'track-page': { route: 'academy/track/01-ai-video-ads-ugc' },

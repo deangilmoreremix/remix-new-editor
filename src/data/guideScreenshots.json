@@ -1,1 +1,367 @@
-{}
+{
+  "ai-influencer": {
+    "features": {
+      "your-photo-reference-upload": "/guides/ai-influencer/your-photo-reference-upload.webp",
+      "visual-attributes-face-body-style-tabs": "/guides/ai-influencer/visual-attributes-face-body-style-tabs.webp",
+      "shuffle-and-reset": "/guides/ai-influencer/shuffle-and-reset.webp",
+      "style-preset": "/guides/ai-influencer/style-preset.webp",
+      "output-format": "/guides/ai-influencer/output-format.webp"
+    },
+    "overview": "/guides/ai-influencer/overview.webp"
+  },
+  "ai-vfx-studio": {
+    "features": {
+      "ai-effects-tab": "/guides/ai-vfx-studio/ai-effects-tab.webp",
+      "motion-controls-tab": "/guides/ai-vfx-studio/motion-controls-tab.webp",
+      "vfx-tab": "/guides/ai-vfx-studio/vfx-tab.webp",
+      "prompt-box": "/guides/ai-vfx-studio/prompt-box.webp"
+    },
+    "overview": "/guides/ai-vfx-studio/overview.webp"
+  },
+  "animate-studio": {
+    "features": {
+      "source-upload-image": "/guides/animate-studio/source-upload-image.webp",
+      "source-from-photo-studio": "/guides/animate-studio/source-from-photo-studio.webp",
+      "motion-prompt-and-suggestion-chips": "/guides/animate-studio/motion-prompt-and-suggestion-chips.webp",
+      "duration-and-resolution": "/guides/animate-studio/duration-and-resolution.webp",
+      "model-seedance-lite-default-choose-a-model": "/guides/animate-studio/model-seedance-lite-default-choose-a-model.webp",
+      "result-and-animation-history": "/guides/animate-studio/result-and-animation-history.webp"
+    },
+    "overview": "/guides/animate-studio/overview.webp"
+  },
+  "apps": {
+    "features": {
+      "search-apps": "/guides/apps/search-apps.webp"
+    },
+    "overview": "/guides/apps/overview.webp"
+  },
+  "audio-studio": {
+    "features": {
+      "prompt": "/guides/audio-studio/prompt.webp",
+      "duration": "/guides/audio-studio/duration.webp",
+      "voice-and-speed-speech": "/guides/audio-studio/voice-and-speed-speech.webp"
+    },
+    "overview": "/guides/audio-studio/overview.webp"
+  },
+  "avatar-studio": {
+    "features": {
+      "source-video-image-upload": "/guides/avatar-studio/source-video-image-upload.webp",
+      "audio-for-lip-sync": "/guides/avatar-studio/audio-for-lip-sync.webp",
+      "prompt-optional": "/guides/avatar-studio/prompt-optional.webp",
+      "native-audio-toggle": "/guides/avatar-studio/native-audio-toggle.webp",
+      "advanced-options": "/guides/avatar-studio/advanced-options.webp"
+    },
+    "overview": "/guides/avatar-studio/overview.webp"
+  },
+  "brand-studio": {
+    "features": {
+      "analyze-website-to-brand-dna": "/guides/brand-studio/analyze-website-to-brand-dna.webp",
+      "brand-tools-grid": "/guides/brand-studio/brand-tools-grid.webp",
+      "brand-dna-editor": "/guides/brand-studio/brand-dna-editor.webp",
+      "campaign-studio": "/guides/brand-studio/campaign-studio.webp",
+      "asset-editor": "/guides/brand-studio/asset-editor.webp",
+      "photo-studio": "/guides/brand-studio/photo-studio.webp",
+      "photo-studio-generation-mode-brand-api-direct-muapi": "/guides/brand-studio/photo-studio-generation-mode-brand-api-direct-muapi.webp"
+    },
+    "overview": "/guides/brand-studio/overview.webp"
+  },
+  "character-studio": {
+    "features": {
+      "model-selector-flux-pulid-subject-reference": "/guides/character-studio/model-selector-flux-pulid-subject-reference.webp",
+      "reference-face": "/guides/character-studio/reference-face.webp",
+      "character-description": "/guides/character-studio/character-description.webp",
+      "expression-presets": "/guides/character-studio/expression-presets.webp",
+      "advanced-panel": "/guides/character-studio/advanced-panel.webp",
+      "thumbnail": "/guides/character-studio/thumbnail.webp",
+      "personalize": "/guides/character-studio/personalize.webp",
+      "saved-characters": "/guides/character-studio/saved-characters.webp"
+    },
+    "overview": "/guides/character-studio/overview.webp"
+  },
+  "cinema-studio": {
+    "features": {
+      "cinema-prompt-builder": "/guides/cinema-studio/cinema-prompt-builder.webp",
+      "start-frame-and-end-frame": "/guides/cinema-studio/start-frame-and-end-frame.webp",
+      "reference-attachments-image-video-audio": "/guides/cinema-studio/reference-attachments-image-video-audio.webp"
+    },
+    "overview": "/guides/cinema-studio/overview.webp"
+  },
+  "cinema-templates": {
+    "features": {
+      "template-browser": "/guides/cinema-templates/template-browser.webp"
+    },
+    "overview": "/guides/cinema-templates/overview.webp"
+  },
+  "content-library": {
+    "features": {
+      "save-to-content": "/guides/content-library/save-to-content.webp",
+      "browse-stock-media": "/guides/content-library/browse-stock-media.webp"
+    },
+    "overview": "/guides/content-library/overview.webp"
+  },
+  "director": {
+    "features": {
+      "command-box-ai-chat": "/guides/director/command-box-ai-chat.webp",
+      "ai-agents-panel": "/guides/director/ai-agents-panel.webp",
+      "quick-actions": "/guides/director/quick-actions.webp",
+      "browse-b-roll-from-pexels": "/guides/director/browse-b-roll-from-pexels.webp",
+      "result-panel": "/guides/director/result-panel.webp",
+      "clear-chat-and-back": "/guides/director/clear-chat-and-back.webp"
+    },
+    "overview": "/guides/director/overview.webp"
+  },
+  "edit-studio": {
+    "features": {
+      "remove-object": "/guides/edit-studio/remove-object.webp",
+      "remove-background": "/guides/edit-studio/remove-background.webp",
+      "extend-image": "/guides/edit-studio/extend-image.webp",
+      "ai-edit": "/guides/edit-studio/ai-edit.webp",
+      "reframe": "/guides/edit-studio/reframe.webp",
+      "change-dress": "/guides/edit-studio/change-dress.webp",
+      "enhance-skin": "/guides/edit-studio/enhance-skin.webp",
+      "colorize": "/guides/edit-studio/colorize.webp",
+      "add-watermark": "/guides/edit-studio/add-watermark.webp",
+      "upscale-inside-edit-studio": "/guides/edit-studio/upscale-inside-edit-studio.webp",
+      "face-swap": "/guides/edit-studio/face-swap.webp",
+      "product-shot": "/guides/edit-studio/product-shot.webp",
+      "ghibli-style": "/guides/edit-studio/ghibli-style.webp",
+      "photo-effects": "/guides/edit-studio/photo-effects.webp",
+      "change-angle": "/guides/edit-studio/change-angle.webp",
+      "character-and-reference": "/guides/edit-studio/character-and-reference.webp"
+    },
+    "overview": "/guides/edit-studio/overview.webp"
+  },
+  "effects-studio": {
+    "features": {
+      "image-effects-tab": "/guides/effects-studio/image-effects-tab.webp",
+      "nano-banana-tab": "/guides/effects-studio/nano-banana-tab.webp",
+      "kontext-effects-tab": "/guides/effects-studio/kontext-effects-tab.webp",
+      "video-effects-tab": "/guides/effects-studio/video-effects-tab.webp",
+      "motion-controls-tab": "/guides/effects-studio/motion-controls-tab.webp",
+      "advanced-panel": "/guides/effects-studio/advanced-panel.webp",
+      "compare": "/guides/effects-studio/compare.webp",
+      "motion-graphics-vibe-motion-mode": "/guides/effects-studio/motion-graphics-vibe-motion-mode.webp"
+    },
+    "overview": "/guides/effects-studio/overview.webp"
+  },
+  "explore": {
+    "features": {
+      "trending-templates": "/guides/explore/trending-templates.webp",
+      "prompt-library": "/guides/explore/prompt-library.webp",
+      "browse-by-category": "/guides/explore/browse-by-category.webp"
+    },
+    "overview": "/guides/explore/overview.webp"
+  },
+  "find-my-brand": {
+    "features": {
+      "find-my-brand-button": "/guides/find-my-brand/find-my-brand-button.webp"
+    },
+    "overview": "/guides/find-my-brand/overview.webp"
+  },
+  "image-studio": {
+    "features": {
+      "text-to-image": "/guides/image-studio/text-to-image.webp",
+      "image-to-image-reference-images": "/guides/image-studio/image-to-image-reference-images.webp",
+      "model-picker": "/guides/image-studio/model-picker.webp",
+      "advanced-panel": "/guides/image-studio/advanced-panel.webp",
+      "draw-sketch-a-reference": "/guides/image-studio/draw-sketch-a-reference.webp"
+    },
+    "overview": "/guides/image-studio/overview.webp"
+  },
+  "lead-finder": {
+    "features": {
+      "find-businesses": "/guides/lead-finder/find-businesses.webp",
+      "find-my-brand-button": "/guides/lead-finder/find-my-brand-button.webp",
+      "saved-leads": "/guides/lead-finder/saved-leads.webp"
+    },
+    "overview": "/guides/lead-finder/overview.webp"
+  },
+  "library": {
+    "features": {
+      "search-and-sort": "/guides/library/search-and-sort.webp",
+      "uploads-and-use-in-studio": "/guides/library/uploads-and-use-in-studio.webp"
+    },
+    "overview": "/guides/library/overview.webp"
+  },
+  "lip-sync-studio": {
+    "features": {
+      "portrait-image-mode": "/guides/lip-sync-studio/portrait-image-mode.webp",
+      "optional-prompt": "/guides/lip-sync-studio/optional-prompt.webp",
+      "result-actions": "/guides/lip-sync-studio/result-actions.webp"
+    },
+    "overview": "/guides/lip-sync-studio/overview.webp"
+  },
+  "motion-director": {
+    "features": {
+      "describe-your-motion-video-chat-composer": "/guides/motion-director/describe-your-motion-video-chat-composer.webp",
+      "templates-picker": "/guides/motion-director/templates-picker.webp",
+      "attach-image-video-audio": "/guides/motion-director/attach-image-video-audio.webp",
+      "use-my-brand": "/guides/motion-director/use-my-brand.webp",
+      "project-file-tools": "/guides/motion-director/project-file-tools.webp"
+    },
+    "overview": "/guides/motion-director/overview.webp"
+  },
+  "personalizer": {
+    "features": {
+      "canvas-size": "/guides/personalizer/canvas-size.webp",
+      "active-contact-and-preview": "/guides/personalizer/active-contact-and-preview.webp",
+      "export-html": "/guides/personalizer/export-html.webp",
+      "save-canvas-load-canvas": "/guides/personalizer/save-canvas-load-canvas.webp"
+    },
+    "overview": "/guides/personalizer/overview.webp"
+  },
+  "product-shot-studio": {
+    "features": {
+      "mode-toggle-product-shot-ad-video": "/guides/product-shot-studio/mode-toggle-product-shot-ad-video.webp",
+      "model-product-shot-product-photography": "/guides/product-shot-studio/model-product-shot-product-photography.webp",
+      "product-media-upload": "/guides/product-shot-studio/product-media-upload.webp",
+      "scene-preset": "/guides/product-shot-studio/scene-preset.webp",
+      "output-format": "/guides/product-shot-studio/output-format.webp",
+      "advanced-panel": "/guides/product-shot-studio/advanced-panel.webp"
+    },
+    "overview": "/guides/product-shot-studio/overview.webp"
+  },
+  "recorder": {
+    "features": {
+      "record": "/guides/recorder/record.webp",
+      "export": "/guides/recorder/export.webp"
+    },
+    "overview": "/guides/recorder/overview.webp"
+  },
+  "smart-video-academy": {
+    "features": {
+      "hub-all-tracks": "/guides/smart-video-academy/hub-all-tracks.webp",
+      "track-page": "/guides/smart-video-academy/track-page.webp",
+      "lesson-page-learn-tab": "/guides/smart-video-academy/lesson-page-learn-tab.webp",
+      "lesson-page-see-tab": "/guides/smart-video-academy/lesson-page-see-tab.webp",
+      "lesson-page-create-tab": "/guides/smart-video-academy/lesson-page-create-tab.webp",
+      "progress-tracking": "/guides/smart-video-academy/progress-tracking.webp",
+      "copy-link-share-a-lesson": "/guides/smart-video-academy/copy-link-share-a-lesson.webp",
+      "track-01-ai-video-ads-ugc-ai-video-ads-and-ugc-5-lessons-7-templates": "/guides/smart-video-academy/track-01-ai-video-ads-ugc-ai-video-ads-and-ugc-5-lessons-7-templates.webp",
+      "track-02-02-ai-filmmaking-ai-filmmaking-5-lessons-10-templates": "/guides/smart-video-academy/track-02-02-ai-filmmaking-ai-filmmaking-5-lessons-10-templates.webp",
+      "track-03-03-faceless-ai-channels-faceless-ai-channels-5-lessons-7-templates": "/guides/smart-video-academy/track-03-03-faceless-ai-channels-faceless-ai-channels-5-lessons-7-templates.webp",
+      "track-04-04-ai-content-factories-ai-content-factories-6-lessons-8-templates": "/guides/smart-video-academy/track-04-04-ai-content-factories-ai-content-factories-6-lessons-8-templates.webp",
+      "track-05-05-ai-avatars-and-influencers-ai-avatars-and-influencers-5-lessons-5-templates": "/guides/smart-video-academy/track-05-05-ai-avatars-and-influencers-ai-avatars-and-influencers-5-lessons-5-templates.webp",
+      "track-06-06-ai-audio-and-music-ai-audio-and-music-5-lessons-5-templates": "/guides/smart-video-academy/track-06-06-ai-audio-and-music-ai-audio-and-music-5-lessons-5-templates.webp",
+      "track-07-07-ai-product-photography-ai-product-photography-and-e-commerce-4-lessons-4-templates": "/guides/smart-video-academy/track-07-07-ai-product-photography-ai-product-photography-and-e-commerce-4-lessons-4-templates.webp",
+      "track-08-08-ai-fashion-and-virtual-tryon-ai-fashion-and-virtual-try-on-4-lessons-4-templates": "/guides/smart-video-academy/track-08-08-ai-fashion-and-virtual-tryon-ai-fashion-and-virtual-try-on-4-lessons-4-templates.webp",
+      "track-09-09-ai-real-estate-staging-ai-real-estate-virtual-staging-3-lessons-3-templates": "/guides/smart-video-academy/track-09-09-ai-real-estate-staging-ai-real-estate-virtual-staging-3-lessons-3-templates.webp",
+      "track-10-10-ai-headshots-and-portraits-ai-headshots-and-portraits-4-lessons-4-templates": "/guides/smart-video-academy/track-10-10-ai-headshots-and-portraits-ai-headshots-and-portraits-4-lessons-4-templates.webp",
+      "track-11-11-ai-print-on-demand-and-merch-ai-print-on-demand-and-merch-design-4-lessons-4-templates": "/guides/smart-video-academy/track-11-11-ai-print-on-demand-and-merch-ai-print-on-demand-and-merch-design-4-lessons-4-templates.webp",
+      "track-12-12-ai-stock-content-and-licensing-ai-stock-content-and-licensing-3-lessons-4-templates": "/guides/smart-video-academy/track-12-12-ai-stock-content-and-licensing-ai-stock-content-and-licensing-3-lessons-4-templates.webp",
+      "track-13-13-ai-tools-mastery-ai-tools-mastery-4-lessons-4-templates": "/guides/smart-video-academy/track-13-13-ai-tools-mastery-ai-tools-mastery-4-lessons-4-templates.webp",
+      "track-14-14-ai-freelancing-and-agency-business-ai-freelancing-and-agency-business-5-lessons-4-templates": "/guides/smart-video-academy/track-14-14-ai-freelancing-and-agency-business-ai-freelancing-and-agency-business-5-lessons-4-templates.webp",
+      "track-15-15-ai-agents-and-vibe-coding-ai-agents-and-vibe-coding-for-creators-4-lessons-4-templates": "/guides/smart-video-academy/track-15-15-ai-agents-and-vibe-coding-ai-agents-and-vibe-coding-for-creators-4-lessons-4-templates.webp"
+    },
+    "overview": "/guides/smart-video-academy/overview.webp"
+  },
+  "smart-video-viral": {
+    "features": {
+      "search": "/guides/smart-video-viral/search.webp",
+      "filters-and-sorting": "/guides/smart-video-viral/filters-and-sorting.webp",
+      "categories": "/guides/smart-video-viral/categories.webp",
+      "exclude-chinese-toggle": "/guides/smart-video-viral/exclude-chinese-toggle.webp",
+      "copy-prompt": "/guides/smart-video-viral/copy-prompt.webp",
+      "create-this-style": "/guides/smart-video-viral/create-this-style.webp",
+      "personalize-this-demo": "/guides/smart-video-viral/personalize-this-demo.webp",
+      "source-and-view-full-prompt": "/guides/smart-video-viral/source-and-view-full-prompt.webp",
+      "refresh-and-export": "/guides/smart-video-viral/refresh-and-export.webp"
+    },
+    "overview": "/guides/smart-video-viral/overview.webp"
+  },
+  "storyboard-studio": {
+    "features": {
+      "describe-and-generate-a-storyboard": "/guides/storyboard-studio/describe-and-generate-a-storyboard.webp",
+      "customize-panel": "/guides/storyboard-studio/customize-panel.webp",
+      "also-generate-frame-images": "/guides/storyboard-studio/also-generate-frame-images.webp"
+    },
+    "overview": "/guides/storyboard-studio/overview.webp"
+  },
+  "templates": {
+    "features": {
+      "template-categories-standard": "/guides/templates/template-categories-standard.webp",
+      "industry-niche-templates": "/guides/templates/industry-niche-templates.webp"
+    },
+    "overview": "/guides/templates/overview.webp"
+  },
+  "timeline-editor": {
+    "features": {
+      "project-manager": "/guides/timeline-editor/project-manager.webp",
+      "import-media-files": "/guides/timeline-editor/import-media-files.webp",
+      "export-tab": "/guides/timeline-editor/export-tab.webp"
+    },
+    "overview": "/guides/timeline-editor/overview.webp"
+  },
+  "upscale-suite": {
+    "features": {
+      "method-picker": "/guides/upscale-suite/method-picker.webp",
+      "upload-and-pexels": "/guides/upscale-suite/upload-and-pexels.webp",
+      "thumbnail-tools-menu-and-attachments": "/guides/upscale-suite/thumbnail-tools-menu-and-attachments.webp"
+    },
+    "overview": "/guides/upscale-suite/overview.webp"
+  },
+  "video-agent": {
+    "features": {
+      "describe-your-animation": "/guides/video-agent/describe-your-animation.webp",
+      "model-picker": "/guides/video-agent/model-picker.webp",
+      "attach-reference-images": "/guides/video-agent/attach-reference-images.webp"
+    },
+    "overview": "/guides/video-agent/overview.webp"
+  },
+  "video-outreach": {
+    "features": {
+      "record": "/guides/video-outreach/record.webp",
+      "generate-campaign": "/guides/video-outreach/generate-campaign.webp"
+    },
+    "overview": "/guides/video-outreach/overview.webp"
+  },
+  "video-render": {
+    "features": {
+      "presets": "/guides/video-render/presets.webp",
+      "output-settings": "/guides/video-render/output-settings.webp",
+      "export-video": "/guides/video-render/export-video.webp",
+      "queue-render": "/guides/video-render/queue-render.webp",
+      "download-frame": "/guides/video-render/download-frame.webp",
+      "trailer-cut-social-resize-remix-scene": "/guides/video-render/trailer-cut-social-resize-remix-scene.webp",
+      "publish-deliver": "/guides/video-render/publish-deliver.webp",
+      "ai-tiles": "/guides/video-render/ai-tiles.webp"
+    },
+    "overview": "/guides/video-render/overview.webp"
+  },
+  "video-studio": {
+    "features": {
+      "text-to-video": "/guides/video-studio/text-to-video.webp",
+      "animate-image-image-to-video": "/guides/video-studio/animate-image-image-to-video.webp",
+      "video-watermark-removal": "/guides/video-studio/video-watermark-removal.webp",
+      "advanced-native-audio-and-character-lock": "/guides/video-studio/advanced-native-audio-and-character-lock.webp",
+      "motion-and-style-panel": "/guides/video-studio/motion-and-style-panel.webp"
+    },
+    "overview": "/guides/video-studio/overview.webp"
+  },
+  "video-tools": {
+    "features": {
+      "ai-video-upscaler-ai-video-upscaler-pro-topaz-video-upscale-wan-3-0-upscale": "/guides/video-tools/ai-video-upscaler-ai-video-upscaler-pro-topaz-video-upscale-wan-3-0-upscale.webp",
+      "recast-tab": "/guides/video-tools/recast-tab.webp",
+      "motion-control-tab": "/guides/video-tools/motion-control-tab.webp"
+    },
+    "overview": "/guides/video-tools/overview.webp"
+  },
+  "workbench": {
+    "features": {
+      "add-your-generations": "/guides/workbench/add-your-generations.webp",
+      "library-media-motion-sound-themes": "/guides/workbench/library-media-motion-sound-themes.webp",
+      "properties-inspector": "/guides/workbench/properties-inspector.webp",
+      "edit-with-ai-chat": "/guides/workbench/edit-with-ai-chat.webp",
+      "upload-from-computer": "/guides/workbench/upload-from-computer.webp",
+      "export-video": "/guides/workbench/export-video.webp"
+    },
+    "overview": "/guides/workbench/overview.webp"
+  },
+  "zack-d-studio": {
+    "features": {
+      "approve-script": "/guides/zack-d-studio/approve-script.webp",
+      "templates": "/guides/zack-d-studio/templates.webp"
+    },
+    "overview": "/guides/zack-d-studio/overview.webp"
+  }
+}

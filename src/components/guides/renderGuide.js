@@ -154,7 +154,7 @@ function featureCard(g, f, i) {
     f.restrictions && `<div class="limit"><dt>Limits and rules</dt><dd>${esc(f.restrictions)}</dd></div>`,
   ].filter(Boolean).join('');
   return `<article class="sg-feature" id="feature-${esc(f.id)}">
-  <figure class="sg-shot" style="margin:0">${img(f.screenshot, `${f.name} in ${g.name}`)}<figcaption class="sg-cap">${esc(f.name)}${f.hasOwnScreenshot ? '' : ` · ${esc(g.name)}`}</figcaption></figure>
+  <figure class="sg-shot" style="margin:0"><a href="${esc(f.screenshot)}" target="_blank" rel="noopener" title="Open full-size screenshot">${img(f.screenshot, `${f.name} in ${g.name}`)}</a><figcaption class="sg-cap">${esc(f.name)}${f.hasOwnScreenshot ? '' : ` · ${esc(g.name)}`}</figcaption></figure>
   <div><div class="sg-num">FEATURE ${String(i + 1).padStart(2, '0')}</div><h3>${esc(f.name)}</h3>
   <p class="sg-def"><strong>What it is:</strong> ${esc(f.definition)}</p><dl class="sg-dl">${rows}</dl></div></article>`;
 }

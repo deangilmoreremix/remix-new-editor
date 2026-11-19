@@ -69,12 +69,18 @@ async function dismissOverlays(page) {
     break;
   }
   await page.keyboard.press('Escape').catch(() => {});
-  await page.evaluate(() => {
-    // The first-run "set up your API keys" modal (dev mode has a placeholder key).
-    for (const h of document.querySelectorAll('h2')) {
-      if (/set up your API keys/i.test(h.textContent)) h.closest('.fixed')?.remove();
-    }
-  }).catch(() => {});
+  // The first-run "set up your API keys" modal (dev mode has a placeholder key),
+  // also inside embedded studio iframes (Workbench, Video Agent).
+  for (const frame of page.frames()) {
+    await frame.evaluate(() => {
+      for (const h of document.querySelectorAll('h1,h2,h3,div,p')) {
+        if (h.children.length || !/set up your API keys/i.test(h.textContent)) continue;
+        let n = h;
+        while (n && n !== document.body && getComputedStyle(n).position !== 'fixed') n = n.parentElement;
+        if (n && n !== document.body) n.remove();
+      }
+    }).catch(() => {});
+  }
   // Hide the floating assistant button so it doesn't cover the studio.
   await page.addStyleTag({ content: '[data-ask-smartvideo],.ask-smartvideo-launcher,#ask-smartvideo-root{display:none!important}' }).catch(() => {});
 }
@@ -113,10 +119,19 @@ async function findControl(page, feature, target) {
     || matchControl(page, labelsFrom(`${feature.definition} ${feature.inputRequired}`), []);
 }
 
+// Search the page, then any embedded studio iframes (Workbench, Video Agent).
 async function matchControl(page, want, toks) {
   if (want && !want.length) return null;
   if (!want && !toks.length) return null;
-  const handle = await page.evaluateHandle(({ want, toks }) => {
+  for (const frame of page.frames()) {
+    const el = await matchInFrame(frame, want, toks).catch(() => null);
+    if (el) return el;
+  }
+  return null;
+}
+
+async function matchInFrame(frame, want, toks) {
+  const handle = await frame.evaluateHandle(({ want, toks }) => {
     const root = document.getElementById('content-area') || document.body;
     const els = root.querySelectorAll('button,[role=tab],[role=button],a,label,summary,select,textarea,input[placeholder],h2,h3,h4,[aria-haspopup]');
     let best = null; let bestScore = 0;
@@ -157,7 +172,7 @@ async function highlight(page, el, opened) {
   }, opened);
 }
 
-const clearHighlight = (page) => page.evaluate(() => document.getElementById('__guide_hl')?.remove()).catch(() => {});
+const clearHighlight = (page) => Promise.all(page.frames().map((f) => f.evaluate(() => document.getElementById('__guide_hl')?.remove()).catch(() => {})));
 
 for (const guide of GUIDES) {
   test(`guide screenshots: ${guide.slug}`, async ({ page }) => {
