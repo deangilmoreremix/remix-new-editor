@@ -23,7 +23,7 @@ import type {
 } from '@vidbee/transcription/web-contract'
 import { apiDataDir, trimEnv } from './api-paths'
 import { getDatabaseConnection } from './database'
-import { createResponse, aiSettingsFile, getOpenAiConfig, readStoredAiSettings } from './openai-responses'
+import { aiSettingsFile, createResponse, DEFAULT_BASE_URL, getOpenAiConfig, readStoredAiSettings } from './openai-responses'
 import { aiChannel, publishLive } from './live-events'
 import { getTranscriptDetail } from './transcripts-host'
 
@@ -46,6 +46,9 @@ const PROMPT_SKILL_IDS = [
 const settingsFile = aiSettingsFile
 const readStored = readStoredAiSettings
 const effective = getOpenAiConfig
+
+/** Compare base URLs ignoring a trailing slash and letter case. */
+const normalizeBase = (value: string): string => value.trim().replace(/\/+$/, '').toLowerCase()
 
 /** `VIDBEE_AI_LOCK_SETTINGS=1`: the key, model and base URL come from the server environment only. */
 const settingsLocked = (): boolean => trimEnv('VIDBEE_AI_LOCK_SETTINGS') === '1'
@@ -72,6 +75,7 @@ export const setAiSettings = (input: {
     throw new Error('AI settings are managed by the server and cannot be changed here.')
   }
   const stored = readStored()
+  const before = getOpenAiConfig()
   if (input.clearApiKey) {
     stored.apiKey = undefined
   } else if (input.apiKey?.trim()) {
@@ -81,6 +85,13 @@ export const setAiSettings = (input: {
     const value = input.baseUrl.trim()
     if (value && !/^https?:\/\//i.test(value)) {
       throw new Error('Base URL must start with http:// or https://')
+    }
+    // A key that is already held (saved here, or set by the server's environment) is only ever sent to the
+    // address it was set up for: moving to another address requires typing the key for it.
+    const nextBase = value || DEFAULT_BASE_URL
+    const holdsKey = Boolean(stored.apiKey) || Boolean(trimEnv('OPENAI_API_KEY'))
+    if (normalizeBase(nextBase) !== normalizeBase(before.baseUrl) && holdsKey && !input.apiKey?.trim()) {
+      throw new Error('To use a different base URL, enter the API key for it too. The saved key is never sent to a new address.')
     }
     stored.baseUrl = value || undefined
   }
@@ -667,11 +678,21 @@ export const testConnection = async (input: {
   model?: string
 }): Promise<WebAiConnectionTest> => {
   const saved = getOpenAiConfig()
-  const config = {
-    apiKey: input.apiKey?.trim() || saved.apiKey || '',
-    baseUrl: (input.baseUrl?.trim() || saved.baseUrl).replace(/\/+$/, ''),
-    model: input.model?.trim() || saved.model
+  // When the server owner locked the settings, only the server's own configuration is tested: nothing typed by the caller is used.
+  const locked = settingsLocked()
+  const typedKey = locked ? '' : input.apiKey?.trim() || ''
+  const baseUrl = ((locked ? '' : input.baseUrl?.trim()) || saved.baseUrl).replace(/\/+$/, '')
+  const model = (locked ? '' : input.model?.trim()) || saved.model
+  // The server's key (saved or from the environment) is only ever sent to the address it is configured for.
+  if (!typedKey && normalizeBase(baseUrl) !== normalizeBase(saved.baseUrl)) {
+    return {
+      ok: false,
+      model,
+      reply: null,
+      error: 'To test a different base URL, enter the API key for it. The saved key is never sent to a new address.'
+    }
   }
+  const config = { apiKey: typedKey || saved.apiKey || '', baseUrl, model }
   if (!config.apiKey) {
     return { ok: false, model: config.model, reply: null, error: 'Add an OpenAI API key first.' }
   }

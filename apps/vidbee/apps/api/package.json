@@ -10,7 +10,8 @@
     "migrate-history": "tsx scripts/migrate-history.ts",
     "before-start": "node scripts/ensure-node-sqlite.mjs && tsx scripts/migrate-history.ts && tsx src/index.ts",
     "typecheck": "tsc --noEmit",
-    "check": "ultracite check && pnpm run typecheck"
+    "check": "ultracite check && pnpm run typecheck",
+    "test": "node --import tsx --test tests/*.nodetest.mjs"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",

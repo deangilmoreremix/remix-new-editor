@@ -88,6 +88,11 @@ export const AiSettingsForm = ({
 			<label className="block space-y-1">
 				<span className="text-muted-foreground">Base URL</span>
 				<Input onChange={(event) => setBaseUrl(event.target.value)} value={baseUrl} />
+				<span className="text-muted-foreground text-xs">
+					{t("webTranscripts.ai.baseUrlHint", {
+						defaultValue: "Changing the base URL needs the API key typed again, so a saved key is never sent to a new address.",
+					})}
+				</span>
 			</label>
 			<div className="flex flex-wrap gap-2">
 				<Button disabled={testing} onClick={() => void runTest()} size="sm" variant="outline">

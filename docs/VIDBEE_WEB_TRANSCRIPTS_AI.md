@@ -70,7 +70,7 @@ Summaries, chat and translation use the OpenAI **Responses API** (`POST {baseUrl
 - with `OPENAI_API_KEY` in the server environment. Optional: `OPENAI_BASE_URL`, `VIDBEE_OPENAI_MODEL` (default `gpt-4.1-mini`).
 
 Set `VIDBEE_AI_LOCK_SETTINGS=1` to stop the browser from changing the key, model or base URL (recommended whenever the API is reachable by anyone but you:
-an open API could otherwise re-point the stored key at another server). The key is never returned to the browser. Transcript text is sent to the configured endpoint when you press Run.
+an open API could otherwise re-point the stored key at another server). The key is never returned to the browser, and a saved or environment key is only ever sent to the base URL it was configured for: saving or testing a different base URL requires typing the key for it, and with the lock on, `testConnection` ignores everything the caller sends. (`npm test` in `apps/api` covers this.) Transcript text is sent to the configured endpoint when you press Run.
 Transcripts longer than `VIDBEE_AI_MAX_TRANSCRIPT_CHARS` (default 400000 characters) are refused rather than truncated.
 
 ## Live streaming
