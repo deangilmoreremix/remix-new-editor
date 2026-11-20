@@ -681,10 +681,12 @@ export async function fetchUrlAsFile(url, filename) {
     const blob = new Blob(chunks);
     const name = filename || deriveFilenameFromUrl(url) || `url-import-${Date.now()}`;
     // The Blob above has no type of its own, so take the server's declared
-    // Content-Type. A generic octet-stream says nothing about the file, so it
-    // is treated as unknown (callers then fall back to the extension).
+    // Content-Type, but only when it names a media type. Anything else
+    // (octet-stream, text/plain, an HTML error page, ...) says nothing reliable
+    // about the file, so it stays untyped and callers fall back to the
+    // extension and magic bytes, exactly as before.
     const declared = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-    const mime = (declared && declared !== 'application/octet-stream' ? declared : '') || blob.type || '';
+    const mime = /^(image|video|audio)\/[a-z0-9.+-]+$/.test(declared) ? declared : '';
     return new File([blob], name, { type: mime });
   } catch (e) {
     clearTimeout(timeoutId);

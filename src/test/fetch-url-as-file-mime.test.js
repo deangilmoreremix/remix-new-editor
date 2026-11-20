@@ -41,6 +41,14 @@ describe('fetchUrlAsFile MIME type', () => {
     expect(file.type).toBe('');
   });
 
+  it.each(['text/plain', 'text/html; charset=utf-8', 'application/json', 'binary/octet-stream'])(
+    'ignores a non-media Content-Type (%s) so extension fallbacks still apply',
+    async (contentType) => {
+      const file = await fetchReturning({ 'content-type': contentType }, 'https://cdn.test/voice.mp3');
+      expect(file.type).toBe('');
+    },
+  );
+
   it('stays untyped when the server sends no Content-Type', async () => {
     const file = await fetchReturning({});
     expect(file.type).toBe('');
