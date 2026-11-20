@@ -20,7 +20,7 @@ import {
   updateYtDlp
 } from './engines'
 import { projectTaskForApi } from './projection'
-import { applyApiTranscriptionConcurrency, setApiAutoTranscribe } from './task-queue-host'
+import { applyApiTranscriptionConcurrency, setApiAutoTranscribe, setApiTranscriptionPrefs } from './task-queue-host'
 import { webSettingsStore } from './web-settings-store'
 import { fetchPlaylistInfo, fetchVideoInfo } from './yt-dlp-info'
 
@@ -690,6 +690,7 @@ export const rpcRouter = os.router({
       try {
         const settings = await webSettingsStore.set(input.settings)
         setApiAutoTranscribe(settings.autoTranscribeAfterDownload === true)
+        setApiTranscriptionPrefs({ asrTier: settings.asrTier, language: settings.language })
         applyApiTranscriptionConcurrency(settings.maxConcurrentTranscriptions)
         applyEngineDownloadSettings({
           downloadMirror: settings.downloadMirror,

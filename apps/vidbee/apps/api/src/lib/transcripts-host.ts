@@ -197,6 +197,7 @@ export const startTranscript = async (
     sourceFilePath: source,
     title: download.input.title,
     trigger: force ? 'force' : 'manual',
+    asrTier: settings.asrTier,
     language: settings.language
   })
   return getTranscriptDetail(downloadId)

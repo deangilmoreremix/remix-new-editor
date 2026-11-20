@@ -29,6 +29,7 @@ import {
 import {
   AutoTranscriptionCoordinator,
   clampMaxConcurrentTranscriptions,
+  DEFAULT_ASR_TIER,
   extractEmbeddedCaptionTracks,
   importCaptionsForDownload,
   ModelManager,
@@ -120,12 +121,22 @@ void applyApiTranscriptionConcurrency(1)
 export const taskQueueExecutor = downloadExecutor
 
 let autoEnabled = false
+// The model and interface language chosen in Settings, used for automatic transcription after a download.
+let autoAsrTier: string = DEFAULT_ASR_TIER
+let autoLanguage = 'en'
+
+export const setApiTranscriptionPrefs = (prefs: { asrTier?: string; language?: string }): void => {
+  autoAsrTier = prefs.asrTier || DEFAULT_ASR_TIER
+  autoLanguage = prefs.language || 'en'
+}
 
 const coordinator = new AutoTranscriptionCoordinator({
   queue: taskQueue,
   store: transcriptStore,
   isEnabled: () => autoEnabled,
   resolveSourceFile: (task) => task.output?.filePath ?? null,
+  resolveAsrTier: () => autoAsrTier,
+  resolveLanguage: () => autoLanguage,
   tryImportCaptions: async ({ downloadTaskId, sourceFilePath }) => {
     const loc = resolveFfmpegLocation()
     const binary = loc && fs.existsSync(path.join(loc, 'ffmpeg')) ? path.join(loc, 'ffmpeg') : loc
@@ -158,6 +169,7 @@ export const startTaskQueue = async (): Promise<void> => {
   try {
     const settings = await (await import('./web-settings-store')).webSettingsStore.get()
     autoEnabled = settings.autoTranscribeAfterDownload === true
+    setApiTranscriptionPrefs({ asrTier: settings.asrTier, language: settings.language })
     applyApiTranscriptionConcurrency(settings.maxConcurrentTranscriptions)
   } catch {
     autoEnabled = false
