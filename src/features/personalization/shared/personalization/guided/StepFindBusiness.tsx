@@ -331,7 +331,7 @@ export function StepFindBusiness({
               title={!website.trim() ? 'Enter your website first' : undefined}
               style={{ ...primaryButtonStyle, opacity: !website.trim() || busy ? 0.5 : 1 }}
             >
-              {busy && discoveryStatus === 'discovering' ? 'Finding…' : 'Find my brand'}
+              {busy && discoveryStatus === 'discovering' ? 'Finding…' : ctx.source?.sourceMetadata?.freeDiscovery === true ? 'Find my brand' : 'Find business assets'}
             </button>
           ) : (
             <button
