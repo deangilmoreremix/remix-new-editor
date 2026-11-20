@@ -88,10 +88,10 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   const ownerChanged = (mine) => {
     try { return typeof getCurrentUserId === 'function' && (getCurrentUserId() || '') !== mine.userId; } catch { return false; } // a throwing host callback never breaks the bell
   };
-  const currentOwner = () => { try { return getCurrentUserId() || ''; } catch { return ''; } };
+  const currentOwner = () => { try { return getCurrentUserId() || ''; } catch { return null; } }; // null = unknown (the host callback threw): never mistaken for an owner change
   // Removes the channel AND the previous owner's unread number, so a stale badge is never shown to someone else.
   // (guardedInsert reconnects for whoever is signed in now; the identity timer only watches a channel that still exists.)
-  const dropChannel = () => { ++refreshSeq; last = 0; lastReconnect = 0; count = 0; draw(); return stopRealtime(); };
+  const dropChannel = () => { ++refreshSeq; last = 0; lastReconnect = 0; lastReconnectFor = null; count = 0; draw(); return stopRealtime(); };
   async function guardedInsert(payload, mine) {
     if (!alive || rt !== mine) return;
     if (!isSignedIn() || ownerChanged(mine)) { dropChannel().then(() => ensureRealtime()); return; }               // signed out or another account: drop the channel now
@@ -138,9 +138,11 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
     ? setInterval(() => {
       const cur = rt;
       if (cur) { if (!isSignedIn() || ownerChanged(cur)) dropChannel().then(() => ensureRealtime()); }
-      else if (isSignedIn()) {                            // signed in but no channel (e.g. after a sign-out and a different sign-in): reconnect, but a failing setup is retried at most once per cooldown
+      else if (isSignedIn() && !rtBusy) {                 // signed in but no channel (e.g. after a sign-out and a different sign-in): reconnect, but a failing setup is retried at most once per cooldown
+        // Only an attempt that can actually start is recorded (while a setup is pending ensureRealtime() does nothing, and the next tick must still be free to try).
         const who = currentOwner();
-        if (Date.now() - lastReconnect >= reconnectCooldownMs || who !== lastReconnectFor) { lastReconnect = Date.now(); lastReconnectFor = who; ensureRealtime(); }
+        const ownerSwitched = who !== null && lastReconnectFor !== null && who !== lastReconnectFor; // both known and different
+        if (ownerSwitched || Date.now() - lastReconnect >= reconnectCooldownMs) { lastReconnect = Date.now(); lastReconnectFor = who; ensureRealtime(); }
       }
     }, identityCheckMs)
     : null;

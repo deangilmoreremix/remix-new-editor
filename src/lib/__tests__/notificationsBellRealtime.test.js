@@ -7,6 +7,7 @@ const client = (n) => ({ rpc: vi.fn(async () => ({ data: n, error: null })) });
 const live = (n) => { const s = { n }; return { s, rpc: vi.fn(async () => ({ data: s.n, error: null })) }; };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const until = async (fn, ms = 3000) => { const t = Date.now(); while (!fn()) { if (Date.now() - t > ms) throw new Error('timed out waiting for the condition'); await wait(5); } };
 
 function fakeRealtime({ status = 'SUBSCRIBED' } = {}) {
   const state = { handlers: [], filters: [], removed: [], token: 't1', userId: 'user_1' };
@@ -264,12 +265,34 @@ describe('notifications bell realtime: synchronous owner id', () => {
   it('a different owner signing in while there is no channel is not held back by the retry cooldown', async () => {
     const rt = fakeRealtime(); let cur = 'user_1'; rt.userId = null;     // setup fails for user_1: no channel
     const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 10, reconnectCooldownMs: 100000 });
-    await wait(80);                                   // attempts for user_1 fail; the cooldown is now running
+    await until(() => rt.getRealtime.mock.calls.length >= 2);           // the creation attempt and one timer attempt have failed: the cooldown is running
+    await tick();
     const before = rt.filters.length;
-    cur = 'user_2'; rt.userId = 'user_2';             // another account signs in, the channel can now be opened
-    await wait(80);
-    expect(rt.filters.length).toBeGreaterThan(before);
+    cur = 'user_2'; rt.userId = 'user_2';                                // another account signs in, the channel can now be opened
+    await until(() => rt.filters.length > before);
     expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
+    bell.destroy();
+  });
+  it('a getCurrentUserId that throws now and then never defeats the retry cooldown', async () => {
+    const getRealtime = vi.fn(async () => null);                          // setup keeps failing
+    let n = 0; const flaky = () => { if (n++ % 2) throw new Error('clerk not ready'); return 'user_1'; };
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime, getCurrentUserId: flaky, identityCheckMs: 10, reconnectCooldownMs: 150 });
+    await wait(450);                                                      // about 45 ticks
+    expect(getRealtime.mock.calls.length).toBeLessThan(12);               // bounded by the cooldown, not one call per tick
+    expect(getRealtime.mock.calls.length).toBeGreaterThan(1);
+    bell.destroy();
+  });
+  it('an owner change while an earlier setup is still pending is retried on the next free tick, not after the cooldown', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1'; rt.userId = null;
+    let release; const gate = new Promise((r) => { release = r; }); let calls = 0;
+    const getRealtime = vi.fn(async () => { if (calls++ === 0) { await gate; return null; } return rt.getRealtime(); });   // the first lookup hangs, then finds nothing
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime, getCurrentUserId: () => cur, identityCheckMs: 10, reconnectCooldownMs: 100000 });
+    await wait(40);                                                       // timer ticks while the setup is pending
+    cur = 'user_2'; rt.userId = 'user_2';
+    await wait(40);                                                       // still pending: nothing may be recorded as attempted
+    release();
+    await until(() => rt.filters.length > 0, 600);                       // well before the 1.5 s startup re-check could rescue it
+    expect(rt.filters[0].filter).toBe('clerk_user_id=eq.user_2');
     bell.destroy();
   });
   it('the badge is also cleared when the owner changes during the asynchronous lookup', async () => {
