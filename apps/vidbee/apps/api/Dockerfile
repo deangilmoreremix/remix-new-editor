@@ -47,14 +47,19 @@ ENV VIDBEE_DOWNLOAD_DIR=/data/downloads
 ENV VIDBEE_DATA_DIR=/data/vidbee
 ENV VIDBEE_MIGRATIONS_DIR=/app/resources/drizzle
 ENV VIDBEE_PERSIST_QUEUE=1
+# The AI prompts (overview, bullet points, ...) are read from these SKILL.md files at runtime.
+ENV VIDBEE_SKILLS_DIR=/app/skills
 
 RUN apk add --no-cache yt-dlp ffmpeg
+# Fonts let ffmpeg's subtitles filter draw burned-in subtitles (Video with subtitles export).
+RUN apk add --no-cache fontconfig font-dejavu || apk add --no-cache fontconfig ttf-dejavu
 
 WORKDIR /app
 
 COPY --from=builder --chown=node:node /prod/api/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/apps/api/dist ./dist
 COPY --chown=node:node apps/desktop/resources/drizzle ./resources/drizzle
+COPY --chown=node:node skills ./skills
 
 RUN mkdir -p /data/downloads /data/vidbee && chown -R node:node /data/downloads /data/vidbee
 
