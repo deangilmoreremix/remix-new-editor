@@ -272,7 +272,9 @@ export function exportRecords(rows: LeadRow[], forms: LeadForm[], { escape = tru
     if (w) { src['Watched %'] = watchPercent(w).replace('%', ''); src.Interest = watchTag(w); }
     if (r.status !== undefined) { src.Status = statusLabel(r.status); if (r.notes) src.Notes = safe(r.notes); if (r.tags?.length) src.Tags = safe(r.tags.join(', ')); }
     const { score, label } = scoreLead(r);
-    const rec: ExportRecord = { Submitted: r.createdAt, Form: name(r), ...r.data };
+    const rec: ExportRecord = {};
+    rec[column('Submitted')] = r.createdAt; rec[column('Form')] = name(r);   // generated like every other computed column; the answers are added next and keep their own names
+    Object.assign(rec, r.data);
     Object.entries(src).forEach(([k, v]) => { rec[column(k)] = v; });
     rec[column('Lead Score')] = score; rec[column('Lead Rating')] = label;
     return rec;

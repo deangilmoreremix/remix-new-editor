@@ -112,6 +112,19 @@ describe('export records', () => {
       expect(b['Lead Score']).toBe('mine');
       expect(a['Lead Rating']).toBe(scoreLead(without).label); // no answer is called "Lead Rating": its name is unchanged for everyone
     }
+    {
+      // answers called "Submitted" / "Form" in only one row: the generated timestamp and form name use the same columns in every row
+      const mine = row('f', 'lead-form', { EMAIL: 'd@acme.io', Form: 'my form answer', Submitted: 'my date answer' });
+      const plain = row('g', 'lead-form', { EMAIL: 'e@acme.io' });
+      const [p, m] = exportRecords([plain, mine], [{ key: 'lead-form:c1', label: 'Contact form' } as never]);
+      expect(m.Form).toBe('my form answer');
+      expect(m.Submitted).toBe('my date answer');
+      expect(m['Form (computed)']).toBe(p['Form (computed)']);          // the generated form name is in the same column for both rows
+      expect(m['Submitted (computed)']).toBe(mine.createdAt);
+      expect(p.Form).toBeUndefined();                                    // the "Form" column holds answers only
+      expect(p.Submitted).toBeUndefined();
+      expect(p['Submitted (computed)']).toBe(plain.createdAt);
+    }
   });
   it('puts the score, status, notes and tags in the CSV', () => {
     const header = rowsToCsv(rows, []).split('\r\n')[0];
