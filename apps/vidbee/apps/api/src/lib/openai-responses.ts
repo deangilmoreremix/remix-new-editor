@@ -32,13 +32,15 @@ export const getOpenAiConfig = () => {
   const stored = readStoredAiSettings()
   const envKey = trimEnv('OPENAI_API_KEY')
   const storedKey = stored.apiKey?.trim() || undefined
+  const keyFromEnv = !storedKey && Boolean(envKey)
+  const envBase = trimEnv('OPENAI_BASE_URL') || DEFAULT_BASE_URL
+  // A key supplied by the server's environment is bound to the environment's endpoint: a base URL saved from the UI
+  // (e.g. together with a throwaway key that was later cleared) must never receive it.
+  const baseUrl = keyFromEnv ? envBase : stored.baseUrl?.trim() || envBase
   return {
     apiKey: storedKey ?? envKey,
-    keyFromEnv: !storedKey && Boolean(envKey),
-    baseUrl: (stored.baseUrl?.trim() || trimEnv('OPENAI_BASE_URL') || DEFAULT_BASE_URL).replace(
-      /\/+$/,
-      ''
-    ),
+    keyFromEnv,
+    baseUrl: baseUrl.replace(/\/+$/, ''),
     model: stored.model?.trim() || trimEnv('VIDBEE_OPENAI_MODEL') || DEFAULT_MODEL
   }
 }

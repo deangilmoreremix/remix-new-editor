@@ -8,6 +8,7 @@ import http from 'node:http'
 import { createReadStream, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { Readable } from 'node:stream'
 import { __invoke, __protocolHandlers, exportsDir, hub, ipcMain } from 'electron'
 import log from 'electron-log/main'
 import { realpathSync } from 'node:fs'
@@ -142,11 +143,14 @@ const serveProtocol = async (req: http.IncomingMessage, res: http.ServerResponse
       if (!filePath || !existsSync(filePath)) { res.writeHead(404); return void res.end('Not found') }
       return serveFile(req, res, realpathSync(filePath))
     }
-    const response = (await entry.fn(new Request(target, { method: 'GET' }))) as Response
+    // Forward Range so seeking in a video reads only the bytes asked for, and stream the body instead of buffering it.
+    const range = typeof req.headers.range === 'string' ? req.headers.range : undefined
+    const response = (await entry.fn(new Request(target, { method: 'GET', headers: range ? { range } : {} }))) as Response
     const headers: Record<string, string> = {}
     response.headers.forEach((value, key) => { headers[key] = value })
     res.writeHead(response.status, headers)
-    res.end(Buffer.from(await response.arrayBuffer()))
+    if (!response.body || req.method === 'HEAD') return void res.end()
+    Readable.fromWeb(response.body as never).on('error', () => res.destroy()).pipe(res)
   } catch (error) {
     log.error('protocol request failed', target, error)
     res.writeHead(500); res.end('Protocol error')
