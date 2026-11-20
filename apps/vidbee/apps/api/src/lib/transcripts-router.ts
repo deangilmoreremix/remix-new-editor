@@ -8,6 +8,7 @@ import {
   exportTranscript,
   getTranscriptDetail,
   getTranscriptStatusMap,
+  importTranscriptCues,
   retryTranscript,
   startTranscript
 } from './transcripts-host'
@@ -41,6 +42,13 @@ export const transcriptsRouter = os.router({
       return await retryTranscript(input.downloadId)
     } catch (error) {
       return fail(error, 'Failed to retry transcription.')
+    }
+  }),
+  importCues: os.importCues.handler(async ({ input }) => {
+    try {
+      return importTranscriptCues(input)
+    } catch (error) {
+      return fail(error, 'Failed to import the transcript.')
     }
   }),
   export: os.export.handler(async ({ input }) => {

@@ -21,6 +21,25 @@ is unchanged and still has the full upstream feature set.
    **Structured Outputs** (`text.format` = strict `json_schema`) in batches of 40 cues; every cue index must come back exactly once
    (one automatic retry), so timestamps never shift.
 
+6. **Player**: when the download's file is present, a video/audio player sits above the tabs. It has caption tracks (the transcript and every finished
+   translation, via WebVTT), a Web Audio waveform you can click to seek, "Follow playback" highlighting, and clicking a line, chapter or quote seeks and plays.
+   `/files` supports byte ranges so seeking does not download the whole file.
+7. **Video with subtitles** (Transcript tab): exports the downloaded video with the transcript or a translation as **soft** (selectable track, no re-encode) or
+   **burned-in** subtitles using the server's `ffmpeg` (burning needs `libass`). One export runs at a time. Chromium browsers stream the result straight to a file
+   you choose (File System Access API); others download a Blob.
+8. **Transcribe in your browser** ("From a file" in the sidebar, or on a download that has no transcript): Whisper via Transformers.js, no upload, no speaker names.
+   Models: Tiny/Base (English or multilingual) and Small. The model downloads once from the Hugging Face Hub and is cached by the browser. A finished result is kept in
+   IndexedDB until the server has saved it, so a failed save can be retried (also after a reload).
+9. **Tools** (sidebar): in-browser trim, convert, extract audio, resize/compress, and crop & rotate (Mediabunny + WebCodecs, react-easy-crop). Nothing is uploaded.
+   Which outputs work depends on the browser (e.g. some Chromium builds cannot encode AAC/MP3; the page says so and keeps copyable tracks).
+10. **Share images**: "Save as image" on a summary or chapters list renders it to a PNG in the browser (html-to-image).
+11. **Notifications**: after you press "Notify me", a notification appears when a transcription, summary or translation finishes while the tab is in the background.
+
+## Licences and choices
+Mediabunny is MPL-2.0, Transformers.js Apache-2.0, react-easy-crop and html-to-image MIT. **ffmpeg.wasm is not bundled**: the standard `@ffmpeg/core` build is GPL-2.0-or-later,
+so features that need ffmpeg run on the server instead. Whisper.cpp WASM is not used; Transformers.js is the one in-browser recognizer. The production build bundles the ONNX runtime
+WASM (the `dist/client` folder is about 30 MB); in development it is loaded from jsDelivr.
+
 ## OpenAI setup
 Summaries, chat and translation use the OpenAI **Responses API** (`POST {baseUrl}/responses`, streamed). Set the key either
 - in the AI summary tab → *OpenAI settings* (stored on the server in `ai-settings.json` in the data directory, mode 600), or
@@ -35,14 +54,18 @@ Summary and chat text reach the browser as server-sent events from `GET /stream?
 `?channel=chat&downloadId=` or `?channel=translate&downloadId=` (a `snapshot`, then `delta` text chunks and `state` updates). If the stream cannot connect, the page falls back to polling.
 
 ## API
-`/rpc/transcripts/*`, `/rpc/ai/*` (settings, skills, run, get, list, cancel), `/rpc/chat/*` (get, send, cancel, reset) and `/rpc/translate/*` (list, start, cancel, export).
+`/rpc/transcripts/*`, `/rpc/ai/*` (settings, skills, run, get, list, cancel), `/rpc/chat/*` (get, send, cancel, reset) and `/rpc/translate/*` (list, start, cancel, export), `GET /stream`, `GET /export/video?downloadId=&mode=soft|burn&language=` and `GET /files?path=&inline=1` (range requests).
+`/rpc/transcripts/importCues` stores a browser-made transcript.
 Contracts: `apps/vidbee/packages/transcription/src/web-contract.ts`.
 
 ## Not included (compared with the desktop UI)
-Speaker re-labelling, switching caption languages, editing segments, ASR model management, playback, AI Chat,
+Speaker names for browser-made transcripts, speaker re-labelling, switching caption languages, editing segments, ASR model management, playback, AI Chat,
 the desktop agent's state-changing tools (download queue, settings, clips, frames, dubbing, notes), the article-rewrite skill, and other AI providers.
 
 ## Tested
 Against seeded transcripts and a **mock** OpenAI server (streaming, errors, key handling, a function-call round trip, strict structured outputs including the retry path). Also exercised with a real `yt-dlp` download of a generated video served over local HTTP: automatic transcription (fake recognizer), Transcribe, force re-transcribe + Cancel, Retry, and the not-found error.
+Browser-side features were checked in headless Chromium: the tools with generated media (output durations and sizes verified), real Whisper Tiny on an 11-second speech clip
+(text matched the known words; about 4 s model download and 33 s recognition on 4 CPU cores with single-threaded WASM, so slower than real time), the player, notification calls (stubbed `Notification`), the File System
+Access save path (stubbed picker) and the Blob fallback, IndexedDB retry across a reload, and the production web server proxying `/stream`, `/export` and range requests.
 Not tested: the real OpenAI API (so exact model behaviour, the reasoning-item replay rules for reasoning models, and rate limits are unverified),
-real speech recognition (the fake recognizer was used), and the sign-in gate in front of the web app. The web edition's API has no login of its own (as upstream): keep it on localhost or behind a gate.
+server-side speech recognition with real models (the fake recognizer was used), WebGPU, a real (non-stubbed) notification or file-picker dialog, other browsers (Firefox, Safari), and the sign-in gate in front of the web app. The web edition's API has no login of its own (as upstream): keep it on localhost or behind a gate.

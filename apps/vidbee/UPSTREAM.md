@@ -32,6 +32,8 @@ So the screens, features, downloads, transcripts with speaker labels, AI prompts
 
 - `packages/downloader-core/src/types.ts`: `DownloadRuntimeSettings` gains the optional `downloadWithoutChannelSubfolders` and `downloadMirror` fields that
   `DownloadRuntimeSettingsSchema` already defines (upstream's web client did not type-check without them).
+- `apps/web/server.mjs`: `/export` and `/stream` are added to the paths proxied to the API (needed by video export and live AI streaming).
+- `pnpm-workspace.yaml`: `onnxruntime-node: false` (the Node binding is not used; browser Whisper uses onnxruntime-web).
 
 ## Added for the web edition (not upstream)
 Transcripts, AI summaries, chat, translation and `GET /stream` in `apps/api` and `apps/web` (see `docs/VIDBEE_WEB_TRANSCRIPTS_AI.md`),

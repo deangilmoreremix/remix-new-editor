@@ -6,6 +6,7 @@
  * and starts, cancels and retries work through the shared `enqueueTranscription`.
  * Speaker re-labelling, model-tier management and segment editing are not exposed here.
  */
+import { randomUUID } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Task } from '@vidbee/task-queue'
@@ -23,8 +24,23 @@ import type {
   WebTranscriptState,
   WebTranscriptStatus
 } from '@vidbee/transcription/web-contract'
+import { getDatabaseConnection } from './database'
 import { taskQueue, transcriptStore } from './task-queue-host'
 import { webSettingsStore } from './web-settings-store'
+
+const { sqlite: titlesDb } = getDatabaseConnection()
+titlesDb.exec(`
+CREATE TABLE IF NOT EXISTS web_titles (
+  download_id TEXT PRIMARY KEY,
+  title       TEXT NOT NULL
+);`)
+
+const storedTitle = (downloadId: string): string | null => {
+  const row = titlesDb.prepare('SELECT title FROM web_titles WHERE download_id = ?').get(downloadId) as
+    | { title: string }
+    | undefined
+  return row?.title ?? null
+}
 
 const fileOk = (p: string | null | undefined): p is string =>
   Boolean(p && fs.existsSync(p) && fs.statSync(p).size > 0)
@@ -85,6 +101,7 @@ const buildStatus = (downloadId: string): WebTranscriptStatus & { record: Transc
   const sourceFilePath = download ? resolveSourceFile(download) : (record?.sourceFilePath ?? null)
   const title =
     download?.input.title?.trim() ||
+    storedTitle(downloadId) ||
     (sourceFilePath ? path.basename(sourceFilePath) : null) ||
     null
   const partial = active ? transcriptionPartials.getByTask(active.id) : null
@@ -248,4 +265,67 @@ export const exportTranscript = (
       .join('\n')}\n`
   }
   return { filename: `${base}.${format}`, mimeType, content }
+}
+
+const MAX_IMPORT_CUES = 8000
+const MAX_CUE_CHARS = 2000
+
+/** Store a transcript made in the browser. */
+export const importTranscriptCues = (input: {
+  downloadId?: string
+  title?: string
+  language?: string | null
+  model: string
+  cues: Array<{ startMs: number; endMs: number; text: string }>
+}): WebTranscriptStatus => {
+  if (!Array.isArray(input.cues) || input.cues.length > MAX_IMPORT_CUES) {
+    throw new Error(`A transcript can have at most ${MAX_IMPORT_CUES} lines.`)
+  }
+  const segments = input.cues
+    .map((cue) => ({
+      startMs: Math.max(0, Math.round(Number(cue.startMs))),
+      endMs: Math.max(0, Math.round(Number(cue.endMs))),
+      text: String(cue.text ?? '').trim().slice(0, MAX_CUE_CHARS)
+    }))
+    .filter((cue) => cue.text.length > 0 && Number.isFinite(cue.startMs) && Number.isFinite(cue.endMs))
+    .sort((a, b) => a.startMs - b.startMs)
+    .map((cue) => ({
+      speakerKey: null,
+      startMs: cue.startMs,
+      endMs: Math.max(cue.endMs, cue.startMs + 1),
+      text: cue.text,
+      confidence: null
+    }))
+  let downloadId = input.downloadId?.trim()
+  let sourceFilePath: string | null = null
+  if (downloadId) {
+    const download = taskQueue.get(downloadId)
+    if (!download) {
+      throw new Error(`download not found: ${downloadId}`)
+    }
+    sourceFilePath = resolveSourceFile(download)
+  } else {
+    downloadId = `local-${randomUUID()}`
+  }
+  const title = input.title?.trim().slice(0, 200)
+  if (title && !input.downloadId) {
+    titlesDb
+      .prepare('INSERT OR REPLACE INTO web_titles (download_id, title) VALUES (?, ?)')
+      .run(downloadId, title)
+  }
+  transcriptStore.commit({
+    downloadTaskId: downloadId,
+    transcriptionTaskId: `import-${randomUUID()}`,
+    sourceFilePath,
+    result: {
+      resultKind: segments.length > 0 ? 'transcript' : 'no-speech',
+      language: input.language?.trim().slice(0, 20) || null,
+      modelVersion: `browser:${input.model.slice(0, 100)}`,
+      asrTier: null,
+      sourceKind: 'asr',
+      speakers: [],
+      segments
+    }
+  })
+  return getTranscriptStatus(downloadId)
 }

@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { aiClient } from "../../lib/orpc-client";
 import { notify } from "../../lib/notify";
+import { saveNodeAsPng } from "../../lib/share-image";
 import { useLiveStream } from "../../lib/use-live-stream";
 
 const messageOf = (error: unknown): string =>
@@ -238,6 +239,7 @@ export const AiSummaryPanel = ({
 	const [runs, setRuns] = useState<Record<string, WebAiRun>>({});
 	const [skillId, setSkillId] = useState("overview");
 	const [showSettings, setShowSettings] = useState(false);
+	const resultRef = useRef<HTMLDivElement>(null);
 
 	const refreshRuns = useCallback(async () => {
 		try {
@@ -408,6 +410,21 @@ export const AiSummaryPanel = ({
 					)}
 				</div>
 				{current?.error && <p className="text-destructive text-sm">{current.error}</p>}
+				{current?.status === "completed" && current.text && (
+					<Button
+						onClick={() =>
+							resultRef.current &&
+							void saveNodeAsPng(resultRef.current, `${prettySkill({ id: skillId, name: skillId, description: "" }).replace(/\s+/g, "-").toLowerCase()}.png`).catch(
+								(cause) => toast.error(messageOf(cause)),
+							)
+						}
+						size="sm"
+						variant="outline"
+					>
+						{t("webTranscripts.ai.saveImage", { defaultValue: "Save as image" })}
+					</Button>
+				)}
+				<div className="max-w-2xl bg-background p-3" ref={resultRef}>
 				{skillId === "chapters"
 					? current?.status === "completed" &&
 						(() => {
@@ -415,6 +432,7 @@ export const AiSummaryPanel = ({
 							return data ? <ChaptersView data={data} onJump={onJump} /> : null;
 						})()
 					: current?.text && <SimpleMarkdown text={current.text} />}
+				</div>
 				{busy && (skillId === "chapters" || !current?.text) && (
 					<p className="text-muted-foreground text-sm">
 						{t("webTranscripts.ai.working", { defaultValue: "Waiting for the model…" })}

@@ -8,6 +8,7 @@ allowBuilds:
   electron: true
   electron-winstaller: true
   esbuild: true
+  onnxruntime-node: false
   protobufjs: true
   sharp: true
   spawn-sync: true

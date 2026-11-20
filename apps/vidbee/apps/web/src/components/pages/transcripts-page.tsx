@@ -17,6 +17,7 @@ import {
 import { transcriptsClient } from "../../lib/orpc-client";
 import { AppShell } from "../layout/app-shell";
 import { AiSummaryPanel } from "./ai-summary-panel";
+import { LocalTranscribePanel } from "./local-transcribe-panel";
 import { MediaPlayer, type MediaPlayerHandle } from "./media-player";
 import { VideoExport } from "./video-export";
 import { ChatPanel } from "./chat-panel";
@@ -67,6 +68,7 @@ export const TranscriptsPage = () => {
 	const [jumpMs, setJumpMs] = useState<number | null>(null);
 	const playerRef = useRef<MediaPlayerHandle>(null);
 	const [showPlayer, setShowPlayer] = useState(true);
+	const [localOpen, setLocalOpen] = useState(false);
 	const [playheadMs, setPlayheadMs] = useState(0);
 	const [playing, setPlaying] = useState(false);
 	const [followPlayback, setFollowPlayback] = useState(true);
@@ -244,8 +246,18 @@ export const TranscriptsPage = () => {
 		<AppShell page="transcripts">
 			<div className="flex h-full min-h-0">
 				<aside className="w-72 shrink-0 overflow-y-auto border-r">
-					<div className="p-3 font-medium text-sm">
+					<div className="flex items-center justify-between p-3 font-medium text-sm">
 						{t("menu.transcripts")}
+						<Button
+							onClick={() => {
+								setSelectedId(null);
+								setLocalOpen(true);
+							}}
+							size="sm"
+							variant="outline"
+						>
+							{t("webTranscripts.local.open", { defaultValue: "From a file" })}
+						</Button>
 					</div>
 					{loaded && items.length === 0 && (
 						<p className="px-3 text-muted-foreground text-sm">
@@ -262,7 +274,10 @@ export const TranscriptsPage = () => {
 									className={`w-full px-3 py-2 text-left hover:bg-muted ${
 										item.downloadId === selectedId ? "bg-muted" : ""
 									}`}
-									onClick={() => setSelectedId(item.downloadId)}
+									onClick={() => {
+										setLocalOpen(false);
+										setSelectedId(item.downloadId);
+									}}
 									type="button"
 								>
 									<div className="truncate text-sm">
@@ -283,7 +298,17 @@ export const TranscriptsPage = () => {
 				</aside>
 
 				<section className="flex min-w-0 flex-1 flex-col">
-					{detail ? (
+					{localOpen && !detail ? (
+						<div className="p-4">
+							<LocalTranscribePanel
+								onImported={(status) => {
+									setLocalOpen(false);
+									void refreshList();
+									setSelectedId(status.downloadId);
+								}}
+							/>
+						</div>
+					) : detail ? (
 						<>
 							<header className="flex flex-wrap items-center gap-2 border-b p-3">
 								<h2 className="mr-auto min-w-0 truncate font-medium">
@@ -501,6 +526,16 @@ export const TranscriptsPage = () => {
 										</div>
 									);
 								})}
+								{!detail.record && detail.sourceFilePath && !ACTIVE_STATES.has(detail.state) && (
+									<LocalTranscribePanel
+										downloadId={detail.downloadId}
+										filePath={detail.sourceFilePath}
+										onImported={() => {
+											void refreshDetail(detail.downloadId);
+											void refreshList();
+										}}
+									/>
+								)}
 								{!detail.record && !detail.error && (
 									<p className="text-muted-foreground text-sm">
 										{ACTIVE_STATES.has(detail.state)

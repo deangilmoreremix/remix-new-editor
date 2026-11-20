@@ -43,6 +43,21 @@ export const transcriptsContract = {
     .output(type<WebTranscriptDetail>()),
   cancel: oc.input(type<{ downloadId: string }>()).output(type<WebTranscriptDetail>()),
   retry: oc.input(type<{ downloadId: string }>()).output(type<WebTranscriptDetail>()),
+  /**
+   * Store a transcript produced in the browser (local Whisper). With `downloadId` it is added to
+   * that download; without one a new entry is created for the file.
+   */
+  importCues: oc
+    .input(
+      type<{
+        downloadId?: string
+        title?: string
+        language?: string | null
+        model: string
+        cues: Array<{ startMs: number; endMs: number; text: string }>
+      }>()
+    )
+    .output(type<WebTranscriptStatus>()),
   export: oc
     .input(type<{ downloadId: string; format: WebTranscriptExportFormat }>())
     .output(type<{ filename: string; mimeType: string; content: string }>())
