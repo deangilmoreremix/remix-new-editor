@@ -13,6 +13,7 @@ import log from 'electron-log/main'
 import { realpathSync } from 'node:fs'
 import { settingsManager } from '../src/main/settings'
 import { createTokenCheck } from './access-token.mjs'
+import { resolveExportFile } from './export-path.mjs'
 import { isAllowedMedia, mediaRoots } from './media-access.mjs'
 // Upstream's real main process: registers every IPC service, wires download/kernel/transcript events, boots the task queue.
 import '../src/main/index'
@@ -74,7 +75,7 @@ const serveFile = (req: http.IncomingMessage, res: http.ServerResponse, real: st
 const dataRoot = path.resolve(process.env.VIDBEE_DATA_DIR || path.join(process.env.HOME ?? '.', '.vidbee-web'))
 const uploadsDir = path.join(dataRoot, 'uploads')
 const maxUploadBytes = Number(process.env.VIDBEE_MAX_UPLOAD_MB || 4096) * 1024 * 1024
-const safeName = (name: string): string => path.basename(name).replace(/[^\w.\- ()\[\]]+/g, '_').slice(0, 180) || 'file'
+const safeName = (name: string): string => path.basename(name).replace(/[^\p{L}\p{N}_.\- ()\[\]]+/gu, '_').slice(0, 180) || 'file'
 
 /** POST /upload?name=… (raw body) → saves under <data>/uploads/<id>/ and returns the server path (used for dropped / picked files). */
 const handleUpload = (req: http.IncomingMessage, res: http.ServerResponse, name: string): void => {
@@ -107,9 +108,8 @@ const handleList = (res: http.ServerResponse, rawPath: string): void => {
 
 /** GET /exports/<id>/<name> → a file the main process "saved"; delivered to the browser as a download. */
 const handleExport = (req: http.IncomingMessage, res: http.ServerResponse, id: string, name: string): void => {
-  if (!/^[0-9a-f-]{36}$/.test(id)) { res.writeHead(404); return void res.end('Not found') }
-  const file = path.join(exportsDir, id, safeName(decodeURIComponent(name)))
-  if (!existsSync(file) || !statSync(file).isFile()) { res.writeHead(404); return void res.end('Not found') }
+  const file = resolveExportFile(exportsDir, id, name)
+  if (!file) { res.writeHead(404); return void res.end('Not found') }
   serveFile(req, res, file, `attachment; filename*=UTF-8''${encodeURIComponent(path.basename(file))}`)
 }
 

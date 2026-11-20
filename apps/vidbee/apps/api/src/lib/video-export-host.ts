@@ -12,10 +12,11 @@ import path from 'node:path'
 import { exportTranscript, getTranscriptDetail } from './transcripts-host'
 import { exportTranslation, listTranslations } from './translate-host'
 import { resolveFfmpegLocation } from './engines'
+import { createExclusive } from './exclusive'
 import { resolveReadableMediaFile } from './managed-files'
 
 const TIMEOUT_MS = 15 * 60 * 1000
-let busy = false
+const exportLock = createExclusive()
 
 export class ExportBusyError extends Error {}
 
@@ -69,12 +70,16 @@ const run = (binary: string, args: string[], cwd: string): Promise<void> =>
     })
   })
 
-export const exportVideoWithSubtitles = async (
-  request: VideoExportRequest
-): Promise<VideoExportResult> => {
-  if (busy) {
-    throw new ExportBusyError('Another video export is running. Try again in a moment.')
-  }
+/** One export at a time: burning is CPU-heavy. The lock covers validation as well as ffmpeg. */
+export const exportVideoWithSubtitles = (request: VideoExportRequest): Promise<VideoExportResult> =>
+  exportLock.run(
+    () => runExport(request),
+    () => {
+      throw new ExportBusyError('Another video export is running. Try again in a moment.')
+    }
+  )
+
+const runExport = async (request: VideoExportRequest): Promise<VideoExportResult> => {
   const detail = getTranscriptDetail(request.downloadId)
   if (!detail.record) {
     throw new Error('No transcript yet. Transcribe this download first.')
@@ -91,7 +96,6 @@ export const exportVideoWithSubtitles = async (
     ? exportTranslation(request.downloadId, language, 'srt')
     : exportTranscript(request.downloadId, 'srt')
 
-  busy = true
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vidbee-export-'))
   const cleanup = (): void => {
     fs.rmSync(dir, { recursive: true, force: true })
@@ -131,7 +135,5 @@ export const exportVideoWithSubtitles = async (
   } catch (error) {
     cleanup()
     throw error
-  } finally {
-    busy = false
   }
 }
