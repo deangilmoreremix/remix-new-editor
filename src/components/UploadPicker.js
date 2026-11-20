@@ -1020,7 +1020,7 @@ export function createUploadPicker({
 
         const label = document.createElement('div');
         label.className = 'text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5';
-        label.textContent = `Paste ${acceptAudio ? 'image, video or audio' : 'image or video'} URL`;
+        label.textContent = `Paste ${acceptAudio && acceptVideo ? 'image, video or audio' : acceptAudio ? 'image or audio' : acceptVideo ? 'image or video' : 'image'} URL`;
         wrap.appendChild(label);
 
         const row = document.createElement('div');

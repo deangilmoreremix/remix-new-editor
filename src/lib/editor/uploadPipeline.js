@@ -680,7 +680,11 @@ export async function fetchUrlAsFile(url, filename) {
 
     const blob = new Blob(chunks);
     const name = filename || deriveFilenameFromUrl(url) || `url-import-${Date.now()}`;
-    const mime = blob.type || '';
+    // The Blob above has no type of its own, so take the server's declared
+    // Content-Type. A generic octet-stream says nothing about the file, so it
+    // is treated as unknown (callers then fall back to the extension).
+    const declared = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    const mime = (declared && declared !== 'application/octet-stream' ? declared : '') || blob.type || '';
     return new File([blob], name, { type: mime });
   } catch (e) {
     clearTimeout(timeoutId);
