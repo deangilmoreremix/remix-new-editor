@@ -6,6 +6,9 @@ const withMDX = createMDX();
 const config = {
   // `next build` writes the whole site to `out/`, servable from any static host.
   output: 'export',
+  // Served from a sub-path when hosted inside another site (DOCS_BASE_PATH=/warmbly-docs); unset = site root.
+  basePath: process.env.DOCS_BASE_PATH || undefined,
+  env: { NEXT_PUBLIC_DOCS_BASE_PATH: process.env.DOCS_BASE_PATH || '' },
   // Pages export as `<path>/index.html` so URLs resolve on any static server.
   trailingSlash: true,
   reactStrictMode: true,

@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite --port 3100",
     "dev:all": "concurrently -n root,video-agent-studio -c magenta,cyan \"npm run dev\" \"npm run dev:video-agent-studio\"",
-    "build": "npm run build:openthorn && npm run build:warmbly && npm run build:workbench && npm run build:motion-agent && rm -rf dist && npm run gen:motion-sources && npm run sync:mg-thumbs && node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
+    "build": "npm run build:openthorn && npm run build:warmbly && npm run build:warmbly-docs && npm run build:workbench && npm run build:motion-agent && rm -rf dist && npm run gen:motion-sources && npm run sync:mg-thumbs && node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
@@ -34,7 +34,8 @@
     "test:video-agent-studio": "cd apps/video-agent-studio && npm test --if-present",
     "lint:video-agent-studio": "cd apps/video-agent-studio && npm run lint --if-present",
     "verify:video-agent-studio": "node scripts/verify-video-agent-studio.mjs",
-    "build:warmbly": "cd warmbly/web && npx --yes pnpm@10.30.3 install --frozen-lockfile && npx --yes pnpm@10.30.3 exec vite build --base=/warmbly-app/ && rm -rf ../../public/warmbly-app && cp -r dist ../../public/warmbly-app",
+    "build:warmbly": "cd warmbly/web && npx --yes pnpm@10.30.3 install --frozen-lockfile && VITE_DOCS_URL=/warmbly-docs npx --yes pnpm@10.30.3 exec vite build --base=/warmbly-app/ && rm -rf ../../public/warmbly-app && cp -r dist ../../public/warmbly-app",
+    "build:warmbly-docs": "cd warmbly/docs && npx --yes pnpm@10.30.3 install --frozen-lockfile && (DOCS_BASE_PATH=/warmbly-docs npx --yes pnpm@10.30.3 exec next build || DOCS_BASE_PATH=/warmbly-docs npx --yes pnpm@10.30.3 exec next build) && rm -rf ../../public/warmbly-docs && cp -r out ../../public/warmbly-docs",
     "build:openthorn": "cd apps/openthorn && npx vite build --base=/openthorn/ && rm -rf ../../public/openthorn && cp -r dist ../../public/openthorn",
     "dev:openthorn": "cd apps/openthorn && npm run dev",
     "update:video-agent-studio-subtree": "git fetch openchatcut && git subtree pull --prefix=apps/video-agent-studio openchatcut main --squash",

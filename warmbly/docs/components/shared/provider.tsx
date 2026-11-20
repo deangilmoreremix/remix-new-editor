@@ -10,7 +10,7 @@ export function Provider({ children }: { children: ReactNode }) {
   return (
     // `type: 'static'` pairs with the staticGET search route so search runs
     // client-side from a prebuilt index (works on a static build).
-    <RootProvider search={{ options: { type: 'static' } }} theme={{ defaultTheme: 'light', scriptProps }}>
+    <RootProvider search={{ options: { type: 'static', api: `${process.env.NEXT_PUBLIC_DOCS_BASE_PATH ?? ''}/api/search` } }} theme={{ defaultTheme: 'light', scriptProps }}>
       {children}
     </RootProvider>
   );

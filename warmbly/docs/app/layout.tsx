@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://docs.warmbly.com'),
+  metadataBase: new URL(process.env.DOCS_SITE_URL || 'https://docs.warmbly.com'),
   title: {
     template: '%s | Warmbly Docs',
     default: 'Warmbly Documentation',

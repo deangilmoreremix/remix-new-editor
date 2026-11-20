@@ -399,3 +399,21 @@ body {
   padding: 0.1em 0.35em;
   font-size: 0.88em;
 }
+
+/* Brand theme for this repo: its accent, and its dark surfaces. The light accent is a darker step of the same
+   hue (readable on white); the shades are the ones the app's own accent scale generates (web/src/styles/theme-brand.css). */
+:root {
+  --color-fd-primary: oklch(49.59% 0.1185 120.04);
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-ring: oklch(74.37% 0.1769 120.04);
+}
+.dark {
+  --color-fd-background: #050505;
+  --color-fd-muted: #0a0a0a;
+  --color-fd-popover: #0a0a0a;
+  --color-fd-card: #141414;
+  --color-fd-border: #1f1f23;
+  --color-fd-primary: #d9ff00;
+  --color-fd-primary-foreground: #050505;
+  --color-fd-ring: #d9ff00;
+}

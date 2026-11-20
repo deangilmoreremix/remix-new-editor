@@ -12,6 +12,6 @@ export default function robots(): MetadataRoute.Robots {
       // both sides is duplicate content.
       disallow: ['/llms.mdx/', '/og/'],
     },
-    sitemap: 'https://docs.warmbly.com/sitemap.xml',
+    sitemap: `${process.env.DOCS_SITE_URL || 'https://docs.warmbly.com'}${process.env.DOCS_BASE_PATH || ''}/sitemap.xml`,
   };
 }

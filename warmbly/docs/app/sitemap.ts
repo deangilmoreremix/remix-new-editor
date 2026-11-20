@@ -1,7 +1,7 @@
 import { source } from '@/lib/source';
 import type { MetadataRoute } from 'next';
 
-const BASE = 'https://docs.warmbly.com';
+const BASE = `${process.env.DOCS_SITE_URL || 'https://docs.warmbly.com'}${process.env.DOCS_BASE_PATH || ''}`;
 
 // Static export writes this to out/sitemap.xml at build time.
 export const dynamic = 'force-static';

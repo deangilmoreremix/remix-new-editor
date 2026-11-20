@@ -297,6 +297,13 @@ force = false
   force = false
 
 # Warmbly Studio (Warmbly, warmbly/web) is served from /warmbly-app/ and falls back to its own shell.
+# Warmbly feature guides (warmbly/docs, a static site) are served from /warmbly-docs/.
+[[redirects]]
+  from = "/warmbly-docs"
+  to = "/warmbly-docs/index.html"
+  status = 200
+  force = false
+
 [[redirects]]
   from = "/warmbly-app"
   to = "/warmbly-app/index.html"

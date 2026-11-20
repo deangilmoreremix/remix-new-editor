@@ -41,6 +41,18 @@ const sentryPlugins = uploadToSentry
     : [];
 
 // Requests the interface font from the head, in parallel with the scripts, not after the stylesheet parses.
+// Points the app's links to the docs site (https://docs.warmbly.com/...) at a hosted copy, when VITE_DOCS_URL is set at build.
+function docsLinks(docsUrl: string | undefined): Plugin {
+    return {
+        name: "warmbly:docs-links",
+        enforce: "pre",
+        transform(code, id) {
+            if (!docsUrl || id.includes("node_modules") || !/\.[jt]sx?$/.test(id) || !code.includes("https://docs.warmbly.com")) return null;
+            return { code: code.replaceAll("https://docs.warmbly.com", docsUrl.replace(/\/$/, "")), map: null };
+        },
+    };
+}
+
 function preloadInterfaceFont(): Plugin {
     let base = "/";
     return {
@@ -72,6 +84,7 @@ export default defineConfig(({ command, mode, isPreview }) => ({
         react(),
         tailwindcss(),
         preloadInterfaceFont(),
+        docsLinks(process.env.VITE_DOCS_URL),
         ...sentryPlugins,
         dashboardCspPlugin({ ...loadEnv(mode, process.cwd(), ""), ...process.env } as Record<string, string>),
     ],
