@@ -204,6 +204,8 @@ export interface PersonalizationTemplateBrowserProps {
   onSelectDesign?: (designId: string) => void
   /** Hide the built-in layouts: only the animated designs (add-ons) are listed. */
   designsOnly?: boolean
+  /** Print the "design not available / not allowed" message above the cards. Off when the caller prints it once itself. */
+  showError?: boolean
 }
 
 /** Categorized gallery of every layout and Remotion design template. */
@@ -211,6 +213,7 @@ export function PersonalizationTemplateBrowser({
   onSelect,
   onSelectDesign,
   designsOnly = false,
+  showError = true,
 }: PersonalizationTemplateBrowserProps): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const {
@@ -363,7 +366,7 @@ export function PersonalizationTemplateBrowser({
 
       {/* ── Grid ────────────────────────────────────────────────────────── */}
       <div style={panelStyle}>
-        {remotionDesignError ? (
+        {showError && remotionDesignError ? (
           <p style={{ ...hintStyle, color: C.danger, marginTop: 0 }}>{remotionDesignError}</p>
         ) : null}
         {visible.length === 0 ? (

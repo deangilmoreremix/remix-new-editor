@@ -141,6 +141,10 @@ try {
     if (hashPage) initialPage = hashPage;
   }
 
+  // A business's own domain (netlify/edge-functions/custom-domain.js): videos.acme.com/intro opens /v/acme/intro.
+  const customRoute = document.querySelector('meta[name="sv-route"]')?.getAttribute('content');
+  if (customRoute && /^v\/[a-z0-9-]+\/[a-z0-9-]+$/.test(customRoute)) initialPage = customRoute;
+
   // Handle studio query param
   const studioParam = new URLSearchParams(window.location.search).get('studio');
   if (studioParam) {

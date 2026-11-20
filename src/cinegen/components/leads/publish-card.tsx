@@ -5,7 +5,7 @@ import { publishIncludes } from '@cinegen/lib/leads/leads';
 import { createQrEndCard, mp4WatchLink } from '@cinegen/lib/leads/qr-end-card';
 import { LINK_PRESETS, trackedLink } from '@cinegen/lib/leads/share-links';
 // @ts-expect-error plain JS
-import { watchUrl, embedCode } from '../../../lib/editor/publish/publishClient.js';
+import { watchUrl, canonicalUrl, customDomainUrl, normalizeDomain, embedCode, slugify, validateSlug } from '../../../lib/editor/publish/publishClient.js';
 // @ts-expect-error plain JS
 import { GUEST_NOTICE } from '../../../lib/editor/publish/guestMessages.js';
 import type { usePublished } from './use-publish';
@@ -21,7 +21,29 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
   const [preview, setPreview] = useState(false);
   const [nonce, setNonce] = useState(0);
   useEffect(() => setTitle(pub.title), [pub.title]);
+  const [business, setBusiness] = useState('');
+  const [slug, setSlug] = useState('');
+  const [linkMsg, setLinkMsg] = useState('');
+  const [domain, setDomain] = useState('');
+  useEffect(() => setDomain(pub.info?.customDomain || ''), [pub.info?.customDomain]);
+  useEffect(() => { setSlug(pub.info?.slug || slugify(pub.title, '')); }, [pub.info?.slug, pub.title]);
   const includes = publishIncludes(state.overlays ?? []);
+  // The readable /v/<business>/<slug> link once set, else /watch/<id>.
+  const shareLink = pub.info ? canonicalUrl({ ...pub.info, id: pub.id }) : '';
+  const domainLink = pub.info ? customDomainUrl(pub.info) : null;
+  const saveDomain = async () => {
+    setLinkMsg('');
+    if (domain.trim() && !normalizeDomain(domain)) { setLinkMsg('Enter a domain like videos.yourbusiness.com (no https:// or path).'); return; }
+    if (await pub.setDomain(domain)) setLinkMsg(domain.trim() ? 'Domain saved. It goes live after we connect and verify it.' : 'Domain removed.');
+  };
+  const saveLink = async () => {
+    const bizErr = !pub.info?.business && business ? validateSlug(business.trim().toLowerCase()) : null;
+    const err = bizErr || validateSlug(slug.trim().toLowerCase());
+    if (!pub.info?.business && !business.trim()) { setLinkMsg('Choose a business name first.'); return; }
+    if (err) { setLinkMsg(err); return; }
+    if (await pub.saveLink(pub.info?.business ? '' : business.trim().toLowerCase(), slug.trim().toLowerCase())) setLinkMsg('Link saved. Old links keep working.');
+    else setLinkMsg('');
+  };
   const live = !!pub.info?.published;
   const addQrCard = async () => {
     if (!pub.id) return;
@@ -50,12 +72,41 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
       {pub.guest && <p className="leads-note" data-testid="guest-notice">{GUEST_NOTICE}</p>}
       {pub.info && pub.id && (
         <div className="leads-links">
-          <div className="leads-copy"><span className="leads-label">Link</span><input readOnly value={watchUrl(pub.id)} className="leads-input" /><button type="button" className="leads-btn" onClick={() => copy('link', watchUrl(pub.id!))}>{copied === 'link' ? 'Copied' : 'Copy'}</button></div>
+          <div className="leads-copy"><span className="leads-label">Link</span><input readOnly value={shareLink} className="leads-input" data-testid="share-link" /><button type="button" className="leads-btn" onClick={() => copy('link', shareLink)}>{copied === 'link' ? 'Copied' : 'Copy'}</button></div>
+          {!pub.guest && (
+            <div className="leads-linkedit" data-testid="custom-link">
+              <span className="leads-label">Custom link</span>
+              <div className="leads-row">
+                {pub.info.business
+                  ? <code>/v/{pub.info.business}/</code>
+                  : <input className="leads-input" value={business} onChange={(e) => setBusiness(e.target.value)} maxLength={48} placeholder="your-business" aria-label="Business name in link" data-testid="link-business" />}
+                <input className="leads-input" value={slug} onChange={(e) => setSlug(e.target.value)} maxLength={48} placeholder="video-name" aria-label="Video name in link" data-testid="link-slug" />
+                <button type="button" className="leads-btn" disabled={pub.busy} onClick={() => void saveLink()} data-testid="save-link">Save link</button>
+              </div>
+              <p className="leads-note" role="status">{linkMsg || (pub.info.business ? 'Rename any time; old links keep working.' : 'Pick a business name once; it is yours alone and appears in all your links.')}</p>
+              {pub.info.business && (
+                <div data-testid="custom-domain">
+                  <span className="leads-label">Your own domain (optional)</span>
+                  <div className="leads-row">
+                    <input className="leads-input" value={domain} onChange={(e) => setDomain(e.target.value)} maxLength={253} placeholder="videos.yourbusiness.com" aria-label="Your own domain" data-testid="link-domain" />
+                    <button type="button" className="leads-btn" disabled={pub.busy} onClick={() => void saveDomain()} data-testid="save-domain">Save domain</button>
+                  </div>
+                  {domainLink && <p className="leads-note" data-testid="domain-link">{pub.info.customDomainVerified ? `Live on your domain: ${domainLink}` : `Waiting for us to connect and verify your domain. Then: ${domainLink}`}</p>}
+                </div>
+              )}
+              <label className="leads-label">Who can find it
+                <select className="leads-input leads-select" value={pub.info.privacy === 'unlisted' ? 'unlisted' : 'public'} onChange={(e) => void pub.setPrivacy(e.target.value as 'public' | 'unlisted')} data-testid="link-privacy">
+                  <option value="public">Public — search engines may list it</option>
+                  <option value="unlisted">Unlisted — only people with the link</option>
+                </select>
+              </label>
+            </div>
+          )}
           <div className="leads-copy"><span className="leads-label">Embed</span><input readOnly value={embedCode(pub.id)} className="leads-input" /><button type="button" className="leads-btn" onClick={() => copy('embed', embedCode(pub.id!))}>{copied === 'embed' ? 'Copied' : 'Copy'}</button></div>
           <div className="leads-copy" data-testid="tracked-link">
             <span className="leads-label">Tracked link</span>
-            <input readOnly value={trackedLink(watchUrl(pub.id), preset, campaign)} className="leads-input" aria-label="Tracked link" />
-            <button type="button" className="leads-btn" onClick={() => copy('tracked', trackedLink(watchUrl(pub.id!), preset, campaign))}>{copied === 'tracked' ? 'Copied' : 'Copy'}</button>
+            <input readOnly value={trackedLink(shareLink, preset, campaign)} className="leads-input" aria-label="Tracked link" />
+            <button type="button" className="leads-btn" onClick={() => copy('tracked', trackedLink(shareLink, preset, campaign))}>{copied === 'tracked' ? 'Copied' : 'Copy'}</button>
           </div>
           <div className="leads-row">
             <select className="leads-input leads-select" aria-label="Where you will share it" value={preset} onChange={(e) => setPreset(e.target.value)} data-testid="link-preset">
@@ -66,7 +117,8 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
           <p className="leads-note">Share this version and each lead shows where it came from in the Leads tab (Source column).</p>
           <div className="leads-row">
             <button type="button" className="leads-btn" data-testid="preview-btn" disabled={!live} onClick={() => { setPreview(true); setNonce((n) => n + 1); }}>Preview as viewer</button>
-            <a className="leads-btn" data-testid="view-link" href={watchUrl(pub.id)} target="_blank" rel="noreferrer">View published page ↗</a>
+            <a className="leads-btn" data-testid="view-link" href={shareLink} target="_blank" rel="noreferrer">View published page ↗</a>
+            <button type="button" className="leads-btn" data-testid="download-mp4" onClick={() => dispatch({ type: 'SET_TAB', tab: 'export' })}>Download MP4 (free)</button>
           </div>
           {preview && live && (
             <div className="leads-modal" role="dialog" aria-label="Viewer preview" onClick={() => setPreview(false)}>

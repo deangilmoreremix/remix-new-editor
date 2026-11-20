@@ -11,8 +11,15 @@ export const overlayProject = (overlays: Overlay[]) => ({ tracks: [{ items: over
 /** Token names the video's overlays use. */
 export const tokensIn = (overlays: Overlay[]): string[] => projectTokens(overlayProject(overlays));
 
-/** One stored-link item per contact: { contactId, name, variables }. */
+type CompanyHolder = { contact?: { company?: string }; personalization?: { business?: { businessName?: string } } };
+const companyOf = (p: unknown): string => {
+  const c = p as CompanyHolder;
+  return String(c?.contact?.company || c?.personalization?.business?.businessName || '').trim();
+};
+
+/** One stored-link item per contact: { contactId, name, company, variables }. */
 export function personalLinkItems(overlays: Overlay[], contacts: Array<{ id: unknown }>) {
   const tokens = tokensIn(overlays);
-  return contacts.map((p) => ({ contactId: String(p.id), name: contactName(p), variables: personalVariables(p, tokens, { maxLength: 500 }) }));
+  // `company` only labels the link's address (acme-dental-…); a person's own name is never put in a URL.
+  return contacts.map((p) => ({ contactId: String(p.id), name: contactName(p), company: companyOf(p), variables: personalVariables(p, tokens, { maxLength: 500 }) }));
 }
