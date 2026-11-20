@@ -21,6 +21,7 @@ import pixabayProxyService from './services/pixabayProxyService.js';
 import giphyProxyService from './services/giphyProxyService.js';
 import templateService from './services/templateService.js';
 import openmontageProxy from './services/openmontageProxy.js';
+import { createVidBeeRouters } from './services/vidbeeProxy.js';
 import { auth, optionalAuth } from './middleware/auth.js';
 import chatRouter from './routes/chat.js';
 import setupChatWebSocket from './websocket/chat.js';
@@ -31,6 +32,9 @@ import setupChatWebSocket from './websocket/chat.js';
  
  // Middleware
  app.use(cors());
+// Media Hub (vendored upstream VidBee) — mounted before body parsers so request streams pass through untouched.
+const vidbee = createVidBeeRouters({ auth });
+app.use('/vidbee', vidbee.proxy);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -71,6 +75,7 @@ app.use('/api/gtm-boost', optionalAuth, gtmBoostService);
 app.use('/api/storyboard', storyboardService);
 app.use('/videoagent', videoAgentLimiter, optionalAuth, videoAgentService);
 app.use('/openmontage', optionalAuth, openmontageProxy);
+app.use('/api/vidbee', vidbee.session);
 
 // Health check
 app.get('/health', (req, res) => {
