@@ -42,7 +42,12 @@ if (process.argv.includes('--index-only')) {
   process.exit(0);
 }
 
-const template = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
+const templateFile = path.join(dist, 'index.html');
+if (!fs.existsSync(templateFile)) {
+  console.error(`[studio-guides] ${templateFile} not found: run vite build first (or pass the dist folder).`);
+  process.exit(1);
+}
+const template = fs.readFileSync(templateFile, 'utf8');
 if (!template.includes('<div id="app"></div>')) throw new Error('dist/index.html has no empty <div id="app"></div>');
 
 function page(head, body) {

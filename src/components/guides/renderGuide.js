@@ -7,8 +7,9 @@ import { SITE_NAME, GUIDE_CATEGORIES } from '../../data/studioGuides.core.js';
 const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-const guideHref = (slug) => `/studios/${slug}`;
-const studioHref = (route) => `/#/${route}`;
+// Slugs and routes are URL-safe by construction (see studioGuides.test.js); escaped anyway.
+const guideHref = (slug) => esc(`/studios/${encodeURIComponent(slug)}`);
+const studioHref = (route) => esc(`/#/${route}`);
 
 export const GUIDE_CSS = `
 .sg{--bg:#050505;--panel:#0a0a0a;--panel2:#141414;--line:rgba(255,255,255,.09);--text:#e7e9ee;--mute:#9aa1ae;--accent:#d9ff00;--accent2:#c4e600;
