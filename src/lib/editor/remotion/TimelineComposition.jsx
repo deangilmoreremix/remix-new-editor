@@ -12,6 +12,7 @@
  * directly (Text Mask's SVG mask) are pre-rendered to an image.
  */
 import { cursorAt, cursorStops } from './websiteCursor.js';
+import { scrollAt } from './scroll.js';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   AbsoluteFill, Sequence, Img, useCurrentFrame, useVideoConfig, delayRender, continueRender,
@@ -555,7 +556,7 @@ function MediaLayerBody({ layer, seqFrom }) {
   }
   // A scrolling page (e.g. a website screenshot behind the presenter): top of the image at the start,
   // bottom at the end of the clip.
-  const scroll = layer.scroll ? { objectPosition: `50% ${Math.round(Math.max(0, Math.min(1, t / Math.max(0.001, layer.durationInFrames / fps))) * 1000) / 10}%` } : {};
+  const scroll = layer.scroll ? { objectPosition: `50% ${Math.round(scrollAt(t / Math.max(0.001, layer.durationInFrames / fps), layer.scrollBack) * 1000) / 10}%` } : {};
   const img = <Img src={layer.src} effects={fx} style={{ width: '100%', height: '100%', objectFit: fit, ...scroll, ...mirror }} />;
   if (!layer.cursor) return img;
   // A pointer moving over the page (src/lib/editor/remotion/websiteCursor.js).

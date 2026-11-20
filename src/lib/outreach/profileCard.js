@@ -17,7 +17,13 @@ export function cardDetails(c = {}, fallbacks = {}) {
   const linkedin = clean(String(c.linkedin || '').replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, ''), 60);
   return { name, title: clean(c.jobTitle), company: clean(c.company) || clean(fallbacks.company), linkedin, website: clean(String(c.website || '').replace(/^https?:\/\/(www\.)?/i, '').replace(/\/.*$/, ''), 40) };
 }
-export const cardKey = (d) => JSON.stringify([d.name, d.title, d.company, d.linkedin, d.website]);
+export const cardKey = (d, side = 'right') => JSON.stringify([d.name, d.title, d.company, d.linkedin, d.website, ...(side === 'right' ? [] : [side])]);
+
+/** Where the card goes so the camera bubble never covers it: the other side, or the top for a Spotlight bubble. */
+export function cardSideFor(bubble = {}) {
+  if (bubble.mode === 'spotlight') return 'top';
+  return String(bubble.corner || 'bottom-left').endsWith('right') ? 'left' : 'right';
+}
 
 export function initials(name) {
   const parts = clean(name).split(' ').filter(Boolean);
@@ -35,18 +41,19 @@ function fitText(ctx, text, max, size, weight = 800) {
  * Draw the card. `logo` is an image (their company logo) or null (initials instead). The card sits on the
  * right; the bottom-left stays clear for the camera bubble. Pure canvas calls (testable with a fake context).
  */
-export function drawProfileCard(ctx, d, { logo = null, accent = '#d9ff00', width = CARD_W, height = CARD_H } = {}) {
+export function drawProfileCard(ctx, d, { logo = null, accent = '#d9ff00', width = CARD_W, height = CARD_H, side = 'right' } = {}) {
   const g = ctx.createLinearGradient(0, 0, width, height);
   g.addColorStop(0, '#0f172a'); g.addColorStop(1, '#1e293b');
   ctx.fillStyle = g; ctx.fillRect(0, 0, width, height);
   // Banner strip and card.
   ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fillRect(0, 0, width, height * 0.3);
   // The camera bubble sits bottom-left in the video (multiCam pip, corner bottom-left): the card takes the right side.
-  const x = width * 0.38; const y = height * 0.14; const w = width * 0.56; const h = height * 0.66;
+  const box = { right: [0.38, 0.14, 0.56, 0.66], left: [0.06, 0.14, 0.56, 0.66], top: [0.2, 0.05, 0.6, 0.5] }[side] || [0.38, 0.14, 0.56, 0.66];
+  const x = width * box[0]; const y = height * box[1]; const w = width * box[2]; const h = height * box[3];
   ctx.fillStyle = '#ffffff';
   ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, 28) : ctx.rect(x, y, w, h); ctx.fill();
   // Avatar: their logo, else initials.
-  const r = height * 0.11; const cx = x + 48 + r; const cy = y + 48 + r;
+  const r = height * (side === 'top' ? 0.075 : 0.11); const cx = x + 48 + r; const cy = y + 48 + r;
   ctx.save();
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.closePath();
   ctx.fillStyle = accent; ctx.fill();
@@ -65,7 +72,7 @@ export function drawProfileCard(ctx, d, { logo = null, accent = '#d9ff00', width
   ctx.restore();
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
   const tx = x + 48; const maxW = w - 96;
-  let ty = cy + r + 70;
+  let ty = cy + r + (side === 'top' ? 56 : 70);
   ctx.fillStyle = '#0b0c10';
   fitText(ctx, d.name, maxW, 52);
   ctx.fillText(d.name, tx, ty);
@@ -86,8 +93,8 @@ const loadImage = (src) => new Promise((resolve) => {
 });
 
 /** The card as a JPEG Blob (1280×720). */
-export async function renderProfileCard(details, { logoUrl = '', accent } = {}) {
+export async function renderProfileCard(details, { logoUrl = '', accent, side = 'right' } = {}) {
   const c = Object.assign(document.createElement('canvas'), { width: CARD_W, height: CARD_H });
-  drawProfileCard(c.getContext('2d'), details, { logo: await loadImage(logoUrl), accent });
+  drawProfileCard(c.getContext('2d'), details, { logo: await loadImage(logoUrl), accent, side });
   return new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error('Could not draw the profile card.'))), 'image/jpeg', 0.9));
 }

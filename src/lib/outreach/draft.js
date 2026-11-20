@@ -19,7 +19,7 @@
  * server.
  */
 
-import { cardDetails, cardKey } from './profileCard.js';
+import { cardDetails, cardKey, cardSideFor } from './profileCard.js';
 
 export const DRAFT_KEY = 'outreach-draft-v1';
 // Sendspark-style: record, the AI intro (voice + greeting), the page, prospects, then generate and
@@ -77,7 +77,9 @@ export function defaultDraft() {
     // 'recording': the video as recorded. 'website': each contact's website behind the camera bubble.
     // 'recording': the video as recorded. 'website' | 'image' | 'map': a per-contact picture behind a
     // round camera bubble: their website, an image (theirs or yours), or a map of their address.
-    background: { mode: 'recording', fallbackSite: '', image: '' },
+    // bubble: where your camera sits over the background ('fixed' in a corner, or 'spotlight': larger, bottom centre).
+    // scroll / scrollBack: a website background scrolls down (and back up); cursor: a pointer moves over it.
+    background: { mode: 'recording', fallbackSite: '', image: '', bubble: { mode: 'fixed', corner: 'bottom-left' }, scroll: true, scrollBack: false },
     // Map captures during Generate: { [normalized address]: image URL }.
     mapShots: {},
     // Profile cards drawn during Generate (src/lib/outreach/profileCard.js): { [card key]: image URL }.
@@ -123,7 +125,7 @@ export function loadDraft(storage = globalThis.localStorage) {
       cta: { ...base.cta, ...(saved.cta || {}) },
       sender: { ...base.sender, ...(saved.sender || {}) },
       contacts: Array.isArray(saved.contacts) ? saved.contacts : [],
-      background: { ...base.background, ...(saved.background || {}) },
+      background: { ...base.background, ...(saved.background || {}), bubble: { ...base.background.bubble, ...(saved.background?.bubble || {}) } },
       siteShots: saved.siteShots && typeof saved.siteShots === 'object' ? saved.siteShots : {},
       mapShots: saved.mapShots && typeof saved.mapShots === 'object' ? saved.mapShots : {},
       profileShots: saved.profileShots && typeof saved.profileShots === 'object' ? saved.profileShots : {},
@@ -447,6 +449,22 @@ export function sitesToCapture(draft) {
 }
 
 export const BACKGROUND_MODES = ['recording', 'website', 'image', 'map', 'profile'];
+export const BUBBLE_CORNERS = [['bottom-left', 'Bottom left'], ['bottom-right', 'Bottom right'], ['top-left', 'Top left'], ['top-right', 'Top right']];
+
+/** The camera bubble setting with defaults: { mode: 'fixed' | 'spotlight', corner }. */
+export function bubbleOf(draft) {
+  const b = draft.background?.bubble || {};
+  return { mode: b.mode === 'spotlight' ? 'spotlight' : 'fixed', corner: BUBBLE_CORNERS.some(([k]) => k === b.corner) ? b.corner : 'bottom-left' };
+}
+
+/** The published picture-in-picture for the bubble: a corner at 26% of the frame, or Spotlight (40%, bottom centre). */
+export function bubblePip(draft) {
+  const b = bubbleOf(draft);
+  return b.mode === 'spotlight' ? { corner: 'bottom-center', size: 40, shape: 'circle' } : { corner: b.corner, size: 26, shape: 'circle' };
+}
+
+/** Which side of the frame a profile card goes, away from the bubble. */
+export const cardSide = (draft) => cardSideFor(bubbleOf(draft));
 export const usesBackground = (draft) => ['website', 'image', 'map', 'profile'].includes(draft.background?.mode);
 
 /** A contact's address as a cache key (lower-case, single spaces). '' when there is none. */
@@ -463,7 +481,7 @@ export function backgroundShotFor(draft, c) {
   if (mode === 'website') return draft.siteShots?.[siteKey(c.website)] || '';
   if (mode === 'image') return c.backgroundImage || '';
   if (mode === 'map') return draft.mapShots?.[mapKey(c.address)] || '';
-  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails(c, draft.fallbacks))] || '';
+  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails(c, draft.fallbacks), cardSide(draft))] || '';
   return '';
 }
 
@@ -472,7 +490,7 @@ export function fallbackShotFor(draft) {
   const mode = draft.background?.mode;
   if (mode === 'website') return draft.siteShots?.[siteKey(draft.background.fallbackSite)] || '';
   if (mode === 'image' || mode === 'map') return /^https:\/\//i.test(String(draft.background.image || '')) ? draft.background.image : '';
-  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails({}, draft.fallbacks))] || '';
+  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails({}, draft.fallbacks), cardSide(draft))] || '';
   return '';
 }
 
@@ -567,7 +585,7 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, ext
       { id: `track-bg-${id}`, type: 'video', name: 'Contact background', muted: true, solo: false,
         // scroll: a website moves from its top (header, logo) to its bottom over the video, with a
         // pointer moving over it; images and maps stay still.
-        items: [{ id: `outreach-site-${id}`, name: 'Contact background', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot, fit: 'cover', ...(draft.background.mode === 'website' ? { scroll: true, cursor: draft.background.cursor !== false } : {}), left: 0, width: 100 }] },
+        items: [{ id: `outreach-site-${id}`, name: 'Contact background', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot, fit: 'cover', ...(draft.background.mode === 'website' && draft.background.scroll !== false ? { scroll: true, ...(draft.background.scrollBack ? { scrollBack: true } : {}), cursor: draft.background.cursor !== false } : {}), left: 0, width: 100 }] },
       { id: `track-cam-${id}`, type: 'video', name: 'Camera', muted: false, solo: false, items: cameraItems },
       voiceTrack,
     ].filter(Boolean)
@@ -588,7 +606,7 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, ext
     // The video's own shape (a square or vertical recording plays uncropped); a website background stays 16:9.
     ...(aspect && !website && aspect !== '16:9' ? { aspect } : {}),
     ...(chapters.length > 1 ? { chapters } : {}),
-    ...(website ? { multiCam: { mode: 'pip', mainTrackId: `track-bg-${id}`, secondTrackId: `track-cam-${id}`, pip: { corner: 'bottom-left', size: 26, shape: 'circle' } } } : {}),
+    ...(website ? { multiCam: { mode: 'pip', mainTrackId: `track-bg-${id}`, secondTrackId: `track-cam-${id}`, pip: bubblePip(draft) } } : {}),
     kind: 'outreach',
     campaign: { name: name.slice(0, 120), contacts: (draft.contacts || []).length },
     // Captions made in the Record step: the landing page's transcript (times match the recording,

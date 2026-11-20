@@ -12,6 +12,7 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, outlookUrl, linkedinMessage } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
+import { renderProspectTable } from './outreach/ProspectTable.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
 
 // Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
@@ -23,6 +24,7 @@ import {
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
   usesBackground, fallbackShotFor, backgroundShotFor, contactProfileFor, addressesToCapture, mapKey,
   saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage, DYNAMIC_KINDS,
+  BUBBLE_CORNERS, bubbleOf, cardSide,
 } from '../lib/outreach/draft.js';
 
 function el(tag, className, text) {
@@ -1050,90 +1052,337 @@ export function OutreachStudio() {
       box.appendChild(row);
       return box;
     }
-    const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_400px]');
-    const main = card('Choose the voice', 'Each contact hears their own greeting. Clone your voice so it sounds like you, or use a stock voice.');
+    // The dynamic-video editor (Sendspark's Script / Voice / Background, with a live preview per prospect).
+    const page = el('div', 'flex flex-col gap-5');
+    page.setAttribute('data-outreach-dynamic-editor', '');
+    // Header: where you are, Preview and Generate Videos.
+    const head = el('div', 'flex flex-wrap items-center gap-3');
+    const crumbs = el('div', 'mr-auto flex min-w-0 items-center gap-2 text-sm');
+    crumbs.append(el('span', 'text-white/45', 'Dynamic Videos'), el('span', 'text-white/30', '/'), el('span', 'truncate font-bold text-white', draft.name || 'Untitled dynamic video'));
+    const prev = button('Preview', { small: true });
+    prev.setAttribute('data-editor-preview-page', '');
+    prev.title = draft.campaign ? 'Open this prospect\u2019s page' : 'Generate first: each prospect\u2019s page is made then';
+    prev.addEventListener('click', () => {
+      const c = previewContact();
+      const l = draft.campaign?.links?.find((x) => x.contactId === c?.id) || draft.campaign?.links?.[0];
+      if (l) window.open(linkOf(l), '_blank', 'noopener'); else { notice = 'Generate first: each prospect\u2019s page is made then.'; render(); }
+    });
+    const genBtn = button('Generate Videos', { primary: true, small: true });
+    genBtn.setAttribute('data-editor-generate', '');
+    genBtn.disabled = !!busy;
+    genBtn.addEventListener('click', goGenerate);
+    head.append(crumbs, prev, genBtn);
+
+    const grid = el('div', 'grid gap-5 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)]');
+    const left = el('div', 'flex min-w-0 flex-col gap-4');
+    const sectionCard = (title, attr) => {
+      const c = el('div', 'flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5');
+      c.setAttribute(attr, '');
+      c.appendChild(el('div', 'text-xs font-extrabold uppercase tracking-[0.14em] text-primary', title));
+      return c;
+    };
+
+    // SCRIPT: what each prospect hears, with the variables shown as chips.
+    const script = sectionCard('Script', 'data-editor-script');
+    const shown = el('p', 'text-[15px] leading-relaxed text-white/90');
+    shown.setAttribute('data-editor-script-text', '');
+    String(draft.greeting || '').split(/(\{\{\s*\w+\s*\}\})/).forEach((part) => {
+      if (/^\{\{\s*\w+\s*\}\}$/.test(part)) shown.appendChild(el('span', 'mx-0.5 rounded-md bg-primary/15 px-1.5 py-0.5 text-sm font-bold text-primary', part.replace(/\{\{\s*(\w+)\s*\}\}/, '{$1}')));
+      else if (part) shown.appendChild(document.createTextNode(part));
+    });
+    const g = textInput(draft.greeting, 'Hi {{firstname}}!');
+    g.setAttribute('data-editor-greeting', '');
+    g.addEventListener('change', () => { draft.greeting = g.value; draft.voice.fallbackUrl = ''; persist(); render(); });
+    const fb = el('div', 'flex flex-wrap items-center gap-2');
+    fb.appendChild(el('span', 'text-xs text-white/50', 'No first name? Say'));
+    for (const word of FIRST_NAME_FALLBACKS) {
+      const b = button(word, { selected: draft.fallbacks.firstname === word, small: true });
+      b.addEventListener('click', () => { draft.fallbacks.firstname = word; draft.voice.fallbackUrl = ''; persist(); render(); });
+      fb.appendChild(b);
+    }
+    script.append(shown, g, variableChips(g, { onInsert: () => g.dispatchEvent(new Event('change')), only: ['{{firstname}}', '{{company}}', '{{jobtitle}}'] }), el('p', 'text-[11px] text-white/45', 'Spoken at the start of your video, up to 70 characters. Use more than one variable if you like.'), fb);
+
+    // VOICE: whose voice, ready or not, lip sync, language, and a preview.
+    const voice = sectionCard('Voice', 'data-editor-voice');
     const modes = el('div', 'flex gap-2');
     for (const [mode, label] of [['clone', 'My cloned voice'], ['stock', 'Stock voice']]) {
       const b = button(label, { selected: draft.voice.mode === mode, small: true });
+      b.setAttribute('data-voice-mode', mode);
       b.addEventListener('click', () => { draft.voice = { ...draft.voice, mode, fallbackUrl: '', fallbackDuration: 0 }; persist(); render(); });
       modes.appendChild(b);
     }
-    main.appendChild(modes);
-
-    if (draft.voice.mode === 'clone') {
+    const cloneReady = !!(draft.voice.cloneVoiceId && draft.voice.consent);
+    const ready = draft.voice.mode === 'stock' || cloneReady;
+    const who = draft.voice.mode === 'clone' ? `${(draft.sender?.name || 'Your').split(' ')[0]}${draft.sender?.name ? '\u2019s' : ''} cloned voice` : `${draft.voice.stockVoice.replace(/_/g, ' ')} (stock voice)`;
+    const vrow = el('div', 'flex items-center gap-2.5 text-[15px]');
+    vrow.setAttribute('data-voice-status', ready ? 'ready' : 'needs-sample');
+    vrow.append(el('span', `h-2.5 w-2.5 rounded-full ${ready ? 'bg-emerald-400' : 'bg-amber-400'}`), el('span', 'flex-1', who), el('span', 'text-xs text-white/45', ready ? 'Ready' : 'Needs a voice sample'));
+    voice.append(modes, vrow);
+    if (draft.voice.mode === 'clone' && !cloneReady) {
       const consent = el('label', 'flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm');
       const box = el('input', 'mt-0.5'); box.type = 'checkbox'; box.checked = !!draft.voice.consentChecked;
       box.addEventListener('change', () => { draft.voice.consentChecked = box.checked; persist(); });
       const text = el('span', 'text-white/80');
       text.innerHTML = '<b class="text-white">This is my own voice.</b> I am the person speaking in the sample and I agree to it being cloned for my own outreach. Pages using it are labelled “AI-personalized voice”.';
       consent.append(box, text);
-      main.appendChild(consent);
-
-      const status = el('p', 'text-sm', draft.voice.cloneVoiceId && draft.voice.consent
-        ? `✓ Cloned voice ready (${draft.voice.cloneVoiceId}).` : 'Not cloned yet.');
-      status.className = draft.voice.cloneVoiceId && draft.voice.consent ? 'text-sm text-emerald-300' : 'text-sm text-secondary';
       const sampleActions = el('div', 'flex flex-wrap gap-2');
-      const fromRec = button('Clone from my recording', { primary: !draft.voice.cloneVoiceId });
+      const fromRec = button('Clone from my recording', { primary: true, small: true });
       fromRec.disabled = !recordingBlob || draft.video?.hasAudio === false;
       fromRec.title = recordingBlob ? '' : 'Record or upload in step 1 during this visit, or record a separate sample.';
       fromRec.addEventListener('click', () => voiceSampleFrom(recordingBlob));
-      const sample = button('Record a voice sample');
+      const sample = button('Record a voice sample', { small: true });
       sample.addEventListener('click', () => (draft.voice.consentChecked ? openRecorder('audio') : (notice = 'Tick “this is my own voice” first.', render())));
       sampleActions.append(fromRec, sample);
-      main.append(status, sampleActions, el('p', 'text-[11px] text-white/45', 'Uses 10–60 seconds of your speech. Cloning and speech run on your own MuAPI key (Settings → API keys).'));
-    } else {
-      const sel = el('select', 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white');
-      for (const v of STOCK_VOICES) { const o = el('option', '', v.replace(/_/g, ' ')); o.value = v; o.selected = draft.voice.stockVoice === v; sel.appendChild(o); }
-      sel.addEventListener('change', () => { draft.voice = { ...draft.voice, stockVoice: sel.value, fallbackUrl: '', fallbackDuration: 0 }; persist(); render(); });
-      main.appendChild(field('Voice', sel));
+      voice.append(consent, sampleActions, el('p', 'text-[11px] text-white/45', 'Uses 10–60 seconds of your speech. Cloning and speech run on your own MuAPI key (Settings → API keys).'));
     }
-
-    const greet = card('The greeting', 'Spoken at the start of the video. Use {{firstname}}, {{company}} or {{jobtitle}} (more than one is fine: "Hi {{firstname}}, a quick idea for {{company}}").');
-    const g = textInput(draft.greeting, 'Hi {{firstname}}!');
-    g.addEventListener('change', () => { draft.greeting = g.value; draft.voice.fallbackUrl = ''; persist(); render(); });
-    greet.append(field('Greeting', g, 'Up to 70 characters.'), variableChips(g, { onInsert: () => g.dispatchEvent(new Event('change')), only: ['{{firstname}}', '{{company}}', '{{jobtitle}}'] }));
-    // Output language: the greeting is spoken in it; Translate rewrites the campaign's texts into it.
-    const langRow = el('div', 'flex flex-wrap items-center gap-2');
+    if (draft.voice.mode === 'stock') {
+      const sel = el('select', 'w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white');
+      for (const v of STOCK_VOICES) { const o = el('option', 'bg-neutral-900', v.replace(/_/g, ' ')); o.value = v; o.selected = draft.voice.stockVoice === v; sel.appendChild(o); }
+      sel.addEventListener('change', () => { draft.voice = { ...draft.voice, stockVoice: sel.value, fallbackUrl: '', fallbackDuration: 0 }; persist(); render(); });
+      voice.appendChild(sel);
+    }
+    const lipRow = el('div', 'flex items-center gap-3 text-[15px]');
+    const lipSw = toggle(!!draft.voice.lipsync, (on) => { draft.voice = { ...draft.voice, lipsync: on }; persist(); render(); }, { label: 'Lip sync' });
+    lipSw.setAttribute('data-editor-lipsync', '');
+    lipRow.append(el('span', 'flex-1', 'Lip sync'), lipSw);
+    voice.appendChild(lipRow);
+    if (draft.voice.lipsync) voice.appendChild(el('p', 'text-[11px] text-white/45', 'Your mouth says each prospect\u2019s name: one paid MuAPI lip-sync request per different greeting (about $0.05). Leave a pause at the start of your recording.'));
+    const langRow = el('div', 'flex flex-wrap items-center gap-2 text-[15px]');
+    langRow.appendChild(el('span', 'flex-1', 'Language'));
     const lang = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-sm text-white');
     lang.setAttribute('data-outreach-language', '');
-    for (const [l] of WRITER_LANGUAGES) { const o = el('option', 'bg-neutral-900', l); o.value = l; o.selected = (draft.language || 'English') === l; lang.appendChild(o); }
+    for (const [l] of WRITER_LANGUAGES) { const o = el('option', 'bg-neutral-900', l === 'English' ? 'English (source)' : l); o.value = l; o.selected = (draft.language || 'English') === l; lang.appendChild(o); }
     lang.addEventListener('change', () => { draft.language = lang.value; draft.voice = { ...draft.voice, fallbackUrl: '', fallbackDuration: 0 }; draft.campaign = null; persist(); render(); });
-    const tr = button('Translate greeting, page and email', { small: true });
-    tr.setAttribute('data-outreach-translate', '');
-    tr.disabled = !!busy || (draft.language || 'English') === 'English';
-    tr.addEventListener('click', translateCampaign);
-    langRow.append(lang, tr);
-    greet.appendChild(field('Output language', langRow, 'The greeting is spoken in this language, in your cloned or stock voice. Translate rewrites your greeting, landing page text and email into it (one small text request on your MuAPI key).'));
-    const fb = el('div', 'flex flex-wrap gap-2');
-    for (const word of FIRST_NAME_FALLBACKS) {
-      const b = button(word, { selected: draft.fallbacks.firstname === word, small: true });
-      b.addEventListener('click', () => { draft.fallbacks.firstname = word; draft.voice.fallbackUrl = ''; persist(); render(); });
-      fb.appendChild(b);
+    langRow.appendChild(lang);
+    voice.appendChild(langRow);
+    if ((draft.language || 'English') !== 'English') {
+      const tr = button('Translate greeting, page and email', { small: true });
+      tr.setAttribute('data-outreach-translate', '');
+      tr.disabled = !!busy;
+      tr.addEventListener('click', translateCampaign);
+      voice.append(tr, el('p', 'text-[11px] text-white/45', 'The greeting is spoken in this language. Your recording stays as you recorded it.'));
     }
-    greet.appendChild(field('If a first name is missing, say', fb));
-    const gen = button(draft.voice.fallbackUrl ? 'Regenerate greeting' : 'Generate greeting', { primary: !draft.voice.fallbackUrl });
+    // AI voice preview for the prospect being previewed, and the greeting itself (needed before generating).
+    const pv = el('div', 'flex flex-wrap items-center gap-2 rounded-xl border border-white/10 px-3 py-2.5 text-sm');
+    pv.setAttribute('data-editor-voice-preview', '');
+    const pc = previewContact();
+    const line = fillTemplate(draft.greeting, contactValues(pc || {}), draft.fallbacks);
+    pv.appendChild(el('span', 'flex-1 min-w-0 truncate', `AI voice preview: “${line}”`));
+    const tryAudio = el('audio', 'hidden');
+    const play = button('▶ Play', { small: true });
+    play.setAttribute('data-editor-voice-play', '');
+    play.addEventListener('click', async () => {
+      try {
+        play.disabled = true; play.textContent = 'Making…';
+        tryAudio.src = await speak(line);
+        await tryAudio.play().catch(() => {});
+      } catch (err) { notice = err.message; render(); return; } finally { play.disabled = false; play.textContent = '▶ Play'; }
+    });
+    const dislike = el('button', 'text-xs font-semibold text-white/50 hover:text-primary', 'Don\u2019t like it?');
+    dislike.type = 'button';
+    dislike.addEventListener('click', () => { draft.voice = { ...draft.voice, mode: draft.voice.mode === 'clone' ? 'stock' : 'clone', fallbackUrl: '', fallbackDuration: 0 }; persist(); render(); });
+    pv.append(dislike, play, tryAudio);
+    voice.append(pv, el('p', 'text-[11px] text-white/45', 'Each preview is one small paid speech request.'));
+    const gen = button(draft.voice.fallbackUrl ? 'Regenerate the fallback greeting' : 'Make the fallback greeting', { primary: !draft.voice.fallbackUrl, small: true });
+    gen.setAttribute('data-editor-make-greeting', '');
     gen.addEventListener('click', generateGreeting);
-    greet.appendChild(gen);
+    voice.appendChild(gen);
     if (draft.voice.fallbackUrl) {
       const a = el('audio', 'w-full'); a.controls = true; a.src = draft.voice.fallbackUrl;
-      greet.append(el('p', 'text-xs text-secondary', `Fallback: “${fillTemplate(draft.greeting, {}, draft.fallbacks)}”`), a);
+      voice.append(el('p', 'text-xs text-secondary', `For anyone without a name: “${fillTemplate(draft.greeting, {}, draft.fallbacks)}”`), a);
     }
-    const tryName = textInput('', 'Type a name to hear it, e.g. Mike');
-    const tryBtn = button('Preview', { small: true });
-    const tryAudio = el('audio', 'w-full'); tryAudio.controls = true; tryAudio.hidden = true;
-    tryBtn.addEventListener('click', async () => {
-      if (!tryName.value.trim()) return;
-      try {
-        tryBtn.disabled = true; tryBtn.textContent = 'Generating…';
-        tryAudio.src = await speak(fillTemplate(draft.greeting, { firstname: tryName.value.trim() }, draft.fallbacks));
-        tryAudio.hidden = false; tryAudio.play().catch(() => {});
-      } catch (err) { notice = err.message; render(); return; } finally { tryBtn.disabled = false; tryBtn.textContent = 'Preview'; }
-    });
-    const tryRow = el('div', 'flex gap-2'); tryRow.append(tryName, tryBtn);
-    greet.append(field('Hear it for one contact', tryRow, 'Each preview is one paid speech request.'), tryAudio);
 
-    grid.append(main, greet);
-    return grid;
+    left.append(script, voice, renderBackgroundCard());
+    grid.append(left, renderLivePreview());
+    page.append(head, grid);
+    return page;
+  }
+
+  // ---- Live preview of one prospect's video (AI intro step) ------------------------------
+  let previewContactId = null;
+  const previewContact = () => draft.contacts.find((c) => c.id === previewContactId) || draft.contacts[0] || null;
+  const initialsOf = (name) => { const p = String(name || '').trim().split(/\s+/).filter(Boolean); return ((p[0]?.[0] || '') + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase() || '?'; };
+  const AVATAR_COLORS = ['#6366f1', '#f97316', '#eab308', '#10b981', '#ec4899', '#06b6d4', '#8b5cf6', '#ef4444'];
+  const avatarColor = (s) => AVATAR_COLORS[[...String(s || '')].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7) % AVATAR_COLORS.length];
+  function avatar(name, size = 'h-9 w-9 text-xs') {
+    const a = el('span', `grid ${size} shrink-0 place-items-center rounded-full font-extrabold text-white`, initialsOf(name));
+    a.style.background = avatarColor(name);
+    return a;
+  }
+
+  // Where the camera bubble sits in a 16:9 box, as CSS (the same places the published player uses).
+  function bubbleCss() {
+    const b = bubbleOf(draft);
+    if (b.mode === 'spotlight') return { width: '40%', left: '30%', bottom: '5.4%' };
+    const h = b.corner.startsWith('top') ? { top: '5.4%' } : { bottom: '5.4%' };
+    const w = b.corner.endsWith('left') ? { left: '3%' } : { right: '3%' };
+    return { width: '26%', ...h, ...w };
+  }
+
+  function renderLivePreview() {
+    // Stays in view while you scroll the cards (bubble, scrolling and cursor changes show straight away).
+    const wrap = el('div', 'flex min-w-0 flex-col gap-3 self-start lg:sticky lg:top-2');
+    wrap.setAttribute('data-editor-live-preview', '');
+    const c = previewContact();
+    const values = contactValues(c || {});
+    const frame = el('div', 'overflow-hidden rounded-2xl border border-white/10 bg-[#0f1115]');
+    // A browser bar with their company, like their own site.
+    const bar = el('div', 'flex items-center gap-3 border-b border-white/10 bg-white/[0.04] px-4 py-2.5');
+    bar.append(el('span', 'h-6 w-6 rounded-md bg-white/80'), el('span', 'truncate text-sm font-bold', c?.company || draft.fallbacks.company || 'Their company'), el('span', 'ml-auto truncate text-xs text-white/40', c?.website ? String(c.website).replace(/^https?:\/\//, '') : ''));
+    const media = el('div', 'relative aspect-video w-full overflow-hidden bg-black');
+    media.setAttribute('data-editor-preview-media', '');
+    const camVideo = () => { const v = el('video', 'h-full w-full object-cover'); v.src = draft.video?.url || ''; v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true; return v; };
+    if (usesBackground(draft)) {
+      const shot = (c && backgroundShotFor(draft, c)) || fallbackShotFor(draft);
+      const bgEl = el('div', 'absolute inset-0');
+      bgEl.setAttribute('data-preview-background', shot ? 'image' : 'placeholder');
+      if (shot) {
+        Object.assign(bgEl.style, { backgroundImage: `url(${JSON.stringify(shot)})`, backgroundSize: 'cover', backgroundPosition: 'top center' });
+        // Scroll the page (and back up), like the finished video.
+        if (draft.background.mode === 'website' && draft.background.scroll !== false) bgEl.animate([{ backgroundPosition: 'center 0%' }, { backgroundPosition: 'center 100%' }, ...(draft.background.scrollBack ? [{ backgroundPosition: 'center 0%' }] : [])], { duration: 12000, iterations: Infinity, easing: 'linear' });
+      } else {
+        bgEl.className = 'absolute inset-0 flex flex-col gap-3 bg-gradient-to-br from-slate-100 to-slate-200 p-[6%]';
+        bgEl.append(el('div', 'h-[7%] w-2/5 rounded bg-slate-300'), el('div', 'h-[6%] w-1/3 rounded bg-slate-300'), el('div', 'mt-2 h-[3%] w-1/2 rounded bg-slate-300/80'), el('div', 'h-[3%] w-2/5 rounded bg-slate-300/80'));
+        bgEl.appendChild(el('div', 'absolute right-[4%] top-[6%] max-w-[45%] text-right text-[11px] text-slate-500', draft.background.mode === 'website' ? 'Their website appears here (captured when you generate)' : 'Their picture appears here (made when you generate)'));
+      }
+      const bubble = el('div', 'absolute aspect-square overflow-hidden rounded-full border-[3px] border-white shadow-2xl');
+      bubble.setAttribute('data-preview-bubble', bubbleOf(draft).mode === 'spotlight' ? 'spotlight' : bubbleOf(draft).corner);
+      Object.assign(bubble.style, bubbleCss());
+      if (draft.video?.url) bubble.appendChild(camVideo()); else bubble.classList.add('bg-slate-700');
+      media.append(bgEl, bubble);
+    } else if (draft.video?.url) media.appendChild(camVideo());
+    else media.appendChild(el('div', 'grid h-full place-items-center text-sm text-white/40', 'Record your video first'));
+    // What they hear, as a caption bubble.
+    if (draft.kind !== 'same') {
+      const cap = el('div', 'absolute left-[4%] top-[6%] flex max-w-[60%] items-center gap-2.5 rounded-xl bg-[#14161c]/90 px-3.5 py-2.5 text-[13px] text-white shadow-xl');
+      cap.setAttribute('data-preview-caption', '');
+      const playDot = el('span', 'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-xs text-black', '▶');
+      cap.append(playDot, el('span', '', `“${fillTemplate(draft.greeting, values, draft.fallbacks)}”`));
+      media.appendChild(cap);
+    }
+    frame.append(bar, media);
+    wrap.appendChild(frame);
+    wrap.appendChild(finalNotice() || el('span'));
+    // Prospect switcher.
+    const list = draft.contacts.slice(0, 6);
+    const chips = el('div', 'grid gap-2 sm:grid-cols-3');
+    chips.setAttribute('data-editor-prospects', '');
+    if (!list.length) chips.appendChild(el('p', 'text-xs text-white/45 sm:col-span-3', `No prospects yet: the preview uses your fallbacks (“${draft.fallbacks.firstname}”, “${draft.fallbacks.company}”). Add prospects in step 4.`));
+    list.forEach((p) => {
+      const on = p.id === c?.id;
+      const chip = el('button', `flex min-w-0 items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors ${on ? 'border-primary/40 bg-primary/[0.08]' : 'border-white/10 hover:border-white/25'}`);
+      chip.type = 'button';
+      chip.setAttribute('data-preview-prospect', p.id);
+      if (on) chip.setAttribute('aria-pressed', 'true');
+      const name = [p.firstName, p.lastName].filter(Boolean).join(' ') || p.email || 'Prospect';
+      const words = el('div', 'min-w-0 flex-1');
+      words.append(el('div', 'truncate text-sm font-bold', name), el('div', 'truncate text-xs text-white/50', p.company || ''));
+      chip.append(avatar(name), words, ...(on ? [el('span', 'text-[11px] font-bold text-primary', 'Previewing')] : []));
+      chip.addEventListener('click', () => { previewContactId = p.id; render(); });
+      chips.appendChild(chip);
+    });
+    wrap.appendChild(chips);
+    return wrap;
+  }
+
+  // Generate Videos (editor header): straight to Generate & share when everything is set, else to what is missing.
+  function goGenerate() {
+    for (let s2 = 1; s2 <= SETUP_STEPS; s2 += 1) {
+      const errs = stepErrors(draft, s2);
+      if (errs.length) { step = s2; notice = errs[0]; render(); return; }
+    }
+    step = SETUP_STEPS + 1; notice = ''; render();
+  }
+
+  function renderBackgroundCard() {
+    // Background: the recording as it is, or each contact's own website behind a round camera bubble.
+    const bg = el('div', 'flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5');
+    bg.setAttribute('data-outreach-background-card', '');
+    bg.appendChild(el('div', 'text-xs font-extrabold uppercase tracking-[0.14em] text-primary', 'Background'));
+    const bgModes = el('div', 'flex flex-wrap gap-2');
+    for (const [mode, label] of [['website', 'Website'], ['profile', 'Profile card'], ['map', 'Maps'], ['image', 'Image'], ['recording', 'None']]) {
+      const b = button(label, { selected: draft.background.mode === mode, small: true });
+      b.setAttribute('data-bg-mode', mode);
+      b.addEventListener('click', () => { draft.background = { ...draft.background, mode }; draft.campaign = null; persist(); render(); });
+      bgModes.appendChild(b);
+    }
+    bg.appendChild(bgModes);
+    if (draft.background.mode === 'website') {
+      bg.appendChild(el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a screenshot of each contact\u2019s website (from the Website column). Screenshots are taken when you generate the campaign. Record in Camera mode for this.'));
+      const fallback = textInput(draft.background.fallbackSite, 'yourcompany.com');
+      fallback.addEventListener('input', () => { draft.background = { ...draft.background, fallbackSite: fallback.value.trim() }; draft.campaign = null; persist(); });
+      fallback.addEventListener('change', () => render());
+      bg.appendChild(field('Fallback URL', fallback, 'Shown for contacts without a website, or whose site could not be captured.'));
+    }
+    if (draft.background.mode === 'profile') {
+      const p = el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a card with each contact\u2019s name, job title, company, their logo (or initials) and their LinkedIn address, from your prospect list. Cards are drawn when you generate the campaign. (LinkedIn pages themselves can\u2019t be captured: they need a login.)');
+      p.setAttribute('data-bg-profile-note', '');
+      bg.appendChild(p);
+    }
+    if (draft.background.mode === 'image' || draft.background.mode === 'map') {
+      bg.appendChild(el('p', 'text-xs text-secondary', draft.background.mode === 'image'
+        ? 'Your camera appears in a round bubble over an image: each contact\u2019s own (the Background image column, an https link) or the one below for everyone else.'
+        : 'Your camera appears in a round bubble over a map of each contact\u2019s address (the Address column). Maps are made when you generate the campaign; addresses are looked up on OpenStreetMap.'));
+      const img = el('div', 'flex flex-wrap items-center gap-3');
+      if (draft.background.image) { const th = el('img', 'h-14 w-24 rounded-lg object-cover border border-white/10'); th.src = draft.background.image; img.appendChild(th); }
+      const f = el('input'); f.type = 'file'; f.accept = 'image/*'; f.hidden = true;
+      f.addEventListener('change', async () => {
+        const file = f.files?.[0]; f.value = '';
+        if (!file) return;
+        try {
+          setBusy('Uploading the image…');
+          const url = await uploadToStorage(file);
+          draft.background = { ...draft.background, image: url }; draft.campaign = null; persist(); busy = ''; render();
+        } catch (err) { fail(err); }
+      });
+      const up = button(draft.background.image ? 'Change image' : 'Upload image', { small: true });
+      up.setAttribute('data-bg-image', '');
+      up.addEventListener('click', () => f.click());
+      img.append(up, f);
+      bg.appendChild(field(draft.background.mode === 'image' ? 'Background image (and fallback)' : 'Fallback image', img, draft.background.mode === 'image' ? 'For contacts without their own background image.' : 'For contacts without an address, or whose address could not be found.'));
+    }
+    if (usesBackground(draft)) {
+      // Where your camera sits over their background.
+      const b = bubbleOf(draft);
+      const setBubble = (patch) => { draft.background = { ...draft.background, bubble: { ...b, ...patch } }; draft.campaign = null; persist(); render(); };
+      const bubbleRow = el('div', 'flex flex-wrap items-center gap-2 text-sm');
+      bubbleRow.setAttribute('data-bg-bubble', '');
+      bubbleRow.appendChild(el('span', 'mr-2 font-semibold', 'Camera bubble'));
+      const spot = button('Spotlight', { selected: b.mode === 'spotlight', small: true });
+      spot.setAttribute('data-bubble-mode', 'spotlight');
+      spot.title = 'A bigger bubble at the bottom centre: you are the focus';
+      spot.addEventListener('click', () => setBubble({ mode: 'spotlight' }));
+      const fixed = button('Fixed', { selected: b.mode === 'fixed', small: true });
+      fixed.setAttribute('data-bubble-mode', 'fixed');
+      fixed.addEventListener('click', () => setBubble({ mode: 'fixed' }));
+      const corner = el('select', 'rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-sm text-white disabled:opacity-40');
+      corner.setAttribute('data-bubble-corner', ''); corner.setAttribute('aria-label', 'Bubble corner');
+      corner.disabled = b.mode !== 'fixed';
+      for (const [k, label] of BUBBLE_CORNERS) { const o = el('option', 'bg-neutral-900', label); o.value = k; o.selected = b.corner === k; corner.appendChild(o); }
+      corner.addEventListener('change', () => setBubble({ mode: 'fixed', corner: corner.value }));
+      bubbleRow.append(spot, fixed, corner);
+      bg.appendChild(bubbleRow);
+    }
+    if (draft.background.mode === 'website') {
+      const set = (patch) => { draft.background = { ...draft.background, ...patch }; draft.campaign = null; persist(); render(); };
+      const line = (label, attr, on, onChange, extra = null) => {
+        const r = el('div', 'flex items-center gap-3 text-sm');
+        const sw = toggle(on, onChange, { label });
+        sw.setAttribute(attr, '');
+        r.append(el('span', 'flex-1 font-semibold', label), ...(extra ? [extra] : []), sw);
+        return r;
+      };
+      const back = el('label', 'flex items-center gap-1.5 text-xs text-white/70');
+      const backBox = el('input'); backBox.type = 'checkbox'; backBox.checked = !!draft.background.scrollBack; backBox.disabled = draft.background.scroll === false;
+      backBox.setAttribute('data-bg-scroll-back', '');
+      backBox.addEventListener('change', () => set({ scrollBack: backBox.checked }));
+      back.append(backBox, el('span', '', 'Scroll back up'));
+      bg.append(
+        line('Scroll the page', 'data-bg-scroll', draft.background.scroll !== false, (on) => set({ scroll: on }), back),
+        line('Mouse cursor', 'data-bg-cursor', draft.background.cursor !== false, (on) => set({ cursor: on })),
+      );
+    }
+    return bg;
   }
 
   // ---- Step 3: Customize -------------------------------------------------
@@ -1167,56 +1416,14 @@ export function OutreachStudio() {
       field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow);
 
 
-    // Background: the recording as it is, or each contact's own website behind a round camera bubble.
-    const bg = el('div', 'flex flex-col gap-3 rounded-xl border border-white/10 p-4');
-    bg.appendChild(el('div', 'text-sm font-bold', 'Video background'));
-    const bgModes = el('div', 'flex flex-wrap gap-2');
-    for (const [mode, label] of [['recording', 'My recording'], ['website', 'Each contact\u2019s website'], ['image', 'An image'], ['map', 'A map of their address'], ['profile', 'Their profile card']]) {
-      const b = button(label, { selected: draft.background.mode === mode, small: true });
-      b.setAttribute('data-bg-mode', mode);
-      b.addEventListener('click', () => { draft.background = { ...draft.background, mode }; draft.campaign = null; persist(); render(); });
-      bgModes.appendChild(b);
+    // Video background: on the AI intro step for AI voices; here for Same audio (which has no AI intro step).
+    if (draft.kind === 'same') main.appendChild(renderBackgroundCard());
+    else {
+      const note = el('p', 'text-xs text-white/50', 'Video background, camera bubble and scrolling are on the AI intro step.');
+      note.setAttribute('data-outreach-bg-moved', '');
+      main.appendChild(note);
     }
-    bg.appendChild(bgModes);
-    if (draft.background.mode === 'website') {
-      bg.appendChild(el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a screenshot of each contact\u2019s website (from the Website column). Screenshots are taken when you generate the campaign. Record in Camera mode for this.'));
-      const fallback = textInput(draft.background.fallbackSite, 'yourcompany.com');
-      fallback.addEventListener('input', () => { draft.background = { ...draft.background, fallbackSite: fallback.value.trim() }; draft.campaign = null; persist(); });
-      fallback.addEventListener('change', () => render());
-      bg.appendChild(field('Fallback website', fallback, 'Shown for contacts without a website, or whose site could not be captured.'));
-      const curOn = el('input'); curOn.type = 'checkbox'; curOn.checked = draft.background.cursor !== false;
-      curOn.addEventListener('change', () => { draft.background = { ...draft.background, cursor: curOn.checked }; draft.campaign = null; persist(); });
-      const curRow = el('label', 'flex items-center gap-2 text-xs'); curRow.append(curOn, el('span', '', 'Show a pointer moving over their website, as if you were pointing things out'));
-      bg.appendChild(curRow);
-    }
-    if (draft.background.mode === 'profile') {
-      const p = el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a card with each contact\u2019s name, job title, company, their logo (or initials) and their LinkedIn address, from your prospect list. Cards are drawn when you generate the campaign. (LinkedIn pages themselves can\u2019t be captured: they need a login.)');
-      p.setAttribute('data-bg-profile-note', '');
-      bg.appendChild(p);
-    }
-    if (draft.background.mode === 'image' || draft.background.mode === 'map') {
-      bg.appendChild(el('p', 'text-xs text-secondary', draft.background.mode === 'image'
-        ? 'Your camera appears in a round bubble over an image: each contact\u2019s own (the Background image column, an https link) or the one below for everyone else.'
-        : 'Your camera appears in a round bubble over a map of each contact\u2019s address (the Address column). Maps are made when you generate the campaign; addresses are looked up on OpenStreetMap.'));
-      const img = el('div', 'flex flex-wrap items-center gap-3');
-      if (draft.background.image) { const th = el('img', 'h-14 w-24 rounded-lg object-cover border border-white/10'); th.src = draft.background.image; img.appendChild(th); }
-      const f = el('input'); f.type = 'file'; f.accept = 'image/*'; f.hidden = true;
-      f.addEventListener('change', async () => {
-        const file = f.files?.[0]; f.value = '';
-        if (!file) return;
-        try {
-          setBusy('Uploading the image…');
-          const url = await uploadToStorage(file);
-          draft.background = { ...draft.background, image: url }; draft.campaign = null; persist(); busy = ''; render();
-        } catch (err) { fail(err); }
-      });
-      const up = button(draft.background.image ? 'Change image' : 'Upload image', { small: true });
-      up.setAttribute('data-bg-image', '');
-      up.addEventListener('click', () => f.click());
-      img.append(up, f);
-      bg.appendChild(field(draft.background.mode === 'image' ? 'Background image (and fallback)' : 'Fallback image', img, draft.background.mode === 'image' ? 'For contacts without their own background image.' : 'For contacts without an address, or whose address could not be found.'));
-    }
-    main.appendChild(bg);
+
 
     const preview = el('div', 'rounded-2xl bg-[#f7f4ee] p-6 text-center text-[#1a1a1a] flex flex-col gap-3 self-start');
     const sample = { firstname: 'Mike', company: 'Acme' };
@@ -1247,7 +1454,7 @@ export function OutreachStudio() {
           page.append(el('div', 'h-3 w-1/3 rounded bg-white/80'), el('div', 'mt-2 h-2 w-3/4 rounded bg-white/70'), el('div', 'h-2 w-2/3 rounded bg-white/70'), el('div', 'mt-auto text-left text-[10px] text-black/40', 'acme.com'));
         }
         const bubble = el('div', 'absolute overflow-hidden rounded-full border-[3px] border-white shadow-lg');
-        Object.assign(bubble.style, { left: '3%', bottom: '5.4%', width: '26%', aspectRatio: '1 / 1' });
+        Object.assign(bubble.style, { ...bubbleCss(), aspectRatio: '1 / 1' });
         if (draft.video?.url) bubble.appendChild(camVideo()); else bubble.classList.add('bg-slate-700');
         media.append(page, bubble);
       } else if (draft.video?.url) media.appendChild(camVideo());
@@ -1499,12 +1706,13 @@ export function OutreachStudio() {
   // Profile-card backgrounds: one card per prospect (and one for the fallbacks), drawn in the browser and stored.
   async function captureProfiles() {
     const { cardDetails, cardKey, renderProfileCard } = await import('../lib/outreach/profileCard.js');
+    const side = cardSide(draft);
     const people = [...draft.contacts, {}];
     const todo = [];
     const seen = new Set();
     for (const c of people) {
       const d = cardDetails(c, draft.fallbacks);
-      const k = cardKey(d);
+      const k = cardKey(d, side);
       if (seen.has(k) || draft.profileShots?.[k]) continue;
       seen.add(k); todo.push({ c, d, k });
     }
@@ -1513,7 +1721,7 @@ export function OutreachStudio() {
       setBusy(`Drawing profile cards: ${i + 1} of ${todo.length}…`);
       const { c, d, k } = todo[i];
       const logoUrl = c.website ? draft.siteLogos?.[siteKey(c.website)] || '' : '';
-      const blob = await renderProfileCard(d, { logoUrl });
+      const blob = await renderProfileCard(d, { logoUrl, side });
       const url = await uploadToStorage(new File([blob], 'profile-card.jpg', { type: 'image/jpeg' }));
       draft.profileShots = { ...(draft.profileShots || {}), [k]: url };
       persist();
@@ -1734,71 +1942,36 @@ export function OutreachStudio() {
     if (busy && progress) wrap.appendChild(renderProgress());
 
     if (draft.campaign) {
-      const list = card('Personal links');
-      const rows = el('div', 'flex flex-col divide-y divide-white/5');
       if (linkStats.id !== draft.campaign.id && !linkStats.loading) setTimeout(loadLinkStats, 0);
-      draft.campaign.links.forEach((l, i) => {
-        // Like Sendspark's prospect list: their thumbnail, who they are, what they hear, how much they watched.
-        const row = el('div', 'flex flex-wrap items-center gap-3 py-3 text-sm');
-        row.setAttribute('data-outreach-link-row', l.contactId || String(i));
-        const c = contactOf(l);
-        const thumb = el('div', 'h-[54px] w-24 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]');
-        thumb.setAttribute('data-outreach-row-thumb', '');
-        if (l.thumbnailUrl) { const img = el('img', 'h-full w-full object-cover'); img.src = l.thumbnailUrl; img.alt = `Thumbnail for ${l.name || 'this prospect'}`; img.loading = 'lazy'; thumb.appendChild(img); }
-        else thumb.appendChild(el('span', 'grid h-full place-items-center text-[10px] text-white/35', 'No thumbnail'));
-        const who = el('div', 'min-w-[150px] flex-1');
-        who.append(
-          el('div', 'truncate font-semibold', l.name || '(no name)'),
-          el('div', 'truncate text-xs text-white/55', [c.company, l.email].filter(Boolean).join(' · ')),
-        );
-        const heard = l.voiced ? fillTemplate(draft.greeting, contactValues(c), draft.fallbacks).trim() : '';
-        if (heard) { const q = el('div', 'truncate text-[11px] text-white/45', `Hears: “${heard}”`); q.setAttribute('data-outreach-heard', ''); who.appendChild(q); }
-        const status = el('div', 'flex flex-col gap-0.5');
-        status.appendChild(el('span', `text-xs ${l.voiced ? 'text-emerald-300' : 'text-white/50'}`, l.voiced ? (l.lipsynced ? '● Greeted by name, lip-synced' : l.lipsyncError ? `● Greeted by name (no lip-sync: ${l.lipsyncError})` : '● Greeted by name') : '● Fallback greeting'));
-        if (l.site) status.appendChild(el('span', `text-xs ${l.site === 'own' ? 'text-emerald-300' : 'text-white/50'}`, l.site === 'own' ? '● Their website' : '● Fallback website'));
-        const st = linkStats.byContact ? (linkStats.byContact[l.contactId] || { views: 0, plays: 0, ctaClicks: 0, progress: 0 }) : null;
-        if (st) {
-          const pct = Math.max(st.progress || 0, st.completes ? 100 : 0);
-          const watch = el('span', `text-xs ${st.ctaClicks ? 'text-primary' : st.plays ? 'text-emerald-300' : 'text-white/40'}`,
-            st.ctaClicks ? `● Clicked${pct ? ` · watched ${pct}%` : ''}` : st.plays ? `● Watched ${pct ? `${pct}%` : ''}`.trim() : st.views ? '● Opened' : '● Not opened');
-          watch.setAttribute('data-outreach-watch', String(pct));
-          status.appendChild(watch);
-        }
-        const share = button('Share', { primary: true, small: true });
-        share.setAttribute('data-outreach-share', '');
-        share.addEventListener('click', () => openShare(l));
-        const mailBtn = button('Copy email', { small: true });
-        mailBtn.setAttribute('data-outreach-copy-email', '');
-        mailBtn.addEventListener('click', () => copyEmail(l, mailBtn));
-        const mp4 = button('MP4', { small: true });
-        mp4.setAttribute('data-outreach-mp4', '');
-        mp4.title = 'Download this contact\u2019s video as a file';
-        mp4.disabled = !!busy;
-        mp4.addEventListener('click', () => downloadContactVideo(l));
-        const linkCls = 'text-xs font-bold text-white/70 hover:text-white';
-        const gmail = el('a', linkCls, 'Gmail');
-        gmail.setAttribute('data-outreach-gmail', '');
-        gmail.href = gmailUrl(emailOf(l)); gmail.target = '_blank'; gmail.rel = 'noopener noreferrer';
-        const outlook = el('a', linkCls, 'Outlook');
-        outlook.setAttribute('data-outreach-outlook', '');
-        outlook.href = outlookUrl(emailOf(l)); outlook.target = '_blank'; outlook.rel = 'noopener noreferrer';
-        outlook.title = 'Outlook on the web (plain text with their link; for the thumbnail, use Copy email and paste)';
-        const mailto = el('a', linkCls, 'Email');
-        if (l.email) { mailto.href = mailtoUrl(emailOf(l)); } else { mailto.classList.add('hidden'); }
-        const li = button('LinkedIn', { small: true });
-        li.setAttribute('data-outreach-linkedin', '');
-        li.title = 'Copies a short message with their link and opens LinkedIn so you can paste it';
-        li.addEventListener('click', async () => {
-          const msg = linkedinMessage({ contact: c, link: linkOf(l), fallbacks: draft.fallbacks });
-          window.open(c.linkedin || 'https://www.linkedin.com/messaging/', '_blank', 'noopener');
-          try { await navigator.clipboard.writeText(msg); li.textContent = 'Message copied'; } catch { window.prompt('Copy this message:', msg); }
-        });
-        const acts = el('div', 'flex flex-wrap items-center gap-2');
-        acts.append(share, mailBtn, li, mp4, gmail, outlook, mailto);
-        row.append(el('span', 'w-6 text-white/40 tabular-nums', String(i + 1).padStart(2, '0')), thumb, who, status, acts);
-        rows.appendChild(row);
-      });
-      list.appendChild(rows);
+      // The prospect table (src/components/outreach/ProspectTable.js), like Sendspark's dynamic-video prospect list.
+      const list = card('Prospects', 'Each prospect\u2019s own video, thumbnail and page. Share or send it from their row; you\u2019ll see who watched and how much.');
+      const contactOfLink = (l) => draft.contacts.find((c) => c.id === l.contactId) || {};
+      const links = draft.campaign.links.map((l) => ({ ...l, heard: l.voiced ? fillTemplate(draft.greeting, contactValues(contactOfLink(l)), draft.fallbacks).trim() : '' }));
+      list.appendChild(renderProspectTable({
+        links, contacts: draft.contacts, total: draft.contacts.length,
+        stats: linkStats.byContact, filter: prospectFilter,
+        setFilter: (k) => { prospectFilter = k; render(); },
+        onAddProspects: () => { step = 4; notice = ''; render(); },
+        share: (l) => openShare(l),
+        menu: (l) => {
+          const c = contactOfLink(l);
+          const sent = () => markSent(l);
+          return [
+            { label: 'Copy link', attr: 'data-outreach-copy-link', onClick: async (_e, item) => { try { await navigator.clipboard.writeText(linkOf(l)); item.textContent = 'Copied'; } catch { window.prompt('Copy this link:', linkOf(l)); } sent(); } },
+            { label: 'Copy email', attr: 'data-outreach-copy-email', onClick: (_e, item) => { copyEmail(l, item); sent(); } },
+            { label: 'Gmail', attr: 'data-outreach-gmail', href: gmailUrl(emailOf(l)), onClick: sent },
+            { label: 'Outlook', attr: 'data-outreach-outlook', href: outlookUrl(emailOf(l)), onClick: sent },
+            ...(l.email ? [{ label: 'Email app', attr: 'data-outreach-mailto', href: mailtoUrl(emailOf(l)), onClick: sent }] : []),
+            { label: 'LinkedIn', attr: 'data-outreach-linkedin', onClick: async (_e, item) => {
+              const msg = linkedinMessage({ contact: c, link: linkOf(l), fallbacks: draft.fallbacks });
+              window.open(c.linkedin || 'https://www.linkedin.com/messaging/', '_blank', 'noopener');
+              try { await navigator.clipboard.writeText(msg); item.textContent = 'Message copied'; } catch { window.prompt('Copy this message:', msg); }
+              sent();
+            } },
+            { label: 'Download MP4', attr: 'data-outreach-mp4', disabled: !!busy, onClick: () => downloadContactVideo(l) },
+          ];
+        },
+      }));
       wrap.appendChild(list);
       wrap.appendChild(renderLandingCard());
       wrap.appendChild(renderEmailCard());
@@ -2047,6 +2220,16 @@ export function OutreachStudio() {
   const contactOf = (l) => draft.contacts.find((c) => c.id === l.contactId) || { email: l.email, company: l.company };
   const emailOf = (l) => emailFor({ email: draft.email, fallbacks: draft.fallbacks, contact: contactOf(l), link: linkOf(l), thumbnailUrl: l.thumbnailUrl });
 
+  let prospectFilter = 'all';
+  // "Sent" (prospect table): you sent this prospect their video (copied their email or link, opened Gmail…).
+  function markSent(l) {
+    const link = draft.campaign?.links?.find((x) => x.contactId === l.contactId);
+    if (!link || link.sentAt) return;
+    link.sentAt = new Date().toISOString();
+    persist();
+    setTimeout(() => { if (step === 5 && !busy) render(); }, 400);
+  }
+
   async function copyEmail(l, btn) {
     const e = emailOf(l);
     try {
@@ -2137,6 +2320,7 @@ export function OutreachStudio() {
       // The embed's muted preview: the campaign video (the GIF stays the poster and the fallback).
       videoUrl: draft.video?.url || '',
       actions: {
+        sent: () => markSent(l),
         download: (kind, btn) => (kind === 'still'
           ? downloadThumbnail(l, btn, false, l.stillUrl, 'outlook-still')
           : downloadThumbnail(l, btn, /\.gif(\?|$)/i.test(l.thumbnailUrl))),
@@ -2600,10 +2784,19 @@ export function OutreachStudio() {
       footer.appendChild(back);
     }
     if (step < STEPS.length) {
-      const next = button(step === SETUP_STEPS + 1 ? 'Back to my videos' : 'Next', { primary: true });
+      const next = button(step === SETUP_STEPS + 1 ? 'Back to my videos' : 'Continue', { primary: true });
+      next.setAttribute('data-outreach-continue-step', '');
       next.disabled = !!busy || errors.length > 0;
       next.addEventListener('click', () => { step += 1; notice = ''; render(); });
       footer.appendChild(next);
+    }
+    if (step <= SETUP_STEPS) {
+      // Everything is already saved as you go; this just takes you back to your videos.
+      const close = button('Save & Close');
+      close.setAttribute('data-outreach-save-close', '');
+      close.disabled = !!busy;
+      close.addEventListener('click', () => { persist(); step = STEPS.length; notice = 'Saved. Pick it up any time from your videos.'; render(); });
+      footer.appendChild(close);
     }
     footer.appendChild(status);
     inner.appendChild(footer);

@@ -69,7 +69,7 @@ export function openShareModal({ name = '', link, thumbnailUrl = '', stillUrl = 
       field.readOnly = true; field.value = link; field.setAttribute('data-share-link', '');
       const row = el('div', 'flex flex-wrap gap-2');
       const copy = btn('Copy link', { primary: true, attr: 'data-share-copy-link' });
-      copy.addEventListener('click', () => copyText(link, copy));
+      copy.addEventListener('click', () => { copyText(link, copy); actions.sent?.(); });
       const open = btn('Open');
       open.addEventListener('click', () => window.open(link, '_blank', 'noopener'));
       row.append(copy, open);
@@ -83,7 +83,7 @@ export function openShareModal({ name = '', link, thumbnailUrl = '', stillUrl = 
         const row = el('div', 'flex flex-wrap gap-2');
         const gif = isGifUrl(thumbnailUrl);
         const copy = btn(gif ? 'Copy GIF' : 'Copy thumbnail', { primary: true, attr: 'data-share-copy-gif' });
-        copy.addEventListener('click', () => copyHtml(thumbnailHtml({ link, thumbnailUrl }), thumbnailUrl, copy, 'Copied: paste into your email'));
+        copy.addEventListener('click', () => { copyHtml(thumbnailHtml({ link, thumbnailUrl }), thumbnailUrl, copy, 'Copied: paste into your email'); actions.sent?.(); });
         const dl = btn(gif ? 'Download GIF' : 'Download image', { attr: 'data-share-download' });
         dl.addEventListener('click', () => actions.download?.('main', dl));
         row.append(copy, dl);
@@ -101,7 +101,7 @@ export function openShareModal({ name = '', link, thumbnailUrl = '', stillUrl = 
       const area = el('textarea', 'h-36 w-full resize-none rounded-xl border border-white/10 bg-white/[0.04] p-3 font-mono text-[11px] text-white/80');
       area.readOnly = true; area.value = code; area.setAttribute('data-share-embed-code', '');
       const copy = btn('Copy code snippet', { primary: true, attr: 'data-share-copy-embed' });
-      copy.addEventListener('click', () => copyText(code, copy));
+      copy.addEventListener('click', () => { copyText(code, copy); actions.sent?.(); });
       body.append(area, copy, el('p', 'text-[11px] text-white/45', 'For email platforms that take HTML (HubSpot, Mailchimp, lemlist, Instantly…). Inboxes that play video (Apple Mail, iPhone) show a muted preview; every other inbox shows the GIF. Either way, a click opens their page.'));
     }
   }
