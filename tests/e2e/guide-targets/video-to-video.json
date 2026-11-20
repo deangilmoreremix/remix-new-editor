@@ -1,0 +1,13 @@
+{
+  "title-banner": {
+    "selector": ".hero-banner"
+  },
+  "open-video-studio-from-the-side-menu": {
+    "selector": "xpath=//div[contains(@class,'cursor-pointer')][./span[normalize-space(.)='Video']]"
+  },
+  "video-to-video-in-video-studio": {
+    "route": "video",
+    "selector": "button[title=\"Upload video to remove watermark\"]",
+    "click": false
+  }
+}
