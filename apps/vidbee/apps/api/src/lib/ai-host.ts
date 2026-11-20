@@ -9,11 +9,13 @@
  * The API key stays on the server: it comes from `OPENAI_API_KEY` or `ai-settings.json`
  * in the data directory, and is never returned to the browser.
  */
+import { randomUUID } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { PROMPT_RUN_DDL_V1 } from '@vidbee/db/prompt-runs'
 import type {
+  WebAiConnectionTest,
   WebAiRun,
   WebAiRunStatus,
   WebAiSettings,
@@ -103,7 +105,10 @@ const skillsDirCandidates = [
 const skillsDir = (): string | null =>
   skillsDirCandidates.find((dir) => fs.existsSync(path.join(dir, 'overview', 'SKILL.md'))) ?? null
 
-interface LoadedSkill extends WebAiSkill {
+interface LoadedSkill {
+  id: string
+  name: string
+  description: string
   body: string
 }
 
@@ -190,9 +195,47 @@ export const normalizeChapters = (raw: string, durationSeconds: number): string 
   return JSON.stringify({ takeaway: parsed.takeaway ?? '', chapters, quotes })
 }
 
+/**
+ * The page's "Translate" prompt: translate the transcript text into the interface language as Markdown.
+ * Upstream's own `translate` skill is an agent workflow that needs tools, so the web edition uses this
+ * single-request prompt. Cue-aligned subtitle translation is the Translate tab.
+ */
+const TRANSLATE_SKILL: LoadedSkill = {
+  id: 'translate',
+  name: 'translate',
+  description: 'Translate the transcript into the interface language.',
+  body: [
+    'Translate this transcript into {{uiLanguage}}.',
+    'Keep the speaker labels and the order of the lines. Stay faithful to the meaning and keep names, numbers and technical terms accurate.',
+    'Write natural {{uiLanguage}}, not a word-for-word copy. If a passage is already in {{uiLanguage}}, keep it unchanged.',
+    'Output the translated transcript as paragraphs, one per speaker turn, with the speaker label in bold when there is one.',
+    'Keep each list marker on the same line as the item text. Do not wrap the whole reply in a code fence. Do not add a preamble or closing remarks.'
+  ].join('\n')
+}
+
+interface BuiltinMeta {
+  title: string
+  icon: string
+  visible: boolean
+  editable: boolean
+}
+
+/** Names match the AI prompts documentation; the first three tabs are upstream's default sidebar set. */
+const BUILTIN_META: Record<string, BuiltinMeta> = {
+  overview: { title: 'Overview', icon: '🧭', visible: true, editable: true },
+  chapters: { title: 'Chapters', icon: '📑', visible: true, editable: false },
+  'generate-faq': { title: 'Generate FAQ', icon: '❓', visible: true, editable: true },
+  'create-mindmap': { title: 'Create a mindmap', icon: '🧠', visible: true, editable: true },
+  'bullet-points': { title: 'Bullet Points', icon: '📝', visible: false, editable: true },
+  'improve-grammar': { title: 'Improve Grammar & Punctuation', icon: '✍️', visible: false, editable: true },
+  'extract-statistics': { title: 'Extract Statistics', icon: '📊', visible: false, editable: true },
+  'paraphrase-content': { title: 'Paraphrase Content', icon: '🔁', visible: false, editable: true },
+  translate: { title: 'Translate', icon: '🌐', visible: false, editable: true }
+}
+
 const loadSkills = (): LoadedSkill[] => {
   const dir = skillsDir()
-  const out: LoadedSkill[] = [CHAPTERS_SKILL]
+  const out: LoadedSkill[] = [CHAPTERS_SKILL, TRANSLATE_SKILL]
   if (!dir) {
     return out
   }
@@ -205,8 +248,150 @@ const loadSkills = (): LoadedSkill[] => {
   return out
 }
 
-export const listAiSkills = (): WebAiSkill[] =>
-  loadSkills().map(({ id, name, description }) => ({ id, name, description }))
+// ---------- prompt catalog (built-ins + the user's edits and custom prompts) ----------
+
+interface StoredPrompts {
+  custom: Array<{ id: string; title: string; icon: string; content: string }>
+  /** Edits to built-ins, by id. */
+  overrides: Record<string, { title?: string; icon?: string; content?: string }>
+  /** Explicit tab visibility, by id. Missing means the default. */
+  visibility: Record<string, boolean>
+}
+
+const promptsFile = path.join(apiDataDir, 'ai-prompts.json')
+
+const readPromptStore = (): StoredPrompts => {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(promptsFile, 'utf-8')) as Partial<StoredPrompts>
+    return {
+      custom: Array.isArray(parsed.custom) ? parsed.custom : [],
+      overrides: parsed.overrides ?? {},
+      visibility: parsed.visibility ?? {}
+    }
+  } catch {
+    return { custom: [], overrides: {}, visibility: {} }
+  }
+}
+
+const writePromptStore = (store: StoredPrompts): void => {
+  fs.mkdirSync(apiDataDir, { recursive: true })
+  fs.writeFileSync(promptsFile, JSON.stringify(store, null, 2), 'utf-8')
+}
+
+/** Every prompt with its current title, icon and instructions. */
+export const listAiSkills = (): WebAiSkill[] => {
+  const store = readPromptStore()
+  const out: WebAiSkill[] = loadSkills()
+    .filter((skill) => BUILTIN_META[skill.id])
+    .map((skill) => {
+      const meta = BUILTIN_META[skill.id] as BuiltinMeta
+      const override = store.overrides[skill.id]
+      return {
+        id: skill.id,
+        name: skill.name,
+        description: skill.description,
+        title: override?.title?.trim() || meta.title,
+        icon: override?.icon?.trim() || meta.icon,
+        content: override?.content?.trim() || skill.body,
+        builtin: true,
+        visible: store.visibility[skill.id] ?? meta.visible,
+        edited: Boolean(override),
+        editable: meta.editable
+      }
+    })
+  for (const item of store.custom) {
+    out.push({
+      id: item.id,
+      name: item.id,
+      description: 'Custom prompt',
+      title: item.title,
+      icon: item.icon,
+      content: item.content,
+      builtin: false,
+      visible: store.visibility[item.id] ?? true,
+      edited: false,
+      editable: true
+    })
+  }
+  return out
+}
+
+const checkPromptFields = (input: { title: string; icon?: string; content: string }): void => {
+  if (!input.title.trim() || input.title.trim().length > 60) {
+    throw new Error('Give the prompt a title of up to 60 characters.')
+  }
+  if (!input.content.trim() || input.content.length > 20_000) {
+    throw new Error('Write the instructions (up to 20,000 characters).')
+  }
+  if ((input.icon ?? '').length > 8) {
+    throw new Error('The icon must be a single emoji.')
+  }
+}
+
+export const savePrompt = (input: {
+  id?: string
+  title: string
+  icon?: string
+  content: string
+}): WebAiSkill[] => {
+  checkPromptFields(input)
+  const store = readPromptStore()
+  const title = input.title.trim()
+  const icon = input.icon?.trim() || '✨'
+  if (!input.id) {
+    const id = `custom-${randomUUID()}`
+    store.custom.push({ id, title, icon, content: input.content.trim() })
+    store.visibility[id] = true
+  } else if (BUILTIN_META[input.id]) {
+    if (!BUILTIN_META[input.id]?.editable) {
+      throw new Error('This prompt cannot be edited because the page depends on its output format.')
+    }
+    store.overrides[input.id] = { title, icon, content: input.content.trim() }
+  } else {
+    const existing = store.custom.find((item) => item.id === input.id)
+    if (!existing) {
+      throw new Error('Prompt not found.')
+    }
+    Object.assign(existing, { title, icon, content: input.content.trim() })
+  }
+  writePromptStore(store)
+  return listAiSkills()
+}
+
+export const deletePrompt = (id: string): WebAiSkill[] => {
+  const store = readPromptStore()
+  if (BUILTIN_META[id]) {
+    delete store.overrides[id]
+  } else {
+    store.custom = store.custom.filter((item) => item.id !== id)
+    delete store.visibility[id]
+  }
+  writePromptStore(store)
+  return listAiSkills()
+}
+
+export const setPromptVisible = (id: string, visible: boolean): WebAiSkill[] => {
+  const store = readPromptStore()
+  store.visibility[id] = visible
+  writePromptStore(store)
+  return listAiSkills()
+}
+
+/** Undo edits to built-ins and reset their tab visibility; custom prompts stay. */
+export const restorePrompts = (): WebAiSkill[] => {
+  const store = readPromptStore()
+  store.overrides = {}
+  for (const id of Object.keys(BUILTIN_META)) {
+    delete store.visibility[id]
+  }
+  writePromptStore(store)
+  return listAiSkills()
+}
+
+const resolvePrompt = (id: string): { id: string; body: string } | null => {
+  const found = listAiSkills().find((item) => item.id === id)
+  return found ? { id: found.id, body: found.content } : null
+}
 
 // ---------- run storage ----------
 
@@ -318,39 +503,36 @@ const buildTranscriptText = (downloadId: string, timestamps: boolean): string =>
 
 // ---------- OpenAI Responses call ----------
 
-export const startAiRun = (input: {
+interface RunSpec {
   downloadId: string
   skillId: string
-  language?: string
-}): WebAiRun => {
-  const skill = loadSkills().find((item) => item.id === input.skillId)
-  if (!skill) {
-    throw new Error(`Unknown skill: ${input.skillId}`)
-  }
+  instructions: string
+  transcript: string
+  durationSeconds: number
+  chapters: boolean
+  /** False for test runs: nothing is written to the database. */
+  persist: boolean
+}
+
+const executeRun = (spec: RunSpec): WebAiRun => {
   const settings = effective()
   if (!settings.apiKey) {
     throw new Error('Add an OpenAI API key in AI settings first.')
   }
-  const key = keyOf(input.downloadId, input.skillId)
+  const key = keyOf(spec.downloadId, spec.skillId)
   if (live.has(key)) {
     throw new Error('This summary is already running.')
   }
-  const timestamped = skill.id === 'overview' || skill.id === CHAPTERS_SKILL_ID
-  const transcript = buildTranscriptText(input.downloadId, timestamped)
-  const durationSeconds =
-    (getTranscriptDetail(input.downloadId).record?.segments.reduce((max, seg) => Math.max(max, seg.endMs), 0) ?? 0) /
-    1000
-  if (transcript.length > MAX_TRANSCRIPT_CHARS) {
+  if (spec.transcript.length > MAX_TRANSCRIPT_CHARS) {
     throw new Error(
-      `This transcript is too long for one request (${transcript.length} characters, limit ${MAX_TRANSCRIPT_CHARS}).`
+      `This transcript is too long for one request (${spec.transcript.length} characters, limit ${MAX_TRANSCRIPT_CHARS}).`
     )
   }
-  const instructions = skill.body.replaceAll('{{uiLanguage}}', input.language?.trim() || 'English')
   const controller = new AbortController()
   const createdAt = Date.now()
   const run: WebAiRun = {
-    downloadId: input.downloadId,
-    skillId: input.skillId,
+    downloadId: spec.downloadId,
+    skillId: spec.skillId,
     status: 'running',
     text: '',
     error: null,
@@ -358,15 +540,19 @@ export const startAiRun = (input: {
     updatedAt: createdAt
   }
   live.set(key, { run, controller })
-  save(run, createdAt)
-  const channel = aiChannel(input.downloadId, input.skillId)
+  if (spec.persist) {
+    save(run, createdAt)
+  }
+  const channel = aiChannel(spec.downloadId, spec.skillId)
   publishLive(channel, 'state', { ...run })
 
   const finish = (status: WebAiRunStatus, error: string | null): void => {
     run.status = status
     run.error = error
     run.updatedAt = Date.now()
-    save(run, createdAt)
+    if (spec.persist) {
+      save(run, createdAt)
+    }
     live.delete(key)
     publishLive(channel, 'state', { ...run })
   }
@@ -375,9 +561,9 @@ export const startAiRun = (input: {
     try {
       const result = await createResponse({
         body: {
-          instructions,
-          input: transcript,
-          ...(skill.id === CHAPTERS_SKILL_ID
+          instructions: spec.instructions,
+          input: spec.transcript,
+          ...(spec.chapters
             ? {
                 text: {
                   format: { type: 'json_schema', name: 'chapters', strict: true, schema: CHAPTERS_SCHEMA }
@@ -398,8 +584,8 @@ export const startAiRun = (input: {
       if (!run.text.trim()) {
         throw new Error('The model returned no text.')
       }
-      if (skill.id === CHAPTERS_SKILL_ID) {
-        run.text = normalizeChapters(run.text, durationSeconds)
+      if (spec.chapters) {
+        run.text = normalizeChapters(run.text, spec.durationSeconds)
       }
       finish('completed', null)
     } catch (error) {
@@ -412,6 +598,104 @@ export const startAiRun = (input: {
   })()
 
   return { ...run }
+}
+
+export const startAiRun = (input: {
+  downloadId: string
+  skillId: string
+  /** The interface language's name, for example "English" or "中文". */
+  language?: string
+}): WebAiRun => {
+  const skill = resolvePrompt(input.skillId)
+  if (!skill) {
+    throw new Error(`Unknown skill: ${input.skillId}`)
+  }
+  if (!effective().apiKey) {
+    throw new Error('Add an OpenAI API key in AI settings first.')
+  }
+  const chapters = skill.id === CHAPTERS_SKILL_ID
+  const timestamped = skill.id === 'overview' || chapters
+  const transcript = buildTranscriptText(input.downloadId, timestamped)
+  const durationSeconds =
+    (getTranscriptDetail(input.downloadId).record?.segments.reduce((max, seg) => Math.max(max, seg.endMs), 0) ?? 0) /
+    1000
+  return executeRun({
+    downloadId: input.downloadId,
+    skillId: input.skillId,
+    instructions: skill.body.replaceAll('{{uiLanguage}}', input.language?.trim() || 'English'),
+    transcript,
+    durationSeconds,
+    chapters,
+    persist: true
+  })
+}
+
+/** A short made-up interview used to try instructions in the prompt editor. */
+const SAMPLE_TRANSCRIPT = [
+  '[0:00] Maya: Welcome back to the show. Today we are talking about how small teams ship faster.',
+  '[0:12] Jon: Thanks for having me. We cut our release cycle from three weeks to four days last year.',
+  '[0:24] Maya: What changed?',
+  '[0:27] Jon: Mostly two things. We stopped batching work, and we automated roughly 80% of our manual testing.',
+  '[0:45] Maya: Did quality suffer?',
+  '[0:48] Jon: The opposite. Bugs reported by customers dropped by 35% in six months.',
+  '[1:05] Maya: Any advice for a team starting out?',
+  '[1:09] Jon: Ship something small every day, and measure what breaks.'
+].join('\n')
+
+export const SAMPLE_DOWNLOAD_ID = '__sample__'
+export const SAMPLE_PROMPT_ID = '__test__'
+
+export const startPromptTest = (input: { content: string; language?: string }): WebAiRun => {
+  if (!input.content.trim() || input.content.length > 20_000) {
+    throw new Error('Write the instructions first (up to 20,000 characters).')
+  }
+  return executeRun({
+    downloadId: SAMPLE_DOWNLOAD_ID,
+    skillId: SAMPLE_PROMPT_ID,
+    instructions: input.content.replaceAll('{{uiLanguage}}', input.language?.trim() || 'English'),
+    transcript: SAMPLE_TRANSCRIPT,
+    durationSeconds: 70,
+    chapters: false,
+    persist: false
+  })
+}
+
+/** Send a short ping so the user can check the key, model and base URL before relying on them. */
+export const testConnection = async (input: {
+  apiKey?: string
+  baseUrl?: string
+  model?: string
+}): Promise<WebAiConnectionTest> => {
+  const saved = getOpenAiConfig()
+  const config = {
+    apiKey: input.apiKey?.trim() || saved.apiKey || '',
+    baseUrl: (input.baseUrl?.trim() || saved.baseUrl).replace(/\/+$/, ''),
+    model: input.model?.trim() || saved.model
+  }
+  if (!config.apiKey) {
+    return { ok: false, model: config.model, reply: null, error: 'Add an OpenAI API key first.' }
+  }
+  if (!config.model) {
+    return { ok: false, model: config.model, reply: null, error: 'Enter a model ID.' }
+  }
+  if (!/^https?:\/\//i.test(config.baseUrl)) {
+    return { ok: false, model: config.model, reply: null, error: 'Base URL must start with http:// or https://' }
+  }
+  try {
+    const result = await createResponse({
+      config,
+      body: { input: 'Reply with the single word: ready', max_output_tokens: 32 },
+      signal: AbortSignal.timeout(20_000)
+    })
+    return { ok: true, model: config.model, reply: result.text.trim().slice(0, 80) || '(empty reply)', error: null }
+  } catch (error) {
+    return {
+      ok: false,
+      model: config.model,
+      reply: null,
+      error: error instanceof Error ? error.message : 'The connection failed.'
+    }
+  }
 }
 
 export const cancelAiRun = (downloadId: string, skillId: string): WebAiRun | null => {

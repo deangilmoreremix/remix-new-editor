@@ -1,235 +1,66 @@
+import { languages } from "@vidbee/i18n/languages";
 import { Button } from "@vidbee/ui/components/ui/button";
-import { Input } from "@vidbee/ui/components/ui/input";
-import type {
-	WebAiRun,
-	WebAiSettings,
-	WebAiSkill,
-} from "@vidbee/transcription/web-contract";
-import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import type { WebAiRun, WebAiSettings, WebAiSkill } from "@vidbee/transcription/web-contract";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { aiClient } from "../../lib/orpc-client";
 import { notify } from "../../lib/notify";
-import { saveNodeAsPng } from "../../lib/share-image";
+import { aiClient, orpcClient } from "../../lib/orpc-client";
+import {
+	canCopyImage,
+	canShareImage,
+	copyImage,
+	downloadBlob,
+	renderNodeToPng,
+	shareImage,
+} from "../../lib/share-image";
 import { useLiveStream } from "../../lib/use-live-stream";
+import { AiSettingsForm } from "./ai-settings-form";
+import { ChaptersView, parseChapters } from "./chapters-view";
+import { MarkdownView } from "./markdown-view";
+import { PromptManager } from "./prompt-manager";
 
 const messageOf = (error: unknown): string =>
 	error instanceof Error && error.message ? error.message : "Request failed";
 
-const prettySkill = (skill: WebAiSkill): string =>
-	skill.id
-		.split("-")
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-		.join(" ");
-
-const inline = (text: string): ReactNode[] =>
-	text.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
-		part.startsWith("**") && part.endsWith("**") ? (
-			// biome-ignore lint/suspicious/noArrayIndexKey: static split of one string
-			<strong key={index}>{part.slice(2, -2)}</strong>
-		) : (
-			part
-		),
-	);
-
-interface ChaptersData {
-	takeaway: string;
-	chapters: Array<{ start_seconds: number; title: string; summary: string }>;
-	quotes: Array<{ start_seconds: number; quote: string }>;
-}
-
-const parseChapters = (text: string): ChaptersData | null => {
-	try {
-		const data = JSON.parse(text) as ChaptersData;
-		return Array.isArray(data.chapters) ? data : null;
-	} catch {
-		return null;
+/** Turn the server's error text into a plain explanation, and say whether settings can fix it. */
+const explainError = (message: string): { text: string; settings: boolean } => {
+	if (/Add an OpenAI API key/i.test(message)) {
+		return { text: "No API key is set yet.", settings: true };
 	}
+	if (/OpenAI error 401|Incorrect API key|invalid api key/i.test(message)) {
+		return { text: "The provider rejected the API key.", settings: true };
+	}
+	if (/Enter a model ID|model_not_found|does not exist|model.*not found|OpenAI error 404/i.test(message)) {
+		return { text: `The model ID was not accepted. ${message}`, settings: true };
+	}
+	if (/fetch failed|ECONN|ENOTFOUND|EAI_AGAIN|network|timed? ?out|terminated/i.test(message)) {
+		return { text: "The provider could not be reached. Check the base URL and your connection.", settings: true };
+	}
+	if (/returned no text/i.test(message)) {
+		return { text: "The model returned no text. Run it again or try another model.", settings: true };
+	}
+	return { text: message, settings: false };
 };
 
-const clockLabel = (seconds: number): string => {
-	const total = Math.max(0, Math.floor(seconds));
-	const h = Math.floor(total / 3600);
-	const m = Math.floor((total % 3600) / 60);
-	const s = String(total % 60).padStart(2, "0");
-	return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`;
-};
-
-const ChaptersView = ({
-	data,
-	onJump,
-}: {
-	data: ChaptersData;
-	onJump: (seconds: number) => void;
-}) => (
-	<div className="space-y-4 text-sm">
-		{data.takeaway && <h2 className="font-semibold text-base">{data.takeaway}</h2>}
-		<ul className="space-y-2">
-			{data.chapters.map((chapter) => (
-				<li key={`${chapter.start_seconds}-${chapter.title}`}>
-					<button
-						className="flex w-full gap-3 rounded-md p-2 text-left hover:bg-muted"
-						onClick={() => onJump(chapter.start_seconds)}
-						type="button"
-					>
-						<span className="w-14 shrink-0 font-medium text-primary tabular-nums">
-							{clockLabel(chapter.start_seconds)}
-						</span>
-						<span>
-							<span className="block font-medium">{chapter.title}</span>
-							<span className="text-muted-foreground">{chapter.summary}</span>
-						</span>
-					</button>
-				</li>
-			))}
-		</ul>
-		{data.quotes.length > 0 && (
-			<div>
-				<h3 className="mb-1 font-semibold">Key quotes</h3>
-				<ul className="space-y-1">
-					{data.quotes.map((quote) => (
-						<li key={`${quote.start_seconds}-${quote.quote.slice(0, 20)}`}>
-							<button
-								className="flex w-full gap-3 rounded-md p-2 text-left hover:bg-muted"
-								onClick={() => onJump(quote.start_seconds)}
-								type="button"
-							>
-								<span className="w-14 shrink-0 font-medium text-primary tabular-nums">
-									{clockLabel(quote.start_seconds)}
-								</span>
-								<span>“{quote.quote}”</span>
-							</button>
-						</li>
-					))}
-				</ul>
-			</div>
-		)}
-	</div>
-);
-
-/** Minimal Markdown for the skill outputs: headings, bullet lists, bold. */
-const SimpleMarkdown = ({ text }: { text: string }) => (
-	<div className="space-y-1 text-sm">
-		{text.split("\n").map((line, index) => {
-			const key = `${index}`;
-			if (line.startsWith("## ")) {
-				return (
-					<h3 className="mt-3 font-semibold" key={key}>
-						{inline(line.slice(3))}
-					</h3>
-				);
-			}
-			if (line.startsWith("# ")) {
-				return (
-					<h2 className="font-semibold text-base" key={key}>
-						{inline(line.slice(2))}
-					</h2>
-				);
-			}
-			const bullet = /^(\s*)[-*]\s+(.*)$/.exec(line);
-			if (bullet) {
-				return (
-					<div
-						className="flex gap-2"
-						key={key}
-						style={{ paddingLeft: `${Math.floor((bullet[1]?.length ?? 0) / 2) * 16}px` }}
-					>
-						<span>•</span>
-						<span>{inline(bullet[2] ?? "")}</span>
-					</div>
-				);
-			}
-			return line.trim() ? <p key={key}>{inline(line)}</p> : null;
-		})}
-	</div>
-);
-
-const AiSettingsForm = ({
-	settings,
-	onSaved,
-}: {
-	settings: WebAiSettings;
-	onSaved: (next: WebAiSettings) => void;
-}) => {
-	const { t } = useTranslation();
-	const [apiKey, setApiKey] = useState("");
-	const [model, setModel] = useState(settings.model);
-	const [baseUrl, setBaseUrl] = useState(settings.baseUrl);
-	const [saving, setSaving] = useState(false);
-
-	const save = async (clearApiKey = false) => {
-		setSaving(true);
-		try {
-			const next = await aiClient.settingsSet({
-				apiKey: apiKey.trim() || undefined,
-				clearApiKey,
-				baseUrl,
-				model,
-			});
-			setApiKey("");
-			onSaved(next);
-			toast.success(t("webTranscripts.ai.saved", { defaultValue: "AI settings saved" }));
-		} catch (error) {
-			toast.error(messageOf(error));
-		} finally {
-			setSaving(false);
-		}
-	};
-
-	return (
-		<div className="max-w-md space-y-3 rounded-md border p-4 text-sm">
-			<div className="font-medium">
-				{t("webTranscripts.ai.settings", { defaultValue: "OpenAI settings" })}
-			</div>
-			<label className="block space-y-1">
-				<span className="text-muted-foreground">API key</span>
-				<Input
-					autoComplete="off"
-					onChange={(event) => setApiKey(event.target.value)}
-					placeholder={
-						settings.hasApiKey
-							? `••••${settings.apiKeyHint ?? ""}${settings.keyFromEnv ? " (from server environment)" : ""}`
-							: "sk-…"
-					}
-					type="password"
-					value={apiKey}
-				/>
-			</label>
-			<label className="block space-y-1">
-				<span className="text-muted-foreground">Model</span>
-				<Input onChange={(event) => setModel(event.target.value)} value={model} />
-			</label>
-			<label className="block space-y-1">
-				<span className="text-muted-foreground">Base URL</span>
-				<Input onChange={(event) => setBaseUrl(event.target.value)} value={baseUrl} />
-			</label>
-			<div className="flex gap-2">
-				<Button disabled={saving} onClick={() => void save()} size="sm">
-					{t("webTranscripts.ai.save", { defaultValue: "Save" })}
-				</Button>
-				{settings.hasApiKey && !settings.keyFromEnv && (
-					<Button disabled={saving} onClick={() => void save(true)} size="sm" variant="outline">
-						{t("webTranscripts.ai.removeKey", { defaultValue: "Remove key" })}
-					</Button>
-				)}
-			</div>
-			<p className="text-muted-foreground text-xs">
-				{t("webTranscripts.ai.privacy", {
-					defaultValue:
-						"The key is stored on the server and never sent back to the browser. Transcript text is sent to this OpenAI endpoint when you run a summary.",
-				})}
-			</p>
-		</div>
-	);
+/** Name of the interface language for the `{{uiLanguage}}` token, for example "English" or "中文". */
+const languageName = (code: string): string => {
+	const exact = languages[code as keyof typeof languages];
+	const base = languages[code.split("-")[0] as keyof typeof languages];
+	return (exact ?? base)?.name ?? "English";
 };
 
 export const AiSummaryPanel = ({
 	downloadId,
 	hasTranscript,
+	title,
+	author,
 	onJump,
 }: {
 	downloadId: string;
 	hasTranscript: boolean;
+	title: string;
+	author: string | null;
 	/** Open the transcript at this many seconds from the start. */
 	onJump: (seconds: number) => void;
 }) => {
@@ -239,7 +70,12 @@ export const AiSummaryPanel = ({
 	const [runs, setRuns] = useState<Record<string, WebAiRun>>({});
 	const [skillId, setSkillId] = useState("overview");
 	const [showSettings, setShowSettings] = useState(false);
-	const resultRef = useRef<HTMLDivElement>(null);
+	const [showManager, setShowManager] = useState(false);
+	const [watermark, setWatermark] = useState(false);
+	const [capturing, setCapturing] = useState(false);
+	const [elapsed, setElapsed] = useState(0);
+	const cardRef = useRef<HTMLDivElement>(null);
+	const language = languageName(i18n.language);
 
 	const refreshRuns = useCallback(async () => {
 		try {
@@ -253,12 +89,12 @@ export const AiSummaryPanel = ({
 	useEffect(() => {
 		void (async () => {
 			try {
-				const [nextSettings, nextSkills] = await Promise.all([
-					aiClient.settingsGet(),
-					aiClient.skills(),
-				]);
+				const [nextSettings, nextSkills] = await Promise.all([aiClient.settingsGet(), aiClient.skills()]);
 				setSettings(nextSettings);
 				setSkills(nextSkills);
+				setSkillId((current) =>
+					nextSkills.some((skill) => skill.id === current) ? current : (nextSkills.find((s) => s.visible)?.id ?? current),
+				);
 				if (!(nextSettings.hasApiKey || nextSettings.locked)) {
 					setShowSettings(true);
 				}
@@ -266,6 +102,10 @@ export const AiSummaryPanel = ({
 				toast.error(messageOf(error));
 			}
 		})();
+		void orpcClient.settings
+			.get()
+			.then((result) => setWatermark(Boolean(result.settings.shareWatermark)))
+			.catch(() => undefined);
 	}, []);
 
 	useEffect(() => {
@@ -275,26 +115,9 @@ export const AiSummaryPanel = ({
 	const current = runs[skillId];
 	const busy = current?.status === "running";
 	const anyRunning = Object.values(runs).some((item) => item.status === "running");
+	const active = skills.find((skill) => skill.id === skillId);
 
-	// Tell the user when a summary they started finishes while the tab is in the background.
-	const lastStatus = useRef<Record<string, string>>({});
-	useEffect(() => {
-		for (const item of Object.values(runs)) {
-			const before = lastStatus.current[item.skillId];
-			if (before === "running" && item.status !== "running" && item.status !== "cancelled") {
-				notify(
-					item.status === "completed"
-						? t("webTranscripts.notify.summaryDone", { defaultValue: "AI summary ready" })
-						: t("webTranscripts.notify.summaryFailed", { defaultValue: "AI summary failed" }),
-					prettySkill({ id: item.skillId, name: item.skillId, description: "" }),
-				);
-			}
-			lastStatus.current[item.skillId] = item.status;
-		}
-	}, [runs, t]);
-
-	// Live text for the selected skill while it runs; polling covers other skills
-	// and is the fallback when the stream is not connected.
+	// Live text for the selected prompt while it runs; polling covers other prompts and is the fallback.
 	const streaming = useLiveStream(
 		busy,
 		{ channel: "ai", downloadId, skillId },
@@ -323,16 +146,56 @@ export const AiSummaryPanel = ({
 		return () => window.clearInterval(timer);
 	}, [anyRunning, streaming, refreshRuns]);
 
-	const run = async () => {
-		try {
-			const started = await aiClient.run({
-				downloadId,
-				skillId,
-				language: i18n.language,
-			});
-			setRuns((current) => ({ ...current, [skillId]: started }));
-		} catch (error) {
-			toast.error(messageOf(error));
+	// Seconds since this run started, so a slow model never looks frozen.
+	useEffect(() => {
+		if (!busy) {
+			setElapsed(0);
+			return;
+		}
+		const started = Date.now();
+		const timer = window.setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
+		return () => window.clearInterval(timer);
+	}, [busy]);
+
+	// Tell the user when a prompt they started finishes while the tab is in the background.
+	const lastStatus = useRef<Record<string, string>>({});
+	useEffect(() => {
+		for (const item of Object.values(runs)) {
+			const before = lastStatus.current[item.skillId];
+			if (before === "running" && item.status !== "running" && item.status !== "cancelled") {
+				notify(
+					item.status === "completed"
+						? t("webTranscripts.notify.summaryDone", { defaultValue: "AI summary ready" })
+						: t("webTranscripts.notify.summaryFailed", { defaultValue: "AI summary failed" }),
+					skills.find((skill) => skill.id === item.skillId)?.title ?? item.skillId,
+				);
+			}
+			lastStatus.current[item.skillId] = item.status;
+		}
+	}, [runs, skills, t]);
+
+	const run = useCallback(
+		async (id: string) => {
+			try {
+				const started = await aiClient.run({ downloadId, skillId: id, language });
+				setRuns((previous) => ({ ...previous, [id]: started }));
+			} catch (error) {
+				const message = messageOf(error);
+				setRuns((previous) => ({
+					...previous,
+					[id]: { downloadId, skillId: id, status: "failed", text: "", error: message, model: null, updatedAt: Date.now() },
+				}));
+			}
+		},
+		[downloadId, language],
+	);
+
+	/** Choosing a prompt starts it the first time, like upstream. */
+	const choose = (id: string) => {
+		setSkillId(id);
+		setShowManager(false);
+		if (hasTranscript && settings?.hasApiKey && !runs[id]) {
+			void run(id);
 		}
 	};
 
@@ -345,21 +208,107 @@ export const AiSummaryPanel = ({
 		}
 	};
 
+	const text = current?.text ?? "";
+	const completed = current?.status === "completed" && Boolean(text);
+	const isChapters = skillId === "chapters";
+	const imageName = `${(active?.title ?? skillId).replace(/[^\w]+/g, "-").toLowerCase()}.png`;
+
+	/** Draw the result card, with the watermark footer only while capturing. */
+	const capture = async (): Promise<Blob | null> => {
+		if (!cardRef.current) {
+			return null;
+		}
+		try {
+			setCapturing(true);
+			await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+			return await renderNodeToPng(cardRef.current);
+		} catch (error) {
+			toast.error(messageOf(error));
+			return null;
+		} finally {
+			setCapturing(false);
+		}
+	};
+
+	const saveImage = async () => {
+		const blob = await capture();
+		if (blob) {
+			downloadBlob(blob, imageName);
+		}
+	};
+	const copyImageToClipboard = async () => {
+		const blob = await capture();
+		if (!blob) {
+			return;
+		}
+		try {
+			await copyImage(blob);
+			toast.success(t("webTranscripts.ai.imageCopied", { defaultValue: "Image copied" }));
+		} catch (error) {
+			toast.error(messageOf(error));
+		}
+	};
+	const shareImageSheet = async () => {
+		const blob = await capture();
+		if (blob && canShareImage(imageName, blob)) {
+			try {
+				await shareImage(blob, imageName, title);
+			} catch (error) {
+				if (!(error instanceof DOMException && error.name === "AbortError")) {
+					toast.error(messageOf(error));
+				}
+			}
+		} else if (blob) {
+			downloadBlob(blob, imageName);
+		}
+	};
+	const copyMarkdown = async () => {
+		try {
+			await navigator.clipboard.writeText(text);
+			toast.success(t("webTranscripts.ai.copied", { defaultValue: "Copied" }));
+		} catch (error) {
+			toast.error(messageOf(error));
+		}
+	};
+
+	const visible = useMemo(() => skills.filter((skill) => skill.visible), [skills]);
+	const others = useMemo(() => skills.filter((skill) => !skill.visible), [skills]);
+	const failure = current?.error ? explainError(current.error) : null;
+	const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+
 	return (
 		<div className="flex min-h-0 flex-1 flex-col">
 			<div className="flex flex-wrap items-center gap-2 border-b p-3">
-				{skills.map((skill) => (
+				{visible.map((skill) => (
 					<Button
 						key={skill.id}
-						onClick={() => setSkillId(skill.id)}
+						onClick={() => choose(skill.id)}
 						size="sm"
 						title={skill.description}
-						variant={skill.id === skillId ? "default" : "outline"}
+						variant={skill.id === skillId && !showManager ? "default" : "outline"}
 					>
-						{prettySkill(skill)}
+						{skill.icon} {skill.title}
 					</Button>
 				))}
+				{others.length > 0 && (
+					<select
+						aria-label="All prompts"
+						className="rounded border bg-background px-2 py-1 text-sm"
+						onChange={(event) => event.target.value && choose(event.target.value)}
+						value={others.some((skill) => skill.id === skillId) && !showManager ? skillId : ""}
+					>
+						<option value="">{t("webTranscripts.prompts.all", { defaultValue: "All prompts" })}</option>
+						{others.map((skill) => (
+							<option key={skill.id} value={skill.id}>
+								{skill.icon} {skill.title}
+							</option>
+						))}
+					</select>
+				)}
 				<span className="mr-auto" />
+				<Button onClick={() => setShowManager((value) => !value)} size="sm" variant="ghost">
+					{t("webTranscripts.prompts.manage", { defaultValue: "Edit prompts" })}
+				</Button>
 				<Button onClick={() => setShowSettings((value) => !value)} size="sm" variant="ghost">
 					{t("webTranscripts.ai.settings", { defaultValue: "OpenAI settings" })}
 				</Button>
@@ -367,9 +316,7 @@ export const AiSummaryPanel = ({
 			<div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
 				{showSettings && settings?.locked && (
 					<p className="text-muted-foreground text-sm">
-						{t("webTranscripts.ai.locked", {
-							defaultValue: "OpenAI settings are managed by the server.",
-						})}
+						{t("webTranscripts.ai.locked", { defaultValue: "OpenAI settings are managed by the server." })}
 					</p>
 				)}
 				{showSettings && settings && !settings.locked && (
@@ -383,60 +330,107 @@ export const AiSummaryPanel = ({
 						settings={settings}
 					/>
 				)}
-				<div className="flex items-center gap-2">
-					<Button
-						disabled={busy || !hasTranscript || !settings?.hasApiKey}
-						onClick={() => void run()}
-						size="sm"
-					>
-						{current?.text
-							? t("webTranscripts.ai.rerun", { defaultValue: "Run again" })
-							: t("webTranscripts.ai.run", { defaultValue: "Run" })}
-					</Button>
-					{busy && (
-						<Button onClick={() => void stop()} size="sm" variant="outline">
-							{t("webTranscripts.cancel", { defaultValue: "Cancel" })}
-						</Button>
-					)}
-					{!hasTranscript && (
-						<span className="text-muted-foreground text-xs">
-							{t("webTranscripts.ai.needTranscript", {
-								defaultValue: "Transcribe this download first.",
-							})}
-						</span>
-					)}
-					{settings && (
-						<span className="ml-auto text-muted-foreground text-xs">{settings.model}</span>
-					)}
-				</div>
-				{current?.error && <p className="text-destructive text-sm">{current.error}</p>}
-				{current?.status === "completed" && current.text && (
-					<Button
-						onClick={() =>
-							resultRef.current &&
-							void saveNodeAsPng(resultRef.current, `${prettySkill({ id: skillId, name: skillId, description: "" }).replace(/\s+/g, "-").toLowerCase()}.png`).catch(
-								(cause) => toast.error(messageOf(cause)),
-							)
-						}
-						size="sm"
-						variant="outline"
-					>
-						{t("webTranscripts.ai.saveImage", { defaultValue: "Save as image" })}
-					</Button>
-				)}
-				<div className="max-w-2xl bg-background p-3" ref={resultRef}>
-				{skillId === "chapters"
-					? current?.status === "completed" &&
-						(() => {
-							const data = parseChapters(current.text);
-							return data ? <ChaptersView data={data} onJump={onJump} /> : null;
-						})()
-					: current?.text && <SimpleMarkdown text={current.text} />}
-				</div>
-				{busy && (skillId === "chapters" || !current?.text) && (
-					<p className="text-muted-foreground text-sm">
-						{t("webTranscripts.ai.working", { defaultValue: "Waiting for the model…" })}
-					</p>
+
+				{showManager ? (
+					<PromptManager languageName={language} onChange={setSkills} skills={skills} />
+				) : (
+					<>
+						<div className="flex flex-wrap items-center gap-2">
+							<Button
+								disabled={busy || !hasTranscript || !settings?.hasApiKey || !active}
+								onClick={() => void run(skillId)}
+								size="sm"
+							>
+								{current?.text
+									? t("webTranscripts.ai.rerun", { defaultValue: "Run again" })
+									: t("webTranscripts.ai.run", { defaultValue: "Run" })}
+							</Button>
+							{busy && (
+								<Button onClick={() => void stop()} size="sm" variant="outline">
+									{t("webTranscripts.ai.stop", { defaultValue: "Stop" })}
+								</Button>
+							)}
+							{completed && !isChapters && (
+								<Button onClick={() => void copyMarkdown()} size="sm" variant="outline">
+									{t("webTranscripts.ai.copy", { defaultValue: "Copy" })}
+								</Button>
+							)}
+							{completed && (
+								<>
+									<Button onClick={() => void saveImage()} size="sm" variant="outline">
+										{t("webTranscripts.ai.saveImage", { defaultValue: "Save as image" })}
+									</Button>
+									{canCopyImage() && (
+										<Button onClick={() => void copyImageToClipboard()} size="sm" variant="outline">
+											{t("webTranscripts.ai.copyImage", { defaultValue: "Copy image" })}
+										</Button>
+									)}
+									{canShare && (
+										<Button onClick={() => void shareImageSheet()} size="sm" variant="outline">
+											{t("webTranscripts.ai.share", { defaultValue: "Share…" })}
+										</Button>
+									)}
+								</>
+							)}
+							{busy && (
+								<span className="text-muted-foreground text-xs tabular-nums" data-testid="ai-elapsed">
+									{t("webTranscripts.ai.working", { defaultValue: "Working…" })} {elapsed}s
+								</span>
+							)}
+							{settings && <span className="ml-auto text-muted-foreground text-xs">{settings.model}</span>}
+						</div>
+
+						{!hasTranscript && (
+							<p className="text-muted-foreground text-sm">
+								{t("webTranscripts.ai.needTranscript", {
+									defaultValue:
+										"This download has no transcript text yet. Transcribe it first (a file marked “no speech” needs Transcribe anyway).",
+								})}
+							</p>
+						)}
+
+						{failure && (
+							<div className="space-y-2" data-testid="ai-error">
+								<p className="text-destructive text-sm">{failure.text}</p>
+								{failure.settings && !settings?.locked && (
+									<Button onClick={() => setShowSettings(true)} size="sm" variant="outline">
+										{t("webTranscripts.ai.openSettings", { defaultValue: "Open provider settings" })}
+									</Button>
+								)}
+							</div>
+						)}
+
+						{(text || completed) && (
+							<div className="max-w-2xl space-y-3 bg-background p-4" data-testid="ai-card" ref={cardRef}>
+								<div>
+									<div className="font-semibold">{title}</div>
+									<div className="text-muted-foreground text-xs">
+										{active?.icon} {active?.title}
+									</div>
+								</div>
+								{isChapters ? (
+									completed &&
+									(() => {
+										const data = parseChapters(text);
+										return data ? <ChaptersView data={data} onJump={onJump} /> : null;
+									})()
+								) : (
+									<MarkdownView streaming={busy} text={text} />
+								)}
+								{capturing && watermark && (
+									<div className="border-t pt-2 text-muted-foreground text-xs" data-testid="ai-watermark">
+										{[title, author, "VidBee"].filter(Boolean).join(" · ")}
+									</div>
+								)}
+							</div>
+						)}
+
+						{busy && (isChapters || !text) && (
+							<p className="text-muted-foreground text-sm">
+								{t("webTranscripts.ai.waiting", { defaultValue: "Waiting for the model…" })}
+							</p>
+						)}
+					</>
 				)}
 			</div>
 		</div>

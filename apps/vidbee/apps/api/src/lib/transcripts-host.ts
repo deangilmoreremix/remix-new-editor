@@ -65,6 +65,18 @@ const resolveSourceFile = (task: Readonly<Task>): string | null => {
   return null
 }
 
+/** Channel or uploader saved with the download's options, when present. */
+const authorOf = (download: Readonly<Task> | undefined): string | null => {
+  const options = (download?.input.options ?? {}) as Record<string, unknown>
+  for (const key of ['uploader', 'channel']) {
+    const value = options[key]
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim()
+    }
+  }
+  return null
+}
+
 const stateOf = (
   active: Task | undefined,
   latest: Task | undefined,
@@ -108,6 +120,7 @@ const buildStatus = (downloadId: string): WebTranscriptStatus & { record: Transc
   return {
     downloadId,
     title,
+    author: authorOf(download),
     state,
     stage: active ? (partial?.stage ?? null) : null,
     error:

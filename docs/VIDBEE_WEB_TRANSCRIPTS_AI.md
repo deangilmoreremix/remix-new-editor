@@ -35,6 +35,30 @@ is unchanged and still has the full upstream feature set.
 10. **Share images**: "Save as image" on a summary or chapters list renders it to a PNG in the browser (html-to-image).
 11. **Notifications**: after you press "Notify me", a notification appears when a transcription, summary or translation finishes while the tab is in the background.
 
+## AI prompts: parity with vidbee.org/docs/ai-prompts
+Checked against the documentation page, item by item:
+
+| Page says | Web edition |
+| --- | --- |
+| Built-in prompts: summary, FAQ, stats, translation, mind map, grammar, paraphrase | Yes, with the page's names: Bullet Points, Improve Grammar & Punctuation, Generate FAQ, Extract Statistics, Paraphrase Content, Create a mindmap, Translate (plus Overview and Chapters). Translate here is a single-request prompt; upstream's `translate` skill is an agent workflow that needs tools, so it is not used. The subtitle-aligned version is the Translate tab. |
+| Mind map is a Mermaid diagram; statistics is a list and a table | Rendered for real: Markdown (react-markdown + GFM tables, no raw HTML, only http/https/mailto links) and Mermaid (strict security level; drawn once the text is complete). |
+| Click a prompt and it starts automatically the first time | Yes (needs a transcript and an API key). |
+| Caption tabs next to prompt tabs; extra prompts under **All prompts** | Prompt tabs plus an **All prompts** menu. Default tabs: Chapters, Overview, Generate FAQ, Create a mindmap. |
+| Stop, Run again, Copy | Yes. Copy puts the Markdown on the clipboard. |
+| Share image: download, copy, or system share sheet | Save as image, Copy image (where the browser allows it) and Share… (where the browser has Web Share). The card has the title and prompt name. |
+| Settings → Advanced → Share watermark adds title, author and branding | Uses the same web setting (`shareWatermark`): the footer shows title, author when known, and VidBee. |
+| Runs continue when you leave the page | Yes: runs live on the server and results are stored per download and prompt. |
+| Elapsed time while running | Yes (seconds counter). |
+| Errors explain the problem and link to provider settings | Missing key, rejected key, unaccepted model ID, unreachable provider and empty output each get a plain message and **Open provider settings**. |
+| Test connection before saving | Yes, and it works with values typed but not yet saved. |
+| Settings → Prompts: hide, Edit (title, icon, instructions), Add prompt, Restore defaults, Run on a sample | Yes, under **Edit prompts**. The Tab checkbox shows or hides a tab. Restore defaults undoes edits to built-ins and keeps your custom prompts. The editor's **Run on a sample** uses a built-in sample interview and saves nothing. Chapters cannot be edited because the page depends on its JSON format. |
+| `{{uiLanguage}}` is replaced with the language name (English, 中文) | Yes. |
+| "Transcribe anyway" for empty / no-speech files | Yes (the button is relabelled for no-speech). |
+| Many providers (OpenAI, Anthropic, Google, xAI, Groq, Deepseek, OpenRouter, Azure, Hugging Face, Ollama, LM Studio, custom OpenAI-compatible) | **Not covered.** OpenAI only, by decision, through the Responses API. A different base URL works only for services that implement `POST /v1/responses`; none were tested. There is no provider catalog or "Use" button. |
+| **Thinking** panel showing the model's reasoning | **Not implemented.** Only the elapsed seconds are shown. |
+| Share card has a cover image | **Not included** (title, prompt and result only). |
+| Prompt titles follow the interface language | **Not localised:** the titles are English. |
+
 ## Licences and choices
 Mediabunny is MPL-2.0, Transformers.js Apache-2.0, react-easy-crop and html-to-image MIT. **ffmpeg.wasm is not bundled**: the standard `@ffmpeg/core` build is GPL-2.0-or-later,
 so features that need ffmpeg run on the server instead. Whisper.cpp WASM is not used; Transformers.js is the one in-browser recognizer. The production build bundles the ONNX runtime

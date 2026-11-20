@@ -346,7 +346,9 @@ export const TranscriptsPage = () => {
 										onClick={() => void act((id) => transcriptsClient.start({ downloadId: id }))}
 										size="sm"
 									>
-										{t("webTranscripts.start", { defaultValue: "Transcribe" })}
+										{detail.state === "no-speech"
+											? t("webTranscripts.startAnyway", { defaultValue: "Transcribe anyway" })
+											: t("webTranscripts.start", { defaultValue: "Transcribe" })}
 									</Button>
 								)}
 								{ACTIVE_STATES.has(detail.state) && (
@@ -423,8 +425,10 @@ export const TranscriptsPage = () => {
 
 							{tab === "ai" && (
 								<AiSummaryPanel
+									author={detail.author}
 									downloadId={detail.downloadId}
 									hasTranscript={Boolean(detail.record)}
+									title={detail.title ?? detail.downloadId}
 									onJump={jumpTo}
 								/>
 							)}

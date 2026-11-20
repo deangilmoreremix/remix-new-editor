@@ -18,6 +18,8 @@ export type WebTranscriptState =
 export interface WebTranscriptStatus {
   downloadId: string
   title: string | null
+  /** Channel or uploader of the download, when known. */
+  author: string | null
   state: WebTranscriptState
   stage: string | null
   error: string | null
@@ -80,6 +82,26 @@ export interface WebAiSkill {
   id: string
   name: string
   description: string
+  /** Name shown on the tab, for example "Bullet Points". */
+  title: string
+  icon: string
+  /** The instructions sent to the model. May contain `{{uiLanguage}}`. */
+  content: string
+  builtin: boolean
+  /** Shown as a tab next to the transcript; other prompts live under "All prompts". */
+  visible: boolean
+  /** A built-in whose instructions or title were changed. */
+  edited: boolean
+  /** False for prompts whose output format the page depends on (Chapters). */
+  editable: boolean
+}
+
+export interface WebAiConnectionTest {
+  ok: boolean
+  model: string
+  /** First words of the model's reply when ok. */
+  reply: string | null
+  error: string | null
 }
 
 export type WebAiRunStatus = 'running' | 'completed' | 'failed' | 'cancelled'
@@ -100,6 +122,23 @@ export const aiContract = {
     .input(type<{ apiKey?: string; clearApiKey?: boolean; baseUrl?: string; model?: string }>())
     .output(type<WebAiSettings>()),
   skills: oc.output(type<WebAiSkill[]>()),
+  /** Create (no id) or update a prompt. For a built-in, stores an override of its title, icon or instructions. */
+  promptsSave: oc
+    .input(type<{ id?: string; title: string; icon?: string; content: string }>())
+    .output(type<WebAiSkill[]>()),
+  /** Delete a custom prompt, or undo the edits of a built-in. */
+  promptsDelete: oc.input(type<{ id: string }>()).output(type<WebAiSkill[]>()),
+  promptsVisible: oc
+    .input(type<{ id: string; visible: boolean }>())
+    .output(type<WebAiSkill[]>()),
+  /** Re-insert missing built-ins and undo edits to them; custom prompts are kept. */
+  promptsRestore: oc.output(type<WebAiSkill[]>()),
+  /** Run instructions against a built-in sample transcript. Nothing is saved. Stream channel `ai:__sample__:__test__`. */
+  promptsTest: oc.input(type<{ content: string; language?: string }>()).output(type<WebAiRun>()),
+  /** A short ping with the saved settings, or with unsaved ones when given. */
+  testConnection: oc
+    .input(type<{ apiKey?: string; baseUrl?: string; model?: string }>())
+    .output(type<WebAiConnectionTest>()),
   /** Starts a run in the background and returns immediately; poll `get` for text. */
   run: oc
     .input(type<{ downloadId: string; skillId: string; language?: string }>())

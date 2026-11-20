@@ -68,6 +68,8 @@ export interface CreateResponseOptions {
   onTextDelta?: (delta: string) => void
   /** Overrides the configured model for this call. */
   model?: string
+  /** Use these settings instead of the saved ones (for testing unsaved values). */
+  config?: { apiKey: string; baseUrl: string; model: string }
 }
 
 const errorFromResponse = async (response: Response): Promise<string> => {
@@ -99,7 +101,7 @@ const textOfMessage = (item: OutputItem): string => {
 
 /** Create a streamed response and wait for it to finish. */
 export const createResponse = async (options: CreateResponseOptions): Promise<ResponseResult> => {
-  const config = requireOpenAiConfig()
+  const config = options.config ?? requireOpenAiConfig()
   const response = await fetch(`${config.baseUrl}/responses`, {
     method: 'POST',
     headers: { authorization: `Bearer ${config.apiKey}`, 'content-type': 'application/json' },
