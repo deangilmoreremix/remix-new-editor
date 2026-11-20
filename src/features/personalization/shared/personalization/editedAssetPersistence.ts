@@ -55,7 +55,7 @@ export interface PersistEditedAssetClientResult {
   error?: string
 }
 
-const API_ROUTE = '/api/personalization/persist-edited-asset'
+const API_ROUTE = '/api/personalization/persist-edited-asset';
 
 /**
  * Persist an edited Personalization image to Supabase Storage.
@@ -70,8 +70,8 @@ const API_ROUTE = '/api/personalization/persist-edited-asset'
 export async function persistEditedPersonalizationAsset(
   input: PersistEditedAssetClientInput,
 ): Promise<PersistEditedAssetClientResult> {
-  const form = new FormData()
-  form.append('image', input.blob, input.name || 'edited-image.png')
+  const form = new FormData();
+  form.append('image', input.blob, input.name || 'edited-image.png');
 
   const metadata: Record<string, unknown> = {
     assetId: input.assetId,
@@ -101,18 +101,18 @@ export async function persistEditedPersonalizationAsset(
     transparent: input.transparent,
     width: input.width,
     height: input.height,
-  }
+  };
 
-  form.append('metadata', JSON.stringify(metadata))
+  form.append('metadata', JSON.stringify(metadata));
 
   try {
     const response = await fetch(API_ROUTE, {
       method: 'POST',
       credentials: 'same-origin',
       body: form,
-    })
+    });
 
-    const payload = await response.json().catch(() => ({}))
+    const payload = await response.json().catch(() => ({}));
 
     if (!response.ok) {
       return {
@@ -123,7 +123,7 @@ export async function persistEditedPersonalizationAsset(
         transparentPixelCount: 0,
         totalPixelCount: 0,
         error: payload?.error || `HTTP ${response.status}`,
-      }
+      };
     }
 
     return {
@@ -133,7 +133,7 @@ export async function persistEditedPersonalizationAsset(
       hasTransparency: Boolean(payload.hasTransparency),
       transparentPixelCount: payload.transparentPixelCount || 0,
       totalPixelCount: payload.totalPixelCount || 0,
-    }
+    };
   } catch (error) {
     return {
       ok: false,
@@ -143,6 +143,6 @@ export async function persistEditedPersonalizationAsset(
       transparentPixelCount: 0,
       totalPixelCount: 0,
       error: error instanceof Error ? error.message : 'Unknown error',
-    }
+    };
   }
 }

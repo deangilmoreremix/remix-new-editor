@@ -66,10 +66,12 @@ describe('storyboard engine helpers', () => {
 
 describe('parseStoryboardResponse', () => {
   it('parses JSON (also inside a code fence) and rescales durations to the total', () => {
-    const text = '```json\n' + JSON.stringify({ frames: [
+    const text = '```json\n' + JSON.stringify({
+ frames: [
       { scene: 1, shot: 'wide shot', camera: 'dolly in', duration: 5, visual: 'A', narration: 'n1' },
       { scene: 1, shot: 'Close-Up', camera: 'Static', duration: 5, visual: 'B' },
-    ] }) + '\n```';
+    ] 
+}) + '\n```';
     const frames = parseStoryboardResponse(text, { duration: 20 }, 2);
     expect(frames).toHaveLength(2);
     expect(frames[0].shot).toBe('Wide Shot');
@@ -101,10 +103,12 @@ describe('generateStoryboardFromIntent', () => {
 
   it('uses the AI plan when an OpenAI key is set', async () => {
     apiKeyManager.hasOpenAIKey.mockReturnValue(true);
-    openaiService.generateText.mockResolvedValue(JSON.stringify({ frames: [
+    openaiService.generateText.mockResolvedValue(JSON.stringify({
+ frames: [
       { shot: 'Wide Shot', duration: 15, visual: 'Opening' },
       { shot: 'Close-Up', duration: 15, visual: 'Closing' },
-    ] }));
+    ] 
+}));
     const { frames, source } = await generateStoryboardFromIntent({ ...intent, frameCount: 3 });
     expect(source).toBe('ai');
     expect(frames).toHaveLength(2);

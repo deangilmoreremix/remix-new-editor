@@ -17,21 +17,21 @@
  * every format.
  */
 
-import React from 'react'
-import { SoundWave } from '../../_upstream/rve-sound-wave/SoundWave'
-import { type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { brandAccent, brandPrimary, rgba } from './shared3f'
+import React from 'react';
+import { SoundWave } from '../../_upstream/rve-sound-wave/SoundWave';
+import { type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { brandAccent, brandPrimary, rgba } from './shared3f';
 
 /** Upstream wave footprint: 40 x (12 px bar + 4 px gap), up to 150 px tall. */
-const WAVE_W = 640
-const WAVE_H = 150
+const WAVE_W = 640;
+const WAVE_H = 150;
 
 export const RveSoundWaveDesign: React.FC<DesignAdapterProps> = (props) => {
-  const width = Math.max(1, props.width)
-  const height = Math.max(1, props.height)
-  const k = Math.max(0.2, Math.min((width * 0.85) / WAVE_W, (height * 0.5) / WAVE_H))
-  const px = (value: number) => `${Math.round(value * k * 100) / 100}px`
+  const width = Math.max(1, props.width);
+  const height = Math.max(1, props.height);
+  const k = Math.max(0.2, Math.min((width * 0.85) / WAVE_W, (height * 0.5) / WAVE_H));
+  const px = (value: number) => `${Math.round(value * k * 100) / 100}px`;
 
   return (
     <RveDesignStage designId="rve-sound-wave" props={props}>
@@ -47,7 +47,7 @@ export const RveSoundWaveDesign: React.FC<DesignAdapterProps> = (props) => {
         insetGlow="none"
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveSoundWaveDesign
+export default RveSoundWaveDesign;

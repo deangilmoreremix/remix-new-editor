@@ -10,14 +10,14 @@
  * incoming scene slides in — i.e. the customer's video.
  */
 
-import React from 'react'
-import { PushTransition } from '../../_upstream/rve-push-transition/PushTransition'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared'
+import React from 'react';
+import { PushTransition } from '../../_upstream/rve-push-transition/PushTransition';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared';
 
 export const RvePushTransitionDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-push-transition" props={props}>
       <PushTransition
@@ -26,7 +26,7 @@ export const RvePushTransitionDesign: React.FC<RemotionDesignComponentProps> = (
         sceneB={TRANSPARENT_SCENE}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RvePushTransitionDesign
+export default RvePushTransitionDesign;

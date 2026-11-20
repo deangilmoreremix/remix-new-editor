@@ -19,13 +19,13 @@
  * title, the business name under the centre figure.
  */
 
-import React from 'react'
+import React from 'react';
 import {
   DonutChart,
   type DonutChartSegment,
-} from '../../_upstream/rve-donut-chart/DonutChart'
-import { slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+} from '../../_upstream/rve-donut-chart/DonutChart';
+import { slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   FitCanvas,
   brandBackdrop,
@@ -34,7 +34,7 @@ import {
   fitScale,
   readableOnDark,
   rgba,
-} from './shared3f'
+} from './shared3f';
 
 /** The pinned placeholder split (labels and values; colours come from the brand). */
 export const DONUT_CHART_PLACEHOLDER: Array<Omit<DonutChartSegment, 'color'>> = [
@@ -42,23 +42,23 @@ export const DONUT_CHART_PLACEHOLDER: Array<Omit<DonutChartSegment, 'color'>> = 
   { label: 'Segment B', value: 30 },
   { label: 'Segment C', value: 20 },
   { label: 'Segment D', value: 15 },
-]
+];
 
 /** The upstream card: 600 x 520 + 20 px padding on each side. */
-const CARD_W = 640
-const CARD_H = 560
-const PREFERRED_SCALE = 1.3
+const CARD_W = 640;
+const CARD_H = 560;
+const PREFERRED_SCALE = 1.3;
 
 export const RveDonutChartDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE)
-  const palette = brandPalette(props, DONUT_CHART_PLACEHOLDER.length)
-  const text = readableOnDark(props)
+  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE);
+  const palette = brandPalette(props, DONUT_CHART_PLACEHOLDER.length);
+  const text = readableOnDark(props);
   const title = truncateText(
     slotText(props, 'headline', ['businessName']),
     fitChars(CARD_W - 40, 28, 34),
-  )
+  );
   // The caption sits inside the ring (inner diameter ~220 px at 16 px type).
-  const caption = truncateText(slotValue(props, 'businessName'), fitChars(200, 16, 22))
+  const caption = truncateText(slotValue(props, 'businessName'), fitChars(200, 16, 22));
 
   return (
     <RveDesignStage designId="rve-donut-chart" props={props}>
@@ -80,7 +80,7 @@ export const RveDonutChartDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </FitCanvas>
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveDonutChartDesign
+export default RveDonutChartDesign;

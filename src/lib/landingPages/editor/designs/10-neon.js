@@ -18,7 +18,8 @@ export default {
     root: { props: { design: 'neon', accent: '#19e6ee', background: '#070c24', text: '#f1f5ff', surface: '#11173f' } },
     content: [
       { type: 'NavBar', props: { id: 'neon-nav', brand: 'SmartVideo AI', logo: '/landing-art/10/logo.webp', links: ['Product', 'Solutions', 'Pricing', 'Resources'].map((label) => ({ label, url: '' })), loginLabel: 'Log In', loginUrl: '', ctaLabel: 'Start Free Trial' } },
-      { type: 'NeonHero', props: {
+      {
+ type: 'NeonHero', props: {
         id: 'neon-hero',
         eyebrow: 'Personalized Video Lead Generation',
         headline: 'Turn Every Prospect Into a Warm Lead With [[Personalized Video]]',
@@ -30,7 +31,8 @@ export default {
         submitLabel: 'Create My Personalized Video', privacy: '', orLabel: 'or', buttons: [{ label: 'Book a Live Walkthrough', url: '#lead' }],
         kpiTitle: 'Leads Captured (All Time)', kpiValue: '128,349', kpiBadge: '+37% (Last 30 days)',
         giftTitle: 'Join Our Insider List & Get a Free "Personalized Video Playbook"', giftPlaceholder: 'Enter your email', giftButton: 'Get the Free Playbook', giftCover: 'The Personalized Video Playbook', giftIcon: '/landing-art/10/gift.webp', giftBook: '/landing-art/10/book.webp',
-      } },
+      } 
+},
       { type: 'Strip', props: { id: 'neon-strip', kind: 'benefits', title: '', items: [{ title: 'Personalized Video at Scale', text: '', value: '', icon: 'video' }, { title: 'Build & Grow Your List', text: '', value: '', icon: 'users' }, { title: 'Automated Lead Capture', text: '', value: '', icon: 'bolt' }, { title: 'Lead Tracking & Mini CRM', text: '', value: '', icon: 'layers' }, { title: 'Book More Sales Calls', text: '', value: '', icon: 'calendar' }] } },
       {
         type: 'Grid',

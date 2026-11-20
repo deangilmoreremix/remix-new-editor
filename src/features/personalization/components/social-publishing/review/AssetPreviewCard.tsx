@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { Play, Image as ImageIcon } from 'lucide-react'
-import type { Asset } from '../types'
+import React from 'react';
+import { Play, Image as ImageIcon } from 'lucide-react';
+import type { Asset } from '../types';
 
 const PLATFORM_STUDIOS: Record<string, { label: string; accent: string }> = {
   'Runway': { label: 'Runway', accent: '#00d4aa' },
@@ -12,12 +12,12 @@ const PLATFORM_STUDIOS: Record<string, { label: string; accent: string }> = {
   'DALL-E': { label: 'DALL-E', accent: '#10a37f' },
   'Flux': { label: 'Flux', accent: '#f97316' },
   'default': { label: 'AI Studio', accent: '#d9ff00' },
-}
+};
 
 function getStudioMeta(studio?: string) {
-  if (!studio) return PLATFORM_STUDIOS['default']
-  const key = Object.keys(PLATFORM_STUDIOS).find((k) => studio.toLowerCase().includes(k.toLowerCase()))
-  return key ? PLATFORM_STUDIOS[key] : { label: studio, accent: '#d9ff00' }
+  if (!studio) return PLATFORM_STUDIOS['default'];
+  const key = Object.keys(PLATFORM_STUDIOS).find((k) => studio.toLowerCase().includes(k.toLowerCase()));
+  return key ? PLATFORM_STUDIOS[key] : { label: studio, accent: '#d9ff00' };
 }
 
 export interface AssetPreviewCardProps {
@@ -25,9 +25,9 @@ export interface AssetPreviewCardProps {
 }
 
 export default function AssetPreviewCard({ asset }: AssetPreviewCardProps) {
-  const studioMeta = getStudioMeta(asset.studio)
-  const isVideo = asset.type === 'video'
-  const previewUrl = asset.thumbnailUrl || asset.url
+  const studioMeta = getStudioMeta(asset.studio);
+  const isVideo = asset.type === 'video';
+  const previewUrl = asset.thumbnailUrl || asset.url;
 
   return (
     <div
@@ -76,5 +76,5 @@ export default function AssetPreviewCard({ asset }: AssetPreviewCardProps) {
         )}
       </div>
     </div>
-  )
+  );
 }

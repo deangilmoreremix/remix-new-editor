@@ -74,5 +74,7 @@ export const ORIGINAL = MANIFEST?.original ?? null;
  *  (upstream presets + "As designed" + "Your site", lib/palette). */
 export const THEME_MANIFEST: WorkbenchManifest = MANIFEST?.themes?.length
   ? MANIFEST
-  : ({ name: "Motion Director", fps: 30, width: 1920, height: 1080, total: 0, shots: [], transitions: [], captions: [], sfx: [],
-      themes: DIRECTOR_THEMES, defaultTheme: AS_DESIGNED, themeProp: "__theme", paletteProp: "__palette" } as unknown as WorkbenchManifest);
+  : ({
+ name: "Motion Director", fps: 30, width: 1920, height: 1080, total: 0, shots: [], transitions: [], captions: [], sfx: [],
+      themes: DIRECTOR_THEMES, defaultTheme: AS_DESIGNED, themeProp: "__theme", paletteProp: "__palette" 
+} as unknown as WorkbenchManifest);

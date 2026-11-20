@@ -31,10 +31,10 @@
  * `./rve*Design.tsx` and their registry entries in `./rveCatalogEntries.ts`.
  */
 
-import React from 'react'
-import { AbsoluteFill } from 'remotion'
-import type { RemotionDesignComponentProps } from '../types'
-import { DESIGN_FONT_STACK, useDesignFonts } from './fonts'
+import React from 'react';
+import { AbsoluteFill } from 'remotion';
+import type { RemotionDesignComponentProps } from '../types';
+import { DESIGN_FONT_STACK, useDesignFonts } from './fonts';
 
 /* -------------------------------------------------------------------------- */
 /* Attribution                                                                 */
@@ -50,7 +50,7 @@ import { DESIGN_FONT_STACK, useDesignFonts } from './fonts'
  * to show BOTH.
  */
 export const RVE_ATTRIBUTION =
-  'Remotion templates by React Video Editor (reactvideoeditor.com) — MIT License.'
+  'Remotion templates by React Video Editor (reactvideoeditor.com) — MIT License.';
 
 /**
  * The upstream's own in-file credit, reproduced verbatim.
@@ -60,7 +60,7 @@ export const RVE_ATTRIBUTION =
  * applicable") and must travel with the copy.
  */
 export const RVE_UPSTREAM_CREDIT =
-  'Free Remotion Template Component — This template is free to use in your projects! Credit appreciated but not required. Created by the team at https://www.reactvideoeditor.com'
+  'Free Remotion Template Component — This template is free to use in your projects! Credit appreciated but not required. Created by the team at https://www.reactvideoeditor.com';
 
 /**
  * The verbatim MIT permission notice — WITHOUT a copyright line.
@@ -86,34 +86,34 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.`
+SOFTWARE.`;
 
 /* -------------------------------------------------------------------------- */
 /* Colour helpers                                                              */
 /* -------------------------------------------------------------------------- */
 
 function parseHex(value: string): { r: number; g: number; b: number } | null {
-  const hex = value.trim().replace(/^#/, '')
+  const hex = value.trim().replace(/^#/, '');
   if (hex.length === 3 && /^[0-9a-f]{3}$/i.test(hex)) {
     return {
       r: parseInt(hex[0] + hex[0], 16),
       g: parseInt(hex[1] + hex[1], 16),
       b: parseInt(hex[2] + hex[2], 16),
-    }
+    };
   }
   if (hex.length === 6 && /^[0-9a-f]{6}$/i.test(hex)) {
     return {
       r: parseInt(hex.slice(0, 2), 16),
       g: parseInt(hex.slice(2, 4), 16),
       b: parseInt(hex.slice(4, 6), 16),
-    }
+    };
   }
-  return null
+  return null;
 }
 
 function toHexPair(channel: number): string {
-  const clamped = Math.max(0, Math.min(255, Math.round(channel)))
-  return clamped.toString(16).padStart(2, '0')
+  const clamped = Math.max(0, Math.min(255, Math.round(channel)));
+  return clamped.toString(16).padStart(2, '0');
 }
 
 /**
@@ -127,10 +127,10 @@ function toHexPair(channel: number): string {
  * Colours that are not hex are returned unchanged.
  */
 export function withAlpha(value: string, alpha: number): string {
-  const parsed = parseHex(value)
-  if (!parsed) return value
-  const a = Math.round(Math.max(0, Math.min(1, alpha)) * 255)
-  return `#${toHexPair(parsed.r)}${toHexPair(parsed.g)}${toHexPair(parsed.b)}${toHexPair(a)}`
+  const parsed = parseHex(value);
+  if (!parsed) return value;
+  const a = Math.round(Math.max(0, Math.min(1, alpha)) * 255);
+  return `#${toHexPair(parsed.r)}${toHexPair(parsed.g)}${toHexPair(parsed.b)}${toHexPair(a)}`;
 }
 
 /**
@@ -145,12 +145,12 @@ export function withAlpha(value: string, alpha: number): string {
  * Colours that are not hex are returned unchanged.
  */
 export function lightenColor(value: string, factor: number): string {
-  const parsed = parseHex(value)
-  if (!parsed) return value
-  const k = Math.max(0, Math.min(1, factor))
+  const parsed = parseHex(value);
+  if (!parsed) return value;
+  const k = Math.max(0, Math.min(1, factor));
   return `#${toHexPair(parsed.r + (255 - parsed.r) * k)}${toHexPair(
     parsed.g + (255 - parsed.g) * k,
-  )}${toHexPair(parsed.b + (255 - parsed.b) * k)}`
+  )}${toHexPair(parsed.b + (255 - parsed.b) * k)}`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -174,7 +174,7 @@ export function rveFontSizePx(
   props: RemotionDesignComponentProps,
   ratio: number,
 ): number {
-  return Math.round(Math.min(props.width, props.height) * ratio)
+  return Math.round(Math.min(props.width, props.height) * ratio);
 }
 
 /**
@@ -194,9 +194,9 @@ export function rveMaxChars(
   fontSizePx: number,
   maxChars: number,
 ): number {
-  const perChar = Math.max(1, fontSizePx * 0.62)
-  const fit = Math.floor((props.width * 0.88) / perChar)
-  return Math.max(4, Math.min(maxChars, fit))
+  const perChar = Math.max(1, fontSizePx * 0.62);
+  const fit = Math.floor((props.width * 0.88) / perChar);
+  return Math.max(4, Math.min(maxChars, fit));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -225,11 +225,11 @@ export function RveDesignStage({
 }): React.ReactElement {
   // Gates the render on the bundled typeface (A10). A design that does not
   // use the shared stage has to call this itself.
-  useDesignFonts()
+  useDesignFonts();
 
-  const scaleX = props.box.widthPx / Math.max(1, props.width)
-  const scaleY = props.box.heightPx / Math.max(1, props.height)
-  const isIdentity = Math.abs(scaleX - 1) < 0.0001 && Math.abs(scaleY - 1) < 0.0001
+  const scaleX = props.box.widthPx / Math.max(1, props.width);
+  const scaleY = props.box.heightPx / Math.max(1, props.height);
+  const isIdentity = Math.abs(scaleX - 1) < 0.0001 && Math.abs(scaleY - 1) < 0.0001;
 
   return (
     <AbsoluteFill
@@ -265,5 +265,5 @@ export function RveDesignStage({
         {children}
       </AbsoluteFill>
     </AbsoluteFill>
-  )
+  );
 }

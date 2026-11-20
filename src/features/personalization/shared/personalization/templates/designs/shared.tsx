@@ -21,10 +21,10 @@
  * has to clip and scale — it must NOT re-apply the box offset.
  */
 
-import React from 'react'
-import { AbsoluteFill } from 'remotion'
-import { useDesignFonts } from './fonts'
-import type { RemotionDesignComponentProps } from '../types'
+import React from 'react';
+import { AbsoluteFill } from 'remotion';
+import { useDesignFonts } from './fonts';
+import type { RemotionDesignComponentProps } from '../types';
 
 /**
  * The only canvas fill an overlay may use.
@@ -33,7 +33,7 @@ import type { RemotionDesignComponentProps } from '../types'
  * fill would hide it. The one exception is the end card, whose `background`
  * prop doubles as the CTA label colour (see `PromoCtaDesign.tsx`).
  */
-export const TRANSPARENT = 'transparent'
+export const TRANSPARENT = 'transparent';
 
 /**
  * The props every adapter receives.
@@ -53,11 +53,11 @@ export type DesignAdapterProps = RemotionDesignComponentProps & {
 
 /** Truncates `value` to `max` characters, adding an ellipsis when cut. */
 export function truncateText(value: string | null | undefined, max: number): string {
-  const trimmed = typeof value === 'string' ? value.trim() : ''
-  if (!trimmed) return ''
-  if (trimmed.length <= max) return trimmed
-  const cut = trimmed.slice(0, Math.max(1, max - 1)).trimEnd()
-  return `${cut}…`
+  const trimmed = typeof value === 'string' ? value.trim() : '';
+  if (!trimmed) return '';
+  if (trimmed.length <= max) return trimmed;
+  const cut = trimmed.slice(0, Math.max(1, max - 1)).trimEnd();
+  return `${cut}…`;
 }
 
 /**
@@ -71,8 +71,8 @@ export function slotValue(
   props: RemotionDesignComponentProps,
   key: string,
 ): string {
-  const value = props.textSlots?.[key]
-  return typeof value === 'string' ? value.trim() : ''
+  const value = props.textSlots?.[key];
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 /**
@@ -87,14 +87,14 @@ export function slotText(
   key: string,
   fallbacks: string[] = [],
 ): string {
-  const direct = slotValue(props, key)
-  if (direct) return direct
+  const direct = slotValue(props, key);
+  if (direct) return direct;
   for (const fallback of fallbacks) {
-    const value = slotValue(props, fallback)
-    if (value) return value
+    const value = slotValue(props, fallback);
+    if (value) return value;
   }
-  const primary = props.text
-  return typeof primary === 'string' ? primary.trim() : ''
+  const primary = props.text;
+  return typeof primary === 'string' ? primary.trim() : '';
 }
 
 /** The first non-empty colour of `candidates`, or `fallback`. */
@@ -103,36 +103,36 @@ export function pickColor(
   fallback = '#ffffff',
 ): string {
   for (const candidate of candidates) {
-    if (typeof candidate === 'string' && candidate.trim()) return candidate.trim()
+    if (typeof candidate === 'string' && candidate.trim()) return candidate.trim();
   }
-  return fallback
+  return fallback;
 }
 
 /** Parses `#rgb` / `#rrggbb` into its channels; `null` for anything else. */
 function parseHexColor(value: string): { r: number; g: number; b: number } | null {
-  const hex = value.trim().replace(/^#/, '')
+  const hex = value.trim().replace(/^#/, '');
   if (hex.length === 3) {
-    if (!/^[0-9a-f]{3}$/i.test(hex)) return null
+    if (!/^[0-9a-f]{3}$/i.test(hex)) return null;
     return {
       r: parseInt(hex[0] + hex[0], 16),
       g: parseInt(hex[1] + hex[1], 16),
       b: parseInt(hex[2] + hex[2], 16),
-    }
+    };
   }
   if (hex.length === 6) {
-    if (!/^[0-9a-f]{6}$/i.test(hex)) return null
+    if (!/^[0-9a-f]{6}$/i.test(hex)) return null;
     return {
       r: parseInt(hex.slice(0, 2), 16),
       g: parseInt(hex.slice(2, 4), 16),
       b: parseInt(hex.slice(4, 6), 16),
-    }
+    };
   }
-  return null
+  return null;
 }
 
 function toHexPair(channel: number): string {
-  const clamped = Math.max(0, Math.min(255, Math.round(channel)))
-  return clamped.toString(16).padStart(2, '0')
+  const clamped = Math.max(0, Math.min(255, Math.round(channel)));
+  return clamped.toString(16).padStart(2, '0');
 }
 
 /**
@@ -146,10 +146,10 @@ function toHexPair(channel: number): string {
  * Colours that are not hex are returned unchanged.
  */
 export function darkenColor(value: string, factor: number): string {
-  const parsed = parseHexColor(value)
-  if (!parsed) return value
-  const k = Math.max(0, Math.min(1, factor))
-  return `#${toHexPair(parsed.r * k)}${toHexPair(parsed.g * k)}${toHexPair(parsed.b * k)}`
+  const parsed = parseHexColor(value);
+  if (!parsed) return value;
+  const k = Math.max(0, Math.min(1, factor));
+  return `#${toHexPair(parsed.r * k)}${toHexPair(parsed.g * k)}${toHexPair(parsed.b * k)}`;
 }
 
 /**
@@ -178,11 +178,11 @@ export function DesignStage({
   // depend on the machine it runs on. `useDesignFonts()` declares the bundled
   // typeface, overrides the upstream's inline `font-family` inside the design
   // stage, and holds the render open until the face is loaded.
-  useDesignFonts()
+  useDesignFonts();
 
-  const scaleX = props.box.widthPx / Math.max(1, props.width)
-  const scaleY = props.box.heightPx / Math.max(1, props.height)
-  const isIdentity = Math.abs(scaleX - 1) < 0.0001 && Math.abs(scaleY - 1) < 0.0001
+  const scaleX = props.box.widthPx / Math.max(1, props.width);
+  const scaleY = props.box.heightPx / Math.max(1, props.height);
+  const isIdentity = Math.abs(scaleX - 1) < 0.0001 && Math.abs(scaleY - 1) < 0.0001;
 
   return (
     <AbsoluteFill
@@ -213,5 +213,5 @@ export function DesignStage({
         {children}
       </AbsoluteFill>
     </AbsoluteFill>
-  )
+  );
 }

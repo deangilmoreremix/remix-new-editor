@@ -13,10 +13,12 @@ describe('heatmap aggregation helpers', () => {
     expect(topPageBucket([])).toBe(1);
   });
   it('builds CTA rows without fabricating CTR', () => {
-    const rows = ctaRows({ ctas: [
+    const rows = ctaRows({
+ ctas: [
       { cta_key: 'a', kind: 'book_call', label: 'Book', impressions: 20, clicks: 5, ctr: 0.25 },
       { cta_key: 'b', kind: null, label: null, impressions: null, clicks: 3, ctr: null },
-      { cta_key: 'c', kind: 'contact', label: 'x', suppressed: true, impressions: null, clicks: null, ctr: null }] });
+      { cta_key: 'c', kind: 'contact', label: 'x', suppressed: true, impressions: null, clicks: null, ctr: null }] 
+});
     expect(rows[0]).toMatchObject({ kindLabel: 'Book a call', ctr: 0.25 });
     expect(rows[1]).toMatchObject({ kind: 'other', label: 'b', impressions: null, ctr: null });
     expect(rows[2].suppressed).toBe(true);
@@ -68,9 +70,13 @@ describe('CSV export', () => {
       .toBe('level,cell_x,cell_y,x_center,y_center,clicks\r\nmerged_block,1,1,0.1500,0.1500,5\r\nother_merged,,,,,7\r\nwithheld,,,,,<5\r\n');
     expect(heatmapCsv('cta', { ctas: { ctas: [{ cta_key: 'a', kind: 'book_call', label: '=x', impressions: 10, clicks: 2, ctr: 0.2 }] } }))
       .toBe("cta_id,kind,label,impressions,clicks,ctr\r\na,book_call,'=x,10,2,0.2\r\n");
-    expect(heatmapCsv('cta', { ctas: { min_cohort: 5, ctas: [
+    expect(heatmapCsv('cta', {
+ ctas: {
+ min_cohort: 5, ctas: [
       { cta_key: 'a', kind: 'contact', label: 'A', impressions: 12, clicks: null, clicks_suppressed: true, ctr: null, suppressed: false },
-      { cta_key: 'b', kind: 'contact', label: 'B', impressions: null, clicks: null, ctr: null, suppressed: true }] } }))
+      { cta_key: 'b', kind: 'contact', label: 'B', impressions: null, clicks: null, ctr: null, suppressed: true }] 
+} 
+}))
       .toBe('cta_id,kind,label,impressions,clicks,ctr\r\na,contact,A,12,<5,\r\nb,contact,B,<5,<5,\r\n');
     expect(heatmapCsv('scroll', { data: { sessions: 4, reached: { 25: 4, 50: 2, 75: 1, 100: 0 } } })).toContain('50,2,50');
     expect(heatmapCsv('scroll', { data: { sessions: 12, reached: { 25: 12, 50: null, 75: null, 100: 5 } } })).toContain('50,merged,');

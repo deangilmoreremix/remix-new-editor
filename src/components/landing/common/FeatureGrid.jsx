@@ -43,7 +43,7 @@ export function FeatureGrid({ features = [], sectionTitle, sectionDescription, v
         </span>
       </div>
     </a>
-  `}).join('');
+  `;}).join('');
 
   const sectionId = Math.random().toString(36).substr(2, 9);
   section.innerHTML = `

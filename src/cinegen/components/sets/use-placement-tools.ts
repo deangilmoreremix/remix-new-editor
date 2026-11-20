@@ -34,8 +34,10 @@ export function usePlacementTools(options: Options): void {
   latest.current = options;
   const { ctx, floor, origin, orientation, mode, selectedId, standIns, size } = options;
   useFloorGizmo({ ...options, enabled: mode === 'floor' });
-  useStandInGizmo({ ctx, orbit: options.orbit, floor, enabled: mode === 'standin',
-    standIn: standIns.find(entry => entry.id === selectedId && entry.visible !== false), mode: options.standInGizmoMode, onUpdate: options.onUpdateStandIn });
+  useStandInGizmo({
+ ctx, orbit: options.orbit, floor, enabled: mode === 'standin',
+    standIn: standIns.find(entry => entry.id === selectedId && entry.visible !== false), mode: options.standInGizmoMode, onUpdate: options.onUpdateStandIn 
+});
 
   useEffect(() => {
     if (!ctx || (!mode && !selectedId)) return;
@@ -63,8 +65,10 @@ export function usePlacementTools(options: Options): void {
       selection.name = 'Selected stand-in preview';
       syncStandIns(selection, [selected], floor);
       const oldMaterials = new Set<THREE.Material>();
-      const highlight = new THREE.MeshStandardMaterial({ color: 0xb7bdc5, roughness: .75, metalness: .05,
-        emissive: 0xd4a054, emissiveIntensity: .06, transparent: true, opacity: 1, depthTest: true, depthWrite: true });
+      const highlight = new THREE.MeshStandardMaterial({
+ color: 0xb7bdc5, roughness: .75, metalness: .05,
+        emissive: 0xd4a054, emissiveIntensity: .06, transparent: true, opacity: 1, depthTest: true, depthWrite: true 
+});
       selection.traverse(node => {
         if (!(node instanceof THREE.Mesh)) return;
         for (const material of Array.isArray(node.material) ? node.material : [node.material]) oldMaterials.add(material);
@@ -138,8 +142,10 @@ export function usePlacementTools(options: Options): void {
 
       consume(event);
       if (!point) { current.onMessage('Aim below the horizon to place on the floor.'); return; }
-      drag = { pointer: event.pointerId,
-        id: id ?? undefined, offset, enabled: current.orbit?.enabled ?? true, damping: current.orbit?.enableDamping ?? false };
+      drag = {
+ pointer: event.pointerId,
+        id: id ?? undefined, offset, enabled: current.orbit?.enabled ?? true, damping: current.orbit?.enableDamping ?? false 
+};
       if (current.orbit) {
         current.orbit.enableDamping = false;
         current.orbit.update();

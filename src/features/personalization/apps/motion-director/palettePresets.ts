@@ -19,7 +19,7 @@ export const paletteFromProject = (m:WorkbenchManifest | null,p:ProjectData,name
 export const parsePalette = (text:string,m:WorkbenchManifest | null):PalettePreset => {
   if(text.length>65536)throw Error(t("palette.tooBig"));
   let value:unknown;
-  try{value=JSON.parse(text)}catch{throw Error(t("palette.badJson"))}
+  try{value=JSON.parse(text);}catch{throw Error(t("palette.badJson"));}
   if(!value||typeof value!=='object')throw Error(t("palette.badFormat"));
   const p=value as Partial<PalettePreset>;
   if(p.format!=='shotcraft-palette'||p.version!==1||typeof p.name!=='string'||!p.name.trim()||p.name.length>60)throw Error(t("palette.badVersion"));

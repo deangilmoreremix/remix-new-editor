@@ -22,7 +22,7 @@
  * typeface to be ready — see `docs/phase2/handoffs/A10.md`.
  */
 
-import { DESIGN_FONT_STACK, DESIGN_TYPE_ROLES, type DesignTypeRole } from '../typography'
+import { DESIGN_FONT_STACK, DESIGN_TYPE_ROLES, type DesignTypeRole } from '../typography';
 
 /**
  * The per-role font stacks.
@@ -37,13 +37,13 @@ export const DESIGN_FONT_STACKS: Record<DesignTypeRole, string> = Object.fromEnt
     role,
     DESIGN_TYPE_ROLES[role].fontFamily,
   ]),
-) as Record<DesignTypeRole, string>
+) as Record<DesignTypeRole, string>;
 
 /** The stack used by a design's body copy. */
-export const DESIGN_BODY_FONT_STACK = DESIGN_FONT_STACK
+export const DESIGN_BODY_FONT_STACK = DESIGN_FONT_STACK;
 
 /** The stack used by a design's hero headline. */
-export const DESIGN_DISPLAY_FONT_STACK = DESIGN_FONT_STACK
+export const DESIGN_DISPLAY_FONT_STACK = DESIGN_FONT_STACK;
 
 export {
   DESIGN_FONT_FAMILY,
@@ -61,10 +61,10 @@ export {
   loadDesignFonts,
   typeStyleForRole,
   useDesignFonts,
-} from '../typography'
+} from '../typography';
 
 export type {
   DesignFontLoadResult,
   DesignTypeRole,
   DesignTypeStyle,
-} from '../typography'
+} from '../typography';

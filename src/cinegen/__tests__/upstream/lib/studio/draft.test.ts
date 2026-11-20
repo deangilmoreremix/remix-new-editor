@@ -68,10 +68,14 @@ describe('composer draft', () => {
     expect(restored.dockBarPx).toBe(760);
   });
   it('keeps the selected model and output framing settings when Studio unmounts for Canvas', () => {
-    writeComposerDraft('p1', { ...EMPTY_COMPOSER_DRAFT, modelType:'video-seedance',
-      controlValuesByModel:{'video-seedance':{aspect_ratio:'9:16',resolution:'1080p',duration:'5'}} });
-    expect(readComposerDraft('p1')).toMatchObject({modelType:'video-seedance',
-      controlValuesByModel:{'video-seedance':{aspect_ratio:'9:16',resolution:'1080p',duration:'5'}}});
+    writeComposerDraft('p1', {
+ ...EMPTY_COMPOSER_DRAFT, modelType:'video-seedance',
+      controlValuesByModel:{'video-seedance':{aspect_ratio:'9:16',resolution:'1080p',duration:'5'}} 
+});
+    expect(readComposerDraft('p1')).toMatchObject({
+modelType:'video-seedance',
+      controlValuesByModel:{'video-seedance':{aspect_ratio:'9:16',resolution:'1080p',duration:'5'}}
+});
   });
 
 });

@@ -14,19 +14,19 @@
  * again before the layer ends.
  */
 
-import React from 'react'
-import { LetterboxReveal } from '../../_upstream/rve-letterbox-reveal/LetterboxReveal'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, brandPalette, fadeOut } from './batch3gShared'
+import React from 'react';
+import { LetterboxReveal } from '../../_upstream/rve-letterbox-reveal/LetterboxReveal';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, brandPalette, fadeOut } from './batch3gShared';
 
-const TITLE_OUT_START = 50
-const TITLE_OUT_END = 70
+const TITLE_OUT_START = 50;
+const TITLE_OUT_END = 70;
 /** Smaller than the other cards: the title is tracked out (0.12em). */
-const TITLE_RATIO = 0.06
+const TITLE_RATIO = 0.06;
 
 export const RveLetterboxRevealDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-letterbox-reveal" props={props}>
       <LetterboxReveal
@@ -53,7 +53,7 @@ export const RveLetterboxRevealDesign: React.FC<RemotionDesignComponentProps> = 
         }
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveLetterboxRevealDesign
+export default RveLetterboxRevealDesign;

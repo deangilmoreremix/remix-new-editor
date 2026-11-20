@@ -28,11 +28,13 @@ describe('BATCH is one undo step', () => {
     const withTl = { ...state, timelines: [timeline], activeTimelineId: timeline.id } as typeof state;
     const history0 = { current: withTl, past: [] as typeof withTl[], future: [] as typeof withTl[], lastPushTime: 0, lastPushType: null };
     const applied = applyComposition(timeline, comp, 0);
-    const batch = { type: 'BATCH' as const, actions: [
+    const batch = {
+ type: 'BATCH' as const, actions: [
       ...applied.assets.map((asset) => ({ type: 'ADD_ASSET' as const, asset })),
       ...applied.overlays.map((overlay) => ({ type: 'ADD_OVERLAY' as const, overlay })),
       { type: 'SET_TIMELINE' as const, timelineId: timeline.id, timeline: applied.timeline },
-    ] };
+    ] 
+};
     const after = historyReducer(history0, batch);
     expect(after.past).toHaveLength(1); // ONE history entry for the whole insert
     expect(after.current.assets.length).toBe(1);

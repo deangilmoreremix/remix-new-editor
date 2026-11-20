@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import { Loader2 } from 'lucide-react'
-import type { LocalAI } from '../localAI/useLocalAI'
-import { C, hintStyle, primaryButtonStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
+import { Loader2 } from 'lucide-react';
+import type { LocalAI } from '../localAI/useLocalAI';
+import { C, hintStyle, primaryButtonStyle, secondaryButtonStyle, softPanelStyle } from './tokens';
 
 /**
  * The shared notice for a free in-browser AI action: what it does, the ONE-TIME download (size and licence) before
  * anything is fetched, then progress with Cancel, or a plain error. Renders nothing while idle.
  */
 export function LocalAINotice({ ai, doing }: { ai: LocalAI; doing: string }): React.JSX.Element | null {
-  if (ai.phase === 'idle') return null
-  const size = ai.info ? `${ai.info.sizeMB < 10 ? ai.info.sizeMB : Math.round(ai.info.sizeMB)} MB` : 'a small model'
+  if (ai.phase === 'idle') return null;
+  const size = ai.info ? `${ai.info.sizeMB < 10 ? ai.info.sizeMB : Math.round(ai.info.sizeMB)} MB` : 'a small model';
   return (
     <div data-testid="local-ai-notice" data-phase={ai.phase} role="status" style={{ ...softPanelStyle, marginTop: 8, display: 'grid', gap: 8 }}>
       {ai.phase === 'confirm' && (
@@ -39,5 +39,5 @@ export function LocalAINotice({ ai, doing }: { ai: LocalAI; doing: string }): Re
         </div>
       )}
     </div>
-  )
+  );
 }

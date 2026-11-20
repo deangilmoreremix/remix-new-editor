@@ -18,10 +18,10 @@
  * as the title.
  */
 
-import React from 'react'
-import { PieChart, type PieChartSegment } from '../../_upstream/rve-pie-chart/PieChart'
-import { slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { PieChart, type PieChartSegment } from '../../_upstream/rve-pie-chart/PieChart';
+import { slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   FitCanvas,
   brandBackdrop,
@@ -31,7 +31,7 @@ import {
   fitScale,
   readableOnDark,
   rgba,
-} from './shared3f'
+} from './shared3f';
 
 /** The pinned placeholder split (labels and values; colours come from the brand). */
 export const PIE_CHART_PLACEHOLDER: Array<Omit<PieChartSegment, 'color'>> = [
@@ -40,20 +40,20 @@ export const PIE_CHART_PLACEHOLDER: Array<Omit<PieChartSegment, 'color'>> = [
   { label: 'Segment C', value: 20 },
   { label: 'Segment D', value: 15 },
   { label: 'Segment E', value: 10 },
-]
+];
 
-const CARD_W = 640
-const CARD_H = 560
-const PREFERRED_SCALE = 1.3
+const CARD_W = 640;
+const CARD_H = 560;
+const PREFERRED_SCALE = 1.3;
 
 export const RvePieChartDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE)
-  const palette = brandPalette(props, PIE_CHART_PLACEHOLDER.length)
-  const text = readableOnDark(props)
+  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE);
+  const palette = brandPalette(props, PIE_CHART_PLACEHOLDER.length);
+  const text = readableOnDark(props);
   const title = truncateText(
     slotText(props, 'headline', ['businessName']),
     fitChars(CARD_W - 40, 28, 34),
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-pie-chart" props={props}>
@@ -72,7 +72,7 @@ export const RvePieChartDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </FitCanvas>
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RvePieChartDesign
+export default RvePieChartDesign;

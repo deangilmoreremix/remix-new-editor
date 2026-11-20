@@ -10,10 +10,10 @@ import type {
   VideoPersonalizationMode,
   ImagePersonalizationMode,
   PersonalizationEligibility,
-} from './types'
-import type { VideoDemo } from '@ohb/data/types'
-import type { PromptRecord } from '@ohb/types/go-ai-viral/prompt'
-import type { SeedancePrompt } from '@ohb/types/go-ai-viral/seedance'
+} from './types';
+import type { VideoDemo } from '@ohb/data/types';
+import type { PromptRecord } from '@ohb/types/go-ai-viral/prompt';
+import type { SeedancePrompt } from '@ohb/types/go-ai-viral/seedance';
 
 export function normalizeLandingDemo(demo: VideoDemo): PersonalizationSource {
   return {
@@ -34,13 +34,13 @@ export function normalizeLandingDemo(demo: VideoDemo): PersonalizationSource {
     category: demo.category,
     sourceUrl: demo.sourceUrl,
     sourceMetadata: { studioTab: demo.studioTab, sourceRepo: demo.sourceRepo, tags: demo.tags },
-  }
+  };
 }
 
 export function normalizeGoAiViralPrompt(
   record: PromptRecord,
 ): PersonalizationSource {
-  const primaryMedia = record.media.find((m) => m.role === 'result') || record.media[0]
+  const primaryMedia = record.media.find((m) => m.role === 'result') || record.media[0];
   return {
     sourceType: 'go-ai-viral-prompt',
     id: String(record.id),
@@ -68,7 +68,7 @@ export function normalizeGoAiViralPrompt(
       engagement: record.source?.engagement,
       author: record.source?.author,
     },
-  }
+  };
 }
 
 export function normalizeGoAiViralVideo(
@@ -96,7 +96,7 @@ export function normalizeGoAiViralVideo(
       engagement: record.engagement,
       sourceLanguage: record.sourceLanguage,
     },
-  }
+  };
 }
 
 export function normalizeImageDemo(
@@ -118,37 +118,37 @@ export function normalizeImageDemo(
     originalPrompt: prompt,
     ...extra,
     sourceMetadata: extra?.sourceMetadata || {},
-  }
+  };
 }
 
 export function normalizePersonalizationSource(
   source: unknown,
 ): PersonalizationSource | null {
-  if (!source || typeof source !== 'object') return null
+  if (!source || typeof source !== 'object') return null;
 
-  const s = source as Record<string, unknown>
+  const s = source as Record<string, unknown>;
 
   // Landing demo
   if ('videoSrc' in s && 'posterSrc' in s && 'slug' in s) {
-    return normalizeLandingDemo(s as unknown as VideoDemo)
+    return normalizeLandingDemo(s as unknown as VideoDemo);
   }
 
   // GO AI Viral prompt record
   if ('mediaType' in s && 'curation' in s && 'provenance' in s) {
-    return normalizeGoAiViralPrompt(s as unknown as PromptRecord)
+    return normalizeGoAiViralPrompt(s as unknown as PromptRecord);
   }
 
   // GO AI Viral video prompt
   if ('slug' in s && 'fullPrompt' in s && 'outputUrl' in s) {
-    return normalizeGoAiViralVideo(s as unknown as SeedancePrompt)
+    return normalizeGoAiViralVideo(s as unknown as SeedancePrompt);
   }
 
   // Already normalized
   if ('sourceType' in s && 'originalPrompt' in s) {
-    return s as unknown as PersonalizationSource
+    return s as unknown as PersonalizationSource;
   }
 
-  return null
+  return null;
 }
 
 export function getEligibility(
@@ -161,7 +161,7 @@ export function getEligibility(
       videoModes: ['face_only', 'full_body', 'recreate', 'complete'],
       imageModes: [],
       recommendedMode: 'full_body',
-    }
+    };
   }
 
   if (source.mediaType === 'image') {
@@ -171,7 +171,7 @@ export function getEligibility(
       videoModes: [],
       imageModes: ['keep_design', 'replace_face', 'replace_person', 'recreate', 'complete'],
       recommendedMode: 'recreate',
-    }
+    };
   }
 
   return {
@@ -180,5 +180,5 @@ export function getEligibility(
     videoModes: [],
     imageModes: [],
     recommendedMode: undefined,
-  }
+  };
 }

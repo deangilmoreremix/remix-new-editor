@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * Reusable, content-free gallery primitives for the Personalization modal's
@@ -13,7 +13,7 @@
  * premium template records live in this file.
  */
 
-import { useId, type ComponentType } from 'react'
+import { useId, type ComponentType } from 'react';
 import {
   Search,
   LayoutGrid,
@@ -32,8 +32,8 @@ import {
   Briefcase,
   TrendingUp,
   Film,
-} from 'lucide-react'
-import { C, badgeStyle, chipStyle, inputStyle, labelStyle } from './tokens'
+} from 'lucide-react';
+import { C, badgeStyle, chipStyle, inputStyle, labelStyle } from './tokens';
 
 type IconComponent = ComponentType<{ size?: number; color?: string }>
 
@@ -58,7 +58,7 @@ const ICONS: Record<string, IconComponent> = {
   briefcase: Briefcase,
   'trending-up': TrendingUp,
   film: Film,
-}
+};
 
 /** A single tab. `icon` is a Lucide icon key, resolved through `ICONS`. */
 export interface DemoCategoryTabItem {
@@ -103,9 +103,9 @@ export function DemoCategoryTabs({
       style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}
     >
       {categories.map((category) => {
-        const active = category.id === activeId
-        const Icon = category.icon ? ICONS[category.icon] : undefined
-        const count = counts?.[category.id]
+        const active = category.id === activeId;
+        const Icon = category.icon ? ICONS[category.icon] : undefined;
+        const count = counts?.[category.id];
         return (
           <button
             key={category.id}
@@ -124,10 +124,10 @@ export function DemoCategoryTabs({
               )}
             </span>
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 export interface DemoSearchInputProps {
@@ -151,7 +151,7 @@ export function DemoSearchInput({
   placeholder = 'Search demos…',
   ariaLabel = 'Search demos',
 }: DemoSearchInputProps): React.JSX.Element {
-  const id = useId()
+  const id = useId();
   return (
     <div>
       <label htmlFor={id} style={labelStyle}>
@@ -174,7 +174,7 @@ export function DemoSearchInput({
         />
       </div>
     </div>
-  )
+  );
 }
 
 export interface DemoFilterOption {
@@ -203,7 +203,7 @@ export function DemoFilterSelect({
   options,
   onChange,
 }: DemoFilterSelectProps): React.JSX.Element {
-  const id = useId()
+  const id = useId();
   return (
     <div>
       <label htmlFor={id} style={labelStyle}>
@@ -223,5 +223,5 @@ export function DemoFilterSelect({
         ))}
       </select>
     </div>
-  )
+  );
 }

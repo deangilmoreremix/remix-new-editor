@@ -16,18 +16,18 @@
  * width and wraps, so the strings are only capped.
  */
 
-import React from 'react'
-import { FireworksBurst } from '../../_upstream/fireworks-burst/FireworksBurst'
-import { DesignStage, TRANSPARENT, pickColor, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
-import { mixColor, shade, tint, toHex6 } from './batch3cShared'
+import React from 'react';
+import { FireworksBurst } from '../../_upstream/fireworks-burst/FireworksBurst';
+import { DesignStage, TRANSPARENT, pickColor, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
+import { mixColor, shade, tint, toHex6 } from './batch3cShared';
 
-const MAX_MESSAGE_LENGTH = 32
-const MAX_SUBTEXT_LENGTH = 56
+const MAX_MESSAGE_LENGTH = 32;
+const MAX_SUBTEXT_LENGTH = 56;
 
 export const FireworksBurstDesign: React.FC<DesignAdapterProps> = (props) => {
-  const primary = toHex6(props.colors?.primary, '#ef4444')
-  const accent = toHex6(props.colors?.accent, '#fbbf24')
-  const text = pickColor([props.color, props.colors?.text], '#f8fafc')
+  const primary = toHex6(props.colors?.primary, '#ef4444');
+  const accent = toHex6(props.colors?.accent, '#fbbf24');
+  const text = pickColor([props.color, props.colors?.text], '#f8fafc');
   const burstColors = [
     primary,
     accent,
@@ -36,7 +36,7 @@ export const FireworksBurstDesign: React.FC<DesignAdapterProps> = (props) => {
     toHex6(text, '#ffffff'),
     mixColor(primary, accent, 0.5),
     shade(accent, 0.8),
-  ]
+  ];
 
   return (
     <DesignStage designId="fireworks-burst" props={props}>
@@ -51,7 +51,7 @@ export const FireworksBurstDesign: React.FC<DesignAdapterProps> = (props) => {
         subText={truncateText(slotValue(props, 'subtext'), MAX_SUBTEXT_LENGTH)}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default FireworksBurstDesign
+export default FireworksBurstDesign;

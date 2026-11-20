@@ -107,9 +107,11 @@ describe('WorkflowCanvas node click and drag behavior', () => {
     flowHarness.props = null;
     flowHarness.renderers = {};
     localStorage.setItem('cinegen_mobile_canvas_guide_seen', '1');
-    Object.defineProperty(window, 'matchMedia', { configurable: true, value: vi.fn(() => ({
+    Object.defineProperty(window, 'matchMedia', {
+ configurable: true, value: vi.fn(() => ({
       matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn(),
-    })) });
+    })) 
+});
   });
 
   afterEach(() => {
@@ -143,8 +145,10 @@ describe('WorkflowCanvas node click and drag behavior', () => {
   });
 
   it('offers Send to Studio on a right-clicked, unselected desktop file', () => {
-    const file = { ...modelNode, id: 'desktop-file', type: 'filePicker', selected: false,
-      data: { type: 'filePicker', label: 'Photo', config: { fileUrl: '/Users/test/photo.png', fileType: 'image' } } };
+    const file = {
+ ...modelNode, id: 'desktop-file', type: 'filePicker', selected: false,
+      data: { type: 'filePicker', label: 'Photo', config: { fileUrl: '/Users/test/photo.png', fileType: 'image' } } 
+};
     workspaceHarness.state = { ...workspaceHarness.state, nodes: [modelNode, file] };
     const send = vi.fn();
     render(<WorkflowCanvas onSendToStudio={send} />);

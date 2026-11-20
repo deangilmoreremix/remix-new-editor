@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * PersonalizationTemplateBrowser — the step 4 gallery of every Remotion
@@ -16,8 +16,8 @@
  * call.
  */
 
-import { useMemo, useState, useCallback, useId, useRef, useEffect } from 'react'
-import type { LucideIcon } from 'lucide-react'
+import { useMemo, useState, useCallback, useId, useRef, useEffect } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import {
   Search,
   Sparkles,
@@ -33,26 +33,26 @@ import {
   Wand2,
   LayoutTemplate,
   ChevronRight,
-} from 'lucide-react'
-import { Player } from '@remotion/player'
-import type { PlayerRef } from '@remotion/player'
+} from 'lucide-react';
+import { Player } from '@remotion/player';
+import type { PlayerRef } from '@remotion/player';
 import {
   PREVIEW_LAYOUTS,
   LAYER_IDS_BY_LAYOUT,
   applyDesignTemplate,
   applyLayoutPreset,
-} from '../preview/presets'
-import type { ApplyLayoutContext } from '../preview/presets'
-import { PersonalizationComposition } from '../preview/PersonalizationComposition'
-import type { PreviewInputProps, PreviewLayoutId, PreviewLayerKind } from '../preview/types'
+} from '../preview/presets';
+import type { ApplyLayoutContext } from '../preview/presets';
+import { PersonalizationComposition } from '../preview/PersonalizationComposition';
+import type { PreviewInputProps, PreviewLayoutId, PreviewLayerKind } from '../preview/types';
 import {
   isRemotionDesignTemplateSupported,
   type RemotionDesignCategory,
   type RemotionDesignTemplate,
-} from '../templates'
-import { buildPreviewInput } from './buildPreviewInput'
-import { C, badgeStyle, hintStyle, inputStyle, panelStyle, primaryButtonStyle, tileStyle } from './tokens'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
+} from '../templates';
+import { buildPreviewInput } from './buildPreviewInput';
+import { C, badgeStyle, hintStyle, inputStyle, panelStyle, primaryButtonStyle, tileStyle } from './tokens';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
 
 /** Gallery tab keys: all, the built-in layouts, then one per design category. */
 export type PersonalizationCategoryKey = 'layouts' | RemotionDesignCategory
@@ -71,10 +71,10 @@ const CATEGORIES: Array<{ key: PersonalizationCategoryKey; label: string; icon: 
   { key: 'data-visualization', label: 'Charts & data', icon: BarChart3 },
   { key: 'full-scene', label: 'Full scenes', icon: Clapperboard },
   { key: 'other', label: 'Other', icon: Layers },
-]
+];
 
 /** How many cards are rendered before "Show more". */
-const PAGE_SIZE = 24
+const PAGE_SIZE = 24;
 
 /** Layer kind → short label for badges. */
 const LAYER_BADGE_LABELS: Record<PreviewLayerKind, string> = {
@@ -88,7 +88,7 @@ const LAYER_BADGE_LABELS: Record<PreviewLayerKind, string> = {
   tagline: 'Tagline',
   endCard: 'End card',
   design: 'Design',
-}
+};
 
 const TEXT_FIELD_LABELS: Record<string, string> = {
   businessName: 'Business name',
@@ -97,10 +97,10 @@ const TEXT_FIELD_LABELS: Record<string, string> = {
   cta: 'CTA',
   phone: 'Phone',
   website: 'Website',
-}
+};
 
 function categoryLabel(key: PersonalizationCategoryKey): string {
-  return CATEGORIES.find((c) => c.key === key)?.label ?? 'Other'
+  return CATEGORIES.find((c) => c.key === key)?.label ?? 'Other';
 }
 
 /** One card in the gallery. */
@@ -122,7 +122,7 @@ function buildItems(designs: RemotionDesignTemplate[], designsOnly = false): Gal
     name: layout.name,
     description: layout.description,
     category: 'layouts' as const,
-  }))
+  }));
   const designItems: GalleryItem[] = designs.map((design) => ({
     kind: 'design' as const,
     id: design.id,
@@ -130,13 +130,13 @@ function buildItems(designs: RemotionDesignTemplate[], designsOnly = false): Gal
     description: design.description,
     category: CATEGORIES.some((c) => c.key === design.category) ? design.category : 'other',
     design,
-  }))
-  return [...layouts, ...designItems]
+  }));
+  return [...layouts, ...designItems];
 }
 
 /** Brand context for previews; sample copy keeps empty cards readable. */
 export function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutContext {
-  const { brand } = baseInput
+  const { brand } = baseInput;
   return {
     businessName: brand.businessName || 'Your Business',
     headline: brand.headline || brand.businessName || 'Your headline here',
@@ -148,30 +148,30 @@ export function previewBrandContext(baseInput: PreviewInputProps): ApplyLayoutCo
     logoUrl: brand.logoUrl ?? undefined,
     productUrl: brand.productUrl ?? undefined,
     serviceUrl: brand.serviceUrl ?? undefined,
-  }
+  };
 }
 
 /** The frame a paused card rests on: after the template has animated in. */
 export function restFrameFor(item: GalleryItem, durationInFrames: number, fps: number): number {
-  let frame = Math.round(fps * 1.5)
+  let frame = Math.round(fps * 1.5);
   if (item.kind === 'design') {
-    const end = item.design.placement?.endFrame
-    const anim = item.design.animation
+    const end = item.design.placement?.endFrame;
+    const anim = item.design.animation;
     if (typeof end === 'number' && end > 0) {
-      frame = Math.round(end * 0.55)
+      frame = Math.round(end * 0.55);
     } else if (anim) {
-      frame = Math.round((anim.delayInFrames + anim.durationInFrames) * 0.7)
+      frame = Math.round((anim.delayInFrames + anim.durationInFrames) * 0.7);
     }
   }
   // Never rest on the closing frames: the composition's end card plays there,
   // so a long design would otherwise show the end card instead of itself.
-  const latest = Math.max(0, Math.round(durationInFrames * 0.6))
-  return Math.max(0, Math.min(latest, frame))
+  const latest = Math.max(0, Math.round(durationInFrames * 0.6));
+  return Math.max(0, Math.min(latest, frame));
 }
 
 /** Placeholder tile showing the layer arrangement as colored dots. */
 function TemplateLayerPreview({ layoutId }: { layoutId: PreviewLayoutId }): React.JSX.Element {
-  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? []
+  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? [];
   return (
     <div
       style={{
@@ -193,7 +193,7 @@ function TemplateLayerPreview({ layoutId }: { layoutId: PreviewLayoutId }): Reac
         </span>
       ))}
     </div>
-  )
+  );
 }
 
 /** Props for the template browser. */
@@ -215,7 +215,7 @@ export function PersonalizationTemplateBrowser({
   designsOnly = false,
   showError = true,
 }: PersonalizationTemplateBrowserProps): React.JSX.Element {
-  const ctx = useDemoPersonalize()
+  const ctx = useDemoPersonalize();
   const {
     previewSettings,
     setPreviewLayout,
@@ -227,11 +227,11 @@ export function PersonalizationTemplateBrowser({
     activeRemotionDesignId = null,
     setRemotionDesign,
     remotionDesignError = null,
-  } = ctx
-  const [activeCategory, setActiveCategory] = useState<PersonalizationCategoryKey | 'all'>('all')
-  const [query, setQuery] = useState('')
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const searchId = useId()
+  } = ctx;
+  const [activeCategory, setActiveCategory] = useState<PersonalizationCategoryKey | 'all'>('all');
+  const [query, setQuery] = useState('');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const searchId = useId();
 
   const baseInput = useMemo<PreviewInputProps | null>(
     () =>
@@ -239,51 +239,51 @@ export function PersonalizationTemplateBrowser({
         ? buildPreviewInput({ source, previewSettings, previewVideo, clientForm: clientForm ?? {}, assets })
         : null,
     [source, previewSettings, previewVideo, clientForm, assets],
-  )
+  );
 
   const handleSelect = useCallback(
     (item: GalleryItem) => {
       if (item.kind === 'layout') {
-        if (onSelect) onSelect(item.id)
-        else setPreviewLayout(item.id)
+        if (onSelect) onSelect(item.id);
+        else setPreviewLayout(item.id);
       } else if (onSelectDesign) {
-        onSelectDesign(item.id)
+        onSelectDesign(item.id);
       } else {
-        setRemotionDesign?.(item.id)
+        setRemotionDesign?.(item.id);
       }
     },
     [onSelect, onSelectDesign, setPreviewLayout, setRemotionDesign],
-  )
+  );
 
-  const items = useMemo(() => buildItems(remotionDesignTemplates, designsOnly), [remotionDesignTemplates, designsOnly])
+  const items = useMemo(() => buildItems(remotionDesignTemplates, designsOnly), [remotionDesignTemplates, designsOnly]);
 
   const counts = useMemo(() => {
-    const map = new Map<PersonalizationCategoryKey, number>()
-    for (const item of items) map.set(item.category, (map.get(item.category) ?? 0) + 1)
-    return map
-  }, [items])
+    const map = new Map<PersonalizationCategoryKey, number>();
+    for (const item of items) map.set(item.category, (map.get(item.category) ?? 0) + 1);
+    return map;
+  }, [items]);
 
   /** Visible items, filtered by category and search. */
   const visible = useMemo<GalleryItem[]>(() => {
-    const trimmed = query.trim().toLowerCase()
+    const trimmed = query.trim().toLowerCase();
     return items.filter((item) => {
-      if (activeCategory !== 'all' && item.category !== activeCategory) return false
-      if (!trimmed) return true
-      const haystack = `${item.name} ${item.description} ${categoryLabel(item.category)}`.toLowerCase()
-      return haystack.includes(trimmed)
-    })
-  }, [items, query, activeCategory])
+      if (activeCategory !== 'all' && item.category !== activeCategory) return false;
+      if (!trimmed) return true;
+      const haystack = `${item.name} ${item.description} ${categoryLabel(item.category)}`.toLowerCase();
+      return haystack.includes(trimmed);
+    });
+  }, [items, query, activeCategory]);
 
   // A new filter starts from the first page again.
-  useEffect(() => setVisibleCount(PAGE_SIZE), [query, activeCategory])
+  useEffect(() => setVisibleCount(PAGE_SIZE), [query, activeCategory]);
 
-  const totalCount = items.length
-  const shown = visible.slice(0, visibleCount)
+  const totalCount = items.length;
+  const shown = visible.slice(0, visibleCount);
 
   const isActive = (item: GalleryItem): boolean =>
     item.kind === 'design'
       ? activeRemotionDesignId === item.id
-      : !activeRemotionDesignId && previewSettings.layout === item.id
+      : !activeRemotionDesignId && previewSettings.layout === item.id;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -415,7 +415,7 @@ export function PersonalizationTemplateBrowser({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 /** Single category tab. */
@@ -457,7 +457,7 @@ function CategoryTab({
       {label}
       <span style={{ ...badgeStyle(active ? 'cyan' : 'muted'), marginLeft: 2 }}>{count}</span>
     </button>
-  )
+  );
 }
 
 /** Single template card. */
@@ -473,22 +473,22 @@ function TemplateCard({
   /** The customer's current preview input; the card re-applies its template to it. */
   baseInput: PreviewInputProps | null
 }): React.JSX.Element {
-  const [hovering, setHovering] = useState(false)
+  const [hovering, setHovering] = useState(false);
 
   const inputProps = useMemo<PreviewInputProps | null>(() => {
-    if (!baseInput) return null
-    const brandCtx = previewBrandContext(baseInput)
+    if (!baseInput) return null;
+    const brandCtx = previewBrandContext(baseInput);
     const settings =
       item.kind === 'layout'
         ? applyLayoutPreset(baseInput.settings, item.id, brandCtx)
-        : applyDesignTemplate(baseInput.settings, item.id, brandCtx)
-    return { ...baseInput, settings }
-  }, [baseInput, item])
+        : applyDesignTemplate(baseInput.settings, item.id, brandCtx);
+    return { ...baseInput, settings };
+  }, [baseInput, item]);
 
   const support =
     item.kind === 'design' && baseInput
       ? isRemotionDesignTemplateSupported(item.id, baseInput.settings.aspectRatio)
-      : { supported: true as const }
+      : { supported: true as const };
 
   const chips: string[] =
     item.kind === 'layout'
@@ -496,11 +496,11 @@ function TemplateCard({
       : [
           ...(item.design.textSlots ?? []).map((slot) => slot.label || TEXT_FIELD_LABELS[slot.field] || slot.key),
           ...(item.design.media ?? []).map((binding) => binding.label || binding.role),
-        ].slice(0, 5)
+        ].slice(0, 5);
 
   const select = () => {
-    if (support.supported) onSelect(item)
-  }
+    if (support.supported) onSelect(item);
+  };
 
   return (
     <div
@@ -515,8 +515,8 @@ function TemplateCard({
       onClick={select}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault()
-          select()
+          event.preventDefault();
+          select();
         }
       }}
       onMouseEnter={() => setHovering(true)}
@@ -579,8 +579,8 @@ function TemplateCard({
         disabled={!support.supported}
         title={support.supported ? undefined : support.reason}
         onClick={(event) => {
-          event.stopPropagation()
-          select()
+          event.stopPropagation();
+          select();
         }}
         style={{
           ...primaryButtonStyle,
@@ -603,7 +603,7 @@ function TemplateCard({
         </span>
       </button>
     </div>
-  )
+  );
 }
 
 /**
@@ -625,40 +625,40 @@ export function TemplateLivePreview({
   inputProps: PreviewInputProps
   playing: boolean
 }): React.JSX.Element {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const playerRef = useRef<PlayerRef>(null)
-  const [inView, setInView] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<PlayerRef>(null);
+  const [inView, setInView] = useState(false);
 
   useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
+    const el = containerRef.current;
+    if (!el) return;
     if (typeof IntersectionObserver === 'undefined') {
-      setInView(true)
-      return
+      setInView(true);
+      return;
     }
     const observer = new IntersectionObserver(
       (entries) => setInView(entries.some((entry) => entry.isIntersecting)),
       { rootMargin: '300px' },
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    const player = playerRef.current
-    if (!player) return
+    const player = playerRef.current;
+    if (!player) return;
     try {
-      if (playing) player.play()
-      else player.pause()
+      if (playing) player.play();
+      else player.pause();
     } catch {
       // Autoplay policies can reject play(); the still frame stays visible.
     }
-  }, [playing, inView])
+  }, [playing, inView]);
 
-  const settings = inputProps.settings
-  const durationInFrames = Math.max(1, Math.round(settings.durationInFrames))
-  const restFrame = restFrameFor(item, durationInFrames, settings.fps)
-  const PreviewComposition = PersonalizationComposition as unknown as React.ComponentType<Record<string, unknown>>
+  const settings = inputProps.settings;
+  const durationInFrames = Math.max(1, Math.round(settings.durationInFrames));
+  const restFrame = restFrameFor(item, durationInFrames, settings.fps);
+  const PreviewComposition = PersonalizationComposition as unknown as React.ComponentType<Record<string, unknown>>;
 
   return (
     <div
@@ -695,5 +695,5 @@ export function TemplateLivePreview({
         />
       ) : null}
     </div>
-  )
+  );
 }

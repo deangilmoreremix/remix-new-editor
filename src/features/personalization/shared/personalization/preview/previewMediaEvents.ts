@@ -30,14 +30,14 @@ export interface PreviewMediaFailure {
 
 export type PreviewMediaFailureListener = (failure: PreviewMediaFailure | null) => void
 
-let currentFailure: PreviewMediaFailure | null = null
-const listeners = new Set<PreviewMediaFailureListener>()
+let currentFailure: PreviewMediaFailure | null = null;
+const listeners = new Set<PreviewMediaFailureListener>();
 
 function notify(): void {
   // Copy first: a listener may unsubscribe while iterating.
   for (const listener of Array.from(listeners)) {
     try {
-      listener(currentFailure)
+      listener(currentFailure);
     } catch {
       // A throwing listener must not break the other subscribers.
     }
@@ -46,48 +46,48 @@ function notify(): void {
 
 /** Records a media failure and notifies every subscribed player. */
 export function emitPreviewMediaFailure(failure: PreviewMediaFailure): void {
-  currentFailure = failure
-  notify()
+  currentFailure = failure;
+  notify();
 }
 
 /** Clears the recorded failure (video switched, media recovered, unmount). */
 export function clearPreviewMediaFailure(): void {
-  if (currentFailure === null) return
-  currentFailure = null
-  notify()
+  if (currentFailure === null) return;
+  currentFailure = null;
+  notify();
 }
 
 /** Subscribes to failure changes; returns the unsubscribe function. */
 export function subscribePreviewMediaFailure(
   listener: PreviewMediaFailureListener,
 ): () => void {
-  listeners.add(listener)
+  listeners.add(listener);
   return () => {
-    listeners.delete(listener)
-  }
+    listeners.delete(listener);
+  };
 }
 
 /** Current failure, or null when the media is healthy. */
 export function getPreviewMediaFailure(): PreviewMediaFailure | null {
-  return currentFailure
+  return currentFailure;
 }
 
 /** Test/SSR helper: drops listeners and the recorded failure. */
 export function resetPreviewMediaEvents(): void {
-  currentFailure = null
-  listeners.clear()
+  currentFailure = null;
+  listeners.clear();
 }
 
 /** Derives a short display label from a media URL. */
 export function previewMediaLabel(videoUrl: string | null): string {
-  if (!videoUrl) return 'this video'
+  if (!videoUrl) return 'this video';
   try {
-    const withoutQuery = videoUrl.split('?')[0].split('#')[0]
-    const fileName = withoutQuery.split('/').filter(Boolean).pop()
-    if (!fileName) return 'this video'
-    return fileName.length > 48 ? `${fileName.slice(0, 45)}…` : fileName
+    const withoutQuery = videoUrl.split('?')[0].split('#')[0];
+    const fileName = withoutQuery.split('/').filter(Boolean).pop();
+    if (!fileName) return 'this video';
+    return fileName.length > 48 ? `${fileName.slice(0, 45)}…` : fileName;
   } catch {
-    return 'this video'
+    return 'this video';
   }
 }
 
@@ -96,6 +96,6 @@ export function isFailureForVideo(
   failure: PreviewMediaFailure | null,
   videoUrl: string | null | undefined,
 ): boolean {
-  if (!failure) return false
-  return (failure.videoUrl ?? null) === (videoUrl ?? null)
+  if (!failure) return false;
+  return (failure.videoUrl ?? null) === (videoUrl ?? null);
 }

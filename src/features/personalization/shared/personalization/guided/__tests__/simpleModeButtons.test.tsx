@@ -3,25 +3,25 @@
  * Simple Mode buttons found by the click-through to do nothing, or the wrong
  * thing: each now does its job or says why it can't.
  */
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act } from 'react'
-import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act } from 'react';
+import { cleanup, render, screen } from '@testing-library/react';
 
-const ctx: Record<string, unknown> = {}
+const ctx: Record<string, unknown> = {};
 vi.mock('../../DemoPersonalizeProvider', () => ({
   useDemoPersonalize: () => ctx,
-}))
+}));
 
-import { StepFindBusiness } from '../StepFindBusiness'
-import { StepPreviewApprove } from '../StepPreviewApprove'
+import { StepFindBusiness } from '../StepFindBusiness';
+import { StepPreviewApprove } from '../StepPreviewApprove';
 
-URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test')
-URL.revokeObjectURL = vi.fn()
+URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test');
+URL.revokeObjectURL = vi.fn();
 
 afterEach(() => {
-  cleanup()
-  for (const key of Object.keys(ctx)) delete ctx[key]
-})
+  cleanup();
+  for (const key of Object.keys(ctx)) delete ctx[key];
+});
 
 const previewCtx = (overrides: Record<string, unknown> = {}) => Object.assign(ctx, {
   source: { id: 's', title: 'S', mediaType: 'video', originalPrompt: 'p', sourceMedia: null, poster: null, fullPrompt: 'p', shortPrompt: 'p', sourceType: 'landing-demo', sourceMetadata: {} },
@@ -45,12 +45,12 @@ const previewCtx = (overrides: Record<string, unknown> = {}) => Object.assign(ct
   result: null,
   mode: null,
   ...overrides,
-})
+});
 
 describe('Step 1: Find business assets (signed in)', () => {
   it('runs the full workflow, which fills the business name', async () => {
-    const runDiscoveryWorkflow = vi.fn(async () => {})
-    const discoverAssets = vi.fn()
+    const runDiscoveryWorkflow = vi.fn(async () => {});
+    const discoverAssets = vi.fn();
     Object.assign(ctx, {
       clientForm: { website: 'https://joes.example' },
       access: 'authenticated',
@@ -62,75 +62,75 @@ describe('Step 1: Find business assets (signed in)', () => {
       discoverAssets,
       saveClient: vi.fn(),
       setViewMode: vi.fn(),
-    })
-    render(<StepFindBusiness />)
-    await act(async () => { screen.getByText('Find business assets').click() })
-    expect(runDiscoveryWorkflow).toHaveBeenCalledWith('https://joes.example')
-    expect(discoverAssets).not.toHaveBeenCalled()
-  })
+    });
+    render(<StepFindBusiness />);
+    await act(async () => { screen.getByText('Find business assets').click(); });
+    expect(runDiscoveryWorkflow).toHaveBeenCalledWith('https://joes.example');
+    expect(discoverAssets).not.toHaveBeenCalled();
+  });
 
   it('has a Business name field', () => {
-    const updateClientForm = vi.fn()
-    Object.assign(ctx, { clientForm: {}, access: 'authenticated', discoveredAssets: [], discoveryStatus: 'idle', updateClientForm, runDiscoveryWorkflow: vi.fn(), saveClient: vi.fn(), setViewMode: vi.fn() })
-    render(<StepFindBusiness />)
-    expect(document.querySelector('#guided-business-name-step1')).toBeTruthy()
-  })
-})
+    const updateClientForm = vi.fn();
+    Object.assign(ctx, { clientForm: {}, access: 'authenticated', discoveredAssets: [], discoveryStatus: 'idle', updateClientForm, runDiscoveryWorkflow: vi.fn(), saveClient: vi.fn(), setViewMode: vi.fn() });
+    render(<StepFindBusiness />);
+    expect(document.querySelector('#guided-business-name-step1')).toBeTruthy();
+  });
+});
 
 describe('Step 4: approve, render and AI', () => {
   it('Render needs an approval first, and says so', () => {
-    previewCtx()
-    render(<StepPreviewApprove />)
-    const renderButton = screen.getByRole('button', { name: /Render branded video/ }) as HTMLButtonElement
-    expect(renderButton.disabled).toBe(true)
-    expect(screen.getByTestId('guided-render-needs-approval').textContent).toMatch(/Approve the preview first/)
-  })
+    previewCtx();
+    render(<StepPreviewApprove />);
+    const renderButton = screen.getByRole('button', { name: /Render branded video/ }) as HTMLButtonElement;
+    expect(renderButton.disabled).toBe(true);
+    expect(screen.getByTestId('guided-render-needs-approval').textContent).toMatch(/Approve the preview first/);
+  });
 
   it('after approving: Approved ✓ (disabled) and Render enabled', () => {
-    previewCtx({ previewApproved: true })
-    render(<StepPreviewApprove />)
-    expect((screen.getByText('Approved ✓').closest('button') as HTMLButtonElement).disabled).toBe(true)
-    const renderButton = () => screen.getByRole('button', { name: /Render branded video/ }) as HTMLButtonElement
+    previewCtx({ previewApproved: true });
+    render(<StepPreviewApprove />);
+    expect((screen.getByText('Approved ✓').closest('button') as HTMLButtonElement).disabled).toBe(true);
+    const renderButton = () => screen.getByRole('button', { name: /Render branded video/ }) as HTMLButtonElement;
     // An unrecorded licence is never assumed: the customer confirms before a final export.
-    expect(renderButton().disabled).toBe(true)
-    const confirm = screen.getByTestId('guided-rights-confirm').querySelector('input') as HTMLInputElement
-    act(() => { confirm.click() })
-    expect(renderButton().disabled).toBe(false)
-  })
+    expect(renderButton().disabled).toBe(true);
+    const confirm = screen.getByTestId('guided-rights-confirm').querySelector('input') as HTMLInputElement;
+    act(() => { confirm.click(); });
+    expect(renderButton().disabled).toBe(false);
+  });
 
   it('says when a change cleared the approval', () => {
-    previewCtx({ approvalStale: true })
-    render(<StepPreviewApprove />)
-    expect(screen.getByTestId('guided-approval-stale').textContent).toMatch(/approve again/)
-  })
+    previewCtx({ approvalStale: true });
+    render(<StepPreviewApprove />);
+    expect(screen.getByTestId('guided-approval-stale').textContent).toMatch(/approve again/);
+  });
 
   it('Generate with AI explains itself and links to Advanced Editing', async () => {
-    previewCtx()
-    render(<StepPreviewApprove />)
-    await act(async () => { screen.getByText('in Advanced Editing →').click() })
-    expect(ctx.setViewMode).toHaveBeenCalledWith('advanced')
-    expect(ctx.setAdvancedTab).toHaveBeenCalledWith('create')
-    expect(ctx.setAdvancedSection).toHaveBeenCalledWith('create', 'output')
-  })
+    previewCtx();
+    render(<StepPreviewApprove />);
+    await act(async () => { screen.getByText('in Advanced Editing →').click(); });
+    expect(ctx.setViewMode).toHaveBeenCalledWith('advanced');
+    expect(ctx.setAdvancedTab).toHaveBeenCalledWith('create');
+    expect(ctx.setAdvancedSection).toHaveBeenCalledWith('create', 'output');
+  });
 
   // Changing captions changes the project, which clears the approval. The panel must stay so the person can keep working on them.
   describe('captions panel', () => {
-    const video = { url: 'https://cdn.example.com/clip.mp4', name: 'clip' }
-    const panel = () => document.querySelector('[data-testid="captions-panel"]')
+    const video = { url: 'https://cdn.example.com/clip.mp4', name: 'clip' };
+    const panel = () => document.querySelector('[data-testid="captions-panel"]');
     it('is there before the preview is approved', () => {
-      previewCtx({ previewVideo: video, updatePreviewCaptions: vi.fn() })
-      render(<StepPreviewApprove />)
-      expect(panel()).toBeTruthy()
-    })
+      previewCtx({ previewVideo: video, updatePreviewCaptions: vi.fn() });
+      render(<StepPreviewApprove />);
+      expect(panel()).toBeTruthy();
+    });
     it('stays when a caption change has just cleared the approval', () => {
-      previewCtx({ previewVideo: video, approvalStale: true, previewApproved: false, updatePreviewCaptions: vi.fn() })
-      render(<StepPreviewApprove />)
-      expect(panel()).toBeTruthy()
-    })
+      previewCtx({ previewVideo: video, approvalStale: true, previewApproved: false, updatePreviewCaptions: vi.fn() });
+      render(<StepPreviewApprove />);
+      expect(panel()).toBeTruthy();
+    });
     it('is there after approval too', () => {
-      previewCtx({ previewVideo: video, previewApproved: true, updatePreviewCaptions: vi.fn() })
-      render(<StepPreviewApprove />)
-      expect(panel()).toBeTruthy()
-    })
-  })
-})
+      previewCtx({ previewVideo: video, previewApproved: true, updatePreviewCaptions: vi.fn() });
+      render(<StepPreviewApprove />);
+      expect(panel()).toBeTruthy();
+    });
+  });
+});

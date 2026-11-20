@@ -21,8 +21,8 @@ export interface CaptionStudioRequest {
 
 export type CaptionStudioOpener = (request: CaptionStudioRequest) => void
 
-let opener: CaptionStudioOpener | null = null
+let opener: CaptionStudioOpener | null = null;
 
 /** Host apps call this once. Pass null to unregister. */
-export function registerCaptionStudio(fn: CaptionStudioOpener | null): void { opener = fn }
-export function getCaptionStudio(): CaptionStudioOpener | null { return opener }
+export function registerCaptionStudio(fn: CaptionStudioOpener | null): void { opener = fn; }
+export function getCaptionStudio(): CaptionStudioOpener | null { return opener; }

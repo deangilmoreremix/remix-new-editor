@@ -108,10 +108,12 @@ export class ControlGenerator {
       groups[group].className = 'flex flex-col gap-4';
 
       // Inject onChange so the studio can react
-      const cfgWithOnChange = { ...cfg, onChange: (value) => {
+      const cfgWithOnChange = {
+ ...cfg, onChange: (value) => {
         state.setValue(cfg.key, value);
         onChange?.(cfg.key, value);
-      }};
+      }
+};
 
       const renderer = this.registry[cfg.type] || renderers.renderTextInput;
       const ui = renderer(cfgWithOnChange, state);

@@ -11,24 +11,24 @@
  * after the first paint.
  */
 
-import { PREVIEW_ASPECT_RATIOS } from '../preview/types'
-import type { PreviewAspectRatio } from '../preview/types'
+import { PREVIEW_ASPECT_RATIOS } from '../preview/types';
+import type { PreviewAspectRatio } from '../preview/types';
 import type {
   RemotionDesignCategory,
   RemotionDesignSupportCheck,
   RemotionDesignTemplate,
-} from './types'
+} from './types';
 
 /** Registered templates, in registration order. */
-const templates = new Map<string, RemotionDesignTemplate>()
+const templates = new Map<string, RemotionDesignTemplate>();
 
 /** Listeners notified whenever the registry contents change. */
-const listeners = new Set<() => void>()
+const listeners = new Set<() => void>();
 
 function notify(): void {
   for (const listener of Array.from(listeners)) {
     try {
-      listener()
+      listener();
     } catch {
       // A broken subscriber must never break registration.
     }
@@ -44,17 +44,17 @@ function notify(): void {
  */
 export function registerRemotionDesignTemplate(template: RemotionDesignTemplate): void {
   if (!template || typeof template !== 'object') {
-    throw new Error('registerRemotionDesignTemplate: a template object is required')
+    throw new Error('registerRemotionDesignTemplate: a template object is required');
   }
-  const id = typeof template.id === 'string' ? template.id.trim() : ''
+  const id = typeof template.id === 'string' ? template.id.trim() : '';
   if (!id) {
-    throw new Error('registerRemotionDesignTemplate: a template needs a non-empty id')
+    throw new Error('registerRemotionDesignTemplate: a template needs a non-empty id');
   }
   if (templates.has(id)) {
-    throw new Error(`registerRemotionDesignTemplate: duplicate design template id "${id}"`)
+    throw new Error(`registerRemotionDesignTemplate: duplicate design template id "${id}"`);
   }
-  templates.set(id, template)
-  notify()
+  templates.set(id, template);
+  notify();
 }
 
 /**
@@ -64,43 +64,43 @@ export function registerRemotionDesignTemplate(template: RemotionDesignTemplate)
  * all, so a half-loaded catalog can never be observed.
  */
 export function registerRemotionDesignTemplates(list: RemotionDesignTemplate[]): void {
-  if (!Array.isArray(list) || list.length === 0) return
-  const seen = new Set<string>()
+  if (!Array.isArray(list) || list.length === 0) return;
+  const seen = new Set<string>();
   for (const template of list) {
     if (!template || typeof template !== 'object') {
-      throw new Error('registerRemotionDesignTemplates: every entry must be a template object')
+      throw new Error('registerRemotionDesignTemplates: every entry must be a template object');
     }
-    const id = typeof template.id === 'string' ? template.id.trim() : ''
+    const id = typeof template.id === 'string' ? template.id.trim() : '';
     if (!id) {
-      throw new Error('registerRemotionDesignTemplates: every template needs a non-empty id')
+      throw new Error('registerRemotionDesignTemplates: every template needs a non-empty id');
     }
     if (seen.has(id) || templates.has(id)) {
-      throw new Error(`registerRemotionDesignTemplates: duplicate design template id "${id}"`)
+      throw new Error(`registerRemotionDesignTemplates: duplicate design template id "${id}"`);
     }
-    seen.add(id)
+    seen.add(id);
   }
   for (const template of list) {
-    templates.set(template.id.trim(), template)
+    templates.set(template.id.trim(), template);
   }
-  notify()
+  notify();
 }
 
 /** Looks a design up by id. Returns `undefined` when it is not registered. */
 export function getRemotionDesignTemplate(id: string): RemotionDesignTemplate | undefined {
-  if (typeof id !== 'string') return undefined
-  return templates.get(id)
+  if (typeof id !== 'string') return undefined;
+  return templates.get(id);
 }
 
 /** Every registered design, in registration order. */
 export function listRemotionDesignTemplates(): RemotionDesignTemplate[] {
-  return Array.from(templates.values())
+  return Array.from(templates.values());
 }
 
 /** The registered designs of one category, in registration order. */
 export function listRemotionDesignTemplatesByCategory(
   category: RemotionDesignCategory,
 ): RemotionDesignTemplate[] {
-  return listRemotionDesignTemplates().filter((template) => template.category === category)
+  return listRemotionDesignTemplates().filter((template) => template.category === category);
 }
 
 /**
@@ -113,9 +113,9 @@ export function isRemotionDesignTemplateSupported(
   id: string,
   aspectRatio: PreviewAspectRatio,
 ): RemotionDesignSupportCheck {
-  const template = getRemotionDesignTemplate(id)
+  const template = getRemotionDesignTemplate(id);
   if (!template) {
-    return { supported: false, reason: `Unknown design "${id}".` }
+    return { supported: false, reason: `Unknown design "${id}".` };
   }
   if (!template.capabilities || !template.capabilities.browserExport) {
     return {
@@ -123,17 +123,17 @@ export function isRemotionDesignTemplateSupported(
       reason:
         template.capabilities?.notes ||
         `Design "${template.name}" cannot be exported in the browser.`,
-    }
+    };
   }
   const aspectRatios =
     Array.isArray(template.aspectRatios) && template.aspectRatios.length > 0
       ? template.aspectRatios
-      : PREVIEW_ASPECT_RATIOS
+      : PREVIEW_ASPECT_RATIOS;
   if (!aspectRatios.includes(aspectRatio)) {
     return {
       supported: false,
       reason: `Design "${template.name}" does not support the ${aspectRatio} format.`,
-    }
+    };
   }
   if (template.previewCompatible === false) {
     return {
@@ -141,9 +141,9 @@ export function isRemotionDesignTemplateSupported(
       reason:
         template.previewCompatibleReason ||
         `Design "${template.name}" cannot be previewed.`,
-    }
+    };
   }
-  return { supported: true }
+  return { supported: true };
 }
 
 /**
@@ -152,11 +152,11 @@ export function isRemotionDesignTemplateSupported(
  * Returns an unsubscribe function.
  */
 export function subscribeRemotionDesignRegistry(listener: () => void): () => void {
-  if (typeof listener !== 'function') return () => {}
-  listeners.add(listener)
+  if (typeof listener !== 'function') return () => {};
+  listeners.add(listener);
   return () => {
-    listeners.delete(listener)
-  }
+    listeners.delete(listener);
+  };
 }
 
 /**
@@ -167,6 +167,6 @@ export function subscribeRemotionDesignRegistry(listener: () => void): () => voi
  * empty registry.
  */
 export function __resetRemotionDesignRegistry(): void {
-  templates.clear()
-  notify()
+  templates.clear();
+  notify();
 }

@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import React, { useCallback, useState } from 'react'
-import { Loader2, Download, Sparkles, LayoutGrid } from 'lucide-react'
-import { THUMBNAIL_ASPECTS, type ThumbnailAspect } from '@ohb/shared/api/socialPayloads'
-import { fitToShape, expandWithAi, type FitMode } from '@ohb/shared/api/thumbnailVariants'
+import React, { useCallback, useState } from 'react';
+import { Loader2, Download, Sparkles, LayoutGrid } from 'lucide-react';
+import { THUMBNAIL_ASPECTS, type ThumbnailAspect } from '@ohb/shared/api/socialPayloads';
+import { fitToShape, expandWithAi, type FitMode } from '@ohb/shared/api/thumbnailVariants';
 
 const SHAPE_NOTES: Record<ThumbnailAspect, string> = {
   '16:9': 'YouTube',
   '1:1': 'Square (download)',
   '4:5': 'Instagram feed cover',
   '9:16': 'Instagram Reels and Stories cover',
-}
+};
 
 export interface ThumbnailVersionsProps {
   /** The main thumbnail picture. */
@@ -27,55 +27,55 @@ export interface ThumbnailVersionsProps {
  * "Expand with AI" per shape is an optional extra. Publishing works without any of this.
  */
 export default function ThumbnailVersions({ sourceUrl, sourceAspect, variants, onChange, disabled }: ThumbnailVersionsProps) {
-  const [fit, setFit] = useState<FitMode>('blur')
-  const [busy, setBusy] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const current = variants ?? {}
+  const [fit, setFit] = useState<FitMode>('blur');
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const current = variants ?? {};
 
   const makeAll = useCallback(async () => {
-    if (!sourceUrl) return
-    setError(null)
-    setBusy('all')
+    if (!sourceUrl) return;
+    setError(null);
+    setBusy('all');
     try {
-      const next: Record<string, string> = { ...current }
+      const next: Record<string, string> = { ...current };
       for (const aspect of THUMBNAIL_ASPECTS) {
-        if (aspect === sourceAspect) continue
-        next[aspect] = await fitToShape(sourceUrl, aspect, { mode: fit })
+        if (aspect === sourceAspect) continue;
+        next[aspect] = await fitToShape(sourceUrl, aspect, { mode: fit });
       }
-      onChange(next)
+      onChange(next);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not make the versions.')
+      setError(e instanceof Error ? e.message : 'Could not make the versions.');
     } finally {
-      setBusy(null)
+      setBusy(null);
     }
-  }, [sourceUrl, sourceAspect, fit, current, onChange])
+  }, [sourceUrl, sourceAspect, fit, current, onChange]);
 
   const aiOne = useCallback(
     async (aspect: ThumbnailAspect) => {
-      if (!sourceUrl) return
-      setError(null)
-      setBusy(aspect)
+      if (!sourceUrl) return;
+      setError(null);
+      setBusy(aspect);
       try {
-        onChange({ ...current, [aspect]: await expandWithAi(sourceUrl, aspect) })
+        onChange({ ...current, [aspect]: await expandWithAi(sourceUrl, aspect) });
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'The AI version failed. The free fit still works.')
+        setError(e instanceof Error ? e.message : 'The AI version failed. The free fit still works.');
       } finally {
-        setBusy(null)
+        setBusy(null);
       }
     },
     [sourceUrl, current, onChange],
-  )
+  );
 
   const download = (url: string, aspect: string) => {
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `thumbnail-${aspect.replace(':', 'x')}.jpg`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  }
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `thumbnail-${aspect.replace(':', 'x')}.jpg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
-  if (!sourceUrl) return null
+  if (!sourceUrl) return null;
   return (
     <div className="space-y-2 rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }} data-testid="thumbnail-versions">
       <div className="flex flex-wrap items-center gap-2">
@@ -94,8 +94,8 @@ export default function ThumbnailVersions({ sourceUrl, sourceAspect, variants, o
       <p className="text-[10px] text-white/40">Each network gets a picture in its own shape. This is optional: your main thumbnail is used wherever you skip it.</p>
       <div className="grid grid-cols-4 gap-2">
         {THUMBNAIL_ASPECTS.map((aspect) => {
-          const isSource = aspect === sourceAspect
-          const url = isSource ? sourceUrl : current[aspect]
+          const isSource = aspect === sourceAspect;
+          const url = isSource ? sourceUrl : current[aspect];
           return (
             <div key={aspect} className="space-y-1">
               <div className="flex items-center justify-center overflow-hidden rounded-lg bg-black/40" style={{ aspectRatio: aspect.replace(':', ' / '), border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -114,10 +114,10 @@ export default function ThumbnailVersions({ sourceUrl, sourceAspect, variants, o
                 </div>
               )}
             </div>
-          )
+          );
         })}
       </div>
       {error && <p role="alert" className="text-[11px] text-red-400">{error}</p>}
     </div>
-  )
+  );
 }

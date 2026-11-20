@@ -271,12 +271,14 @@ describe('editing patches and keyframes (pen mask points, corner pin)', () => {
 });
 
 describe('project persistence and export mapping', () => {
-  const edited = (): Clip => mkClip({ fx: [
+  const edited = (): Clip => mkClip({
+ fx: [
     maskFx({ feather: 0.05, invert: 1, opacity: 0.8, rotate: 12, v1x: 0.8 }),
     { id: 'builtin:fx-corner-pin', props: { tlx: 0.1, try: 0.05 }, keys: { brx: [{ frame: 0, value: 1 }, { frame: 60, value: 0.8 }] } },
     { id: 'builtin:fx-curves', props: { curve_m: [0, 0, 0.3, 0.2, 1, 1], curve_r: [0, 0, 1, 1], curve_g: [0, 0, 1, 1], curve_b: [0, 0.1, 1, 0.9] } },
     { id: 'builtin:fx-nightvision', props: { tint: [1, 0.2, 0.2] } },
-  ], anim: { keys: { 'fx:0:v0x': [{ t: 0, v: 0.3 }, { t: 2, v: 0.1 }] } } });
+  ], anim: { keys: { 'fx:0:v0x': [{ t: 0, v: 0.3 }, { t: 2, v: 0.1 }] } } 
+});
   const tlWith = (c: Clip): Timeline => { let tl = createDefaultTimeline('t'); const v1 = tl.tracks.find((t) => t.name === 'V1')!.id; tl = addClipToTrack(tl, v1, asset('A'), 0); return { ...tl, clips: tl.clips.map((x) => ({ ...x, fx: c.fx, anim: c.anim })) }; };
   it('JSON and DB-row round trips keep arrays, scalars, keys and anim unchanged', () => {
     const c = edited();

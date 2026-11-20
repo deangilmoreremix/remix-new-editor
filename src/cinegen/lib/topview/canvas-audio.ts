@@ -76,9 +76,11 @@ export function canvasAudioParameters(capability: Data, request: Data, reference
   if (Number(request.generatingCount ?? 1) !== 1) throw new Error('Audio-reference video generation supports one output per request.');
   const properties = capability.parametersSchema?.properties ?? {};
   const parameters = { ...capability.defaults };
-  const fields = { duration: editing ? -1 : request.duration, resolution: request.resolution, aspectRatio: editing ? 'adaptive' : request.aspectRatio ?? request.ratio,
+  const fields = {
+ duration: editing ? -1 : request.duration, resolution: request.resolution, aspectRatio: editing ? 'adaptive' : request.aspectRatio ?? request.ratio,
     nativeAudio: request.sound === undefined ? undefined : request.sound === true || request.sound === 'true' || request.sound === 'on',
-    omniReferenceTaskType: request.omniReferenceTaskType };
+    omniReferenceTaskType: request.omniReferenceTaskType 
+};
   for (const [key, value] of Object.entries(fields)) {
     if (value === undefined || value === '') continue;
     if (!Object.hasOwn(properties, key)) throw new Error(`Topview Canvas does not expose the requested ${key} setting for this model.`);
@@ -130,9 +132,11 @@ export async function submitTopviewCanvasAudio(args: {
     }));
     if (!/^https:\/\//.test(upload.uploadUrl ?? '') || !upload.objectKey) throw new Error('Topview did not return a usable Canvas upload destination.');
     const headers = Object.fromEntries(Object.entries(upload.requiredHeaders ?? {}).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
-    const response = await fetch(upload.uploadUrl, { method: 'PUT', headers,
+    const response = await fetch(upload.uploadUrl, {
+ method: 'PUT', headers,
       body: new Blob([new Uint8Array(source.bytes)], { type: upload.mimeType ?? source.mime }),
-      redirect: 'manual', signal: AbortSignal.timeout(90_000) });
+      redirect: 'manual', signal: AbortSignal.timeout(90_000) 
+});
     if (!response.ok) throw new Error(`Topview reference upload failed (HTTP ${response.status}). No generation was submitted.`);
     const created = data(await call('create_topview_canvas_media_node', {
       canvasId, mediaType: kind(reference), url: upload.objectKey, mimeType: upload.mimeType ?? source.mime,
@@ -150,8 +154,10 @@ export async function submitTopviewCanvasAudio(args: {
     parameters, inputs, layout: { x: 0, y: y + Math.ceil(references.length / 4) * 300, width: 640, height: 400 },
   }));
   if (!submitted.nodeId || !submitted.taskId) throw new Error('Topview did not return a complete generation receipt. Check Topview before starting another generation.');
-  return { taskId: topviewCanvasTaskHandle({ canvasId, nodeId: submitted.nodeId, taskId: submitted.taskId }),
-    status: 'running', model: request.model, ...(parameters.duration > 0 ? { durationSec: parameters.duration } : {}), canvasId };
+  return {
+ taskId: topviewCanvasTaskHandle({ canvasId, nodeId: submitted.nodeId, taskId: submitted.taskId }),
+    status: 'running', model: request.model, ...(parameters.duration > 0 ? { durationSec: parameters.duration } : {}), canvasId 
+};
 }
 
 /** Resume the original Canvas node; never send an opaque Canvas task to the legacy query endpoint. */

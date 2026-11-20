@@ -4,16 +4,16 @@
  * `Internals.SequenceManager.Provider`, which the pinned Remotion version does not export, so the first real
  * render threw and the preview (and the in-browser render of it) showed only the error icon.
  */
-import React from 'react'
-import { describe, it, expect } from 'vitest'
-import { createRoot } from 'react-dom/client'
-import { act } from 'react'
-import { Player } from '@remotion/player'
-import { PersonalizationComposition } from '../PersonalizationComposition'
-import { applyDesignTemplate, createDefaultPreviewSettings } from '../presets'
+import React from 'react';
+import { describe, it, expect } from 'vitest';
+import { createRoot } from 'react-dom/client';
+import { act } from 'react';
+import { Player } from '@remotion/player';
+import { PersonalizationComposition } from '../PersonalizationComposition';
+import { applyDesignTemplate, createDefaultPreviewSettings } from '../presets';
 import type { PreviewInputProps } from '../types'
 
-;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const biz = {
   businessName: 'Acme Roofing',
@@ -22,11 +22,11 @@ const biz = {
   cta: 'Book a free roof check',
   phone: '555 0100',
   website: 'acmeroofing.test',
-}
+};
 
 describe('PersonalizationComposition in the real Remotion Player', () => {
   it('draws a design layer instead of the error state', async () => {
-    const settings = { ...applyDesignTemplate(createDefaultPreviewSettings(), 'promo-cta', biz), showEndCard: false }
+    const settings = { ...applyDesignTemplate(createDefaultPreviewSettings(), 'promo-cta', biz), showEndCard: false };
     const props: PreviewInputProps = {
       videoUrl: null,
       posterUrl: null,
@@ -34,10 +34,10 @@ describe('PersonalizationComposition in the real Remotion Player', () => {
       settings,
       brand: { ...biz, logoUrl: null, productUrl: null, serviceUrl: null },
       audioUrl: null,
-    }
-    const host = document.createElement('div')
-    document.body.appendChild(host)
-    const root = createRoot(host)
+    };
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const root = createRoot(host);
     await act(async () => {
       root.render(
         <Player
@@ -51,14 +51,14 @@ describe('PersonalizationComposition in the real Remotion Player', () => {
           controls={false}
           acknowledgeRemotionLicense
         />,
-      )
-    })
+      );
+    });
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 50))
-    })
-    const text = host.textContent ?? ''
-    expect(text).toContain('Spring roof check')
-    expect(text).toContain('Book a free roof check')
-    await act(async () => root.unmount())
-  })
-})
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    const text = host.textContent ?? '';
+    expect(text).toContain('Spring roof check');
+    expect(text).toContain('Book a free roof check');
+    await act(async () => root.unmount());
+  });
+});

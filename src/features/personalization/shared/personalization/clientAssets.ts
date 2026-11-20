@@ -8,9 +8,9 @@
  * re-uploading or rediscovering them.
  */
 
-import type { PersonalizationAsset } from './types'
+import type { PersonalizationAsset } from './types';
 
-const CLIENT_ASSETS_KEY = 'smartvideo_client_assets'
+const CLIENT_ASSETS_KEY = 'smartvideo_client_assets';
 
 export interface ClientAssetLibrary {
   identities: PersonalizationAsset[]
@@ -28,32 +28,32 @@ export const EMPTY_CLIENT_ASSET_LIBRARY: ClientAssetLibrary = {
   primaryLogo: null,
   products: [],
   brandReferences: [],
-}
+};
 
 export interface SavedClientAssets {
   [clientId: string]: ClientAssetLibrary
 }
 
 function readStorage(): SavedClientAssets {
-  if (typeof window === 'undefined') return {}
+  if (typeof window === 'undefined') return {};
   try {
-    const raw = localStorage.getItem(CLIENT_ASSETS_KEY)
-    return raw ? JSON.parse(raw) : {}
+    const raw = localStorage.getItem(CLIENT_ASSETS_KEY);
+    return raw ? JSON.parse(raw) : {};
   } catch {
-    return {}
+    return {};
   }
 }
 
 function writeStorage(data: SavedClientAssets) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(CLIENT_ASSETS_KEY, JSON.stringify(data))
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(CLIENT_ASSETS_KEY, JSON.stringify(data));
 }
 
 export function loadClientAssets(clientId: string): ClientAssetLibrary {
-  if (!clientId) return { ...EMPTY_CLIENT_ASSET_LIBRARY }
-  const data = readStorage()
-  const saved = data[clientId]
-  if (!saved) return { ...EMPTY_CLIENT_ASSET_LIBRARY }
+  if (!clientId) return { ...EMPTY_CLIENT_ASSET_LIBRARY };
+  const data = readStorage();
+  const saved = data[clientId];
+  if (!saved) return { ...EMPTY_CLIENT_ASSET_LIBRARY };
   return {
     identities: Array.isArray(saved.identities) ? saved.identities : [],
     primaryIdentity: saved.primaryIdentity || null,
@@ -61,56 +61,56 @@ export function loadClientAssets(clientId: string): ClientAssetLibrary {
     primaryLogo: saved.primaryLogo || null,
     products: Array.isArray(saved.products) ? saved.products : [],
     brandReferences: Array.isArray(saved.brandReferences) ? saved.brandReferences : [],
-  }
+  };
 }
 
 export function saveClientAssets(clientId: string, library: ClientAssetLibrary) {
-  if (!clientId) return
-  const data = readStorage()
-  data[clientId] = library
-  writeStorage(data)
+  if (!clientId) return;
+  const data = readStorage();
+  data[clientId] = library;
+  writeStorage(data);
 }
 
 export function deleteClientAssets(clientId: string) {
-  const data = readStorage()
-  delete data[clientId]
-  writeStorage(data)
+  const data = readStorage();
+  delete data[clientId];
+  writeStorage(data);
 }
 
 export function addAssetToClientLibrary(
   clientId: string,
   asset: PersonalizationAsset,
 ): ClientAssetLibrary {
-  const current = loadClientAssets(clientId)
-  const next = { ...current }
+  const current = loadClientAssets(clientId);
+  const next = { ...current };
 
   switch (asset.role) {
     case 'presenter_identity':
     case 'face_identity':
     case 'character_identity':
-      next.identities = [...current.identities, asset]
-      next.primaryIdentity = current.primaryIdentity || asset
-      break
+      next.identities = [...current.identities, asset];
+      next.primaryIdentity = current.primaryIdentity || asset;
+      break;
     case 'logo':
-      next.logos = [...current.logos, asset]
-      next.primaryLogo = current.primaryLogo || asset
-      break
+      next.logos = [...current.logos, asset];
+      next.primaryLogo = current.primaryLogo || asset;
+      break;
     case 'product_reference':
-      next.products = [...current.products, asset]
-      break
+      next.products = [...current.products, asset];
+      break;
     case 'brand_reference':
-      next.brandReferences = [...current.brandReferences, asset]
-      break
+      next.brandReferences = [...current.brandReferences, asset];
+      break;
     default:
-      break
+      break;
   }
 
-  saveClientAssets(clientId, next)
-  return next
+  saveClientAssets(clientId, next);
+  return next;
 }
 
 export function removeAssetFromClientLibrary(clientId: string, assetId: string): ClientAssetLibrary {
-  const current = loadClientAssets(clientId)
+  const current = loadClientAssets(clientId);
   const next = {
     identities: current.identities.filter((a) => a.id !== assetId),
     primaryIdentity: current.primaryIdentity?.id === assetId ? null : current.primaryIdentity,
@@ -118,9 +118,9 @@ export function removeAssetFromClientLibrary(clientId: string, assetId: string):
     primaryLogo: current.primaryLogo?.id === assetId ? null : current.primaryLogo,
     products: current.products.filter((a) => a.id !== assetId),
     brandReferences: current.brandReferences.filter((a) => a.id !== assetId),
-  }
-  saveClientAssets(clientId, next)
-  return next
+  };
+  saveClientAssets(clientId, next);
+  return next;
 }
 
 export function setPrimaryInClientLibrary(
@@ -128,56 +128,56 @@ export function setPrimaryInClientLibrary(
   role: 'identity' | 'logo',
   assetId: string,
 ): ClientAssetLibrary {
-  const current = loadClientAssets(clientId)
-  const next = { ...current }
+  const current = loadClientAssets(clientId);
+  const next = { ...current };
 
   if (role === 'identity') {
-    next.identities = current.identities.map((a) => ({ ...a, isPrimary: a.id === assetId }))
-    next.primaryIdentity = current.identities.find((a) => a.id === assetId) || current.primaryIdentity
+    next.identities = current.identities.map((a) => ({ ...a, isPrimary: a.id === assetId }));
+    next.primaryIdentity = current.identities.find((a) => a.id === assetId) || current.primaryIdentity;
   } else if (role === 'logo') {
-    next.logos = current.logos.map((a) => ({ ...a, isPrimary: a.id === assetId }))
-    next.primaryLogo = current.logos.find((a) => a.id === assetId) || current.primaryLogo
+    next.logos = current.logos.map((a) => ({ ...a, isPrimary: a.id === assetId }));
+    next.primaryLogo = current.logos.find((a) => a.id === assetId) || current.primaryLogo;
   }
 
-  saveClientAssets(clientId, next)
-  return next
+  saveClientAssets(clientId, next);
+  return next;
 }
 
 export function updateAssetInClientLibrary(
   clientId: string,
   asset: PersonalizationAsset,
 ): ClientAssetLibrary {
-  const current = loadClientAssets(clientId)
-  const next = { ...current }
+  const current = loadClientAssets(clientId);
+  const next = { ...current };
 
   const updateList = (list: PersonalizationAsset[]) =>
-    list.map((a) => (a.id === asset.id ? asset : a))
+    list.map((a) => (a.id === asset.id ? asset : a));
 
   switch (asset.role) {
     case 'presenter_identity':
     case 'face_identity':
     case 'character_identity':
-      next.identities = updateList(current.identities)
+      next.identities = updateList(current.identities);
       if (current.primaryIdentity?.id === asset.id) {
-        next.primaryIdentity = asset
+        next.primaryIdentity = asset;
       }
-      break
+      break;
     case 'logo':
-      next.logos = updateList(current.logos)
+      next.logos = updateList(current.logos);
       if (current.primaryLogo?.id === asset.id) {
-        next.primaryLogo = asset
+        next.primaryLogo = asset;
       }
-      break
+      break;
     case 'product_reference':
-      next.products = updateList(current.products)
-      break
+      next.products = updateList(current.products);
+      break;
     case 'brand_reference':
-      next.brandReferences = updateList(current.brandReferences)
-      break
+      next.brandReferences = updateList(current.brandReferences);
+      break;
     default:
-      break
+      break;
   }
 
-  saveClientAssets(clientId, next)
-  return next
+  saveClientAssets(clientId, next);
+  return next;
 }

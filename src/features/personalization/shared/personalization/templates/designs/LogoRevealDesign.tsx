@@ -14,9 +14,9 @@
  * The upstream's `backgroundColor` prop is forced to `transparent`.
  */
 
-import React from 'react'
-import { Img, interpolate } from 'remotion'
-import { LogoStrokeDraw } from '../_upstream/logo-stroke-draw/LogoStrokeDraw'
+import React from 'react';
+import { Img, interpolate } from 'remotion';
+import { LogoStrokeDraw } from '../_upstream/logo-stroke-draw/LogoStrokeDraw';
 import {
   DesignStage,
   TRANSPARENT,
@@ -24,47 +24,47 @@ import {
   slotText,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** The upstream's badge geometry (fractions of the composition height). */
-const BADGE_RADIUS_FACTOR = 0.2
-const BADGE_STROKE_FACTOR = 0.011
-const BADGE_CENTER_Y_FACTOR = 0.42
+const BADGE_RADIUS_FACTOR = 0.2;
+const BADGE_STROKE_FACTOR = 0.011;
+const BADGE_CENTER_Y_FACTOR = 0.42;
 
 /** The upstream's badge fill window, in layer-local frames. */
-const FILL_IN_START = 44
-const FILL_IN_END = 66
+const FILL_IN_START = 44;
+const FILL_IN_END = 66;
 
 /** The wordmark is a single line; long business names are truncated. */
-const MAX_BRAND_TEXT_LENGTH = 32
+const MAX_BRAND_TEXT_LENGTH = 32;
 
 export const LogoRevealDesign: React.FC<DesignAdapterProps> = (props) => {
   const brandText = truncateText(
     slotText(props, 'businessName', ['headline']),
     MAX_BRAND_TEXT_LENGTH,
-  )
-  const logoUrl = (props.media?.logo ?? '').trim()
-  const hasLogo = logoUrl.length > 0
+  );
+  const logoUrl = (props.media?.logo ?? '').trim();
+  const hasLogo = logoUrl.length > 0;
 
   // A blank monogram keeps the badge geometry but hides the glyph while the
   // customer's own logo is faded in on top of it.
   const monogram = hasLogo
     ? ' '
-    : brandText.charAt(0).toUpperCase() || '★'
+    : brandText.charAt(0).toUpperCase() || '★';
 
-  const accentColor = pickColor([props.colors?.accent, props.colors?.primary], '#eab308')
-  const textColor = pickColor([props.color, props.colors?.text])
+  const accentColor = pickColor([props.colors?.accent, props.colors?.primary], '#eab308');
+  const textColor = pickColor([props.color, props.colors?.text]);
 
-  const badgeRadius = props.height * BADGE_RADIUS_FACTOR
-  const badgeStroke = props.height * BADGE_STROKE_FACTOR
-  const badgeDiameter = 2 * (badgeRadius - badgeStroke / 2)
-  const badgeCenterX = props.width / 2
-  const badgeCenterY = props.height * BADGE_CENTER_Y_FACTOR
+  const badgeRadius = props.height * BADGE_RADIUS_FACTOR;
+  const badgeStroke = props.height * BADGE_STROKE_FACTOR;
+  const badgeDiameter = 2 * (badgeRadius - badgeStroke / 2);
+  const badgeCenterX = props.width / 2;
+  const badgeCenterY = props.height * BADGE_CENTER_Y_FACTOR;
 
   const fillIn = interpolate(props.frame, [FILL_IN_START, FILL_IN_END], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
-  })
+  });
 
   return (
     <DesignStage designId="logo-reveal" props={props}>
@@ -91,7 +91,7 @@ export const LogoRevealDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       ) : null}
     </DesignStage>
-  )
-}
+  );
+};
 
-export default LogoRevealDesign
+export default LogoRevealDesign;

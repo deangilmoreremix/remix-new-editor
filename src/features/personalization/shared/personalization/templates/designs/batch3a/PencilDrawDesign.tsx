@@ -13,20 +13,20 @@
  * instance shrinks it when a long name would crowd the illustration.
  */
 
-import React from 'react'
-import { PencilDraw } from '../../_upstream/pencil-draw/PencilDraw'
-import { useDesignFonts } from '../fonts'
-import { DesignStage, type DesignAdapterProps } from '../shared'
-import { ScopedUpstream, bottomMessageFitCss, brandPalette, deepShade, messageAndSub, paleTint, readableOn, useScopeId } from './batch3aShared'
+import React from 'react';
+import { PencilDraw } from '../../_upstream/pencil-draw/PencilDraw';
+import { useDesignFonts } from '../fonts';
+import { DesignStage, type DesignAdapterProps } from '../shared';
+import { ScopedUpstream, bottomMessageFitCss, brandPalette, deepShade, messageAndSub, paleTint, readableOn, useScopeId } from './batch3aShared';
 
 export const PencilDrawDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
-  const scopeId = useScopeId('pencil-draw')
-  const palette = brandPalette(props)
-  const { message, sub } = messageAndSub(props)
+  useDesignFonts();
+  const scopeId = useScopeId('pencil-draw');
+  const palette = brandPalette(props);
+  const { message, sub } = messageAndSub(props);
   // A paper-like tint of the brand colour; the ink is a deep brand shade.
-  const background = paleTint(palette.primary, 0.86)
-  const ink = deepShade(palette.primary, 0.7)
+  const background = paleTint(palette.primary, 0.86);
+  const ink = deepShade(palette.primary, 0.7);
 
   return (
     <DesignStage designId="pencil-draw" props={props}>
@@ -43,7 +43,7 @@ export const PencilDrawDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </ScopedUpstream>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default PencilDrawDesign
+export default PencilDrawDesign;

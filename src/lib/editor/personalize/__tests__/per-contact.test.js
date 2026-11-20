@@ -8,8 +8,10 @@ import { profileFromQuery } from '../../publish/publishClient.js';
 import { openSmartSpeechModal } from '../../agent/smartSpeechModal.js';
 
 // Shapes as the Personalize window stores them (contact + variables + Find a Business details).
-const ann = { id: 'c-ann', contact: { name: 'Ann Lee', firstName: 'Ann', email: 'ann@acme.test', company: 'Acme' }, variables: { firstName: 'Ann', company: 'Acme' },
-  personalization: { business: { businessName: 'Acme Plumbing', phone: '555 0100' } } };
+const ann = {
+ id: 'c-ann', contact: { name: 'Ann Lee', firstName: 'Ann', email: 'ann@acme.test', company: 'Acme' }, variables: { firstName: 'Ann', company: 'Acme' },
+  personalization: { business: { businessName: 'Acme Plumbing', phone: '555 0100' } } 
+};
 const bob = { id: 'c-bob', contact: { name: 'Bob Ray', firstName: 'Bob' }, variables: { firstName: 'Bob' } };
 const nobody = { id: 'c-x', contact: { name: 'No Name' }, variables: {} };
 const store = { listProfiles: () => [ann, bob, nobody, { id: '../bad' }] };

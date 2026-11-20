@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * Layout shell for the personalization modal's Advanced Editing view.
@@ -14,16 +14,16 @@
  * typed input or editor selection, and every section id stays in the DOM.
  */
 
-import type { ReactNode } from 'react'
-import type { AdvancedEditingSections, AdvancedEditingTab } from '../types'
-import { C } from '../guided/tokens'
+import type { ReactNode } from 'react';
+import type { AdvancedEditingSections, AdvancedEditingTab } from '../types';
+import { C } from '../guided/tokens';
 
 export const ADVANCED_TABS: ReadonlyArray<{ id: AdvancedEditingTab; label: string; hint: string }> = [
   { id: 'client', label: 'Client', hint: 'Who is this for?' },
   { id: 'assets', label: 'Assets', hint: 'Logo, people, products' },
   { id: 'recast', label: 'Full Body Recast', hint: 'Put a person in a video' },
   { id: 'create', label: 'Overlays & Create', hint: 'Prompt, output, engine' },
-]
+];
 
 /** The sections (pills) of each tab, in order. A tab with one section shows no pills. */
 export const ADVANCED_SECTIONS: Record<AdvancedEditingTab, ReadonlyArray<{ id: string; label: string }>> = {
@@ -42,7 +42,7 @@ export const ADVANCED_SECTIONS: Record<AdvancedEditingTab, ReadonlyArray<{ id: s
     { id: 'prompt', label: 'Prompt' },
     { id: 'output', label: 'Output & engine' },
   ],
-}
+};
 
 /** Where each Advanced Editing section lives (for links, jumps and tests). */
 export const SECTION_LOCATION: Record<string, { tab: AdvancedEditingTab; section: string }> = {
@@ -59,12 +59,12 @@ export const SECTION_LOCATION: Record<string, { tab: AdvancedEditingTab; section
   'pz-output': { tab: 'create', section: 'output' },
   'pz-mode': { tab: 'create', section: 'output' },
   'pz-engine': { tab: 'create', section: 'output' },
-}
+};
 
 /** Which tab holds each section id. */
 export const SECTION_TAB: Record<string, AdvancedEditingTab> = Object.fromEntries(
   Object.entries(SECTION_LOCATION).map(([id, location]) => [id, location.tab]),
-) as Record<string, AdvancedEditingTab>
+) as Record<string, AdvancedEditingTab>;
 
 export function AdvancedStepBar({
   active,
@@ -86,9 +86,9 @@ export function AdvancedStepBar({
       style={{ gap: 8, padding: '10px 0', background: C.modal }}
     >
       {ADVANCED_TABS.map((tab, index) => {
-        const isActive = tab.id === active
-        const issue = issues[tab.id]
-        const complete = Boolean(done[tab.id]) && !isActive && !issue
+        const isActive = tab.id === active;
+        const issue = issues[tab.id];
+        const complete = Boolean(done[tab.id]) && !isActive && !issue;
         return (
           <button
             key={tab.id}
@@ -140,10 +140,10 @@ export function AdvancedStepBar({
               </span>
             </span>
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 /** The section pills of the active tab (nothing for a single-section tab). */
@@ -158,8 +158,8 @@ export function AdvancedSectionPills({
   onSelect: (section: string) => void
   badges?: Record<string, number | undefined>
 }) {
-  const sections = ADVANCED_SECTIONS[tab]
-  if (sections.length < 2) return null
+  const sections = ADVANCED_SECTIONS[tab];
+  if (sections.length < 2) return null;
   return (
     <div
       role="tablist"
@@ -169,8 +169,8 @@ export function AdvancedSectionPills({
       style={{ gap: 6, padding: '0 0 10px', borderBottom: `1px solid ${C.border}` }}
     >
       {sections.map((section) => {
-        const isActive = section.id === active
-        const badge = badges[section.id]
+        const isActive = section.id === active;
+        const badge = badges[section.id];
         return (
           <button
             key={section.id}
@@ -201,10 +201,10 @@ export function AdvancedSectionPills({
               </span>
             )}
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 export function AdvancedTabPanel({
@@ -226,7 +226,7 @@ export function AdvancedTabPanel({
     >
       {children}
     </div>
-  )
+  );
 }
 
 /** One section inside a tab; hidden unless it is the tab's active section. */
@@ -245,7 +245,7 @@ export function AdvancedSectionPanel({
     <div data-testid={`pz-section-${tab}-${section}`} hidden={sections[tab] !== section}>
       {children}
     </div>
-  )
+  );
 }
 
 /** The next / previous stop: the next pill in this tab, else the next tab. */
@@ -258,10 +258,10 @@ export function adjacentStop(
     tab: t.id,
     section: s.id,
     label: ADVANCED_SECTIONS[t.id].length > 1 ? s.label : t.label,
-  })))
-  const index = stops.findIndex((stop) => stop.tab === tab && stop.section === section)
-  const next = stops[(index < 0 ? 0 : index) + direction]
-  return next || null
+  })));
+  const index = stops.findIndex((stop) => stop.tab === tab && stop.section === section);
+  const next = stops[(index < 0 ? 0 : index) + direction];
+  return next || null;
 }
 
 /** "← Back / Next →" at the bottom of each section. */
@@ -274,8 +274,8 @@ export function AdvancedTabFooter({
   section: string
   onGo: (tab: AdvancedEditingTab, section: string) => void
 }) {
-  const prev = adjacentStop(tab, section, -1)
-  const next = adjacentStop(tab, section, 1)
+  const prev = adjacentStop(tab, section, -1);
+  const next = adjacentStop(tab, section, 1);
   const linkStyle = {
     minHeight: 34,
     padding: '0 14px',
@@ -286,7 +286,7 @@ export function AdvancedTabFooter({
     fontSize: 11,
     fontWeight: 800,
     cursor: 'pointer',
-  } as const
+  } as const;
   return (
     <div className="flex items-center justify-between" style={{ padding: '18px 0 6px', gap: 10 }}>
       {prev ? (
@@ -302,7 +302,7 @@ export function AdvancedTabFooter({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 /** The right-hand pane: live preview + what will be used. Scrolls on its own on wide screens. */
@@ -316,5 +316,5 @@ export function AdvancedPreviewColumn({ children }: { children: ReactNode }) {
     >
       {children}
     </aside>
-  )
+  );
 }

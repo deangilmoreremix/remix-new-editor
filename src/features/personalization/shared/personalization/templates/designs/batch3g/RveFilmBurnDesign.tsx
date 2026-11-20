@@ -12,19 +12,19 @@
  * with the brand primary and accent; the third keeps the upstream white core.
  */
 
-import React from 'react'
-import { FilmBurn } from '../../_upstream/rve-film-burn/FilmBurn'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, brandPalette, fadeOut, rgbTriplet } from './batch3gShared'
+import React from 'react';
+import { FilmBurn } from '../../_upstream/rve-film-burn/FilmBurn';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, brandPalette, fadeOut, rgbTriplet } from './batch3gShared';
 
 /** The card is cut behind the burn's peak (the peak is frame 45 at 30 fps). */
-const CUT_START = 38
-const CUT_END = 52
+const CUT_START = 38;
+const CUT_END = 52;
 
 export const RveFilmBurnDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
-  const cardOpacity = fadeOut(props.frame, CUT_START, CUT_END)
+  const palette = brandPalette(props);
+  const cardOpacity = fadeOut(props.frame, CUT_START, CUT_END);
   return (
     <RveDesignStage designId="rve-film-burn" props={props}>
       <FilmBurn
@@ -49,7 +49,7 @@ export const RveFilmBurnDesign: React.FC<RemotionDesignComponentProps> = (props)
         }
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveFilmBurnDesign
+export default RveFilmBurnDesign;

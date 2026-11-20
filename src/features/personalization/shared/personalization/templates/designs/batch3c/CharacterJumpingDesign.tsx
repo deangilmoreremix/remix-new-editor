@@ -18,19 +18,19 @@
  * 90 % of the canvas width.
  */
 
-import React from 'react'
-import { CharacterJumping } from '../../_upstream/character-jumping/CharacterJumping'
-import { DesignStage, slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { fitChars, shade, shortSide, tint, toHex6 } from './batch3cShared'
+import React from 'react';
+import { CharacterJumping } from '../../_upstream/character-jumping/CharacterJumping';
+import { DesignStage, slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { fitChars, shade, shortSide, tint, toHex6 } from './batch3cShared';
 
 export const CharacterJumpingDesign: React.FC<DesignAdapterProps> = (props) => {
-  const s = shortSide(props)
-  const primary = toHex6(props.colors?.primary, '#0ea5e9')
-  const accent = toHex6(props.colors?.accent, '#fbbf24')
+  const s = shortSide(props);
+  const primary = toHex6(props.colors?.primary, '#0ea5e9');
+  const accent = toHex6(props.colors?.accent, '#fbbf24');
   const label = truncateText(
     slotText(props, 'label', ['cta', 'businessName']),
     Math.min(32, fitChars(props.width * 0.9, s * 0.065, 0.62)),
-  )
+  );
 
   return (
     <DesignStage designId="character-jumping" props={props}>
@@ -45,7 +45,7 @@ export const CharacterJumpingDesign: React.FC<DesignAdapterProps> = (props) => {
         jumpCount={3}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default CharacterJumpingDesign
+export default CharacterJumpingDesign;

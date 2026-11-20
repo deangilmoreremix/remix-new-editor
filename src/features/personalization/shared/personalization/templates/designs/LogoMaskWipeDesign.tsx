@@ -21,9 +21,9 @@
  * a very long business name cannot run off the canvas.
  */
 
-import React from 'react'
-import { LogoMaskWipe } from '../_upstream/logo-mask-wipe/LogoMaskWipe'
-import { useDesignFonts } from './fonts'
+import React from 'react';
+import { LogoMaskWipe } from '../_upstream/logo-mask-wipe/LogoMaskWipe';
+import { useDesignFonts } from './fonts';
 import {
   DesignStage,
   TRANSPARENT,
@@ -31,19 +31,19 @@ import {
   slotText,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** Long wordmarks are cut so they can never leave the canvas. */
-const MAX_BRAND_TEXT_LENGTH = 28
+const MAX_BRAND_TEXT_LENGTH = 28;
 
 export const LogoMaskWipeDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
+  useDesignFonts();
 
   const brandText = truncateText(
     slotText(props, 'businessName', ['headline']),
     MAX_BRAND_TEXT_LENGTH,
-  )
-  const monogram = brandText.charAt(0).toUpperCase() || '★'
+  );
+  const monogram = brandText.charAt(0).toUpperCase() || '★';
 
   return (
     <DesignStage designId="logo-mask-wipe" props={props}>
@@ -55,7 +55,7 @@ export const LogoMaskWipeDesign: React.FC<DesignAdapterProps> = (props) => {
         brandText={brandText}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default LogoMaskWipeDesign
+export default LogoMaskWipeDesign;

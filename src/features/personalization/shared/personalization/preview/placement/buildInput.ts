@@ -1,11 +1,11 @@
-import { layoutDefaultGeometry } from '../presets'
-import { roleForLayer } from '../mediaRoles'
-import { endCardFrames } from '../endCard'
-import { resolveLayerImageUrl, resolveLayerText } from '../layerContent'
-import { shadowBleedPx } from '../imageStyle'
-import { resolveImageLook } from '../imagePresets'
-import type { PersonalizationPreviewSettings, PreviewInputProps } from '../types'
-import type { LumaSample, PlacementInput, ProtectedZone } from './types'
+import { layoutDefaultGeometry } from '../presets';
+import { roleForLayer } from '../mediaRoles';
+import { endCardFrames } from '../endCard';
+import { resolveLayerImageUrl, resolveLayerText } from '../layerContent';
+import { shadowBleedPx } from '../imageStyle';
+import { resolveImageLook } from '../imagePresets';
+import type { PersonalizationPreviewSettings, PreviewInputProps } from '../types';
+import type { LumaSample, PlacementInput, ProtectedZone } from './types';
 
 /**
  * Builds the placement/quality input from the project's own settings.
@@ -22,7 +22,7 @@ export function buildPlacementInput(args: {
   source?: PlacementInput['source']
   designFacts?: (designId: string) => { id: string; category?: string; supported: boolean } | undefined
 }): PlacementInput {
-  const { settings, brand } = args
+  const { settings, brand } = args;
   return {
     width: settings.width,
     height: settings.height,
@@ -34,24 +34,24 @@ export function buildPlacementInput(args: {
     source: args.source,
     endCardStartFrame: settings.showEndCard ? endCardFrames(settings.durationInFrames).start : null,
     layers: settings.layers.map((layer) => {
-      const facts = layer.kind === 'design' && layer.designId ? args.designFacts?.(layer.designId) : undefined
-      const intended = layoutDefaultGeometry(settings.layout, layer.kind, settings.aspectRatio)
-      let role = roleForLayer(layer, facts ? { id: facts.id, category: facts.category } : null)
-      const imageUrl = resolveLayerImageUrl(layer, brand)
+      const facts = layer.kind === 'design' && layer.designId ? args.designFacts?.(layer.designId) : undefined;
+      const intended = layoutDefaultGeometry(settings.layout, layer.kind, settings.aspectRatio);
+      let role = roleForLayer(layer, facts ? { id: facts.id, category: facts.category } : null);
+      const imageUrl = resolveLayerImageUrl(layer, brand);
       // What an image actually occupies once styled: a circle is a square, a covering image
       // fills its whole box, a contained one hugs the picture; its shadow adds a bleed.
-      const hints = settings.imageHints?.[imageUrl]
+      const hints = settings.imageHints?.[imageUrl];
       const styled = layer.kind === 'logo' || layer.kind === 'productImage' || layer.kind === 'serviceImage'
         ? resolveImageLook({ role, kind: layer.kind, layerStyle: layer.imageStyle, layerRole: layer.imageRole, hints, layout: settings.layout, aspect: settings.aspectRatio }).style
-        : null
+        : null;
       // the shared hints are what the composition frames by, so they win
       // a split-screen panel covers half the frame by design: it is not an auto-placed overlay
-      const isSplit = styled?.presetId === 'split-screen'
-      if (isSplit) role = 'full-frame-replacement'
-      const measuredAspect = hints?.aspect ?? args.imageAspects?.[imageUrl]
+      const isSplit = styled?.presetId === 'split-screen';
+      if (isSplit) role = 'full-frame-replacement';
+      const measuredAspect = hints?.aspect ?? args.imageAspects?.[imageUrl];
       const imageAspect = !styled
         ? measuredAspect
-        : styled.shape === 'circle' ? 1 : styled.fit === 'cover' ? undefined : measuredAspect
+        : styled.shape === 'circle' ? 1 : styled.fit === 'cover' ? undefined : measuredAspect;
       return {
         layer,
         role,
@@ -66,7 +66,7 @@ export function buildPlacementInput(args: {
         presetId: styled?.presetId,
         splitSide: isSplit ? (styled?.splitSide ?? (settings.height > settings.width * 1.1 ? 'bottom' : 'right')) : undefined,
         designSupported: layer.kind === 'design' ? facts?.supported ?? false : undefined,
-      }
+      };
     }),
-  }
+  };
 }

@@ -62,7 +62,7 @@ export interface StudioHandoff {
   createdAt: string
 }
 
-const HANDOFF_KEY = 'storyboard_to_studio'
+const HANDOFF_KEY = 'storyboard_to_studio';
 
 /**
  * In-memory cache of the most recent hand-off. localStorage alone is not
@@ -72,7 +72,7 @@ const HANDOFF_KEY = 'storyboard_to_studio'
  * instances within a page session, so the first effect to run always gets the
  * payload, and a subsequent consume (or a remount) sees `null` and no-ops.
  */
-let pendingHandoff: StudioHandoff | null = null
+let pendingHandoff: StudioHandoff | null = null;
 
 /** Map a studio target to the URL slug the shell uses to switch tabs. */
 export const TARGET_SLUG: Record<StudioTarget, string> = {
@@ -87,7 +87,7 @@ export const TARGET_SLUG: Record<StudioTarget, string> = {
   'vibe-motion': 'vibe-motion',
   'lipsync': 'lipsync',
   'recast': 'recast',
-}
+};
 
 export const TARGET_LABEL: Record<StudioTarget, string> = {
   video: 'Video Studio',
@@ -101,13 +101,13 @@ export const TARGET_LABEL: Record<StudioTarget, string> = {
   'vibe-motion': 'Vibe Motion',
   lipsync: 'Lip Sync',
   recast: 'Recast',
-}
+};
 
 export function writeHandoff(payload: StudioHandoff): void {
-  if (typeof window === 'undefined') return
-  pendingHandoff = payload
+  if (typeof window === 'undefined') return;
+  pendingHandoff = payload;
   try {
-    localStorage.setItem(HANDOFF_KEY, JSON.stringify(payload))
+    localStorage.setItem(HANDOFF_KEY, JSON.stringify(payload));
   } catch {
     /* ignore quota / serialization errors */
   }
@@ -124,45 +124,45 @@ export function writeHandoff(payload: StudioHandoff): void {
  * applied, while the in-memory cache survives the session for any remount.
  */
 export function readHandoff(target?: StudioTarget): StudioHandoff | null {
-  if (typeof window === 'undefined') return null
-  const candidate = pendingHandoff
+  if (typeof window === 'undefined') return null;
+  const candidate = pendingHandoff;
   if (!candidate) {
     try {
-      const raw = localStorage.getItem(HANDOFF_KEY)
-      if (!raw) return null
-      pendingHandoff = JSON.parse(raw) as StudioHandoff
+      const raw = localStorage.getItem(HANDOFF_KEY);
+      if (!raw) return null;
+      pendingHandoff = JSON.parse(raw) as StudioHandoff;
     } catch {
-      return null
+      return null;
     }
   }
   if (target && pendingHandoff && pendingHandoff.target !== target) {
-    return null
+    return null;
   }
-  return pendingHandoff
+  return pendingHandoff;
 }
 
 /** Backward-compatible alias for older import names. */
-export const readStoryboardHandoff = readHandoff
+export const readStoryboardHandoff = readHandoff;
 
 export function clearHandoff(): void {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined') return;
   // Clear the persisted copy. The in-memory cache is intentionally kept so a
   // remounted studio instance (the shell may re-mount on a client-side tab
   // switch) can re-apply the payload idempotently. Call clearHandoffCache()
   // when the user explicitly edits the prompt to drop it for the session.
   try {
-    localStorage.removeItem(HANDOFF_KEY)
+    localStorage.removeItem(HANDOFF_KEY);
   } catch {
     /* ignore */
   }
 }
 
 /** Backward-compatible alias for older import names. */
-export const clearStoryboardHandoff = clearHandoff
+export const clearStoryboardHandoff = clearHandoff;
 
 /** Fully drop the in-memory hand-off cache (call when the user edits the prompt). */
 export function clearHandoffCache(): void {
-  pendingHandoff = null
+  pendingHandoff = null;
 }
 
 /**
@@ -171,11 +171,11 @@ export function clearHandoffCache(): void {
  * shell's active tab — the shell listens for this event and calls its own
  * tab-switch handler.
  */
-export const SEND_TO_EVENT = 'storyboard:send-to'
+export const SEND_TO_EVENT = 'storyboard:send-to';
 
 export function emitSendTo(target: StudioTarget): void {
-  if (typeof window === 'undefined') return
-  window.dispatchEvent(new CustomEvent(SEND_TO_EVENT, { detail: { target } }))
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(SEND_TO_EVENT, { detail: { target } }));
 }
 
 // ── GO-Viral helpers ────────────────────────────────────────────────────────────
@@ -186,7 +186,7 @@ export type ViralSourceMedia = 'image' | 'video'
 export const VIRAL_TARGETS_BY_MEDIA: Record<ViralSourceMedia, StudioTarget[]> = {
   image: ['image', 'thumbnail-studio', 'ai-influencer', 'marketing'],
   video: ['video', 'cinema', 'vfx-studio', 'clipping', 'vibe-motion', 'lipsync', 'recast'],
-}
+};
 
 /**
  * Narrow creation targets for the canonical demo-card / detail-page
@@ -196,7 +196,7 @@ export const VIRAL_TARGETS_BY_MEDIA: Record<ViralSourceMedia, StudioTarget[]> = 
 export const VIDEO_DEMO_CREATE_TARGETS: readonly StudioTarget[] = [
   'video',
   'cinema',
-] as const
+] as const;
 
 export interface CreateViralHandoffOptions {
   target: StudioTarget
@@ -216,13 +216,13 @@ export interface CreateViralHandoffOptions {
  * user can continue creation in the target studio with one click.
  */
 export function createViralHandoff({ target, record }: CreateViralHandoffOptions): StudioHandoff {
-  const prompt = record.prompt || record.fullPrompt || ''
-  const projectName = record.title || prompt.slice(0, 60)
-  const aspectRatio = record.mediaType === 'video' ? '16:9' : '1:1'
+  const prompt = record.prompt || record.fullPrompt || '';
+  const projectName = record.title || prompt.slice(0, 60);
+  const aspectRatio = record.mediaType === 'video' ? '16:9' : '1:1';
   const firstFrameUrl =
     (record.media && record.media.find((m) => m.role === 'result')?.previewUrl) ||
     record.media?.[0]?.previewUrl ||
-    null
+    null;
 
   return {
     version: 1,
@@ -238,5 +238,5 @@ export function createViralHandoff({ target, record }: CreateViralHandoffOptions
     combinedPrompt: prompt,
     firstFrameUrl,
     createdAt: new Date().toISOString(),
-  }
+  };
 }

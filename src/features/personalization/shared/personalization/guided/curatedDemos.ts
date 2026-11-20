@@ -18,8 +18,8 @@
  * `getCreateUrl()` still produces the same working template ids.
  */
 
-import type { VideoDemo } from '@ohb/data/types'
-import { DEMO_LIBRARY_REGISTRY, toVideoDemo } from '@ohb/data/demoLibraryRegistry'
+import type { VideoDemo } from '@ohb/data/types';
+import { DEMO_LIBRARY_REGISTRY, toVideoDemo } from '@ohb/data/demoLibraryRegistry';
 
 /**
  * Curated demo grid entries, in library order.
@@ -27,11 +27,11 @@ import { DEMO_LIBRARY_REGISTRY, toVideoDemo } from '@ohb/data/demoLibraryRegistr
  * This is the whole verified library — there is no slug allowlist any more.
  * The `VideoDemo` shape is preserved for every existing importer.
  */
-export const GUIDED_DEMO_VIDEOS: VideoDemo[] = DEMO_LIBRARY_REGISTRY.map(toVideoDemo)
+export const GUIDED_DEMO_VIDEOS: VideoDemo[] = DEMO_LIBRARY_REGISTRY.map(toVideoDemo);
 
 /** Frames a demo should occupy in the preview composition. */
 export function demoDurationInFrames(demo: VideoDemo, fps: number): number {
-  const safeFps = typeof fps === 'number' && Number.isFinite(fps) && fps > 0 ? fps : 30
-  const seconds = typeof demo.duration === 'number' && demo.duration > 0 ? demo.duration : 5
-  return Math.max(1, Math.round(safeFps * seconds))
+  const safeFps = typeof fps === 'number' && Number.isFinite(fps) && fps > 0 ? fps : 30;
+  const seconds = typeof demo.duration === 'number' && demo.duration > 0 ? demo.duration : 5;
+  return Math.max(1, Math.round(safeFps * seconds));
 }

@@ -15,8 +15,8 @@
  * `backgroundColor` prop is the canvas fill and is forced to `transparent`.
  */
 
-import React from 'react'
-import { LowerThirdGlassCard } from '../_upstream/lower-third-glass-card/LowerThirdGlassCard'
+import React from 'react';
+import { LowerThirdGlassCard } from '../_upstream/lower-third-glass-card/LowerThirdGlassCard';
 import {
   DesignStage,
   TRANSPARENT,
@@ -24,18 +24,18 @@ import {
   slotValue,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** `whiteSpace: "nowrap"` means the text must be cut to fit the card. */
-const MAX_NAME_LENGTH = 28
-const MAX_TITLE_LENGTH = 40
+const MAX_NAME_LENGTH = 28;
+const MAX_TITLE_LENGTH = 40;
 
 export const LowerThirdDesign: React.FC<DesignAdapterProps> = (props) => {
   const name = truncateText(
     slotValue(props, 'businessName') || slotValue(props, 'offer'),
     MAX_NAME_LENGTH,
-  )
-  const title = truncateText(slotValue(props, 'offer'), MAX_TITLE_LENGTH)
+  );
+  const title = truncateText(slotValue(props, 'offer'), MAX_TITLE_LENGTH);
 
   return (
     <DesignStage designId="lower-third" props={props}>
@@ -47,7 +47,7 @@ export const LowerThirdDesign: React.FC<DesignAdapterProps> = (props) => {
         titleText={title}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default LowerThirdDesign
+export default LowerThirdDesign;

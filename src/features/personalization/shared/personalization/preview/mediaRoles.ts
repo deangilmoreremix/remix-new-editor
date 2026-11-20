@@ -20,7 +20,7 @@
  *  - caption                 dialogue captions
  *  - decorative              effects and ornaments (stars, particles, transitions, charts)
  */
-import type { PreviewLayer, PreviewLayerKind } from './types'
+import type { PreviewLayer, PreviewLayerKind } from './types';
 
 export type OverlayMediaRole =
   | 'background-video'
@@ -116,7 +116,7 @@ export const MEDIA_ROLE_CONTRACTS: Readonly<Record<OverlayMediaRole, MediaRoleCo
     clampToSafeArea: true, stackOrder: 65, userMovable: true, userResizable: true, userRotatable: true,
     autoPlaceable: true, mayCoverSubject: false,
   },
-})
+});
 
 /**
  * Designs that are an intentional picture-in-picture / framed floating photo.
@@ -126,7 +126,7 @@ export const MEDIA_ROLE_CONTRACTS: Readonly<Record<OverlayMediaRole, MediaRoleCo
 export const PICTURE_IN_PICTURE_DESIGN_IDS: ReadonlySet<string> = new Set([
   'rve-picture-in-picture',
   'rve-polaroid-frame',
-])
+]);
 
 /** Designs that replace the footage edge to edge with their own media/scene. */
 export const FULL_FRAME_DESIGN_IDS: ReadonlySet<string> = new Set([
@@ -138,7 +138,7 @@ export const FULL_FRAME_DESIGN_IDS: ReadonlySet<string> = new Set([
   'rve-rotating-carousel',
   'rve-photo-stack',
   'rve-image-comparison-slider',
-])
+]);
 
 /** The minimal design facts the role resolver needs (no registry import). */
 export interface DesignRoleFacts {
@@ -148,7 +148,7 @@ export interface DesignRoleFacts {
 
 const TEXT_KINDS: ReadonlySet<PreviewLayerKind> = new Set<PreviewLayerKind>([
   'businessName', 'headline', 'tagline', 'offer', 'cta',
-])
+]);
 
 /**
  * The role of a layer. Image layers keep their own role (a product photo is a
@@ -159,36 +159,36 @@ export function roleForLayer(
   layer: Pick<PreviewLayer, 'kind'> & { designId?: string },
   design?: DesignRoleFacts | null,
 ): OverlayMediaRole {
-  const kind = layer.kind
-  if (kind === 'logo') return 'logo'
-  if (kind === 'productImage') return 'product-image'
-  if (kind === 'serviceImage') return 'service-image'
-  if (kind === 'endCard') return 'full-frame-replacement'
-  if (TEXT_KINDS.has(kind)) return 'text'
-  if (kind === 'design') return roleForDesign(design ?? (layer.designId ? { id: layer.designId } : null))
-  return 'decorative'
+  const kind = layer.kind;
+  if (kind === 'logo') return 'logo';
+  if (kind === 'productImage') return 'product-image';
+  if (kind === 'serviceImage') return 'service-image';
+  if (kind === 'endCard') return 'full-frame-replacement';
+  if (TEXT_KINDS.has(kind)) return 'text';
+  if (kind === 'design') return roleForDesign(design ?? (layer.designId ? { id: layer.designId } : null));
+  return 'decorative';
 }
 
 export function roleForDesign(design: DesignRoleFacts | null | undefined): OverlayMediaRole {
-  if (!design) return 'decorative'
-  if (PICTURE_IN_PICTURE_DESIGN_IDS.has(design.id)) return 'picture-in-picture'
-  if (FULL_FRAME_DESIGN_IDS.has(design.id)) return 'full-frame-replacement'
+  if (!design) return 'decorative';
+  if (PICTURE_IN_PICTURE_DESIGN_IDS.has(design.id)) return 'picture-in-picture';
+  if (FULL_FRAME_DESIGN_IDS.has(design.id)) return 'full-frame-replacement';
   switch (design.category) {
     case 'logo-reveal':
-      return 'logo'
+      return 'logo';
     case 'animated-headline':
     case 'lower-third':
     case 'promo-cta':
-      return 'text'
+      return 'text';
     case 'full-scene':
-      return 'full-frame-replacement'
+      return 'full-frame-replacement';
     default:
-      return 'decorative'
+      return 'decorative';
   }
 }
 
 export function contractFor(role: OverlayMediaRole): MediaRoleContract {
-  return MEDIA_ROLE_CONTRACTS[role]
+  return MEDIA_ROLE_CONTRACTS[role];
 }
 
 /**
@@ -196,5 +196,5 @@ export function contractFor(role: OverlayMediaRole): MediaRoleContract {
  * position only orders layers of the same role.
  */
 export function layerZIndex(role: OverlayMediaRole, indexInLayers: number): number {
-  return MEDIA_ROLE_CONTRACTS[role].stackOrder * 100 + Math.min(99, Math.max(0, indexInLayers))
+  return MEDIA_ROLE_CONTRACTS[role].stackOrder * 100 + Math.min(99, Math.max(0, indexInLayers));
 }

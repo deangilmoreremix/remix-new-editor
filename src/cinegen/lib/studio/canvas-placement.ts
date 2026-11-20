@@ -234,8 +234,14 @@ export function placeStudioNodeOnCanvas(
   if (!target || isPlacedOnCanvas(target)) return { nodes, edges, changed: false };
 
   if (target.data.config.__studioCanvasOrigin) {
-    return { nodes: nodes.map(node => node.id === nodeId ? { ...node, data: { ...node.data,
-      config: { ...node.data.config, __studioCanvasPlaced: true } } } : node), edges, changed: true };
+    return {
+ nodes: nodes.map(node => node.id === nodeId ? {
+ ...node, data: {
+ ...node.data,
+      config: { ...node.data.config, __studioCanvasPlaced: true } 
+} 
+} : node), edges, changed: true 
+};
   }
 
   const position = nextPlacedSlot(nodes);

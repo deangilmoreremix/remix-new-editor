@@ -17,7 +17,7 @@
  *    authorized for a personalized export.
  *  - Pure data and helpers: no registry/provider/React imports.
  */
-import type { NormRect, ProtectedZone } from './types'
+import type { NormRect, ProtectedZone } from './types';
 
 export type SourceFamily = 'minimax-h3' | 'promptfeed' | 'seedance-1' | 'seedance-25' | 'template-library' | 'unknown'
 export type RightsStatus = 'verified-owned' | 'licensed' | 'third-party-reference' | 'unverified'
@@ -43,7 +43,7 @@ export interface SourceProfile {
 }
 
 /** Substrings of a media path/title that name a real third-party brand. */
-export const THIRD_PARTY_BRAND_MARKERS: readonly string[] = ['tresemm', 'kitkat', 'muji']
+export const THIRD_PARTY_BRAND_MARKERS: readonly string[] = ['tresemm', 'kitkat', 'muji'];
 
 interface VerifiedProfile {
   zones: Omit<ProtectedZone, 'source'>[]
@@ -60,20 +60,20 @@ export const VERIFIED_SOURCE_PROFILES: Readonly<Record<string, VerifiedProfile>>
     zones: [{ id: 'perfume-bottle', label: 'Perfume bottle', x: 0.36, y: 0.02, w: 0.3, h: 0.95 }],
     baked: [{ id: 'minimax-hailuo-mark', label: 'MINIMAX | Hailuo AI mark', x: 0.75, y: 0.9, w: 0.24, h: 0.08 }],
   },
-})
+});
 
 export function familyFromSrc(videoSrc: string | null | undefined): SourceFamily {
-  const src = videoSrc ?? ''
-  const m = /\/media\/(minimax-h3|promptfeed|seedance-1|seedance-25)\//.exec(src)
-  if (m) return m[1] as SourceFamily
+  const src = videoSrc ?? '';
+  const m = /\/media\/(minimax-h3|promptfeed|seedance-1|seedance-25)\//.exec(src);
+  if (m) return m[1] as SourceFamily;
   // The Template videos library: its hosted bucket, and the clips it serves from the repo (the owner confirmed rights for these too).
-  if (/^https:\/\/bzxohkrxcwodllketcpz\.supabase\.co\/storage\/v1\/object\/public\/demo-template-videos\/clips\//.test(src) || /^\/media\/(seedance-2\.5|awesome-seedance)\/videos\//.test(src)) return 'template-library'
-  return 'unknown'
+  if (/^https:\/\/bzxohkrxcwodllketcpz\.supabase\.co\/storage\/v1\/object\/public\/demo-template-videos\/clips\//.test(src) || /^\/media\/(seedance-2\.5|awesome-seedance)\/videos\//.test(src)) return 'template-library';
+  return 'unknown';
 }
 
 export function namesThirdPartyBrand(text: string | null | undefined): boolean {
-  const t = (text ?? '').toLowerCase()
-  return THIRD_PARTY_BRAND_MARKERS.some((m) => t.includes(m))
+  const t = (text ?? '').toLowerCase();
+  return THIRD_PARTY_BRAND_MARKERS.some((m) => t.includes(m));
 }
 
 export function profileForSource(args: {
@@ -83,16 +83,16 @@ export function profileForSource(args: {
   height?: number | null
   customerZones?: ProtectedZone[]
 }): SourceProfile {
-  const videoSrc = args.videoSrc ?? null
-  const verified = videoSrc ? VERIFIED_SOURCE_PROFILES[videoSrc] : undefined
-  const w = args.width && args.width > 0 ? args.width : null
-  const h = args.height && args.height > 0 ? args.height : null
-  const thirdParty = namesThirdPartyBrand(videoSrc) || namesThirdPartyBrand(args.title)
-  const inRegistry = familyFromSrc(videoSrc) !== 'unknown'
+  const videoSrc = args.videoSrc ?? null;
+  const verified = videoSrc ? VERIFIED_SOURCE_PROFILES[videoSrc] : undefined;
+  const w = args.width && args.width > 0 ? args.width : null;
+  const h = args.height && args.height > 0 ? args.height : null;
+  const thirdParty = namesThirdPartyBrand(videoSrc) || namesThirdPartyBrand(args.title);
+  const inRegistry = familyFromSrc(videoSrc) !== 'unknown';
   const zones: ProtectedZone[] = [
     ...(verified?.zones ?? []).map((z) => ({ ...z, source: 'template' as const })),
     ...(args.customerZones ?? []),
-  ]
+  ];
   return {
     videoSrc,
     family: familyFromSrc(videoSrc),
@@ -115,26 +115,26 @@ export function profileForSource(args: {
         ? 'This clip is built around a real third-party brand. It is a reference clip, not something you are licensed to publish as your own ad.'
         : 'No licence or ownership record exists for this clip, so commercial use is not verified.',
     verifiedBy: verified ? 'manual-review' : null,
-  }
+  };
 }
 
 /** A final (non-preview) export needs the customer's explicit confirmation of rights. */
 export function rightsNeedConfirmation(p: Pick<SourceProfile, 'rights'>): boolean {
-  return p.rights === 'unverified' || p.rights === 'third-party-reference'
+  return p.rights === 'unverified' || p.rights === 'third-party-reference';
 }
 
 export type AspectClass = 'landscape-16:9' | 'portrait-9:16' | 'square' | 'portrait-4:5' | 'landscape-other' | 'portrait-other' | 'unknown'
 
 /** Classifies a real media size so layout rules do not assume a standard ratio. */
 export function aspectClass(width: number | null | undefined, height: number | null | undefined): AspectClass {
-  if (!width || !height || width <= 0 || height <= 0) return 'unknown'
-  const r = width / height
-  const near = (t: number) => Math.abs(r - t) / t < 0.03
-  if (near(16 / 9)) return 'landscape-16:9'
-  if (near(9 / 16)) return 'portrait-9:16'
-  if (near(1)) return 'square'
-  if (near(4 / 5)) return 'portrait-4:5'
-  return r > 1 ? 'landscape-other' : 'portrait-other'
+  if (!width || !height || width <= 0 || height <= 0) return 'unknown';
+  const r = width / height;
+  const near = (t: number) => Math.abs(r - t) / t < 0.03;
+  if (near(16 / 9)) return 'landscape-16:9';
+  if (near(9 / 16)) return 'portrait-9:16';
+  if (near(1)) return 'square';
+  if (near(4 / 5)) return 'portrait-4:5';
+  return r > 1 ? 'landscape-other' : 'portrait-other';
 }
 
 export interface SourceFit {
@@ -158,37 +158,37 @@ export function fitSourceToComposition(
   compH: number,
   policy: 'contain' | 'cover' = 'contain',
 ): SourceFit {
-  const comp = compW / compH
+  const comp = compW / compH;
   if (!sourceAspect || !(sourceAspect > 0) || Math.abs(sourceAspect - comp) / comp < 0.005) {
-    return { policy, visible: { x: 0, y: 0, w: 1, h: 1 }, cropLoss: 0, letterboxed: false }
+    return { policy, visible: { x: 0, y: 0, w: 1, h: 1 }, cropLoss: 0, letterboxed: false };
   }
   if (policy === 'contain') {
     if (sourceAspect > comp) {
-      const h = comp / sourceAspect
-      return { policy, visible: { x: 0, y: (1 - h) / 2, w: 1, h }, cropLoss: 0, letterboxed: true }
+      const h = comp / sourceAspect;
+      return { policy, visible: { x: 0, y: (1 - h) / 2, w: 1, h }, cropLoss: 0, letterboxed: true };
     }
-    const w = sourceAspect / comp
-    return { policy, visible: { x: (1 - w) / 2, y: 0, w, h: 1 }, cropLoss: 0, letterboxed: true }
+    const w = sourceAspect / comp;
+    return { policy, visible: { x: (1 - w) / 2, y: 0, w, h: 1 }, cropLoss: 0, letterboxed: true };
   }
   // cover: the source fills the frame; the part outside is cropped
-  const loss = sourceAspect > comp ? 1 - comp / sourceAspect : 1 - sourceAspect / comp
-  return { policy, visible: { x: 0, y: 0, w: 1, h: 1 }, cropLoss: loss, letterboxed: false }
+  const loss = sourceAspect > comp ? 1 - comp / sourceAspect : 1 - sourceAspect / comp;
+  return { policy, visible: { x: 0, y: 0, w: 1, h: 1 }, cropLoss: loss, letterboxed: false };
 }
 
 /** Maps a zone given in SOURCE coordinates into composition coordinates. */
 export function mapZoneToComposition(zone: ProtectedZone, fit: SourceFit, sourceAspect: number | null, compAspect: number): ProtectedZone {
   if (fit.policy === 'contain' || !sourceAspect) {
-    return { ...zone, x: fit.visible.x + zone.x * fit.visible.w, y: fit.visible.y + zone.y * fit.visible.h, w: zone.w * fit.visible.w, h: zone.h * fit.visible.h }
+    return { ...zone, x: fit.visible.x + zone.x * fit.visible.w, y: fit.visible.y + zone.y * fit.visible.h, w: zone.w * fit.visible.w, h: zone.h * fit.visible.h };
   }
   // cover: scale up so the source fills, then shift by the crop offset
-  const scaleX = sourceAspect > compAspect ? sourceAspect / compAspect : 1
-  const scaleY = sourceAspect > compAspect ? 1 : compAspect / sourceAspect
-  const clamp = (v: number) => Math.min(1, Math.max(0, v))
-  const x0 = clamp((zone.x - 0.5) * scaleX + 0.5)
-  const y0 = clamp((zone.y - 0.5) * scaleY + 0.5)
-  const x1 = clamp((zone.x + zone.w - 0.5) * scaleX + 0.5)
-  const y1 = clamp((zone.y + zone.h - 0.5) * scaleY + 0.5)
-  return { ...zone, x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) }
+  const scaleX = sourceAspect > compAspect ? sourceAspect / compAspect : 1;
+  const scaleY = sourceAspect > compAspect ? 1 : compAspect / sourceAspect;
+  const clamp = (v: number) => Math.min(1, Math.max(0, v));
+  const x0 = clamp((zone.x - 0.5) * scaleX + 0.5);
+  const y0 = clamp((zone.y - 0.5) * scaleY + 0.5);
+  const x1 = clamp((zone.x + zone.w - 0.5) * scaleX + 0.5);
+  const y1 = clamp((zone.y + zone.h - 0.5) * scaleY + 0.5);
+  return { ...zone, x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) };
 }
 
 /**
@@ -196,7 +196,7 @@ export function mapZoneToComposition(zone: ProtectedZone, fit: SourceFit, source
  * zones plus verified baked-in graphics (overlays must not sit on a watermark).
  */
 export function compositionZones(profile: SourceProfile, compW: number, compH: number, policy: 'contain' | 'cover' = 'contain'): ProtectedZone[] {
-  const fit = fitSourceToComposition(profile.sourceAspect, compW, compH, policy)
-  const comp = compW / compH
-  return [...profile.zones, ...profile.baked.regions].map((z) => mapZoneToComposition(z, fit, profile.sourceAspect, comp))
+  const fit = fitSourceToComposition(profile.sourceAspect, compW, compH, policy);
+  const comp = compW / compH;
+  return [...profile.zones, ...profile.baked.regions].map((z) => mapZoneToComposition(z, fit, profile.sourceAspect, comp));
 }

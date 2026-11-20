@@ -28,7 +28,7 @@ export interface GeneratedVideoEntry {
   metadata?: Record<string, unknown>
 }
 
-const API_ROUTE = '/api/video/record'
+const API_ROUTE = '/api/video/record';
 
 export async function registerGeneratedVideo(entry: GeneratedVideoEntry): Promise<{ ok: boolean; error?: string }> {
   try {
@@ -37,15 +37,15 @@ export async function registerGeneratedVideo(entry: GeneratedVideoEntry): Promis
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entry }),
       credentials: 'same-origin',
-    })
+    });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      return { ok: false, error: data?.error || `HTTP ${res.status}` }
+      const data = await res.json().catch(() => ({}));
+      return { ok: false, error: data?.error || `HTTP ${res.status}` };
     }
 
-    return { ok: true }
+    return { ok: true };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }

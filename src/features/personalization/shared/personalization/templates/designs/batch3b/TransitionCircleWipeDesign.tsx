@@ -19,11 +19,11 @@
  * visible and its label is left empty.
  */
 
-import React from 'react'
-import { Easing, interpolate, useCurrentFrame, useVideoConfig } from 'remotion'
-import { TransitionCircleWipe } from '../../_upstream/transition-circle-wipe/TransitionCircleWipe'
-import { DesignStage, pickColor, slotText, type DesignAdapterProps } from '../shared'
-import { Timebox, charsPerLine, fitWords } from './shared'
+import React from 'react';
+import { Easing, interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
+import { TransitionCircleWipe } from '../../_upstream/transition-circle-wipe/TransitionCircleWipe';
+import { DesignStage, pickColor, slotText, type DesignAdapterProps } from '../shared';
+import { Timebox, charsPerLine, fitWords } from './shared';
 
 /**
  * The design's length. The upstream default is 90; the layer's own length
@@ -32,12 +32,12 @@ import { Timebox, charsPerLine, fitWords } from './shared'
  * whether an `endFrame` is set. The iris opens over frames ~9-39; the
  * remaining frames are fully transparent.
  */
-export const CIRCLE_WIPE_DURATION = 60
-export const CIRCLE_WIPE_END_FRAME = CIRCLE_WIPE_DURATION
+export const CIRCLE_WIPE_DURATION = 60;
+export const CIRCLE_WIPE_END_FRAME = CIRCLE_WIPE_DURATION;
 
 /** Upstream phase constants (IRIS_START / IRIS_END). */
-const IRIS_START = 0.16
-const IRIS_END = 0.66
+const IRIS_START = 0.16;
+const IRIS_END = 0.66;
 
 /**
  * The radius (composition px) inside which the upstream canvas is hidden:
@@ -50,31 +50,31 @@ export function circleWipeHoleRadius(
   height: number,
   durationInFrames: number,
 ): number {
-  const scale = Math.min(width, height)
-  const last = Math.max(1, durationInFrames - 1)
-  const maxRadius = Math.sqrt(width * width + height * height) / 2
+  const scale = Math.min(width, height);
+  const last = Math.max(1, durationInFrames - 1);
+  const maxRadius = Math.sqrt(width * width + height * height) / 2;
   const iris = interpolate(frame, [IRIS_START * last, IRIS_END * last], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
     easing: Easing.inOut(Easing.cubic),
-  })
-  const irisRadius = iris * maxRadius * 1.04
+  });
+  const irisRadius = iris * maxRadius * 1.04;
   const edgeWidth = interpolate(iris, [0, 1], [scale * 0.05, scale * 0.014], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
-  })
-  return Math.max(0, irisRadius - edgeWidth)
+  });
+  return Math.max(0, irisRadius - edgeWidth);
 }
 
 /** Lives inside the Timebox so it reads the same duration as the upstream. */
 const IrisMask: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const frame = useCurrentFrame()
-  const { width, height, durationInFrames } = useVideoConfig()
-  const hole = circleWipeHoleRadius(frame, width, height, durationInFrames)
+  const frame = useCurrentFrame();
+  const { width, height, durationInFrames } = useVideoConfig();
+  const hole = circleWipeHoleRadius(frame, width, height, durationInFrames);
   const mask =
     hole > 0
       ? `radial-gradient(circle at 50% 50%, transparent ${hole.toFixed(1)}px, #000 ${(hole + 1).toFixed(1)}px)`
-      : undefined
+      : undefined;
   return (
     <div
       data-batch3b-iris-hole={hole.toFixed(1)}
@@ -82,13 +82,13 @@ const IrisMask: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     >
       {children}
     </div>
-  )
-}
+  );
+};
 
 export const TransitionCircleWipeDesign: React.FC<DesignAdapterProps> = (props) => {
-  const minSide = Math.min(props.width, props.height)
-  const perLine = charsPerLine(props.width, minSide * 0.075, { letterSpacing: minSide * 0.004 })
-  const label = fitWords(slotText(props, 'businessName', ['headline']), perLine, 2)
+  const minSide = Math.min(props.width, props.height);
+  const perLine = charsPerLine(props.width, minSide * 0.075, { letterSpacing: minSide * 0.004 });
+  const label = fitWords(slotText(props, 'businessName', ['headline']), perLine, 2);
 
   return (
     <DesignStage designId="transition-circle-wipe" props={props}>
@@ -104,7 +104,7 @@ export const TransitionCircleWipeDesign: React.FC<DesignAdapterProps> = (props) 
         </IrisMask>
       </Timebox>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default TransitionCircleWipeDesign
+export default TransitionCircleWipeDesign;

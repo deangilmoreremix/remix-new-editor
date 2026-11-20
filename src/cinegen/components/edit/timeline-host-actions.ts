@@ -128,11 +128,13 @@ export function useHostTimelineActions(d: HostActionDeps) {
         if (!result?.composition) return;
         // [remix] starts at the playhead and is ONE undo step (a BATCH), so a single Undo removes everything the generator added
         const applied = applyComposition(timelineRef.current, result.composition, currentTime);
-        dispatch({ type: 'BATCH', actions: [
+        dispatch({
+ type: 'BATCH', actions: [
           ...applied.assets.map((asset) => ({ type: 'ADD_ASSET' as const, asset })),
           ...applied.overlays.map((overlay) => ({ type: 'ADD_OVERLAY' as const, overlay })),
           { type: 'SET_TIMELINE' as const, timelineId: timelineRef.current.id, timeline: applied.timeline },
-        ] });
+        ] 
+});
       },
     });
     modal.open();

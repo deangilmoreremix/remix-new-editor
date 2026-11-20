@@ -541,14 +541,18 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, ext
   const synced = lipsync?.introUrl && Object.keys(lipsync.clips || {}).length && lipsync.seconds < videoSeconds;
   const cameraItems = synced
     ? [
-      { id: `outreach-intro-${id}`, name: 'Greeting (lip-synced)', type: 'video', src: lipsync.introUrl, volume: 0, left: 0, width: (lipsync.seconds / T) * 100,
-        aiPerContact: { variants: Object.fromEntries(Object.entries(lipsync.clips).map(([cid, url]) => [cid, { url }])) } },
+      {
+ id: `outreach-intro-${id}`, name: 'Greeting (lip-synced)', type: 'video', src: lipsync.introUrl, volume: 0, left: 0, width: (lipsync.seconds / T) * 100,
+        aiPerContact: { variants: Object.fromEntries(Object.entries(lipsync.clips).map(([cid, url]) => [cid, { url }])) } 
+},
       { ...recording, id: `outreach-video-${id}`, trimIn: lipsync.seconds, left: (lipsync.seconds / T) * 100, width: ((videoSeconds - lipsync.seconds) / T) * 100 },
     ]
     : [recording];
   // Same audio: no greeting track; everyone hears the recording as it is.
-  const voiceTrack = same ? null : { id: `track-voiceover-${id}`, type: 'audio', name: 'Voiceover', muted: false, solo: false,
-    items: [{ id: `speech-outreach-${id}`, type: 'audio', role: 'voiceover', name: 'Greeting', src: draft.voice.fallbackUrl, volume: 1, tts, start: 0, end: greetingSeconds }] };
+  const voiceTrack = same ? null : {
+ id: `track-voiceover-${id}`, type: 'audio', name: 'Voiceover', muted: false, solo: false,
+    items: [{ id: `speech-outreach-${id}`, type: 'audio', role: 'voiceover', name: 'Greeting', src: draft.voice.fallbackUrl, volume: 1, tts, start: 0, end: greetingSeconds }] 
+};
 
   // Website background: each contact's site screenshot full frame (scrolling), the recording in a round
   // bubble on top (Multi-Cam picture-in-picture, which the public player draws).
@@ -557,10 +561,12 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, ext
   if (website && !fallbackShot) throw new Error(draft.background.mode === 'website' ? 'Capture the fallback website first.' : 'Add the fallback image first.');
   const tracks = website
     ? [
-      { id: `track-bg-${id}`, type: 'video', name: 'Contact background', muted: true, solo: false,
+      {
+ id: `track-bg-${id}`, type: 'video', name: 'Contact background', muted: true, solo: false,
         // scroll: a website moves from its top (header, logo) to its bottom over the video, with a
         // pointer moving over it; images and maps stay still.
-        items: [{ id: `outreach-site-${id}`, name: 'Contact background', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot, fit: 'cover', ...(draft.background.mode === 'website' ? { scroll: true, cursor: draft.background.cursor !== false } : {}), left: 0, width: 100 }] },
+        items: [{ id: `outreach-site-${id}`, name: 'Contact background', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot, fit: 'cover', ...(draft.background.mode === 'website' ? { scroll: true, cursor: draft.background.cursor !== false } : {}), left: 0, width: 100 }] 
+},
       { id: `track-cam-${id}`, type: 'video', name: 'Camera', muted: false, solo: false, items: cameraItems },
       voiceTrack,
     ].filter(Boolean)

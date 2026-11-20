@@ -3,7 +3,7 @@
  * Kept out of DemoPersonalizeProvider.tsx so they can be unit-tested without
  * loading the provider (and its Supabase client).
  */
-import { DEFAULT_PREVIEW_BRAND_COLORS } from './preview/types'
+import { DEFAULT_PREVIEW_BRAND_COLORS } from './preview/types';
 
 /**
  * The first prose paragraph of page Markdown (not a heading, list item or
@@ -11,33 +11,33 @@ import { DEFAULT_PREVIEW_BRAND_COLORS } from './preview/types'
  * 300 characters. Undefined when there is none.
  */
 export function firstParagraphOf(markdown: string | undefined): string | undefined {
-  if (!markdown) return undefined
+  if (!markdown) return undefined;
   for (const block of markdown.split(/\n+/)) {
-    const line = block.trim()
-    if (!line || /^(#|-|>|\*\s)/.test(line)) continue
+    const line = block.trim();
+    if (!line || /^(#|-|>|\*\s)/.test(line)) continue;
     const plain = line
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
       .replace(/\*\*|\*/g, '')
       .replace(/\s+/g, ' ')
-      .trim()
-    if (plain.length < 40) continue
-    return plain.length > 300 ? `${plain.slice(0, 297).replace(/\s+\S*$/, '')}…` : plain
+      .trim();
+    if (plain.length < 40) continue;
+    return plain.length > 300 ? `${plain.slice(0, 297).replace(/\s+\S*$/, '')}…` : plain;
   }
-  return undefined
+  return undefined;
 }
 
-const HEX_BRAND_COLOR = /^#[0-9a-f]{6}$/i
+const HEX_BRAND_COLOR = /^#[0-9a-f]{6}$/i;
 
 /** Only well-formed `#rrggbb` primary / accent colours, or null. */
 export function researchBrandColors(value: unknown): { primary?: string; accent?: string } | null {
-  if (!value || typeof value !== 'object') return null
-  const record = value as Record<string, unknown>
-  const colors: { primary?: string; accent?: string } = {}
+  if (!value || typeof value !== 'object') return null;
+  const record = value as Record<string, unknown>;
+  const colors: { primary?: string; accent?: string } = {};
   for (const key of ['primary', 'accent'] as const) {
-    const color = record[key]
-    if (typeof color === 'string' && HEX_BRAND_COLOR.test(color)) colors[key] = color.toLowerCase()
+    const color = record[key];
+    if (typeof color === 'string' && HEX_BRAND_COLOR.test(color)) colors[key] = color.toLowerCase();
   }
-  return colors.primary || colors.accent ? colors : null
+  return colors.primary || colors.accent ? colors : null;
 }
 
 export interface BrandColorPair {
@@ -50,7 +50,7 @@ function samePair(a: BrandColorPair, b: { primary: string; accent: string } | nu
     b &&
       a.primary.toLowerCase() === b.primary.toLowerCase() &&
       a.accent.toLowerCase() === b.accent.toLowerCase(),
-  )
+  );
 }
 
 /**
@@ -74,9 +74,9 @@ export function applyResearchedBrandColors<T extends BrandColorPair>(
   researched: { primary?: string; accent?: string } | null,
   autoApplied: BrandColorPair | null = null,
 ): { colors: T; autoApplied: BrandColorPair | null } {
-  const isDefault = samePair(current, DEFAULT_PREVIEW_BRAND_COLORS)
-  const isAutoApplied = samePair(current, autoApplied)
-  if (!isDefault && !isAutoApplied) return { colors: current, autoApplied: null }
+  const isDefault = samePair(current, DEFAULT_PREVIEW_BRAND_COLORS);
+  const isAutoApplied = samePair(current, autoApplied);
+  if (!isDefault && !isAutoApplied) return { colors: current, autoApplied: null };
 
   if (!researched) {
     if (isAutoApplied && !isDefault) {
@@ -87,9 +87,9 @@ export function applyResearchedBrandColors<T extends BrandColorPair>(
           accent: DEFAULT_PREVIEW_BRAND_COLORS.accent,
         },
         autoApplied: null,
-      }
+      };
     }
-    return { colors: current, autoApplied: isAutoApplied ? autoApplied : null }
+    return { colors: current, autoApplied: isAutoApplied ? autoApplied : null };
   }
 
   // Start from the defaults so a palette with only a primary does not keep
@@ -98,7 +98,7 @@ export function applyResearchedBrandColors<T extends BrandColorPair>(
     ...current,
     primary: researched.primary ?? DEFAULT_PREVIEW_BRAND_COLORS.primary,
     accent: researched.accent ?? DEFAULT_PREVIEW_BRAND_COLORS.accent,
-  }
-  if (samePair(colors, current)) return { colors: current, autoApplied: { primary: current.primary, accent: current.accent } }
-  return { colors, autoApplied: { primary: colors.primary, accent: colors.accent } }
+  };
+  if (samePair(colors, current)) return { colors: current, autoApplied: { primary: current.primary, accent: current.accent } };
+  return { colors, autoApplied: { primary: colors.primary, accent: colors.accent } };
 }

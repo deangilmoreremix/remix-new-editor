@@ -200,11 +200,13 @@ const ANIM = { in: 'fadeInUp', idle: null, out: 'fadeOut' };
 export function overlayClip(o) {
   const at = { id: o.id, start: o.start, end: o.end };
   if (o.kind === 'text') {
-    return { ...at, type: 'overlay-text', addon: {
+    return {
+ ...at, type: 'overlay-text', addon: {
       text: String(o.text || ''), position: 'custom', alignment: 'center', fontFamily: 'Montserrat', fontSize: clamp(o.size, 2, 20, 5), fontColor: o.color || '#FFFFFF',
       fontDecorations: { bold: true, italics: false, responsive: true }, shadow: !o.background, shadowColor: '#000000', background: !!o.background, backgroundColor: 'rgba(0,0,0,0.55)',
       stroke: false, strokeColor: '#000000', rotation: 0, opacity: 100, blendMode: 'normal', geometry: geometry(o), animation: ANIM, linkMode: 'url', linkUrl: '', linkTarget: '_blank',
-    } };
+    } 
+};
   }
   if (o.kind === 'lower') {
     return { ...at, type: 'overlay-lower-third', addon: { template: o.template || LOWER_THIRD_TEMPLATE, name: String(o.text || ''), title: String(o.title || ''), fontFamily: 'Montserrat', accentColor: o.color || '#d9ff00', barColor: '#0b0c10', textColor: '#FFFFFF', subTextColor: '#d6d6d6', geometry: geometry(o), opacity: 100, blendMode: 'normal' } };
@@ -372,8 +374,10 @@ export function editProject({ main, edit, lines = [] }) {
   const tracks = [{ id: 'track-main', type: 'video', name: 'Video', muted: false, solo: false, items: videoItems }];
   // Transitions where the pieces meet (half a second, centred on the join).
   if (e.transition !== 'none' && videoItems.length > 1) {
-    tracks.push({ id: 'track-transitions', type: 'video', name: 'Transitions', muted: true, solo: false,
-      items: videoItems.slice(1).map((v, i) => ({ id: `tr-${i}`, type: 'overlay-video-transition', addon: { transition: e.transition }, start: round(Math.max(0, v.start - 0.25)), end: round(v.start + 0.25) })) });
+    tracks.push({
+ id: 'track-transitions', type: 'video', name: 'Transitions', muted: true, solo: false,
+      items: videoItems.slice(1).map((v, i) => ({ id: `tr-${i}`, type: 'overlay-video-transition', addon: { transition: e.transition }, start: round(Math.max(0, v.start - 0.25)), end: round(v.start + 0.25) })) 
+});
   }
   const broll = e.broll.filter((b) => !isPersonal(b)).map((b) => brollClip(b)).filter((c) => c.start < seconds);
   if (broll.length) tracks.push({ id: 'track-broll', type: 'video', name: 'B-roll', muted: true, solo: false, items: broll });
@@ -382,8 +386,10 @@ export function editProject({ main, edit, lines = [] }) {
   if (e.captions.burn && lines.length) {
     const words = linesToWords(remapLines(lines, segs, main.src));
     if (words.length) {
-      tracks.push({ id: 'track-captions', type: 'video', name: 'Captions', muted: false, solo: false,
-        items: [{ id: 'captions', type: 'captions', start: 0, end: seconds, captions: words, captionStyle: { preset: e.captions.preset, position: e.captions.position, color: e.captions.color, fontSize: e.captions.size } }] });
+      tracks.push({
+ id: 'track-captions', type: 'video', name: 'Captions', muted: false, solo: false,
+        items: [{ id: 'captions', type: 'captions', start: 0, end: seconds, captions: words, captionStyle: { preset: e.captions.preset, position: e.captions.position, color: e.captions.color, fontSize: e.captions.size } }] 
+});
     }
   }
   if (e.audio.music?.src) {

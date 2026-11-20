@@ -12,10 +12,10 @@
  * gradient with the business name centred, exactly like the upstream inset.
  */
 
-import React from 'react'
-import { PictureInPicture } from '../../_upstream/rve-picture-in-picture/PictureInPicture'
-import { TRANSPARENT, slotText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage, withAlpha } from '../rveSharedDesign'
+import React from 'react';
+import { PictureInPicture } from '../../_upstream/rve-picture-in-picture/PictureInPicture';
+import { TRANSPARENT, slotText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage, withAlpha } from '../rveSharedDesign';
 import {
   BrandMediaFill,
   brandGradients,
@@ -23,25 +23,25 @@ import {
   brandPalette,
   canvasScale,
   fitLine,
-} from './media'
+} from './media';
 
 export const RvePictureInPictureDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const short = Math.min(props.width, props.height)
-  const pipWidth = Math.round(Math.max(props.width * 0.25, short * 0.36))
-  const pipHeight = Math.round(pipWidth * 0.72)
-  const margin = Math.round(short * 0.045)
-  const labelPx = Math.round(Math.max(18, pipWidth * 0.075))
+  const k = canvasScale(props);
+  const short = Math.min(props.width, props.height);
+  const pipWidth = Math.round(Math.max(props.width * 0.25, short * 0.36));
+  const pipHeight = Math.round(pipWidth * 0.72);
+  const margin = Math.round(short * 0.045);
+  const labelPx = Math.round(Math.max(18, pipWidth * 0.075));
 
-  const image = brandImages(props)[0] ?? null
-  const gradients = brandGradients(props)
-  const { text: textColor } = brandPalette(props)
+  const image = brandImages(props)[0] ?? null;
+  const gradients = brandGradients(props);
+  const { text: textColor } = brandPalette(props);
   const label = fitLine(
     slotText(props, 'businessName', ['headline']),
     pipWidth * 0.86,
     labelPx,
     32,
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-picture-in-picture" props={props}>
@@ -77,7 +77,7 @@ export const RvePictureInPictureDesign: React.FC<DesignAdapterProps> = (props) =
         }
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RvePictureInPictureDesign
+export default RvePictureInPictureDesign;

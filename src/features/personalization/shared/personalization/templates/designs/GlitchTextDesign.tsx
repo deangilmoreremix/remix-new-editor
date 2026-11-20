@@ -26,9 +26,9 @@
  * glitch over the customer's video.
  */
 
-import React from 'react'
-import { GlitchText } from '../_upstream/glitch-text/GlitchText'
-import { useDesignFonts } from './fonts'
+import React from 'react';
+import { GlitchText } from '../_upstream/glitch-text/GlitchText';
+import { useDesignFonts } from './fonts';
 import {
   DesignStage,
   TRANSPARENT,
@@ -36,34 +36,34 @@ import {
   slotText,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** The upstream's own display size, in px, on a 1920 px wide composition. */
-const UPSTREAM_FONT_SIZE = 220
+const UPSTREAM_FONT_SIZE = 220;
 
 /** `whiteSpace: "nowrap"` means the headline must be cut to fit. */
-const MAX_HEADLINE_LENGTH = 18
+const MAX_HEADLINE_LENGTH = 18;
 
 /** The title-safe width the headline is fitted into (a fraction of the canvas). */
-const TITLE_SAFE_WIDTH = 0.86
+const TITLE_SAFE_WIDTH = 0.86;
 
 /** The average advance of a 900-weight sans, in em. */
-const CHAR_ADVANCE = 0.62
+const CHAR_ADVANCE = 0.62;
 
 /** The headline never shrinks below this, in px. */
-const MIN_FONT_SIZE = 32
+const MIN_FONT_SIZE = 32;
 
 /** The upstream's own motion constants. */
-const INTENSITY = 0.8
-const DURATION_SECONDS = 4
+const INTENSITY = 0.8;
+const DURATION_SECONDS = 4;
 
 export const GlitchTextDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
+  useDesignFonts();
 
   const headline = truncateText(
     slotText(props, 'headline', ['offer', 'businessName']),
     MAX_HEADLINE_LENGTH,
-  )
+  );
 
   const fontSize = Math.max(
     MIN_FONT_SIZE,
@@ -73,7 +73,7 @@ export const GlitchTextDesign: React.FC<DesignAdapterProps> = (props) => {
         (props.width * TITLE_SAFE_WIDTH) / (Math.max(1, headline.length) * CHAR_ADVANCE),
       ),
     ),
-  )
+  );
 
   return (
     <DesignStage designId="glitch-text" props={props}>
@@ -86,7 +86,7 @@ export const GlitchTextDesign: React.FC<DesignAdapterProps> = (props) => {
         duration={DURATION_SECONDS}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default GlitchTextDesign
+export default GlitchTextDesign;

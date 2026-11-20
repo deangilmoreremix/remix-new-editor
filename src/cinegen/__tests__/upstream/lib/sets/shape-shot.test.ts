@@ -35,8 +35,10 @@ describe('Set shot handoff', () => {
   it('sends a clean single view with one slot, optionally includes actors, and never references absent passes', async () => {
     const capture = vi.fn(async (kinds: string[]) => Object.fromEntries(kinds.map(kind => [kind, new Blob([kind])])));
     const handle = { capture, readCamera: () => ({ id: 'same-angle' }) } as any;
-    const options = { setId: 'room', width: 1536, height: 1024, maxReferences: 1,
-      mode: 'view' as const, includeStandIns: false, enhance: true, instructions: 'Keep the warm light.' };
+    const options = {
+ setId: 'room', width: 1536, height: 1024, maxReferences: 1,
+      mode: 'view' as const, includeStandIns: false, enhance: true, instructions: 'Keep the warm light.' 
+};
     const result = await captureSetView(handle, options);
     expect(capture).toHaveBeenLastCalledWith(['plate'], 1536, 1024);
     expect(result.files.map(file => file.name)).toEqual(['set-view.png']);

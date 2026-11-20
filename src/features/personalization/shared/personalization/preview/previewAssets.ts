@@ -11,9 +11,9 @@
  * media loader can fetch them without CORS or a remote proxy.
  */
 
-import type { PreviewLayoutId } from './types'
+import type { PreviewLayoutId } from './types';
 
-const ASSET_DIR = '/media/personalization-templates'
+const ASSET_DIR = '/media/personalization-templates';
 
 const PREVIEW_MAP: Record<string, { video: string; poster: string }> = {
   'business-introduction': {
@@ -56,22 +56,22 @@ const PREVIEW_MAP: Record<string, { video: string; poster: string }> = {
     video: `${ASSET_DIR}/menu-item-highlight.mp4`,
     poster: `${ASSET_DIR}/menu-item-highlight.jpg`,
   },
-}
+};
 
 /** The MP4 preview URL for a personalization layout id, or null if missing. */
 export function previewVideoUrl(layoutId: PreviewLayoutId): string | null {
-  return PREVIEW_MAP[layoutId]?.video ?? null
+  return PREVIEW_MAP[layoutId]?.video ?? null;
 }
 
 /** The still poster URL for a personalization layout id, or null if missing. */
 export function posterUrl(layoutId: PreviewLayoutId): string | null {
-  return PREVIEW_MAP[layoutId]?.poster ?? null
+  return PREVIEW_MAP[layoutId]?.poster ?? null;
 }
 
 /** Read-only record of every template's preview + poster URL. */
 export const PERSONALIZATION_PREVIEW_ASSETS: Readonly<
   Record<string, { video: string; poster: string }>
-> = PREVIEW_MAP
+> = PREVIEW_MAP;
 
 export type PersonalizationPreviewAsset = {
   video: string

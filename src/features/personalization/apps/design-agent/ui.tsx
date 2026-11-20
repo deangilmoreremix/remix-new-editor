@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * Design Agent presentation primitives.
@@ -7,37 +7,37 @@
  * its home and chat views from these, and Motion Studio reuses them so both
  * studios share one visual language without sharing a backend.
  */
-import { forwardRef, useEffect, useState, type ReactNode } from 'react'
-import { ChevronDown, FolderOpen, Plus, Send, Sparkles, Trash2, X } from 'lucide-react'
-import { semantic } from '../../shared/styles/designTokens'
+import { forwardRef, useEffect, useState, type ReactNode } from 'react';
+import { ChevronDown, FolderOpen, Plus, Send, Sparkles, Trash2, X } from 'lucide-react';
+import { semantic } from '../../shared/styles/designTokens';
 
 /** Typewriter placeholder that cycles through `phrases`; frozen while `paused`. */
 export function useTypingPlaceholder(phrases: readonly string[], paused: boolean): string {
-  const [placeholder, setPlaceholder] = useState('')
-  const [placeholderIdx, setPlaceholderIdx] = useState(0)
-  const [charIdx, setCharIdx] = useState(0)
-  const [isTyping, setIsTyping] = useState(true)
+  const [placeholder, setPlaceholder] = useState('');
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [charIdx, setCharIdx] = useState(0);
+  const [isTyping, setIsTyping] = useState(true);
 
   useEffect(() => {
-    if (paused || !phrases.length) return
-    const target = phrases[placeholderIdx % phrases.length]
+    if (paused || !phrases.length) return;
+    const target = phrases[placeholderIdx % phrases.length];
     if (isTyping) {
       if (charIdx < target.length) {
-        const timer = setTimeout(() => { setPlaceholder(target.slice(0, charIdx + 1)); setCharIdx(value => value + 1) }, 40)
-        return () => clearTimeout(timer)
+        const timer = setTimeout(() => { setPlaceholder(target.slice(0, charIdx + 1)); setCharIdx(value => value + 1); }, 40);
+        return () => clearTimeout(timer);
       }
-      const timer = setTimeout(() => setIsTyping(false), 1800)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setIsTyping(false), 1800);
+      return () => clearTimeout(timer);
     }
     if (charIdx > 0) {
-      const timer = setTimeout(() => { setPlaceholder(target.slice(0, charIdx - 1)); setCharIdx(value => value - 1) }, 20)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => { setPlaceholder(target.slice(0, charIdx - 1)); setCharIdx(value => value - 1); }, 20);
+      return () => clearTimeout(timer);
     }
-    setPlaceholderIdx(value => (value + 1) % phrases.length)
-    setIsTyping(true)
-  }, [charIdx, isTyping, placeholderIdx, paused, phrases])
+    setPlaceholderIdx(value => (value + 1) % phrases.length);
+    setIsTyping(true);
+  }, [charIdx, isTyping, placeholderIdx, paused, phrases]);
 
-  return placeholder
+  return placeholder;
 }
 
 /** "Design is easier with Go-AI" hero. */
@@ -47,7 +47,7 @@ export function HomeHero({ lead, accent, subtitle }: { lead: string; accent: str
       <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{lead} <span style={{ color: 'var(--color-primary)' }}>{accent}</span></h1>
       <p className="text-base" style={{ color: semantic.textSecondary }}>{subtitle}</p>
     </div>
-  )
+  );
 }
 
 /** Rounded glass card that holds the prompt textarea and its toolbar. */
@@ -56,7 +56,7 @@ export function PromptCard({ children, compact = false }: { children: ReactNode;
     <div className={`rounded-2xl ${compact ? 'p-3 space-y-2' : 'p-4 space-y-3'}`} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)' }}>
       {children}
     </div>
-  )
+  );
 }
 
 type PromptInputProps = {
@@ -84,7 +84,7 @@ export const PromptInput = forwardRef<HTMLTextAreaElement, PromptInputProps>(fun
         ref={ref}
         value={value}
         onChange={event => onChange(event.target.value)}
-        onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); onSubmit() } }}
+        onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); onSubmit(); } }}
         placeholder={placeholder}
         aria-label={ariaLabel}
         disabled={disabled}
@@ -93,33 +93,33 @@ export const PromptInput = forwardRef<HTMLTextAreaElement, PromptInputProps>(fun
         style={{ color: 'white', caretColor: 'var(--color-primary)', zIndex: 1 }}
       />
     </div>
-  )
-})
+  );
+});
 
 export function AttachButton({ onClick, disabled, label = 'Upload reference media', testId }: { onClick: () => void; disabled?: boolean; label?: string; testId?: string }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} className="p-1.5 rounded-full transition-all hover:bg-white/10 disabled:opacity-30" style={{ color: semantic.textMuted }} aria-label={label} title={label} data-testid={testId}><Plus size={16} /></button>
-  )
+  );
 }
 
 /** Blue "✦ Templates ▾" pill. */
 export function TemplatesPill({ onClick, label = 'Templates', ariaLabel }: { onClick: () => void; label?: string; ariaLabel?: string }) {
   return (
     <button type="button" onClick={onClick} aria-label={ariaLabel} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all" style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)', color: '#60a5fa' }}><Sparkles size={11} />{label}<ChevronDown size={11} /></button>
-  )
+  );
 }
 
 /** Blue chip for the selected template, with a clear button. */
 export function SelectedChip({ label, onClear, clearLabel = 'Clear template' }: { label: string; onClear: () => void; clearLabel?: string }) {
   return (
     <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs" style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)', color: '#60a5fa' }}><Sparkles size={11} />{label}<button type="button" onClick={onClear} aria-label={clearLabel}><X size={10} /></button></div>
-  )
+  );
 }
 
 export function SendButton({ onClick, disabled, active, label = 'Send message' }: { onClick: () => void; disabled?: boolean; active: boolean; label?: string }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} className="p-2 rounded-full transition-all disabled:opacity-30" style={{ color: active ? 'var(--color-primary)' : semantic.textMuted }} aria-label={label} title={label}><Send size={16} /><span className="sr-only">{label}</span></button>
-  )
+  );
 }
 
 /** Round pill used for modes, Brand Kit and view switching. `tone` picks the active colour. */
@@ -136,7 +136,7 @@ export function PillButton({ active, onClick, children, tone = 'blue', title, te
 }) {
   const on = tone === 'green'
     ? { background: 'rgba(34,197,94,0.12)', color: '#86efac' }
-    : { background: 'rgba(59,130,246,0.2)', color: '#60a5fa' }
+    : { background: 'rgba(59,130,246,0.2)', color: '#60a5fa' };
   return (
     <button
       type="button"
@@ -151,7 +151,7 @@ export function PillButton({ active, onClick, children, tone = 'blue', title, te
     >
       {children}
     </button>
-  )
+  );
 }
 
 export function NewProjectTile({ onClick, label = 'New Project' }: { onClick: () => void; label?: string }) {
@@ -160,21 +160,21 @@ export function NewProjectTile({ onClick, label = 'New Project' }: { onClick: ()
       <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--bg-card)' }}><Plus size={16} style={{ color: 'rgba(255,255,255,0.6)' }} /></div>
       <span className="text-xs" style={{ color: semantic.textSecondary }}>{label}</span>
     </button>
-  )
+  );
 }
 
 /** Recent-project tile: preview (or folder icon), name and delete on hover. */
 export function ProjectTile({ name, preview, meta, onOpen, onDelete }: { name: string; preview?: string; meta?: string; onOpen: () => void; onDelete?: () => void }) {
   return (
-    <div role="button" tabIndex={0} aria-label={`Open project ${name}`} className="group relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer transition-all hover:border-white/20" style={{ border: '1px solid var(--border-color)', background: 'var(--bg-card)' }} onClick={onOpen} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen() } }}>
+    <div role="button" tabIndex={0} aria-label={`Open project ${name}`} className="group relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer transition-all hover:border-white/20" style={{ border: '1px solid var(--border-color)', background: 'var(--bg-card)' }} onClick={onOpen} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(); } }}>
       {preview ? <img src={preview} alt={name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><FolderOpen size={20} style={{ color: semantic.textDisabled }} /></div>}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-all flex flex-col justify-end p-2">
         <p className="text-xs font-medium truncate">{name}</p>
         {meta && <p className="text-[10px] truncate" style={{ color: semantic.textSecondary }}>{meta}</p>}
-        {onDelete && <button type="button" onClick={event => { event.stopPropagation(); onDelete() }} className="absolute top-2 right-2 p-1 rounded-lg transition-all" style={{ background: 'rgba(0,0,0,0.6)' }} aria-label={`Delete project ${name}`}><Trash2 size={11} className="text-red-400" /></button>}
+        {onDelete && <button type="button" onClick={event => { event.stopPropagation(); onDelete(); }} className="absolute top-2 right-2 p-1 rounded-lg transition-all" style={{ background: 'rgba(0,0,0,0.6)' }} aria-label={`Delete project ${name}`}><Trash2 size={11} className="text-red-400" /></button>}
       </div>
     </div>
-  )
+  );
 }
 
 /** Chat bubble: primary-filled for the user, card surface for the assistant. */
@@ -186,7 +186,7 @@ export function ChatBubble({ role, children, below, preWrap = false }: { role: '
         {below}
       </div>
     </div>
-  )
+  );
 }
 
 /** Design Agent template-picker dialog shell: header, search, scrolling body, footer. */
@@ -202,12 +202,12 @@ export function TemplatePickerModal({ open, onClose, title, subtitle, search, se
   children: ReactNode
 }) {
   useEffect(() => {
-    if (!open) return
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
-  if (!open) return null
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+  if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label={title} className="w-full max-w-6xl rounded-2xl overflow-hidden shadow-2xl animate-fade-in-up" style={{ background: '#111', border: '1px solid var(--border-color)', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={event => event.stopPropagation()}>
@@ -228,7 +228,7 @@ export function TemplatePickerModal({ open, onClose, title, subtitle, search, se
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 /** One template/recipe card inside `TemplatePickerModal`. */
@@ -263,7 +263,7 @@ export function TemplateOption({ label, description, onSelect, selected, testId,
       {meta && <div className="-mt-1 mb-2 text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>{meta}</div>}
       <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>{description}</p>
     </button>
-  )
+  );
 }
 
 /** Design Agent plan card: proposed steps with Approve / Revise. */
@@ -299,12 +299,12 @@ export function PlanCard({ eyebrow, title, meta, steps, onApprove, onReject, bus
         <button type="button" disabled={busy} onClick={onApprove} className="px-4 py-2 rounded-lg text-xs font-semibold disabled:opacity-50" style={{ background: 'var(--color-primary)', color: 'white' }}>{approveLabel}</button>
       </div>
     </div>
-  )
+  );
 }
 
 /** Running / done / error activity lines (Design Agent attachment strip style). */
 export function ActivityList({ items }: { items: Array<{ label: string; status: 'running' | 'done' | 'error' }> }) {
-  if (!items.length) return null
+  if (!items.length) return null;
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl p-2" role="status" aria-live="polite" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid var(--border-color)' }}>
       {items.map((item, index) => (
@@ -313,5 +313,5 @@ export function ActivityList({ items }: { items: Array<{ label: string; status: 
         </div>
       ))}
     </div>
-  )
+  );
 }

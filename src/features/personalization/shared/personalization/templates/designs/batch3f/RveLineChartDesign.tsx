@@ -17,10 +17,10 @@
  * a text-colour ring, the headline as the title.
  */
 
-import React from 'react'
-import { LineChart, type LineChartPoint } from '../../_upstream/rve-line-chart/LineChart'
-import { slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { LineChart, type LineChartPoint } from '../../_upstream/rve-line-chart/LineChart';
+import { slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   FitCanvas,
   brandBackdrop,
@@ -28,7 +28,7 @@ import {
   fitChars,
   fitScale,
   readableOnDark,
-} from './shared3f'
+} from './shared3f';
 
 /** The pinned placeholder trend (y on the upstream's 0-100 scale). */
 export const LINE_CHART_PLACEHOLDER_DATA: LineChartPoint[] = [
@@ -42,20 +42,20 @@ export const LINE_CHART_PLACEHOLDER_DATA: LineChartPoint[] = [
   { x: 7, y: 68, label: 'Aug' },
   { x: 8, y: 77, label: 'Sep' },
   { x: 9, y: 88, label: 'Oct' },
-]
+];
 
-const CARD_W = 940
-const CARD_H = 540
-const PREFERRED_SCALE = 1.25
+const CARD_W = 940;
+const CARD_H = 540;
+const PREFERRED_SCALE = 1.25;
 
 export const RveLineChartDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE)
-  const [line, point] = brandPalette(props, 2)
-  const text = readableOnDark(props)
+  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE);
+  const [line, point] = brandPalette(props, 2);
+  const text = readableOnDark(props);
   const title = truncateText(
     slotText(props, 'headline', ['businessName']),
     fitChars(CARD_W - 60, 28, 44),
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-line-chart" props={props}>
@@ -72,7 +72,7 @@ export const RveLineChartDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </FitCanvas>
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveLineChartDesign
+export default RveLineChartDesign;

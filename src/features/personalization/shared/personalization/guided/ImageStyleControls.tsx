@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { C, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from './tokens'
-import type { ImagePresetId, ImageRole, ImageShadow, ImageShape, ImageStyle } from '../preview/imageStyle'
-import { IMAGE_PRESETS, IMAGE_PRESET_ORDER, presetSuitsRole } from '../preview/imagePresets'
+import { C, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from './tokens';
+import type { ImagePresetId, ImageRole, ImageShadow, ImageShape, ImageStyle } from '../preview/imageStyle';
+import { IMAGE_PRESETS, IMAGE_PRESET_ORDER, presetSuitsRole } from '../preview/imagePresets';
 
 const SHAPES: { id: ImageShape; label: string }[] = [
   { id: 'rounded-rect', label: 'Rounded rectangle' },
@@ -10,17 +10,17 @@ const SHAPES: { id: ImageShape; label: string }[] = [
   { id: 'pill', label: 'Pill' },
   { id: 'square', label: 'Original (square corners)' },
   { id: 'custom', label: 'Custom corners' },
-]
+];
 const ROLE_OPTIONS: { id: ImageRole; label: string }[] = [
   { id: 'product', label: 'A product' }, { id: 'service', label: 'A service' }, { id: 'food', label: 'Food' },
   { id: 'real-estate', label: 'Real estate' }, { id: 'property', label: 'A storefront / office' },
   { id: 'portrait', label: 'A portrait / headshot' }, { id: 'portfolio', label: 'Completed work' }, { id: 'general', label: 'Something else' },
-]
+];
 const SHADOWS: { id: ImageShadow; label: string }[] = [
   { id: 'none', label: 'None' },
   { id: 'subtle', label: 'Subtle' },
   { id: 'medium', label: 'Medium' },
-]
+];
 
 /**
  * Image look controls for an image layer: shape, corner radius, border, shadow,
@@ -59,7 +59,7 @@ export function ImageStyleControls({
   extraUrls?: string[]
   onExtraUrls?: (urls: string[]) => void
 }): React.JSX.Element {
-  const row = { display: 'grid', gap: 4 } as const
+  const row = { display: 'grid', gap: 4 } as const;
   return (
     <div data-testid="image-style-controls" style={{ display: 'grid', gap: 10, padding: '10px 0', borderTop: `1px solid ${C.border}` }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
@@ -82,9 +82,9 @@ export function ImageStyleControls({
           <div style={labelStyle}>Image overlay styles</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 6 }}>
             {IMAGE_PRESET_ORDER.map((id) => {
-              const preset = IMAGE_PRESETS[id]
-              const active = style.presetId === id
-              const suits = presetSuitsRole(id, role)
+              const preset = IMAGE_PRESETS[id];
+              const active = style.presetId === id;
+              const suits = presetSuitsRole(id, role);
               return (
                 <button
                   key={id}
@@ -106,7 +106,7 @@ export function ImageStyleControls({
                     {suits ? `Suits ${role} images` : `Less suited to ${role} images`}
                   </span>
                 </button>
-              )
+              );
             })}
           </div>
           {style.presetId && IMAGE_PRESETS[style.presetId].reusesDesign && (
@@ -128,8 +128,8 @@ export function ImageStyleControls({
                 aria-label={`Collage picture: ${o.label}`}
                 checked={extraUrls.includes(o.value)}
                 onChange={(e) => {
-                  const next = e.target.checked ? [...extraUrls, o.value] : extraUrls.filter((u) => u !== o.value)
-                  onExtraUrls(next.slice(0, 3))
+                  const next = e.target.checked ? [...extraUrls, o.value] : extraUrls.filter((u) => u !== o.value);
+                  onExtraUrls(next.slice(0, 3));
                 }}
               />
               {o.label}
@@ -241,5 +241,5 @@ export function ImageStyleControls({
         </button>
       )}
     </div>
-  )
+  );
 }

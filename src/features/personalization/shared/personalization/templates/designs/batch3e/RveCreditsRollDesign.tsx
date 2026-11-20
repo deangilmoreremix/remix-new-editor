@@ -27,11 +27,11 @@
  * The brand primary → the role labels, the layer colour → the names.
  */
 
-import React from 'react'
-import { CreditsRoll, type CreditsRollEntry } from '../../_upstream/rve-credits-roll/CreditsRoll'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { CreditsRoll, type CreditsRollEntry } from '../../_upstream/rve-credits-roll/CreditsRoll';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandPrimary,
   brandSceneColor,
@@ -42,14 +42,14 @@ import {
   remUnit,
   slotValue,
   truncateText,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_CREDITS_ROLL_ID = 'rve-credits-roll'
+export const RVE_CREDITS_ROLL_ID = 'rve-credits-roll';
 
 /** Frames the whole roll takes to cross the canvas (the catalog `endFrame`). */
-export const CREDITS_ROLL_FRAMES = 150
+export const CREDITS_ROLL_FRAMES = 150;
 
-const ZOOM = 1.8
+const ZOOM = 1.8;
 
 /** Brand field → the role label shown above it. */
 const CREDIT_ROLES: Array<[key: string, role: string]> = [
@@ -59,42 +59,42 @@ const CREDIT_ROLES: Array<[key: string, role: string]> = [
   ['phone', 'Call'],
   ['website', 'Visit'],
   ['cta', 'Get started'],
-]
+];
 
 /** Builds the credits from the brand fields (empty fields are skipped). */
 export function creditsFromBrand(
   props: DesignAdapterProps,
   maxNameChars: number,
 ): CreditsRollEntry[] {
-  const credits: CreditsRollEntry[] = []
+  const credits: CreditsRollEntry[] = [];
   for (const [key, role] of CREDIT_ROLES) {
     // The primary slot (business name) prefers the customer's own text.
     const value =
       key === 'businessName'
         ? slotValue(props, key) || (typeof props.text === 'string' ? props.text.trim() : '')
-        : slotValue(props, key)
-    if (!value) continue
-    credits.push({ role, name: truncateText(value, maxNameChars) })
+        : slotValue(props, key);
+    if (!value) continue;
+    credits.push({ role, name: truncateText(value, maxNameChars) });
   }
-  return credits
+  return credits;
 }
 
 /** Line height the browser gives `line-height: normal` for the bundled face. */
-const LINE_HEIGHT = 1.21
+const LINE_HEIGHT = 1.21;
 
 export const RveCreditsRollDesign: React.FC<DesignAdapterProps> = (props) => {
-  const rem = remUnit(props, ZOOM)
-  const unit = rem / 16
-  const rolePx = 0.9 * rem
-  const namePx = 1.5 * rem
+  const rem = remUnit(props, ZOOM);
+  const unit = rem / 16;
+  const rolePx = 0.9 * rem;
+  const namePx = 1.5 * rem;
 
-  const credits = creditsFromBrand(props, fitChars(props.width * 0.88, namePx, 1, 40))
+  const credits = creditsFromBrand(props, fitChars(props.width * 0.88, namePx, 1, 40));
 
   // Height of the scrolling column, so the speed clears it in the budget.
-  const itemHeight = rolePx * LINE_HEIGHT + 0.4 * rem + namePx * LINE_HEIGHT
+  const itemHeight = rolePx * LINE_HEIGHT + 0.4 * rem + namePx * LINE_HEIGHT;
   const contentHeight =
-    2 * rem + credits.length * itemHeight + Math.max(0, credits.length - 1) * 2.5 * rem
-  const scrollSpeed = (props.height + contentHeight) / CREDITS_ROLL_FRAMES
+    2 * rem + credits.length * itemHeight + Math.max(0, credits.length - 1) * 2.5 * rem;
+  const scrollSpeed = (props.height + contentHeight) / CREDITS_ROLL_FRAMES;
 
   return (
     <RveDesignStage designId={RVE_CREDITS_ROLL_ID} props={props}>
@@ -113,7 +113,7 @@ export const RveCreditsRollDesign: React.FC<DesignAdapterProps> = (props) => {
         fontFamily={DESIGN_FONT_STACK}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveCreditsRollDesign
+export default RveCreditsRollDesign;

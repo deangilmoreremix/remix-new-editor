@@ -11,7 +11,7 @@ export async function saveToRemixAssetLibrary(
   file: File,
   meta: { projectId?: string; source?: string } = {},
 ): Promise<{ id: string; url: string }> {
-  const { saveAsset } = await import('../../../lib/assetLibrary.js')
-  const asset = await saveAsset(file, {}, { source: 'personalization', ...meta })
-  return { id: asset.id, url: asset.url }
+  const { saveAsset } = await import('../../../lib/assetLibrary.js');
+  const asset = await saveAsset(file, {}, { source: 'personalization', ...meta });
+  return { id: asset.id, url: asset.url };
 }

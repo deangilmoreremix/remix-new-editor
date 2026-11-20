@@ -18,8 +18,10 @@ const setup = ({ mode = 'full', html = '', width = 1200 } = {}) => {
   const ios = [];
   class FakeIO { constructor(cb) { this.cb = cb; this.els = []; ios.push(this); } observe(el) { this.els.push(el); } unobserve() {} disconnect() {} }
   class FakeMO { observe() {} disconnect() {} }
-  const heat = createHeatmapCapture({ analytics, container, frame, win, doc: document, IntersectionObserver: FakeIO, MutationObserver: FakeMO,
-    labelFor: (id) => (id === 'cta1' ? 'Book a call' : null), leadClipId: 'lead1', allowUntrusted: true, now: () => 1000 });
+  const heat = createHeatmapCapture({
+ analytics, container, frame, win, doc: document, IntersectionObserver: FakeIO, MutationObserver: FakeMO,
+    labelFor: (id) => (id === 'cta1' ? 'Book a call' : null), leadClipId: 'lead1', allowUntrusted: true, now: () => 1000 
+});
   return { analytics, heat, container, frame, sent, fetchImpl, ios, win };
 };
 const click = (el, x, y) => el.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: x, clientY: y, detail: 1 }));

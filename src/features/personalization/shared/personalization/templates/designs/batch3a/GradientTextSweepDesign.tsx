@@ -13,28 +13,28 @@
  * untouched.
  */
 
-import React from 'react'
-import { GradientTextSweep } from '../../_upstream/gradient-text-sweep/GradientTextSweep'
-import { useDesignFonts } from '../fonts'
-import { DesignStage, TRANSPARENT, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
-import { ScopedUpstream, brandPalette, fitFontSize, scopeSelector, useScopeId } from './batch3aShared'
+import React from 'react';
+import { GradientTextSweep } from '../../_upstream/gradient-text-sweep/GradientTextSweep';
+import { useDesignFonts } from '../fonts';
+import { DesignStage, TRANSPARENT, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
+import { ScopedUpstream, brandPalette, fitFontSize, scopeSelector, useScopeId } from './batch3aShared';
 
-const MAX_HEADLINE_LENGTH = 32
-const MAX_SUBLINE_LENGTH = 28
+const MAX_HEADLINE_LENGTH = 32;
+const MAX_SUBLINE_LENGTH = 28;
 
 export const GradientTextSweepDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
-  const scopeId = useScopeId('gradient-text-sweep')
-  const palette = brandPalette(props)
+  useDesignFonts();
+  const scopeId = useScopeId('gradient-text-sweep');
+  const palette = brandPalette(props);
 
-  const headline = truncateText(slotText(props, 'headline', ['offer', 'businessName']), MAX_HEADLINE_LENGTH)
-  const subline = truncateText(slotValue(props, 'subline'), MAX_SUBLINE_LENGTH)
+  const headline = truncateText(slotText(props, 'headline', ['offer', 'businessName']), MAX_HEADLINE_LENGTH);
+  const subline = truncateText(slotValue(props, 'subline'), MAX_SUBLINE_LENGTH);
 
   // The upstream's own size formula.
-  const title = headline.toUpperCase()
-  const baseFont = Math.round(props.height * 0.155)
-  const lenAdj = Math.min(1, 14 / Math.max(title.length, 1))
-  const upstreamSize = Math.round(baseFont * (0.7 + 0.3 * lenAdj))
+  const title = headline.toUpperCase();
+  const baseFont = Math.round(props.height * 0.155);
+  const lenAdj = Math.min(1, 14 / Math.max(title.length, 1));
+  const upstreamSize = Math.round(baseFont * (0.7 + 0.3 * lenAdj));
 
   const fitted = fitFontSize(title, {
     maxWidth: props.width * 0.86,
@@ -42,15 +42,15 @@ export const GradientTextSweepDesign: React.FC<DesignAdapterProps> = (props) => 
     maxSize: upstreamSize,
     advance: 0.72,
     lineHeight: 1.05,
-  })
-  const sel = scopeSelector(scopeId)
-  const wrapper = `${sel} > div:first-child > div:nth-child(2)`
-  const sub = Math.round(fitted * 0.2)
+  });
+  const sel = scopeSelector(scopeId);
+  const wrapper = `${sel} > div:first-child > div:nth-child(2)`;
+  const sub = Math.round(fitted * 0.2);
   const css =
     fitted < upstreamSize
       ? `${wrapper} > span:first-child { font-size: ${fitted}px !important; }\n` +
         `${wrapper} > span:nth-child(3) { font-size: ${sub}px !important; letter-spacing: ${Math.round(sub * 0.35)}px !important; }`
-      : ''
+      : '';
 
   return (
     <DesignStage designId="gradient-text-sweep" props={props}>
@@ -64,7 +64,7 @@ export const GradientTextSweepDesign: React.FC<DesignAdapterProps> = (props) => 
         />
       </ScopedUpstream>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default GradientTextSweepDesign
+export default GradientTextSweepDesign;

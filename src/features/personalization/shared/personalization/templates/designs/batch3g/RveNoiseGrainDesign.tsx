@@ -13,20 +13,20 @@
  * edge (12 px at 1080p instead of 8 px) to keep the per-frame SVG bounded.
  */
 
-import React from 'react'
-import { NoiseGrain } from '../../_upstream/rve-noise-grain/NoiseGrain'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { brandPalette } from './batch3gShared'
+import React from 'react';
+import { NoiseGrain } from '../../_upstream/rve-noise-grain/NoiseGrain';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { brandPalette } from './batch3gShared';
 
 export const RveNoiseGrainDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
-  const cellSize = Math.max(6, Math.round(Math.max(props.width, props.height) / 160))
+  const palette = brandPalette(props);
+  const cellSize = Math.max(6, Math.round(Math.max(props.width, props.height) / 160));
   return (
     <RveDesignStage designId="rve-noise-grain" props={props}>
       <NoiseGrain background={null} showSample={false} cellSize={cellSize} grainColor={palette.text} />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveNoiseGrainDesign
+export default RveNoiseGrainDesign;

@@ -188,7 +188,8 @@ describe('pruneRemovedScenes', () => {
       clips: [{ id: 'c1', sceneId: 's1', beats: [] }, { id: 'c2', sceneId: 's2', beats: [] }] as DirectorClip[],
     });
     // next: scene 2 removed
-    const nextShow = { ...prevShow,
+    const nextShow = {
+ ...prevShow,
       sourceText: 'INT. OFFICE - DAY\nDr. Jordan enters.',
       scenes: [prevShow.scenes[0]],
     };
@@ -221,7 +222,8 @@ describe('pruneRemovedScenes', () => {
       sceneAssetOverrides: { 1: { added: ['@Zombie'], removed: [] } },
     });
     // next: scene index 1 (the one the override referenced) removed.
-    const nextShow = { ...prevShow,
+    const nextShow = {
+ ...prevShow,
       sourceText: 'INT. OFFICE - DAY\nDr. Jordan enters.',
       scenes: [prevShow.scenes[0]],
     };
@@ -241,7 +243,8 @@ describe('pruneRemovedScenes', () => {
       sceneAssetOverrides: { 0: { added: ['@Hidden-Prop'], removed: [] } },
     });
     // next: scene index 1 removed; override at index 0 still maps to a surviving scene.
-    const nextShow = { ...prevShow,
+    const nextShow = {
+ ...prevShow,
       sourceText: 'INT. OFFICE - DAY\nDr. Jordan enters.',
       scenes: [prevShow.scenes[0]],
     };

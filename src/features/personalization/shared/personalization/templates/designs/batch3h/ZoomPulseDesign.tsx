@@ -11,10 +11,10 @@
  * always passes a brand URL or `null`.
  */
 
-import React from 'react'
-import { ZoomPulse } from '../../_upstream/rve-zoom-pulse/ZoomPulse'
-import { darkenColor, slotText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { ZoomPulse } from '../../_upstream/rve-zoom-pulse/ZoomPulse';
+import { darkenColor, slotText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   BrandMediaFill,
   brandImages,
@@ -23,19 +23,19 @@ import {
   fitLine,
   isPhoto,
   sceneBackground,
-} from './media'
+} from './media';
 
 export const RveZoomPulseDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const image = brandImages(props)[0] ?? null
-  const { primary, text: textColor } = brandPalette(props)
-  const labelPx = Math.round(96 * k)
+  const k = canvasScale(props);
+  const image = brandImages(props)[0] ?? null;
+  const { primary, text: textColor } = brandPalette(props);
+  const labelPx = Math.round(96 * k);
   const label = fitLine(
     slotText(props, 'businessName', ['headline']),
     props.width * 0.8,
     labelPx,
     32,
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-zoom-pulse" props={props}>
@@ -56,7 +56,7 @@ export const RveZoomPulseDesign: React.FC<DesignAdapterProps> = (props) => {
         }
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveZoomPulseDesign
+export default RveZoomPulseDesign;

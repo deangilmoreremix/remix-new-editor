@@ -706,4 +706,4 @@ export const SFX_PEAKS: Record<string, { peakMs: number; durationMs: number; pea
   "durationMs": 1287,
   "peakDb": -0.6
  }
-}
+};

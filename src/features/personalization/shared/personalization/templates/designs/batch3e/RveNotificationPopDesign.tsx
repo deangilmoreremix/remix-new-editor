@@ -23,14 +23,14 @@
  * scale with the composition (capped at 62 % of the canvas width).
  */
 
-import React from 'react'
+import React from 'react';
 import {
   NotificationPop,
   type NotificationPopItem,
-} from '../../_upstream/rve-notification-pop/NotificationPop'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { TRANSPARENT, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+} from '../../_upstream/rve-notification-pop/NotificationPop';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { TRANSPARENT, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandAccent,
   brandPrimary,
@@ -43,14 +43,14 @@ import {
   slotValue,
   truncateText,
   withAlpha,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_NOTIFICATION_POP_ID = 'rve-notification-pop'
+export const RVE_NOTIFICATION_POP_ID = 'rve-notification-pop';
 
-const ZOOM = 2
+const ZOOM = 2;
 
 /** The upstream's per-card delay. */
-const CARD_DELAY_FRAMES = 20
+const CARD_DELAY_FRAMES = 20;
 
 /** Builds the (up to three) cards from the brand fields. */
 export function notificationCards(
@@ -63,44 +63,44 @@ export function notificationCards(
     [slotValue(props, 'businessName'), slotText(props, 'offer', [])],
     [slotValue(props, 'cta'), slotValue(props, 'phone')],
     [slotValue(props, 'website'), slotValue(props, 'headline')],
-  ]
-  const cards: NotificationPopItem[] = []
+  ];
+  const cards: NotificationPopItem[] = [];
   for (const [rawTitle, rawBody] of pairs) {
-    let title = rawTitle
-    let body = rawBody
-    if (!title && !body) continue
+    let title = rawTitle;
+    let body = rawBody;
+    if (!title && !body) continue;
     if (!title) {
-      title = body
-      body = ''
+      title = body;
+      body = '';
     }
-    const index = cards.length
+    const index = cards.length;
     cards.push({
       title: truncateText(title, titleChars),
       body: truncateText(body, bodyChars),
       color: colors[index % colors.length],
       delay: index * CARD_DELAY_FRAMES,
-    })
+    });
   }
-  return cards
+  return cards;
 }
 
 export const RveNotificationPopDesign: React.FC<DesignAdapterProps> = (props) => {
-  const rem = remUnit(props, ZOOM)
-  const unit = rem / 16
-  const cardWidth = Math.min(320 * unit, props.width * 0.62)
-  const cardUnit = cardWidth / 320
-  const titlePx = 0.95 * 16 * cardUnit
-  const bodyPx = 0.8 * 16 * cardUnit
+  const rem = remUnit(props, ZOOM);
+  const unit = rem / 16;
+  const cardWidth = Math.min(320 * unit, props.width * 0.62);
+  const cardUnit = cardWidth / 320;
+  const titlePx = 0.95 * 16 * cardUnit;
+  const bodyPx = 0.8 * 16 * cardUnit;
   // Card padding (16) ×2, the 40px dot and the 12px gap, in card units.
-  const textWidth = cardWidth - (32 + 40 + 12) * cardUnit
+  const textWidth = cardWidth - (32 + 40 + 12) * cardUnit;
 
-  const primary = brandPrimary(props)
+  const primary = brandPrimary(props);
   const cards = notificationCards(
     props,
     [primary, brandAccent(props), lightenColor(primary, 0.4)],
     fitChars(textWidth, titlePx, 1, 32),
     fitChars(textWidth, bodyPx, 2, 64),
-  )
+  );
 
   return (
     <RveDesignStage designId={RVE_NOTIFICATION_POP_ID} props={props}>
@@ -127,7 +127,7 @@ export const RveNotificationPopDesign: React.FC<DesignAdapterProps> = (props) =>
         fontFamily={DESIGN_FONT_STACK}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveNotificationPopDesign
+export default RveNotificationPopDesign;

@@ -1,15 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Node } from '@xyflow/react';
 import type { WorkflowNodeData } from '@cinegen/types/workflow';
-vi.mock('@cinegen/lib/fal/models', () => ({ ALL_MODELS: {}, getModelDefinition: (type: string) => type === 'test-video'
+vi.mock('@cinegen/lib/fal/models', () => ({
+ ALL_MODELS: {}, getModelDefinition: (type: string) => type === 'test-video'
   ? { id: 'video', nodeType: type, name: 'Video', category: 'video', outputType: 'video', inputs: [], responseMapping: { path: 'video.url' } }
-  : undefined }));
+  : undefined 
+}));
 import { canvasMedia, canvasPrompt, importCanvasMedia, studioFeedModel, syncCanvasVideosToStudio } from '@cinegen/lib/studio/canvas-import';
 import { detachSelection, isPlacedOnCanvas, placeStudioNodeOnCanvas, visibleCanvasEdges } from '@cinegen/lib/studio/canvas-placement';
 
 const now = '2026-09-07T03:00:00Z';
-const node = (id: string, type: string, config: Record<string, unknown> = {}): Node<WorkflowNodeData> => ({ id, type,
-  position: { x: 123, y: 456 }, data: { type, label: id, config } });
+const node = (id: string, type: string, config: Record<string, unknown> = {}): Node<WorkflowNodeData> => ({
+ id, type,
+  position: { x: 123, y: 456 }, data: { type, label: id, config } 
+});
 
 describe('Canvas to Studio', () => {
   it('keeps a running video available to Studio if its Canvas placement is removed before completion', () => {
@@ -21,8 +25,12 @@ describe('Canvas to Studio', () => {
     expect(syncCanvasVideosToStudio([node('empty-board', 'storyboarder', { shots: [null, {}] })], now)).toHaveLength(1);
   });
   it('automatically shares generated videos without duplicating, moving, or removing the Canvas node', () => {
-    const video = { ...node('render', 'test-video'), data: { ...node('render', 'test-video').data,
-      result: { status: 'complete' as const, url: 'https://media.test/render.mp4' }, generations: ['https://media.test/render.mp4'] } };
+    const video = {
+ ...node('render', 'test-video'), data: {
+ ...node('render', 'test-video').data,
+      result: { status: 'complete' as const, url: 'https://media.test/render.mp4' }, generations: ['https://media.test/render.mp4'] 
+} 
+};
     const synced = syncCanvasVideosToStudio([video], now);
     expect(synced).toHaveLength(1);
     expect(synced[0].id).toBe(video.id);

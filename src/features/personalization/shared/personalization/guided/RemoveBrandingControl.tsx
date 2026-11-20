@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Coins, Eraser, Loader2, Undo2 } from 'lucide-react'
-import { C, hintStyle, primaryButtonStyle, secondaryButtonStyle } from './tokens'
-import { Tip } from './editor/Tip'
-import { REMOVE_BRANDING_CREDITS, describeCost, type RemovalDeps } from './brandingRemoval'
-import { useBrandingRemoval } from './useBrandingRemoval'
+import { useState } from 'react';
+import { Coins, Eraser, Loader2, Undo2 } from 'lucide-react';
+import { C, hintStyle, primaryButtonStyle, secondaryButtonStyle } from './tokens';
+import { Tip } from './editor/Tip';
+import { REMOVE_BRANDING_CREDITS, describeCost, type RemovalDeps } from './brandingRemoval';
+import { useBrandingRemoval } from './useBrandingRemoval';
 
 /**
  * "Remove branding (AI)": a paid action, so it never runs from the button alone. The button opens a
@@ -32,12 +32,12 @@ export function RemoveBrandingControl({
   /** Test seam. */
   deps?: RemovalDeps
 }): React.JSX.Element {
-  const removal = useBrandingRemoval({ apiKey, videoUrl, onDone: onApply, deps })
-  const [mayEdit, setMayEdit] = useState(false)
-  const { status, quote, afford, error } = removal
-  const cost = describeCost(quote)
-  const label = REMOVE_BRANDING_CREDITS != null ? `Remove branding (AI) · ${describeCost(null)}` : 'Remove branding (AI)'
-  const busy = status === 'quoting' || status === 'running'
+  const removal = useBrandingRemoval({ apiKey, videoUrl, onDone: onApply, deps });
+  const [mayEdit, setMayEdit] = useState(false);
+  const { status, quote, afford, error } = removal;
+  const cost = describeCost(quote);
+  const label = REMOVE_BRANDING_CREDITS != null ? `Remove branding (AI) · ${describeCost(null)}` : 'Remove branding (AI)';
+  const busy = status === 'quoting' || status === 'running';
 
   return (
     <div data-testid="remove-branding" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -47,7 +47,7 @@ export function RemoveBrandingControl({
             type="button"
             data-testid="remove-branding-open"
             disabled={!videoUrl || busy || blocked || status === 'confirm'}
-            onClick={() => { setMayEdit(false); removal.open() }}
+            onClick={() => { setMayEdit(false); removal.open(); }}
             style={{ ...secondaryButtonStyle, display: 'inline-flex', alignItems: 'center', gap: 8, opacity: !videoUrl || blocked ? 0.5 : 1 }}
           >
             {status === 'quoting' ? <Loader2 size={14} className="animate-spin" /> : <Eraser size={14} />}
@@ -109,5 +109,5 @@ export function RemoveBrandingControl({
         </div>
       )}
     </div>
-  )
+  );
 }

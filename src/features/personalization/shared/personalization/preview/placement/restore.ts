@@ -1,5 +1,5 @@
-import { recommendPlacement } from './engine'
-import type { PlacementInput, PlacementResult } from './types'
+import { recommendPlacement } from './engine';
+import type { PlacementInput, PlacementResult } from './types';
 
 /**
  * "Restore Recommended Placement": every layer the engine may move goes back to
@@ -12,10 +12,10 @@ export function recommendRestoredPlacement(input: PlacementInput): PlacementResu
   return recommendPlacement({
     ...input,
     layers: input.layers.map((l) => {
-      if (l.layer.locked) return l
-      const { placementSource: _drop, ...rest } = l.layer
-      void _drop
-      return { ...l, layer: { ...rest, x: l.intended.x, y: l.intended.y, scale: l.intended.scale } }
+      if (l.layer.locked) return l;
+      const { placementSource: _drop, ...rest } = l.layer;
+      void _drop;
+      return { ...l, layer: { ...rest, x: l.intended.x, y: l.intended.y, scale: l.intended.scale } };
     }),
-  })
+  });
 }

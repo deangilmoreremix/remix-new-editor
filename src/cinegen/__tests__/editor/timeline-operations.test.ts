@@ -638,10 +638,12 @@ describe('addKeyframe', () => {
 describe('removeKeyframe', () => {
   it('removes keyframe at given index', () => {
     const tl = makeTimeline({
-      clips: [makeClip({ keyframes: [
+      clips: [makeClip({
+ keyframes: [
         { time: 0, property: 'opacity', value: 0 },
         { time: 2, property: 'opacity', value: 1 },
-      ] })],
+      ] 
+})],
     });
     const result = removeKeyframe(tl, 'clip-1', 0);
     expect(result.clips[0].keyframes).toHaveLength(1);
@@ -652,10 +654,12 @@ describe('removeKeyframe', () => {
 describe('moveKeyframe', () => {
   it('moves a keyframe to a new time and re-sorts', () => {
     const tl = makeTimeline({
-      clips: [makeClip({ keyframes: [
+      clips: [makeClip({
+ keyframes: [
         { time: 0, property: 'opacity', value: 0 },
         { time: 2, property: 'opacity', value: 1 },
-      ] })],
+      ] 
+})],
     });
     const result = moveKeyframe(tl, 'clip-1', 0, 3);
     expect(result.clips[0].keyframes[0].time).toBe(2);

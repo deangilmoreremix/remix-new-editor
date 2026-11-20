@@ -15,10 +15,10 @@
  * tint of it → the subtitle, as upstream).
  */
 
-import React from 'react'
-import { CinematicTitleIntro } from '../../_upstream/rve-cinematic-title-intro/CinematicTitleIntro'
-import { type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { CinematicTitleIntro } from '../../_upstream/rve-cinematic-title-intro/CinematicTitleIntro';
+import { type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandAccent,
   brandPrimary,
@@ -31,30 +31,30 @@ import {
   slotText,
   truncateText,
   withAlpha,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_CINEMATIC_TITLE_INTRO_ID = 'rve-cinematic-title-intro'
+export const RVE_CINEMATIC_TITLE_INTRO_ID = 'rve-cinematic-title-intro';
 
-const ZOOM = 1.8
+const ZOOM = 1.8;
 
 export const RveCinematicTitleIntroDesign: React.FC<DesignAdapterProps> = (props) => {
-  const rem = remUnit(props, ZOOM)
-  const unit = rem / 16
-  const titlePx = 4 * rem
-  const subtitlePx = 1.5 * rem
-  const inner = props.width * 0.88
+  const rem = remUnit(props, ZOOM);
+  const unit = rem / 16;
+  const titlePx = 4 * rem;
+  const subtitlePx = 1.5 * rem;
+  const inner = props.width * 0.88;
 
   const title = truncateText(
     slotText(props, 'headline', ['businessName', 'offer']),
     // The title is letter-spaced 0.05em, so each glyph is a little wider.
     fitChars(inner / 1.08, titlePx, 2, 40),
-  )
+  );
   const subtitle = truncateText(
     firstSlot(props, ['businessName', 'offer']),
     fitChars(inner / 1.15, subtitlePx, 1, 48),
-  )
+  );
 
-  const text = brandText(props)
+  const text = brandText(props);
 
   return (
     <RveDesignStage designId={RVE_CINEMATIC_TITLE_INTRO_ID} props={props}>
@@ -74,7 +74,7 @@ export const RveCinematicTitleIntroDesign: React.FC<DesignAdapterProps> = (props
         subtitleGap={Math.round(24 * unit)}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveCinematicTitleIntroDesign
+export default RveCinematicTitleIntroDesign;

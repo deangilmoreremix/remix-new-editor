@@ -99,10 +99,12 @@ describe('camera rotation rings and Look mode', () => {
   it('preserves ring rotation when a saved camera is normalized and restored', () => {
     const { camera, controls } = navigation();
     rotateCameraInPlace(controls, 'z', 0.4);
-    const sets = normalizeProjectSets([{ cameras: [{
+    const sets = normalizeProjectSets([{
+ cameras: [{
       position: camera.position.toArray(), target: controls.target.toArray(),
       up: camera.up.toArray(), focalMm: 35, aspect: '16:9',
-    }] }]);
+    }] 
+}]);
     const restored = new THREE.PerspectiveCamera();
     applyCamera(restored, sets[0].cameras[0]);
     expect(restored.position.distanceTo(camera.position)).toBeLessThan(1e-8);

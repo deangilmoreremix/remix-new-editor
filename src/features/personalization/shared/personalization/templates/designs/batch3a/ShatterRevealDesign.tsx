@@ -17,10 +17,10 @@
  * 280 px upstream) is scaled with the canvas.
  */
 
-import React from 'react'
-import { ShatterReveal } from '../../_upstream/shatter-reveal/ShatterReveal'
-import { useDesignFonts } from '../fonts'
-import { DesignStage, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
+import React from 'react';
+import { ShatterReveal } from '../../_upstream/shatter-reveal/ShatterReveal';
+import { useDesignFonts } from '../fonts';
+import { DesignStage, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
 import {
   ScopedUpstream,
   brandPalette,
@@ -29,36 +29,36 @@ import {
   mixHex,
   scopeSelector,
   useScopeId,
-} from './batch3aShared'
+} from './batch3aShared';
 
-const MAX_TITLE_LENGTH = 28
-const MAX_SUBTITLE_LENGTH = 48
+const MAX_TITLE_LENGTH = 28;
+const MAX_SUBTITLE_LENGTH = 48;
 
 export const ShatterRevealDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
-  const scopeId = useScopeId('shatter-reveal')
-  const palette = brandPalette(props)
+  useDesignFonts();
+  const scopeId = useScopeId('shatter-reveal');
+  const palette = brandPalette(props);
 
-  const title = truncateText(slotText(props, 'title', ['offer', 'businessName']), MAX_TITLE_LENGTH)
-  const subtitle = truncateText(slotValue(props, 'subtitle'), MAX_SUBTITLE_LENGTH)
+  const title = truncateText(slotText(props, 'title', ['offer', 'businessName']), MAX_TITLE_LENGTH);
+  const subtitle = truncateText(slotValue(props, 'subtitle'), MAX_SUBTITLE_LENGTH);
 
-  const scale = Math.min(props.width, props.height)
-  const inset = scale * 0.074
-  const tileW = props.width - inset * 2
-  const tileH = props.height - inset * 2
-  const upstreamSize = scale * 0.26
+  const scale = Math.min(props.width, props.height);
+  const inset = scale * 0.074;
+  const tileW = props.width - inset * 2;
+  const tileH = props.height - inset * 2;
+  const upstreamSize = scale * 0.26;
   const fitted = fitFontSize(title, {
     maxWidth: tileW * 0.86,
     maxHeight: tileH * 0.7,
     maxSize: upstreamSize,
     advance: 0.66,
     lineHeight: 1.05,
-  })
+  });
   // root > inset > relative > fragment > window > tile > title
-  const titleSel = `${scopeSelector(scopeId)} > div:first-child > div:first-child > div > div > div > div > div`
+  const titleSel = `${scopeSelector(scopeId)} > div:first-child > div:first-child > div > div > div > div > div`;
   const css =
     `${titleSel} { text-align: center; max-width: ${Math.round(tileW * 0.9)}px; }` +
-    (fitted < Math.round(upstreamSize) ? `\n${titleSel} { font-size: ${fitted}px !important; }` : '')
+    (fitted < Math.round(upstreamSize) ? `\n${titleSel} { font-size: ${fitted}px !important; }` : '');
 
   return (
     <DesignStage designId="shatter-reveal" props={props}>
@@ -79,7 +79,7 @@ export const ShatterRevealDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </ScopedUpstream>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default ShatterRevealDesign
+export default ShatterRevealDesign;

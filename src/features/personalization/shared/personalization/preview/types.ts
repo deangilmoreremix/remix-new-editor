@@ -4,8 +4,8 @@
  * so saved placements correspond to the actual video resolution.
  */
 
-import type { ImageHints, ImageRole, ImageStyle } from './imageStyle'
-import type { StudioCaptions } from '../captions/studioCaptions'
+import type { ImageHints, ImageRole, ImageStyle } from './imageStyle';
+import type { StudioCaptions } from '../captions/studioCaptions';
 
 export type PreviewLayoutId =
   | 'business-introduction'
@@ -280,13 +280,13 @@ export interface PreviewInputProps {
   lumaSamples?: import('./placement/types').LumaSample[]
 }
 
-export const DEFAULT_PREVIEW_FPS = 30
+export const DEFAULT_PREVIEW_FPS = 30;
 
 export const DEFAULT_PREVIEW_BRAND_COLORS: PreviewBrandColors = {
   primary: '#d9ff00',
   accent: '#22c55e',
   text: '#ffffff',
   backgroundDim: 0.18,
-}
+};
 
-export const PREVIEW_ASPECT_RATIOS: PreviewAspectRatio[] = ['16:9', '9:16', '1:1', '4:5']
+export const PREVIEW_ASPECT_RATIOS: PreviewAspectRatio[] = ['16:9', '9:16', '1:1', '4:5'];

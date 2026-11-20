@@ -6,8 +6,8 @@
  * hoisted variable — but every engine test needs the same input fixtures and
  * capability presets, so those live here.
  */
-import { createDefaultPreviewSettings } from '../preview/presets'
-import type { PreviewInputProps } from '../preview/types'
+import { createDefaultPreviewSettings } from '../preview/presets';
+import type { PreviewInputProps } from '../preview/types';
 
 export function makeInputProps(overrides: Partial<PreviewInputProps> = {}): PreviewInputProps {
   return {
@@ -28,14 +28,14 @@ export function makeInputProps(overrides: Partial<PreviewInputProps> = {}): Prev
       serviceUrl: null,
     },
     ...overrides,
-  }
+  };
 }
 
 export function makeStubBlob(): Blob {
-  return new Blob(['fake-branded-video-bytes'], { type: 'video/mp4' })
+  return new Blob(['fake-branded-video-bytes'], { type: 'video/mp4' });
 }
 
-export const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
+export const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 /**
  * Capability-detection presets mirroring the real `@remotion/web-renderer`
@@ -49,10 +49,10 @@ export const videoCodecPresets = {
   none: () => Promise.resolve([] as const),
   h264Only: (container: string) =>
     Promise.resolve(container === 'mp4' ? (['h264'] as const) : ([] as const)),
-}
+};
 
 export const audioCodecPresets = {
   full: (container: string) =>
     Promise.resolve(container === 'mp4' ? (['aac'] as const) : (['opus', 'vorbis'] as const)),
   none: () => Promise.resolve([] as const),
-}
+};

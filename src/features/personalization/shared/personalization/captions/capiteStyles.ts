@@ -47,19 +47,19 @@ export const CAPITE_CAPTION_STYLES: readonly CapiteCaptionStyle[] = Object.freez
   {"id": "retro-glitch", "name": "Retro Glitch", "category": "pop-expressive", "description": "Vivid hot magenta and electric yellow with spring bounce", "fontName": "Bebas Neue", "fontNameFallback": "IBM Plex Sans", "fontSize": 115, "primaryColor": "#FF007F", "highlightColor": "#FFE600", "outlineColor": "#050510", "shadowColor": "#000000", "shadowAlpha": 160, "outlineSize": 7.0, "shadowDepth": 5.0, "bold": true, "italic": false, "letterSpacing": 0.8, "wordSpacing": 100, "animationType": "bounce", "bestFor": "Entertainment, memes & fast pacing"},
   {"id": "cinema-gold", "name": "Cinema Gold", "category": "editorial-film", "description": "Luxurious crisp white with metallic gold zoom highlight", "fontName": "Playfair Display", "fontNameFallback": "IBM Plex Sans", "fontSize": 98, "primaryColor": "#F8FAFC", "highlightColor": "#FFD700", "outlineColor": "#0B0C10", "shadowColor": "#B8860B", "shadowAlpha": 80, "outlineSize": 4.0, "shadowDepth": 4.5, "bold": true, "italic": true, "letterSpacing": 1.5, "wordSpacing": 110, "animationType": "scale", "bestFor": "Documentary, finance, podcasts & luxury"},
   {"id": "tiktok-hype", "name": "TikTok Hype", "category": "trending", "description": "Bold white typography with active word red pill box highlight", "fontName": "Poppins", "fontNameFallback": "IBM Plex Sans", "fontSize": 105, "primaryColor": "#FFFFFF", "highlightColor": "#EF4444", "outlineColor": "#000000", "shadowColor": "#000000", "shadowAlpha": 0, "outlineSize": 9.0, "shadowDepth": 0.0, "bold": true, "italic": false, "letterSpacing": 0.5, "wordSpacing": 105, "animationType": "box", "bestFor": "Trending TikTok challenges & retention hooks"}
-] as CapiteCaptionStyle[])
+] as CapiteCaptionStyle[]);
 
 export const CAPITE_CATEGORIES: readonly { id: CapiteCategory; label: string }[] = Object.freeze([
   { id: 'trending', label: 'Trending' }, { id: 'pop-expressive', label: 'Pop & expressive' },
   { id: 'clean-tech', label: 'Clean & tech' }, { id: 'editorial-film', label: 'Editorial & film' },
-])
+]);
 
-const BY_ID = new Map(CAPITE_CAPTION_STYLES.map((s) => [s.id, s]))
-export const capiteStyleById = (id: unknown): CapiteCaptionStyle | undefined => (typeof id === 'string' ? BY_ID.get(id) : undefined)
-export const isCapiteStyleId = (id: unknown): boolean => capiteStyleById(id) !== undefined
+const BY_ID = new Map(CAPITE_CAPTION_STYLES.map((s) => [s.id, s]));
+export const capiteStyleById = (id: unknown): CapiteCaptionStyle | undefined => (typeof id === 'string' ? BY_ID.get(id) : undefined);
+export const isCapiteStyleId = (id: unknown): boolean => capiteStyleById(id) !== undefined;
 
 /** Every distinct font family the styles name, for hosts that preload fonts. */
-export const CAPITE_FONT_FAMILIES: readonly string[] = Object.freeze([...new Set(CAPITE_CAPTION_STYLES.map((s) => s.fontName))])
+export const CAPITE_FONT_FAMILIES: readonly string[] = Object.freeze([...new Set(CAPITE_CAPTION_STYLES.map((s) => s.fontName))]);
 
 export type CapiteWordState = 'idle' | 'spoken' | 'active'
 
@@ -67,16 +67,16 @@ interface Css { [k: string]: string | number | undefined }
 
 /** Round-cornered 8-direction outline (text-shadow only: no filters, so it exports the same as it previews). */
 function ring(px: number, color: string): string[] {
-  const r = Math.max(1, Math.round(px * 10) / 10)
-  const d = Math.round(r * 0.7071 * 10) / 10
-  return [[r, 0], [-r, 0], [0, r], [0, -r], [d, d], [-d, d], [d, -d], [-d, -d]].map(([x, y]) => `${x}px ${y}px 0 ${color}`)
+  const r = Math.max(1, Math.round(px * 10) / 10);
+  const d = Math.round(r * 0.7071 * 10) / 10;
+  return [[r, 0], [-r, 0], [0, r], [0, -r], [d, d], [-d, d], [d, -d], [-d, -d]].map(([x, y]) => `${x}px ${y}px 0 ${color}`);
 }
 
 function withAlpha(hex: string, alpha255: number): string {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex)
-  if (!m) return hex
-  const n = parseInt(m[1], 16)
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${Math.round((Math.min(255, Math.max(0, alpha255)) / 255) * 100) / 100})`
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${Math.round((Math.min(255, Math.max(0, alpha255)) / 255) * 100) / 100})`;
 }
 
 /**
@@ -84,12 +84,12 @@ function withAlpha(hex: string, alpha255: number): string {
  * contributes proportions: outline and shadow scale with the text, as in Capite.
  */
 export function capiteTextCss(style: CapiteCaptionStyle, fontSizePx: number, fallbackStack: string): Css {
-  const k = fontSizePx / Math.max(1, style.fontSize)
-  const shadows: string[] = []
-  if (style.outlineSize > 0 && style.animationType !== 'box') shadows.push(...ring(style.outlineSize * k, style.outlineColor))
-  if (style.shadowDepth > 0) shadows.push(`0 ${Math.round(style.shadowDepth * k)}px ${Math.round(style.shadowDepth * 2 * k)}px ${withAlpha(style.shadowColor, style.shadowAlpha || 153)}`)
+  const k = fontSizePx / Math.max(1, style.fontSize);
+  const shadows: string[] = [];
+  if (style.outlineSize > 0 && style.animationType !== 'box') shadows.push(...ring(style.outlineSize * k, style.outlineColor));
+  if (style.shadowDepth > 0) shadows.push(`0 ${Math.round(style.shadowDepth * k)}px ${Math.round(style.shadowDepth * 2 * k)}px ${withAlpha(style.shadowColor, style.shadowAlpha || 153)}`);
   if (style.animationType === 'glow') {
-    shadows.push(`0 0 ${Math.max(8, Math.round(fontSizePx * 0.18))}px ${style.highlightColor}`, `0 0 ${Math.max(16, Math.round(fontSizePx * 0.36))}px ${style.highlightColor}`)
+    shadows.push(`0 0 ${Math.max(8, Math.round(fontSizePx * 0.18))}px ${style.highlightColor}`, `0 0 ${Math.max(16, Math.round(fontSizePx * 0.36))}px ${style.highlightColor}`);
   }
   return {
     fontFamily: `"${style.fontName}", "${style.fontNameFallback}", ${fallbackStack}`,
@@ -97,18 +97,18 @@ export function capiteTextCss(style: CapiteCaptionStyle, fontSizePx: number, fal
     letterSpacing: style.letterSpacing ? `${Math.round(style.letterSpacing * k * 10) / 10}px` : undefined,
     wordSpacing: style.wordSpacing !== 100 ? `${Math.round((style.wordSpacing - 100) * 0.01 * fontSizePx * 10) / 10}px` : undefined,
     textTransform: 'uppercase', color: style.primaryColor, textShadow: shadows.length ? shadows.join(', ') : undefined,
-  }
+  };
 }
 
 /** Per-word CSS: the spoken word is picked out the way the style's animation says. Static per frame (no CSS animation). */
 export function capiteWordCss(style: CapiteCaptionStyle, state: CapiteWordState, fontSizePx: number): Css {
-  const lit = state === 'active'
+  const lit = state === 'active';
   switch (style.animationType) {
-    case 'karaoke': return { color: state === 'idle' ? style.primaryColor : style.highlightColor }
-    case 'box': return lit ? { color: style.primaryColor, background: style.highlightColor, borderRadius: Math.round(fontSizePx * 0.15), padding: `0 ${Math.round(fontSizePx * 0.12)}px`, textShadow: 'none' } : {}
-    case 'scale': return lit ? { color: style.highlightColor, display: 'inline-block', transform: 'scale(1.14)' } : {}
-    case 'pop': return lit ? { color: style.highlightColor, display: 'inline-block', transform: 'scale(1.22)' } : {}
-    case 'bounce': return lit ? { color: style.highlightColor, display: 'inline-block', transform: `translateY(${-Math.round(fontSizePx * 0.12)}px)` } : {}
-    default: return lit ? { color: style.highlightColor } : {}
+    case 'karaoke': return { color: state === 'idle' ? style.primaryColor : style.highlightColor };
+    case 'box': return lit ? { color: style.primaryColor, background: style.highlightColor, borderRadius: Math.round(fontSizePx * 0.15), padding: `0 ${Math.round(fontSizePx * 0.12)}px`, textShadow: 'none' } : {};
+    case 'scale': return lit ? { color: style.highlightColor, display: 'inline-block', transform: 'scale(1.14)' } : {};
+    case 'pop': return lit ? { color: style.highlightColor, display: 'inline-block', transform: 'scale(1.22)' } : {};
+    case 'bounce': return lit ? { color: style.highlightColor, display: 'inline-block', transform: `translateY(${-Math.round(fontSizePx * 0.12)}px)` } : {};
+    default: return lit ? { color: style.highlightColor } : {};
   }
 }

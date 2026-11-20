@@ -11,14 +11,14 @@
  * underneath is left empty and transparent.
  */
 
-import React from 'react'
-import { ClockWipe } from '../../_upstream/rve-clock-wipe/ClockWipe'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared'
+import React from 'react';
+import { ClockWipe } from '../../_upstream/rve-clock-wipe/ClockWipe';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared';
 
 export const RveClockWipeDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-clock-wipe" props={props}>
       <ClockWipe
@@ -28,7 +28,7 @@ export const RveClockWipeDesign: React.FC<RemotionDesignComponentProps> = (props
         sceneB={TRANSPARENT_SCENE}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveClockWipeDesign
+export default RveClockWipeDesign;

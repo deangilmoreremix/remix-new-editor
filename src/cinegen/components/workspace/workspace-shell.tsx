@@ -1391,7 +1391,8 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
     };
   }, [hydrationComplete, state.elements, state.elementFolders]);
 
-  useEffect(() => registerMcpCommands({ save_project: async () => {
+  useEffect(() => registerMcpCommands({
+ save_project: async () => {
     if (mcpHasRunningJobs() || state.runningNodeIds.size || (state.director.jobStatus && !state.director.jobStatus.error)) throw new Error('Wait for the running generation or Director job before switching projects.');
     if (!hydrationComplete || hydrationError || !elementsLibraryReadyRef.current) throw new Error('Project is not ready to save.');
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -1400,7 +1401,8 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
     await saveAvailableElementsLibrary({ version: 1, folders: state.elementFolders, elements: state.elements }, { projectId, projectName: projectNameRef.current });
     savePendingRef.current = false;
     return { saved: projectId };
-  } }), [state, hydrationComplete, hydrationError, persistWorkspace, projectId, mcpHasRunningJobs]);
+  } 
+}), [state, hydrationComplete, hydrationError, persistWorkspace, projectId, mcpHasRunningJobs]);
 
   return (
     <WorkspaceContext.Provider value={{ state, dispatch: wrappedDispatch, projectId }}>

@@ -14,17 +14,17 @@
  * design's `"gradient"`.
  */
 
-import React, { useId } from 'react'
-import { LiquidWave } from '../../_upstream/rve-liquid-wave/LiquidWave'
-import { TRANSPARENT, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { brandPalette, canvasScale } from './media'
+import React, { useId } from 'react';
+import { LiquidWave } from '../../_upstream/rve-liquid-wave/LiquidWave';
+import { TRANSPARENT, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { brandPalette, canvasScale } from './media';
 
 export const RveLiquidWaveDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const { primary, accent } = brandPalette(props)
-  const rawId = useId()
-  const gradientId = `rve-liquid-wave-${rawId.replace(/[^a-zA-Z0-9_-]/g, '')}`
+  const k = canvasScale(props);
+  const { primary, accent } = brandPalette(props);
+  const rawId = useId();
+  const gradientId = `rve-liquid-wave-${rawId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
 
   return (
     <RveDesignStage designId="rve-liquid-wave" props={props}>
@@ -39,7 +39,7 @@ export const RveLiquidWaveDesign: React.FC<DesignAdapterProps> = (props) => {
         pathOpacity={0.9}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveLiquidWaveDesign
+export default RveLiquidWaveDesign;

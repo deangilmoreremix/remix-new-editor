@@ -25,16 +25,16 @@
  * width (1920 in 16:9, 1080 otherwise).
  */
 
-import React from 'react'
-import { AbsoluteFill, Series } from 'remotion'
-import { lowerThirdsDefaultProps } from '../../_upstream/brito-lower-thirds/LowerThirds'
+import React from 'react';
+import { AbsoluteFill, Series } from 'remotion';
+import { lowerThirdsDefaultProps } from '../../_upstream/brito-lower-thirds/LowerThirds';
 import {
   BoxedFade,
   MinimalLine,
   SlideInBar,
   lowerThirdTotalFrames,
   type LowerThirdStyleProps,
-} from '../../_upstream/brito-lower-thirds/styles'
+} from '../../_upstream/brito-lower-thirds/styles';
 import {
   TRANSPARENT,
   pickColor,
@@ -42,29 +42,29 @@ import {
   slotValue,
   truncateText,
   type DesignAdapterProps,
-} from '../shared'
-import { BritoDesignStage, britoFitChars } from './britoShared'
+} from '../shared';
+import { BritoDesignStage, britoFitChars } from './britoShared';
 
-export const BRITO_LOWER_THIRDS_ID = 'brito-lower-thirds'
+export const BRITO_LOWER_THIRDS_ID = 'brito-lower-thirds';
 
 /** One style's length with the upstream default timing (14 + 70 + 14). */
-export const BRITO_LOWER_THIRD_STYLE_FRAMES = lowerThirdTotalFrames(lowerThirdsDefaultProps)
+export const BRITO_LOWER_THIRD_STYLE_FRAMES = lowerThirdTotalFrames(lowerThirdsDefaultProps);
 
 /** The whole design: the three styles back to back (294 frames). */
-export const BRITO_LOWER_THIRDS_FRAMES = BRITO_LOWER_THIRD_STYLE_FRAMES * 3
+export const BRITO_LOWER_THIRDS_FRAMES = BRITO_LOWER_THIRD_STYLE_FRAMES * 3;
 
 export const BritoLowerThirdsDesign: React.FC<DesignAdapterProps> = (props) => {
   // Safe-area padding (5 % each side) + the card's own 40 + 28 px padding +
   // the 12 px accent bar.
-  const textWidth = props.width * 0.9 - 90
+  const textWidth = props.width * 0.9 - 90;
   const name = truncateText(
     slotText(props, 'name', ['businessName']),
     britoFitChars(textWidth, 58, 44, 0.58),
-  )
+  );
   const role = truncateText(
     slotValue(props, 'role') || slotValue(props, 'website') || slotValue(props, 'phone'),
     britoFitChars(textWidth, 30, 64, 0.55),
-  )
+  );
 
   const styleProps: LowerThirdStyleProps = {
     name,
@@ -73,8 +73,8 @@ export const BritoLowerThirdsDesign: React.FC<DesignAdapterProps> = (props) => {
     enterDurationInFrames: lowerThirdsDefaultProps.enterDurationInFrames,
     holdDurationInFrames: lowerThirdsDefaultProps.holdDurationInFrames,
     exitDurationInFrames: lowerThirdsDefaultProps.exitDurationInFrames,
-  }
-  const one = lowerThirdTotalFrames(styleProps)
+  };
+  const one = lowerThirdTotalFrames(styleProps);
 
   return (
     <BritoDesignStage designId={BRITO_LOWER_THIRDS_ID} props={props} overlay>
@@ -92,7 +92,7 @@ export const BritoLowerThirdsDesign: React.FC<DesignAdapterProps> = (props) => {
         </Series>
       </AbsoluteFill>
     </BritoDesignStage>
-  )
-}
+  );
+};
 
-export default BritoLowerThirdsDesign
+export default BritoLowerThirdsDesign;

@@ -184,7 +184,8 @@ describe('MCP tools', () => {
   });
 
   it('generates with Elements and uploaded audio/video without overwriting either reference set', async () => {
-    await harness.handlers.cinegen_generate({ prompt: 'Move to the rhythm.', elements: ['Hazmat'],
+    await harness.handlers.cinegen_generate({
+ prompt: 'Move to the rhythm.', elements: ['Hazmat'],
       inputs: { image_url: ['https://media.example/motion.mp4'], audio_references: ['https://media.example/music.wav'] },
     });
     const config = harness.state.nodes[0].data.config;

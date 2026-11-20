@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import {
   ArrowLeft,
   Play,
@@ -11,13 +11,13 @@ import {
   ExternalLink,
   X,
   Send,
-} from 'lucide-react'
-import type { ReviewPublishStepProps, PublishResult } from '../types'
-import AssetPreviewCard from '../review/AssetPreviewCard'
-import CopyPreviewCard from '../review/CopyPreviewCard'
-import ThumbnailPreviewCard from '../review/ThumbnailPreviewCard'
-import DestinationsSummaryCard from '../review/DestinationsSummaryCard'
-import { PLATFORM_SPECS, estimateCostUsd, type PlatformId } from '@ohb/shared/api/socialPayloads'
+} from 'lucide-react';
+import type { ReviewPublishStepProps, PublishResult } from '../types';
+import AssetPreviewCard from '../review/AssetPreviewCard';
+import CopyPreviewCard from '../review/CopyPreviewCard';
+import ThumbnailPreviewCard from '../review/ThumbnailPreviewCard';
+import DestinationsSummaryCard from '../review/DestinationsSummaryCard';
+import { PLATFORM_SPECS, estimateCostUsd, type PlatformId } from '@ohb/shared/api/socialPayloads';
 
 const PLATFORMS: Record<string, { name: string; accent: string }> = {
   youtube: { name: 'YouTube', accent: '#ff0033' },
@@ -28,10 +28,10 @@ const PLATFORMS: Record<string, { name: string; accent: string }> = {
   pinterest: { name: 'Pinterest', accent: '#e60023' },
   threads: { name: 'Threads', accent: '#fff' },
   x: { name: 'X', accent: '#fff' },
-}
+};
 
 function getResultForPlatform(results: PublishResult[], platform: string): PublishResult | undefined {
-  return results.find((r) => r.platform === platform)
+  return results.find((r) => r.platform === platform);
 }
 
 export default function ReviewPublishStep({
@@ -46,35 +46,35 @@ export default function ReviewPublishStep({
   publishing,
   blockers = [],
 }: ReviewPublishStepProps) {
-  const [retrying, setRetrying] = useState<string | null>(null)
-  const enabledDestinations = destinations.filter((d) => d.enabled && d.accountId)
-  const hasEnabledDestinations = enabledDestinations.length > 0
+  const [retrying, setRetrying] = useState<string | null>(null);
+  const enabledDestinations = destinations.filter((d) => d.enabled && d.accountId);
+  const hasEnabledDestinations = enabledDestinations.length > 0;
 
-  const allPublished = publishResults.length > 0 && publishResults.every((r) => r.status === 'published')
-  const hasFailures = publishResults.some((r) => r.status === 'failed')
-  const hasResults = publishResults.length > 0
+  const allPublished = publishResults.length > 0 && publishResults.every((r) => r.status === 'published');
+  const hasFailures = publishResults.some((r) => r.status === 'failed');
+  const hasResults = publishResults.length > 0;
 
-  const publishedCount = publishResults.filter((r) => r.status === 'published').length
-  const failedCount = publishResults.filter((r) => r.status === 'failed').length
-  const inProgressCount = publishResults.filter((r) => r.status === 'queued' || r.status === 'uploading' || r.status === 'processing').length
+  const publishedCount = publishResults.filter((r) => r.status === 'published').length;
+  const failedCount = publishResults.filter((r) => r.status === 'failed').length;
+  const inProgressCount = publishResults.filter((r) => r.status === 'queued' || r.status === 'uploading' || r.status === 'processing').length;
 
   // Retry ONE destination; never re-post to the ones that already succeeded.
   const handleRetry = async (platform: string, accountId?: string) => {
-    const id = `${platform}:${accountId ?? ''}`
-    setRetrying(id)
+    const id = `${platform}:${accountId ?? ''}`;
+    setRetrying(id);
     try {
-      await onRetry?.(platform, accountId)
+      await onRetry?.(platform, accountId);
     } finally {
-      setRetrying(null)
+      setRetrying(null);
     }
-  }
+  };
 
   const pendingToPublish = enabledDestinations.filter(
     (d) => !publishResults.some((r) => r.platform === d.platform && r.accountId === d.accountId && r.status === 'published'),
-  )
-  const platformsToPublish = pendingToPublish.map((d) => d.platform as PlatformId)
-  const estimatedCost = estimateCostUsd(platformsToPublish)
-  const basicPlatforms = [...new Set(platformsToPublish.filter((p) => PLATFORM_SPECS[p]?.confidence === 'basic'))].map((p) => PLATFORM_SPECS[p].label)
+  );
+  const platformsToPublish = pendingToPublish.map((d) => d.platform as PlatformId);
+  const estimatedCost = estimateCostUsd(platformsToPublish);
+  const basicPlatforms = [...new Set(platformsToPublish.filter((p) => PLATFORM_SPECS[p]?.confidence === 'basic'))].map((p) => PLATFORM_SPECS[p].label);
 
   if (allPublished && !publishing) {
     return (
@@ -89,7 +89,7 @@ export default function ReviewPublishStep({
 
         <div className="w-full max-w-sm space-y-2 mb-6">
           {publishResults.map((r) => {
-            const meta = PLATFORMS[r.platform] || { name: r.platform, accent: '#d9ff00' }
+            const meta = PLATFORMS[r.platform] || { name: r.platform, accent: '#d9ff00' };
             return (
               <div
                 key={`${r.platform}:${r.accountId ?? ''}`}
@@ -118,7 +118,7 @@ export default function ReviewPublishStep({
                   </a>
                 )}
               </div>
-            )
+            );
           })}
         </div>
 
@@ -131,7 +131,7 @@ export default function ReviewPublishStep({
           Close
         </button>
       </div>
-    )
+    );
   }
 
   return (
@@ -182,12 +182,12 @@ export default function ReviewPublishStep({
 
           <div className="space-y-2">
             {publishResults.map((r) => {
-              const meta = PLATFORMS[r.platform] || { name: r.platform, accent: '#d9ff00' }
-              const rid = `${r.platform}:${r.accountId ?? ''}`
-              const isPublishing = publishing && (r.status === 'queued' || r.status === 'uploading' || r.status === 'processing')
-              const isPublished = r.status === 'published'
-              const isFailed = r.status === 'failed'
-              const isRetrying = retrying === rid
+              const meta = PLATFORMS[r.platform] || { name: r.platform, accent: '#d9ff00' };
+              const rid = `${r.platform}:${r.accountId ?? ''}`;
+              const isPublishing = publishing && (r.status === 'queued' || r.status === 'uploading' || r.status === 'processing');
+              const isPublished = r.status === 'published';
+              const isFailed = r.status === 'failed';
+              const isRetrying = retrying === rid;
 
               return (
                 <div
@@ -240,7 +240,7 @@ export default function ReviewPublishStep({
                     )}
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
@@ -298,5 +298,5 @@ export default function ReviewPublishStep({
         )}
       </button>
     </div>
-  )
+  );
 }

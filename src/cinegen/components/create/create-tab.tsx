@@ -227,12 +227,14 @@ export function CreateTab() {
     handleViewModeChange('studio');
   }, [dispatch, handleViewModeChange, state.activeSpaceId, state.elements, state.nodes]);
 
-  useEffect(() => registerMcpCommands({ view: (args) => {
+  useEffect(() => registerMcpCommands({
+ view: (args) => {
     const mode = args.view;
     if (mode !== 'canvas' && mode !== 'studio' && mode !== 'sets') throw new Error('Unknown Space view.');
     handleViewModeChange(mode);
     return { view: mode };
-  } }), [handleViewModeChange]);
+  } 
+}), [handleViewModeChange]);
 
   // Switching to the canvas is only half of "open in canvas" — on a large Space
   // the node is usually off-screen, so centre it too. The canvas is display:none

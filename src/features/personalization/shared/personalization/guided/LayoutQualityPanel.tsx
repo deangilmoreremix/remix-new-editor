@@ -1,37 +1,37 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { AlertTriangle, CheckCircle2, Eye, HelpCircle, Loader2, Wand2 } from 'lucide-react'
-import { Tip } from './editor/Tip'
-import { LocalAINotice } from './LocalAINotice'
-import { C, badgeStyle, hintStyle, panelStyle, secondaryButtonStyle } from './tokens'
-import type { LayoutQualityState } from './useLayoutQuality'
-import type { QualityIssue, QualityStatus } from '../preview/placement'
-import type { PreviewLayer } from '../preview/types'
+import { useState } from 'react';
+import { AlertTriangle, CheckCircle2, Eye, HelpCircle, Loader2, Wand2 } from 'lucide-react';
+import { Tip } from './editor/Tip';
+import { LocalAINotice } from './LocalAINotice';
+import { C, badgeStyle, hintStyle, panelStyle, secondaryButtonStyle } from './tokens';
+import type { LayoutQualityState } from './useLayoutQuality';
+import type { QualityIssue, QualityStatus } from '../preview/placement';
+import type { PreviewLayer } from '../preview/types';
 
 const STATUS: Record<QualityStatus, { label: string; tone: 'green' | 'cyan' | 'muted'; color: string; text: string }> = {
   ready: { label: 'Ready', tone: 'green', color: C.green, text: 'Every check that could run passed.' },
   'needs-adjustment': { label: 'Needs adjustment', tone: 'cyan', color: '#fcd34d', text: 'A layout problem was found. You can still export if the layout is intentional.' },
   'review-required': { label: 'Review required', tone: 'muted', color: C.cyan, text: 'Some things cannot be checked automatically. Look at the preview before you approve.' },
-}
+};
 
 function clock(t: number | undefined): string {
-  if (typeof t !== 'number' || !Number.isFinite(t)) return ''
-  const m = Math.floor(t / 60)
-  return `${m}:${(t - m * 60).toFixed(1).padStart(4, '0')}`
+  if (typeof t !== 'number' || !Number.isFinite(t)) return '';
+  const m = Math.floor(t / 60);
+  return `${m}:${(t - m * 60).toFixed(1).padStart(4, '0')}`;
 }
 
 function when(i: QualityIssue): string {
-  if (i.tStart == null) return ''
-  const a = clock(i.tStart)
-  const b = clock(i.tEnd)
-  return b && b !== a ? `${a}–${b}` : a
+  if (i.tStart == null) return '';
+  const a = clock(i.tStart);
+  const b = clock(i.tEnd);
+  return b && b !== a ? `${a}–${b}` : a;
 }
 
 const LABEL: Partial<Record<PreviewLayer['kind'], string>> = {
   businessName: 'Business name', headline: 'Headline', tagline: 'Tagline', offer: 'Offer', cta: 'Call to action',
   logo: 'Logo', productImage: 'Product image', serviceImage: 'Service image', endCard: 'End card', design: 'Design',
-}
+};
 
 /**
  * Layout Quality Check. Says plainly what was and was not verified. A passing
@@ -40,7 +40,7 @@ const LABEL: Partial<Record<PreviewLayer['kind'], string>> = {
  * could not be verified. Only a confirmed critical rendering failure blocks export.
  */
 export function LayoutQualityPanel({ quality, layers, compact = false }: { quality: LayoutQualityState; layers: PreviewLayer[]; compact?: boolean }): React.JSX.Element {
-  return compact ? <LayoutQualityBar quality={quality} layers={layers} /> : <FullPanel quality={quality} layers={layers} />
+  return compact ? <LayoutQualityBar quality={quality} layers={layers} /> : <FullPanel quality={quality} layers={layers} />;
 }
 
 /**
@@ -49,14 +49,14 @@ export function LayoutQualityPanel({ quality, layers, compact = false }: { quali
  * issue, Show/Fix, subject marking). It opens by itself when export is blocked.
  */
 function LayoutQualityBar({ quality, layers }: { quality: LayoutQualityState; layers: PreviewLayer[] }): React.JSX.Element {
-  const { report } = quality
-  const s = STATUS[report.status]
-  const [open, setOpen] = useState(report.blocksExport)
-  const adjust = report.issues.filter((i) => i.severity !== 'review').length
-  const review = report.issues.filter((i) => i.severity === 'review').length
-  const fixable = report.issues.some((i) => i.fixable && i.layerId)
-  const Icon = report.status === 'ready' ? CheckCircle2 : report.status === 'needs-adjustment' ? AlertTriangle : HelpCircle
-  const first = report.issues[0]
+  const { report } = quality;
+  const s = STATUS[report.status];
+  const [open, setOpen] = useState(report.blocksExport);
+  const adjust = report.issues.filter((i) => i.severity !== 'review').length;
+  const review = report.issues.filter((i) => i.severity === 'review').length;
+  const fixable = report.issues.some((i) => i.fixable && i.layerId);
+  const Icon = report.status === 'ready' ? CheckCircle2 : report.status === 'needs-adjustment' ? AlertTriangle : HelpCircle;
+  const first = report.issues[0];
   return (
     <div data-testid="layout-quality-bar" data-status={report.status} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ ...panelStyle, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 12px', border: `1px solid ${report.blocksExport ? C.danger : C.border}` }}>
@@ -89,16 +89,16 @@ function LayoutQualityBar({ quality, layers }: { quality: LayoutQualityState; la
       </div>
       {open && <FullPanel quality={quality} layers={layers} />}
     </div>
-  )
+  );
 }
 
 function FullPanel({ quality, layers }: { quality: LayoutQualityState; layers: PreviewLayer[] }): React.JSX.Element {
-  const { report, sampling } = quality
-  const s = STATUS[report.status]
+  const { report, sampling } = quality;
+  const s = STATUS[report.status];
   const layerName = (id?: string) => {
-    const l = layers.find((x) => x.id === id)
-    return l ? LABEL[l.kind] ?? l.kind : ''
-  }
+    const l = layers.find((x) => x.id === id);
+    return l ? LABEL[l.kind] ?? l.kind : '';
+  };
   return (
     <div data-testid="layout-quality-panel" style={{ ...panelStyle, border: `1px solid ${report.blocksExport ? C.danger : C.border}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
@@ -173,12 +173,12 @@ function FullPanel({ quality, layers }: { quality: LayoutQualityState; layers: P
         Recommendations never move a layer you placed by hand or locked; “Restore” replaces hand placement (locked layers stay).
       </p>
     </div>
-  )
+  );
 }
 
 /** "Find it for me": free object detection on this device, with a one-time model download the person agrees to first. */
 function SubjectFinderRow({ finder }: { finder: NonNullable<LayoutQualityState['subjectFinder']> }): React.JSX.Element {
-  const busy = finder.ai.phase !== 'idle'
+  const busy = finder.ai.phase !== 'idle';
   return (
     <div data-testid="subject-finder" style={{ marginTop: 8 }}>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -197,5 +197,5 @@ function SubjectFinderRow({ finder }: { finder: NonNullable<LayoutQualityState['
       <LocalAINotice ai={finder.ai} doing="looks for the main subject in your footage" />
       {finder.message && <p data-testid="subject-find-message" style={{ ...hintStyle, margin: '6px 0 0', color: C.text }}>{finder.message}</p>}
     </div>
-  )
+  );
 }

@@ -26,9 +26,9 @@
  * caveat is declared in the catalog's `capabilities.notes` (A6's C5).
  */
 
-import React from 'react'
-import { TextMaskReveal } from '../_upstream/text-mask-reveal/TextMaskReveal'
-import { useDesignFonts } from './fonts'
+import React from 'react';
+import { TextMaskReveal } from '../_upstream/text-mask-reveal/TextMaskReveal';
+import { useDesignFonts } from './fonts';
 import {
   DesignStage,
   TRANSPARENT,
@@ -36,13 +36,13 @@ import {
   slotText,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** The maximum number of characters in one revealed line. */
-const MAX_LINE_LENGTH = 18
+const MAX_LINE_LENGTH = 18;
 
 /** The maximum number of lines the stack may have. */
-const MAX_LINES = 3
+const MAX_LINES = 3;
 
 /**
  * Derives the upstream's `lines` array from one slot value.
@@ -51,50 +51,50 @@ const MAX_LINES = 3
  * `MAX_LINES` chunks of at most `MAX_LINE_LENGTH` characters.
  */
 function deriveLines(value: string): string[] {
-  const source = typeof value === 'string' ? value.trim() : ''
-  if (!source) return []
+  const source = typeof value === 'string' ? value.trim() : '';
+  if (!source) return [];
 
   const byNewline = source
     .split(/\r?\n/)
     .map((line) => line.trim())
-    .filter((line) => line.length > 0)
+    .filter((line) => line.length > 0);
 
   if (byNewline.length > 1) {
-    return byNewline.slice(0, MAX_LINES).map((line) => truncateText(line, MAX_LINE_LENGTH))
+    return byNewline.slice(0, MAX_LINES).map((line) => truncateText(line, MAX_LINE_LENGTH));
   }
 
-  const words = source.split(/\s+/)
-  const chunks: string[] = []
-  let current = ''
+  const words = source.split(/\s+/);
+  const chunks: string[] = [];
+  let current = '';
 
   for (const word of words) {
-    const candidate = current ? `${current} ${word}` : word
+    const candidate = current ? `${current} ${word}` : word;
     if (!current || candidate.length <= MAX_LINE_LENGTH) {
-      current = candidate
-      continue
+      current = candidate;
+      continue;
     }
-    chunks.push(current)
-    current = word
-    if (chunks.length >= MAX_LINES) break
+    chunks.push(current);
+    current = word;
+    if (chunks.length >= MAX_LINES) break;
   }
 
   if (current && chunks.length < MAX_LINES) {
-    chunks.push(current)
+    chunks.push(current);
   }
 
   return chunks
     .slice(0, MAX_LINES)
     .map((chunk) => truncateText(chunk, MAX_LINE_LENGTH))
-    .filter((chunk) => chunk.length > 0)
+    .filter((chunk) => chunk.length > 0);
 }
 
 export const TextMaskRevealDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
+  useDesignFonts();
 
-  const headline = slotText(props, 'headline', ['offer', 'businessName'])
-  const derived = deriveLines(headline)
+  const headline = slotText(props, 'headline', ['offer', 'businessName']);
+  const derived = deriveLines(headline);
   // The upstream falls back to ["REVEAL"] for an empty array — never reachable.
-  const lines = derived.length > 0 ? derived : ['']
+  const lines = derived.length > 0 ? derived : [''];
 
   return (
     <DesignStage designId="text-mask-reveal" props={props}>
@@ -105,7 +105,7 @@ export const TextMaskRevealDesign: React.FC<DesignAdapterProps> = (props) => {
         lines={lines}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default TextMaskRevealDesign
+export default TextMaskRevealDesign;

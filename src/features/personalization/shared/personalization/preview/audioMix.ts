@@ -5,7 +5,7 @@
  * every frame. A track starts `start` seconds into the video, skips its first `trimStart` seconds, may be cut short with
  * `length`, and fades in and out. Mute and solo decide what is audible; the video's own sound is a channel of the mix too.
  */
-import type { PreviewAudioSelection } from './types'
+import type { PreviewAudioSelection } from './types';
 
 export type AudioTrackKind = 'music' | 'voiceover'
 
@@ -28,9 +28,9 @@ export interface AudioTrack {
   muted: boolean
 }
 
-export const MAX_AUDIO_TRACKS = 6
+export const MAX_AUDIO_TRACKS = 6;
 /** `solo` value that isolates the video's own sound. */
-export const SOLO_VIDEO = 'video'
+export const SOLO_VIDEO = 'video';
 
 export interface AudioMixSettings {
   audioTracks?: AudioTrack[]
@@ -41,10 +41,10 @@ export interface AudioMixSettings {
   audioSolo?: string
 }
 
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
-const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
-const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null)
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 
 export function newAudioTrack(patch: Pick<AudioTrack, 'url' | 'name' | 'kind'> & Partial<AudioTrack>): AudioTrack {
   return {
@@ -60,15 +60,15 @@ export function newAudioTrack(patch: Pick<AudioTrack, 'url' | 'name' | 'kind'> &
     trimStart: patch.trimStart ?? 0,
     length: patch.length,
     muted: patch.muted ?? false,
-  }
+  };
 }
 
 /** Reads one saved track defensively. Session-only (blob:/data:) URLs are dropped because they die on reload. */
 export function normalizeAudioTrack(raw: unknown): AudioTrack | null {
-  if (!isRecord(raw)) return null
-  const url = text(raw.url)
-  const id = text(raw.id)
-  if (!url || !id || /^(blob:|data:)/i.test(url)) return null
+  if (!isRecord(raw)) return null;
+  const url = text(raw.url);
+  const id = text(raw.id);
+  if (!url || !id || /^(blob:|data:)/i.test(url)) return null;
   const track: AudioTrack = {
     id,
     url,
@@ -80,44 +80,44 @@ export function normalizeAudioTrack(raw: unknown): AudioTrack | null {
     start: finite(raw.start) ? clamp(raw.start, 0, 3600) : 0,
     trimStart: finite(raw.trimStart) ? clamp(raw.trimStart, 0, 3600) : 0,
     muted: raw.muted === true,
-  }
-  if (finite(raw.length) && raw.length > 0) track.length = clamp(raw.length, 0.1, 3600)
-  return track
+  };
+  if (finite(raw.length) && raw.length > 0) track.length = clamp(raw.length, 0.1, 3600);
+  return track;
 }
 
 export function normalizeAudioTracks(raw: unknown): AudioTrack[] | undefined {
-  if (!Array.isArray(raw)) return undefined
-  const seen = new Set<string>()
-  const out: AudioTrack[] = []
+  if (!Array.isArray(raw)) return undefined;
+  const seen = new Set<string>();
+  const out: AudioTrack[] = [];
   for (const item of raw) {
-    const t = normalizeAudioTrack(item)
-    if (t && !seen.has(t.id)) { seen.add(t.id); out.push(t) }
-    if (out.length >= MAX_AUDIO_TRACKS) break
+    const t = normalizeAudioTrack(item);
+    if (t && !seen.has(t.id)) { seen.add(t.id); out.push(t); }
+    if (out.length >= MAX_AUDIO_TRACKS) break;
   }
-  return out.length ? out : undefined
+  return out.length ? out : undefined;
 }
 
 export function normalizeVideoVolume(raw: unknown): number | undefined {
-  return finite(raw) && raw >= 0 && raw < 1 ? clamp(raw, 0, 1) : undefined
+  return finite(raw) && raw >= 0 && raw < 1 ? clamp(raw, 0, 1) : undefined;
 }
 
 /** The tracks to play: the mix's own, or the old single track (and a recast's sound) as one music track at full level. */
 export function effectiveTracks(settings: AudioMixSettings & { audio?: PreviewAudioSelection | null }, legacyUrl?: string | null): AudioTrack[] {
-  if (settings.audioTracks?.length) return settings.audioTracks
-  const url = settings.audio?.url ?? legacyUrl ?? null
-  return url ? [newAudioTrack({ id: 'legacy', url, name: settings.audio?.name ?? 'Audio', kind: 'music', volume: 1 })] : []
+  if (settings.audioTracks?.length) return settings.audioTracks;
+  const url = settings.audio?.url ?? legacyUrl ?? null;
+  return url ? [newAudioTrack({ id: 'legacy', url, name: settings.audio?.name ?? 'Audio', kind: 'music', volume: 1 })] : [];
 }
 
 /** Is a channel audible after mute and solo? */
 export function isAudible(channel: { id: string; muted: boolean }, solo?: string): boolean {
-  if (solo) return channel.id === solo
-  return !channel.muted
+  if (solo) return channel.id === solo;
+  return !channel.muted;
 }
 
 /** Gain of the video's own sound (0..1). */
 export function videoGain(settings: AudioMixSettings): number {
-  const volume = settings.videoVolume ?? 1
-  return isAudible({ id: SOLO_VIDEO, muted: settings.videoMuted === true }, settings.audioSolo) ? clamp(volume, 0, 1) : 0
+  const volume = settings.videoVolume ?? 1;
+  return isAudible({ id: SOLO_VIDEO, muted: settings.videoMuted === true }, settings.audioSolo) ? clamp(volume, 0, 1) : 0;
 }
 
 export interface TrackWindow {
@@ -130,10 +130,10 @@ export interface TrackWindow {
 }
 
 export function trackWindow(track: AudioTrack, fps: number, durationInFrames: number): TrackWindow {
-  const f = Math.max(1, fps)
-  const startFrame = clamp(Math.round(track.start * f), 0, Math.max(0, durationInFrames - 1))
-  const end = track.length !== undefined ? startFrame + Math.max(1, Math.round(track.length * f)) : undefined
-  return { startFrame, trimFrames: Math.round(track.trimStart * f), endFrame: end !== undefined ? Math.min(end, durationInFrames) : undefined }
+  const f = Math.max(1, fps);
+  const startFrame = clamp(Math.round(track.start * f), 0, Math.max(0, durationInFrames - 1));
+  const end = track.length !== undefined ? startFrame + Math.max(1, Math.round(track.length * f)) : undefined;
+  return { startFrame, trimFrames: Math.round(track.trimStart * f), endFrame: end !== undefined ? Math.min(end, durationInFrames) : undefined };
 }
 
 /**
@@ -141,19 +141,19 @@ export function trackWindow(track: AudioTrack, fps: number, durationInFrames: nu
  * (the end being where it stops: its length, or the end of the video), times its volume, and 0 if muted or not soloed.
  */
 export function trackGainAt(track: AudioTrack, frame: number, fps: number, durationInFrames: number, solo?: string): number {
-  if (!isAudible(track, solo)) return 0
-  const f = Math.max(1, fps)
-  const w = trackWindow(track, f, durationInFrames)
-  const end = w.endFrame ?? durationInFrames
-  if (frame < w.startFrame || frame >= end) return 0
-  const fadeInFrames = Math.round(track.fadeIn * f)
-  const fadeOutFrames = Math.round(track.fadeOut * f)
-  let g = 1
-  if (fadeInFrames > 0) g = Math.min(g, clamp((frame - w.startFrame) / fadeInFrames, 0, 1))
-  if (fadeOutFrames > 0) g = Math.min(g, clamp((end - frame) / fadeOutFrames, 0, 1))
-  return clamp(track.volume, 0, 1) * g
+  if (!isAudible(track, solo)) return 0;
+  const f = Math.max(1, fps);
+  const w = trackWindow(track, f, durationInFrames);
+  const end = w.endFrame ?? durationInFrames;
+  if (frame < w.startFrame || frame >= end) return 0;
+  const fadeInFrames = Math.round(track.fadeIn * f);
+  const fadeOutFrames = Math.round(track.fadeOut * f);
+  let g = 1;
+  if (fadeInFrames > 0) g = Math.min(g, clamp((frame - w.startFrame) / fadeInFrames, 0, 1));
+  if (fadeOutFrames > 0) g = Math.min(g, clamp((end - frame) / fadeOutFrames, 0, 1));
+  return clamp(track.volume, 0, 1) * g;
 }
 
 export function hasMixEdits(s: AudioMixSettings): boolean {
-  return Boolean(s.audioTracks?.length) || (s.videoVolume !== undefined && s.videoVolume < 1) || s.videoMuted === true || Boolean(s.audioSolo)
+  return Boolean(s.audioTracks?.length) || (s.videoVolume !== undefined && s.videoVolume < 1) || s.videoMuted === true || Boolean(s.audioSolo);
 }

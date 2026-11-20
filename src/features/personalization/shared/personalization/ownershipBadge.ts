@@ -4,8 +4,8 @@
  * (StepFindBusiness). Mirrors the server ownership vocabulary in
  * `src/server/businessDiscovery/types.ts`.
  */
-import type { CSSProperties } from 'react'
-import type { BusinessOwnership } from './types'
+import type { CSSProperties } from 'react';
+import type { BusinessOwnership } from './types';
 
 export const OWNERSHIP_LABELS: Record<BusinessOwnership, string> = {
   independent: 'Independent',
@@ -13,7 +13,7 @@ export const OWNERSHIP_LABELS: Record<BusinessOwnership, string> = {
   franchise_chain: 'Franchise',
   national_bigbox: 'National chain',
   unknown: 'Ownership unknown',
-}
+};
 
 const OWNERSHIP_BADGE_TONES: Record<BusinessOwnership, { color: string; background: string; border: string }> = {
   independent: {
@@ -41,14 +41,14 @@ const OWNERSHIP_BADGE_TONES: Record<BusinessOwnership, { color: string; backgrou
     background: 'rgba(255,255,255,.04)',
     border: 'rgba(255,255,255,.16)',
   },
-}
+};
 
 export function ownershipLabel(ownership: BusinessOwnership): string {
-  return OWNERSHIP_LABELS[ownership] ?? 'Ownership unknown'
+  return OWNERSHIP_LABELS[ownership] ?? 'Ownership unknown';
 }
 
 export function ownershipBadgeStyle(ownership: BusinessOwnership): CSSProperties {
-  const tone = OWNERSHIP_BADGE_TONES[ownership] ?? OWNERSHIP_BADGE_TONES.unknown
+  const tone = OWNERSHIP_BADGE_TONES[ownership] ?? OWNERSHIP_BADGE_TONES.unknown;
   return {
     display: 'inline-flex',
     alignItems: 'center',
@@ -63,5 +63,5 @@ export function ownershipBadgeStyle(ownership: BusinessOwnership): CSSProperties
     background: tone.background,
     color: tone.color,
     whiteSpace: 'nowrap',
-  }
+  };
 }

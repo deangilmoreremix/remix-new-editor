@@ -4,9 +4,11 @@ import { cliChatErrorMessage } from '@cinegen/lib/llm/cli-chat-error';
 
 describe('compactCodexCliError', () => {
   it('unwraps the screenshot error into a useful model-selection message', () => {
-    const payload = JSON.stringify({ type: 'error', status: 400, error: {
+    const payload = JSON.stringify({
+ type: 'error', status: 400, error: {
       type: 'invalid_request_error', message: "The 'gpt-5.3-codex' model is not supported when using Codex with a ChatGPT account.",
-    } });
+    } 
+});
     const wrapped = new Error(`Error invoking remote method 'llm:codex-chat': Error: ${payload}`);
     expect(cliChatErrorMessage(wrapped)).toBe('That model is unavailable with your ChatGPT account. Choose Codex default and try again.');
     expect(compactCodexCliError(payload, 1)).not.toContain('invalid_request_error');

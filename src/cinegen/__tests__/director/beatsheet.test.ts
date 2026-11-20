@@ -19,9 +19,11 @@ describe('renumberBeats', () => {
 
 describe('serializeBeatSheet', () => {
   it('emits a labeled block per beat with location, mood, action, shot', () => {
-    const bs = { beats: [beat({
+    const bs = {
+ beats: [beat({
       id: 'a', n: 1, action: 'She returns the wallet.', location: 'INT. ALLEY', shot: 'Handheld medium.', mood: 'tense',
-    })] };
+    })] 
+};
     const text = serializeBeatSheet(bs);
     expect(text).toMatch(/BEAT 1 — INT\. ALLEY \(tense\)/);
     expect(text).toMatch(/Action: She returns the wallet\./);

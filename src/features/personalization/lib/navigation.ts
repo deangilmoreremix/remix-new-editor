@@ -7,9 +7,9 @@
  * OpenHiggsBolt studio slug to the matching remix route and forwards the
  * cross-studio handoff (see forwardHandoff below).
  */
-import { readHandoff } from '../shared/crossStudio'
-import { stageStudioPrefill } from '../../../lib/studioPrefill.js'
-import { navigate as shellNavigate } from '../../../lib/router.js'
+import { readHandoff } from '../shared/crossStudio';
+import { stageStudioPrefill } from '../../../lib/studioPrefill.js';
+import { navigate as shellNavigate } from '../../../lib/router.js';
 
 const STUDIO_ROUTE: Record<string, string> = {
   image: 'image',
@@ -26,24 +26,24 @@ const STUDIO_ROUTE: Record<string, string> = {
   'motion-director': 'motion-director',
   lipsync: 'lipsync',
   recast: 'character',
-}
+};
 
 /** Translate an OpenHiggsBolt href into a remix hash route (`#/image`). */
 export function toRemixRoute(href: string): string {
-  const [pathPart, query = ''] = String(href || '').split('?')
-  const match = pathPart.match(/^\/studio\/([^/]+)/)
-  const slug = match ? match[1] : pathPart.replace(/^\/+/, '')
-  const route = STUDIO_ROUTE[slug] || slug || ''
-  return `#/${route}${query ? `?${query}` : ''}`
+  const [pathPart, query = ''] = String(href || '').split('?');
+  const match = pathPart.match(/^\/studio\/([^/]+)/);
+  const slug = match ? match[1] : pathPart.replace(/^\/+/, '');
+  const route = STUDIO_ROUTE[slug] || slug || '';
+  return `#/${route}${query ? `?${query}` : ''}`;
 }
 
 function safeHttpUrl(value: unknown): string | null {
-  if (typeof value !== 'string' || !value) return null
+  if (typeof value !== 'string' || !value) return null;
   try {
-    const url = new URL(value)
-    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -63,7 +63,7 @@ function forwardHandoff(route: string): void {
       referenceImageUrl?: string | null
       firstFrameUrl?: string | null
       aspectRatio?: string | null
-    } | null
+    } | null;
     // Same fields, same order as OpenHiggsBolt's studios read them
     // (VideoStudio.jsx: `combinedPrompt || projectName`, then
     // `firstFrameUrl || referenceImageUrl` as the start image). The video
@@ -71,9 +71,9 @@ function forwardHandoff(route: string): void {
     const prompt =
       (typeof handoff?.combinedPrompt === 'string' && handoff.combinedPrompt) ||
       (typeof handoff?.projectName === 'string' && handoff.projectName) ||
-      ''
-    const referenceImageUrl = safeHttpUrl(handoff?.firstFrameUrl) || safeHttpUrl(handoff?.referenceImageUrl)
-    const aspectRatio = handoff?.aspectRatio === '9:16' || handoff?.aspectRatio === '16:9' ? handoff.aspectRatio : null
+      '';
+    const referenceImageUrl = safeHttpUrl(handoff?.firstFrameUrl) || safeHttpUrl(handoff?.referenceImageUrl);
+    const aspectRatio = handoff?.aspectRatio === '9:16' || handoff?.aspectRatio === '16:9' ? handoff.aspectRatio : null;
     if (route === 'image' || route === 'video') {
       stageStudioPrefill({
         route,
@@ -83,10 +83,10 @@ function forwardHandoff(route: string): void {
           ...(aspectRatio ? { aspectRatio } : {}),
         },
         ref: 'personalization',
-      })
-      return
+      });
+      return;
     }
-    if (prompt) localStorage.setItem('prefill_prompt', prompt)
+    if (prompt) localStorage.setItem('prefill_prompt', prompt);
   } catch {
     /* storage unavailable — the studio simply opens empty */
   }
@@ -103,25 +103,25 @@ function forwardHandoff(route: string): void {
  * Outside the shell (the standalone landing page) a page load boots it.
  */
 export function navigate(href: string): void {
-  if (typeof window === 'undefined') return
-  const target = toRemixRoute(href)
-  const [route, query = ''] = target.slice(2).split('?')
-  forwardHandoff(route)
+  if (typeof window === 'undefined') return;
+  const target = toRemixRoute(href);
+  const [route, query = ''] = target.slice(2).split('?');
+  forwardHandoff(route);
   if (document.getElementById('content-area')) {
-    void shellNavigate(route, Object.fromEntries(new URLSearchParams(query)))
-    return
+    void shellNavigate(route, Object.fromEntries(new URLSearchParams(query)));
+    return;
   }
-  window.location.hash = target.slice(1)
+  window.location.hash = target.slice(1);
 }
 
 const router = {
   push: navigate,
   replace: navigate,
-  back: () => { if (typeof window !== 'undefined') window.history.back() },
+  back: () => { if (typeof window !== 'undefined') window.history.back(); },
   refresh: () => {},
   prefetch: () => {},
-}
+};
 
 export function useRouter() {
-  return router
+  return router;
 }

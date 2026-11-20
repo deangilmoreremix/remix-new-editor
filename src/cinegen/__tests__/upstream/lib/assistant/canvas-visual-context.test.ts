@@ -3,8 +3,10 @@ import type { Node } from '@xyflow/react';
 import type { WorkflowNodeData } from '@cinegen/types/workflow';
 import { canvasVisualSources, captureCanvasVisual, prepareCanvasVisualContext, videoSampleTimes } from '@cinegen/lib/assistant/canvas-visual-context';
 
-const file = (id: string, type = 'image'): Node<WorkflowNodeData> => ({ id, type: 'filePicker', position: { x: 0, y: 0 },
-  data: { type: 'filePicker', label: id, config: { fileUrl: `https://media.example/${id}`, fileType: type } } });
+const file = (id: string, type = 'image'): Node<WorkflowNodeData> => ({
+ id, type: 'filePicker', position: { x: 0, y: 0 },
+  data: { type: 'filePicker', label: id, config: { fileUrl: `https://media.example/${id}`, fileType: type } } 
+});
 
 describe('Canvas visual context', () => {
   afterEach(() => vi.unstubAllGlobals());

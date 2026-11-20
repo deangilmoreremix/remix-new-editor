@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import React, { useCallback, useMemo, useRef, useState } from 'react'
-import type { PlayerRef } from '@remotion/player'
-import { PersonalizationPlayer } from './PersonalizationPlayer'
-import type { PreviewInputProps } from './types'
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import type { PlayerRef } from '@remotion/player';
+import { PersonalizationPlayer } from './PersonalizationPlayer';
+import type { PreviewInputProps } from './types';
 
 export type BeforeAfterMode = 'toggle' | 'split'
 
@@ -25,7 +25,7 @@ export interface BeforeAfterPreviewProps {
  * one- or two-frame drift is normal playback jitter; seeking on every such
  * event would visibly stutter the follower and fight the user's scrub.
  */
-export const PREVIEW_SYNC_FRAME_THRESHOLD = 2
+export const PREVIEW_SYNC_FRAME_THRESHOLD = 2;
 
 /** Minimal Player surface the sync logic needs (satisfied by `PlayerRef`). */
 export interface PreviewSyncPlayer {
@@ -53,7 +53,7 @@ export interface PreviewSyncState {
 }
 
 export function createPreviewSyncState(): PreviewSyncState {
-  return { before: null, after: null }
+  return { before: null, after: null };
 }
 
 /** True when a frame echo should NOT be mirrored back to its origin. */
@@ -62,8 +62,8 @@ export function isPreviewSyncEcho(
   lastSeekedIntoOrigin: number | null,
   threshold: number = PREVIEW_SYNC_FRAME_THRESHOLD,
 ): boolean {
-  if (lastSeekedIntoOrigin === null) return false
-  return Math.abs(frame - lastSeekedIntoOrigin) <= threshold
+  if (lastSeekedIntoOrigin === null) return false;
+  return Math.abs(frame - lastSeekedIntoOrigin) <= threshold;
 }
 
 /** Mirrors one player's frame into the other, echo-guarded. */
@@ -74,27 +74,27 @@ export function syncPreviewFrame(
   state: PreviewSyncState,
   threshold: number = PREVIEW_SYNC_FRAME_THRESHOLD,
 ): PreviewSyncState {
-  if (!Number.isFinite(frame)) return state
-  const echo = isPreviewSyncEcho(frame, state[from], threshold)
-  if (echo) return state
+  if (!Number.isFinite(frame)) return state;
+  const echo = isPreviewSyncEcho(frame, state[from], threshold);
+  if (echo) return state;
 
-  const targetKey = from === 'before' ? 'after' : 'before'
-  const target = players[targetKey].current
-  if (!target) return state
+  const targetKey = from === 'before' ? 'after' : 'before';
+  const target = players[targetKey].current;
+  if (!target) return state;
 
-  let current = frame
+  let current = frame;
   try {
-    current = target.getCurrentFrame()
+    current = target.getCurrentFrame();
   } catch {
-    current = frame
+    current = frame;
   }
-  if (Math.abs(current - frame) <= threshold) return state
+  if (Math.abs(current - frame) <= threshold) return state;
   try {
-    target.seekTo(frame)
+    target.seekTo(frame);
   } catch {
-    return state
+    return state;
   }
-  return { ...state, [targetKey]: frame }
+  return { ...state, [targetKey]: frame };
 }
 
 /** Mirrors one player's play/pause state into the other. */
@@ -103,17 +103,17 @@ export function syncPreviewPlaying(
   playing: boolean,
   players: PreviewSyncPlayerRefs,
 ): void {
-  const target = players[from === 'before' ? 'after' : 'before'].current
-  if (!target) return
-  let targetPlaying = false
+  const target = players[from === 'before' ? 'after' : 'before'].current;
+  if (!target) return;
+  let targetPlaying = false;
   try {
-    targetPlaying = target.isPlaying()
+    targetPlaying = target.isPlaying();
   } catch {
-    targetPlaying = false
+    targetPlaying = false;
   }
   try {
-    if (playing && !targetPlaying) target.play()
-    else if (!playing && targetPlaying) target.pause()
+    if (playing && !targetPlaying) target.play();
+    else if (!playing && targetPlaying) target.pause();
   } catch {
     // Autoplay policies can reject play(); the mirror stays best-effort.
   }
@@ -137,19 +137,19 @@ export function buildBeforeInputProps(inputProps: PreviewInputProps, beforeVideo
       cutout: undefined,
       captions: undefined,
     },
-  }
+  };
   // Guard: the comparison is only honest when both panes show one source —
   // unless the caller says the AFTER video replaced the original (a recast).
-  beforeInputProps.videoUrl = beforeVideoUrl || inputProps.videoUrl
-  return beforeInputProps
+  beforeInputProps.videoUrl = beforeVideoUrl || inputProps.videoUrl;
+  return beforeInputProps;
 }
 
 function resolveInitialMode(defaultMode?: BeforeAfterMode): BeforeAfterMode {
-  if (defaultMode) return defaultMode
+  if (defaultMode) return defaultMode;
   if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-    return window.matchMedia('(min-width: 900px)').matches ? 'split' : 'toggle'
+    return window.matchMedia('(min-width: 900px)').matches ? 'split' : 'toggle';
   }
-  return 'toggle'
+  return 'toggle';
 }
 
 /**
@@ -158,50 +158,50 @@ function resolveInitialMode(defaultMode?: BeforeAfterMode): BeforeAfterMode {
  * renders the personalized scene.
  */
 export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.Element {
-  const { inputProps, defaultMode, initialSide = 'before', beforeVideoUrl } = props
-  const [mode, setMode] = useState<BeforeAfterMode>(() => resolveInitialMode(defaultMode))
-  const [showingBefore, setShowingBefore] = useState(initialSide === 'before')
-  const beforeRef = useRef<PlayerRef | null>(null)
-  const afterRef = useRef<PlayerRef | null>(null)
-  const syncStateRef = useRef<PreviewSyncState>(createPreviewSyncState())
+  const { inputProps, defaultMode, initialSide = 'before', beforeVideoUrl } = props;
+  const [mode, setMode] = useState<BeforeAfterMode>(() => resolveInitialMode(defaultMode));
+  const [showingBefore, setShowingBefore] = useState(initialSide === 'before');
+  const beforeRef = useRef<PlayerRef | null>(null);
+  const afterRef = useRef<PlayerRef | null>(null);
+  const syncStateRef = useRef<PreviewSyncState>(createPreviewSyncState());
 
   const beforeInputProps = useMemo<PreviewInputProps>(
     () => buildBeforeInputProps(inputProps, beforeVideoUrl),
     [inputProps, beforeVideoUrl],
-  )
+  );
 
   // Both panes render the same source media; only overlays and the end card
   // differ, so `videoUrl` must never diverge between them.
   const players = useMemo<PreviewSyncPlayerRefs>(
     () => ({ before: beforeRef, after: afterRef }),
     [],
-  )
+  );
 
   const handleBeforeFrame = useCallback(
     (frame: number) => {
-      syncStateRef.current = syncPreviewFrame('before', frame, players, syncStateRef.current)
+      syncStateRef.current = syncPreviewFrame('before', frame, players, syncStateRef.current);
     },
     [players],
-  )
+  );
 
   const handleAfterFrame = useCallback(
     (frame: number) => {
-      syncStateRef.current = syncPreviewFrame('after', frame, players, syncStateRef.current)
+      syncStateRef.current = syncPreviewFrame('after', frame, players, syncStateRef.current);
     },
     [players],
-  )
+  );
 
   const handleBeforePlaying = useCallback(
     (playing: boolean) => syncPreviewPlaying('before', playing, players),
     [players],
-  )
+  );
 
   const handleAfterPlaying = useCallback(
     (playing: boolean) => syncPreviewPlaying('after', playing, players),
     [players],
-  )
+  );
 
-  const aspectRatio = inputProps.settings.aspectRatio.replace(':', ' / ')
+  const aspectRatio = inputProps.settings.aspectRatio.replace(':', ' / ');
 
   const modeButtonStyle = (active: boolean): React.CSSProperties => ({
     padding: '6px 12px',
@@ -212,7 +212,7 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
     fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',
-  })
+  });
 
   const labelStyle: React.CSSProperties = {
     fontSize: 12,
@@ -220,7 +220,7 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
     letterSpacing: 0.4,
     textTransform: 'uppercase',
     color: '#d4d4d8',
-  }
+  };
 
   // The stage is aspect-ratio driven and never wider than its parent, so the
   // composition (whose width/height come from settings) scales down instead of
@@ -229,7 +229,7 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
     width: '100%',
     maxWidth: 960,
     margin: '0 auto',
-  }
+  };
 
   const frameStyle: React.CSSProperties = {
     width: '100%',
@@ -237,7 +237,7 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
     borderRadius: 12,
     overflow: 'hidden',
     border: '1px solid rgba(161,161,170, 0.25)',
-  }
+  };
 
   const modeSwitch = (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -258,7 +258,7 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
         Switch
       </button>
     </div>
-  )
+  );
 
   if (mode === 'toggle') {
     return (
@@ -283,8 +283,8 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
             onClick={() => setShowingBefore((previous) => !previous)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault()
-                setShowingBefore((previous) => !previous)
+                event.preventDefault();
+                setShowingBefore((previous) => !previous);
               }
             }}
           >
@@ -303,7 +303,7 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
           />
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -346,5 +346,5 @@ export function BeforeAfterPreview(props: BeforeAfterPreviewProps): React.JSX.El
         </div>
       </div>
     </div>
-  )
+  );
 }

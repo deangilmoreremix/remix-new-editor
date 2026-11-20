@@ -1,33 +1,33 @@
-import React from 'react'
+import React from 'react';
 
 export type SocialNetwork = 'facebook' | 'instagram' | 'linkedin' | 'youtube' | 'tiktok'
 export type SocialLinks = Partial<Record<SocialNetwork, string | undefined>>
 
-const ORDER: SocialNetwork[] = ['facebook', 'instagram', 'linkedin', 'youtube', 'tiktok']
-const LABEL: Record<SocialNetwork, string> = { facebook: 'Facebook', instagram: 'Instagram', linkedin: 'LinkedIn', youtube: 'YouTube', tiktok: 'TikTok' }
+const ORDER: SocialNetwork[] = ['facebook', 'instagram', 'linkedin', 'youtube', 'tiktok'];
+const LABEL: Record<SocialNetwork, string> = { facebook: 'Facebook', instagram: 'Instagram', linkedin: 'LinkedIn', youtube: 'YouTube', tiktok: 'TikTok' };
 const HOST: Record<SocialNetwork, RegExp> = {
   facebook: /(^|\.)facebook\.com$|(^|\.)fb\.com$/, instagram: /(^|\.)instagram\.com$/, linkedin: /(^|\.)linkedin\.com$/,
   youtube: /(^|\.)youtube\.com$|(^|\.)youtu\.be$/, tiktok: /(^|\.)tiktok\.com$/,
-}
+};
 const BASE: Record<SocialNetwork, string> = {
   facebook: 'https://www.facebook.com/', instagram: 'https://www.instagram.com/', linkedin: 'https://www.linkedin.com/company/',
   youtube: 'https://www.youtube.com/@', tiktok: 'https://www.tiktok.com/@',
-}
-const SHARE = /\/(sharer|share|intent|dialog|plugins|login|signup)(\/|\.php|$)/i
+};
+const SHARE = /\/(sharer|share|intent|dialog|plugins|login|signup)(\/|\.php|$)/i;
 
 /** Profile URL for a stored value (full URL on the right host, or a plain handle), else null. Never links to share/login URLs. */
 export function socialHref(network: SocialNetwork, raw: string | undefined): string | null {
-  const v = (raw ?? '').trim()
-  if (!v) return null
+  const v = (raw ?? '').trim();
+  if (!v) return null;
   if (/^https?:\/\//i.test(v)) {
     try {
-      const u = new URL(v)
-      if (!HOST[network].test(u.hostname.toLowerCase()) || SHARE.test(u.pathname) || u.pathname.replace(/\//g, '') === '') return null
-      return u.toString()
-    } catch { return null }
+      const u = new URL(v);
+      if (!HOST[network].test(u.hostname.toLowerCase()) || SHARE.test(u.pathname) || u.pathname.replace(/\//g, '') === '') return null;
+      return u.toString();
+    } catch { return null; }
   }
-  const handle = v.replace(/^@/, '')
-  return /^[A-Za-z0-9._-]{2,60}$/.test(handle) ? BASE[network] + handle : null
+  const handle = v.replace(/^@/, '');
+  return /^[A-Za-z0-9._-]{2,60}$/.test(handle) ? BASE[network] + handle : null;
 }
 
 const PATHS: Record<SocialNetwork, string> = {
@@ -36,11 +36,11 @@ const PATHS: Record<SocialNetwork, string> = {
   linkedin: 'M20.4 20.5h-3.6v-5.6c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9v5.7H9.4V9h3.4v1.6c.5-.9 1.6-1.8 3.4-1.8 3.6 0 4.3 2.4 4.3 5.5v6.2zM5.3 7.4a2.1 2.1 0 1 1 0-4.1 2.1 2.1 0 0 1 0 4.1zM7.1 20.5H3.6V9h3.6v11.5zM22.2 0H1.8C.8 0 0 .8 0 1.7v20.6c0 .9.8 1.7 1.8 1.7h20.4c1 0 1.8-.8 1.8-1.7V1.7C24 .8 23.2 0 22.2 0z',
   youtube: 'M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.500 0-9.400.5A3 3 0 0 0 .5 6.200C0 8.100 0 12 0 12s0 3.900.5 5.800a3 3 0 0 0 2.100 2.100c1.900.5 9.400.5 9.400.5s7.500 0 9.400-.5a3 3 0 0 0 2.100-2.100c.5-1.900.5-5.800.5-5.800s0-3.900-.5-5.800zM9.600 15.600V8.400l6.200 3.600-6.200 3.600z',
   tiktok: 'M12.5 0h3.400c.2 1.800 1.200 3.500 2.700 4.600 1 .7 2.100 1.100 3.400 1.200v3.500c-1.600 0-3.100-.5-4.400-1.300v7.500c0 3.800-3 6.800-6.800 6.800S4 19.300 4 15.500s3-6.800 6.800-6.800c.4 0 .7 0 1.100.1v3.600a3.300 3.300 0 1 0 .6 6.400c1.800-.2 1.700-1.400 1.700-3.200L12.500 0z',
-}
+};
 
 const BRAND: Record<SocialNetwork, string> = {
   facebook: '#1877F2', instagram: 'url(#', linkedin: '#0A66C2', youtube: '#FF0000', tiktok: '#FFFFFF',
-}
+};
 
 export interface SocialIconsProps {
   links: SocialLinks
@@ -55,13 +55,13 @@ export interface SocialIconsProps {
 }
 
 export function SocialIcons({ links, size = 14, name, titles, onRemove }: SocialIconsProps) {
-  const items = ORDER.map((n) => ({ n, href: socialHref(n, links[n]) })).filter((x): x is { n: SocialNetwork; href: string } => !!x.href)
-  const gid = `ig-grad-${React.useId().replace(/[^a-zA-Z0-9_-]/g, '')}` // stable across server and client render
-  if (!items.length) return null
+  const items = ORDER.map((n) => ({ n, href: socialHref(n, links[n]) })).filter((x): x is { n: SocialNetwork; href: string } => !!x.href);
+  const gid = `ig-grad-${React.useId().replace(/[^a-zA-Z0-9_-]/g, '')}`; // stable across server and client render
+  if (!items.length) return null;
   return (
     <span data-testid="social-icons" style={{ display: 'inline-flex', alignItems: 'center', gap: onRemove ? 8 : 4 }}>
       {items.map(({ n, href }) => {
-        const fill = n === 'instagram' ? `url(#${gid})` : BRAND[n]
+        const fill = n === 'instagram' ? `url(#${gid})` : BRAND[n];
         return (
           <span key={n} style={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
           <a
@@ -90,13 +90,13 @@ export function SocialIcons({ links, size = 14, name, titles, onRemove }: Social
           </a>
           {onRemove && (
             <button
-              type="button" aria-label={`Remove ${LABEL[n]}`} onClick={(e) => { e.stopPropagation(); onRemove(n) }}
+              type="button" aria-label={`Remove ${LABEL[n]}`} onClick={(e) => { e.stopPropagation(); onRemove(n); }}
               style={{ background: 'transparent', border: 0, padding: 0, color: 'inherit', opacity: 0.55, cursor: 'pointer', fontSize: 11, lineHeight: 1 }}
             >×</button>
           )}
           </span>
-        )
+        );
       })}
     </span>
-  )
+  );
 }

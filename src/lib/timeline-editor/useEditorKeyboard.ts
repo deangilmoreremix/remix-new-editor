@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
-import type { ToolType } from './types'
+import { useEffect, useRef } from 'react';
+import type { ToolType } from './types';
 
 interface UseEditorKeyboardProps {
   onUndo: () => void
@@ -40,124 +40,124 @@ export function useEditorKeyboard({
   onTrimLeft,
   onTrimRight,
 }: UseEditorKeyboardProps) {
-  const pressedKeysRef = useRef<Set<string>>(new Set())
+  const pressedKeysRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      pressedKeysRef.current.add(e.key.toLowerCase())
+      pressedKeysRef.current.add(e.key.toLowerCase());
 
-      const meta = e.metaKey || e.ctrlKey
-      const shift = e.shiftKey
+      const meta = e.metaKey || e.ctrlKey;
+      const shift = e.shiftKey;
 
       if (meta && e.key === 'z') {
-        e.preventDefault()
+        e.preventDefault();
         if (shift) {
-          onRedo()
+          onRedo();
         } else {
-          onUndo()
+          onUndo();
         }
-        return
+        return;
       }
 
       if (meta && e.key === 'y') {
-        e.preventDefault()
-        onRedo()
-        return
+        e.preventDefault();
+        onRedo();
+        return;
       }
 
       if (meta && e.key === 'c') {
-        e.preventDefault()
-        onCopy()
-        return
+        e.preventDefault();
+        onCopy();
+        return;
       }
 
       if (meta && e.key === 'v') {
-        e.preventDefault()
-        onPaste()
-        return
+        e.preventDefault();
+        onPaste();
+        return;
       }
 
       if (meta && e.key === 'x') {
-        e.preventDefault()
-        onCut()
-        return
+        e.preventDefault();
+        onCut();
+        return;
       }
 
       switch (e.key) {
         case ' ':
-          e.preventDefault()
-          onPlayPause()
-          break
+          e.preventDefault();
+          onPlayPause();
+          break;
         case 'A':
           if (meta) {
-            e.preventDefault()
-            onSelectAll()
+            e.preventDefault();
+            onSelectAll();
           }
-          break
+          break;
         case 'I':
           if (shift) {
-            e.preventDefault()
-            onSetInPoint()
+            e.preventDefault();
+            onSetInPoint();
           }
-          break
+          break;
         case 'O':
           if (shift) {
-            e.preventDefault()
-            onSetOutPoint()
+            e.preventDefault();
+            onSetOutPoint();
           }
-          break
+          break;
         case '1':
-          e.preventDefault()
-          onSelectTool('select')
-          break
+          e.preventDefault();
+          onSelectTool('select');
+          break;
         case '2':
-          e.preventDefault()
-          onSelectTool('move')
-          break
+          e.preventDefault();
+          onSelectTool('move');
+          break;
         case '3':
-          e.preventDefault()
-          onSelectTool('razor')
-          break
+          e.preventDefault();
+          onSelectTool('razor');
+          break;
         case '+':
-          e.preventDefault()
-          onZoomIn()
-          break
+          e.preventDefault();
+          onZoomIn();
+          break;
         case '-':
-          e.preventDefault()
-          onZoomOut()
-          break
+          e.preventDefault();
+          onZoomOut();
+          break;
         case '0':
-          e.preventDefault()
-          onFitToView()
-          break
+          e.preventDefault();
+          onFitToView();
+          break;
         case 'ArrowLeft':
           if (shift) {
-            onSeekLeft()
+            onSeekLeft();
           } else {
-            onTrimLeft()
+            onTrimLeft();
           }
-          break
+          break;
         case 'ArrowRight':
           if (shift) {
-            onSeekRight()
+            onSeekRight();
           } else {
-            onTrimRight()
+            onTrimRight();
           }
-          break
+          break;
       }
-    }
+    };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      pressedKeysRef.current.delete(e.key.toLowerCase())
-    }
+      pressedKeysRef.current.delete(e.key.toLowerCase());
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('keyup', handleKeyUp)
-    }
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [
     onUndo,
     onRedo,
@@ -176,7 +176,7 @@ export function useEditorKeyboard({
     onSeekRight,
     onTrimLeft,
     onTrimRight,
-  ])
+  ]);
 
-  return { pressedKeys: pressedKeysRef.current }
+  return { pressedKeys: pressedKeysRef.current };
 }

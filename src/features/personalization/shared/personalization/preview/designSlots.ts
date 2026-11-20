@@ -31,8 +31,8 @@ import type {
   RemotionDesignTemplate,
   RemotionDesignTextField,
   RemotionDesignTextSlot,
-} from '../templates/types'
-import type { PreviewInputProps, PreviewLayer, PreviewLayerKind } from './types'
+} from '../templates/types';
+import type { PreviewInputProps, PreviewLayer, PreviewLayerKind } from './types';
 
 /**
  * The layer field that carries the customer's per-slot text overrides.
@@ -42,7 +42,7 @@ import type { PreviewInputProps, PreviewLayer, PreviewLayerKind } from './types'
  * slot the design declares is edited through this map, keyed by
  * `RemotionDesignTextSlot.key`.
  */
-export const DESIGN_SLOT_OVERRIDES_FIELD = 'textSlotOverrides'
+export const DESIGN_SLOT_OVERRIDES_FIELD = 'textSlotOverrides';
 
 /**
  * The brand value behind a design text slot.
@@ -56,19 +56,19 @@ export function brandSlotValue(
 ): string {
   switch (field) {
     case 'businessName':
-      return brand.businessName ?? ''
+      return brand.businessName ?? '';
     case 'headline':
-      return brand.headline ?? ''
+      return brand.headline ?? '';
     case 'offer':
-      return brand.offer ?? ''
+      return brand.offer ?? '';
     case 'cta':
-      return brand.cta ?? ''
+      return brand.cta ?? '';
     case 'phone':
-      return brand.phone ?? ''
+      return brand.phone ?? '';
     case 'website':
-      return brand.website ?? ''
+      return brand.website ?? '';
     default:
-      return ''
+      return '';
   }
 }
 
@@ -79,49 +79,49 @@ export function brandSlotValue(
  * map, so the caller falls back to the brand-derived values.
  */
 export function designSlotOverrides(layer: PreviewLayer): Record<string, string> {
-  const raw = (layer as PreviewLayer & { textSlotOverrides?: unknown }).textSlotOverrides
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
-  const source = raw as Record<string, unknown>
-  const out: Record<string, string> = {}
+  const raw = (layer as PreviewLayer & { textSlotOverrides?: unknown }).textSlotOverrides;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const source = raw as Record<string, unknown>;
+  const out: Record<string, string> = {};
   for (const key of Object.keys(source)) {
-    if (typeof key !== 'string' || !key) continue
-    const value = source[key]
-    if (typeof value !== 'string') continue
-    out[key] = value
+    if (typeof key !== 'string' || !key) continue;
+    const value = source[key];
+    if (typeof value !== 'string') continue;
+    out[key] = value;
   }
-  return out
+  return out;
 }
 
 /** True when the slot owns the layer's own text (`layer.text`). */
 export function isPrimaryDesignSlot(slot: RemotionDesignTextSlot): boolean {
-  return Boolean(slot) && slot.primary === true
+  return Boolean(slot) && slot.primary === true;
 }
 
 /** The customer-facing label of a brand field, used when a slot has none. */
 function slotFieldLabel(field: RemotionDesignTextField): string {
   switch (field) {
     case 'businessName':
-      return 'Business name'
+      return 'Business name';
     case 'headline':
-      return 'Headline'
+      return 'Headline';
     case 'offer':
-      return 'Offer'
+      return 'Offer';
     case 'cta':
-      return 'Call to action'
+      return 'Call to action';
     case 'phone':
-      return 'Phone'
+      return 'Phone';
     case 'website':
-      return 'Website'
+      return 'Website';
     default:
-      return 'Text'
+      return 'Text';
   }
 }
 
 /** The label shown above a slot's field: the slot's own, else a derived one. */
 export function designSlotLabel(slot: RemotionDesignTextSlot): string {
-  const label = typeof slot?.label === 'string' ? slot.label.trim() : ''
-  if (label) return label
-  return slotFieldLabel(slot?.field)
+  const label = typeof slot?.label === 'string' ? slot.label.trim() : '';
+  if (label) return label;
+  return slotFieldLabel(slot?.field);
 }
 
 /**
@@ -142,23 +142,23 @@ export function resolveDesignSlotValues(
   layer: PreviewLayer,
   brand: PreviewInputProps['brand'],
 ): Record<string, string> {
-  const slots: Record<string, string> = {}
-  const declared = Array.isArray(design?.textSlots) ? design.textSlots : []
-  const overrides = designSlotOverrides(layer)
+  const slots: Record<string, string> = {};
+  const declared = Array.isArray(design?.textSlots) ? design.textSlots : [];
+  const overrides = designSlotOverrides(layer);
   for (const slot of declared) {
-    if (!slot || typeof slot.key !== 'string' || !slot.key) continue
+    if (!slot || typeof slot.key !== 'string' || !slot.key) continue;
     if (isPrimaryDesignSlot(slot)) {
       slots[slot.key] =
-        typeof layer.text === 'string' ? layer.text : brandSlotValue(slot.field, brand)
-      continue
+        typeof layer.text === 'string' ? layer.text : brandSlotValue(slot.field, brand);
+      continue;
     }
-    const override = overrides[slot.key]
+    const override = overrides[slot.key];
     slots[slot.key] =
       typeof override === 'string' && override.trim()
         ? override
-        : brandSlotValue(slot.field, brand)
+        : brandSlotValue(slot.field, brand);
   }
-  return slots
+  return slots;
 }
 
 /** Which brand field a built-in layer kind is edited through. */
@@ -167,7 +167,7 @@ const DESIGN_FIELD_BY_LAYER_KIND: Partial<Record<PreviewLayerKind, RemotionDesig
   headline: 'headline',
   offer: 'offer',
   cta: 'cta',
-}
+};
 
 /**
  * The design layers whose PRIMARY slot is fed by the form field edited
@@ -186,14 +186,14 @@ export function designPrimarySlotUpdates(
   layerKind: PreviewLayerKind,
   value: string,
 ): Array<{ layerId: string; text: string }> {
-  const field = DESIGN_FIELD_BY_LAYER_KIND[layerKind]
-  if (!field) return []
-  const updates: Array<{ layerId: string; text: string }> = []
+  const field = DESIGN_FIELD_BY_LAYER_KIND[layerKind];
+  if (!field) return [];
+  const updates: Array<{ layerId: string; text: string }> = [];
   for (const layer of Array.isArray(layers) ? layers : []) {
-    if (!layer || layer.kind !== 'design' || !layer.designId) continue
-    const design = designs.find((candidate) => candidate?.id === layer.designId)
-    const primary = (Array.isArray(design?.textSlots) ? design.textSlots : []).find(isPrimaryDesignSlot)
-    if (primary?.field === field) updates.push({ layerId: layer.id, text: value })
+    if (!layer || layer.kind !== 'design' || !layer.designId) continue;
+    const design = designs.find((candidate) => candidate?.id === layer.designId);
+    const primary = (Array.isArray(design?.textSlots) ? design.textSlots : []).find(isPrimaryDesignSlot);
+    if (primary?.field === field) updates.push({ layerId: layer.id, text: value });
   }
-  return updates
+  return updates;
 }

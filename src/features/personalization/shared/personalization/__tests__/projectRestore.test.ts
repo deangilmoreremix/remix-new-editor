@@ -10,10 +10,10 @@
  *   - a missing/invalid/HTTP-failed/threw payload yields a safe error object
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { loadProject, listProjects } from '../projectRestore'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { loadProject, listProjects } from '../projectRestore';
 
-const originalFetch = globalThis.fetch
+const originalFetch = globalThis.fetch;
 
 /**
  * Request init passed by projectRestore: a method, a JSON header record and
@@ -28,17 +28,17 @@ type ProjectRestoreFetchInit = {
 }
 
 function jsonResponse(body: unknown, { ok = true, status = 200 }: { ok?: boolean; status?: number } = {}) {
-  return { ok, status, json: async () => body } as unknown as Response
+  return { ok, status, json: async () => body } as unknown as Response;
 }
 
 describe('projectRestore', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   afterEach(() => {
-    globalThis.fetch = originalFetch
-  })
+    globalThis.fetch = originalFetch;
+  });
 
   it('reconstructs a SavedProject from a persisted snake_case payload', async () => {
     const persisted = {
@@ -54,86 +54,86 @@ describe('projectRestore', () => {
       error_message: null,
       created_at: '2026-01-01T00:00:00.000Z',
       updated_at: '2026-01-02T00:00:00.000Z',
-    }
+    };
     const fetchMock = vi.fn(async (_url: RequestInfo | URL, _init: ProjectRestoreFetchInit) =>
       jsonResponse({ project: persisted }),
-    )
-    globalThis.fetch = fetchMock
+    );
+    globalThis.fetch = fetchMock;
 
-    const res = await loadProject('proj-123')
+    const res = await loadProject('proj-123');
 
-    expect(res.ok).toBe(true)
-    expect(res.error).toBeUndefined()
-    const project = res.project!
-    expect(project).toBeTruthy()
-    expect(project.id).toBe('proj-123')
-    expect(project.client.businessName).toBe('Acme Roofing')
-    expect(project.prompt.personalized).toBe('A personalized prompt about Acme Roofing')
+    expect(res.ok).toBe(true);
+    expect(res.error).toBeUndefined();
+    const project = res.project!;
+    expect(project).toBeTruthy();
+    expect(project.id).toBe('proj-123');
+    expect(project.client.businessName).toBe('Acme Roofing');
+    expect(project.prompt.personalized).toBe('A personalized prompt about Acme Roofing');
     // snake_case → camelCase reconstruction
-    expect(project.outputType).toBe('video')
-    expect(project.status).toBe('complete')
-    expect(project.errorMessage).toBeNull()
-    expect(project.createdAt).toBe('2026-01-01T00:00:00.000Z')
-    expect(project.updatedAt).toBe('2026-01-02T00:00:00.000Z')
+    expect(project.outputType).toBe('video');
+    expect(project.status).toBe('complete');
+    expect(project.errorMessage).toBeNull();
+    expect(project.createdAt).toBe('2026-01-01T00:00:00.000Z');
+    expect(project.updatedAt).toBe('2026-01-02T00:00:00.000Z');
 
     // Restores via the project endpoint with the id encoded in the query string.
-    const [url, init] = fetchMock.mock.calls[0]
-    expect(String(url)).toContain('/api/personalization/project')
-    expect(String(url)).toContain('id=proj-123')
-    expect(init.method).toBe('GET')
-  })
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(String(url)).toContain('/api/personalization/project');
+    expect(String(url)).toContain('id=proj-123');
+    expect(init.method).toBe('GET');
+  });
 
   it('applies safe defaults when persisted fields are missing', async () => {
-    const fetchMock = vi.fn(async () => jsonResponse({ project: { id: 'proj-2' } }))
-    globalThis.fetch = fetchMock as any
+    const fetchMock = vi.fn(async () => jsonResponse({ project: { id: 'proj-2' } }));
+    globalThis.fetch = fetchMock as any;
 
-    const res = await loadProject('proj-2')
+    const res = await loadProject('proj-2');
 
-    expect(res.ok).toBe(true)
-    expect(res.project!.outputType).toBe('prompt')
-    expect(res.project!.mode).toBeNull()
-    expect(res.project!.status).toBe('idle')
-    expect(res.project!.errorMessage).toBeNull()
-    expect(res.project!.source).toEqual({})
-    expect(res.project!.client).toEqual({})
-  })
+    expect(res.ok).toBe(true);
+    expect(res.project!.outputType).toBe('prompt');
+    expect(res.project!.mode).toBeNull();
+    expect(res.project!.status).toBe('idle');
+    expect(res.project!.errorMessage).toBeNull();
+    expect(res.project!.source).toEqual({});
+    expect(res.project!.client).toEqual({});
+  });
 
   it('returns an error when the project payload is missing', async () => {
-    const fetchMock = vi.fn(async () => jsonResponse({}))
-    globalThis.fetch = fetchMock as any
+    const fetchMock = vi.fn(async () => jsonResponse({}));
+    globalThis.fetch = fetchMock as any;
 
-    const res = await loadProject('does-not-exist')
+    const res = await loadProject('does-not-exist');
 
-    expect(res.ok).toBe(false)
-    expect(res.project).toBeUndefined()
-    expect(res.error).toBe('Project not found')
-  })
+    expect(res.ok).toBe(false);
+    expect(res.project).toBeUndefined();
+    expect(res.error).toBe('Project not found');
+  });
 
   it('returns the upstream error on an HTTP failure', async () => {
     const fetchMock = vi.fn(async () =>
       jsonResponse({ error: 'Database unavailable' }, { ok: false, status: 500 }),
-    )
-    globalThis.fetch = fetchMock as any
+    );
+    globalThis.fetch = fetchMock as any;
 
-    const res = await loadProject('proj-x')
+    const res = await loadProject('proj-x');
 
-    expect(res.ok).toBe(false)
-    expect(res.project).toBeUndefined()
-    expect(res.error).toBe('Database unavailable')
-  })
+    expect(res.ok).toBe(false);
+    expect(res.project).toBeUndefined();
+    expect(res.error).toBe('Database unavailable');
+  });
 
   it('normalizes a thrown fetch error into a safe result', async () => {
     const fetchMock = vi.fn(async () => {
-      throw new Error('Network down')
-    })
-    globalThis.fetch = fetchMock as any
+      throw new Error('Network down');
+    });
+    globalThis.fetch = fetchMock as any;
 
-    const res = await loadProject('proj-y')
+    const res = await loadProject('proj-y');
 
-    expect(res.ok).toBe(false)
-    expect(res.project).toBeUndefined()
-    expect(res.error).toBe('Network down')
-  })
+    expect(res.ok).toBe(false);
+    expect(res.project).toBeUndefined();
+    expect(res.error).toBe('Network down');
+  });
 
   it('listProjects reconstructs every persisted row', async () => {
     const fetchMock = vi.fn(async () =>
@@ -143,33 +143,33 @@ describe('projectRestore', () => {
           { id: 'b', output_type: 'video', status: 'idle' },
         ],
       }),
-    )
-    globalThis.fetch = fetchMock as any
+    );
+    globalThis.fetch = fetchMock as any;
 
-    const res = await listProjects()
+    const res = await listProjects();
 
-    expect(res.ok).toBe(true)
-    expect(res.projects).toHaveLength(2)
-    expect(res.projects![0].id).toBe('a')
-    expect(res.projects![0].outputType).toBe('image')
-    expect(res.projects![0].status).toBe('complete')
-    expect(res.projects![1].id).toBe('b')
-    expect(res.projects![1].outputType).toBe('video')
-  })
-})
+    expect(res.ok).toBe(true);
+    expect(res.projects).toHaveLength(2);
+    expect(res.projects![0].id).toBe('a');
+    expect(res.projects![0].outputType).toBe('image');
+    expect(res.projects![0].status).toBe('complete');
+    expect(res.projects![1].id).toBe('b');
+    expect(res.projects![1].outputType).toBe('video');
+  });
+});
 
 describe('saved projects with website-found contact fields', () => {
   it('passes optional email/social client fields through untouched, and older saves without them still load', async () => {
-    const { loadProject } = await import('../projectRestore')
-    const mk = (client: Record<string, unknown>) => ({ project: { id: 'p1', client, source: {}, assets: {}, prompt: {}, generation: {} } })
-    const respond = (body: unknown) => vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => body })))
-    respond(mk({ businessName: 'Acme', email: 'hi@acme.example', instagram: 'https://instagram.com/acme' }))
-    const withFields = await loadProject('p1')
-    expect(withFields).toMatchObject({ ok: true })
-    expect((withFields as any).project.client).toMatchObject({ email: 'hi@acme.example', instagram: 'https://instagram.com/acme' })
-    respond(mk({ businessName: 'Old Save' }))
-    const legacy = await loadProject('p1')
-    expect((legacy as any).project.client.email).toBeUndefined()
-    vi.unstubAllGlobals()
-  })
-})
+    const { loadProject } = await import('../projectRestore');
+    const mk = (client: Record<string, unknown>) => ({ project: { id: 'p1', client, source: {}, assets: {}, prompt: {}, generation: {} } });
+    const respond = (body: unknown) => vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => body })));
+    respond(mk({ businessName: 'Acme', email: 'hi@acme.example', instagram: 'https://instagram.com/acme' }));
+    const withFields = await loadProject('p1');
+    expect(withFields).toMatchObject({ ok: true });
+    expect((withFields as any).project.client).toMatchObject({ email: 'hi@acme.example', instagram: 'https://instagram.com/acme' });
+    respond(mk({ businessName: 'Old Save' }));
+    const legacy = await loadProject('p1');
+    expect((legacy as any).project.client.email).toBeUndefined();
+    vi.unstubAllGlobals();
+  });
+});

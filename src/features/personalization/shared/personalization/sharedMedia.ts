@@ -11,7 +11,7 @@
  * to localStorage and to the Supabase shared-media table for cross-device
  * deduplication and provenance tracking.
  */
-export const PERSONALIZATION_ORIGIN = 'demo-personalization' as const
+export const PERSONALIZATION_ORIGIN = 'demo-personalization' as const;
 
 export interface SharedMediaEntry {
   id: string
@@ -47,20 +47,20 @@ export interface SharedMediaEntry {
   createdAt: string
 }
 
-const STORAGE_KEY = 'smartvideo_shared_media'
+const STORAGE_KEY = 'smartvideo_shared_media';
 
 function readStorage(): SharedMediaEntry[] {
-  if (typeof window === 'undefined') return []
+  if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
   } catch {
-    return []
+    return [];
   }
 }
 
 /** Newest entries kept in the local history. */
-export const MAX_SHARED_MEDIA_ENTRIES = 50
+export const MAX_SHARED_MEDIA_ENTRIES = 50;
 
 /**
  * remix-new-editor: history is best-effort. It never throws (a full
@@ -69,20 +69,20 @@ export const MAX_SHARED_MEDIA_ENTRIES = 50
  * only durable URLs.
  */
 function writeStorage(data: SharedMediaEntry[]) {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined') return;
   const bounded = [...data]
     .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
     .slice(0, MAX_SHARED_MEDIA_ENTRIES)
     .map((entry) => ({
       ...entry,
       outputUrls: (entry.outputUrls || []).filter((url) => typeof url === 'string' && !/^data:/i.test(url)),
-    }))
+    }));
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(bounded))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(bounded));
   } catch {
     try {
       // Quota: keep the newest half and try once more.
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(bounded.slice(0, Math.ceil(bounded.length / 2))))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(bounded.slice(0, Math.ceil(bounded.length / 2))));
     } catch {
       /* history is optional */
     }
@@ -90,7 +90,7 @@ function writeStorage(data: SharedMediaEntry[]) {
 }
 
 export function getSharedMedia(): SharedMediaEntry[] {
-  return readStorage().sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  return readStorage().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export function registerSharedMedia(entry: Partial<SharedMediaEntry>): SharedMediaEntry {
@@ -117,13 +117,13 @@ export function registerSharedMedia(entry: Partial<SharedMediaEntry>): SharedMed
     clientId: entry.clientId,
     ...(entry.layersMissing ? { layersMissing: true } : {}),
     createdAt: entry.createdAt || new Date().toISOString(),
-  }
-  const data = readStorage()
-  data.push(full)
-  writeStorage(data)
-  return full
+  };
+  const data = readStorage();
+  data.push(full);
+  writeStorage(data);
+  return full;
 }
 
 export function createSharedMediaEntry(partial: Partial<SharedMediaEntry>): SharedMediaEntry {
-  return registerSharedMedia(partial)
+  return registerSharedMedia(partial);
 }

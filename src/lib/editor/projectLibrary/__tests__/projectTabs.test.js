@@ -6,9 +6,11 @@ import { audienceTab, retargetTab, notificationsTab } from '../projectTabs.js';
 const NOW = new Date('2026-11-11T15:30:00Z');
 const tick = (n = 6) => new Promise((r) => { let i = 0; const go = () => (++i >= n ? r() : setTimeout(go, 0)); go(); });
 
-const PROJECT_STATE = { timelineSeconds: 100, tracks: [
+const PROJECT_STATE = {
+ timelineSeconds: 100, tracks: [
   { type: 'video', items: [{ id: 'a', name: 'Roof repair', left: 0, width: 50 }, { id: 'b', name: 'Kitchens', left: 50, width: 50 }] },
-  { type: 'text', items: [{ id: 'cta1', type: 'click-to-call', buttonText: 'Book roof inspection', left: 10, width: 20 }, { id: 'form1', type: 'lead-form', left: 60, width: 10 }] }] };
+  { type: 'text', items: [{ id: 'cta1', type: 'click-to-call', buttonText: 'Book roof inspection', left: 10, width: 20 }, { id: 'form1', type: 'lead-form', left: 60, width: 10 }] }] 
+};
 
 describe('interest mapping', () => {
   it('seeds from timeline scenes, links the CTAs shown during each, and keeps saved mappings', () => {

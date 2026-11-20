@@ -610,8 +610,10 @@ function WorkflowCanvasInner({ onSendToStudio }: WorkflowCanvasProps) {
           nodes: nodesRef.current.map((node) => ({ ...node, selected: node.id === nodeId })) as Node<WorkflowNodeData>[],
         });
       }
-      setContextMenu({ x: Math.max(8, Math.min(point.x, window.innerWidth - 240)), y: Math.max(8, Math.min(point.y, window.innerHeight - 240)),
-        nodeIds: nodeIsSelected ? nodesRef.current.filter(node => node.selected).map(node => node.id) : [nodeId] });
+      setContextMenu({
+ x: Math.max(8, Math.min(point.x, window.innerWidth - 240)), y: Math.max(8, Math.min(point.y, window.innerHeight - 240)),
+        nodeIds: nodeIsSelected ? nodesRef.current.filter(node => node.selected).map(node => node.id) : [nodeId] 
+});
       longPressTimerRef.current = null;
     }, 520);
   }, [isMobileCanvas, cancelLongPress, dispatch]);

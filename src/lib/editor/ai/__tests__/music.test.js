@@ -36,10 +36,12 @@ describe('music presets', () => {
 });
 
 describe('composition plan', () => {
-  const plan = normalizePlan({ title: 'Trailer', global_style: 'orchestral', sections: [
+  const plan = normalizePlan({
+ title: 'Trailer', global_style: 'orchestral', sections: [
     { name: 'Intro', style_tags: 'strings, slow', description: 'Quiet opening', duration: 3, lyrics: '' },
     { name: 'Climax', style_tags: 'brass, 140 bpm', description: 'Big finish', duration: 40, lyrics: 'Rise up' },
-  ] });
+  ] 
+});
   it('normalizes sections and builds MuAPI requests per section', () => {
     expect(plan.sections.map((s) => s.duration)).toEqual([10, 40]);
     expect(sectionRequest(plan, plan.sections[0])).toMatchObject({ style: 'orchestral, strings, slow', prompt: 'Quiet opening', instrumental: true, title: 'Trailer — Intro' });

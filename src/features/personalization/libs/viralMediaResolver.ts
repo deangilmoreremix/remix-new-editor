@@ -12,8 +12,8 @@
  * - Never pass an image URL to `<video src>`
  */
 
-import type { PromptMedia, PromptRecord } from '@ohb/types/go-ai-viral/prompt'
-import type { SeedancePrompt } from '@ohb/types/go-ai-viral/seedance'
+import type { PromptMedia, PromptRecord } from '@ohb/types/go-ai-viral/prompt';
+import type { SeedancePrompt } from '@ohb/types/go-ai-viral/seedance';
 
 /**
  * Result of resolving media for a prompt record.
@@ -73,16 +73,16 @@ export interface ResolvedVideoMedia {
  * only rewrites known video host URLs in development.
  */
 export function proxyVideoUrl(url: string | null | undefined): string {
-  if (!url) return ''
+  if (!url) return '';
   try {
-    const u = new URL(url)
+    const u = new URL(url);
     if (u.hostname.includes('video.twimg.com') && import.meta?.env?.DEV) {
-      return `/proxy/video${u.pathname}${u.search}`
+      return `/proxy/video${u.pathname}${u.search}`;
     }
   } catch {
     // not a valid URL, return as-is
   }
-  return url || ''
+  return url || '';
 }
 
 /**
@@ -100,42 +100,42 @@ export function proxyVideoUrl(url: string | null | undefined): string {
  * 6. other image posterUrl
  */
 export function resolvePromptRecordImage(record: PromptRecord): ResolvedImageMedia {
-  const media = record.media
-  const imageMedia = media.filter((m) => m.type === 'image')
-  const resultImage = imageMedia.find((m) => m.role === 'result')
-  const otherImage = imageMedia.find((m) => m !== resultImage) || imageMedia[0]
-  const fallbackImage = media.find((m) => m.role === 'result') || media[0]
+  const media = record.media;
+  const imageMedia = media.filter((m) => m.type === 'image');
+  const resultImage = imageMedia.find((m) => m.role === 'result');
+  const otherImage = imageMedia.find((m) => m !== resultImage) || imageMedia[0];
+  const fallbackImage = media.find((m) => m.role === 'result') || media[0];
 
-  const seen = new Set<string>()
-  const candidates: string[] = []
+  const seen = new Set<string>();
+  const candidates: string[] = [];
   const add = (url: string | null | undefined) => {
-    if (!url) return
-    const trimmed = url.trim()
-    if (!trimmed || seen.has(trimmed)) return
-    seen.add(trimmed)
-    candidates.push(trimmed)
-  }
+    if (!url) return;
+    const trimmed = url.trim();
+    if (!trimmed || seen.has(trimmed)) return;
+    seen.add(trimmed);
+    candidates.push(trimmed);
+  };
 
   const pushField = (fn: (m: PromptMedia) => string | null | undefined) => {
-    if (resultImage) add(fn(resultImage))
-    if (otherImage && otherImage !== resultImage) add(fn(otherImage))
-  }
+    if (resultImage) add(fn(resultImage));
+    if (otherImage && otherImage !== resultImage) add(fn(otherImage));
+  };
 
-  pushField((m) => m.previewUrl)
-  pushField((m) => m.sourceUrl)
-  pushField((m) => m.posterUrl)
+  pushField((m) => m.previewUrl);
+  pushField((m) => m.sourceUrl);
+  pushField((m) => m.posterUrl);
 
   // Fallback: any media result/first, preserving order
   if (candidates.length === 0 && fallbackImage) {
-    add(fallbackImage.previewUrl)
-    add(fallbackImage.sourceUrl)
-    add(fallbackImage.posterUrl)
+    add(fallbackImage.previewUrl);
+    add(fallbackImage.sourceUrl);
+    add(fallbackImage.posterUrl);
   }
 
-  const imageUrl = candidates[0] || null
-  const isFallback = !resultImage && !!fallbackImage
+  const imageUrl = candidates[0] || null;
+  const isFallback = !resultImage && !!fallbackImage;
 
-  return { imageUrl, isFallback, candidates }
+  return { imageUrl, isFallback, candidates };
 }
 
 /**
@@ -147,52 +147,52 @@ export function resolvePromptRecordImage(record: PromptRecord): ResolvedImageMed
  * - Never pass an image URL to a video source.
  */
 export function resolvePromptRecordVideo(record: PromptRecord): ResolvedVideoMedia {
-  const media = record.media
-  const videoMedia = media.find((m) => m.type === 'video' && (m.sourceUrl || '').trim())
+  const media = record.media;
+  const videoMedia = media.find((m) => m.type === 'video' && (m.sourceUrl || '').trim());
 
-  const candidates: string[] = []
-  let videoUrl: string | null = null
-  let posterUrl: string | null = null
-  const isVideoFallback = false
-  let isPosterFallback = false
+  const candidates: string[] = [];
+  let videoUrl: string | null = null;
+  let posterUrl: string | null = null;
+  const isVideoFallback = false;
+  let isPosterFallback = false;
 
   if (videoMedia) {
-    const src = videoMedia.sourceUrl?.trim()
+    const src = videoMedia.sourceUrl?.trim();
     if (src) {
-      candidates.push(src)
-      videoUrl = proxyVideoUrl(src)
+      candidates.push(src);
+      videoUrl = proxyVideoUrl(src);
     }
   }
 
-  const imagePoster = media.find((m) => m.type === 'image' && (m.posterUrl || '').trim())
+  const imagePoster = media.find((m) => m.type === 'image' && (m.posterUrl || '').trim());
   if (imagePoster) {
-    const poster = imagePoster.posterUrl?.trim()
+    const poster = imagePoster.posterUrl?.trim();
     if (poster) {
-      candidates.push(poster)
-      posterUrl = poster
+      candidates.push(poster);
+      posterUrl = poster;
     }
   } else {
-    const videoPoster = media.find((m) => m.type === 'video' && (m.posterUrl || '').trim())
+    const videoPoster = media.find((m) => m.type === 'video' && (m.posterUrl || '').trim());
     if (videoPoster) {
-      const poster = videoPoster.posterUrl?.trim()
+      const poster = videoPoster.posterUrl?.trim();
       if (poster) {
-        candidates.push(poster)
-        posterUrl = poster
+        candidates.push(poster);
+        posterUrl = poster;
       }
     } else {
-      const anyPoster = media.find((m) => (m.posterUrl || '').trim())
+      const anyPoster = media.find((m) => (m.posterUrl || '').trim());
       if (anyPoster) {
-        const poster = anyPoster.posterUrl?.trim()
+        const poster = anyPoster.posterUrl?.trim();
         if (poster) {
-          candidates.push(poster)
-          posterUrl = poster
-          isPosterFallback = true
+          candidates.push(poster);
+          posterUrl = poster;
+          isPosterFallback = true;
         }
       }
     }
   }
 
-  return { videoUrl, posterUrl, isVideoFallback, isPosterFallback, candidates }
+  return { videoUrl, posterUrl, isVideoFallback, isPosterFallback, candidates };
 }
 
 /**
@@ -202,66 +202,66 @@ export function resolvePromptRecordVideo(record: PromptRecord): ResolvedVideoMed
  * the legacy `outputUrl`/`thumbnail` fields.
  */
 export function resolveSeedanceVideo(record: SeedancePrompt): ResolvedVideoMedia {
-  const candidates: string[] = []
-  let videoUrl: string | null = null
-  let posterUrl: string | null = null
-  let isVideoFallback = false
-  let isPosterFallback = false
+  const candidates: string[] = [];
+  let videoUrl: string | null = null;
+  let posterUrl: string | null = null;
+  let isVideoFallback = false;
+  let isPosterFallback = false;
 
   // Preferred: use normalized media array (matches Remix shape)
   if (record.media && record.media.length > 0) {
-    const videoMedia = record.media.find((m) => m.type === 'video')
+    const videoMedia = record.media.find((m) => m.type === 'video');
     if (videoMedia) {
       if (videoMedia.sourceUrl) {
-        candidates.push(videoMedia.sourceUrl)
-        videoUrl = videoMedia.sourceUrl
+        candidates.push(videoMedia.sourceUrl);
+        videoUrl = videoMedia.sourceUrl;
       }
       if (videoMedia.posterUrl) {
-        candidates.push(videoMedia.posterUrl)
-        posterUrl = videoMedia.posterUrl
+        candidates.push(videoMedia.posterUrl);
+        posterUrl = videoMedia.posterUrl;
       } else if (videoMedia.previewUrl) {
-        candidates.push(videoMedia.previewUrl)
-        posterUrl = videoMedia.previewUrl
-        isPosterFallback = true
+        candidates.push(videoMedia.previewUrl);
+        posterUrl = videoMedia.previewUrl;
+        isPosterFallback = true;
       }
     }
 
     if (!posterUrl) {
-      const imageMedia = record.media.find((m) => m.type === 'image' && (m.posterUrl || '').trim())
+      const imageMedia = record.media.find((m) => m.type === 'image' && (m.posterUrl || '').trim());
       if (imageMedia && imageMedia.posterUrl) {
-        candidates.push(imageMedia.posterUrl)
-        posterUrl = imageMedia.posterUrl
+        candidates.push(imageMedia.posterUrl);
+        posterUrl = imageMedia.posterUrl;
       }
     }
   }
 
   // Fallback: legacy outputUrl/thumbnail fields
   if (!videoUrl && record.outputUrl) {
-    candidates.push(record.outputUrl)
-    videoUrl = record.outputUrl
-    isVideoFallback = true
+    candidates.push(record.outputUrl);
+    videoUrl = record.outputUrl;
+    isVideoFallback = true;
   }
 
   if (!posterUrl && record.thumbnail) {
-    candidates.push(record.thumbnail)
-    posterUrl = record.thumbnail
-    isPosterFallback = true
+    candidates.push(record.thumbnail);
+    posterUrl = record.thumbnail;
+    isPosterFallback = true;
   } else if (!posterUrl && record.outputUrl && record.outputUrl.includes('/outputs/')) {
-    const derived = record.outputUrl.replace('/outputs/', '/thumbnails/').replace(/\.mp4$/, '.jpg')
-    candidates.push(derived)
-    posterUrl = derived
-    isPosterFallback = true
+    const derived = record.outputUrl.replace('/outputs/', '/thumbnails/').replace(/\.mp4$/, '.jpg');
+    candidates.push(derived);
+    posterUrl = derived;
+    isPosterFallback = true;
   }
 
-  return { videoUrl, posterUrl, isVideoFallback, isPosterFallback, candidates }
+  return { videoUrl, posterUrl, isVideoFallback, isPosterFallback, candidates };
 }
 
 /**
  * Check if a URL looks like a data URI (inline placeholder).
  */
 export function isDataUri(url: string | null | undefined): boolean {
-  if (!url) return false
-  return url.trim().toLowerCase().startsWith('data:')
+  if (!url) return false;
+  return url.trim().toLowerCase().startsWith('data:');
 }
 
 /**
@@ -269,7 +269,7 @@ export function isDataUri(url: string | null | undefined): boolean {
  * as a placeholder when no real media is available.
  */
 export function isPlaceholderDataUri(url: string | null | undefined): boolean {
-  if (!url || !isDataUri(url)) return false
+  if (!url || !isDataUri(url)) return false;
   // SVG placeholders typically contain "svg" in the data URI
-  return url.includes('svg')
+  return url.includes('svg');
 }

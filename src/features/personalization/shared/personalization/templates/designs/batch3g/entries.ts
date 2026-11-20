@@ -17,36 +17,36 @@
  *
  * Importing this module registers nothing.
  */
-import type { RemotionDesignComponent, RemotionDesignTemplate } from '../../types'
+import type { RemotionDesignComponent, RemotionDesignTemplate } from '../../types';
 import {
   RVE_3G_ASPECT_RATIOS,
   TRANSITION_COLORS,
   TRANSITION_MEDIA,
   TRANSITION_TEXT_SLOTS,
   rve3gSource,
-} from './batch3gShared'
-import { RveBlindsTransitionDesign } from './RveBlindsTransitionDesign'
-import { RveCardFlipDesign } from './RveCardFlipDesign'
-import { RveClockWipeDesign } from './RveClockWipeDesign'
-import { RveCrossDissolveDesign } from './RveCrossDissolveDesign'
-import { RveFadeThroughBlackDesign } from './RveFadeThroughBlackDesign'
-import { RveFilmBurnDesign } from './RveFilmBurnDesign'
-import { RveIrisTransitionDesign } from './RveIrisTransitionDesign'
-import { RveLetterboxRevealDesign } from './RveLetterboxRevealDesign'
-import { RveMorphTransitionDesign } from './RveMorphTransitionDesign'
-import { RveNoiseGrainDesign } from './RveNoiseGrainDesign'
-import { RvePixelTransitionDesign } from './RvePixelTransitionDesign'
-import { RvePushTransitionDesign } from './RvePushTransitionDesign'
-import { RveSpotlightRevealDesign } from './RveSpotlightRevealDesign'
-import { RveVignettePulseDesign } from './RveVignettePulseDesign'
-import { RveZoomThroughDesign } from './RveZoomThroughDesign'
+} from './batch3gShared';
+import { RveBlindsTransitionDesign } from './RveBlindsTransitionDesign';
+import { RveCardFlipDesign } from './RveCardFlipDesign';
+import { RveClockWipeDesign } from './RveClockWipeDesign';
+import { RveCrossDissolveDesign } from './RveCrossDissolveDesign';
+import { RveFadeThroughBlackDesign } from './RveFadeThroughBlackDesign';
+import { RveFilmBurnDesign } from './RveFilmBurnDesign';
+import { RveIrisTransitionDesign } from './RveIrisTransitionDesign';
+import { RveLetterboxRevealDesign } from './RveLetterboxRevealDesign';
+import { RveMorphTransitionDesign } from './RveMorphTransitionDesign';
+import { RveNoiseGrainDesign } from './RveNoiseGrainDesign';
+import { RvePixelTransitionDesign } from './RvePixelTransitionDesign';
+import { RvePushTransitionDesign } from './RvePushTransitionDesign';
+import { RveSpotlightRevealDesign } from './RveSpotlightRevealDesign';
+import { RveVignettePulseDesign } from './RveVignettePulseDesign';
+import { RveZoomThroughDesign } from './RveZoomThroughDesign';
 
 /** Shared capability note for the intro-reveal transitions. */
 const TRANSITION_NOTE =
   'Intro reveal: plays over the start of your video and ends on the frame the transition completes. ' +
   'The "after" side is transparent, so the transition uncovers your video. Timings are the upstream ' +
   'fps-relative ones; the end frame assumes the default 30 fps. The logo is optional — without one a ' +
-  'brand-gradient monogram tile is shown. No filters, blend modes, external assets or SVG ids.'
+  'brand-gradient monogram tile is shown. No filters, blend modes, external assets or SVG ids.';
 
 function transition(options: {
   slug: string
@@ -84,7 +84,7 @@ function transition(options: {
       notes: `${TRANSITION_NOTE} ${options.notes}`,
     },
     previewCompatible: true,
-  }
+  };
 }
 
 export const rveBlindsTransitionTemplate = transition({
@@ -96,7 +96,7 @@ export const rveBlindsTransitionTemplate = transition({
   easing: 'interpolate rotateX 0 -> 90 per blind, staggered 3 frames (fps * 0.5 -> fps * 1.5)',
   notes:
     'Uses CSS 3D transforms (perspective + rotateX + backface-visibility) on eight slices of the card.',
-})
+});
 
 export const rveClockWipeTemplate = transition({
   slug: 'clock-wipe',
@@ -106,7 +106,7 @@ export const rveClockWipeTemplate = transition({
   endFrame: 75,
   easing: 'linear angle 0 -> 360 over fps * 2.5',
   notes: 'The sweep is a CSS clip-path polygon.',
-})
+});
 
 export const rveCrossDissolveTemplate = transition({
   slug: 'cross-dissolve',
@@ -116,7 +116,7 @@ export const rveCrossDissolveTemplate = transition({
   endFrame: 75,
   easing: 'linear opacity over fps * 2.5',
   notes: 'Opacity only.',
-})
+});
 
 export const rveFadeThroughBlackTemplate = transition({
   slug: 'fade-through-black',
@@ -126,7 +126,7 @@ export const rveFadeThroughBlackTemplate = transition({
   endFrame: 90,
   easing: 'interpolate opacity, dark overlay peaking at the midpoint of fps * 3',
   notes: 'The "black" is a near-black shade of your brand colour.',
-})
+});
 
 export const rveFilmBurnTemplate = transition({
   slug: 'film-burn',
@@ -138,7 +138,7 @@ export const rveFilmBurnTemplate = transition({
   notes:
     'The light leaks are layered radial gradients tinted with your brand colours; the card is cut behind ' +
     'the flash peak.',
-})
+});
 
 export const rveIrisTransitionTemplate = transition({
   slug: 'iris-transition',
@@ -148,7 +148,7 @@ export const rveIrisTransitionTemplate = transition({
   endFrame: 75,
   easing: 'interpolate radius 75% -> 0% -> 75% over fps * 2.5',
   notes: 'CSS clip-path circle plus a radial-gradient mask outside the iris.',
-})
+});
 
 export const rveLetterboxRevealTemplate = transition({
   slug: 'letterbox-reveal',
@@ -160,7 +160,7 @@ export const rveLetterboxRevealTemplate = transition({
   notes:
     'The upstream stops the bars at a 12% letterbox; here they open fully so the layer can end without a ' +
     'hard cut. The name is shown without the logo, in wide cinematic tracking.',
-})
+});
 
 export const rveMorphTransitionTemplate = transition({
   slug: 'morph-transition',
@@ -170,7 +170,7 @@ export const rveMorphTransitionTemplate = transition({
   endFrame: 48,
   easing: 'interpolate scale 1 -> 0.5, opacity gone at 60% of fps * 2.5',
   notes: 'Scale and opacity only.',
-})
+});
 
 export const rvePixelTransitionTemplate = transition({
   slug: 'pixel-transition',
@@ -182,7 +182,7 @@ export const rvePixelTransitionTemplate = transition({
   notes:
     'Tiles are plain divs sized to the composition (about 1,300 at 1080p), seeded with remotion random() so ' +
     'every render is identical.',
-})
+});
 
 export const rvePushTransitionTemplate = transition({
   slug: 'push-transition',
@@ -192,7 +192,7 @@ export const rvePushTransitionTemplate = transition({
   endFrame: 52,
   easing: 'spring(damping: 15, stiffness: 80, mass: 0.8) from fps * 0.8',
   notes: 'translateX only.',
-})
+});
 
 export const rveZoomThroughTemplate = transition({
   slug: 'zoom-through',
@@ -202,7 +202,7 @@ export const rveZoomThroughTemplate = transition({
   endFrame: 40,
   easing: 'interpolate scale 1 -> 3 and fade over fps * 1.25',
   notes: 'Scale and opacity only.',
-})
+});
 
 export const rveCardFlipTemplate = transition({
   slug: 'card-flip',
@@ -214,7 +214,7 @@ export const rveCardFlipTemplate = transition({
   notes:
     'Uses CSS 3D transforms (perspective + rotateY + backface-visibility). The upstream spins a small card a ' +
     'full turn; here the card fills the frame and turns half-way so its transparent back faces the viewer.',
-})
+});
 
 /* -------------------------------------------------------------------------- */
 /* Overlays                                                                    */
@@ -243,7 +243,7 @@ export const rveNoiseGrainTemplate: RemotionDesignTemplate = {
       'keep the SVG at about 14,000 rects per frame. No filters, blend modes, external assets or SVG ids.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveVignettePulseTemplate: RemotionDesignTemplate = {
   id: 'rve-vignette-pulse',
@@ -267,7 +267,7 @@ export const rveVignettePulseTemplate: RemotionDesignTemplate = {
       'pulses between 0.3 and 0.8. No filters, blend modes, external assets or SVG ids.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveSpotlightRevealTemplate: RemotionDesignTemplate = {
   id: 'rve-spotlight-reveal',
@@ -304,7 +304,7 @@ export const rveSpotlightRevealTemplate: RemotionDesignTemplate = {
       'external assets or SVG ids.',
   },
   previewCompatible: true,
-}
+};
 
 /** Batch 3g designs, in registration order. */
 export const BATCH_3G_TEMPLATES: RemotionDesignTemplate[] = [
@@ -323,7 +323,7 @@ export const BATCH_3G_TEMPLATES: RemotionDesignTemplate[] = [
   rveNoiseGrainTemplate,
   rveVignettePulseTemplate,
   rveSpotlightRevealTemplate,
-]
+];
 
 /**
  * Batch 3g designs that hardcode SVG ids (one instance per composition).
@@ -331,4 +331,4 @@ export const BATCH_3G_TEMPLATES: RemotionDesignTemplate[] = [
  * None: the only SVG in the batch (the noise grain) declares no id, and the
  * masks and wipes are CSS clip-paths / gradients, not SVG <mask>/<clipPath>.
  */
-export const BATCH_3G_FIXED_SVG_IDS: Record<string, string[]> = {}
+export const BATCH_3G_FIXED_SVG_IDS: Record<string, string[]> = {};

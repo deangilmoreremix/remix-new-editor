@@ -1,23 +1,23 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { ImageIcon, Type } from 'lucide-react'
-import type { ThumbnailState } from '../types'
+import React from 'react';
+import { ImageIcon, Type } from 'lucide-react';
+import type { ThumbnailState } from '../types';
 
 const ASPECT_COLORS: Record<string, string> = {
   '16:9': '#d9ff00',
   '1:1': '#c4e600',
   '4:5': '#f97316',
   '9:16': '#ff0033',
-}
+};
 
 export interface ThumbnailPreviewCardProps {
   thumbnail: ThumbnailState
 }
 
 export default function ThumbnailPreviewCard({ thumbnail }: ThumbnailPreviewCardProps) {
-  const aspectColor = ASPECT_COLORS[thumbnail.aspectRatio || ''] || '#d9ff00'
-  const hasOverlay = !!(thumbnail.templateId || thumbnail.values)
+  const aspectColor = ASPECT_COLORS[thumbnail.aspectRatio || ''] || '#d9ff00';
+  const hasOverlay = !!(thumbnail.templateId || thumbnail.values);
 
   return (
     <div
@@ -87,5 +87,5 @@ export default function ThumbnailPreviewCard({ thumbnail }: ThumbnailPreviewCard
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -173,12 +173,12 @@ export function assertStudioPersonalizeOptions(options: StudioPersonalizeOptions
 
 /** Deterministic 32-bit FNV-1a fingerprint, as 8 hex chars. Not a security hash. */
 export function fingerprint(value: string): string {
-  let hash = 0x811c9dc5
+  let hash = 0x811c9dc5;
   for (let i = 0; i < value.length; i++) {
-    hash ^= value.charCodeAt(i)
-    hash = Math.imul(hash, 0x01000193)
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
   }
-  return (hash >>> 0).toString(16).padStart(8, '0')
+  return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
 /**
@@ -195,11 +195,11 @@ export function fingerprint(value: string): string {
 export function buildStudioPersonalizeSource(
   options: StudioPersonalizeOptions,
 ): PersonalizationSource {
-  assertStudioPersonalizeOptions(options)
+  assertStudioPersonalizeOptions(options);
 
-  const text = options.prompt?.text ?? ''
-  const studioKey = options.studioProjectId?.trim()
-  const mediaUrl = options.media.url?.trim() || ''
+  const text = options.prompt?.text ?? '';
+  const studioKey = options.studioProjectId?.trim();
+  const mediaUrl = options.media.url?.trim() || '';
   // A studio key is usually built from a file name or URL basename, so two
   // different uploads can share one. The full media URL's fingerprint keeps
   // their saved projects apart; the same upload always maps to the same id.
@@ -207,7 +207,7 @@ export function buildStudioPersonalizeSource(
     ? mediaUrl
       ? `${studioKey}#${fingerprint(mediaUrl)}`
       : studioKey
-    : mediaUrl || 'adhoc'
+    : mediaUrl || 'adhoc';
 
   return {
     sourceType: 'studio-project',
@@ -238,7 +238,7 @@ export function buildStudioPersonalizeSource(
       returnTo: options.returnTo ?? null,
       ...(options.returnPayload ? { returnPayload: options.returnPayload } : {}),
     },
-  }
+  };
 }
 
 /** Used when the access provider is unavailable: allow the open to proceed. */
@@ -259,26 +259,26 @@ export function useStudioPersonalize(): {
   isOpen: boolean
   result: GenerationResult | null
 } {
-  const { openPersonalize, isOpen, result } = useDemoPersonalize()
+  const { openPersonalize, isOpen, result } = useDemoPersonalize();
 
   // `useSmartVideoAccess()` already degrades to a permissive no-op when its
   // provider is missing, but the context is read directly here so the
   // fallback is explicit and cannot be lost if that provider changes.
-  const accessContext = useContext(SmartVideoAccessContext)
-  const requireEntitlement = accessContext?.requireEntitlement ?? ALLOW_ENTITLEMENT
+  const accessContext = useContext(SmartVideoAccessContext);
+  const requireEntitlement = accessContext?.requireEntitlement ?? ALLOW_ENTITLEMENT;
 
   const open = useCallback(
     (options: StudioPersonalizeOptions) => {
       // Fail loudly in development, and never open the modal with a source the
       // provider would silently reject.
       try {
-        assertStudioPersonalizeOptions(options)
+        assertStudioPersonalizeOptions(options);
       } catch (error) {
-        console.error('[studioEntry] refusing to open personalization:', error)
-        return Promise.resolve(undefined)
+        console.error('[studioEntry] refusing to open personalization:', error);
+        return Promise.resolve(undefined);
       }
 
-      const source = buildStudioPersonalizeSource(options)
+      const source = buildStudioPersonalizeSource(options);
 
       const run = () => {
         openPersonalize({
@@ -290,19 +290,19 @@ export function useStudioPersonalize(): {
           onComplete: options.onComplete,
           returnTo: options.returnTo,
           returnPayload: options.returnPayload,
-        })
-      }
+        });
+      };
 
       // Same gate every studio uses for its own generate action
       // (src/apps/cinema/pages/CinemaGenerate.tsx, src/apps/thumbnail-studio,
       // app/(brand-studio)/photo-studio, …). The modal's own 401/403 handling
       // stays unchanged — this only raises the UpgradeModal up-front.
-      return requireEntitlement(ENTITLEMENTS.SMARTVIDEO_GO, run)
+      return requireEntitlement(ENTITLEMENTS.SMARTVIDEO_GO, run);
     },
     [openPersonalize, requireEntitlement],
-  )
+  );
 
-  return { open, isOpen, result }
+  return { open, isOpen, result };
 }
 
 /**
@@ -323,8 +323,8 @@ export function PersonalizeStep({
   style?: CSSProperties
   disabled?: boolean
 }) {
-  const { open } = useStudioPersonalize()
-  if (!options?.media?.url) return null
+  const { open } = useStudioPersonalize();
+  if (!options?.media?.url) return null;
 
   return createElement(
     'button',
@@ -332,12 +332,12 @@ export function PersonalizeStep({
       type: 'button',
       disabled,
       onClick: (event: MouseEvent<HTMLButtonElement>) => {
-        event.stopPropagation()
-        void open({ ...options, trigger: event.currentTarget })
+        event.stopPropagation();
+        void open({ ...options, trigger: event.currentTarget });
       },
       className,
       style,
     },
     children ?? 'Personalize',
-  )
+  );
 }

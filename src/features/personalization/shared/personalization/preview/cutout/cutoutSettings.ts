@@ -35,15 +35,15 @@ export interface CutoutSettings {
   edge: CutoutEdge
 }
 
-export const CUTOUT_SCALE_MIN = 0.2
-export const CUTOUT_SCALE_MAX = 2.5
+export const CUTOUT_SCALE_MIN = 0.2;
+export const CUTOUT_SCALE_MAX = 2.5;
 
 export const DEFAULT_CUTOUT: CutoutSettings = {
   enabled: false,
   background: { kind: 'color', color: '#101827' },
   presenter: { x: 0.5, y: 0.5, scale: 1, rotation: 0 },
   edge: { feather: 0.3, shift: 0 },
-}
+};
 
 export interface PresenterPreset {
   id: string
@@ -57,40 +57,40 @@ export const PRESENTER_PRESETS: PresenterPreset[] = [
   { id: 'left', label: 'Left', presenter: { x: 0.28, y: 0.55, scale: 0.85, rotation: 0 } },
   { id: 'right', label: 'Right', presenter: { x: 0.72, y: 0.55, scale: 0.85, rotation: 0 } },
   { id: 'corner', label: 'Picture-in-picture', presenter: { x: 0.8, y: 0.7, scale: 0.42, rotation: 0 } },
-]
+];
 
-const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const num = (v: unknown, fallback: number, min: number, max: number): number =>
-  typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback
-const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null)
+  typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback;
+const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null);
 
 function normalizeBackground(raw: unknown): CutoutBackground {
-  if (!isRecord(raw)) return { ...DEFAULT_CUTOUT.background }
+  if (!isRecord(raw)) return { ...DEFAULT_CUTOUT.background };
   switch (raw.kind) {
     case 'none':
-      return { kind: 'none' }
+      return { kind: 'none' };
     case 'color':
-      return { kind: 'color', color: str(raw.color) ?? '#101827' }
+      return { kind: 'color', color: str(raw.color) ?? '#101827' };
     case 'image': {
-      const url = str(raw.url)
-      return url ? { kind: 'image', url } : { ...DEFAULT_CUTOUT.background }
+      const url = str(raw.url);
+      return url ? { kind: 'image', url } : { ...DEFAULT_CUTOUT.background };
     }
     case 'video': {
-      const url = str(raw.url)
-      return url ? { kind: 'video', url } : { ...DEFAULT_CUTOUT.background }
+      const url = str(raw.url);
+      return url ? { kind: 'video', url } : { ...DEFAULT_CUTOUT.background };
     }
     case 'blur':
-      return { kind: 'blur', amount: num(raw.amount, 24, 4, 60) }
+      return { kind: 'blur', amount: num(raw.amount, 24, 4, 60) };
     default:
-      return { ...DEFAULT_CUTOUT.background }
+      return { ...DEFAULT_CUTOUT.background };
   }
 }
 
 /** Reads saved settings defensively: anything missing or invalid falls back to a safe value. Returns undefined when absent. */
 export function normalizeCutout(raw: unknown): CutoutSettings | undefined {
-  if (!isRecord(raw)) return undefined
-  const presenter = isRecord(raw.presenter) ? raw.presenter : {}
-  const edge = isRecord(raw.edge) ? raw.edge : {}
+  if (!isRecord(raw)) return undefined;
+  const presenter = isRecord(raw.presenter) ? raw.presenter : {};
+  const edge = isRecord(raw.edge) ? raw.edge : {};
   return {
     enabled: raw.enabled === true,
     background: normalizeBackground(raw.background),
@@ -104,7 +104,7 @@ export function normalizeCutout(raw: unknown): CutoutSettings | undefined {
       feather: num(edge.feather, DEFAULT_CUTOUT.edge.feather, 0, 1),
       shift: num(edge.shift, 0, -1, 1),
     },
-  }
+  };
 }
 
 /**
@@ -112,10 +112,10 @@ export function normalizeCutout(raw: unknown): CutoutSettings | undefined {
  * Saving swaps them for a plain color so a reopened project is never left pointing at a dead URL.
  */
 export function cutoutForSave(cutout: CutoutSettings | undefined): CutoutSettings | undefined {
-  if (!cutout) return cutout
-  const bg = cutout.background
+  if (!cutout) return cutout;
+  const bg = cutout.background;
   if ((bg.kind === 'image' || bg.kind === 'video') && /^(blob:|data:)/i.test(bg.url)) {
-    return { ...cutout, background: { kind: 'color', color: DEFAULT_CUTOUT.background.kind === 'color' ? DEFAULT_CUTOUT.background.color : '#101827' } }
+    return { ...cutout, background: { kind: 'color', color: DEFAULT_CUTOUT.background.kind === 'color' ? DEFAULT_CUTOUT.background.color : '#101827' } };
   }
-  return cutout
+  return cutout;
 }

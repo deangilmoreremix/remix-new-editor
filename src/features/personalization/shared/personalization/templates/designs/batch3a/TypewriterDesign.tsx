@@ -13,18 +13,18 @@
  * instance shrinks it when a long name would crowd the illustration.
  */
 
-import React from 'react'
-import { Typewriter } from '../../_upstream/typewriter/Typewriter'
-import { useDesignFonts } from '../fonts'
-import { DesignStage, type DesignAdapterProps } from '../shared'
-import { ScopedUpstream, bottomMessageFitCss, brandPalette, deepShade, messageAndSub, mixHex, readableOn, useScopeId } from './batch3aShared'
+import React from 'react';
+import { Typewriter } from '../../_upstream/typewriter/Typewriter';
+import { useDesignFonts } from '../fonts';
+import { DesignStage, type DesignAdapterProps } from '../shared';
+import { ScopedUpstream, bottomMessageFitCss, brandPalette, deepShade, messageAndSub, mixHex, readableOn, useScopeId } from './batch3aShared';
 
 export const TypewriterDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
-  const scopeId = useScopeId('typewriter')
-  const palette = brandPalette(props)
-  const { message, sub } = messageAndSub(props)
-  const background = deepShade(palette.primary, 0.82)
+  useDesignFonts();
+  const scopeId = useScopeId('typewriter');
+  const palette = brandPalette(props);
+  const { message, sub } = messageAndSub(props);
+  const background = deepShade(palette.primary, 0.82);
 
   return (
     <DesignStage designId="typewriter" props={props}>
@@ -43,7 +43,7 @@ export const TypewriterDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </ScopedUpstream>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default TypewriterDesign
+export default TypewriterDesign;

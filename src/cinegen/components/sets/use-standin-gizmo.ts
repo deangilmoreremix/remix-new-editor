@@ -18,7 +18,8 @@ export function useStandInGizmo({ standIn, floor, mode, onUpdate, ...options }: 
   const floorRotation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), up);
   const orientation = floorRotation.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), standIn?.facing ?? 0));
   const origin = standIn ? standInPosition(standIn, floor) : new THREE.Vector3();
-  usePlacementGizmo({ ...options, enabled: options.enabled && Boolean(standIn),
+  usePlacementGizmo({
+ ...options, enabled: options.enabled && Boolean(standIn),
     name: `Stand-in ${standIn?.id ?? ''}`, origin, orientation,
     mode: mode === 'move' ? 'translate' : mode === 'rotate' ? 'rotate' : 'scale',
     space: 'local', axes: { x: mode === 'move', y: mode !== 'move', z: mode === 'move', xz: mode === 'move' },

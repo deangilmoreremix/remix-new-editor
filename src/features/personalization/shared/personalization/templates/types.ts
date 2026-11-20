@@ -14,8 +14,8 @@
  * current preview settings.
  */
 
-import type { ComponentType } from 'react'
-import type { PreviewAnimationId, PreviewAspectRatio } from '../preview/types'
+import type { ComponentType } from 'react';
+import type { PreviewAnimationId, PreviewAspectRatio } from '../preview/types';
 
 /** Broad family a design belongs to; used to group the chips in the UI. */
 export type RemotionDesignCategory =

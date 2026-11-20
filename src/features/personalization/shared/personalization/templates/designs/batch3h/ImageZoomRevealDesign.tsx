@@ -11,10 +11,10 @@
  * headline (falling back to the offer, then the business name).
  */
 
-import React from 'react'
-import { ImageZoomReveal } from '../../_upstream/rve-image-zoom-reveal/ImageZoomReveal'
-import { darkenColor, slotText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { ImageZoomReveal } from '../../_upstream/rve-image-zoom-reveal/ImageZoomReveal';
+import { darkenColor, slotText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   BrandMediaFill,
   brandGradients,
@@ -23,23 +23,23 @@ import {
   canvasScale,
   fitLine,
   sceneBackground,
-} from './media'
+} from './media';
 
 export const RveImageZoomRevealDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const f = 2.4 * k
-  const labelPx = Math.round(28.8 * f)
+  const k = canvasScale(props);
+  const f = 2.4 * k;
+  const labelPx = Math.round(28.8 * f);
 
-  const image = brandImages(props)[0] ?? null
-  const gradients = brandGradients(props)
-  const { primary, text: textColor } = brandPalette(props)
+  const image = brandImages(props)[0] ?? null;
+  const gradients = brandGradients(props);
+  const { primary, text: textColor } = brandPalette(props);
 
   const label = fitLine(
     slotText(props, 'headline', ['offer', 'businessName']),
     props.width * 0.8 * 0.9,
     labelPx,
     40,
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-image-zoom-reveal" props={props}>
@@ -67,7 +67,7 @@ export const RveImageZoomRevealDesign: React.FC<DesignAdapterProps> = (props) =>
         }
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveImageZoomRevealDesign
+export default RveImageZoomRevealDesign;

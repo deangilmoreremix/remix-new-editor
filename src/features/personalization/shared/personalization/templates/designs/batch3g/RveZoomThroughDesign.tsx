@@ -10,14 +10,14 @@
  * scene is empty and transparent.
  */
 
-import React from 'react'
-import { ZoomThrough } from '../../_upstream/rve-zoom-through/ZoomThrough'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared'
+import React from 'react';
+import { ZoomThrough } from '../../_upstream/rve-zoom-through/ZoomThrough';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared';
 
 export const RveZoomThroughDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-zoom-through" props={props}>
       <ZoomThrough
@@ -26,7 +26,7 @@ export const RveZoomThroughDesign: React.FC<RemotionDesignComponentProps> = (pro
         sceneB={TRANSPARENT_SCENE}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveZoomThroughDesign
+export default RveZoomThroughDesign;

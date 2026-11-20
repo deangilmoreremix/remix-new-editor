@@ -14,7 +14,7 @@ export const colors = {
   border:       'var(--border-color)',         // rgba(255,255,255,0.05)
   glassBg:      'var(--glass-bg)',             // rgba(255,255,255,0.03)
   glassBorder:  'var(--glass-border)',         // rgba(255,255,255,0.08)
-} as const
+} as const;
 
 // ── Semantic color helpers ────────────────────────────────────────────────────
 export const semantic = {
@@ -30,7 +30,7 @@ export const semantic = {
   errorBorder:   'rgba(239,68,68,0.2)',
   success:       '#22c55e',
   successBg:     'rgba(74,222,128,0.1)',
-} as const
+} as const;
 
 // ── Reusable inline style objects ─────────────────────────────────────────────
 export const panels = {
@@ -50,7 +50,7 @@ export const panels = {
     background: 'rgba(0,0,0,0.2)',
     backdropFilter: 'blur(12px)',
   },
-} as const
+} as const;
 
 // ── Button styles ─────────────────────────────────────────────────────────────
 export const buttons = {
@@ -87,7 +87,7 @@ export const buttons = {
     color: 'white',
     border: '1px solid var(--border-color)',
   },
-} as const
+} as const;
 
 // ── Input styles ──────────────────────────────────────────────────────────────
 export const inputs = {
@@ -96,7 +96,7 @@ export const inputs = {
     border: '1px solid var(--border-color)',
     color: 'white',
   },
-} as const
+} as const;
 
 // ── Tab switcher helper ───────────────────────────────────────────────────────
 // Returns style for a tab button based on whether it's active
@@ -104,23 +104,23 @@ export function tabStyle(isActive: boolean) {
   return {
     background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
     color: isActive ? 'white' : 'rgba(255,255,255,0.4)',
-  }
+  };
 }
 
 // ── Option picker helper ──────────────────────────────────────────────────────
 // Returns style for a selectable option (style/model/ratio picker)
 export function optionStyle(isSelected: boolean) {
-  return isSelected ? buttons.activePill : buttons.inactivePill
+  return isSelected ? buttons.activePill : buttons.inactivePill;
 }
 
 // ── Sub-header icon badge ─────────────────────────────────────────────────────
 export const iconBadge = {
   background: 'var(--color-primary)',
   color: 'black',
-} as const
+} as const;
 
 // ── App wrapper ───────────────────────────────────────────────────────────────
 export const appWrapper = {
   background: 'var(--bg-app)',
   color: 'white',
-} as const
+} as const;

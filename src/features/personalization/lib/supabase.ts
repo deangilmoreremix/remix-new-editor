@@ -4,4 +4,4 @@
  * `primeSupabaseIdentity()` awaits the Clerk → Supabase token exchange so the
  * next storage/RLS request carries the verified identity.
  */
-export { supabase, primeSupabaseIdentity } from '../../../lib/supabase.js'
+export { supabase, primeSupabaseIdentity } from '../../../lib/supabase.js';

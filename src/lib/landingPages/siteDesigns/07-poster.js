@@ -19,12 +19,14 @@ export default {
     strip: { kind: 'logos', title: 'Trusted by growth-focused agencies & brands', items: [it('NorthPeak'), it('Brightside'), it('ScaleHouse'), it('Momentum'), it('LaunchLab')] },
     cards: [
       { type: 'heading', w: 4, title: 'Everything You Need to Generate Leads with Video', text: 'A full lead generation system — from contact import to personalized video creation to a booked pipeline.' },
-      { type: 'features', w: 8, title: '', items: [
+      {
+ type: 'features', w: 8, title: '', items: [
         it('Personalized Videos at Scale', { icon: 'video', text: 'Create 1:1 videos for hundreds or thousands of contacts.' }),
         it('Higher Response Rates', { icon: 'bolt', text: 'Cut through the noise with a personal, human touch.' }),
         it('More Booked Meetings', { icon: 'target', text: 'Turn views into conversations, demos, and sales calls.' }),
         it('Agency-Ready & Done-for-You', { icon: 'layers', text: 'White-labeled, campaign support, and creative execution from our team.' }),
-      ] },
+      ] 
+},
       { type: 'heading', w: 4, title: 'Agency Case Studies', text: 'Real results from teams using personalized video to build pipeline.' },
       { type: 'stats', w: 3, title: 'NorthPeak', items: [it('More Replies', { value: '+317%' }), it('Booked Meetings', { value: '+4.2x' })] },
       { type: 'stats', w: 3, title: 'Brightside', items: [it('Lead Conversion', { value: '+268%' }), it('Pipeline Value', { value: '+6.1x' })] },

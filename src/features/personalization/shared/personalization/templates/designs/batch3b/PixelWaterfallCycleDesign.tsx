@@ -15,14 +15,14 @@
  * the upstream's fixed WATER_RAMP (a pixel-kit constant, not a prop).
  */
 
-import React from 'react'
-import { PixelWaterfallCycle } from '../../_upstream/pixel-waterfall-cycle/PixelWaterfallCycle'
-import { DesignStage, pickColor, type DesignAdapterProps } from '../shared'
-import { ensureDark, ensureLight, hex6, mix } from './shared'
+import React from 'react';
+import { PixelWaterfallCycle } from '../../_upstream/pixel-waterfall-cycle/PixelWaterfallCycle';
+import { DesignStage, pickColor, type DesignAdapterProps } from '../shared';
+import { ensureDark, ensureLight, hex6, mix } from './shared';
 
 export const PixelWaterfallCycleDesign: React.FC<DesignAdapterProps> = (props) => {
-  const primary = hex6(props.colors?.primary, '#29d3f2')
-  const accent = hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#28c98b')
+  const primary = hex6(props.colors?.primary, '#29d3f2');
+  const accent = hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#28c98b');
 
   return (
     <DesignStage designId="pixel-waterfall-cycle" props={props}>
@@ -34,7 +34,7 @@ export const PixelWaterfallCycleDesign: React.FC<DesignAdapterProps> = (props) =
         showMist
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default PixelWaterfallCycleDesign
+export default PixelWaterfallCycleDesign;

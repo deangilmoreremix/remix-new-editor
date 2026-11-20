@@ -20,12 +20,12 @@
  *  - once the customer edits a style it is theirs (`auto` is cleared) and is
  *    never replaced automatically
  */
-import type { OverlayMediaRole } from './mediaRoles'
+import type { OverlayMediaRole } from './mediaRoles';
 
 /** The explicit purpose of an assigned business image (never inferred from a filename or discovery order). */
 export type ImageRole = 'product' | 'service' | 'portrait' | 'property' | 'portfolio' | 'logo' | 'general' | 'food' | 'real-estate'
 
-export const IMAGE_ROLES = ['product', 'service', 'portrait', 'property', 'portfolio', 'logo', 'general', 'food', 'real-estate'] as const
+export const IMAGE_ROLES = ['product', 'service', 'portrait', 'property', 'portfolio', 'logo', 'general', 'food', 'real-estate'] as const;
 
 export type ImagePresetId =
   | 'rounded-floating-card'
@@ -91,9 +91,9 @@ export interface ImageStyle {
   auto?: boolean
 }
 
-export const EXIT_FRAMES = 10
+export const EXIT_FRAMES = 10;
 
-export const REVEAL_FRAMES = 24
+export const REVEAL_FRAMES = 24;
 
 /**
  * Cinematic reveal: a left-to-right wipe with a slow settle from 106 % to 100 % scale, driven
@@ -101,17 +101,17 @@ export const REVEAL_FRAMES = 24
  * `progress` 0 → hidden, 1 → fully shown.
  */
 export function revealFactors(style: Pick<ImageStyle, 'reveal'>, frame: number, startFrame: number): { progress: number; scale: number } {
-  if (style.reveal !== 'wipe' && style.reveal !== 'diagonal') return { progress: 1, scale: 1 }
-  const t = clamp((frame - startFrame) / REVEAL_FRAMES, 0, 1)
-  const eased = 1 - Math.pow(1 - t, 3)
-  return { progress: eased, scale: 1.06 - 0.06 * eased }
+  if (style.reveal !== 'wipe' && style.reveal !== 'diagonal') return { progress: 1, scale: 1 };
+  const t = clamp((frame - startFrame) / REVEAL_FRAMES, 0, 1);
+  const eased = 1 - Math.pow(1 - t, 3);
+  return { progress: eased, scale: 1.06 - 0.06 * eased };
 }
 
 /** Opacity and scale multipliers for the exit animation at `frame` (1/1 when not exiting). */
 export function exitFactors(style: Pick<ImageStyle, 'exit'>, frame: number, endFrame: number | undefined): { opacity: number; scale: number } {
-  if (!style.exit || style.exit === 'none' || endFrame === undefined) return { opacity: 1, scale: 1 }
-  const p = clamp((frame - (endFrame - EXIT_FRAMES)) / EXIT_FRAMES, 0, 1)
-  return style.exit === 'fade' ? { opacity: 1 - p, scale: 1 } : { opacity: 1 - p, scale: 1 - 0.15 * p }
+  if (!style.exit || style.exit === 'none' || endFrame === undefined) return { opacity: 1, scale: 1 };
+  const p = clamp((frame - (endFrame - EXIT_FRAMES)) / EXIT_FRAMES, 0, 1);
+  return style.exit === 'fade' ? { opacity: 1 - p, scale: 1 } : { opacity: 1 - p, scale: 1 - 0.15 * p };
 }
 
 /** What is known about an image (measured in the browser or carried by its asset). */
@@ -138,33 +138,33 @@ export interface ImageHints {
 export const ROUNDED_RECT_DEFAULT: ImageStyle = Object.freeze({
   shape: 'rounded-rect', radius: 0.12, radiusComp: 0.028, fit: 'contain', cropX: 0.5, cropY: 0.5,
   borderWidth: 0.003, borderColor: '#ffffff', shadow: 'subtle', fill: null, auto: true,
-}) as ImageStyle
+}) as ImageStyle;
 
 export const HEADSHOT_DEFAULT: ImageStyle = Object.freeze({
   shape: 'circle', radius: 0.5, fit: 'cover', cropX: 0.5, cropY: 0.35,
   borderWidth: 0.004, borderColor: '#ffffff', shadow: 'subtle', fill: null, auto: true,
-}) as ImageStyle
+}) as ImageStyle;
 
 /** The unstyled look: original proportions, no clip, no frame, no shadow. */
 export const ORIGINAL_STYLE: ImageStyle = Object.freeze({
   shape: 'square', radius: 0, fit: 'contain', cropX: 0.5, cropY: 0.5,
   borderWidth: 0, borderColor: 'brand-primary', shadow: 'none', fill: null, auto: true,
-}) as ImageStyle
+}) as ImageStyle;
 
-const SHAPES: ImageShape[] = ['rounded-rect', 'circle', 'pill', 'square', 'custom']
-const SHADOWS: ImageShadow[] = ['none', 'subtle', 'medium']
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
-const num = (v: unknown, fallback: number) => (typeof v === 'number' && Number.isFinite(v) ? v : fallback)
+const SHAPES: ImageShape[] = ['rounded-rect', 'circle', 'pill', 'square', 'custom'];
+const SHADOWS: ImageShadow[] = ['none', 'subtle', 'medium'];
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+const num = (v: unknown, fallback: number) => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
 
 /** Roles whose images are styled by this module. Everything else keeps its own treatment. */
 export function isStylableRole(role: OverlayMediaRole): boolean {
-  return role === 'product-image' || role === 'service-image' || role === 'logo'
+  return role === 'product-image' || role === 'service-image' || role === 'logo';
 }
 
 /** Validates/clamps a stored or customer-edited style. Unknown input falls back to `base`. */
 export function normalizeImageStyle(raw: unknown, base: ImageStyle = ROUNDED_RECT_DEFAULT): ImageStyle | undefined {
-  if (!raw || typeof raw !== 'object') return undefined
-  const r = raw as Record<string, unknown>
+  if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as Record<string, unknown>;
   const style: ImageStyle = {
     shape: SHAPES.includes(r.shape as ImageShape) ? (r.shape as ImageShape) : base.shape,
     radius: clamp(num(r.radius, base.radius), 0, 0.5),
@@ -176,26 +176,26 @@ export function normalizeImageStyle(raw: unknown, base: ImageStyle = ROUNDED_REC
     borderColor: typeof r.borderColor === 'string' && r.borderColor.trim() ? r.borderColor.trim() : base.borderColor,
     shadow: SHADOWS.includes(r.shadow as ImageShadow) ? (r.shadow as ImageShadow) : base.shadow,
     fill: typeof r.fill === 'string' && /^#[0-9a-f]{3,8}$/i.test(r.fill.trim()) ? r.fill.trim() : null,
-  }
-  if (style.radiusComp === undefined) delete style.radiusComp
+  };
+  if (style.radiusComp === undefined) delete style.radiusComp;
   if (Array.isArray(r.customRadii) && r.customRadii.length === 4) {
-    style.customRadii = r.customRadii.map((v) => clamp(num(v, 0), 0, 0.5)) as [number, number, number, number]
+    style.customRadii = r.customRadii.map((v) => clamp(num(v, 0), 0, 0.5)) as [number, number, number, number];
   }
-  const PRESETS: ImagePresetId[] = ['rounded-floating-card', 'circular-portrait', 'product-spotlight', 'cinematic-reveal', 'multi-image-collage', 'polaroid', 'split-screen', 'soft-masked']
-  if (PRESETS.includes(r.presetId as ImagePresetId)) style.presetId = r.presetId as ImagePresetId
-  if (r.spotlight === true) style.spotlight = true
-  if (r.frame === 'polaroid') style.frame = 'polaroid'
-  if (r.mask === 'soft') style.mask = 'soft'
-  if (r.reveal === 'wipe' || r.reveal === 'diagonal') style.reveal = r.reveal
-  if (typeof r.tilt === 'number' && Number.isFinite(r.tilt)) style.tilt = clamp(r.tilt, -15, 15)
-  if (r.splitSide === 'left' || r.splitSide === 'right' || r.splitSide === 'top' || r.splitSide === 'bottom') style.splitSide = r.splitSide
-  if (typeof r.glow === 'string' && /^#[0-9a-f]{3,8}$/i.test(r.glow.trim())) style.glow = r.glow.trim()
-  if (typeof r.badge === 'string' && r.badge.trim()) style.badge = r.badge.trim().slice(0, 24)
-  if (r.accent === 'heart') style.accent = 'heart'
-  if (r.splitSideAuto === true) style.splitSideAuto = true
-  if (r.exit === 'fade' || r.exit === 'shrink' || r.exit === 'none') style.exit = r.exit
-  if (r.auto === true) style.auto = true
-  return style
+  const PRESETS: ImagePresetId[] = ['rounded-floating-card', 'circular-portrait', 'product-spotlight', 'cinematic-reveal', 'multi-image-collage', 'polaroid', 'split-screen', 'soft-masked'];
+  if (PRESETS.includes(r.presetId as ImagePresetId)) style.presetId = r.presetId as ImagePresetId;
+  if (r.spotlight === true) style.spotlight = true;
+  if (r.frame === 'polaroid') style.frame = 'polaroid';
+  if (r.mask === 'soft') style.mask = 'soft';
+  if (r.reveal === 'wipe' || r.reveal === 'diagonal') style.reveal = r.reveal;
+  if (typeof r.tilt === 'number' && Number.isFinite(r.tilt)) style.tilt = clamp(r.tilt, -15, 15);
+  if (r.splitSide === 'left' || r.splitSide === 'right' || r.splitSide === 'top' || r.splitSide === 'bottom') style.splitSide = r.splitSide;
+  if (typeof r.glow === 'string' && /^#[0-9a-f]{3,8}$/i.test(r.glow.trim())) style.glow = r.glow.trim();
+  if (typeof r.badge === 'string' && r.badge.trim()) style.badge = r.badge.trim().slice(0, 24);
+  if (r.accent === 'heart') style.accent = 'heart';
+  if (r.splitSideAuto === true) style.splitSideAuto = true;
+  if (r.exit === 'fade' || r.exit === 'shrink' || r.exit === 'none') style.exit = r.exit;
+  if (r.auto === true) style.auto = true;
+  return style;
 }
 
 export interface ResolveInput {
@@ -215,28 +215,28 @@ export interface ResolvedImageStyle {
 }
 
 export function resolveImageStyle(input: ResolveInput): ResolvedImageStyle {
-  const { role, layerStyle, hints = {}, templateStyle } = input
-  if (!isStylableRole(role)) return { style: null, reason: 'role keeps its own treatment' }
+  const { role, layerStyle, hints = {}, templateStyle } = input;
+  if (!isStylableRole(role)) return { style: null, reason: 'role keeps its own treatment' };
 
   // The customer's own edit always wins and is never replaced automatically.
-  if (layerStyle && layerStyle.auto !== true) return { style: layerStyle, reason: 'customer-edited' }
+  if (layerStyle && layerStyle.auto !== true) return { style: layerStyle, reason: 'customer-edited' };
 
-  if (role === 'logo') return { style: { ...ORIGINAL_STYLE }, reason: 'logo keeps its original proportions and transparency' }
+  if (role === 'logo') return { style: { ...ORIGINAL_STYLE }, reason: 'logo keeps its original proportions and transparency' };
 
   // A template's own declaration wins over the generic defaults.
   if (templateStyle) {
-    const base = hints.isHeadshot ? HEADSHOT_DEFAULT : ROUNDED_RECT_DEFAULT
-    const styled = { ...base, ...templateStyle, auto: true }
-    return withKnownSize(styled, hints, 'template style')
+    const base = hints.isHeadshot ? HEADSHOT_DEFAULT : ROUNDED_RECT_DEFAULT;
+    const styled = { ...base, ...templateStyle, auto: true };
+    return withKnownSize(styled, hints, 'template style');
   }
 
   // Already shaped / framed: never put a second frame on it.
   if (hints.transparentCorners || hints.alreadyFramed || hints.hasTransparency) {
-    return { style: { ...ORIGINAL_STYLE }, reason: hints.alreadyFramed ? 'already framed' : 'transparent or already shaped' }
+    return { style: { ...ORIGINAL_STYLE }, reason: hints.alreadyFramed ? 'already framed' : 'transparent or already shaped' };
   }
 
-  if (hints.isHeadshot) return withKnownSize({ ...HEADSHOT_DEFAULT }, hints, 'explicit headshot/portrait')
-  return withKnownSize({ ...ROUNDED_RECT_DEFAULT }, hints, 'product/service default')
+  if (hints.isHeadshot) return withKnownSize({ ...HEADSHOT_DEFAULT }, hints, 'explicit headshot/portrait');
+  return withKnownSize({ ...ROUNDED_RECT_DEFAULT }, hints, 'product/service default');
 }
 
 /**
@@ -246,9 +246,9 @@ export function resolveImageStyle(input: ResolveInput): ResolvedImageStyle {
  */
 function withKnownSize(style: ImageStyle, hints: ImageHints, reason: string): ResolvedImageStyle {
   if (style.fit === 'contain' && style.shape !== 'square' && !(hints.aspect && hints.aspect > 0)) {
-    return { style: { ...ORIGINAL_STYLE }, reason: 'waiting for the image size' }
+    return { style: { ...ORIGINAL_STYLE }, reason: 'waiting for the image size' };
   }
-  return { style, reason }
+  return { style, reason };
 }
 
 export interface FramePx { left: number; top: number; width: number; height: number }
@@ -261,19 +261,19 @@ export interface FramePx { left: number; top: number; width: number; height: num
  */
 export function frameRect(style: ImageStyle, boxW: number, boxH: number, aspect?: number): FramePx {
   if (style.shape === 'circle') {
-    const side = Math.min(boxW, boxH)
-    return { left: (boxW - side) / 2, top: (boxH - side) / 2, width: side, height: side }
+    const side = Math.min(boxW, boxH);
+    return { left: (boxW - side) / 2, top: (boxH - side) / 2, width: side, height: side };
   }
   if (style.fit === 'contain' && aspect && Number.isFinite(aspect) && aspect > 0) {
-    const boxAspect = boxW / boxH
+    const boxAspect = boxW / boxH;
     if (aspect >= boxAspect) {
-      const h = boxW / aspect
-      return { left: 0, top: (boxH - h) / 2, width: boxW, height: h }
+      const h = boxW / aspect;
+      return { left: 0, top: (boxH - h) / 2, width: boxW, height: h };
     }
-    const w = boxH * aspect
-    return { left: (boxW - w) / 2, top: 0, width: w, height: boxH }
+    const w = boxH * aspect;
+    return { left: (boxW - w) / 2, top: 0, width: w, height: boxH };
   }
-  return { left: 0, top: 0, width: boxW, height: boxH }
+  return { left: 0, top: 0, width: boxW, height: boxH };
 }
 
 /** CSS border-radius for a frame; radii scale with the frame (itself scaled by the composition). */
@@ -283,69 +283,69 @@ export function borderRadiusCss(
   /** The composition's SHORTER side in composition px, and the surface scale factor (for `radiusComp`). */
   comp?: { short: number; factor?: number },
 ): string {
-  const short = Math.min(frame.width, frame.height)
+  const short = Math.min(frame.width, frame.height);
   switch (style.shape) {
-    case 'circle': return '50%'
-    case 'pill': return `${short / 2}px`
-    case 'square': return '0'
-    case 'blob': return '58% 42% 61% 39% / 47% 55% 45% 53%'
+    case 'circle': return '50%';
+    case 'pill': return `${short / 2}px`;
+    case 'square': return '0';
+    case 'blob': return '58% 42% 61% 39% / 47% 55% 45% 53%';
     case 'custom': {
-      const r = style.customRadii ?? [style.radius, style.radius, style.radius, style.radius]
-      return r.map((f) => `${Math.round(f * short * 100) / 100}px`).join(' ')
+      const r = style.customRadii ?? [style.radius, style.radius, style.radius, style.radius];
+      return r.map((f) => `${Math.round(f * short * 100) / 100}px`).join(' ');
     }
     default: {
       if (style.radiusComp !== undefined && comp) {
-        const px = Math.min(style.radiusComp * comp.short * (comp.factor ?? 1), short / 2)
-        return `${Math.round(px * 100) / 100}px`
+        const px = Math.min(style.radiusComp * comp.short * (comp.factor ?? 1), short / 2);
+        return `${Math.round(px * 100) / 100}px`;
       }
-      return `${Math.round(clamp(style.radius, 0, 0.5) * short * 100) / 100}px`
+      return `${Math.round(clamp(style.radius, 0, 0.5) * short * 100) / 100}px`;
     }
   }
 }
 
 /** Border thickness in px for a composition of height `compH` (times the surface's scale factor). */
 export function borderPx(style: ImageStyle, compH: number, factor = 1): number {
-  return Math.round(style.borderWidth * compH * factor * 100) / 100
+  return Math.round(style.borderWidth * compH * factor * 100) / 100;
 }
 
 export function resolveBorderColor(ref: string, brand: { primary: string; accent: string }): string {
-  if (ref === 'brand-primary') return brand.primary
-  if (ref === 'brand-accent') return brand.accent
-  return ref
+  if (ref === 'brand-primary') return brand.primary;
+  if (ref === 'brand-accent') return brand.accent;
+  return ref;
 }
 
 const SHADOWS_SPEC: Record<Exclude<ImageShadow, 'none'>, { y: number; blur: number; alpha: number }> = {
   subtle: { y: 0.006, blur: 0.018, alpha: 0.28 },
   medium: { y: 0.012, blur: 0.036, alpha: 0.38 },
-}
+};
 
 /** CSS box-shadow for the OUTER wrapper (never on the clipped element): the drop shadow plus an optional warm rim glow. */
 export function shadowCss(style: ImageStyle, compH: number, factor = 1): string | undefined {
-  const px = (f: number) => Math.round(f * compH * factor * 100) / 100
-  const parts: string[] = []
+  const px = (f: number) => Math.round(f * compH * factor * 100) / 100;
+  const parts: string[] = [];
   if (style.shadow !== 'none') {
-    const s = SHADOWS_SPEC[style.shadow]
-    parts.push(`0 ${px(s.y)}px ${px(s.blur)}px rgba(0,0,0,${s.alpha})`)
+    const s = SHADOWS_SPEC[style.shadow];
+    parts.push(`0 ${px(s.y)}px ${px(s.blur)}px rgba(0,0,0,${s.alpha})`);
   }
-  if (style.glow) parts.push(`0 0 ${px(0.04)}px ${px(0.008)}px ${hexToRgba(style.glow, 0.8)}`)
-  return parts.length ? parts.join(', ') : undefined
+  if (style.glow) parts.push(`0 0 ${px(0.04)}px ${px(0.008)}px ${hexToRgba(style.glow, 0.8)}`);
+  return parts.length ? parts.join(', ') : undefined;
 }
 
 export function hexToRgba(hex: string, alpha: number): string {
-  let h = hex.replace('#', '')
-  if (h.length === 3) h = h.split('').map((c) => c + c).join('')
-  const n = parseInt(h.slice(0, 6), 16)
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  const n = parseInt(h.slice(0, 6), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
 }
 
 /** Extra space around the frame the shadow occupies, in px (for collision margins). */
 export function shadowBleedPx(style: ImageStyle, compH: number): number {
-  const drop = style.shadow === 'none' ? 0 : Math.ceil((SHADOWS_SPEC[style.shadow].y + SHADOWS_SPEC[style.shadow].blur) * compH)
-  const glow = style.glow ? Math.ceil(0.05 * compH) : 0
-  return Math.max(drop, glow)
+  const drop = style.shadow === 'none' ? 0 : Math.ceil((SHADOWS_SPEC[style.shadow].y + SHADOWS_SPEC[style.shadow].blur) * compH);
+  const glow = style.glow ? Math.ceil(0.05 * compH) : 0;
+  return Math.max(drop, glow);
 }
 
 /** CSS object-position from the crop focus. */
 export function objectPosition(style: ImageStyle): string {
-  return `${Math.round(style.cropX * 100)}% ${Math.round(style.cropY * 100)}%`
+  return `${Math.round(style.cropX * 100)}% ${Math.round(style.cropY * 100)}%`;
 }

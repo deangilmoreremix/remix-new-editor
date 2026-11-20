@@ -176,11 +176,13 @@ describe('registration safety', () => {
   it('an endpoint already registered to another account gets a fresh subscription for this one', async () => {
     const rows = [];
     // the other account's row is hidden from this account (row level security), but its endpoint still blocks the insert
-    const client = { from: () => ({
+    const client = {
+ from: () => ({
       select: () => ({ eq: () => ({ limit: async () => ({ data: [], error: null }) }) }),
       delete: () => ({ eq: async () => ({ error: null }) }),
       insert: async (row) => (row.endpoint === 'https://push.example/abc' ? { error: { message: 'duplicate', code: '23505' } } : (rows.push(row), { error: null })),
-    }) };
+    }) 
+};
     const reg = makeRegistration(); const fresh = makeSub('https://push.example/fresh');
     let n = 0; reg.pushManager.subscribe = vi.fn(async () => (n++ === 0 ? reg.sub : fresh));
     const r = await subscribe({ vapidKey: KEY, registration: reg, client, env: makeEnv() });

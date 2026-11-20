@@ -11,10 +11,10 @@
  * business name; the caption is the business name.
  */
 
-import React from 'react'
-import { PolaroidFrame } from '../../_upstream/rve-polaroid-frame/PolaroidFrame'
-import { TRANSPARENT, slotText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { PolaroidFrame } from '../../_upstream/rve-polaroid-frame/PolaroidFrame';
+import { TRANSPARENT, slotText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   BrandMediaFill,
   brandGradients,
@@ -22,20 +22,20 @@ import {
   brandPalette,
   canvasScale,
   fitLine,
-} from './media'
+} from './media';
 
 export const RvePolaroidFrameDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const photo = Math.round(Math.min(props.width, props.height) * 0.42)
-  const pad = Math.round(photo * 0.046)
-  const captionPx = Math.round(34 * k)
-  const placeholderPx = Math.round(44 * k)
+  const k = canvasScale(props);
+  const photo = Math.round(Math.min(props.width, props.height) * 0.42);
+  const pad = Math.round(photo * 0.046);
+  const captionPx = Math.round(34 * k);
+  const placeholderPx = Math.round(44 * k);
 
-  const image = brandImages(props)[0] ?? null
-  const gradients = brandGradients(props)
-  const { text: textColor } = brandPalette(props)
-  const name = slotText(props, 'businessName', ['headline'])
-  const caption = fitLine(name, photo, captionPx, 32)
+  const image = brandImages(props)[0] ?? null;
+  const gradients = brandGradients(props);
+  const { text: textColor } = brandPalette(props);
+  const name = slotText(props, 'businessName', ['headline']);
+  const caption = fitLine(name, photo, captionPx, 32);
 
   return (
     <RveDesignStage designId="rve-polaroid-frame" props={props}>
@@ -63,7 +63,7 @@ export const RvePolaroidFrameDesign: React.FC<DesignAdapterProps> = (props) => {
         }
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RvePolaroidFrameDesign
+export default RvePolaroidFrameDesign;

@@ -83,8 +83,10 @@ describe('frame-chat thread persistence', () => {
 
   it('leaves ready/proposed/placed generations untouched on load', () => {
     const stored: FrameChatMessage[] = [
-      { id: 'r', role: 'assistant', content: 'done', createdAt: '2026-05-29T00:00:03.000Z',
-        generation: { model: 'm', outputType: 'image', referenceMode: 'frame', sourceClipId: 'c1', status: 'ready', resultUrl: 'https://x/y.png', resultDurationSec: 4 } },
+      {
+ id: 'r', role: 'assistant', content: 'done', createdAt: '2026-05-29T00:00:03.000Z',
+        generation: { model: 'm', outputType: 'image', referenceMode: 'frame', sourceClipId: 'c1', status: 'ready', resultUrl: 'https://x/y.png', resultDurationSec: 4 } 
+},
     ];
     expect(deserializeThread(serializeThread(stored))[0].generation?.status).toBe('ready');
   });

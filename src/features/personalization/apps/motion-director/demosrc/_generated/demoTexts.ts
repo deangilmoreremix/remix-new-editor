@@ -2081,4 +2081,4 @@ export const DEMO_TEXTS: Record<string, readonly string[]> = {
  "ValueStaggerGradient": [
   "'center'"
  ]
-}
+};

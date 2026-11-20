@@ -7,7 +7,7 @@
  * scheme).
  */
 
-import type { CSSProperties } from 'react'
+import type { CSSProperties } from 'react';
 
 export const C = {
   // remix-new-editor palette (src/styles/variables.css + @theme in
@@ -32,7 +32,7 @@ export const C = {
   onAccent: '#000000',
   green: '#22c55e',
   danger: '#ef4444',
-} as const
+} as const;
 
 export type GuidedTokens = typeof C
 
@@ -44,7 +44,7 @@ export const panelStyle: CSSProperties = {
   border: `1px solid ${C.border}`,
   borderRadius: 16,
   padding: 18,
-}
+};
 
 /** Inset panel (nested inside a panel) — slight background drop. */
 export const softPanelStyle: CSSProperties = {
@@ -52,7 +52,7 @@ export const softPanelStyle: CSSProperties = {
   border: `1px solid ${C.border}`,
   borderRadius: 12,
   padding: 14,
-}
+};
 
 /** Section heading used above each wizard step / editor block. */
 export const headingStyle: CSSProperties = {
@@ -62,7 +62,7 @@ export const headingStyle: CSSProperties = {
   textTransform: 'uppercase',
   letterSpacing: '.04em',
   color: C.text,
-}
+};
 
 /** Small uppercase label above inputs and rows. */
 export const labelStyle: CSSProperties = {
@@ -73,14 +73,14 @@ export const labelStyle: CSSProperties = {
   fontWeight: 700,
   textTransform: 'uppercase',
   letterSpacing: '.04em',
-}
+};
 
 export const hintStyle: CSSProperties = {
   margin: '4px 0 0',
   color: C.muted,
   fontSize: 10,
   lineHeight: 1.5,
-}
+};
 
 /** Text input / select surface (same metrics as the modal's `Field`). */
 export const inputStyle: CSSProperties = {
@@ -93,7 +93,7 @@ export const inputStyle: CSSProperties = {
   color: C.text,
   fontSize: 12,
   outline: 'none',
-}
+};
 
 export const chipStyle = (active: boolean): CSSProperties => ({
   minHeight: 34,
@@ -105,7 +105,7 @@ export const chipStyle = (active: boolean): CSSProperties => ({
   fontSize: 11,
   fontWeight: 700,
   cursor: 'pointer',
-})
+});
 
 /** Buttons are outlined, never filled: yellow border + yellow text on the dark surface. */
 export const primaryButtonStyle: CSSProperties = {
@@ -120,7 +120,7 @@ export const primaryButtonStyle: CSSProperties = {
   textTransform: 'uppercase',
   letterSpacing: '.04em',
   cursor: 'pointer',
-}
+};
 
 export const secondaryButtonStyle: CSSProperties = {
   minHeight: 44,
@@ -134,7 +134,7 @@ export const secondaryButtonStyle: CSSProperties = {
   textTransform: 'uppercase',
   letterSpacing: '.04em',
   cursor: 'pointer',
-}
+};
 
 /** Tile used for selectable cards (video picks, layouts, layers...). */
 export const tileStyle = (active: boolean): CSSProperties => ({
@@ -146,7 +146,7 @@ export const tileStyle = (active: boolean): CSSProperties => ({
   textAlign: 'left',
   cursor: 'pointer',
   width: '100%',
-})
+});
 
 export const badgeStyle = (tone: 'cyan' | 'green' | 'muted' = 'cyan'): CSSProperties => ({
   display: 'inline-flex',
@@ -164,10 +164,10 @@ export const badgeStyle = (tone: 'cyan' | 'green' | 'muted' = 'cyan'): CSSProper
   background:
     tone === 'cyan' ? 'transparent' : tone === 'green' ? 'rgba(34,197,94,.12)' : 'rgba(255,255,255,.04)',
   color: tone === 'cyan' ? C.cyan : tone === 'green' ? C.green : C.muted,
-})
+});
 
 /** Range input tuned to the dark surfaces. */
 export const rangeStyle: CSSProperties = {
   width: '100%',
   accentColor: C.cyan,
-}
+};

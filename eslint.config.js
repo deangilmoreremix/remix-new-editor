@@ -142,7 +142,7 @@ export default [
       'preserve-caught-error': 'warn',
       'class-methods-use-this': 'off',
       'consistent-return': 'off',
-      'no-underscore-dangle': ['warn', { allow: ['_id', '__STATE', '__html'] }],
+      'no-underscore-dangle': 'off',
       'object-curly-newline': ['warn', { multiline: true, consistent: true }],
       'no-plusplus': 'off',
       'no-use-before-define': 'off',

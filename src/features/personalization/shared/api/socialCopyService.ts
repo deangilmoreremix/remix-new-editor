@@ -1,4 +1,4 @@
-import { callOpenAIChat } from '@ohb/shared/api/openai'
+import { callOpenAIChat } from '@ohb/shared/api/openai';
 
 export interface SocialCopyResult {
   masterPost: string
@@ -19,39 +19,39 @@ export interface SocialCopyResult {
 }
 
 function validateSocialCopy(data: unknown): SocialCopyResult {
-  if (!data || typeof data !== 'object') throw new Error('Empty AI response')
-  const obj = data as Record<string, unknown>
+  if (!data || typeof data !== 'object') throw new Error('Empty AI response');
+  const obj = data as Record<string, unknown>;
 
-  const masterPost = typeof obj.masterPost === 'string' ? obj.masterPost : ''
-  const hook = typeof obj.hook === 'string' ? obj.hook : ''
-  const cta = typeof obj.cta === 'string' ? obj.cta : ''
-  const hashtags = typeof obj.hashtags === 'string' ? obj.hashtags : ''
+  const masterPost = typeof obj.masterPost === 'string' ? obj.masterPost : '';
+  const hook = typeof obj.hook === 'string' ? obj.hook : '';
+  const cta = typeof obj.cta === 'string' ? obj.cta : '';
+  const hashtags = typeof obj.hashtags === 'string' ? obj.hashtags : '';
 
-  const variantsRaw = Array.isArray(obj.variants) ? obj.variants : []
+  const variantsRaw = Array.isArray(obj.variants) ? obj.variants : [];
   const variants = variantsRaw
     .map((v) => (typeof v === 'string' ? v : ''))
-    .filter((v) => v.trim())
+    .filter((v) => v.trim());
 
-  const youtubeEntry = obj.youtube as Record<string, unknown> | undefined
+  const youtubeEntry = obj.youtube as Record<string, unknown> | undefined;
   const youtube = {
     title: typeof youtubeEntry?.title === 'string' ? youtubeEntry.title : '',
     description: typeof youtubeEntry?.description === 'string' ? youtubeEntry.description : '',
-  }
+  };
 
-  const instagramEntry = obj.instagram as Record<string, unknown> | undefined
+  const instagramEntry = obj.instagram as Record<string, unknown> | undefined;
   const instagram = {
     caption: typeof instagramEntry?.caption === 'string' ? instagramEntry.caption : '',
-  }
+  };
 
-  const tiktokEntry = obj.tiktok as Record<string, unknown> | undefined
+  const tiktokEntry = obj.tiktok as Record<string, unknown> | undefined;
   const tiktok = {
     caption: typeof tiktokEntry?.caption === 'string' ? tiktokEntry.caption : '',
-  }
+  };
 
-  const thumbnailEntry = (obj.thumbnail as Record<string, unknown> | undefined) || {}
+  const thumbnailEntry = (obj.thumbnail as Record<string, unknown> | undefined) || {};
   const recommendedTemplateIds = Array.isArray(thumbnailEntry.recommendedTemplateIds)
     ? thumbnailEntry.recommendedTemplateIds.filter((t: unknown) => typeof t === 'string')
-    : []
+    : [];
 
   const thumbnail = {
     headline: typeof thumbnailEntry.headline === 'string' ? thumbnailEntry.headline : '',
@@ -59,13 +59,13 @@ function validateSocialCopy(data: unknown): SocialCopyResult {
     subject: typeof thumbnailEntry.subject === 'string' ? thumbnailEntry.subject : '',
     visualIdea: typeof thumbnailEntry.visualIdea === 'string' ? thumbnailEntry.visualIdea : '',
     recommendedTemplateIds,
-  }
+  };
 
   if (!masterPost && variants.length === 0) {
-    throw new Error('AI returned no copy content')
+    throw new Error('AI returned no copy content');
   }
 
-  return { masterPost, hook, cta, hashtags, variants, youtube, instagram, tiktok, thumbnail }
+  return { masterPost, hook, cta, hashtags, variants, youtube, instagram, tiktok, thumbnail };
 }
 
 function buildSystemPrompt(asset: { type: 'video' | 'image'; title?: string; description?: string }): string {
@@ -88,7 +88,7 @@ function buildSystemPrompt(asset: { type: 'video' | 'image'; title?: string; des
     '}',
   ]
     .filter(Boolean)
-    .join('\n')
+    .join('\n');
 }
 
 function buildUserPrompt(topic: string, action: string): string {
@@ -106,8 +106,8 @@ function buildUserPrompt(topic: string, action: string): string {
     persuasive: `Rewrite this copy to be more persuasive: "${topic}".`,
     platformize: `Adapt this copy for the target platform: "${topic}".`,
     refine: `Refine and polish this copy: "${topic}".`,
-  }
-  return actionContext[action] || `Process this copy: "${topic}".`
+  };
+  return actionContext[action] || `Process this copy: "${topic}".`;
 }
 
 async function callStructuredCopy(
@@ -118,98 +118,98 @@ async function callStructuredCopy(
   const messages = [
     { role: 'system' as const, content: buildSystemPrompt(asset) },
     { role: 'user' as const, content: buildUserPrompt(topic, action) },
-  ]
+  ];
 
-  const raw = await callOpenAIChat(messages)
+  const raw = await callOpenAIChat(messages);
 
-  let parsed: unknown
+  let parsed: unknown;
   try {
-    const trimmed = raw.trim()
-    const match = trimmed.match(/\{[\s\S]*\}/)
-    const jsonStr = match ? match[0] : trimmed
-    parsed = JSON.parse(jsonStr)
+    const trimmed = raw.trim();
+    const match = trimmed.match(/\{[\s\S]*\}/);
+    const jsonStr = match ? match[0] : trimmed;
+    parsed = JSON.parse(jsonStr);
   } catch {
-    throw new Error('AI returned invalid JSON')
+    throw new Error('AI returned invalid JSON');
   }
 
-  return validateSocialCopy(parsed)
+  return validateSocialCopy(parsed);
 }
 
 export async function generateCopy(
   topic: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, topic, 'generate')
+  return callStructuredCopy(asset, topic, 'generate');
 }
 
 export async function rewrite(
   text: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, text, 'rewrite')
+  return callStructuredCopy(asset, text, 'rewrite');
 }
 
 export async function enhance(
   text: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, text, 'enhance')
+  return callStructuredCopy(asset, text, 'enhance');
 }
 
 export async function shorten(
   text: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, text, 'shorten')
+  return callStructuredCopy(asset, text, 'shorten');
 }
 
 export async function expand(
   text: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, text, 'expand')
+  return callStructuredCopy(asset, text, 'expand');
 }
 
 export async function hook(
   text: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, text, 'hook')
+  return callStructuredCopy(asset, text, 'hook');
 }
 
 export async function cta(
   text: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, text, 'cta')
+  return callStructuredCopy(asset, text, 'cta');
 }
 
 export async function hashtags(
   text: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, text, 'hashtags')
+  return callStructuredCopy(asset, text, 'hashtags');
 }
 
 export async function professional(
   text: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, text, 'professional')
+  return callStructuredCopy(asset, text, 'professional');
 }
 
 export async function conversational(
   text: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, text, 'conversational')
+  return callStructuredCopy(asset, text, 'conversational');
 }
 
 export async function persuasive(
   text: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, text, 'persuasive')
+  return callStructuredCopy(asset, text, 'persuasive');
 }
 
 export async function platformize(
@@ -217,12 +217,12 @@ export async function platformize(
   platform: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, `${text} [platform: ${platform}]`, 'platformize')
+  return callStructuredCopy(asset, `${text} [platform: ${platform}]`, 'platformize');
 }
 
 export async function refine(
   text: string,
   asset: { type: 'video' | 'image'; title?: string; description?: string }
 ): Promise<SocialCopyResult> {
-  return callStructuredCopy(asset, text, 'refine')
+  return callStructuredCopy(asset, text, 'refine');
 }

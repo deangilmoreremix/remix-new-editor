@@ -13,14 +13,14 @@
  * the perspective scales with the composition width.
  */
 
-import React from 'react'
-import { BlindsTransition } from '../../_upstream/rve-blinds-transition/BlindsTransition'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared'
+import React from 'react';
+import { BlindsTransition } from '../../_upstream/rve-blinds-transition/BlindsTransition';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared';
 
 export const RveBlindsTransitionDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-blinds-transition" props={props}>
       <BlindsTransition
@@ -31,7 +31,7 @@ export const RveBlindsTransitionDesign: React.FC<RemotionDesignComponentProps> =
         sceneB={TRANSPARENT_SCENE}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveBlindsTransitionDesign
+export default RveBlindsTransitionDesign;

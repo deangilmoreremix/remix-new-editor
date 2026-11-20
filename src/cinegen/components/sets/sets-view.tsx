@@ -127,9 +127,11 @@ export function SetsView({ target, onSent }: { target?: ShapeShotTarget | null; 
     try {
       const result = sendOptions.mode === 'view'
         ? await captureSetView(viewerRef.current, { setId: selected.id, width: target.width, height: target.height, maxReferences: target.viewMaxReferences ?? target.maxReferences, ...sendOptions })
-        : await captureShapeShot(viewerRef.current, { setId: selected.id,
+        : await captureShapeShot(viewerRef.current, {
+ setId: selected.id,
         width: target.width, height: target.height, maxReferences: target.maxReferences,
-        focalMm, sensor, subject: selected.standIns?.find(entry => entry.visible !== false) });
+        focalMm, sensor, subject: selected.standIns?.find(entry => entry.visible !== false) 
+});
       if (sendOptions.mode === 'passes') {
         if (sendOptions.enhance) result.promptBlock += ' Create a polished, photorealistic image. Repair scan artifacts and smeared surfaces while preserving the referenced angle, layout, materials, signage, and lighting direction.';
         if (sendOptions.instructions.trim()) result.promptBlock += `\n\n${sendOptions.instructions.trim()}`;

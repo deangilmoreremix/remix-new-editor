@@ -1570,7 +1570,8 @@ export function DirectorTab() {
     });
   }, [setShow]);
 
-  useEffect(() => registerMcpCommands({ director: async (args) => {
+  useEffect(() => registerMcpCommands({
+ director: async (args) => {
     const need = (key: string) => {
       const value = args[key];
       if (typeof value !== 'string' || !value.trim()) throw new Error(`${key} is required.`);
@@ -1629,7 +1630,8 @@ export function DirectorTab() {
     }
     if (showRef.current.jobStatus?.error) throw new Error(showRef.current.jobStatus.message);
     return { action: args.action };
-  } }), [setShow, generateOne, generateStoryboardFrame, runBreakdown, runShotlist, runSceneNotes, runClipNotes, runReshotClip, runReshotBeat, runLookBible, recoverLiveTakes, fetchLiveTake, setStagingFrame, makeStagingDiagram, fetchStagingDiagram, keepStagingFraming, cancelStagingDiagram, stopShotlist, cancelLookBible]);
+  } 
+}), [setShow, generateOne, generateStoryboardFrame, runBreakdown, runShotlist, runSceneNotes, runClipNotes, runReshotClip, runReshotBeat, runLookBible, recoverLiveTakes, fetchLiveTake, setStagingFrame, makeStagingDiagram, fetchStagingDiagram, keepStagingFraming, cancelStagingDiagram, stopShotlist, cancelLookBible]);
 
   return (
     <div className="director-tab">

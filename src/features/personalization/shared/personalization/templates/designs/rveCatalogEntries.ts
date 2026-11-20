@@ -46,29 +46,29 @@
  * reproduces the upstream value exactly.
  */
 
-import type { RemotionDesignTemplate } from '../types'
-import { RveAnimatedTextDesign } from './rveAnimatedTextDesign'
-import { RveCircularProgressDesign } from './rveCircularProgressDesign'
-import { RvePoppingTextDesign } from './rvePoppingTextDesign'
-import { RveSlideTextDesign } from './rveSlideTextDesign'
+import type { RemotionDesignTemplate } from '../types';
+import { RveAnimatedTextDesign } from './rveAnimatedTextDesign';
+import { RveCircularProgressDesign } from './rveCircularProgressDesign';
+import { RvePoppingTextDesign } from './rvePoppingTextDesign';
+import { RveSlideTextDesign } from './rveSlideTextDesign';
 import {
   RVE_ATTRIBUTION,
   RVE_LICENSE_NOTICE,
   RVE_UPSTREAM_CREDIT,
-} from './rveSharedDesign'
+} from './rveSharedDesign';
 
-export { RVE_ATTRIBUTION, RVE_LICENSE_NOTICE, RVE_UPSTREAM_CREDIT }
+export { RVE_ATTRIBUTION, RVE_LICENSE_NOTICE, RVE_UPSTREAM_CREDIT };
 
 /* -------------------------------------------------------------------------- */
 /* Attribution                                                                 */
 /* -------------------------------------------------------------------------- */
 
 /** The upstream repository the four templates were copied from. */
-export const RVE_REPOSITORY = 'remotion-templates'
+export const RVE_REPOSITORY = 'remotion-templates';
 
 /** The upstream repository's URL. */
 export const RVE_REPOSITORY_URL =
-  'https://github.com/deangilmoreremix/remotion-templates'
+  'https://github.com/deangilmoreremix/remotion-templates';
 
 /**
  * The upstream's licence.
@@ -78,7 +78,7 @@ export const RVE_REPOSITORY_URL =
  * appreciated where applicable. No copyright holder is named, so the MIT
  * permission notice is reproduced WITHOUT a copyright line.
  */
-export const RVE_LICENSE = 'MIT'
+export const RVE_LICENSE = 'MIT';
 
 /** The path of a template inside the upstream repository. */
 export type RveSourcePath =
@@ -95,7 +95,7 @@ function rveSource(sourcePath: RveSourcePath): RemotionDesignTemplate['source'] 
     sourcePath,
     license: RVE_LICENSE,
     attribution: RVE_ATTRIBUTION,
-  }
+  };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -141,7 +141,7 @@ export const rveCircularProgressTemplate: RemotionDesignTemplate = {
       'canvas-relative) and the percentage is a time-driven loop, not data, so this design has no editable text.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The headline that springs in one character at a time.
@@ -174,7 +174,7 @@ export const rveAnimatedTextTemplate: RemotionDesignTemplate = {
       'fits on one line, and the type size is canvas-relative (the upstream "rem" value is not).',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The big block letters that pop in one by one.
@@ -210,7 +210,7 @@ export const rvePoppingTextTemplate: RemotionDesignTemplate = {
       'replaced by the bundled deterministic typeface and the headline is truncated to what fits on one line.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The heading that slides in from the right.
@@ -242,7 +242,7 @@ export const rveSlideTextTemplate: RemotionDesignTemplate = {
       'truncated to what fits on one line and the type size is canvas-relative (the upstream "rem" value is not).',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * Every batch-2 design, in registration order.
@@ -255,4 +255,4 @@ export const RVE_CATALOG_ENTRIES: RemotionDesignTemplate[] = [
   rveAnimatedTextTemplate,
   rvePoppingTextTemplate,
   rveSlideTextTemplate,
-]
+];

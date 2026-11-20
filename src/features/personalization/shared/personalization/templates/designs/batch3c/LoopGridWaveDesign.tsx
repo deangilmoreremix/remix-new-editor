@@ -14,9 +14,9 @@
  * gets a full grid. Textless.
  */
 
-import React from 'react'
-import { LoopGridWave } from '../../_upstream/loop-grid-wave/LoopGridWave'
-import { DesignStage, TRANSPARENT, pickColor, type DesignAdapterProps } from '../shared'
+import React from 'react';
+import { LoopGridWave } from '../../_upstream/loop-grid-wave/LoopGridWave';
+import { DesignStage, TRANSPARENT, pickColor, type DesignAdapterProps } from '../shared';
 
 export const LoopGridWaveDesign: React.FC<DesignAdapterProps> = (props) => (
   <DesignStage designId="loop-grid-wave" props={props}>
@@ -28,6 +28,6 @@ export const LoopGridWaveDesign: React.FC<DesignAdapterProps> = (props) => (
       speed={1}
     />
   </DesignStage>
-)
+);
 
-export default LoopGridWaveDesign
+export default LoopGridWaveDesign;

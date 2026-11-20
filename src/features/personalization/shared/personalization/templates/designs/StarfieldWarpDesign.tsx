@@ -39,15 +39,15 @@
  * upstream revision.
  */
 
-import React from 'react'
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion'
-import { useDesignFonts } from './fonts'
+import React from 'react';
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion';
+import { useDesignFonts } from './fonts';
 import {
   DesignStage,
   TRANSPARENT,
   pickColor,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /**
  * The upstream's own motion constants.
@@ -58,27 +58,27 @@ import {
  * effect over a customer's video (the same call the bokeh adapter made with
  * its disc count). 60 streaks still read as a full warp field.
  */
-const STAR_COUNT = 60
-const WARP_SPEED = 4
+const STAR_COUNT = 60;
+const WARP_SPEED = 4;
 
 /** A star core size range: `min + random * range` px. */
 export type StarCoreSize = { min: number; range: number }
 
 /** The frozen upstream's range (`sizeBase: 1 + random * 2.5`). */
-export const UPSTREAM_STAR_CORE_SIZE: StarCoreSize = { min: 1, range: 2.5 }
+export const UPSTREAM_STAR_CORE_SIZE: StarCoreSize = { min: 1, range: 2.5 };
 
 /**
  * The adapter's range (F2): 3–7 px cores keep their brand colour through
  * H.264 quantisation in the exported MP4.
  */
-export const EXPORT_STAR_CORE_SIZE: StarCoreSize = { min: 3, range: 4 }
+export const EXPORT_STAR_CORE_SIZE: StarCoreSize = { min: 3, range: 4 };
 
 // The upstream's deterministic pseudo-random generator, unchanged, so the
 // star layout matches the upstream's star for star.
 const seededRandom = (seed: number): number => {
-  const x = Math.sin(seed * 9301 + 49297) * 49297
-  return x - Math.floor(x)
-}
+  const x = Math.sin(seed * 9301 + 49297) * 49297;
+  return x - Math.floor(x);
+};
 
 export type ThickCoreStarfieldProps = {
   count: number
@@ -99,11 +99,11 @@ export const ThickCoreStarfield: React.FC<ThickCoreStarfieldProps> = ({
   warpSpeed,
   coreSize,
 }) => {
-  const frame = useCurrentFrame()
-  const { width, height } = useVideoConfig()
-  const cx = width / 2
-  const cy = height / 2
-  const maxR = Math.sqrt(cx * cx + cy * cy)
+  const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  const cx = width / 2;
+  const cy = height / 2;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
 
   const stars = React.useMemo(() => {
     return Array.from({ length: count }, (_, i) => ({
@@ -111,19 +111,19 @@ export const ThickCoreStarfield: React.FC<ThickCoreStarfieldProps> = ({
       startOffset: seededRandom(i * 5 + 2) * maxR,
       sizeBase: coreSize.min + seededRandom(i * 7 + 3) * coreSize.range,
       speedJitter: 0.7 + seededRandom(i * 11 + 4) * 0.6,
-    }))
-  }, [count, maxR, coreSize.min, coreSize.range])
+    }));
+  }, [count, maxR, coreSize.min, coreSize.range]);
 
   return (
     <AbsoluteFill style={{ backgroundColor: baseColor, overflow: 'hidden' }}>
       {stars.map((s, i) => {
-        const dist = (s.startOffset + frame * warpSpeed * s.speedJitter) % maxR
-        const x = cx + Math.cos(s.angle) * dist
-        const y = cy + Math.sin(s.angle) * dist
-        const sizeScale = dist / maxR
-        const size = s.sizeBase * (0.5 + sizeScale * 1.5)
-        const alpha = Math.min(1, sizeScale * 1.5)
-        const trailLen = sizeScale * 18 * warpSpeed * 0.5
+        const dist = (s.startOffset + frame * warpSpeed * s.speedJitter) % maxR;
+        const x = cx + Math.cos(s.angle) * dist;
+        const y = cy + Math.sin(s.angle) * dist;
+        const sizeScale = dist / maxR;
+        const size = s.sizeBase * (0.5 + sizeScale * 1.5);
+        const alpha = Math.min(1, sizeScale * 1.5);
+        const trailLen = sizeScale * 18 * warpSpeed * 0.5;
         return (
           <div
             key={i}
@@ -143,14 +143,14 @@ export const ThickCoreStarfield: React.FC<ThickCoreStarfieldProps> = ({
               boxShadow: `0 0 ${size * 2}px ${starColor}`,
             }}
           />
-        )
+        );
       })}
     </AbsoluteFill>
-  )
-}
+  );
+};
 
 export const StarfieldWarpDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
+  useDesignFonts();
 
   return (
     <DesignStage designId="starfield-warp" props={props}>
@@ -165,7 +165,7 @@ export const StarfieldWarpDesign: React.FC<DesignAdapterProps> = (props) => {
         coreSize={EXPORT_STAR_CORE_SIZE}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default StarfieldWarpDesign
+export default StarfieldWarpDesign;

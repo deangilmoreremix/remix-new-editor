@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
-import { isRemotionDesignTemplateSupported } from '../templates'
-import { DESIGN_GOALS, recommendDesigns, type DesignGoalId, type GoalSuggestion, type RecommendContext } from '../templates/recommendations'
-import type { RemotionDesignTemplate } from '../templates/types'
-import type { PreviewAspectRatio, PreviewLayoutId } from '../preview/types'
-import { PersonalizationTemplateBrowser } from './PersonalizationTemplateBrowser'
-import { C, chipStyle, hintStyle, labelStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
+import { useMemo, useState } from 'react';
+import { isRemotionDesignTemplateSupported } from '../templates';
+import { DESIGN_GOALS, recommendDesigns, type DesignGoalId, type GoalSuggestion, type RecommendContext } from '../templates/recommendations';
+import type { RemotionDesignTemplate } from '../templates/types';
+import type { PreviewAspectRatio, PreviewLayoutId } from '../preview/types';
+import { PersonalizationTemplateBrowser } from './PersonalizationTemplateBrowser';
+import { C, chipStyle, hintStyle, labelStyle, secondaryButtonStyle, softPanelStyle } from './tokens';
 
 /**
  * Designs for the Preview step: pick a GOAL, see about six designs that suit it, or open the full searchable
@@ -41,24 +41,24 @@ export function DesignRecommendations({
   suggestion?: GoalSuggestion
 }): React.JSX.Element {
   // Follows the suggestion until the customer picks a goal themselves.
-  const [pickedGoal, setPickedGoal] = useState<DesignGoalId | null>(null)
-  const goal: DesignGoalId = pickedGoal ?? suggestion?.goal ?? 'introduce'
-  const setGoal = (id: DesignGoalId) => setPickedGoal(id)
-  const [browseAll, setBrowseAll] = useState(false)
+  const [pickedGoal, setPickedGoal] = useState<DesignGoalId | null>(null);
+  const goal: DesignGoalId = pickedGoal ?? suggestion?.goal ?? 'introduce';
+  const setGoal = (id: DesignGoalId) => setPickedGoal(id);
+  const [browseAll, setBrowseAll] = useState(false);
   // Replace swaps the whole layout for the design; Add keeps the layout and puts the design on top.
-  const [how, setHow] = useState<'replace' | 'add'>('add')
+  const [how, setHow] = useState<'replace' | 'add'>('add');
   // Add mode never removes: an added design comes off through its Remove button, which keeps the rest.
   const choose = (id: string, active: boolean) => {
-    if (how === 'add' && onAddDesign) { if (!active) onAddDesign(id); return }
-    onSelectDesign(active ? null : id)
-  }
+    if (how === 'add' && onAddDesign) { if (!active) onAddDesign(id); return; }
+    onSelectDesign(active ? null : id);
+  };
   const recommended = useMemo(
     () => recommendDesigns({
       designs, aspectRatio, goal, available, context,
       isSupported: (d) => isRemotionDesignTemplateSupported(d.id, aspectRatio).supported,
     }),
     [designs, aspectRatio, goal, available, context?.textLength, context?.hasLogo, context?.imageCount],
-  )
+  );
   return (
     <div data-testid="design-recommendations" style={{ marginBottom: 12 }}>
       <p style={{ ...hintStyle, marginTop: 0 }}>Designs add animation to your video; your layout stays.</p>
@@ -83,8 +83,8 @@ export function DesignRecommendations({
       <div style={{ ...labelStyle, marginBottom: 6 }}>Recommended designs</div>
       <div data-testid="design-recommended" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 8 }}>
         {recommended.map(({ design, reasons }) => {
-          const active = activeDesignId === design.id
-          const refusal = how === 'add' && !active && addCheck ? addCheck(design) : { ok: true }
+          const active = activeDesignId === design.id;
+          const refusal = how === 'add' && !active && addCheck ? addCheck(design) : { ok: true };
           return (
             <button
               key={design.id}
@@ -100,7 +100,7 @@ export function DesignRecommendations({
               <div style={{ ...hintStyle, margin: '2px 0 0' }}>{refusal.ok ? design.description : refusal.reason}</div>
               {reasons.length > 1 && <div data-testid={`design-why-${design.id}`} style={{ ...hintStyle, margin: '4px 0 0', color: C.cyan }}>Why: {reasons.slice(1).join(' · ')}</div>}
             </button>
-          )
+          );
         })}
         {recommended.length === 0 && <p style={{ ...hintStyle, margin: 0 }}>No designs fit this goal and video shape — browse the full library.</p>}
       </div>
@@ -113,5 +113,5 @@ export function DesignRecommendations({
         </div>
       )}
     </div>
-  )
+  );
 }

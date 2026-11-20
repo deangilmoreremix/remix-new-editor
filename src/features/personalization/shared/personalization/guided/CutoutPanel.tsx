@@ -1,69 +1,69 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { Eraser, RotateCcw } from 'lucide-react'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { ColorField } from './editor/ColorField'
-import { Tip } from './editor/Tip'
-import { C, chipStyle, hintStyle, labelStyle, panelStyle, secondaryButtonStyle } from './tokens'
-import { DEFAULT_CUTOUT, CUTOUT_SCALE_MAX, CUTOUT_SCALE_MIN, PRESENTER_PRESETS, type CutoutBackground, type CutoutSettings } from '../preview/cutout/cutoutSettings'
-import { cancelMasks, ensureMasks, getCutoutStatus, masksVersion, subscribeMasks } from '../preview/cutout/maskStore'
-import type { PreviewInputProps } from '../preview/types'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { Eraser, RotateCcw } from 'lucide-react';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { ColorField } from './editor/ColorField';
+import { Tip } from './editor/Tip';
+import { C, chipStyle, hintStyle, labelStyle, panelStyle, secondaryButtonStyle } from './tokens';
+import { DEFAULT_CUTOUT, CUTOUT_SCALE_MAX, CUTOUT_SCALE_MIN, PRESENTER_PRESETS, type CutoutBackground, type CutoutSettings } from '../preview/cutout/cutoutSettings';
+import { cancelMasks, ensureMasks, getCutoutStatus, masksVersion, subscribeMasks } from '../preview/cutout/maskStore';
+import type { PreviewInputProps } from '../preview/types';
 
 /**
  * Presenter background removal controls (Step 4, beside the layers). Segmentation runs in this browser and
  * costs no credits; the result is previewed live and drawn by the same code that exports it.
  */
 export function CutoutPanel({ inputProps }: { inputProps: PreviewInputProps }): React.JSX.Element | null {
-  const { previewSettings, updatePreviewComposition } = useDemoPersonalize()
-  const videoUrl = inputProps.videoUrl
-  useSyncExternalStore(subscribeMasks, masksVersion, masksVersion)
-  const [open, setOpen] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
-  const [pickKind, setPickKind] = useState<'image' | 'video'>('image')
+  const { previewSettings, updatePreviewComposition } = useDemoPersonalize();
+  const videoUrl = inputProps.videoUrl;
+  useSyncExternalStore(subscribeMasks, masksVersion, masksVersion);
+  const [open, setOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [pickKind, setPickKind] = useState<'image' | 'video'>('image');
 
-  const cutout: CutoutSettings = previewSettings.cutout ?? DEFAULT_CUTOUT
-  const status = getCutoutStatus(videoUrl)
-  const usable = Boolean(videoUrl) && !inputProps.isImageSource
+  const cutout: CutoutSettings = previewSettings.cutout ?? DEFAULT_CUTOUT;
+  const status = getCutoutStatus(videoUrl);
+  const usable = Boolean(videoUrl) && !inputProps.isImageSource;
 
   // A reopened project remembers that background removal was on, but the masks are not saved: measure them
   // again (free, in this browser) so the preview and export show the same thing.
   useEffect(() => {
-    if (usable && videoUrl && cutout.enabled && status.state === 'idle') void ensureMasks(videoUrl).catch(() => undefined)
-  }, [usable, videoUrl, cutout.enabled, status.state])
+    if (usable && videoUrl && cutout.enabled && status.state === 'idle') void ensureMasks(videoUrl).catch(() => undefined);
+  }, [usable, videoUrl, cutout.enabled, status.state]);
 
-  if (!usable || !videoUrl) return null
-  const processing = status.state === 'processing'
-  const set = (patch: Partial<CutoutSettings>) => updatePreviewComposition({ cutout: { ...cutout, ...patch } })
+  if (!usable || !videoUrl) return null;
+  const processing = status.state === 'processing';
+  const set = (patch: Partial<CutoutSettings>) => updatePreviewComposition({ cutout: { ...cutout, ...patch } });
 
   const start = () => {
-    set({ enabled: true })
-    void ensureMasks(videoUrl).catch(() => undefined)
-  }
+    set({ enabled: true });
+    void ensureMasks(videoUrl).catch(() => undefined);
+  };
   const cancel = () => {
-    cancelMasks(videoUrl)
-    set({ enabled: false })
-  }
-  const setBackground = (background: CutoutBackground) => set({ background })
+    cancelMasks(videoUrl);
+    set({ enabled: false });
+  };
+  const setBackground = (background: CutoutBackground) => set({ background });
 
-  const brand = previewSettings.brandColors
-  const bg = cutout.background
+  const brand = previewSettings.brandColors;
+  const bg = cutout.background;
   const business: { label: string; url: string }[] = [
     inputProps.brand.logoUrl ? { label: 'Your logo', url: inputProps.brand.logoUrl } : null,
     inputProps.brand.productUrl ? { label: 'Product image', url: inputProps.brand.productUrl } : null,
     inputProps.brand.serviceUrl ? { label: 'Service image', url: inputProps.brand.serviceUrl } : null,
-  ].filter((v): v is { label: string; url: string } => Boolean(v))
+  ].filter((v): v is { label: string; url: string } => Boolean(v));
 
   const onFile = (file: File | undefined) => {
-    if (!file) return
-    const url = URL.createObjectURL(file)
-    setBackground(pickKind === 'image' ? { kind: 'image', url } : { kind: 'video', url })
-  }
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setBackground(pickKind === 'image' ? { kind: 'image', url } : { kind: 'video', url });
+  };
 
   const slider = (id: string, label: string, value: number, min: number, max: number, step: number, onChange: (v: number) => void) => (
     <div>
       <label style={labelStyle} htmlFor={id}>{label}</label>
       <input id={id} type="range" aria-label={label} min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: '100%', accentColor: C.cyan }} />
     </div>
-  )
+  );
 
   return (
     <div data-testid="cutout-panel" style={{ ...panelStyle, padding: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -113,10 +113,10 @@ export function CutoutPanel({ inputProps }: { inputProps: PreviewInputProps }): 
                       data-testid={`cutout-bg-${kind}`}
                       aria-pressed={bg.kind === kind}
                       onClick={() => {
-                        if (kind === 'none') setBackground({ kind: 'none' })
-                        else if (kind === 'color') setBackground({ kind: 'color', color: bg.kind === 'color' ? bg.color : brand.primary })
-                        else if (kind === 'blur') setBackground({ kind: 'blur', amount: 24 })
-                        else { setPickKind(kind); fileRef.current?.click() }
+                        if (kind === 'none') setBackground({ kind: 'none' });
+                        else if (kind === 'color') setBackground({ kind: 'color', color: bg.kind === 'color' ? bg.color : brand.primary });
+                        else if (kind === 'blur') setBackground({ kind: 'blur', amount: 24 });
+                        else { setPickKind(kind); fileRef.current?.click(); }
                       }}
                       style={{ ...chipStyle(bg.kind === kind), minHeight: 28, fontSize: 10 }}
                     >
@@ -124,7 +124,7 @@ export function CutoutPanel({ inputProps }: { inputProps: PreviewInputProps }): 
                     </button>
                   ))}
                 </div>
-                <input ref={fileRef} type="file" hidden data-testid="cutout-bg-file" accept={pickKind === 'image' ? 'image/*' : 'video/*'} onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = '' }} />
+                <input ref={fileRef} type="file" hidden data-testid="cutout-bg-file" accept={pickKind === 'image' ? 'image/*' : 'video/*'} onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} />
                 {business.length > 0 && (
                   <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 6 }}>
                     {business.map((b) => (
@@ -169,5 +169,5 @@ export function CutoutPanel({ inputProps }: { inputProps: PreviewInputProps }): 
         </div>
       )}
     </div>
-  )
+  );
 }

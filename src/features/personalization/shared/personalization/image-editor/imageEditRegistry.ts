@@ -1,4 +1,4 @@
-import type { AssetRole, DiscoveredAssetCategory } from '../types'
+import type { AssetRole, DiscoveredAssetCategory } from '../types';
 
 export type EditorAssetKind =
   | 'person'
@@ -134,7 +134,7 @@ const ALL: EditorAssetKind[] = [
   'person', 'logo', 'product', 'service', 'completed_work', 'storefront', 'office',
   'branded_vehicle', 'team', 'brand', 'first_frame', 'last_frame', 'cta_graphic',
   'background_reference', 'saved_reference', 'general',
-]
+];
 
 const op = (
   id: EditorOperationId,
@@ -143,7 +143,7 @@ const op = (
   description: string,
   prompt: string,
   extra: Partial<EditorOperation> = {},
-): EditorOperation => ({ id, label, group, description, prompt, supportsMask: true, applicableTo: ALL, ...extra })
+): EditorOperation => ({ id, label, group, description, prompt, supportsMask: true, applicableTo: ALL, ...extra });
 
 export const IMAGE_EDIT_OPERATIONS: Record<EditorOperationId, EditorOperation> = {
   video_ready: op('video_ready', 'Make Video Ready', 'smart', 'Automatically prepare the asset for its SmartVideo GO video role.', 'Prepare this business image for professional video use. Follow the asset recipe, preserve the real subject and branding, improve composition and usability, and do not invent unnecessary changes.', { precision: true }),
@@ -215,7 +215,7 @@ export const IMAGE_EDIT_OPERATIONS: Record<EditorOperationId, EditorOperation> =
   change_clothing: op('change_clothing', 'Change Clothing', 'people', 'Change clothing only while preserving identity and pose.', 'Change only the requested clothing. Preserve the person’s identity, face, hair, pose, body proportions, expression and surrounding scene.', { precision: true, destructiveCreative: true, applicableTo: ['person'] }),
   custom: op('custom', 'Ask SmartVideo GO AI', 'smart', 'Describe any image edit in natural language.', 'Follow the user’s requested edit precisely. Preserve everything not explicitly requested to change.', { precision: true }),
   local_adjustments: op('local_adjustments', 'Local Adjustments', 'effects', 'Apply manual canvas adjustments.', 'Apply manual canvas adjustments including rotation, crop, brightness, contrast, saturation, opacity, blur, and text overlay. Preserve subject identity and branding.', { precision: false }),
-}
+};
 
 const recipe = (
   kind: EditorAssetKind,
@@ -237,7 +237,7 @@ const recipe = (
   makeVideoReadySteps,
   preserve,
   ...extra,
-})
+});
 
 export const ASSET_RECIPES: Record<EditorAssetKind, AssetRecipe> = {
   person: recipe('person', 'Person / Presenter', 'Presenter Overlay', ['presenter_cutout', 'portrait_enhance', 'headshot_prep', 'vertical_prep', 'relight'], ['portrait_enhance', 'presenter_cutout', 'safe_area'], ['face', 'identity', 'hair', 'skin tone', 'clothing', 'body proportions'], { transparencyRecommended: true, precisionRecommended: true }),
@@ -256,20 +256,20 @@ export const ASSET_RECIPES: Record<EditorAssetKind, AssetRecipe> = {
   background_reference: recipe('background_reference', 'Background Reference', 'Video Background', ['video_background', 'cleanup', 'blur_background', 'reframe', 'safe_area'], ['video_background', 'safe_area'], ['location identity', 'brand context']),
   saved_reference: recipe('saved_reference', 'Saved Reference', 'Reference Asset', ['enhance', 'reframe', 'cleanup', 'preserve_brand'], ['enhance', 'safe_area'], ['important subject', 'business identity']),
   general: recipe('general', 'Business Image', 'Video Asset', ['enhance', 'cleanup', 'reframe', 'social_ad', 'commercial_ad'], ['enhance', 'safe_area'], ['important subject', 'business identity']),
-}
+};
 
 function roleToEditorAssetKind(role?: AssetRole): EditorAssetKind | null {
-  if (!role) return null
-  if (role === 'presenter_identity' || role === 'face_identity' || role === 'character_identity') return 'person'
-  if (role === 'logo') return 'logo'
-  if (role === 'product_reference') return 'product'
-  if (role === 'first_frame') return 'first_frame'
-  if (role === 'last_frame') return 'last_frame'
-  if (role === 'cta_graphic') return 'cta_graphic'
-  if (role === 'background_reference') return 'background_reference'
-  if (role === 'saved_reference') return 'saved_reference'
-  if (role === 'brand_reference') return 'brand'
-  return null
+  if (!role) return null;
+  if (role === 'presenter_identity' || role === 'face_identity' || role === 'character_identity') return 'person';
+  if (role === 'logo') return 'logo';
+  if (role === 'product_reference') return 'product';
+  if (role === 'first_frame') return 'first_frame';
+  if (role === 'last_frame') return 'last_frame';
+  if (role === 'cta_graphic') return 'cta_graphic';
+  if (role === 'background_reference') return 'background_reference';
+  if (role === 'saved_reference') return 'saved_reference';
+  if (role === 'brand_reference') return 'brand';
+  return null;
 }
 
 /**
@@ -278,8 +278,8 @@ function roleToEditorAssetKind(role?: AssetRole): EditorAssetKind | null {
  * used for protection rules and operation applicability.
  */
 export function resolveEditorAssetKind(category?: DiscoveredAssetCategory, role?: AssetRole): EditorAssetKind {
-  if (category && category !== 'irrelevant') return category
-  return roleToEditorAssetKind(role) || 'general'
+  if (category && category !== 'irrelevant') return category;
+  return roleToEditorAssetKind(role) || 'general';
 }
 
 /**
@@ -296,36 +296,36 @@ export function resolveEditorRecipeKind(category?: DiscoveredAssetCategory, role
     role === 'background_reference' ||
     role === 'saved_reference'
   ) {
-    return roleToEditorAssetKind(role) || 'general'
+    return roleToEditorAssetKind(role) || 'general';
   }
-  return resolveEditorAssetKind(category, role)
+  return resolveEditorAssetKind(category, role);
 }
 
 export function getOperation(id: EditorOperationId) {
-  return IMAGE_EDIT_OPERATIONS[id]
+  return IMAGE_EDIT_OPERATIONS[id];
 }
 
 export function getSourceAssetRecipe(category?: DiscoveredAssetCategory, role?: AssetRole) {
-  return ASSET_RECIPES[resolveEditorAssetKind(category, role)]
+  return ASSET_RECIPES[resolveEditorAssetKind(category, role)];
 }
 
 export function getAssetRecipe(category?: DiscoveredAssetCategory, role?: AssetRole) {
-  return ASSET_RECIPES[resolveEditorRecipeKind(category, role)]
+  return ASSET_RECIPES[resolveEditorRecipeKind(category, role)];
 }
 
 export function getOperationsForAsset(kind: EditorAssetKind) {
   return Object.values(IMAGE_EDIT_OPERATIONS).filter((operation) => {
-    return !operation.applicableTo || operation.applicableTo.includes(kind)
-  })
+    return !operation.applicableTo || operation.applicableTo.includes(kind);
+  });
 }
 
 export function operationGroupsForAsset(kind: EditorAssetKind) {
-  const groups = new Map<EditorOperationGroup, EditorOperation[]>()
+  const groups = new Map<EditorOperationGroup, EditorOperation[]>();
   for (const operation of getOperationsForAsset(kind)) {
-    if (operation.id === 'video_ready' || operation.id === 'custom') continue
-    const existing = groups.get(operation.group) || []
-    existing.push(operation)
-    groups.set(operation.group, existing)
+    if (operation.id === 'video_ready' || operation.id === 'custom') continue;
+    const existing = groups.get(operation.group) || [];
+    existing.push(operation);
+    groups.set(operation.group, existing);
   }
-  return groups
+  return groups;
 }

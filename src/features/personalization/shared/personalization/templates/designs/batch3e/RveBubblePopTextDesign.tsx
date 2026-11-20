@@ -19,10 +19,10 @@
  * glow; the layer colour → the letters.
  */
 
-import React from 'react'
-import { BubblePopText } from '../../_upstream/rve-bubble-pop-text/BubblePopText'
-import { type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { BubblePopText } from '../../_upstream/rve-bubble-pop-text/BubblePopText';
+import { type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandPrimary,
   brandText,
@@ -31,38 +31,38 @@ import {
   remUnit,
   slotText,
   withAlpha,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_BUBBLE_POP_TEXT_ID = 'rve-bubble-pop-text'
+export const RVE_BUBBLE_POP_TEXT_ID = 'rve-bubble-pop-text';
 
-const ZOOM = 1.6
+const ZOOM = 1.6;
 
 /** The most letters (spaces included) the row may hold. */
-export const BUBBLE_POP_MAX_CHARS = 10
+export const BUBBLE_POP_MAX_CHARS = 10;
 
 /** Picks the copy for the bubbles: the whole name, its first word, or a cut. */
 export function bubblePopCopy(raw: string): string {
-  const value = raw.trim().replace(/\s+/g, ' ').toUpperCase()
-  if (value.length <= BUBBLE_POP_MAX_CHARS) return value
-  const first = value.split(' ')[0] ?? ''
-  if (first.length > 0 && first.length <= BUBBLE_POP_MAX_CHARS) return first
-  return value.slice(0, BUBBLE_POP_MAX_CHARS)
+  const value = raw.trim().replace(/\s+/g, ' ').toUpperCase();
+  if (value.length <= BUBBLE_POP_MAX_CHARS) return value;
+  const first = value.split(' ')[0] ?? '';
+  if (first.length > 0 && first.length <= BUBBLE_POP_MAX_CHARS) return first;
+  return value.slice(0, BUBBLE_POP_MAX_CHARS);
 }
 
 export const RveBubblePopTextDesign: React.FC<DesignAdapterProps> = (props) => {
-  const copy = bubblePopCopy(slotText(props, 'businessName', ['headline']))
-  const count = Math.max(1, copy.length)
+  const copy = bubblePopCopy(slotText(props, 'businessName', ['headline']));
+  const count = Math.max(1, copy.length);
 
-  const rem = remUnit(props, ZOOM)
-  const baseSize = (100 * rem) / 16
-  const baseGap = 0.5 * rem
-  const available = props.width * 0.46
+  const rem = remUnit(props, ZOOM);
+  const baseSize = (100 * rem) / 16;
+  const baseGap = 0.5 * rem;
+  const available = props.width * 0.46;
   // Each bubble is `size` + two borders (4 % of the size each) wide.
-  const fitted = (available - baseGap * (count - 1)) / (count * 1.08)
-  const size = Math.max(12, Math.min(baseSize, fitted))
-  const ratio = size / 100
+  const fitted = (available - baseGap * (count - 1)) / (count * 1.08);
+  const size = Math.max(12, Math.min(baseSize, fitted));
+  const ratio = size / 100;
 
-  const primary = brandPrimary(props)
+  const primary = brandPrimary(props);
 
   return (
     <RveDesignStage designId={RVE_BUBBLE_POP_TEXT_ID} props={props}>
@@ -80,7 +80,7 @@ export const RveBubblePopTextDesign: React.FC<DesignAdapterProps> = (props) => {
         hideSpaceBubbles
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveBubblePopTextDesign
+export default RveBubblePopTextDesign;

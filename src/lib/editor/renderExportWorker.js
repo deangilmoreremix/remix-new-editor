@@ -197,7 +197,7 @@ self.onmessage = async (event) => {
   } catch (err) {
     self.postMessage({ type: 'error', message: err.message || String(err) });
   }
-}
+};
 
 export function createExportWorker() {
   const worker = new Worker(new URL('./renderExportWorker.js', import.meta.url).href, { type: 'module' });

@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
-import { Trash2, Video, Eye, Contrast, Droplets, Thermometer, SunDim, RotateCcw, Palette, ChevronDown, ChevronRight, FlipHorizontal2, FlipVertical2 } from 'lucide-react'
-import type { TimelineClip, Track, ColorCorrection } from '../../lib/timeline-editor/types'
-import { DEFAULT_COLOR_CORRECTION } from '../../lib/timeline-editor/types'
-import { TooltipWrapper } from './TooltipWrapper'
+import React, { useState } from 'react';
+import { Trash2, Video, Eye, Contrast, Droplets, Thermometer, SunDim, RotateCcw, Palette, ChevronDown, ChevronRight, FlipHorizontal2, FlipVertical2 } from 'lucide-react';
+import type { TimelineClip, Track, ColorCorrection } from '../../lib/timeline-editor/types';
+import { DEFAULT_COLOR_CORRECTION } from '../../lib/timeline-editor/types';
+import { TooltipWrapper } from './TooltipWrapper';
 
 interface ClipPropertiesPanelProps {
   selectedClip: TimelineClip | null
@@ -13,9 +13,9 @@ interface ClipPropertiesPanelProps {
 }
 
 export function ClipPropertiesPanel({ selectedClip, tracks, rightPanelWidth, onUpdateClip, onDeleteClip }: ClipPropertiesPanelProps) {
-  const [showFlip, setShowFlip] = useState(false)
-  const [showTransitions, setShowTransitions] = useState(false)
-  const [showColorCorrection, setShowColorCorrection] = useState(false)
+  const [showFlip, setShowFlip] = useState(false);
+  const [showTransitions, setShowTransitions] = useState(false);
+  const [showColorCorrection, setShowColorCorrection] = useState(false);
 
   if (!selectedClip) {
     return (
@@ -26,7 +26,7 @@ export function ClipPropertiesPanel({ selectedClip, tracks, rightPanelWidth, onU
           <p className="text-xs mt-1">Select a clip to edit its properties</p>
         </div>
       </div>
-    )
+    );
   }
 
   const handleColorCorrectionChange = (property: keyof ColorCorrection, value: number) => {
@@ -35,8 +35,8 @@ export function ClipPropertiesPanel({ selectedClip, tracks, rightPanelWidth, onU
         ...(selectedClip.colorCorrection || DEFAULT_COLOR_CORRECTION),
         [property]: value,
       },
-    })
-  }
+    });
+  };
 
   return (
     <div className="flex-shrink-0 border-l border-slate-700 bg-slate-900 p-4 overflow-auto" style={{ width: rightPanelWidth }}>
@@ -228,7 +228,7 @@ export function ClipPropertiesPanel({ selectedClip, tracks, rightPanelWidth, onU
         </TooltipWrapper>
       </div>
     </div>
-  )
+  );
 }
 
 function ColorControl({
@@ -261,5 +261,5 @@ function ColorControl({
         className="w-full h-1.5 accent-blue-500"
       />
     </div>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Film, FolderOpen, Play, Sparkles, Upload, Video } from 'lucide-react'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { demoDurationInFrames } from './curatedDemos'
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Check, Film, FolderOpen, Play, Sparkles, Upload, Video } from 'lucide-react';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { demoDurationInFrames } from './curatedDemos';
 import {
   C,
   badgeStyle,
@@ -14,9 +14,9 @@ import {
   secondaryButtonStyle,
   softPanelStyle,
   tileStyle,
-} from './tokens'
-import { TemplateBrowser } from './TemplateBrowser'
-import { RecastOption } from './RecastOption'
+} from './tokens';
+import { TemplateBrowser } from './TemplateBrowser';
+import { RecastOption } from './RecastOption';
 import {
   ALL_DEMOS_CATEGORY_ID,
   DEMO_CATEGORIES,
@@ -28,29 +28,29 @@ import {
   humanizeTaxonomyId,
   isCategoryActiveForDemo,
   matchesDemoQuery,
-} from './demoCategories'
-import { DemoCategoryTabs, DemoFilterSelect, DemoSearchInput } from './DemoGalleryControls'
-import { CardPreviewVideo } from './CardPreviewVideo'
+} from './demoCategories';
+import { DemoCategoryTabs, DemoFilterSelect, DemoSearchInput } from './DemoGalleryControls';
+import { CardPreviewVideo } from './CardPreviewVideo';
 import {
   DEMO_LIBRARY_REGISTRY,
   demoCollections,
   toVideoDemo,
   type DemoLibraryEntry,
-} from '@ohb/data/demoLibraryRegistry'
-import type { VideoDemo } from '@ohb/data/types'
-import type { SharedMediaEntry } from '../types'
-import type { PreviewVideoRef } from '../preview/types'
+} from '@ohb/data/demoLibraryRegistry';
+import type { VideoDemo } from '@ohb/data/types';
+import type { SharedMediaEntry } from '../types';
+import type { PreviewVideoRef } from '../preview/types';
 
 function isVideoUrl(url: string | null | undefined): boolean {
-  if (!url || url.startsWith('blob:')) return false
-  return /\.(mp4|webm|mov|m4v|m3u8)(\?|$)/i.test(url) || url.includes('/video')
+  if (!url || url.startsWith('blob:')) return false;
+  return /\.(mp4|webm|mov|m4v|m3u8)(\?|$)/i.test(url) || url.includes('/video');
 }
 
 function savedVideoUrl(entry: SharedMediaEntry): string | null {
-  const output = Array.isArray(entry.outputUrls) ? entry.outputUrls.find((url) => isVideoUrl(url)) : undefined
-  if (output) return output
-  if (isVideoUrl(entry.sourceMedia)) return entry.sourceMedia || null
-  return null
+  const output = Array.isArray(entry.outputUrls) ? entry.outputUrls.find((url) => isVideoUrl(url)) : undefined;
+  if (output) return output;
+  if (isVideoUrl(entry.sourceMedia)) return entry.sourceMedia || null;
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -74,16 +74,16 @@ type DemoGalleryItem = {
 const DEMO_GALLERY_ITEMS: readonly DemoGalleryItem[] = DEMO_LIBRARY_REGISTRY.map((entry) => ({
   entry,
   demo: toVideoDemo(entry),
-}))
+}));
 
 /** Registry id → taxonomy view, so a picked demo can be timed without a rebuild. */
-const DEMO_VIDEO_BY_ENTRY_ID = new Map(DEMO_GALLERY_ITEMS.map((item) => [item.entry.id, item.demo]))
+const DEMO_VIDEO_BY_ENTRY_ID = new Map(DEMO_GALLERY_ITEMS.map((item) => [item.entry.id, item.demo]));
 
 /** Cards mounted before the customer asks for more. */
-const DEMO_GALLERY_INITIAL = 12
+const DEMO_GALLERY_INITIAL = 12;
 
 /** Extra cards mounted per "Show more" click. */
-const DEMO_GALLERY_STEP = 10
+const DEMO_GALLERY_STEP = 10;
 
 /**
  * Counts over the whole library.
@@ -92,13 +92,13 @@ const DEMO_GALLERY_STEP = 10
  * is not offered, because an empty tab is a dead end. The counts SHOWN on the
  * tabs are computed again from the current filter set (see `demoGallery`).
  */
-const DEMO_LIBRARY_CATEGORY_COUNTS = countDemosByCategory(DEMO_GALLERY_ITEMS.map((item) => item.demo))
+const DEMO_LIBRARY_CATEGORY_COUNTS = countDemosByCategory(DEMO_GALLERY_ITEMS.map((item) => item.demo));
 
 /** "All Demos" first, then every niche that actually holds at least one demo. */
 const DEMO_VISIBLE_CATEGORIES = DEMO_CATEGORIES.filter(
   (category) =>
     category.id === ALL_DEMOS_CATEGORY_ID || (DEMO_LIBRARY_CATEGORY_COUNTS[category.id] ?? 0) > 0,
-)
+);
 
 /** A single select option. */
 type DemoOption = { value: string; label: string }
@@ -116,11 +116,11 @@ function demoFilterOptions(
   allLabel: string,
   currentLabel?: string,
 ): DemoOption[] {
-  const list: DemoOption[] = [{ value: 'all', label: allLabel }]
+  const list: DemoOption[] = [{ value: 'all', label: allLabel }];
   if (current !== 'all' && !options.some((option) => option.value === current)) {
-    list.push({ value: current, label: currentLabel ?? current })
+    list.push({ value: current, label: currentLabel ?? current });
   }
-  return [...list, ...options]
+  return [...list, ...options];
 }
 
 /**
@@ -131,82 +131,82 @@ function demoFilterOptions(
  * browser-local upload are optional ways to change it. No paid call is made.
  */
 export function StepChooseVideo(): React.JSX.Element {
-  const ctx = useDemoPersonalize()
-  const { source, previewVideo, setPreviewVideo, previewSettings, updatePreviewComposition, sharedMediaEntries = [] } = ctx
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [uploadNote, setUploadNote] = useState(false)
-  const [hoveredDemoKey, setHoveredDemoKey] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'source' | 'demos' | 'motion' | 'upload'>('source')
+  const ctx = useDemoPersonalize();
+  const { source, previewVideo, setPreviewVideo, previewSettings, updatePreviewComposition, sharedMediaEntries = [] } = ctx;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadNote, setUploadNote] = useState(false);
+  const [hoveredDemoKey, setHoveredDemoKey] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'source' | 'demos' | 'motion' | 'upload'>('source');
 
   // ── Demos tab state ──────────────────────────────────────────────────────
   // The selection itself is NOT held here: it lives in the provider
   // (`previewVideo`), so switching category, filter or search can never
   // change what the customer picked.
-  const [demoCategoryId, setDemoCategoryId] = useState<string>(ALL_DEMOS_CATEGORY_ID)
-  const [demoQuery, setDemoQuery] = useState('')
-  const [demoSourceId, setDemoSourceId] = useState('all')
-  const [demoStyleId, setDemoStyleId] = useState('all')
-  const [demoAspect, setDemoAspect] = useState('all')
-  const [demoSubcategoryId, setDemoSubcategoryId] = useState('all')
+  const [demoCategoryId, setDemoCategoryId] = useState<string>(ALL_DEMOS_CATEGORY_ID);
+  const [demoQuery, setDemoQuery] = useState('');
+  const [demoSourceId, setDemoSourceId] = useState('all');
+  const [demoStyleId, setDemoStyleId] = useState('all');
+  const [demoAspect, setDemoAspect] = useState('all');
+  const [demoSubcategoryId, setDemoSubcategoryId] = useState('all');
   // Logo label: every demo is reviewed as `none` (no visible logo / watermark / credit) or `logo`.
-  const [demoBranding, setDemoBranding] = useState('all')
+  const [demoBranding, setDemoBranding] = useState('all');
   // The visible window is keyed by the filter set: changing any filter starts
   // a fresh window without a stale "Show more" count.
-  const [demoWindow, setDemoWindow] = useState({ key: '', count: DEMO_GALLERY_INITIAL })
+  const [demoWindow, setDemoWindow] = useState({ key: '', count: DEMO_GALLERY_INITIAL });
 
-  const fps = previewSettings?.fps || 30
+  const fps = previewSettings?.fps || 30;
 
   // Auto-select the launch video. Guarded by the source URL so it runs once
   // per source: the customer never has to click anything to continue, and
   // switching sources (or reopening the modal) reselects that new video.
-  const autoSelectedSourceRef = useRef<string | null>(null)
+  const autoSelectedSourceRef = useRef<string | null>(null);
   useEffect(() => {
-    const url = source?.sourceMedia
-    if (!url) return
-    if (previewVideo?.url) return
-    if (autoSelectedSourceRef.current === url) return
-    autoSelectedSourceRef.current = url
+    const url = source?.sourceMedia;
+    if (!url) return;
+    if (previewVideo?.url) return;
+    if (autoSelectedSourceRef.current === url) return;
+    autoSelectedSourceRef.current = url;
     setPreviewVideo({
       url,
       poster: source.poster || null,
       title: source.title || 'Your video',
       kind: 'source',
-    })
-  }, [source?.sourceMedia, source?.poster, source?.title, previewVideo?.url, setPreviewVideo])
+    });
+  }, [source?.sourceMedia, source?.poster, source?.title, previewVideo?.url, setPreviewVideo]);
 
   const savedVideos = sharedMediaEntries
     .map((entry) => ({ entry, url: savedVideoUrl(entry) }))
     .filter((item): item is { entry: SharedMediaEntry; url: string } => Boolean(item.url))
-    .slice(0, 8)
+    .slice(0, 8);
 
-  const pick = (video: PreviewVideoRef) => setPreviewVideo(video)
+  const pick = (video: PreviewVideoRef) => setPreviewVideo(video);
 
   const pickDemo = (demo: DemoLibraryEntry) => {
     // A demo without a playable videoSrc must not be selected and must never
     // silently substitute another demo. Show an unavailable state instead.
     if (!demo.videoSrc) {
-      return
+      return;
     }
     // `demoId` is the registry's source-qualified id ("<collection>:<slug>").
     // The source catalogs reuse numeric ids across libraries, so a bare
     // number would point at a different video in another collection.
-    pick({ url: demo.videoSrc, poster: demo.posterSrc || null, title: demo.title, kind: 'demo', demoId: demo.id })
-    const videoDemo = DEMO_VIDEO_BY_ENTRY_ID.get(demo.id) ?? toVideoDemo(demo)
-    updatePreviewComposition({ durationInFrames: demoDurationInFrames(videoDemo, fps) })
-  }
+    pick({ url: demo.videoSrc, poster: demo.posterSrc || null, title: demo.title, kind: 'demo', demoId: demo.id });
+    const videoDemo = DEMO_VIDEO_BY_ENTRY_ID.get(demo.id) ?? toVideoDemo(demo);
+    updatePreviewComposition({ durationInFrames: demoDurationInFrames(videoDemo, fps) });
+  };
 
   const handleUpload = (file: File | undefined) => {
-    if (!file) return
-    const objectUrl = URL.createObjectURL(file)
-    pick({ url: objectUrl, poster: null, title: file.name, kind: 'uploaded' })
-    setUploadNote(true)
-  }
+    if (!file) return;
+    const objectUrl = URL.createObjectURL(file);
+    pick({ url: objectUrl, poster: null, title: file.name, kind: 'uploaded' });
+    setUploadNote(true);
+  };
 
-  const selectedUrl = previewVideo?.url || source?.sourceMedia || null
+  const selectedUrl = previewVideo?.url || source?.sourceMedia || null;
 
   // ── Demos tab: the filtered gallery ─────────────────────────────────────
   const demoGallery = useMemo(() => {
-    const query = demoQuery.trim().toLowerCase()
+    const query = demoQuery.trim().toLowerCase();
 
     // ONE pass over the library, one boolean per dimension. The taxonomy
     // matcher is the expensive part, so it is never asked the same question
@@ -224,88 +224,88 @@ export function StepChooseVideo(): React.JSX.Element {
       subcategory:
         demoSubcategoryId === 'all' || isCategoryActiveForDemo(demoSubcategoryId, item.demo),
       branding: demoBranding === 'all' || item.entry.branding === demoBranding,
-    }))
+    }));
 
     // Every dimension except the category: the per-tab counts describe how
     // many of the CURRENTLY FILTERED demos each category would hold.
-    const facetSet = rows.filter((row) => row.query && row.source && row.style && row.aspect && row.branding)
+    const facetSet = rows.filter((row) => row.query && row.source && row.style && row.aspect && row.branding);
     // The final list: every dimension applied.
-    const filtered = facetSet.filter((row) => row.category && row.subcategory)
+    const filtered = facetSet.filter((row) => row.category && row.subcategory);
 
     // Each option list ignores the dimension it describes, so a value the
     // customer already picked never disappears from its own list.
-    const sourceCandidates = rows.filter((row) => row.query && row.style && row.aspect && row.category && row.branding)
-    const styleCandidates = rows.filter((row) => row.query && row.source && row.aspect && row.category && row.branding)
-    const aspectCandidates = rows.filter((row) => row.query && row.source && row.style && row.category && row.branding)
-    const subcategoryCandidates = rows.filter((row) => row.query && row.category && row.branding)
+    const sourceCandidates = rows.filter((row) => row.query && row.style && row.aspect && row.category && row.branding);
+    const styleCandidates = rows.filter((row) => row.query && row.source && row.aspect && row.category && row.branding);
+    const aspectCandidates = rows.filter((row) => row.query && row.source && row.style && row.category && row.branding);
+    const subcategoryCandidates = rows.filter((row) => row.query && row.category && row.branding);
     // The logo filter ignores itself, like every other option list.
-    const brandingCandidates = rows.filter((row) => row.query && row.source && row.style && row.aspect && row.category && row.subcategory)
+    const brandingCandidates = rows.filter((row) => row.query && row.source && row.style && row.aspect && row.category && row.subcategory);
 
     // Source collection — derived from the registry, never hardcoded.
-    const sourceCounts = new Map<string, number>()
+    const sourceCounts = new Map<string, number>();
     for (const row of sourceCandidates) {
       sourceCounts.set(
         row.item.entry.collectionId,
         (sourceCounts.get(row.item.entry.collectionId) ?? 0) + 1,
-      )
+      );
     }
     const sourceOptions: DemoOption[] = demoCollections
       .filter((collection) => sourceCounts.has(collection.id))
       .map((collection) => ({
         value: collection.id,
         label: `${collection.label} (${sourceCounts.get(collection.id) ?? 0})`,
-      }))
+      }));
 
     // Video style — the seven canonical AI Viral style buckets, restricted to
     // the ones that actually occur in the current set.
-    const stylesPresent = new Set<string>()
-    for (const row of styleCandidates) stylesPresent.add(row.item.demo.category.toLowerCase())
+    const stylesPresent = new Set<string>();
+    for (const row of styleCandidates) stylesPresent.add(row.item.demo.category.toLowerCase());
     const styleOptions: DemoOption[] = DEMO_STYLE_CATEGORIES.filter((style) =>
       stylesPresent.has(style.id),
-    ).map((style) => ({ value: style.id, label: style.label }))
+    ).map((style) => ({ value: style.id, label: style.label }));
 
     // Aspect ratio — the distinct values the registry actually carries.
-    const aspectCounts = new Map<string, number>()
+    const aspectCounts = new Map<string, number>();
     for (const row of aspectCandidates) {
       aspectCounts.set(
         row.item.entry.aspectRatio,
         (aspectCounts.get(row.item.entry.aspectRatio) ?? 0) + 1,
-      )
+      );
     }
     const aspectOptions: DemoOption[] = [...aspectCounts.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([value, count]) => ({ value, label: `${value} (${count})` }))
+      .map(([value, count]) => ({ value, label: `${value} (${count})` }));
 
     // Logo label — counts for the current filter set.
-    const brandingCounts = { none: 0, logo: 0 }
-    for (const row of brandingCandidates) brandingCounts[row.item.entry.branding] += 1
+    const brandingCounts = { none: 0, logo: 0 };
+    for (const row of brandingCandidates) brandingCounts[row.item.entry.branding] += 1;
     const brandingOptions: DemoOption[] = [
       { value: 'none', label: `No logo (${brandingCounts.none})` },
       { value: 'logo', label: `Has logo (${brandingCounts.logo})` },
-    ]
+    ];
 
     // Sub-category — only meaningful inside one business niche, and only when
     // the demos in that niche actually carry sub-niches. Without a real
     // sub-niche the control is not rendered at all.
-    const subcategoryOptions: DemoOption[] = []
+    const subcategoryOptions: DemoOption[] = [];
     if (demoCategoryId !== ALL_DEMOS_CATEGORY_ID) {
-      const labels = new Map<string, string>()
+      const labels = new Map<string, string>();
       for (const row of subcategoryCandidates) {
         for (const subId of getDemoSubcategoryIds(row.item.demo, demoCategoryId)) {
-          const qualified = getQualifiedSubcategoryId(demoCategoryId, subId)
-          if (!labels.has(qualified)) labels.set(qualified, humanizeTaxonomyId(subId))
+          const qualified = getQualifiedSubcategoryId(demoCategoryId, subId);
+          if (!labels.has(qualified)) labels.set(qualified, humanizeTaxonomyId(subId));
         }
       }
       if (labels.size > 0) {
-        subcategoryOptions.push({ value: 'all', label: 'All sub-categories' })
-        for (const [value, label] of labels) subcategoryOptions.push({ value, label })
+        subcategoryOptions.push({ value: 'all', label: 'All sub-categories' });
+        for (const [value, label] of labels) subcategoryOptions.push({ value, label });
         // Keep the customer's own choice selectable even when the data no
         // longer offers it.
         if (demoSubcategoryId !== 'all' && !labels.has(demoSubcategoryId)) {
           subcategoryOptions.push({
             value: demoSubcategoryId,
             label: humanizeTaxonomyId(demoSubcategoryId.split('/')[1] ?? demoSubcategoryId),
-          })
+          });
         }
       }
     }
@@ -329,14 +329,14 @@ export function StepChooseVideo(): React.JSX.Element {
       aspectOptions: demoFilterOptions(aspectOptions, demoAspect, 'All aspect ratios'),
       brandingOptions: demoFilterOptions(brandingOptions, demoBranding, 'All clips'),
       subcategoryOptions,
-    }
-  }, [demoQuery, demoSourceId, demoStyleId, demoAspect, demoCategoryId, demoSubcategoryId, demoBranding])
+    };
+  }, [demoQuery, demoSourceId, demoStyleId, demoAspect, demoCategoryId, demoSubcategoryId, demoBranding]);
 
   // The visible window restarts whenever the filter set changes.
-  const demoFilterKey = `${demoCategoryId}|${demoQuery}|${demoSourceId}|${demoStyleId}|${demoAspect}|${demoSubcategoryId}|${demoBranding}`
-  const demoVisibleLimit = demoWindow.key === demoFilterKey ? demoWindow.count : DEMO_GALLERY_INITIAL
-  const demoVisible = demoGallery.filtered.slice(0, demoVisibleLimit)
-  const demoRemaining = demoGallery.filtered.length - demoVisible.length
+  const demoFilterKey = `${demoCategoryId}|${demoQuery}|${demoSourceId}|${demoStyleId}|${demoAspect}|${demoSubcategoryId}|${demoBranding}`;
+  const demoVisibleLimit = demoWindow.key === demoFilterKey ? demoWindow.count : DEMO_GALLERY_INITIAL;
+  const demoVisible = demoGallery.filtered.slice(0, demoVisibleLimit);
+  const demoRemaining = demoGallery.filtered.length - demoVisible.length;
 
   const demoHasActiveFilters =
     demoCategoryId !== ALL_DEMOS_CATEGORY_ID ||
@@ -345,17 +345,17 @@ export function StepChooseVideo(): React.JSX.Element {
     demoStyleId !== 'all' ||
     demoAspect !== 'all' ||
     demoSubcategoryId !== 'all' ||
-    demoBranding !== 'all'
+    demoBranding !== 'all';
 
   const resetDemoFilters = () => {
-    setDemoCategoryId(ALL_DEMOS_CATEGORY_ID)
-    setDemoQuery('')
-    setDemoSourceId('all')
-    setDemoStyleId('all')
-    setDemoAspect('all')
-    setDemoSubcategoryId('all')
-    setDemoBranding('all')
-  }
+    setDemoCategoryId(ALL_DEMOS_CATEGORY_ID);
+    setDemoQuery('');
+    setDemoSourceId('all');
+    setDemoStyleId('all');
+    setDemoAspect('all');
+    setDemoSubcategoryId('all');
+    setDemoBranding('all');
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -467,10 +467,10 @@ export function StepChooseVideo(): React.JSX.Element {
               counts={demoGallery.categoryCounts}
               activeId={demoCategoryId}
               onChange={(categoryId) => {
-                setDemoCategoryId(categoryId)
+                setDemoCategoryId(categoryId);
                 // A sub-category id is qualified by its niche, so it cannot
                 // survive a category change.
-                setDemoSubcategoryId('all')
+                setDemoSubcategoryId('all');
               }}
               ariaLabel="Demo categories"
             />
@@ -596,13 +596,13 @@ export function StepChooseVideo(): React.JSX.Element {
               <>
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4" style={{ gap: 10 }}>
                   {demoVisible.map((item) => {
-                    const demo = item.entry
+                    const demo = item.entry;
                     // Selection is matched on the video URL, never on the demo id:
                     // the minimax and seedance libraries reuse the same numeric ids,
                     // so an id match would light up (and mount a second player for)
                     // a different demo.
-                    const active = selectedUrl === demo.videoSrc
-                    const unavailable = !demo.videoSrc
+                    const active = selectedUrl === demo.videoSrc;
+                    const unavailable = !demo.videoSrc;
                     return (
                       // A <div role="button"> rather than a real <button>: the card
                       // contains a native <video controls> and a play overlay
@@ -625,10 +625,10 @@ export function StepChooseVideo(): React.JSX.Element {
                           // toggles playback, arrows seek) must reach the media
                           // element — swallowing it here would break the native
                           // player controls.
-                          if (event.target !== event.currentTarget) return
+                          if (event.target !== event.currentTarget) return;
                           if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault()
-                            pickDemo(demo)
+                            event.preventDefault();
+                            pickDemo(demo);
                           }
                         }}
                         style={{
@@ -666,7 +666,7 @@ export function StepChooseVideo(): React.JSX.Element {
                               covers the native video controls. */}
                           <button
                             type="button"
-                            onClick={(e) => { e.stopPropagation(); pickDemo(demo) }}
+                            onClick={(e) => { e.stopPropagation(); pickDemo(demo); }}
                             onMouseEnter={() => setHoveredDemoKey(demo.id)}
                             onMouseLeave={() => setHoveredDemoKey(null)}
                             aria-label={`Play ${demo.title}`}
@@ -720,7 +720,7 @@ export function StepChooseVideo(): React.JSX.Element {
                         {demo.durationLabel && <div style={{ color: C.muted2, fontSize: 10, marginTop: 2 }}>{demo.durationLabel}</div>}
                         {unavailable && <div data-testid="demo-unavailable" style={{ color: C.muted2, fontSize: 10, marginTop: 2 }}>Video coming soon</div>}
                       </div>
-                    )
+                    );
                   })}
                 </div>
 
@@ -779,7 +779,7 @@ export function StepChooseVideo(): React.JSX.Element {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4" style={{ gap: 10 }}>
             {savedVideos.map(({ entry, url }) => {
-              const active = selectedUrl === url
+              const active = selectedUrl === url;
               return (
                 <button
                   key={entry.id}
@@ -796,7 +796,7 @@ export function StepChooseVideo(): React.JSX.Element {
                     <div data-testid="saved-video-layers-missing" style={{ color: '#fcd34d', fontSize: 10, marginTop: 2 }}>Without your on-video layers</div>
                   )}
                 </button>
-              )
+              );
             })}
           </div>
         </div>
@@ -832,11 +832,11 @@ export function StepChooseVideo(): React.JSX.Element {
       {/* Optional AI recast: skipping keeps the original video (the default). */}
       {Boolean(selectedUrl) && source?.mediaType === 'video' && <RecastOption />}
     </div>
-  )
+  );
 }
 
 /** Grace period before a selected card with no media metadata shows a hint. */
-const DEMO_PLAYER_METADATA_GRACE_MS = 8000
+const DEMO_PLAYER_METADATA_GRACE_MS = 8000;
 
 /**
  * Inline player for the demo card that is currently selected.
@@ -861,34 +861,34 @@ function DemoCardPlayer({
 }: {
   demo: DemoLibraryEntry
 }): React.JSX.Element {
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null);
   // Bumped by the Retry button to force a fresh <video> mount (a failed
   // media load is not retried by the browser on its own).
-  const [loadAttempt, setLoadAttempt] = useState(0)
-  const [playbackFailed, setPlaybackFailed] = useState(false)
-  const [metadataSlow, setMetadataSlow] = useState(false)
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [playbackFailed, setPlaybackFailed] = useState(false);
+  const [metadataSlow, setMetadataSlow] = useState(false);
 
   useEffect(() => {
-    const el = videoRef.current
-    if (!el) return
+    const el = videoRef.current;
+    if (!el) return;
     // `muted` already allows autoplay in every modern browser; this explicit
     // call is the fallback for the cases where the browser still refuses
     // (reduced data mode, backgrounded tab on first paint).
-    const attempt = el.play()
-    if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {})
-  }, [demo.videoSrc, loadAttempt])
+    const attempt = el.play();
+    if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {});
+  }, [demo.videoSrc, loadAttempt]);
 
   useEffect(() => {
     // Every (re)mount starts clean: a demo change or a Retry re-arms the
     // slow-metadata watch below.
-    setPlaybackFailed(false)
-    setMetadataSlow(false)
+    setPlaybackFailed(false);
+    setMetadataSlow(false);
     const timer = window.setTimeout(() => {
-      const el = videoRef.current
-      if (el && el.readyState < HTMLMediaElement.HAVE_METADATA && !el.error) setMetadataSlow(true)
-    }, DEMO_PLAYER_METADATA_GRACE_MS)
-    return () => window.clearTimeout(timer)
-  }, [demo.videoSrc, loadAttempt])
+      const el = videoRef.current;
+      if (el && el.readyState < HTMLMediaElement.HAVE_METADATA && !el.error) setMetadataSlow(true);
+    }, DEMO_PLAYER_METADATA_GRACE_MS);
+    return () => window.clearTimeout(timer);
+  }, [demo.videoSrc, loadAttempt]);
 
   if (playbackFailed) {
     return (
@@ -906,8 +906,8 @@ function DemoCardPlayer({
             data-testid="demo-player-retry"
             onClick={(event) => {
               // Never re-trigger the card's own selection handler.
-              event.stopPropagation()
-              setLoadAttempt((attempt) => attempt + 1)
+              event.stopPropagation();
+              setLoadAttempt((attempt) => attempt + 1);
             }}
             style={secondaryButtonStyle}
           >
@@ -915,7 +915,7 @@ function DemoCardPlayer({
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -944,7 +944,7 @@ function DemoCardPlayer({
         <span style={{ color: C.muted2, fontSize: 10, marginTop: 4, display: 'block' }}>Still loading…</span>
       )}
     </div>
-  )
+  );
 }
 
 /**
@@ -975,5 +975,5 @@ function TabButton({
         {label}
       </span>
     </button>
-  )
+  );
 }

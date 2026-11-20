@@ -15,10 +15,10 @@
  * Defaults come from the image's explicit ROLE and the template's needs — never a filename or the
  * order images were discovered in.
  */
-import type { PreviewAspectRatio } from './types'
-import type { ImageHints, ImagePresetId, ImageRole, ImageStyle } from './imageStyle'
-import { HEADSHOT_DEFAULT, ORIGINAL_STYLE, ROUNDED_RECT_DEFAULT, isStylableRole, type ResolvedImageStyle } from './imageStyle'
-import type { OverlayMediaRole } from './mediaRoles'
+import type { PreviewAspectRatio } from './types';
+import type { ImageHints, ImagePresetId, ImageRole, ImageStyle } from './imageStyle';
+import { HEADSHOT_DEFAULT, ORIGINAL_STYLE, ROUNDED_RECT_DEFAULT, isStylableRole, type ResolvedImageStyle } from './imageStyle';
+import type { OverlayMediaRole } from './mediaRoles';
 
 export interface PresetPlacement {
   /** The preset must sit in a safe zone away from the subject. */
@@ -44,7 +44,7 @@ export interface ImagePreset {
   style: Record<PreviewAspectRatio, Partial<ImageStyle>>
 }
 
-const ALL = (s: Partial<ImageStyle>): Record<PreviewAspectRatio, Partial<ImageStyle>> => ({ '16:9': s, '9:16': s, '1:1': s, '4:5': s })
+const ALL = (s: Partial<ImageStyle>): Record<PreviewAspectRatio, Partial<ImageStyle>> => ({ '16:9': s, '9:16': s, '1:1': s, '4:5': s });
 
 export const IMAGE_PRESETS: Readonly<Record<ImagePresetId, ImagePreset>> = Object.freeze({
   'rounded-floating-card': {
@@ -113,62 +113,62 @@ export const IMAGE_PRESETS: Readonly<Record<ImagePresetId, ImagePreset>> = Objec
     placement: { needsSafeZone: true, mayCoverSubject: false, maxFrameFraction: 0.28, images: { min: 1, max: 1 } },
     style: ALL({ shape: 'blob', radius: 0.2, fit: 'cover', shadow: 'none', mask: 'soft', borderWidth: 0, glow: '#ffc98a' }),
   },
-})
+});
 
 export const IMAGE_PRESET_ORDER: ImagePresetId[] = [
   'rounded-floating-card', 'circular-portrait', 'product-spotlight', 'cinematic-reveal',
   'multi-image-collage', 'polaroid', 'split-screen', 'soft-masked',
-]
+];
 
 /** Discovery category / customer section → explicit image role. No filename, no discovery order. */
 export function imageRoleFromCategory(category: string | null | undefined, section?: string | null): ImageRole {
   // The customer's explicit assignment wins.
-  if (section === 'logo') return 'logo'
-  if (section === 'person') return 'portrait'
+  if (section === 'logo') return 'logo';
+  if (section === 'person') return 'portrait';
   switch (category) {
-    case 'person': return 'portrait'
-    case 'logo': return 'logo'
-    case 'product': return 'product'
-    case 'service': return 'service'
-    case 'completed_work': return 'portfolio'
+    case 'person': return 'portrait';
+    case 'logo': return 'logo';
+    case 'product': return 'product';
+    case 'service': return 'service';
+    case 'completed_work': return 'portfolio';
     case 'storefront':
-    case 'office': return 'property'
-    default: return 'general' // team, branded_vehicle, brand, unknown
+    case 'office': return 'property';
+    default: return 'general'; // team, branded_vehicle, brand, unknown
   }
 }
 
 /** The role of an image layer when the asset carries none: the layer kind says what it is for. */
 export function imageRoleForLayerKind(kind: string): ImageRole {
-  if (kind === 'logo') return 'logo'
-  if (kind === 'serviceImage') return 'service'
-  return 'product'
+  if (kind === 'logo') return 'logo';
+  if (kind === 'serviceImage') return 'service';
+  return 'product';
 }
 
 /** Default preset for a role in a given template/layout — never filename- or order-based. */
 export function defaultPresetFor(role: ImageRole, layout?: string | null): ImagePresetId | null {
   switch (role) {
-    case 'logo': return null
-    case 'portrait': return 'circular-portrait'
-    case 'product': return layout === 'product-showcase' ? 'product-spotlight' : 'rounded-floating-card'
-    case 'service': return 'rounded-floating-card'
+    case 'logo': return null;
+    case 'portrait': return 'circular-portrait';
+    case 'product': return layout === 'product-showcase' ? 'product-spotlight' : 'rounded-floating-card';
+    case 'service': return 'rounded-floating-card';
     case 'property': // storefront / office / listing: a wide rounded card
-    case 'real-estate': return 'rounded-floating-card'
-    case 'food': return 'rounded-floating-card' // rounded rectangle, subtle shadow
-    case 'portfolio': return 'rounded-floating-card'
-    default: return 'rounded-floating-card'
+    case 'real-estate': return 'rounded-floating-card';
+    case 'food': return 'rounded-floating-card'; // rounded rectangle, subtle shadow
+    case 'portfolio': return 'rounded-floating-card';
+    default: return 'rounded-floating-card';
   }
 }
 
 /** The ImageStyle a preset produces at an aspect ratio. */
 export function presetStyle(id: ImagePresetId, aspect: PreviewAspectRatio = '16:9', auto = true): ImageStyle {
-  const preset = IMAGE_PRESETS[id]
-  const base = id === 'circular-portrait' ? HEADSHOT_DEFAULT : id === 'polaroid' || id === 'split-screen' ? ORIGINAL_STYLE : ROUNDED_RECT_DEFAULT
-  return { ...base, ...preset.style[aspect], presetId: id, auto }
+  const preset = IMAGE_PRESETS[id];
+  const base = id === 'circular-portrait' ? HEADSHOT_DEFAULT : id === 'polaroid' || id === 'split-screen' ? ORIGINAL_STYLE : ROUNDED_RECT_DEFAULT;
+  return { ...base, ...preset.style[aspect], presetId: id, auto };
 }
 
 /** Is this preset a good match for the image's role? (The selector marks, never blocks.) */
 export function presetSuitsRole(id: ImagePresetId, role: ImageRole): boolean {
-  return role !== 'logo' && IMAGE_PRESETS[id].roles.includes(role)
+  return role !== 'logo' && IMAGE_PRESETS[id].roles.includes(role);
 }
 
 /** Which half a split-screen panel should take: the one overlapping the subject zones least (tie → right). */
@@ -177,33 +177,33 @@ export function splitSideFor(
   compW: number,
   compH: number,
 ): 'left' | 'right' | 'top' | 'bottom' {
-  const portrait = compH > compW * 1.1
+  const portrait = compH > compW * 1.1;
   const halves = portrait
     ? ({ top: { x: 0, y: 0, w: 1, h: 0.5 }, bottom: { x: 0, y: 0.5, w: 1, h: 0.5 } } as const)
-    : ({ left: { x: 0, y: 0, w: 0.5, h: 1 }, right: { x: 0.5, y: 0, w: 0.5, h: 1 } } as const)
+    : ({ left: { x: 0, y: 0, w: 0.5, h: 1 }, right: { x: 0.5, y: 0, w: 0.5, h: 1 } } as const);
   const overlap = (a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }) => {
-    const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)
-    const h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)
-    return w > 0 && h > 0 ? w * h : 0
-  }
-  const score = (half: { x: number; y: number; w: number; h: number }) => zones.reduce((s, z) => s + overlap(half, z), 0)
-  const entries = Object.entries(halves) as ['left' | 'right' | 'top' | 'bottom', { x: number; y: number; w: number; h: number }][]
-  const best = entries.reduce((a, b) => (score(b[1]) < score(a[1]) - 1e-9 ? b : a))
-  return best[0]
+    const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+    const h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+    return w > 0 && h > 0 ? w * h : 0;
+  };
+  const score = (half: { x: number; y: number; w: number; h: number }) => zones.reduce((s, z) => s + overlap(half, z), 0);
+  const entries = Object.entries(halves) as ['left' | 'right' | 'top' | 'bottom', { x: number; y: number; w: number; h: number }][];
+  const best = entries.reduce((a, b) => (score(b[1]) < score(a[1]) - 1e-9 ? b : a));
+  return best[0];
 }
 
 /** Layout of 2–4 tiles inside a square box: predictable spacing, no overlap. Fractions of the box. */
 export function collageTiles(count: number, gap = 0.03): { x: number; y: number; w: number; h: number }[] {
-  const n = Math.max(1, Math.min(4, Math.round(count)))
-  const g = gap
-  const half = (1 - g) / 2
-  if (n === 1) return [{ x: 0, y: 0, w: 1, h: 1 }]
-  if (n === 2) return [{ x: 0, y: 0, w: 1, h: half }, { x: 0, y: half + g, w: 1, h: half }] // two stacked tiles
-  if (n === 3) return [{ x: 0, y: 0, w: half, h: 1 }, { x: half + g, y: 0, w: half, h: half }, { x: half + g, y: half + g, w: half, h: half }]
+  const n = Math.max(1, Math.min(4, Math.round(count)));
+  const g = gap;
+  const half = (1 - g) / 2;
+  if (n === 1) return [{ x: 0, y: 0, w: 1, h: 1 }];
+  if (n === 2) return [{ x: 0, y: 0, w: 1, h: half }, { x: 0, y: half + g, w: 1, h: half }]; // two stacked tiles
+  if (n === 3) return [{ x: 0, y: 0, w: half, h: 1 }, { x: half + g, y: 0, w: half, h: half }, { x: half + g, y: half + g, w: half, h: half }];
   return [
     { x: 0, y: 0, w: half, h: half }, { x: half + g, y: 0, w: half, h: half },
     { x: 0, y: half + g, w: half, h: half }, { x: half + g, y: half + g, w: half, h: half },
-  ]
+  ];
 }
 
 export interface ResolveLookInput {
@@ -228,24 +228,24 @@ export interface ResolveLookInput {
  * image's explicit role + the template (a template-declared style overrides the preset's fields).
  */
 export function resolveImageLook(input: ResolveLookInput): ResolvedImageStyle {
-  const { role, kind, layerStyle, layerRole, hints = {}, templateStyle, layout, aspect = '16:9' } = input
-  if (!isStylableRole(role)) return { style: null, reason: 'role keeps its own treatment' }
-  if (layerStyle && layerStyle.auto !== true) return { style: layerStyle, reason: 'customer-edited' }
-  if (role === 'logo' || (hints.role === 'logo' && !layerRole)) return { style: { ...ORIGINAL_STYLE }, reason: 'logo keeps its original proportions and transparency' }
+  const { role, kind, layerStyle, layerRole, hints = {}, templateStyle, layout, aspect = '16:9' } = input;
+  if (!isStylableRole(role)) return { style: null, reason: 'role keeps its own treatment' };
+  if (layerStyle && layerStyle.auto !== true) return { style: layerStyle, reason: 'customer-edited' };
+  if (role === 'logo' || (hints.role === 'logo' && !layerRole)) return { style: { ...ORIGINAL_STYLE }, reason: 'logo keeps its original proportions and transparency' };
   if (hints.transparentCorners || hints.alreadyFramed || hints.hasTransparency) {
-    return { style: { ...ORIGINAL_STYLE }, reason: hints.alreadyFramed ? 'already framed' : 'transparent or already shaped' }
+    return { style: { ...ORIGINAL_STYLE }, reason: hints.alreadyFramed ? 'already framed' : 'transparent or already shaped' };
   }
-  const imageRole: ImageRole = layerRole ?? hints.role ?? (hints.isHeadshot ? 'portrait' : imageRoleForLayerKind(kind))
-  const id = defaultPresetFor(imageRole, layout)
-  if (!id) return { style: { ...ORIGINAL_STYLE }, reason: 'no preset for this role' }
-  let style = presetStyle(id, aspect)
-  let reason = `${IMAGE_PRESETS[id].label} for a ${imageRole} image`
-  if (templateStyle) { style = { ...style, ...templateStyle, auto: true }; reason = 'template style' }
+  const imageRole: ImageRole = layerRole ?? hints.role ?? (hints.isHeadshot ? 'portrait' : imageRoleForLayerKind(kind));
+  const id = defaultPresetFor(imageRole, layout);
+  if (!id) return { style: { ...ORIGINAL_STYLE }, reason: 'no preset for this role' };
+  let style = presetStyle(id, aspect);
+  let reason = `${IMAGE_PRESETS[id].label} for a ${imageRole} image`;
+  if (templateStyle) { style = { ...style, ...templateStyle, auto: true }; reason = 'template style'; }
   // A CONTAINED picture is framed around the picture itself: hold the automatic frame back until its size is known.
   if (style.fit === 'contain' && style.shape !== 'square' && !(hints.aspect && hints.aspect > 0)) {
-    return { style: { ...ORIGINAL_STYLE }, reason: 'waiting for the image size' }
+    return { style: { ...ORIGINAL_STYLE }, reason: 'waiting for the image size' };
   }
-  return { style, reason }
+  return { style, reason };
 }
 
-export type { ImageHints }
+export type { ImageHints };

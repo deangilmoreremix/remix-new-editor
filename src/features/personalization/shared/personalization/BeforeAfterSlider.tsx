@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * Before / After comparison: the original image on the left of the divider,
@@ -6,10 +6,10 @@
  * use the keyboard on the range input.
  */
 
-import { useRef, useState, type PointerEvent } from 'react'
-import { C } from './guided/tokens'
+import { useRef, useState, type PointerEvent } from 'react';
+import { C } from './guided/tokens';
 
-export const CHECKERBOARD = 'repeating-conic-gradient(#3a3a40 0% 25%, #232327 0% 50%) 50% / 16px 16px'
+export const CHECKERBOARD = 'repeating-conic-gradient(#3a3a40 0% 25%, #232327 0% 50%) 50% / 16px 16px';
 
 export function BeforeAfterSlider({
   beforeUrl,
@@ -20,14 +20,14 @@ export function BeforeAfterSlider({
   afterUrl: string
   alt?: string
 }) {
-  const [pos, setPos] = useState(50)
-  const box = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState(50);
+  const box = useRef<HTMLDivElement>(null);
 
   const move = (e: PointerEvent<HTMLDivElement>) => {
-    const rect = box.current?.getBoundingClientRect()
-    if (!rect || rect.width === 0) return
-    setPos(Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)))
-  }
+    const rect = box.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0) return;
+    setPos(Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)));
+  };
 
   return (
     <div
@@ -35,11 +35,11 @@ export function BeforeAfterSlider({
       data-testid="before-after-slider"
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => {
-        e.currentTarget.setPointerCapture?.(e.pointerId)
-        move(e)
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+        move(e);
       }}
       onPointerMove={(e) => {
-        if (e.buttons === 1) move(e)
+        if (e.buttons === 1) move(e);
       }}
       style={{ position: 'relative', display: 'inline-block', maxWidth: '100%', maxHeight: '100%', touchAction: 'none', cursor: 'ew-resize', userSelect: 'none', borderRadius: 8, overflow: 'hidden', background: CHECKERBOARD }}
     >
@@ -78,5 +78,5 @@ export function BeforeAfterSlider({
         style={{ position: 'absolute', left: 8, right: 8, bottom: 6, width: 'calc(100% - 16px)', opacity: 0.85, accentColor: C.cyan }}
       />
     </div>
-  )
+  );
 }

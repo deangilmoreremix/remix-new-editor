@@ -14,10 +14,10 @@
  * gentler 1.25x end scale so the push-in is visible before the card ends.
  */
 
-import React from 'react'
-import { KenBurns } from '../../_upstream/rve-ken-burns/KenBurns'
-import { darkenColor, slotText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { KenBurns } from '../../_upstream/rve-ken-burns/KenBurns';
+import { darkenColor, slotText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   BrandMediaFill,
   brandImages,
@@ -26,22 +26,22 @@ import {
   fitLine,
   isPhoto,
   sceneBackground,
-} from './media'
+} from './media';
 
 /** The design's natural length in seconds (= `placement.endFrame` at 30 fps). */
-export const KEN_BURNS_SECONDS = 5
+export const KEN_BURNS_SECONDS = 5;
 
 export const RveKenBurnsDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const image = brandImages(props)[0] ?? null
-  const { primary, text: textColor } = brandPalette(props)
-  const labelPx = Math.round(96 * k)
+  const k = canvasScale(props);
+  const image = brandImages(props)[0] ?? null;
+  const { primary, text: textColor } = brandPalette(props);
+  const labelPx = Math.round(96 * k);
   const label = fitLine(
     slotText(props, 'businessName', ['headline']),
     props.width * 0.8,
     labelPx,
     32,
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-ken-burns" props={props}>
@@ -63,7 +63,7 @@ export const RveKenBurnsDesign: React.FC<DesignAdapterProps> = (props) => {
         }
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveKenBurnsDesign
+export default RveKenBurnsDesign;

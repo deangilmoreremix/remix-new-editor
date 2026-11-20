@@ -11,7 +11,8 @@ interface Options extends Pick<PlacementGizmoOptions, 'ctx' | 'orbit' | 'enabled
 }
 
 export function useFloorGizmo(options: Options): void {
-  usePlacementGizmo({ ...options, name: 'Floor adjustment',
+  usePlacementGizmo({
+ ...options, name: 'Floor adjustment',
     mode: options.gizmoMode === 'move' ? 'translate' : options.gizmoMode === 'tilt' ? 'rotate' : 'scale',
     space: options.gizmoMode === 'tilt' ? 'local' : 'world',
     axes: { x: true, y: options.gizmoMode !== 'size', z: true }, value: options.size,

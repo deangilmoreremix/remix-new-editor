@@ -82,8 +82,10 @@ describe('wizard state → composition', () => {
 
 describe('stock providers (original file choice)', () => {
   it('Pexels: largest file under 1920px, SD preview', () => {
-    const v = { id: 1, duration: 9, image: 'p.jpg', url: 'u', user: { name: 'Bo' }, video_files: [
-      { link: 'a', width: 3840, quality: 'uhd' }, { link: 'b', width: 1920, quality: 'hd' }, { link: 'c', width: 1280, quality: 'hd' }, { link: 'd', width: 640, quality: 'sd' }] };
+    const v = {
+ id: 1, duration: 9, image: 'p.jpg', url: 'u', user: { name: 'Bo' }, video_files: [
+      { link: 'a', width: 3840, quality: 'uhd' }, { link: 'b', width: 1920, quality: 'hd' }, { link: 'c', width: 1280, quality: 'hd' }, { link: 'd', width: 640, quality: 'sd' }] 
+};
     expect(pexelsPlayFile(v.video_files).link).toBe('c');
     const n = normalizePexelsVideo(v);
     expect(n).toMatchObject({ id: 'pexels-1', kind: 'video', url: 'c', preview: 'd', user: 'Bo' });
@@ -121,10 +123,12 @@ describe('stock providers (original file choice)', () => {
     expect(r.hasMore).toBe(true);
   });
   it('"All" still shows one kind when the other fails', async () => {
-    const stock = createStockClient({ pexels: {
+    const stock = createStockClient({
+ pexels: {
       getPopularVideos: async () => { throw new Error('boom'); },
       getCuratedPhotos: async () => ({ photos: [{ id: 1, src: { large2x: 'u' } }] }),
-    } });
+    } 
+});
     const r = await stock({ source: 'pexels', filter: 'all' });
     expect(r.items.length).toBe(1);
     expect(r.error).toBeUndefined();

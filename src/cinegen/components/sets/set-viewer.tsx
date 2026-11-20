@@ -348,8 +348,10 @@ export function SetViewer({
       panelScroll: panel.scrollTop,
     };
     writeViewerSession(sessionKey, {
-      camera: { position: live.camera.position.toArray(), target: orbit.target.toArray(),
-        up: live.camera.up.toArray(), verticalFov: live.camera.fov },
+      camera: {
+ position: live.camera.position.toArray(), target: orbit.target.toArray(),
+        up: live.camera.up.toArray(), verticalFov: live.camera.fov 
+},
       focalMm, sensor, navMode, tuning, placementMode, selectedStandIn, floorGizmoMode, standInGizmoMode,
       ...panelStateRef.current,
     });
@@ -642,12 +644,14 @@ export function SetViewer({
     setPlacementMode('floor');
   };
   const floorValues = floorControls(floor);
-  usePlacementTools({ ctx: status === 'ready' ? ctx : null, orbit: controlsRef.current, floor, origin: floorOrigin, mode: placementMode,
+  usePlacementTools({
+ ctx: status === 'ready' ? ctx : null, orbit: controlsRef.current, floor, origin: floorOrigin, mode: placementMode,
     selectedId: selectedStandIn, standIns, size: guideSize, gizmoMode: floorGizmoMode, orientation: floorOrientation,
     standInGizmoMode, onUpdateStandIn: updateStandIn,
     onSize: size => changeFloor(floor, floorOrigin, size),
     onSelect: setSelectedStandIn, onMove: (id, position) => updateStandIn(id, standInPlacement(position, floor)),
-    onFloor: (plane, origin, orientation) => changeFloor(plane, origin, guideSize, orientation), onMode: setPlacementMode, onMessage: setPlacementMessage });
+    onFloor: (plane, origin, orientation) => changeFloor(plane, origin, guideSize, orientation), onMode: setPlacementMode, onMessage: setPlacementMessage 
+});
 
   const nudgeStandIn = (entry: StandIn, dx: number, dz: number) => {
     if (!ctx) return;
@@ -666,8 +670,10 @@ export function SetViewer({
     const factor = knownCameraHeight / cameraHeight;
     const floorPlane = encodeFloor(floor, set, floorOrigin, guideSize, floorOrientation);
     const scaleToMeters = set.scaleToMeters * factor;
-    const moved = standIns.map(entry => ({ ...entry, x: entry.x * factor, z: entry.z * factor,
-      ...(entry.position ? { position: entry.position.map(value => value * factor) as [number, number, number] } : {}) }));
+    const moved = standIns.map(entry => ({
+ ...entry, x: entry.x * factor, z: entry.z * factor,
+      ...(entry.position ? { position: entry.position.map(value => value * factor) as [number, number, number] } : {}) 
+}));
     // Keep the framing while converting the scan and its placements to meters.
     const damping = orbit.enableDamping;
     orbit.enableDamping = false; orbit.update();

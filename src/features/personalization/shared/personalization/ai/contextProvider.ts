@@ -12,14 +12,14 @@ import type {
   PersonalizationVisionAnalysis,
   BusinessResearchResult,
   PersonalizationAsset,
-} from '../types'
+} from '../types';
 
 /**
  * AI Assist context types
  */
 
 /** How much of the website's own text the AI context carries. */
-const AI_PAGE_TEXT_MAX_CHARS = 3_000
+const AI_PAGE_TEXT_MAX_CHARS = 3_000;
 
 export interface AIAssistContext {
   project: {
@@ -232,9 +232,9 @@ export function buildAIAssistContext(params: {
     selectedBusiness,
     businessResearch,
     readiness,
-  } = params
+  } = params;
 
-  const assetSummaries = buildAssetSummaries(assets, discoveredAssets, visionAnalyses)
+  const assetSummaries = buildAssetSummaries(assets, discoveredAssets, visionAnalyses);
 
   return {
     project: {
@@ -320,7 +320,7 @@ export function buildAIAssistContext(params: {
       headline: client.ctaHeadline || null,
       buttonText: client.callToAction || null,
     },
-  }
+  };
 }
 
 function buildAssetSummaries(
@@ -328,9 +328,9 @@ function buildAssetSummaries(
   discoveredAssets: DiscoveredAsset[],
   visionAnalyses: Map<string, PersonalizationVisionAnalysis>,
 ): AIAssistContext['assets'] {
-  const allDiscovered = discoveredAssets.filter((a) => !a.rejected)
-  const effectivePrimaryIdentity = assets.primaryIdentity || assets.identities.find((i) => i.isPrimary) || null
-  const effectivePrimaryLogo = assets.primaryLogo || assets.logos.find((l) => l.isPrimary) || null
+  const allDiscovered = discoveredAssets.filter((a) => !a.rejected);
+  const effectivePrimaryIdentity = assets.primaryIdentity || assets.identities.find((i) => i.isPrimary) || null;
+  const effectivePrimaryLogo = assets.primaryLogo || assets.logos.find((l) => l.isPrimary) || null;
 
   return {
     identities: assets.identities.map(summarizeAsset),
@@ -375,7 +375,7 @@ function buildAssetSummaries(
           duplicateLikely: a.visionAnalysis!.duplicateLikely,
         })),
     ],
-  }
+  };
 }
 
 function summarizeAsset(asset: PersonalizationAsset): AIAssistContext['assets']['identities'][number] {
@@ -412,7 +412,7 @@ function summarizeAsset(asset: PersonalizationAsset): AIAssistContext['assets'][
           duplicateLikely: asset.visionAnalysis.duplicateLikely,
         }
       : null,
-  }
+  };
 }
 
 function summarizeDiscoveredAsset(asset: DiscoveredAsset): AIAssistContext['assets']['discovered'][number] {
@@ -447,5 +447,5 @@ function summarizeDiscoveredAsset(asset: DiscoveredAsset): AIAssistContext['asse
           duplicateLikely: asset.visionAnalysis.duplicateLikely,
         }
       : null,
-  }
+  };
 }

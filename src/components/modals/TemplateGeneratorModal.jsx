@@ -297,8 +297,10 @@ export class TemplateGeneratorModal extends BaseModal {
         if (!host.isConnected || host.dataset.loaded) continue;
         host.dataset.loaded = '1';
         try {
-          const anim = lottie.loadAnimation({ container: host, renderer: 'svg', loop: false, autoplay: false,
-            animationData: buildLowerThirdLottie({ template: host.dataset.ltPreview, name: name || 'Jane Doe', title: title || 'Founder & CEO' }) });
+          const anim = lottie.loadAnimation({
+ container: host, renderer: 'svg', loop: false, autoplay: false,
+            animationData: buildLowerThirdLottie({ template: host.dataset.ltPreview, name: name || 'Jane Doe', title: title || 'Founder & CEO' }) 
+});
           anim.goToAndStop(LT_HOLD_FRAME, true);
         } catch { /* the style name below the tile still identifies it */ }
       }

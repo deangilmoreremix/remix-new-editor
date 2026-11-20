@@ -368,10 +368,12 @@ describe('Space Studio', () => {
   it.each(['hf-hf-mult-motion-control', 'hf-hf-mult-replace-object'])('runs %s with image and video references kept separate and an optional prompt', nodeType => {
     const model = buildHiggsfieldModelRegistry()[nodeType];
     mediaModels[nodeType] = model;
-    render(<SpaceStudio transfer={{ id: 'genjutsu-source', spaceId: 'space-a', attachments: [
+    render(<SpaceStudio transfer={{
+ id: 'genjutsu-source', spaceId: 'space-a', attachments: [
       { id: 'photo', name: 'Subject.png', kind: 'image', url: 'https://media.test/subject.png' },
       { id: 'clip', name: 'Motion.mp4', kind: 'video', url: 'https://media.test/motion.mp4' },
-    ] }} />);
+    ] 
+}} />);
     fireEvent.click(screen.getByRole('combobox', { name: 'Model' }));
     fireEvent.click(screen.getByRole('option', { name: new RegExp(model.name) }));
     expect(screen.getByTestId('space-studio-generate')).toBeEnabled();
@@ -397,9 +399,11 @@ describe('Space Studio', () => {
   it('runs a selected Topaz image upscale with dimensions and a source, without a prompt', async () => {
     const model = buildHiggsfieldModelRegistry()['hf-topaz-image'];
     mediaModels[model.nodeType] = model;
-    render(<SpaceStudio transfer={{ id: 'upscale-source', spaceId: 'space-a', attachments: [
+    render(<SpaceStudio transfer={{
+ id: 'upscale-source', spaceId: 'space-a', attachments: [
       { id: 'photo', name: 'Source.png', kind: 'image', url: 'https://media.test/source.png' },
-    ] }} />);
+    ] 
+}} />);
     fireEvent.click(within(screen.getByRole('group', {name: 'Output type'})).getByRole('button', {name: 'Image'}));
     fireEvent.click(screen.getByRole('combobox', {name: 'Model'}));
     fireEvent.click(screen.getByRole('option', {name: /Topaz Image Upscale/}));
@@ -417,10 +421,12 @@ describe('Space Studio', () => {
   it('keeps Avatar 4 optional, with separate image and dialogue references', () => {
     const model = topviewMediaToolDefinitions(['topview_avatar_video']).find(model => model.name === 'Avatar 4')!;
     mediaModels[model.nodeType] = model;
-    render(<SpaceStudio transfer={{ id: 'avatar-source', spaceId: 'space-a', attachments: [
+    render(<SpaceStudio transfer={{
+ id: 'avatar-source', spaceId: 'space-a', attachments: [
       { id: 'photo', name: 'Source.png', kind: 'image', url: 'https://media.test/source.png' },
       { id: 'voice', name: 'Voice.wav', kind: 'audio', url: 'https://media.test/voice.wav' },
-    ] }} />);
+    ] 
+}} />);
     expect(screen.getByRole('combobox', {name: 'Model'})).toHaveAttribute('data-value', 'video-seedance');
     fireEvent.click(screen.getByRole('combobox', {name: 'Model'}));
     fireEvent.click(screen.getByRole('option', {name: /Avatar 4/}));
@@ -443,13 +449,17 @@ describe('Space Studio', () => {
   });
 
   it('accepts a Canvas prompt and media once, keeps existing references, and does not start a generation', async () => {
-    localStorage.setItem('cinegen_studio_draft:studio-test-project', JSON.stringify({ prompt: 'Earlier draft', attachments: [
+    localStorage.setItem('cinegen_studio_draft:studio-test-project', JSON.stringify({
+ prompt: 'Earlier draft', attachments: [
       { id: 'existing', url: 'https://media.test/existing.png', name: 'Existing.png', kind: 'image' },
-    ] }));
+    ] 
+}));
     const consumed = vi.fn();
-    const transfer = { id: 'transfer-1', spaceId: 'space-a', prompt: 'A side view of this shot.', attachments: [
+    const transfer = {
+ id: 'transfer-1', spaceId: 'space-a', prompt: 'A side view of this shot.', attachments: [
       { id: 'canvas-file', url: 'https://media.test/uploaded.mp4', name: 'Uploaded.mp4', kind: 'video' as const },
-    ] };
+    ] 
+};
     const { rerender } = render(<SpaceStudio transfer={transfer} onTransferConsumed={consumed} />);
     expect(screen.getByRole('textbox', { name: 'Prompt' })).toHaveValue(transfer.prompt);
     expect(screen.getAllByRole('button', { name: 'Remove Uploaded.mp4' }).length).toBeGreaterThan(0);
@@ -463,11 +473,15 @@ describe('Space Studio', () => {
   });
 
   it('shows an imported image in Studio and attaches it as a reference without selecting a fake generation model', () => {
-    workspaceHarness.state = makeState([{ id: 'canvas-import', type: 'filePicker', position: { x: 0, y: 0 }, data: {
-      type: 'filePicker', label: 'Desktop photo.png', config: { __studioGenerated: true, __studioMedia: true,
-        __studioOutputType: 'image', fileUrl: 'https://media.test/desktop.png', fileName: 'Desktop photo.png' },
+    workspaceHarness.state = makeState([{
+ id: 'canvas-import', type: 'filePicker', position: { x: 0, y: 0 }, data: {
+      type: 'filePicker', label: 'Desktop photo.png', config: {
+ __studioGenerated: true, __studioMedia: true,
+        __studioOutputType: 'image', fileUrl: 'https://media.test/desktop.png', fileName: 'Desktop photo.png' 
+},
       result: { status: 'complete', url: 'https://media.test/desktop.png' },
-    } }]);
+    } 
+}]);
     render(<SpaceStudio />);
     const card = screen.getByTestId('space-studio-feed-item-canvas-import');
     expect(within(card).getByText('From Canvas')).toBeInTheDocument();
@@ -1611,8 +1625,10 @@ describe('Space Studio', () => {
     const target: ShapeShotTarget = receiveTarget.mock.lastCall![0];
     expect(target).toMatchObject({ width: 1280, height: 720, aspect: '16:9' });
     const camera = { id:'saved-angle',name:'Angle',createdAt:'2026-09-15',position:[0,1.6,4],target:[0,1,0],focalMm:50,sensorWidthMm:36,sensorHeightMm:24,aspect:'16:9',fovDiagonal:47 } as any;
-    await act(async () => target.attach({ setId:'room', camera, promptBlock:'@image1 is the plate. Preserve this camera.',
-      files:['plate','composite','depth','standin'].map(kind => new File(['x'],`shape-shot-${kind}.png`,{type:'image/png'})) }));
+    await act(async () => target.attach({
+ setId:'room', camera, promptBlock:'@image1 is the plate. Preserve this camera.',
+      files:['plate','composite','depth','standin'].map(kind => new File(['x'],`shape-shot-${kind}.png`,{type:'image/png'})) 
+}));
     expect(screen.getByRole('textbox',{name:'Prompt'})).toHaveValue('Keep the original action.\n\n@image1 is the plate. Preserve this camera.');
     const persisted = JSON.parse(localStorage.getItem('cinegen_studio_draft:studio-test-project')!);
     expect(persisted.videoMode).toBe('references');
@@ -1635,8 +1651,10 @@ describe('Space Studio', () => {
     localStorage.setItem('cinegen_studio_draft:studio-test-project', JSON.stringify({prompt:'Original action.',videoMode:'frames'}));
     (window as unknown as {electronAPI:unknown}).electronAPI={file:{getPathForFile:(file:File)=>`/Users/chris/Pictures/${file.name}`}};
     let count=0;
-    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec:any,position:any)=>({id:`canvas-shot-${++count}`,type:spec.nodeType,position,
-      data:{type:spec.nodeType,label:spec.label,config:spec.config}}) as never);
+    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec:any,position:any)=>({
+id:`canvas-shot-${++count}`,type:spec.nodeType,position,
+      data:{type:spec.nodeType,label:spec.label,config:spec.config}
+}) as never);
     const received=vi.fn();render(<SpaceStudio onShapeShotTarget={received}/>);
     await waitFor(()=>expect(received.mock.lastCall?.[0].maxReferences).toBe(4));
     const target:ShapeShotTarget=received.mock.lastCall![0];
@@ -1657,14 +1675,18 @@ describe('Space Studio', () => {
   });
 
   it('switches the Set send target to an image model and sends one screenshot to either destination', async () => {
-    localStorage.setItem('cinegen_studio_draft:studio-test-project', JSON.stringify({ prompt: '@image1 old plate @image2 old composite @image3 depth @image4 standin',
+    localStorage.setItem('cinegen_studio_draft:studio-test-project', JSON.stringify({
+ prompt: '@image1 old plate @image2 old composite @image3 depth @image4 standin',
       shapeShotCamera: { setId: 'old', camera: { id: 'old-camera' }, block: '@image1 old plate @image2 old composite @image3 depth @image4 standin' },
       attachments: Array.from({ length: 15 }, (_, index) => ({ id: `old-${index}`, name: `old-${index}.png`, url: `https://media.test/old-${index}.png`, kind: 'image' })),
-      elementIds: ['character-old'] }));
+      elementIds: ['character-old'] 
+}));
     (window as any).electronAPI = { file: { getPathForFile: (file: File) => `/Users/chris/Pictures/${file.name}` } };
     let count = 0;
-    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec: any, position: any) => ({ id: `single-view-${++count}`, type: spec.nodeType, position,
-      data: { type: spec.nodeType, label: spec.label, config: spec.config } }) as never);
+    vi.mocked(createWorkflowNodeFromSpec).mockImplementation((spec: any, position: any) => ({
+ id: `single-view-${++count}`, type: spec.nodeType, position,
+      data: { type: spec.nodeType, label: spec.label, config: spec.config } 
+}) as never);
     const received = vi.fn(); render(<SpaceStudio onShapeShotTarget={received} />);
     await waitFor(() => expect(received.mock.lastCall?.[0].models.some((model: any) => model.key === 'image-one')).toBe(true));
     await act(async () => received.mock.lastCall![0].selectModel('image-one'));
@@ -1674,8 +1696,10 @@ describe('Space Studio', () => {
     expect(target.maxReferences).toBe(0);
     expect(target.viewMaxReferences).toBe(15);
     expect(target.outputControls?.[0].id).toBe('aspect_ratio');
-    const result = { mode: 'view' as const, setId: 'room', camera: { id: 'angle' } as any, promptBlock: '',
-      files: [new File(['png'], 'set-view.png', { type: 'image/png' })] };
+    const result = {
+ mode: 'view' as const, setId: 'room', camera: { id: 'angle' } as any, promptBlock: '',
+      files: [new File(['png'], 'set-view.png', { type: 'image/png' })] 
+};
     let id = ''; await act(async () => { id = await target.sendToCanvas!(result); });
     const nodes = workspaceHarness.dispatch.mock.calls.map(([action]) => action).find(action => action.type === 'SET_NODES').nodes;
     const node = nodes.find((entry: any) => entry.id === id);

@@ -16,24 +16,24 @@
  * (2 px per dot) to 34 so neither leaves the 480x270 internal canvas.
  */
 
-import React from 'react'
-import { FourToneMonoTitler } from '../../_upstream/four-tone-mono-titler/FourToneMonoTitler'
-import { DesignStage, pickColor, slotText, slotValue, type DesignAdapterProps } from '../shared'
-import { bitmapSafe, ensureDark, ensureLight, hex6, mix } from './shared'
+import React from 'react';
+import { FourToneMonoTitler } from '../../_upstream/four-tone-mono-titler/FourToneMonoTitler';
+import { DesignStage, pickColor, slotText, slotValue, type DesignAdapterProps } from '../shared';
+import { bitmapSafe, ensureDark, ensureLight, hex6, mix } from './shared';
 
-export const FOUR_TONE_TITLE_MAX = 17
-export const FOUR_TONE_SUBTITLE_MAX = 34
+export const FOUR_TONE_TITLE_MAX = 17;
+export const FOUR_TONE_SUBTITLE_MAX = 34;
 
 export const FourToneMonoTitlerDesign: React.FC<DesignAdapterProps> = (props) => {
-  const primary = hex6(props.colors?.primary, '#29d3f2')
-  const accent = hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#28c98b')
-  const tone0 = ensureDark(mix(primary, '#000000', 0.8), 0.04)
-  const tone1 = mix(primary, '#000000', 0.5)
-  const tone2 = ensureLight(accent, 0.3)
-  const tone3 = ensureLight(mix(tone2, '#ffffff', 0.5), 0.6)
+  const primary = hex6(props.colors?.primary, '#29d3f2');
+  const accent = hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#28c98b');
+  const tone0 = ensureDark(mix(primary, '#000000', 0.8), 0.04);
+  const tone1 = mix(primary, '#000000', 0.5);
+  const tone2 = ensureLight(accent, 0.3);
+  const tone3 = ensureLight(mix(tone2, '#ffffff', 0.5), 0.6);
 
-  const title = bitmapSafe(slotText(props, 'headline', ['businessName']), FOUR_TONE_TITLE_MAX)
-  const subtitle = bitmapSafe(slotValue(props, 'businessName'), FOUR_TONE_SUBTITLE_MAX)
+  const title = bitmapSafe(slotText(props, 'headline', ['businessName']), FOUR_TONE_TITLE_MAX);
+  const subtitle = bitmapSafe(slotValue(props, 'businessName'), FOUR_TONE_SUBTITLE_MAX);
 
   return (
     <DesignStage designId="four-tone-mono-titler" props={props} stageStyle={{ backgroundColor: tone0 }}>
@@ -52,7 +52,7 @@ export const FourToneMonoTitlerDesign: React.FC<DesignAdapterProps> = (props) =>
         showAmbient
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default FourToneMonoTitlerDesign
+export default FourToneMonoTitlerDesign;

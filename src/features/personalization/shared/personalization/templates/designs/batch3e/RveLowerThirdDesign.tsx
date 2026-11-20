@@ -18,10 +18,10 @@
  * never peek in before its entrance.
  */
 
-import React from 'react'
-import { LowerThird } from '../../_upstream/rve-lower-third/LowerThird'
-import { TRANSPARENT, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { LowerThird } from '../../_upstream/rve-lower-third/LowerThird';
+import { TRANSPARENT, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandAccent,
   brandPrimary,
@@ -32,30 +32,30 @@ import {
   remUnit,
   slotText,
   truncateText,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_LOWER_THIRD_ID = 'rve-lower-third'
+export const RVE_LOWER_THIRD_ID = 'rve-lower-third';
 
-const ZOOM = 1.8
+const ZOOM = 1.8;
 
 export const RveLowerThirdDesign: React.FC<DesignAdapterProps> = (props) => {
-  const rem = remUnit(props, ZOOM)
-  const unit = rem / 16
-  const namePx = 1.6 * rem
-  const titlePx = 1 * rem
-  const left = 40 * unit
-  const textWidth = props.width * 0.7 - 64 * unit
+  const rem = remUnit(props, ZOOM);
+  const unit = rem / 16;
+  const namePx = 1.6 * rem;
+  const titlePx = 1 * rem;
+  const left = 40 * unit;
+  const textWidth = props.width * 0.7 - 64 * unit;
 
   const name = truncateText(
     slotText(props, 'businessName', ['headline']),
     fitChars(textWidth / 1.02, namePx, 1, 36),
-  )
+  );
   const title = truncateText(
     firstSlot(props, ['offer', 'headline']),
     fitChars(textWidth / 1.05, titlePx, 1, 56),
-  )
+  );
 
-  const primary = brandPrimary(props)
+  const primary = brandPrimary(props);
 
   return (
     <RveDesignStage designId={RVE_LOWER_THIRD_ID} props={props}>
@@ -80,7 +80,7 @@ export const RveLowerThirdDesign: React.FC<DesignAdapterProps> = (props) => {
         barTravel={Math.round(props.width)}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveLowerThirdDesign
+export default RveLowerThirdDesign;

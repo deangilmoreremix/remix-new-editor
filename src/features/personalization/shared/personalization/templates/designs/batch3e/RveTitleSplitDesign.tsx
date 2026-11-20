@@ -17,11 +17,11 @@
  * and copy past 22 characters is truncated.
  */
 
-import React from 'react'
-import { TitleSplit } from '../../_upstream/rve-title-split/TitleSplit'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { TRANSPARENT, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { TitleSplit } from '../../_upstream/rve-title-split/TitleSplit';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { TRANSPARENT, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandPrimary,
   brandText,
@@ -32,34 +32,34 @@ import {
   rgbTriplet,
   slotText,
   truncateText,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_TITLE_SPLIT_ID = 'rve-title-split'
+export const RVE_TITLE_SPLIT_ID = 'rve-title-split';
 
-const ZOOM = 1.6
+const ZOOM = 1.6;
 
 /** The hard character ceiling per line. */
-export const TITLE_SPLIT_MAX_CHARS = 22
+export const TITLE_SPLIT_MAX_CHARS = 22;
 
 /** Upper-case bold glyphs + the 0.15em letter spacing, as a fraction of the size. */
-const SPACED_CAPS_RATIO = 0.82
+const SPACED_CAPS_RATIO = 0.82;
 
 export const RveTitleSplitDesign: React.FC<DesignAdapterProps> = (props) => {
   const top = truncateText(
     slotText(props, 'headline', ['offer', 'businessName']),
     TITLE_SPLIT_MAX_CHARS,
-  ).toUpperCase()
+  ).toUpperCase();
   const bottom = truncateText(
     firstSlot(props, ['businessName', 'offer']),
     TITLE_SPLIT_MAX_CHARS,
-  ).toUpperCase()
+  ).toUpperCase();
 
-  const rem = remUnit(props, ZOOM)
-  const unit = rem / 16
-  const longest = Math.max(top.length, bottom.length, 1)
-  const fontPx = fitFontPx(props.width * 0.88, longest, 5 * rem, SPACED_CAPS_RATIO, 0.4)
+  const rem = remUnit(props, ZOOM);
+  const unit = rem / 16;
+  const longest = Math.max(top.length, bottom.length, 1);
+  const fontPx = fitFontPx(props.width * 0.88, longest, 5 * rem, SPACED_CAPS_RATIO, 0.4);
 
-  const text = brandText(props)
+  const text = brandText(props);
 
   return (
     <RveDesignStage designId={RVE_TITLE_SPLIT_ID} props={props}>
@@ -77,7 +77,7 @@ export const RveTitleSplitDesign: React.FC<DesignAdapterProps> = (props) => {
         fontFamily={DESIGN_FONT_STACK}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveTitleSplitDesign
+export default RveTitleSplitDesign;

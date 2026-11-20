@@ -104,10 +104,12 @@ describe('Studio reference quick look', () => {
 
   it('shows the active element look and only uses file metadata for the actual attached source', () => {
     const image = { id: 'a', url: 'https://example.com/clean.png', createdAt: '', source: 'upload' as const };
-    const element = { name: 'Car', type: 'vehicle', description: 'Black coupe', images: [image], activeVariationId: 'damaged', variations: [
+    const element = {
+ name: 'Car', type: 'vehicle', description: 'Black coupe', images: [image], activeVariationId: 'damaged', variations: [
       { id: 'clean', name: 'Clean', images: [image] },
       { id: 'damaged', name: 'Damaged', description: 'Scratched door', images: [{ ...image, url: 'https://example.com/damaged.png' }] },
-    ] } as CineElement;
+    ] 
+} as CineElement;
     expect(previewElementReference(element)).toMatchObject({ look: 'Damaged', category: 'Vehicle element', description: 'Black coupe\n\nScratched door', media: [{ url: 'https://example.com/damaged.png' }] });
     const file = { name: 'Edited.wav', url: 'https://example.com/trimmed.wav', kind: 'audio' as const };
     expect(previewAttachedReference(file, [{ id: 'x', name: 'Original.wav', type: 'audio', url: 'https://example.com/original.wav', duration: 120, createdAt: '' }]).media[0].duration).toBeUndefined();

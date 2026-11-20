@@ -78,8 +78,10 @@ export function ShapeShotModal({
     setError('');
     try {
       const { width, height } = outputSize ?? renderSize(aspectRatio(aspect), longEdge);
-      const result = await captureShapeShot(handle, { setId: set.id, width, height,
-        maxReferences, focalMm, sensor, subject: standIns.find(entry => entry.visible !== false) });
+      const result = await captureShapeShot(handle, {
+ setId: set.id, width, height,
+        maxReferences, focalMm, sensor, subject: standIns.find(entry => entry.visible !== false) 
+});
       await onAttach(result);
       onSaveCamera?.(set.id, result.camera);
       onClose();

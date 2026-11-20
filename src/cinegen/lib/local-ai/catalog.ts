@@ -54,40 +54,50 @@ export const MODEL_CATALOG: readonly ModelEntry[] = [
     purpose: 'Speech to text with word timestamps (captions). English only, fastest.',
     sourceUrl: 'https://huggingface.co/onnx-community/whisper-tiny.en_timestamped',
     sizeBytes: { wasm: 41 * MB, webgpu: 120 * MB }, languages: 'en', wordTimestamps: true, enabled: true,
-    licence: { name: 'Apache-2.0 (base model openai/whisper-tiny.en)', spdx: 'Apache-2.0', url: 'https://huggingface.co/openai/whisper-tiny.en', status: 'verified-base',
-      how: 'The ONNX repo declares no licence field; its base_model openai/whisper-tiny.en declares license: apache-2.0 on the model card (the Whisper code and weights repo on GitHub is MIT).', checkedOn: CHECKED },
+    licence: {
+ name: 'Apache-2.0 (base model openai/whisper-tiny.en)', spdx: 'Apache-2.0', url: 'https://huggingface.co/openai/whisper-tiny.en', status: 'verified-base',
+      how: 'The ONNX repo declares no licence field; its base_model openai/whisper-tiny.en declares license: apache-2.0 on the model card (the Whisper code and weights repo on GitHub is MIT).', checkedOn: CHECKED 
+},
   },
   {
     id: 'whisper-tiny', kind: 'asr', name: 'Whisper tiny (multilingual)', repo: 'onnx-community/whisper-tiny_timestamped',
     purpose: 'Speech to text with word timestamps in ~99 languages. Fast, lower accuracy.',
     sourceUrl: 'https://huggingface.co/onnx-community/whisper-tiny_timestamped',
     sizeBytes: { wasm: 41 * MB, webgpu: 120 * MB }, languages: 'multilingual', wordTimestamps: true, enabled: true,
-    licence: { name: 'Apache-2.0 (base model openai/whisper-tiny)', spdx: 'Apache-2.0', url: 'https://huggingface.co/openai/whisper-tiny', status: 'verified-base',
-      how: 'The ONNX repo declares no licence field; its base_model openai/whisper-tiny declares license: apache-2.0 on the model card.', checkedOn: CHECKED },
+    licence: {
+ name: 'Apache-2.0 (base model openai/whisper-tiny)', spdx: 'Apache-2.0', url: 'https://huggingface.co/openai/whisper-tiny', status: 'verified-base',
+      how: 'The ONNX repo declares no licence field; its base_model openai/whisper-tiny declares license: apache-2.0 on the model card.', checkedOn: CHECKED 
+},
   },
   {
     id: 'whisper-base', kind: 'asr', name: 'Whisper base (multilingual)', repo: 'onnx-community/whisper-base_timestamped',
     purpose: 'Speech to text with word timestamps in ~99 languages. Better accuracy than tiny (the editor\'s previous default).',
     sourceUrl: 'https://huggingface.co/onnx-community/whisper-base_timestamped',
     sizeBytes: { wasm: 77 * MB, webgpu: 206 * MB }, languages: 'multilingual', wordTimestamps: true, enabled: true,
-    licence: { name: 'Apache-2.0 (base model openai/whisper-base)', spdx: 'Apache-2.0', url: 'https://huggingface.co/openai/whisper-base', status: 'verified-base',
-      how: 'The ONNX repo declares no licence field; its base_model openai/whisper-base declares license: apache-2.0 on the model card.', checkedOn: CHECKED },
+    licence: {
+ name: 'Apache-2.0 (base model openai/whisper-base)', spdx: 'Apache-2.0', url: 'https://huggingface.co/openai/whisper-base', status: 'verified-base',
+      how: 'The ONNX repo declares no licence field; its base_model openai/whisper-base declares license: apache-2.0 on the model card.', checkedOn: CHECKED 
+},
   },
   {
     id: 'clip-vit-b32', kind: 'embedding', name: 'CLIP ViT-B/32 (image + text)', repo: 'Xenova/clip-vit-base-patch32',
     purpose: 'Semantic scene search: type "a person on a beach" and rank scene thumbnails. Runs on thumbnails only.',
     sourceUrl: 'https://huggingface.co/Xenova/clip-vit-base-patch32',
     sizeBytes: { wasm: 154 * MB, webgpu: 154 * MB }, languages: 'en', enabled: true,
-    licence: { name: 'MIT', spdx: 'MIT', url: 'https://huggingface.co/Xenova/clip-vit-base-patch32', status: 'verified',
-      how: 'Model card front matter of the downloaded repo says license: mit (base_model openai/CLIP, GitHub LICENSE is MIT).', checkedOn: CHECKED },
+    licence: {
+ name: 'MIT', spdx: 'MIT', url: 'https://huggingface.co/Xenova/clip-vit-base-patch32', status: 'verified',
+      how: 'Model card front matter of the downloaded repo says license: mit (base_model openai/CLIP, GitHub LICENSE is MIT).', checkedOn: CHECKED 
+},
   },
   {
     id: 'smolvlm-256m', kind: 'caption', name: 'SmolVLM 256M Instruct (scene captions)', repo: 'HuggingFaceTB/SmolVLM-256M-Instruct',
     purpose: 'Writes a one-sentence description of each scene thumbnail; the text becomes searchable. English.',
     sourceUrl: 'https://huggingface.co/HuggingFaceTB/SmolVLM-256M-Instruct',
     sizeBytes: { wasm: 260 * MB, webgpu: 260 * MB }, languages: 'en', enabled: true,
-    licence: { name: 'Apache-2.0', spdx: 'Apache-2.0', url: 'https://huggingface.co/HuggingFaceTB/SmolVLM-256M-Instruct', status: 'verified',
-      how: 'Model card front matter of the downloaded repo says license: apache-2.0 (bases SmolLM2-135M-Instruct and SigLIP are Apache-2.0).', checkedOn: CHECKED },
+    licence: {
+ name: 'Apache-2.0', spdx: 'Apache-2.0', url: 'https://huggingface.co/HuggingFaceTB/SmolVLM-256M-Instruct', status: 'verified',
+      how: 'Model card front matter of the downloaded repo says license: apache-2.0 (bases SmolLM2-135M-Instruct and SigLIP are Apache-2.0).', checkedOn: CHECKED 
+},
   },
   {
     id: 'lfm2.5-vl-450m', kind: 'caption', name: 'LFM2.5-VL 450M (FreeCut\'s captioner)', repo: 'LiquidAI/LFM2.5-VL-450M-ONNX',
@@ -95,8 +105,10 @@ export const MODEL_CATALOG: readonly ModelEntry[] = [
     sourceUrl: 'https://huggingface.co/LiquidAI/LFM2.5-VL-450M-ONNX',
     sizeBytes: { wasm: 0, webgpu: 0 }, languages: 'multilingual', enabled: false,
     disabledReason: 'Non-permissive licence: LFM Open License v1.0 allows commercial use only below USD 10M annual revenue (non-profit / research exempt). Left disabled; enable only after legal review.',
-    licence: { name: 'LFM Open License v1.0', url: 'https://huggingface.co/LiquidAI/LFM2.5-VL-450M/raw/main/LICENSE', status: 'restricted',
-      how: 'Model card front matter: license: other, license_name: lfm1.0; the LICENSE file defines "Threshold" = USD 10,000,000 annual revenue and a Commercial Use limitation (section 5).', checkedOn: CHECKED },
+    licence: {
+ name: 'LFM Open License v1.0', url: 'https://huggingface.co/LiquidAI/LFM2.5-VL-450M/raw/main/LICENSE', status: 'restricted',
+      how: 'Model card front matter: license: other, license_name: lfm1.0; the LICENSE file defines "Threshold" = USD 10,000,000 annual revenue and a Commercial Use limitation (section 5).', checkedOn: CHECKED 
+},
   },
   {
     id: 'gemma-4-e4b', kind: 'caption', name: 'Gemma 4 E4B (FreeCut\'s verifier)', repo: 'onnx-community/gemma-4-E4B-it-ONNX',
@@ -104,8 +116,10 @@ export const MODEL_CATALOG: readonly ModelEntry[] = [
     sourceUrl: 'https://huggingface.co/onnx-community/gemma-4-E4B-it-ONNX',
     sizeBytes: { wasm: 0, webgpu: 0 }, languages: 'multilingual', enabled: false,
     disabledReason: 'Too large for a browser download (the repo is ~74 GB of ONNX variants) and its licence link points to Google\'s Gemma terms, which carry use restrictions beyond the Apache-2.0 tag. Not enabled.',
-    licence: { name: 'Apache-2.0 tag + Gemma terms link', spdx: 'Apache-2.0', url: 'https://ai.google.dev/gemma/docs/gemma_4_license', status: 'unverified',
-      how: 'Card says license: apache-2.0 with license_link to the Gemma licence page; the two were not reconciled, so it is treated as unverified.', checkedOn: CHECKED },
+    licence: {
+ name: 'Apache-2.0 tag + Gemma terms link', spdx: 'Apache-2.0', url: 'https://ai.google.dev/gemma/docs/gemma_4_license', status: 'unverified',
+      how: 'Card says license: apache-2.0 with license_link to the Gemma licence page; the two were not reconciled, so it is treated as unverified.', checkedOn: CHECKED 
+},
   },
 ] as const;
 

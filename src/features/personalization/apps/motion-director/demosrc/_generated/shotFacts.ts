@@ -2857,4 +2857,4 @@ export const SHOT_FACTS: Record<string, ShotFacts> = {
   "ground": "dark",
   "readsLook": false
  }
-} as Record<string, ShotFacts>
+} as Record<string, ShotFacts>;

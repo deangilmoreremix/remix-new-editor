@@ -109,4 +109,4 @@ export const EMPTY_AI_ASSIST_STATE: AIAssistState = {
   pendingActions: [],
   executedActions: [],
   error: null,
-}
+};

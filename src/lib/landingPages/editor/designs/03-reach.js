@@ -56,12 +56,16 @@ export default {
           columns: 3,
           items: [
             { type: 'ReachMagnetCard', props: { id: id('magnet'), columns: 1, tag: 'FREE LEAD MAGNET', title: 'Get the Personalized Video Playbook', cover: 'The Personalized Video Playbook', text: 'A step-by-step guide to generating more leads and meetings with video outreach.', placeholder: 'Enter your email address', buttonLabel: 'Get the Free Guide' } },
-            { type: 'ReachFeaturesCard', props: { id: id('feats'), columns: 1, title: 'Why [[VideoReach]] Drives More Leads', items: [
+            {
+ type: 'ReachFeaturesCard', props: {
+ id: id('feats'), columns: 1, title: 'Why [[VideoReach]] Drives More Leads', items: [
               { icon: 'video', title: 'Create Personalized Videos', text: 'Use your name, company, and custom touches.' },
               { icon: 'users', title: 'Build Your Lead List', text: 'Capture and organize high-intent leads.' },
               { icon: 'bolt', title: 'Automate Outreach', text: 'Send at scale without losing the personal touch.' },
               { icon: 'chart', title: 'Track & Convert', text: 'See opens, views, and replies to turn interest into meetings.' },
-            ] } },
+            ] 
+} 
+},
             { type: 'ReachStatsCard', props: { id: id('stats'), columns: 1, title: 'Real Results from Our Customers', items: [{ icon: 'arrow', value: '3.4x', label: 'Higher Response Rate' }, { icon: 'users', value: '57%', label: 'More Qualified Leads' }, { icon: 'target', value: '2.8x', label: 'More Meetings Booked' }] } },
           ],
         },
@@ -72,24 +76,36 @@ export default {
           id: id('grid2'),
           columns: 3,
           items: [
-            { type: 'StepsCard', props: { id: id('funnel'), columns: 1, title: '', layout: 'list', items: [
+            {
+ type: 'StepsCard', props: {
+ id: id('funnel'), columns: 1, title: '', layout: 'list', items: [
               { icon: 'users', title: 'Build Your List', text: 'Attract leads with valuable content & offers.' },
               { icon: 'play', title: 'Personalize & Reach Out', text: 'Send one-to-one videos that get opened & watched.' },
               { icon: 'calendar', title: 'Book Meetings', text: 'Turn interest into real conversations.' },
               { icon: 'target', title: 'Convert & Grow', text: 'Close more deals and build long-term customers.' },
-            ] } },
-            { type: 'ReachQuotesCard', props: { id: id('quotes'), columns: 1, heading: 'What Our Customers Are Saying', quotes: [
+            ] 
+} 
+},
+            {
+ type: 'ReachQuotesCard', props: {
+ id: id('quotes'), columns: 1, heading: 'What Our Customers Are Saying', quotes: [
               { text: 'Our response rate jumped from 8% to 32% after adding personalized video outreach with VideoReach!', name: 'Jessica R.', role: 'Head of Marketing, SaaSCo', avatar: '/landing-art/03/q1.webp' },
               { text: 'It’s like 1:1 outreach at scale. We’ve booked 3.4x more meetings and our pipeline is fuller than ever.', name: 'Mark T.', role: 'Founder, GrowthLabs', avatar: '/landing-art/03/q2.webp' },
               { text: 'Super easy to use, and the results are real. More replies, more conversations, and more closed deals.', name: 'Emily K.', role: 'Sales Director, CloudEdge', avatar: '/landing-art/03/q3.webp' },
-            ] } },
-            { type: 'FaqCard', props: { id: id('faq'), columns: 1, title: 'Frequently Asked Questions', items: [
+            ] 
+} 
+},
+            {
+ type: 'FaqCard', props: {
+ id: id('faq'), columns: 1, title: 'Frequently Asked Questions', items: [
               { q: 'What is VideoReach?', a: 'A way to send one-to-one personalized videos and capture the leads they generate.' },
               { q: 'How does personalized video outreach work?', a: 'Record once, then each contact sees their own name and company on their own link.' },
               { q: 'Can I build a lead list inside the platform?', a: 'Yes. Every form submission is saved as a lead.' },
               { q: 'Do I need video editing experience?', a: 'No.' },
               { q: 'Is there a free trial?', a: 'Add your answer here.' },
-            ] } },
+            ] 
+} 
+},
           ],
         },
       },

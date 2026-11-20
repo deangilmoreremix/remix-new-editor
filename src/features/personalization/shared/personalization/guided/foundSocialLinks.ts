@@ -1,6 +1,6 @@
-import { socialHref, type SocialLinks, type SocialNetwork } from '../SocialIcons'
+import { socialHref, type SocialLinks, type SocialNetwork } from '../SocialIcons';
 
-const NETWORKS: SocialNetwork[] = ['facebook', 'instagram', 'linkedin', 'youtube', 'tiktok']
+const NETWORKS: SocialNetwork[] = ['facebook', 'instagram', 'linkedin', 'youtube', 'tiktok'];
 
 interface FoundSource {
   value?: string
@@ -8,7 +8,7 @@ interface FoundSource {
   method?: string
 }
 
-const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
+const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 /**
  * A profile link only when `SocialIcons` will really render it. A bare handle is turned into a URL by
@@ -16,8 +16,8 @@ const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLow
  * handle like `@login` (-> facebook.com/login) passes the first check but not the second.
  */
 function usable(n: SocialNetwork, raw: string): string | null {
-  const href = socialHref(n, raw)
-  return href && socialHref(n, href) ? href : null
+  const href = socialHref(n, raw);
+  return href && socialHref(n, href) ? href : null;
 }
 
 /**
@@ -32,28 +32,28 @@ export function foundSocialLinks(input: {
   clientForm?: Partial<Record<string, unknown>> | null
   contactSources?: Partial<Record<string, FoundSource | undefined>> | null
 }): { links: SocialLinks; titles: Partial<Record<SocialNetwork, string>> } {
-  const links: SocialLinks = {}
-  const titles: Partial<Record<SocialNetwork, string>> = {}
+  const links: SocialLinks = {};
+  const titles: Partial<Record<SocialNetwork, string>> = {};
   for (const n of NETWORKS) {
-    const research = input.research?.socialLinks?.[n]
-    const researchHref = typeof research === 'string' ? usable(n, research) : null
+    const research = input.research?.socialLinks?.[n];
+    const researchHref = typeof research === 'string' ? usable(n, research) : null;
 
-    const source = input.contactSources?.[n]
-    const value = input.clientForm?.[n]
+    const source = input.contactSources?.[n];
+    const value = input.clientForm?.[n];
     const lookupHref =
       source && typeof source.value === 'string' && typeof value === 'string' && value && same(value, source.value)
         ? usable(n, value)
-        : null
+        : null;
 
     if (lookupHref) {
-      links[n] = lookupHref
+      links[n] = lookupHref;
       titles[n] = source?.sourceUrl
         ? `found on ${source.sourceUrl}${source.method ? ` (${source.method})` : ''}`
-        : 'found by the contact lookup'
+        : 'found by the contact lookup';
     } else if (researchHref) {
-      links[n] = researchHref
-      if (input.research?.finalUrl) titles[n] = `found on ${input.research.finalUrl}`
+      links[n] = researchHref;
+      if (input.research?.finalUrl) titles[n] = `found on ${input.research.finalUrl}`;
     }
   }
-  return { links, titles }
+  return { links, titles };
 }

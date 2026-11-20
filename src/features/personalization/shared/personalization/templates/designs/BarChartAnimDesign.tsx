@@ -21,9 +21,9 @@
  * default is the opaque `#0f172a`.
  */
 
-import React from 'react'
-import { BarChartAnim } from '../_upstream/bar-chart-anim/BarChartAnim'
-import { useDesignFonts } from './fonts'
+import React from 'react';
+import { BarChartAnim } from '../_upstream/bar-chart-anim/BarChartAnim';
+import { useDesignFonts } from './fonts';
 import {
   DesignStage,
   TRANSPARENT,
@@ -32,7 +32,7 @@ import {
   slotValue,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** One bar of the chart (structurally identical to the upstream's `BarItem`). */
 export interface BarChartPlaceholderBar {
@@ -52,11 +52,11 @@ export const BAR_CHART_PLACEHOLDER_BARS: BarChartPlaceholderBar[] = [
   { label: 'Placeholder 2', value: 180 },
   { label: 'Placeholder 3', value: 240 },
   { label: 'Placeholder 4', value: 320 },
-]
+];
 
 /** The upstream's type is relative to the canvas, so the caps are generous. */
-const MAX_TITLE_LENGTH = 48
-const MAX_SUBTITLE_LENGTH = 48
+const MAX_TITLE_LENGTH = 48;
+const MAX_SUBTITLE_LENGTH = 48;
 
 /** The props the catalog's `defaultProps` extend. */
 type BarChartAnimAdapterProps = DesignAdapterProps & {
@@ -65,18 +65,18 @@ type BarChartAnimAdapterProps = DesignAdapterProps & {
 }
 
 export const BarChartAnimDesign: React.FC<BarChartAnimAdapterProps> = (props) => {
-  useDesignFonts()
+  useDesignFonts();
 
   const bars =
     Array.isArray(props.bars) && props.bars.length > 0
       ? props.bars
-      : BAR_CHART_PLACEHOLDER_BARS
+      : BAR_CHART_PLACEHOLDER_BARS;
 
   const title = truncateText(
     slotText(props, 'title', ['headline', 'businessName']),
     MAX_TITLE_LENGTH,
-  )
-  const subtitle = truncateText(slotValue(props, 'subtitle'), MAX_SUBTITLE_LENGTH)
+  );
+  const subtitle = truncateText(slotValue(props, 'subtitle'), MAX_SUBTITLE_LENGTH);
 
   return (
     <DesignStage designId="bar-chart-anim" props={props}>
@@ -89,7 +89,7 @@ export const BarChartAnimDesign: React.FC<BarChartAnimAdapterProps> = (props) =>
         accentColor={pickColor([props.colors?.accent, props.colors?.primary], '#60a5fa')}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default BarChartAnimDesign
+export default BarChartAnimDesign;

@@ -1,30 +1,30 @@
-import { useState } from 'react'
-import { Palette } from 'lucide-react'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { ColorField } from './editor/ColorField'
-import { Tip } from './editor/Tip'
-import { C, chipStyle, hintStyle, labelStyle, panelStyle, secondaryButtonStyle } from './tokens'
-import { LOOK_PRESETS, NEUTRAL_LOOK, applyLookPreset, isNeutralLook, type LookSettings } from '../preview/effects'
-import type { PreviewInputProps } from '../preview/types'
+import { useState } from 'react';
+import { Palette } from 'lucide-react';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { ColorField } from './editor/ColorField';
+import { Tip } from './editor/Tip';
+import { C, chipStyle, hintStyle, labelStyle, panelStyle, secondaryButtonStyle } from './tokens';
+import { LOOK_PRESETS, NEUTRAL_LOOK, applyLookPreset, isNeutralLook, type LookSettings } from '../preview/effects';
+import type { PreviewInputProps } from '../preview/types';
 
 /**
  * Color and film look for the footage. Applied to the video only (brand text and logos on top are not tinted), shown live in the
  * editor and drawn by the same code in the exported video. Presets just fill the sliders; Reset removes the look entirely.
  */
 export function LookPanel({ inputProps }: { inputProps: PreviewInputProps }): React.JSX.Element | null {
-  const { previewSettings, updatePreviewComposition } = useDemoPersonalize()
-  const [open, setOpen] = useState(false)
-  const look: LookSettings = previewSettings.look ?? NEUTRAL_LOOK
-  const active = !isNeutralLook(previewSettings.look)
-  const set = (patch: Partial<LookSettings>) => updatePreviewComposition({ look: { ...look, ...patch, preset: undefined } })
-  const brand = previewSettings.brandColors
+  const { previewSettings, updatePreviewComposition } = useDemoPersonalize();
+  const [open, setOpen] = useState(false);
+  const look: LookSettings = previewSettings.look ?? NEUTRAL_LOOK;
+  const active = !isNeutralLook(previewSettings.look);
+  const set = (patch: Partial<LookSettings>) => updatePreviewComposition({ look: { ...look, ...patch, preset: undefined } });
+  const brand = previewSettings.brandColors;
 
   const slider = (id: string, label: string, value: number, min: number, max: number, step: number, onChange: (v: number) => void, tip?: string) => (
     <div>
       <label style={labelStyle} htmlFor={id}>{label}</label>
       <input id={id} data-testid={id} type="range" aria-label={label} title={tip} min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: '100%', accentColor: C.cyan }} />
     </div>
-  )
+  );
 
   return (
     <div data-testid="look-panel" style={{ ...panelStyle, padding: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -95,5 +95,5 @@ export function LookPanel({ inputProps }: { inputProps: PreviewInputProps }): Re
         </div>
       )}
     </div>
-  )
+  );
 }

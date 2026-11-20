@@ -22,54 +22,54 @@
  * not switchable through props.
  */
 
-import React from 'react'
-import { AbsoluteFill } from 'remotion'
-import { SocialReel } from '../../_upstream/social-reel/SocialReel'
-import { useDesignFonts } from '../fonts'
-import { DesignStage, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
-import { brandPalette, deepShade, mixHex, ScopedUpstream, scopeSelector, useScopeId } from './batch3aShared'
+import React from 'react';
+import { AbsoluteFill } from 'remotion';
+import { SocialReel } from '../../_upstream/social-reel/SocialReel';
+import { useDesignFonts } from '../fonts';
+import { DesignStage, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
+import { brandPalette, deepShade, mixHex, ScopedUpstream, scopeSelector, useScopeId } from './batch3aShared';
 
-const STAGE_W = 1920
-const STAGE_H = 1080
-const PLAYER_W = 608
+const STAGE_W = 1920;
+const STAGE_H = 1080;
+const PLAYER_W = 608;
 
 /** `@acmeroofing` from "Acme Roofing". */
 export function toHandle(name: string): string {
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '')
-  return slug ? `@${slug.slice(0, 18)}` : ''
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  return slug ? `@${slug.slice(0, 18)}` : '';
 }
 
 /** Splits a headline into its lead and its last (accented) word. */
 export function splitHeadline(headline: string): { lead: string; accent: string } {
-  const words = headline.split(/\s+/).filter(Boolean)
-  if (words.length <= 1) return { lead: '', accent: words[0] ?? '' }
-  return { lead: words.slice(0, -1).join(' '), accent: words[words.length - 1] }
+  const words = headline.split(/\s+/).filter(Boolean);
+  if (words.length <= 1) return { lead: '', accent: words[0] ?? '' };
+  return { lead: words.slice(0, -1).join(' '), accent: words[words.length - 1] };
 }
 
 export const SocialReelDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
-  const palette = brandPalette(props)
+  useDesignFonts();
+  const palette = brandPalette(props);
 
-  const businessName = truncateText(slotValue(props, 'businessName'), 18)
-  const headline = truncateText(slotText(props, 'headline', ['offer', 'businessName']), 28)
-  const offer = truncateText(slotValue(props, 'offer'), 36)
-  const cta = truncateText(slotValue(props, 'cta'), 22)
-  const website = truncateText(slotValue(props, 'website'), 30)
-  const phone = truncateText(slotValue(props, 'phone'), 30)
-  const { lead, accent } = splitHeadline(headline)
+  const businessName = truncateText(slotValue(props, 'businessName'), 18);
+  const headline = truncateText(slotText(props, 'headline', ['offer', 'businessName']), 28);
+  const offer = truncateText(slotValue(props, 'offer'), 36);
+  const cta = truncateText(slotValue(props, 'cta'), 22);
+  const website = truncateText(slotValue(props, 'website'), 30);
+  const phone = truncateText(slotValue(props, 'phone'), 30);
+  const { lead, accent } = splitHeadline(headline);
 
-  const infoLines = [businessName, phone, website].filter((line) => line.length > 0)
+  const infoLines = [businessName, phone, website].filter((line) => line.length > 0);
 
-  const s = Math.min(props.width / PLAYER_W, props.height / STAGE_H)
-  const left = (props.width - STAGE_W * s) / 2
-  const top = (props.height - STAGE_H * s) / 2
-  const backdrop = deepShade(palette.primary, 0.88)
+  const s = Math.min(props.width / PLAYER_W, props.height / STAGE_H);
+  const left = (props.width - STAGE_W * s) / 2;
+  const top = (props.height - STAGE_H * s) / 2;
+  const backdrop = deepShade(palette.primary, 0.88);
 
   // The upstream hard-codes a "318" comment count on the action rail. A made-up
   // engagement number must never appear on a customer's video, so the label of
   // the rail's second item (the comment counter) is hidden for this instance.
-  const scopeId = useScopeId('social-reel')
-  const hideFakeCount = `${scopeSelector(scopeId)} [style*="right: 28px"][style*="bottom: 130px"] > div:nth-child(2) > span { visibility: hidden !important; }`
+  const scopeId = useScopeId('social-reel');
+  const hideFakeCount = `${scopeSelector(scopeId)} [style*="right: 28px"][style*="bottom: 130px"] > div:nth-child(2) > span { visibility: hidden !important; }`;
 
   return (
     <DesignStage designId="social-reel" props={props}>
@@ -109,7 +109,7 @@ export const SocialReelDesign: React.FC<DesignAdapterProps> = (props) => {
         </ScopedUpstream>
       </div>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default SocialReelDesign
+export default SocialReelDesign;

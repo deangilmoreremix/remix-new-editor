@@ -19,10 +19,10 @@
  * reads as part of the pill gradient. The copy and the motion are unchanged.
  */
 
-import React from 'react'
-import { FloatingBubbleText } from '../../_upstream/rve-floating-bubble-text/FloatingBubbleText'
-import { type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { FloatingBubbleText } from '../../_upstream/rve-floating-bubble-text/FloatingBubbleText';
+import { type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandAccent,
   brandPrimary,
@@ -35,25 +35,25 @@ import {
   slotText,
   truncateText,
   withAlpha,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_FLOATING_BUBBLE_TEXT_ID = 'rve-floating-bubble-text'
+export const RVE_FLOATING_BUBBLE_TEXT_ID = 'rve-floating-bubble-text';
 
-const ZOOM = 1.5
+const ZOOM = 1.5;
 
 export const RveFloatingBubbleTextDesign: React.FC<DesignAdapterProps> = (props) => {
-  const rem = remUnitForCentred(props, ZOOM)
-  const unit = rem / 16
-  const fontPx = 4.5 * rem
+  const rem = remUnitForCentred(props, ZOOM);
+  const unit = rem / 16;
+  const fontPx = 4.5 * rem;
   // Half the canvas minus the pill's 3.5rem horizontal padding on each side.
-  const inner = props.width * 0.48 - 7 * rem
+  const inner = props.width * 0.48 - 7 * rem;
 
   const copy = truncateText(
     slotText(props, 'headline', ['offer', 'businessName']),
     fitChars(inner, fontPx, 2, 28),
-  )
+  );
 
-  const primary = brandPrimary(props)
+  const primary = brandPrimary(props);
 
   return (
     <RveDesignStage designId={RVE_FLOATING_BUBBLE_TEXT_ID} props={props}>
@@ -72,7 +72,7 @@ export const RveFloatingBubbleTextDesign: React.FC<DesignAdapterProps> = (props)
         floatDistance={20 * unit}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveFloatingBubbleTextDesign
+export default RveFloatingBubbleTextDesign;

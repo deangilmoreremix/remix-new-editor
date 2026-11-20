@@ -16,18 +16,18 @@
  * before the layer ends.
  */
 
-import React from 'react'
-import { SpotlightReveal } from '../../_upstream/rve-spotlight-reveal/SpotlightReveal'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, brandPalette, fadeOut, rgbTriplet } from './batch3gShared'
+import React from 'react';
+import { SpotlightReveal } from '../../_upstream/rve-spotlight-reveal/SpotlightReveal';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, brandPalette, fadeOut, rgbTriplet } from './batch3gShared';
 
-export const SPOTLIGHT_DURATION = 90
-const TITLE_OUT_START = 50
-const TITLE_OUT_END = 70
+export const SPOTLIGHT_DURATION = 90;
+const TITLE_OUT_START = 50;
+const TITLE_OUT_END = 70;
 
 export const RveSpotlightRevealDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-spotlight-reveal" props={props}>
       <SpotlightReveal
@@ -46,7 +46,7 @@ export const RveSpotlightRevealDesign: React.FC<RemotionDesignComponentProps> = 
         }
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveSpotlightRevealDesign
+export default RveSpotlightRevealDesign;

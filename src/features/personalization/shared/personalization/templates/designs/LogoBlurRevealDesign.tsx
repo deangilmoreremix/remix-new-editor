@@ -25,9 +25,9 @@
  * `revealDuration` and `duration` are in SECONDS, not frames.
  */
 
-import React from 'react'
-import { LogoBlurReveal } from '../_upstream/logo-blur-reveal/LogoBlurReveal'
-import { useDesignFonts } from './fonts'
+import React from 'react';
+import { LogoBlurReveal } from '../_upstream/logo-blur-reveal/LogoBlurReveal';
+import { useDesignFonts } from './fonts';
 import {
   DesignStage,
   TRANSPARENT,
@@ -35,35 +35,35 @@ import {
   slotText,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** The upstream's own display size, in px, on a 1920 px wide composition. */
-const UPSTREAM_FONT_SIZE = 260
+const UPSTREAM_FONT_SIZE = 260;
 
 /** Long wordmarks are cut so they can never leave the canvas. */
-const MAX_WORDMARK_LENGTH = 20
+const MAX_WORDMARK_LENGTH = 20;
 
 /** The title-safe width the wordmark is fitted into (a fraction of the canvas). */
-const TITLE_SAFE_WIDTH = 0.86
+const TITLE_SAFE_WIDTH = 0.86;
 
 /** The average advance of a 900-weight sans, in em. */
-const CHAR_ADVANCE = 0.62
+const CHAR_ADVANCE = 0.62;
 
 /** The wordmark never shrinks below this, in px. */
-const MIN_FONT_SIZE = 32
+const MIN_FONT_SIZE = 32;
 
 /** The upstream's own motion constants (seconds / px). */
-const BLUR_AMOUNT = 40
-const REVEAL_DURATION_SECONDS = 1.6
-const DURATION_SECONDS = 4
+const BLUR_AMOUNT = 40;
+const REVEAL_DURATION_SECONDS = 1.6;
+const DURATION_SECONDS = 4;
 
 export const LogoBlurRevealDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
+  useDesignFonts();
 
   const wordmark = truncateText(
     slotText(props, 'businessName', ['headline']),
     MAX_WORDMARK_LENGTH,
-  )
+  );
 
   const fontSize = Math.max(
     MIN_FONT_SIZE,
@@ -73,7 +73,7 @@ export const LogoBlurRevealDesign: React.FC<DesignAdapterProps> = (props) => {
         (props.width * TITLE_SAFE_WIDTH) / (Math.max(1, wordmark.length) * CHAR_ADVANCE),
       ),
     ),
-  )
+  );
 
   return (
     <DesignStage designId="logo-blur-reveal" props={props}>
@@ -87,7 +87,7 @@ export const LogoBlurRevealDesign: React.FC<DesignAdapterProps> = (props) => {
         duration={DURATION_SECONDS}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default LogoBlurRevealDesign
+export default LogoBlurRevealDesign;

@@ -20,43 +20,43 @@
  * provider mocked out — the step's own wiring (chip row, error line, warning
  * line) is real, which is exactly the surface under test.
  */
-import React from 'react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import React from 'react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, cleanup } from '@testing-library/react';
 
 import {
   REMOTION_DESIGN_FIXED_SVG_IDS,
   getRemotionDesignFixedSvgIdWarning,
-} from '../catalog'
+} from '../catalog';
 
-let mockCtx: Record<string, unknown>
+let mockCtx: Record<string, unknown>;
 
 vi.mock('../../DemoPersonalizeProvider', () => ({
   useDemoPersonalize: () => mockCtx,
-}))
+}));
 vi.mock('../../guided/OverlayEditor', () => ({
   OverlayEditor: () => null,
-}))
+}));
 // The layout quality check is a separate child of Step 4 with its own tests; this
 // file isolates the Step 4 design-chip warning against a minimal fake context.
 vi.mock('../../guided/LayoutQualityPanel', () => ({
   LayoutQualityPanel: () => null,
-}))
+}));
 vi.mock('../../guided/useLayoutQuality', () => ({
   useLayoutQuality: () => ({
     report: { status: 'ready', issues: [], blocksExport: false, notes: [], analysis: {} },
     rightsNeedConfirmation: false,
     profile: {},
   }),
-}))
+}));
 vi.mock('../../preview/BeforeAfterPreview', () => ({
   BeforeAfterPreview: () => null,
-}))
+}));
 vi.mock('../../guided/buildPreviewInput', () => ({
   buildPreviewInput: () => ({}),
-}))
+}));
 
-const { StepPreviewApprove } = await import('../../guided/StepPreviewApprove')
+const { StepPreviewApprove } = await import('../../guided/StepPreviewApprove');
 
 function makeCtx(activeRemotionDesignId: string | null): Record<string, unknown> {
   return {
@@ -89,19 +89,19 @@ function makeCtx(activeRemotionDesignId: string | null): Record<string, unknown>
     generation: null,
     result: null,
     mode: 'local',
-  }
+  };
 }
 
 beforeEach(() => {
-  mockCtx = makeCtx(null)
-})
+  mockCtx = makeCtx(null);
+});
 
 // No vitest `globals` in this project → testing-library's auto-cleanup does
 // not run, so each render must be torn down explicitly or `screen` would see
 // the previous test's DOM.
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+});
 
 /** Every design that hardcodes SVG ids (one instance per composition). */
 const CONSTRAINED_DESIGN_IDS = [
@@ -118,49 +118,49 @@ const CONSTRAINED_DESIGN_IDS = [
   'rve-area-chart',
   'rve-chart-animation',
   'rve-circular-progress',
-]
+];
 
 describe('getRemotionDesignFixedSvgIdWarning (catalog helper)', () => {
   it('declares exactly the constrained designs', () => {
-    expect(Object.keys(REMOTION_DESIGN_FIXED_SVG_IDS).sort()).toEqual(CONSTRAINED_DESIGN_IDS)
-  })
+    expect(Object.keys(REMOTION_DESIGN_FIXED_SVG_IDS).sort()).toEqual(CONSTRAINED_DESIGN_IDS);
+  });
 
   it('returns the warning, naming the fixed SVG ids, for a constrained design', () => {
     for (const templateId of CONSTRAINED_DESIGN_IDS) {
-      const warning = getRemotionDesignFixedSvgIdWarning(templateId)
-      expect(warning).not.toBeNull()
+      const warning = getRemotionDesignFixedSvgIdWarning(templateId);
+      expect(warning).not.toBeNull();
       for (const fixedId of REMOTION_DESIGN_FIXED_SVG_IDS[templateId]) {
-        expect(warning).toContain(`"${fixedId}"`)
+        expect(warning).toContain(`"${fixedId}"`);
       }
-      expect(warning).toContain('ONE instance')
-      expect(warning).toContain('clipped')
+      expect(warning).toContain('ONE instance');
+      expect(warning).toContain('clipped');
     }
-  })
+  });
 
   it('returns null for unconstrained designs, unknown ids and no selection', () => {
-    expect(getRemotionDesignFixedSvgIdWarning('animated-headline')).toBeNull()
-    expect(getRemotionDesignFixedSvgIdWarning('lower-third')).toBeNull()
-    expect(getRemotionDesignFixedSvgIdWarning('not-a-real-design')).toBeNull()
-    expect(getRemotionDesignFixedSvgIdWarning('')).toBeNull()
-    expect(getRemotionDesignFixedSvgIdWarning(null)).toBeNull()
-    expect(getRemotionDesignFixedSvgIdWarning(undefined)).toBeNull()
-  })
-})
+    expect(getRemotionDesignFixedSvgIdWarning('animated-headline')).toBeNull();
+    expect(getRemotionDesignFixedSvgIdWarning('lower-third')).toBeNull();
+    expect(getRemotionDesignFixedSvgIdWarning('not-a-real-design')).toBeNull();
+    expect(getRemotionDesignFixedSvgIdWarning('')).toBeNull();
+    expect(getRemotionDesignFixedSvgIdWarning(null)).toBeNull();
+    expect(getRemotionDesignFixedSvgIdWarning(undefined)).toBeNull();
+  });
+});
 
 describe('Step 4 UI warning (rendered)', () => {
   it('renders the helper warning near the Designs chip row for a constrained design', () => {
-    mockCtx = makeCtx('logo-mask-wipe')
-    render(<StepPreviewApprove />)
+    mockCtx = makeCtx('logo-mask-wipe');
+    render(<StepPreviewApprove />);
 
-    const note = screen.getByRole('note')
-    expect(note.textContent).toBe(getRemotionDesignFixedSvgIdWarning('logo-mask-wipe'))
-    expect(note.textContent).toContain('lmw-wipe')
-  })
+    const note = screen.getByRole('note');
+    expect(note.textContent).toBe(getRemotionDesignFixedSvgIdWarning('logo-mask-wipe'));
+    expect(note.textContent).toContain('lmw-wipe');
+  });
 
   it('renders no warning for an unconstrained design', () => {
-    mockCtx = makeCtx('animated-headline')
-    render(<StepPreviewApprove />)
+    mockCtx = makeCtx('animated-headline');
+    render(<StepPreviewApprove />);
 
-    expect(screen.queryByRole('note')).toBeNull()
-  })
-})
+    expect(screen.queryByRole('note')).toBeNull();
+  });
+});

@@ -25,24 +25,24 @@
  * clip, like the repo-1 logo reveals.
  */
 
-import React from 'react'
-import { LogoIntro } from '../../_upstream/brito-logo-intro/LogoIntro'
-import { TRANSPARENT, pickColor, slotText, type DesignAdapterProps } from '../shared'
-import { BritoDesignStage, BritoLogoPlaceholder } from './britoShared'
+import React from 'react';
+import { LogoIntro } from '../../_upstream/brito-logo-intro/LogoIntro';
+import { TRANSPARENT, pickColor, slotText, type DesignAdapterProps } from '../shared';
+import { BritoDesignStage, BritoLogoPlaceholder } from './britoShared';
 
-export const BRITO_LOGO_INTRO_ID = 'brito-logo-intro'
+export const BRITO_LOGO_INTRO_ID = 'brito-logo-intro';
 
 /** The upstream's logo box is a fixed 460x460 px square. */
-const LOGO_SIZE = 460
+const LOGO_SIZE = 460;
 
 /** The upstream default particle count. */
-const PARTICLE_COUNT = 28
+const PARTICLE_COUNT = 28;
 
 export const BritoLogoIntroDesign: React.FC<DesignAdapterProps> = (props) => {
-  const primary = pickColor([props.colors?.primary], '#2563EB')
-  const accent = pickColor([props.colors?.accent], '#0EA5E9')
-  const logo = typeof props.media?.logo === 'string' ? props.media.logo.trim() : ''
-  const name = slotText(props, 'businessName')
+  const primary = pickColor([props.colors?.primary], '#2563EB');
+  const accent = pickColor([props.colors?.accent], '#0EA5E9');
+  const logo = typeof props.media?.logo === 'string' ? props.media.logo.trim() : '';
+  const name = slotText(props, 'businessName');
 
   return (
     <BritoDesignStage designId={BRITO_LOGO_INTRO_ID} props={props} overlay>
@@ -57,7 +57,7 @@ export const BritoLogoIntroDesign: React.FC<DesignAdapterProps> = (props) => {
         }
       />
     </BritoDesignStage>
-  )
-}
+  );
+};
 
-export default BritoLogoIntroDesign
+export default BritoLogoIntroDesign;

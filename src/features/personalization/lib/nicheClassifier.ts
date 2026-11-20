@@ -191,8 +191,8 @@ export const SUB_NICHE_KEYWORDS: Record<string, Record<string, string[]>> = {
 
 /** Build a word-boundary regex for a keyword phrase. */
 function nicheRegex(keyword: string): RegExp {
-  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return new RegExp(`\\b${escaped}\\b`, 'i')
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`\\b${escaped}\\b`, 'i');
 }
 
 /** Pre-compile regexes once per niche for performance. */

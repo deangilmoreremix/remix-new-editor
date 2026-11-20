@@ -19,37 +19,37 @@
  * composition, so it never leaves the canvas.
  */
 
-import React from 'react'
-import { interpolate, useCurrentFrame } from 'remotion'
-import { GeometricPatterns } from '../../_upstream/rve-geometric-patterns/GeometricPatterns'
-import { darkenColor, slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { lightenColor, RveDesignStage } from '../rveSharedDesign'
-import { DESIGN_DISPLAY_FONT_STACK } from '../fonts'
-import { brandAccent, brandPrimary, readableOnDark, rgba } from './shared3f'
+import React from 'react';
+import { interpolate, useCurrentFrame } from 'remotion';
+import { GeometricPatterns } from '../../_upstream/rve-geometric-patterns/GeometricPatterns';
+import { darkenColor, slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { lightenColor, RveDesignStage } from '../rveSharedDesign';
+import { DESIGN_DISPLAY_FONT_STACK } from '../fonts';
+import { brandAccent, brandPrimary, readableOnDark, rgba } from './shared3f';
 
 /** Longest title, in characters. */
-const MAX_TITLE_CHARS = 32
+const MAX_TITLE_CHARS = 32;
 /** Title size cap as a fraction of the short edge. */
-const TITLE_RATIO = 0.1
+const TITLE_RATIO = 0.1;
 
 export const RveGeometricPatternsDesign: React.FC<DesignAdapterProps> = (props) => {
-  const frame = useCurrentFrame()
-  const primary = brandPrimary(props)
-  const accent = brandAccent(props)
-  const short = Math.min(props.width, props.height)
+  const frame = useCurrentFrame();
+  const primary = brandPrimary(props);
+  const accent = brandAccent(props);
+  const short = Math.min(props.width, props.height);
 
-  const title = truncateText(slotText(props, 'businessName', ['headline']), MAX_TITLE_CHARS)
+  const title = truncateText(slotText(props, 'businessName', ['headline']), MAX_TITLE_CHARS);
   const titlePx = Math.round(
     Math.min(short * TITLE_RATIO, (props.width * 0.84) / Math.max(1, title.length * 0.6)),
-  )
+  );
   const titleOpacity = interpolate(frame, [24, 48], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
-  })
+  });
   const titleRise = interpolate(frame, [24, 48], [short * 0.03, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
-  })
+  });
 
   return (
     <RveDesignStage designId="rve-geometric-patterns" props={props}>
@@ -95,7 +95,7 @@ export const RveGeometricPatternsDesign: React.FC<DesignAdapterProps> = (props) 
         </div>
       ) : null}
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveGeometricPatternsDesign
+export default RveGeometricPatternsDesign;

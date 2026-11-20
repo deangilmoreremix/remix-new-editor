@@ -19,9 +19,9 @@
  * lines rather than running off the canvas.
  */
 
-import React from 'react'
-import { BrushStrokeReveal } from '../_upstream/brush-stroke-reveal/BrushStrokeReveal'
-import { useDesignFonts } from './fonts'
+import React from 'react';
+import { BrushStrokeReveal } from '../_upstream/brush-stroke-reveal/BrushStrokeReveal';
+import { useDesignFonts } from './fonts';
 import {
   DesignStage,
   TRANSPARENT,
@@ -30,24 +30,24 @@ import {
   slotValue,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** The upstream's fixed display size is 160 px, so the title is cut short. */
-const MAX_TITLE_LENGTH = 24
-const MAX_DESCRIPTION_LENGTH = 48
+const MAX_TITLE_LENGTH = 24;
+const MAX_DESCRIPTION_LENGTH = 48;
 
 /** The upstream's own motion constants. */
-const STROKES = 3
-const DIRECTION = 'left' as const
+const STROKES = 3;
+const DIRECTION = 'left' as const;
 
 export const BrushStrokeRevealDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
+  useDesignFonts();
 
   const title = truncateText(
     slotText(props, 'headline', ['offer', 'businessName']),
     MAX_TITLE_LENGTH,
-  )
-  const description = truncateText(slotValue(props, 'offer'), MAX_DESCRIPTION_LENGTH)
+  );
+  const description = truncateText(slotValue(props, 'offer'), MAX_DESCRIPTION_LENGTH);
 
   return (
     <DesignStage designId="brush-stroke-reveal" props={props}>
@@ -61,7 +61,7 @@ export const BrushStrokeRevealDesign: React.FC<DesignAdapterProps> = (props) => 
         accentColor={pickColor([props.colors?.accent, props.colors?.primary], '#a93226')}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default BrushStrokeRevealDesign
+export default BrushStrokeRevealDesign;

@@ -17,32 +17,32 @@
  * not switchable through props.
  */
 
-import React from 'react'
-import { CommunityChat, type CommunityChatMessage } from '../../_upstream/community-chat/CommunityChat'
-import { useDesignFonts } from '../fonts'
-import { DesignStage, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
-import { ScopedUpstream, brandPalette, deepShade, scopeSelector, useScopeId } from './batch3aShared'
+import React from 'react';
+import { CommunityChat, type CommunityChatMessage } from '../../_upstream/community-chat/CommunityChat';
+import { useDesignFonts } from '../fonts';
+import { DesignStage, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
+import { ScopedUpstream, brandPalette, deepShade, scopeSelector, useScopeId } from './batch3aShared';
 
-const MAX_NAME_LENGTH = 24
-const MAX_MESSAGE_LENGTH = 90
+const MAX_NAME_LENGTH = 24;
+const MAX_MESSAGE_LENGTH = 90;
 
 export const CommunityChatDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
-  const scopeId = useScopeId('community-chat')
-  const palette = brandPalette(props)
+  useDesignFonts();
+  const scopeId = useScopeId('community-chat');
+  const palette = brandPalette(props);
   // The upstream's app background is a module constant; a stylesheet scoped
   // to this instance swaps it for a deep shade of the brand colour.
-  const css = `${scopeSelector(scopeId)} > div:first-child { background: ${deepShade(palette.primary, 0.86)} !important; }`
+  const css = `${scopeSelector(scopeId)} > div:first-child { background: ${deepShade(palette.primary, 0.86)} !important; }`;
 
-  const businessName = truncateText(slotValue(props, 'businessName'), MAX_NAME_LENGTH)
-  const headline = truncateText(slotText(props, 'headline', ['offer', 'businessName']), MAX_MESSAGE_LENGTH)
-  const offer = truncateText(slotValue(props, 'offer'), MAX_MESSAGE_LENGTH)
-  const cta = slotValue(props, 'cta')
-  const contact = slotValue(props, 'website') || slotValue(props, 'phone')
-  const closing = truncateText([cta, contact].filter(Boolean).join(' — '), MAX_MESSAGE_LENGTH)
+  const businessName = truncateText(slotValue(props, 'businessName'), MAX_NAME_LENGTH);
+  const headline = truncateText(slotText(props, 'headline', ['offer', 'businessName']), MAX_MESSAGE_LENGTH);
+  const offer = truncateText(slotValue(props, 'offer'), MAX_MESSAGE_LENGTH);
+  const cta = slotValue(props, 'cta');
+  const contact = slotValue(props, 'website') || slotValue(props, 'phone');
+  const closing = truncateText([cta, contact].filter(Boolean).join(' — '), MAX_MESSAGE_LENGTH);
 
-  const author = businessName || 'Announcements'
-  const avatarLabel = author.charAt(0).toUpperCase()
+  const author = businessName || 'Announcements';
+  const avatarLabel = author.charAt(0).toUpperCase();
   const messages: CommunityChatMessage[] = [headline, offer, closing]
     .filter((text) => text.length > 0)
     .map((text) => ({
@@ -51,7 +51,7 @@ export const CommunityChatDesign: React.FC<DesignAdapterProps> = (props) => {
       avatarColor: palette.accent,
       time: 'Today',
       text,
-    }))
+    }));
 
   return (
     <DesignStage designId="community-chat" props={props}>
@@ -63,7 +63,7 @@ export const CommunityChatDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </ScopedUpstream>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default CommunityChatDesign
+export default CommunityChatDesign;

@@ -36,10 +36,14 @@ describe('animated CTA buttons', () => {
 
   it('new CTAs are animated; the composition draws them and warns they are not clickable in files', () => {
     expect(getAddon('click-to-call').defaults()).toMatchObject({ animation: 'pulse', fontFamily: 'Montserrat' });
-    const state = { timelineSeconds: 10, tracks: [{ id: 't', type: 'text', items: [
+    const state = {
+ timelineSeconds: 10, tracks: [{
+ id: 't', type: 'text', items: [
       { id: 'c1', type: 'click-to-call', left: 10, width: 30, buttonText: 'Hi {{firstname}}', animation: 'arrow', phoneNumber: '+15551234567', style: { buttonColor: '#00ff00', posWidth: 30 } },
       { id: 'c2', type: 'click-to-call', left: 50, width: 30, buttonText: 'Plain', style: {} },
-    ] }] };
+    ] 
+}] 
+};
     const m = timelineToComposition(state, { profile: { variables: { firstname: 'Ann' } } });
     const [a, b] = m.layers;
     expect(a).toMatchObject({ kind: 'overlay', type: 'cta-button', options: { buttonText: 'Hi Ann', animation: 'arrow', posWidth: 30 } });

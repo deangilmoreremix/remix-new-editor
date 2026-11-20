@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react';
 
 interface TooltipWrapperProps {
   content: string
@@ -8,31 +8,31 @@ interface TooltipWrapperProps {
 }
 
 export function TooltipWrapper({ content, position = 'top', delay = 500, children }: TooltipWrapperProps) {
-  const [visible, setVisible] = useState(false)
-  const [showTimeout, setShowTimeout] = useState<ReturnType<typeof setTimeout> | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false);
+  const [showTimeout, setShowTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const showTooltip = () => {
     const timeout = setTimeout(() => {
-      setVisible(true)
-    }, delay)
-    setShowTimeout(timeout)
-  }
+      setVisible(true);
+    }, delay);
+    setShowTimeout(timeout);
+  };
 
   const hideTooltip = () => {
     if (showTimeout) {
-      clearTimeout(showTimeout)
+      clearTimeout(showTimeout);
     }
-    setVisible(false)
-  }
+    setVisible(false);
+  };
 
   useEffect(() => {
     return () => {
       if (showTimeout) {
-        clearTimeout(showTimeout)
+        clearTimeout(showTimeout);
       }
-    }
-  }, [showTimeout])
+    };
+  }, [showTimeout]);
 
   const positionStyles: Record<string, React.CSSProperties> = {
     top: {
@@ -63,7 +63,7 @@ export function TooltipWrapper({ content, position = 'top', delay = 500, childre
       transform: 'translateY(-50%)',
       marginRight: '8px',
     },
-  }
+  };
 
   return (
     <div
@@ -83,5 +83,5 @@ export function TooltipWrapper({ content, position = 'top', delay = 500, childre
         </div>
       )}
     </div>
-  )
+  );
 }

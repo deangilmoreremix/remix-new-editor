@@ -30,27 +30,27 @@
  *
  * Nothing here registers itself: importing this module has no side effect.
  */
-import type { PreviewAspectRatio } from '../../../preview/types'
-import type { RemotionDesignTemplate } from '../../types'
-import { RVE_ATTRIBUTION } from '../rveSharedDesign'
-import { RveAnimatedListDesign } from './RveAnimatedListDesign'
-import { RveBounceTextDesign } from './RveBounceTextDesign'
-import { RveBubblePopTextDesign } from './RveBubblePopTextDesign'
-import { RveCinematicTitleIntroDesign } from './RveCinematicTitleIntroDesign'
-import { RveCountdownIntroDesign, COUNTDOWN_INTRO_FRAMES } from './RveCountdownIntroDesign'
-import { RveCreditsRollDesign, CREDITS_ROLL_FRAMES } from './RveCreditsRollDesign'
-import { RveFloatingBubbleTextDesign } from './RveFloatingBubbleTextDesign'
-import { RveLowerThirdDesign } from './RveLowerThirdDesign'
-import { RveNotificationPopDesign } from './RveNotificationPopDesign'
-import { RvePulsingTextDesign } from './RvePulsingTextDesign'
-import { RveQuoteCardDesign } from './RveQuoteCardDesign'
-import { RveSubscribeReminderDesign } from './RveSubscribeReminderDesign'
-import { RveTextHighlightDesign } from './RveTextHighlightDesign'
-import { RveTitleSplitDesign } from './RveTitleSplitDesign'
-import { RveTypewriterSubtitleDesign } from './RveTypewriterSubtitleDesign'
+import type { PreviewAspectRatio } from '../../../preview/types';
+import type { RemotionDesignTemplate } from '../../types';
+import { RVE_ATTRIBUTION } from '../rveSharedDesign';
+import { RveAnimatedListDesign } from './RveAnimatedListDesign';
+import { RveBounceTextDesign } from './RveBounceTextDesign';
+import { RveBubblePopTextDesign } from './RveBubblePopTextDesign';
+import { RveCinematicTitleIntroDesign } from './RveCinematicTitleIntroDesign';
+import { RveCountdownIntroDesign, COUNTDOWN_INTRO_FRAMES } from './RveCountdownIntroDesign';
+import { RveCreditsRollDesign, CREDITS_ROLL_FRAMES } from './RveCreditsRollDesign';
+import { RveFloatingBubbleTextDesign } from './RveFloatingBubbleTextDesign';
+import { RveLowerThirdDesign } from './RveLowerThirdDesign';
+import { RveNotificationPopDesign } from './RveNotificationPopDesign';
+import { RvePulsingTextDesign } from './RvePulsingTextDesign';
+import { RveQuoteCardDesign } from './RveQuoteCardDesign';
+import { RveSubscribeReminderDesign } from './RveSubscribeReminderDesign';
+import { RveTextHighlightDesign } from './RveTextHighlightDesign';
+import { RveTitleSplitDesign } from './RveTitleSplitDesign';
+import { RveTypewriterSubtitleDesign } from './RveTypewriterSubtitleDesign';
 
 /** Every supported format: all sizing is derived from the composition. */
-const ALL_RATIOS: PreviewAspectRatio[] = ['16:9', '9:16', '1:1', '4:5']
+const ALL_RATIOS: PreviewAspectRatio[] = ['16:9', '9:16', '1:1', '4:5'];
 
 /** The `source` block every batch-3e design carries. */
 function rveSource(slug: string): RemotionDesignTemplate['source'] {
@@ -60,13 +60,13 @@ function rveSource(slug: string): RemotionDesignTemplate['source'] {
     sourcePath: `templates/${slug}.tsx`,
     license: 'MIT',
     attribution: RVE_ATTRIBUTION,
-  }
+  };
 }
 
 /** Shared capability note for the repo-2 copies. */
 const RVE_NOTE =
   'Repo-2 edited copy (C8): every upstream literal is a prop and the demo copy is never reachable. ' +
-  'Sizes are canvas-relative (the upstream rem/px values are scaled from the composition short edge). '
+  'Sizes are canvas-relative (the upstream rem/px values are scaled from the composition short edge). ';
 
 /** Placement of a full-canvas overlay anchored by the upstream itself (corner / edge). */
 const FULL_CANVAS_OVERLAY: RemotionDesignTemplate['placement'] = {
@@ -75,11 +75,11 @@ const FULL_CANVAS_OVERLAY: RemotionDesignTemplate['placement'] = {
   scale: 1,
   opacity: 1,
   animation: 'none',
-}
+};
 
 /** Placement of a full-scene intro card. */
 function introPlacement(endFrame: number): RemotionDesignTemplate['placement'] {
-  return { x: 0.5, y: 0.5, scale: 1, opacity: 1, animation: 'none', endFrame }
+  return { x: 0.5, y: 0.5, scale: 1, opacity: 1, animation: 'none', endFrame };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -120,7 +120,7 @@ export const rveBounceTextTemplate: RemotionDesignTemplate = {
       'subtitle (offer, then business name) are truncated to fit the card.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveBubblePopTextTemplate: RemotionDesignTemplate = {
   id: 'rve-bubble-pop-text',
@@ -156,7 +156,7 @@ export const rveBubblePopTextTemplate: RemotionDesignTemplate = {
       'rasteriser; the bubbles are opaque gradients, so nothing visible changes.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveFloatingBubbleTextTemplate: RemotionDesignTemplate = {
   id: 'rve-floating-bubble-text',
@@ -191,7 +191,7 @@ export const rveFloatingBubbleTextTemplate: RemotionDesignTemplate = {
       'lines inside the pill.',
   },
   previewCompatible: true,
-}
+};
 
 export const rvePulsingTextTemplate: RemotionDesignTemplate = {
   id: 'rve-pulsing-text',
@@ -226,7 +226,7 @@ export const rvePulsingTextTemplate: RemotionDesignTemplate = {
       'type size is fitted to the letter count so the row fits half the canvas.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveTitleSplitTemplate: RemotionDesignTemplate = {
   id: 'rve-title-split',
@@ -262,7 +262,7 @@ export const rveTitleSplitTemplate: RemotionDesignTemplate = {
       '-webkit-text-stroke, which the export rasteriser supports.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveTypewriterSubtitleTemplate: RemotionDesignTemplate = {
   id: 'rve-typewriter-subtitle',
@@ -297,7 +297,7 @@ export const rveTypewriterSubtitleTemplate: RemotionDesignTemplate = {
       'the copy is truncated. The upstream monospace face is replaced by the bundled deterministic typeface.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveTextHighlightTemplate: RemotionDesignTemplate = {
   id: 'rve-text-highlight',
@@ -331,7 +331,7 @@ export const rveTextHighlightTemplate: RemotionDesignTemplate = {
       'the longest word fits the column.',
   },
   previewCompatible: true,
-}
+};
 
 /* -------------------------------------------------------------------------- */
 /* Overlays — lower third / promo                                              */
@@ -372,7 +372,7 @@ export const rveLowerThirdTemplate: RemotionDesignTemplate = {
       'paints. Both lines are truncated to 70 % of the canvas width.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveNotificationPopTemplate: RemotionDesignTemplate = {
   id: 'rve-notification-pop',
@@ -414,7 +414,7 @@ export const rveNotificationPopTemplate: RemotionDesignTemplate = {
       'stack on the right edge, which the upstream positions itself — hence a full-canvas layer.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveSubscribeReminderTemplate: RemotionDesignTemplate = {
   id: 'rve-subscribe-reminder',
@@ -451,7 +451,7 @@ export const rveSubscribeReminderTemplate: RemotionDesignTemplate = {
       'not drawn by the export rasteriser; its 75 % black fill keeps it legible.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveAnimatedListTemplate: RemotionDesignTemplate = {
   id: 'rve-animated-list',
@@ -489,17 +489,17 @@ export const rveAnimatedListTemplate: RemotionDesignTemplate = {
       'legibility; the upstream has no background, so nothing else paints.',
   },
   previewCompatible: true,
-}
+};
 
 /* -------------------------------------------------------------------------- */
 /* Full-scene intro cards                                                      */
 /* -------------------------------------------------------------------------- */
 
 /** Natural length of the cinematic title card (subtitle in by frame 60). */
-const CINEMATIC_TITLE_FRAMES = 120
+const CINEMATIC_TITLE_FRAMES = 120;
 
 /** Natural length of the quote card (attribution in by frame 45). */
-const QUOTE_CARD_FRAMES = 120
+const QUOTE_CARD_FRAMES = 120;
 
 export const rveCinematicTitleIntroTemplate: RemotionDesignTemplate = {
   id: 'rve-cinematic-title-intro',
@@ -536,7 +536,7 @@ export const rveCinematicTitleIntroTemplate: RemotionDesignTemplate = {
       'Title wraps to at most two lines.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveQuoteCardTemplate: RemotionDesignTemplate = {
   id: 'rve-quote-card',
@@ -572,7 +572,7 @@ export const rveQuoteCardTemplate: RemotionDesignTemplate = {
       '"— business name". The upstream Georgia serif is replaced by the bundled deterministic typeface.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveCreditsRollTemplate: RemotionDesignTemplate = {
   id: 'rve-credits-roll',
@@ -613,7 +613,7 @@ export const rveCreditsRollTemplate: RemotionDesignTemplate = {
       `the content height so the whole roll crosses the canvas in ${CREDITS_ROLL_FRAMES} frames — the layer's endFrame.`,
   },
   previewCompatible: true,
-}
+};
 
 export const rveCountdownIntroTemplate: RemotionDesignTemplate = {
   id: 'rve-countdown-intro',
@@ -648,7 +648,7 @@ export const rveCountdownIntroTemplate: RemotionDesignTemplate = {
       'The closing word is the call to action, kept on one line. The ring SVG declares no ids.',
   },
   previewCompatible: true,
-}
+};
 
 /** Batch 3e designs, in registration order. */
 export const BATCH_3E_TEMPLATES: RemotionDesignTemplate[] = [
@@ -667,7 +667,7 @@ export const BATCH_3E_TEMPLATES: RemotionDesignTemplate[] = [
   rveLowerThirdTemplate,
   rveAnimatedListTemplate,
   rveCountdownIntroTemplate,
-]
+];
 
 /** Batch 3e designs that hardcode SVG ids (one instance per composition). */
-export const BATCH_3E_FIXED_SVG_IDS: Record<string, string[]> = {}
+export const BATCH_3E_FIXED_SVG_IDS: Record<string, string[]> = {};

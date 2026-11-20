@@ -43,8 +43,10 @@ describe('heatmap renderer math', () => {
 });
 
 describe('renderHeatmap (canvas, DPR)', () => {
-  const fakeCtx = () => ({ setTransform: vi.fn(), clearRect: vi.fn(), drawImage: vi.fn(), putImageData: vi.fn(), fillRect: vi.fn(),
-    createRadialGradient: () => ({ addColorStop() {} }), getImageData: (x, y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), set globalAlpha(v) {}, set fillStyle(v) {} });
+  const fakeCtx = () => ({
+ setTransform: vi.fn(), clearRect: vi.fn(), drawImage: vi.fn(), putImageData: vi.fn(), fillRect: vi.fn(),
+    createRadialGradient: () => ({ addColorStop() {} }), getImageData: (x, y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), set globalAlpha(v) {}, set fillStyle(v) {} 
+});
   it('sizes the backing store by devicePixelRatio and keeps CSS size', () => {
     const canvas = document.createElement('canvas');
     canvas.getContext = () => fakeCtx();

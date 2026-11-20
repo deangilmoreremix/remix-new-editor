@@ -7,11 +7,11 @@
  * rules are identical everywhere.
  */
 
-import { addDesignTemplate, removeDesignLayer, resetPreviewDesign } from './presets'
-import type { ApplyLayoutContext } from './presets'
-import { getRemotionDesignTemplate, isRemotionDesignTemplateSupported } from '../templates/registry'
-import type { RemotionDesignMediaRole, RemotionDesignTemplate } from '../templates/types'
-import type { PersonalizationPreviewSettings, PreviewLayer } from './types'
+import { addDesignTemplate, removeDesignLayer, resetPreviewDesign } from './presets';
+import type { ApplyLayoutContext } from './presets';
+import { getRemotionDesignTemplate, isRemotionDesignTemplateSupported } from '../templates/registry';
+import type { RemotionDesignMediaRole, RemotionDesignTemplate } from '../templates/types';
+import type { PersonalizationPreviewSettings, PreviewLayer } from './types';
 
 export type DesignAvailability = Partial<Record<RemotionDesignMediaRole, boolean>>
 
@@ -22,13 +22,13 @@ export interface AddDesignCheck {
 }
 
 /** Categories that cover or replace the whole frame: only one of each may be added. */
-const EXCLUSIVE_CATEGORIES: ReadonlyArray<RemotionDesignTemplate['category']> = ['full-scene', 'transition']
+const EXCLUSIVE_CATEGORIES: ReadonlyArray<RemotionDesignTemplate['category']> = ['full-scene', 'transition'];
 
 /** The design layers currently on the video, in stacking order. */
 export function listAddedDesigns(settings: PersonalizationPreviewSettings): PreviewLayer[] {
   return (Array.isArray(settings.layers) ? settings.layers : []).filter(
     (layer) => layer && layer.kind === 'design' && Boolean(layer.designId),
-  )
+  );
 }
 
 /** Which brand pictures exist, read from the same context the layers are built from. */
@@ -37,7 +37,7 @@ export function availabilityFromContext(ctx?: ApplyLayoutContext): DesignAvailab
     logo: Boolean(ctx?.logoUrl),
     product: Boolean(ctx?.productUrl),
     service: Boolean(ctx?.serviceUrl),
-  }
+  };
 }
 
 /** Whether `design` can be added on top of the current video, and why not when it cannot. */
@@ -46,36 +46,36 @@ export function canAddDesign(
   design: RemotionDesignTemplate,
   available: DesignAvailability = {},
 ): AddDesignCheck {
-  const supported = isRemotionDesignTemplateSupported(design.id, settings.aspectRatio)
-  if (!supported.supported) return { ok: false, reason: supported.reason }
+  const supported = isRemotionDesignTemplateSupported(design.id, settings.aspectRatio);
+  if (!supported.supported) return { ok: false, reason: supported.reason };
 
-  const added = listAddedDesigns(settings)
+  const added = listAddedDesigns(settings);
   if (added.some((layer) => layer.designId === design.id)) {
-    return { ok: false, reason: `${design.name} is already on your video.` }
+    return { ok: false, reason: `${design.name} is already on your video.` };
   }
 
   const required = new Set<RemotionDesignMediaRole>([
     ...(design.requiredMedia ?? []),
     ...(design.media ?? []).filter((binding) => binding.required).map((binding) => binding.role),
-  ])
+  ]);
   for (const role of required) {
     if (!available[role]) {
-      const noun = role === 'logo' ? 'a logo' : role === 'product' ? 'a product photo' : 'a service photo'
-      return { ok: false, reason: `Needs ${noun}.` }
+      const noun = role === 'logo' ? 'a logo' : role === 'product' ? 'a product photo' : 'a service photo';
+      return { ok: false, reason: `Needs ${noun}.` };
     }
   }
 
   if (EXCLUSIVE_CATEGORIES.includes(design.category)) {
     const clash = added.find((layer) => {
-      const other = layer.designId ? getRemotionDesignTemplate(layer.designId) : undefined
-      return other?.category === design.category
-    })
+      const other = layer.designId ? getRemotionDesignTemplate(layer.designId) : undefined;
+      return other?.category === design.category;
+    });
     if (clash) {
-      const label = design.category === 'full-scene' ? 'full scene' : 'transition'
-      return { ok: false, reason: `Only one ${label} at a time — remove the one on your video first.` }
+      const label = design.category === 'full-scene' ? 'full scene' : 'transition';
+      return { ok: false, reason: `Only one ${label} at a time — remove the one on your video first.` };
     }
   }
-  return { ok: true }
+  return { ok: true };
 }
 
 /**
@@ -84,12 +84,12 @@ export function canAddDesign(
  * intro instead of all starting at frame 0; whole-clip overlays start at 0.
  */
 export function nextStartFrame(settings: PersonalizationPreviewSettings, design: RemotionDesignTemplate): number {
-  if (typeof design.placement?.endFrame !== 'number') return 0
-  let start = 0
+  if (typeof design.placement?.endFrame !== 'number') return 0;
+  let start = 0;
   for (const layer of listAddedDesigns(settings)) {
-    if (typeof layer.endFrame === 'number') start = Math.max(start, layer.endFrame + 1)
+    if (typeof layer.endFrame === 'number') start = Math.max(start, layer.endFrame + 1);
   }
-  return start
+  return start;
 }
 
 /**
@@ -97,14 +97,14 @@ export function nextStartFrame(settings: PersonalizationPreviewSettings, design:
  * (a long intro may be cut short by the end of the clip; a short one must fit whole).
  */
 export function latestIntroStart(settings: PersonalizationPreviewSettings, design: RemotionDesignTemplate): number {
-  const length = Math.max(1, design.placement?.endFrame ?? 1)
-  const needed = Math.min(length, Math.max(1, settings.fps || 30))
-  return Math.max(0, settings.durationInFrames - needed)
+  const length = Math.max(1, design.placement?.endFrame ?? 1);
+  const needed = Math.min(length, Math.max(1, settings.fps || 30));
+  return Math.max(0, settings.durationInFrames - needed);
 }
 
 /** Whether a layout (the standard logo / text / image layers) is on the video, as opposed to design layers only. */
 export function layoutOnVideo(settings: PersonalizationPreviewSettings): boolean {
-  return (Array.isArray(settings.layers) ? settings.layers : []).some((layer) => layer && layer.kind !== 'design')
+  return (Array.isArray(settings.layers) ? settings.layers : []).some((layer) => layer && layer.kind !== 'design');
 }
 
 export interface AddDesignResult {
@@ -119,26 +119,26 @@ export function addDesignWithRules(
   designId: string,
   ctx?: ApplyLayoutContext,
 ): AddDesignResult {
-  const design = getRemotionDesignTemplate(designId)
-  if (!design) return { settings: prev, error: 'That design is not available.' }
-  const check = canAddDesign(prev, design, availabilityFromContext(ctx))
-  if (!check.ok) return { settings: prev, error: check.reason }
+  const design = getRemotionDesignTemplate(designId);
+  if (!design) return { settings: prev, error: 'That design is not available.' };
+  const check = canAddDesign(prev, design, availabilityFromContext(ctx));
+  if (!check.ok) return { settings: prev, error: check.reason };
 
-  const start = nextStartFrame(prev, design)
+  const start = nextStartFrame(prev, design);
   // Clamping the start would slide it in front of the previous intro; with no room left, say so instead.
-  if (start > latestIntroStart(prev, design)) return { settings: prev, error: 'There is no room left in the clip for another intro design.' }
-  const next = addDesignTemplate(prev, designId, ctx)
-  if (start === 0 || next === prev) return { settings: next }
+  if (start > latestIntroStart(prev, design)) return { settings: prev, error: 'There is no room left in the clip for another intro design.' };
+  const next = addDesignTemplate(prev, designId, ctx);
+  if (start === 0 || next === prev) return { settings: next };
   const layers = next.layers.map((layer, index) => {
-    if (index !== next.layers.length - 1) return layer
-    const length = typeof layer.endFrame === 'number' ? layer.endFrame - layer.startFrame : undefined
+    if (index !== next.layers.length - 1) return layer;
+    const length = typeof layer.endFrame === 'number' ? layer.endFrame - layer.startFrame : undefined;
     return {
       ...layer,
       startFrame: start,
       ...(length !== undefined ? { endFrame: Math.min(start + length, next.durationInFrames) } : {}),
-    }
-  })
-  return { settings: { ...next, layers } }
+    };
+  });
+  return { settings: { ...next, layers } };
 }
 
 /**
@@ -150,9 +150,9 @@ export function removeDesignKeepingLayout(
   layerId: string,
   ctx?: ApplyLayoutContext,
 ): PersonalizationPreviewSettings {
-  const next = removeDesignLayer(prev, layerId)
-  if (next === prev || next.layers.length > 0) return next
-  return resetPreviewDesign(next, ctx)
+  const next = removeDesignLayer(prev, layerId);
+  if (next === prev || next.layers.length > 0) return next;
+  return resetPreviewDesign(next, ctx);
 }
 
 /** Moves one added design earlier (-1) or later (+1) in the stack, past other design layers only. */
@@ -161,12 +161,12 @@ export function moveDesignLayer(
   layerId: string,
   direction: -1 | 1,
 ): PersonalizationPreviewSettings {
-  const layers = [...(prev.layers ?? [])]
-  const from = layers.findIndex((layer) => layer.id === layerId && layer.kind === 'design')
-  if (from < 0) return prev
-  let to = from + direction
-  while (to >= 0 && to < layers.length && layers[to].kind !== 'design') to += direction
+  const layers = [...(prev.layers ?? [])];
+  const from = layers.findIndex((layer) => layer.id === layerId && layer.kind === 'design');
+  if (from < 0) return prev;
+  let to = from + direction;
+  while (to >= 0 && to < layers.length && layers[to].kind !== 'design') to += direction;
   if (to < 0 || to >= layers.length) return prev
-  ;[layers[from], layers[to]] = [layers[to], layers[from]]
-  return { ...prev, layers }
+  ;[layers[from], layers[to]] = [layers[to], layers[from]];
+  return { ...prev, layers };
 }

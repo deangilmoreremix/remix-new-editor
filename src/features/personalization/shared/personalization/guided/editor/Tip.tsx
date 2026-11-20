@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import React, { cloneElement, isValidElement, useCallback, useEffect, useId, useRef, useState } from 'react'
-import { Coins } from 'lucide-react'
-import { C } from '../tokens'
-import { EDITOR_TIPS, type EditorTip, type EditorTipId } from './editorTips'
+import React, { cloneElement, isValidElement, useCallback, useEffect, useId, useRef, useState } from 'react';
+import { Coins } from 'lucide-react';
+import { C } from '../tokens';
+import { EDITOR_TIPS, type EditorTip, type EditorTipId } from './editorTips';
 
 /**
  * Tooltip for one control. Shows on hover and on keyboard focus, hides on leave/blur and on Escape, and
@@ -13,33 +13,33 @@ import { EDITOR_TIPS, type EditorTip, type EditorTipId } from './editorTips'
  * Wrap exactly one element: `<Tip id="undo"><button>Undo</button></Tip>`.
  */
 export function Tip({ id, children, side = 'bottom' }: { id: EditorTipId; children: React.ReactElement; side?: 'top' | 'bottom' }): React.JSX.Element {
-  const tip: EditorTip = EDITOR_TIPS[id]
-  const uid = useId()
-  const [open, setOpen] = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const tip: EditorTip = EDITOR_TIPS[id];
+  const uid = useId();
+  const [open, setOpen] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const show = useCallback((delay: number) => {
-    if (timer.current) clearTimeout(timer.current)
-    if (delay <= 0) { setOpen(true); return }
-    timer.current = setTimeout(() => setOpen(true), delay)
-  }, [])
+    if (timer.current) clearTimeout(timer.current);
+    if (delay <= 0) { setOpen(true); return; }
+    timer.current = setTimeout(() => setOpen(true), delay);
+  }, []);
   const hide = useCallback(() => {
-    if (timer.current) clearTimeout(timer.current)
-    setOpen(false)
-  }, [])
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+    if (timer.current) clearTimeout(timer.current);
+    setOpen(false);
+  }, []);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     // Capture phase + stopPropagation: while a tip is showing, Escape only dismisses the tip and does
     // not also close the dialog the control lives in.
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false) } }
-    document.addEventListener('keydown', onKey, true)
-    return () => document.removeEventListener('keydown', onKey, true)
-  }, [open])
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } };
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [open]);
 
   const child = isValidElement(children)
     ? cloneElement(children as React.ReactElement<Record<string, unknown>>, { 'aria-describedby': open ? uid : undefined })
-    : children
+    : children;
 
   return (
     <span
@@ -82,5 +82,5 @@ export function Tip({ id, children, side = 'bottom' }: { id: EditorTipId; childr
         </span>
       )}
     </span>
-  )
+  );
 }

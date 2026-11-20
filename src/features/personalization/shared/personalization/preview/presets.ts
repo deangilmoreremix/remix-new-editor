@@ -6,14 +6,14 @@
  * every x/y pair describes the CENTER of a layer box.
  */
 
-import { normalizeCaptions } from '../captions/captionStyle'
-import { normalizeTextStyles } from './textStyles'
-import { normalizeAudioTracks, normalizeVideoVolume } from './audioMix'
-import { normalizeKeyframes } from './keyframes'
-import { normalizeLayerEffects, normalizeLook } from './effects'
-import { normalizeCutout } from './cutout/cutoutSettings'
-import { contractFor, roleForLayer } from './mediaRoles'
-import { IMAGE_ROLES, normalizeImageStyle, type ImageHints, type ImageRole } from './imageStyle'
+import { normalizeCaptions } from '../captions/captionStyle';
+import { normalizeTextStyles } from './textStyles';
+import { normalizeAudioTracks, normalizeVideoVolume } from './audioMix';
+import { normalizeKeyframes } from './keyframes';
+import { normalizeLayerEffects, normalizeLook } from './effects';
+import { normalizeCutout } from './cutout/cutoutSettings';
+import { contractFor, roleForLayer } from './mediaRoles';
+import { IMAGE_ROLES, normalizeImageStyle, type ImageHints, type ImageRole } from './imageStyle';
 import type {
   ProtectedZone,
   PersonalizationPreviewSettings,
@@ -25,18 +25,18 @@ import type {
   PreviewLayerKind,
   PreviewLayoutId,
   PreviewPositionId,
-} from './types'
-import { DEFAULT_PREVIEW_BRAND_COLORS, DEFAULT_PREVIEW_FPS } from './types'
-import { getRemotionDesignTemplate } from '../templates/registry'
+} from './types';
+import { DEFAULT_PREVIEW_BRAND_COLORS, DEFAULT_PREVIEW_FPS } from './types';
+import { getRemotionDesignTemplate } from '../templates/registry';
 import type {
   RemotionDesignMediaRole,
   RemotionDesignTemplate,
-} from '../templates/types'
+} from '../templates/types';
 // Phase 3 decision D3: the font picker resolves everything to the bundled,
 // deterministic typeface. `templates/typography` imports nothing from
 // `preview/`, so this import cannot form a cycle.
-import { DESIGN_FONT_STACK } from '../templates/typography'
-import { normalizeAngle } from './rotation'
+import { DESIGN_FONT_STACK } from '../templates/typography';
+import { normalizeAngle } from './rotation';
 
 const LAYER_KINDS: PreviewLayerKind[] = [
   'logo',
@@ -49,7 +49,7 @@ const LAYER_KINDS: PreviewLayerKind[] = [
   'tagline',
   'endCard',
   'design',
-]
+];
 
 const ANIMATION_IDS: PreviewAnimationId[] = [
   'none',
@@ -61,7 +61,7 @@ const ANIMATION_IDS: PreviewAnimationId[] = [
   'logo-reveal',
   'lower-third',
   'cta-pulse',
-]
+];
 
 const LAYOUT_IDS: PreviewLayoutId[] = [
   'business-introduction',
@@ -69,11 +69,11 @@ const LAYOUT_IDS: PreviewLayoutId[] = [
   'service-promotion',
   'special-offer',
   'branded-ending',
-]
+];
 
-const ASPECT_RATIOS: PreviewAspectRatio[] = ['16:9', '9:16', '1:1', '4:5']
+const ASPECT_RATIOS: PreviewAspectRatio[] = ['16:9', '9:16', '1:1', '4:5'];
 
-const IMAGE_LAYER_KINDS: PreviewLayerKind[] = ['logo', 'productImage', 'serviceImage']
+const IMAGE_LAYER_KINDS: PreviewLayerKind[] = ['logo', 'productImage', 'serviceImage'];
 
 export type PreviewLayerBase = Omit<PreviewLayer, 'id' | 'kind'>
 
@@ -179,21 +179,21 @@ const LAYER_DEFAULTS: Record<PreviewLayerKind, PreviewLayerBase> = {
     startFrame: 0,
     opacity: 1,
   },
-}
+};
 
 export function getCompositionDimensions(
   aspectRatio: PreviewAspectRatio,
 ): { width: number; height: number } {
   switch (aspectRatio) {
     case '9:16':
-      return { width: 1080, height: 1920 }
+      return { width: 1080, height: 1920 };
     case '1:1':
-      return { width: 1080, height: 1080 }
+      return { width: 1080, height: 1080 };
     case '4:5':
-      return { width: 1080, height: 1350 }
+      return { width: 1080, height: 1350 };
     case '16:9':
     default:
-      return { width: 1920, height: 1080 }
+      return { width: 1920, height: 1080 };
   }
 }
 
@@ -227,7 +227,7 @@ export const PREVIEW_LAYOUTS: {
     name: 'Branded Ending',
     description: 'Logo, contact details and a final call to action.',
   },
-]
+];
 
 export const PREVIEW_ANIMATIONS: { id: PreviewAnimationId; label: string }[] = [
   { id: 'none', label: 'None' },
@@ -239,7 +239,7 @@ export const PREVIEW_ANIMATIONS: { id: PreviewAnimationId; label: string }[] = [
   { id: 'logo-reveal', label: 'Logo Reveal' },
   { id: 'lower-third', label: 'Lower Third' },
   { id: 'cta-pulse', label: 'CTA Pulse' },
-]
+];
 
 export const PREVIEW_POSITIONS: {
   id: PreviewPositionId
@@ -255,7 +255,7 @@ export const PREVIEW_POSITIONS: {
   { id: 'bottom-left', label: 'Bottom Left', x: 0.06, y: 0.88 },
   { id: 'bottom-center', label: 'Bottom Center', x: 0.5, y: 0.88 },
   { id: 'bottom-right', label: 'Bottom Right', x: 0.94, y: 0.88 },
-]
+];
 
 export const LAYER_IDS_BY_LAYOUT: Record<PreviewLayoutId, PreviewLayerKind[]> = {
   'business-introduction': ['logo', 'businessName', 'headline'],
@@ -263,7 +263,7 @@ export const LAYER_IDS_BY_LAYOUT: Record<PreviewLayoutId, PreviewLayerKind[]> = 
   'service-promotion': ['logo', 'serviceImage', 'headline', 'tagline'],
   'special-offer': ['headline', 'offer', 'cta'],
   'branded-ending': ['logo', 'businessName', 'cta', 'endCard'],
-}
+};
 
 /**
  * The customer-facing font picker (Phase 3 decision D3).
@@ -313,13 +313,13 @@ export const PREVIEW_FONTS: { id: string; label: string; stack: string; availabl
     stack: DESIGN_FONT_STACK,
     available: true,
   },
-]
+];
 
 /** The ONE bundled, deterministic stack — every id resolves to it. */
-const BUNDLED_FONT_STACK = DESIGN_FONT_STACK
+const BUNDLED_FONT_STACK = DESIGN_FONT_STACK;
 
 /** The default stack (no explicit family chosen) is the bundled stack. */
-const DEFAULT_FONT_STACK = BUNDLED_FONT_STACK
+const DEFAULT_FONT_STACK = BUNDLED_FONT_STACK;
 
 /**
  * Resolves a layer's persisted `fontFamily` to the stack that is RENDERED.
@@ -331,29 +331,29 @@ const DEFAULT_FONT_STACK = BUNDLED_FONT_STACK
  * bundled stack. A customer therefore cannot force a per-OS font at all.
  */
 export function fontStackById(id?: string): string {
-  if (!id) return DEFAULT_FONT_STACK
+  if (!id) return DEFAULT_FONT_STACK;
   // The lookup stays for documentation: the id still identifies an entry, but
   // the entry's own (per-OS) stack is deliberately ignored in favour of the
   // bundled one.
-  const match = PREVIEW_FONTS.find((font) => font.id === id || font.stack === id)
-  return match ? BUNDLED_FONT_STACK : DEFAULT_FONT_STACK
+  const match = PREVIEW_FONTS.find((font) => font.id === id || font.stack === id);
+  return match ? BUNDLED_FONT_STACK : DEFAULT_FONT_STACK;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function finiteNumber(value: unknown, fallback: number): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
 function nonEmptyString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim().length > 0 ? value : undefined
+  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
 }
 
 /** Clamps a layer into safe, renderable bounds. Returns a new object. */
 export function clampLayer(layer: PreviewLayer): PreviewLayer {
-  const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
+  const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
   const clamped: PreviewLayer = {
     ...layer,
     x: clamp01(finiteNumber(layer.x, 0)),
@@ -362,16 +362,16 @@ export function clampLayer(layer: PreviewLayer): PreviewLayer {
     opacity: clamp01(finiteNumber(layer.opacity, 1)),
     animationDelay: Math.max(0, Math.round(finiteNumber(layer.animationDelay, 0))),
     startFrame: Math.max(0, Math.round(finiteNumber(layer.startFrame, 0))),
-  }
+  };
   if (typeof layer.endFrame === 'number' && Number.isFinite(layer.endFrame)) {
-    clamped.endFrame = Math.max(0, Math.round(layer.endFrame))
+    clamped.endFrame = Math.max(0, Math.round(layer.endFrame));
   } else {
-    delete clamped.endFrame
+    delete clamped.endFrame;
   }
-  const rotation = normalizeAngle(layer.rotation)
-  if (rotation !== 0) clamped.rotation = rotation
-  else delete clamped.rotation
-  return clamped
+  const rotation = normalizeAngle(layer.rotation);
+  if (rotation !== 0) clamped.rotation = rotation;
+  else delete clamped.rotation;
+  return clamped;
 }
 
 /** Builds a layer with per-kind defaults; overrides win over the defaults. */
@@ -379,19 +379,19 @@ export function createLayer(
   kind: PreviewLayerKind,
   overrides?: Partial<PreviewLayer>,
 ): PreviewLayer {
-  const base = LAYER_DEFAULTS[kind] ?? LAYER_DEFAULTS.headline
+  const base = LAYER_DEFAULTS[kind] ?? LAYER_DEFAULTS.headline;
   return clampLayer({
     id: kind,
     kind,
     ...base,
     ...overrides,
-  })
+  });
 }
 
 export function createDefaultPreviewSettings(
   overrides?: Partial<PersonalizationPreviewSettings>,
 ): PersonalizationPreviewSettings {
-  const { width, height } = getCompositionDimensions('16:9')
+  const { width, height } = getCompositionDimensions('16:9');
   const base: PersonalizationPreviewSettings = {
     layout: 'business-introduction',
     layers: createLayoutLayers('business-introduction', '16:9'),
@@ -404,8 +404,8 @@ export function createDefaultPreviewSettings(
     height,
     audio: null,
     remotionDesignId: null,
-  }
-  if (!overrides) return base
+  };
+  if (!overrides) return base;
   const merged: PersonalizationPreviewSettings = {
     ...base,
     ...overrides,
@@ -413,13 +413,13 @@ export function createDefaultPreviewSettings(
     layers: Array.isArray(overrides.layers)
       ? overrides.layers.map((layer) => clampLayer(layer))
       : base.layers.map((layer) => ({ ...layer })),
-  }
+  };
   if (overrides.aspectRatio && overrides.width === undefined && overrides.height === undefined) {
-    const dims = getCompositionDimensions(overrides.aspectRatio)
-    merged.width = dims.width
-    merged.height = dims.height
+    const dims = getCompositionDimensions(overrides.aspectRatio);
+    merged.width = dims.width;
+    merged.height = dims.height;
   }
-  return merged
+  return merged;
 }
 
 /** Optional brand context used to seed freshly created layers. */
@@ -459,27 +459,27 @@ const IMAGE_LAYOUT_GEOMETRY: Record<
     tagline: { x: 0.3, y: 0.47, scale: 0.032 },
     offer: { x: 0.3, y: 0.56, scale: 0.05 },
     [image]: { x: 0.74, y: 0.52, scale: 0.3 },
-  })
+  });
   const stacked = (image: PreviewLayerKind, head: number, sub: number, imgY: number, imgScale: number) => ({
     logo: { x: 0.08, y: 0.08, scale: 0.22 },
     headline: { x: 0.5, y: head, scale: 0.045 },
     tagline: { x: 0.5, y: sub, scale: 0.032 },
     offer: { x: 0.5, y: sub, scale: 0.05 },
     [image]: { x: 0.5, y: imgY, scale: imgScale },
-  })
+  });
   const build = (image: PreviewLayerKind) => ({
     '16:9': landscape(image),
     '9:16': stacked(image, 0.28, 0.4, 0.65, 0.46),
     '4:5': stacked(image, 0.2, 0.34, 0.64, 0.42),
     '1:1': stacked(image, 0.18, 0.31, 0.66, 0.4),
-  })
+  });
   // Business Introduction sits as a lower-third (name over headline, bottom-left) so the
   // subject of the footage stays clear. Only the two text layers move; the logo keeps its
   // corner. Text is left-aligned against the safe-area margin (see `textAlignFor`).
   const lowerThird = (name: number, head: number) => ({
     businessName: { x: 0.08, y: name, scale: 0.055 },
     headline: { x: 0.08, y: head, scale: 0.045 },
-  })
+  });
   return {
     'business-introduction': {
       // One position for every shape: it sits in the bottom third and clear of the 9:16
@@ -491,8 +491,8 @@ const IMAGE_LAYOUT_GEOMETRY: Record<
     },
     'product-showcase': build('productImage'),
     'service-promotion': build('serviceImage'),
-  }
-})()
+  };
+})();
 
 /** Default geometry for a layer of `kind` in `layoutId` at `aspect`, if the layout defines one. */
 export function layoutLayerGeometry(
@@ -500,8 +500,8 @@ export function layoutLayerGeometry(
   kind: PreviewLayerKind,
   aspect: PreviewAspectRatio | undefined,
 ): LayerGeometry | undefined {
-  if (layoutId !== 'business-introduction' && layoutId !== 'product-showcase' && layoutId !== 'service-promotion') return undefined
-  return IMAGE_LAYOUT_GEOMETRY[layoutId][aspect ?? '16:9']?.[kind]
+  if (layoutId !== 'business-introduction' && layoutId !== 'product-showcase' && layoutId !== 'service-promotion') return undefined;
+  return IMAGE_LAYOUT_GEOMETRY[layoutId][aspect ?? '16:9']?.[kind];
 }
 
 /**
@@ -513,8 +513,8 @@ export function createLayoutLayers(
   layoutId: PreviewLayoutId,
   aspect: PreviewAspectRatio | undefined,
 ): PreviewLayer[] {
-  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? LAYER_IDS_BY_LAYOUT['business-introduction']
-  return kinds.map((kind) => createLayer(kind, { ...layoutLayerGeometry(layoutId, kind, aspect) }))
+  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? LAYER_IDS_BY_LAYOUT['business-introduction'];
+  return kinds.map((kind) => createLayer(kind, { ...layoutLayerGeometry(layoutId, kind, aspect) }));
 }
 
 /** A layer's untouched geometry: the layout's own default, else the generic one. */
@@ -523,14 +523,14 @@ export function layoutDefaultGeometry(
   kind: PreviewLayerKind,
   aspect: PreviewAspectRatio | undefined,
 ): LayerGeometry {
-  const specific = layoutLayerGeometry(layoutId, kind, aspect)
-  if (specific) return specific
-  const d = LAYER_DEFAULTS[kind]
-  return { x: d.x, y: d.y, scale: d.scale }
+  const specific = layoutLayerGeometry(layoutId, kind, aspect);
+  if (specific) return specific;
+  const d = LAYER_DEFAULTS[kind];
+  return { x: d.x, y: d.y, scale: d.scale };
 }
 
 const sameGeometry = (layer: PreviewLayer, g: LayerGeometry) =>
-  Math.abs(layer.x - g.x) < 1e-6 && Math.abs(layer.y - g.y) < 1e-6 && Math.abs(layer.scale - g.scale) < 1e-6
+  Math.abs(layer.x - g.x) < 1e-6 && Math.abs(layer.y - g.y) < 1e-6 && Math.abs(layer.scale - g.scale) < 1e-6;
 
 /**
  * Moves layers that still sit exactly on the previous aspect ratio's default
@@ -543,57 +543,57 @@ export function reflowLayersForAspect(
   previousAspect: PreviewAspectRatio,
   nextAspect: PreviewAspectRatio,
 ): PersonalizationPreviewSettings {
-  if (previousAspect === nextAspect || settings.remotionDesignId) return settings
-  let changed = false
+  if (previousAspect === nextAspect || settings.remotionDesignId) return settings;
+  let changed = false;
   const layers = (Array.isArray(settings.layers) ? settings.layers : []).map((layer) => {
-    if (layer.kind === 'design') return layer
-    const was = layoutDefaultGeometry(settings.layout, layer.kind, previousAspect)
-    const now = layoutDefaultGeometry(settings.layout, layer.kind, nextAspect)
-    if (sameGeometry(layer, now) || !sameGeometry(layer, was)) return layer
-    changed = true
-    return { ...layer, ...now }
-  })
-  return changed ? { ...settings, layers } : settings
+    if (layer.kind === 'design') return layer;
+    const was = layoutDefaultGeometry(settings.layout, layer.kind, previousAspect);
+    const now = layoutDefaultGeometry(settings.layout, layer.kind, nextAspect);
+    if (sameGeometry(layer, now) || !sameGeometry(layer, was)) return layer;
+    changed = true;
+    return { ...layer, ...now };
+  });
+  return changed ? { ...settings, layers } : settings;
 }
 
 function createSeededLayer(kind: PreviewLayerKind, ctx?: ApplyLayoutContext, layoutId?: PreviewLayoutId, aspect?: PreviewAspectRatio): PreviewLayer {
-  const overrides: Partial<PreviewLayer> = {}
+  const overrides: Partial<PreviewLayer> = {};
   if (kind === 'headline') {
-    const text = nonEmptyString(ctx?.headline)
-    if (text) overrides.text = text
+    const text = nonEmptyString(ctx?.headline);
+    if (text) overrides.text = text;
   } else if (kind === 'businessName') {
-    const text = nonEmptyString(ctx?.businessName)
-    if (text) overrides.text = text
+    const text = nonEmptyString(ctx?.businessName);
+    if (text) overrides.text = text;
   } else if (kind === 'offer') {
-    const text = nonEmptyString(ctx?.offer)
-    if (text) overrides.text = text
+    const text = nonEmptyString(ctx?.offer);
+    if (text) overrides.text = text;
   } else if (kind === 'cta') {
-    const text = nonEmptyString(ctx?.cta)
-    if (text) overrides.text = text
+    const text = nonEmptyString(ctx?.cta);
+    if (text) overrides.text = text;
   } else if (kind === 'tagline') {
     // The tagline is the branding line (the business name). When the headline
     // already IS the business name, repeating it as own text would draw the
     // name twice, so the tagline is left unseeded and the composition drops
     // the duplicate fallback.
-    const name = nonEmptyString(ctx?.businessName)
+    const name = nonEmptyString(ctx?.businessName);
     const headlineIsName =
-      !!name && nonEmptyString(ctx?.headline)?.toLowerCase() === name.toLowerCase()
-    const text = nonEmptyString(ctx?.tagline) ?? (headlineIsName ? undefined : name)
-    if (text) overrides.text = text
+      !!name && nonEmptyString(ctx?.headline)?.toLowerCase() === name.toLowerCase();
+    const text = nonEmptyString(ctx?.tagline) ?? (headlineIsName ? undefined : name);
+    if (text) overrides.text = text;
   } else if (kind === 'productImage') {
-    const imageUrl = nonEmptyString(ctx?.productUrl)
-    if (imageUrl) overrides.imageUrl = imageUrl
+    const imageUrl = nonEmptyString(ctx?.productUrl);
+    if (imageUrl) overrides.imageUrl = imageUrl;
   } else if (kind === 'serviceImage') {
-    const imageUrl = nonEmptyString(ctx?.serviceUrl)
-    if (imageUrl) overrides.imageUrl = imageUrl
+    const imageUrl = nonEmptyString(ctx?.serviceUrl);
+    if (imageUrl) overrides.imageUrl = imageUrl;
   } else if (kind === 'logo') {
     // The logo imageUrl is the customer's brand asset — it must survive a
     // "Restore default layout" so the user does not lose their uploaded logo
     // just because they dragged the layer and then reset geometry.
-    const imageUrl = nonEmptyString(ctx?.logoUrl)
-    if (imageUrl) overrides.imageUrl = imageUrl
+    const imageUrl = nonEmptyString(ctx?.logoUrl);
+    if (imageUrl) overrides.imageUrl = imageUrl;
   }
-  return createLayer(kind, { ...layoutLayerGeometry(layoutId, kind, aspect), ...overrides })
+  return createLayer(kind, { ...layoutLayerGeometry(layoutId, kind, aspect), ...overrides });
 }
 
 /**
@@ -605,22 +605,22 @@ export function applyLayoutPreset(
   layoutId: PreviewLayoutId,
   ctx?: ApplyLayoutContext,
 ): PersonalizationPreviewSettings {
-  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? LAYER_IDS_BY_LAYOUT['business-introduction']
-  const existingById = new Map<string, PreviewLayer>()
+  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? LAYER_IDS_BY_LAYOUT['business-introduction'];
+  const existingById = new Map<string, PreviewLayer>();
   for (const layer of Array.isArray(settings.layers) ? settings.layers : []) {
-    existingById.set(layer.id, layer)
+    existingById.set(layer.id, layer);
   }
   const layers = kinds.map((kind) => {
-    const kept = existingById.get(kind)
+    const kept = existingById.get(kind);
     if (kept) {
       // A kept layer the customer never moved follows the NEW layout's default
       // geometry; one they moved or resized keeps exactly where they put it.
-      const next = layoutDefaultGeometry(layoutId, kind, settings.aspectRatio)
-      const untouched = sameGeometry(kept, layoutDefaultGeometry(settings.layout, kind, settings.aspectRatio))
-      return clampLayer({ ...kept, ...(untouched ? next : {}) })
+      const next = layoutDefaultGeometry(layoutId, kind, settings.aspectRatio);
+      const untouched = sameGeometry(kept, layoutDefaultGeometry(settings.layout, kind, settings.aspectRatio));
+      return clampLayer({ ...kept, ...(untouched ? next : {}) });
     }
-    return createSeededLayer(kind, ctx, layoutId, settings.aspectRatio)
-  })
+    return createSeededLayer(kind, ctx, layoutId, settings.aspectRatio);
+  });
   return {
     ...settings,
     layout: layoutId,
@@ -629,7 +629,7 @@ export function applyLayoutPreset(
     // A layout replaces the layer list, so an applied design is no longer
     // rendered and must not stay selected.
     remotionDesignId: null,
-  }
+  };
 }
 
 /**
@@ -653,27 +653,27 @@ export function resetLayoutToDefaults(
   layoutId: PreviewLayoutId,
   ctx?: ApplyLayoutContext,
 ): PersonalizationPreviewSettings {
-  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? LAYER_IDS_BY_LAYOUT['business-introduction']
-  const previousByKind = new Map<string, PreviewLayer>()
+  const kinds = LAYER_IDS_BY_LAYOUT[layoutId] ?? LAYER_IDS_BY_LAYOUT['business-introduction'];
+  const previousByKind = new Map<string, PreviewLayer>();
   for (const layer of Array.isArray(settings.layers) ? settings.layers : []) {
-    if (layer && typeof layer.kind === 'string') previousByKind.set(layer.kind, layer)
+    if (layer && typeof layer.kind === 'string') previousByKind.set(layer.kind, layer);
   }
   const layers = kinds.map((kind) => {
-    const seeded = createSeededLayer(kind, ctx, layoutId, settings.aspectRatio)
-    const previous = previousByKind.get(kind)
-    if (!previous) return seeded
+    const seeded = createSeededLayer(kind, ctx, layoutId, settings.aspectRatio);
+    const previous = previousByKind.get(kind);
+    if (!previous) return seeded;
     // Carry over brand content the seed did not provide. The seed wins when
     // it sets a value; otherwise the previous layer's text/imageUrl survives.
-    const carry: Partial<PreviewLayer> = {}
+    const carry: Partial<PreviewLayer> = {};
     if (typeof seeded.text !== 'string' && typeof previous.text === 'string') {
-      carry.text = previous.text
+      carry.text = previous.text;
     }
     if (typeof seeded.imageUrl !== 'string' && typeof previous.imageUrl === 'string') {
-      carry.imageUrl = previous.imageUrl
+      carry.imageUrl = previous.imageUrl;
     }
-    if (Object.keys(carry).length === 0) return seeded
-    return { ...seeded, ...carry }
-  })
+    if (Object.keys(carry).length === 0) return seeded;
+    return { ...seeded, ...carry };
+  });
   return {
     ...settings,
     layout: layoutId,
@@ -682,29 +682,29 @@ export function resetLayoutToDefaults(
     // Restoring a layout also drops an applied design: the design layer is
     // not part of any layout.
     remotionDesignId: null,
-  }
+  };
 }
 
 /** The layout a fresh preview starts from. */
-const DEFAULT_PREVIEW_LAYOUT_ID: PreviewLayoutId = 'business-introduction'
+const DEFAULT_PREVIEW_LAYOUT_ID: PreviewLayoutId = 'business-introduction';
 
 /** Brand context key that seeds each media role a design can consume. */
 const DESIGN_MEDIA_CONTEXT_KEYS: Record<RemotionDesignMediaRole, keyof ApplyLayoutContext> = {
   logo: 'logoUrl',
   product: 'productUrl',
   service: 'serviceUrl',
-}
+};
 
 /** The slot the customer edits directly on the layer, if the design has one. */
 function pickPrimaryTextSlot(design: RemotionDesignTemplate) {
-  const slots = Array.isArray(design.textSlots) ? design.textSlots : []
-  return slots.find((slot) => slot && slot.primary) ?? slots[0]
+  const slots = Array.isArray(design.textSlots) ? design.textSlots : [];
+  return slots.find((slot) => slot && slot.primary) ?? slots[0];
 }
 
 /** The media binding the layer's own `imageUrl` overrides, if there is one. */
 function pickPrimaryMediaBinding(design: RemotionDesignTemplate) {
-  const media = Array.isArray(design.media) ? design.media : []
-  return media.find((binding) => binding && binding.required) ?? media[0]
+  const media = Array.isArray(design.media) ? design.media : [];
+  return media.find((binding) => binding && binding.required) ?? media[0];
 }
 
 /**
@@ -726,55 +726,55 @@ export function applyDesignTemplate(
   designId: string,
   ctx?: ApplyLayoutContext,
 ): PersonalizationPreviewSettings {
-  const design = getRemotionDesignTemplate(designId)
-  if (!design) return prev
+  const design = getRemotionDesignTemplate(designId);
+  if (!design) return prev;
 
   const existing = (Array.isArray(prev.layers) ? prev.layers : []).find(
     (layer) => layer && layer.kind === 'design' && layer.designId === design.id,
-  )
+  );
 
-  const primarySlot = pickPrimaryTextSlot(design)
+  const primarySlot = pickPrimaryTextSlot(design);
   const text = primarySlot
     ? (existing?.text ?? nonEmptyString(ctx?.[primarySlot.field]))
-    : undefined
+    : undefined;
 
-  const primaryMedia = pickPrimaryMediaBinding(design)
+  const primaryMedia = pickPrimaryMediaBinding(design);
   const imageUrl = primaryMedia
     ? (existing?.imageUrl ??
         nonEmptyString(ctx?.[DESIGN_MEDIA_CONTEXT_KEYS[primaryMedia.role]]))
-    : undefined
+    : undefined;
 
   // The customer's edits to the SECONDARY text slots survive a re-apply of the
   // same design: the layer is rebuilt from scratch, so the overrides have to
   // be carried over explicitly (the primary slot is carried over through
   // `existing.text` above).
   const textSlotOverrides =
-    existing?.designId === design.id ? existing.textSlotOverrides : undefined
+    existing?.designId === design.id ? existing.textSlotOverrides : undefined;
 
-  const placement = design.placement
+  const placement = design.placement;
   const overrides: Partial<PreviewLayer> = {
     designId: design.id,
     animation: placement?.animation ?? 'fade',
     animationDelay: design.animation?.delayInFrames ?? 0,
     startFrame: 0,
-  }
-  if (typeof placement?.x === 'number') overrides.x = placement.x
-  if (typeof placement?.y === 'number') overrides.y = placement.y
-  if (typeof placement?.scale === 'number') overrides.scale = placement.scale
-  if (typeof placement?.opacity === 'number') overrides.opacity = placement.opacity
-  if (typeof placement?.endFrame === 'number') overrides.endFrame = placement.endFrame
-  if (text !== undefined) overrides.text = text
-  if (imageUrl !== undefined) overrides.imageUrl = imageUrl
-  if (textSlotOverrides) overrides.textSlotOverrides = textSlotOverrides
+  };
+  if (typeof placement?.x === 'number') overrides.x = placement.x;
+  if (typeof placement?.y === 'number') overrides.y = placement.y;
+  if (typeof placement?.scale === 'number') overrides.scale = placement.scale;
+  if (typeof placement?.opacity === 'number') overrides.opacity = placement.opacity;
+  if (typeof placement?.endFrame === 'number') overrides.endFrame = placement.endFrame;
+  if (text !== undefined) overrides.text = text;
+  if (imageUrl !== undefined) overrides.imageUrl = imageUrl;
+  if (textSlotOverrides) overrides.textSlotOverrides = textSlotOverrides;
 
-  const layer = createLayer('design', overrides)
+  const layer = createLayer('design', overrides);
 
   return {
     ...prev,
     layers: [layer],
     brandColors: { ...prev.brandColors },
     remotionDesignId: design.id,
-  }
+  };
 }
 
 /**
@@ -790,24 +790,24 @@ export function addDesignTemplate(
   designId: string,
   ctx?: ApplyLayoutContext,
 ): PersonalizationPreviewSettings {
-  const design = getRemotionDesignTemplate(designId)
-  if (!design) return prev
-  const layers = Array.isArray(prev.layers) ? prev.layers : []
-  if (layers.some((l) => l && l.kind === 'design' && l.designId === design.id)) return prev
-  const first = applyDesignTemplate({ ...prev, layers: [] }, design.id, ctx).layers[0]
-  if (!first) return prev
+  const design = getRemotionDesignTemplate(designId);
+  if (!design) return prev;
+  const layers = Array.isArray(prev.layers) ? prev.layers : [];
+  if (layers.some((l) => l && l.kind === 'design' && l.designId === design.id)) return prev;
+  const first = applyDesignTemplate({ ...prev, layers: [] }, design.id, ctx).layers[0];
+  if (!first) return prev;
   // Every design layer is created with the id 'design'; a second one needs its own id, or removing, editing or
   // selecting one would act on both.
-  const built = layers.some((l) => l && l.id === first.id) ? { ...first, id: `design-${design.id}` } : first
-  return { ...prev, layers: [...layers, built], remotionDesignId: prev.remotionDesignId ?? design.id }
+  const built = layers.some((l) => l && l.id === first.id) ? { ...first, id: `design-${design.id}` } : first;
+  return { ...prev, layers: [...layers, built], remotionDesignId: prev.remotionDesignId ?? design.id };
 }
 
 /** Takes ONE design layer off the video (other layers untouched). */
 export function removeDesignLayer(prev: PersonalizationPreviewSettings, layerId: string): PersonalizationPreviewSettings {
-  const layers = (prev.layers ?? []).filter((l) => !(l.id === layerId && l.kind === 'design'))
-  if (layers.length === (prev.layers ?? []).length) return prev
-  const remaining = layers.find((l) => l.kind === 'design' && l.designId)
-  return { ...prev, layers, remotionDesignId: remaining?.designId ?? null }
+  const layers = (prev.layers ?? []).filter((l) => !(l.id === layerId && l.kind === 'design'));
+  if (layers.length === (prev.layers ?? []).length) return prev;
+  const remaining = layers.find((l) => l.kind === 'design' && l.designId);
+  return { ...prev, layers, remotionDesignId: remaining?.designId ?? null };
 }
 
 /**
@@ -823,7 +823,7 @@ export function resetPreviewDesign(
     { ...prev, remotionDesignId: null },
     DEFAULT_PREVIEW_LAYOUT_ID,
     ctx,
-  )
+  );
 }
 
 /** Center coordinates (0..1) for a position preset; identity when unknown. */
@@ -831,17 +831,17 @@ export function positionForLayer(
   layer: PreviewLayer,
   positionId: PreviewPositionId,
 ): { x: number; y: number } {
-  const preset = PREVIEW_POSITIONS.find((entry) => entry.id === positionId)
-  if (!preset) return { x: layer.x, y: layer.y }
-  return { x: preset.x, y: preset.y }
+  const preset = PREVIEW_POSITIONS.find((entry) => entry.id === positionId);
+  if (!preset) return { x: layer.x, y: layer.y };
+  return { x: preset.x, y: preset.y };
 }
 
 export function isImageLayerKind(kind: PreviewLayerKind): boolean {
-  return IMAGE_LAYER_KINDS.includes(kind)
+  return IMAGE_LAYER_KINDS.includes(kind);
 }
 
 /** Fraction of the frame kept clear on each side (mirrors SAFE_AREA_MARGIN in guided/overlayGeometry). */
-const BOX_SAFE_MARGIN = 0.02
+const BOX_SAFE_MARGIN = 0.02;
 
 /**
  * Keeps a box inside the frame's safe area horizontally. Boxes are centered on
@@ -849,18 +849,18 @@ const BOX_SAFE_MARGIN = 0.02
  * half outside the frame and get clipped.
  */
 function clampLeftToSafeArea(leftPx: number, widthPx: number, frameWidth: number): number {
-  const margin = Math.round(frameWidth * BOX_SAFE_MARGIN)
-  const max = frameWidth - margin - widthPx
-  if (max < margin) return Math.round((frameWidth - widthPx) / 2)
-  return Math.min(max, Math.max(margin, leftPx))
+  const margin = Math.round(frameWidth * BOX_SAFE_MARGIN);
+  const max = frameWidth - margin - widthPx;
+  if (max < margin) return Math.round((frameWidth - widthPx) / 2);
+  return Math.min(max, Math.max(margin, leftPx));
 }
 
 /** Vertical counterpart of `clampLeftToSafeArea` for boxes whose height is known. */
 function clampTopToSafeArea(topPx: number, heightPx: number, frameHeight: number): number {
-  const margin = Math.round(frameHeight * BOX_SAFE_MARGIN)
-  const max = frameHeight - margin - heightPx
-  if (max < margin) return Math.round((frameHeight - heightPx) / 2)
-  return Math.min(max, Math.max(margin, topPx))
+  const margin = Math.round(frameHeight * BOX_SAFE_MARGIN);
+  const max = frameHeight - margin - heightPx;
+  if (max < margin) return Math.round((frameHeight - heightPx) / 2);
+  return Math.min(max, Math.max(margin, topPx));
 }
 
 /**
@@ -876,55 +876,55 @@ export function toBox(
   compH: number,
   resolvedText?: string,
 ): { leftPx: number; topPx: number; widthPx: number; heightPx?: number; fontSizePx: number } {
-  const width = Math.max(1, finiteNumber(compW, 1920))
-  const height = Math.max(1, finiteNumber(compH, 1080))
-  const scale = Math.min(1, Math.max(0.02, finiteNumber(layer.scale, 0.02)))
-  const x = Math.min(1, Math.max(0, finiteNumber(layer.x, 0)))
-  const y = Math.min(1, Math.max(0, finiteNumber(layer.y, 0)))
+  const width = Math.max(1, finiteNumber(compW, 1920));
+  const height = Math.max(1, finiteNumber(compH, 1080));
+  const scale = Math.min(1, Math.max(0.02, finiteNumber(layer.scale, 0.02)));
+  const x = Math.min(1, Math.max(0, finiteNumber(layer.x, 0)));
+  const y = Math.min(1, Math.max(0, finiteNumber(layer.y, 0)));
 
   if (layer.kind === 'design') {
-    const widthPx = Math.round(scale * width)
-    const heightPx = Math.round(scale * height)
-    const leftPx = Math.round(x * width - widthPx / 2)
-    const topPx = Math.max(0, Math.round(y * height - heightPx / 2))
-    return { leftPx, topPx, widthPx, heightPx, fontSizePx: 0 }
+    const widthPx = Math.round(scale * width);
+    const heightPx = Math.round(scale * height);
+    const leftPx = Math.round(x * width - widthPx / 2);
+    const topPx = Math.max(0, Math.round(y * height - heightPx / 2));
+    return { leftPx, topPx, widthPx, heightPx, fontSizePx: 0 };
   }
 
   if (isImageLayerKind(layer.kind)) {
-    const widthPx = Math.round(scale * width)
-    const rawLeft = Math.round(x * width - widthPx / 2)
+    const widthPx = Math.round(scale * width);
+    const rawLeft = Math.round(x * width - widthPx / 2);
     const leftPx = contractFor(roleForLayer(layer)).clampToSafeArea
       ? clampLeftToSafeArea(rawLeft, widthPx, width)
-      : rawLeft
-    const rawTop = Math.round(y * height - widthPx / 2)
+      : rawLeft;
+    const rawTop = Math.round(y * height - widthPx / 2);
     const topPx = contractFor(roleForLayer(layer)).clampToSafeArea
       ? clampTopToSafeArea(rawTop, widthPx, height)
-      : Math.max(0, rawTop)
-    return { leftPx, topPx, widthPx, heightPx: widthPx, fontSizePx: 0 }
+      : Math.max(0, rawTop);
+    return { leftPx, topPx, widthPx, heightPx: widthPx, fontSizePx: 0 };
   }
 
-  const fontSizePx = Math.round(scale * height)
+  const fontSizePx = Math.round(scale * height);
   // Size from the text that is actually DRAWN. A layer with no text of its own
   // shows the brand's name/headline/etc.; sizing from `layer.text` alone made
   // those boxes ~4 characters wide and wrapped long names mid-word.
-  const drawn = resolvedText ?? layer.text ?? ''
-  const chars = Math.max(4, (drawn.length || 8) * 0.55)
-  const widthPx = Math.round(Math.min(width * 0.9, fontSizePx * chars))
-  const rawLeft = Math.round(x * width - widthPx / 2)
+  const drawn = resolvedText ?? layer.text ?? '';
+  const chars = Math.max(4, (drawn.length || 8) * 0.55);
+  const widthPx = Math.round(Math.min(width * 0.9, fontSizePx * chars));
+  const rawLeft = Math.round(x * width - widthPx / 2);
   const leftPx = contractFor(roleForLayer(layer)).clampToSafeArea
     ? clampLeftToSafeArea(rawLeft, widthPx, width)
-    : rawLeft
-  const topPx = Math.max(0, Math.round(y * height - fontSizePx / 2))
-  return { leftPx, topPx, widthPx, fontSizePx }
+    : rawLeft;
+  const topPx = Math.max(0, Math.round(y * height - fontSizePx / 2));
+  return { leftPx, topPx, widthPx, fontSizePx };
 }
 
 function normalizeLayer(raw: unknown): PreviewLayer | null {
-  if (!isRecord(raw)) return null
+  if (!isRecord(raw)) return null;
   if (typeof raw.kind !== 'string' || !LAYER_KINDS.includes(raw.kind as PreviewLayerKind)) {
-    return null
+    return null;
   }
-  const kind = raw.kind as PreviewLayerKind
-  const base = createLayer(kind)
+  const kind = raw.kind as PreviewLayerKind;
+  const base = createLayer(kind);
   const normalized: PreviewLayer = {
     ...base,
     id: nonEmptyString(raw.id) ?? base.id,
@@ -939,78 +939,78 @@ function normalizeLayer(raw: unknown): PreviewLayer | null {
         : base.animation,
     animationDelay: finiteNumber(raw.animationDelay, base.animationDelay),
     startFrame: finiteNumber(raw.startFrame, base.startFrame),
-  }
+  };
   if (typeof raw.endFrame === 'number' && Number.isFinite(raw.endFrame)) {
-    normalized.endFrame = Math.max(0, Math.round(raw.endFrame))
+    normalized.endFrame = Math.max(0, Math.round(raw.endFrame));
   }
-  if (typeof raw.text === 'string') normalized.text = raw.text
-  const color = nonEmptyString(raw.color)
-  if (color) normalized.color = color
-  const fontFamily = nonEmptyString(raw.fontFamily)
-  if (fontFamily) normalized.fontFamily = fontFamily
-  const imageUrl = nonEmptyString(raw.imageUrl)
+  if (typeof raw.text === 'string') normalized.text = raw.text;
+  const color = nonEmptyString(raw.color);
+  if (color) normalized.color = color;
+  const fontFamily = nonEmptyString(raw.fontFamily);
+  if (fontFamily) normalized.fontFamily = fontFamily;
+  const imageUrl = nonEmptyString(raw.imageUrl);
   // Reject session-scoped blob URLs: they are dead after a page reload.
-  if (imageUrl && !imageUrl.startsWith('blob:')) normalized.imageUrl = imageUrl
+  if (imageUrl && !imageUrl.startsWith('blob:')) normalized.imageUrl = imageUrl;
   // A design layer carries the id of the registered design it renders.
-  const designId = nonEmptyString(raw.designId)
-  if (designId) normalized.designId = designId
+  const designId = nonEmptyString(raw.designId);
+  if (designId) normalized.designId = designId;
   // The per-slot text overrides of a design layer (the secondary slots). They
   // are dropped when they are absent, malformed or empty, so a saved project
   // keeps rendering the brand values for the slots the customer never edited.
-  const textSlotOverrides = normalizeTextSlotOverrides(raw.textSlotOverrides)
-  if (textSlotOverrides) normalized.textSlotOverrides = textSlotOverrides
-  if (raw.locked === true) normalized.locked = true
-  const rotation = normalizeAngle(raw.rotation)
-  if (rotation !== 0) normalized.rotation = rotation
-  const keyframes = normalizeKeyframes(raw.keyframes)
-  if (keyframes) normalized.keyframes = keyframes
-  const effects = normalizeLayerEffects(raw.effects)
-  if (effects) normalized.effects = effects
-  const imageStyle = normalizeImageStyle(raw.imageStyle)
-  if (imageStyle) normalized.imageStyle = imageStyle
-  if (typeof raw.imageRole === 'string' && (IMAGE_ROLES as readonly string[]).includes(raw.imageRole)) normalized.imageRole = raw.imageRole as ImageRole
+  const textSlotOverrides = normalizeTextSlotOverrides(raw.textSlotOverrides);
+  if (textSlotOverrides) normalized.textSlotOverrides = textSlotOverrides;
+  if (raw.locked === true) normalized.locked = true;
+  const rotation = normalizeAngle(raw.rotation);
+  if (rotation !== 0) normalized.rotation = rotation;
+  const keyframes = normalizeKeyframes(raw.keyframes);
+  if (keyframes) normalized.keyframes = keyframes;
+  const effects = normalizeLayerEffects(raw.effects);
+  if (effects) normalized.effects = effects;
+  const imageStyle = normalizeImageStyle(raw.imageStyle);
+  if (imageStyle) normalized.imageStyle = imageStyle;
+  if (typeof raw.imageRole === 'string' && (IMAGE_ROLES as readonly string[]).includes(raw.imageRole)) normalized.imageRole = raw.imageRole as ImageRole;
   if (Array.isArray(raw.imageUrls)) {
-    const urls = raw.imageUrls.filter((u): u is string => typeof u === 'string' && u.trim() !== '' && !u.startsWith('blob:')).slice(0, 4)
-    if (urls.length) normalized.imageUrls = urls
+    const urls = raw.imageUrls.filter((u): u is string => typeof u === 'string' && u.trim() !== '' && !u.startsWith('blob:')).slice(0, 4);
+    if (urls.length) normalized.imageUrls = urls;
   }
   if (raw.placementSource === 'manual' || raw.placementSource === 'recommended') {
-    normalized.placementSource = raw.placementSource
+    normalized.placementSource = raw.placementSource;
   }
-  return normalized
+  return normalized;
 }
 
 /** Keeps only well-formed image hints (booleans and a positive finite aspect). */
 export function normalizeImageHints(raw: unknown): Record<string, ImageHints> | undefined {
-  if (!isRecord(raw)) return undefined
-  const out: Record<string, ImageHints> = {}
+  if (!isRecord(raw)) return undefined;
+  const out: Record<string, ImageHints> = {};
   for (const [url, h] of Object.entries(raw)) {
-    if (!url || url.startsWith('blob:') || !isRecord(h)) continue
-    const hint: ImageHints = {}
-    if (typeof h.aspect === 'number' && Number.isFinite(h.aspect) && h.aspect > 0) hint.aspect = h.aspect
+    if (!url || url.startsWith('blob:') || !isRecord(h)) continue;
+    const hint: ImageHints = {};
+    if (typeof h.aspect === 'number' && Number.isFinite(h.aspect) && h.aspect > 0) hint.aspect = h.aspect;
     for (const k of ['transparentCorners', 'alreadyFramed', 'hasTransparency', 'isHeadshot'] as const) {
-      if (h[k] === true) hint[k] = true
+      if (h[k] === true) hint[k] = true;
     }
-    if (['product', 'service', 'portrait', 'property', 'portfolio', 'logo', 'general'].includes(h.role as string)) hint.role = h.role as ImageHints['role']
+    if (['product', 'service', 'portrait', 'property', 'portfolio', 'logo', 'general'].includes(h.role as string)) hint.role = h.role as ImageHints['role'];
     // A derived, padding-trimmed logo copy: only a bounded PNG data URL is accepted (never a remote or script URL).
-    if (typeof h.trimmedUrl === 'string' && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(h.trimmedUrl) && h.trimmedUrl.length <= 200_000) hint.trimmedUrl = h.trimmedUrl
-    if (Object.keys(hint).length) out[url] = hint
+    if (typeof h.trimmedUrl === 'string' && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(h.trimmedUrl) && h.trimmedUrl.length <= 200_000) hint.trimmedUrl = h.trimmedUrl;
+    if (Object.keys(hint).length) out[url] = hint;
   }
-  return Object.keys(out).length ? out : undefined
+  return Object.keys(out).length ? out : undefined;
 }
 
 /** Keeps only well-formed zones: finite numbers, positive size, inside the frame. */
 export function normalizeProtectedZones(raw: unknown): ProtectedZone[] | undefined {
-  if (!Array.isArray(raw)) return undefined
-  const out: ProtectedZone[] = []
+  if (!Array.isArray(raw)) return undefined;
+  const out: ProtectedZone[] = [];
   for (const z of raw) {
-    if (!isRecord(z)) continue
-    const x = finiteNumber(z.x, NaN)
-    const y = finiteNumber(z.y, NaN)
-    const w = finiteNumber(z.w, NaN)
-    const h = finiteNumber(z.h, NaN)
-    if (![x, y, w, h].every(Number.isFinite) || w <= 0 || h <= 0) continue
-    const cx = Math.min(1, Math.max(0, x))
-    const cy = Math.min(1, Math.max(0, y))
+    if (!isRecord(z)) continue;
+    const x = finiteNumber(z.x, NaN);
+    const y = finiteNumber(z.y, NaN);
+    const w = finiteNumber(z.w, NaN);
+    const h = finiteNumber(z.h, NaN);
+    if (![x, y, w, h].every(Number.isFinite) || w <= 0 || h <= 0) continue;
+    const cx = Math.min(1, Math.max(0, x));
+    const cy = Math.min(1, Math.max(0, y));
     out.push({
       id: nonEmptyString(z.id) ?? `zone-${out.length + 1}`,
       label: nonEmptyString(z.label) ?? 'Subject',
@@ -1019,9 +1019,9 @@ export function normalizeProtectedZones(raw: unknown): ProtectedZone[] | undefin
       y: cy,
       w: Math.min(1 - cx, w),
       h: Math.min(1 - cy, h),
-    })
+    });
   }
-  return out.length ? out : undefined
+  return out.length ? out : undefined;
 }
 
 /**
@@ -1033,15 +1033,15 @@ export function normalizeProtectedZones(raw: unknown): ProtectedZone[] | undefin
  * returned for it.
  */
 function normalizeTextSlotOverrides(raw: unknown): Record<string, string> | undefined {
-  if (!isRecord(raw)) return undefined
-  const out: Record<string, string> = {}
+  if (!isRecord(raw)) return undefined;
+  const out: Record<string, string> = {};
   for (const key of Object.keys(raw)) {
-    if (typeof key !== 'string' || !key) continue
-    const value = raw[key]
-    if (typeof value !== 'string') continue
-    out[key] = value
+    if (typeof key !== 'string' || !key) continue;
+    const value = raw[key];
+    if (typeof value !== 'string') continue;
+    out[key] = value;
   }
-  return Object.keys(out).length > 0 ? out : undefined
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 /**
@@ -1052,12 +1052,12 @@ function normalizeTextSlotOverrides(raw: unknown): Record<string, string> | unde
  * A durable URL is kept as-is; everything else yields `null`.
  */
 export function normalizePreviewAudio(raw: unknown): PreviewAudioSelection | null {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
-  const rec = raw as Record<string, unknown>
-  const url = typeof rec.url === 'string' ? rec.url.trim() : ''
-  if (!url || url.startsWith('blob:') || url.startsWith('data:')) return null
-  const name = typeof rec.name === 'string' && rec.name.trim().length > 0 ? rec.name : ''
-  return { url, name }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const rec = raw as Record<string, unknown>;
+  const url = typeof rec.url === 'string' ? rec.url.trim() : '';
+  if (!url || url.startsWith('blob:') || url.startsWith('data:')) return null;
+  const name = typeof rec.name === 'string' && rec.name.trim().length > 0 ? rec.name : '';
+  return { url, name };
 }
 
 /**
@@ -1065,42 +1065,42 @@ export function normalizePreviewAudio(raw: unknown): PreviewAudioSelection | nul
  * Never throws: any unusable value falls back to a safe default.
  */
 export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSettings {
-  const base = createDefaultPreviewSettings()
+  const base = createDefaultPreviewSettings();
   try {
-    if (!isRecord(raw)) return base
+    if (!isRecord(raw)) return base;
     const out: PersonalizationPreviewSettings = {
       ...base,
       brandColors: { ...base.brandColors },
       layers: base.layers.map((layer) => ({ ...layer })),
-    }
+    };
 
     if (typeof raw.layout === 'string' && LAYOUT_IDS.includes(raw.layout as PreviewLayoutId)) {
-      out.layout = raw.layout as PreviewLayoutId
+      out.layout = raw.layout as PreviewLayoutId;
     }
 
-    const colors = isRecord(raw.brandColors) ? raw.brandColors : null
+    const colors = isRecord(raw.brandColors) ? raw.brandColors : null;
     if (colors) {
-      const brandColors: PreviewBrandColors = { ...out.brandColors }
-      const primary = nonEmptyString(colors.primary)
-      if (primary) brandColors.primary = primary
-      const accent = nonEmptyString(colors.accent)
-      if (accent) brandColors.accent = accent
-      const text = nonEmptyString(colors.text)
-      if (text) brandColors.text = text
+      const brandColors: PreviewBrandColors = { ...out.brandColors };
+      const primary = nonEmptyString(colors.primary);
+      if (primary) brandColors.primary = primary;
+      const accent = nonEmptyString(colors.accent);
+      if (accent) brandColors.accent = accent;
+      const text = nonEmptyString(colors.text);
+      if (text) brandColors.text = text;
       if (typeof colors.backgroundDim === 'number' && Number.isFinite(colors.backgroundDim)) {
-        brandColors.backgroundDim = Math.min(1, Math.max(0, colors.backgroundDim))
+        brandColors.backgroundDim = Math.min(1, Math.max(0, colors.backgroundDim));
       }
-      out.brandColors = brandColors
+      out.brandColors = brandColors;
     }
 
     if (
       typeof raw.aspectRatio === 'string' &&
       ASPECT_RATIOS.includes(raw.aspectRatio as PreviewAspectRatio)
     ) {
-      out.aspectRatio = raw.aspectRatio as PreviewAspectRatio
-      const dims = getCompositionDimensions(out.aspectRatio)
-      out.width = dims.width
-      out.height = dims.height
+      out.aspectRatio = raw.aspectRatio as PreviewAspectRatio;
+      const dims = getCompositionDimensions(out.aspectRatio);
+      out.width = dims.width;
+      out.height = dims.height;
     }
 
     if (
@@ -1108,73 +1108,73 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
       Number.isFinite(raw.width) &&
       raw.width >= 16
     ) {
-      out.width = Math.round(raw.width)
+      out.width = Math.round(raw.width);
     }
     if (
       typeof raw.height === 'number' &&
       Number.isFinite(raw.height) &&
       raw.height >= 16
     ) {
-      out.height = Math.round(raw.height)
+      out.height = Math.round(raw.height);
     }
     if (typeof raw.fps === 'number' && Number.isFinite(raw.fps) && raw.fps >= 1) {
-      out.fps = Math.min(120, Math.round(raw.fps))
+      out.fps = Math.min(120, Math.round(raw.fps));
     }
     if (
       typeof raw.durationInFrames === 'number' &&
       Number.isFinite(raw.durationInFrames) &&
       raw.durationInFrames >= 1
     ) {
-      out.durationInFrames = Math.min(36000, Math.round(raw.durationInFrames))
+      out.durationInFrames = Math.min(36000, Math.round(raw.durationInFrames));
     }
-    if (typeof raw.showEndCard === 'boolean') out.showEndCard = raw.showEndCard
+    if (typeof raw.showEndCard === 'boolean') out.showEndCard = raw.showEndCard;
 
     if (Array.isArray(raw.layers)) {
-      const seen = new Set<string>()
-      const layers: PreviewLayer[] = []
+      const seen = new Set<string>();
+      const layers: PreviewLayer[] = [];
       for (const entry of raw.layers) {
-        const normalized = normalizeLayer(entry)
-        if (!normalized) continue
-        let id = normalized.id
-        let suffix = 2
+        const normalized = normalizeLayer(entry);
+        if (!normalized) continue;
+        let id = normalized.id;
+        let suffix = 2;
         while (seen.has(id)) {
-          id = `${normalized.id}-${suffix}`
-          suffix += 1
+          id = `${normalized.id}-${suffix}`;
+          suffix += 1;
         }
-        seen.add(id)
-        layers.push(clampLayer({ ...normalized, id }))
+        seen.add(id);
+        layers.push(clampLayer({ ...normalized, id }));
       }
        out.layers =
          layers.length > 0
            ? layers
-           : createLayoutLayers(out.layout, out.aspectRatio)
+           : createLayoutLayers(out.layout, out.aspectRatio);
    }
 
-   out.audio = normalizePreviewAudio(raw.audio) ?? null
-  const audioTracks = normalizeAudioTracks(raw.audioTracks)
-  if (audioTracks) out.audioTracks = audioTracks
-  const videoVolume = normalizeVideoVolume(raw.videoVolume)
-  if (videoVolume !== undefined) out.videoVolume = videoVolume
-  if (raw.videoMuted === true) out.videoMuted = true
-  if (typeof raw.audioSolo === 'string' && raw.audioSolo) out.audioSolo = raw.audioSolo
+   out.audio = normalizePreviewAudio(raw.audio) ?? null;
+  const audioTracks = normalizeAudioTracks(raw.audioTracks);
+  if (audioTracks) out.audioTracks = audioTracks;
+  const videoVolume = normalizeVideoVolume(raw.videoVolume);
+  if (videoVolume !== undefined) out.videoVolume = videoVolume;
+  if (raw.videoMuted === true) out.videoMuted = true;
+  if (typeof raw.audioSolo === 'string' && raw.audioSolo) out.audioSolo = raw.audioSolo;
 
    // The applied Remotion design. Absent in projects saved before the design
    // registry existed, so it falls back to null instead of throwing.
-   out.remotionDesignId = nonEmptyString(raw.remotionDesignId) ?? null
-  const zones = normalizeProtectedZones(raw.protectedZones)
-  if (zones) out.protectedZones = zones
-  const look = normalizeLook(raw.look)
-  if (look) out.look = look
-  const captions = normalizeCaptions(raw.captions)
-  if (captions) out.captions = captions
-  const textStyles = normalizeTextStyles(raw.textStyles)
-  if (textStyles) out.textStyles = textStyles
-  const cutout = normalizeCutout(raw.cutout)
-  if (cutout) out.cutout = cutout
-  const hints = normalizeImageHints(raw.imageHints)
-  if (hints) out.imageHints = hints
-   return out
+   out.remotionDesignId = nonEmptyString(raw.remotionDesignId) ?? null;
+  const zones = normalizeProtectedZones(raw.protectedZones);
+  if (zones) out.protectedZones = zones;
+  const look = normalizeLook(raw.look);
+  if (look) out.look = look;
+  const captions = normalizeCaptions(raw.captions);
+  if (captions) out.captions = captions;
+  const textStyles = normalizeTextStyles(raw.textStyles);
+  if (textStyles) out.textStyles = textStyles;
+  const cutout = normalizeCutout(raw.cutout);
+  if (cutout) out.cutout = cutout;
+  const hints = normalizeImageHints(raw.imageHints);
+  if (hints) out.imageHints = hints;
+   return out;
   } catch {
-    return createDefaultPreviewSettings()
+    return createDefaultPreviewSettings();
   }
 }

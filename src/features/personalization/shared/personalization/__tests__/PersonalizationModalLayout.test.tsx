@@ -25,14 +25,14 @@ vi.mock('next/navigation', () => ({
     refresh: vi.fn(),
     prefetch: vi.fn(),
   }),
-}))
+}));
 
 vi.mock('@ohb/components/SocialPublishProvider', () => ({
   SocialPublishContext: { Provider: ({ children }: any) => children, Consumer: ({ children }: any) => children(null) } as any,
   useSocialPublish: () => {
-    throw new Error('useSocialPublish must be used within a <SocialPublishProvider>')
+    throw new Error('useSocialPublish must be used within a <SocialPublishProvider>');
   },
-}))
+}));
 
 vi.mock('@ohb/lib/authConfig', () => ({
   useAuthConfig: () => ({
@@ -47,14 +47,14 @@ vi.mock('@ohb/lib/authConfig', () => ({
     hasOpenAiKey: false,
     isAuthenticated: true,
   }),
-}))
+}));
 
 vi.mock('@ohb/packages/studio/src/muapi', () => ({
   uploadFile: vi.fn(),
-}))
+}));
 
-URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test')
-URL.revokeObjectURL = vi.fn()
+URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test');
+URL.revokeObjectURL = vi.fn();
 
 function TestOpener({ onMounted }: { onMounted: (open: (opts: any) => void) => void }) {
   const { openPersonalize } = useDemoPersonalize();
@@ -65,7 +65,7 @@ function TestOpener({ onMounted }: { onMounted: (open: (opts: any) => void) => v
 /** Renders the provider + modal and opens it on the standard demo source. */
 async function openModal() {
   const container = document.createElement('div');
-  container.setAttribute('data-testid', 'personalization-root')
+  container.setAttribute('data-testid', 'personalization-root');
   document.body.appendChild(container);
   const root = createRoot(container);
 
@@ -118,9 +118,9 @@ describe('PersonalizationModal wide-layout guards', () => {
   });
 
   afterEach(() => {
-    document.querySelectorAll('[data-testid="personalization-root"]').forEach((el) => el.remove())
-    delete (window as any).__personalizationCtx
-  })
+    document.querySelectorAll('[data-testid="personalization-root"]').forEach((el) => el.remove());
+    delete (window as any).__personalizationCtx;
+  });
 
   it('dialog uses a wide max-width (>=1280px) so the layout is wider than tall', async () => {
     await openModal();

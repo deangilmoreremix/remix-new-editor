@@ -91,8 +91,10 @@ export function studioFeedModel(node: Node<WorkflowNodeData>): ModelDefinition |
   const kind = mediaKind(node.data.config.__studioOutputType)
     || inferMediaKind(node.data.result?.url || node.data.generations?.at(-1));
   if (!kind) return undefined;
-  return { id: `canvas-${kind}`, nodeType: node.data.type, name: text(node.data.config.fileName) || node.data.label,
-    category: kind, outputType: kind, provider: 'local', inputs: [], description: 'Media sent from Canvas', responseMapping: { path: '' } };
+  return {
+ id: `canvas-${kind}`, nodeType: node.data.type, name: text(node.data.config.fileName) || node.data.label,
+    category: kind, outputType: kind, provider: 'local', inputs: [], description: 'Media sent from Canvas', responseMapping: { path: '' } 
+};
 }
 
 export function isStudioMedia(node: Node<WorkflowNodeData>, model?: ModelDefinition): boolean {
@@ -108,8 +110,14 @@ export function importCanvasMedia(nodes: Node<WorkflowNodeData>[], media: Canvas
     // Standard generation nodes already are Studio feed entries.
     if (source && studioFeedModel(source) && item.key.startsWith('output-')) {
       if (restoreHidden && !source.data.config.__studioGenerated) retained = retained.map(node => node.id === source.id
-        ? { ...node, data: { ...node.data, config: { ...node.data.config, __studioGenerated: true,
-          __studioCanvasPlaced: true, __studioCanvasOrigin: true, __studioCreatedAt: now, __studioOutputType: item.kind } } } : node);
+        ? {
+ ...node, data: {
+ ...node.data, config: {
+ ...node.data.config, __studioGenerated: true,
+          __studioCanvasPlaced: true, __studioCanvasOrigin: true, __studioCreatedAt: now, __studioOutputType: item.kind 
+} 
+} 
+} : node);
       continue;
     }
     const existing = [...retained, ...additions].find(node => node.data.config.__studioSourceNodeId === item.nodeId
@@ -119,14 +127,16 @@ export function importCanvasMedia(nodes: Node<WorkflowNodeData>[], media: Canvas
         ? { ...node, data: { ...node.data, config: { ...node.data.config, __studioHiddenFromFeed: false } } } : node);
       continue;
     }
-    additions.push({ id: generateId(), type: 'filePicker', position: { x: 80, y: 80 }, data: {
+    additions.push({
+ id: generateId(), type: 'filePicker', position: { x: 80, y: 80 }, data: {
       type: 'filePicker', label: item.name, config: {
         fileUrl: item.url, fileType: item.kind, fileName: item.name,
         __studioGenerated: true, __studioMedia: true, __studioCreatedAt: now,
         __studioOutputType: item.kind, __studioPrompt: item.prompt,
         __studioSourceNodeId: item.nodeId, __studioSourceUrl: item.url,
       }, result: { url: item.url, status: 'complete' },
-    } });
+    } 
+});
   }
   return additions.length ? [...retained, ...additions] : retained;
 }
@@ -138,10 +148,15 @@ export function syncCanvasVideosToStudio(nodes: Node<WorkflowNodeData>[], now: s
     if (node.data.config.__studioGenerated || studioFeedModel(node)?.outputType !== 'video'
       || !(node.data.result?.status === 'running' || node.data.result?.url || node.data.generations?.length)) return node;
     changed = true;
-    return { ...node, data: { ...node.data, config: { ...node.data.config,
+    return {
+ ...node, data: {
+ ...node.data, config: {
+ ...node.data.config,
       __studioGenerated: true, __studioCanvasPlaced: true, __studioCanvasOrigin: true, __studioOutputType: 'video',
       __studioCreatedAt: node.data.config.__studioCreatedAt || (Number.isFinite(node.data.result?.progressStartedAt) ? new Date(node.data.result!.progressStartedAt!).toISOString() : now),
-    } } };
+    } 
+} 
+};
   });
   const media = retained.filter(node => !node.data.config.__studioMedia && node.data.type !== 'filePicker')
     .flatMap(node => canvasMedia(node).filter(item => item.kind === 'video'));

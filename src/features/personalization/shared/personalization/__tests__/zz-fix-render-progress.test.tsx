@@ -22,22 +22,22 @@
  * inject here.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
 
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { StepPreviewApprove } from '../guided/StepPreviewApprove'
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { StepPreviewApprove } from '../guided/StepPreviewApprove';
 
 // Mocks MUST be registered before the component import resolves.
 vi.mock('../DemoPersonalizeProvider', () => ({
   useDemoPersonalize: vi.fn(),
-}))
+}));
 
 // `lucide-react` icons are tree-shakeable; importing the real module keeps
 // the test aligned with what StepPreviewApprove actually renders.
 
-URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test')
-URL.revokeObjectURL = vi.fn()
+URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test');
+URL.revokeObjectURL = vi.fn();
 
 // Default minimum viable context. Tests override the bits they need.
 const baseCtx = {
@@ -81,23 +81,23 @@ const baseCtx = {
   // that runs in-browser and is the one Phase 3's `processing` status
   // belongs to).
   mode: null,
-}
+};
 
 beforeEach(() => {
-  vi.clearAllMocks()
-  vi.mocked(useDemoPersonalize).mockReturnValue(baseCtx as any)
-})
+  vi.clearAllMocks();
+  vi.mocked(useDemoPersonalize).mockReturnValue(baseCtx as any);
+});
 
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+});
 
 function renderWithGeneration(generation: { status: string; progress?: number; progressMessage?: string }) {
   vi.mocked(useDemoPersonalize).mockReturnValue({
     ...baseCtx,
     generation: { ...baseCtx.generation, ...generation },
-  } as any)
-  return render(<StepPreviewApprove />)
+  } as any);
+  return render(<StepPreviewApprove />);
 }
 
 describe('StepPreviewApprove — render progress / cancellation (Defect A)', () => {
@@ -106,35 +106,35 @@ describe('StepPreviewApprove — render progress / cancellation (Defect A)', () 
       status: 'processing',
       progress: 47,
       progressMessage: 'Rendering your branded video… 47%',
-    })
+    });
     // The Cancel button is the canonical regression marker: when this text is
     // missing during a real render, the user has no way to stop a stuck job.
-    expect(screen.getByRole('button', { name: /cancel render/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /cancel render/i })).toBeTruthy();
     // The button copy on the primary CTA also reflects progress.
-    expect(container.textContent || '').toMatch(/Rendering… 47%/)
+    expect(container.textContent || '').toMatch(/Rendering… 47%/);
     // The provider's progress message is rendered as supporting copy.
-    expect(container.textContent || '').toMatch(/Rendering your branded video… 47%/)
-  })
+    expect(container.textContent || '').toMatch(/Rendering your branded video… 47%/);
+  });
 
   it('shows the "Cancel render" button while generation.status === "generating" (no regression)', () => {
     const { container } = renderWithGeneration({
       status: 'generating',
       progress: 20,
       progressMessage: 'Preparing assets…',
-    })
-    expect(screen.getByRole('button', { name: /cancel render/i })).toBeTruthy()
-    expect(container.textContent || '').toMatch(/Rendering… 20%/)
-  })
+    });
+    expect(screen.getByRole('button', { name: /cancel render/i })).toBeTruthy();
+    expect(container.textContent || '').toMatch(/Rendering… 20%/);
+  });
 
   it('does NOT show "Cancel render" when generation.status is "idle" (no regression)', () => {
-    renderWithGeneration({ status: 'idle' })
+    renderWithGeneration({ status: 'idle' });
     // Step 4 still mounts the create buttons, but the Cancel-render button is
     // gated behind the in-progress flag — it must be absent in idle state.
-    expect(screen.queryByRole('button', { name: /cancel render/i })).toBeNull()
-  })
+    expect(screen.queryByRole('button', { name: /cancel render/i })).toBeNull();
+  });
 
   it('does NOT show "Cancel render" when generation.status is "complete" (no regression)', () => {
-    renderWithGeneration({ status: 'complete', progress: 100, progressMessage: 'Branded video ready' })
-    expect(screen.queryByRole('button', { name: /cancel render/i })).toBeNull()
-  })
-})
+    renderWithGeneration({ status: 'complete', progress: 100, progressMessage: 'Branded video ready' });
+    expect(screen.queryByRole('button', { name: /cancel render/i })).toBeNull();
+  });
+});

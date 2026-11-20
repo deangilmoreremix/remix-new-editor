@@ -13,18 +13,18 @@
  * instance shrinks it when a long name would crowd the illustration.
  */
 
-import React from 'react'
-import { EyeReveal } from '../../_upstream/eye-reveal/EyeReveal'
-import { useDesignFonts } from '../fonts'
-import { DesignStage, type DesignAdapterProps } from '../shared'
-import { ScopedUpstream, bottomMessageFitCss, brandPalette, deepShade, messageAndSub, mixHex, readableOn, useScopeId } from './batch3aShared'
+import React from 'react';
+import { EyeReveal } from '../../_upstream/eye-reveal/EyeReveal';
+import { useDesignFonts } from '../fonts';
+import { DesignStage, type DesignAdapterProps } from '../shared';
+import { ScopedUpstream, bottomMessageFitCss, brandPalette, deepShade, messageAndSub, mixHex, readableOn, useScopeId } from './batch3aShared';
 
 export const EyeRevealDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
-  const scopeId = useScopeId('eye-reveal')
-  const palette = brandPalette(props)
-  const { message, sub } = messageAndSub(props)
-  const background = deepShade(palette.primary, 0.84)
+  useDesignFonts();
+  const scopeId = useScopeId('eye-reveal');
+  const palette = brandPalette(props);
+  const { message, sub } = messageAndSub(props);
+  const background = deepShade(palette.primary, 0.84);
 
   return (
     <DesignStage designId="eye-reveal" props={props}>
@@ -42,7 +42,7 @@ export const EyeRevealDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </ScopedUpstream>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default EyeRevealDesign
+export default EyeRevealDesign;

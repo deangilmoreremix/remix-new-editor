@@ -15,10 +15,10 @@
  * Canvas fill is forced transparent; the glow is a low-alpha radial halo.
  */
 
-import React from 'react'
-import { NeonSign } from '../../_upstream/neon-sign/NeonSign'
-import { useDesignFonts } from '../fonts'
-import { DesignStage, TRANSPARENT, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
+import React from 'react';
+import { NeonSign } from '../../_upstream/neon-sign/NeonSign';
+import { useDesignFonts } from '../fonts';
+import { DesignStage, TRANSPARENT, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
 import {
   ScopedUpstream,
   brandPalette,
@@ -27,33 +27,33 @@ import {
   mixHex,
   scopeSelector,
   useScopeId,
-} from './batch3aShared'
+} from './batch3aShared';
 
-const MAX_SIGN_LENGTH = 16
-const MAX_SUB_LENGTH = 40
+const MAX_SIGN_LENGTH = 16;
+const MAX_SUB_LENGTH = 40;
 
 export const NeonSignDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
-  const scopeId = useScopeId('neon-sign')
-  const palette = brandPalette(props)
+  useDesignFonts();
+  const scopeId = useScopeId('neon-sign');
+  const palette = brandPalette(props);
 
-  const signText = truncateText(slotText(props, 'signText', ['headline']), MAX_SIGN_LENGTH)
-  const subText = truncateText(slotValue(props, 'subText'), MAX_SUB_LENGTH)
+  const signText = truncateText(slotText(props, 'signText', ['headline']), MAX_SIGN_LENGTH);
+  const subText = truncateText(slotValue(props, 'subText'), MAX_SUB_LENGTH);
 
-  const scale = Math.min(props.width, props.height)
-  const upstreamSize = scale * 0.1
+  const scale = Math.min(props.width, props.height);
+  const upstreamSize = scale * 0.1;
   const fitted = fitFontSize(signText, {
     maxWidth: scale * 0.5 * 0.9,
     maxSize: upstreamSize,
     advance: 0.66 + 0.15,
     wrap: false,
     minSize: Math.max(12, scale * 0.03),
-  })
-  const sel = scopeSelector(scopeId)
+  });
+  const sel = scopeSelector(scopeId);
   const css =
     fitted < Math.round(upstreamSize)
       ? `${sel} svg text { font-size: ${fitted}px; letter-spacing: ${Math.round(fitted * 0.15)}px; }`
-      : ''
+      : '';
 
   return (
     <DesignStage designId="neon-sign" props={props}>
@@ -71,7 +71,7 @@ export const NeonSignDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </ScopedUpstream>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default NeonSignDesign
+export default NeonSignDesign;

@@ -19,33 +19,33 @@
  * These helpers are pure and synchronous: no React, no network, no filesystem.
  */
 
-import type { VideoDemo } from '@ohb/data/types'
-import type { PromptRecord } from '@ohb/types/go-ai-viral/prompt'
-import type { SeedancePrompt } from '@ohb/types/go-ai-viral/seedance'
+import type { VideoDemo } from '@ohb/data/types';
+import type { PromptRecord } from '@ohb/types/go-ai-viral/prompt';
+import type { SeedancePrompt } from '@ohb/types/go-ai-viral/seedance';
 import {
   resolvePromptRecordImage,
   resolvePromptRecordVideo,
   resolveSeedanceVideo,
-} from '@ohb/libs/viralMediaResolver'
-import type { PersonalizationSource } from './types'
+} from '@ohb/libs/viralMediaResolver';
+import type { PersonalizationSource } from './types';
 
 /** `sourceMetadata` key the preview reads to know a video source has no media yet. */
-export const MEDIA_PENDING_KEY = 'mediaPending'
+export const MEDIA_PENDING_KEY = 'mediaPending';
 
 /** Seedance records carry no duration/aspect metadata — never invent one. */
-const MAX_VIRAL_TITLE_LENGTH = 80
+const MAX_VIRAL_TITLE_LENGTH = 80;
 
 function trimmed(value: string | null | undefined): string {
-  return typeof value === 'string' ? value.trim() : ''
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 function positiveNumberOrUndefined(value: number | null | undefined): number | undefined {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : undefined
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : undefined;
 }
 
 /** `true` when a source has no playable media and the preview must say so. */
 export function isMediaPending(source: PersonalizationSource | null | undefined): boolean {
-  return source?.sourceMetadata?.[MEDIA_PENDING_KEY] === true
+  return source?.sourceMetadata?.[MEDIA_PENDING_KEY] === true;
 }
 
 /**
@@ -57,9 +57,9 @@ export function isMediaPending(source: PersonalizationSource | null | undefined)
  * the `mediaPending` flag; a different demo is never substituted.
  */
 export function buildDemoPersonalizeSource(demo: VideoDemo): PersonalizationSource {
-  const videoSrc = trimmed(demo.videoSrc)
-  const posterSrc = trimmed(demo.posterSrc)
-  const mediaPending = !videoSrc
+  const videoSrc = trimmed(demo.videoSrc);
+  const posterSrc = trimmed(demo.posterSrc);
+  const mediaPending = !videoSrc;
 
   return {
     sourceType: 'landing-demo',
@@ -85,7 +85,7 @@ export function buildDemoPersonalizeSource(demo: VideoDemo): PersonalizationSour
       tags: demo.tags,
       ...(mediaPending ? { [MEDIA_PENDING_KEY]: true } : {}),
     },
-  }
+  };
 }
 
 /**
@@ -97,15 +97,15 @@ export function buildDemoPersonalizeSource(demo: VideoDemo): PersonalizationSour
  * swapped between the two, and a record with no media is flagged `mediaPending`.
  */
 export function buildViralPromptSource(record: PromptRecord): PersonalizationSource {
-  const isVideoRecord = record.mediaType === 'video'
-  const resolvedVideo = resolvePromptRecordVideo(record)
-  const resolvedImage = resolvePromptRecordImage(record)
-  const sourceMedia = isVideoRecord ? resolvedVideo.videoUrl : resolvedImage.imageUrl
+  const isVideoRecord = record.mediaType === 'video';
+  const resolvedVideo = resolvePromptRecordVideo(record);
+  const resolvedImage = resolvePromptRecordImage(record);
+  const sourceMedia = isVideoRecord ? resolvedVideo.videoUrl : resolvedImage.imageUrl;
   const poster = isVideoRecord
     ? resolvedVideo.posterUrl || resolvedImage.imageUrl
-    : resolvedImage.imageUrl
+    : resolvedImage.imageUrl;
 
-  const duration = positiveNumberOrUndefined(record.recommended?.durationSeconds)
+  const duration = positiveNumberOrUndefined(record.recommended?.durationSeconds);
 
   return {
     sourceType: 'go-ai-viral-prompt',
@@ -134,7 +134,7 @@ export function buildViralPromptSource(record: PromptRecord): PersonalizationSou
       author: record.source?.author,
       ...(sourceMedia ? {} : { [MEDIA_PENDING_KEY]: true }),
     },
-  }
+  };
 }
 
 /**
@@ -146,9 +146,9 @@ export function buildViralPromptSource(record: PromptRecord): PersonalizationSou
  * rather than being invented.
  */
 export function buildViralVideoSource(record: SeedancePrompt): PersonalizationSource {
-  const resolved = resolveSeedanceVideo(record)
-  const sourceMedia = resolved.videoUrl
-  const fullPrompt = trimmed(record.fullPrompt) || record.prompt
+  const resolved = resolveSeedanceVideo(record);
+  const sourceMedia = resolved.videoUrl;
+  const fullPrompt = trimmed(record.fullPrompt) || record.prompt;
 
   return {
     sourceType: 'go-ai-viral-video',
@@ -174,7 +174,7 @@ export function buildViralVideoSource(record: SeedancePrompt): PersonalizationSo
       sourceLanguage: record.sourceLanguage,
       ...(sourceMedia ? {} : { [MEDIA_PENDING_KEY]: true }),
     },
-  }
+  };
 }
 
 /**
@@ -187,8 +187,8 @@ export function buildViralVideoSource(record: SeedancePrompt): PersonalizationSo
  */
 export function buildFreeDiscoverySource(): PersonalizationSource {
   const discoveryPrompt =
-    'Find My Brand — paste a business website and see the real logos, photos, products and branding already on it.'
-  const discoveryDetail = `${discoveryPrompt} Nothing is generated and nothing is charged.`
+    'Find My Brand — paste a business website and see the real logos, photos, products and branding already on it.';
+  const discoveryDetail = `${discoveryPrompt} Nothing is generated and nothing is charged.`;
 
   return {
     sourceType: 'landing-demo',
@@ -201,11 +201,11 @@ export function buildFreeDiscoverySource(): PersonalizationSource {
     fullPrompt: discoveryDetail,
     originalPrompt: discoveryDetail,
     sourceMetadata: { freeDiscovery: true },
-  }
+  };
 }
 
 function isSeedanceRecord(record: PromptRecord | SeedancePrompt): record is SeedancePrompt {
-  return 'fullPrompt' in record
+  return 'fullPrompt' in record;
 }
 
 /**
@@ -215,5 +215,5 @@ function isSeedanceRecord(record: PromptRecord | SeedancePrompt): record is Seed
 export function buildViralPersonalizeSource(
   record: PromptRecord | SeedancePrompt,
 ): PersonalizationSource {
-  return isSeedanceRecord(record) ? buildViralVideoSource(record) : buildViralPromptSource(record)
+  return isSeedanceRecord(record) ? buildViralVideoSource(record) : buildViralPromptSource(record);
 }

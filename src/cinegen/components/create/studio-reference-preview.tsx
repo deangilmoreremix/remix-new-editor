@@ -21,12 +21,14 @@ export interface ReferencePreview {
 
 export function previewAttachedReference(reference: Pick<Media, 'name' | 'url' | 'kind'>, assets: Asset[]): ReferencePreview {
   const asset = assets.find(item => toFileUrl(item.url) === toFileUrl(reference.url) || item.sourceUrl === reference.url);
-  return { name: reference.name, media: [{
+  return {
+ name: reference.name, media: [{
     ...reference,
     width: asset?.width, height: asset?.height, duration: asset?.duration,
     fileSize: asset?.fileSize, createdAt: asset?.createdAt,
     prompt: typeof asset?.metadata?.prompt === 'string' ? asset.metadata.prompt : undefined,
-  }] };
+  }] 
+};
 }
 
 export function previewElementReference(element: CineElement): ReferencePreview {

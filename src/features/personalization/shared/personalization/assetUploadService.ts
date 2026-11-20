@@ -38,10 +38,10 @@ import {
   type MuAPIAuthContext,
 } from '@ohb/lib/muapiUpload';
 
-const AUDIO_EXTENSION = /\.(mp3|wav|m4a|aac|ogg|oga|flac|weba)$/i
+const AUDIO_EXTENSION = /\.(mp3|wav|m4a|aac|ogg|oga|flac|weba)$/i;
 
 function isAudioFile(file: File): boolean {
-  return String(file.type || '').startsWith('audio/') || AUDIO_EXTENSION.test(file.name || '')
+  return String(file.type || '').startsWith('audio/') || AUDIO_EXTENSION.test(file.name || '');
 }
 
 export interface UploadPersonalizationAssetInput {
@@ -98,7 +98,7 @@ export async function uploadPersonalizationAsset(
   // `apiKey` is the caller's own BYOK key. This service hands it to the shared
   // adapter and nothing else; it never stores it, logs it, or derives a
   // server-side fallback for it.
-  const resolvedWorkspace = workspaceId?.trim() || getStableUserId()
+  const resolvedWorkspace = workspaceId?.trim() || getStableUserId();
   const resolvedAssetId = assetId?.trim() || (await deriveContentAssetId(file));
 
   const authContext: MuAPIAuthContext = {

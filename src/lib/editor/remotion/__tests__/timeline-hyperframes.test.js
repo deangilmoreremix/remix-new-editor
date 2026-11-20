@@ -8,9 +8,11 @@ const project = {
   timelineSeconds: 10,
   tracks: [
     { id: 'v', type: 'video', items: [] },
-    { id: 'ov', type: 'text', items: [
+    {
+ id: 'ov', type: 'text', items: [
       { id: 'hf1', type: 'hyperframes', name: 'Anim', start: 2, end: 5, blockId: 'bar-chart-race', props: {}, blockWidth: 1920, blockHeight: 1080 },
-    ] },
+    ] 
+},
   ],
 };
 

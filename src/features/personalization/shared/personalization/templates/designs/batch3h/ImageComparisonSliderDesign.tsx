@@ -12,10 +12,10 @@
  * half is a brand gradient. The "after" label is the business name.
  */
 
-import React from 'react'
-import { ImageComparisonSlider } from '../../_upstream/rve-image-comparison-slider/ImageComparisonSlider'
-import { slotText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { ImageComparisonSlider } from '../../_upstream/rve-image-comparison-slider/ImageComparisonSlider';
+import { slotText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   BrandMediaFill,
   brandGradients,
@@ -24,26 +24,26 @@ import {
   canvasScale,
   fitLine,
   sceneBackground,
-} from './media'
+} from './media';
 
-const BEFORE_PLACEHOLDER = 'linear-gradient(135deg, #1e293b, #374151, #4b5563)'
+const BEFORE_PLACEHOLDER = 'linear-gradient(135deg, #1e293b, #374151, #4b5563)';
 
 export const RveImageComparisonSliderDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const f = 2.4 * k
-  const labelPx = Math.round(24 * f)
-  const frameWidthPx = props.width * 0.85
+  const k = canvasScale(props);
+  const f = 2.4 * k;
+  const labelPx = Math.round(24 * f);
+  const frameWidthPx = props.width * 0.85;
 
-  const image = brandImages(props)[0] ?? null
-  const gradients = brandGradients(props)
-  const { accent, text: textColor } = brandPalette(props)
+  const image = brandImages(props)[0] ?? null;
+  const gradients = brandGradients(props);
+  const { accent, text: textColor } = brandPalette(props);
 
   const afterLabel = fitLine(
     slotText(props, 'businessName', ['headline']),
     frameWidthPx * 0.8,
     labelPx,
     32,
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-image-comparison-slider" props={props}>
@@ -91,7 +91,7 @@ export const RveImageComparisonSliderDesign: React.FC<DesignAdapterProps> = (pro
         }
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveImageComparisonSliderDesign
+export default RveImageComparisonSliderDesign;

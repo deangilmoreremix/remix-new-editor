@@ -10,14 +10,14 @@
  * customer's video. The incoming scene is empty and transparent.
  */
 
-import React from 'react'
-import { MorphTransition } from '../../_upstream/rve-morph-transition/MorphTransition'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared'
+import React from 'react';
+import { MorphTransition } from '../../_upstream/rve-morph-transition/MorphTransition';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared';
 
 export const RveMorphTransitionDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-morph-transition" props={props}>
       <MorphTransition
@@ -26,7 +26,7 @@ export const RveMorphTransitionDesign: React.FC<RemotionDesignComponentProps> = 
         sceneB={TRANSPARENT_SCENE}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveMorphTransitionDesign
+export default RveMorphTransitionDesign;

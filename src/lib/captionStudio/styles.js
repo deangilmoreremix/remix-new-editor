@@ -30,12 +30,12 @@ export const CAPITE_CAPTION_STYLES = Object.freeze([
   {"id": "retro-glitch", "name": "Retro Glitch", "category": "pop-expressive", "description": "Vivid hot magenta and electric yellow with spring bounce", "fontName": "Bebas Neue", "fontNameFallback": "IBM Plex Sans", "fontSize": 115, "primaryColor": "#FF007F", "highlightColor": "#FFE600", "outlineColor": "#050510", "shadowColor": "#000000", "shadowAlpha": 160, "outlineSize": 7.0, "shadowDepth": 5.0, "bold": true, "italic": false, "letterSpacing": 0.8, "wordSpacing": 100, "animationType": "bounce", "bestFor": "Entertainment, memes & fast pacing"},
   {"id": "cinema-gold", "name": "Cinema Gold", "category": "editorial-film", "description": "Luxurious crisp white with metallic gold zoom highlight", "fontName": "Playfair Display", "fontNameFallback": "IBM Plex Sans", "fontSize": 98, "primaryColor": "#F8FAFC", "highlightColor": "#FFD700", "outlineColor": "#0B0C10", "shadowColor": "#B8860B", "shadowAlpha": 80, "outlineSize": 4.0, "shadowDepth": 4.5, "bold": true, "italic": true, "letterSpacing": 1.5, "wordSpacing": 110, "animationType": "scale", "bestFor": "Documentary, finance, podcasts & luxury"},
   {"id": "tiktok-hype", "name": "TikTok Hype", "category": "trending", "description": "Bold white typography with active word red pill box highlight", "fontName": "Poppins", "fontNameFallback": "IBM Plex Sans", "fontSize": 105, "primaryColor": "#FFFFFF", "highlightColor": "#EF4444", "outlineColor": "#000000", "shadowColor": "#000000", "shadowAlpha": 0, "outlineSize": 9.0, "shadowDepth": 0.0, "bold": true, "italic": false, "letterSpacing": 0.5, "wordSpacing": 105, "animationType": "box", "bestFor": "Trending TikTok challenges & retention hooks"}
-])
+]);
 
 export const CAPITE_CATEGORIES = Object.freeze([
   { id: 'trending', label: 'Trending' }, { id: 'pop-expressive', label: 'Pop & expressive' },
   { id: 'clean-tech', label: 'Clean & tech' }, { id: 'editorial-film', label: 'Editorial & film' },
-])
+]);
 
 const BY_ID = new Map(CAPITE_CAPTION_STYLES.map((s) => [s.id, s]));
 export const capiteStyleById = (id) => (typeof id === 'string' ? BY_ID.get(id) : undefined);

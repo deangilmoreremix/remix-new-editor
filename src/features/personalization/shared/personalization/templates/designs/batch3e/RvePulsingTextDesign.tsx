@@ -20,10 +20,10 @@
  * `box-shadow` glow instead, which the preview and the export draw the same.
  */
 
-import React from 'react'
-import { PulsingText } from '../../_upstream/rve-pulsing-text/PulsingText'
-import { type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { PulsingText } from '../../_upstream/rve-pulsing-text/PulsingText';
+import { type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandPrimary,
   brandText,
@@ -33,30 +33,30 @@ import {
   slotText,
   truncateText,
   withAlpha,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_PULSING_TEXT_ID = 'rve-pulsing-text'
+export const RVE_PULSING_TEXT_ID = 'rve-pulsing-text';
 
-const ZOOM = 1.6
+const ZOOM = 1.6;
 
 /** The hard character ceiling (the stagger is 6 frames per letter). */
-export const PULSING_TEXT_MAX_CHARS = 14
+export const PULSING_TEXT_MAX_CHARS = 14;
 
 export const RvePulsingTextDesign: React.FC<DesignAdapterProps> = (props) => {
   const copy = truncateText(
     slotText(props, 'headline', ['businessName', 'offer']),
     PULSING_TEXT_MAX_CHARS,
-  )
-  const count = Math.max(1, copy.length)
+  );
+  const count = Math.max(1, copy.length);
 
-  const rem = remUnitForCentred(props, ZOOM)
-  const baseFont = 5 * rem
-  const gapRatio = 0.2 // upstream: 1rem gap next to 5rem type
+  const rem = remUnitForCentred(props, ZOOM);
+  const baseFont = 5 * rem;
+  const gapRatio = 0.2; // upstream: 1rem gap next to 5rem type
   // Each letter is ~0.62em wide plus a 0.2em gap; the row must fit in ~46 %
   // of the canvas width.
-  const fontPx = fitFontPx(props.width * 0.46, count, baseFont, 0.62 + gapRatio, 0.3)
+  const fontPx = fitFontPx(props.width * 0.46, count, baseFont, 0.62 + gapRatio, 0.3);
 
-  const primary = brandPrimary(props)
+  const primary = brandPrimary(props);
 
   return (
     <RveDesignStage designId={RVE_PULSING_TEXT_ID} props={props}>
@@ -71,7 +71,7 @@ export const RvePulsingTextDesign: React.FC<DesignAdapterProps> = (props) => {
         glowShadow={`0 0 ${px(fontPx * 0.4)} ${px(fontPx * 0.2)} ${withAlpha(primary, 0.28)}`}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RvePulsingTextDesign
+export default RvePulsingTextDesign;

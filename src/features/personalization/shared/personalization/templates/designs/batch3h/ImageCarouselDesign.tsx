@@ -11,10 +11,10 @@
  * (the copy's `centerSlides` flag — see its deviation record).
  */
 
-import React from 'react'
-import { ImageCarousel } from '../../_upstream/rve-image-carousel/ImageCarousel'
-import { slotText, slotValue, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { ImageCarousel } from '../../_upstream/rve-image-carousel/ImageCarousel';
+import { slotText, slotValue, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   BrandMediaFill,
   brandGradients,
@@ -24,29 +24,29 @@ import {
   cycleImages,
   fitLine,
   sceneBackground,
-} from './media'
+} from './media';
 
 /** How much larger than the upstream card the adapter draws. */
-const CARD_SCALE = 2.3
+const CARD_SCALE = 2.3;
 
 export const RveImageCarouselDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const f = CARD_SCALE * k
-  const slideWidth = Math.round(240 * f)
-  const slideHeight = Math.round(320 * f)
-  const padding = Math.round(16 * f)
-  const labelPx = Math.round(16 * f)
+  const k = canvasScale(props);
+  const f = CARD_SCALE * k;
+  const slideWidth = Math.round(240 * f);
+  const slideHeight = Math.round(320 * f);
+  const padding = Math.round(16 * f);
+  const labelPx = Math.round(16 * f);
 
-  const name = slotText(props, 'businessName', ['headline'])
-  const rawLabels = [name, slotValue(props, 'headline'), slotValue(props, 'offer')]
+  const name = slotText(props, 'businessName', ['headline']);
+  const rawLabels = [name, slotValue(props, 'headline'), slotValue(props, 'offer')];
   const labels = rawLabels.map((value) =>
     fitLine(value || name, slideWidth - padding * 2, labelPx, 28),
-  )
+  );
 
-  const gradients = brandGradients(props)
-  const images = brandImages(props)
-  const slots = cycleImages(images, 3)
-  const { text: textColor } = brandPalette(props)
+  const gradients = brandGradients(props);
+  const images = brandImages(props);
+  const slots = cycleImages(images, 3);
+  const { text: textColor } = brandPalette(props);
 
   const slides = labels.map((label, i) => ({
     label,
@@ -60,7 +60,7 @@ export const RveImageCarouselDesign: React.FC<DesignAdapterProps> = (props) => {
         showLabel={false}
       />
     ) : undefined,
-  }))
+  }));
 
   return (
     <RveDesignStage designId="rve-image-carousel" props={props}>
@@ -80,7 +80,7 @@ export const RveImageCarouselDesign: React.FC<DesignAdapterProps> = (props) => {
         centerSlides
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveImageCarouselDesign
+export default RveImageCarouselDesign;

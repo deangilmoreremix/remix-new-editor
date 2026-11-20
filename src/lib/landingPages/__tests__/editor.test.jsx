@@ -46,11 +46,13 @@ describe('editable pages', () => {
   });
   it('hostile text is escaped and unsafe links/images are dropped', () => {
     const evil = '<img src=x onerror=alert(1)><script>alert(1)</script>';
-    const data = { root: { props: {} }, zones: {}, content: [
+    const data = {
+ root: { props: {} }, zones: {}, content: [
       { type: 'Hero', props: { id: 'h', ...editorConfig.components.Hero.defaultProps, headline: evil, subhead: evil, chip: evil, photo: 'javascript:alert(1)', buttons: [{ label: 'Bad', url: 'javascript:alert(1)', style: 'primary' }, { label: 'Good', url: 'https://ok.io', style: 'secondary' }] } },
       { type: 'NavBar', props: { id: 'n', brand: evil, logo: 'javascript:alert(2)', links: [{ label: 'Bad', url: 'javascript:alert(3)' }], loginLabel: evil, loginUrl: 'javascript:alert(4)', ctaLabel: '' } },
       { type: 'Footer', props: { id: 'f', text: evil, links: [{ label: 'Bad', url: 'javascript:alert(5)' }] } },
-    ] };
+    ] 
+};
     const out = html(data, { firstname: '<svg onload=alert(1)>' });
     expect(out).not.toMatch(/<script|<img[^>]*onerror|<svg[^>]*onload|\sonerror="|href="javascript:|src="javascript:/i);
     expect(out).toContain('&lt;img');

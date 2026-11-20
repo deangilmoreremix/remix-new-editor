@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
-import { Pipette, Wand2 } from 'lucide-react'
-import { C, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from '../tokens'
-import { Tip } from './Tip'
-import type { EditorTipId } from './editorTips'
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { Pipette, Wand2 } from 'lucide-react';
+import { C, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from '../tokens';
+import { Tip } from './Tip';
+import type { EditorTipId } from './editorTips';
 import {
   autoTextColor, averageColor, contrastBetween, extractPalette, gradeContrast, hexToHsv, hsvToHex, parseHex, pushRecent,
   type Hsv,
-} from './colorMath'
+} from './colorMath';
 
 /**
  * Color control for the editor: replaces the browser's native color input with one popover that
@@ -32,141 +32,141 @@ export interface ColorFieldProps {
   tipId?: EditorTipId
 }
 
-const RECENT_KEY = 'personalization:recent-colors'
+const RECENT_KEY = 'personalization:recent-colors';
 
 function readRecent(): string[] {
   try {
-    const raw = window.localStorage.getItem(RECENT_KEY)
-    const list = raw ? (JSON.parse(raw) as unknown) : []
-    return Array.isArray(list) ? list.filter((c): c is string => typeof c === 'string' && !!parseHex(c)) : []
-  } catch { return [] }
+    const raw = window.localStorage.getItem(RECENT_KEY);
+    const list = raw ? (JSON.parse(raw) as unknown) : [];
+    return Array.isArray(list) ? list.filter((c): c is string => typeof c === 'string' && !!parseHex(c)) : [];
+  } catch { return []; }
 }
 function writeRecent(list: string[]): void {
-  try { window.localStorage.setItem(RECENT_KEY, JSON.stringify(list)) } catch { /* storage unavailable: recents are a convenience */ }
+  try { window.localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch { /* storage unavailable: recents are a convenience */ }
 }
 
 interface FramePalette { colors: string[]; average: string | null }
-const PALETTE_CACHE = new Map<string, FramePalette>()
+const PALETTE_CACHE = new Map<string, FramePalette>();
 
 /** Best effort: reads a small copy of the image. A cross-origin image without CORS cannot be read; then there are no colors. */
 function sampleFramePalette(url: string): Promise<FramePalette> {
-  const cached = PALETTE_CACHE.get(url)
-  if (cached) return Promise.resolve(cached)
+  const cached = PALETTE_CACHE.get(url);
+  if (cached) return Promise.resolve(cached);
   return new Promise((resolve) => {
-    const done = (p: FramePalette) => { PALETTE_CACHE.set(url, p); resolve(p) }
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
+    const done = (p: FramePalette) => { PALETTE_CACHE.set(url, p); resolve(p); };
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = () => {
       try {
-        const w = 64, h = 36
-        const canvas = document.createElement('canvas')
-        canvas.width = w; canvas.height = h
-        const ctx = canvas.getContext('2d', { willReadFrequently: true })
-        if (!ctx) return done({ colors: [], average: null })
-        ctx.drawImage(img, 0, 0, w, h)
-        const { data } = ctx.getImageData(0, 0, w, h)
-        done({ colors: extractPalette(data, 5), average: averageColor(data) })
-      } catch { done({ colors: [], average: null }) }
-    }
-    img.onerror = () => done({ colors: [], average: null })
-    img.src = url
-  })
+        const w = 64, h = 36;
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) return done({ colors: [], average: null });
+        ctx.drawImage(img, 0, 0, w, h);
+        const { data } = ctx.getImageData(0, 0, w, h);
+        done({ colors: extractPalette(data, 5), average: averageColor(data) });
+      } catch { done({ colors: [], average: null }); }
+    };
+    img.onerror = () => done({ colors: [], average: null });
+    img.src = url;
+  });
 }
 
 const swatchStyle = (color: string, active: boolean): React.CSSProperties => ({
   width: 24, height: 24, borderRadius: '50%', background: color, cursor: 'pointer', padding: 0,
   border: `2px solid ${C.modal}`, outline: `${active ? 2 : 1}px solid ${active ? C.cyan : C.border}`,
-})
+});
 
 export function ColorField({ id, label, ariaLabel, value, onChange, brand, posterUrl, tipId }: ColorFieldProps): React.JSX.Element {
-  const uid = useId()
-  const current = parseHex(value) ?? '#ffffff'
-  const [open, setOpen] = useState(false)
-  const [hsv, setHsv] = useState<Hsv>(() => hexToHsv(current))
-  const [hexText, setHexText] = useState(current)
-  const [recent, setRecent] = useState<string[]>([])
-  const [frame, setFrame] = useState<FramePalette>({ colors: [], average: null })
-  const rootRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
-  const areaRef = useRef<HTMLDivElement>(null)
-  const popRef = useRef<HTMLDivElement>(null)
-  const startValue = useRef(current)
+  const uid = useId();
+  const current = parseHex(value) ?? '#ffffff';
+  const [open, setOpen] = useState(false);
+  const [hsv, setHsv] = useState<Hsv>(() => hexToHsv(current));
+  const [hexText, setHexText] = useState(current);
+  const [recent, setRecent] = useState<string[]>([]);
+  const [frame, setFrame] = useState<FramePalette>({ colors: [], average: null });
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const areaRef = useRef<HTMLDivElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const startValue = useRef(current);
 
   // Follow outside changes (undo, reset, preset) without fighting an in-progress drag: keep the hue
   // when the color is gray/black (hex round-trips lose it).
   useEffect(() => {
-    setHexText(current)
+    setHexText(current);
     setHsv((prev) => {
-      if (hsvToHex(prev) === current) return prev
-      const next = hexToHsv(current)
-      return next.s === 0 || next.v === 0 ? { ...next, h: prev.h } : next
-    })
-  }, [current])
+      if (hsvToHex(prev) === current) return prev;
+      const next = hexToHsv(current);
+      return next.s === 0 || next.v === 0 ? { ...next, h: prev.h } : next;
+    });
+  }, [current]);
 
   const close = useCallback((restoreFocus: boolean) => {
-    setOpen(false)
+    setOpen(false);
     if (current !== startValue.current) {
-      setRecent((prev) => { const next = pushRecent(prev, current); writeRecent(next); return next })
+      setRecent((prev) => { const next = pushRecent(prev, current); writeRecent(next); return next; });
     }
-    if (restoreFocus) triggerRef.current?.focus()
-  }, [current])
+    if (restoreFocus) triggerRef.current?.focus();
+  }, [current]);
 
   useEffect(() => {
-    if (!open) return
-    startValue.current = current
-    setRecent(readRecent())
-    let live = true
-    if (posterUrl) void sampleFramePalette(posterUrl).then((p) => { if (live) setFrame(p) })
-    else setFrame({ colors: [], average: null })
+    if (!open) return;
+    startValue.current = current;
+    setRecent(readRecent());
+    let live = true;
+    if (posterUrl) void sampleFramePalette(posterUrl).then((p) => { if (live) setFrame(p); });
+    else setFrame({ colors: [], average: null });
     // The popover opens below the control, which can be at the bottom of a scrolling modal: bring it
     // fully into view (and focus the picker without letting focus() scroll it back out).
-    areaRef.current?.focus({ preventScroll: true })
-    const raf = requestAnimationFrame(() => popRef.current?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }))
-    return () => { live = false; cancelAnimationFrame(raf) }
+    areaRef.current?.focus({ preventScroll: true });
+    const raf = requestAnimationFrame(() => popRef.current?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }));
+    return () => { live = false; cancelAnimationFrame(raf); };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run on open/close only, not on every color change
-  }, [open, posterUrl])
+  }, [open, posterUrl]);
 
   // The video swatches and recents arrive after the popover opens and make it taller: keep it in view.
   useEffect(() => {
-    if (open) popRef.current?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
-  }, [open, frame.colors.length, recent.length])
+    if (open) popRef.current?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  }, [open, frame.colors.length, recent.length]);
 
   useEffect(() => {
-    if (!open) return
-    const onDown = (e: PointerEvent) => { if (rootRef.current && !rootRef.current.contains(e.target as Node)) close(false) }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); close(true) } }
-    document.addEventListener('pointerdown', onDown)
-    document.addEventListener('keydown', onKey, true)
-    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey, true) }
-  }, [open, close])
+    if (!open) return;
+    const onDown = (e: PointerEvent) => { if (rootRef.current && !rootRef.current.contains(e.target as Node)) close(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); close(true); } };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey, true);
+    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey, true); };
+  }, [open, close]);
 
-  const commit = useCallback((next: Hsv) => { setHsv(next); onChange(hsvToHex(next)) }, [onChange])
-  const setHex = useCallback((hex: string) => { const p = parseHex(hex); if (p) { setHsv(hexToHsv(p)); onChange(p) } }, [onChange])
+  const commit = useCallback((next: Hsv) => { setHsv(next); onChange(hsvToHex(next)); }, [onChange]);
+  const setHex = useCallback((hex: string) => { const p = parseHex(hex); if (p) { setHsv(hexToHsv(p)); onChange(p); } }, [onChange]);
 
   const pickFromPointer = (e: React.PointerEvent<HTMLDivElement>) => {
-    const r = areaRef.current?.getBoundingClientRect()
-    if (!r || r.width === 0 || r.height === 0) return
-    const s = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width))
-    const v = Math.min(1, Math.max(0, 1 - (e.clientY - r.top) / r.height))
-    commit({ ...hsv, s, v })
-  }
+    const r = areaRef.current?.getBoundingClientRect();
+    if (!r || r.width === 0 || r.height === 0) return;
+    const s = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    const v = Math.min(1, Math.max(0, 1 - (e.clientY - r.top) / r.height));
+    commit({ ...hsv, s, v });
+  };
   const onAreaKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const step = e.shiftKey ? 0.1 : 0.01
+    const step = e.shiftKey ? 0.1 : 0.01;
     const d = e.key === 'ArrowLeft' ? { s: -step, v: 0 } : e.key === 'ArrowRight' ? { s: step, v: 0 }
-      : e.key === 'ArrowUp' ? { s: 0, v: step } : e.key === 'ArrowDown' ? { s: 0, v: -step } : null
-    if (!d) return
-    e.preventDefault()
-    commit({ ...hsv, s: Math.min(1, Math.max(0, hsv.s + d.s)), v: Math.min(1, Math.max(0, hsv.v + d.v)) })
-  }
+      : e.key === 'ArrowUp' ? { s: 0, v: step } : e.key === 'ArrowDown' ? { s: 0, v: -step } : null;
+    if (!d) return;
+    e.preventDefault();
+    commit({ ...hsv, s: Math.min(1, Math.max(0, hsv.s + d.s)), v: Math.min(1, Math.max(0, hsv.v + d.v)) });
+  };
 
-  const eyeDropper = typeof window !== 'undefined' ? (window as unknown as { EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> } }).EyeDropper : undefined
+  const eyeDropper = typeof window !== 'undefined' ? (window as unknown as { EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> } }).EyeDropper : undefined;
   const pickWithEyeDropper = async () => {
-    try { const r = await new eyeDropper!().open(); setHex(r.sRGBHex) } catch { /* cancelled */ }
-  }
+    try { const r = await new eyeDropper!().open(); setHex(r.sRGBHex); } catch { /* cancelled */ }
+  };
 
-  const backdrop = frame.average
-  const ratio = backdrop ? contrastBetween(current, backdrop) : null
-  const grade = ratio == null ? null : gradeContrast(ratio)
+  const backdrop = frame.average;
+  const ratio = backdrop ? contrastBetween(current, backdrop) : null;
+  const grade = ratio == null ? null : gradeContrast(ratio);
   const Swatches = ({ title, colors }: { title: string; colors: string[] }) => colors.length === 0 ? null : (
     <div>
       <div style={{ ...labelStyle, marginBottom: 4 }}>{title}</div>
@@ -176,7 +176,7 @@ export function ColorField({ id, label, ariaLabel, value, onChange, brand, poste
         ))}
       </div>
     </div>
-  )
+  );
 
   return (
     <div ref={rootRef} style={{ position: 'relative' }}>
@@ -235,8 +235,8 @@ export function ColorField({ id, label, ariaLabel, value, onChange, brand, poste
             aria-valuenow={Math.round(hsv.s * 100)}
             aria-valuetext={`Saturation ${Math.round(hsv.s * 100)}%, brightness ${Math.round(hsv.v * 100)}%`}
             data-testid="color-field-area"
-            onPointerDown={(e) => { (e.currentTarget as HTMLDivElement).setPointerCapture?.(e.pointerId); pickFromPointer(e) }}
-            onPointerMove={(e) => { if (e.buttons === 1) pickFromPointer(e) }}
+            onPointerDown={(e) => { (e.currentTarget as HTMLDivElement).setPointerCapture?.(e.pointerId); pickFromPointer(e); }}
+            onPointerMove={(e) => { if (e.buttons === 1) pickFromPointer(e); }}
             onKeyDown={onAreaKey}
             style={{
               position: 'relative', height: 120, borderRadius: 8, cursor: 'crosshair', touchAction: 'none',
@@ -269,7 +269,7 @@ export function ColorField({ id, label, ariaLabel, value, onChange, brand, poste
               aria-label="Hex color"
               data-testid="color-field-hex"
               value={hexText}
-              onChange={(e) => { setHexText(e.target.value); const p = parseHex(e.target.value); if (p) setHex(p) }}
+              onChange={(e) => { setHexText(e.target.value); const p = parseHex(e.target.value); if (p) setHex(p); }}
               onBlur={() => setHexText(current)}
               spellCheck={false}
               maxLength={7}
@@ -301,5 +301,5 @@ export function ColorField({ id, label, ariaLabel, value, onChange, brand, poste
         </div>
       )}
     </div>
-  )
+  );
 }

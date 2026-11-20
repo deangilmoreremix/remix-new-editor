@@ -16,20 +16,20 @@
  * conventional green/red so the chart still reads as up/down.
  */
 
-import React from 'react'
-import { PixelCandlestickOhlc } from '../../_upstream/pixel-candlestick-ohlc/PixelCandlestickOhlc'
-import { DesignStage, pickColor, slotText, type DesignAdapterProps } from '../shared'
-import { bitmapSafe, ensureDark, ensureLight, hex6, mix } from './shared'
+import React from 'react';
+import { PixelCandlestickOhlc } from '../../_upstream/pixel-candlestick-ohlc/PixelCandlestickOhlc';
+import { DesignStage, pickColor, slotText, type DesignAdapterProps } from '../shared';
+import { bitmapSafe, ensureDark, ensureLight, hex6, mix } from './shared';
 
-export const CANDLESTICK_TICKER_MAX = 16
+export const CANDLESTICK_TICKER_MAX = 16;
 
 export const PixelCandlestickOhlcDesign: React.FC<DesignAdapterProps> = (props) => {
-  const primary = hex6(props.colors?.primary, '#29d3f2')
-  const accent = ensureLight(hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#28c98b'), 0.35)
-  const background = ensureDark(mix(primary, '#000000', 0.88), 0.025)
-  const grid = ensureLight(mix(primary, '#000000', 0.45), 0.06)
+  const primary = hex6(props.colors?.primary, '#29d3f2');
+  const accent = ensureLight(hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#28c98b'), 0.35);
+  const background = ensureDark(mix(primary, '#000000', 0.88), 0.025);
+  const grid = ensureLight(mix(primary, '#000000', 0.45), 0.06);
 
-  const ticker = bitmapSafe(slotText(props, 'businessName', ['headline']), CANDLESTICK_TICKER_MAX)
+  const ticker = bitmapSafe(slotText(props, 'businessName', ['headline']), CANDLESTICK_TICKER_MAX);
 
   return (
     <DesignStage designId="pixel-candlestick-ohlc" props={props}>
@@ -45,7 +45,7 @@ export const PixelCandlestickOhlcDesign: React.FC<DesignAdapterProps> = (props) 
         ticker={ticker}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default PixelCandlestickOhlcDesign
+export default PixelCandlestickOhlcDesign;

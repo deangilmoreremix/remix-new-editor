@@ -18,10 +18,10 @@
  * canvas. The adapter truncates it to what fits on one line.
  */
 
-import React from 'react'
-import { AnimatedText } from '../_upstream/rve-animated-text/AnimatedText'
-import { pickColor, slotText, truncateText, type DesignAdapterProps } from './shared'
-import { RveDesignStage, rveFontSizePx, rveMaxChars } from './rveSharedDesign'
+import React from 'react';
+import { AnimatedText } from '../_upstream/rve-animated-text/AnimatedText';
+import { pickColor, slotText, truncateText, type DesignAdapterProps } from './shared';
+import { RveDesignStage, rveFontSizePx, rveMaxChars } from './rveSharedDesign';
 
 /**
  * The headline's size, as a fraction of the composition's short edge.
@@ -30,7 +30,7 @@ import { RveDesignStage, rveFontSizePx, rveMaxChars } from './rveSharedDesign'
  * font size) — `rem` is not canvas-relative, so the adapter passes a px
  * value instead (contract addition C9).
  */
-const FONT_SIZE_RATIO = 0.09
+const FONT_SIZE_RATIO = 0.09;
 
 /**
  * The hard character ceiling.
@@ -39,16 +39,16 @@ const FONT_SIZE_RATIO = 0.09
  * headline is still animating after two seconds. The real limit is the
  * composition width — `rveMaxChars` applies it.
  */
-const MAX_HEADLINE_LENGTH = 24
+const MAX_HEADLINE_LENGTH = 24;
 
 export const RveAnimatedTextDesign: React.FC<DesignAdapterProps> = (props) => {
-  const fontSizePx = rveFontSizePx(props, FONT_SIZE_RATIO)
-  const maxChars = rveMaxChars(props, fontSizePx, MAX_HEADLINE_LENGTH)
+  const fontSizePx = rveFontSizePx(props, FONT_SIZE_RATIO);
+  const maxChars = rveMaxChars(props, fontSizePx, MAX_HEADLINE_LENGTH);
 
   const text = truncateText(
     slotText(props, 'headline', ['offer', 'businessName']),
     maxChars,
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-animated-text" props={props}>
@@ -59,7 +59,7 @@ export const RveAnimatedTextDesign: React.FC<DesignAdapterProps> = (props) => {
         fontWeight="bold"
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveAnimatedTextDesign
+export default RveAnimatedTextDesign;

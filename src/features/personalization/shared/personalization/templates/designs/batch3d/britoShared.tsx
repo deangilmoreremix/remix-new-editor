@@ -26,28 +26,28 @@
  * registry entries in `./entries.ts`.
  */
 
-import React from 'react'
-import { AbsoluteFill } from 'remotion'
-import type { RemotionDesignComponentProps, RemotionDesignTemplate } from '../../types'
-import { DESIGN_FONT_STACK, useDesignFonts } from '../fonts'
-import { mix, withAlpha } from '../../_upstream/brito-lib/colors'
+import React from 'react';
+import { AbsoluteFill } from 'remotion';
+import type { RemotionDesignComponentProps, RemotionDesignTemplate } from '../../types';
+import { DESIGN_FONT_STACK, useDesignFonts } from '../fonts';
+import { mix, withAlpha } from '../../_upstream/brito-lib/colors';
 
 /* -------------------------------------------------------------------------- */
 /* Attribution                                                                 */
 /* -------------------------------------------------------------------------- */
 
 /** The upstream repository the seven templates were copied from. */
-export const BRITO_REPOSITORY = 'remotion-video-templates'
+export const BRITO_REPOSITORY = 'remotion-video-templates';
 
 /** The upstream repository's URL. */
 export const BRITO_REPOSITORY_URL =
-  'https://github.com/deangilmoreremix/remotion-video-templates'
+  'https://github.com/deangilmoreremix/remotion-video-templates';
 
 /** The commit the copies were taken from. */
-export const BRITO_UPSTREAM_COMMIT = '90149464d51a43fcb90e15491bf0d681c1b0fa49'
+export const BRITO_UPSTREAM_COMMIT = '90149464d51a43fcb90e15491bf0d681c1b0fa49';
 
 /** The upstream's licence (its root `LICENSE` file is the MIT licence). */
-export const BRITO_LICENSE = 'MIT'
+export const BRITO_LICENSE = 'MIT';
 
 /**
  * The credit line every repo-3 design carries in `source.attribution`.
@@ -57,7 +57,7 @@ export const BRITO_LICENSE = 'MIT'
  * aggregates them.
  */
 export const BRITO_ATTRIBUTION =
-  '© 2026 Alejandro Brito — Remotion templates, MIT License. https://github.com/deangilmoreremix/remotion-video-templates'
+  '© 2026 Alejandro Brito — Remotion templates, MIT License. https://github.com/deangilmoreremix/remotion-video-templates';
 
 /**
  * The upstream's `LICENSE` file, reproduced verbatim (including its
@@ -84,7 +84,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.`
+SOFTWARE.`;
 
 /** The paths of the templates inside the upstream repository. */
 export type BritoSourcePath =
@@ -104,7 +104,7 @@ export function britoSource(sourcePath: BritoSourcePath): RemotionDesignTemplate
     sourcePath,
     license: BRITO_LICENSE,
     attribution: BRITO_ATTRIBUTION,
-  }
+  };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -125,18 +125,18 @@ export function britoFitChars(
   max: number,
   perCharEm = 0.6,
 ): number {
-  const perChar = Math.max(1, fontSizePx * perCharEm)
-  return Math.max(4, Math.min(max, Math.floor(availablePx / perChar)))
+  const perChar = Math.max(1, fontSizePx * perCharEm);
+  return Math.max(4, Math.min(max, Math.floor(availablePx / perChar)));
 }
 
 /** Up to two initials of a business name, upper-cased ("Acme Roofing" → "AR"). */
 export function britoMonogram(name: string): string {
-  const words = (name || '').trim().split(/\s+/).filter(Boolean)
+  const words = (name || '').trim().split(/\s+/).filter(Boolean);
   return words
     .slice(0, 2)
     .map((word) => Array.from(word)[0] ?? '')
     .join('')
-    .toUpperCase()
+    .toUpperCase();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -160,7 +160,7 @@ export function BritoLogoPlaceholder({
   accent: string
   name: string
 }): React.ReactElement {
-  const initials = britoMonogram(name)
+  const initials = britoMonogram(name);
   return (
     <div
       data-brito-placeholder="logo"
@@ -182,7 +182,7 @@ export function BritoLogoPlaceholder({
     >
       {initials}
     </div>
-  )
+  );
 }
 
 /**
@@ -198,7 +198,7 @@ export function BritoScreenshotPlaceholder({
 }): React.ReactElement {
   const bar = (width: string, color: string, height = 18): React.ReactElement => (
     <div style={{ width, height, borderRadius: height / 2, backgroundColor: color }} />
-  )
+  );
   return (
     <div
       data-brito-placeholder="screenshot"
@@ -270,7 +270,7 @@ export function BritoScreenshotPlaceholder({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -279,7 +279,7 @@ export function BritoScreenshotPlaceholder({
 
 /** The selector of the upstream's root element inside a brito design stage. */
 export function britoRootSelector(designId: string): string {
-  return `[data-remotion-design="${designId}"] > [data-remotion-design-canvas] > div:first-child`
+  return `[data-remotion-design="${designId}"] > [data-remotion-design-canvas] > div:first-child`;
 }
 
 /**
@@ -291,7 +291,7 @@ export function britoRootSelector(designId: string): string {
  * matches the root of this one design.
  */
 export function britoRootBackgroundCss(designId: string, background: string): string {
-  return `${britoRootSelector(designId)} { background: ${background} !important; }`
+  return `${britoRootSelector(designId)} { background: ${background} !important; }`;
 }
 
 /** The brand-tinted light canvas the data-visualisation designs sit on. */
@@ -300,7 +300,7 @@ export function britoChartBackground(primary: string, accent: string): string {
     accent,
     '#ffffff',
     0.86,
-  )} 100%)`
+  )} 100%)`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -334,11 +334,11 @@ export function BritoDesignStage({
   overlay: boolean
   css?: string
 }): React.ReactElement {
-  useDesignFonts()
+  useDesignFonts();
 
-  const scaleX = props.box.widthPx / Math.max(1, props.width)
-  const scaleY = props.box.heightPx / Math.max(1, props.height)
-  const isIdentity = Math.abs(scaleX - 1) < 0.0001 && Math.abs(scaleY - 1) < 0.0001
+  const scaleX = props.box.widthPx / Math.max(1, props.width);
+  const scaleY = props.box.heightPx / Math.max(1, props.height);
+  const isIdentity = Math.abs(scaleX - 1) < 0.0001 && Math.abs(scaleY - 1) < 0.0001;
 
   return (
     <AbsoluteFill
@@ -372,5 +372,5 @@ export function BritoDesignStage({
         {children}
       </AbsoluteFill>
     </AbsoluteFill>
-  )
+  );
 }

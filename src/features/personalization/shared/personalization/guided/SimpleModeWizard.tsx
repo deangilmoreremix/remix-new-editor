@@ -1,21 +1,21 @@
-'use client'
+'use client';
 
-import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { useState } from 'react'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { StepFindBusiness } from './StepFindBusiness'
-import { StepChooseVideo } from './StepChooseVideo'
-import { StepPersonalize } from './StepPersonalize'
-import { StepPreviewApprove } from './StepPreviewApprove'
-import { C, badgeStyle, primaryButtonStyle, secondaryButtonStyle } from './tokens'
-import type { DiscoveredAsset } from '../types'
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { StepFindBusiness } from './StepFindBusiness';
+import { StepChooseVideo } from './StepChooseVideo';
+import { StepPersonalize } from './StepPersonalize';
+import { StepPreviewApprove } from './StepPreviewApprove';
+import { C, badgeStyle, primaryButtonStyle, secondaryButtonStyle } from './tokens';
+import type { DiscoveredAsset } from '../types';
 
 const STEPS = [
   { step: 1 as const, label: 'Find your business' },
   { step: 2 as const, label: 'Your video' },
   { step: 3 as const, label: 'Personalize' },
   { step: 4 as const, label: 'Preview and approve' },
-]
+];
 
 /**
  * Simple Mode — the default, customer-facing presentation of the personalization
@@ -33,7 +33,7 @@ export function SimpleModeWizard({
   /** Opens the AI image editor on a discovered asset; omitted for anonymous sessions. */
   onEditDiscoveredAsset?: (asset: DiscoveredAsset) => void
 } = {}): React.JSX.Element {
-  const ctx = useDemoPersonalize()
+  const ctx = useDemoPersonalize();
   const {
     guidedStep = 1,
     setGuidedStep,
@@ -41,25 +41,25 @@ export function SimpleModeWizard({
     source,
     previewVideo,
     previewApproved,
-  } = ctx
+  } = ctx;
 
-  const currentStep = Math.min(4, Math.max(1, guidedStep))
-  const hasBusiness = Boolean(clientForm.businessName || clientForm.name)
-  const hasVideo = Boolean(previewVideo?.url || source?.sourceMedia)
+  const currentStep = Math.min(4, Math.max(1, guidedStep));
+  const hasBusiness = Boolean(clientForm.businessName || clientForm.name);
+  const hasVideo = Boolean(previewVideo?.url || source?.sourceMedia);
 
   // The only genuinely missing data: step 1 needs a business, step 2 needs a
   // video. A layout is NEVER required — one is applied automatically.
   const stepHint = (step: number): string | null => {
-    if (step === 1 && !hasBusiness) return 'Pick or enter your business to continue.'
-    if (step === 2 && !hasVideo) return 'Choose a video to brand.'
-    return null
-  }
+    if (step === 1 && !hasBusiness) return 'Pick or enter your business to continue.';
+    if (step === 2 && !hasVideo) return 'Choose a video to brand.';
+    return null;
+  };
 
   // Kept here (not inside step 3) so an explicit layout choice survives moving
   // between the Personalize and Preview steps, whose component unmounts.
-  const [layoutChosenByUser, setLayoutChosenByUser] = useState(false)
+  const [layoutChosenByUser, setLayoutChosenByUser] = useState(false);
 
-  const stepNumber = (index: number) => STEPS[index].step
+  const stepNumber = (index: number) => STEPS[index].step;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18, padding: '22px 2px 8px' }}>
@@ -69,8 +69,8 @@ export function SimpleModeWizard({
         className="guided-step-header"
       >
         {STEPS.map((entry, index) => {
-          const active = entry.step === currentStep
-          const complete = entry.step < currentStep
+          const active = entry.step === currentStep;
+          const complete = entry.step < currentStep;
           return (
             <li key={entry.step}>
               <button
@@ -116,7 +116,7 @@ export function SimpleModeWizard({
                 </span>
               </button>
             </li>
-          )
+          );
         })}
       </ol>
 
@@ -181,5 +181,5 @@ export function SimpleModeWizard({
         {`@media (max-width: 720px) { .guided-step-header { grid-template-columns: repeat(2, minmax(0, 1fr)); } }`}
       </style>
     </div>
-  )
+  );
 }

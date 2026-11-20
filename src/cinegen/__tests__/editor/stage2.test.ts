@@ -262,10 +262,12 @@ describe('export mapping carries keyframes + modifiers (real mapping + real time
 });
 
 describe('Lottie colour / text customisation', () => {
-  const lottie = () => ({ v: '5.7.0', fr: 30, ip: 0, op: 60, w: 100, h: 100, layers: [
+  const lottie = () => ({
+ v: '5.7.0', fr: 30, ip: 0, op: 60, w: 100, h: 100, layers: [
     { ty: 4, nm: 'Badge', shapes: [{ ty: 'gr', it: [{ ty: 'fl', nm: 'Brand', c: { a: 0, k: [1, 0, 0, 1] } }, { ty: 'st', nm: 'Stroke 1', c: { a: 1, k: [{ t: 0, s: [0, 0, 1, 1] }, { t: 30, s: [0, 1, 0, 1] }] } }] }] },
     { ty: 5, nm: 'Title', t: { d: { k: [{ t: 0, s: { t: 'HELLO', s: 20 } }] } } },
-  ] });
+  ] 
+});
   it('lists colours (document order keys) and text layers; applies edits to a COPY', () => {
     const src = lottie();
     const cols = extractLottieColorLayers(src); expect(cols.map((c) => [c.key, c.color, c.named])).toEqual([['c0', '#ff0000', true], ['c1', '#0000ff', false]]);

@@ -148,4 +148,4 @@ export const EXPORT_MS_PER_FRAME: Record<string, number> = {
  "WireframeDrawOn": 320,
  "WordRelayFilmstrip": 900,
  "WordRelayGeometry": 60
-}
+};

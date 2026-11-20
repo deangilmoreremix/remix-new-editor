@@ -67,7 +67,7 @@ const RECOMMENDED_TEMPLATES: {
     prompt: 'High-CTR thumbnail, before/after composition, arrow graphics, bold result numbers, contrasting color blocks',
     reason: (c) => c.visualIdea ? `Builds on your visual idea` : 'Designed for high click-through rate',
   },
-]
+];
 
 export default function RecommendedThumbnails({ onSelectTemplate, selectedTemplateId, copy, assetType }: RecommendedThumbnailsProps) {
   return (
@@ -86,7 +86,7 @@ export default function RecommendedThumbnails({ onSelectTemplate, selectedTempla
         aria-label="Recommended thumbnail templates"
       >
         {RECOMMENDED_TEMPLATES.map(template => {
-          const isSelected = selectedTemplateId === template.id
+          const isSelected = selectedTemplateId === template.id;
           return (
             <button
               key={template.id}
@@ -114,9 +114,9 @@ export default function RecommendedThumbnails({ onSelectTemplate, selectedTempla
                 <div className="h-0.5 rounded-full bg-[#d9ff00]/60" />
               )}
             </button>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

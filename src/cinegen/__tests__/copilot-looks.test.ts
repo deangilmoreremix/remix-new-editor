@@ -56,12 +56,14 @@ describe('edit_timeline look ops', () => {
 describe('assistant action blocks', () => {
   const block = (json: unknown) => '```cinegen-skill-action\n' + JSON.stringify(json) + '\n```';
   it('parses look ops and analysis steps from the model reply', () => {
-    const a = parseSkillActionFromContent(block({ label: 'Teal look', steps: [
+    const a = parseSkillActionFromContent(block({
+ label: 'Teal look', steps: [
       { type: 'edit_timeline', ops: [{ op: 'set_look', clipId: 'c1', lut: 'Teal & Orange' }, { op: 'set_zoom', clipId: 'c1', shape: 'Slow Push' }, { op: 'add_transition', fromClipId: 'c1', type: 'Page Curl' }] },
       { type: 'analyze_clip', task: 'captions', clipId: 'c1', template: 'TikTok Pop', translateTo: 'Spanish' },
       { type: 'analyze_clip', task: 'split_scenes', clipId: 'c1' },
       { type: 'analyze_clip', task: 'bogus', clipId: 'c1' },
-    ] }))!;
+    ] 
+}))!;
     expect(a.steps).toHaveLength(3);
     expect(a.steps[0]).toMatchObject({ type: 'edit_timeline', ops: [{ op: 'set_look' }, { op: 'set_zoom' }, { op: 'add_transition' }] });
     expect(a.steps[1]).toMatchObject({ type: 'analyze_clip', task: 'captions', translateTo: 'Spanish' });

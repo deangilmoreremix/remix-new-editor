@@ -7,11 +7,11 @@
  * supplied.
  */
 
-export { AnimatedHeadlineDesign } from './AnimatedHeadlineDesign'
-export { LogoRevealDesign } from './LogoRevealDesign'
-export { LowerThirdDesign } from './LowerThirdDesign'
-export { PromoCtaDesign } from './PromoCtaDesign'
-export { VisualEffectDesign } from './VisualEffectDesign'
+export { AnimatedHeadlineDesign } from './AnimatedHeadlineDesign';
+export { LogoRevealDesign } from './LogoRevealDesign';
+export { LowerThirdDesign } from './LowerThirdDesign';
+export { PromoCtaDesign } from './PromoCtaDesign';
+export { VisualEffectDesign } from './VisualEffectDesign';
 
 export {
   DesignStage,
@@ -21,5 +21,5 @@ export {
   slotText,
   slotValue,
   truncateText,
-} from './shared'
-export type { DesignAdapterProps } from './shared'
+} from './shared';
+export type { DesignAdapterProps } from './shared';

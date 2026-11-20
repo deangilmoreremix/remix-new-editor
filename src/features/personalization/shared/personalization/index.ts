@@ -2,8 +2,8 @@
  * Convenience re-exports for the personalization system.
  */
 
-export { DemoPersonalizeProvider, useDemoPersonalize } from './DemoPersonalizeProvider'
-export { default as PersonalizationModal } from './PersonalizationModal'
+export { DemoPersonalizeProvider, useDemoPersonalize } from './DemoPersonalizeProvider';
+export { default as PersonalizationModal } from './PersonalizationModal';
 export type {
   PersonalizationSource,
   PersonalizationSourceType,
@@ -18,5 +18,5 @@ export type {
   VideoStudioHandoff,
   PersonalizationEligibility,
   SharedMediaEntry,
-} from './types'
-export type { VideoPersonalizationMode, ImagePersonalizationMode } from './types'
+} from './types';
+export type { VideoPersonalizationMode, ImagePersonalizationMode } from './types';

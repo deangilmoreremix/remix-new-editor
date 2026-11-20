@@ -22,26 +22,26 @@
  *  - the muted sub-stat (upstream "This Month") is the business name.
  */
 
-import React from 'react'
-import { StatCounter } from '../../_upstream/rve-stat-counter/StatCounter'
-import { TRANSPARENT, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { FitCanvas, brandAccent, brandText, fitScale, rgba } from './shared3f'
+import React from 'react';
+import { StatCounter } from '../../_upstream/rve-stat-counter/StatCounter';
+import { TRANSPARENT, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { FitCanvas, brandAccent, brandText, fitScale, rgba } from './shared3f';
 
 /** The pinned placeholder figure. */
-export const STAT_COUNTER_PLACEHOLDER = { countTo: 1000, suffix: '+' } as const
+export const STAT_COUNTER_PLACEHOLDER = { countTo: 1000, suffix: '+' } as const;
 
 /** The upstream card: 80 px side / 60 px top padding around a 96 px figure. */
-const CARD_W = 560
-const CARD_H = 340
-const PREFERRED_SCALE = 1.5
+const CARD_W = 560;
+const CARD_H = 340;
+const PREFERRED_SCALE = 1.5;
 
 export const RveStatCounterDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE)
-  const text = brandText(props)
-  const label = truncateText(slotText(props, 'offer', ['headline', 'businessName']), 30)
-  const highlight = truncateText(slotValue(props, 'cta'), 18)
-  const caption = truncateText(slotValue(props, 'businessName'), 22)
+  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE);
+  const text = brandText(props);
+  const label = truncateText(slotText(props, 'offer', ['headline', 'businessName']), 30);
+  const highlight = truncateText(slotValue(props, 'cta'), 18);
+  const caption = truncateText(slotValue(props, 'businessName'), 22);
 
   return (
     <RveDesignStage designId="rve-stat-counter" props={props}>
@@ -63,7 +63,7 @@ export const RveStatCounterDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </FitCanvas>
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveStatCounterDesign
+export default RveStatCounterDesign;

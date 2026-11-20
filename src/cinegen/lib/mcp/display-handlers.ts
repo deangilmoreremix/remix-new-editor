@@ -35,15 +35,19 @@ const positive = (value: unknown) => typeof value === 'number' && Number.isFinit
 const record = (value: unknown): Record<string, unknown> => value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 function mediaFields(value: unknown, thumbnail?: unknown) {
   const url = displayUrl(value), thumb = previewUrl(thumbnail);
-  return { url, previewUrl: previewUrl(url), thumbnailUrl: thumb,
-    ...(!url && value ? { unavailableReason: 'This media is only available in Timeline Studio Editor. Sync or relink it to view it in chat.' } : {}) };
+  return {
+ url, previewUrl: previewUrl(url), thumbnailUrl: thumb,
+    ...(!url && value ? { unavailableReason: 'This media is only available in Timeline Studio Editor. Sync or relink it to view it in chat.' } : {}) 
+};
 }
 function dimensions(asset?: Asset, config: Record<string, unknown> = {}) {
   const width = positive(asset?.width ?? config.width), height = positive(asset?.height ?? config.height);
   const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
   const divisor = width && height ? gcd(Math.round(width), Math.round(height)) : 1;
-  return { width, height, duration: positive(asset?.duration ?? Number(config.duration ?? config.durationSec)),
-    resolution: text(config.resolution), aspectRatio: text(config.aspect_ratio || config.aspectRatio) || (width && height ? `${Math.round(width) / divisor}:${Math.round(height) / divisor}` : undefined) };
+  return {
+ width, height, duration: positive(asset?.duration ?? Number(config.duration ?? config.durationSec)),
+    resolution: text(config.resolution), aspectRatio: text(config.aspect_ratio || config.aspectRatio) || (width && height ? `${Math.round(width) / divisor}:${Math.round(height) / divisor}` : undefined) 
+};
 }
 function spacesFor(state: McpHostState) {
   return state.spaces.length ? state.spaces.map(space => space.id === state.activeSpaceId ? { ...space, nodes: state.nodes, edges: state.edges } : space)
@@ -51,11 +55,13 @@ function spacesFor(state: McpHostState) {
 }
 function page(title: string, mode: DisplayPage['mode'], items: DisplayItem[], name: string, args: Record<string, unknown>, state: McpHostState): DisplayPage {
   const limit = mode === 'job' ? 1 : Number(args.limit ?? 9), offset = mode === 'job' ? 0 : Number(args.offset ?? 0);
-  return { title, mode, items: items.slice(offset, offset + limit), total: items.length, offset, limit,
+  return {
+ title, mode, items: items.slice(offset, offset + limit), total: items.length, offset, limit,
     hasMore: offset + limit < items.length, refresh: { name, arguments: args },
     spaces: spacesFor(state).filter(s => s.id).map(({ id, name }) => ({ id, name })), activeSpaceId: state.activeSpaceId,
     folders: (state.mediaFolders ?? []).map(({ id, name }) => ({ id, name })),
-    ...(mode === 'batch' ? { allFound: items.every(item => item.status !== 'not_found') } : {}) };
+    ...(mode === 'batch' ? { allFound: items.every(item => item.status !== 'not_found') } : {}) 
+};
 }
 function assetFor(state: McpHostState, url: unknown) {
   return state.assets.find(asset => asset.url === url || asset.sourceUrl === url || asset.fileRef === url);
@@ -92,7 +98,8 @@ function generationItems(state: McpHostState, args: Record<string, unknown>): Di
         const historical = args.allTakes && generationIndex !== undefined && output.url !== node.data.result?.url;
         const savedReferences = snapshot.version === 1 && Array.isArray(snapshot.references)
           && (snapshot.outputUrl ? snapshot.outputUrl === output.url : !node.data.generations?.length);
-        items.push({ id: output.id, nodeId: node.id, assetId: asset?.id, generationIndex,
+        items.push({
+ id: output.id, nodeId: node.id, assetId: asset?.id, generationIndex,
           title: output.name || node.data.label || model?.name || 'Generation', kind: output.kind, status: historical ? 'complete' : status,
           ...mediaFields(output.url, asset?.thumbnailUrl || config.thumbnailUrl || config.posterUrl),
           ...dimensions(asset, config), prompt: (model && resolveStudioRecipe(node, model, space.nodes, space.edges, state.assets).prompt) || output.prompt || canvasPrompt(node), model: model?.name,
@@ -100,7 +107,8 @@ function generationItems(state: McpHostState, args: Record<string, unknown>): Di
           source: node.data.type === 'filePicker' ? 'Canvas upload' : 'Generation',
           createdAt: text(config.__studioCreatedAt) || asset?.createdAt,
           startedAt: historical ? undefined : positive(node.data.result?.progressStartedAt),
-          ...(!historical && node.data.result?.error ? { error: node.data.result.error } : {}) });
+          ...(!historical && node.data.result?.error ? { error: node.data.result.error } : {}) 
+});
       }
     }
   }
@@ -117,12 +125,16 @@ function elementItems(state: McpHostState, args: Record<string, unknown>): Displ
         const key = `${look.id}:${image.url}`;
         if (seen.has(key)) return [];
         seen.add(key);
-        return [{ id: `${element.id}:${look.id}:${image.id}`, elementId: element.id, variationId: look.id, variationName: look.name, imageId: image.id,
+        return [{
+ id: `${element.id}:${look.id}:${image.id}`, elementId: element.id, variationId: look.id, variationName: look.name, imageId: image.id,
           title: `${element.name}${look.name ? ` · ${look.name}` : ''}`, kind: 'image' as const, status: 'complete', ...mediaFields(image.url, assetFor(state, image.url)?.thumbnailUrl),
-          prompt: element.description, createdAt: image.createdAt, source: 'Element' }];
+          prompt: element.description, createdAt: image.createdAt, source: 'Element' 
+}];
       }));
-      return images.length ? images : [{ id: element.id, elementId: element.id, title: element.name, kind: 'image' as const, status: 'pending', url: null, previewUrl: null, prompt: element.description,
-        unavailableReason: 'This Element has no reference images yet.' }];
+      return images.length ? images : [{
+ id: element.id, elementId: element.id, title: element.name, kind: 'image' as const, status: 'pending', url: null, previewUrl: null, prompt: element.description,
+        unavailableReason: 'This Element has no reference images yet.' 
+}];
     });
 }
 function elementCards(state: McpHostState, args: Record<string, unknown>): DisplayItem[] {
@@ -132,15 +144,19 @@ function elementCards(state: McpHostState, args: Record<string, unknown>): Displ
     const references = images.filter(image => image.elementId === element.id && image.variationId === look.id);
     const cover = references.find(image => image.previewUrl) ?? references.find(image => image.url);
     const ready = Boolean(cover) && references.every(image => image.url);
-    return { id: `element:${element.id}:${look.id}`, title: element.name, kind: 'image', status: ready ? 'complete' : 'pending',
+    return {
+ id: `element:${element.id}:${look.id}`, title: element.name, kind: 'image', status: ready ? 'complete' : 'pending',
       ...mediaFields(cover?.url, cover?.thumbnailUrl), prompt: element.description, elementId: element.id,
       elementCard: true, elementType: element.type, variationId: look.id, variationName: look.name, referenceCount: references.length,
       // Browsing includes every saved look; the generation reference pack stays
       // scoped to the active look above, even while previewing another image.
       galleryImages: images.filter(image => image.elementId === element.id && image.imageId),
-      references: references.map(image => ({ id: image.id, imageId: image.imageId, variationId: image.variationId, elementId: element.id,
-        title: image.title, kind: image.kind, url: image.url, previewUrl: image.previewUrl })),
-      ...(!ready ? { unavailableReason: references.length ? 'Sync this Element’s references in Timeline Studio Editor to use them in chat.' : 'This Element has no reference images yet.' } : {}) };
+      references: references.map(image => ({
+ id: image.id, imageId: image.imageId, variationId: image.variationId, elementId: element.id,
+        title: image.title, kind: image.kind, url: image.url, previewUrl: image.previewUrl 
+})),
+      ...(!ready ? { unavailableReason: references.length ? 'Sync this Element’s references in Timeline Studio Editor to use them in chat.' : 'This Element has no reference images yet.' } : {}) 
+};
   });
 }
 function libraryItems(state: McpHostState, args: Record<string, unknown>): DisplayItem[] {
@@ -162,24 +178,30 @@ function libraryItems(state: McpHostState, args: Record<string, unknown>): Displ
       .map(url => byUrl.get(`${asset.type}:${displayUrl(url)}`)).find(Boolean)
       || (sourceNodeId ? outputs.find(output => output.nodeId === sourceNodeId && output.kind === asset.type) : undefined);
     const hasSnapshot = saved.version === 1 && Array.isArray(saved.references);
-    return { id: `asset:${asset.id}`, assetId: asset.id, title: asset.name, kind: asset.type,
+    return {
+ id: `asset:${asset.id}`, assetId: asset.id, title: asset.name, kind: asset.type,
       status: asset.status === 'processing' ? 'pending' : 'complete', ...mediaFields(displayUrl(asset.url) || asset.sourceUrl || asset.url, asset.thumbnailUrl),
-      ...dimensions(asset, { width: generation?.width, height: generation?.height, duration: generation?.duration,
-        resolution: text(saved.resolution) || generation?.resolution, aspectRatio: text(saved.aspectRatio) || generation?.aspectRatio, ...metadata }),
+      ...dimensions(asset, {
+ width: generation?.width, height: generation?.height, duration: generation?.duration,
+        resolution: text(saved.resolution) || generation?.resolution, aspectRatio: text(saved.aspectRatio) || generation?.aspectRatio, ...metadata 
+}),
       prompt: hasSnapshot ? text(saved.prompt) : text(metadata.prompt) || generation?.prompt || '', createdAt: asset.createdAt,
       model: text(saved.model) || text(metadata.model) || (generation?.source === 'Generation' ? generation.model : undefined),
       provider: text(saved.provider) || text(metadata.provider) || (generation?.source === 'Generation' ? generation.provider : undefined),
       nodeId: generation?.nodeId, spaceId: generation?.spaceId, spaceName: generation?.spaceName,
       generationIndex: generation?.generationIndex, references: hasSnapshot ? savedGenerationReferences(saved.references, state.assets) : generation?.references ?? [],
-      source: 'Asset library', folderId: asset.folderId, folderName: state.mediaFolders?.find(folder => folder.id === asset.folderId)?.name };
+      source: 'Asset library', folderId: asset.folderId, folderName: state.mediaFolders?.find(folder => folder.id === asset.folderId)?.name 
+};
   });
   const known = new Set(state.assets.flatMap(asset => [asset.url, asset.sourceUrl]).filter(Boolean));
   for (const space of spacesFor(state)) for (const node of space.nodes.filter(node => node.data.type === 'filePicker' && !node.data.config.__studioMedia)) {
     for (const media of canvasMedia(node, state.elements)) {
       if (known.has(media.url)) continue;
       known.add(media.url);
-      items.push({ id: media.id, nodeId: node.id, title: media.name, kind: media.kind, status: 'complete', ...mediaFields(media.url, node.data.config.thumbnailUrl),
-        ...dimensions(undefined, node.data.config), prompt: media.prompt, createdAt: text(node.data.config.__studioCreatedAt), spaceId: space.id, spaceName: space.name, source: 'Canvas upload' });
+      items.push({
+ id: media.id, nodeId: node.id, title: media.name, kind: media.kind, status: 'complete', ...mediaFields(media.url, node.data.config.thumbnailUrl),
+        ...dimensions(undefined, node.data.config), prompt: media.prompt, createdAt: text(node.data.config.__studioCreatedAt), spaceId: space.id, spaceName: space.name, source: 'Canvas upload' 
+});
     }
   }
   return items.filter(item => (!args.kind || item.kind === args.kind) && (!args.folderId || item.folderId === args.folderId)
@@ -193,9 +215,11 @@ export function batchItems(state: McpHostState, jobs: Record<string, unknown>[])
   return jobs.map((job, index) => {
     const item = typeof job.nodeId === 'string' ? (job.generationIndex === undefined ? current : candidates).find(item => item.nodeId === job.nodeId && (job.generationIndex === undefined || item.generationIndex === job.generationIndex)) : undefined;
     return item ? { ...item, id: `batch:${index}:${item.id}`, batchIndex: index + 1, requestId: text(job.requestId) || undefined }
-      : { id: `batch:${index}`, batchIndex: index + 1, nodeId: text(job.nodeId) || undefined, requestId: text(job.requestId) || undefined,
+      : {
+ id: `batch:${index}`, batchIndex: index + 1, nodeId: text(job.nodeId) || undefined, requestId: text(job.requestId) || undefined,
         title: `Result ${index + 1}`, kind: 'image', status: 'not_found', url: null, previewUrl: null, prompt: '',
-        error: job.requestId ? 'Durable request lookup requires the cloud MCP server.' : 'This node or take was not found in this project.' };
+        error: job.requestId ? 'Durable request lookup requires the cloud MCP server.' : 'This node or take was not found in this project.' 
+};
   });
 }
 export function createDisplayHandlers(host: McpHost): Record<string, McpToolHandler> {
@@ -225,11 +249,17 @@ export function createDisplayHandlers(host: McpHost): Record<string, McpToolHand
           continue;
         }
         const id = generateId(); nodeIds.push(id);
-        nodes = [...nodes, { id, type: 'filePicker', position: { x: 80, y: 80 }, data: { type: 'filePicker', label: item.title,
-          config: { fileUrl: item.url, fileType: item.kind, fileName: item.title, __studioGenerated: true, __studioMedia: true,
+        nodes = [...nodes, {
+ id, type: 'filePicker', position: { x: 80, y: 80 }, data: {
+ type: 'filePicker', label: item.title,
+          config: {
+ fileUrl: item.url, fileType: item.kind, fileName: item.title, __studioGenerated: true, __studioMedia: true,
             __studioCreatedAt: new Date().toISOString(), __studioOutputType: item.kind, __studioPrompt: item.prompt,
-            __studioSourceItemId: item.id, __studioSourceNodeId: item.nodeId, __studioSourceUrl: item.url },
-          result: { url: item.url, status: 'complete' } } }];
+            __studioSourceItemId: item.id, __studioSourceNodeId: item.nodeId, __studioSourceUrl: item.url 
+},
+          result: { url: item.url, status: 'complete' } 
+} 
+}];
       }
       if (nodes !== destination.nodes) {
         if (destination.id !== state.activeSpaceId) host.dispatch({ type: 'SET_ACTIVE_SPACE', spaceId: destination.id });
@@ -260,14 +290,16 @@ export function createDisplayHandlers(host: McpHost): Record<string, McpToolHand
 /** Durable status is authoritative; this never calls the save-retry endpoint. */
 export function displayJobSnapshot(job: Record<string, unknown>, existing?: DisplayPage): DisplayPage {
   const base = existing?.items[0];
-  const item: DisplayItem = { id: text(job.nodeId) || text(job.requestId), title: base?.title || text(job.title) || text(job.model) || 'Generation', kind: base?.kind || (job.kind === 'video' ? 'video' : 'image'),
+  const item: DisplayItem = {
+ id: text(job.nodeId) || text(job.requestId), title: base?.title || text(job.title) || text(job.model) || 'Generation', kind: base?.kind || (job.kind === 'video' ? 'video' : 'image'),
     prompt: text(job.prompt) || base?.prompt || '', model: text(job.model) || base?.model,
     references: base?.references?.length ? base.references : savedGenerationReferences(job.references, []),
     resolution: text(job.resolution) || base?.resolution, aspectRatio: text(job.aspectRatio) || base?.aspectRatio,
     ...base, nodeId: text(job.nodeId), requestId: text(job.requestId),
     status: text(job.status), ...mediaFields(job.url, job.url ? base?.thumbnailUrl : undefined), createdAt: text(job.createdAt),
     startedAt: positive(Date.parse(text(job.createdAt))) ?? base?.startedAt, provider: text(job.provider),
-    error: text(job.error) || undefined, unavailableReason: job.status === 'not_found' ? 'This job was not found.' : undefined };
+    error: text(job.error) || undefined, unavailableReason: job.status === 'not_found' ? 'This job was not found.' : undefined 
+};
   const args = { projectId: job.projectId, requestId: job.requestId };
   return { ...existing, title: item.title, mode: 'job', items: [item], total: 1, offset: 0, limit: 1, hasMore: false, refresh: { name: 'cinegen_job_display', arguments: args } };
 }

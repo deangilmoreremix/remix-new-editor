@@ -960,7 +960,8 @@ export function SpaceStudio({ onOpenInCanvas, onHideFromCanvas, transfer, onTran
     consumedTransfer.current = transfer.id;
     if (transfer.prompt !== undefined) setPrompt(transfer.prompt);
     if (transfer.attachments.length) {
-      const incoming = transfer.attachments.map(reference => ({ ...reference,
+      const incoming = transfer.attachments.map(reference => ({
+ ...reference,
         url: resolveCloudMediaReference(reference.url, state.assets as unknown as Record<string, unknown>[]),
       }));
       setAttachedRefs(current => [...current, ...incoming].filter((reference, index, all) => all.findIndex(other => other.url === reference.url) === index));
@@ -2069,18 +2070,22 @@ export function SpaceStudio({ onOpenInCanvas, onHideFromCanvas, transfer, onTran
     setControlValuesByModel(current => ({ ...current, [modelType]: { ...current[modelType], [id]: option.value } }));
   }, [controls, modelType]);
   useEffect(() => {
-    onShapeShotTarget?.({ aspect: outputAspect, ...shapeOutputSize,
+    onShapeShotTarget?.({
+ aspect: outputAspect, ...shapeOutputSize,
       modelId: modelType, models: setSendModels, selectModel: selectSetSendModel,
       outputControls: controls.filter(field => isAspectField(field) || field.id === 'resolution' || field.id === 'image_size')
-        .filter(field => field.options?.length).map(field => ({ id: field.id, label: field.label,
+        .filter(field => field.options?.length).map(field => ({
+ id: field.id, label: field.label,
           value: String(controlValue(controlValuesByModel[modelType], field)),
-          options: field.options!.map(option => ({ value: String(option.value), label: option.label })) })),
+          options: field.options!.map(option => ({ value: String(option.value), label: option.label })) 
+})),
       setOutputControl: setSendOutputControl,
       maxReferences: shapeShotReferenceBudget, viewMaxReferences: setViewReferenceCapacity,
       label: `${state.spaces.find(space => space.id === state.activeSpaceId)?.name ?? 'Space'} / ${model?.name ?? 'Studio'}`,
       unavailable: !model ? 'Choose a model first.' : model.unavailableReason || (setViewReferenceCapacity < 1
         ? 'Choose a model with a free image reference slot, or remove a reference in Studio.' : undefined),
-      attach: handleShapeShotAttach, sendToCanvas: sendShapeShotToCanvas });
+      attach: handleShapeShotAttach, sendToCanvas: sendShapeShotToCanvas 
+});
   }, [sendShapeShotToCanvas, onShapeShotTarget, outputAspect, shapeOutputSize, shapeShotReferenceBudget, handleShapeShotAttach,
     model, setViewReferenceCapacity, state.activeSpaceId, state.spaces, modelType, setSendModels, selectSetSendModel, controls, controlValuesByModel, setSendOutputControl]);
 
@@ -2148,8 +2153,10 @@ export function SpaceStudio({ onOpenInCanvas, onHideFromCanvas, transfer, onTran
           type: 'image',
           url: item.url,
           createdAt: timestamp(),
-          metadata: { generatedVia: 'studio-generation', sourceNodeId: item.id,
-            generation: captureGenerationMetadata(item.node, item.model, state, state, item.url) },
+          metadata: {
+ generatedVia: 'studio-generation', sourceNodeId: item.id,
+            generation: captureGenerationMetadata(item.node, item.model, state, state, item.url) 
+},
         };
         if (!existing) dispatch({ type: 'ADD_ASSET', asset });
       } else {
@@ -2177,8 +2184,10 @@ export function SpaceStudio({ onOpenInCanvas, onHideFromCanvas, transfer, onTran
       type: 'video',
       url: item.url,
       createdAt: timestamp(),
-      metadata: { generatedVia: 'studio-generation', sourceNodeId: item.id,
-        generation: captureGenerationMetadata(item.node, item.model, state, state, item.url) },
+      metadata: {
+ generatedVia: 'studio-generation', sourceNodeId: item.id,
+        generation: captureGenerationMetadata(item.node, item.model, state, state, item.url) 
+},
     };
     if (!existing) dispatch({ type: 'ADD_ASSET', asset });
     setVideoMode('edit');
@@ -2226,13 +2235,19 @@ export function SpaceStudio({ onOpenInCanvas, onHideFromCanvas, transfer, onTran
   }, [clipById, showNotice]);
 
   const removeClips = useCallback((ids: ReadonlySet<string>) => {
-    dispatch({ type: 'SET_NODES', nodes: state.nodes.flatMap(candidate => {
+    dispatch({
+ type: 'SET_NODES', nodes: state.nodes.flatMap(candidate => {
       if (!ids.has(candidate.id)) return [candidate];
       // Keep an import tombstone so the source board does not immediately add it again.
-      return candidate.data.config.__studioMedia ? [{ ...candidate, data: { ...candidate.data, config: {
+      return candidate.data.config.__studioMedia ? [{
+ ...candidate, data: {
+ ...candidate.data, config: {
         ...candidate.data.config, __studioHiddenFromFeed: true, __studioCanvasPlaced: false,
-      } } }] : [];
-    }) });
+      } 
+} 
+}] : [];
+    }) 
+});
     dispatch({ type: 'SET_EDGES', edges: state.edges.filter((edge) => !ids.has(edge.source) && !ids.has(edge.target)) });
     setViewerId((current) => (current && ids.has(current) ? null : current));
     setSelectedClipIds((current) => {

@@ -16,20 +16,20 @@
  * holds briefly before revealing the video at frame 150.
  */
 
-import React from 'react'
-import { PouroverDripFillGauge } from '../../_upstream/pourover-drip-fill-gauge/PouroverDripFillGauge'
-import { DesignStage, pickColor, type DesignAdapterProps } from '../shared'
-import { ensureDark, ensureLight, hex6, mix } from './shared'
+import React from 'react';
+import { PouroverDripFillGauge } from '../../_upstream/pourover-drip-fill-gauge/PouroverDripFillGauge';
+import { DesignStage, pickColor, type DesignAdapterProps } from '../shared';
+import { ensureDark, ensureLight, hex6, mix } from './shared';
 
-export const POUROVER_FILL_SPEED = 0.6
+export const POUROVER_FILL_SPEED = 0.6;
 
 export const PouroverDripFillGaugeDesign: React.FC<DesignAdapterProps> = (props) => {
-  const primary = hex6(props.colors?.primary, '#29d3f2')
-  const accent = hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#28c98b')
-  const toneBg = ensureDark(mix(primary, '#000000', 0.85), 0.03)
-  const toneDark = mix(primary, '#000000', 0.5)
-  const toneMid = ensureLight(primary, 0.18)
-  const toneLight = ensureLight(mix(accent, '#ffffff', 0.35), 0.5)
+  const primary = hex6(props.colors?.primary, '#29d3f2');
+  const accent = hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#28c98b');
+  const toneBg = ensureDark(mix(primary, '#000000', 0.85), 0.03);
+  const toneDark = mix(primary, '#000000', 0.5);
+  const toneMid = ensureLight(primary, 0.18);
+  const toneLight = ensureLight(mix(accent, '#ffffff', 0.35), 0.5);
 
   return (
     <DesignStage designId="pourover-drip-fill-gauge" props={props}>
@@ -42,7 +42,7 @@ export const PouroverDripFillGaugeDesign: React.FC<DesignAdapterProps> = (props)
         showDrips
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default PouroverDripFillGaugeDesign
+export default PouroverDripFillGaugeDesign;

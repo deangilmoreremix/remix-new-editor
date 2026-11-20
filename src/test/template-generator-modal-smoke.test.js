@@ -280,10 +280,12 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
     });
 
     it('a video with no poster shows its own first frame; a photo shows itself (never a video URL as an image)', async () => {
-      const m = openWith([], { projectMedia: [
+      const m = openWith([], {
+ projectMedia: [
         { id: 'v', type: 'video', name: 'Take 1', url: 'https://x.test/take1.mp4', duration: 5 },
         { id: 'i', type: 'image', name: 'Logo', url: 'https://x.test/logo.png' },
-      ] });
+      ] 
+});
       m.setProvider('library');
       const [vt, it2] = [...document.querySelectorAll('.video-tile[data-id]')];
       expect(vt.querySelector('video.tg-poster').getAttribute('src')).toBe('https://x.test/take1.mp4#t=0.1');
@@ -310,8 +312,10 @@ describe('TemplateGeneratorModal — the original 4-step wizard (Video, Script, 
     it('an animation tile runs the library\'s live preview after a short hover and tears it down on leave', async () => {
       let mounted = 0; let destroyed = 0;
       const card = { id: 'anim:1', kind: 'animation', source: 'animations', title: 'Camcorder HUD', badge: 'ANIMATION', category: 'Backgrounds & effects', duration: 4, poster: '/hyperframes/thumbs/camcorder-hud.jpg' };
-      const animations = { id: 'animations', label: 'Animations', filters: [['all', 'All']], search: async () => ({ items: [card], hasMore: false }), resolve: async () => ({}),
-        mountPreview: (host, it) => { mounted += 1; host.dataset.live = it.id; return () => { destroyed += 1; }; } };
+      const animations = {
+ id: 'animations', label: 'Animations', filters: [['all', 'All']], search: async () => ({ items: [card], hasMore: false }), resolve: async () => ({}),
+        mountPreview: (host, it) => { mounted += 1; host.dataset.live = it.id; return () => { destroyed += 1; }; } 
+};
       const m = openWith([], { extraSources: [animations] });
       m.setProvider('animations'); await vi.waitFor(() => expect(document.querySelector('.tg-anim')).toBeTruthy());
       const tile = document.querySelector('.tg-anim');

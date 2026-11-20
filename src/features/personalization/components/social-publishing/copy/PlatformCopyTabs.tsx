@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import React from 'react'
+import React from 'react';
 
 export interface PlatformCopyTabsProps {
   platforms: Array<{ id: string; label: string }>
@@ -17,7 +17,7 @@ export function PlatformCopyTabs({ platforms, active, onChange }: PlatformCopyTa
       aria-label="Platform copy tabs"
     >
       {platforms.map((platform) => {
-        const isActive = active === platform.id
+        const isActive = active === platform.id;
         return (
           <button
             key={platform.id}
@@ -33,8 +33,8 @@ export function PlatformCopyTabs({ platforms, active, onChange }: PlatformCopyTa
           >
             {platform.label}
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

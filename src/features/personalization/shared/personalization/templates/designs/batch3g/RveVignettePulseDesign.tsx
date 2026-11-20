@@ -11,14 +11,14 @@
  * video. The vignette is a near-black shade of the brand primary.
  */
 
-import React from 'react'
-import { VignettePulse } from '../../_upstream/rve-vignette-pulse/VignettePulse'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { brandPalette, rgbTriplet } from './batch3gShared'
+import React from 'react';
+import { VignettePulse } from '../../_upstream/rve-vignette-pulse/VignettePulse';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { brandPalette, rgbTriplet } from './batch3gShared';
 
 export const RveVignettePulseDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-vignette-pulse" props={props}>
       <VignettePulse
@@ -27,7 +27,7 @@ export const RveVignettePulseDesign: React.FC<RemotionDesignComponentProps> = (p
         vignetteRgb={rgbTriplet(palette.deep, '0, 0, 0')}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveVignettePulseDesign
+export default RveVignettePulseDesign;

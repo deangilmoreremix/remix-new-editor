@@ -51,7 +51,7 @@ const SOCIAL_DOMAINS: Record<string, SocialPlatform> = {
   'snapchat.com': 'snapchat',
   'wa.me': 'whatsapp',
   'whatsapp.com': 'whatsapp',
-}
+};
 
 /**
  * Link-in-bio pages, review sites, maps, booking and delivery marketplaces.
@@ -99,74 +99,74 @@ const DIRECTORY_DOMAINS = [
   'thumbtack.com',
   'zillow.com',
   'realtor.com',
-]
+];
 
 /** Country variants of review sites (yelp.ca, tripadvisor.co.uk, …). */
-const DIRECTORY_BRAND_LABELS = ['yelp', 'tripadvisor']
+const DIRECTORY_BRAND_LABELS = ['yelp', 'tripadvisor'];
 
 function hostOf(rawUrl: string): string | null {
-  const trimmed = (rawUrl || '').trim()
-  if (!trimmed) return null
-  const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+  const trimmed = (rawUrl || '').trim();
+  if (!trimmed) return null;
+  const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
   try {
-    const url = new URL(withScheme)
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null
-    const host = url.hostname.toLowerCase().replace(/\.$/, '')
+    const url = new URL(withScheme);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    const host = url.hostname.toLowerCase().replace(/\.$/, '');
     // A hostname must contain a dot to be a public website.
-    if (!host.includes('.')) return null
-    return host
+    if (!host.includes('.')) return null;
+    return host;
   } catch {
-    return null
+    return null;
   }
 }
 
 function matchesDomain(host: string, domain: string): boolean {
-  return host === domain || host.endsWith(`.${domain}`)
+  return host === domain || host.endsWith(`.${domain}`);
 }
 
 /** Classifies a URL as the business's own website, a social profile, or a directory listing. */
 export function classifyBusinessUrl(rawUrl: string): BusinessUrlClassification {
-  const host = hostOf(rawUrl)
-  if (!host) return { kind: 'invalid' }
+  const host = hostOf(rawUrl);
+  if (!host) return { kind: 'invalid' };
 
   for (const [domain, platform] of Object.entries(SOCIAL_DOMAINS)) {
-    if (matchesDomain(host, domain)) return { kind: 'social', platform }
+    if (matchesDomain(host, domain)) return { kind: 'social', platform };
   }
 
   for (const domain of DIRECTORY_DOMAINS) {
-    if (matchesDomain(host, domain)) return { kind: 'directory', host }
+    if (matchesDomain(host, domain)) return { kind: 'directory', host };
   }
 
   // Google Maps links (google.com/maps, maps.google.com, goo.gl/maps).
   const path = (() => {
     try {
-      return new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(rawUrl.trim()) ? rawUrl.trim() : `https://${rawUrl.trim()}`).pathname
+      return new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(rawUrl.trim()) ? rawUrl.trim() : `https://${rawUrl.trim()}`).pathname;
     } catch {
-      return ''
+      return '';
     }
-  })()
+  })();
   if (/(^|\.)google\.[a-z.]+$/.test(host) && (host.startsWith('maps.') || path.startsWith('/maps'))) {
-    return { kind: 'directory', host }
+    return { kind: 'directory', host };
   }
-  if (host === 'goo.gl' && path.startsWith('/maps')) return { kind: 'directory', host }
+  if (host === 'goo.gl' && path.startsWith('/maps')) return { kind: 'directory', host };
 
-  const labels = host.split('.')
+  const labels = host.split('.');
   if (labels.some((label) => DIRECTORY_BRAND_LABELS.includes(label))) {
-    return { kind: 'directory', host }
+    return { kind: 'directory', host };
   }
 
-  return { kind: 'website' }
+  return { kind: 'website' };
 }
 
 /** True when the URL is the business's own website (not social, not a directory). */
 export function isOwnedWebsite(rawUrl: string | undefined | null): boolean {
-  if (!rawUrl) return false
-  return classifyBusinessUrl(rawUrl).kind === 'website'
+  if (!rawUrl) return false;
+  return classifyBusinessUrl(rawUrl).kind === 'website';
 }
 
 /** Human label for a non-owned URL, used in UI hints ("That's a Facebook page"). */
 export function describeNonOwnedUrl(rawUrl: string): string | null {
-  const classification = classifyBusinessUrl(rawUrl)
+  const classification = classifyBusinessUrl(rawUrl);
   if (classification.kind === 'social') {
     const names: Record<SocialPlatform, string> = {
       facebook: 'Facebook',
@@ -179,13 +179,13 @@ export function describeNonOwnedUrl(rawUrl: string): string | null {
       pinterest: 'Pinterest',
       snapchat: 'Snapchat',
       whatsapp: 'WhatsApp',
-    }
-    return `${names[classification.platform]} page`
+    };
+    return `${names[classification.platform]} page`;
   }
   if (classification.kind === 'directory') {
-    return `${classification.host.replace(/^www\./, '')} listing`
+    return `${classification.host.replace(/^www\./, '')} listing`;
   }
-  return null
+  return null;
 }
 
 /**
@@ -193,13 +193,13 @@ export function describeNonOwnedUrl(rawUrl: string): string | null {
  * instead of the business's own website; `null` for anything else.
  */
 export function nonOwnedWebsiteMessage(url: string): string | null {
-  const label = describeNonOwnedUrl(url)
-  if (!label) return null
-  return `That's a ${label}, not the business's own website. Enter its website (for example joespizza.com) to find its brand assets.`
+  const label = describeNonOwnedUrl(url);
+  if (!label) return null;
+  return `That's a ${label}, not the business's own website. Enter its website (for example joespizza.com) to find its brand assets.`;
 }
 
 function withScheme(value: string): string {
-  return /^https?:\/\//i.test(value) ? value : `https://${value}`
+  return /^https?:\/\//i.test(value) ? value : `https://${value}`;
 }
 
 export interface WebsiteCandidates {
@@ -216,24 +216,24 @@ export interface WebsiteCandidates {
  * URLs) into the owned website, social profiles and directory listings.
  */
 export function splitWebsiteCandidates(rawValues: Array<string | undefined | null>): WebsiteCandidates {
-  const result: WebsiteCandidates = { social: {}, directories: [] }
+  const result: WebsiteCandidates = { social: {}, directories: [] };
   for (const raw of rawValues) {
-    if (!raw || typeof raw !== 'string') continue
+    if (!raw || typeof raw !== 'string') continue;
     for (const part of raw.split(';')) {
-      const value = part.trim()
-      if (!value) continue
-      const url = withScheme(value)
-      const classification = classifyBusinessUrl(url)
+      const value = part.trim();
+      if (!value) continue;
+      const url = withScheme(value);
+      const classification = classifyBusinessUrl(url);
       if (classification.kind === 'website') {
-        if (!result.website) result.website = url
+        if (!result.website) result.website = url;
       } else if (classification.kind === 'social') {
-        if (!result.social[classification.platform]) result.social[classification.platform] = url
+        if (!result.social[classification.platform]) result.social[classification.platform] = url;
       } else if (classification.kind === 'directory') {
-        result.directories.push(url)
+        result.directories.push(url);
       }
     }
   }
-  return result
+  return result;
 }
 
 const SOCIAL_PROFILE_BASE: Partial<Record<SocialPlatform, string>> = {
@@ -242,7 +242,7 @@ const SOCIAL_PROFILE_BASE: Partial<Record<SocialPlatform, string>> = {
   tiktok: 'https://www.tiktok.com/@',
   youtube: 'https://www.youtube.com/@',
   twitter: 'https://x.com/',
-}
+};
 
 /**
  * Normalizes a dedicated OSM social tag value. OSM often stores a bare handle
@@ -250,18 +250,18 @@ const SOCIAL_PROFILE_BASE: Partial<Record<SocialPlatform, string>> = {
  * nonsense URL `https://joespizza`. Bare handles become the platform URL.
  */
 export function normalizeSocialValue(platform: SocialPlatform, rawValue: string): string | undefined {
-  const value = (rawValue || '').trim().split(';')[0]?.trim()
-  if (!value) return undefined
-  if (/^https?:\/\//i.test(value)) return value
+  const value = (rawValue || '').trim().split(';')[0]?.trim();
+  if (!value) return undefined;
+  if (/^https?:\/\//i.test(value)) return value;
   // Looks like a host/path (contains a dot before any slash) → just add a scheme.
-  if (/^[^/\s]+\.[^/\s]+/.test(value) && !value.startsWith('@')) return `https://${value}`
+  if (/^[^/\s]+\.[^/\s]+/.test(value) && !value.startsWith('@')) return `https://${value}`;
   if (platform === 'whatsapp') {
     // OSM stores WhatsApp as a phone number ("+1 555 123 4567").
-    const digits = value.replace(/\D/g, '')
-    return digits.length >= 7 ? `https://wa.me/${digits}` : undefined
+    const digits = value.replace(/\D/g, '');
+    return digits.length >= 7 ? `https://wa.me/${digits}` : undefined;
   }
-  const handle = value.replace(/^@/, '')
-  if (!/^[A-Za-z0-9._-]+$/.test(handle)) return undefined
-  const base = SOCIAL_PROFILE_BASE[platform]
-  return base ? `${base}${handle}` : undefined
+  const handle = value.replace(/^@/, '');
+  if (!/^[A-Za-z0-9._-]+$/.test(handle)) return undefined;
+  const base = SOCIAL_PROFILE_BASE[platform];
+  return base ? `${base}${handle}` : undefined;
 }

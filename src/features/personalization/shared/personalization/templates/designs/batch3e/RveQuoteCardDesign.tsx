@@ -19,11 +19,11 @@
  * roughly four lines.
  */
 
-import React from 'react'
-import { QuoteCard } from '../../_upstream/rve-quote-card/QuoteCard'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { QuoteCard } from '../../_upstream/rve-quote-card/QuoteCard';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandPrimary,
   brandSceneColor,
@@ -36,27 +36,27 @@ import {
   slotText,
   truncateText,
   withAlpha,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_QUOTE_CARD_ID = 'rve-quote-card'
+export const RVE_QUOTE_CARD_ID = 'rve-quote-card';
 
-const ZOOM = 1.8
+const ZOOM = 1.8;
 
 export const RveQuoteCardDesign: React.FC<DesignAdapterProps> = (props) => {
-  const rem = remUnit(props, ZOOM)
-  const unit = rem / 16
-  const quotePx = 1.8 * rem
-  const attributionPx = 1.1 * rem
-  const column = Math.min(700 * unit, props.width * 0.86)
+  const rem = remUnit(props, ZOOM);
+  const unit = rem / 16;
+  const quotePx = 1.8 * rem;
+  const attributionPx = 1.1 * rem;
+  const column = Math.min(700 * unit, props.width * 0.86);
 
   const quote = truncateText(
     slotText(props, 'headline', ['offer', 'businessName']),
     fitChars(column, quotePx, 4, 160),
-  )
-  const name = truncateText(firstSlot(props, ['businessName']), fitChars(column, attributionPx, 1, 48))
-  const attribution = name ? `— ${name}` : ''
+  );
+  const name = truncateText(firstSlot(props, ['businessName']), fitChars(column, attributionPx, 1, 48));
+  const attribution = name ? `— ${name}` : '';
 
-  const text = brandText(props)
+  const text = brandText(props);
 
   return (
     <RveDesignStage designId={RVE_QUOTE_CARD_ID} props={props}>
@@ -79,7 +79,7 @@ export const RveQuoteCardDesign: React.FC<DesignAdapterProps> = (props) => {
         fontFamily={DESIGN_FONT_STACK}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveQuoteCardDesign
+export default RveQuoteCardDesign;

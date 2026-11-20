@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
-import { Plus, Upload, Search, Video, Image, Music, FileText } from 'lucide-react'
-import { TooltipWrapper } from './TooltipWrapper'
-import type { Asset } from '../../lib/timeline-editor/types'
+import React, { useState } from 'react';
+import { Plus, Upload, Search, Video, Image, Music, FileText } from 'lucide-react';
+import { TooltipWrapper } from './TooltipWrapper';
+import type { Asset } from '../../lib/timeline-editor/types';
 
 interface AssetsPanelProps {
   assets: Asset[]
@@ -11,25 +11,25 @@ interface AssetsPanelProps {
 }
 
 export function AssetsPanel({ assets, onAddAsset, onImportMedia, onGenerateMedia }: AssetsPanelProps) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [activeTab, setActiveTab] = useState<'all' | 'video' | 'image' | 'audio' | 'text'>('all')
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'video' | 'image' | 'audio' | 'text'>('all');
 
   const filteredAssets = assets.filter(_asset => {
     const matchesSearch = _asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          _asset.prompt?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesTab = activeTab === 'all' || _asset.type === activeTab
-    return matchesSearch && matchesTab
-  })
+                          _asset.prompt?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTab = activeTab === 'all' || _asset.type === activeTab;
+    return matchesSearch && matchesTab;
+  });
 
   const getAssetIcon = (type: Asset['type']) => {
     switch (type) {
-      case 'video': return Video
-      case 'image': return Image
-      case 'audio': return Music
-      case 'text': return FileText
-      default: return Video
+      case 'video': return Video;
+      case 'image': return Image;
+      case 'audio': return Music;
+      case 'text': return FileText;
+      default: return Video;
     }
-  }
+  };
 
   return (
     <div className="flex flex-col h-full bg-slate-900 text-white border-l border-slate-700">
@@ -94,7 +94,7 @@ export function AssetsPanel({ assets, onAddAsset, onImportMedia, onGenerateMedia
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {filteredAssets.map(asset => {
-              const Icon = getAssetIcon(asset.type)
+              const Icon = getAssetIcon(asset.type);
               return (
                 <TooltipWrapper key={asset.id} content={asset.name} position="bottom">
                   <div
@@ -114,11 +114,11 @@ export function AssetsPanel({ assets, onAddAsset, onImportMedia, onGenerateMedia
                     )}
                   </div>
                 </TooltipWrapper>
-              )
+              );
             })}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

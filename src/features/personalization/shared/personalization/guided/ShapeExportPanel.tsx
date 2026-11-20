@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import type { ShapeExportState } from '../DemoPersonalizeProvider'
-import { C, hintStyle, secondaryButtonStyle } from './tokens'
+import type { ShapeExportState } from '../DemoPersonalizeProvider';
+import { C, hintStyle, secondaryButtonStyle } from './tokens';
 
 const SHAPE_LABELS: Record<string, string> = {
   '16:9': 'YouTube / web (16:9)',
   '9:16': 'Reels / TikTok / Shorts (9:16)',
   '1:1': 'Feed post (1:1)',
   '4:5': 'Feed portrait (4:5)',
-}
+};
 
 /**
  * One click to render the approved video in every common shape. Rendered in the browser (no credits);
@@ -25,7 +25,7 @@ export function ShapeExportPanel({
   onStart: () => void
   onCancel: () => void
 }): React.JSX.Element {
-  const running = state.status === 'running'
+  const running = state.status === 'running';
   return (
     <div data-testid="pz-shape-export" style={{ marginTop: 12 }}>
       <button
@@ -58,5 +58,5 @@ export function ShapeExportPanel({
         </ul>
       )}
     </div>
-  )
+  );
 }

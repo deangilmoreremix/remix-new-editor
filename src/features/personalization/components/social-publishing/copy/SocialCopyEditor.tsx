@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { Loader2, Hash } from 'lucide-react'
+import React from 'react';
+import { Loader2, Hash } from 'lucide-react';
 
 export interface SocialCopyEditorProps {
   text: string
@@ -69,5 +69,5 @@ export function SocialCopyEditor({
         </div>
       )}
     </div>
-  )
+  );
 }

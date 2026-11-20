@@ -16,13 +16,13 @@
  * Brand mapping: bars from a primary / accent ramp, the headline as the title.
  */
 
-import React from 'react'
+import React from 'react';
 import {
   ProgressBars,
   type ProgressBarsItem,
-} from '../../_upstream/rve-progress-bars/ProgressBars'
-import { slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+} from '../../_upstream/rve-progress-bars/ProgressBars';
+import { slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   FitCanvas,
   brandBackdrop,
@@ -31,7 +31,7 @@ import {
   fitScale,
   readableOnDark,
   rgba,
-} from './shared3f'
+} from './shared3f';
 
 /** The pinned placeholder rows (labels and values; colours come from the brand). */
 export const PROGRESS_BARS_PLACEHOLDER: Array<Omit<ProgressBarsItem, 'color'>> = [
@@ -40,21 +40,21 @@ export const PROGRESS_BARS_PLACEHOLDER: Array<Omit<ProgressBarsItem, 'color'>> =
   { label: 'Category C', value: 72 },
   { label: 'Category D', value: 64 },
   { label: 'Category E', value: 53 },
-]
+];
 
 /** The upstream card: 700 px wide + 50 px side padding; ~520 px tall with five rows. */
-const CARD_W = 800
-const CARD_H = 520
-const PREFERRED_SCALE = 1.25
+const CARD_W = 800;
+const CARD_H = 520;
+const PREFERRED_SCALE = 1.25;
 
 export const RveProgressBarsDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE)
-  const palette = brandPalette(props, PROGRESS_BARS_PLACEHOLDER.length)
-  const text = readableOnDark(props)
+  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE);
+  const palette = brandPalette(props, PROGRESS_BARS_PLACEHOLDER.length);
+  const text = readableOnDark(props);
   const title = truncateText(
     slotText(props, 'headline', ['businessName']),
     fitChars(700 - 20, 28, 38),
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-progress-bars" props={props}>
@@ -70,7 +70,7 @@ export const RveProgressBarsDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </FitCanvas>
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveProgressBarsDesign
+export default RveProgressBarsDesign;

@@ -13,8 +13,10 @@ afterEach(() => vi.unstubAllGlobals());
 describe('reference waveform extraction', () => {
   it('includes both audio channels, normalizes silence safely, and reuses cached peaks', async () => {
     request.mockResolvedValue(new Response(new Uint8Array([1, 2, 3])));
-    decode.mockResolvedValue({ length: 80, numberOfChannels: 2, duration: 8,
-      getChannelData: (channel: number) => Float32Array.from({ length: 80 }, (_, i) => channel ? i / 80 : 0) });
+    decode.mockResolvedValue({
+ length: 80, numberOfChannels: 2, duration: 8,
+      getChannelData: (channel: number) => Float32Array.from({ length: 80 }, (_, i) => channel ? i / 80 : 0) 
+});
     const result = await readAudioPreview('https://example.com/stereo.wav', new AbortController().signal);
     expect(result.peaks).toHaveLength(40);
     expect(result.peaks[39]).toBe(1);

@@ -16,9 +16,11 @@ vi.mock('@xyflow/react', () => ({ useReactFlow: () => ({ updateNodeData: env.upd
 vi.mock('@cinegen/components/create/nodes/base-node', () => ({
   BaseNode: ({ children, footer, meta }: { children: ReactNode; footer: ReactNode; meta: string }) => <div>{meta}{children}{footer}</div>,
 }));
-vi.mock('@cinegen/components/workspace/workspace-shell', () => ({ useWorkspace: () => ({
+vi.mock('@cinegen/components/workspace/workspace-shell', () => ({
+ useWorkspace: () => ({
   state: { elements: [{ id: 'peter', name: 'Peter', type: 'character', images: [] }] }, dispatch: env.dispatch,
-}) }));
+}) 
+}));
 
 function Harness({ sequence = false }: { sequence?: boolean }) {
   const [data, setData] = useState<WorkflowNodeData>({

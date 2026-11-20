@@ -40,7 +40,7 @@ const EMPTY_CLI: Record<CliLlmProviderId, DirectorCliInfo> = {
 };
 
 export function AssistantDrawer({ open, onClose, projectId, state, dispatch }: AssistantDrawerProps) {
-  const [provider, setProvider] = useState<DirectorLlmProvider>('openai') // [remix] OpenAI is the web provider;
+  const [provider, setProvider] = useState<DirectorLlmProvider>('openai'); // [remix] OpenAI is the web provider;
   const [cliProviders, setCliProviders] = useState(EMPTY_CLI);
   const [falReady, setFalReady] = useState(false);
   const [openaiReady, setOpenaiReady] = useState(false);

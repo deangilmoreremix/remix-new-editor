@@ -14,16 +14,16 @@
  * composition.
  */
 
-import React from 'react'
-import { CardFlip } from '../../_upstream/rve-card-flip/CardFlip'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, brandPalette } from './batch3gShared'
+import React from 'react';
+import { CardFlip } from '../../_upstream/rve-card-flip/CardFlip';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, brandPalette } from './batch3gShared';
 
-export const CARD_FLIP_HOLD_FRAMES = 24
+export const CARD_FLIP_HOLD_FRAMES = 24;
 
 export const RveCardFlipDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-card-flip" props={props}>
       <CardFlip
@@ -41,7 +41,7 @@ export const RveCardFlipDesign: React.FC<RemotionDesignComponentProps> = (props)
         back={{ background: 'transparent', borderRadius: '0px', content: null }}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveCardFlipDesign
+export default RveCardFlipDesign;

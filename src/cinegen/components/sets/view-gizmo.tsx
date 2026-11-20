@@ -58,8 +58,10 @@ export function ViewGizmo({ quaternion, onRotate }: {
     event.preventDefault();
     const rect = event.currentTarget.ownerSVGElement!.getBoundingClientRect();
     const center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-    drag.current = { axis: 'roll', pointer: event.pointerId, x: event.clientX, y: event.clientY,
-      tx: 0, ty: 0, scale: 1, center, angle: Math.atan2(event.clientY - center.y, event.clientX - center.x) };
+    drag.current = {
+ axis: 'roll', pointer: event.pointerId, x: event.clientX, y: event.clientY,
+      tx: 0, ty: 0, scale: 1, center, angle: Math.atan2(event.clientY - center.y, event.clientX - center.x) 
+};
     setActive('roll');
     event.currentTarget.setPointerCapture(event.pointerId);
   };

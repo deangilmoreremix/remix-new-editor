@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { Download, Loader2, Shapes, Film } from 'lucide-react'
-import { generateThumbnail } from '@ohb/shared/api/thumbnailService'
-import { describeUsage } from '@ohb/shared/api/imageUsage'
-import { GIF_FRAME_COUNT, GIF_FRAME_DURATION_MS } from '@ohb/lib/openaiImageOptions'
-import { isSafeSvg, svgTextFromDataUrl } from '@ohb/lib/svgSafety'
-import { rasterizeSvg } from './svgRaster'
+import React, { useState } from 'react';
+import { Download, Loader2, Shapes, Film } from 'lucide-react';
+import { generateThumbnail } from '@ohb/shared/api/thumbnailService';
+import { describeUsage } from '@ohb/shared/api/imageUsage';
+import { GIF_FRAME_COUNT, GIF_FRAME_DURATION_MS } from '@ohb/lib/openaiImageOptions';
+import { isSafeSvg, svgTextFromDataUrl } from '@ohb/lib/svgSafety';
+import { rasterizeSvg } from './svgRaster';
 
 export interface DesignerGraphic {
   id: string
@@ -15,17 +15,17 @@ export interface DesignerGraphic {
   dataUrl: string
 }
 
-const MODEL = 'gpt-image-2.6-flare'
-const field = 'w-full rounded-lg px-2 py-1.5 text-[11px] text-white outline-none'
-const fieldStyle: React.CSSProperties = { background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)' }
+const MODEL = 'gpt-image-2.6-flare';
+const field = 'w-full rounded-lg px-2 py-1.5 text-[11px] text-white outline-none';
+const fieldStyle: React.CSSProperties = { background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)' };
 
 function download(url: string, filename: string) {
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 /**
@@ -33,55 +33,55 @@ function download(url: string, filename: string) {
  * finish a thumbnail; the designer's own text, shapes and arrows are free.
  */
 export default function ThumbnailExtras({ onGraphic, disabled }: { onGraphic: (graphic: DesignerGraphic) => void; disabled?: boolean }) {
-  const [svgPrompt, setSvgPrompt] = useState('')
-  const [svgUrl, setSvgUrl] = useState<string | null>(null)
-  const [svgNote, setSvgNote] = useState<string | null>(null)
-  const [gifPrompt, setGifPrompt] = useState('')
-  const [frames, setFrames] = useState<number>(GIF_FRAME_COUNT.default)
-  const [duration, setDuration] = useState<number>(GIF_FRAME_DURATION_MS.default)
-  const [gifUrl, setGifUrl] = useState<string | null>(null)
-  const [usage, setUsage] = useState<string | null>(null)
-  const [busy, setBusy] = useState<'svg' | 'gif' | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [svgPrompt, setSvgPrompt] = useState('');
+  const [svgUrl, setSvgUrl] = useState<string | null>(null);
+  const [svgNote, setSvgNote] = useState<string | null>(null);
+  const [gifPrompt, setGifPrompt] = useState('');
+  const [frames, setFrames] = useState<number>(GIF_FRAME_COUNT.default);
+  const [duration, setDuration] = useState<number>(GIF_FRAME_DURATION_MS.default);
+  const [gifUrl, setGifUrl] = useState<string | null>(null);
+  const [usage, setUsage] = useState<string | null>(null);
+  const [busy, setBusy] = useState<'svg' | 'gif' | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const makeSvg = async () => {
-    setBusy('svg'); setError(null); setSvgUrl(null); setSvgNote(null)
+    setBusy('svg'); setError(null); setSvgUrl(null); setSvgNote(null);
     try {
-      const [first] = await generateThumbnail({ prompt: `A clean vector graphic: ${svgPrompt.trim()}`, model: MODEL, outputFormat: 'svg', n: 1, aspectRatio: '1:1' })
-      const text = first ? svgTextFromDataUrl(first.url) : null
-      if (!first || !text || !isSafeSvg(text)) throw new Error('The graphic could not be used safely. Try again.')
-      setSvgUrl(first.url)
-      setUsage(describeUsage(first.usage, first.model ?? MODEL)?.text ?? null)
+      const [first] = await generateThumbnail({ prompt: `A clean vector graphic: ${svgPrompt.trim()}`, model: MODEL, outputFormat: 'svg', n: 1, aspectRatio: '1:1' });
+      const text = first ? svgTextFromDataUrl(first.url) : null;
+      if (!first || !text || !isSafeSvg(text)) throw new Error('The graphic could not be used safely. Try again.');
+      setSvgUrl(first.url);
+      setUsage(describeUsage(first.usage, first.model ?? MODEL)?.text ?? null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'The graphic failed. Try again.')
+      setError(e instanceof Error ? e.message : 'The graphic failed. Try again.');
     } finally {
-      setBusy(null)
+      setBusy(null);
     }
-  }
+  };
 
   const addSvg = async () => {
-    if (!svgUrl) return
+    if (!svgUrl) return;
     try {
-      onGraphic({ id: `svg-${Date.now()}`, name: 'Graphic', dataUrl: await rasterizeSvg(svgUrl) })
-      setSvgNote('Added. Open "Design this thumbnail" and add it with the "Your graphic" button.')
+      onGraphic({ id: `svg-${Date.now()}`, name: 'Graphic', dataUrl: await rasterizeSvg(svgUrl) });
+      setSvgNote('Added. Open "Design this thumbnail" and add it with the "Your graphic" button.');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'The graphic could not be added.')
+      setError(e instanceof Error ? e.message : 'The graphic could not be added.');
     }
-  }
+  };
 
   const makeGif = async () => {
-    setBusy('gif'); setError(null); setGifUrl(null)
+    setBusy('gif'); setError(null); setGifUrl(null);
     try {
-      const [first] = await generateThumbnail({ prompt: gifPrompt.trim(), model: MODEL, outputFormat: 'gif', n: 1, frameCount: frames, frameDurationMs: duration, aspectRatio: '16:9' })
-      if (!first) throw new Error('The animation did not come back. Try again.')
-      setGifUrl(first.url)
-      setUsage(describeUsage(first.usage, first.model ?? MODEL)?.text ?? null)
+      const [first] = await generateThumbnail({ prompt: gifPrompt.trim(), model: MODEL, outputFormat: 'gif', n: 1, frameCount: frames, frameDurationMs: duration, aspectRatio: '16:9' });
+      if (!first) throw new Error('The animation did not come back. Try again.');
+      setGifUrl(first.url);
+      setUsage(describeUsage(first.usage, first.model ?? MODEL)?.text ?? null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'The animation failed. Try again.')
+      setError(e instanceof Error ? e.message : 'The animation failed. Try again.');
     } finally {
-      setBusy(null)
+      setBusy(null);
     }
-  }
+  };
 
   return (
     <details className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }} data-testid="thumbnail-extras">
@@ -131,5 +131,5 @@ export default function ThumbnailExtras({ onGraphic, disabled }: { onGraphic: (g
       {usage && <p className="mt-2 text-[10px] text-white/40" data-testid="extras-usage">{usage}</p>}
       {error && <p role="alert" className="mt-2 text-[11px] text-red-400">{error}</p>}
     </details>
-  )
+  );
 }

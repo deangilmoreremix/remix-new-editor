@@ -16,11 +16,11 @@
  * C11).
  */
 
-import React from 'react'
-import { PoppingText } from '../_upstream/rve-popping-text/PoppingText'
-import { DESIGN_FONT_STACK } from './fonts'
-import { darkenColor, pickColor, slotText, truncateText, type DesignAdapterProps } from './shared'
-import { RveDesignStage, lightenColor, rveFontSizePx, rveMaxChars } from './rveSharedDesign'
+import React from 'react';
+import { PoppingText } from '../_upstream/rve-popping-text/PoppingText';
+import { DESIGN_FONT_STACK } from './fonts';
+import { darkenColor, pickColor, slotText, truncateText, type DesignAdapterProps } from './shared';
+import { RveDesignStage, lightenColor, rveFontSizePx, rveMaxChars } from './rveSharedDesign';
 
 /**
  * The headline's size, as a fraction of the composition's short edge.
@@ -29,7 +29,7 @@ import { RveDesignStage, lightenColor, rveFontSizePx, rveMaxChars } from './rveS
  * font size) — `rem` is not canvas-relative, so the adapter passes a px
  * value instead (contract addition C9).
  */
-const FONT_SIZE_RATIO = 0.13
+const FONT_SIZE_RATIO = 0.13;
 
 /**
  * The hard character ceiling.
@@ -38,22 +38,22 @@ const FONT_SIZE_RATIO = 0.13
  * headline is still animating after two seconds. The real limit is the
  * composition width — `rveMaxChars` applies it.
  */
-const MAX_HEADLINE_LENGTH = 12
+const MAX_HEADLINE_LENGTH = 12;
 
 /** How far the palette's dark and light entries sit from the brand primary. */
-const PALETTE_DARKEN_FACTOR = 0.45
-const PALETTE_LIGHTEN_FACTOR = 0.45
+const PALETTE_DARKEN_FACTOR = 0.45;
+const PALETTE_LIGHTEN_FACTOR = 0.45;
 
 export const RvePoppingTextDesign: React.FC<DesignAdapterProps> = (props) => {
-  const fontSizePx = rveFontSizePx(props, FONT_SIZE_RATIO)
-  const maxChars = rveMaxChars(props, fontSizePx, MAX_HEADLINE_LENGTH)
+  const fontSizePx = rveFontSizePx(props, FONT_SIZE_RATIO);
+  const maxChars = rveMaxChars(props, fontSizePx, MAX_HEADLINE_LENGTH);
 
   const text = truncateText(
     slotText(props, 'headline', ['offer', 'businessName']),
     maxChars,
-  )
+  );
 
-  const primary = pickColor([props.colors?.primary], '#1e3a8a')
+  const primary = pickColor([props.colors?.primary], '#1e3a8a');
 
   // Three entries, in the upstream's dark → mid → light order, so the
   // per-character rotation reads the same way the upstream's does.
@@ -61,7 +61,7 @@ export const RvePoppingTextDesign: React.FC<DesignAdapterProps> = (props) => {
     darkenColor(primary, PALETTE_DARKEN_FACTOR),
     primary,
     lightenColor(primary, PALETTE_LIGHTEN_FACTOR),
-  ]
+  ];
 
   return (
     <RveDesignStage designId="rve-popping-text" props={props}>
@@ -74,7 +74,7 @@ export const RvePoppingTextDesign: React.FC<DesignAdapterProps> = (props) => {
         letterSpacing="0.05em"
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RvePoppingTextDesign
+export default RvePoppingTextDesign;

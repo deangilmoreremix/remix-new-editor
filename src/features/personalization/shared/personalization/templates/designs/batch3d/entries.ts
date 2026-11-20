@@ -19,59 +19,59 @@
  *
  * Nothing here registers itself: importing this module has no side effect.
  */
-import type { RemotionDesignTemplate } from '../../types'
-import { RVE_ATTRIBUTION } from '../rveSharedDesign'
-import { RVE_LICENSE, RVE_REPOSITORY, RVE_REPOSITORY_URL } from '../rveCatalogEntries'
+import type { RemotionDesignTemplate } from '../../types';
+import { RVE_ATTRIBUTION } from '../rveSharedDesign';
+import { RVE_LICENSE, RVE_REPOSITORY, RVE_REPOSITORY_URL } from '../rveCatalogEntries';
 import {
   BRITO_ATTRIBUTION,
   BRITO_LICENSE_NOTICE,
   BRITO_REPOSITORY,
   BRITO_REPOSITORY_URL,
   britoSource,
-} from './britoShared'
-import { BRITO_LOGO_INTRO_ID, BritoLogoIntroDesign } from './LogoIntroDesign'
+} from './britoShared';
+import { BRITO_LOGO_INTRO_ID, BritoLogoIntroDesign } from './LogoIntroDesign';
 import {
   BRITO_LOWER_THIRDS_FRAMES,
   BRITO_LOWER_THIRDS_ID,
   BritoLowerThirdsDesign,
-} from './LowerThirdsDesign'
+} from './LowerThirdsDesign';
 import {
   BRITO_KINETIC_MAX_FRAMES,
   BRITO_KINETIC_TEXT_ID,
   BritoKineticTextDesign,
-} from './KineticTextDesign'
+} from './KineticTextDesign';
 import {
   BRITO_BAR_CHART_RACE_FRAMES,
   BRITO_BAR_CHART_RACE_ID,
   BRITO_CHART_PLACEHOLDER,
   BritoBarChartRaceDesign,
-} from './BarChartRaceDesign'
+} from './BarChartRaceDesign';
 import {
   BRITO_LINE_CHART_FRAMES,
   BRITO_LINE_CHART_ID,
   BRITO_LINE_CHART_PLACEHOLDER,
   BritoLineChartDesign,
-} from './LineChartDesign'
+} from './LineChartDesign';
 import {
   BRITO_CAPTIONED_SHORT_FRAMES,
   BRITO_CAPTIONED_SHORT_ID,
   BritoCaptionedShortDesign,
-} from './CaptionedShortDesign'
-import { BRITO_PROMO_FRAMES, BRITO_PROMO_ID, BritoPromoDesign } from './PromoDesign'
-import { RVE_LOGO_FADE_REVEAL_ID, RveLogoFadeRevealDesign } from './RveLogoFadeRevealDesign'
-import { RVE_LOGO_GLITCH_REVEAL_ID, RveLogoGlitchRevealDesign } from './RveLogoGlitchRevealDesign'
-import { RVE_LOGO_SCALE_ROTATE_ID, RveLogoScaleRotateDesign } from './RveLogoScaleRotateDesign'
-import { RVE_LOGO_SPIN_REVEAL_ID, RveLogoSpinRevealDesign } from './RveLogoSpinRevealDesign'
-import { RVE_LOGO_TYPEWRITER_ID, RveLogoTypewriterDesign } from './RveLogoTypewriterDesign'
+} from './CaptionedShortDesign';
+import { BRITO_PROMO_FRAMES, BRITO_PROMO_ID, BritoPromoDesign } from './PromoDesign';
+import { RVE_LOGO_FADE_REVEAL_ID, RveLogoFadeRevealDesign } from './RveLogoFadeRevealDesign';
+import { RVE_LOGO_GLITCH_REVEAL_ID, RveLogoGlitchRevealDesign } from './RveLogoGlitchRevealDesign';
+import { RVE_LOGO_SCALE_ROTATE_ID, RveLogoScaleRotateDesign } from './RveLogoScaleRotateDesign';
+import { RVE_LOGO_SPIN_REVEAL_ID, RveLogoSpinRevealDesign } from './RveLogoSpinRevealDesign';
+import { RVE_LOGO_TYPEWRITER_ID, RveLogoTypewriterDesign } from './RveLogoTypewriterDesign';
 
 export {
   BRITO_ATTRIBUTION,
   BRITO_LICENSE_NOTICE,
   BRITO_REPOSITORY,
   BRITO_REPOSITORY_URL,
-}
+};
 
-const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5']
+const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5'];
 
 /** Builds the `source` block of a repo-2 logo reveal. */
 function rveSource(sourcePath: string): RemotionDesignTemplate['source'] {
@@ -81,7 +81,7 @@ function rveSource(sourcePath: string): RemotionDesignTemplate['source'] {
     sourcePath,
     license: RVE_LICENSE,
     attribution: RVE_ATTRIBUTION,
-  }
+  };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -128,7 +128,7 @@ export const britoLogoIntroTemplate: RemotionDesignTemplate = {
       'transparent; the logo fades out over the last 12 frames of the clip.',
   },
   previewCompatible: true,
-}
+};
 
 export const britoLowerThirdsTemplate: RemotionDesignTemplate = {
   id: BRITO_LOWER_THIRDS_ID,
@@ -164,7 +164,7 @@ export const britoLowerThirdsTemplate: RemotionDesignTemplate = {
       'lighter footage. Name and second line are truncated to the composition width.',
   },
   previewCompatible: true,
-}
+};
 
 export const britoKineticTextTemplate: RemotionDesignTemplate = {
   id: BRITO_KINETIC_TEXT_ID,
@@ -203,7 +203,7 @@ export const britoKineticTextTemplate: RemotionDesignTemplate = {
       'The canvas is transparent.',
   },
   previewCompatible: true,
-}
+};
 
 export const britoBarChartRaceTemplate: RemotionDesignTemplate = {
   id: BRITO_BAR_CHART_RACE_ID,
@@ -249,7 +249,7 @@ export const britoBarChartRaceTemplate: RemotionDesignTemplate = {
       'white canvas is tinted with the brand colours; bars use brand primary, brand accent, then violet and amber.',
   },
   previewCompatible: true,
-}
+};
 
 export const britoLineChartTemplate: RemotionDesignTemplate = {
   id: BRITO_LINE_CHART_ID,
@@ -293,7 +293,7 @@ export const britoLineChartTemplate: RemotionDesignTemplate = {
       'PLACEHOLDER dataset ("Sample A" to "Sample C"). The white canvas is tinted with the brand colours.',
   },
   previewCompatible: true,
-}
+};
 
 export const britoCaptionedShortTemplate: RemotionDesignTemplate = {
   id: BRITO_CAPTIONED_SHORT_ID,
@@ -329,7 +329,7 @@ export const britoCaptionedShortTemplate: RemotionDesignTemplate = {
       'with a scoped stylesheet rule so the video shows through.',
   },
   previewCompatible: true,
-}
+};
 
 export const britoPromoTemplate: RemotionDesignTemplate = {
   id: BRITO_PROMO_ID,
@@ -380,7 +380,7 @@ export const britoPromoTemplate: RemotionDesignTemplate = {
       'upstream\'s fixed-px callout column is too narrow on a 1080-wide canvas.',
   },
   previewCompatible: true,
-}
+};
 
 /* -------------------------------------------------------------------------- */
 /* Repo 2 — remotion-templates (React Video Editor) logo reveals               */
@@ -390,16 +390,16 @@ const rveLogoColors: RemotionDesignTemplate['colors'] = [
   { role: 'primary', label: 'Badge gradient start and glow' },
   { role: 'accent', label: 'Badge gradient end' },
   { role: 'text', label: 'Company name' },
-]
+];
 
-const rveLogoMedia: RemotionDesignTemplate['media'] = [{ role: 'logo', label: 'Logo' }]
+const rveLogoMedia: RemotionDesignTemplate['media'] = [{ role: 'logo', label: 'Logo' }];
 
 function rveLogoNotes(effects: string): string {
   return (
     `Renders in the browser export path: ${effects}. Shows the customer's logo in the badge when there is one, ` +
     'otherwise their initials on a brand gradient (never the upstream "LOGO" / "Company Name" demo copy). The ' +
     'upstream badge and rem type are rescaled to the composition\'s short edge; the canvas is transparent.'
-  )
+  );
 }
 
 export const rveLogoFadeRevealTemplate: RemotionDesignTemplate = {
@@ -425,7 +425,7 @@ export const rveLogoFadeRevealTemplate: RemotionDesignTemplate = {
   requiredMedia: [],
   capabilities: { preview: true, browserExport: true, notes: rveLogoNotes('springs and plain CSS only') },
   previewCompatible: true,
-}
+};
 
 export const rveLogoGlitchRevealTemplate: RemotionDesignTemplate = {
   id: RVE_LOGO_GLITCH_REVEAL_ID,
@@ -457,7 +457,7 @@ export const rveLogoGlitchRevealTemplate: RemotionDesignTemplate = {
     ),
   },
   previewCompatible: true,
-}
+};
 
 export const rveLogoScaleRotateTemplate: RemotionDesignTemplate = {
   id: RVE_LOGO_SCALE_ROTATE_ID,
@@ -479,7 +479,7 @@ export const rveLogoScaleRotateTemplate: RemotionDesignTemplate = {
   requiredMedia: [],
   capabilities: { preview: true, browserExport: true, notes: rveLogoNotes('springs, transforms and box-shadow only') },
   previewCompatible: true,
-}
+};
 
 export const rveLogoSpinRevealTemplate: RemotionDesignTemplate = {
   id: RVE_LOGO_SPIN_REVEAL_ID,
@@ -508,7 +508,7 @@ export const rveLogoSpinRevealTemplate: RemotionDesignTemplate = {
     notes: rveLogoNotes('springs and a CSS perspective/rotateY transform (check the 3D flip in an exported frame)'),
   },
   previewCompatible: true,
-}
+};
 
 export const rveLogoTypewriterTemplate: RemotionDesignTemplate = {
   id: RVE_LOGO_TYPEWRITER_ID,
@@ -542,7 +542,7 @@ export const rveLogoTypewriterTemplate: RemotionDesignTemplate = {
       'composition\'s short edge; the canvas is transparent.',
   },
   previewCompatible: true,
-}
+};
 
 /** Batch 3d designs, in registration order. */
 export const BATCH_3D_TEMPLATES: RemotionDesignTemplate[] = [
@@ -558,7 +558,7 @@ export const BATCH_3D_TEMPLATES: RemotionDesignTemplate[] = [
   rveLogoScaleRotateTemplate,
   rveLogoSpinRevealTemplate,
   rveLogoTypewriterTemplate,
-]
+];
 
 /**
  * Batch 3d designs that hardcode SVG ids (one instance per composition).
@@ -566,4 +566,4 @@ export const BATCH_3D_TEMPLATES: RemotionDesignTemplate[] = [
  * None: the only inline SVG in the batch (the line chart) uses no `id`
  * attributes, and the placeholders are plain DOM.
  */
-export const BATCH_3D_FIXED_SVG_IDS: Record<string, string[]> = {}
+export const BATCH_3D_FIXED_SVG_IDS: Record<string, string[]> = {};

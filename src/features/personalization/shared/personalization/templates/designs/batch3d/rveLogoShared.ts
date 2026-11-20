@@ -11,41 +11,41 @@
  * 20 % of the short edge (216 px, k = 1.8 at 1080).
  */
 
-import type { RemotionDesignComponentProps } from '../../types'
-import { lightenColor, withAlpha } from '../rveSharedDesign'
-import { pickColor, slotText, slotValue, truncateText } from '../shared'
-import { britoFitChars, britoMonogram } from './britoShared'
+import type { RemotionDesignComponentProps } from '../../types';
+import { lightenColor, withAlpha } from '../rveSharedDesign';
+import { pickColor, slotText, slotValue, truncateText } from '../shared';
+import { britoFitChars, britoMonogram } from './britoShared';
 
 /** The upstream's 16 px `rem` base. */
-const REM = 16
+const REM = 16;
 
 /** Upstream length → canvas px factor (120 px badge → 20 % of the short edge). */
 export function rveLogoScale(props: RemotionDesignComponentProps): number {
-  return (Math.min(props.width, props.height) * 0.2) / 120
+  return (Math.min(props.width, props.height) * 0.2) / 120;
 }
 
 /** An upstream `rem` length as canvas px. */
 export function rveRemPx(props: RemotionDesignComponentProps, rem: number): string {
-  return `${Math.round(rem * REM * rveLogoScale(props) * 10) / 10}px`
+  return `${Math.round(rem * REM * rveLogoScale(props) * 10) / 10}px`;
 }
 
 /** An upstream px length as canvas px. */
 export function rvePx(props: RemotionDesignComponentProps, px: number): string {
-  return `${Math.round(px * rveLogoScale(props) * 10) / 10}px`
+  return `${Math.round(px * rveLogoScale(props) * 10) / 10}px`;
 }
 
 /** `#rrggbb` → "r, g, b" (for the glitch glow); `null` for anything else. */
 export function hexToRgbTriplet(value: string): string | null {
-  const hex = value.trim().replace(/^#/, '')
+  const hex = value.trim().replace(/^#/, '');
   const full =
     hex.length === 3 && /^[0-9a-f]{3}$/i.test(hex)
       ? hex.split('').map((c) => c + c).join('')
-      : hex
-  if (!/^[0-9a-f]{6}$/i.test(full)) return null
+      : hex;
+  if (!/^[0-9a-f]{6}$/i.test(full)) return null;
   return `${parseInt(full.slice(0, 2), 16)}, ${parseInt(full.slice(2, 4), 16)}, ${parseInt(
     full.slice(4, 6),
     16,
-  )}`
+  )}`;
 }
 
 /** The brand values every repo-2 logo reveal uses. */
@@ -72,13 +72,13 @@ export interface RveLogoBrand {
 }
 
 export function rveLogoBrand(props: RemotionDesignComponentProps): RveLogoBrand {
-  const primary = pickColor([props.colors?.primary], '#4361ee')
-  const accent = pickColor([props.colors?.accent], '#7209b7')
-  const logoRaw = typeof props.media?.logo === 'string' ? props.media.logo.trim() : ''
-  const logo = logoRaw || undefined
-  const gradient = `linear-gradient(135deg, ${primary}, ${accent})`
-  const name = slotText(props, 'companyName', ['businessName'])
-  const available = props.width * 0.88
+  const primary = pickColor([props.colors?.primary], '#4361ee');
+  const accent = pickColor([props.colors?.accent], '#7209b7');
+  const logoRaw = typeof props.media?.logo === 'string' ? props.media.logo.trim() : '';
+  const logo = logoRaw || undefined;
+  const gradient = `linear-gradient(135deg, ${primary}, ${accent})`;
+  const name = slotText(props, 'companyName', ['businessName']);
+  const available = props.width * 0.88;
   return {
     primary,
     accent,
@@ -93,5 +93,5 @@ export function rveLogoBrand(props: RemotionDesignComponentProps): RveLogoBrand 
     tagline: (fontSizePx) =>
       truncateText(slotValue(props, 'tagline'), britoFitChars(available, fontSizePx, 60, 0.55)),
     glow: (alpha) => withAlpha(primary, alpha),
-  }
+  };
 }

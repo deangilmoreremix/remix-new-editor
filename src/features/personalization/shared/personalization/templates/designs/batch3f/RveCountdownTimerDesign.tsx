@@ -20,27 +20,27 @@
  * word so a long CTA still fits the canvas width on one line.
  */
 
-import React from 'react'
-import { CountdownTimer } from '../../_upstream/rve-countdown-timer/CountdownTimer'
-import { TRANSPARENT, slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { brandAccent, brandPrimary, brandText } from './shared3f'
+import React from 'react';
+import { CountdownTimer } from '../../_upstream/rve-countdown-timer/CountdownTimer';
+import { TRANSPARENT, slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { brandAccent, brandPrimary, brandText } from './shared3f';
 
 /** Digit size as a fraction of the short edge (upstream: 10rem on a 1080 frame ~ 0.15). */
-const DIGIT_RATIO = 0.26
+const DIGIT_RATIO = 0.26;
 /** Final-word size cap as a fraction of the short edge (upstream: 8rem). */
-const FINAL_RATIO = 0.2
+const FINAL_RATIO = 0.2;
 /** Longest final word, in characters. */
-const MAX_FINAL_CHARS = 16
+const MAX_FINAL_CHARS = 16;
 
 export const RveCountdownTimerDesign: React.FC<DesignAdapterProps> = (props) => {
-  const short = Math.min(props.width, props.height)
-  const finalWord = truncateText(slotText(props, 'cta', ['offer']), MAX_FINAL_CHARS) || 'GO'
-  const digitPx = Math.round(short * DIGIT_RATIO)
+  const short = Math.min(props.width, props.height);
+  const finalWord = truncateText(slotText(props, 'cta', ['offer']), MAX_FINAL_CHARS) || 'GO';
+  const digitPx = Math.round(short * DIGIT_RATIO);
   // Bold type is ~0.62 em per glyph; keep the word inside 88 % of the width.
   const finalPx = Math.round(
     Math.min(short * FINAL_RATIO, (props.width * 0.88) / Math.max(1, finalWord.length * 0.62)),
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-countdown-timer" props={props}>
@@ -54,7 +54,7 @@ export const RveCountdownTimerDesign: React.FC<DesignAdapterProps> = (props) => 
         textShadow="0 6px 24px rgba(0, 0, 0, 0.45)"
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveCountdownTimerDesign
+export default RveCountdownTimerDesign;

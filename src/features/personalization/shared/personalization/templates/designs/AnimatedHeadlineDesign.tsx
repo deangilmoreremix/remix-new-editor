@@ -14,8 +14,8 @@
  * `transparent` so the customer's video shows through.
  */
 
-import React from 'react'
-import { BounceInHeadline } from '../_upstream/bounce-in-headline/BounceInHeadline'
+import React from 'react';
+import { BounceInHeadline } from '../_upstream/bounce-in-headline/BounceInHeadline';
 import {
   DesignStage,
   TRANSPARENT,
@@ -23,22 +23,22 @@ import {
   slotText,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** The upstream's own motion constants (frames, at the upstream's 30 fps). */
-const BOUNCES = 3
-const BOUNCE_HEIGHT = 120
-const DELAY_FRAMES = 0
-const DURATION_FRAMES = 36
+const BOUNCES = 3;
+const BOUNCE_HEIGHT = 120;
+const DELAY_FRAMES = 0;
+const DURATION_FRAMES = 36;
 
 /** Long headlines are truncated so they never leave the design box. */
-const MAX_HEADLINE_LENGTH = 60
+const MAX_HEADLINE_LENGTH = 60;
 
 export const AnimatedHeadlineDesign: React.FC<DesignAdapterProps> = (props) => {
   const headline = truncateText(
     slotText(props, 'headline', ['offer', 'businessName']),
     MAX_HEADLINE_LENGTH,
-  )
+  );
 
   return (
     <DesignStage designId="animated-headline" props={props}>
@@ -52,7 +52,7 @@ export const AnimatedHeadlineDesign: React.FC<DesignAdapterProps> = (props) => {
         duration={DURATION_FRAMES}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default AnimatedHeadlineDesign
+export default AnimatedHeadlineDesign;

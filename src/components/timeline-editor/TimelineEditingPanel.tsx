@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react'
-import { Play, Pause, SkipBack, SkipForward, ZoomIn, ZoomOut, Maximize } from 'lucide-react'
-import { TooltipWrapper } from './TooltipWrapper'
+import React, { useState, useRef } from 'react';
+import { Play, Pause, SkipBack, SkipForward, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import { TooltipWrapper } from './TooltipWrapper';
 
 interface TimelineEditingPanelProps {
   clips: Array<{
@@ -36,39 +36,39 @@ export function TimelineEditingPanel({
   onFitToView,
   duration,
 }: TimelineEditingPanelProps) {
-  const timelineRef = useRef<HTMLDivElement>(null)
-  const [draggingClipId, setDraggingClipId] = useState<string | null>(null)
-  const [dragStart, setDragStart] = useState({ x: 0, time: 0 })
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const [draggingClipId, setDraggingClipId] = useState<string | null>(null);
+  const [dragStart, setDragStart] = useState({ x: 0, time: 0 });
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    const ms = Math.floor((seconds % 1) * 100)
-    return `${mins}:${secs.toString().padStart(2, '0')}:${ms.toString().padStart(2, '0')}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds % 1) * 100);
+    return `${mins}:${secs.toString().padStart(2, '0')}:${ms.toString().padStart(2, '0')}`;
+  };
 
   const handleMouseDown = (e: React.MouseEvent, clipId: string) => {
-    setDraggingClipId(clipId)
-    setDragStart({ x: e.clientX, time: currentTime })
-  }
+    setDraggingClipId(clipId);
+    setDragStart({ x: e.clientX, time: currentTime });
+  };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!draggingClipId) return
-    const deltaX = e.clientX - dragStart.x
-    const deltaTime = deltaX * 0.01
-    onSeek(Math.max(0, dragStart.time + deltaTime))
-  }
+    if (!draggingClipId) return;
+    const deltaX = e.clientX - dragStart.x;
+    const deltaTime = deltaX * 0.01;
+    onSeek(Math.max(0, dragStart.time + deltaTime));
+  };
 
   const handleMouseUp = () => {
-    setDraggingClipId(null)
-  }
+    setDraggingClipId(null);
+  };
 
   const handleTimelineClick = (e: React.MouseEvent) => {
-    const rect = timelineRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const percent = (e.clientX - rect.left) / rect.width
-    onSeek(percent * duration)
-  }
+    const rect = timelineRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const percent = (e.clientX - rect.left) / rect.width;
+    onSeek(percent * duration);
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-slate-900">
@@ -166,5 +166,5 @@ export function TimelineEditingPanel({
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -23,9 +23,11 @@ describe('publish snapshot', () => {
     expect((buildPublishState(tl, [], [], 'x') as any).listBuilder).toBeUndefined();
   });
   it('maps clips and overlays and passes the publish client checks', () => {
-    const tl: any = { id: 't', name: 'T', duration: 10, tracks: [{ id: 'V1', kind: 'video' }, { id: 'A1', kind: 'audio' }], clips: [
+    const tl: any = {
+ id: 't', name: 'T', duration: 10, tracks: [{ id: 'V1', kind: 'video' }, { id: 'A1', kind: 'audio' }], clips: [
       { id: 'c1', assetId: 'a1', trackId: 'V1', startTime: 1, duration: 6, trimStart: 1, trimEnd: 0, speed: 2, volume: 1 },
-      { id: 'c2', assetId: 'a2', trackId: 'A1', startTime: 0, duration: 4, trimStart: 0, trimEnd: 0, speed: 1, volume: 0.5 }] };
+      { id: 'c2', assetId: 'a2', trackId: 'A1', startTime: 0, duration: 4, trimStart: 0, trimEnd: 0, speed: 1, volume: 0.5 }] 
+};
     const assets: any[] = [{ id: 'a1', type: 'video', url: 'https://x/v.mp4' }, { id: 'a2', type: 'audio', url: 'https://x/a.mp3' }];
     const state = buildPublishState(tl, assets, [createOverlay('click-to-call', 2, 10)], 'My video');
     const video = state.tracks[0].items as any[];

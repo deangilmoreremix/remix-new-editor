@@ -5,25 +5,25 @@
  * end card without its own stacking level would be painted underneath layers that
  * stay visible through the last frames.
  */
-import React from 'react'
-import { describe, it, expect, vi, afterEach } from 'vitest'
-import { act } from 'react'
-import { createRoot } from 'react-dom/client'
-import { PersonalizationComposition } from '../PersonalizationComposition'
-import { createDefaultPreviewSettings } from '../presets'
-import { layerZIndex, MEDIA_ROLE_CONTRACTS, type OverlayMediaRole } from '../mediaRoles'
-import type { PreviewInputProps } from '../types'
+import React from 'react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { act } from 'react';
+import { createRoot } from 'react-dom/client';
+import { PersonalizationComposition } from '../PersonalizationComposition';
+import { createDefaultPreviewSettings } from '../presets';
+import { layerZIndex, MEDIA_ROLE_CONTRACTS, type OverlayMediaRole } from '../mediaRoles';
+import type { PreviewInputProps } from '../types';
 
-const sequenceStyles: Array<React.CSSProperties | undefined> = []
+const sequenceStyles: Array<React.CSSProperties | undefined> = [];
 
-vi.mock('@remotion/media', () => ({ Video: () => <div data-testid="media-video" /> }))
+vi.mock('@remotion/media', () => ({ Video: () => <div data-testid="media-video" /> }));
 
 vi.mock('remotion', () => ({
   AbsoluteFill: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
   Img: ({ src }: { src: string }) => <img src={src} alt="" />,
   Sequence: ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) => {
-    sequenceStyles.push(style)
-    return <>{children}</>
+    sequenceStyles.push(style);
+    return <>{children}</>;
   },
   Internals: { SequenceManager: { Provider: ({ children }: { children?: React.ReactNode }) => <>{children}</> } },
   useCurrentFrame: () => 30,
@@ -41,17 +41,17 @@ vi.mock('remotion', () => ({
     ease: (t: number) => t,
     linear: (t: number) => t,
   },
-}))
+}));
 
-const mounted: Array<{ root: ReturnType<typeof createRoot>; container: HTMLElement }> = []
+const mounted: Array<{ root: ReturnType<typeof createRoot>; container: HTMLElement }> = [];
 
 afterEach(() => {
-  sequenceStyles.length = 0
+  sequenceStyles.length = 0;
   for (const { root, container } of mounted.splice(0)) {
-    act(() => root.unmount())
-    container.remove()
+    act(() => root.unmount());
+    container.remove();
   }
-})
+});
 
 function props(showEndCard: boolean): PreviewInputProps {
   return {
@@ -71,32 +71,32 @@ function props(showEndCard: boolean): PreviewInputProps {
       productUrl: null,
       serviceUrl: null,
     },
-  }
+  };
 }
 
 function mount(inputProps: PreviewInputProps) {
-  const container = document.createElement('div')
-  document.body.appendChild(container)
-  const root = createRoot(container)
-  mounted.push({ root, container })
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  mounted.push({ root, container });
   act(() => {
-    root.render(<PersonalizationComposition {...inputProps} />)
-  })
+    root.render(<PersonalizationComposition {...inputProps} />);
+  });
 }
 
 describe('end card stacking', () => {
   it('gives the end card a stacking level above the highest possible layer', () => {
-    mount(props(true))
+    mount(props(true));
     const highestLayer = Math.max(
       ...(Object.keys(MEDIA_ROLE_CONTRACTS) as OverlayMediaRole[]).map((role) => layerZIndex(role, 99)),
-    )
-    const zIndexes = sequenceStyles.map((style) => style?.zIndex).filter((z): z is number => typeof z === 'number')
-    expect(zIndexes.length).toBeGreaterThan(0)
-    expect(Math.min(...zIndexes)).toBeGreaterThan(highestLayer)
-  })
+    );
+    const zIndexes = sequenceStyles.map((style) => style?.zIndex).filter((z): z is number => typeof z === 'number');
+    expect(zIndexes.length).toBeGreaterThan(0);
+    expect(Math.min(...zIndexes)).toBeGreaterThan(highestLayer);
+  });
 
   it('adds no end-card sequence when the end card is off', () => {
-    mount(props(false))
-    expect(sequenceStyles.filter((style) => typeof style?.zIndex === 'number')).toHaveLength(0)
-  })
-})
+    mount(props(false));
+    expect(sequenceStyles.filter((style) => typeof style?.zIndex === 'number')).toHaveLength(0);
+  });
+});

@@ -8,10 +8,12 @@ import type { DirectorPlan } from '../lib/directorPlan';
 
 const palette = { background: '#101018', text: '#ffffff', accent: '#8b6bff' };
 const id = (c: string) => MOTION_TEMPLATES.find((t) => t.componentName === c)!.id;
-const plan: DirectorPlan = { title: 't', summary: '', palette, scenes: [
+const plan: DirectorPlan = {
+ title: 't', summary: '', palette, scenes: [
   { kind: 'shot', recipeId: id('SpotlightHeroCard'), durationSec: 6, headline: 'Line', caption: 'Caption words', transition: 'cut' },
   { kind: 'title', recipeId: '', durationSec: 3, headline: 'End', caption: '', transition: 'cut' },
-] };
+] 
+};
 
 describe('fixing review findings', () => {
   it('repairs small captions, a short ending and alert sounds, then the review passes them', () => {

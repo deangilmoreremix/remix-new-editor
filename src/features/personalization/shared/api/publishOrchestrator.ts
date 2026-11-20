@@ -1,4 +1,4 @@
-import type { Destination, CopyState, ThumbnailState, Asset, PublishResult } from '@ohb/components/social-publishing/types'
+import type { Destination, CopyState, ThumbnailState, Asset, PublishResult } from '@ohb/components/social-publishing/types';
 import {
   publishToYouTube,
   publishToInstagram,
@@ -10,8 +10,8 @@ import {
   publishToX,
   pollSocialResult,
   setYouTubeThumbnail,
-} from '@ohb/lib/muapi'
-import { PLATFORM_SPECS, buildPublishPayload, describePublishError, isPublicMediaUrl, type PlatformId, pickThumbnailUrl } from './socialPayloads'
+} from '@ohb/lib/muapi';
+import { PLATFORM_SPECS, buildPublishPayload, describePublishError, isPublicMediaUrl, type PlatformId, pickThumbnailUrl } from './socialPayloads';
 
 type PublishFn = (apiKey: string, payload: Record<string, any>) => Promise<any>
 
@@ -35,7 +35,7 @@ const defaultDeps: PublishDeps = {
   },
   poll: (apiKey, requestId) => pollSocialResult(apiKey, requestId, 120, 2000),
   setYouTubeThumbnail,
-}
+};
 
 export interface PublishOrchestratorOptions {
   destinations: Destination[]
@@ -52,25 +52,25 @@ export interface PublishOrchestratorOptions {
 
 /** The YouTube video id from a publish result (watch / youtu.be / shorts URL, or an explicit id). */
 export function extractYouTubeVideoId(out: any): string | null {
-  if (!out || typeof out !== 'object') return null
-  if (typeof out.video_id === 'string' && out.video_id) return out.video_id
-  const url = out.url || out.link || out.permalink
-  if (typeof url !== 'string') return null
+  if (!out || typeof out !== 'object') return null;
+  if (typeof out.video_id === 'string' && out.video_id) return out.video_id;
+  const url = out.url || out.link || out.permalink;
+  if (typeof url !== 'string') return null;
   try {
-    const u = new URL(url)
-    const v = u.searchParams.get('v')
-    if (v) return v
-    const m = u.pathname.match(/^\/(?:shorts\/|embed\/)?([A-Za-z0-9_-]{6,})$/)
-    if (m && /youtu\.?be/.test(u.hostname)) return m[1]
+    const u = new URL(url);
+    const v = u.searchParams.get('v');
+    if (v) return v;
+    const m = u.pathname.match(/^\/(?:shorts\/|embed\/)?([A-Za-z0-9_-]{6,})$/);
+    if (m && /youtu\.?be/.test(u.hostname)) return m[1];
   } catch {
     /* not a URL */
   }
-  return null
+  return null;
 }
 
 function resultUrl(out: any): string | undefined {
-  if (!out || typeof out !== 'object') return undefined
-  return out.url || out.link || out.permalink || undefined
+  if (!out || typeof out !== 'object') return undefined;
+  return out.url || out.link || out.permalink || undefined;
 }
 
 /**
@@ -79,17 +79,17 @@ function resultUrl(out: any): string | undefined {
  * already live, so a failure here is reported as a note, never as a failed publish.
  */
 async function applyYouTubeThumbnail(deps: PublishDeps, apiKey: string, accountId: string | undefined, out: any, thumbnailUrl: string): Promise<string> {
-  if (!deps.setYouTubeThumbnail) return 'Published. The thumbnail was not set.'
-  if (!isPublicMediaUrl(thumbnailUrl)) return 'Published. The thumbnail was not set because it is not a public image link.'
-  const videoId = extractYouTubeVideoId(out)
-  if (!videoId) return 'Published. The thumbnail was not set because YouTube did not return the video ID. Set it in YouTube Studio.'
+  if (!deps.setYouTubeThumbnail) return 'Published. The thumbnail was not set.';
+  if (!isPublicMediaUrl(thumbnailUrl)) return 'Published. The thumbnail was not set because it is not a public image link.';
+  const videoId = extractYouTubeVideoId(out);
+  if (!videoId) return 'Published. The thumbnail was not set because YouTube did not return the video ID. Set it in YouTube Studio.';
   try {
-    const submit = await deps.setYouTubeThumbnail(apiKey, { account_id: Number(accountId), video_id: videoId, thumbnail_url: thumbnailUrl })
-    const id = String(submit?.request_id || submit?.id || '')
-    if (id) await deps.poll(apiKey, id)
-    return 'Thumbnail set on YouTube.'
+    const submit = await deps.setYouTubeThumbnail(apiKey, { account_id: Number(accountId), video_id: videoId, thumbnail_url: thumbnailUrl });
+    const id = String(submit?.request_id || submit?.id || '');
+    if (id) await deps.poll(apiKey, id);
+    return 'Thumbnail set on YouTube.';
   } catch (err) {
-    return `Published, but the thumbnail could not be set: ${describePublishError(err, 'YouTube')} (JPEG or PNG under 2MB; custom thumbnails also need a verified YouTube channel).`
+    return `Published, but the thumbnail could not be set: ${describePublishError(err, 'YouTube')} (JPEG or PNG under 2MB; custom thumbnails also need a verified YouTube channel).`;
   }
 }
 
@@ -108,21 +108,21 @@ export async function publishOne(
   /** The post was already accepted by MuAPI: only check its result again, never submit it a second time. */
   resumeRequestId?: string,
 ): Promise<PublishResult> {
-  const platform = destination.platform as PlatformId
-  const spec = PLATFORM_SPECS[platform]
-  const label = spec?.label ?? destination.platform
+  const platform = destination.platform as PlatformId;
+  const spec = PLATFORM_SPECS[platform];
+  const label = spec?.label ?? destination.platform;
   const fail = (error: string, requestId?: string): PublishResult => ({
     platform: destination.platform,
     status: 'failed',
     error,
     accountId: destination.accountId,
     requestId: requestId ?? '',
-  })
+  });
 
-  if (!apiKey) return fail('Add your MuAPI key in the API keys settings first.', resumeRequestId)
+  if (!apiKey) return fail('Add your MuAPI key in the API keys settings first.', resumeRequestId);
   // A post MuAPI already accepted is only re-checked: its payload is not rebuilt or re-validated, so
   // later edits (even invalid ones) can neither block the check nor cause a second submission.
-  let payload: Record<string, any> | null = null
+  let payload: Record<string, any> | null = null;
   if (!resumeRequestId) {
     const built = buildPublishPayload({
       platform,
@@ -132,9 +132,9 @@ export async function publishOne(
       copy,
       settings: destination.settings,
       thumbnailUrl: pickThumbnailUrl(thumbnail, platform, destination.settings),
-    })
-    if (!built.payload) return fail(built.errors.join(' '))
-    payload = built.payload
+    });
+    if (!built.payload) return fail(built.errors.join(' '));
+    payload = built.payload;
   }
 
   // One completion path for both an immediate and a polled result, so the YouTube
@@ -147,39 +147,39 @@ export async function publishOne(
       accountId: destination.accountId,
       requestId: reqId,
       output: out,
-    }
+    };
     if (platform === 'youtube' && thumbnail?.imageUrl) {
-      result.note = await applyYouTubeThumbnail(deps, apiKey, destination.accountId, out, pickThumbnailUrl(thumbnail, 'youtube') || thumbnail.imageUrl)
+      result.note = await applyYouTubeThumbnail(deps, apiKey, destination.accountId, out, pickThumbnailUrl(thumbnail, 'youtube') || thumbnail.imageUrl);
     }
-    return result
-  }
+    return result;
+  };
 
-  let requestId = resumeRequestId || ''
+  let requestId = resumeRequestId || '';
   try {
     if (resumeRequestId) {
-      const again = await deps.poll(apiKey, resumeRequestId)
-      return await finish(again?.output ?? again?.data?.output ?? again, resumeRequestId)
+      const again = await deps.poll(apiKey, resumeRequestId);
+      return await finish(again?.output ?? again?.data?.output ?? again, resumeRequestId);
     }
-    const submit = await deps.publish[platform](apiKey, payload!)
-    requestId = String(submit?.request_id || submit?.id || '')
+    const submit = await deps.publish[platform](apiKey, payload!);
+    requestId = String(submit?.request_id || submit?.id || '');
     if (!requestId) {
       // Some responses complete immediately with an output; anything else is unexpected.
-      const done = String(submit?.status || '').toLowerCase() === 'completed'
-      const out = submit?.output ?? submit?.data?.output
-      if (done && out) return await finish(out, '')
-      return fail(`${label} did not accept the post (unexpected response from MuAPI). Nothing was published.`)
+      const done = String(submit?.status || '').toLowerCase() === 'completed';
+      const out = submit?.output ?? submit?.data?.output;
+      if (done && out) return await finish(out, '');
+      return fail(`${label} did not accept the post (unexpected response from MuAPI). Nothing was published.`);
     }
-    onSubmitted?.(requestId)
-    const final = await deps.poll(apiKey, requestId)
-    const out = final?.output ?? final?.data?.output ?? final
-    return await finish(out, requestId)
+    onSubmitted?.(requestId);
+    const final = await deps.poll(apiKey, requestId);
+    const out = final?.output ?? final?.data?.output ?? final;
+    return await finish(out, requestId);
   } catch (err) {
     // Once MuAPI has accepted the post (we hold a request id) a polling failure does not mean it did not post.
     if (requestId && !(err as any)?.isRejected) {
-      return fail(`${describePublishError(err, label)} The post was already sent to ${label}, so it may still go live. Use "Check again" instead of posting it a second time.`, requestId)
+      return fail(`${describePublishError(err, label)} The post was already sent to ${label}, so it may still go live. Use "Check again" instead of posting it a second time.`, requestId);
     }
     // A terminal rejection means nothing went live: drop the id so the destination can be submitted again.
-    return fail(describePublishError(err, label), (err as any)?.isRejected ? '' : requestId)
+    return fail(describePublishError(err, label), (err as any)?.isRejected ? '' : requestId);
   }
 }
 
@@ -198,27 +198,27 @@ export async function publishOrchestrator({
   deps = defaultDeps,
   resumeRequestIds,
 }: PublishOrchestratorOptions): Promise<PublishResult[]> {
-  const enabled = destinations.filter((d) => d.enabled && d.accountId)
-  if (enabled.length === 0) return []
+  const enabled = destinations.filter((d) => d.enabled && d.accountId);
+  if (enabled.length === 0) return [];
 
   const results: PublishResult[] = enabled.map((d) => ({
     platform: d.platform,
     status: 'queued',
     accountId: d.accountId,
     requestId: '',
-  }))
-  onProgress?.([...results])
+  }));
+  onProgress?.([...results]);
 
   for (let i = 0; i < enabled.length; i++) {
-    results[i] = { ...results[i], status: 'processing' }
-    onProgress?.([...results])
+    results[i] = { ...results[i], status: 'processing' };
+    onProgress?.([...results]);
     // A destination whose post MuAPI already accepted is only re-checked, never submitted a second time.
-    const resumeId = resumeRequestIds?.[`${enabled[i].platform}:${enabled[i].accountId ?? ''}`]
+    const resumeId = resumeRequestIds?.[`${enabled[i].platform}:${enabled[i].accountId ?? ''}`];
     results[i] = await publishOne(enabled[i], asset, copy, thumbnail, apiKey, deps, (requestId) => {
-      results[i] = { ...results[i], status: 'processing', requestId }
-      onProgress?.([...results])
-    }, resumeId)
-    onProgress?.([...results])
+      results[i] = { ...results[i], status: 'processing', requestId };
+      onProgress?.([...results]);
+    }, resumeId);
+    onProgress?.([...results]);
   }
-  return results
+  return results;
 }

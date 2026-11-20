@@ -390,7 +390,8 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
       return { ...state, assets: [...state.assets, action.asset] };
 
     case 'UPDATE_ASSET':
-      return { ...state, assets: state.assets.map((a) => {
+      return {
+ ...state, assets: state.assets.map((a) => {
         if (a.id !== action.asset.id) return a;
         const updated = { ...a, ...action.asset };
         // Deep-merge metadata so partial updates don't clobber existing keys
@@ -398,7 +399,8 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
           updated.metadata = { ...a.metadata, ...action.asset.metadata };
         }
         return updated;
-      }) };
+      }) 
+};
 
     case 'REMOVE_ASSET':
       return { ...state, assets: state.assets.filter((a) => a.id !== action.assetId) };

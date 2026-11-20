@@ -43,7 +43,7 @@ globalThis.localStorage = {
   getItem: (key) => (localStorageStore.has(key) ? localStorageStore.get(key) : null),
   setItem: (key, value) => { localStorageStore.set(key, String(value)); },
   removeItem: (key) => { localStorageStore.delete(key); },
-  clear: () => { localStorageStore.clear() },
+  clear: () => { localStorageStore.clear(); },
   key: (index) => [...localStorageStore.keys()][index] ?? null,
   get length() { return localStorageStore.size; },
 };

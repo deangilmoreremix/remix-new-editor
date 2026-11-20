@@ -19,20 +19,20 @@
  * grow taller than the canvas.
  */
 
-import React from 'react'
-import { WaveHello } from '../../_upstream/wave-hello/WaveHello'
-import { DesignStage, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
-import { shade, tint, toHex6 } from './batch3cShared'
+import React from 'react';
+import { WaveHello } from '../../_upstream/wave-hello/WaveHello';
+import { DesignStage, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
+import { shade, tint, toHex6 } from './batch3cShared';
 
 /** The upstream's cartoon skin tone. */
-export const WAVE_HELLO_SKIN = '#fbbf24'
+export const WAVE_HELLO_SKIN = '#fbbf24';
 
-const MAX_TITLE_LENGTH = 22
-const MAX_SUBTITLE_LENGTH = 48
+const MAX_TITLE_LENGTH = 22;
+const MAX_SUBTITLE_LENGTH = 48;
 
 export const WaveHelloDesign: React.FC<DesignAdapterProps> = (props) => {
-  const primary = toHex6(props.colors?.primary, '#3b82f6')
-  const deep = shade(primary, 0.5)
+  const primary = toHex6(props.colors?.primary, '#3b82f6');
+  const deep = shade(primary, 0.5);
 
   return (
     <DesignStage designId="wave-hello" props={props}>
@@ -46,7 +46,7 @@ export const WaveHelloDesign: React.FC<DesignAdapterProps> = (props) => {
         subtitle={truncateText(slotValue(props, 'subtitle'), MAX_SUBTITLE_LENGTH)}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default WaveHelloDesign
+export default WaveHelloDesign;

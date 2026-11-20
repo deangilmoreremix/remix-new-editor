@@ -21,13 +21,13 @@
  * `BATCH_3F_FIXED_SVG_IDS`).
  */
 
-import React from 'react'
+import React from 'react';
 import {
   ChartAnimation,
   type ChartAnimationPoint,
-} from '../../_upstream/rve-chart-animation/ChartAnimation'
-import { slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+} from '../../_upstream/rve-chart-animation/ChartAnimation';
+import { slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   FitCanvas,
   brandBackdrop,
@@ -36,7 +36,7 @@ import {
   fitScale,
   readableOnDark,
   rgba,
-} from './shared3f'
+} from './shared3f';
 
 /** The pinned placeholder bars (y on the upstream's 0-100 scale). */
 export const CHART_ANIMATION_PLACEHOLDER_DATA: ChartAnimationPoint[] = [
@@ -48,21 +48,21 @@ export const CHART_ANIMATION_PLACEHOLDER_DATA: ChartAnimationPoint[] = [
   { x: 5, y: 66, label: 'Jun' },
   { x: 6, y: 72, label: 'Jul' },
   { x: 7, y: 80, label: 'Aug' },
-]
+];
 
-const CARD_W = 940
-const CARD_H = 540
-const PREFERRED_SCALE = 1.25
+const CARD_W = 940;
+const CARD_H = 540;
+const PREFERRED_SCALE = 1.25;
 
 export const RveChartAnimationDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE)
-  const text = readableOnDark(props)
+  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE);
+  const text = readableOnDark(props);
   const title = truncateText(
     slotText(props, 'headline', ['businessName']),
     fitChars(CARD_W - 60, 28, 44),
-  )
+  );
   // A secondary slot never inherits the headline.
-  const subtitle = truncateText(slotValue(props, 'offer'), fitChars(CARD_W - 60, 16, 70))
+  const subtitle = truncateText(slotValue(props, 'offer'), fitChars(CARD_W - 60, 16, 70));
 
   return (
     <RveDesignStage designId="rve-chart-animation" props={props}>
@@ -81,7 +81,7 @@ export const RveChartAnimationDesign: React.FC<DesignAdapterProps> = (props) => 
         />
       </FitCanvas>
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveChartAnimationDesign
+export default RveChartAnimationDesign;

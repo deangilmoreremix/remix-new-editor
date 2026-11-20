@@ -14,30 +14,30 @@
  *    shatter-reveal, typewriter, eye-reveal, pencil-draw, social-reel,
  *    split-screen, community-chat.
  */
-import type { RemotionDesignTemplate } from '../../types'
-import { batch3aSource } from './batch3aShared'
-import { CommunityChatDesign } from './CommunityChatDesign'
-import { EyeRevealDesign } from './EyeRevealDesign'
-import { GradientTextSweepDesign } from './GradientTextSweepDesign'
-import { KineticWordStackDesign } from './KineticWordStackDesign'
-import { NeonSignDesign } from './NeonSignDesign'
-import { PencilDrawDesign } from './PencilDrawDesign'
-import { ScrambleTextDesign } from './ScrambleTextDesign'
-import { ShatterRevealDesign } from './ShatterRevealDesign'
-import { SocialReelDesign } from './SocialReelDesign'
-import { SplitScreenDesign } from './SplitScreenDesign'
-import { TypewriterDesign } from './TypewriterDesign'
-import { WaveTextDesign } from './WaveTextDesign'
+import type { RemotionDesignTemplate } from '../../types';
+import { batch3aSource } from './batch3aShared';
+import { CommunityChatDesign } from './CommunityChatDesign';
+import { EyeRevealDesign } from './EyeRevealDesign';
+import { GradientTextSweepDesign } from './GradientTextSweepDesign';
+import { KineticWordStackDesign } from './KineticWordStackDesign';
+import { NeonSignDesign } from './NeonSignDesign';
+import { PencilDrawDesign } from './PencilDrawDesign';
+import { ScrambleTextDesign } from './ScrambleTextDesign';
+import { ShatterRevealDesign } from './ShatterRevealDesign';
+import { SocialReelDesign } from './SocialReelDesign';
+import { SplitScreenDesign } from './SplitScreenDesign';
+import { TypewriterDesign } from './TypewriterDesign';
+import { WaveTextDesign } from './WaveTextDesign';
 
-const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5']
+const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5'];
 
 const SCOPED_CSS_NOTE =
   'A stylesheet scoped to this design instance overrides the frozen upstream (see the adapter); ' +
-  'it is plain in-DOM CSS, so it applies in the preview and in the browser export alike.'
+  'it is plain in-DOM CSS, so it applies in the preview and in the browser export alike.';
 
 /** Full-scene placement: fills the frame, plays as an intro, then reveals the video. */
 function introPlacement(endFrame: number): RemotionDesignTemplate['placement'] {
-  return { x: 0.5, y: 0.5, scale: 1, opacity: 1, animation: 'none', endFrame }
+  return { x: 0.5, y: 0.5, scale: 1, opacity: 1, animation: 'none', endFrame };
 }
 
 export const neonSignTemplate: RemotionDesignTemplate = {
@@ -71,7 +71,7 @@ export const neonSignTemplate: RemotionDesignTemplate = {
       'fit the sign frame. ' + SCOPED_CSS_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const gradientTextSweepTemplate: RemotionDesignTemplate = {
   id: 'gradient-text-sweep',
@@ -103,7 +103,7 @@ export const gradientTextSweepTemplate: RemotionDesignTemplate = {
       'colour). A faint accent glow washes the canvas. ' + SCOPED_CSS_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const kineticWordStackTemplate: RemotionDesignTemplate = {
   id: 'kinetic-word-stack',
@@ -131,7 +131,7 @@ export const kineticWordStackTemplate: RemotionDesignTemplate = {
       'more than five words are grouped into five lines. ' + SCOPED_CSS_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const scrambleTextTemplate: RemotionDesignTemplate = {
   id: 'scramble-text',
@@ -163,7 +163,7 @@ export const scrambleTextTemplate: RemotionDesignTemplate = {
       'it so the video shows through. ' + SCOPED_CSS_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const waveTextTemplate: RemotionDesignTemplate = {
   id: 'wave-text',
@@ -195,7 +195,7 @@ export const waveTextTemplate: RemotionDesignTemplate = {
       SCOPED_CSS_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const shatterRevealTemplate: RemotionDesignTemplate = {
   id: 'shatter-reveal',
@@ -226,7 +226,7 @@ export const shatterRevealTemplate: RemotionDesignTemplate = {
       'Plays as a 4-second intro card, then the video plays. ' + SCOPED_CSS_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const typewriterTemplate: RemotionDesignTemplate = {
   id: 'typewriter',
@@ -257,7 +257,7 @@ export const typewriterTemplate: RemotionDesignTemplate = {
       'intro card, then the video plays. ' + SCOPED_CSS_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const eyeRevealTemplate: RemotionDesignTemplate = {
   id: 'eye-reveal',
@@ -289,7 +289,7 @@ export const eyeRevealTemplate: RemotionDesignTemplate = {
       'the video plays. ' + SCOPED_CSS_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const pencilDrawTemplate: RemotionDesignTemplate = {
   id: 'pencil-draw',
@@ -320,7 +320,7 @@ export const pencilDrawTemplate: RemotionDesignTemplate = {
       'the video plays. ' + SCOPED_CSS_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const socialReelTemplate: RemotionDesignTemplate = {
   id: 'social-reel',
@@ -356,7 +356,7 @@ export const socialReelTemplate: RemotionDesignTemplate = {
       'scoped style rule and the like counter is replaced by "Like"; the "Follow"/"Share" labels stay. Plays as a 5-second intro card.',
   },
   previewCompatible: true,
-}
+};
 
 export const splitScreenTemplate: RemotionDesignTemplate = {
   id: 'split-screen',
@@ -389,7 +389,7 @@ export const splitScreenTemplate: RemotionDesignTemplate = {
       'side on 16:9 and stack on 1:1, 4:5 and 9:16. Plays as a 4-second intro card. ' + SCOPED_CSS_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const communityChatTemplate: RemotionDesignTemplate = {
   id: 'community-chat',
@@ -426,7 +426,7 @@ export const communityChatTemplate: RemotionDesignTemplate = {
       SCOPED_CSS_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 /** Batch 3a designs, in registration order. */
 export const BATCH_3A_TEMPLATES: RemotionDesignTemplate[] = [
@@ -442,9 +442,9 @@ export const BATCH_3A_TEMPLATES: RemotionDesignTemplate[] = [
   splitScreenTemplate,
   communityChatTemplate,
   pencilDrawTemplate,
-]
+];
 
 /** Batch 3a designs that hardcode SVG ids (one instance per composition). */
 export const BATCH_3A_FIXED_SVG_IDS: Record<string, string[]> = {
   'eye-reveal': ['eyeClip'],
-}
+};

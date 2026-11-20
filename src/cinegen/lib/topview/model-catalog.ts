@@ -308,8 +308,10 @@ function videoDefinition(model: CatalogModel): ModelDefinition {
     { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
   ];
   if (clipEdit) inputs.push(
-    { id: 'video_mode', portType: 'text', label: 'Video mode', required: false, falParam: 'video_mode', fieldType: 'select', default: 'auto',
-      options: [{ value: 'auto', label: 'Generate' }, { value: 'edit', label: 'Clip Edit', description: 'Edit one source video at up to 1080p. Length and framing match the source. Requires Topview Canvas MCP.' }] },
+    {
+ id: 'video_mode', portType: 'text', label: 'Video mode', required: false, falParam: 'video_mode', fieldType: 'select', default: 'auto',
+      options: [{ value: 'auto', label: 'Generate' }, { value: 'edit', label: 'Clip Edit', description: 'Edit one source video at up to 1080p. Length and framing match the source. Requires Topview Canvas MCP.' }] 
+},
     { id: 'source_video', portType: 'video', label: 'Video to edit', required: false, falParam: 'input_video', fieldType: 'port', mediaRole: 'video', description: 'Clip Edit source. Use a 720p or larger MP4/MOV; choose Clip Edit in Video mode.' },
   );
   if (supportsOmniReference) {
@@ -421,9 +423,11 @@ function fallbackModels(): CatalogModel[] {
       defaults: {},
       accepts: new Set<string>(),
     })),
-    ...mergeCatalog({ configs: gptImage25Catalog.models.map((model) => ({
+    ...mergeCatalog({
+ configs: gptImage25Catalog.models.map((model) => ({
       outputType: 'image', taskType: model.taskType, config: { models: [model] },
-    })) }),
+    })) 
+}),
     ...FALLBACK_VIDEO_MODELS.map((displayName) => ({
       displayName,
       outputType: 'video' as const,

@@ -1,13 +1,13 @@
 function getSupabaseUrl(): string | undefined {
   // Next.js / Node
   if (typeof process !== 'undefined' && process.env) {
-    return process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+    return process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   }
   // Vite
   if (typeof import.meta !== 'undefined' && import.meta.env) {
-    return import.meta.env.VITE_SUPABASE_URL
+    return import.meta.env.VITE_SUPABASE_URL;
   }
-  return undefined
+  return undefined;
 }
 
 // NOTE: OpenAI calls are proxied through /api/proxy/openai-enhance.
@@ -25,14 +25,14 @@ export async function callOpenAI(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt, mode }),
-  })
+  });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-    throw new Error(errorData.error || `OpenAI error: ${response.status}`)
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || `OpenAI error: ${response.status}`);
   }
 
-  return response.json()
+  return response.json();
 }
 
 /**
@@ -46,15 +46,15 @@ export async function callOpenAIChat(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, mode: 'chat' }),
-  })
+  });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-    throw new Error(errorData.error || `OpenAI error: ${response.status}`)
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || `OpenAI error: ${response.status}`);
   }
 
-  const data = await response.json()
-  return data.text || data.choices?.[0]?.message?.content || ''
+  const data = await response.json();
+  return data.text || data.choices?.[0]?.message?.content || '';
 }
 
 /**
@@ -65,15 +65,15 @@ export async function callOpenAIChat(
  */
 export class MissingOpenAiKeyError extends Error {
   constructor() {
-    super('No OpenAI API key provided. Add your OpenAI key in Settings and try again.')
-    this.name = 'MissingOpenAiKeyError'
+    super('No OpenAI API key provided. Add your OpenAI key in Settings and try again.');
+    this.name = 'MissingOpenAiKeyError';
   }
 }
 
 export async function callOpenAIResponses(input: any[], apiKey?: string): Promise<string> {
-  const key = apiKey && String(apiKey).trim()
+  const key = apiKey && String(apiKey).trim();
   if (!key) {
-    throw new MissingOpenAiKeyError()
+    throw new MissingOpenAiKeyError();
   }
 
   const response = await fetch('https://api.openai.com/v1/responses', {
@@ -87,37 +87,37 @@ export async function callOpenAIResponses(input: any[], apiKey?: string): Promis
       input,
       max_output_tokens: 3000,
     }),
-  })
+  });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-    throw new Error(errorData.error || `OpenAI error: ${response.status}`)
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || `OpenAI error: ${response.status}`);
   }
 
-  const result = await response.json()
-  return result.output?.[0]?.content?.[0]?.text || result.output_text || ''
+  const result = await response.json();
+  return result.output?.[0]?.content?.[0]?.text || result.output_text || '';
 }
 
 /**
  * Enhance a video prompt using AI
  */
 export async function enhancePrompt(prompt: string): Promise<string> {
-  const result = await callOpenAI(prompt, 'enhance')
-  return result.text
+  const result = await callOpenAI(prompt, 'enhance');
+  return result.text;
 }
 
 /**
  * Generate a video script from a description
  */
 export async function generateScript(description: string): Promise<string> {
-  const result = await callOpenAI(description, 'script')
-  return result.text
+  const result = await callOpenAI(description, 'script');
+  return result.text;
 }
 
 /**
  * Generate campaign copy from a description
  */
 export async function generateCampaignCopy(description: string): Promise<string> {
-  const result = await callOpenAI(description, 'campaign')
-  return result.text
+  const result = await callOpenAI(description, 'campaign');
+  return result.text;
 }

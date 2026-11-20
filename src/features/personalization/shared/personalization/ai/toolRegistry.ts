@@ -11,9 +11,9 @@
  * - Read / recommend tools may execute automatically when safe.
  */
 
-import type { ToolId, ToolDefinition, ToolCategory, ToolAction } from './types'
-import { buildStructuredAIResponse } from './responseBuilder'
-import { buildAIAssistContext } from './contextProvider'
+import type { ToolId, ToolDefinition, ToolCategory, ToolAction } from './types';
+import { buildStructuredAIResponse } from './responseBuilder';
+import { buildAIAssistContext } from './contextProvider';
 import type {
   PersonalizationSource,
   ClientProfile,
@@ -26,7 +26,7 @@ import type {
   ImagePersonalizationMode,
   PromptState,
   BusinessResearchResult,
-} from '../types'
+} from '../types';
 
 // ── AI Assist snapshot type ───────────────────────────────────────────────────
 
@@ -93,9 +93,9 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
     requiredArgs: ['assetId', 'previewUrl'],
     optionalArgs: ['hint'],
     validateArgs: (args) => {
-      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' }
-      if (typeof args.previewUrl !== 'string' || !args.previewUrl) return { valid: false, error: 'previewUrl is required' }
-      return { valid: true }
+      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' };
+      if (typeof args.previewUrl !== 'string' || !args.previewUrl) return { valid: false, error: 'previewUrl is required' };
+      return { valid: true };
     },
     requiresConfirmation: true,
   },
@@ -107,12 +107,12 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
     requiredArgs: ['assetId', 'section'],
     optionalArgs: [],
     validateArgs: (args) => {
-      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' }
-      const validSections = ['person', 'logo', 'products', 'brand', 'firstFrame', 'lastFrame', 'ctaGraphic']
+      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' };
+      const validSections = ['person', 'logo', 'products', 'brand', 'firstFrame', 'lastFrame', 'ctaGraphic'];
       if (typeof args.section !== 'string' || !validSections.includes(args.section)) {
-        return { valid: false, error: `section must be one of: ${validSections.join(', ')}` }
+        return { valid: false, error: `section must be one of: ${validSections.join(', ')}` };
       }
-      return { valid: true }
+      return { valid: true };
     },
     requiresConfirmation: true,
     costLabel: 'Reassigns asset to a different personalization section.',
@@ -125,9 +125,9 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
     requiredArgs: ['assetId', 'selected'],
     optionalArgs: [],
     validateArgs: (args) => {
-      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' }
-      if (typeof args.selected !== 'boolean') return { valid: false, error: 'selected must be a boolean' }
-      return { valid: true }
+      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' };
+      if (typeof args.selected !== 'boolean') return { valid: false, error: 'selected must be a boolean' };
+      return { valid: true };
     },
     requiresConfirmation: false,
   },
@@ -139,8 +139,8 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
     requiredArgs: ['assetId'],
     optionalArgs: [],
     validateArgs: (args) => {
-      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' }
-      return { valid: true }
+      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' };
+      return { valid: true };
     },
     requiresConfirmation: true,
     costLabel: 'Changes the primary logo used for exact branding overlay.',
@@ -153,9 +153,9 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
     requiredArgs: ['assetId', 'previewUrl'],
     optionalArgs: ['categoryHint'],
     validateArgs: (args) => {
-      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' }
-      if (typeof args.previewUrl !== 'string' || !args.previewUrl) return { valid: false, error: 'previewUrl is required' }
-      return { valid: true }
+      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' };
+      if (typeof args.previewUrl !== 'string' || !args.previewUrl) return { valid: false, error: 'previewUrl is required' };
+      return { valid: true };
     },
     requiresConfirmation: false,
   },
@@ -167,13 +167,13 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
     requiredArgs: ['assetId', 'operation'],
     optionalArgs: ['prompt', 'model', 'quality'],
     validateArgs: (args) => {
-      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' }
-      if (typeof args.operation !== 'string' || !args.operation) return { valid: false, error: 'operation is required' }
-      const validOps = ['remove_background', 'replace_face', 'replace_person', 'inpaint', 'style_transfer']
+      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' };
+      if (typeof args.operation !== 'string' || !args.operation) return { valid: false, error: 'operation is required' };
+      const validOps = ['remove_background', 'replace_face', 'replace_person', 'inpaint', 'style_transfer'];
       if (!validOps.includes(args.operation)) {
-        return { valid: false, error: `operation must be one of: ${validOps.join(', ')}` }
+        return { valid: false, error: `operation must be one of: ${validOps.join(', ')}` };
       }
-      return { valid: true }
+      return { valid: true };
     },
     requiresConfirmation: true,
     costLabel: 'Opens the image editor and applies an AI-powered operation. May incur generation cost.',
@@ -186,8 +186,8 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
     requiredArgs: ['assetId'],
     optionalArgs: [],
     validateArgs: (args) => {
-      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' }
-      return { valid: true }
+      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' };
+      return { valid: true };
     },
     requiresConfirmation: true,
     costLabel: 'Applies background removal. May incur generation cost.',
@@ -200,8 +200,8 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
     requiredArgs: ['assetId'],
     optionalArgs: ['businessName', 'industry'],
     validateArgs: (args) => {
-      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' }
-      return { valid: true }
+      if (typeof args.assetId !== 'string' || !args.assetId) return { valid: false, error: 'assetId is required' };
+      return { valid: true };
     },
     requiresConfirmation: true,
     costLabel: 'Processes asset for video use. May incur generation cost.',
@@ -258,53 +258,53 @@ export const TOOL_DEFINITIONS: readonly ToolDefinition[] = [
     requiresConfirmation: true,
     costLabel: 'Triggers video/image generation. This is an expensive operation.',
   },
-]
+];
 
 export const TOOL_REGISTRY = new Map<string, ToolDefinition>(
   TOOL_DEFINITIONS.map((t) => [t.id, t]),
-)
+);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 export function getToolDefinition(id: string): ToolDefinition | undefined {
-  return TOOL_REGISTRY.get(id)
+  return TOOL_REGISTRY.get(id);
 }
 
 export function validateToolAction(action: Partial<ToolAction> & { id: string }): { valid: boolean; error?: string } {
-  const tool = TOOL_REGISTRY.get(action.id)
+  const tool = TOOL_REGISTRY.get(action.id);
   if (!tool) {
-    return { valid: false, error: `Unknown tool: ${action.id}` }
+    return { valid: false, error: `Unknown tool: ${action.id}` };
   }
 
-  const missingRequired = tool.requiredArgs.filter((arg) => !(arg in (action.args || {})))
+  const missingRequired = tool.requiredArgs.filter((arg) => !(arg in (action.args || {})));
   if (missingRequired.length > 0) {
-    return { valid: false, error: `Missing required args: ${missingRequired.join(', ')}` }
+    return { valid: false, error: `Missing required args: ${missingRequired.join(', ')}` };
   }
 
-  const { valid, error } = tool.validateArgs(action.args || {})
+  const { valid, error } = tool.validateArgs(action.args || {});
   if (!valid) {
-    return { valid: false, error: error ? `Invalid arguments: ${error}` : 'Invalid arguments' }
+    return { valid: false, error: error ? `Invalid arguments: ${error}` : 'Invalid arguments' };
   }
 
-  return { valid: true }
+  return { valid: true };
 }
 
 export function isReadTool(category: ToolCategory): boolean {
-  return category === 'read' || category === 'recommend'
+  return category === 'read' || category === 'recommend';
 }
 
 export function isMutatingTool(category: ToolCategory): boolean {
-  return category === 'mutate'
+  return category === 'mutate';
 }
 
 export function isCostTool(category: ToolCategory): boolean {
-  return category === 'cost'
+  return category === 'cost';
 }
 
 export function requiresConfirmation(category: ToolCategory, toolRequiresConfirmation: boolean): boolean {
-  if (isCostTool(category)) return true
-  if (isMutatingTool(category)) return toolRequiresConfirmation
-  return false
+  if (isCostTool(category)) return true;
+  if (isMutatingTool(category)) return toolRequiresConfirmation;
+  return false;
 }
 
 export type ActionHandlers = Record<string, (...args: any[]) => any>
@@ -314,11 +314,11 @@ export interface ToolRegistry extends Record<string, (...args: any[]) => any> {
 }
 
 export function createDefaultToolRegistry(handlers: ActionHandlers): ToolRegistry {
-  const registry = {} as ToolRegistry
+  const registry = {} as ToolRegistry;
   for (const tool of TOOL_DEFINITIONS) {
-    const handler = handlers[tool.id]
+    const handler = handlers[tool.id];
     if (typeof handler === 'function') {
-      registry[tool.id] = handler
+      registry[tool.id] = handler;
     }
   }
   registry.processQuery = (query: string, snapshot: PersonalizationContextSnapshot) => {
@@ -336,8 +336,8 @@ export function createDefaultToolRegistry(handlers: ActionHandlers): ToolRegistr
       selectedBusiness: snapshot.selectedBusiness,
       businessResearch: snapshot.businessResearch.result ?? null,
       readiness: snapshot.readiness,
-    })
-    return buildStructuredAIResponse(query, ctx)
-  }
-  return registry
+    });
+    return buildStructuredAIResponse(query, ctx);
+  };
+  return registry;
 }

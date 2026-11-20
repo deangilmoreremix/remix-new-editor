@@ -41,39 +41,39 @@ const TEMPLATE_REFERENCE_MAP: Record<string, { type: string; label: string; acce
   'giant-product-showcase': { type: 'product', label: 'Product image', accept: 'image/*' },
   'street-portrait': { type: 'photo', label: 'Portrait reference', accept: 'image/*' },
   'virtual-try-on': { type: 'photo', label: 'Model photo', accept: 'image/*' },
-}
+};
 
-const DEFAULT_REF = { type: 'photo', label: 'Reference image (optional)', accept: 'image/*' }
+const DEFAULT_REF = { type: 'photo', label: 'Reference image (optional)', accept: 'image/*' };
 
 export default function ReferenceUploadZone({ templateId, references, onUpdate, disabled }: ReferenceUploadZoneProps) {
-  const config = templateId ? (TEMPLATE_REFERENCE_MAP[templateId] || DEFAULT_REF) : DEFAULT_REF
-  const [dragOver, setDragOver] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const config = templateId ? (TEMPLATE_REFERENCE_MAP[templateId] || DEFAULT_REF) : DEFAULT_REF;
+  const [dragOver, setDragOver] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = useCallback((files: FileList | null) => {
-    if (!files?.length) return
+    if (!files?.length) return;
     Array.from(files).forEach(file => {
-      if (!file.type.startsWith('image/')) return
-      const reader = new FileReader()
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
       reader.onload = (e) => {
-        const url = e.target?.result as string
-        onUpdate({ references: [...references, url] })
-      }
-      reader.readAsDataURL(file)
-    })
-  }, [references, onUpdate])
+        const url = e.target?.result as string;
+        onUpdate({ references: [...references, url] });
+      };
+      reader.readAsDataURL(file);
+    });
+  }, [references, onUpdate]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setDragOver(false)
-    handleFiles(e.dataTransfer.files)
-  }, [handleFiles])
+    e.preventDefault();
+    setDragOver(false);
+    handleFiles(e.dataTransfer.files);
+  }, [handleFiles]);
 
   const removeReference = useCallback((index: number) => {
-    onUpdate({ references: references.filter((_, i) => i !== index) })
-  }, [references, onUpdate])
+    onUpdate({ references: references.filter((_, i) => i !== index) });
+  }, [references, onUpdate]);
 
-  const hasMultiple = config.type === 'product' && templateId !== 'logo-transformer'
+  const hasMultiple = config.type === 'product' && templateId !== 'logo-transformer';
 
   return (
     <div className="space-y-2">
@@ -83,13 +83,13 @@ export default function ReferenceUploadZone({ templateId, references, onUpdate, 
 
       {/* Upload zone */}
       <div
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => !disabled && inputRef.current?.click()}
         role="button"
         tabIndex={disabled ? -1 : 0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') !disabled && inputRef.current?.click() }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') !disabled && inputRef.current?.click(); }}
         aria-label={`Upload ${config.type} reference`}
         className={`
           flex flex-col items-center justify-center gap-2 p-4 rounded-xl cursor-pointer
@@ -137,5 +137,5 @@ export default function ReferenceUploadZone({ templateId, references, onUpdate, 
         </div>
       )}
     </div>
-  )
+  );
 }

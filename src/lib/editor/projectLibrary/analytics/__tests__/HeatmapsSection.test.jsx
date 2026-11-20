@@ -8,15 +8,19 @@ import AnalyticsTabView from '../AnalyticsTabView.jsx';
 const NOW = new Date('2026-11-11T15:30:00Z');
 const VIDEO = { id: 'abcdefgh12', title: 'Kitchen' };
 const CLICKS = { suppressed: false, min_cohort: 5, sessions: 9, clicks: 14, grid: 50, cells: [[25, 12, 6], [5, 40, 8]], coarse: [[1, 1, 5]], coarse_grid: 10, other: null, withheld: true, page_buckets: [{ page_bucket: 3, clicks: 14 }] };
-const CTAS = { min_cohort: 5, sessions: 9, ctas: [
+const CTAS = {
+ min_cohort: 5, sessions: 9, ctas: [
   { cta_key: 'c1', kind: 'book_call', label: 'Book a call', impressions: 20, clicks: 5, ctr: 0.25, suppressed: false },
-  { cta_key: 'c2', kind: 'other', label: '=Sneaky', impressions: null, clicks: 2, ctr: null, suppressed: false }] };
+  { cta_key: 'c2', kind: 'other', label: '=Sneaky', impressions: null, clicks: 2, ctr: null, suppressed: false }] 
+};
 const ENG = { suppressed: false, sessions: 10, duration_s: 4, min_cohort: 5, seconds: { viewers: [9, 7, 5, null], replays: [0, 6, 0, null], skips: [0, 0, 5, null], dropoff_bins: [[0, 1, 5], [2, 3, 5]] } };
 const SCROLL = { suppressed: false, sessions: 10, min_cohort: 5, reached: { 25: 10, 50: 6, 75: null, 100: null }, cta_exposed_sessions: 4 };
 const mkClient = (over = {}) => {
   const calls = [];
-  return { calls, from: () => ({ select: () => ({ order: () => ({ limit: async () => ({ data: [{ id: 'abcdefgh12', title: 'Kitchen' }, { id: 'zzzzzzzz99', title: 'Other video' }], error: null }) }) }) }),
-    rpc: async (n, a) => { calls.push([n, a]); const m = { video_heat_clicks: CLICKS, video_heat_cta_stats: CTAS, video_heat_engagement: ENG, video_heat_scroll: SCROLL, ...over }; return { data: m[n], error: null }; } };
+  return {
+ calls, from: () => ({ select: () => ({ order: () => ({ limit: async () => ({ data: [{ id: 'abcdefgh12', title: 'Kitchen' }, { id: 'zzzzzzzz99', title: 'Other video' }], error: null }) }) }) }),
+    rpc: async (n, a) => { calls.push([n, a]); const m = { video_heat_clicks: CLICKS, video_heat_cta_stats: CTAS, video_heat_engagement: ENG, video_heat_scroll: SCROLL, ...over }; return { data: m[n], error: null }; } 
+};
 };
 afterEach(cleanup);
 const last = (c, n) => c.calls.filter(([x]) => x === n).at(-1)[1];
@@ -77,9 +81,13 @@ describe('Heatmaps section controls', () => {
     expect(screen.getByText('60%')).toBeTruthy();
   });
   it('shows suppressed cells distinctly and explains them (merged blocks, withheld clicks, hatched seconds, <5 CTA cells, merged scroll steps)', async () => {
-    const c = mkClient({ video_heat_cta_stats: { min_cohort: 5, sessions: 9, ctas: [
+    const c = mkClient({
+ video_heat_cta_stats: {
+ min_cohort: 5, sessions: 9, ctas: [
       { cta_key: 'c1', kind: 'book_call', label: 'Book a call', impressions: 20, clicks: null, clicks_suppressed: true, ctr: null, suppressed: false },
-      { cta_key: 'c2', kind: 'other', label: 'Other', impressions: null, clicks: null, ctr: null, suppressed: true }] } });
+      { cta_key: 'c2', kind: 'other', label: 'Other', impressions: null, clicks: null, ctr: null, suppressed: true }] 
+} 
+});
     render(<HeatmapsSection client={c} video={VIDEO} projectName="Kitchen" now={NOW} />);
     await waitFor(() => screen.getByTestId('heat-stage'));
     expect(screen.getAllByTestId('heat-block')).toHaveLength(1);
@@ -132,11 +140,15 @@ describe('Heatmaps tab inside the Analytics tab', () => {
   it('adds a Heatmaps tab that mounts the section', async () => {
     const full = { id: 'abcdefgh12', title: 'Kitchen', published: true, slug: 'k', revision: 1, updated_at: 'x', project: { timelineSeconds: 60, tracks: [] } };
     const base = mkClient();
-    const client = { calls: base.calls, rpc: base.rpc, from: (t) => {
-      const api = { select: () => api, eq: () => api, gte: () => api, lt: () => api, order: () => api, limit: () => api,
+    const client = {
+ calls: base.calls, rpc: base.rpc, from: (t) => {
+      const api = {
+ select: () => api, eq: () => api, gte: () => api, lt: () => api, order: () => api, limit: () => api,
         maybeSingle: async () => ({ data: t === 'published_videos' ? full : { business_slug: 'x' }, error: null }),
-        then: (res) => Promise.resolve({ data: [], error: null }).then(res) };
-      return api; } };
+        then: (res) => Promise.resolve({ data: [], error: null }).then(res) 
+};
+      return api; } 
+};
     render(<AnalyticsTabView client={client} projectRow={{ id: 'p1', name: 'Kitchen' }} now={NOW} />);
     const tab = await screen.findByRole('button', { name: 'Heatmaps' });
     fireEvent.click(tab);

@@ -29,7 +29,8 @@ interface DirectorBreakdownTabProps {
   onOpenElements: () => void;
 }
 
-export function DirectorBreakdownTab({ projectId,
+export function DirectorBreakdownTab({
+ projectId,
   show, elements, dirtyKeys, syncing, onChange, onCreateElement, onOpenElements,
 }: DirectorBreakdownTabProps) {
   const scenes = splitScenes(screenplayFromSource(show));

@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useRef, useState } from 'react'
-import { Music, Trash2, Upload } from 'lucide-react'
-import { C, badgeStyle, hintStyle, labelStyle, panelStyle, softPanelStyle } from './tokens'
+import { useRef, useState } from 'react';
+import { Music, Trash2, Upload } from 'lucide-react';
+import { C, badgeStyle, hintStyle, labelStyle, panelStyle, softPanelStyle } from './tokens';
 import {
   AUDIO_ACCEPT_ATTRIBUTE,
   AUDIO_MAX_UPLOAD_BYTES,
   formatAudioSize,
   validateAudioFile,
-} from './audioTrack'
-import type { PreviewAudioSelection } from '../preview/types'
+} from './audioTrack';
+import type { PreviewAudioSelection } from '../preview/types';
 
 export interface AudioTrackPickerProps {
   /** The applied audio selection, or null when none is applied. */
@@ -35,36 +35,36 @@ export function AudioTrackPicker({
   onApply,
   onRemove,
 }: AudioTrackPickerProps): React.JSX.Element {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [pending, setPending] = useState<{ file: File; url: string } | null>(null)
-  const [validationError, setValidationError] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [pending, setPending] = useState<{ file: File; url: string } | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleFile = (file: File | undefined) => {
-    if (!file) return
-    const message = validateAudioFile(file)
+    if (!file) return;
+    const message = validateAudioFile(file);
     if (message) {
-      setPending(null)
-      setValidationError(message)
-      return
+      setPending(null);
+      setValidationError(message);
+      return;
     }
-    setValidationError(null)
-    setPending({ file, url: URL.createObjectURL(file) })
-  }
+    setValidationError(null);
+    setPending({ file, url: URL.createObjectURL(file) });
+  };
 
   const clearPending = () => {
-    if (pending) URL.revokeObjectURL(pending.url)
-    setPending(null)
-  }
+    if (pending) URL.revokeObjectURL(pending.url);
+    setPending(null);
+  };
 
   const applyPending = () => {
-    if (!pending) return
-    const file = pending.file
-    setPending(null)
-    void onApply(file)
-  }
+    if (!pending) return;
+    const file = pending.file;
+    setPending(null);
+    void onApply(file);
+  };
 
-  const shownError = validationError || error || null
-  const saving = Boolean(audio && audio.url.startsWith('blob:'))
+  const shownError = validationError || error || null;
+  const saving = Boolean(audio && audio.url.startsWith('blob:'));
 
   return (
     <div style={panelStyle}>
@@ -151,5 +151,5 @@ export function AudioTrackPicker({
         </div>
       )}
     </div>
-  )
+  );
 }

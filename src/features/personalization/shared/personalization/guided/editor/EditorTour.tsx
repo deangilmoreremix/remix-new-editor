@@ -1,19 +1,19 @@
-import { useCallback, useEffect, useState } from 'react'
-import { C, hintStyle, secondaryButtonStyle, softPanelStyle } from '../tokens'
+import { useCallback, useEffect, useState } from 'react';
+import { C, hintStyle, secondaryButtonStyle, softPanelStyle } from '../tokens';
 
 /**
  * A short, dismissible first-run guide for the video editor, plus a keyboard-shortcut cheat sheet.
  * It is an inline card (not a modal), so it never blocks the stage. Dismissal is remembered in
  * localStorage; every storage call is wrapped because storage can be blocked or unavailable.
  */
-export const TOUR_STORAGE_KEY = 'personalization-editor-tour-dismissed'
+export const TOUR_STORAGE_KEY = 'personalization-editor-tour-dismissed';
 
 export const TOUR_STEPS: { title: string; body: string }[] = [
   { title: 'Pick a layer', body: 'Click any text, logo or image on the video, or choose it in the Layers list. The selected layer shows handles.' },
   { title: 'Drag and resize', body: 'Drag the layer to move it (pink lines show what it snaps to). Drag a handle to resize, or the round handle above it to rotate.' },
   { title: 'Retime on the timeline', body: 'Under the video, every layer has a bar. Drag it to change when the layer appears, or drag its ends to trim it.' },
   { title: 'Check the layout', body: 'The Layout check under the video tells you if text is hard to read or covers something important, and can fix it in one click.' },
-]
+];
 
 export const SHORTCUTS: { keys: string; does: string }[] = [
   { keys: '⌘Z / Ctrl+Z', does: 'Undo' },
@@ -23,19 +23,19 @@ export const SHORTCUTS: { keys: string; does: string }[] = [
   { keys: 'Shift while rotating', does: 'Snap rotation to 15° steps' },
   { keys: 'Delete', does: 'Hide the selected layer' },
   { keys: 'Esc', does: 'Close a tooltip or popover' },
-]
+];
 
 function readDismissed(): boolean {
   try {
-    return window.localStorage.getItem(TOUR_STORAGE_KEY) === '1'
+    return window.localStorage.getItem(TOUR_STORAGE_KEY) === '1';
   } catch {
-    return false
+    return false;
   }
 }
 
 function writeDismissed() {
   try {
-    window.localStorage.setItem(TOUR_STORAGE_KEY, '1')
+    window.localStorage.setItem(TOUR_STORAGE_KEY, '1');
   } catch {
     /* storage unavailable: the guide just shows again next time */
   }
@@ -43,27 +43,27 @@ function writeDismissed() {
 
 export function EditorTour(): React.JSX.Element {
   // Start closed so server and first client render match; open on mount for first-time users.
-  const [open, setOpen] = useState(false)
-  const [step, setStep] = useState(0)
-  const [showKeys, setShowKeys] = useState(false)
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(0);
+  const [showKeys, setShowKeys] = useState(false);
 
   useEffect(() => {
-    if (!readDismissed()) setOpen(true)
-  }, [])
+    if (!readDismissed()) setOpen(true);
+  }, []);
 
   const close = useCallback(() => {
-    writeDismissed()
-    setOpen(false)
-    setStep(0)
-  }, [])
+    writeDismissed();
+    setOpen(false);
+    setStep(0);
+  }, []);
 
-  const last = step === TOUR_STEPS.length - 1
-  const current = TOUR_STEPS[step]
+  const last = step === TOUR_STEPS.length - 1;
+  const current = TOUR_STEPS[step];
 
   return (
     <div data-testid="editor-tour-area">
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <button type="button" data-testid="editor-tour-open" onClick={() => { setOpen(true); setStep(0) }} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px' }}>
+        <button type="button" data-testid="editor-tour-open" onClick={() => { setOpen(true); setStep(0); }} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px' }}>
           Quick tour
         </button>
         <button type="button" data-testid="editor-shortcuts-toggle" aria-expanded={showKeys} onClick={() => setShowKeys((v) => !v)} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px' }}>
@@ -101,5 +101,5 @@ export function EditorTour(): React.JSX.Element {
         </section>
       )}
     </div>
-  )
+  );
 }

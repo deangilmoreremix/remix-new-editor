@@ -19,24 +19,24 @@
  * Full-frame placements use `animation: 'none'` and `opacity: 1` (the catalog
  * rule for any design at scale 1).
  */
-import type { RemotionDesignTemplate } from '../../types'
-import { CharacterJumpingDesign } from './CharacterJumpingDesign'
-import { FireworksBurstDesign } from './FireworksBurstDesign'
-import { KpiCounterDesign, KPI_PLACEHOLDER_METRICS } from './KpiCounterDesign'
-import { LineChartAnimDesign, LINE_CHART_PLACEHOLDER_POINTS } from './LineChartAnimDesign'
-import { LoopGridWaveDesign } from './LoopGridWaveDesign'
-import { ParallaxPanDesign } from './ParallaxPanDesign'
-import { ParticleSnowDesign } from './ParticleSnowDesign'
-import { RacingChartDesign } from './RacingChartDesign'
-import { ThinkingBubbleDesign } from './ThinkingBubbleDesign'
-import { WaveHelloDesign } from './WaveHelloDesign'
-import { repo1Source } from './batch3cShared'
+import type { RemotionDesignTemplate } from '../../types';
+import { CharacterJumpingDesign } from './CharacterJumpingDesign';
+import { FireworksBurstDesign } from './FireworksBurstDesign';
+import { KpiCounterDesign, KPI_PLACEHOLDER_METRICS } from './KpiCounterDesign';
+import { LineChartAnimDesign, LINE_CHART_PLACEHOLDER_POINTS } from './LineChartAnimDesign';
+import { LoopGridWaveDesign } from './LoopGridWaveDesign';
+import { ParallaxPanDesign } from './ParallaxPanDesign';
+import { ParticleSnowDesign } from './ParticleSnowDesign';
+import { RacingChartDesign } from './RacingChartDesign';
+import { ThinkingBubbleDesign } from './ThinkingBubbleDesign';
+import { WaveHelloDesign } from './WaveHelloDesign';
+import { repo1Source } from './batch3cShared';
 
-const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5']
+const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5'];
 
 /** Placement of an intro card that covers the frame and then reveals the video. */
 function introCard(endFrame: number): RemotionDesignTemplate['placement'] {
-  return { x: 0.5, y: 0.5, scale: 1, opacity: 1, animation: 'none', endFrame }
+  return { x: 0.5, y: 0.5, scale: 1, opacity: 1, animation: 'none', endFrame };
 }
 
 /** Placement of a full-frame overlay that stays for the whole clip. */
@@ -46,7 +46,7 @@ const FULL_FRAME_OVERLAY: RemotionDesignTemplate['placement'] = {
   scale: 1,
   opacity: 1,
   animation: 'none',
-}
+};
 
 export const lineChartAnimTemplate: RemotionDesignTemplate = {
   id: 'line-chart-anim',
@@ -84,7 +84,7 @@ export const lineChartAnimTemplate: RemotionDesignTemplate = {
       '(the chart shows no y values); the upstream demo data is never used.',
   },
   previewCompatible: true,
-}
+};
 
 export const kpiCounterTemplate: RemotionDesignTemplate = {
   id: 'kpi-counter',
@@ -123,7 +123,7 @@ export const kpiCounterTemplate: RemotionDesignTemplate = {
       '"Placeholder 1".."4" because the customer cannot enter metrics; the upstream demo figures are never used.',
   },
   previewCompatible: true,
-}
+};
 
 export const racingChartTemplate: RemotionDesignTemplate = {
   id: 'racing-chart',
@@ -153,7 +153,7 @@ export const racingChartTemplate: RemotionDesignTemplate = {
       'PINNED PLACEHOLDERS labelled "Placeholder A".."E"; the upstream demo series are never used.',
   },
   previewCompatible: true,
-}
+};
 
 export const characterJumpingTemplate: RemotionDesignTemplate = {
   id: 'character-jumping',
@@ -181,7 +181,7 @@ export const characterJumpingTemplate: RemotionDesignTemplate = {
       'label (truncated to fit the width), primary = character/backdrop, accent = sparkles.',
   },
   previewCompatible: true,
-}
+};
 
 export const thinkingBubbleTemplate: RemotionDesignTemplate = {
   id: 'thinking-bubble',
@@ -210,7 +210,7 @@ export const thinkingBubbleTemplate: RemotionDesignTemplate = {
       'ground tint, bubble outline and dots (accent). Mapping: headline = thought line.',
   },
   previewCompatible: true,
-}
+};
 
 export const waveHelloTemplate: RemotionDesignTemplate = {
   id: 'wave-hello',
@@ -239,7 +239,7 @@ export const waveHelloTemplate: RemotionDesignTemplate = {
       "the upstream's cartoon yellow. In portrait/square the text column is narrow, so the greeting wraps.",
   },
   previewCompatible: true,
-}
+};
 
 export const parallaxPanTemplate: RemotionDesignTemplate = {
   id: 'parallax-pan',
@@ -272,7 +272,7 @@ export const parallaxPanTemplate: RemotionDesignTemplate = {
       'headline = title, business name = subline, sky = primary shade to accent, ridges = primary shades.',
   },
   previewCompatible: true,
-}
+};
 
 export const fireworksBurstTemplate: RemotionDesignTemplate = {
   id: 'fireworks-burst',
@@ -308,7 +308,7 @@ export const fireworksBurstTemplate: RemotionDesignTemplate = {
       'subline, petals cycle primary/accent/text-derived colours.',
   },
   previewCompatible: true,
-}
+};
 
 export const loopGridWaveTemplate: RemotionDesignTemplate = {
   id: 'loop-grid-wave',
@@ -339,7 +339,7 @@ export const loopGridWaveTemplate: RemotionDesignTemplate = {
       'Transparent, full-frame overlay that loops seamlessly every 90 frames. Textless.',
   },
   previewCompatible: true,
-}
+};
 
 export const particleSnowTemplate: RemotionDesignTemplate = {
   id: 'particle-snow',
@@ -374,7 +374,7 @@ export const particleSnowTemplate: RemotionDesignTemplate = {
       '"snow-sky", so only one instance per composition. Mapping: headline = title, offer = subline.',
   },
   previewCompatible: true,
-}
+};
 
 /** Batch 3c designs, in registration order. */
 export const BATCH_3C_TEMPLATES: RemotionDesignTemplate[] = [
@@ -388,9 +388,9 @@ export const BATCH_3C_TEMPLATES: RemotionDesignTemplate[] = [
   loopGridWaveTemplate,
   parallaxPanTemplate,
   particleSnowTemplate,
-]
+];
 
 /** Batch 3c designs that hardcode SVG ids (one instance per composition). */
 export const BATCH_3C_FIXED_SVG_IDS: Record<string, string[]> = {
   'particle-snow': ['snow-sky'],
-}
+};

@@ -241,11 +241,13 @@ async function EffectsCatalogStudio() {
   inputLabel.textContent = 'Input';
   inputCol.appendChild(inputLabel);
 
-  const inputPreview = createMediaPreview({ maxHeight: '40vh', showDownload: false, showMeta: true, onClear: () => {
+  const inputPreview = createMediaPreview({
+ maxHeight: '40vh', showDownload: false, showMeta: true, onClear: () => {
     uploadedUrl = null;
     uploadedAssetId = null;
     inputPreview.clear();
-  }});
+  }
+});
   inputCol.appendChild(inputPreview.element);
 
   const uploadRow = document.createElement('div');

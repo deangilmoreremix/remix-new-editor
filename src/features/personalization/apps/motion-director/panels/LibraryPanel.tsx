@@ -312,7 +312,7 @@ export default function LibraryPanel({
               >
                 {c.labelEn} <span className="opacity-60">{n}</span>
               </button>
-            )
+            );
           })}
           </div>
         )}

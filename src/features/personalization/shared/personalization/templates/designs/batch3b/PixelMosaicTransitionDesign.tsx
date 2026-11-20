@@ -22,24 +22,24 @@
  * and the swap lands at layer frame 37.
  */
 
-import React from 'react'
-import { Freeze, Sequence, useCurrentFrame } from 'remotion'
-import { PixelMosaicTransition } from '../../_upstream/pixel-mosaic-transition/PixelMosaicTransition'
-import { DesignStage, pickColor, type DesignAdapterProps } from '../shared'
-import { FadeOut, ensureDark, ensureLight, hex6, mix } from './shared'
+import React from 'react';
+import { Freeze, Sequence, useCurrentFrame } from 'remotion';
+import { PixelMosaicTransition } from '../../_upstream/pixel-mosaic-transition/PixelMosaicTransition';
+import { DesignStage, pickColor, type DesignAdapterProps } from '../shared';
+import { FadeOut, ensureDark, ensureLight, hex6, mix } from './shared';
 
 /** Upstream frames skipped at the start (see LEAD-IN above). */
-export const MOSAIC_LEAD_IN = 8
+export const MOSAIC_LEAD_IN = 8;
 /** The upstream swaps A -> B at its frame 45 (DURATION_FRAMES / 2). */
-export const MOSAIC_SWAP_FRAME = 45 - MOSAIC_LEAD_IN
-export const MOSAIC_FADE_FRAMES = 12
-export const MOSAIC_END_FRAME = MOSAIC_SWAP_FRAME + MOSAIC_FADE_FRAMES
+export const MOSAIC_SWAP_FRAME = 45 - MOSAIC_LEAD_IN;
+export const MOSAIC_FADE_FRAMES = 12;
+export const MOSAIC_END_FRAME = MOSAIC_SWAP_FRAME + MOSAIC_FADE_FRAMES;
 
 export const PixelMosaicTransitionDesign: React.FC<DesignAdapterProps> = (props) => {
-  const frame = useCurrentFrame()
-  const primary = hex6(props.colors?.primary, '#29d3f2')
-  const accent = ensureLight(hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#28c98b'), 0.4)
-  const dark = ensureDark(mix(primary, '#000000', 0.8), 0.04)
+  const frame = useCurrentFrame();
+  const primary = hex6(props.colors?.primary, '#29d3f2');
+  const accent = ensureLight(hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#28c98b'), 0.4);
+  const dark = ensureDark(mix(primary, '#000000', 0.8), 0.04);
 
   return (
     <DesignStage designId="pixel-mosaic-transition" props={props}>
@@ -59,7 +59,7 @@ export const PixelMosaicTransitionDesign: React.FC<DesignAdapterProps> = (props)
         </Freeze>
       </FadeOut>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default PixelMosaicTransitionDesign
+export default PixelMosaicTransitionDesign;

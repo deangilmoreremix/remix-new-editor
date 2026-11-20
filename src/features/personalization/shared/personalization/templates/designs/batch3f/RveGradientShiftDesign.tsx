@@ -18,32 +18,32 @@
  * primary (the upstream walks three navy shades and back).
  */
 
-import React from 'react'
-import { GradientShift } from '../../_upstream/rve-gradient-shift/GradientShift'
-import { darkenColor, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { brandAccent, brandPrimary, rgbOf } from './shared3f'
+import React from 'react';
+import { GradientShift } from '../../_upstream/rve-gradient-shift/GradientShift';
+import { darkenColor, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { brandAccent, brandPrimary, rgbOf } from './shared3f';
 
 /** Opacity of the wash over the video. */
-export const GRADIENT_SHIFT_ALPHA = 0.32
+export const GRADIENT_SHIFT_ALPHA = 0.32;
 
-const FALLBACK = { r: 41, g: 211, b: 242 }
+const FALLBACK = { r: 41, g: 211, b: 242 };
 
 export const RveGradientShiftDesign: React.FC<DesignAdapterProps> = (props) => {
-  const primary = brandPrimary(props)
-  const accent = brandAccent(props)
+  const primary = brandPrimary(props);
+  const accent = brandAccent(props);
   const colors = [
     rgbOf(primary, FALLBACK),
     rgbOf(accent, FALLBACK),
     rgbOf(darkenColor(primary, 0.5), FALLBACK),
     rgbOf(primary, FALLBACK),
-  ]
+  ];
 
   return (
     <RveDesignStage designId="rve-gradient-shift" props={props}>
       <GradientShift colors={colors} alpha={GRADIENT_SHIFT_ALPHA} />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveGradientShiftDesign
+export default RveGradientShiftDesign;

@@ -24,10 +24,10 @@
  * size × zoom) and is truncated past that.
  */
 
-import React from 'react'
-import { AnimatedList, type AnimatedListItem } from '../../_upstream/rve-animated-list/AnimatedList'
-import { type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { AnimatedList, type AnimatedListItem } from '../../_upstream/rve-animated-list/AnimatedList';
+import { type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   READABLE_TEXT_SHADOW,
   brandPrimary,
@@ -39,55 +39,55 @@ import {
   slotText,
   slotValue,
   truncateText,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_ANIMATED_LIST_ID = 'rve-animated-list'
+export const RVE_ANIMATED_LIST_ID = 'rve-animated-list';
 
-const ZOOM = 1.4
+const ZOOM = 1.4;
 
 /** The most rows (the upstream shows three). */
-export const ANIMATED_LIST_MAX_ROWS = 3
+export const ANIMATED_LIST_MAX_ROWS = 3;
 
 /** The longest label. */
-const MAX_LABEL_LENGTH = 32
+const MAX_LABEL_LENGTH = 32;
 
 /** Picks the list rows from the brand fields. */
 export function animatedListLabels(props: DesignAdapterProps): string[] {
-  const rows: string[] = []
+  const rows: string[] = [];
   const push = (value: string) => {
-    const trimmed = value.trim()
+    const trimmed = value.trim();
     if (trimmed && !rows.includes(trimmed) && rows.length < ANIMATED_LIST_MAX_ROWS) {
-      rows.push(trimmed)
+      rows.push(trimmed);
     }
-  }
-  push(slotText(props, 'offer', []))
-  push(slotValue(props, 'phone'))
-  push(slotValue(props, 'website'))
-  push(slotValue(props, 'cta'))
-  push(slotValue(props, 'headline'))
-  push(slotValue(props, 'businessName'))
-  return rows.map((row) => truncateText(row, MAX_LABEL_LENGTH))
+  };
+  push(slotText(props, 'offer', []));
+  push(slotValue(props, 'phone'));
+  push(slotValue(props, 'website'));
+  push(slotValue(props, 'cta'));
+  push(slotValue(props, 'headline'));
+  push(slotValue(props, 'businessName'));
+  return rows.map((row) => truncateText(row, MAX_LABEL_LENGTH));
 }
 
 export const RveAnimatedListDesign: React.FC<DesignAdapterProps> = (props) => {
-  const labels = animatedListLabels(props)
+  const labels = animatedListLabels(props);
 
-  const rem = remUnit(props, ZOOM)
-  const column = props.width * 0.86
-  const longest = Math.max(1, ...labels.map((label) => label.length))
+  const rem = remUnit(props, ZOOM);
+  const column = props.width * 0.86;
+  const longest = Math.max(1, ...labels.map((label) => label.length));
   // Row = 2rem padding ×2 + disc (80/56 of the type) + 1rem gap + label.
-  const baseFont = 3.5 * rem
-  const dotRatio = 80 / 56
-  const labelSpace = (font: number) => column - 4 * rem - font * dotRatio - rem
-  let fontPx = fitFontPx(labelSpace(baseFont), longest, baseFont, 0.58, 0.5)
-  fontPx = fitFontPx(labelSpace(fontPx), longest, fontPx, 0.58, 0.85)
+  const baseFont = 3.5 * rem;
+  const dotRatio = 80 / 56;
+  const labelSpace = (font: number) => column - 4 * rem - font * dotRatio - rem;
+  let fontPx = fitFontPx(labelSpace(baseFont), longest, baseFont, 0.58, 0.5);
+  fontPx = fitFontPx(labelSpace(fontPx), longest, fontPx, 0.58, 0.85);
 
-  const primary = brandPrimary(props)
-  const ramp = [primary, lightenColor(primary, 0.3), lightenColor(primary, 0.55)]
+  const primary = brandPrimary(props);
+  const ramp = [primary, lightenColor(primary, 0.3), lightenColor(primary, 0.55)];
   const items: AnimatedListItem[] = labels.map((name, i) => ({
     name,
     color: ramp[i % ramp.length],
-  }))
+  }));
 
   return (
     <RveDesignStage designId={RVE_ANIMATED_LIST_ID} props={props}>
@@ -103,7 +103,7 @@ export const RveAnimatedListDesign: React.FC<DesignAdapterProps> = (props) => {
         textShadow={READABLE_TEXT_SHADOW}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveAnimatedListDesign
+export default RveAnimatedListDesign;

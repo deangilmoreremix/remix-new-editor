@@ -13,27 +13,27 @@
  *    customer's video on the "after" side where the upstream allows it (see
  *    each entry's notes for the ones that cannot be made transparent).
  */
-import type { RemotionDesignTemplate } from '../../types'
-import { CameraShakeDesign, CAMERA_SHAKE_END_FRAME } from './CameraShakeDesign'
-import { CardFlipTransitionDesign, CARD_FLIP_END_FRAME } from './CardFlipTransitionDesign'
-import { FlipPageTransitionDesign, FLIP_PAGE_END_FRAME } from './FlipPageTransitionDesign'
-import { FourToneMonoTitlerDesign } from './FourToneMonoTitlerDesign'
-import { InkSpreadTransitionDesign, INK_END_FRAME } from './InkSpreadTransitionDesign'
-import { PixelCandlestickOhlcDesign } from './PixelCandlestickOhlcDesign'
-import { PixelMosaicTransitionDesign, MOSAIC_END_FRAME } from './PixelMosaicTransitionDesign'
-import { PixelTypewriterQuoteDesign } from './PixelTypewriterQuoteDesign'
-import { PixelWaterfallCycleDesign } from './PixelWaterfallCycleDesign'
-import { PouroverDripFillGaugeDesign } from './PouroverDripFillGaugeDesign'
-import { SlideWipeDesign, SLIDE_WIPE_END_FRAME } from './SlideWipeDesign'
-import { CIRCLE_WIPE_END_FRAME, TransitionCircleWipeDesign } from './TransitionCircleWipeDesign'
-import { WHIP_PAN_DURATION, WhipPanDesign } from './WhipPanDesign'
-import { repo1Source } from './shared'
+import type { RemotionDesignTemplate } from '../../types';
+import { CameraShakeDesign, CAMERA_SHAKE_END_FRAME } from './CameraShakeDesign';
+import { CardFlipTransitionDesign, CARD_FLIP_END_FRAME } from './CardFlipTransitionDesign';
+import { FlipPageTransitionDesign, FLIP_PAGE_END_FRAME } from './FlipPageTransitionDesign';
+import { FourToneMonoTitlerDesign } from './FourToneMonoTitlerDesign';
+import { InkSpreadTransitionDesign, INK_END_FRAME } from './InkSpreadTransitionDesign';
+import { PixelCandlestickOhlcDesign } from './PixelCandlestickOhlcDesign';
+import { PixelMosaicTransitionDesign, MOSAIC_END_FRAME } from './PixelMosaicTransitionDesign';
+import { PixelTypewriterQuoteDesign } from './PixelTypewriterQuoteDesign';
+import { PixelWaterfallCycleDesign } from './PixelWaterfallCycleDesign';
+import { PouroverDripFillGaugeDesign } from './PouroverDripFillGaugeDesign';
+import { SlideWipeDesign, SLIDE_WIPE_END_FRAME } from './SlideWipeDesign';
+import { CIRCLE_WIPE_END_FRAME, TransitionCircleWipeDesign } from './TransitionCircleWipeDesign';
+import { WHIP_PAN_DURATION, WhipPanDesign } from './WhipPanDesign';
+import { repo1Source } from './shared';
 
-const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5']
+const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5'];
 
 const PIXEL_NOTE =
   'Pixel art is drawn at a low internal resolution and upscaled with image-rendering: pixelated; ' +
-  'the CRT skin uses mix-blend-mode and an feTurbulence noise filter, which should be checked in an exported frame.'
+  'the CRT skin uses mix-blend-mode and an feTurbulence noise filter, which should be checked in an exported frame.';
 
 export const fourToneMonoTitlerTemplate: RemotionDesignTemplate = {
   id: 'four-tone-mono-titler',
@@ -65,7 +65,7 @@ export const fourToneMonoTitlerTemplate: RemotionDesignTemplate = {
       'characters become spaces. The 480x270 scene is letterboxed on square canvases.',
   },
   previewCompatible: true,
-}
+};
 
 export const pixelTypewriterQuoteTemplate: RemotionDesignTemplate = {
   id: 'pixel-typewriter-quote',
@@ -97,7 +97,7 @@ export const pixelTypewriterQuoteTemplate: RemotionDesignTemplate = {
       'finishes by frame ~120. The pixel-kit dither pattern uses the fixed SVG id "bayer4" and the noise filter "px-noise".',
   },
   previewCompatible: true,
-}
+};
 
 export const pixelMosaicTransitionTemplate: RemotionDesignTemplate = {
   id: 'pixel-mosaic-transition',
@@ -127,7 +127,7 @@ export const pixelMosaicTransitionTemplate: RemotionDesignTemplate = {
       'frames still draw ~8k rects. Fixed SVG ids "bayer4" and "px-noise".',
   },
   previewCompatible: true,
-}
+};
 
 export const pouroverDripFillGaugeTemplate: RemotionDesignTemplate = {
   id: 'pourover-drip-fill-gauge',
@@ -155,7 +155,7 @@ export const pouroverDripFillGaugeTemplate: RemotionDesignTemplate = {
       'upstream text. Fixed SVG ids "bayer4" and "px-noise".',
   },
   previewCompatible: true,
-}
+};
 
 export const pixelCandlestickOhlcTemplate: RemotionDesignTemplate = {
   id: 'pixel-candlestick-ohlc',
@@ -183,7 +183,7 @@ export const pixelCandlestickOhlcTemplate: RemotionDesignTemplate = {
       'they are ILLUSTRATIVE, not real market data, and cannot be changed. Fixed SVG ids "bayer4" and "px-noise".',
   },
   previewCompatible: true,
-}
+};
 
 export const pixelWaterfallCycleTemplate: RemotionDesignTemplate = {
   id: 'pixel-waterfall-cycle',
@@ -211,7 +211,7 @@ export const pixelWaterfallCycleTemplate: RemotionDesignTemplate = {
       'the sky colour. The water colours are the upstream\'s fixed blue ramp. Fixed SVG ids "bayer4" and "px-noise".',
   },
   previewCompatible: true,
-}
+};
 
 export const cardFlipTransitionTemplate: RemotionDesignTemplate = {
   id: 'card-flip-transition',
@@ -239,7 +239,7 @@ export const cardFlipTransitionTemplate: RemotionDesignTemplate = {
       'The back face and backdrop are transparent, so the card flips onto the video; the layer ends at frame 75.',
   },
   previewCompatible: true,
-}
+};
 
 export const transitionCircleWipeTemplate: RemotionDesignTemplate = {
   id: 'transition-circle-wipe',
@@ -269,7 +269,7 @@ export const transitionCircleWipeTemplate: RemotionDesignTemplate = {
       'the accent ring riding its edge. Timing is pinned to 60 frames.',
   },
   previewCompatible: true,
-}
+};
 
 export const inkSpreadTransitionTemplate: RemotionDesignTemplate = {
   id: 'ink-spread-transition',
@@ -303,7 +303,7 @@ export const inkSpreadTransitionTemplate: RemotionDesignTemplate = {
       '220 px labels leave ~6 characters per line on narrower canvases.',
   },
   previewCompatible: true,
-}
+};
 
 export const flipPageTransitionTemplate: RemotionDesignTemplate = {
   id: 'flip-page-transition',
@@ -331,7 +331,7 @@ export const flipPageTransitionTemplate: RemotionDesignTemplate = {
       'onto the video; the layer ends at frame 75.',
   },
   previewCompatible: true,
-}
+};
 
 export const slideWipeTemplate: RemotionDesignTemplate = {
   id: 'slide-wipe',
@@ -359,7 +359,7 @@ export const slideWipeTemplate: RemotionDesignTemplate = {
       'scales with the canvas height, so tall formats are not offered.',
   },
   previewCompatible: true,
-}
+};
 
 export const whipPanTemplate: RemotionDesignTemplate = {
   id: 'whip-pan',
@@ -394,7 +394,7 @@ export const whipPanTemplate: RemotionDesignTemplate = {
       '(frames 76-90). Timing is pinned to 90 frames.',
   },
   previewCompatible: true,
-}
+};
 
 export const cameraShakeTemplate: RemotionDesignTemplate = {
   id: 'camera-shake',
@@ -426,7 +426,7 @@ export const cameraShakeTemplate: RemotionDesignTemplate = {
       'impact title intro that fades up from black, shakes on impact (0.9 s) and fades into the video (frames 78-90).',
   },
   previewCompatible: true,
-}
+};
 
 /** Batch 3b designs, in registration order. */
 export const BATCH_3B_TEMPLATES: RemotionDesignTemplate[] = [
@@ -443,7 +443,7 @@ export const BATCH_3B_TEMPLATES: RemotionDesignTemplate[] = [
   slideWipeTemplate,
   whipPanTemplate,
   cameraShakeTemplate,
-]
+];
 
 /** Batch 3b designs that hardcode SVG ids (one instance per composition). */
 export const BATCH_3B_FIXED_SVG_IDS: Record<string, string[]> = {
@@ -453,4 +453,4 @@ export const BATCH_3B_FIXED_SVG_IDS: Record<string, string[]> = {
   'pixel-candlestick-ohlc': ['bayer4', 'px-noise'],
   'pixel-waterfall-cycle': ['bayer4', 'px-noise'],
   'ink-spread-transition': ['ink-bleed', 'ink-core'],
-}
+};

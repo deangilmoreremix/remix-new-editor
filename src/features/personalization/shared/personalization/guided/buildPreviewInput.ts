@@ -12,16 +12,16 @@ import type {
   ClientProfile,
   PersonalizationAsset,
   PersonalizationSource,
-} from '../types'
-import type { ImageHints } from '../preview/imageStyle'
-import { endCardExtraLine } from '../preview/ctaSuggestions'
-import { imageRoleFromCategory } from '../preview/imagePresets'
-import { getCachedSamples, sampleCacheKey } from '../preview/placement/frameSampler'
+} from '../types';
+import type { ImageHints } from '../preview/imageStyle';
+import { endCardExtraLine } from '../preview/ctaSuggestions';
+import { imageRoleFromCategory } from '../preview/imagePresets';
+import { getCachedSamples, sampleCacheKey } from '../preview/placement/frameSampler';
 import type {
   PersonalizationPreviewSettings,
   PreviewInputProps,
   PreviewVideoRef,
-} from '../preview/types'
+} from '../preview/types';
 
 export interface BuildPreviewInputContext {
   source: PersonalizationSource | null
@@ -36,59 +36,59 @@ function firstUrl(
 ): string | null {
   for (const candidate of candidates) {
     if (typeof candidate === 'string' && candidate.trim().length > 0) {
-      return candidate
+      return candidate;
     }
   }
-  return null
+  return null;
 }
 
 export function buildPreviewInput(
   ctx: BuildPreviewInputContext,
 ): PreviewInputProps {
-  const { source, previewSettings, previewVideo, clientForm, assets } = ctx
+  const { source, previewSettings, previewVideo, clientForm, assets } = ctx;
 
-  const businessName = clientForm.businessName || clientForm.name || ''
-  const website = clientForm.website || ''
+  const businessName = clientForm.businessName || clientForm.name || '';
+  const website = clientForm.website || '';
   const callToAction =
     clientForm.callToAction ||
-    (website ? `Visit ${website}` : clientForm.phone ? `Call ${clientForm.phone}` : '')
+    (website ? `Visit ${website}` : clientForm.phone ? `Call ${clientForm.phone}` : '');
 
   // What the assets themselves say about each image (the measured hints saved with the
   // settings take precedence). `isHeadshot` is set ONLY for an asset the discovery
   // explicitly identified as a person photo with a portrait-like shape; a photo that merely
   // contains a person is not a headshot.
-  const assetHints: Record<string, ImageHints> = {}
+  const assetHints: Record<string, ImageHints> = {};
   const addHint = (asset: PersonalizationAsset | null | undefined) => {
-    if (!asset) return
-    const url = firstUrl(asset.uploadedUrl, asset.url)
-    if (!url) return
-    const aspect = asset.width && asset.height ? asset.width / asset.height : undefined
-    const hint: ImageHints = {}
-    if (aspect && aspect > 0) hint.aspect = aspect
-    if (asset.hasTransparency) hint.hasTransparency = true
-    if (asset.sourceCategory === 'person' && aspect && aspect >= 0.7 && aspect <= 1.4) hint.isHeadshot = true
+    if (!asset) return;
+    const url = firstUrl(asset.uploadedUrl, asset.url);
+    if (!url) return;
+    const aspect = asset.width && asset.height ? asset.width / asset.height : undefined;
+    const hint: ImageHints = {};
+    if (aspect && aspect > 0) hint.aspect = aspect;
+    if (asset.hasTransparency) hint.hasTransparency = true;
+    if (asset.sourceCategory === 'person' && aspect && aspect >= 0.7 && aspect <= 1.4) hint.isHeadshot = true;
     // The explicit role: logo slot → logo; otherwise the discovery category. Never a filename or discovery order.
-    if (asset.role === 'logo') hint.role = 'logo'
-    else if (asset.sourceCategory) hint.role = imageRoleFromCategory(asset.sourceCategory)
-    if (Object.keys(hint).length) assetHints[url] = hint
-  }
-  addHint(assets.primaryLogo)
-  assets.products?.slice(0, 2).forEach(addHint)
-  const imageHints: Record<string, ImageHints> = { ...assetHints }
+    if (asset.role === 'logo') hint.role = 'logo';
+    else if (asset.sourceCategory) hint.role = imageRoleFromCategory(asset.sourceCategory);
+    if (Object.keys(hint).length) assetHints[url] = hint;
+  };
+  addHint(assets.primaryLogo);
+  assets.products?.slice(0, 2).forEach(addHint);
+  const imageHints: Record<string, ImageHints> = { ...assetHints };
   for (const [url, measured] of Object.entries(previewSettings.imageHints ?? {})) {
-    imageHints[url] = { ...assetHints[url], ...measured }
+    imageHints[url] = { ...assetHints[url], ...measured };
   }
 
   // A transparent logo's padding-trimmed copy (made once in the browser) replaces the original URL here, so every
   // consumer — gallery, editor, preview and export — draws the same cropped logo.
-  const originalLogoUrl = firstUrl(assets.primaryLogo?.uploadedUrl, assets.primaryLogo?.url)
-  const logoUrl = (originalLogoUrl && imageHints[originalLogoUrl]?.trimmedUrl) || originalLogoUrl
+  const originalLogoUrl = firstUrl(assets.primaryLogo?.uploadedUrl, assets.primaryLogo?.url);
+  const logoUrl = (originalLogoUrl && imageHints[originalLogoUrl]?.trimmedUrl) || originalLogoUrl;
 
-  const videoUrl = previewVideo?.url || (source?.mediaType === 'image' ? null : source?.sourceMedia) || null
+  const videoUrl = previewVideo?.url || (source?.mediaType === 'image' ? null : source?.sourceMedia) || null;
   // Measured on the cover crop of this frame shape (see useLayoutQuality), so read it the same way.
   const lumaSamples = source?.mediaType === 'image'
     ? null
-    : getCachedSamples(sampleCacheKey(videoUrl, previewSettings.width, previewSettings.height))
+    : getCachedSamples(sampleCacheKey(videoUrl, previewSettings.width, previewSettings.height));
 
   return {
     // remix-new-editor: a still-image source is the background picture, not a video: keep it
@@ -122,5 +122,5 @@ export function buildPreviewInput(
         assets.products?.[0]?.url,
       ),
     },
-  }
+  };
 }

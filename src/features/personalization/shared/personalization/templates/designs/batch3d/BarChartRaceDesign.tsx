@@ -28,19 +28,19 @@
  * 18 + 135 + 45 = `BRITO_BAR_CHART_RACE_FRAMES` (198 frames).
  */
 
-import React from 'react'
-import { BarChartRace } from '../../_upstream/brito-bar-chart-race/BarChartRace'
-import type { ChartProps } from '../../_upstream/brito-bar-chart-race/sample-data'
-import { seriesColor } from '../../_upstream/brito-lib/colors'
-import { pickColor, slotText, truncateText, type DesignAdapterProps } from '../shared'
+import React from 'react';
+import { BarChartRace } from '../../_upstream/brito-bar-chart-race/BarChartRace';
+import type { ChartProps } from '../../_upstream/brito-bar-chart-race/sample-data';
+import { seriesColor } from '../../_upstream/brito-lib/colors';
+import { pickColor, slotText, truncateText, type DesignAdapterProps } from '../shared';
 import {
   BritoDesignStage,
   britoChartBackground,
   britoFitChars,
   britoRootBackgroundCss,
-} from './britoShared'
+} from './britoShared';
 
-export const BRITO_BAR_CHART_RACE_ID = 'brito-bar-chart-race'
+export const BRITO_BAR_CHART_RACE_ID = 'brito-bar-chart-race';
 
 /**
  * The pinned placeholder dataset shared by both repo-3 charts.
@@ -56,16 +56,16 @@ export const BRITO_CHART_PLACEHOLDER: Omit<ChartProps, 'title'> = {
     { label: 'Sample C', color: '#8B5CF6', values: [10, 31, 66, 82] },
     { label: 'Sample D', color: '#F59E0B', values: [56, 53, 50, 48] },
   ],
-}
+};
 
 /** 18-frame intro + 3 steps x 45 frames + 45-frame hold. */
-export const BRITO_BAR_CHART_RACE_FRAMES = 18 + (BRITO_CHART_PLACEHOLDER.steps.length - 1) * 45 + 45
+export const BRITO_BAR_CHART_RACE_FRAMES = 18 + (BRITO_CHART_PLACEHOLDER.steps.length - 1) * 45 + 45;
 
 /** Brand primary, brand accent, then the upstream's categorical colours. */
 export function britoSeriesColors(primary: string, accent: string, count: number): string[] {
   return Array.from({ length: count }, (_, i) =>
     i === 0 ? primary : i === 1 ? accent : seriesColor(i),
-  )
+  );
 }
 
 type ChartAdapterProps = DesignAdapterProps & {
@@ -77,16 +77,16 @@ export const BritoBarChartRaceDesign: React.FC<ChartAdapterProps> = (props) => {
   const data =
     props.chartData && Array.isArray(props.chartData.series) && props.chartData.series.length > 0
       ? props.chartData
-      : BRITO_CHART_PLACEHOLDER
-  const primary = pickColor([props.colors?.primary], '#2563EB')
-  const accent = pickColor([props.colors?.accent], '#0EA5E9')
-  const colors = britoSeriesColors(primary, accent, data.series.length)
+      : BRITO_CHART_PLACEHOLDER;
+  const primary = pickColor([props.colors?.primary], '#2563EB');
+  const accent = pickColor([props.colors?.accent], '#0EA5E9');
+  const colors = britoSeriesColors(primary, accent, data.series.length);
 
   // 64 px title from x = 70; one line, so it never reaches the bars at y = 210.
   const title = truncateText(
     slotText(props, 'title', ['businessName']),
     britoFitChars(props.width - 140, 64, 56, 0.6),
-  )
+  );
 
   return (
     <BritoDesignStage
@@ -101,7 +101,7 @@ export const BritoBarChartRaceDesign: React.FC<ChartAdapterProps> = (props) => {
         series={data.series.map((s, i) => ({ ...s, color: colors[i] }))}
       />
     </BritoDesignStage>
-  )
-}
+  );
+};
 
-export default BritoBarChartRaceDesign
+export default BritoBarChartRaceDesign;

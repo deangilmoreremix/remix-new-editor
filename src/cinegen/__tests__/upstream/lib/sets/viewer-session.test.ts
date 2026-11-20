@@ -6,9 +6,11 @@ import { FULL_FRAME } from '@cinegen/lib/sets/optics';
 beforeEach(() => localStorage.clear());
 describe('Set working view', () => {
   it('restores the full camera, lens and editing state independently of the saved starting view', () => {
-    const session: ViewerSession = { camera: {position:[2,3,4],target:[1,2,0],up:[.3,.9,0],verticalFov:38}, focalMm:50,
+    const session: ViewerSession = {
+ camera: {position:[2,3,4],target:[1,2,0],up:[.3,.9,0],verticalFov:38}, focalMm:50,
       sensor:FULL_FRAME,navMode:'pan',tuning:DEFAULT_SCAN_TUNING,placementMode:'standin',selectedStandIn:'actor',
-      floorGizmoMode:'tilt',standInGizmoMode:'size',openSections:['Lens','Stand-ins'],panelScroll:182 };
+      floorGizmoMode:'tilt',standInGizmoMode:'size',openSections:['Lens','Stand-ins'],panelScroll:182 
+};
     const key=viewerSessionKey('project','room');
     writeViewerSession(key,session); writeLastSet('project','room');
     expect(readViewerSession(key)).toEqual(session);

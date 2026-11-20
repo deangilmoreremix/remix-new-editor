@@ -5,13 +5,13 @@
  * Feels like part of Personalization — not a separate stacked modal.
  */
 
-'use client'
+'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Loader2, AlertTriangle, CheckCircle2, X, ChevronRight, Sparkles, Wrench } from 'lucide-react'
-import type { AIStructuredResponse, AIAssistState, ToolAction, AIRecommendation, AIMissingRequirement, AIWarning, AIGenerationPlan } from './types'
-import { EMPTY_AI_ASSIST_STATE } from './types'
-import { validateToolAction, requiresConfirmation, isReadTool } from './toolRegistry'
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, Loader2, AlertTriangle, CheckCircle2, X, ChevronRight, Sparkles, Wrench } from 'lucide-react';
+import type { AIStructuredResponse, AIAssistState, ToolAction, AIRecommendation, AIMissingRequirement, AIWarning, AIGenerationPlan } from './types';
+import { EMPTY_AI_ASSIST_STATE } from './types';
+import { validateToolAction, requiresConfirmation, isReadTool } from './toolRegistry';
 
 const C = {
   panel: '#141414',
@@ -28,10 +28,10 @@ const C = {
   danger: '#ef4444',
   purple: '#c4e600',
   purpleSoft: 'rgba(196,230,0,.12)',
-}
+};
 
 function classNames(...classes: (string | boolean | undefined | null | false)[]) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ');
 }
 
 interface AIAssistPanelProps {
@@ -44,45 +44,45 @@ interface AIAssistPanelProps {
 }
 
 export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, onDismissAction, onDismiss, disabled }: AIAssistPanelProps) {
-  const [input, setInput] = useState('')
-  const [isSending, setIsSending] = useState(false)
-  const [confirmingAction, setConfirmingAction] = useState<string | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [input, setInput] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [confirmingAction, setConfirmingAction] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [state.lastResponse, state.pendingActions])
+  }, [state.lastResponse, state.pendingActions]);
 
   const handleSend = useCallback(async () => {
-    const trimmed = input.trim()
-    if (!trimmed || isSending || disabled) return
-    setIsSending(true)
+    const trimmed = input.trim();
+    if (!trimmed || isSending || disabled) return;
+    setIsSending(true);
     try {
-      await onSendMessage(trimmed)
-      setInput('')
+      await onSendMessage(trimmed);
+      setInput('');
     } finally {
-      setIsSending(false)
+      setIsSending(false);
     }
-  }, [input, isSending, disabled, onSendMessage])
+  }, [input, isSending, disabled, onSendMessage]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
+      e.preventDefault();
+      handleSend();
     }
-  }, [handleSend])
+  }, [handleSend]);
 
   const handleConfirmAction = useCallback(async (action: ToolAction) => {
-    setConfirmingAction(action.id + (action.targetAssetId || ''))
+    setConfirmingAction(action.id + (action.targetAssetId || ''));
     try {
-      await onConfirmAction(action)
+      await onConfirmAction(action);
     } finally {
-      setConfirmingAction(null)
+      setConfirmingAction(null);
     }
-  }, [onConfirmAction])
+  }, [onConfirmAction]);
 
   if (state.status === 'idle' && !state.lastResponse) {
     return (
@@ -136,10 +136,10 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
           </button>
         </div>
       </div>
-    )
+    );
   }
 
-  const response = state.lastResponse
+  const response = state.lastResponse;
 
   return (
     <div className="rounded-[16px] border space-y-3" style={{ background: C.panel, borderColor: C.border }}>
@@ -400,5 +400,5 @@ export default function AIAssistPanel({ state, onSendMessage, onConfirmAction, o
         </button>
       </div>
     </div>
-  )
+  );
 }

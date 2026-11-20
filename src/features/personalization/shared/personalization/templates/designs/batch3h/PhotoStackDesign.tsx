@@ -11,10 +11,10 @@
  * print — the last to land — carries the business name).
  */
 
-import React from 'react'
-import { PhotoStack } from '../../_upstream/rve-photo-stack/PhotoStack'
-import { slotText, slotValue, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { PhotoStack } from '../../_upstream/rve-photo-stack/PhotoStack';
+import { slotText, slotValue, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   BrandMediaFill,
   brandGradients,
@@ -24,26 +24,26 @@ import {
   cycleImages,
   fitLine,
   sceneBackground,
-} from './media'
+} from './media';
 
 /** How much larger than the upstream 200x260 print the adapter draws. */
-const PRINT_SCALE = 2.4
+const PRINT_SCALE = 2.4;
 
 export const RvePhotoStackDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const f = PRINT_SCALE * k
-  const photoWidth = Math.round(200 * f)
-  const labelPx = Math.round(19.2 * f)
+  const k = canvasScale(props);
+  const f = PRINT_SCALE * k;
+  const photoWidth = Math.round(200 * f);
+  const labelPx = Math.round(19.2 * f);
 
-  const name = slotText(props, 'businessName', ['headline'])
+  const name = slotText(props, 'businessName', ['headline']);
   // Bottom → top: the last print lands on top, so it gets the business name.
-  const raw = [slotValue(props, 'offer'), slotValue(props, 'headline'), name]
-  const labels = raw.map((value) => fitLine(value || name, photoWidth * 0.85, labelPx, 24))
+  const raw = [slotValue(props, 'offer'), slotValue(props, 'headline'), name];
+  const labels = raw.map((value) => fitLine(value || name, photoWidth * 0.85, labelPx, 24));
 
-  const gradients = brandGradients(props)
-  const slots = cycleImages(brandImages(props), 3)
-  const { text: textColor } = brandPalette(props)
-  const rotations = [-5, 0, 5]
+  const gradients = brandGradients(props);
+  const slots = cycleImages(brandImages(props), 3);
+  const { text: textColor } = brandPalette(props);
+  const rotations = [-5, 0, 5];
 
   const photos = labels.map((label, i) => ({
     label,
@@ -59,7 +59,7 @@ export const RvePhotoStackDesign: React.FC<DesignAdapterProps> = (props) => {
         showLabel={false}
       />
     ) : undefined,
-  }))
+  }));
 
   return (
     <RveDesignStage designId="rve-photo-stack" props={props}>
@@ -80,7 +80,7 @@ export const RvePhotoStackDesign: React.FC<DesignAdapterProps> = (props) => {
         labelWhiteSpace="nowrap"
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RvePhotoStackDesign
+export default RvePhotoStackDesign;

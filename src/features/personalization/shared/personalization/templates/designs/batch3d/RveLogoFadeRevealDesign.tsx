@@ -11,18 +11,18 @@
  * Sizes are canvas-relative (see `./rveLogoShared.ts`).
  */
 
-import React from 'react'
-import { LogoFadeReveal } from '../../_upstream/rve-logo-fade-reveal/LogoFadeReveal'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { TRANSPARENT, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { rveLogoBrand, rvePx, rveRemPx, rveLogoScale } from './rveLogoShared'
+import React from 'react';
+import { LogoFadeReveal } from '../../_upstream/rve-logo-fade-reveal/LogoFadeReveal';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { TRANSPARENT, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { rveLogoBrand, rvePx, rveRemPx, rveLogoScale } from './rveLogoShared';
 
-export const RVE_LOGO_FADE_REVEAL_ID = 'rve-logo-fade-reveal'
+export const RVE_LOGO_FADE_REVEAL_ID = 'rve-logo-fade-reveal';
 
 export const RveLogoFadeRevealDesign: React.FC<DesignAdapterProps> = (props) => {
-  const brand = rveLogoBrand(props)
-  const k = rveLogoScale(props)
+  const brand = rveLogoBrand(props);
+  const k = rveLogoScale(props);
   return (
     <RveDesignStage designId={RVE_LOGO_FADE_REVEAL_ID} props={props}>
       <LogoFadeReveal
@@ -46,7 +46,7 @@ export const RveLogoFadeRevealDesign: React.FC<DesignAdapterProps> = (props) => 
         taglineMarginTop={rveRemPx(props, 0.5)}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveLogoFadeRevealDesign
+export default RveLogoFadeRevealDesign;

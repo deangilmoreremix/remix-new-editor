@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest'
-import { act } from 'react'
-import { createRoot } from 'react-dom/client'
-import { screen } from '@testing-library/react'
-import { DemoPersonalizeProvider, useDemoPersonalize } from '../DemoPersonalizeProvider'
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
+import { act } from 'react';
+import { createRoot } from 'react-dom/client';
+import { screen } from '@testing-library/react';
+import { DemoPersonalizeProvider, useDemoPersonalize } from '../DemoPersonalizeProvider';
 
 beforeAll(() => {
-  globalThis.IS_REACT_ACT_ENVIRONMENT = true
-})
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+});
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -18,14 +18,14 @@ vi.mock('next/navigation', () => ({
     refresh: vi.fn(),
     prefetch: vi.fn(),
   }),
-}))
+}));
 
 vi.mock('@ohb/components/SocialPublishProvider', () => ({
   SocialPublishContext: { Provider: ({ children }: any) => children, Consumer: ({ children }: any) => children(null) } as any,
   useSocialPublish: () => {
-    throw new Error('useSocialPublish must be used within a <SocialPublishProvider>')
+    throw new Error('useSocialPublish must be used within a <SocialPublishProvider>');
   },
-}))
+}));
 
 vi.mock('@ohb/lib/authConfig', () => ({
   useAuthConfig: () => ({
@@ -40,91 +40,91 @@ vi.mock('@ohb/lib/authConfig', () => ({
     hasOpenAiKey: false,
     isAuthenticated: true,
   }),
-}))
+}));
 
 vi.mock('../promptPersonalizer', () => ({
   personalizePrompt: vi.fn(),
   regeneratePrompt: vi.fn(),
-}))
+}));
 
 vi.mock('../generationRouter', () => ({
   runGeneration: vi.fn(),
-}))
+}));
 
 vi.mock('../postProcessor', () => ({
   applyPostProcessing: vi.fn(),
   generateEndCardImage: vi.fn(),
-}))
+}));
 
 vi.mock('@ohb/packages/studio/src/muapi', () => ({
   uploadFile: vi.fn(),
-}))
+}));
 
 function TestOpener({ source, onMounted }: { source: any; onMounted: (open: (opts: any) => void) => void }) {
   const ctx = useDemoPersonalize()
-  ;(window as any).__personalizationCtx = ctx
-  onMounted(ctx.openPersonalize)
-  return null
+  ;(window as any).__personalizationCtx = ctx;
+  onMounted(ctx.openPersonalize);
+  return null;
 }
 
 describe('Discovered Assets Integration', () => {
-  let mockUploadFile: any
-  let originalFetch: typeof globalThis.fetch
-  let originalCreateObjectURL: typeof URL.createObjectURL
-  let originalRevokeObjectURL: typeof URL.revokeObjectURL
-  const roots: { root: ReturnType<typeof createRoot>; container: HTMLDivElement }[] = []
+  let mockUploadFile: any;
+  let originalFetch: typeof globalThis.fetch;
+  let originalCreateObjectURL: typeof URL.createObjectURL;
+  let originalRevokeObjectURL: typeof URL.revokeObjectURL;
+  const roots: { root: ReturnType<typeof createRoot>; container: HTMLDivElement }[] = [];
 
   const unmountAll = async () => {
     for (const { root, container } of roots) {
       try {
         await act(async () => {
-          root.unmount()
-        })
+          root.unmount();
+        });
       } catch {
         // ignore unmount errors
       }
       if (container.parentNode) {
-        container.parentNode.removeChild(container)
+        container.parentNode.removeChild(container);
       }
     }
-    roots.length = 0
-  }
+    roots.length = 0;
+  };
 
   beforeEach(async () => {
-    vi.clearAllMocks()
-    originalFetch = globalThis.fetch
-    originalCreateObjectURL = URL.createObjectURL
-    originalRevokeObjectURL = URL.revokeObjectURL
-    URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test')
-    URL.revokeObjectURL = vi.fn()
-    document.body.innerHTML = ''
+    vi.clearAllMocks();
+    originalFetch = globalThis.fetch;
+    originalCreateObjectURL = URL.createObjectURL;
+    originalRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test');
+    URL.revokeObjectURL = vi.fn();
+    document.body.innerHTML = '';
     await unmountAll()
-    ;(window as any).__personalizationCtx = null
+    ;(window as any).__personalizationCtx = null;
     if (typeof localStorage !== 'undefined') {
-      localStorage.clear()
+      localStorage.clear();
     }
     if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.clear()
+      sessionStorage.clear();
     }
 
     // Mock the download-image endpoint used by importDiscoveredAssets
     ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
       if (typeof url === 'string' && url.includes('/api/personalization/download-image')) {
-        const body = typeof options?.body === 'string' ? JSON.parse(options.body) : {}
-        const urls = Array.isArray(body?.urls) ? body.urls : []
+        const body = typeof options?.body === 'string' ? JSON.parse(options.body) : {};
+        const urls = Array.isArray(body?.urls) ? body.urls : [];
         const results = urls.map((u: string) => ({
           url: u,
           dataUrl: `data:image/png;base64,${Buffer.from('fake-image-data').toString('base64')}`,
           ok: true,
-        }))
+        }));
         return {
           ok: true,
           status: 200,
           json: async () => ({ ok: true, results }),
-        } as any
+        } as any;
       }
       if (typeof url === 'string' && url.includes('/api/personalization/image-analyze')) {
-        const body = typeof options?.body === 'string' ? JSON.parse(options.body) : {}
+        const body = typeof options?.body === 'string' ? JSON.parse(options.body) : {};
         if (body?.mode === 'validate') {
           return {
             ok: true,
@@ -141,7 +141,7 @@ describe('Discovered Assets Integration', () => {
                 model: 'gpt-6-astra',
               },
             }),
-          } as any
+          } as any;
         }
         return {
           ok: true,
@@ -166,41 +166,41 @@ describe('Discovered Assets Integration', () => {
               model: 'gpt-6-astra',
             })),
           }),
-        } as any
+        } as any;
       }
       if (typeof url === 'string' && url.includes('/api/personalization/discover-assets')) {
         return {
           ok: true,
           status: 200,
           json: async () => ({ ok: true, discoveredAssets: [], count: 0 }),
-        } as any
+        } as any;
       }
-      return originalFetch(url, options)
-    })
+      return originalFetch(url, options);
+    });
 
     // Configure uploadFile mock to return a durable URL
     try {
-      const mod = await import('@ohb/packages/studio/src/muapi')
-      mockUploadFile = (mod as any)?.uploadFile
+      const mod = await import('@ohb/packages/studio/src/muapi');
+      mockUploadFile = (mod as any)?.uploadFile;
       if (mockUploadFile) {
-        mockUploadFile.mockResolvedValue('https://uploaded.example.com/discovered.png')
+        mockUploadFile.mockResolvedValue('https://uploaded.example.com/discovered.png');
       }
     } catch {
       // ignore if module cannot be imported in test env
     }
-  })
+  });
 
   afterEach(() => {
-    ;(globalThis as any).fetch = originalFetch
-    URL.createObjectURL = originalCreateObjectURL
-    URL.revokeObjectURL = originalRevokeObjectURL
-    unmountAll()
-  })
+    ;(globalThis as any).fetch = originalFetch;
+    URL.createObjectURL = originalCreateObjectURL;
+    URL.revokeObjectURL = originalRevokeObjectURL;
+    unmountAll();
+  });
 
   const renderProvider = async () => {
-    const container = document.createElement('div')
-    document.body.appendChild(container)
-    const root = createRoot(container)
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
 
     await act(async () => {
       root.render(
@@ -210,104 +210,104 @@ describe('Discovered Assets Integration', () => {
             onMounted={() => {}}
           />
         </DemoPersonalizeProvider>,
-      )
-    })
+      );
+    });
 
-    roots.push({ root, container })
-    return container
-  }
+    roots.push({ root, container });
+    return container;
+  };
 
   const openSource = async () => {
     await act(async () => {
       ;(window as any).__personalizationCtx.openPersonalize({
         source: { id: 'demo-1', title: 'Test', mediaType: 'video', originalPrompt: 'test', sourceMedia: null, poster: null, fullPrompt: 'test', shortPrompt: 'test', sourceType: 'landing-demo', sourceMetadata: {} },
-      })
-    })
+      });
+    });
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 50))
-    })
+      await new Promise((r) => setTimeout(r, 50));
+    });
     // Simple Mode is the default customer presentation; these tests exercise
     // the full Advanced Editing surface, so opt into it after opening.
     await act(async () => {
       const button = screen.queryByRole('button', { name: /advanced editing/i });
       if (button) (button as HTMLButtonElement).click();
-    })
-  }
+    });
+  };
 
   it('renders the Find Business Assets button', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    const findButtons = screen.getAllByText('Find Business Assets')
-    expect(findButtons.length).toBeGreaterThanOrEqual(1)
-  })
+    const findButtons = screen.getAllByText('Find Business Assets');
+    expect(findButtons.length).toBeGreaterThanOrEqual(1);
+  });
 
   it('does not render a duplicate Website field in CTA section', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    const websiteLabels = screen.getAllByText('Website')
-    expect(websiteLabels.length).toBe(1)
-  })
+    const websiteLabels = screen.getAllByText('Website');
+    expect(websiteLabels.length).toBe(1);
+  });
 
   it('renders Website above Business Name in Client Profile', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    const websiteLabels = screen.getAllByText('Website')
-    const businessNameLabels = screen.getAllByText('Business Name')
+    const websiteLabels = screen.getAllByText('Website');
+    const businessNameLabels = screen.getAllByText('Business Name');
 
-    const websiteLabel = websiteLabels[0]
-    const businessNameLabel = businessNameLabels[0]
+    const websiteLabel = websiteLabels[0];
+    const businessNameLabel = businessNameLabels[0];
 
-    const allLabels = Array.from(container.querySelectorAll('label'))
-    expect(allLabels.indexOf(websiteLabel as any)).toBeGreaterThanOrEqual(0)
-    expect(allLabels.indexOf(businessNameLabel as any)).toBeGreaterThanOrEqual(0)
-    expect(allLabels.indexOf(websiteLabel as any)).toBeLessThan(allLabels.indexOf(businessNameLabel as any))
-  })
+    const allLabels = Array.from(container.querySelectorAll('label'));
+    expect(allLabels.indexOf(websiteLabel as any)).toBeGreaterThanOrEqual(0);
+    expect(allLabels.indexOf(businessNameLabel as any)).toBeGreaterThanOrEqual(0);
+    expect(allLabels.indexOf(websiteLabel as any)).toBeLessThan(allLabels.indexOf(businessNameLabel as any));
+  });
 
   it('binds Website input to clientForm.website', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
-    expect(c.clientForm.website).toBeUndefined()
+    let c = (window as any).__personalizationCtx;
+    expect(c.clientForm.website).toBeUndefined();
 
     await act(async () => {
-      c.updateClientForm({ website: 'https://test.com' })
-    })
+      c.updateClientForm({ website: 'https://test.com' });
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.clientForm.website).toBe('https://test.com')
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.clientForm.website).toBe('https://test.com');
+  });
 
   it('preserves manual uploads after discovery state changes', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.addLogoUrl('https://manual-logo.png')
-    })
+      c.addLogoUrl('https://manual-logo.png');
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.logos.length).toBe(1)
-    expect(c.assets.logos[0].url).toBe('https://manual-logo.png')
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.logos.length).toBe(1);
+    expect(c.assets.logos[0].url).toBe('https://manual-logo.png');
 
     await act(async () => {
-      c.discoverAssets('https://test.com')
-    })
+      c.discoverAssets('https://test.com');
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.logos.length).toBe(1)
-    expect(c.assets.logos[0].url).toBe('https://manual-logo.png')
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.logos.length).toBe(1);
+    expect(c.assets.logos[0].url).toBe('https://manual-logo.png');
+  });
 
   it('keeps discovered assets temporary and separate from AssetLibrary', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -320,21 +320,21 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.discoveredAssets.length).toBe(1)
-    expect(c.assets.logos.length).toBe(0)
-    expect(c.discoveryStatus).toBe('reviewing')
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.discoveredAssets.length).toBe(1);
+    expect(c.assets.logos.length).toBe(0);
+    expect(c.discoveryStatus).toBe('reviewing');
+  });
 
   it('rejecting a discovered asset does not affect AssetLibrary', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
-    const logosBefore = c.assets.logos.length
+    let c = (window as any).__personalizationCtx;
+    const logosBefore = c.assets.logos.length;
 
     await act(async () => {
       c.setDiscoveredAssets([
@@ -348,27 +348,27 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
-    const logosAfterSet = c.assets.logos.length
-    expect(logosAfterSet).toBe(logosBefore)
+    c = (window as any).__personalizationCtx;
+    const logosAfterSet = c.assets.logos.length;
+    expect(logosAfterSet).toBe(logosBefore);
 
     await act(async () => {
-      c.rejectDiscoveredAsset('disc-1')
-    })
+      c.rejectDiscoveredAsset('disc-1');
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.discoveredAssets[0].rejected).toBe(true)
-    expect(c.assets.logos.length).toBe(logosBefore)
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.discoveredAssets[0].rejected).toBe(true);
+    expect(c.assets.logos.length).toBe(logosBefore);
+  });
 
   it('changing discovered asset category updates the asset', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -381,23 +381,23 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.updateDiscoveredAssetCategory('disc-1', 'brand')
-    })
+      c.updateDiscoveredAssetCategory('disc-1', 'brand');
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.discoveredAssets[0].category).toBe('brand')
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.discoveredAssets[0].category).toBe('brand');
+  });
 
   it('selecting recommended assets selects only recommended ones', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -420,24 +420,24 @@ describe('Discovered Assets Integration', () => {
           recommended: false,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.selectRecommendedDiscoveredAssets()
-    })
+      c.selectRecommendedDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.discoveredAssets[0].selected).toBe(true)
-    expect(c.discoveredAssets[1].selected).toBe(false)
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.discoveredAssets[0].selected).toBe(true);
+    expect(c.discoveredAssets[1].selected).toBe(false);
+  });
 
   it('uses SmartVideo GO Vision to refine discovery category, scores, and preservation metadata', async () => {
-    await renderProvider()
-    await openSource()
+    await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -452,32 +452,32 @@ describe('Discovered Assets Integration', () => {
           assignedSection: 'brand',
           autoAssigned: true,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      await c.analyzeDiscoveredAssets()
-    })
+      await c.analyzeDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.visionStatus).toBe('complete')
-    expect(c.discoveredAssets[0].category).toBe('branded_vehicle')
-    expect(c.discoveredAssets[0].confidence).toBe(94)
-    expect(c.discoveredAssets[0].qualityScore).toBe(88)
-    expect(c.discoveredAssets[0].relevanceScore).toBe(93)
-    expect(c.discoveredAssets[0].recommended).toBe(true)
-    expect(c.discoveredAssets[0].selected).toBe(true)
-    expect(c.discoveredAssets[0].assignedSection).toBe('brand')
-    expect(c.discoveredAssets[0].visionAnalysis.preserve).toContain('vehicle wrap')
-    expect(c.discoveredAssets[0].visionAnalysis.recommendedOperations).toContain('vehicle_enhance')
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.visionStatus).toBe('complete');
+    expect(c.discoveredAssets[0].category).toBe('branded_vehicle');
+    expect(c.discoveredAssets[0].confidence).toBe(94);
+    expect(c.discoveredAssets[0].qualityScore).toBe(88);
+    expect(c.discoveredAssets[0].relevanceScore).toBe(93);
+    expect(c.discoveredAssets[0].recommended).toBe(true);
+    expect(c.discoveredAssets[0].selected).toBe(true);
+    expect(c.discoveredAssets[0].assignedSection).toBe('brand');
+    expect(c.discoveredAssets[0].visionAnalysis.preserve).toContain('vehicle wrap');
+    expect(c.discoveredAssets[0].visionAnalysis.recommendedOperations).toContain('vehicle_enhance');
+  });
 
   it('imports selected person assets into identities', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -490,25 +490,25 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.importDiscoveredAssets()
-    })
+      c.importDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.identities.length).toBe(1)
-    expect(c.assets.identities[0].role).toBe('presenter_identity')
-    expect(c.assets.identities[0].url).toBeTruthy()
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.identities.length).toBe(1);
+    expect(c.assets.identities[0].role).toBe('presenter_identity');
+    expect(c.assets.identities[0].url).toBeTruthy();
+  });
 
   it('imports selected logo assets into logos', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -521,26 +521,26 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.importDiscoveredAssets()
-    })
+      c.importDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.logos.length).toBe(1)
-    expect(c.assets.logos[0].role).toBe('logo')
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.logos.length).toBe(1);
+    expect(c.assets.logos[0].role).toBe('logo');
     // After durable import the URL may be a blob URL (test env) or a durable URL (real env)
-    expect(c.assets.logos[0].url).toBeTruthy()
-  })
+    expect(c.assets.logos[0].url).toBeTruthy();
+  });
 
   it('imports selected product/service assets into products', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -563,24 +563,24 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.importDiscoveredAssets()
-    })
+      c.importDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.products.length).toBe(2)
-    expect(c.assets.products.every((p: any) => p.role === 'product_reference')).toBe(true)
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.products.length).toBe(2);
+    expect(c.assets.products.every((p: any) => p.role === 'product_reference')).toBe(true);
+  });
 
   it('imports selected brand/storefront assets into brandReferences', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -603,24 +603,24 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.importDiscoveredAssets()
-    })
+      c.importDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.brandReferences.length).toBe(2)
-    expect(c.assets.brandReferences.every((b: any) => b.role === 'brand_reference')).toBe(true)
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.brandReferences.length).toBe(2);
+    expect(c.assets.brandReferences.every((b: any) => b.role === 'brand_reference')).toBe(true);
+  });
 
   it('preserves manually assigned First Frame, Last Frame, and CTA destinations on import', async () => {
-    await renderProvider()
-    await openSource()
+    await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -659,28 +659,28 @@ describe('Discovered Assets Integration', () => {
           assignedSection: 'ctaGraphic',
           autoAssigned: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      await c.importDiscoveredAssets()
-    })
+      await c.importDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.firstFrame?.role).toBe('first_frame')
-    expect(c.assets.firstFrame?.sourceCategory).toBe('storefront')
-    expect(c.assets.lastFrame?.role).toBe('last_frame')
-    expect(c.assets.lastFrame?.sourceCategory).toBe('product')
-    expect(c.assets.ctaGraphic?.role).toBe('cta_graphic')
-    expect(c.assets.ctaGraphic?.sourceCategory).toBe('brand')
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.firstFrame?.role).toBe('first_frame');
+    expect(c.assets.firstFrame?.sourceCategory).toBe('storefront');
+    expect(c.assets.lastFrame?.role).toBe('last_frame');
+    expect(c.assets.lastFrame?.sourceCategory).toBe('product');
+    expect(c.assets.ctaGraphic?.role).toBe('cta_graphic');
+    expect(c.assets.ctaGraphic?.sourceCategory).toBe('brand');
+  });
 
   it('does not auto-populate firstFrame during import', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -693,23 +693,23 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.importDiscoveredAssets()
-    })
+      c.importDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.firstFrame).toBeNull()
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.firstFrame).toBeNull();
+  });
 
   it('does not auto-populate lastFrame during import', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -722,23 +722,23 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.importDiscoveredAssets()
-    })
+      c.importDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.lastFrame).toBeNull()
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.lastFrame).toBeNull();
+  });
 
   it('does not auto-populate ctaGraphic during import', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -751,30 +751,30 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.importDiscoveredAssets()
-    })
+      c.importDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.ctaGraphic).toBeNull()
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.ctaGraphic).toBeNull();
+  });
 
   it('preserves existing primary identity unless none exists', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.addIdentityUrl('https://existing-identity.png')
-    })
+      c.addIdentityUrl('https://existing-identity.png');
+    });
 
-    c = (window as any).__personalizationCtx
-    const existingId = c.assets.primaryIdentity?.id
-    expect(existingId).toBeTruthy()
+    c = (window as any).__personalizationCtx;
+    const existingId = c.assets.primaryIdentity?.id;
+    expect(existingId).toBeTruthy();
 
     await act(async () => {
       c.setDiscoveredAssets([
@@ -788,31 +788,31 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.importDiscoveredAssets()
-    })
+      c.importDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.identities.length).toBe(2)
-    expect(c.assets.primaryIdentity?.id).toBe(existingId)
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.identities.length).toBe(2);
+    expect(c.assets.primaryIdentity?.id).toBe(existingId);
+  });
 
   it('preserves existing primary logo unless none exists', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.addLogoUrl('https://existing-logo.png')
-    })
+      c.addLogoUrl('https://existing-logo.png');
+    });
 
-    c = (window as any).__personalizationCtx
-    const existingLogoId = c.assets.primaryLogo?.id
-    expect(existingLogoId).toBeTruthy()
+    c = (window as any).__personalizationCtx;
+    const existingLogoId = c.assets.primaryLogo?.id;
+    expect(existingLogoId).toBeTruthy();
 
     await act(async () => {
       c.setDiscoveredAssets([
@@ -826,24 +826,24 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.importDiscoveredAssets()
-    })
+      c.importDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.logos.length).toBe(2)
-    expect(c.assets.primaryLogo?.id).toBe(existingLogoId)
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.logos.length).toBe(2);
+    expect(c.assets.primaryLogo?.id).toBe(existingLogoId);
+  });
 
   it('only imports selected and non-rejected assets', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -876,18 +876,18 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: true,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
+    c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.importDiscoveredAssets()
-    })
+      c.importDiscoveredAssets();
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.assets.logos.length).toBe(1)
-    expect(c.assets.logos[0].url).toBeTruthy()
-  })
+    c = (window as any).__personalizationCtx;
+    expect(c.assets.logos.length).toBe(1);
+    expect(c.assets.logos[0].url).toBeTruthy();
+  });
 
   // -------------------------------------------------------------------------
   // Regression: URL-only assets (no sourceUrl) must not crash rendering or import
@@ -896,10 +896,10 @@ describe('Discovered Assets Integration', () => {
   // -------------------------------------------------------------------------
 
   it('does not crash when importing an asset with only previewUrl (no sourceUrl)', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -912,28 +912,28 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.discoveredAssets.length).toBe(1)
-    expect(c.discoveredAssets[0].sourceUrl).toBeUndefined()
-    expect(c.discoveredAssets[0].previewUrl).toBe('https://test.com/asset.png')
+    c = (window as any).__personalizationCtx;
+    expect(c.discoveredAssets.length).toBe(1);
+    expect(c.discoveredAssets[0].sourceUrl).toBeUndefined();
+    expect(c.discoveredAssets[0].previewUrl).toBe('https://test.com/asset.png');
 
     // Import must not crash on URL-only assets — whether or not the upload
     // succeeds in the test environment, no exception should escape.
     await expect(
       act(async () => {
-        c.importDiscoveredAssets()
+        c.importDiscoveredAssets();
       }),
-    ).resolves.not.toThrow()
-  })
+    ).resolves.not.toThrow();
+  });
 
   it('does not crash when importing mixed assets with and without sourceUrl', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -956,25 +956,25 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.discoveredAssets.length).toBe(2)
+    c = (window as any).__personalizationCtx;
+    expect(c.discoveredAssets.length).toBe(2);
 
     // Import must not crash on mixed assets
     await expect(
       act(async () => {
-        c.importDiscoveredAssets()
+        c.importDiscoveredAssets();
       }),
-    ).resolves.not.toThrow()
-  })
+    ).resolves.not.toThrow();
+  });
 
   it('does not crash when importing an asset with neither sourceUrl nor previewUrl', async () => {
-    const container = await renderProvider()
-    await openSource()
+    const container = await renderProvider();
+    await openSource();
 
-    let c = (window as any).__personalizationCtx
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
       c.setDiscoveredAssets([
         {
@@ -986,20 +986,20 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
-    c = (window as any).__personalizationCtx
-    expect(c.discoveredAssets.length).toBe(1)
+    c = (window as any).__personalizationCtx;
+    expect(c.discoveredAssets.length).toBe(1);
 
     // Import should not crash; the asset has no downloadable URL so nothing
     // gets created, but no exception escapes.
     await expect(
       act(async () => {
-        c.importDiscoveredAssets()
+        c.importDiscoveredAssets();
       }),
-    ).resolves.not.toThrow()
-  })
+    ).resolves.not.toThrow();
+  });
 
   // -------------------------------------------------------------------------
   // Regression: guided-view rendering of URL-only assets must not crash
@@ -1009,7 +1009,7 @@ describe('Discovered Assets Integration', () => {
   // -------------------------------------------------------------------------
 
   it('renders StepFindBusiness guided view with URL-only assets without crashing', async () => {
-    const container = await renderProvider()
+    const container = await renderProvider();
     await act(async () => {
       ;(window as any).__personalizationCtx.openPersonalize({
         source: {
@@ -1024,24 +1024,24 @@ describe('Discovered Assets Integration', () => {
           sourceType: 'landing-demo',
           sourceMetadata: {},
         },
-      })
-    })
+      });
+    });
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 50))
-    })
+      await new Promise((r) => setTimeout(r, 50));
+    });
 
     // Stay in Simple Mode (guided) — do NOT click "Advanced Editing".
     // Click "Find Business Assets" to navigate to StepFindBusiness.
-    const findButtons = screen.getAllByRole('button', { name: /find business assets/i })
-    expect(findButtons.length).toBeGreaterThanOrEqual(1)
+    const findButtons = screen.getAllByRole('button', { name: /find business assets/i });
+    expect(findButtons.length).toBeGreaterThanOrEqual(1);
     await act(async () => {
-      findButtons[0].click()
-    })
+      findButtons[0].click();
+    });
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 50))
-    })
+      await new Promise((r) => setTimeout(r, 50));
+    });
 
-    const ctx = (window as any).__personalizationCtx
+    const ctx = (window as any).__personalizationCtx;
     await act(async () => {
       ctx.setDiscoveredAssets([
         {
@@ -1054,30 +1054,30 @@ describe('Discovered Assets Integration', () => {
           recommended: true,
           rejected: false,
         },
-      ])
-    })
+      ]);
+    });
 
     // Give React a chance to render the review panel
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 50))
-    })
+      await new Promise((r) => setTimeout(r, 50));
+    });
 
-    const c = (window as any).__personalizationCtx
+    const c = (window as any).__personalizationCtx;
     // No crash: the component rendered the previewUrl fallback on line 465
-    expect(c.discoveredAssets.length).toBe(1)
-    expect(c.discoveredAssets[0].sourceUrl).toBeUndefined()
-    expect(c.discoveredAssets[0].previewUrl).toBe('https://test.com/asset.png')
-  })
+    expect(c.discoveredAssets.length).toBe(1);
+    expect(c.discoveredAssets[0].sourceUrl).toBeUndefined();
+    expect(c.discoveredAssets[0].previewUrl).toBe('https://test.com/asset.png');
+  });
   it('drops a discovery that finishes after the modal is closed', async () => {
-    await renderProvider()
-    await openSource()
+    await renderProvider();
+    await openSource();
 
-    let finish: (value: unknown) => void = () => {}
-    const pending = new Promise((resolve) => { finish = resolve })
+    let finish: (value: unknown) => void = () => {};
+    const pending = new Promise((resolve) => { finish = resolve; });
     const baseFetch = (globalThis as any).fetch
     ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
       if (typeof url === 'string' && url.includes('/api/personalization/discover-assets')) {
-        await pending
+        await pending;
         return {
           ok: true,
           status: 200,
@@ -1094,59 +1094,59 @@ describe('Discovered Assets Integration', () => {
               rejected: false,
             }],
           }),
-        } as any
+        } as any;
       }
-      return baseFetch(url, options)
-    })
+      return baseFetch(url, options);
+    });
 
-    let c = (window as any).__personalizationCtx
-    let run: Promise<void> = Promise.resolve()
+    let c = (window as any).__personalizationCtx;
+    let run: Promise<void> = Promise.resolve();
     await act(async () => {
-      run = c.discoverAssets('https://old-business.com')
-    })
-    expect((window as any).__personalizationCtx.discoveryStatus).toBe('discovering')
-
-    await act(async () => {
-      ;(window as any).__personalizationCtx.closePersonalize()
-    })
-    await openSource()
+      run = c.discoverAssets('https://old-business.com');
+    });
+    expect((window as any).__personalizationCtx.discoveryStatus).toBe('discovering');
 
     await act(async () => {
-      finish(undefined)
-      await run
-    })
+      ;(window as any).__personalizationCtx.closePersonalize();
+    });
+    await openSource();
 
-    c = (window as any).__personalizationCtx
-    expect(c.discoveredAssets).toHaveLength(0)
-    expect(c.discoveryStatus).toBe('idle')
-    expect(c.assets.logos).toHaveLength(0)
-  })
+    await act(async () => {
+      finish(undefined);
+      await run;
+    });
+
+    c = (window as any).__personalizationCtx;
+    expect(c.discoveredAssets).toHaveLength(0);
+    expect(c.discoveryStatus).toBe('idle');
+    expect(c.assets.logos).toHaveLength(0);
+  });
   it('picking a saved client clears the previous business selection', async () => {
-    await renderProvider()
-    await openSource()
+    await renderProvider();
+    await openSource();
 
     await act(async () => {
-      ;(window as any).__personalizationCtx.selectBusiness({ id: 'url:https://acme.example', name: 'Acme Plumbing', website: 'https://acme.example' })
-    })
-    expect((window as any).__personalizationCtx.selectedBusiness?.name).toBe('Acme Plumbing')
+      ;(window as any).__personalizationCtx.selectBusiness({ id: 'url:https://acme.example', name: 'Acme Plumbing', website: 'https://acme.example' });
+    });
+    expect((window as any).__personalizationCtx.selectedBusiness?.name).toBe('Acme Plumbing');
 
     await act(async () => {
-      ;(window as any).__personalizationCtx.selectClient('')
-    })
-    const c = (window as any).__personalizationCtx
-    expect(c.selectedBusiness).toBeNull()
-    expect(c.businessLoadSummary).toBeNull()
-    expect(c.businessSearchMode).not.toBe('selected')
-  })
+      ;(window as any).__personalizationCtx.selectClient('');
+    });
+    const c = (window as any).__personalizationCtx;
+    expect(c.selectedBusiness).toBeNull();
+    expect(c.businessLoadSummary).toBeNull();
+    expect(c.businessSearchMode).not.toBe('selected');
+  });
   it('an older discovery that finishes last does not replace the newer one', async () => {
-    await renderProvider()
-    await openSource()
+    await renderProvider();
+    await openSource();
 
-    const finishers: Array<(name: string) => void> = []
+    const finishers: Array<(name: string) => void> = [];
     const baseFetch = (globalThis as any).fetch
     ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
       if (typeof url === 'string' && url.includes('/api/personalization/discover-assets')) {
-        const name = await new Promise<string>((resolve) => { finishers.push(resolve) })
+        const name = await new Promise<string>((resolve) => { finishers.push(resolve); });
         return {
           ok: true,
           status: 200,
@@ -1154,162 +1154,162 @@ describe('Discovered Assets Integration', () => {
             ok: true,
             discoveredAssets: [{ id: name, sourceUrl: `https://${name}.com/logo.png`, previewUrl: `https://${name}.com/logo.png`, sourceType: 'WEBSITE', category: 'logo', selected: true, recommended: true, rejected: false }],
           }),
-        } as any
+        } as any;
       }
-      return baseFetch(url, options)
-    })
+      return baseFetch(url, options);
+    });
 
-    const ctx = () => (window as any).__personalizationCtx
-    let first: Promise<void> = Promise.resolve()
-    let second: Promise<void> = Promise.resolve()
-    await act(async () => { first = ctx().discoverAssets('https://older.com') })
-    await act(async () => { second = ctx().discoverAssets('https://newer.com') })
-    expect(finishers).toHaveLength(2)
+    const ctx = () => (window as any).__personalizationCtx;
+    let first: Promise<void> = Promise.resolve();
+    let second: Promise<void> = Promise.resolve();
+    await act(async () => { first = ctx().discoverAssets('https://older.com'); });
+    await act(async () => { second = ctx().discoverAssets('https://newer.com'); });
+    expect(finishers).toHaveLength(2);
 
-    await act(async () => { finishers[1]('newer'); await second })
-    expect(ctx().discoveredAssets.map((a: any) => a.id)).toEqual(['newer'])
+    await act(async () => { finishers[1]('newer'); await second; });
+    expect(ctx().discoveredAssets.map((a: any) => a.id)).toEqual(['newer']);
 
-    await act(async () => { finishers[0]('older'); await first })
-    expect(ctx().discoveredAssets.map((a: any) => a.id)).toEqual(['newer'])
-  })
+    await act(async () => { finishers[0]('older'); await first; });
+    expect(ctx().discoveredAssets.map((a: any) => a.id)).toEqual(['newer']);
+  });
 
   it('a business search that finishes after the modal is closed is dropped', async () => {
-    await renderProvider()
-    await openSource()
+    await renderProvider();
+    await openSource();
 
-    let finish: () => void = () => {}
-    const pending = new Promise<void>((resolve) => { finish = resolve })
+    let finish: () => void = () => {};
+    const pending = new Promise<void>((resolve) => { finish = resolve; });
     const baseFetch = (globalThis as any).fetch
     ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
       if (typeof url === 'string' && url.includes('/api/personalization/find-businesses')) {
-        await pending
-        return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'b1', name: 'Old Search Plumbing' }] }) } as any
+        await pending;
+        return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'b1', name: 'Old Search Plumbing' }] }) } as any;
       }
-      return baseFetch(url, options)
-    })
+      return baseFetch(url, options);
+    });
 
-    const ctx = () => (window as any).__personalizationCtx
-    let run: Promise<void> = Promise.resolve()
-    await act(async () => { run = ctx().findBusinesses('plumber', 'Tampa', 10) })
-    expect(ctx().businessSearchMode).toBe('searching')
+    const ctx = () => (window as any).__personalizationCtx;
+    let run: Promise<void> = Promise.resolve();
+    await act(async () => { run = ctx().findBusinesses('plumber', 'Tampa', 10); });
+    expect(ctx().businessSearchMode).toBe('searching');
 
-    await act(async () => { ctx().closePersonalize() })
-    await openSource()
-    expect(ctx().businessSearchMode).not.toBe('searching')
+    await act(async () => { ctx().closePersonalize(); });
+    await openSource();
+    expect(ctx().businessSearchMode).not.toBe('searching');
 
-    await act(async () => { finish(); await run })
-    expect(ctx().businessSearchMode).not.toBe('results')
-    expect(ctx().businessSearchResults).toHaveLength(0)
-  })
+    await act(async () => { finish(); await run; });
+    expect(ctx().businessSearchMode).not.toBe('results');
+    expect(ctx().businessSearchResults).toHaveLength(0);
+  });
   it('a cleared business search ignores a response that arrives afterwards', async () => {
-    await renderProvider()
-    await openSource()
+    await renderProvider();
+    await openSource();
 
-    let finish: () => void = () => {}
-    const pending = new Promise<void>((resolve) => { finish = resolve })
+    let finish: () => void = () => {};
+    const pending = new Promise<void>((resolve) => { finish = resolve; });
     const baseFetch = (globalThis as any).fetch
     ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
       if (typeof url === 'string' && url.includes('/api/personalization/find-businesses')) {
-        await pending
-        return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'b1', name: 'Stale Plumbing' }] }) } as any
+        await pending;
+        return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'b1', name: 'Stale Plumbing' }] }) } as any;
       }
-      return baseFetch(url, options)
-    })
+      return baseFetch(url, options);
+    });
 
-    const ctx = () => (window as any).__personalizationCtx
-    let run: Promise<void> = Promise.resolve()
-    await act(async () => { run = ctx().findBusinesses('plumber', 'Tampa', 10) })
-    await act(async () => { ctx().clearBusinessSearch() })
-    await act(async () => { finish(); await run })
+    const ctx = () => (window as any).__personalizationCtx;
+    let run: Promise<void> = Promise.resolve();
+    await act(async () => { run = ctx().findBusinesses('plumber', 'Tampa', 10); });
+    await act(async () => { ctx().clearBusinessSearch(); });
+    await act(async () => { finish(); await run; });
 
-    expect(ctx().businessSearchMode).toBe('idle')
-    expect(ctx().businessSearchResults).toHaveLength(0)
-  })
+    expect(ctx().businessSearchMode).toBe('idle');
+    expect(ctx().businessSearchResults).toHaveLength(0);
+  });
 
   it('continues a time-limited business search from the resume cursor and keeps results on a failed continuation', async () => {
-    await renderProvider()
-    await openSource()
-    const bodies: any[] = []
+    await renderProvider();
+    await openSource();
+    const bodies: any[] = [];
     const baseFetch = (globalThis as any).fetch
     ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
       if (typeof url === 'string' && url.includes('/api/personalization/find-businesses')) {
-        const body = JSON.parse(options.body); bodies.push(body)
-        if (!body.resume) return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'a', name: 'A' }], backfill: { resume: { startStage: 2 } } }) } as any
-        if (body.resume.startStage === 2) return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }], backfill: { resume: { startStage: 3 } } }) } as any
-        throw new Error('network down') // the second continuation fails
+        const body = JSON.parse(options.body); bodies.push(body);
+        if (!body.resume) return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'a', name: 'A' }], backfill: { resume: { startStage: 2 } } }) } as any;
+        if (body.resume.startStage === 2) return { ok: true, status: 200, json: async () => ({ businesses: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }], backfill: { resume: { startStage: 3 } } }) } as any;
+        throw new Error('network down'); // the second continuation fails
       }
-      return baseFetch(url, options)
-    })
-    const ctx = () => (window as any).__personalizationCtx
-    await act(async () => { await ctx().findBusinesses('plumber', 'Tampa', 10) })
-    expect(bodies[1].resume.startStage).toBe(2)
-    expect(bodies[1].resume.records.map((r: any) => r.id)).toEqual(['a'])
-    expect(bodies[2].resume.startStage).toBe(3)
-    expect(ctx().businessSearchResults.map((r: any) => r.id)).toEqual(['a', 'b']) // grown by the first continuation, kept after the second failed
-    expect(ctx().businessSearchMode).toBe('results')
-  })
+      return baseFetch(url, options);
+    });
+    const ctx = () => (window as any).__personalizationCtx;
+    await act(async () => { await ctx().findBusinesses('plumber', 'Tampa', 10); });
+    expect(bodies[1].resume.startStage).toBe(2);
+    expect(bodies[1].resume.records.map((r: any) => r.id)).toEqual(['a']);
+    expect(bodies[2].resume.startStage).toBe(3);
+    expect(ctx().businessSearchResults.map((r: any) => r.id)).toEqual(['a', 'b']); // grown by the first continuation, kept after the second failed
+    expect(ctx().businessSearchMode).toBe('results');
+  });
 
   it('selecting a business fills EMPTY email/social fields from its website, never a typed or OSM value, and drops a stale answer', async () => {
-    await renderProvider()
-    await openSource()
+    await renderProvider();
+    await openSource();
     const enrichment = (site: string) => ({
       website: site, emails: [{ value: 'hi@acme.example', sourceUrl: `${site}/contact`, confidence: 0.95, method: 'mailto' }],
       phones: [{ value: '(813) 555-0199', sourceUrl: site, confidence: 0.9, method: 'tel' }], addresses: [], contactNames: [],
       socials: { instagram: { value: 'https://instagram.com/acme', sourceUrl: site, confidence: 0.85, method: 'footer-link' } },
       pagesVisited: [site], pagesSkipped: [], robots: { checked: true, status: 'allow-all' }, jsRendered: false, notes: [],
-    })
-    let release: () => void = () => {}
-    const gate = new Promise<void>((r) => { release = r })
-    const baseFetch = (globalThis as any).fetch
+    });
+    let release: () => void = () => {};
+    const gate = new Promise<void>((r) => { release = r; });
+    const baseFetch = (globalThis as any).fetch;
     const calls: string[] = []
     ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
       if (typeof url === 'string' && url.includes('/api/personalization/enrich-business')) {
-        const body = JSON.parse(options.body); calls.push(body.businesses[0].id)
-        if (body.businesses[0].id === 'slow') await gate
-        return { ok: true, status: 200, json: async () => ({ results: [{ id: body.businesses[0].id, ok: true, enrichment: enrichment(body.businesses[0].website) }] }) } as any
+        const body = JSON.parse(options.body); calls.push(body.businesses[0].id);
+        if (body.businesses[0].id === 'slow') await gate;
+        return { ok: true, status: 200, json: async () => ({ results: [{ id: body.businesses[0].id, ok: true, enrichment: enrichment(body.businesses[0].website) }] }) } as any;
       }
-      return baseFetch(url, options)
-    })
-    const ctx = () => (window as any).__personalizationCtx
+      return baseFetch(url, options);
+    });
+    const ctx = () => (window as any).__personalizationCtx;
 
     // OSM phone already present → it must win over the website's phone.
-    await act(async () => { ctx().selectBusiness({ id: 'b1', name: 'Acme', phone: '727-555-0000', website: 'https://acme.example' }) })
-    await vi.waitFor(() => expect(ctx().clientForm.email).toBe('hi@acme.example'))
-    expect(ctx().clientForm.phone).toBe('727-555-0000')
-    expect(ctx().clientForm.instagram).toBe('https://instagram.com/acme')
-    expect(ctx().contactSources.email.sourceUrl).toBe('https://acme.example/contact')
+    await act(async () => { ctx().selectBusiness({ id: 'b1', name: 'Acme', phone: '727-555-0000', website: 'https://acme.example' }); });
+    await vi.waitFor(() => expect(ctx().clientForm.email).toBe('hi@acme.example'));
+    expect(ctx().clientForm.phone).toBe('727-555-0000');
+    expect(ctx().clientForm.instagram).toBe('https://instagram.com/acme');
+    expect(ctx().contactSources.email.sourceUrl).toBe('https://acme.example/contact');
 
     // A different business clears what was auto-filled for the previous one.
-    await act(async () => { ctx().selectBusiness({ id: 'b2', name: 'Other', website: '' }) })
-    expect(ctx().clientForm.email || '').toBe('')
-    expect(ctx().clientForm.instagram || '').toBe('')
+    await act(async () => { ctx().selectBusiness({ id: 'b2', name: 'Other', website: '' }); });
+    expect(ctx().clientForm.email || '').toBe('');
+    expect(ctx().clientForm.instagram || '').toBe('');
 
     // A slow answer that arrives after the user moved on is dropped.
-    await act(async () => { ctx().selectBusiness({ id: 'slow', name: 'Slow', website: 'https://slow.example' }) })
-    await act(async () => { ctx().selectBusiness({ id: 'b3', name: 'Third', website: '' }) })
-    await act(async () => { release(); await Promise.resolve() })
-    expect(ctx().clientForm.email || '').toBe('')
+    await act(async () => { ctx().selectBusiness({ id: 'slow', name: 'Slow', website: 'https://slow.example' }); });
+    await act(async () => { ctx().selectBusiness({ id: 'b3', name: 'Third', website: '' }); });
+    await act(async () => { release(); await Promise.resolve(); });
+    expect(ctx().clientForm.email || '').toBe('');
 
     // The user can remove a found value.
-    await act(async () => { ctx().selectBusiness({ id: 'b1', name: 'Acme', website: 'https://acme.example' }) })
-    await vi.waitFor(() => expect(ctx().clientForm.email).toBe('hi@acme.example'))
-    await act(async () => { ctx().clearContactValue('email') })
-    expect(ctx().clientForm.email).toBe('')
-  })
+    await act(async () => { ctx().selectBusiness({ id: 'b1', name: 'Acme', website: 'https://acme.example' }); });
+    await vi.waitFor(() => expect(ctx().clientForm.email).toBe('hi@acme.example'));
+    await act(async () => { ctx().clearContactValue('email'); });
+    expect(ctx().clientForm.email).toBe('');
+  });
 
   it('closing the project clears the business selection and search for the next one', async () => {
-    await renderProvider()
-    await openSource()
-    const ctx = () => (window as any).__personalizationCtx
+    await renderProvider();
+    await openSource();
+    const ctx = () => (window as any).__personalizationCtx;
     await act(async () => {
-      ctx().selectBusiness({ id: 'url:https://acme.example', name: 'Acme Plumbing', website: 'https://acme.example' })
-    })
-    expect(ctx().selectedBusiness?.name).toBe('Acme Plumbing')
+      ctx().selectBusiness({ id: 'url:https://acme.example', name: 'Acme Plumbing', website: 'https://acme.example' });
+    });
+    expect(ctx().selectedBusiness?.name).toBe('Acme Plumbing');
 
-    await act(async () => { ctx().closePersonalize() })
-    await openSource()
-    expect(ctx().selectedBusiness).toBeNull()
-    expect(ctx().businessSearchMode).toBe('idle')
-    expect(ctx().businessLoadSummary).toBeNull()
-  })
-})
+    await act(async () => { ctx().closePersonalize(); });
+    await openSource();
+    expect(ctx().selectedBusiness).toBeNull();
+    expect(ctx().businessSearchMode).toBe('idle');
+    expect(ctx().businessLoadSummary).toBeNull();
+  });
+});

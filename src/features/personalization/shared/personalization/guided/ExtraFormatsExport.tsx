@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import { useEffect, useRef, useState } from 'react'
-import { Download, Loader2, X } from 'lucide-react'
-import { EXPORT_FORMATS, exportFormats, formatFileSuffix } from '../preview/exportFormats'
-import type { PreviewAspectRatio, PreviewInputProps } from '../preview/types'
-import { C, chipStyle, hintStyle, labelStyle, secondaryButtonStyle } from './tokens'
+import { useEffect, useRef, useState } from 'react';
+import { Download, Loader2, X } from 'lucide-react';
+import { EXPORT_FORMATS, exportFormats, formatFileSuffix } from '../preview/exportFormats';
+import type { PreviewAspectRatio, PreviewInputProps } from '../preview/types';
+import { C, chipStyle, hintStyle, labelStyle, secondaryButtonStyle } from './tokens';
 
 /**
  * "Also export other shapes": renders the approved preview again in 9:16, 1:1, 4:5 or 16:9 and saves each file as
@@ -16,42 +16,42 @@ export function ExtraFormatsExport({ inputProps, disabled, onRunningChange }: {
   /** Lets the parent keep the main render from starting while a batch runs (they share one renderer). */
   onRunningChange?: (running: boolean) => void
 }): React.JSX.Element {
-  const current = inputProps.settings.aspectRatio
-  const [picked, setPicked] = useState<PreviewAspectRatio[]>([])
-  const [running, setRunning] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [label, setLabel] = useState('')
-  const [note, setNote] = useState<string | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
-  const onRunningChangeRef = useRef(onRunningChange)
-  onRunningChangeRef.current = onRunningChange
-  useEffect(() => { onRunningChangeRef.current?.(running) }, [running])
+  const current = inputProps.settings.aspectRatio;
+  const [picked, setPicked] = useState<PreviewAspectRatio[]>([]);
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [label, setLabel] = useState('');
+  const [note, setNote] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const onRunningChangeRef = useRef(onRunningChange);
+  onRunningChangeRef.current = onRunningChange;
+  useEffect(() => { onRunningChangeRef.current?.(running); }, [running]);
   // Leaving the step (or unmounting for any reason) must stop the batch, not leave it rendering unseen.
-  useEffect(() => () => { abortRef.current?.abort(); onRunningChangeRef.current?.(false) }, [])
+  useEffect(() => () => { abortRef.current?.abort(); onRunningChangeRef.current?.(false); }, []);
 
-  const toggle = (id: PreviewAspectRatio) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
+  const toggle = (id: PreviewAspectRatio) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
   const run = async () => {
-    if (!picked.length || running) return
-    const ac = new AbortController(); abortRef.current = ac
-    setRunning(true); setProgress(0); setNote(null)
+    if (!picked.length || running) return;
+    const ac = new AbortController(); abortRef.current = ac;
+    setRunning(true); setProgress(0); setNote(null);
     try {
-      const { downloadWebExportBlob } = await import('../webExport')
-      const stamp = Date.now().toString(36)
+      const { downloadWebExportBlob } = await import('../webExport');
+      const stamp = Date.now().toString(36);
       const results = await exportFormats({
         inputProps, aspects: picked, signal: ac.signal,
-        onProgress: (p, aspect, i, total) => { setProgress(p); setLabel(`${aspect} (${i + 1} of ${total})`) },
+        onProgress: (p, aspect, i, total) => { setProgress(p); setLabel(`${aspect} (${i + 1} of ${total})`); },
         onFile: (aspect, r) => downloadWebExportBlob(r.blob, `personalized-${stamp}-${formatFileSuffix(aspect)}.${r.extension}`),
-      })
-      const ok = results.filter((r) => r.result.ok).length
-      const failed = results.filter((r) => !r.result.ok && (r.result as { reason?: string }).reason !== 'cancelled')
-      if (ac.signal.aborted) setNote(`Cancelled. ${ok} file${ok === 1 ? '' : 's'} saved.`)
-      else if (failed.length) setNote(`${ok} saved. ${failed.map((f) => `${f.aspect}: ${(f.result as { error: string }).error}`).join(' ')}`)
-      else setNote(`${ok} file${ok === 1 ? '' : 's'} saved to your downloads.`)
+      });
+      const ok = results.filter((r) => r.result.ok).length;
+      const failed = results.filter((r) => !r.result.ok && (r.result as { reason?: string }).reason !== 'cancelled');
+      if (ac.signal.aborted) setNote(`Cancelled. ${ok} file${ok === 1 ? '' : 's'} saved.`);
+      else if (failed.length) setNote(`${ok} saved. ${failed.map((f) => `${f.aspect}: ${(f.result as { error: string }).error}`).join(' ')}`);
+      else setNote(`${ok} file${ok === 1 ? '' : 's'} saved to your downloads.`);
     } catch (error) {
       // A failed lazy import or a throw from the renderer must reach the person, not become an unhandled rejection.
-      setNote(`Export failed: ${error instanceof Error && error.message ? error.message : 'something went wrong.'}`)
-    } finally { setRunning(false); abortRef.current = null }
-  }
+      setNote(`Export failed: ${error instanceof Error && error.message ? error.message : 'something went wrong.'}`);
+    } finally { setRunning(false); abortRef.current = null; }
+  };
 
   return (
     <div data-testid="extra-formats" style={{ marginTop: 12 }}>
@@ -71,5 +71,5 @@ export function ExtraFormatsExport({ inputProps, disabled, onRunningChange }: {
       <p style={{ ...hintStyle, margin: '6px 0 0' }}>Each shape is rendered here in your browser, one after another. Layers you placed by hand keep their position as a fraction of the frame, so check each shape in the preview first.</p>
       {note && <p role="status" data-testid="extra-formats-note" style={{ ...hintStyle, margin: '6px 0 0', color: C.cyan }}>{note}</p>}
     </div>
-  )
+  );
 }

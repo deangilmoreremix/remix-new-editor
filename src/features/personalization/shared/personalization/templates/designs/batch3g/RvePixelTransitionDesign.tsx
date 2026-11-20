@@ -17,26 +17,26 @@
  * 1.5 s.
  */
 
-import React from 'react'
-import { PixelTransition } from '../../_upstream/rve-pixel-transition/PixelTransition'
-import type { RemotionDesignComponentProps } from '../../types'
-import { darkenColor } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, brandPalette, fadeOut } from './batch3gShared'
+import React from 'react';
+import { PixelTransition } from '../../_upstream/rve-pixel-transition/PixelTransition';
+import type { RemotionDesignComponentProps } from '../../types';
+import { darkenColor } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, brandPalette, fadeOut } from './batch3gShared';
 
-export const PIXEL_DELAY_SPREAD = 45
-const TITLE_OUT_START = 8
-const TITLE_OUT_END = 30
+export const PIXEL_DELAY_SPREAD = 45;
+const TITLE_OUT_START = 8;
+const TITLE_OUT_END = 30;
 
 export const RvePixelTransitionDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
-  const pixelSize = Math.max(12, Math.round(Math.max(props.width, props.height) / 48))
+  const palette = brandPalette(props);
+  const pixelSize = Math.max(12, Math.round(Math.max(props.width, props.height) / 48));
   const colors = [
     darkenColor(palette.primary, 0.55),
     darkenColor(palette.primary, 0.4),
     darkenColor(palette.primary, 0.3),
     darkenColor(palette.accent, 0.45),
-  ]
+  ];
   return (
     <RveDesignStage designId="rve-pixel-transition" props={props}>
       <PixelTransition
@@ -60,7 +60,7 @@ export const RvePixelTransitionDesign: React.FC<RemotionDesignComponentProps> = 
         <BrandCardContent props={props} />
       </div>
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RvePixelTransitionDesign
+export default RvePixelTransitionDesign;

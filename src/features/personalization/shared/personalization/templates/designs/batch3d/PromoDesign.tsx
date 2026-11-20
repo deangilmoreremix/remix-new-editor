@@ -34,44 +34,44 @@
  * 1080-wide canvas the callout column is too narrow for its copy.
  */
 
-import React from 'react'
-import { PromoTemplate } from '../../_upstream/brito-promo/PromoTemplate'
+import React from 'react';
+import { PromoTemplate } from '../../_upstream/brito-promo/PromoTemplate';
 import {
   pickColor,
   slotText,
   slotValue,
   truncateText,
   type DesignAdapterProps,
-} from '../shared'
-import { BritoDesignStage, BritoScreenshotPlaceholder, britoFitChars } from './britoShared'
+} from '../shared';
+import { BritoDesignStage, BritoScreenshotPlaceholder, britoFitChars } from './britoShared';
 
-export const BRITO_PROMO_ID = 'brito-promo'
+export const BRITO_PROMO_ID = 'brito-promo';
 
 /** 70 (hook) + 90 (one feature) + 80 (CTA) − 2 x 20 (transitions). */
-export const BRITO_PROMO_FRAMES = 70 + 90 + 80 - 2 * 20
+export const BRITO_PROMO_FRAMES = 70 + 90 + 80 - 2 * 20;
 
 function mediaUrl(value: string | null | undefined): string {
-  return typeof value === 'string' ? value.trim() : ''
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 export const BritoPromoDesign: React.FC<DesignAdapterProps> = (props) => {
-  const w = props.width * 0.9
+  const w = props.width * 0.9;
   // The name is shown at 170 px (hook) and 120 px (CTA); the hook is the tighter fit.
-  const productName = truncateText(slotValue(props, 'productName'), britoFitChars(w, 170, 24, 0.62))
-  const tagline = truncateText(slotText(props, 'tagline'), britoFitChars(w, 52, 60, 0.55))
+  const productName = truncateText(slotValue(props, 'productName'), britoFitChars(w, 170, 24, 0.62));
+  const tagline = truncateText(slotText(props, 'tagline'), britoFitChars(w, 52, 60, 0.55));
   const featureTitle = truncateText(
     slotValue(props, 'featureTitle') || slotText(props, 'tagline'),
     40,
-  )
+  );
   const featureDescription = truncateText(
     [slotValue(props, 'website'), slotValue(props, 'phone')].filter(Boolean).join(' · '),
     90,
-  )
-  const cta = truncateText(slotValue(props, 'cta'), britoFitChars(w - 120, 46, 36, 0.6))
+  );
+  const cta = truncateText(slotValue(props, 'cta'), britoFitChars(w - 120, 46, 36, 0.6));
 
-  const primary = pickColor([props.colors?.primary, props.colors?.accent], '#2563EB')
-  const accent = pickColor([props.colors?.accent, props.colors?.primary], '#0EA5E9')
-  const screenshot = mediaUrl(props.media?.product) || mediaUrl(props.media?.service)
+  const primary = pickColor([props.colors?.primary, props.colors?.accent], '#2563EB');
+  const accent = pickColor([props.colors?.accent, props.colors?.primary], '#0EA5E9');
+  const screenshot = mediaUrl(props.media?.product) || mediaUrl(props.media?.service);
 
   return (
     <BritoDesignStage designId={BRITO_PROMO_ID} props={props} overlay={false}>
@@ -85,7 +85,7 @@ export const BritoPromoDesign: React.FC<DesignAdapterProps> = (props) => {
         screenshotPlaceholder={<BritoScreenshotPlaceholder primary={primary} accent={accent} />}
       />
     </BritoDesignStage>
-  )
-}
+  );
+};
 
-export default BritoPromoDesign
+export default BritoPromoDesign;

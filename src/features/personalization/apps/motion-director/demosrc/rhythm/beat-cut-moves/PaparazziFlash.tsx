@@ -55,8 +55,10 @@ const Wall: React.FC = () => {
   const rows = 9;
   const cols = 6;
   return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden',
-      background: `radial-gradient(ellipse 60% 70% at 50% 28%, #2a2b2f 0%, #18191c 55%, #0d0d0f 100%)` }}>
+    <div style={{
+ position: 'absolute', inset: 0, overflow: 'hidden',
+      background: `radial-gradient(ellipse 60% 70% at 50% 28%, #2a2b2f 0%, #18191c 55%, #0d0d0f 100%)` 
+}}>
       {Array.from({ length: rows }, (_, r) => (
         <div key={r} style={{ position: 'absolute', left: (r % 2) * -170 - 60, top: 20 + r * 124, display: 'flex', gap: 0, whiteSpace: 'nowrap' }}>
           {Array.from({ length: cols + 1 }, (_, c) => {
@@ -111,9 +113,11 @@ const Scene: React.FC<{ f: number; live: boolean }> = ({ f, live }) => (
       );
     })}
     {/* 奖牌卡 */}
-    <div style={{ position: 'absolute', left: CARD.x, top: CARD.y, width: CARD.w, height: CARD.h, borderRadius: 40, overflow: 'hidden',
+    <div style={{
+ position: 'absolute', left: CARD.x, top: CARD.y, width: CARD.w, height: CARD.h, borderRadius: 40, overflow: 'hidden',
       background: 'linear-gradient(165deg, #2a2b30 0%, #18191c 45%, #121315 100%)',
-      boxShadow: `inset 0 0 0 1.5px ${alpha('#ffffff', 0.12)}, inset 0 1.5px 0 ${alpha('#ffffff', 0.22)}, 0 60px 120px -40px rgba(0,0,0,0.95), 0 0 0 1px rgba(0,0,0,0.6)` }}>
+      boxShadow: `inset 0 0 0 1.5px ${alpha('#ffffff', 0.12)}, inset 0 1.5px 0 ${alpha('#ffffff', 0.22)}, 0 60px 120px -40px rgba(0,0,0,0.95), 0 0 0 1px rgba(0,0,0,0.6)` 
+}}>
       {/* 卡面受光：顶部一片柔高光 */}
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 40% at 30% 0%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 70%)' }} />
       <div style={{ position: 'absolute', left: 60, top: 56, display: 'flex', alignItems: 'center', gap: 20 }}>
@@ -131,8 +135,10 @@ const Scene: React.FC<{ f: number; live: boolean }> = ({ f, live }) => (
       </div>
       <div style={{ position: 'absolute', left: 60, right: 60, top: 624, height: 1.5, background: alpha('#ffffff', 0.12) }} />
       <div style={{ position: 'absolute', left: 60, top: 660, display: 'flex', alignItems: 'center', gap: 22 }}>
-        <div style={{ width: 80, height: 80, borderRadius: 22, background: `linear-gradient(150deg, ${BRAND.paper} 0%, #d6d2c8 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: 'inset 0 1.5px 0 #fff, 0 10px 24px -10px rgba(0,0,0,0.8)' }}>
+        <div style={{
+ width: 80, height: 80, borderRadius: 22, background: `linear-gradient(150deg, ${BRAND.paper} 0%, #d6d2c8 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: 'inset 0 1.5px 0 #fff, 0 10px 24px -10px rgba(0,0,0,0.8)' 
+}}>
           <MotionStudioMark size={54} tone="light" />
         </div>
         <div>

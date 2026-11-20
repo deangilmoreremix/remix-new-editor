@@ -39,10 +39,12 @@ export function speechRequest(text: string, voiceId: string | undefined, directi
   if (id.startsWith('fish:')) return { model: FISH_SPEECH, inputs: { prompt, voice_id: id.slice(5) } };
   if (id.startsWith('gemini:')) {
     const style = GEMINI_STYLES.find((x) => x.toLowerCase() === (direction || '').trim().toLowerCase());
-    return { model: GEMINI_SPEECH, inputs: {
+    return {
+ model: GEMINI_SPEECH, inputs: {
       speakers: [{ speaker_id: 'Speaker 1', voice_name: id.slice(7), accent: 'Neutral', ...(style ? { style } : {}), pace: 'Natural' }],
       dialogue_turns: [{ speaker_id: 'Speaker 1', text }],
-    } };
+    } 
+};
   }
   return { model: V4_VOICES.has(id) ? SPEECH_MODEL_V4 : SPEECH_MODEL_PREMADE, inputs: { prompt, voice_id: id } };
 }

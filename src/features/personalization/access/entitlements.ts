@@ -8,6 +8,6 @@ export const ENTITLEMENTS = {
   SMARTVIDEO_AI: 'smartvideo_ai',
   SMARTVIDEO_VIRAL: 'smartvideo_viral',
   FOUNDERS: 'founders',
-} as const
+} as const;
 
 export type EntitlementKey = typeof ENTITLEMENTS[keyof typeof ENTITLEMENTS]

@@ -15,27 +15,27 @@
  * on every format, and sizes the dots from the short edge.
  */
 
-import React from 'react'
-import { GridPulse } from '../../_upstream/rve-grid-pulse/GridPulse'
-import { TRANSPARENT, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { brandPrimary } from './shared3f'
+import React from 'react';
+import { GridPulse } from '../../_upstream/rve-grid-pulse/GridPulse';
+import { TRANSPARENT, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { brandPrimary } from './shared3f';
 
 /** Columns x rows for the composition's aspect ratio. */
 export function gridPulseLayout(width: number, height: number): { cols: number; rows: number } {
-  const ratio = Math.max(1, width) / Math.max(1, height)
-  if (ratio >= 1.3) return { cols: 12, rows: 8 } // 16:9 — the upstream grid
-  if (ratio >= 0.9) return { cols: 10, rows: 10 } // 1:1
-  if (ratio >= 0.7) return { cols: 9, rows: 11 } // 4:5
-  return { cols: 8, rows: 12 } // 9:16
+  const ratio = Math.max(1, width) / Math.max(1, height);
+  if (ratio >= 1.3) return { cols: 12, rows: 8 }; // 16:9 — the upstream grid
+  if (ratio >= 0.9) return { cols: 10, rows: 10 }; // 1:1
+  if (ratio >= 0.7) return { cols: 9, rows: 11 }; // 4:5
+  return { cols: 8, rows: 12 }; // 9:16
 }
 
 /** Dot size as a fraction of the short edge (upstream: 10 px on 1080). */
-const DOT_RATIO = 0.014
+const DOT_RATIO = 0.014;
 
 export const RveGridPulseDesign: React.FC<DesignAdapterProps> = (props) => {
-  const { cols, rows } = gridPulseLayout(props.width, props.height)
-  const dotSize = Math.max(4, Math.round(Math.min(props.width, props.height) * DOT_RATIO))
+  const { cols, rows } = gridPulseLayout(props.width, props.height);
+  const dotSize = Math.max(4, Math.round(Math.min(props.width, props.height) * DOT_RATIO));
 
   return (
     <RveDesignStage designId="rve-grid-pulse" props={props}>
@@ -47,7 +47,7 @@ export const RveGridPulseDesign: React.FC<DesignAdapterProps> = (props) => {
         dotColor={brandPrimary(props)}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveGridPulseDesign
+export default RveGridPulseDesign;

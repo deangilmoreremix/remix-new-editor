@@ -18,21 +18,21 @@
  * a padded box and wraps; it is fitted to two lines, the subtitle to one.
  */
 
-import React from 'react'
-import { CameraShake } from '../../_upstream/camera-shake/CameraShake'
-import { DesignStage, pickColor, slotText, slotValue, type DesignAdapterProps } from '../shared'
-import { FadeOut, charsPerLine, ensureDark, ensureLight, fitWords, hex6, mix } from './shared'
+import React from 'react';
+import { CameraShake } from '../../_upstream/camera-shake/CameraShake';
+import { DesignStage, pickColor, slotText, slotValue, type DesignAdapterProps } from '../shared';
+import { FadeOut, charsPerLine, ensureDark, ensureLight, fitWords, hex6, mix } from './shared';
 
-export const CAMERA_SHAKE_FADE_START = 78
-export const CAMERA_SHAKE_END_FRAME = 90
+export const CAMERA_SHAKE_FADE_START = 78;
+export const CAMERA_SHAKE_END_FRAME = 90;
 
 export const CameraShakeDesign: React.FC<DesignAdapterProps> = (props) => {
-  const wide = props.width >= 1920
-  const titlePerLine = charsPerLine(props.width - 300, wide ? 124 : 84, { safe: 0.95, advanceEm: 0.68, letterSpacing: 6 })
-  const subPerLine = charsPerLine(props.width, wide ? 36 : 28, { safe: 0.85, letterSpacing: 3 })
+  const wide = props.width >= 1920;
+  const titlePerLine = charsPerLine(props.width - 300, wide ? 124 : 84, { safe: 0.95, advanceEm: 0.68, letterSpacing: 6 });
+  const subPerLine = charsPerLine(props.width, wide ? 36 : 28, { safe: 0.85, letterSpacing: 3 });
 
-  const primary = hex6(props.colors?.primary, '#111827')
-  const accent = ensureLight(hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#f59e0b'), 0.25)
+  const primary = hex6(props.colors?.primary, '#111827');
+  const accent = ensureLight(hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#f59e0b'), 0.25);
 
   return (
     <DesignStage designId="camera-shake" props={props}>
@@ -49,7 +49,7 @@ export const CameraShakeDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </FadeOut>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default CameraShakeDesign
+export default CameraShakeDesign;

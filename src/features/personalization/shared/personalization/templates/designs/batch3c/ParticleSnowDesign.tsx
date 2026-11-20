@@ -23,13 +23,13 @@
  * and wraps, so the strings are only capped.
  */
 
-import React from 'react'
-import { ParticleSnow } from '../../_upstream/particle-snow/ParticleSnow'
-import { DesignStage, TRANSPARENT, pickColor, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
-import { toHex6 } from './batch3cShared'
+import React from 'react';
+import { ParticleSnow } from '../../_upstream/particle-snow/ParticleSnow';
+import { DesignStage, TRANSPARENT, pickColor, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
+import { toHex6 } from './batch3cShared';
 
-const MAX_TITLE_LENGTH = 32
-const MAX_SUBTITLE_LENGTH = 56
+const MAX_TITLE_LENGTH = 32;
+const MAX_SUBTITLE_LENGTH = 56;
 
 export const ParticleSnowDesign: React.FC<DesignAdapterProps> = (props) => (
   <DesignStage designId="particle-snow" props={props}>
@@ -43,6 +43,6 @@ export const ParticleSnowDesign: React.FC<DesignAdapterProps> = (props) => (
       textColor={pickColor([props.color, props.colors?.text], '#f8fafc')}
     />
   </DesignStage>
-)
+);
 
-export default ParticleSnowDesign
+export default ParticleSnowDesign;

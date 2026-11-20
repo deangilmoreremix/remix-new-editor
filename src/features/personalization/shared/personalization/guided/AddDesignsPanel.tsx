@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import { useEffect, useMemo, useRef } from 'react'
-import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { canAddDesign, listAddedDesigns } from '../preview/designAddons'
-import { getRemotionDesignTemplate } from '../templates/registry'
-import { getRemotionDesignFixedSvgIdWarning } from '../templates/catalog'
-import { suggestGoal } from '../templates/recommendations'
-import { DesignRecommendations } from './DesignRecommendations'
-import { C, hintStyle, labelStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
+import { useEffect, useMemo, useRef } from 'react';
+import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { canAddDesign, listAddedDesigns } from '../preview/designAddons';
+import { getRemotionDesignTemplate } from '../templates/registry';
+import { getRemotionDesignFixedSvgIdWarning } from '../templates/catalog';
+import { suggestGoal } from '../templates/recommendations';
+import { DesignRecommendations } from './DesignRecommendations';
+import { C, hintStyle, labelStyle, secondaryButtonStyle, softPanelStyle } from './tokens';
 
 /**
  * Every template (the layouts and all registered designs) with the add-on rules, plus the list of designs
@@ -16,7 +16,7 @@ import { C, hintStyle, labelStyle, secondaryButtonStyle, softPanelStyle } from '
  * so the three places behave identically and share the provider's single preview state.
  */
 export function AddDesignsPanel(): React.JSX.Element | null {
-  const ctx = useDemoPersonalize()
+  const ctx = useDemoPersonalize();
   const {
     previewSettings,
     assets,
@@ -30,7 +30,7 @@ export function AddDesignsPanel(): React.JSX.Element | null {
     remotionDesignError = null,
     updatePreviewLayer,
     clientForm = {},
-  } = ctx
+  } = ctx;
 
   const available = useMemo(
     () => ({
@@ -39,16 +39,16 @@ export function AddDesignsPanel(): React.JSX.Element | null {
       service: (assets?.products?.length || 0) > 0,
     }),
     [assets],
-  )
+  );
   // Bring a refusal into view: with the library open the card that was clicked can be far below this message.
-  const errorRef = useRef<HTMLParagraphElement>(null)
+  const errorRef = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
-    if (remotionDesignError) errorRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
-  }, [remotionDesignError])
-  const added = listAddedDesigns(previewSettings)
-  if (remotionDesignTemplates.length === 0) return null
-  const fixedSvgIdWarning = getRemotionDesignFixedSvgIdWarning(activeRemotionDesignId)
-  const fps = previewSettings.fps || 30
+    if (remotionDesignError) errorRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+  }, [remotionDesignError]);
+  const added = listAddedDesigns(previewSettings);
+  if (remotionDesignTemplates.length === 0) return null;
+  const fixedSvgIdWarning = getRemotionDesignFixedSvgIdWarning(activeRemotionDesignId);
+  const fps = previewSettings.fps || 30;
 
   return (
     <div data-testid="add-designs-panel">
@@ -58,8 +58,8 @@ export function AddDesignsPanel(): React.JSX.Element | null {
       ) : (
         <ul data-testid="added-designs" style={{ listStyle: 'none', margin: '0 0 12px', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
           {added.map((layer, index) => {
-            const design = layer.designId ? getRemotionDesignTemplate(layer.designId) : undefined
-            const end = typeof layer.endFrame === 'number' ? `${(layer.endFrame / fps).toFixed(1)}s` : 'end'
+            const design = layer.designId ? getRemotionDesignTemplate(layer.designId) : undefined;
+            const end = typeof layer.endFrame === 'number' ? `${(layer.endFrame / fps).toFixed(1)}s` : 'end';
             return (
               <li key={layer.id} data-testid={`added-design-${layer.designId}`} style={{ ...softPanelStyle, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ color: C.text, fontSize: 12, fontWeight: 700 }}>{design?.name ?? layer.designId}</span>
@@ -75,7 +75,7 @@ export function AddDesignsPanel(): React.JSX.Element | null {
                   </button>
                 </span>
               </li>
-            )
+            );
           })}
         </ul>
       )}
@@ -99,6 +99,6 @@ export function AddDesignsPanel(): React.JSX.Element | null {
       />
       {fixedSvgIdWarning ? <p role="note" style={{ ...hintStyle, marginTop: 8 }}>{fixedSvgIdWarning}</p> : null}
     </div>
-  )
+  );
 }
 

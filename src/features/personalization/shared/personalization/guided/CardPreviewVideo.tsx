@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 /**
  * Silent, looping, autoplaying clip for an UNSELECTED gallery card.
@@ -27,48 +27,48 @@ export function CardPreviewVideo({
   poster?: string | null
   fallback: ReactNode
 }): React.JSX.Element {
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [inView, setInView] = useState(false)
-  const [ready, setReady] = useState(false)
-  const [failed, setFailed] = useState(false)
-  const [reducedMotion, setReducedMotion] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [inView, setInView] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-  }, [])
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
 
   useEffect(() => {
-    const el = wrapperRef.current
-    if (!el) return
+    const el = wrapperRef.current;
+    if (!el) return;
     // No observer (old browser, test DOM): treat the card as visible.
     if (typeof IntersectionObserver === 'undefined') {
-      setInView(true)
-      return
+      setInView(true);
+      return;
     }
     const observer = new IntersectionObserver(
       ([entry]) => setInView(Boolean(entry?.isIntersecting)),
       { rootMargin: '120px 0px', threshold: 0.1 },
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
-  const active = inView && !failed && !reducedMotion
+  const active = inView && !failed && !reducedMotion;
 
   useEffect(() => {
     if (!active) {
-      setReady(false)
-      return
+      setReady(false);
+      return;
     }
-    const el = videoRef.current
-    if (!el) return
+    const el = videoRef.current;
+    if (!el) return;
     // `muted` allows autoplay; the explicit call covers browsers that still
     // refuse the first attempt.
-    const attempt = el.play()
-    if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {})
-  }, [active, src])
+    const attempt = el.play();
+    if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {});
+  }, [active, src]);
 
   return (
     <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
@@ -104,5 +104,5 @@ export function CardPreviewVideo({
         />
       )}
     </div>
-  )
+  );
 }

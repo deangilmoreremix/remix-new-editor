@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import type { TimelineClip } from './types'
+import { useState, useCallback } from 'react';
+import type { TimelineClip } from './types';
 
 interface GapGenerationParams {
   trackIndex: number
@@ -25,22 +25,22 @@ export function useGapGeneration({
   setClips,
   onGenerate,
 }: UseGapGenerationProps) {
-  const [selectedGap, setSelectedGap] = useState<{ trackIndex: number; startTime: number; endTime: number } | null>(null)
-  const [gapPrompt, setGapPrompt] = useState('')
+  const [selectedGap, setSelectedGap] = useState<{ trackIndex: number; startTime: number; endTime: number } | null>(null);
+  const [gapPrompt, setGapPrompt] = useState('');
   const [gapSettings, setGapSettings] = useState({
     aspectRatio: '16:9',
     duration: 2,
     motion: 5,
     style: '',
-  })
-  const [generatingGap, setGeneratingGap] = useState(false)
-  const [gapError, setGapError] = useState<string | null>(null)
+  });
+  const [generatingGap, setGeneratingGap] = useState(false);
+  const [gapError, setGapError] = useState<string | null>(null);
 
   const handleGapGenerate = useCallback(async () => {
-    if (!selectedGap || !gapPrompt.trim()) return
+    if (!selectedGap || !gapPrompt.trim()) return;
 
-    setGeneratingGap(true)
-    setGapError(null)
+    setGeneratingGap(true);
+    setGapError(null);
 
     try {
       await onGenerate({
@@ -49,13 +49,13 @@ export function useGapGeneration({
         endTime: selectedGap.endTime,
         prompt: gapPrompt,
         settings: gapSettings,
-      })
+      });
     } catch (error) {
-      setGapError(error instanceof Error ? error.message : 'Generation failed')
+      setGapError(error instanceof Error ? error.message : 'Generation failed');
     } finally {
-      setGeneratingGap(false)
+      setGeneratingGap(false);
     }
-  }, [selectedGap, gapPrompt, gapSettings, onGenerate])
+  }, [selectedGap, gapPrompt, gapSettings, onGenerate]);
 
   const insertGapClip = useCallback((
     trackIndex: number,
@@ -94,26 +94,26 @@ export function useGapGeneration({
         temperature: 0, tint: 0, exposure: 0, highlights: 0, shadows: 0,
       },
       opacity: 100,
-    }
+    };
 
-    const newClips = [...clips]
-    const insertIndex = newClips.findIndex(c => c.trackIndex === trackIndex && c.startTime > startTime)
+    const newClips = [...clips];
+    const insertIndex = newClips.findIndex(c => c.trackIndex === trackIndex && c.startTime > startTime);
     
     if (insertIndex !== -1) {
-      newClips.splice(insertIndex, 0, newClip)
+      newClips.splice(insertIndex, 0, newClip);
     } else {
-      newClips.push(newClip)
+      newClips.push(newClip);
     }
 
-    setClips(newClips)
-  }, [clips, setClips])
+    setClips(newClips);
+  }, [clips, setClips]);
 
   const deleteGap = useCallback((trackIndex: number, startTime: number, endTime: number) => {
     const newClips = clips.filter(c => 
       !(c.trackIndex === trackIndex && c.startTime >= startTime && ((c as any).end ?? (c.startTime + c.duration)) <= endTime)
-    )
-    setClips(newClips)
-  }, [clips, setClips])
+    );
+    setClips(newClips);
+  }, [clips, setClips]);
 
   return {
     selectedGap,
@@ -127,5 +127,5 @@ export function useGapGeneration({
     handleGapGenerate,
     insertGapClip,
     deleteGap,
-  }
+  };
 }

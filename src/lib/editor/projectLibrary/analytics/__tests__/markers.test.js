@@ -6,14 +6,16 @@ const project = {
   listBuilder: { enabled: true },
   tracks: [
     { type: 'video', items: [{ id: 'v1', type: 'video', start: 0, end: 100 }] },
-    { type: 'text', items: [
+    {
+ type: 'text', items: [
       { id: 'lf', type: 'lead-form', start: 45, end: 55 },
       { id: 'cta1', type: 'click-to-call', start: 80, end: 90, buttonText: 'Call us now' },
       { id: 'img', type: 'overlay-image', start: 10, end: 20, linkUrl: 'https://x.test' },
       { id: 'plain', type: 'overlay-text', start: 5, end: 8 },
       { id: 'late', type: 'lead-form', start: 20, end: 30, trigger: 'end' },
       { id: 'beyond', type: 'click-to-call', start: 150, end: 160 },
-    ] },
+    ] 
+},
   ],
 };
 

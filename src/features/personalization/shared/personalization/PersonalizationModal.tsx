@@ -19,11 +19,11 @@
  *   - Shared Media registration via sharedMedia
  */
 
-'use client'
+'use client';
 
-import { cutoutAssetIds } from './backgroundRemoval/useAutoCutout'
-import { RECAST_MAX_SECONDS } from './recast/recastJob'
-import { logoQualityNotes } from './logoScoring'
+import { cutoutAssetIds } from './backgroundRemoval/useAutoCutout';
+import { RECAST_MAX_SECONDS } from './recast/recastJob';
+import { logoQualityNotes } from './logoScoring';
 import {
   useState,
   useRef,
@@ -32,7 +32,7 @@ import {
   useMemo,
   type ChangeEvent,
   type DragEvent,
-} from 'react'
+} from 'react';
 import {
   X,
   Copy,
@@ -44,16 +44,16 @@ import {
   AlertTriangle,
   Share2,
   SlidersHorizontal,
-} from 'lucide-react'
-import { SocialIcons } from './SocialIcons'
-import { LeadInsightChips } from './LeadInsightChips'
-import { LeadInsightsPanel } from './LeadInsightsPanel'
-import { createSeenTracker, leadsToCsv } from './leadInsights'
-import { openStatus } from '../../../../../netlify/functions/_personalization/src/server/businessEnrichment/openingHours'
-import { useBusinessEnrichment, mergeCardContacts } from './useBusinessEnrichment'
-import { DEFAULT_ADVANCED_SECTIONS, useDemoPersonalize } from './DemoPersonalizeProvider'
-import type { AutoFillKey } from './businessContentFromResearch'
-import type { AdvancedEditingSections, AdvancedEditingTab } from './types'
+} from 'lucide-react';
+import { SocialIcons } from './SocialIcons';
+import { LeadInsightChips } from './LeadInsightChips';
+import { LeadInsightsPanel } from './LeadInsightsPanel';
+import { createSeenTracker, leadsToCsv } from './leadInsights';
+import { openStatus } from '../../../../../netlify/functions/_personalization/src/server/businessEnrichment/openingHours';
+import { useBusinessEnrichment, mergeCardContacts } from './useBusinessEnrichment';
+import { DEFAULT_ADVANCED_SECTIONS, useDemoPersonalize } from './DemoPersonalizeProvider';
+import type { AutoFillKey } from './businessContentFromResearch';
+import type { AdvancedEditingSections, AdvancedEditingTab } from './types';
 import {
   AdvancedPreviewColumn,
   AdvancedSectionPanel,
@@ -62,35 +62,35 @@ import {
   AdvancedTabFooter,
   AdvancedTabPanel,
   SECTION_LOCATION,
-} from './advanced/AdvancedWorkspace'
-import { FullBodyRecastSection } from './advanced/FullBodyRecastPanel'
-import { ReadinessChecklist, blockingByTab, focusRequirementControl, requirementLocation } from './advanced/ReadinessChecklist'
-import { validateProjectRequirements } from './ai/toolExecutor'
-import { chooseFinalOutputPath } from './finalOutput'
-import type { AIMissingRequirement } from './ai/types'
-import type { PersonalizationAsset, DiscoveredAsset, DiscoveredAssetCategory, AssignedSection, AssetRole, PersonalizationVisionAnalysis, BusinessDiscoveryRecord, BusinessOwnership, PersonalizationSource } from './types'
-import { LEAD_STAGES, isLeadStage } from './leadStages'
-import { ownershipBadgeStyle, ownershipLabel } from './ownershipBadge'
-import { modelForGeneration, resolveModelCapabilities } from './modelCapabilityResolver'
-import { getModelById, getVideoModelById } from '@ohb/packages/studio/src/models.js'
-import { NICHE_CONTENT } from '@ohb/data/nicheContent'
-import { BUSINESS_NICHES } from './businessNiches'
-import { useFinderContinuity, type SavedSearch } from './useFinderContinuity'
-import { HiddenBar, LooksWrongMenu, SavedSearchesPanel } from './FinderContinuityUi'
+} from './advanced/AdvancedWorkspace';
+import { FullBodyRecastSection } from './advanced/FullBodyRecastPanel';
+import { ReadinessChecklist, blockingByTab, focusRequirementControl, requirementLocation } from './advanced/ReadinessChecklist';
+import { validateProjectRequirements } from './ai/toolExecutor';
+import { chooseFinalOutputPath } from './finalOutput';
+import type { AIMissingRequirement } from './ai/types';
+import type { PersonalizationAsset, DiscoveredAsset, DiscoveredAssetCategory, AssignedSection, AssetRole, PersonalizationVisionAnalysis, BusinessDiscoveryRecord, BusinessOwnership, PersonalizationSource } from './types';
+import { LEAD_STAGES, isLeadStage } from './leadStages';
+import { ownershipBadgeStyle, ownershipLabel } from './ownershipBadge';
+import { modelForGeneration, resolveModelCapabilities } from './modelCapabilityResolver';
+import { getModelById, getVideoModelById } from '@ohb/packages/studio/src/models.js';
+import { NICHE_CONTENT } from '@ohb/data/nicheContent';
+import { BUSINESS_NICHES } from './businessNiches';
+import { useFinderContinuity, type SavedSearch } from './useFinderContinuity';
+import { HiddenBar, LooksWrongMenu, SavedSearchesPanel } from './FinderContinuityUi';
 import ImageEditorModal, {
   type ImageEditorApplyResult,
   type PersonalizationImageEditorAsset,
-} from './image-editor/ImageEditorModal'
-import { makeDiscoveredAssetVideoReady } from './image-editor/batchVideoReady'
-import { isImageEditSupported } from './image-editor/imageEditSupport'
-import { DiscoveredAssetGrid, type DiscoveredAssetDropZone } from './DiscoveredAssetGrid'
-import { ResumeProjectBanner } from './ResumeProjectBanner'
-import { SimpleModeWizard } from './guided/SimpleModeWizard'
-import { OverlayEditor } from './guided/OverlayEditor'
-import { buildPreviewInput } from './guided/buildPreviewInput'
-import { BeforeAfterPreview } from './preview/BeforeAfterPreview'
-import { isOwnedWebsite } from './websiteClassification'
-import { C } from './guided/tokens'
+} from './image-editor/ImageEditorModal';
+import { makeDiscoveredAssetVideoReady } from './image-editor/batchVideoReady';
+import { isImageEditSupported } from './image-editor/imageEditSupport';
+import { DiscoveredAssetGrid, type DiscoveredAssetDropZone } from './DiscoveredAssetGrid';
+import { ResumeProjectBanner } from './ResumeProjectBanner';
+import { SimpleModeWizard } from './guided/SimpleModeWizard';
+import { OverlayEditor } from './guided/OverlayEditor';
+import { buildPreviewInput } from './guided/buildPreviewInput';
+import { BeforeAfterPreview } from './preview/BeforeAfterPreview';
+import { isOwnedWebsite } from './websiteClassification';
+import { C } from './guided/tokens';
 
 // ── Design tokens: shared remix palette (see guided/tokens.ts) ──────────────
 
@@ -104,9 +104,9 @@ function renderStrongMarkup(text: string): Array<string | JSX.Element> {
     .split(/(<strong>[\s\S]*?<\/strong>)/g)
     .filter(Boolean)
     .map((part, index) => {
-      const match = /^<strong>([\s\S]*?)<\/strong>$/.exec(part)
-      return match ? <strong key={index}>{match[1]}</strong> : part
-    })
+      const match = /^<strong>([\s\S]*?)<\/strong>$/.exec(part);
+      return match ? <strong key={index}>{match[1]}</strong> : part;
+    });
 }
 
 // ── Domain constants ────────────────────────────────────────────────────────
@@ -116,7 +116,7 @@ const VIDEO_MODES = [
   { key: 'full_body', label: 'Full Presenter', description: 'Replace the presenter with the uploaded person where supported.' },
   { key: 'recreate', label: 'Recreate For Client', description: 'Recreate the viral concept using this client\'s assets and personalized prompt.' },
   { key: 'complete', label: 'Complete Personalization', description: 'Person + products + brand + logo + CTA + prompt.' },
-] as const
+] as const;
 
 const IMAGE_MODES = [
   { key: 'keep_design', label: 'Keep This Design', description: 'Use the original image as the visual base.' },
@@ -124,34 +124,34 @@ const IMAGE_MODES = [
   { key: 'replace_person', label: 'Replace Person', description: 'Replace or recreate the person while preserving the composition.' },
   { key: 'recreate', label: 'Recreate For Client', description: 'Use the original concept and personalized prompt for a fresh client-specific image.' },
   { key: 'complete', label: 'Complete Personalization', description: 'Use client identity, products, brand references, logo, and exact text/logo overlays.' },
-] as const
+] as const;
 
 const OUTPUT_OPTIONS_VIDEO = [
   { key: 'prompt', label: 'Prompt', description: 'Create a personalized prompt only.' },
   { key: 'video', label: 'Video', description: 'Generate a personalized video.' },
   { key: 'everything', label: 'Everything', description: 'Prompt + Video + Assets + CTA.' },
-] as const
+] as const;
 
 function destinationRoleForSection(section: AssignedSection): PersonalizationAsset['role'] | undefined {
-  if (section === 'person') return 'presenter_identity'
-  if (section === 'logo') return 'logo'
-  if (section === 'products') return 'product_reference'
-  if (section === 'brand') return 'brand_reference'
-  if (section === 'firstFrame') return 'first_frame'
-  if (section === 'lastFrame') return 'last_frame'
-  if (section === 'ctaGraphic') return 'cta_graphic'
-  return undefined
+  if (section === 'person') return 'presenter_identity';
+  if (section === 'logo') return 'logo';
+  if (section === 'products') return 'product_reference';
+  if (section === 'brand') return 'brand_reference';
+  if (section === 'firstFrame') return 'first_frame';
+  if (section === 'lastFrame') return 'last_frame';
+  if (section === 'ctaGraphic') return 'cta_graphic';
+  return undefined;
 }
 
 const OUTPUT_OPTIONS_IMAGE = [
   { key: 'prompt', label: 'Prompt', description: 'Create a personalized prompt only.' },
   { key: 'image', label: 'Image', description: 'Generate a personalized image.' },
   { key: 'everything', label: 'Everything', description: 'Prompt + Image + Assets + CTA.' },
-] as const
+] as const;
 
 const OUTPUT_OPTIONS_PROMPT = [
   { key: 'prompt', label: 'Prompt', description: 'Create a personalized prompt only.' },
-] as const
+] as const;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -160,19 +160,19 @@ const OUTPUT_OPTIONS_PROMPT = [
  * body because the full signal list is too noisy at this size.
  */
 function businessOpportunityTitle(business: BusinessDiscoveryRecord): string | undefined {
-  const breakdown = business.scoreBreakdown
-  if (!breakdown) return undefined
+  const breakdown = business.scoreBreakdown;
+  if (!breakdown) return undefined;
   const parts = [
     `Video opportunity ${Math.round(breakdown.videoOpportunity)}`,
     `Contactability ${Math.round(breakdown.contactability)}`,
     ownershipLabel(breakdown.ownership),
-  ]
-  if (business.videoOpportunity?.signals?.length) parts.push(...business.videoOpportunity.signals)
-  return parts.join(' · ')
+  ];
+  if (business.videoOpportunity?.signals?.length) parts.push(...business.videoOpportunity.signals);
+  return parts.join(' · ');
 }
 
 function classNames(...classes: (string | boolean | undefined | null | false)[]) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ');
 }
 
 type PersonalizationDragSource = 'discovered' | 'current-job' | 'saved-client'
@@ -192,24 +192,24 @@ type PersonalizationDragPayload = {
 }
 
 function isUsableImageSource(url?: string): boolean {
-  const candidate = url || ''
-  if (!candidate || candidate.startsWith('blob:')) return false
+  const candidate = url || '';
+  if (!candidate || candidate.startsWith('blob:')) return false;
   if (candidate.startsWith('data:')) {
-    return candidate.startsWith('data:image/')
+    return candidate.startsWith('data:image/');
   }
-  const path = candidate.split(/[?#]/, 1)[0]
-  const ext = path.split('.').pop()?.toLowerCase() || ''
-  if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg', 'bmp', 'ico'].includes(ext)) return true
+  const path = candidate.split(/[?#]/, 1)[0];
+  const ext = path.split('.').pop()?.toLowerCase() || '';
+  if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg', 'bmp', 'ico'].includes(ext)) return true;
   try {
-    const parsed = new URL(candidate)
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+    const parsed = new URL(candidate);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
   } catch {
-    return false
+    return false;
   }
 }
 
 function Field({ label, value, placeholder, onChange, full = false, autoFilled = false, required = false, focusId }: { label: string; value: string | undefined | null; placeholder: string; onChange: (v: string) => void; full?: boolean; autoFilled?: boolean; required?: boolean; focusId?: string }) {
-  const missing = required && !String(value || '').trim()
+  const missing = required && !String(value || '').trim();
   return (
     <div className={full ? 'col-span-full' : ''} data-pz-focus={focusId}>
       <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, color: C.muted, fontSize: 10 }}>
@@ -249,32 +249,32 @@ function Field({ label, value, placeholder, onChange, full = false, autoFilled =
         }}
       />
     </div>
-  )
+  );
 }
 
 function isModeUnavailable(modeKey: string, assets: { primaryIdentity?: PersonalizationAsset | null; identities?: PersonalizationAsset[] }, capabilities: Record<string, unknown>): boolean {
   if (modeKey === 'face_only' || modeKey === 'replace_face') {
-    return !assets.primaryIdentity && !assets.identities?.length
+    return !assets.primaryIdentity && !assets.identities?.length;
   }
   if (modeKey === 'full_body' || modeKey === 'replace_person') {
-    return !assets.primaryIdentity && !assets.identities?.length
+    return !assets.primaryIdentity && !assets.identities?.length;
   }
-  return false
+  return false;
 }
 
 function getModeUnavailableReason(modeKey: string, assets: { primaryIdentity?: PersonalizationAsset | null; identities?: PersonalizationAsset[] }): string {
   if (modeKey === 'face_only' || modeKey === 'replace_face') {
-    return 'Needs a clear photo of the person\'s face — add one under Assets › Your assets › Person / Presenter.'
+    return 'Needs a clear photo of the person\'s face — add one under Assets › Your assets › Person / Presenter.';
   }
   if (modeKey === 'full_body' || modeKey === 'replace_person') {
-    return 'Needs a full-body photo of the person — add one under Assets › Your assets › Person / Presenter.'
+    return 'Needs a full-body photo of the person — add one under Assets › Your assets › Person / Presenter.';
   }
-  return 'Not available for the current source/model.'
+  return 'Not available for the current source/model.';
 }
 
 /** Modes that a presenter photo unlocks (the "Add a presenter photo" link). */
 function modeNeedsPresenter(modeKey: string): boolean {
-  return ['face_only', 'replace_face', 'full_body', 'replace_person'].includes(modeKey)
+  return ['face_only', 'replace_face', 'full_body', 'replace_person'].includes(modeKey);
 }
 
 // ── Reusable sub-components ──────────────────────────────────────────────────
@@ -306,46 +306,46 @@ function UploadZone({
   collapsed?: boolean
   addLabel?: string
 }) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [isDragOver, setIsDragOver] = useState(false)
-  const [urlValue, setUrlValue] = useState('')
-  const [expanded, setExpanded] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [urlValue, setUrlValue] = useState('');
+  const [expanded, setExpanded] = useState(false);
 
   const handleDragOver = useCallback((e: DragEvent) => {
-    e.preventDefault()
-    if (!disabled) setIsDragOver(true)
-  }, [disabled])
+    e.preventDefault();
+    if (!disabled) setIsDragOver(true);
+  }, [disabled]);
 
   const handleDragLeave = useCallback((e: DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-  }, [])
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
 
   const handleDrop = useCallback((e: DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-    if (disabled) return
-    onFiles(e.dataTransfer.files)
-  }, [disabled, onFiles])
+    e.preventDefault();
+    setIsDragOver(false);
+    if (disabled) return;
+    onFiles(e.dataTransfer.files);
+  }, [disabled, onFiles]);
 
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    onFiles(e.target.files)
-    e.target.value = ''
-  }, [onFiles])
+    onFiles(e.target.files);
+    e.target.value = '';
+  }, [onFiles]);
 
   const handleUrlSubmit = useCallback(() => {
-    const trimmed = urlValue.trim()
-    if (!trimmed || !onUrl) return
-    onUrl(trimmed)
-    setUrlValue('')
-  }, [urlValue, onUrl])
+    const trimmed = urlValue.trim();
+    if (!trimmed || !onUrl) return;
+    onUrl(trimmed);
+    setUrlValue('');
+  }, [urlValue, onUrl]);
 
   const handleUrlKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault()
-      handleUrlSubmit()
+      e.preventDefault();
+      handleUrlSubmit();
     }
-  }, [handleUrlSubmit])
+  }, [handleUrlSubmit]);
 
   if (collapsed && !expanded) {
     // Filled card: the URL box and big dropzone fold into one row (files can
@@ -371,7 +371,7 @@ function UploadZone({
       >
         {disabled ? 'Limit reached — remove one to add another' : isDragOver ? 'Drop to add' : addLabel}
       </button>
-    )
+    );
   }
 
   return (
@@ -423,8 +423,8 @@ function UploadZone({
         tabIndex={0}
         onKeyDown={(e) => {
           if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
-            e.preventDefault()
-            inputRef.current?.click()
+            e.preventDefault();
+            inputRef.current?.click();
           }
         }}
         className={classNames(
@@ -452,14 +452,14 @@ function UploadZone({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 /** Thumb pill for placeholder slots in the asset cards. */
 function ThumbPlaceholder({ label, add = false, onClick, title }: { label: string; add?: boolean; onClick?: () => void; title?: string }) {
   // Clickable slots are real buttons (keyboard + screen readers); the label
   // says what kind of photo goes there.
-  const Tag = onClick ? 'button' : 'div'
+  const Tag = onClick ? 'button' : 'div';
   return (
     <Tag
       {...(onClick ? { type: 'button' as const, 'aria-label': title || (add ? 'Add' : `Add ${label.toLowerCase()} photo`), title: title || (add ? undefined : `Add a ${label.toLowerCase()} photo`) } : {})}
@@ -480,10 +480,10 @@ function ThumbPlaceholder({ label, add = false, onClick, title }: { label: strin
     >
       {label}
     </Tag>
-  )
+  );
 }
 
-const EDIT_WITH_AI = 'Edit with AI'
+const EDIT_WITH_AI = 'Edit with AI';
 
 /** Uploaded asset thumb with status overlays and actions. */
 function ThumbUploaded({
@@ -514,11 +514,11 @@ function ThumbUploaded({
   onDragStart?: (e: DragEvent) => void
   onDragEnd?: (e: DragEvent) => void
 }) {
-  const status = asset.uploadStatus
-  const isUploading = status === 'uploading'
-  const isError = status === 'error'
-  const isReady = status === 'ready'
-  const displayUrl = asset.uploadedUrl || asset.url
+  const status = asset.uploadStatus;
+  const isUploading = status === 'uploading';
+  const isError = status === 'error';
+  const isReady = status === 'ready';
+  const displayUrl = asset.uploadedUrl || asset.url;
 
   return (
     <div
@@ -544,7 +544,7 @@ function ThumbUploaded({
           {onRetry && (
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onRetry() }}
+              onClick={(e) => { e.stopPropagation(); onRetry(); }}
               className="rounded bg-white/20 px-1.5 py-0.5 text-[8px] text-white hover:bg-white/30"
             >
               Retry
@@ -563,7 +563,7 @@ function ThumbUploaded({
       {onEdit && isReady && isImageEditSupported(asset) && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onEdit() }}
+          onClick={(e) => { e.stopPropagation(); onEdit(); }}
           className="absolute left-1 top-1 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
           style={{ background: 'rgba(0,0,0,.72)', border: `1px solid ${C.cyan}`, color: C.cyan }}
           aria-label="Edit image"
@@ -576,7 +576,7 @@ function ThumbUploaded({
         // top-right and the section menu along the bottom.
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onRevert() }}
+          onClick={(e) => { e.stopPropagation(); onRevert(); }}
           className="absolute left-1 top-11 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
           style={{ background: 'rgba(255,255,255,.9)', color: '#000000' }}
           aria-label="Revert to original"
@@ -593,7 +593,7 @@ function ThumbUploaded({
         <button
           type="button"
           data-testid="pz-make-primary"
-          onClick={(e) => { e.stopPropagation(); onMakePrimary() }}
+          onClick={(e) => { e.stopPropagation(); onMakePrimary(); }}
           className="absolute left-1 top-6 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
           style={{ background: 'rgba(0,0,0,.75)', color: C.cyan }}
           aria-label="Make primary"
@@ -605,7 +605,7 @@ function ThumbUploaded({
       {onRemove && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onRemove() }}
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
           className={`absolute top-0.5 right-0.5 z-20 rounded-full p-0.5 transition-opacity ${isError ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
           style={{ background: 'rgba(239,68,68,.85)' }}
           aria-label="Remove"
@@ -621,8 +621,8 @@ function ThumbUploaded({
           <select
             value=""
             onChange={(e) => {
-              e.stopPropagation()
-              if (e.target.value) onMoveToSection(e.target.value as AssignedSection)
+              e.stopPropagation();
+              if (e.target.value) onMoveToSection(e.target.value as AssignedSection);
             }}
             onClick={(e) => e.stopPropagation()}
             // Narrow, so it stays in its corner and doesn't cover the buttons.
@@ -647,14 +647,14 @@ function ThumbUploaded({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 // ── Modal ────────────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line react-hooks/rules-of-hooks
 export default function PersonalizationModal() {
-  const ctx = useDemoPersonalize()
+  const ctx = useDemoPersonalize();
   const {
     isOpen,
     source,
@@ -767,52 +767,52 @@ export default function PersonalizationModal() {
     publish,
     download,
     sharedMediaEntries,
-  } = ctx
+  } = ctx;
 
   // Guided Simple Mode is the default presentation whenever the provider
   // exposes the guided API (always in production). A partial context (unit-test
   // mocks) falls back to the full ConfigurationView unchanged.
   const guidedApiAvailable =
     typeof (ctx as { setGuidedStep?: unknown }).setGuidedStep === 'function' &&
-    Boolean((ctx as { previewSettings?: unknown }).previewSettings)
-  const [localViewMode, setLocalViewMode] = useState<'simple' | 'advanced'>('simple')
-  const viewMode: 'simple' | 'advanced' = guidedApiAvailable && ctx.viewMode ? ctx.viewMode : localViewMode
+    Boolean((ctx as { previewSettings?: unknown }).previewSettings);
+  const [localViewMode, setLocalViewMode] = useState<'simple' | 'advanced'>('simple');
+  const viewMode: 'simple' | 'advanced' = guidedApiAvailable && ctx.viewMode ? ctx.viewMode : localViewMode;
   const setViewMode: (mode: 'simple' | 'advanced') => void =
-    guidedApiAvailable && ctx.setViewMode ? ctx.setViewMode : setLocalViewMode
+    guidedApiAvailable && ctx.setViewMode ? ctx.setViewMode : setLocalViewMode;
   // Simple Mode shows the four guided steps; prompt-only sources keep the
   // existing configuration view (there is no video to preview or brand).
-  const simpleModeActive = viewMode === 'simple' && guidedApiAvailable && source?.mediaType !== 'prompt-only'
+  const simpleModeActive = viewMode === 'simple' && guidedApiAvailable && source?.mediaType !== 'prompt-only';
 
   // Access mode for this session ('anonymous' on the free landing surface).
   // The server remains the authority; this decides which paid/AI affordances
   // the modal renders at all — never which endpoint grants permission.
-  const isAnonymous = access !== 'authenticated'
+  const isAnonymous = access !== 'authenticated';
 
-  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false);
   // true = copied, 'failed' = the browser refused the clipboard.
-  const [copiedPrompt, setCopiedPrompt] = useState<boolean | 'failed'>(false)
-  const [isPersonalizing, setIsPersonalizing] = useState(false)
-  const [isRegenerating, setIsRegenerating] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const [imageEditorAsset, setImageEditorAsset] = useState<PersonalizationImageEditorAsset | null>(null)
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [copiedPrompt, setCopiedPrompt] = useState<boolean | 'failed'>(false);
+  const [isPersonalizing, setIsPersonalizing] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [imageEditorAsset, setImageEditorAsset] = useState<PersonalizationImageEditorAsset | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Drag and drop state
-  const [dragPayload, setDragPayload] = useState<PersonalizationDragPayload | null>(null)
-  const [dragOverSection, setDragOverSection] = useState<AssignedSection | null>(null)
-  const [dropError, setDropError] = useState<string | null>(null)
-  const mountedRef = useRef(true)
+  const [dragPayload, setDragPayload] = useState<PersonalizationDragPayload | null>(null);
+  const [dragOverSection, setDragOverSection] = useState<AssignedSection | null>(null);
+  const [dropError, setDropError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
 
-  const dragPayloadRef = useRef(dragPayload)
-  useEffect(() => { dragPayloadRef.current = dragPayload }, [dragPayload])
+  const dragPayloadRef = useRef(dragPayload);
+  useEffect(() => { dragPayloadRef.current = dragPayload; }, [dragPayload]);
 
-  const savedClientAssetsRef = useRef(savedClientAssets)
-  useEffect(() => { savedClientAssetsRef.current = savedClientAssets }, [savedClientAssets])
+  const savedClientAssetsRef = useRef(savedClientAssets);
+  useEffect(() => { savedClientAssetsRef.current = savedClientAssets; }, [savedClientAssets]);
 
-  const sectionDragCountersRef = useRef<Record<string, number>>({})
+  const sectionDragCountersRef = useRef<Record<string, number>>({});
 
-  const dialogRef = useRef<HTMLDivElement>(null)
-  const previousActiveElementRef = useRef<HTMLElement | null>(null)
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
   /**
    * The inline `overflow` value the document body had *before* the modal locked
    * scrolling. Restoring a hard-coded `''` on close silently destroyed any
@@ -820,10 +820,10 @@ export default function PersonalizationModal() {
    * hidden` on a scrolled panel, or `overflow: auto`. The captured value is
    * restored verbatim instead, including the empty string.
    */
-  const previousBodyOverflowRef = useRef<string | null>(null)
+  const previousBodyOverflowRef = useRef<string | null>(null);
 
   const personalizationInProgress =
-    generation.status === 'generating' || generation.status === 'processing' || generation.status === 'personalizing-prompt'
+    generation.status === 'generating' || generation.status === 'processing' || generation.status === 'personalizing-prompt';
 
   // ── Drag and drop handlers ──────────────────────────────────────────────────
 
@@ -831,170 +831,170 @@ export default function PersonalizationModal() {
     payload: PersonalizationDragPayload,
     e: DragEvent,
   ) => {
-    setDropError(null)
-    setDragPayload(payload)
-    e.dataTransfer.setData('application/json', JSON.stringify(payload))
-    e.dataTransfer.effectAllowed = 'move'
-  }, [])
+    setDropError(null);
+    setDragPayload(payload);
+    e.dataTransfer.setData('application/json', JSON.stringify(payload));
+    e.dataTransfer.effectAllowed = 'move';
+  }, []);
 
   const handleAssetDragEnd = useCallback(() => {
-    setDragPayload(null)
-    setDragOverSection(null)
-    setDropError(null)
+    setDragPayload(null);
+    setDragOverSection(null);
+    setDropError(null);
     Object.keys(sectionDragCountersRef.current).forEach((key) => {
-      sectionDragCountersRef.current[key] = 0
-    })
-  }, [])
+      sectionDragCountersRef.current[key] = 0;
+    });
+  }, []);
 
   const handleSectionDragEnter = useCallback((section: string, e: DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDropError(null)
-    sectionDragCountersRef.current[section] = (sectionDragCountersRef.current[section] || 0) + 1
-    setDragOverSection(section as AssignedSection)
-  }, [])
+    e.preventDefault();
+    e.stopPropagation();
+    setDropError(null);
+    sectionDragCountersRef.current[section] = (sectionDragCountersRef.current[section] || 0) + 1;
+    setDragOverSection(section as AssignedSection);
+  }, []);
 
   const handleSectionDragOver = useCallback((section: AssignedSection, e: DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    e.dataTransfer.dropEffect = 'move'
-    setDragOverSection(section)
-  }, [])
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverSection(section);
+  }, []);
 
   const handleSectionDragLeave = useCallback((section: string, e: DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    sectionDragCountersRef.current[section] = Math.max(0, (sectionDragCountersRef.current[section] || 0) - 1)
+    e.preventDefault();
+    e.stopPropagation();
+    sectionDragCountersRef.current[section] = Math.max(0, (sectionDragCountersRef.current[section] || 0) - 1);
     if (sectionDragCountersRef.current[section] === 0) {
-      setDragOverSection((current) => current === section ? null : current)
+      setDragOverSection((current) => current === section ? null : current);
     }
-  }, [])
+  }, []);
 
   const handleSectionDrop = useCallback((section: string, e: DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
 
-    sectionDragCountersRef.current[section] = 0
-    setDragOverSection(null)
-    setDragPayload(null)
+    sectionDragCountersRef.current[section] = 0;
+    setDragOverSection(null);
+    setDragPayload(null);
 
     // A file dropped on the card's own upload area is handled there.
-    if ((e.target as HTMLElement | null)?.closest?.('[data-pz-upload-zone]')) return
+    if ((e.target as HTMLElement | null)?.closest?.('[data-pz-upload-zone]')) return;
 
     // Reject arbitrary text/HTML drops
-    const hasText = e.dataTransfer.types.includes('text/plain') || e.dataTransfer.types.includes('text/html')
-    const hasJson = e.dataTransfer.types.includes('application/json')
+    const hasText = e.dataTransfer.types.includes('text/plain') || e.dataTransfer.types.includes('text/html');
+    const hasJson = e.dataTransfer.types.includes('application/json');
     if (hasText && !hasJson) {
-      setDropError('Only personalization assets can be dropped here.')
-      setTimeout(() => setDropError(null), 3000)
-      return
+      setDropError('Only personalization assets can be dropped here.');
+      setTimeout(() => setDropError(null), 3000);
+      return;
     }
 
     // Reject external video file drops
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       for (const file of Array.from(e.dataTransfer.files)) {
         if (file.type.startsWith('video/')) {
-          setDropError('Video files cannot be dropped here. Use the URL field instead.')
-          setTimeout(() => setDropError(null), 3000)
-          return
+          setDropError('Video files cannot be dropped here. Use the URL field instead.');
+          setTimeout(() => setDropError(null), 3000);
+          return;
         }
       }
     }
 
-    let payload: PersonalizationDragPayload | null = null
+    let payload: PersonalizationDragPayload | null = null;
     try {
-      const data = e.dataTransfer.getData('application/json')
-      if (data) payload = JSON.parse(data) as PersonalizationDragPayload
+      const data = e.dataTransfer.getData('application/json');
+      if (data) payload = JSON.parse(data) as PersonalizationDragPayload;
     } catch {
       // ignore invalid payload
     }
     if (!payload) {
-      payload = dragPayloadRef.current
+      payload = dragPayloadRef.current;
     }
     if (!payload) {
-      setDropError('Invalid drop. Only personalization assets are accepted.')
-      setTimeout(() => setDropError(null), 3000)
-      return
+      setDropError('Invalid drop. Only personalization assets are accepted.');
+      setTimeout(() => setDropError(null), 3000);
+      return;
     }
 
     // Validate normalized payload shape
     if (!payload.assetId || !payload.source || !payload.assetType || !payload.url) {
-      setDropError('Malformed asset. Please try again.')
-      setTimeout(() => setDropError(null), 3000)
-      return
+      setDropError('Malformed asset. Please try again.');
+      setTimeout(() => setDropError(null), 3000);
+      return;
     }
 
-    const validSources: PersonalizationDragSource[] = ['discovered', 'current-job', 'saved-client']
+    const validSources: PersonalizationDragSource[] = ['discovered', 'current-job', 'saved-client'];
     if (!validSources.includes(payload.source)) {
-      setDropError('Unknown asset source.')
-      setTimeout(() => setDropError(null), 3000)
-      return
+      setDropError('Unknown asset source.');
+      setTimeout(() => setDropError(null), 3000);
+      return;
     }
 
     // Reject assets without a usable image source
-    const candidate = payload.uploadedUrl || payload.url
+    const candidate = payload.uploadedUrl || payload.url;
     if (!isUsableImageSource(candidate)) {
-      setDropError('This asset does not have a usable image source.')
-      setTimeout(() => setDropError(null), 3000)
-      return
+      setDropError('This asset does not have a usable image source.');
+      setTimeout(() => setDropError(null), 3000);
+      return;
     }
 
-    const { assetId, source } = payload
+    const { assetId, source } = payload;
 
     // Discovered assets are imported into the section they were dropped on.
     // Only tagging them with the section changed nothing on screen: the
     // section cards show imported assets, so the drop looked like it failed.
     if (source === 'discovered') {
-      moveDiscoveredAssetToSection(assetId, section as AssignedSection)
+      moveDiscoveredAssetToSection(assetId, section as AssignedSection);
       // Importing needs an account; visitors only rearrange the grid.
-      if (!isAnonymous) void importDiscoveredAssets({ ids: [assetId], section: section as AssignedSection })
-      return
+      if (!isAnonymous) void importDiscoveredAssets({ ids: [assetId], section: section as AssignedSection });
+      return;
     }
 
     // Handle saved client assets: add to current job
     if (source === 'saved-client') {
-      const savedAssets = savedClientAssetsRef.current
+      const savedAssets = savedClientAssetsRef.current;
       const savedAsset = [
         ...savedAssets.identities,
         ...savedAssets.logos,
         ...savedAssets.products,
         ...savedAssets.brandReferences,
-      ].find((a) => a.id === assetId)
+      ].find((a) => a.id === assetId);
       if (savedAsset) {
-        selectSavedAsset(savedAsset)
+        selectSavedAsset(savedAsset);
       }
-      return
+      return;
     }
 
     // Handle current job assets: move between sections
-    moveLibraryAssetToSection(assetId, section as AssignedSection)
-  }, [importDiscoveredAssets, isAnonymous, moveDiscoveredAssetToSection, moveLibraryAssetToSection, selectSavedAsset])
+    moveLibraryAssetToSection(assetId, section as AssignedSection);
+  }, [importDiscoveredAssets, isAnonymous, moveDiscoveredAssetToSection, moveLibraryAssetToSection, selectSavedAsset]);
 
   // ── Focus trap & Escape ──────────────────────────────────────────────────
 
   useEffect(() => {
-    if (!isOpen) return
-    previousActiveElementRef.current = document.activeElement as HTMLElement
+    if (!isOpen) return;
+    previousActiveElementRef.current = document.activeElement as HTMLElement;
     // Capture the body's inline overflow *before* locking, so cleanup can put
     // back exactly what was there (possibly '' / unset) instead of clobbering
     // a value the page or an enclosing studio had already applied.
-    previousBodyOverflowRef.current = document.body.style.overflow
+    previousBodyOverflowRef.current = document.body.style.overflow;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !personalizationInProgress && !imageEditorAsset) closePersonalize()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    document.body.style.overflow = 'hidden'
+      if (e.key === 'Escape' && !personalizationInProgress && !imageEditorAsset) closePersonalize();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = previousBodyOverflowRef.current ?? ''
-      previousBodyOverflowRef.current = null
-      previousActiveElementRef.current?.focus()
-    }
-  }, [isOpen, closePersonalize, personalizationInProgress, imageEditorAsset])
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousBodyOverflowRef.current ?? '';
+      previousBodyOverflowRef.current = null;
+      previousActiveElementRef.current?.focus();
+    };
+  }, [isOpen, closePersonalize, personalizationInProgress, imageEditorAsset]);
 
   useEffect(() => {
-    setMode(null)
-  }, [source?.id, setMode])
+    setMode(null);
+  }, [source?.id, setMode]);
 
   const editorReferenceImages = useMemo(() => {
     const candidates = [
@@ -1002,14 +1002,14 @@ export default function PersonalizationModal() {
       assets.primaryIdentity,
       ...assets.products.slice(0, 2),
       ...assets.brandReferences.slice(0, 2),
-    ].filter(Boolean) as PersonalizationAsset[]
+    ].filter(Boolean) as PersonalizationAsset[];
 
     return Array.from(new Set(
       candidates
         .map((item) => item.uploadedUrl || item.url)
         .filter((url): url is string => Boolean(url) && !url.startsWith('blob:')),
-    )).slice(0, 6)
-  }, [assets.brandReferences, assets.primaryIdentity, assets.primaryLogo, assets.products])
+    )).slice(0, 6);
+  }, [assets.brandReferences, assets.primaryIdentity, assets.primaryLogo, assets.products]);
 
   // ── Image editor asset normalization ─────────────────────────────────────
 
@@ -1031,11 +1031,11 @@ export default function PersonalizationModal() {
       visionAnalysis?: PersonalizationVisionAnalysis
       file?: File
     },
-  ) => raw, [])
+  ) => raw, []);
 
   const loadAssetIntoEditor = useCallback((asset: PersonalizationImageEditorAsset) => {
-    setImageEditorAsset(asset)
-  }, [])
+    setImageEditorAsset(asset);
+  }, []);
 
   const openDiscoveredImageEditor = useCallback((asset: DiscoveredAsset) => {
     loadAssetIntoEditor(normalizeImageEditorAsset({
@@ -1053,7 +1053,7 @@ export default function PersonalizationModal() {
       referenceImages: editorReferenceImages.filter((url) => url !== asset.previewUrl && url !== asset.editedDataUrl),
       visionAnalysis: asset.visionAnalysis,
       file: (asset as { file?: File }).file,
-    }))
+    }));
   }, [
     clientForm.brandDescription,
     clientForm.businessName,
@@ -1063,7 +1063,7 @@ export default function PersonalizationModal() {
     editorReferenceImages,
     loadAssetIntoEditor,
     normalizeImageEditorAsset,
-  ])
+  ]);
 
   const isAssetInCurrentJob = useCallback((asset: PersonalizationAsset): boolean => {
     const all = [
@@ -1074,13 +1074,13 @@ export default function PersonalizationModal() {
       assets.firstFrame,
       assets.lastFrame,
       assets.ctaGraphic,
-    ].filter(Boolean) as PersonalizationAsset[]
-    return all.some((a) => a.id === asset.id || a.url === asset.url || a.uploadedUrl === asset.uploadedUrl)
-  }, [assets])
+    ].filter(Boolean) as PersonalizationAsset[];
+    return all.some((a) => a.id === asset.id || a.url === asset.url || a.uploadedUrl === asset.uploadedUrl);
+  }, [assets]);
 
   const openLibraryImageEditor = useCallback((asset: PersonalizationAsset) => {
-    const imageUrl = asset.uploadedUrl || asset.url
-    const source = isAssetInCurrentJob(asset) ? 'current-job' : 'saved-client'
+    const imageUrl = asset.uploadedUrl || asset.url;
+    const source = isAssetInCurrentJob(asset) ? 'current-job' : 'saved-client';
     loadAssetIntoEditor(normalizeImageEditorAsset({
       id: asset.id,
       name: asset.name,
@@ -1096,7 +1096,7 @@ export default function PersonalizationModal() {
       referenceImages: editorReferenceImages.filter((url) => url !== imageUrl),
       visionAnalysis: asset.visionAnalysis,
       file: asset.file ?? undefined,
-    }))
+    }));
   }, [
     clientForm.brandDescription,
     clientForm.businessName,
@@ -1107,10 +1107,10 @@ export default function PersonalizationModal() {
     isAssetInCurrentJob,
     loadAssetIntoEditor,
     normalizeImageEditorAsset,
-  ])
+  ]);
 
   const openCurrentJobImageEditor = useCallback((asset: PersonalizationAsset) => {
-    const imageUrl = asset.uploadedUrl || asset.url
+    const imageUrl = asset.uploadedUrl || asset.url;
     loadAssetIntoEditor(normalizeImageEditorAsset({
       id: asset.id,
       name: asset.name,
@@ -1126,7 +1126,7 @@ export default function PersonalizationModal() {
       referenceImages: editorReferenceImages.filter((url) => url !== imageUrl),
       visionAnalysis: asset.visionAnalysis,
       file: asset.file ?? undefined,
-    }))
+    }));
   }, [
     clientForm.brandDescription,
     clientForm.businessName,
@@ -1136,16 +1136,16 @@ export default function PersonalizationModal() {
     editorReferenceImages,
     loadAssetIntoEditor,
     normalizeImageEditorAsset,
-  ])
+  ]);
 
   const handleImageEditorDrop = useCallback((payload: { assetId: string; source: string; assetType: string }) => {
-    const { assetId, source } = payload
+    const { assetId, source } = payload;
 
     if (source === 'discovered') {
-      const discovered = discoveredAssets.find((a) => a.id === assetId)
+      const discovered = discoveredAssets.find((a) => a.id === assetId);
       if (discovered) {
-        openDiscoveredImageEditor(discovered)
-        return
+        openDiscoveredImageEditor(discovered);
+        return;
       }
     }
 
@@ -1162,15 +1162,15 @@ export default function PersonalizationModal() {
         ...savedClientAssets.logos,
         ...savedClientAssets.products,
         ...savedClientAssets.brandReferences,
-      ].filter(Boolean) as PersonalizationAsset[]
-      const libraryAsset = allAssets.find((a) => a.id === assetId)
+      ].filter(Boolean) as PersonalizationAsset[];
+      const libraryAsset = allAssets.find((a) => a.id === assetId);
       if (libraryAsset) {
         if (isAssetInCurrentJob(libraryAsset)) {
-          openCurrentJobImageEditor(libraryAsset)
+          openCurrentJobImageEditor(libraryAsset);
         } else {
-          openLibraryImageEditor(libraryAsset)
+          openLibraryImageEditor(libraryAsset);
         }
-        return
+        return;
       }
     }
   }, [
@@ -1190,10 +1190,10 @@ export default function PersonalizationModal() {
     savedClientAssets.identities,
     savedClientAssets.logos,
     savedClientAssets.products,
-  ])
+  ]);
 
   const handleImageEditorApply = useCallback(async (result: ImageEditorApplyResult) => {
-    if (!imageEditorAsset) return
+    if (!imageEditorAsset) return;
     if (imageEditorAsset.source === 'discovered') {
       setDiscoveredAssets(discoveredAssets.map((item) => (
         item.id === imageEditorAsset.id
@@ -1217,8 +1217,8 @@ export default function PersonalizationModal() {
               visionValidation: result.visionValidation,
             }
           : item
-      )))
-      return
+      )));
+      return;
     }
 
     if (imageEditorAsset.source === 'current-job') {
@@ -1237,8 +1237,8 @@ export default function PersonalizationModal() {
         inputFidelity: result.inputFidelity,
         visionAnalysis: result.visionAnalysis,
         visionValidation: result.visionValidation,
-      })
-      return
+      });
+      return;
     }
 
     await applyEditedPersonalizationAsset(imageEditorAsset.id, result.dataUrl, {
@@ -1256,144 +1256,144 @@ export default function PersonalizationModal() {
       inputFidelity: result.inputFidelity,
       visionAnalysis: result.visionAnalysis,
       visionValidation: result.visionValidation,
-    })
-  }, [applyEditedPersonalizationAsset, discoveredAssets, imageEditorAsset, setDiscoveredAssets])
+    });
+  }, [applyEditedPersonalizationAsset, discoveredAssets, imageEditorAsset, setDiscoveredAssets]);
 
   // NOTE: these memo hooks live ABOVE the early return below on purpose, so the
   // hook order is identical whether or not the modal is open. The provider
   // mounts the modal only while it is open; keeping the hook list stable also
   // makes an unconditional mount safe.
   const niche = useMemo(() => {
-    const nicheId = source?.sourceMetadata?.nicheId
-    if (!nicheId) return undefined
-    return NICHE_CONTENT.find((n) => n.id === nicheId)
-  }, [source?.sourceMetadata?.nicheId])
+    const nicheId = source?.sourceMetadata?.nicheId;
+    if (!nicheId) return undefined;
+    return NICHE_CONTENT.find((n) => n.id === nicheId);
+  }, [source?.sourceMetadata?.nicheId]);
 
-  if (!isOpen || !source) return null
+  if (!isOpen || !source) return null;
 
-  const isVideo = source.mediaType === 'video'
-  const isImage = source.mediaType === 'image'
-  const isPromptOnly = source.mediaType === 'prompt-only'
-  const eligibleModes = isVideo ? VIDEO_MODES : isImage ? IMAGE_MODES : []
-  const outputOptions = isVideo ? OUTPUT_OPTIONS_VIDEO : isImage ? OUTPUT_OPTIONS_IMAGE : OUTPUT_OPTIONS_PROMPT
-  const showModes = outputType !== 'prompt' && eligibleModes.length > 0
+  const isVideo = source.mediaType === 'video';
+  const isImage = source.mediaType === 'image';
+  const isPromptOnly = source.mediaType === 'prompt-only';
+  const eligibleModes = isVideo ? VIDEO_MODES : isImage ? IMAGE_MODES : [];
+  const outputOptions = isVideo ? OUTPUT_OPTIONS_VIDEO : isImage ? OUTPUT_OPTIONS_IMAGE : OUTPUT_OPTIONS_PROMPT;
+  const showModes = outputType !== 'prompt' && eligibleModes.length > 0;
 
   // The model a run will really call (Face only / Full presenter always use
   // their own), so the settings shown are the ones that model takes.
-  const effectiveModelId = modelForGeneration(source, genOptions, mode)
+  const effectiveModelId = modelForGeneration(source, genOptions, mode);
 
-  const capabilities = resolveModelCapabilities(source, { ...genOptions, model: effectiveModelId })
+  const capabilities = resolveModelCapabilities(source, { ...genOptions, model: effectiveModelId });
 
   // ── Auto model recommendation based on duration ─────────────────────────────
   const recommendedModelId = useMemo(() => {
-    if (!isVideo || mode === 'face_only' || mode === 'full_body') return effectiveModelId
-    const selectedDuration = genOptions.duration || source.duration
-    if (!selectedDuration || selectedDuration <= 15) return effectiveModelId
-    return 'veo-4-text-to-video'
-  }, [isVideo, mode, effectiveModelId, genOptions.duration, source.duration])
+    if (!isVideo || mode === 'face_only' || mode === 'full_body') return effectiveModelId;
+    const selectedDuration = genOptions.duration || source.duration;
+    if (!selectedDuration || selectedDuration <= 15) return effectiveModelId;
+    return 'veo-4-text-to-video';
+  }, [isVideo, mode, effectiveModelId, genOptions.duration, source.duration]);
 
   const recommendedModel = useMemo(() => {
-    return getVideoModelById(recommendedModelId) || getModelById(recommendedModelId)
-  }, [recommendedModelId])
+    return getVideoModelById(recommendedModelId) || getModelById(recommendedModelId);
+  }, [recommendedModelId]);
 
   const currentModel = useMemo(() => {
-    return getVideoModelById(effectiveModelId) || getModelById(effectiveModelId)
-  }, [effectiveModelId])
+    return getVideoModelById(effectiveModelId) || getModelById(effectiveModelId);
+  }, [effectiveModelId]);
 
-  const isUsingRecommendedModel = effectiveModelId === recommendedModelId
+  const isUsingRecommendedModel = effectiveModelId === recommendedModelId;
 
   // ── Upload handlers ────────────────────────────────────────────────────────
 
   const handleIdentityUpload = (files: FileList | null) => {
-    if (!files) return
-    setUploadError(null)
-    const currentCount = assets.identities.length
-    const remaining = capabilities.maxImages - currentCount
+    if (!files) return;
+    setUploadError(null);
+    const currentCount = assets.identities.length;
+    const remaining = capabilities.maxImages - currentCount;
     if (remaining <= 0) {
-      setUploadError(`Maximum ${capabilities.maxImages} identity image(s) allowed for the selected model.`)
-      return
+      setUploadError(`Maximum ${capabilities.maxImages} identity image(s) allowed for the selected model.`);
+      return;
     }
-    const filesToAdd = Array.from(files).slice(0, remaining)
+    const filesToAdd = Array.from(files).slice(0, remaining);
     if (filesToAdd.length < files.length) {
-      setUploadError(`Maximum ${capabilities.maxImages} identity image(s) allowed. Adding ${filesToAdd.length} of ${files.length} selected.`)
+      setUploadError(`Maximum ${capabilities.maxImages} identity image(s) allowed. Adding ${filesToAdd.length} of ${files.length} selected.`);
     }
     if (filesToAdd.length > 0) {
-      const dt = new DataTransfer()
-      filesToAdd.forEach(f => dt.items.add(f))
-      addIdentityFiles(dt.files)
+      const dt = new DataTransfer();
+      filesToAdd.forEach(f => dt.items.add(f));
+      addIdentityFiles(dt.files);
     }
-  }
+  };
   const handleLogoUpload = useCallback((files: FileList | null) => {
-    if (files) addLogoFiles(files)
-  }, [addLogoFiles])
+    if (files) addLogoFiles(files);
+  }, [addLogoFiles]);
   const handleProductUpload = useCallback((files: FileList | null) => {
-    if (files) addProductFiles(files)
-  }, [addProductFiles])
+    if (files) addProductFiles(files);
+  }, [addProductFiles]);
   const handleBrandRefUpload = useCallback((files: FileList | null) => {
-    if (files) addBrandReferenceFiles(files)
-  }, [addBrandReferenceFiles])
+    if (files) addBrandReferenceFiles(files);
+  }, [addBrandReferenceFiles]);
   const handleFirstFrameUpload = useCallback((files: FileList | null) => {
-    if (!files || files.length === 0) return
-    setFirstFrameFile(files[0])
-  }, [setFirstFrameFile])
+    if (!files || files.length === 0) return;
+    setFirstFrameFile(files[0]);
+  }, [setFirstFrameFile]);
   const handleLastFrameUpload = useCallback((files: FileList | null) => {
-    if (!files || files.length === 0) return
-    setLastFrameFile(files[0])
-  }, [setLastFrameFile])
+    if (!files || files.length === 0) return;
+    setLastFrameFile(files[0]);
+  }, [setLastFrameFile]);
   const handleCtaUpload = useCallback((files: FileList | null) => {
-    if (!files || files.length === 0) return
-    setCtaGraphicFile(files[0])
-  }, [setCtaGraphicFile])
+    if (!files || files.length === 0) return;
+    setCtaGraphicFile(files[0]);
+  }, [setCtaGraphicFile]);
 
   const handleIdentityUrl = useCallback((url: string) => {
-    setUploadError(null)
-    addIdentityUrl(url)
-  }, [addIdentityUrl])
+    setUploadError(null);
+    addIdentityUrl(url);
+  }, [addIdentityUrl]);
   const handleLogoUrl = useCallback((url: string) => {
-    addLogoUrl(url)
-  }, [addLogoUrl])
+    addLogoUrl(url);
+  }, [addLogoUrl]);
   const handleProductUrl = useCallback((url: string) => {
-    addProductUrl(url)
-  }, [addProductUrl])
+    addProductUrl(url);
+  }, [addProductUrl]);
   const handleBrandRefUrl = useCallback((url: string) => {
-    addBrandReferenceUrl(url)
-  }, [addBrandReferenceUrl])
+    addBrandReferenceUrl(url);
+  }, [addBrandReferenceUrl]);
   const handleFirstFrameUrl = useCallback((url: string) => {
-    setFirstFrameUrl(url)
-  }, [setFirstFrameUrl])
+    setFirstFrameUrl(url);
+  }, [setFirstFrameUrl]);
   const handleLastFrameUrl = useCallback((url: string) => {
-    setLastFrameUrl(url)
-  }, [setLastFrameUrl])
+    setLastFrameUrl(url);
+  }, [setLastFrameUrl]);
   const handleCtaUrl = useCallback((url: string) => {
-    setCtaGraphicUrl(url)
-  }, [setCtaGraphicUrl])
+    setCtaGraphicUrl(url);
+  }, [setCtaGraphicUrl]);
 
   // ── Discovery actions ──────────────────────────────────────────────────────
 
   // ── Prompt actions ───────────────────────────────────────────────────────
 
   const handleCopyPrompt = useCallback(async () => {
-    const text = promptState.edited || promptState.personalized || promptState.original
+    const text = promptState.edited || promptState.personalized || promptState.original;
     try {
-      await navigator.clipboard.writeText(text)
-      setCopiedPrompt(true)
+      await navigator.clipboard.writeText(text);
+      setCopiedPrompt(true);
     } catch {
-      setCopiedPrompt('failed')
+      setCopiedPrompt('failed');
     }
-    setTimeout(() => setCopiedPrompt(false), 1800)
-  }, [promptState])
+    setTimeout(() => setCopiedPrompt(false), 1800);
+  }, [promptState]);
 
   const handlePersonalize = useCallback(async () => {
-    if (!mountedRef.current) return
-    setIsPersonalizing(true)
-    try { await personalizePrompt() } finally { if (mountedRef.current) setIsPersonalizing(false) }
-  }, [personalizePrompt])
+    if (!mountedRef.current) return;
+    setIsPersonalizing(true);
+    try { await personalizePrompt(); } finally { if (mountedRef.current) setIsPersonalizing(false); }
+  }, [personalizePrompt]);
 
   const handleRegenerate = useCallback(async () => {
-    if (!mountedRef.current) return
-    setIsRegenerating(true)
-    try { await personalizePrompt() } finally { if (mountedRef.current) setIsRegenerating(false) }
-  }, [personalizePrompt])
+    if (!mountedRef.current) return;
+    setIsRegenerating(true);
+    try { await personalizePrompt(); } finally { if (mountedRef.current) setIsRegenerating(false); }
+  }, [personalizePrompt]);
 
   const brandedRenderInWizard =
     simpleModeActive &&
@@ -1402,7 +1402,7 @@ export default function PersonalizationModal() {
     (generation.status === 'generating' ||
       generation.status === 'processing' ||
       generation.status === 'error' ||
-      (generation.status === 'complete' && result?.metadata?.source === 'branded-render'))
+      (generation.status === 'complete' && result?.metadata?.source === 'branded-render'));
 
   // Advanced Editing is the body: on wide screens the dialog becomes a fixed
   // frame whose panes scroll on their own (see advanced/AdvancedWorkspace.tsx).
@@ -1410,7 +1410,7 @@ export default function PersonalizationModal() {
     !(generation.status === 'complete' && result) &&
     generation.status !== 'error' &&
     !personalizationInProgress &&
-    !simpleModeActive
+    !simpleModeActive;
 
   const generateLabel = outputType === 'prompt'
     ? '✦ Personalize Prompt'
@@ -1418,18 +1418,18 @@ export default function PersonalizationModal() {
     ? '✦ Generate Image'
     : outputType === 'video'
     ? '✦ Personalize Video'
-    : '✦ Generate Everything'
+    : '✦ Generate Everything';
 
   // What is still missing, shown before the click (checklist, step bar, footer).
-  const projectRequirements = validateProjectRequirements(ctx)
-  const blockingRequirement = projectRequirements.find((r) => r.severity === 'error' && requirementLocation(r.field))
+  const projectRequirements = validateProjectRequirements(ctx);
+  const blockingRequirement = projectRequirements.find((r) => r.severity === 'error' && requirementLocation(r.field));
   const fixRequirement = (field: string) => {
-    const location = requirementLocation(field)
-    if (!location) return
-    ctx.setAdvancedSection?.(location.tab, location.section)
-    ctx.setAdvancedTab?.(location.tab)
-    focusRequirementControl(location.focus)
-  }
+    const location = requirementLocation(field);
+    if (!location) return;
+    ctx.setAdvancedSection?.(location.tab, location.section);
+    ctx.setAdvancedTab?.(location.tab);
+    focusRequirementControl(location.focus);
+  };
 
   return (
       <div
@@ -1438,10 +1438,10 @@ export default function PersonalizationModal() {
           background: 'radial-gradient(circle at top, rgba(217,255,0,.07), transparent 30%), #0a0a0a',
         }}
         onClick={(e) => {
-          if (e.target !== e.currentTarget) return
-          if (personalizationInProgress) return
-          if (discoveryStatus === 'discovering' || discoveryStatus === 'reviewing' || discoveryStatus === 'importing') return
-          closePersonalize()
+          if (e.target !== e.currentTarget) return;
+          if (personalizationInProgress) return;
+          if (discoveryStatus === 'discovering' || discoveryStatus === 'reviewing' || discoveryStatus === 'importing') return;
+          closePersonalize();
         }}
       >
       <div
@@ -1788,7 +1788,7 @@ export default function PersonalizationModal() {
             <button
               // Videos go through createFinalVideo, so the on-video layers from
               // Create › Overlays end up in the file (not only in the preview).
-              onClick={outputType === 'prompt' ? handlePersonalize : outputType === 'image' || !isVideo ? generate : () => { void ctx.createFinalVideo({ approveNow: true }) }}
+              onClick={outputType === 'prompt' ? handlePersonalize : outputType === 'image' || !isVideo ? generate : () => { void ctx.createFinalVideo({ approveNow: true }); }}
               disabled={!((clientForm.businessName || clientForm.name) && (outputType === 'prompt' || mode || creationMethod === 'browser')) || Boolean(blockingRequirement) || personalizationInProgress}
               title={blockingRequirement ? blockingRequirement.message : undefined}
               className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide disabled:opacity-50"
@@ -1815,7 +1815,7 @@ export default function PersonalizationModal() {
         onDropAsset={handleImageEditorDrop}
       />
     </div>
-  )
+  );
 }
 // eslint-enable react-hooks/rules-of-hooks
 
@@ -1833,11 +1833,11 @@ function ProgressView({ status, progress, message }: { status: string; progress:
         <p className="text-xs text-white/40 mt-1">{progress}%</p>
       </div>
     </div>
-  )
+  );
 }
 
 function ErrorView({ errorMessage, retry, generate, stage }: { errorMessage: string | null; retry: () => void; generate: () => void; stage?: 'prompt' | 'generation' | 'research' | 'discovery' | 'upload' }) {
-  const retryLabel = stage === 'prompt' ? 'Retry Personalization' : stage === 'generation' ? 'Retry Generation' : stage === 'research' ? 'Retry Research' : stage === 'discovery' ? 'Retry Discovery' : stage === 'upload' ? 'Retry Upload' : 'Retry'
+  const retryLabel = stage === 'prompt' ? 'Retry Personalization' : stage === 'generation' ? 'Retry Generation' : stage === 'research' ? 'Retry Research' : stage === 'discovery' ? 'Retry Discovery' : stage === 'upload' ? 'Retry Upload' : 'Retry';
   return (
     <div className="px-6 py-16 text-center space-y-4">
       <AlertTriangle size={40} style={{ color: C.danger }} className="mx-auto" />
@@ -1863,7 +1863,7 @@ function ErrorView({ errorMessage, retry, generate, stage }: { errorMessage: str
         )}
       </div>
     </div>
-  )
+  );
 }
 
 function ResultView(props: any) {
@@ -1873,7 +1873,7 @@ function ResultView(props: any) {
     editInImageStudio, editInVideoStudio, publish,
     sharedMediaCount, isVideo, eligibleModes, mode, setMode,
     canPublish = true, canEditInVideoStudio = true, publishNote = '',
-  } = props
+  } = props;
 
   return (
     <div className="py-6 space-y-6">
@@ -1900,7 +1900,7 @@ function ResultView(props: any) {
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-white/40">Original Prompt</span>
               <button
-                onClick={async () => { try { await navigator.clipboard.writeText(promptState.original) } catch { /* ignore */ } }}
+                onClick={async () => { try { await navigator.clipboard.writeText(promptState.original); } catch { /* ignore */ } }}
                 className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-white/70 hover:text-white hover:bg-white/10"
               >
                 <Copy size={12} /> Copy
@@ -2031,7 +2031,7 @@ function ResultView(props: any) {
             </button>
             {result.metadata?.originalUrl && (
               <button
-                onClick={() => { window.open(result.metadata.originalUrl, '_blank') }}
+                onClick={() => { window.open(result.metadata.originalUrl, '_blank'); }}
                 className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold border border-white/10 text-white hover:bg-white/5"
               >
                 <Download size={14} /> Download Unbranded Version
@@ -2041,13 +2041,13 @@ function ResultView(props: any) {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 // ── Configuration view (main editing UI) ─────────────────────────────────────
 
 function isAssetInCurrentJob(asset: { id?: string; url?: string; uploadedUrl?: string } | null | undefined, assets: { identities?: PersonalizationAsset[]; logos?: PersonalizationAsset[]; products?: PersonalizationAsset[]; brandReferences?: PersonalizationAsset[]; firstFrame?: PersonalizationAsset | null; lastFrame?: PersonalizationAsset | null; ctaGraphic?: PersonalizationAsset | null; savedReferences?: PersonalizationAsset[] }): boolean {
-  if (!asset) return false
+  if (!asset) return false;
   const all = [
     ...(assets.identities || []),
     ...(assets.logos || []),
@@ -2057,12 +2057,12 @@ function isAssetInCurrentJob(asset: { id?: string; url?: string; uploadedUrl?: s
     assets.lastFrame,
     assets.ctaGraphic,
     ...(assets.savedReferences || []),
-  ].filter(Boolean)
-  return all.some((a) => a && (a.id === asset.id || a.url === asset.url || a.uploadedUrl === asset.uploadedUrl))
+  ].filter(Boolean);
+  return all.some((a) => a && (a.id === asset.id || a.url === asset.url || a.uploadedUrl === asset.uploadedUrl));
 }
 
 /** Business search results shown per "Show more" page in Advanced Editing. */
-const RESULTS_PAGE = 8
+const RESULTS_PAGE = 8;
 
 /** Drop targets under the "Found on website" grid in Advanced Editing. */
 const ADVANCED_DROP_ZONES: DiscoveredAssetDropZone[] = [
@@ -2073,7 +2073,7 @@ const ADVANCED_DROP_ZONES: DiscoveredAssetDropZone[] = [
   { section: 'firstFrame', label: 'First frame' },
   { section: 'lastFrame', label: 'Last frame' },
   { section: 'ctaGraphic', label: 'CTA graphic' },
-]
+];
 
 function ConfigurationView(props: any) {
   const {
@@ -2092,44 +2092,44 @@ function ConfigurationView(props: any) {
     previewSettings: ctxPreviewSettings,
     promptNotice,
     updatePreviewComposition: ctxUpdatePreviewComposition,
-  } = useDemoPersonalize()
-  const isAuto = (key: AutoFillKey) => Boolean(autoFilledKeys?.has(key))
+  } = useDemoPersonalize();
+  const isAuto = (key: AutoFillKey) => Boolean(autoFilledKeys?.has(key));
   // Contexts without the tab API (partial test doubles) still get a working
   // local tab state.
-  const [localAdvancedTab, setLocalAdvancedTab] = useState<AdvancedEditingTab>('client')
-  const advancedTab: AdvancedEditingTab = ctxAdvancedTab || localAdvancedTab
-  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false)
-  const [localAdvancedSections, setLocalAdvancedSections] = useState<AdvancedEditingSections>(DEFAULT_ADVANCED_SECTIONS)
-  const advancedSections: AdvancedEditingSections = ctxAdvancedSections || localAdvancedSections
-  const activeSection = advancedSections[advancedTab]
+  const [localAdvancedTab, setLocalAdvancedTab] = useState<AdvancedEditingTab>('client');
+  const advancedTab: AdvancedEditingTab = ctxAdvancedTab || localAdvancedTab;
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
+  const [localAdvancedSections, setLocalAdvancedSections] = useState<AdvancedEditingSections>(DEFAULT_ADVANCED_SECTIONS);
+  const advancedSections: AdvancedEditingSections = ctxAdvancedSections || localAdvancedSections;
+  const activeSection = advancedSections[advancedTab];
   const scrollToTop = () => {
     // Start the newly shown section at its top (pane on wide screens, page otherwise).
-    document.querySelector('[data-pz-pane-scroll]')?.scrollTo?.({ top: 0 })
-    document.querySelector('[data-pz-scroll-root]')?.scrollTo?.({ top: 0 })
-  }
+    document.querySelector('[data-pz-pane-scroll]')?.scrollTo?.({ top: 0 });
+    document.querySelector('[data-pz-scroll-root]')?.scrollTo?.({ top: 0 });
+  };
   const selectAdvancedTab = useCallback((tab: AdvancedEditingTab) => {
-    if (typeof ctxSetAdvancedTab === 'function') ctxSetAdvancedTab(tab)
-    else setLocalAdvancedTab(tab)
-    scrollToTop()
-  }, [ctxSetAdvancedTab])
+    if (typeof ctxSetAdvancedTab === 'function') ctxSetAdvancedTab(tab);
+    else setLocalAdvancedTab(tab);
+    scrollToTop();
+  }, [ctxSetAdvancedTab]);
   const selectAdvancedSection = useCallback((tab: AdvancedEditingTab, section: string) => {
-    if (typeof ctxSetAdvancedSection === 'function') ctxSetAdvancedSection(tab, section)
-    else setLocalAdvancedSections((prev) => ({ ...prev, [tab]: section }))
-    scrollToTop()
-  }, [ctxSetAdvancedSection])
+    if (typeof ctxSetAdvancedSection === 'function') ctxSetAdvancedSection(tab, section);
+    else setLocalAdvancedSections((prev) => ({ ...prev, [tab]: section }));
+    scrollToTop();
+  }, [ctxSetAdvancedSection]);
   /** Show a tab and one of its sections. */
   const goToSection = useCallback((tab: AdvancedEditingTab, section: string) => {
-    selectAdvancedSection(tab, section)
-    selectAdvancedTab(tab)
-  }, [selectAdvancedSection, selectAdvancedTab])
-  const requirements = (props.requirements || []) as AIMissingRequirement[]
+    selectAdvancedSection(tab, section);
+    selectAdvancedTab(tab);
+  }, [selectAdvancedSection, selectAdvancedTab]);
+  const requirements = (props.requirements || []) as AIMissingRequirement[];
   /** Open where a missing requirement is fixed and focus that control. */
   const fixRequirement = (field: string) => {
-    const location = requirementLocation(field)
-    if (!location) return
-    goToSection(location.tab, location.section)
-    focusRequirementControl(location.focus)
-  }
+    const location = requirementLocation(field);
+    if (!location) return;
+    goToSection(location.tab, location.section);
+    focusRequirementControl(location.focus);
+  };
   const {
     source, clients, selectedClientId, clientForm,
     selectClient, saveClient, deleteClient, updateClientForm,
@@ -2214,7 +2214,7 @@ function ConfigurationView(props: any) {
     revertLibraryAssetToOriginal,
     revertDiscoveredAssetEdit,
     autoCutout,
-  } = props
+  } = props;
 
   // ── Access mode ────────────────────────────────────────────────────────────
   // The access mode is chosen by the caller of openPersonalize (the landing page
@@ -2222,82 +2222,82 @@ function ConfigurationView(props: any) {
   // server-side. It decides which discovery endpoint is used and which paid/AI
   // affordances exist — the modal never renders a paid action the server has not
   // granted.
-  const isAnonymous = access !== 'authenticated'
-  const cutoutIds = cutoutAssetIds(discoveredAssets)
+  const isAnonymous = access !== 'authenticated';
+  const cutoutIds = cutoutAssetIds(discoveredAssets);
   // Face only / Full presenter models set their own resolution and quality.
-  const modelSetsQuality = mode === 'face_only' || mode === 'full_body'
+  const modelSetsQuality = mode === 'face_only' || mode === 'full_body';
   // Saved clients are picked one way at a time: the cards (customer audience)
   // or else the dropdown in the profile form.
-  const showSavedClientCards = !isAnonymous && clientForm.audience === 'customer' && clients.length > 0
+  const showSavedClientCards = !isAnonymous && clientForm.audience === 'customer' && clients.length > 0;
   /** Clear the form for a client that isn't saved yet (keeping who it's for). */
   const startNewClient = () => {
-    const audience = clientForm.audience
-    selectClient('')
-    if (audience) updateClientForm({ audience })
-  }
-  const isFreeDiscovery = isAnonymous && source?.sourceMetadata?.freeDiscovery === true
+    const audience = clientForm.audience;
+    selectClient('');
+    if (audience) updateClientForm({ audience });
+  };
+  const isFreeDiscovery = isAnonymous && source?.sourceMetadata?.freeDiscovery === true;
   // Generation config/output sections only exist for entitled users.
-  const showGenerationSections = !isAnonymous && !isPromptOnly
+  const showGenerationSections = !isAnonymous && !isPromptOnly;
 
   // ── Find Local Business (lead finder) entry flow ───────────────────────────
   // The chooser/how-to-enter panel and the search form are local UI state: the
   // chooser is dismissed once the client decides how to enter their profile,
   // and the search form is controlled so the search can be blocked until both
   // a niche and a location are filled in.
-  const [clientEntryDismissed, setClientEntryDismissed] = useState(false)
-  const [searchNiche, setSearchNiche] = useState('')
-  const [searchLocation, setSearchLocation] = useState('')
-  const [searchRadius, setSearchRadius] = useState(15)
-  const [clientSaveStatus, setClientSaveStatus] = useState<'saved' | 'error' | null>(null)
+  const [clientEntryDismissed, setClientEntryDismissed] = useState(false);
+  const [searchNiche, setSearchNiche] = useState('');
+  const [searchLocation, setSearchLocation] = useState('');
+  const [searchRadius, setSearchRadius] = useState(15);
+  const [clientSaveStatus, setClientSaveStatus] = useState<'saved' | 'error' | null>(null);
 
-  const searchFormReady = Boolean(searchNiche && searchLocation.trim())
+  const searchFormReady = Boolean(searchNiche && searchLocation.trim());
 
   // `businessSearchMode === 'searching'` doubles as "the search form is open"
   // and "a search request is in flight" (the provider sets it before the fetch
   // and flips to results/error afterwards), so a separate flag marks the moment
   // a search was actually fired and blocks duplicate submissions.
-  const [businessSearchInFlight, setBusinessSearchInFlight] = useState(false)
+  const [businessSearchInFlight, setBusinessSearchInFlight] = useState(false);
   // Ref mirror of the flag so duplicate submissions are rejected even when two
   // click handlers fire in the same tick, before the state update has flushed.
-  const businessSearchInFlightRef = useRef(false)
+  const businessSearchInFlightRef = useRef(false);
 
-  const isSearchingBusinesses = businessSearchInFlight && businessSearchMode === 'searching'
+  const isSearchingBusinesses = businessSearchInFlight && businessSearchMode === 'searching';
 
   // Once the provider reports back (results or error) the form is no longer busy.
   useEffect(() => {
     if (businessSearchMode !== 'searching') {
-      businessSearchInFlightRef.current = false
-      setBusinessSearchInFlight(false)
+      businessSearchInFlightRef.current = false;
+      setBusinessSearchInFlight(false);
     }
-  }, [businessSearchMode])
+  }, [businessSearchMode]);
 
-  const handleClientEntryDismiss = useCallback(() => setClientEntryDismissed(true), [])
+  const handleClientEntryDismiss = useCallback(() => setClientEntryDismissed(true), []);
 
   // Re-arm the chooser whenever the audience changes, so the entry decision is
   // made again for each audience instead of being remembered forever.
   useEffect(() => {
-    setClientEntryDismissed(false)
-  }, [clientForm.audience])
+    setClientEntryDismissed(false);
+  }, [clientForm.audience]);
 
   const runBusinessSearch = useCallback((radiusMiles: number) => {
-    if (!searchNiche || !searchLocation.trim()) return
-    if (businessSearchInFlightRef.current) return
-    businessSearchInFlightRef.current = true
-    setBusinessSearchInFlight(true)
-    setSearchRadius(radiusMiles)
-    findBusinesses(searchNiche, searchLocation.trim(), radiusMiles)
-  }, [findBusinesses, searchLocation, searchNiche])
+    if (!searchNiche || !searchLocation.trim()) return;
+    if (businessSearchInFlightRef.current) return;
+    businessSearchInFlightRef.current = true;
+    setBusinessSearchInFlight(true);
+    setSearchRadius(radiusMiles);
+    findBusinesses(searchNiche, searchLocation.trim(), radiusMiles);
+  }, [findBusinesses, searchLocation, searchNiche]);
 
   // Runs a saved search: fills the form with it and searches (same guard as a normal search).
   const runSavedSearch = useCallback((saved: SavedSearch) => {
-    if (businessSearchInFlightRef.current) return
-    setSearchNiche(saved.niche)
-    setSearchLocation(saved.location)
-    setSearchRadius(saved.radius_miles)
-    businessSearchInFlightRef.current = true
-    setBusinessSearchInFlight(true)
-    findBusinesses(saved.niche, saved.location, saved.radius_miles)
-  }, [findBusinesses])
+    if (businessSearchInFlightRef.current) return;
+    setSearchNiche(saved.niche);
+    setSearchLocation(saved.location);
+    setSearchRadius(saved.radius_miles);
+    businessSearchInFlightRef.current = true;
+    setBusinessSearchInFlight(true);
+    findBusinesses(saved.niche, saved.location, saved.radius_miles);
+  }, [findBusinesses]);
 
   // ── Saved Leads (lead finder shortlist) ────────────────────────────────────
   // Per-user shortlist behind /api/personalization/leads (Clerk-authenticated).
@@ -2313,41 +2313,41 @@ function ConfigurationView(props: any) {
     niche?: string | null
     location?: string | null
   }
-  const [savedLeadsOpen, setSavedLeadsOpen] = useState(false)
-  const [savedLeads, setSavedLeads] = useState<LeadRecord[]>([])
-  const [savedLeadsLoaded, setSavedLeadsLoaded] = useState(false)
-  const [savedLeadsLoading, setSavedLeadsLoading] = useState(false)
-  const [savedLeadsError, setSavedLeadsError] = useState<string | null>(null)
+  const [savedLeadsOpen, setSavedLeadsOpen] = useState(false);
+  const [savedLeads, setSavedLeads] = useState<LeadRecord[]>([]);
+  const [savedLeadsLoaded, setSavedLeadsLoaded] = useState(false);
+  const [savedLeadsLoading, setSavedLeadsLoading] = useState(false);
+  const [savedLeadsError, setSavedLeadsError] = useState<string | null>(null);
   // Per-business save state for the result cards: 'saving' | 'saved' | 'error'.
-  const [leadSaveState, setLeadSaveState] = useState<Record<string, 'saving' | 'saved' | 'error'>>({})
+  const [leadSaveState, setLeadSaveState] = useState<Record<string, 'saving' | 'saved' | 'error'>>({});
 
   const fetchSavedLeads = useCallback(async () => {
-    setSavedLeadsLoading(true)
-    setSavedLeadsError(null)
+    setSavedLeadsLoading(true);
+    setSavedLeadsError(null);
     try {
-      const res = await fetch('/api/personalization/leads', { credentials: 'same-origin' })
+      const res = await fetch('/api/personalization/leads', { credentials: 'same-origin' });
       if (res.status === 401) {
-        setSavedLeads([])
-        setSavedLeadsError('Sign in to view your saved leads.')
-        setSavedLeadsLoaded(false)
-        return
+        setSavedLeads([]);
+        setSavedLeadsError('Sign in to view your saved leads.');
+        setSavedLeadsLoaded(false);
+        return;
       }
-      if (!res.ok) throw new Error(`Could not load saved leads (HTTP ${res.status})`)
-      const data = await res.json()
-      setSavedLeads(Array.isArray(data?.leads) ? data.leads : [])
-      setSavedLeadsLoaded(true)
+      if (!res.ok) throw new Error(`Could not load saved leads (HTTP ${res.status})`);
+      const data = await res.json();
+      setSavedLeads(Array.isArray(data?.leads) ? data.leads : []);
+      setSavedLeadsLoaded(true);
     } catch (err) {
-      setSavedLeadsError(err instanceof Error ? err.message : 'Could not load saved leads')
+      setSavedLeadsError(err instanceof Error ? err.message : 'Could not load saved leads');
     } finally {
-      setSavedLeadsLoading(false)
+      setSavedLeadsLoading(false);
     }
-  }, [])
+  }, []);
 
   const toggleSavedLeads = useCallback(() => {
-    const next = !savedLeadsOpen
-    setSavedLeadsOpen(next)
-    if (next && !savedLeadsLoaded) void fetchSavedLeads()
-  }, [fetchSavedLeads, savedLeadsLoaded, savedLeadsOpen])
+    const next = !savedLeadsOpen;
+    setSavedLeadsOpen(next);
+    if (next && !savedLeadsLoaded) void fetchSavedLeads();
+  }, [fetchSavedLeads, savedLeadsLoaded, savedLeadsOpen]);
 
   // Persist one field change (stage / notes / starred) to the API and merge the
   // authoritative lead row back into the panel state.
@@ -2357,20 +2357,20 @@ function ConfigurationView(props: any) {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
       body: JSON.stringify(patch),
-    })
+    });
     if (!res.ok) {
-      const message = res.status === 401 ? 'Sign in to update saved leads.' : `Update failed (HTTP ${res.status})`
-      throw new Error(message)
+      const message = res.status === 401 ? 'Sign in to update saved leads.' : `Update failed (HTTP ${res.status})`;
+      throw new Error(message);
     }
-    const data = await res.json()
+    const data = await res.json();
     if (data?.lead) {
-      setSavedLeads(prev => prev.map((lead) => (lead.id === leadId ? (data.lead as LeadRecord) : lead)))
+      setSavedLeads(prev => prev.map((lead) => (lead.id === leadId ? (data.lead as LeadRecord) : lead)));
     }
-  }, [])
+  }, []);
 
   const handleSaveLead = useCallback(async (business: BusinessDiscoveryRecord) => {
-    if (isAnonymous) return
-    setLeadSaveState(prev => ({ ...prev, [business.id]: 'saving' }))
+    if (isAnonymous) return;
+    setLeadSaveState(prev => ({ ...prev, [business.id]: 'saving' }));
     try {
       const res = await fetch('/api/personalization/leads', {
         method: 'POST',
@@ -2382,39 +2382,39 @@ function ConfigurationView(props: any) {
           niche: businessSearchQuery?.niche || searchNiche || undefined,
           location: businessSearchQuery?.location || searchLocation.trim() || undefined,
         }),
-      })
+      });
       if (!res.ok) {
-        throw new Error(res.status === 401 ? 'Sign in to save leads.' : `Save failed (HTTP ${res.status})`)
+        throw new Error(res.status === 401 ? 'Sign in to save leads.' : `Save failed (HTTP ${res.status})`);
       }
-      const data = await res.json()
+      const data = await res.json();
       if (data?.lead && savedLeadsLoaded) {
-        setSavedLeads(prev => [data.lead as LeadRecord, ...prev.filter((lead) => lead.id !== data.lead.id)])
+        setSavedLeads(prev => [data.lead as LeadRecord, ...prev.filter((lead) => lead.id !== data.lead.id)]);
       }
-      setLeadSaveState(prev => ({ ...prev, [business.id]: 'saved' }))
+      setLeadSaveState(prev => ({ ...prev, [business.id]: 'saved' }));
     } catch {
-      setLeadSaveState(prev => ({ ...prev, [business.id]: 'error' }))
+      setLeadSaveState(prev => ({ ...prev, [business.id]: 'error' }));
     }
-  }, [businessSearchQuery, isAnonymous, savedLeadsLoaded, searchLocation, searchNiche])
+  }, [businessSearchQuery, isAnonymous, savedLeadsLoaded, searchLocation, searchNiche]);
 
   const handleDeleteLead = useCallback(async (leadId: string) => {
-    if (!window.confirm('Remove this saved lead?')) return
-    let res: Response
+    if (!window.confirm('Remove this saved lead?')) return;
+    let res: Response;
     try {
       res = await fetch(`/api/personalization/leads/${leadId}`, {
         method: 'DELETE',
         credentials: 'same-origin',
-      })
+      });
     } catch {
-      setSavedLeadsError("Couldn't reach the server — check your connection and try again.")
-      return
+      setSavedLeadsError("Couldn't reach the server — check your connection and try again.");
+      return;
     }
     if (!res.ok) {
-      const message = res.status === 401 ? 'Sign in to delete saved leads.' : `Delete failed (HTTP ${res.status})`
-      setSavedLeadsError(message)
-      return
+      const message = res.status === 401 ? 'Sign in to delete saved leads.' : `Delete failed (HTTP ${res.status})`;
+      setSavedLeadsError(message);
+      return;
     }
-    setSavedLeads(prev => prev.filter((lead) => lead.id !== leadId))
-  }, [])
+    setSavedLeads(prev => prev.filter((lead) => lead.id !== leadId));
+  }, []);
 
 
   // ── Find My Brand (the automated workflow) ────────────────────────────────
@@ -2424,69 +2424,69 @@ function ConfigurationView(props: any) {
   // runs the shared research path and then asset discovery — for both a URL
   // submission and a search-result selection. Nothing is re-entered and the
   // visitor never leaves this modal.
-  const [findMyBrandUrl, setFindMyBrandUrl] = useState('')
-  const [brandRunInFlight, setBrandRunInFlight] = useState(false)
+  const [findMyBrandUrl, setFindMyBrandUrl] = useState('');
+  const [brandRunInFlight, setBrandRunInFlight] = useState(false);
   // Long result lists show a page at a time so the section stays short.
-  const [shownResultCount, setShownResultCount] = useState(RESULTS_PAGE)
-  useEffect(() => { setShownResultCount(RESULTS_PAGE) }, [businessSearchResults])
+  const [shownResultCount, setShownResultCount] = useState(RESULTS_PAGE);
+  useEffect(() => { setShownResultCount(RESULTS_PAGE); }, [businessSearchResults]);
   // "Open now first" reorders the list (stable; unknown hours sit between open and closed). The enrichment lookups
   // follow whatever order is on screen, so the visible cards are the ones that get looked up.
-  const [openFirst, setOpenFirst] = useState(false)
+  const [openFirst, setOpenFirst] = useState(false);
   // Saved searches + the user's own "looks wrong" flags (signed-in only). Flagged businesses are hidden for this
   // user, never deleted, and can be shown again or un-flagged from the bar above the list.
-  const continuity = useFinderContinuity(!isAnonymous)
-  const [showFlagged, setShowFlagged] = useState(false)
-  const hiddenCount = useMemo(() => businessSearchResults.filter((b) => continuity.isFlagged(b)).length, [businessSearchResults, continuity.isFlagged])
+  const continuity = useFinderContinuity(!isAnonymous);
+  const [showFlagged, setShowFlagged] = useState(false);
+  const hiddenCount = useMemo(() => businessSearchResults.filter((b) => continuity.isFlagged(b)).length, [businessSearchResults, continuity.isFlagged]);
   const listedResults = useMemo(
     () => (showFlagged ? businessSearchResults : businessSearchResults.filter((b) => !continuity.isFlagged(b))),
     [businessSearchResults, continuity.isFlagged, showFlagged],
-  )
+  );
   const orderedResults = useMemo(() => {
-    if (!openFirst) return listedResults
+    if (!openFirst) return listedResults;
     const rank = (b: BusinessDiscoveryRecord) => {
-      const st = b.openingHours ? openStatus(b.openingHours, b.region).state : 'unknown'
-      return st === 'open' ? 0 : st === 'unknown' ? 1 : 2
-    }
-    return listedResults.map((b, i) => ({ b, i, r: rank(b) })).sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b)
-  }, [listedResults, openFirst])
-  const enrichStates = useBusinessEnrichment(orderedResults.slice(0, shownResultCount))
-  const enrichmentOf = (id: string) => { const st = enrichStates[id]; return st && st.status === 'done' ? st.data : null }
+      const st = b.openingHours ? openStatus(b.openingHours, b.region).state : 'unknown';
+      return st === 'open' ? 0 : st === 'unknown' ? 1 : 2;
+    };
+    return listedResults.map((b, i) => ({ b, i, r: rank(b) })).sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b);
+  }, [listedResults, openFirst]);
+  const enrichStates = useBusinessEnrichment(orderedResults.slice(0, shownResultCount));
+  const enrichmentOf = (id: string) => { const st = enrichStates[id]; return st && st.status === 'done' ? st.data : null; };
   // Businesses already shown in an EARLIER search this session (by website / phone / name+address).
-  const seenTrackerRef = useRef(createSeenTracker())
-  const [seenIds, setSeenIds] = useState<Set<string>>(new Set())
-  useEffect(() => { setSeenIds(seenTrackerRef.current.mark(businessSearchResults)) }, [businessSearchResults])
+  const seenTrackerRef = useRef(createSeenTracker());
+  const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
+  useEffect(() => { setSeenIds(seenTrackerRef.current.mark(businessSearchResults)); }, [businessSearchResults]);
   const exportLeadsCsv = useCallback(() => {
-    const csv = leadsToCsv(businessSearchResults, { enrichment: Object.fromEntries(businessSearchResults.map((b) => [b.id, enrichmentOf(b.id) ?? undefined])) })
-    const url = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }))
-    const a = document.createElement('a')
-    a.href = url; a.download = `businesses-${new Date().toISOString().slice(0, 10)}.csv`
-    document.body.appendChild(a); a.click(); a.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    const csv = leadsToCsv(businessSearchResults, { enrichment: Object.fromEntries(businessSearchResults.map((b) => [b.id, enrichmentOf(b.id) ?? undefined])) });
+    const url = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = `businesses-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [businessSearchResults, enrichStates])
+  }, [businessSearchResults, enrichStates]);
   // Contact values found on the business's own website that are STILL what the profile holds (a value the user
   // typed over, or an OpenStreetMap one, is never labelled as "found on the website").
   const foundContacts = (['email', 'facebook', 'instagram', 'linkedin', 'youtube', 'tiktok'] as const).flatMap((key) => {
-    const source = contactSources[key]
-    const value = clientForm[key]
+    const source = contactSources[key];
+    const value = clientForm[key];
     return source && value && value === source.value
       ? [{ key, label: key === 'email' ? 'Email' : key[0].toUpperCase() + key.slice(1), value, source }]
-      : []
-  })
-  const brandRunInFlightRef = useRef(false)
+      : [];
+  });
+  const brandRunInFlightRef = useRef(false);
 
   const handleFindMyBrand = useCallback(async () => {
-    const website = findMyBrandUrl.trim()
-    if (!website || brandRunInFlightRef.current) return
-    brandRunInFlightRef.current = true
-    setBrandRunInFlight(true)
+    const website = findMyBrandUrl.trim();
+    if (!website || brandRunInFlightRef.current) return;
+    brandRunInFlightRef.current = true;
+    setBrandRunInFlight(true);
     try {
-      await runDiscoveryWorkflow(website)
+      await runDiscoveryWorkflow(website);
     } finally {
-      brandRunInFlightRef.current = false
-      setBrandRunInFlight(false)
+      brandRunInFlightRef.current = false;
+      setBrandRunInFlight(false);
     }
-  }, [findMyBrandUrl, runDiscoveryWorkflow])
+  }, [findMyBrandUrl, runDiscoveryWorkflow]);
 
   // Selecting a business from the search results. In every mode the selection
   // runs the same automated workflow: populate the client form, research the
@@ -2500,57 +2500,57 @@ function ConfigurationView(props: any) {
   // Each selection takes a new number, and so does unmounting (this view only exists while the modal is
   // open); a website lookup that finishes after a newer selection or a close is dropped instead of
   // replacing that newer state.
-  const businessSelectSeqRef = useRef(0)
-  useEffect(() => () => { businessSelectSeqRef.current += 1 }, [])
+  const businessSelectSeqRef = useRef(0);
+  useEffect(() => () => { businessSelectSeqRef.current += 1; }, []);
   const handleSelectBusiness = useCallback(async (business: BusinessDiscoveryRecord) => {
-    const seq = ++businessSelectSeqRef.current
-    const listed = business.website?.trim()
+    const seq = ++businessSelectSeqRef.current;
+    const listed = business.website?.trim();
     if (listed && isOwnedWebsite(listed)) {
       // Populate, research and discover in one automated run.
-      void runDiscoveryWorkflow(listed, { business })
-      return
+      void runDiscoveryWorkflow(listed, { business });
+      return;
     }
 
-    setDiscoveryError(null)
-    const found = resolveBusinessWebsite ? await resolveBusinessWebsite(business) : null
+    setDiscoveryError(null);
+    const found = resolveBusinessWebsite ? await resolveBusinessWebsite(business) : null;
     // Superseded or closed while the lookup ran (resolveBusinessWebsite returns null then too).
-    if (seq !== businessSelectSeqRef.current) return
+    if (seq !== businessSelectSeqRef.current) return;
     if (found) {
       void runDiscoveryWorkflow(found, {
         business: { ...business, website: found, websiteStatus: 'confirmed' },
-      })
-      return
+      });
+      return;
     }
 
     // Select it anyway, so the Selected panel opens with its Website field
     // and "Load from website"; the message says why nothing was loaded.
-    selectBusiness(business)
-    const hasSocial = Boolean(business.facebook || business.instagram || (listed && !isOwnedWebsite(listed)))
+    selectBusiness(business);
+    const hasSocial = Boolean(business.facebook || business.instagram || (listed && !isOwnedWebsite(listed)));
     setDiscoveryError(hasSocial
       ? `We couldn't find ${business.name}'s own website — only a social media page is listed. Paste the business website in the Website field and use Find My Brand.`
-      : `We couldn't find a website for ${business.name}. Paste one in the Website field and use Find My Brand.`)
-  }, [resolveBusinessWebsite, runDiscoveryWorkflow, selectBusiness, setDiscoveryError])
+      : `We couldn't find a website for ${business.name}. Paste one in the Website field and use Find My Brand.`);
+  }, [resolveBusinessWebsite, runDiscoveryWorkflow, selectBusiness, setDiscoveryError]);
 
   const handleOpenSavedLead = useCallback((lead: LeadRecord) => {
     // Same selection path the result cards use, so the Personalization handoff
     // (anonymous automated run or authenticated select) is identical.
-    setSavedLeadsOpen(false)
-    void handleSelectBusiness(lead.business)
-  }, [handleSelectBusiness])
+    setSavedLeadsOpen(false);
+    void handleSelectBusiness(lead.business);
+  }, [handleSelectBusiness]);
 
   const handleOpenBusinessSearch = useCallback(() => {
     // The existing niche/location search form is gated on the customer
     // audience, so ask for it explicitly: the same form now doubles as the
     // "or search for my business instead" branch of Find My Brand.
-    updateClientForm({ audience: 'customer' })
-    setBusinessSearchMode('searching')
-  }, [setBusinessSearchMode, updateClientForm])
+    updateClientForm({ audience: 'customer' });
+    setBusinessSearchMode('searching');
+  }, [setBusinessSearchMode, updateClientForm]);
 
   // A single progress indicator covers the whole run: research and discovery in
   // anonymous mode are one server round trip, and in authenticated mode the
   // indicator stays lit across both phases.
-  const showBrandRunProgress = brandRunInFlight || discoveryStatus === 'discovering'
-  const brandRunProgressMessage = 'Reading the website and finding the brand assets already on it…'
+  const showBrandRunProgress = brandRunInFlight || discoveryStatus === 'discovering';
+  const brandRunProgressMessage = 'Reading the website and finding the brand assets already on it…';
 
   // ── Paid AI affordances (never offered to free visitors) ───────────────────
   // The server refuses image edits / vision / generation for anonymous
@@ -2562,60 +2562,60 @@ function ConfigurationView(props: any) {
   // section assignment) — they never need a second results surface or a second
   // modal, so the free surface gains them by re-enabling these affordances for
   // the entitlement that grants them.
-  const onEditDiscovered = isAnonymous ? null : openDiscoveredImageEditor
-  const onEditLibrary = isAnonymous ? null : openLibraryImageEditor
+  const onEditDiscovered = isAnonymous ? null : openDiscoveredImageEditor;
+  const onEditLibrary = isAnonymous ? null : openLibraryImageEditor;
 
-  const identityInputRef = useRef<HTMLInputElement>(null)
-  const logoInputRef = useRef<HTMLInputElement>(null)
-  const productInputRef = useRef<HTMLInputElement>(null)
-  const brandRefInputRef = useRef<HTMLInputElement>(null)
+  const identityInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const productInputRef = useRef<HTMLInputElement>(null);
+  const brandRefInputRef = useRef<HTMLInputElement>(null);
   const [batchVideoReady, setBatchVideoReady] = useState<{
     running: boolean
     current: number
     total: number
     label: string
     error: string | null
-  }>({ running: false, current: 0, total: 0, label: '', error: null })
-  const batchVideoReadyRunningRef = useRef(batchVideoReady.running)
+  }>({ running: false, current: 0, total: 0, label: '', error: null });
+  const batchVideoReadyRunningRef = useRef(batchVideoReady.running);
 
   const handleIdentityAddClick = useCallback(() => {
-    identityInputRef.current?.click()
-  }, [])
+    identityInputRef.current?.click();
+  }, []);
   const handleLogoAddClick = useCallback(() => {
-    logoInputRef.current?.click()
-  }, [])
+    logoInputRef.current?.click();
+  }, []);
   const handleProductAddClick = useCallback(() => {
-    productInputRef.current?.click()
-  }, [])
+    productInputRef.current?.click();
+  }, []);
   const handleBrandRefAddClick = useCallback(() => {
-    brandRefInputRef.current?.click()
-  }, [])
+    brandRefInputRef.current?.click();
+  }, []);
 
   // ── What SmartVideo Will Use summary ─────────────────────────────────────
 
   const assetSummary = useMemo(() => {
-    const items: { id: string; section: string; name: string; url: string }[] = []
+    const items: { id: string; section: string; name: string; url: string }[] = [];
     if (assets.primaryIdentity) {
-      items.push({ id: assets.primaryIdentity.id, section: 'Person', name: assets.primaryIdentity.name, url: assets.primaryIdentity.uploadedUrl || assets.primaryIdentity.url })
+      items.push({ id: assets.primaryIdentity.id, section: 'Person', name: assets.primaryIdentity.name, url: assets.primaryIdentity.uploadedUrl || assets.primaryIdentity.url });
     }
     assets.identities.forEach((a) => {
-      if (a.id === assets.primaryIdentity?.id) return
-      items.push({ id: a.id, section: 'Person', name: a.name, url: a.uploadedUrl || a.url })
-    })
+      if (a.id === assets.primaryIdentity?.id) return;
+      items.push({ id: a.id, section: 'Person', name: a.name, url: a.uploadedUrl || a.url });
+    });
     if (assets.primaryLogo) {
-      items.push({ id: assets.primaryLogo.id, section: 'Logo', name: assets.primaryLogo.name, url: assets.primaryLogo.uploadedUrl || assets.primaryLogo.url })
+      items.push({ id: assets.primaryLogo.id, section: 'Logo', name: assets.primaryLogo.name, url: assets.primaryLogo.uploadedUrl || assets.primaryLogo.url });
     }
     assets.logos.forEach((a) => {
-      if (a.id === assets.primaryLogo?.id) return
-      items.push({ id: a.id, section: 'Logo', name: a.name, url: a.uploadedUrl || a.url })
-    })
-    assets.products.forEach((a) => items.push({ id: a.id, section: 'Products', name: a.name, url: a.uploadedUrl || a.url }))
-    assets.brandReferences.forEach((a) => items.push({ id: a.id, section: 'Brand', name: a.name, url: a.uploadedUrl || a.url }))
-    if (assets.firstFrame) items.push({ id: assets.firstFrame.id, section: 'First Frame', name: assets.firstFrame.name, url: assets.firstFrame.uploadedUrl || assets.firstFrame.url })
-    if (assets.lastFrame) items.push({ id: assets.lastFrame.id, section: 'Last Frame', name: assets.lastFrame.name, url: assets.lastFrame.uploadedUrl || assets.lastFrame.url })
-    if (assets.ctaGraphic) items.push({ id: assets.ctaGraphic.id, section: 'CTA', name: assets.ctaGraphic.name, url: assets.ctaGraphic.uploadedUrl || assets.ctaGraphic.url })
-    return items
-  }, [assets])
+      if (a.id === assets.primaryLogo?.id) return;
+      items.push({ id: a.id, section: 'Logo', name: a.name, url: a.uploadedUrl || a.url });
+    });
+    assets.products.forEach((a) => items.push({ id: a.id, section: 'Products', name: a.name, url: a.uploadedUrl || a.url }));
+    assets.brandReferences.forEach((a) => items.push({ id: a.id, section: 'Brand', name: a.name, url: a.uploadedUrl || a.url }));
+    if (assets.firstFrame) items.push({ id: assets.firstFrame.id, section: 'First Frame', name: assets.firstFrame.name, url: assets.firstFrame.uploadedUrl || assets.firstFrame.url });
+    if (assets.lastFrame) items.push({ id: assets.lastFrame.id, section: 'Last Frame', name: assets.lastFrame.name, url: assets.lastFrame.uploadedUrl || assets.lastFrame.url });
+    if (assets.ctaGraphic) items.push({ id: assets.ctaGraphic.id, section: 'CTA', name: assets.ctaGraphic.name, url: assets.ctaGraphic.uploadedUrl || assets.ctaGraphic.url });
+    return items;
+  }, [assets]);
 
   const handleBatchMakeVideoReady = useCallback(async () => {
     const selected = discoveredAssets.filter((asset: DiscoveredAsset) =>
@@ -2623,20 +2623,20 @@ function ConfigurationView(props: any) {
       !asset.rejected &&
       asset.category !== 'irrelevant' &&
       !asset.videoReady
-    )
-    if (selected.length === 0 || batchVideoReadyRunningRef.current) return
+    );
+    if (selected.length === 0 || batchVideoReadyRunningRef.current) return;
 
-    batchVideoReadyRunningRef.current = true
-    setBatchVideoReady({ running: true, current: 0, total: selected.length, label: 'Preparing assets', error: null })
-    const failures: string[] = []
+    batchVideoReadyRunningRef.current = true;
+    setBatchVideoReady({ running: true, current: 0, total: selected.length, label: 'Preparing assets', error: null });
+    const failures: string[] = [];
 
     for (let index = 0; index < selected.length; index += 1) {
-      const item = selected[index]
+      const item = selected[index];
       setBatchVideoReady((previous) => ({
         ...previous,
         current: index + 1,
         label: item.category.replace(/_/g, ' ') + ' · starting',
-      }))
+      }));
 
       try {
         const result = await makeDiscoveredAssetVideoReady(
@@ -2650,9 +2650,9 @@ function ConfigurationView(props: any) {
               ...previous,
               current: index + 1,
               label,
-            }))
+            }));
           },
-        )
+        );
 
         // Merge into the latest list: automatic cutouts may have finished while the AI request ran.
         setDiscoveredAssets((latest: DiscoveredAsset[]) => latest.map((asset: DiscoveredAsset) => (
@@ -2674,12 +2674,12 @@ function ConfigurationView(props: any) {
                 visionValidation: result.visionValidation,
               }
             : asset
-        )))
+        )));
       } catch (error) {
         failures.push(
           item.category.replace(/_/g, ' ') + ': ' +
           (error instanceof Error ? error.message : 'Video Ready failed')
-        )
+        );
       }
     }
 
@@ -2689,26 +2689,26 @@ function ConfigurationView(props: any) {
       total: selected.length,
       label: failures.length ? 'Completed with errors' : 'Selected assets are video ready',
       error: failures.length ? failures.join(' • ') : null,
-    })
-    batchVideoReadyRunningRef.current = false
-  }, [clientForm.businessName, clientForm.industry, clientForm.name, discoveredAssets, setDiscoveredAssets])
+    });
+    batchVideoReadyRunningRef.current = false;
+  }, [clientForm.businessName, clientForm.industry, clientForm.name, discoveredAssets, setDiscoveredAssets]);
 
     const advancedTabsDone: Partial<Record<AdvancedEditingTab, boolean>> = {
       client: Boolean(clientForm.businessName || clientForm.name),
       assets: Boolean(assets.primaryIdentity || assets.identities?.length || assets.logos?.length || assets.products?.length),
       recast: ctxPreviewVideo?.kind === 'recast',
       create: Boolean(mode) || Boolean(promptState?.personalized || promptState?.edited),
-    }
+    };
 
     return (
       <div
         className="pz-adv-root xl:flex xl:flex-col xl:h-full xl:min-h-0"
         onClickCapture={(event) => {
           // A link to a section on another tab or pill shows it first.
-          const link = (event.target as HTMLElement | null)?.closest?.('a[href^="#pz-"]')
-          const id = link?.getAttribute('href')?.slice(1)
-          const location = id ? SECTION_LOCATION[id] : undefined
-          if (location) goToSection(location.tab, location.section)
+          const link = (event.target as HTMLElement | null)?.closest?.('a[href^="#pz-"]');
+          const id = link?.getAttribute('href')?.slice(1);
+          const location = id ? SECTION_LOCATION[id] : undefined;
+          if (location) goToSection(location.tab, location.section);
         }}
       >
         {dropError && (
@@ -2718,10 +2718,10 @@ function ConfigurationView(props: any) {
           </div>
         )}
         {/* Hidden file inputs for add-more placeholders */}
-       <input ref={identityInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { handleIdentityUpload(e.target.files); e.target.value = '' }} />
-       <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { handleLogoUpload(e.target.files); e.target.value = '' }} />
-       <input ref={productInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => { handleProductUpload(e.target.files); e.target.value = '' }} />
-       <input ref={brandRefInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => { handleBrandRefUpload(e.target.files); e.target.value = '' }} />
+       <input ref={identityInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { handleIdentityUpload(e.target.files); e.target.value = ''; }} />
+       <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { handleLogoUpload(e.target.files); e.target.value = ''; }} />
+       <input ref={productInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => { handleProductUpload(e.target.files); e.target.value = ''; }} />
+       <input ref={brandRefInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => { handleBrandRefUpload(e.target.files); e.target.value = ''; }} />
 
       <AdvancedStepBar
         active={advancedTab}
@@ -2836,7 +2836,7 @@ function ConfigurationView(props: any) {
                 placeholder="https://yourbusiness.com"
                 value={findMyBrandUrl}
                 onChange={(e) => setFindMyBrandUrl(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleFindMyBrand() } }}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleFindMyBrand(); } }}
                 disabled={brandRunInFlight}
                 className="w-full min-w-0 outline-none disabled:opacity-60"
                 style={{
@@ -2945,9 +2945,9 @@ function ConfigurationView(props: any) {
                 <button
                   type="button"
                   onClick={() => {
-                    handleClientEntryDismiss()
-                    goToSection('client', 'profile')
-                    focusRequirementControl('businessName')
+                    handleClientEntryDismiss();
+                    goToSection('client', 'profile');
+                    focusRequirementControl('businessName');
                   }}
                   className="rounded-lg text-[11px] font-extrabold uppercase tracking-wide"
                   style={{
@@ -3096,8 +3096,8 @@ function ConfigurationView(props: any) {
                 type="button"
                 onClick={() => {
                   // Re-run the same search; without one, reopen the form.
-                  if (searchNiche && searchLocation.trim()) runBusinessSearch(searchRadius)
-                  else setBusinessSearchMode?.('searching')
+                  if (searchNiche && searchLocation.trim()) runBusinessSearch(searchRadius);
+                  else setBusinessSearchMode?.('searching');
                 }}
                 className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide"
                 style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.danger}`, background: C.danger, color: '#fff' }}
@@ -3178,13 +3178,13 @@ function ConfigurationView(props: any) {
                   hiddenCount={hiddenCount}
                   showing={showFlagged}
                   onToggle={() => setShowFlagged((v) => !v)}
-                  onUndoAll={() => { void continuity.unflagAll(businessSearchResults.filter((b) => continuity.isFlagged(b))) }}
+                  onUndoAll={() => { void continuity.unflagAll(businessSearchResults.filter((b) => continuity.isFlagged(b))); }}
                 />
               )}
               {!savedLeadsOpen && (
               <div className="flex flex-col gap-2">
                 {orderedResults.slice(0, shownResultCount).map((business) => {
-                  const contacts = mergeCardContacts(business, enrichStates[business.id])
+                  const contacts = mergeCardContacts(business, enrichStates[business.id]);
                   return (
                   <div
                     key={business.id}
@@ -3195,7 +3195,7 @@ function ConfigurationView(props: any) {
                       background: selectedBusiness?.id === business.id ? 'rgba(217,255,0,.06)' : '#121212',
                       cursor: 'pointer',
                     }}
-                    onClick={() => { void handleSelectBusiness(business) }}
+                    onClick={() => { void handleSelectBusiness(business); }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                       <div style={{ flex: 1 }}>
@@ -3257,7 +3257,7 @@ function ConfigurationView(props: any) {
                           <button
                             type="button"
                             disabled={leadSaveState[business.id] === 'saving'}
-                            onClick={(e) => { e.stopPropagation(); void handleSaveLead(business) }}
+                            onClick={(e) => { e.stopPropagation(); void handleSaveLead(business); }}
                             className="rounded-lg text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-50"
                             style={{
                               minHeight: 32,
@@ -3272,7 +3272,7 @@ function ConfigurationView(props: any) {
                         )}
                         <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); void handleSelectBusiness(business) }}
+                          onClick={(e) => { e.stopPropagation(); void handleSelectBusiness(business); }}
                           className="rounded-lg text-[10px] font-extrabold uppercase tracking-wide"
                           style={{
                             minHeight: 32,
@@ -3289,7 +3289,7 @@ function ConfigurationView(props: any) {
                       </div>
                     </div>
                   </div>
-                )})}
+                );})}
                 {orderedResults.length > shownResultCount && (
                   <button
                     type="button"
@@ -3344,8 +3344,8 @@ function ConfigurationView(props: any) {
                               type="button"
                               aria-label={lead.starred ? 'Unstar lead' : 'Star lead'}
                               onClick={() => {
-                                setSavedLeadsError(null)
-                                void patchLead(lead.id, { starred: !lead.starred }).catch((err: Error) => setSavedLeadsError(err.message))
+                                setSavedLeadsError(null);
+                                void patchLead(lead.id, { starred: !lead.starred }).catch((err: Error) => setSavedLeadsError(err.message));
                               }}
                               style={{
                                 background: 'transparent',
@@ -3378,10 +3378,10 @@ function ConfigurationView(props: any) {
                               aria-label="Lead stage"
                               value={isLeadStage(lead.stage) ? lead.stage : LEAD_STAGES[0]}
                               onChange={(e) => {
-                                const stage = e.target.value
-                                setSavedLeads(prev => prev.map((l) => (l.id === lead.id ? { ...l, stage } : l)))
-                                setSavedLeadsError(null)
-                                void patchLead(lead.id, { stage }).catch((err: Error) => setSavedLeadsError(err.message))
+                                const stage = e.target.value;
+                                setSavedLeads(prev => prev.map((l) => (l.id === lead.id ? { ...l, stage } : l)));
+                                setSavedLeadsError(null);
+                                void patchLead(lead.id, { stage }).catch((err: Error) => setSavedLeadsError(err.message));
                               }}
                               className="rounded-lg outline-none"
                               style={{
@@ -3404,10 +3404,10 @@ function ConfigurationView(props: any) {
                             placeholder="Notes"
                             defaultValue={lead.notes || ''}
                             onBlur={(e) => {
-                              const notes = e.target.value
-                              if (notes === (lead.notes ?? '')) return
-                              setSavedLeadsError(null)
-                              void patchLead(lead.id, { notes }).catch((err: Error) => setSavedLeadsError(err.message))
+                              const notes = e.target.value;
+                              if (notes === (lead.notes ?? '')) return;
+                              setSavedLeadsError(null);
+                              void patchLead(lead.id, { notes }).catch((err: Error) => setSavedLeadsError(err.message));
                             }}
                             className="rounded-lg outline-none"
                             style={{
@@ -3471,7 +3471,7 @@ function ConfigurationView(props: any) {
               <div style={{ fontSize: 10, color: C.muted, lineHeight: 1.5 }}>
                 {[selectedBusiness.category, selectedBusiness.address, selectedBusiness.city, selectedBusiness.region].filter(Boolean).join(' • ')}
                 {selectedBusiness.phone && <div>Phone: {selectedBusiness.phone}</div>}
-                <LeadInsightsPanel showOutreach business={selectedBusiness} results={businessSearchResults} enrichment={enrichmentOf(selectedBusiness.id)} onPick={(b) => { void handleSelectBusiness(b) }} />
+                <LeadInsightsPanel showOutreach business={selectedBusiness} results={businessSearchResults} enrichment={enrichmentOf(selectedBusiness.id)} onPick={(b) => { void handleSelectBusiness(b); }} />
                 {foundContacts.length > 0 && (
                   <div data-testid="pz-found-contacts" style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: C.muted2 }}>Found on the business's website</div>
@@ -3518,8 +3518,8 @@ function ConfigurationView(props: any) {
                       type="button"
                       disabled={!clientForm.website?.trim() || brandRunInFlight}
                       onClick={() => {
-                        const website = clientForm.website?.trim()
-                        if (website) void runDiscoveryWorkflow(website, { business: { ...selectedBusiness, website } })
+                        const website = clientForm.website?.trim();
+                        if (website) void runDiscoveryWorkflow(website, { business: { ...selectedBusiness, website } });
                       }}
                       className="rounded-[8px] text-[10px] font-extrabold uppercase tracking-wide disabled:opacity-40"
                       style={{ minHeight: 28, padding: '0 10px', border: `1px solid ${C.cyanBorder}`, background: 'transparent', color: C.cyan }}
@@ -3644,7 +3644,7 @@ function ConfigurationView(props: any) {
               </div>
               <div className="flex flex-wrap gap-2" style={{ maxHeight: 132, overflowY: 'auto' }} data-testid="pz-saved-clients">
                 {clients.map((c: any) => {
-                  const isSelected = selectedClientId === c.id
+                  const isSelected = selectedClientId === c.id;
                   // The card picks the client; Edit/Delete sit beside the pick
                   // button (not inside it), so each action works on its own.
                   return (
@@ -3683,7 +3683,7 @@ function ConfigurationView(props: any) {
                           </button>
                           <button
                             type="button"
-                            onClick={() => { if (window.confirm('Delete this client and their saved assets?')) deleteSavedClient(c.id) }}
+                            onClick={() => { if (window.confirm('Delete this client and their saved assets?')) deleteSavedClient(c.id); }}
                             className="text-[10px] font-extrabold uppercase"
                             style={{ color: C.danger, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                           >
@@ -3692,7 +3692,7 @@ function ConfigurationView(props: any) {
                         </div>
                       )}
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -3804,9 +3804,9 @@ function ConfigurationView(props: any) {
               <div className="col-span-full flex gap-2">
                 <button
                   onClick={async () => {
-                    const saved = await saveClient()
-                    setClientSaveStatus(saved ? 'saved' : 'error')
-                    window.setTimeout(() => setClientSaveStatus(null), 2500)
+                    const saved = await saveClient();
+                    setClientSaveStatus(saved ? 'saved' : 'error');
+                    window.setTimeout(() => setClientSaveStatus(null), 2500);
                   }}
                   className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold"
                   style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}
@@ -3817,7 +3817,7 @@ function ConfigurationView(props: any) {
                   <button
                     // Same as the saved-client card's Delete: confirm, and the
                     // client's saved assets go too.
-                    onClick={() => { if (window.confirm('Delete this client and their saved assets?')) deleteSavedClient(selectedClientId) }}
+                    onClick={() => { if (window.confirm('Delete this client and their saved assets?')) deleteSavedClient(selectedClientId); }}
                     className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium border"
                     style={{ color: C.danger, borderColor: 'rgba(239,68,68,.25)' }}
                   >
@@ -4289,7 +4289,7 @@ function ConfigurationView(props: any) {
               {assets.firstFrame && (
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); removeFirstFrame() }}
+                  onClick={(e) => { e.stopPropagation(); removeFirstFrame(); }}
                   className="text-[9px] font-extrabold uppercase"
                   style={{ color: C.danger, background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer' }}
                 >
@@ -4393,7 +4393,7 @@ function ConfigurationView(props: any) {
               {assets.lastFrame && (
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); removeLastFrame() }}
+                  onClick={(e) => { e.stopPropagation(); removeLastFrame(); }}
                   className="text-[9px] font-extrabold uppercase"
                   style={{ color: C.danger, background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer' }}
                 >
@@ -4456,7 +4456,7 @@ function ConfigurationView(props: any) {
                    className="text-left"
                    draggable
                      onDragStart={(e) => {
-                       const tabKey = savedAssetLibraryTab === 'identities' ? 'identity' : savedAssetLibraryTab === 'logos' ? 'logo' : savedAssetLibraryTab === 'products' ? 'product' : 'brand'
+                       const tabKey = savedAssetLibraryTab === 'identities' ? 'identity' : savedAssetLibraryTab === 'logos' ? 'logo' : savedAssetLibraryTab === 'products' ? 'product' : 'brand';
                        handleAssetDragStart({
                          assetId: asset.id,
                          source: 'saved-client',
@@ -4469,7 +4469,7 @@ function ConfigurationView(props: any) {
                            sourceCategory: asset.sourceCategory,
                            sourceType: asset.sourceType,
                          },
-                       }, e)
+                       }, e);
                      }}
                    onDragEnd={handleAssetDragEnd}
                    style={{
@@ -4535,7 +4535,7 @@ function ConfigurationView(props: any) {
                      )}
                      <button
                        type="button"
-                       onClick={() => { if (window.confirm('Remove this asset from the saved client library?')) removeSavedAsset(asset.id) }}
+                       onClick={() => { if (window.confirm('Remove this asset from the saved client library?')) removeSavedAsset(asset.id); }}
                        className="text-[9px] font-extrabold uppercase"
                        style={{ color: C.danger, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                      >
@@ -4608,9 +4608,9 @@ function ConfigurationView(props: any) {
                   <button
                     type="button"
                     onClick={() => {
-                      const idSet = new Set(cutoutIds)
-                      setDiscoveredAssets((prev) => prev.map((a) => (idSet.has(a.id) ? { ...a, selected: true } : a)))
-                      void importDiscoveredAssets({ ids: cutoutIds })
+                      const idSet = new Set(cutoutIds);
+                      setDiscoveredAssets((prev) => prev.map((a) => (idSet.has(a.id) ? { ...a, selected: true } : a)));
+                      void importDiscoveredAssets({ ids: cutoutIds });
                     }}
                     disabled={batchVideoReady.running || discoveryStatus === 'importing' || cutoutIds.length === 0}
                     title={cutoutIds.length === 0 ? 'No cutouts are ready yet' : 'Adds every cutout to your assets. The video uses your logo and first 2 products.'}
@@ -4634,7 +4634,7 @@ function ConfigurationView(props: any) {
                 type="button"
                 onClick={() => {
                   // Cancelling throws away every found asset.
-                  if (discoveredAssets.length === 0 || window.confirm('Discard all assets found on this website?')) cancelDiscovery()
+                  if (discoveredAssets.length === 0 || window.confirm('Discard all assets found on this website?')) cancelDiscovery();
                 }}
                 className="rounded-[10px] text-[10px] font-extrabold uppercase tracking-wide"
                 style={{ minHeight: 36, padding: '0 14px', border: `1px solid ${C.border}`, background: C.panel, color: 'white' }}
@@ -4723,9 +4723,9 @@ function ConfigurationView(props: any) {
             dropZones={ADVANCED_DROP_ZONES}
             pageSize={12}
             onDropToSection={(id, section) => {
-              ctxMoveDiscoveredAssetToSection?.(id, section)
+              ctxMoveDiscoveredAssetToSection?.(id, section);
               // Importing needs an account; visitors only rearrange the grid.
-              if (!isAnonymous) void importDiscoveredAssets({ ids: [id], section })
+              if (!isAnonymous) void importDiscoveredAssets({ ids: [id], section });
             }}
           />
         </section>
@@ -4756,7 +4756,7 @@ function ConfigurationView(props: any) {
             Phone on the CTA: <span style={{ color: C.text, fontWeight: 700 }}>{clientForm.phone || 'none yet'}</span>{' · '}
             <button
               type="button"
-              onClick={() => { goToSection('client', 'profile'); focusRequirementControl('phone') }}
+              onClick={() => { goToSection('client', 'profile'); focusRequirementControl('phone'); }}
               style={{ color: C.cyan, background: 'none', border: 0, padding: 0, font: 'inherit', fontWeight: 800, cursor: 'pointer' }}
             >
               {clientForm.phone ? 'Edit in Profile' : 'Add in Profile'}
@@ -4916,7 +4916,7 @@ function ConfigurationView(props: any) {
           <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>OUTPUT &amp; ENGINE</h2>
           <div className="grid grid-cols-1 md:grid-cols-3" style={{ marginTop: 18, gap: 12 }}>
             {outputOptions.map(({ key, label, description }: any) => {
-              const active = outputType === key
+              const active = outputType === key;
               return (
                 <button
                   key={key}
@@ -4936,7 +4936,7 @@ function ConfigurationView(props: any) {
                   <h4 style={{ margin: '0 0 6px', fontSize: 12, textTransform: 'uppercase' }}>{label}</h4>
                   <p style={{ margin: 0, color: C.muted, fontSize: 10, lineHeight: 1.45 }}>{description}</p>
                 </button>
-              )
+              );
             })}
           </div>
         </section>
@@ -4976,8 +4976,8 @@ function ConfigurationView(props: any) {
           <h2 style={{ margin: 0, fontSize: 13, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>HOW SHOULD THIS BE PERSONALIZED?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2" style={{ marginTop: 18, gap: 12 }}>
             {eligibleModes.map((m: any) => {
-              const active = mode === m.key
-              const isUnavailable = !active && isModeUnavailable(m.key, assets, capabilities)
+              const active = mode === m.key;
+              const isUnavailable = !active && isModeUnavailable(m.key, assets, capabilities);
               return (
                 <div key={m.key} className="flex flex-col" style={{ gap: 6 }}>
                 <button
@@ -5014,7 +5014,7 @@ function ConfigurationView(props: any) {
                   <button
                     type="button"
                     data-testid={`pz-mode-fix-${m.key}`}
-                    onClick={() => { goToSection('assets', 'yours'); focusRequirementControl('presenter') }}
+                    onClick={() => { goToSection('assets', 'yours'); focusRequirementControl('presenter'); }}
                     className="self-start"
                     style={{ color: C.cyan, background: 'none', border: 0, padding: 0, fontSize: 10, fontWeight: 800, cursor: 'pointer' }}
                   >
@@ -5022,7 +5022,7 @@ function ConfigurationView(props: any) {
                   </button>
                 )}
                 </div>
-              )
+              );
             })}
           </div>
         </section>
@@ -5106,9 +5106,9 @@ function ConfigurationView(props: any) {
                     genOptions?.aspectRatio || source.aspectRatio || capabilities.aspectRatioOptions[0] || ''
                   }
                   onChange={(e) => {
-                    updateGenOptions({ ...genOptions, aspectRatio: e.target.value })
+                    updateGenOptions({ ...genOptions, aspectRatio: e.target.value });
                     if (['16:9', '9:16', '1:1', '4:5'].includes(e.target.value)) {
-                      ctxUpdatePreviewComposition?.({ aspectRatio: e.target.value as '16:9' | '9:16' | '1:1' | '4:5' })
+                      ctxUpdatePreviewComposition?.({ aspectRatio: e.target.value as '16:9' | '9:16' | '1:1' | '4:5' });
                     }
                   }}
                   className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
@@ -5167,10 +5167,10 @@ function ConfigurationView(props: any) {
                 <select
                   value={genOptions?.duration || source.duration || ''}
                   onChange={(e) => {
-                    const seconds = e.target.value ? parseInt(e.target.value) : undefined
-                    updateGenOptions({ ...genOptions, duration: seconds })
+                    const seconds = e.target.value ? parseInt(e.target.value) : undefined;
+                    updateGenOptions({ ...genOptions, duration: seconds });
                     // Same length for the preview and the final file.
-                    if (seconds && ctxPreviewSettings) ctxUpdatePreviewComposition?.({ durationInFrames: seconds * ctxPreviewSettings.fps })
+                    if (seconds && ctxPreviewSettings) ctxUpdatePreviewComposition?.({ durationInFrames: seconds * ctxPreviewSettings.fps });
                   }}
                   className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
                   style={{ borderColor: C.border, background: C.field, color: C.text }}
@@ -5348,7 +5348,7 @@ function ConfigurationView(props: any) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // ── Advanced Editing: preview & on-video overlays ────────────────────────────
@@ -5359,18 +5359,18 @@ function ConfigurationView(props: any) {
 
 /** Builds the preview props shared by the live preview and the overlay editor. */
 function useAdvancedPreviewInput(source: PersonalizationSource | null) {
-  const ctx = useDemoPersonalize()
+  const ctx = useDemoPersonalize();
   const guidedAvailable =
     typeof (ctx as { setGuidedStep?: unknown }).setGuidedStep === 'function' &&
-    Boolean((ctx as { previewSettings?: unknown }).previewSettings)
-  if (!guidedAvailable || !ctx.previewSettings) return null
+    Boolean((ctx as { previewSettings?: unknown }).previewSettings);
+  if (!guidedAvailable || !ctx.previewSettings) return null;
   return buildPreviewInput({
     source,
     previewSettings: ctx.previewSettings,
     previewVideo: ctx.previewVideo ?? null,
     clientForm: ctx.clientForm || {},
     assets: ctx.assets,
-  })
+  });
 }
 
 /**
@@ -5379,14 +5379,14 @@ function useAdvancedPreviewInput(source: PersonalizationSource | null) {
  * click away.
  */
 function AdvancedLivePreview({ source }: { source: PersonalizationSource | null }) {
-  const inputProps = useAdvancedPreviewInput(source)
-  const { previewVideo, preRecastVideo } = useDemoPersonalize()
-  if (!inputProps) return null
+  const inputProps = useAdvancedPreviewInput(source);
+  const { previewVideo, preRecastVideo } = useDemoPersonalize();
+  if (!inputProps) return null;
   // After a Full Body Recast, BEFORE shows the original performer and AFTER
   // the recast person, so the swap itself is visible.
   const beforeVideoUrl = previewVideo?.kind === 'recast'
     ? preRecastVideo?.url || source?.sourceMedia || null
-    : null
+    : null;
   return (
     <section data-testid="pz-live-preview" style={{ padding: 14, border: `1px solid ${C.border}`, borderRadius: 14, background: C.panel }}>
       <h2 style={{ margin: '0 0 10px', fontSize: 12, letterSpacing: '.05em', fontWeight: 800, textTransform: 'uppercase' }}>
@@ -5395,15 +5395,15 @@ function AdvancedLivePreview({ source }: { source: PersonalizationSource | null 
       {/* Opens on the personalized result; "Before" is one click away. */}
       <BeforeAfterPreview inputProps={inputProps} defaultMode="toggle" initialSide="after" beforeVideoUrl={beforeVideoUrl} />
     </section>
-  )
+  );
 }
 
 function AdvancedOverlaySection({ source }: { source: PersonalizationSource | null }) {
-  const inputProps = useAdvancedPreviewInput(source)
-  const { outputType } = useDemoPersonalize()
-  if (!inputProps) return null
+  const inputProps = useAdvancedPreviewInput(source);
+  const { outputType } = useDemoPersonalize();
+  if (!inputProps) return null;
   // Say where these layers end up for the chosen output.
-  const layersInVideo = outputType === 'video' || outputType === 'everything'
+  const layersInVideo = outputType === 'video' || outputType === 'everything';
 
   return (
     <section
@@ -5431,5 +5431,5 @@ function AdvancedOverlaySection({ source }: { source: PersonalizationSource | nu
         <OverlayEditor inputProps={inputProps} addDesigns />
       </div>
     </section>
-  )
+  );
 }

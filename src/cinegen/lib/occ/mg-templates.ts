@@ -50,8 +50,10 @@ export function loadMgTemplates(base = '/occ-templates'): Promise<MgTemplate[]> 
     const props = Object.fromEntries(Object.entries((t.props as Record<string, unknown>) ?? {}).map(([k, v]) => [k, en(v)]));
     // `code` MUST be the code that was gated (the repaired copy when there is one): the sandbox gates again at render time, so handing
     // it the original (which `{ ...t }` carries) made every repaired template pass here and then be rejected when added to the timeline.
-    return { ...(t as object), code, name: en(t.name) as string, description: en(t.description) as string, category: en(t.category) as string, width: Number(t.width) || 1920, height: Number(t.height) || 1080, fps: Number(t.fps) || 30, durationInFrames: Number(t.durationInFrames) || 90,
-      props, propSchema: schema, usable: g.ok, why: g.why } as MgTemplate;
+    return {
+ ...(t as object), code, name: en(t.name) as string, description: en(t.description) as string, category: en(t.category) as string, width: Number(t.width) || 1920, height: Number(t.height) || 1080, fps: Number(t.fps) || 30, durationInFrames: Number(t.durationInFrames) || 90,
+      props, propSchema: schema, usable: g.ok, why: g.why 
+} as MgTemplate;
     });
   }).catch((e) => { cache = null; throw e; }); // a failed load is not remembered, so Retry can try again
   return cache;

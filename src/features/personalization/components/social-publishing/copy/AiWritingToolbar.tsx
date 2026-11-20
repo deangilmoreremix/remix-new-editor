@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import React from 'react'
+import React from 'react';
 import {
   Sparkles,
   Wand2,
@@ -11,7 +11,7 @@ import {
   Type,
   ChevronDown,
   Loader2,
-} from 'lucide-react'
+} from 'lucide-react';
 
 type Action = 'write' | 'improve' | 'hook' | 'cta' | 'hashtags' | 'tone' | 'length' | 'platformize' | 'refine'
 type Tone = 'professional' | 'conversational' | 'persuasive'
@@ -24,45 +24,45 @@ export interface AiWritingToolbarProps {
 }
 
 export function AiWritingToolbar({ onAction, loading, disabled }: AiWritingToolbarProps) {
-  const [toneOpen, setToneOpen] = React.useState(false)
-  const [lengthOpen, setLengthOpen] = React.useState(false)
-  const [platformOpen, setPlatformOpen] = React.useState(false)
+  const [toneOpen, setToneOpen] = React.useState(false);
+  const [lengthOpen, setLengthOpen] = React.useState(false);
+  const [platformOpen, setPlatformOpen] = React.useState(false);
 
   const toneOptions: { value: Tone; label: string }[] = [
     { value: 'professional', label: 'Professional' },
     { value: 'conversational', label: 'Conversational' },
     { value: 'persuasive', label: 'Persuasive' },
-  ]
+  ];
 
   const lengthOptions: { value: Length; label: string }[] = [
     { value: 'short', label: 'Short' },
     { value: 'medium', label: 'Medium' },
     { value: 'long', label: 'Long' },
-  ]
+  ];
 
   const platformOptions = [
     { value: 'youtube', label: 'YouTube' },
     { value: 'instagram', label: 'Instagram' },
     { value: 'tiktok', label: 'TikTok' },
     { value: 'facebook', label: 'Facebook' },
-  ]
+  ];
 
-  const [selectedPlatform, setSelectedPlatform] = React.useState('youtube')
+  const [selectedPlatform, setSelectedPlatform] = React.useState('youtube');
 
   function handleToneSelect(tone: Tone) {
-    setToneOpen(false)
-    onAction('tone', tone)
+    setToneOpen(false);
+    onAction('tone', tone);
   }
 
   function handleLengthSelect(length: Length) {
-    setLengthOpen(false)
-    onAction('length', undefined, length)
+    setLengthOpen(false);
+    onAction('length', undefined, length);
   }
 
   function handlePlatformSelect(platform: string) {
-    setSelectedPlatform(platform)
-    setPlatformOpen(false)
-    onAction('platformize', undefined, undefined)
+    setSelectedPlatform(platform);
+    setPlatformOpen(false);
+    onAction('platformize', undefined, undefined);
   }
 
   return (
@@ -200,5 +200,5 @@ export function AiWritingToolbar({ onAction, loading, disabled }: AiWritingToolb
         )}
       </div>
     </div>
-  )
+  );
 }

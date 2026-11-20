@@ -25,20 +25,20 @@
  * bubble's width, so it is capped at 48 characters.
  */
 
-import React from 'react'
-import { ThinkingBubble } from '../../_upstream/thinking-bubble/ThinkingBubble'
-import { DesignStage, slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { shade, tint, toHex6 } from './batch3cShared'
+import React from 'react';
+import { ThinkingBubble } from '../../_upstream/thinking-bubble/ThinkingBubble';
+import { DesignStage, slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { shade, tint, toHex6 } from './batch3cShared';
 
 /** The only background the upstream draws dark pupils on. */
-export const THINKING_BUBBLE_BACKGROUND = '#fafaf9'
+export const THINKING_BUBBLE_BACKGROUND = '#fafaf9';
 
-const MAX_THOUGHT_LENGTH = 48
+const MAX_THOUGHT_LENGTH = 48;
 
 export const ThinkingBubbleDesign: React.FC<DesignAdapterProps> = (props) => {
-  const primary = toHex6(props.colors?.primary, '#78716c')
-  const accent = toHex6(props.colors?.accent, '#a8a29e')
-  const thought = truncateText(slotText(props, 'thought', ['businessName']), MAX_THOUGHT_LENGTH)
+  const primary = toHex6(props.colors?.primary, '#78716c');
+  const accent = toHex6(props.colors?.accent, '#a8a29e');
+  const thought = truncateText(slotText(props, 'thought', ['businessName']), MAX_THOUGHT_LENGTH);
 
   return (
     <DesignStage designId="thinking-bubble" props={props}>
@@ -53,7 +53,7 @@ export const ThinkingBubbleDesign: React.FC<DesignAdapterProps> = (props) => {
         showText={thought.length > 0}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default ThinkingBubbleDesign
+export default ThinkingBubbleDesign;

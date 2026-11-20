@@ -20,11 +20,11 @@
  * far too small on a 1080p frame).
  */
 
-import React from 'react'
-import { SubscribeReminder } from '../../_upstream/rve-subscribe-reminder/SubscribeReminder'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { TRANSPARENT, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { SubscribeReminder } from '../../_upstream/rve-subscribe-reminder/SubscribeReminder';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { TRANSPARENT, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandPrimary,
   brandText,
@@ -34,11 +34,11 @@ import {
   remUnit,
   slotText,
   truncateText,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_SUBSCRIBE_REMINDER_ID = 'rve-subscribe-reminder'
+export const RVE_SUBSCRIBE_REMINDER_ID = 'rve-subscribe-reminder';
 
-const ZOOM = 2.4
+const ZOOM = 2.4;
 
 /** A minimal bell glyph, drawn in `currentColor`. */
 function BellIcon({ size }: { size: number }): React.ReactElement {
@@ -55,26 +55,26 @@ function BellIcon({ size }: { size: number }): React.ReactElement {
       <path d="M12 2.5c-3.3 0-6 2.7-6 6v3.6l-1.6 3.1c-.3.6.1 1.3.8 1.3h13.6c.7 0 1.1-.7.8-1.3L18 12.1V8.5c0-3.3-2.7-6-6-6z" />
       <path d="M9.5 18.5a2.5 2.5 0 0 0 5 0z" />
     </svg>
-  )
+  );
 }
 
 export const RveSubscribeReminderDesign: React.FC<DesignAdapterProps> = (props) => {
-  const rem = remUnit(props, ZOOM)
-  const unit = rem / 16
-  const titlePx = 0.85 * rem
-  const handlePx = 0.65 * rem
+  const rem = remUnit(props, ZOOM);
+  const unit = rem / 16;
+  const titlePx = 0.85 * rem;
+  const handlePx = 0.65 * rem;
   // The pill may take up to ~70 % of the canvas width.
-  const textWidth = props.width * 0.7 - (28 * unit + 0.75 * rem + 2.4 * rem)
+  const textWidth = props.width * 0.7 - (28 * unit + 0.75 * rem + 2.4 * rem);
 
   const title = truncateText(
     slotText(props, 'cta', ['offer', 'businessName']),
     fitChars(textWidth, titlePx, 1, 28),
-  )
+  );
   const handle = truncateText(
     firstSlot(props, ['website', 'businessName']),
     fitChars(textWidth, handlePx, 1, 40),
-  )
-  const iconSize = 28 * unit
+  );
+  const iconSize = 28 * unit;
 
   return (
     <RveDesignStage designId={RVE_SUBSCRIBE_REMINDER_ID} props={props}>
@@ -99,7 +99,7 @@ export const RveSubscribeReminderDesign: React.FC<DesignAdapterProps> = (props) 
         fontFamily={DESIGN_FONT_STACK}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveSubscribeReminderDesign
+export default RveSubscribeReminderDesign;

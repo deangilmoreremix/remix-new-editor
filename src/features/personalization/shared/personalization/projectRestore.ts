@@ -20,7 +20,7 @@ import type {
   VideoPersonalizationMode,
   ImagePersonalizationMode,
   GenerationOptions,
-} from './types'
+} from './types';
 
 export interface PersonalizationProjectState {
   source: PersonalizationSource
@@ -49,7 +49,7 @@ export interface SavedProject {
   updatedAt: string
 }
 
-const API_ROUTE = '/api/personalization/project'
+const API_ROUTE = '/api/personalization/project';
 
 function buildProjectPayload(state: PersonalizationProjectState, existingId?: string): Record<string, unknown> {
   return {
@@ -63,49 +63,49 @@ function buildProjectPayload(state: PersonalizationProjectState, existingId?: st
     generation: state.generation,
     status: state.status,
     errorMessage: state.errorMessage,
-  }
+  };
 }
 
 export async function saveProject(state: PersonalizationProjectState, existingId?: string): Promise<{ ok: boolean; projectId?: string; error?: string }> {
   try {
-    const payload = buildProjectPayload(state, existingId)
+    const payload = buildProjectPayload(state, existingId);
     const res = await fetch(API_ROUTE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ project: payload }),
       credentials: 'same-origin',
-    })
+    });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      return { ok: false, error: data?.error || `HTTP ${res.status}` }
+      const data = await res.json().catch(() => ({}));
+      return { ok: false, error: data?.error || `HTTP ${res.status}` };
     }
 
-    const result = await res.json().catch(() => ({}))
-    return { ok: true, projectId: result.project?.id || existingId }
+    const result = await res.json().catch(() => ({}));
+    return { ok: true, projectId: result.project?.id || existingId };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
 export async function loadProject(projectId: string): Promise<{ ok: boolean; project?: SavedProject; error?: string }> {
   try {
-    const url = `${API_ROUTE}?id=${encodeURIComponent(projectId)}`
+    const url = `${API_ROUTE}?id=${encodeURIComponent(projectId)}`;
     const res = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-    })
+    });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      return { ok: false, error: data?.error || `HTTP ${res.status}` }
+      const data = await res.json().catch(() => ({}));
+      return { ok: false, error: data?.error || `HTTP ${res.status}` };
     }
 
-    const result = await res.json().catch(() => ({}))
-    const raw = result.project
+    const result = await res.json().catch(() => ({}));
+    const raw = result.project;
     if (!raw) {
-      return { ok: false, error: 'Project not found' }
+      return { ok: false, error: 'Project not found' };
     }
 
     const project: SavedProject = {
@@ -121,30 +121,30 @@ export async function loadProject(projectId: string): Promise<{ ok: boolean; pro
       errorMessage: raw.error_message || null,
       createdAt: raw.created_at || new Date().toISOString(),
       updatedAt: raw.updated_at || new Date().toISOString(),
-    }
+    };
 
-    return { ok: true, project }
+    return { ok: true, project };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
 export async function listProjects(): Promise<{ ok: boolean; projects?: SavedProject[]; error?: string }> {
   try {
-    const url = `${API_ROUTE}?list=true`
+    const url = `${API_ROUTE}?list=true`;
     const res = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-    })
+    });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      return { ok: false, error: data?.error || `HTTP ${res.status}` }
+      const data = await res.json().catch(() => ({}));
+      return { ok: false, error: data?.error || `HTTP ${res.status}` };
     }
 
-    const result = await res.json().catch(() => ({}))
-    const rawProjects = result.projects || []
+    const result = await res.json().catch(() => ({}));
+    const rawProjects = result.projects || [];
     const projects: SavedProject[] = rawProjects.map((raw: Record<string, unknown>) => ({
       id: raw.id,
       source: raw.source || {},
@@ -158,30 +158,30 @@ export async function listProjects(): Promise<{ ok: boolean; projects?: SavedPro
       errorMessage: raw.error_message || null,
       createdAt: raw.created_at || new Date().toISOString(),
       updatedAt: raw.updated_at || new Date().toISOString(),
-    }))
+    }));
 
-    return { ok: true, projects }
+    return { ok: true, projects };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
 export async function deleteProject(projectId: string): Promise<{ ok: boolean; error?: string }> {
   try {
-    const url = `${API_ROUTE}?id=${encodeURIComponent(projectId)}`
+    const url = `${API_ROUTE}?id=${encodeURIComponent(projectId)}`;
     const res = await fetch(url, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-    })
+    });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      return { ok: false, error: data?.error || `HTTP ${res.status}` }
+      const data = await res.json().catch(() => ({}));
+      return { ok: false, error: data?.error || `HTTP ${res.status}` };
     }
 
-    return { ok: true }
+    return { ok: true };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }

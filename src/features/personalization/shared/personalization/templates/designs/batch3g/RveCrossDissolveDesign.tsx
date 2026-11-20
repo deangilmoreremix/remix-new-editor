@@ -10,14 +10,14 @@
  * incoming scene is empty, so what fades in is the video itself.
  */
 
-import React from 'react'
-import { CrossDissolve } from '../../_upstream/rve-cross-dissolve/CrossDissolve'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared'
+import React from 'react';
+import { CrossDissolve } from '../../_upstream/rve-cross-dissolve/CrossDissolve';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared';
 
 export const RveCrossDissolveDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-cross-dissolve" props={props}>
       <CrossDissolve
@@ -26,7 +26,7 @@ export const RveCrossDissolveDesign: React.FC<RemotionDesignComponentProps> = (p
         sceneB={TRANSPARENT_SCENE}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveCrossDissolveDesign
+export default RveCrossDissolveDesign;

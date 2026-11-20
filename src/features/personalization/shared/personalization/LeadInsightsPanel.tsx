@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
-import type { BusinessDiscoveryRecord } from './types'
-import type { BusinessEnrichment } from '../../../../../netlify/functions/_personalization/src/server/businessEnrichment/types'
-import { lookalikes, nearbyCompetitors } from './leadInsights'
-import { outreachDraft } from './outreachDraft'
+import React, { useState } from 'react';
+import type { BusinessDiscoveryRecord } from './types';
+import type { BusinessEnrichment } from '../../../../../netlify/functions/_personalization/src/server/businessEnrichment/types';
+import { lookalikes, nearbyCompetitors } from './leadInsights';
+import { outreachDraft } from './outreachDraft';
 
-const MUTED = '#8b98a5', TEXT = '#e6edf3', CYAN = '#d9ff00'
+const MUTED = '#8b98a5', TEXT = '#e6edf3', CYAN = '#d9ff00';
 
 export interface LeadInsightsPanelProps {
   business: BusinessDiscoveryRecord
@@ -17,14 +17,14 @@ export interface LeadInsightsPanelProps {
 
 /** For the selected business: how its own site looks, plus similar and nearby businesses from the search already run. */
 export function LeadInsightsPanel({ business, results, enrichment, onPick, showOutreach = false }: LeadInsightsPanelProps) {
-  const [draftOpen, setDraftOpen] = useState(false)
-  const [draftText, setDraftText] = useState('')
-  const [copied, setCopied] = useState(false)
-  const similar = lookalikes(business, results)
-  const nearby = nearbyCompetitors(business, results)
-  const q = enrichment?.siteSignals?.quality
-  if (!similar.length && !nearby.length && !q && !showOutreach) return null
-  const yes = (v: boolean) => (v ? '✓' : '✗')
+  const [draftOpen, setDraftOpen] = useState(false);
+  const [draftText, setDraftText] = useState('');
+  const [copied, setCopied] = useState(false);
+  const similar = lookalikes(business, results);
+  const nearby = nearbyCompetitors(business, results);
+  const q = enrichment?.siteSignals?.quality;
+  if (!similar.length && !nearby.length && !q && !showOutreach) return null;
+  const yes = (v: boolean) => (v ? '✓' : '✗');
   return (
     <div data-testid="lead-insights" style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 10, color: MUTED }}>
       {q && (
@@ -40,17 +40,17 @@ export function LeadInsightsPanel({ business, results, enrichment, onPick, showO
             type="button"
             data-testid="outreach-toggle"
             onClick={(e) => {
-              e.stopPropagation()
-              if (!draftOpen) setDraftText(outreachDraft(business, enrichment).body)
-              setDraftOpen((v) => !v)
-              setCopied(false)
+              e.stopPropagation();
+              if (!draftOpen) setDraftText(outreachDraft(business, enrichment).body);
+              setDraftOpen((v) => !v);
+              setCopied(false);
             }}
             style={{ background: 'transparent', border: 0, padding: 0, color: CYAN, cursor: 'pointer', fontSize: 10 }}
           >
             {draftOpen ? 'Hide outreach draft' : 'Draft an outreach message'}
           </button>
           {draftOpen && (() => {
-            const draft = outreachDraft(business, enrichment)
+            const draft = outreachDraft(business, enrichment);
             return (
               <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {draft.observations.length > 0 && (
@@ -59,7 +59,7 @@ export function LeadInsightsPanel({ business, results, enrichment, onPick, showO
                 <textarea
                   data-testid="outreach-text"
                   value={draftText}
-                  onChange={(e) => { setDraftText(e.target.value); setCopied(false) }}
+                  onChange={(e) => { setDraftText(e.target.value); setCopied(false); }}
                   rows={8}
                   style={{ width: '100%', background: 'rgba(255,255,255,.04)', color: TEXT, border: '1px solid rgba(255,255,255,.12)', borderRadius: 6, padding: 6, fontSize: 11 }}
                 />
@@ -68,11 +68,11 @@ export function LeadInsightsPanel({ business, results, enrichment, onPick, showO
                     type="button"
                     data-testid="outreach-copy"
                     onClick={async (e) => {
-                      e.stopPropagation()
+                      e.stopPropagation();
                       const text = `Subject: ${draft.subject}
 
-${draftText}`
-                      try { await navigator.clipboard.writeText(text); setCopied(true) } catch { setCopied(false) }
+${draftText}`;
+                      try { await navigator.clipboard.writeText(text); setCopied(true); } catch { setCopied(false); }
                     }}
                     style={{ background: 'transparent', border: `1px solid ${CYAN}`, borderRadius: 6, color: CYAN, cursor: 'pointer', fontSize: 10, padding: '2px 8px' }}
                   >
@@ -82,7 +82,7 @@ ${draftText}`
                   <span>Edit before sending — nothing is sent from here.</span>
                 </div>
               </div>
-            )
+            );
           })()}
         </div>
       )}
@@ -91,7 +91,7 @@ ${draftText}`
           <span style={{ fontWeight: 700, textTransform: 'uppercase', fontSize: 9 }}>Similar businesses in this search</span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 2 }}>
             {similar.map((b) => (
-              <button key={b.id} type="button" onClick={(e) => { e.stopPropagation(); onPick?.(b) }} style={{ background: 'transparent', border: 0, padding: 0, color: CYAN, cursor: 'pointer', fontSize: 10 }}>{b.name}</button>
+              <button key={b.id} type="button" onClick={(e) => { e.stopPropagation(); onPick?.(b); }} style={{ background: 'transparent', border: 0, padding: 0, color: CYAN, cursor: 'pointer', fontSize: 10 }}>{b.name}</button>
             ))}
           </div>
         </div>
@@ -105,5 +105,5 @@ ${draftText}`
         </div>
       )}
     </div>
-  )
+  );
 }

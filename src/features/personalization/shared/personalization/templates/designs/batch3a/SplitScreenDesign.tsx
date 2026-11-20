@@ -19,10 +19,10 @@
  * shrinks it when it would not fit its panel.
  */
 
-import React from 'react'
-import { SplitScreen } from '../../_upstream/split-screen/SplitScreen'
-import { useDesignFonts } from '../fonts'
-import { DesignStage, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
+import React from 'react';
+import { SplitScreen } from '../../_upstream/split-screen/SplitScreen';
+import { useDesignFonts } from '../fonts';
+import { DesignStage, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
 import {
   ScopedUpstream,
   brandPalette,
@@ -31,25 +31,25 @@ import {
   readableOn,
   scopeSelector,
   useScopeId,
-} from './batch3aShared'
+} from './batch3aShared';
 
-const MAX_HEADING_LENGTH = 22
-const MAX_SUB_LENGTH = 40
-const UPSTREAM_HEADING_SIZE = 96
+const MAX_HEADING_LENGTH = 22;
+const MAX_SUB_LENGTH = 40;
+const UPSTREAM_HEADING_SIZE = 96;
 
 export const SplitScreenDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
-  const scopeId = useScopeId('split-screen')
-  const palette = brandPalette(props)
+  useDesignFonts();
+  const scopeId = useScopeId('split-screen');
+  const palette = brandPalette(props);
 
-  const headingA = truncateText(slotText(props, 'headingA', ['headline']), MAX_HEADING_LENGTH)
-  const subA = truncateText(slotValue(props, 'subA'), MAX_SUB_LENGTH)
-  const headingB = truncateText(slotValue(props, 'headingB'), MAX_HEADING_LENGTH)
-  const subB = truncateText(slotValue(props, 'subB'), MAX_SUB_LENGTH)
+  const headingA = truncateText(slotText(props, 'headingA', ['headline']), MAX_HEADING_LENGTH);
+  const subA = truncateText(slotValue(props, 'subA'), MAX_SUB_LENGTH);
+  const headingB = truncateText(slotValue(props, 'headingB'), MAX_HEADING_LENGTH);
+  const subB = truncateText(slotValue(props, 'subB'), MAX_SUB_LENGTH);
 
-  const horizontal = props.width / Math.max(1, props.height) >= 1.2
-  const panelW = horizontal ? props.width / 2 : props.width
-  const panelH = horizontal ? props.height : props.height / 2
+  const horizontal = props.width / Math.max(1, props.height) >= 1.2;
+  const panelW = horizontal ? props.width / 2 : props.width;
+  const panelH = horizontal ? props.height : props.height / 2;
 
   const fit = (heading: string) =>
     fitFontSize(heading, {
@@ -58,18 +58,18 @@ export const SplitScreenDesign: React.FC<DesignAdapterProps> = (props) => {
       maxSize: UPSTREAM_HEADING_SIZE,
       advance: 0.66,
       lineHeight: 1.2,
-    })
-  const sel = scopeSelector(scopeId)
+    });
+  const sel = scopeSelector(scopeId);
   // root > [wash, reveal > [panelA wrap > Panel > heading, divider, panelB wrap > Panel > heading]]
-  const panel = (n: number) => `${sel} > div:first-child > div:nth-child(2) > div:nth-child(${n}) > div`
-  const rules = [`${panel(1)} > div, ${panel(3)} > div { text-align: center; padding: 0 4%; }`]
-  const sizeA = fit(headingA)
-  const sizeB = fit(headingB)
-  if (sizeA < UPSTREAM_HEADING_SIZE) rules.push(`${panel(1)} > div:first-child { font-size: ${sizeA}px !important; }`)
-  if (sizeB < UPSTREAM_HEADING_SIZE) rules.push(`${panel(3)} > div:first-child { font-size: ${sizeB}px !important; }`)
+  const panel = (n: number) => `${sel} > div:first-child > div:nth-child(2) > div:nth-child(${n}) > div`;
+  const rules = [`${panel(1)} > div, ${panel(3)} > div { text-align: center; padding: 0 4%; }`];
+  const sizeA = fit(headingA);
+  const sizeB = fit(headingB);
+  if (sizeA < UPSTREAM_HEADING_SIZE) rules.push(`${panel(1)} > div:first-child { font-size: ${sizeA}px !important; }`);
+  if (sizeB < UPSTREAM_HEADING_SIZE) rules.push(`${panel(3)} > div:first-child { font-size: ${sizeB}px !important; }`);
 
-  const bgA = deepShade(palette.primary, 0.55)
-  const bgB = palette.accent
+  const bgA = deepShade(palette.primary, 0.55);
+  const bgB = palette.accent;
 
   return (
     <DesignStage designId="split-screen" props={props}>
@@ -84,7 +84,7 @@ export const SplitScreenDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </ScopedUpstream>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default SplitScreenDesign
+export default SplitScreenDesign;

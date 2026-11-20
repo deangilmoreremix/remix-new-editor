@@ -139,11 +139,13 @@ export function createResultsGallery({ kind = 'image', historyType = kind, gridC
       ...(item.prompt ? [{ kind: 'copyText', label: 'Copy prompt', run: (btn) => copyText(item.prompt).then(() => btn && flashCheck(btn)).catch(() => showToast('Could not copy the prompt', 'error')) }] : []),
       { kind: 'copyMedia', label: isVid ? 'Copy link' : 'Copy image', run: (btn) => copyMedia(item.url).then(() => btn && flashCheck(btn)).catch(() => showToast('Could not copy', 'error')) },
       { kind: 'download', label: 'Download', run: () => downloadUrl(item.url, `${filenamePrefix}-${item.id || idx}.${ext}`) },
-      { kind: 'save', label: 'Save to Content', run: async () => {
+      {
+ kind: 'save', label: 'Save to Content', run: async () => {
         const { saveToContent } = await import('../../lib/contentLibrary.js');
         saveToContent({ url: item.url, type: isVid ? 'video' : (item.type || kind), prompt: item.prompt || '', model: item.model || '', studio: historyType });
         showToast('Saved to Content', 'success');
-      } },
+      } 
+},
       ...((extraActions?.(item) || []).map((a) => ({ kind: 'extra', label: a.label, run: a.onSelect }))),
       { kind: 'delete', label: 'Delete', danger: true, run: () => removeItem(item) },
     ];

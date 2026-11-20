@@ -17,10 +17,14 @@ beforeEach(() => { vi.stubGlobal('sessionStorage', memoryStorage()); });
 
 // Minimal card registry mirroring the real media/text card schemas.
 const CARDS = {
-  'video-clip': { id: 'video-clip', name: 'Video', category: 'media', kind: 'video', timing: 'realtime', durationInFrames: 150, component: () => null,
-    schema: [{ type: 'text', key: 'file', label: 'File', default: '' }, { type: 'select', key: 'fit', label: 'Fit', default: 'contain', options: [{ value: 'contain', label: 'c' }, { value: 'cover', label: 'v' }] }, { type: 'slider', key: 'volume', label: 'Vol', default: 1, min: 0, max: 1, step: 0.01 }] },
-  'text-basic': { id: 'text-basic', name: 'Text', category: 'wb', durationInFrames: 90, component: () => null,
-    schema: [{ type: 'text', key: 'text', label: 'Text', default: '' }, { type: 'color', key: 'color', label: 'Color', default: '#fff' }] },
+  'video-clip': {
+ id: 'video-clip', name: 'Video', category: 'media', kind: 'video', timing: 'realtime', durationInFrames: 150, component: () => null,
+    schema: [{ type: 'text', key: 'file', label: 'File', default: '' }, { type: 'select', key: 'fit', label: 'Fit', default: 'contain', options: [{ value: 'contain', label: 'c' }, { value: 'cover', label: 'v' }] }, { type: 'slider', key: 'volume', label: 'Vol', default: 1, min: 0, max: 1, step: 0.01 }] 
+},
+  'text-basic': {
+ id: 'text-basic', name: 'Text', category: 'wb', durationInFrames: 90, component: () => null,
+    schema: [{ type: 'text', key: 'text', label: 'Text', default: '' }, { type: 'color', key: 'color', label: 'Color', default: '#fff' }] 
+},
 };
 
 const baseProject = () => projectFromAssets([

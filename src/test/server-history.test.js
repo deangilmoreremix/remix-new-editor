@@ -3,11 +3,13 @@ import { normalizeServerHistory, mergeServerHistory, fetchServerHistory, remembe
 
 describe('server history', () => {
   it('normalizes the common response shapes and skips unusable rows', () => {
-    const rows = normalizeServerHistory({ data: [
+    const rows = normalizeServerHistory({
+ data: [
       { request_id: 'a', outputs: ['https://cdn.example.com/a.mp4'], prompt: 'p', created_at: '2026-01-02' },
       { id: 'b', url: 'https://cdn.example.com/b.png' },
       { id: 'c', outputs: [] },
-    ] });
+    ] 
+});
     expect(rows.map((r) => [r.id, r.type])).toEqual([['a', 'video'], ['b', 'image']]);
     expect(normalizeServerHistory(null)).toEqual([]);
   });

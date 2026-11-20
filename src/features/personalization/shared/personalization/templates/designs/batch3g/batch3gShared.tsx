@@ -12,25 +12,25 @@
  * This module is a helper module, NOT a design: it exports no template.
  */
 
-import React from 'react'
-import { Img } from 'remotion'
+import React from 'react';
+import { Img } from 'remotion';
 import type {
   RemotionDesignColorBinding,
   RemotionDesignComponentProps,
   RemotionDesignMediaBinding,
   RemotionDesignTemplate,
   RemotionDesignTextSlot,
-} from '../../types'
-import type { PreviewAspectRatio } from '../../../preview/types'
-import { darkenColor, pickColor, slotText, slotValue, truncateText } from '../shared'
-import { RVE_ATTRIBUTION, lightenColor, rveFontSizePx, rveMaxChars } from '../rveSharedDesign'
+} from '../../types';
+import type { PreviewAspectRatio } from '../../../preview/types';
+import { darkenColor, pickColor, slotText, slotValue, truncateText } from '../shared';
+import { RVE_ATTRIBUTION, lightenColor, rveFontSizePx, rveMaxChars } from '../rveSharedDesign';
 
 /* -------------------------------------------------------------------------- */
 /* Source                                                                      */
 /* -------------------------------------------------------------------------- */
 
-export const RVE_3G_REPOSITORY = 'remotion-templates'
-export const RVE_3G_REPOSITORY_URL = 'https://github.com/deangilmoreremix/remotion-templates'
+export const RVE_3G_REPOSITORY = 'remotion-templates';
+export const RVE_3G_REPOSITORY_URL = 'https://github.com/deangilmoreremix/remotion-templates';
 
 /** The `source` block of a batch 3g design. */
 export function rve3gSource(slug: string): RemotionDesignTemplate['source'] {
@@ -40,29 +40,29 @@ export function rve3gSource(slug: string): RemotionDesignTemplate['source'] {
     sourcePath: `templates/${slug}.tsx`,
     license: 'MIT',
     attribution: RVE_ATTRIBUTION,
-  }
+  };
 }
 
 /** Every format the batch supports: all layouts are canvas-relative. */
-export const RVE_3G_ASPECT_RATIOS: PreviewAspectRatio[] = ['16:9', '9:16', '1:1', '4:5']
+export const RVE_3G_ASPECT_RATIOS: PreviewAspectRatio[] = ['16:9', '9:16', '1:1', '4:5'];
 
 /** Text slots of a transition's brand card. */
 export const TRANSITION_TEXT_SLOTS: RemotionDesignTextSlot[] = [
   { key: 'businessName', field: 'businessName', label: 'Business name', primary: true, maxLength: 40 },
   { key: 'headline', field: 'headline', label: 'Sub-line', maxLength: 64 },
-]
+];
 
 /** Colour bindings of a transition's brand card. */
 export const TRANSITION_COLORS: RemotionDesignColorBinding[] = [
   { role: 'primary', label: 'Card colour' },
   { role: 'accent', label: 'Accent' },
   { role: 'text', label: 'Text colour' },
-]
+];
 
 /** The optional logo shown on a transition's brand card. */
 export const TRANSITION_MEDIA: RemotionDesignMediaBinding[] = [
   { role: 'logo', label: 'Logo (optional)', required: false },
-]
+];
 
 /* -------------------------------------------------------------------------- */
 /* Brand values                                                                */
@@ -79,42 +79,42 @@ export interface BrandPalette {
 }
 
 export function brandPalette(props: RemotionDesignComponentProps): BrandPalette {
-  const primary = pickColor([props.colors?.primary], '#29d3f2')
-  const accent = pickColor([props.colors?.accent], '#28c98b')
-  const text = pickColor([props.color, props.colors?.text], '#ffffff')
+  const primary = pickColor([props.colors?.primary], '#29d3f2');
+  const accent = pickColor([props.colors?.accent], '#28c98b');
+  const text = pickColor([props.color, props.colors?.text], '#ffffff');
   return {
     primary,
     accent,
     text,
     cardBackground: `linear-gradient(135deg, ${darkenColor(primary, 0.55)}, ${darkenColor(primary, 0.2)})`,
     deep: darkenColor(primary, 0.12),
-  }
+  };
 }
 
 /** "r, g, b" channels of a hex colour (for upstream `rgba(${x}, a)` props). */
 export function rgbTriplet(value: string, fallback: string): string {
-  const hex = (value || '').trim().replace(/^#/, '')
-  let r: number
-  let g: number
-  let b: number
+  const hex = (value || '').trim().replace(/^#/, '');
+  let r: number;
+  let g: number;
+  let b: number;
   if (/^[0-9a-f]{3}$/i.test(hex)) {
-    r = parseInt(hex[0] + hex[0], 16)
-    g = parseInt(hex[1] + hex[1], 16)
-    b = parseInt(hex[2] + hex[2], 16)
+    r = parseInt(hex[0] + hex[0], 16);
+    g = parseInt(hex[1] + hex[1], 16);
+    b = parseInt(hex[2] + hex[2], 16);
   } else if (/^[0-9a-f]{6}$/i.test(hex)) {
-    r = parseInt(hex.slice(0, 2), 16)
-    g = parseInt(hex.slice(2, 4), 16)
-    b = parseInt(hex.slice(4, 6), 16)
+    r = parseInt(hex.slice(0, 2), 16);
+    g = parseInt(hex.slice(2, 4), 16);
+    b = parseInt(hex.slice(4, 6), 16);
   } else {
-    return fallback
+    return fallback;
   }
-  return `${r}, ${g}, ${b}`
+  return `${r}, ${g}, ${b}`;
 }
 
 /** The ratio of the title to the composition's short edge. */
-const TITLE_RATIO = 0.075
+const TITLE_RATIO = 0.075;
 /** The ratio of the sub-line to the composition's short edge. */
-const SUBTITLE_RATIO = 0.03
+const SUBTITLE_RATIO = 0.03;
 
 export interface BrandCopy {
   title: string
@@ -127,23 +127,23 @@ export interface BrandCopy {
  * truncated to what fits on one line of the composition.
  */
 export function brandCopy(props: RemotionDesignComponentProps, titleRatio = TITLE_RATIO): BrandCopy {
-  const titleSize = rveFontSizePx(props, titleRatio)
-  const subtitleSize = rveFontSizePx(props, SUBTITLE_RATIO)
-  const rawTitle = slotText(props, 'businessName', ['headline'])
-  const rawSubtitle = slotValue(props, 'headline')
-  const title = truncateText(rawTitle, rveMaxChars(props, titleSize, 40))
+  const titleSize = rveFontSizePx(props, titleRatio);
+  const subtitleSize = rveFontSizePx(props, SUBTITLE_RATIO);
+  const rawTitle = slotText(props, 'businessName', ['headline']);
+  const rawSubtitle = slotValue(props, 'headline');
+  const title = truncateText(rawTitle, rveMaxChars(props, titleSize, 40));
   const subtitle =
     rawSubtitle && rawSubtitle !== rawTitle
       ? truncateText(rawSubtitle, rveMaxChars(props, subtitleSize, 64))
-      : ''
-  return { title, subtitle }
+      : '';
+  return { title, subtitle };
 }
 
 /** Linear 1 -> 0 between `start` and `end` (clamped). */
 export function fadeOut(frame: number, start: number, end: number): number {
-  if (frame <= start) return 1
-  if (frame >= end) return 0
-  return 1 - (frame - start) / Math.max(1, end - start)
+  if (frame <= start) return 1;
+  if (frame >= end) return 0;
+  return 1 - (frame - start) / Math.max(1, end - start);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -169,14 +169,14 @@ export function BrandCardContent({
   titleRatio?: number
   letterSpacing?: string
 }): React.ReactElement {
-  const palette = brandPalette(props)
-  const { title, subtitle } = copy ?? brandCopy(props, titleRatio)
-  const shortEdge = Math.min(props.width, props.height)
-  const titleSize = rveFontSizePx(props, titleRatio)
-  const subtitleSize = rveFontSizePx(props, SUBTITLE_RATIO)
-  const emblem = Math.round(shortEdge * 0.13)
-  const logo = typeof props.media?.logo === 'string' && props.media.logo.trim() ? props.media.logo : null
-  const monogram = title.trim().charAt(0).toUpperCase()
+  const palette = brandPalette(props);
+  const { title, subtitle } = copy ?? brandCopy(props, titleRatio);
+  const shortEdge = Math.min(props.width, props.height);
+  const titleSize = rveFontSizePx(props, titleRatio);
+  const subtitleSize = rveFontSizePx(props, SUBTITLE_RATIO);
+  const emblem = Math.round(shortEdge * 0.13);
+  const logo = typeof props.media?.logo === 'string' && props.media.logo.trim() ? props.media.logo : null;
+  const monogram = title.trim().charAt(0).toUpperCase();
 
   return (
     <div
@@ -257,8 +257,8 @@ export function BrandCardContent({
         </p>
       ) : null}
     </div>
-  )
+  );
 }
 
 /** The "after" scene every transition hands its upstream: nothing at all. */
-export const TRANSPARENT_SCENE = { background: 'transparent', content: null } as const
+export const TRANSPARENT_SCENE = { background: 'transparent', content: null } as const;

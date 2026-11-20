@@ -20,12 +20,12 @@
  * `RemotionDesignTemplate`.
  */
 
-import React from 'react'
-import { Img } from 'remotion'
-import type { RemotionDesignComponentProps, RemotionDesignMediaRole } from '../../types'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { darkenColor, pickColor, truncateText } from '../shared'
-import { lightenColor } from '../rveSharedDesign'
+import React from 'react';
+import { Img } from 'remotion';
+import type { RemotionDesignComponentProps, RemotionDesignMediaRole } from '../../types';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { darkenColor, pickColor, truncateText } from '../shared';
+import { lightenColor } from '../rveSharedDesign';
 
 /* -------------------------------------------------------------------------- */
 /* Brand media                                                                 */
@@ -38,20 +38,20 @@ export interface BrandImage {
 }
 
 /** The order the adapters prefer brand media in. */
-const MEDIA_ORDER: RemotionDesignMediaRole[] = ['product', 'service', 'logo']
+const MEDIA_ORDER: RemotionDesignMediaRole[] = ['product', 'service', 'logo'];
 
 /**
  * The brand images a design can use, in preference order (product, service,
  * logo). Empty strings, `null` and non-strings are dropped.
  */
 export function brandImages(props: Pick<RemotionDesignComponentProps, 'media'>): BrandImage[] {
-  const media = props.media ?? {}
-  const out: BrandImage[] = []
+  const media = props.media ?? {};
+  const out: BrandImage[] = [];
   for (const role of MEDIA_ORDER) {
-    const value = media[role]
-    if (typeof value === 'string' && value.trim()) out.push({ url: value.trim(), role })
+    const value = media[role];
+    if (typeof value === 'string' && value.trim()) out.push({ url: value.trim(), role });
   }
-  return out
+  return out;
 }
 
 /**
@@ -61,12 +61,12 @@ export function brandImages(props: Pick<RemotionDesignComponentProps, 'media'>):
 export function cycleImages(images: BrandImage[], count: number): Array<BrandImage | null> {
   return Array.from({ length: Math.max(0, count) }, (_, i) =>
     images.length > 0 ? images[i % images.length] : null,
-  )
+  );
 }
 
 /** A product/service photo fills a slot edge to edge; a logo is contained. */
 export function isPhoto(image: BrandImage | null): image is BrandImage {
-  return Boolean(image && image.role !== 'logo')
+  return Boolean(image && image.role !== 'logo');
 }
 
 /* -------------------------------------------------------------------------- */
@@ -82,12 +82,12 @@ export function isPhoto(image: BrandImage | null): image is BrandImage {
  * upstream card and keeps every format proportional.
  */
 export function canvasScale(props: Pick<RemotionDesignComponentProps, 'width' | 'height'>): number {
-  return Math.max(0.1, Math.min(props.width, props.height) / 1080)
+  return Math.max(0.1, Math.min(props.width, props.height) / 1080);
 }
 
 /** Whether the composition is portrait (9:16, 4:5). */
 export function isPortrait(props: Pick<RemotionDesignComponentProps, 'width' | 'height'>): boolean {
-  return props.height > props.width
+  return props.height > props.width;
 }
 
 /**
@@ -95,13 +95,13 @@ export function isPortrait(props: Pick<RemotionDesignComponentProps, 'width' | '
  * The same 0.62 em average advance the repo-2 helpers use.
  */
 export function charsThatFit(widthPx: number, fontSizePx: number, cap: number): number {
-  const perChar = Math.max(1, fontSizePx * 0.62)
-  return Math.max(4, Math.min(cap, Math.floor(widthPx / perChar)))
+  const perChar = Math.max(1, fontSizePx * 0.62);
+  return Math.max(4, Math.min(cap, Math.floor(widthPx / perChar)));
 }
 
 /** Truncates `text` to what fits on one line of `widthPx`. */
 export function fitLine(text: string, widthPx: number, fontSizePx: number, cap = 60): string {
-  return truncateText(text, charsThatFit(widthPx, fontSizePx, cap))
+  return truncateText(text, charsThatFit(widthPx, fontSizePx, cap));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -118,7 +118,7 @@ export function brandPalette(props: Pick<RemotionDesignComponentProps, 'colors' 
     primary: pickColor([props.colors?.primary], '#29d3f2'),
     accent: pickColor([props.colors?.accent], '#28c98b'),
     text: pickColor([props.color, props.colors?.text], '#ffffff'),
-  }
+  };
 }
 
 /**
@@ -126,8 +126,8 @@ export function brandPalette(props: Pick<RemotionDesignComponentProps, 'colors' 
  * replaces the upstream's `#111827` slate.
  */
 export function sceneBackground(props: Pick<RemotionDesignComponentProps, 'colors' | 'color'>): string {
-  const { primary, accent } = brandPalette(props)
-  return `linear-gradient(135deg, ${darkenColor(primary, 0.2)}, ${darkenColor(accent, 0.1)})`
+  const { primary, accent } = brandPalette(props);
+  return `linear-gradient(135deg, ${darkenColor(primary, 0.2)}, ${darkenColor(accent, 0.1)})`;
 }
 
 /**
@@ -135,7 +135,7 @@ export function sceneBackground(props: Pick<RemotionDesignComponentProps, 'color
  * blue/violet tile gradients (`#3b82f6 → #1d4ed8`, `#a855f7 → #7c3aed`, …).
  */
 export function brandGradients(props: Pick<RemotionDesignComponentProps, 'colors' | 'color'>): string[] {
-  const { primary, accent } = brandPalette(props)
+  const { primary, accent } = brandPalette(props);
   return [
     `linear-gradient(135deg, ${primary}, ${darkenColor(primary, 0.55)})`,
     `linear-gradient(135deg, ${accent}, ${darkenColor(accent, 0.55)})`,
@@ -143,20 +143,20 @@ export function brandGradients(props: Pick<RemotionDesignComponentProps, 'colors
     `linear-gradient(135deg, ${darkenColor(accent, 0.7)}, ${accent})`,
     `linear-gradient(135deg, ${darkenColor(primary, 0.5)}, ${lightenColor(primary, 0.15)})`,
     `linear-gradient(135deg, ${accent}, ${darkenColor(primary, 0.6)})`,
-  ]
+  ];
 }
 
 /** `#rrggbb` → `"r, g, b"` (for the upstreams that template an `rgba()`). */
 export function rgbTriple(value: string, fallback = '255, 255, 255'): string {
-  const hex = (value || '').trim().replace(/^#/, '')
-  let full = ''
-  if (/^[0-9a-f]{3}$/i.test(hex)) full = hex.split('').map((c) => c + c).join('')
-  else if (/^[0-9a-f]{6}$/i.test(hex)) full = hex
-  if (!full) return fallback
+  const hex = (value || '').trim().replace(/^#/, '');
+  let full = '';
+  if (/^[0-9a-f]{3}$/i.test(hex)) full = hex.split('').map((c) => c + c).join('');
+  else if (/^[0-9a-f]{6}$/i.test(hex)) full = hex;
+  if (!full) return fallback;
   return `${parseInt(full.slice(0, 2), 16)}, ${parseInt(full.slice(2, 4), 16)}, ${parseInt(
     full.slice(4, 6),
     16,
-  )}`
+  )}`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -198,7 +198,7 @@ export function BrandMediaFill({
     top: 0,
     width: '100%',
     height: '100%',
-  }
+  };
   if (image && image.role !== 'logo') {
     return (
       <Img
@@ -206,7 +206,7 @@ export function BrandMediaFill({
         data-batch3h-media={image.role}
         style={{ ...fill, objectFit: 'cover', display: 'block', filter }}
       />
-    )
+    );
   }
   if (image) {
     return (
@@ -225,7 +225,7 @@ export function BrandMediaFill({
           }}
         />
       </div>
-    )
+    );
   }
   return (
     <div
@@ -271,5 +271,5 @@ export function BrandMediaFill({
         </>
       ) : null}
     </div>
-  )
+  );
 }

@@ -10,42 +10,66 @@ const CATEGORIES = [
 ] as const;
 
 const TEMPLATES = [
-  { id: 'creator-reaction', label: 'Creator Reaction', category: 'Creator', icon: '😮',
+  {
+ id: 'creator-reaction', label: 'Creator Reaction', category: 'Creator', icon: '😮',
     prompt: 'YouTuber-style reaction face, dramatic lighting, bold yellow text overlay area, high contrast, shocked expression, clean background',
-    referenceType: 'photo', referenceLabel: 'Face photo (optional)' },
-  { id: 'product-hero', label: 'Product Hero', category: 'Product', icon: '📦',
+    referenceType: 'photo', referenceLabel: 'Face photo (optional)' 
+},
+  {
+ id: 'product-hero', label: 'Product Hero', category: 'Product', icon: '📦',
     prompt: 'Premium product photography studio, dramatic key light, soft shadow, clean white or gradient background, commercial lighting, 8K product shot',
-    referenceType: 'product', referenceLabel: 'Product image' },
-  { id: 'workspace-makeover', label: 'Workspace Makeover', category: 'Business', icon: '💼',
+    referenceType: 'product', referenceLabel: 'Product image' 
+},
+  {
+ id: 'workspace-makeover', label: 'Workspace Makeover', category: 'Business', icon: '💼',
     prompt: 'Modern minimalist workspace, natural window light, clean desk setup, professional yet inviting, warm tones, shallow depth of field',
-    referenceType: 'room', referenceLabel: 'Room photo (optional)' },
-  { id: 'face-reveal', label: 'Face Reveal', category: 'People', icon: '👤',
+    referenceType: 'room', referenceLabel: 'Room photo (optional)' 
+},
+  {
+ id: 'face-reveal', label: 'Face Reveal', category: 'People', icon: '👤',
     prompt: 'Dramatic portrait reveal, rim lighting, mystery atmosphere, face partially in shadow, cinematic, high contrast',
-    referenceType: 'photo', referenceLabel: 'Face reference' },
-  { id: 'edu-explainer', label: 'Edu Explainer', category: 'Education', icon: '📚',
+    referenceType: 'photo', referenceLabel: 'Face reference' 
+},
+  {
+ id: 'edu-explainer', label: 'Edu Explainer', category: 'Education', icon: '📚',
     prompt: 'Educational infographic style, clean white background, bold iconography, clear visual metaphor, friendly and approachable, modern design',
-    referenceType: null, referenceLabel: null },
-  { id: 'editorial-cover', label: 'Editorial Cover', category: 'Editorial', icon: '📰',
+    referenceType: null, referenceLabel: null 
+},
+  {
+ id: 'editorial-cover', label: 'Editorial Cover', category: 'Editorial', icon: '📰',
     prompt: 'Magazine cover style, bold typography composition, dramatic color palette, minimalist layout, negative space, premium feel',
-    referenceType: null, referenceLabel: null },
-  { id: 'social-viral', label: 'Social Viral', category: 'Social', icon: '🔥',
+    referenceType: null, referenceLabel: null 
+},
+  {
+ id: 'social-viral', label: 'Social Viral', category: 'Social', icon: '🔥',
     prompt: 'Viral social media thumbnail, high saturation, bold contrasting colors, eye-catching focal point, modern graphic design, shareable aesthetic',
-    referenceType: null, referenceLabel: null },
-  { id: 'marketing-ctr', label: 'Marketing CTR', category: 'Marketing', icon: '📈',
+    referenceType: null, referenceLabel: null 
+},
+  {
+ id: 'marketing-ctr', label: 'Marketing CTR', category: 'Marketing', icon: '📈',
     prompt: 'High-CTR marketing thumbnail, before/after composition, arrow graphics, bold result numbers, contrasting color blocks, professional design',
-    referenceType: null, referenceLabel: null },
-  { id: 'funny-meme', label: 'Funny Meme', category: 'Fun', icon: '😂',
+    referenceType: null, referenceLabel: null 
+},
+  {
+ id: 'funny-meme', label: 'Funny Meme', category: 'Fun', icon: '😂',
     prompt: 'Meme-style thumbnail, exaggerated expression, bold Impact-style text area, high contrast, comedic timing, vibrant colors, social media optimized',
-    referenceType: null, referenceLabel: null },
-  { id: 'creative-3d', label: 'Creative 3D', category: 'Creative', icon: '🎨',
+    referenceType: null, referenceLabel: null 
+},
+  {
+ id: 'creative-3d', label: 'Creative 3D', category: 'Creative', icon: '🎨',
     prompt: '3D rendered scene, isometric perspective, vibrant materials, soft volumetric lighting, blender-style render, modern abstract composition',
-    referenceType: null, referenceLabel: null },
-  { id: 'lifestyle-blog', label: 'Lifestyle Blog', category: 'Social', icon: '🌿',
+    referenceType: null, referenceLabel: null 
+},
+  {
+ id: 'lifestyle-blog', label: 'Lifestyle Blog', category: 'Social', icon: '🌿',
     prompt: 'Lifestyle blogger thumbnail, warm natural light, cozy aesthetic, authentic candid feel, soft pastels, relatable composition',
-    referenceType: 'photo', referenceLabel: 'Lifestyle photo (optional)' },
-  { id: 'business-podcast', label: 'Business Podcast', category: 'Business', icon: '🎙️',
+    referenceType: 'photo', referenceLabel: 'Lifestyle photo (optional)' 
+},
+  {
+ id: 'business-podcast', label: 'Business Podcast', category: 'Business', icon: '🎙️',
     prompt: 'Professional podcast thumbnail, headshot composition, clean gradient background, bold episode number, modern sans-serif layout, trust-inspiring',
-    referenceType: 'photo', referenceLabel: 'Headshot (optional)' },
+    referenceType: 'photo', referenceLabel: 'Headshot (optional)' 
+},
 ] as const;
 
 export type Category = typeof CATEGORIES[number];
@@ -57,14 +81,14 @@ export interface ExploreIdeasProps {
 }
 
 export default function ExploreIdeas({ onSelectTemplate, selectedTemplateId, copy }: ExploreIdeasProps) {
-  const [category, setCategory] = useState<Category>('All')
-  const [showAll, setShowAll] = useState(false)
+  const [category, setCategory] = useState<Category>('All');
+  const [showAll, setShowAll] = useState(false);
 
   const visibleTemplates = category === 'All'
     ? TEMPLATES
-    : TEMPLATES.filter(t => t.category === category)
+    : TEMPLATES.filter(t => t.category === category);
 
-  const displayed = showAll ? visibleTemplates : visibleTemplates.slice(0, 8)
+  const displayed = showAll ? visibleTemplates : visibleTemplates.slice(0, 8);
 
   return (
     <div className="space-y-3">
@@ -81,7 +105,7 @@ export default function ExploreIdeas({ onSelectTemplate, selectedTemplateId, cop
             type="button"
             role="tab"
             aria-selected={category === cat}
-            onClick={() => { setCategory(cat); setShowAll(false) }}
+            onClick={() => { setCategory(cat); setShowAll(false); }}
             className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-all"
             style={{
               background: category === cat ? 'rgba(217,255,0,0.15)' : 'rgba(255,255,255,0.05)',
@@ -102,7 +126,7 @@ export default function ExploreIdeas({ onSelectTemplate, selectedTemplateId, cop
         aria-label="Thumbnail ideas"
       >
         {displayed.map(template => {
-          const isSelected = selectedTemplateId === template.id
+          const isSelected = selectedTemplateId === template.id;
           return (
             <button
               key={template.id}
@@ -126,7 +150,7 @@ export default function ExploreIdeas({ onSelectTemplate, selectedTemplateId, cop
                 <div className="absolute inset-0 rounded-xl" style={{ boxShadow: '0 0 12px rgba(217,255,0,0.2)' }} />
               )}
             </button>
-          )
+          );
         })}
       </div>
 
@@ -141,5 +165,5 @@ export default function ExploreIdeas({ onSelectTemplate, selectedTemplateId, cop
         </button>
       )}
     </div>
-  )
+  );
 }

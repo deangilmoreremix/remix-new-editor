@@ -20,10 +20,10 @@
  * `setPreviewVideo`, `previewSettings` and `updatePreviewComposition`.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { DEMO_LIBRARY_REGISTRY } from '@ohb/data/demoLibraryRegistry'
-import { countDemosByCategory, DEMO_CATEGORIES } from '../demoCategories'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { DEMO_LIBRARY_REGISTRY } from '@ohb/data/demoLibraryRegistry';
+import { countDemosByCategory, DEMO_CATEGORIES } from '../demoCategories';
 
 const { ctx } = vi.hoisted(() => ({
   ctx: {
@@ -45,17 +45,17 @@ const { ctx } = vi.hoisted(() => ({
     updatePreviewComposition: vi.fn(),
     sharedMediaEntries: [] as unknown[],
   },
-}))
+}));
 
 // The provider lives one level above `guided/`; the path is resolved relative
 // to THIS test file.
 vi.mock('../../DemoPersonalizeProvider', () => ({
   useDemoPersonalize: () => ctx,
-}))
+}));
 
-import { StepChooseVideo } from '../StepChooseVideo'
+import { StepChooseVideo } from '../StepChooseVideo';
 
-const ELIGIBLE = DEMO_LIBRARY_REGISTRY.length
+const ELIGIBLE = DEMO_LIBRARY_REGISTRY.length;
 const LIBRARY_COUNTS = countDemosByCategory(
   DEMO_LIBRARY_REGISTRY.map((entry) => ({
     id: entry.legacyId,
@@ -74,322 +74,322 @@ const LIBRARY_COUNTS = countDemosByCategory(
     tags: entry.tags,
     sourceRepo: entry.sourceRepo,
   })),
-)
+);
 
 /** Render the component and open the Demos tab. */
 function renderDemos(): HTMLElement {
-  const { container } = render(<StepChooseVideo />)
-  fireEvent.click(screen.getByRole('tab', { name: /AI Demos/i }))
-  return container
+  const { container } = render(<StepChooseVideo />);
+  fireEvent.click(screen.getByRole('tab', { name: /AI Demos/i }));
+  return container;
 }
 
 /** The "Showing X of Y" line. */
 function galleryCount(): string {
-  return screen.getByTestId('demo-gallery-count').textContent ?? ''
+  return screen.getByTestId('demo-gallery-count').textContent ?? '';
 }
 
 /** The number the gallery reports as the total of the current filter set. */
 function galleryTotal(): number {
-  const match = /of (\d+) demos?/.exec(galleryCount())
-  return match ? Number(match[1]) : Number.NaN
+  const match = /of (\d+) demos?/.exec(galleryCount());
+  return match ? Number(match[1]) : Number.NaN;
 }
 
 /** The registry ids currently mounted as cards. */
 function mountedDemoIds(container: HTMLElement): string[] {
   return Array.from(container.querySelectorAll('[data-demo-id]')).map(
     (node) => node.getAttribute('data-demo-id') ?? '',
-  )
+  );
 }
 
 beforeEach(() => {
-  ctx.previewVideo = null
-  ctx.setPreviewVideo.mockClear()
-  ctx.updatePreviewComposition.mockClear()
-})
+  ctx.previewVideo = null;
+  ctx.setPreviewVideo.mockClear();
+  ctx.updatePreviewComposition.mockClear();
+});
 
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+});
 
 describe('Demos tab — the full eligible set', () => {
   it('reports the whole registry size, not a 12-item slice', () => {
-    renderDemos()
+    renderDemos();
 
     // The tab itself says how many demos are on offer.
-    expect(screen.getByRole('tab', { name: /AI Demos/i }).textContent).toContain(String(ELIGIBLE))
+    expect(screen.getByRole('tab', { name: /AI Demos/i }).textContent).toContain(String(ELIGIBLE));
 
     // And the gallery counts the whole matching set.
-    expect(galleryTotal()).toBe(ELIGIBLE)
-    expect(ELIGIBLE).toBeGreaterThan(12)
-  })
+    expect(galleryTotal()).toBe(ELIGIBLE);
+    expect(ELIGIBLE).toBeGreaterThan(12);
+  });
 
   it('mounts only the first window of cards, not all of them', () => {
-    const container = renderDemos()
+    const container = renderDemos();
 
-    const mounted = mountedDemoIds(container)
-    expect(mounted.length).toBeGreaterThan(0)
-    expect(mounted.length).toBeLessThan(ELIGIBLE)
-    expect(galleryCount()).toContain('Showing')
-  })
-})
+    const mounted = mountedDemoIds(container);
+    expect(mounted.length).toBeGreaterThan(0);
+    expect(mounted.length).toBeLessThan(ELIGIBLE);
+    expect(galleryCount()).toContain('Showing');
+  });
+});
 
 describe('Demos tab — category tabs', () => {
   it('renders the niche categories that hold demos, with accurate counts', () => {
-    renderDemos()
+    renderDemos();
 
-    const allTab = screen.getByTestId('demo-category-tab-all')
-    expect(allTab.textContent).toContain(String(ELIGIBLE))
+    const allTab = screen.getByTestId('demo-category-tab-all');
+    expect(allTab.textContent).toContain(String(ELIGIBLE));
 
     // A niche with demos shows the count the taxonomy reports for it.
-    const technology = screen.getByTestId('demo-category-tab-technology')
-    expect(technology.textContent).toContain(String(LIBRARY_COUNTS.technology))
-    expect(LIBRARY_COUNTS.technology).toBeGreaterThan(0)
+    const technology = screen.getByTestId('demo-category-tab-technology');
+    expect(technology.textContent).toContain(String(LIBRARY_COUNTS.technology));
+    expect(LIBRARY_COUNTS.technology).toBeGreaterThan(0);
 
     // "All Demos" comes first — inside the demo category tab list (the wizard
     // itself owns a second, separate tab list).
     const categoryTabs = within(
       screen.getByRole('tablist', { name: 'Demo categories' }),
-    ).getAllByRole('tab')
-    expect(categoryTabs[0].getAttribute('data-testid')).toBe('demo-category-tab-all')
-  })
+    ).getAllByRole('tab');
+    expect(categoryTabs[0].getAttribute('data-testid')).toBe('demo-category-tab-all');
+  });
 
   it('offers a niche tab only when the niche holds at least one demo', () => {
-    renderDemos()
+    renderDemos();
 
     for (const category of DEMO_CATEGORIES) {
-      if (category.id === 'all') continue
-      const tab = screen.queryByTestId(`demo-category-tab-${category.id}`)
-      if ((LIBRARY_COUNTS[category.id] ?? 0) === 0) expect(tab, category.id).toBeNull()
-      else expect(tab, category.id).not.toBeNull()
+      if (category.id === 'all') continue;
+      const tab = screen.queryByTestId(`demo-category-tab-${category.id}`);
+      if ((LIBRARY_COUNTS[category.id] ?? 0) === 0) expect(tab, category.id).toBeNull();
+      else expect(tab, category.id).not.toBeNull();
     }
-  })
+  });
 
   it('offers a sub-category control once a niche with sub-categories is active', () => {
-    renderDemos()
+    renderDemos();
 
     // "All Demos" spans every niche, so it has no sub-category dimension.
-    expect(screen.queryByLabelText('Sub-category')).toBeNull()
+    expect(screen.queryByLabelText('Sub-category')).toBeNull();
 
-    fireEvent.click(screen.getByTestId('demo-category-tab-beauty'))
-    expect(screen.getByLabelText('Sub-category')).toBeTruthy()
-  })
-})
+    fireEvent.click(screen.getByTestId('demo-category-tab-beauty'));
+    expect(screen.getByLabelText('Sub-category')).toBeTruthy();
+  });
+});
 
 describe('Demos tab — search and filters', () => {
   it('narrows the set with the search box', () => {
-    renderDemos()
-    expect(galleryTotal()).toBe(ELIGIBLE)
+    renderDemos();
+    expect(galleryTotal()).toBe(ELIGIBLE);
 
-    fireEvent.change(screen.getByLabelText('Search demos'), { target: { value: 'ramen' } })
+    fireEvent.change(screen.getByLabelText('Search demos'), { target: { value: 'ramen' } });
 
-    const narrowed = galleryTotal()
-    expect(narrowed).toBeGreaterThan(0)
-    expect(narrowed).toBeLessThan(ELIGIBLE)
-  })
+    const narrowed = galleryTotal();
+    expect(narrowed).toBeGreaterThan(0);
+    expect(narrowed).toBeLessThan(ELIGIBLE);
+  });
 
   it('narrows the set with the source filter', () => {
-    renderDemos()
+    renderDemos();
 
-    fireEvent.change(screen.getByLabelText('Source'), { target: { value: 'seedance-25' } })
+    fireEvent.change(screen.getByLabelText('Source'), { target: { value: 'seedance-25' } });
 
-    const narrowed = galleryTotal()
-    expect(narrowed).toBeGreaterThan(0)
-    expect(narrowed).toBeLessThan(ELIGIBLE)
-  })
+    const narrowed = galleryTotal();
+    expect(narrowed).toBeGreaterThan(0);
+    expect(narrowed).toBeLessThan(ELIGIBLE);
+  });
 
   it('narrows the set with the style filter', () => {
-    renderDemos()
+    renderDemos();
 
-    fireEvent.change(screen.getByLabelText('Style'), { target: { value: 'cinema' } })
+    fireEvent.change(screen.getByLabelText('Style'), { target: { value: 'cinema' } });
 
-    const narrowed = galleryTotal()
-    expect(narrowed).toBeGreaterThan(0)
-    expect(narrowed).toBeLessThan(ELIGIBLE)
-  })
+    const narrowed = galleryTotal();
+    expect(narrowed).toBeGreaterThan(0);
+    expect(narrowed).toBeLessThan(ELIGIBLE);
+  });
 
   it('narrows the set with the aspect-ratio filter', () => {
-    renderDemos()
+    renderDemos();
 
-    fireEvent.change(screen.getByLabelText('Aspect ratio'), { target: { value: '9:16' } })
+    fireEvent.change(screen.getByLabelText('Aspect ratio'), { target: { value: '9:16' } });
 
-    const narrowed = galleryTotal()
-    expect(narrowed).toBeGreaterThan(0)
-    expect(narrowed).toBeLessThan(ELIGIBLE)
-  })
+    const narrowed = galleryTotal();
+    expect(narrowed).toBeGreaterThan(0);
+    expect(narrowed).toBeLessThan(ELIGIBLE);
+  });
 
   it('builds the filter options from the data, not from a hardcoded list', () => {
-    renderDemos()
+    renderDemos();
 
-    const source = screen.getByLabelText('Source') as HTMLSelectElement
-    const sourceValues = Array.from(source.options).map((option) => option.value)
-    expect(sourceValues).toContain('all')
+    const source = screen.getByLabelText('Source') as HTMLSelectElement;
+    const sourceValues = Array.from(source.options).map((option) => option.value);
+    expect(sourceValues).toContain('all');
     // The dead promptfeed / seedance-1 catalogs were removed; these are the collections that exist.
     for (const collection of ['minimax-h3', 'seedance-25', 'template-library']) {
-      expect(sourceValues).toContain(collection)
+      expect(sourceValues).toContain(collection);
     }
 
-    const style = screen.getByLabelText('Style') as HTMLSelectElement
-    const styleValues = Array.from(style.options).map((option) => option.value)
-    expect(styleValues).toContain('all')
-    expect(styleValues.length).toBeGreaterThan(1)
+    const style = screen.getByLabelText('Style') as HTMLSelectElement;
+    const styleValues = Array.from(style.options).map((option) => option.value);
+    expect(styleValues).toContain('all');
+    expect(styleValues.length).toBeGreaterThan(1);
 
-    const aspect = screen.getByLabelText('Aspect ratio') as HTMLSelectElement
-    const aspectValues = Array.from(aspect.options).map((option) => option.value)
-    expect(aspectValues).toContain('all')
-    expect(aspectValues.length).toBeGreaterThan(1)
-  })
-})
+    const aspect = screen.getByLabelText('Aspect ratio') as HTMLSelectElement;
+    const aspectValues = Array.from(aspect.options).map((option) => option.value);
+    expect(aspectValues).toContain('all');
+    expect(aspectValues.length).toBeGreaterThan(1);
+  });
+});
 
 describe('Demos tab — empty state', () => {
   it('shows the empty state instead of crashing when nothing matches', () => {
-    const container = renderDemos()
+    const container = renderDemos();
 
     fireEvent.change(screen.getByLabelText('Search demos'), {
       target: { value: 'zzz-no-such-demo-anywhere-zzz' },
-    })
+    });
 
-    expect(screen.getByTestId('demo-empty-state')).toBeTruthy()
-    expect(mountedDemoIds(container)).toHaveLength(0)
-    expect(galleryTotal()).toBe(0)
-  })
+    expect(screen.getByTestId('demo-empty-state')).toBeTruthy();
+    expect(mountedDemoIds(container)).toHaveLength(0);
+    expect(galleryTotal()).toBe(0);
+  });
 
   it('restores the full set when the empty state is reset', () => {
-    renderDemos()
+    renderDemos();
 
     fireEvent.change(screen.getByLabelText('Search demos'), {
       target: { value: 'zzz-no-such-demo-anywhere-zzz' },
-    })
-    expect(screen.getByTestId('demo-empty-state')).toBeTruthy()
+    });
+    expect(screen.getByTestId('demo-empty-state')).toBeTruthy();
 
-    fireEvent.click(screen.getByTestId('demo-empty-clear-filters'))
+    fireEvent.click(screen.getByTestId('demo-empty-clear-filters'));
 
-    expect(screen.queryByTestId('demo-empty-state')).toBeNull()
-    expect(galleryTotal()).toBe(ELIGIBLE)
-  })
-})
+    expect(screen.queryByTestId('demo-empty-state')).toBeNull();
+    expect(galleryTotal()).toBe(ELIGIBLE);
+  });
+});
 
 describe('Demos tab — pagination', () => {
   it('reveals every registry id cumulatively, so no video is hidden', () => {
-    const container = renderDemos()
+    const container = renderDemos();
 
-    const perStep: string[][] = []
+    const perStep: string[][] = [];
     for (let step = 0; step < 120; step += 1) {
-      perStep.push(mountedDemoIds(container))
+      perStep.push(mountedDemoIds(container));
 
-      const showMore = screen.queryByTestId('demo-show-more')
-      if (!showMore) break
-      fireEvent.click(showMore)
+      const showMore = screen.queryByTestId('demo-show-more');
+      if (!showMore) break;
+      fireEvent.click(showMore);
     }
 
     // Every step grew, and nothing that was already on screen disappeared.
-    expect(perStep.length).toBeGreaterThan(1)
+    expect(perStep.length).toBeGreaterThan(1);
     for (let index = 1; index < perStep.length; index += 1) {
-      expect(perStep[index].length).toBeGreaterThan(perStep[index - 1].length)
+      expect(perStep[index].length).toBeGreaterThan(perStep[index - 1].length);
       for (const id of perStep[index - 1]) {
-        expect(perStep[index]).toContain(id)
+        expect(perStep[index]).toContain(id);
       }
     }
 
     // The last window holds every registered demo.
-    const finalIds = new Set(perStep[perStep.length - 1])
-    expect(finalIds.size).toBe(ELIGIBLE)
+    const finalIds = new Set(perStep[perStep.length - 1]);
+    expect(finalIds.size).toBe(ELIGIBLE);
     for (const entry of DEMO_LIBRARY_REGISTRY) {
-      expect(finalIds.has(entry.id)).toBe(true)
+      expect(finalIds.has(entry.id)).toBe(true);
     }
 
     // The counter agrees: the whole library is on screen.
-    expect(galleryCount()).toContain(`Showing ${ELIGIBLE} of ${ELIGIBLE}`)
-  })
-})
+    expect(galleryCount()).toContain(`Showing ${ELIGIBLE} of ${ELIGIBLE}`);
+  });
+});
 
 describe('Demos tab — logo label', () => {
   it('labels every registry demo No logo or Has logo, and the registry carries both kinds', () => {
-    for (const entry of DEMO_LIBRARY_REGISTRY) expect(['none', 'logo'], entry.id).toContain(entry.branding)
-    expect(DEMO_LIBRARY_REGISTRY.some((entry) => entry.branding === 'none')).toBe(true)
-    expect(DEMO_LIBRARY_REGISTRY.some((entry) => entry.branding === 'logo')).toBe(true)
-  })
+    for (const entry of DEMO_LIBRARY_REGISTRY) expect(['none', 'logo'], entry.id).toContain(entry.branding);
+    expect(DEMO_LIBRARY_REGISTRY.some((entry) => entry.branding === 'none')).toBe(true);
+    expect(DEMO_LIBRARY_REGISTRY.some((entry) => entry.branding === 'logo')).toBe(true);
+  });
 
   it('shows the label on each card and narrows the gallery with the Logo filter', () => {
-    const container = renderDemos()
-    const badges = () => Array.from(container.querySelectorAll('[data-branding]')).map((node) => node.getAttribute('data-branding'))
-    expect(badges().length).toBeGreaterThan(0)
-    expect(badges().every((value) => value === 'none' || value === 'logo')).toBe(true)
+    const container = renderDemos();
+    const badges = () => Array.from(container.querySelectorAll('[data-branding]')).map((node) => node.getAttribute('data-branding'));
+    expect(badges().length).toBeGreaterThan(0);
+    expect(badges().every((value) => value === 'none' || value === 'logo')).toBe(true);
 
-    const logoFilter = screen.getByLabelText('Logo') as HTMLSelectElement
-    expect(Array.from(logoFilter.options).map((option) => option.value)).toEqual(['all', 'none', 'logo'])
+    const logoFilter = screen.getByLabelText('Logo') as HTMLSelectElement;
+    expect(Array.from(logoFilter.options).map((option) => option.value)).toEqual(['all', 'none', 'logo']);
 
-    fireEvent.change(logoFilter, { target: { value: 'none' } })
-    const clean = DEMO_LIBRARY_REGISTRY.filter((entry) => entry.branding === 'none').length
-    expect(galleryTotal()).toBe(clean)
-    expect(badges().every((value) => value === 'none')).toBe(true)
+    fireEvent.change(logoFilter, { target: { value: 'none' } });
+    const clean = DEMO_LIBRARY_REGISTRY.filter((entry) => entry.branding === 'none').length;
+    expect(galleryTotal()).toBe(clean);
+    expect(badges().every((value) => value === 'none')).toBe(true);
 
-    fireEvent.change(logoFilter, { target: { value: 'logo' } })
-    expect(galleryTotal()).toBe(DEMO_LIBRARY_REGISTRY.length - clean)
-    expect(badges().every((value) => value === 'logo')).toBe(true)
+    fireEvent.change(logoFilter, { target: { value: 'logo' } });
+    expect(galleryTotal()).toBe(DEMO_LIBRARY_REGISTRY.length - clean);
+    expect(badges().every((value) => value === 'logo')).toBe(true);
 
-    fireEvent.click(screen.getByTestId('demo-clear-filters'))
-    expect(galleryTotal()).toBe(ELIGIBLE)
-  })
-})
+    fireEvent.click(screen.getByTestId('demo-clear-filters'));
+    expect(galleryTotal()).toBe(ELIGIBLE);
+  });
+});
 
 describe('Demos tab — card previews', () => {
   it('every unselected card autoplays its own silent clip over its poster', () => {
-    const { container } = render(<StepChooseVideo />)
-    fireEvent.click(screen.getByRole('tab', { name: /AI Demos/i }))
+    const { container } = render(<StepChooseVideo />);
+    fireEvent.click(screen.getByRole('tab', { name: /AI Demos/i }));
 
-    const cards = [...container.querySelectorAll<HTMLElement>('[data-demo-id]')]
-    expect(cards.length).toBeGreaterThan(0)
+    const cards = [...container.querySelectorAll<HTMLElement>('[data-demo-id]')];
+    expect(cards.length).toBeGreaterThan(0);
     for (const card of cards) {
-      const entry = DEMO_LIBRARY_REGISTRY.find((e) => e.id === card.getAttribute('data-demo-id'))!
-      if (card.getAttribute('aria-pressed') === 'true') continue
-      const clip = card.querySelector('video[data-testid="card-preview-video"]') as HTMLVideoElement
-      expect(clip, `card ${entry.id} must play a preview clip`).toBeTruthy()
-      expect(clip.getAttribute('src')).toBe(entry.videoSrc)
-      expect(clip.muted && clip.loop && clip.autoplay && clip.playsInline).toBe(true)
-      expect(clip.controls).toBe(false)
+      const entry = DEMO_LIBRARY_REGISTRY.find((e) => e.id === card.getAttribute('data-demo-id'))!;
+      if (card.getAttribute('aria-pressed') === 'true') continue;
+      const clip = card.querySelector('video[data-testid="card-preview-video"]') as HTMLVideoElement;
+      expect(clip, `card ${entry.id} must play a preview clip`).toBeTruthy();
+      expect(clip.getAttribute('src')).toBe(entry.videoSrc);
+      expect(clip.muted && clip.loop && clip.autoplay && clip.playsInline).toBe(true);
+      expect(clip.controls).toBe(false);
       // The poster stays underneath as the loading / failure face.
-      expect(card.querySelector('img')?.getAttribute('src')).toBe(entry.posterSrc)
+      expect(card.querySelector('img')?.getAttribute('src')).toBe(entry.posterSrc);
     }
-  })
-})
+  });
+});
 
 describe('Demos tab — selection', () => {
   it('mounts a real <video> on the selected card and keeps it stable across filters', () => {
-    const demo = DEMO_LIBRARY_REGISTRY[0]
+    const demo = DEMO_LIBRARY_REGISTRY[0];
     ctx.previewVideo = {
       url: demo.videoSrc,
       poster: demo.posterSrc,
       title: demo.title,
       kind: 'demo',
       demoId: demo.id,
-    }
+    };
 
-    const { container } = render(<StepChooseVideo />)
-    fireEvent.click(screen.getByRole('tab', { name: /AI Demos/i }))
+    const { container } = render(<StepChooseVideo />);
+    fireEvent.click(screen.getByRole('tab', { name: /AI Demos/i }));
 
-    const card = container.querySelector(`[data-demo-id="${demo.id}"]`) as HTMLElement
-    expect(card).toBeTruthy()
-    expect(card.querySelector('video[data-testid="demo-player"]')).toBeTruthy()
-    expect(card.querySelector('img')).toBeNull()
+    const card = container.querySelector(`[data-demo-id="${demo.id}"]`) as HTMLElement;
+    expect(card).toBeTruthy();
+    expect(card.querySelector('video[data-testid="demo-player"]')).toBeTruthy();
+    expect(card.querySelector('img')).toBeNull();
     // Exactly one card in the whole grid carries a player.
-    expect(container.querySelectorAll('video[data-testid="demo-player"]')).toHaveLength(1)
+    expect(container.querySelectorAll('video[data-testid="demo-player"]')).toHaveLength(1);
 
     // Changing a filter does not change the selection.
-    fireEvent.change(screen.getByLabelText('Style'), { target: { value: 'commercial' } })
-    const stillSelected = container.querySelector(`[data-demo-id="${demo.id}"]`) as HTMLElement | null
+    fireEvent.change(screen.getByLabelText('Style'), { target: { value: 'commercial' } });
+    const stillSelected = container.querySelector(`[data-demo-id="${demo.id}"]`) as HTMLElement | null;
     if (stillSelected) {
-      expect(stillSelected.getAttribute('aria-pressed')).toBe('true')
+      expect(stillSelected.getAttribute('aria-pressed')).toBe('true');
     }
-  })
+  });
 
   it('records the picked demo by its stable source-qualified id', () => {
-    const demo = DEMO_LIBRARY_REGISTRY[3]
-    const { container } = render(<StepChooseVideo />)
-    fireEvent.click(screen.getByRole('tab', { name: /AI Demos/i }))
+    const demo = DEMO_LIBRARY_REGISTRY[3];
+    const { container } = render(<StepChooseVideo />);
+    fireEvent.click(screen.getByRole('tab', { name: /AI Demos/i }));
 
-    const card = container.querySelector(`[data-demo-id="${demo.id}"]`) as HTMLElement
-    expect(card).toBeTruthy()
-    fireEvent.click(card)
+    const card = container.querySelector(`[data-demo-id="${demo.id}"]`) as HTMLElement;
+    expect(card).toBeTruthy();
+    fireEvent.click(card);
 
     expect(ctx.setPreviewVideo).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -399,8 +399,8 @@ describe('Demos tab — selection', () => {
         kind: 'demo',
         demoId: demo.id,
       }),
-    )
+    );
     // The registry id is source-qualified, never the colliding numeric id.
-    expect(demo.id).toContain(':')
-  })
-})
+    expect(demo.id).toContain(':');
+  });
+});

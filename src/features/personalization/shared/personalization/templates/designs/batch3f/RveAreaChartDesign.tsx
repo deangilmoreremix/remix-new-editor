@@ -17,10 +17,10 @@
  * (declared in `BATCH_3F_FIXED_SVG_IDS`).
  */
 
-import React from 'react'
-import { AreaChart, type AreaChartPoint } from '../../_upstream/rve-area-chart/AreaChart'
-import { slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { AreaChart, type AreaChartPoint } from '../../_upstream/rve-area-chart/AreaChart';
+import { slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   FitCanvas,
   brandBackdrop,
@@ -28,7 +28,7 @@ import {
   fitChars,
   fitScale,
   readableOnDark,
-} from './shared3f'
+} from './shared3f';
 
 /** The pinned placeholder trend (y on the upstream's 0-100 scale). */
 export const AREA_CHART_PLACEHOLDER_DATA: AreaChartPoint[] = [
@@ -42,22 +42,22 @@ export const AREA_CHART_PLACEHOLDER_DATA: AreaChartPoint[] = [
   { x: 7, y: 71, label: 'Wk 8' },
   { x: 8, y: 79, label: 'Wk 9' },
   { x: 9, y: 90, label: 'Wk 10' },
-]
+];
 
 /** The upstream card: a 900 x 500 panel + 20 px padding on each side. */
-const CARD_W = 940
-const CARD_H = 540
+const CARD_W = 940;
+const CARD_H = 540;
 /** Card scale on a 1080-px short edge. */
-const PREFERRED_SCALE = 1.25
+const PREFERRED_SCALE = 1.25;
 
 export const RveAreaChartDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE)
-  const [series] = brandPalette(props, 1)
-  const text = readableOnDark(props)
+  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE);
+  const [series] = brandPalette(props, 1);
+  const text = readableOnDark(props);
   const title = truncateText(
     slotText(props, 'headline', ['businessName']),
     fitChars(CARD_W - 60, 28, 44),
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-area-chart" props={props}>
@@ -74,7 +74,7 @@ export const RveAreaChartDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </FitCanvas>
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveAreaChartDesign
+export default RveAreaChartDesign;

@@ -14,11 +14,11 @@
  * mirroring the upstream's dark-blue → blue), the layer colour → both lines.
  */
 
-import React from 'react'
-import { BounceText } from '../../_upstream/rve-bounce-text/BounceText'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { BounceText } from '../../_upstream/rve-bounce-text/BounceText';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandPrimary,
   brandText,
@@ -29,31 +29,31 @@ import {
   remUnit,
   slotText,
   truncateText,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_BOUNCE_TEXT_ID = 'rve-bounce-text'
+export const RVE_BOUNCE_TEXT_ID = 'rve-bounce-text';
 
 /** Upstream size × this zoom on a 1080 px short edge. */
-const ZOOM = 1.6
+const ZOOM = 1.6;
 
 export const RveBounceTextDesign: React.FC<DesignAdapterProps> = (props) => {
-  const rem = remUnit(props, ZOOM)
-  const titlePx = 3.5 * rem
-  const subtitlePx = 1.8 * rem
+  const rem = remUnit(props, ZOOM);
+  const titlePx = 3.5 * rem;
+  const subtitlePx = 1.8 * rem;
   // The card is 80 % wide with 3rem of horizontal padding on each side.
-  const inner = props.width * 0.8 - 6 * rem
+  const inner = props.width * 0.8 - 6 * rem;
 
   const title = truncateText(
     slotText(props, 'headline', ['offer', 'businessName']),
     fitChars(inner, titlePx, 2, 44),
-  )
+  );
   const subtitle = truncateText(
     firstSlot(props, ['offer', 'businessName']),
     fitChars(inner, subtitlePx, 2, 70),
-  )
+  );
 
-  const primary = brandPrimary(props)
-  const text = brandText(props)
+  const primary = brandPrimary(props);
+  const text = brandText(props);
 
   return (
     <RveDesignStage designId={RVE_BOUNCE_TEXT_ID} props={props}>
@@ -72,7 +72,7 @@ export const RveBounceTextDesign: React.FC<DesignAdapterProps> = (props) => {
         fontFamily={DESIGN_FONT_STACK}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveBounceTextDesign
+export default RveBounceTextDesign;

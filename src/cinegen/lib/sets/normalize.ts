@@ -100,17 +100,20 @@ export function normalizeProjectSets(value: unknown): ProjectSet[] {
     const floorSize = num(floorRecord?.size);
     const floorXAxis = vec3(floorRecord?.xAxis);
     const floorPlane = normal && length > 1e-8 && constant !== undefined
-      ? { normal: normal.map(v => v / length) as [number, number, number], constant: constant / length,
+      ? {
+ normal: normal.map(v => v / length) as [number, number, number], constant: constant / length,
         ...(floorOrigin ? { origin: floorOrigin } : {}),
         ...(floorXAxis && Math.hypot(...floorXAxis) > 1e-8 ? { xAxis: floorXAxis } : {}),
-        ...(floorSize !== undefined && floorSize > 0 ? { size: floorSize } : {}) } : undefined;
+        ...(floorSize !== undefined && floorSize > 0 ? { size: floorSize } : {}) 
+} : undefined;
     const standIns = Array.isArray(record.standIns) ? record.standIns.flatMap((item) => {
       if (!item || typeof item !== 'object') return [];
       const entry = item as Record<string, unknown>;
       const x = num(entry.x), z = num(entry.z);
       if (x === undefined || z === undefined) return [];
       const pose: 'standing' | 'sitting' | 'walking' | 'kneeling' = entry.pose === 'sitting' || entry.pose === 'walking' || entry.pose === 'kneeling' ? entry.pose : 'standing';
-      return [{ id: str(entry.id, generateId()), heightM: Math.max(.01, Math.min(10, num(entry.heightM) ?? 1.8)), pose,
+      return [{
+ id: str(entry.id, generateId()), heightM: Math.max(.01, Math.min(10, num(entry.heightM) ?? 1.8)), pose,
         x, z, facing: num(entry.facing) ?? 0,
         ...(typeof entry.visible === 'boolean' ? { visible: entry.visible } : {}),
         ...(vec3(entry.position) ? { position: vec3(entry.position)! } : {}),
@@ -122,7 +125,8 @@ export function normalizeProjectSets(value: unknown): ProjectSet[] {
       ? record.startView as Record<string, unknown> : undefined;
     const startPosition = vec3(start?.position), startTarget = vec3(start?.target), startUp = vec3(start?.up);
     const startView = startPosition && startTarget && startPosition.some((v, i) => Math.abs(v - startTarget[i]) > 1e-8)
-      ? { position: startPosition, target: startTarget, ...(startUp && Math.hypot(...startUp) > 0 ? { up: startUp } : {}),
+      ? {
+ position: startPosition, target: startTarget, ...(startUp && Math.hypot(...startUp) > 0 ? { up: startUp } : {}),
         ...(typeof start?.verticalFov === 'number' && Number.isFinite(start.verticalFov) && start.verticalFov > 0 && start.verticalFov < 179 ? { verticalFov: start.verticalFov } : {}),
         ...(typeof start?.sourceImage === 'string' ? { sourceImage: start.sourceImage } : {}),
       } : undefined;

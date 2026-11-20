@@ -19,10 +19,10 @@
  * the whole timeline with the composition.
  */
 
-import React from 'react'
-import { ProgressSteps } from '../../_upstream/rve-progress-steps/ProgressSteps'
-import { slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { lightenColor, RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { ProgressSteps } from '../../_upstream/rve-progress-steps/ProgressSteps';
+import { slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { lightenColor, RveDesignStage } from '../rveSharedDesign';
 import {
   FitCanvas,
   brandBackdrop,
@@ -30,30 +30,30 @@ import {
   fitChars,
   fitScale,
   readableOnDark,
-} from './shared3f'
+} from './shared3f';
 
 /** The pinned step labels (short enough for the upstream's 80 px columns). */
-export const PROGRESS_STEPS_LABELS = ['Discover', 'Plan', 'Deliver', 'Celebrate']
+export const PROGRESS_STEPS_LABELS = ['Discover', 'Plan', 'Deliver', 'Celebrate'];
 
 /** The upstream timeline: 4 x 80 px columns + 3 x 80 px connectors, ~200 px tall. */
-const CONTENT_W = 600
-const CONTENT_H = 240
-const PREFERRED_SCALE = 1.7
+const CONTENT_W = 600;
+const CONTENT_H = 240;
+const PREFERRED_SCALE = 1.7;
 
 /** The upstream `rem` sizes at a 16 px root. */
-const TITLE_PX = 32
-const NUMBER_PX = 16
-const LABEL_PX = 12.8
+const TITLE_PX = 32;
+const NUMBER_PX = 16;
+const LABEL_PX = 12.8;
 
 export const RveProgressStepsDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = fitScale(props, CONTENT_W, CONTENT_H, PREFERRED_SCALE)
-  const [primary, accent] = brandPalette(props, 2)
-  const text = readableOnDark(props)
+  const k = fitScale(props, CONTENT_W, CONTENT_H, PREFERRED_SCALE);
+  const [primary, accent] = brandPalette(props, 2);
+  const text = readableOnDark(props);
   // The title shares the virtual canvas (width / k) with nothing else.
   const title = truncateText(
     slotText(props, 'headline', ['businessName']),
     fitChars((props.width / k) * 0.88, TITLE_PX, 48),
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-progress-steps" props={props}>
@@ -75,7 +75,7 @@ export const RveProgressStepsDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </FitCanvas>
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveProgressStepsDesign
+export default RveProgressStepsDesign;

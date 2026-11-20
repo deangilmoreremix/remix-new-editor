@@ -13,21 +13,21 @@
  * effect itself (a chromatic split), so they keep the upstream values.
  */
 
-import React from 'react'
+import React from 'react';
 import {
   LogoGlitchReveal,
   defaultLogoGlitchRevealProps,
-} from '../../_upstream/rve-logo-glitch-reveal/LogoGlitchReveal'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { TRANSPARENT, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { hexToRgbTriplet, rveLogoBrand, rvePx, rveRemPx, rveLogoScale } from './rveLogoShared'
+} from '../../_upstream/rve-logo-glitch-reveal/LogoGlitchReveal';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { TRANSPARENT, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { hexToRgbTriplet, rveLogoBrand, rvePx, rveRemPx, rveLogoScale } from './rveLogoShared';
 
-export const RVE_LOGO_GLITCH_REVEAL_ID = 'rve-logo-glitch-reveal'
+export const RVE_LOGO_GLITCH_REVEAL_ID = 'rve-logo-glitch-reveal';
 
 export const RveLogoGlitchRevealDesign: React.FC<DesignAdapterProps> = (props) => {
-  const brand = rveLogoBrand(props)
-  const k = rveLogoScale(props)
+  const brand = rveLogoBrand(props);
+  const k = rveLogoScale(props);
   return (
     <RveDesignStage designId={RVE_LOGO_GLITCH_REVEAL_ID} props={props}>
       <LogoGlitchReveal
@@ -51,7 +51,7 @@ export const RveLogoGlitchRevealDesign: React.FC<DesignAdapterProps> = (props) =
         taglineMarginTop={rveRemPx(props, 0.5)}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveLogoGlitchRevealDesign
+export default RveLogoGlitchRevealDesign;

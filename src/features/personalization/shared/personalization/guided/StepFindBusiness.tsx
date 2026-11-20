@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
-import { cutoutAssetIds } from '../backgroundRemoval/useAutoCutout'
-import { Building2, Globe, MapPin, Search, Star } from 'lucide-react'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { BUSINESS_NICHES } from '../businessNiches'
-import { ownershipBadgeStyle, ownershipLabel } from '../ownershipBadge'
-import { isOwnedWebsite, nonOwnedWebsiteMessage } from '../websiteClassification'
-import type { BusinessOwnership, DiscoveredAsset } from '../types'
-import { DiscoveredAssetGrid, type DiscoveredAssetDropZone } from '../DiscoveredAssetGrid'
-import { ResumeProjectBanner } from '../ResumeProjectBanner'
-import { SocialIcons } from '../SocialIcons'
-import { foundSocialLinks } from './foundSocialLinks'
+import { useMemo, useState } from 'react';
+import { cutoutAssetIds } from '../backgroundRemoval/useAutoCutout';
+import { Building2, Globe, MapPin, Search, Star } from 'lucide-react';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { BUSINESS_NICHES } from '../businessNiches';
+import { ownershipBadgeStyle, ownershipLabel } from '../ownershipBadge';
+import { isOwnedWebsite, nonOwnedWebsiteMessage } from '../websiteClassification';
+import type { BusinessOwnership, DiscoveredAsset } from '../types';
+import { DiscoveredAssetGrid, type DiscoveredAssetDropZone } from '../DiscoveredAssetGrid';
+import { ResumeProjectBanner } from '../ResumeProjectBanner';
+import { SocialIcons } from '../SocialIcons';
+import { foundSocialLinks } from './foundSocialLinks';
 
 // Simple mode has no client-asset section cards on screen, so the grid shows
 // its own drop zones; dropping an asset imports it into that section.
@@ -20,10 +20,10 @@ const SIMPLE_MODE_DROP_ZONES: DiscoveredAssetDropZone[] = [
   { section: 'logo', label: 'Logo' },
   { section: 'products', label: 'Products' },
   { section: 'brand', label: 'Brand' },
-]
-import { C, badgeStyle, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
+];
+import { C, badgeStyle, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, secondaryButtonStyle, softPanelStyle } from './tokens';
 
-const RADIUS_OPTIONS = [5, 15, 50]
+const RADIUS_OPTIONS = [5, 15, 50];
 
 function businessLabel(business: {
   name?: string
@@ -33,7 +33,7 @@ function businessLabel(business: {
   phone?: string
   website?: string
 }): string {
-  return business.name || 'Selected business'
+  return business.name || 'Selected business';
 }
 
 /**
@@ -49,7 +49,7 @@ export function StepFindBusiness({
   /** Opens the AI image editor on a discovered asset; omitted for anonymous sessions. */
   onEditAsset?: (asset: DiscoveredAsset) => void
 } = {}): React.JSX.Element {
-  const ctx = useDemoPersonalize()
+  const ctx = useDemoPersonalize();
   const {
     clientForm = {},
     updateClientForm,
@@ -84,86 +84,86 @@ export function StepFindBusiness({
     access,
     setViewMode,
     websiteLookup,
-  } = ctx
+  } = ctx;
 
-  const [searchNiche, setSearchNiche] = useState('')
-  const [searchLocation, setSearchLocation] = useState('')
-  const [searchRadius, setSearchRadius] = useState(15)
-  const [searchFormOpen, setSearchFormOpen] = useState(false)
-  const [busy, setBusy] = useState(false)
+  const [searchNiche, setSearchNiche] = useState('');
+  const [searchLocation, setSearchLocation] = useState('');
+  const [searchRadius, setSearchRadius] = useState(15);
+  const [searchFormOpen, setSearchFormOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const searchReady = Boolean(searchNiche && searchLocation.trim())
-  const isAnonymous = access !== 'authenticated'
+  const searchReady = Boolean(searchNiche && searchLocation.trim());
+  const isAnonymous = access !== 'authenticated';
 
-  const businessName = clientForm.businessName || clientForm.name || ''
-  const website = clientForm.website || ''
+  const businessName = clientForm.businessName || clientForm.name || '';
+  const website = clientForm.website || '';
   // A pasted Facebook/Instagram/Yelp URL is not the business's own website.
-  const websiteHint = website.trim() ? nonOwnedWebsiteMessage(website.trim()) : null
+  const websiteHint = website.trim() ? nonOwnedWebsiteMessage(website.trim()) : null;
   const lookupForSelected = websiteLookup && selectedBusiness && websiteLookup.businessId === selectedBusiness.id
     ? websiteLookup
-    : null
-  const research = businessResearch
-  const foundSocial = foundSocialLinks({ research: research?.status === 'done' ? research.result : null, clientForm, contactSources })
-  const hasFoundSocial = Object.keys(foundSocial.links).length > 0
-  const discoveredCount = discoveredAssets.filter((asset) => !asset.rejected).length
+    : null;
+  const research = businessResearch;
+  const foundSocial = foundSocialLinks({ research: research?.status === 'done' ? research.result : null, clientForm, contactSources });
+  const hasFoundSocial = Object.keys(foundSocial.links).length > 0;
+  const discoveredCount = discoveredAssets.filter((asset) => !asset.rejected).length;
   // "Logo found" must reflect the DISCOVERED assets: a discovery run that
   // found logos reports them here, and this step is exactly where the
   // customer is told about them. Reading the asset library instead made the
   // line say "Not yet" right after a discovery that had found a logo.
   const discoveredLogos = discoveredAssets.filter(
     (asset) => !asset.rejected && asset.category === 'logo'
-  )
-  const logoCount = discoveredLogos.length
-  const cutoutIds = cutoutAssetIds(discoveredAssets)
+  );
+  const logoCount = discoveredLogos.length;
+  const cutoutIds = cutoutAssetIds(discoveredAssets);
   const selectedDiscoveredCount = discoveredAssets.filter(
     (asset) => asset.selected && !asset.rejected
-  ).length
+  ).length;
 
   const researchSummary = useMemo(() => {
-    if (!research || research.status !== 'done' || !research.result) return null
-    const result = research.result
+    if (!research || research.status !== 'done' || !research.result) return null;
+    const result = research.result;
     return {
       title: result.title || '',
       description: result.description || '',
       logoUrl: result.logoUrl || '',
-    }
-  }, [research])
+    };
+  }, [research]);
 
   const runSearch = async () => {
-    if (!searchReady || busy) return
-    setBusy(true)
+    if (!searchReady || busy) return;
+    setBusy(true);
     try {
-      await findBusinesses(searchNiche, searchLocation.trim(), searchRadius)
+      await findBusinesses(searchNiche, searchLocation.trim(), searchRadius);
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
-  }
+  };
 
   const handleWebsiteDiscovery = async () => {
-    if (!website.trim() || busy) return
-    setBusy(true)
+    if (!website.trim() || busy) return;
+    setBusy(true);
     try {
-      await runDiscoveryWorkflow(website.trim())
+      await runDiscoveryWorkflow(website.trim());
     } catch {
       /* errors surface through discoveryError / businessResearch state */
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
-  }
+  };
 
   const handleFindAssets = async () => {
-    if (!website.trim() || busy) return
-    setBusy(true)
+    if (!website.trim() || busy) return;
+    setBusy(true);
     try {
       // The full workflow (as in Advanced Editing's Find My Brand): fills the
       // business name and details, then finds and places the logo and photos.
-      await runDiscoveryWorkflow(website.trim())
+      await runDiscoveryWorkflow(website.trim());
     } catch {
       /* errors surface through discoveryError */
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
-  }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -258,7 +258,7 @@ export function StepFindBusiness({
         {businessSearchResults.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
             {businessSearchResults.slice(0, 8).map((business) => {
-              const active = selectedBusiness?.id === business.id
+              const active = selectedBusiness?.id === business.id;
               return (
                 <div key={business.id} style={{ ...softPanelStyle, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                   <div style={{ flex: 1, minWidth: 180 }}>
@@ -290,7 +290,7 @@ export function StepFindBusiness({
                     {active ? 'Selected' : 'Use this'}
                   </button>
                 </div>
-              )
+              );
             })}
           </div>
         )}
@@ -386,7 +386,7 @@ export function StepFindBusiness({
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {clients.slice(0, 6).map((client) => {
-              const active = selectedClientId === client.id
+              const active = selectedClientId === client.id;
               return (
                 <div key={client.id} style={{ ...softPanelStyle, display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 160 }}>
@@ -410,7 +410,7 @@ export function StepFindBusiness({
                     {active ? 'Using' : 'Use'}
                   </button>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
@@ -527,8 +527,8 @@ export function StepFindBusiness({
                 onRestoreAll={() => setDiscoveredAssets(discoveredAssets.map((a) => ({ ...a, rejected: false })))}
                 dropZones={SIMPLE_MODE_DROP_ZONES}
                 onDropToSection={(id, section) => {
-                  moveDiscoveredAssetToSection(id, section)
-                  void importDiscoveredAssets({ ids: [id], section })
+                  moveDiscoveredAssetToSection(id, section);
+                  void importDiscoveredAssets({ ids: [id], section });
                 }}
               />
               {discoveryStatus === 'importing' && (
@@ -572,9 +572,9 @@ export function StepFindBusiness({
                   <button
                     type="button"
                     onClick={() => {
-                      const idSet = new Set(cutoutIds)
-                      setDiscoveredAssets((prev) => prev.map((a) => (idSet.has(a.id) ? { ...a, selected: true } : a)))
-                      void importDiscoveredAssets({ ids: cutoutIds })
+                      const idSet = new Set(cutoutIds);
+                      setDiscoveredAssets((prev) => prev.map((a) => (idSet.has(a.id) ? { ...a, selected: true } : a)));
+                      void importDiscoveredAssets({ ids: cutoutIds });
                     }}
                     disabled={cutoutIds.length === 0 || discoveryStatus === 'importing'}
                     title={cutoutIds.length === 0 ? 'No cutouts are ready yet' : 'Adds every cutout to your assets. The video uses your logo and first 2 products.'}
@@ -604,5 +604,5 @@ export function StepFindBusiness({
         </div>
       )}
     </div>
-  )
+  );
 }

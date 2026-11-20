@@ -11,18 +11,18 @@
  * headline; canvas ← transparent. Sizes are canvas-relative.
  */
 
-import React from 'react'
-import { LogoSpinReveal } from '../../_upstream/rve-logo-spin-reveal/LogoSpinReveal'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { TRANSPARENT, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { rveLogoBrand, rvePx, rveRemPx, rveLogoScale } from './rveLogoShared'
+import React from 'react';
+import { LogoSpinReveal } from '../../_upstream/rve-logo-spin-reveal/LogoSpinReveal';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { TRANSPARENT, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { rveLogoBrand, rvePx, rveRemPx, rveLogoScale } from './rveLogoShared';
 
-export const RVE_LOGO_SPIN_REVEAL_ID = 'rve-logo-spin-reveal'
+export const RVE_LOGO_SPIN_REVEAL_ID = 'rve-logo-spin-reveal';
 
 export const RveLogoSpinRevealDesign: React.FC<DesignAdapterProps> = (props) => {
-  const brand = rveLogoBrand(props)
-  const k = rveLogoScale(props)
+  const brand = rveLogoBrand(props);
+  const k = rveLogoScale(props);
   return (
     <RveDesignStage designId={RVE_LOGO_SPIN_REVEAL_ID} props={props}>
       <LogoSpinReveal
@@ -46,7 +46,7 @@ export const RveLogoSpinRevealDesign: React.FC<DesignAdapterProps> = (props) => 
         taglineMarginTop={rveRemPx(props, 0.5)}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveLogoSpinRevealDesign
+export default RveLogoSpinRevealDesign;

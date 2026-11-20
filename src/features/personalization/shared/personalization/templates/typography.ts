@@ -63,37 +63,37 @@
  * below is the very same bytes, which the typography test verifies.
  */
 
-import { useEffect, useState } from 'react'
-import { useDelayRender } from 'remotion'
+import { useEffect, useState } from 'react';
+import { useDelayRender } from 'remotion';
 import {
   PERSONALIZATION_SANS_DATA_URI,
   PERSONALIZATION_SANS_FONT_BYTES,
-} from './fonts/personalizationSansDataUri'
+} from './fonts/personalizationSansDataUri';
 
 /**
  * The local CSS family alias the bundled Inter face is registered under.
  * Never "Inter" — see the module note. This is NOT the font's name: credits
  * and licence notices use `DESIGN_FONT_UPSTREAM_FAMILY`.
  */
-export const DESIGN_FONT_FAMILY = 'Personalization Sans'
+export const DESIGN_FONT_FAMILY = 'Personalization Sans';
 
 /** The bundled font's real family name, as its own `name` table records it. */
-export const DESIGN_FONT_UPSTREAM_FAMILY = 'Inter'
+export const DESIGN_FONT_UPSTREAM_FAMILY = 'Inter';
 
 /** The bundled font's version, as its own `name` table records it. */
-export const DESIGN_FONT_UPSTREAM_VERSION = '4.001'
+export const DESIGN_FONT_UPSTREAM_VERSION = '4.001';
 
 /** The licence the bundled font is distributed under. */
-export const DESIGN_FONT_LICENSE = 'SIL OFL 1.1'
+export const DESIGN_FONT_LICENSE = 'SIL OFL 1.1';
 
 /** The copyright holder named by the font (`name` ID 0) and by `OFL.txt`. */
-export const DESIGN_FONT_COPYRIGHT_HOLDER = 'The Inter Project Authors'
+export const DESIGN_FONT_COPYRIGHT_HOLDER = 'The Inter Project Authors';
 
 /** The font's copyright year (`name` ID 0) and `OFL.txt`'s first line. */
-export const DESIGN_FONT_COPYRIGHT_YEAR = '2016'
+export const DESIGN_FONT_COPYRIGHT_YEAR = '2016';
 
 /** The bundled font file, served from the app's own origin. */
-export const DESIGN_FONT_FILE = '/fonts/personalization-sans-latin.woff2'
+export const DESIGN_FONT_FILE = '/fonts/personalization-sans-latin.woff2';
 
 /**
  * The licence text that travels with the bundled typeface.
@@ -102,7 +102,7 @@ export const DESIGN_FONT_FILE = '/fonts/personalization-sans-latin.woff2'
  * copyright notice and the licence. The file ships at this path next to the
  * binary, so it is present in every deployment.
  */
-export const DESIGN_FONT_LICENSE_FILE = '/fonts/OFL.txt'
+export const DESIGN_FONT_LICENSE_FILE = '/fonts/OFL.txt';
 
 /**
  * The bundled typeface, INLINED as a base64 data URI (Phase 3 decision D1).
@@ -123,10 +123,10 @@ export const DESIGN_FONT_LICENSE_FILE = '/fonts/OFL.txt'
  * embeds the woff2 file (the decoded bytes match) and that no `http(s)://`
  * font reference survives.
  */
-export const DESIGN_FONT_DATA_URI = PERSONALIZATION_SANS_DATA_URI
+export const DESIGN_FONT_DATA_URI = PERSONALIZATION_SANS_DATA_URI;
 
 /** The byte length of the inlined font, for the integrity assertions. */
-export const DESIGN_FONT_DATA_URI_BYTES = PERSONALIZATION_SANS_FONT_BYTES
+export const DESIGN_FONT_DATA_URI_BYTES = PERSONALIZATION_SANS_FONT_BYTES;
 
 /**
  * Every font file this module depends on.
@@ -135,7 +135,7 @@ export const DESIGN_FONT_DATA_URI_BYTES = PERSONALIZATION_SANS_FONT_BYTES
  * `public/fonts/`, so a renamed or deleted asset fails CI instead of
  * silently degrading the export to a system font.
  */
-export const DESIGN_FONT_FILES: readonly string[] = [DESIGN_FONT_FILE]
+export const DESIGN_FONT_FILES: readonly string[] = [DESIGN_FONT_FILE];
 
 /**
  * The bundled typeface's copyright notice and licence, in the form the
@@ -148,7 +148,7 @@ export const DESIGN_FONT_FILES: readonly string[] = [DESIGN_FONT_FILE]
  * so the credit travels with the rendered artefact too.
  */
 export const DESIGN_FONT_ATTRIBUTION =
-  `Typeface: ${DESIGN_FONT_UPSTREAM_FAMILY} (${DESIGN_FONT_LICENSE}) © ${DESIGN_FONT_COPYRIGHT_YEAR} ${DESIGN_FONT_COPYRIGHT_HOLDER}`
+  `Typeface: ${DESIGN_FONT_UPSTREAM_FAMILY} (${DESIGN_FONT_LICENSE}) © ${DESIGN_FONT_COPYRIGHT_YEAR} ${DESIGN_FONT_COPYRIGHT_HOLDER}`;
 
 /**
  * One sentence that explains the local family alias, for licence/credits
@@ -157,7 +157,7 @@ export const DESIGN_FONT_ATTRIBUTION =
 export const DESIGN_FONT_ALIAS_NOTE =
   `"${DESIGN_FONT_FAMILY}" is the local CSS family name under which the bundled ` +
   `${DESIGN_FONT_UPSTREAM_FAMILY} ${DESIGN_FONT_UPSTREAM_VERSION} Latin subset is loaded; ` +
-  `it is not a different typeface.`
+  `it is not a different typeface.`;
 
 /**
  * The canonical font stack used by every design.
@@ -168,7 +168,7 @@ export const DESIGN_FONT_ALIAS_NOTE =
  * system faces; `sans-serif` is the CSS generic family the chain ends in, so
  * text still renders if the bundled file cannot be loaded at all.
  */
-export const DESIGN_FONT_STACK = `"${DESIGN_FONT_FAMILY}", Inter, ui-sans-serif, system-ui, sans-serif`
+export const DESIGN_FONT_STACK = `"${DESIGN_FONT_FAMILY}", Inter, ui-sans-serif, system-ui, sans-serif`;
 
 /**
  * The CSS generic families a stack may end in.
@@ -190,7 +190,7 @@ export const GENERIC_FONT_FAMILIES: readonly string[] = [
   'math',
   'emoji',
   'fangsong',
-]
+];
 
 /**
  * A named design type role.
@@ -299,32 +299,32 @@ export const DESIGN_TYPE_ROLES: Record<DesignTypeRole, DesignTypeStyle> = {
     lineHeight: 1.2,
     letterSpacing: 0.2,
   },
-}
+};
 
 /** Every declared role, in declaration order. */
-export const DESIGN_TYPE_ROLE_IDS = Object.keys(DESIGN_TYPE_ROLES) as DesignTypeRole[]
+export const DESIGN_TYPE_ROLE_IDS = Object.keys(DESIGN_TYPE_ROLES) as DesignTypeRole[];
 
 /** Type guard for a role name that came from outside the module. */
 export function isDesignTypeRole(value: unknown): value is DesignTypeRole {
-  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(DESIGN_TYPE_ROLES, value)
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(DESIGN_TYPE_ROLES, value);
 }
 
 /** The CSS `font-family` value for one role. */
 export function fontFamilyForRole(role: DesignTypeRole): string {
-  const style = DESIGN_TYPE_ROLES[role]
+  const style = DESIGN_TYPE_ROLES[role];
   if (!style) {
-    throw new Error(`[personalization] Unknown design type role "${String(role)}".`)
+    throw new Error(`[personalization] Unknown design type role "${String(role)}".`);
   }
-  return style.fontFamily
+  return style.fontFamily;
 }
 
 /** The full style record for one role. */
 export function typeStyleForRole(role: DesignTypeRole): DesignTypeStyle {
-  const style = DESIGN_TYPE_ROLES[role]
+  const style = DESIGN_TYPE_ROLES[role];
   if (!style) {
-    throw new Error(`[personalization] Unknown design type role "${String(role)}".`)
+    throw new Error(`[personalization] Unknown design type role "${String(role)}".`);
   }
-  return style
+  return style;
 }
 
 /**
@@ -349,7 +349,7 @@ export const DESIGN_FONT_FACE_CSS = `@font-face {
     U+0303-0304, U+0308-0309, U+0323, U+2002, U+2009, U+200B, U+2013-2014,
     U+2018-201A, U+201C-201E, U+2022, U+2026, U+2032-2033, U+2039-203A,
     U+2044, U+20AC, U+2122, U+2191, U+2193, U+2212, U+FEFF;
-}`
+}`;
 
 /**
  * The rule that makes the frozen upstreams use the bundled typeface.
@@ -363,15 +363,15 @@ export const DESIGN_FONT_FACE_CSS = `@font-face {
  */
 export const DESIGN_FONT_OVERRIDE_CSS = `[data-remotion-design], [data-remotion-design] * {
   font-family: ${DESIGN_FONT_STACK} !important;
-}`
+}`;
 
 /** The complete stylesheet the design layer needs. */
 export function designTypographyCss(): string {
-  return `${DESIGN_FONT_FACE_CSS}\n${DESIGN_FONT_OVERRIDE_CSS}`
+  return `${DESIGN_FONT_FACE_CSS}\n${DESIGN_FONT_OVERRIDE_CSS}`;
 }
 
 /** The id of the injected `<style>` element, so the injection is idempotent. */
-const DESIGN_TYPOGRAPHY_STYLE_ID = 'personalization-design-typography'
+const DESIGN_TYPOGRAPHY_STYLE_ID = 'personalization-design-typography';
 
 /**
  * Declares the bundled typeface and the design font override in the host
@@ -382,20 +382,20 @@ const DESIGN_TYPOGRAPHY_STYLE_ID = 'personalization-design-typography'
  * there is nothing to inject into.
  */
 export function ensureDesignTypographyCss(): boolean {
-  if (typeof document === 'undefined' || !document.head) return false
-  if (document.getElementById(DESIGN_TYPOGRAPHY_STYLE_ID)) return true
+  if (typeof document === 'undefined' || !document.head) return false;
+  if (document.getElementById(DESIGN_TYPOGRAPHY_STYLE_ID)) return true;
 
-  const style = document.createElement('style')
-  style.id = DESIGN_TYPOGRAPHY_STYLE_ID
-  style.setAttribute('data-remotion-design-typography', 'true')
-  style.appendChild(document.createTextNode(designTypographyCss()))
-  document.head.appendChild(style)
-  return true
+  const style = document.createElement('style');
+  style.id = DESIGN_TYPOGRAPHY_STYLE_ID;
+  style.setAttribute('data-remotion-design-typography', 'true');
+  style.appendChild(document.createTextNode(designTypographyCss()));
+  document.head.appendChild(style);
+  return true;
 }
 
 /** The weights the design roles use; the bundled face is variable, so one
  *  load covers all of them. */
-const DESIGN_FONT_WEIGHTS: readonly number[] = [400, 500, 700, 800, 900]
+const DESIGN_FONT_WEIGHTS: readonly number[] = [400, 500, 700, 800, 900];
 
 /** The result of a font load attempt. */
 export interface DesignFontLoadResult {
@@ -420,34 +420,34 @@ export interface DesignFontLoadResult {
  * producing an empty or half-drawn video.
  */
 export async function loadDesignFonts(): Promise<DesignFontLoadResult> {
-  ensureDesignTypographyCss()
+  ensureDesignTypographyCss();
 
   if (typeof document === 'undefined' || !document.fonts) {
-    return { loaded: false, error: 'no-document-fonts' }
+    return { loaded: false, error: 'no-document-fonts' };
   }
 
-  const family = `"${DESIGN_FONT_FAMILY}"`
-  const sample = 'ABCabc123 0123456789'
+  const family = `"${DESIGN_FONT_FAMILY}"`;
+  const sample = 'ABCabc123 0123456789';
 
   try {
     const results = await Promise.all(
       DESIGN_FONT_WEIGHTS.map((weight) =>
         document.fonts.load(`${weight} 16px ${family}`, sample),
       ),
-    )
-    const loaded = results.some((faces) => Array.isArray(faces) && faces.length > 0)
+    );
+    const loaded = results.some((faces) => Array.isArray(faces) && faces.length > 0);
     if (!loaded) {
-      return { loaded: false, error: 'font-face-not-matched' }
+      return { loaded: false, error: 'font-face-not-matched' };
     }
     // `document.fonts.ready` settles once no font load is pending, so a
     // second face cannot still be swapping in when the frame is captured.
-    await document.fonts.ready
-    return { loaded: true, error: null }
+    await document.fonts.ready;
+    return { loaded: true, error: null };
   } catch (error) {
     return {
       loaded: false,
       error: error instanceof Error ? error.message : String(error),
-    }
+    };
   }
 }
 
@@ -465,40 +465,40 @@ export async function loadDesignFonts(): Promise<DesignFontLoadResult> {
  * a stalled one.
  */
 export function useDesignFonts(): void {
-  const { delayRender, continueRender } = useDelayRender()
-  const [handle] = useState(() => delayRender('Loading the bundled design font'))
+  const { delayRender, continueRender } = useDelayRender();
+  const [handle] = useState(() => delayRender('Loading the bundled design font'));
 
   useEffect(() => {
-    let settled = false
+    let settled = false;
     const finish = () => {
-      if (settled) return
-      settled = true
-      continueRender(handle)
-    }
+      if (settled) return;
+      settled = true;
+      continueRender(handle);
+    };
 
     loadDesignFonts()
       .then((result) => {
-        if (result.loaded) return
+        if (result.loaded) return;
         console.warn(
           `[personalization] The bundled design font "${DESIGN_FONT_FAMILY}" could not be loaded ` +
             `(${result.error ?? 'unknown error'}). The designs fall back to the next family in the ` +
             `stack, so the export may differ from the preview.`,
-        )
+        );
       })
       .catch((error) => {
         console.warn(
           `[personalization] The bundled design font "${DESIGN_FONT_FAMILY}" could not be loaded: ${
             error instanceof Error ? error.message : String(error)
           }. The designs fall back to the next family in the stack.`,
-        )
+        );
       })
-      .then(finish, finish)
+      .then(finish, finish);
 
-    return finish
-  }, [handle, continueRender, delayRender])
+    return finish;
+  }, [handle, continueRender, delayRender]);
 }
 
 // Declaring the typeface as soon as the module is loaded keeps the first
 // painted frame from ever using a fallback face. It is a no-op on the
 // server, where there is no document to inject into.
-ensureDesignTypographyCss()
+ensureDesignTypographyCss();

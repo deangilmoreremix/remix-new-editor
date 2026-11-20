@@ -46,11 +46,13 @@ export function resolveFloorOrientation(set: FloorSet): THREE.Quaternion {
 export function encodeFloor(plane: THREE.Plane, set: FloorSet, origin?: THREE.Vector3, size?: number, orientation?: THREE.Quaternion): SetFloorPlane {
   const inverse = scanMatrix(set).invert();
   const local = plane.clone().applyMatrix4(inverse).normalize();
-  return { normal: local.normal.toArray(), constant: local.constant,
+  return {
+ normal: local.normal.toArray(), constant: local.constant,
     ...(orientation ? { xAxis: new THREE.Vector3(1, 0, 0).applyQuaternion(orientation).transformDirection(inverse).toArray() }
       : set.floorPlane?.xAxis ? { xAxis: set.floorPlane.xAxis } : {}),
     ...(size !== undefined ? { size: size / (set.scaleToMeters > 0 ? set.scaleToMeters : 1) } : {}),
-    ...(origin ? { origin: plane.projectPoint(origin, new THREE.Vector3()).applyMatrix4(inverse).toArray() } : {}) };
+    ...(origin ? { origin: plane.projectPoint(origin, new THREE.Vector3()).applyMatrix4(inverse).toArray() } : {}) 
+};
 }
 
 export function floorHeightAt(plane: THREE.Plane, x: number, z: number): number {
@@ -76,8 +78,10 @@ export function floorFromControls(height: number, pitch: number, roll: number): 
 }
 
 export function floorControls(plane: THREE.Plane) {
-  return { height: floorHeightAt(plane, 0, 0), pitch: THREE.MathUtils.radToDeg(Math.atan2(plane.normal.z, plane.normal.y)),
-    roll: THREE.MathUtils.radToDeg(Math.atan2(-plane.normal.x, plane.normal.y)) };
+  return {
+ height: floorHeightAt(plane, 0, 0), pitch: THREE.MathUtils.radToDeg(Math.atan2(plane.normal.z, plane.normal.y)),
+    roll: THREE.MathUtils.radToDeg(Math.atan2(-plane.normal.x, plane.normal.y)) 
+};
 }
 
 export function sampleFloorPoints(splat: SplatMesh | null, limit = 12000): THREE.Vector3[] {

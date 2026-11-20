@@ -35,11 +35,11 @@
  * caption track always ends within `BRITO_CAPTIONED_SHORT_FRAMES` (300).
  */
 
-import React from 'react'
+import React from 'react';
 import {
   CaptionedShort,
   type CaptionWord,
-} from '../../_upstream/brito-captioned-short/CaptionedShort'
+} from '../../_upstream/brito-captioned-short/CaptionedShort';
 import {
   TRANSPARENT,
   pickColor,
@@ -47,20 +47,20 @@ import {
   slotValue,
   truncateText,
   type DesignAdapterProps,
-} from '../shared'
-import { BritoDesignStage, britoFitChars, britoRootBackgroundCss } from './britoShared'
+} from '../shared';
+import { BritoDesignStage, britoFitChars, britoRootBackgroundCss } from './britoShared';
 
-export const BRITO_CAPTIONED_SHORT_ID = 'brito-captioned-short'
+export const BRITO_CAPTIONED_SHORT_ID = 'brito-captioned-short';
 
 /** At most this many caption words are built from the brand copy. */
-export const BRITO_CAPTION_MAX_WORDS = 16
+export const BRITO_CAPTION_MAX_WORDS = 16;
 
 /** The design's fixed length (the 16-word track ends well before it). */
-export const BRITO_CAPTIONED_SHORT_FRAMES = 300
+export const BRITO_CAPTIONED_SHORT_FRAMES = 300;
 
-const FIRST_WORD_MS = 200
-const WORD_GAP_MS = 40
-const SENTENCE_PAUSE_MS = 140
+const FIRST_WORD_MS = 200;
+const WORD_GAP_MS = 40;
+const SENTENCE_PAUSE_MS = 140;
 
 /**
  * Turns brand sentences into word-timed captions in the upstream's
@@ -71,38 +71,38 @@ export function britoBrandCaptions(
   maxWordChars: number,
   maxWords = BRITO_CAPTION_MAX_WORDS,
 ): CaptionWord[] {
-  const captions: CaptionWord[] = []
-  let cursor = FIRST_WORD_MS
+  const captions: CaptionWord[] = [];
+  let cursor = FIRST_WORD_MS;
   for (const sentence of sentences) {
-    const words = (sentence || '').trim().split(/\s+/).filter(Boolean)
-    if (words.length === 0) continue
-    if (captions.length > 0) cursor += SENTENCE_PAUSE_MS
+    const words = (sentence || '').trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) continue;
+    if (captions.length > 0) cursor += SENTENCE_PAUSE_MS;
     for (const raw of words) {
-      if (captions.length >= maxWords) return captions
-      const word = truncateText(raw, maxWordChars)
-      const duration = Math.max(300, Math.min(700, 240 + 45 * word.length))
-      captions.push({ word, startMs: cursor, endMs: cursor + duration })
-      cursor += duration + WORD_GAP_MS
+      if (captions.length >= maxWords) return captions;
+      const word = truncateText(raw, maxWordChars);
+      const duration = Math.max(300, Math.min(700, 240 + 45 * word.length));
+      captions.push({ word, startMs: cursor, endMs: cursor + duration });
+      cursor += duration + WORD_GAP_MS;
     }
   }
-  return captions
+  return captions;
 }
 
 export const BritoCaptionedShortDesign: React.FC<DesignAdapterProps> = (props) => {
   // SHORT_SAFE_AREA.horizontal is 6 % each side.
-  const safeWidth = props.width * 0.88
-  const maxWordChars = britoFitChars(safeWidth, 118, 16, 0.64)
+  const safeWidth = props.width * 0.88;
+  const maxWordChars = britoFitChars(safeWidth, 118, 16, 0.64);
   const sentences = [
     slotText(props, 'headline'),
     slotValue(props, 'offer'),
     slotValue(props, 'cta'),
-  ]
-  let captions = britoBrandCaptions(sentences, maxWordChars)
+  ];
+  let captions = britoBrandCaptions(sentences, maxWordChars);
   if (captions.length === 0) {
-    captions = britoBrandCaptions([slotValue(props, 'businessName')], maxWordChars)
+    captions = britoBrandCaptions([slotValue(props, 'businessName')], maxWordChars);
   }
 
-  const title = truncateText(slotValue(props, 'title'), britoFitChars(props.width * 0.9, 40, 44, 0.7))
+  const title = truncateText(slotValue(props, 'title'), britoFitChars(props.width * 0.9, 40, 44, 0.7));
 
   return (
     <BritoDesignStage
@@ -120,7 +120,7 @@ export const BritoCaptionedShortDesign: React.FC<DesignAdapterProps> = (props) =
         wordsPerGroup={3}
       />
     </BritoDesignStage>
-  )
-}
+  );
+};
 
-export default BritoCaptionedShortDesign
+export default BritoCaptionedShortDesign;

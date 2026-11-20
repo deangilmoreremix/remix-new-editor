@@ -74,8 +74,10 @@ const SOURCE_NOTE: Record<MediaSource, string> = {
 function Pill({ on, glyph, text, count, onClick, testId, title, role = 'tab', size = 'md' }: { on: boolean; glyph: string; text: string; count?: number; onClick: () => void; testId?: string; title?: string; role?: string; size?: 'md' | 'lg' }) {
   return (
     <button role={role} aria-selected={role === 'tab' ? on : undefined} aria-pressed={role === 'tab' ? undefined : on} data-testid={testId} title={title} onClick={onClick}
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: size === 'lg' ? '10px 16px' : '8px 12px', borderRadius: 999, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
-        border: `1px solid ${on ? 'var(--accent)' : 'var(--border-medium)'}`, color: on ? 'var(--accent)' : 'inherit', background: on ? 'var(--accent-dim)' : 'var(--bg-elevated)' }}>
+      style={{
+ display: 'inline-flex', alignItems: 'center', gap: 8, padding: size === 'lg' ? '10px 16px' : '8px 12px', borderRadius: 999, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
+        border: `1px solid ${on ? 'var(--accent)' : 'var(--border-medium)'}`, color: on ? 'var(--accent)' : 'inherit', background: on ? 'var(--accent-dim)' : 'var(--bg-elevated)' 
+}}>
       <span aria-hidden style={{ opacity: on ? 1 : 0.8, fontSize: 12 }}>{glyph}{'\uFE0E'}</span>{text}
       {count !== undefined && (
         <span style={{ minWidth: 22, height: 20, padding: '0 6px', borderRadius: 999, boxSizing: 'border-box', display: 'inline-grid', placeItems: 'center', fontSize: 11, background: on ? 'var(--accent-dim)' : 'var(--bg-overlay)' }}>{count}</span>

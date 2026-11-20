@@ -72,8 +72,10 @@ describe('lip-synced greeting', () => {
       if (lipSync.mock.calls.length === 1) { signal.addEventListener('abort', () => { running -= 1; reject(new Error('aborted')); }); return; } // never finishes
       setTimeout(() => { running -= 1; resolve({ url: `https://ls/${audio_url.split('/').pop()}` }); }, 5);
     }));
-    const out = await lipsyncContacts({ draft: ready(), variants: many, upload: async (f) => `https://store/${f.name}`, lipSync, timeoutMs: 40,
-      deps: { cutIntro: async () => new Blob(['v']), padAudio: async () => new Blob(['a']), copyClip: async (u) => u } });
+    const out = await lipsyncContacts({
+ draft: ready(), variants: many, upload: async (f) => `https://store/${f.name}`, lipSync, timeoutMs: 40,
+      deps: { cutIntro: async () => new Blob(['v']), padAudio: async () => new Blob(['a']), copyClip: async (u) => u } 
+});
     expect(peak).toBe(3);
     expect(out.failed).toEqual(['k0']);
     expect(out.errors.k0).toBe('Lip-sync took too long');
@@ -82,8 +84,10 @@ describe('lip-synced greeting', () => {
   it('stops everything when Generate is stopped', async () => {
     const ctrl = new AbortController();
     const lipSync = vi.fn(({ signal }) => new Promise((_, reject) => { signal.addEventListener('abort', () => reject(new Error('x'))); ctrl.abort(); }));
-    await expect(lipsyncContacts({ draft: ready(), variants, upload: async (f) => f.name, lipSync, signal: ctrl.signal,
-      deps: { cutIntro: async () => new Blob(['v']), padAudio: async () => new Blob(['a']) } })).rejects.toMatchObject({ name: 'AbortError' });
+    await expect(lipsyncContacts({
+ draft: ready(), variants, upload: async (f) => f.name, lipSync, signal: ctrl.signal,
+      deps: { cutIntro: async () => new Blob(['v']), padAudio: async () => new Blob(['a']) } 
+})).rejects.toMatchObject({ name: 'AbortError' });
   });
 
   it('copies a finished clip into our storage', async () => {

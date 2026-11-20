@@ -22,24 +22,24 @@
  * remote/upstream URL — the upstream unsplash/pexels defaults survive only as
  * documented defaults of the edited copies.
  */
-import type { RemotionDesignMediaBinding, RemotionDesignTemplate } from '../../types'
-import { RVE_ATTRIBUTION } from '../rveSharedDesign'
-import { RveGalleryGridDesign } from './GalleryGridDesign'
-import { RveImageCarouselDesign } from './ImageCarouselDesign'
-import { RveImageComparisonSliderDesign } from './ImageComparisonSliderDesign'
-import { RveImageZoomRevealDesign } from './ImageZoomRevealDesign'
-import { RveKenBurnsDesign } from './KenBurnsDesign'
-import { RveMasonryGalleryDesign } from './MasonryGalleryDesign'
-import { RvePhotoStackDesign } from './PhotoStackDesign'
-import { RvePictureInPictureDesign } from './PictureInPictureDesign'
-import { RvePolaroidFrameDesign } from './PolaroidFrameDesign'
-import { RveRotatingCarouselDesign } from './RotatingCarouselDesign'
-import { RveZoomPulseDesign } from './ZoomPulseDesign'
-import { RveLiquidWaveDesign } from './LiquidWaveDesign'
-import { RveMatrixRainDesign } from './MatrixRainDesign'
-import { RveParticleExplosionDesign } from './ParticleExplosionDesign'
+import type { RemotionDesignMediaBinding, RemotionDesignTemplate } from '../../types';
+import { RVE_ATTRIBUTION } from '../rveSharedDesign';
+import { RveGalleryGridDesign } from './GalleryGridDesign';
+import { RveImageCarouselDesign } from './ImageCarouselDesign';
+import { RveImageComparisonSliderDesign } from './ImageComparisonSliderDesign';
+import { RveImageZoomRevealDesign } from './ImageZoomRevealDesign';
+import { RveKenBurnsDesign } from './KenBurnsDesign';
+import { RveMasonryGalleryDesign } from './MasonryGalleryDesign';
+import { RvePhotoStackDesign } from './PhotoStackDesign';
+import { RvePictureInPictureDesign } from './PictureInPictureDesign';
+import { RvePolaroidFrameDesign } from './PolaroidFrameDesign';
+import { RveRotatingCarouselDesign } from './RotatingCarouselDesign';
+import { RveZoomPulseDesign } from './ZoomPulseDesign';
+import { RveLiquidWaveDesign } from './LiquidWaveDesign';
+import { RveMatrixRainDesign } from './MatrixRainDesign';
+import { RveParticleExplosionDesign } from './ParticleExplosionDesign';
 
-const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5']
+const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5'];
 
 function rveSource(slug: string): RemotionDesignTemplate['source'] {
   return {
@@ -48,7 +48,7 @@ function rveSource(slug: string): RemotionDesignTemplate['source'] {
     sourcePath: `templates/${slug}.tsx`,
     license: 'MIT',
     attribution: RVE_ATTRIBUTION,
-  }
+  };
 }
 
 /** Every image design accepts all three brand media roles, none required. */
@@ -56,28 +56,28 @@ const BRAND_MEDIA: RemotionDesignMediaBinding[] = [
   { role: 'product', label: 'Product photo', required: false },
   { role: 'service', label: 'Service photo', required: false },
   { role: 'logo', label: 'Logo', required: false },
-]
+];
 
 const FULL_SCENE_NOTE =
   'Full-scene intro card: it paints a brand-tinted background over the whole frame and ends at ' +
-  'placement.endFrame, then the customer video shows. '
+  'placement.endFrame, then the customer video shows. ';
 const MEDIA_NOTE =
   'Image slots use the brand product, service and logo images (cycled); with no brand media they ' +
   'render brand-gradient placeholder tiles with the business name — never a remote URL. Brand images ' +
-  'render through Remotion <Img>, which holds the frame until the image has loaded. '
+  'render through Remotion <Img>, which holds the frame until the image has loaded. ';
 const C8_NOTE =
   'The upstream copy is an edited C8 copy (every literal is now a prop); fixed px/rem sizes are ' +
-  'rescaled from the composition short edge so 9:16, 1:1 and 4:5 match 16:9.'
+  'rescaled from the composition short edge so 9:16, 1:1 and 4:5 match 16:9.';
 
 const BUSINESS_NAME_SLOT = {
   key: 'businessName',
   field: 'businessName' as const,
   label: 'Business name',
   primary: true,
-}
+};
 
 function fullScenePlacement(endFrame: number): RemotionDesignTemplate['placement'] {
-  return { x: 0.5, y: 0.5, scale: 1, opacity: 1, animation: 'none', endFrame }
+  return { x: 0.5, y: 0.5, scale: 1, opacity: 1, animation: 'none', endFrame };
 }
 
 const OVERLAY_PLACEMENT: RemotionDesignTemplate['placement'] = {
@@ -86,7 +86,7 @@ const OVERLAY_PLACEMENT: RemotionDesignTemplate['placement'] = {
   scale: 1,
   opacity: 1,
   animation: 'none',
-}
+};
 
 /* -------------------------------------------------------------------------- */
 /* Full-scene                                                                  */
@@ -124,7 +124,7 @@ export const rveGalleryGridTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rveImageCarouselTemplate: RemotionDesignTemplate = {
   id: 'rve-image-carousel',
@@ -163,7 +163,7 @@ export const rveImageCarouselTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rveImageComparisonSliderTemplate: RemotionDesignTemplate = {
   id: 'rve-image-comparison-slider',
@@ -198,7 +198,7 @@ export const rveImageComparisonSliderTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rveImageZoomRevealTemplate: RemotionDesignTemplate = {
   id: 'rve-image-zoom-reveal',
@@ -233,7 +233,7 @@ export const rveImageZoomRevealTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rveKenBurnsTemplate: RemotionDesignTemplate = {
   id: 'rve-ken-burns',
@@ -269,7 +269,7 @@ export const rveKenBurnsTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rveMasonryGalleryTemplate: RemotionDesignTemplate = {
   id: 'rve-masonry-gallery',
@@ -303,7 +303,7 @@ export const rveMasonryGalleryTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rvePhotoStackTemplate: RemotionDesignTemplate = {
   id: 'rve-photo-stack',
@@ -341,7 +341,7 @@ export const rvePhotoStackTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rveRotatingCarouselTemplate: RemotionDesignTemplate = {
   id: 'rve-rotating-carousel',
@@ -382,7 +382,7 @@ export const rveRotatingCarouselTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rveZoomPulseTemplate: RemotionDesignTemplate = {
   id: 'rve-zoom-pulse',
@@ -417,7 +417,7 @@ export const rveZoomPulseTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 /* -------------------------------------------------------------------------- */
 /* Overlays                                                                    */
@@ -455,7 +455,7 @@ export const rvePictureInPictureTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rvePolaroidFrameTemplate: RemotionDesignTemplate = {
   id: 'rve-polaroid-frame',
@@ -489,7 +489,7 @@ export const rvePolaroidFrameTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rveLiquidWaveTemplate: RemotionDesignTemplate = {
   id: 'rve-liquid-wave',
@@ -523,7 +523,7 @@ export const rveLiquidWaveTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rveMatrixRainTemplate: RemotionDesignTemplate = {
   id: 'rve-matrix-rain',
@@ -556,7 +556,7 @@ export const rveMatrixRainTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 export const rveParticleExplosionTemplate: RemotionDesignTemplate = {
   id: 'rve-particle-explosion',
@@ -590,7 +590,7 @@ export const rveParticleExplosionTemplate: RemotionDesignTemplate = {
       C8_NOTE,
   },
   previewCompatible: true,
-}
+};
 
 /** Batch 3h designs, in registration order. */
 export const BATCH_3H_TEMPLATES: RemotionDesignTemplate[] = [
@@ -608,7 +608,7 @@ export const BATCH_3H_TEMPLATES: RemotionDesignTemplate[] = [
   rveLiquidWaveTemplate,
   rveMatrixRainTemplate,
   rveParticleExplosionTemplate,
-]
+];
 
 /**
  * Batch 3h designs that hardcode SVG ids (one instance per composition).
@@ -618,4 +618,4 @@ export const BATCH_3H_TEMPLATES: RemotionDesignTemplate[] = [
  * the id as a prop which the adapter fills with a per-instance `useId()`
  * value — so no batch-3h design renders a fixed id.
  */
-export const BATCH_3H_FIXED_SVG_IDS: Record<string, string[]> = {}
+export const BATCH_3H_FIXED_SVG_IDS: Record<string, string[]> = {};

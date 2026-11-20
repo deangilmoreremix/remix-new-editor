@@ -5,9 +5,15 @@ import { render, screen, waitFor, fireEvent, within, cleanup } from '@testing-li
 import AnalyticsTabView from '../AnalyticsTabView.jsx';
 
 const NOW = new Date('2026-11-11T15:30:00Z');
-const VIDEO = { id: 'abcdefgh12', title: 'Kitchen', published: true, slug: 'kitchen-renovation', revision: 2, updated_at: 'x',
-  project: { timelineSeconds: 150, tracks: [{ type: 'video', items: [
-    { id: 'a', name: 'Kitchen Designs', left: 0, width: 30 }, { id: 'b', name: 'Cabinet Upgrades', left: 30, width: 33 }, { id: 'c', name: 'Pricing and Estimates', left: 63, width: 37 }] }] } };
+const VIDEO = {
+ id: 'abcdefgh12', title: 'Kitchen', published: true, slug: 'kitchen-renovation', revision: 2, updated_at: 'x',
+  project: {
+ timelineSeconds: 150, tracks: [{
+ type: 'video', items: [
+    { id: 'a', name: 'Kitchen Designs', left: 0, width: 30 }, { id: 'b', name: 'Cabinet Upgrades', left: 30, width: 33 }, { id: 'c', name: 'Pricing and Estimates', left: 63, width: 37 }] 
+}] 
+} 
+};
 const ROW = { id: 'proj-1', name: 'Kitchen Renovation Promo', thumbnail_url: 'https://cdn.example/thumb.png' };
 
 const SUMMARY = { page_visits: 60, plays: 48, sessions: 48, unique_viewers: 31, completion_rate: 0.5625, avg_watch_seconds: 77, cta_clicks: 6, call_clicks: 2, leads: 5 };
@@ -23,9 +29,11 @@ function makeClient({ video = VIDEO, rpcs = defaults(), notes = [], fail = null 
   const calls = [];
   const chain = (table) => {
     const f = [];
-    const api = { select: () => api, eq: (c, v) => { f.push([c, v]); return api; }, gte: () => api, lt: () => api, order: () => api, limit: () => api,
+    const api = {
+ select: () => api, eq: (c, v) => { f.push([c, v]); return api; }, gte: () => api, lt: () => api, order: () => api, limit: () => api,
       maybeSingle: async () => ({ data: table === 'published_videos' ? video : { business_slug: 'example' }, error: null }),
-      then: (res, rej) => Promise.resolve({ data: notes, error: null }).then(res, rej) };
+      then: (res, rej) => Promise.resolve({ data: notes, error: null }).then(res, rej) 
+};
     return api;
   };
   return { calls, from: chain, rpc: async (name, args) => { calls.push([name, args]); if (fail) return { data: null, error: { message: fail } }; return { data: rpcs[name] ?? null, error: null }; } };
@@ -72,8 +80,10 @@ describe('Analytics tab: states', () => {
   });
 
   it('says so when no tracking data exists, with real zeros and "—" for undefined rates', async () => {
-    const rpcs = { ...defaults(), video_analytics_summary: { page_visits: 0, plays: 0, unique_viewers: 0, completion_rate: null, avg_watch_seconds: null, cta_clicks: 0, call_clicks: 0, leads: 0 },
-      video_analytics_timeseries: [{ day: '2026-11-11', plays: 0 }], video_retention_curve: [], video_cta_performance: [] };
+    const rpcs = {
+ ...defaults(), video_analytics_summary: { page_visits: 0, plays: 0, unique_viewers: 0, completion_rate: null, avg_watch_seconds: null, cta_clicks: 0, call_clicks: 0, leads: 0 },
+      video_analytics_timeseries: [{ day: '2026-11-11', plays: 0 }], video_retention_curve: [], video_cta_performance: [] 
+};
     view({ client: makeClient({ rpcs }), initialPeriod: 'today' });
     await screen.findByText(/No viewing data has been collected/);
     const stat = (label) => screen.getByText(label).closest('.sv-stat').querySelector('.sv-stat-value').textContent;

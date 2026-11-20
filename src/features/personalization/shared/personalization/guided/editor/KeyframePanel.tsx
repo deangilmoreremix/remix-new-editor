@@ -1,12 +1,12 @@
-import { Diamond, Trash2 } from 'lucide-react'
-import { C, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from '../tokens'
-import { Tip } from './Tip'
-import { layerSpan } from './timeline'
+import { Diamond, Trash2 } from 'lucide-react';
+import { C, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from '../tokens';
+import { Tip } from './Tip';
+import { layerSpan } from './timeline';
 import {
   KEYFRAME_EASINGS, KEYFRAME_PRESETS, MAX_KEYFRAMES, NEUTRAL_KEYFRAME_STATE, clampChannel, removeKeyframe, snapshotKeyframe, upsertKeyframe,
   type KeyframeChannel, type KeyframeEasing, type LayerKeyframe,
-} from '../../preview/keyframes'
-import type { PreviewLayer } from '../../preview/types'
+} from '../../preview/keyframes';
+import type { PreviewLayer } from '../../preview/types';
 
 const CHANNELS: { id: KeyframeChannel; label: string; unit: string; scale: number; step: number }[] = [
   { id: 'dx', label: 'Move across', unit: '%', scale: 100, step: 1 },
@@ -14,7 +14,7 @@ const CHANNELS: { id: KeyframeChannel; label: string; unit: string; scale: numbe
   { id: 'scale', label: 'Size', unit: '%', scale: 100, step: 5 },
   { id: 'opacity', label: 'Fade', unit: '%', scale: 100, step: 5 },
   { id: 'rotation', label: 'Tilt', unit: '°', scale: 1, step: 1 },
-]
+];
 
 /**
  * Keyframes for one layer: add one at the playhead, edit its values, choose how the layer travels to the next one, or
@@ -30,19 +30,19 @@ export function KeyframePanel({
   onChange: (keyframes: LayerKeyframe[] | undefined) => void
   onSeek?: (frame: number) => void
 }): React.JSX.Element {
-  const list = layer.keyframes ?? []
-  const secs = (f: number) => `${(f / Math.max(1, fps)).toFixed(1)} s`
+  const list = layer.keyframes ?? [];
+  const secs = (f: number) => `${(f / Math.max(1, fps)).toFixed(1)} s`;
   const setChannel = (frame: number, channel: KeyframeChannel, raw: number, scale: number) => {
-    const current = list.find((k) => k.frame === frame)
-    if (!current || !Number.isFinite(raw)) return
-    onChange(upsertKeyframe(list, { ...current, [channel]: clampChannel(channel, raw / scale) }))
-  }
+    const current = list.find((k) => k.frame === frame);
+    if (!current || !Number.isFinite(raw)) return;
+    onChange(upsertKeyframe(list, { ...current, [channel]: clampChannel(channel, raw / scale) }));
+  };
   const setEasing = (frame: number, easing: KeyframeEasing) => {
-    const current = list.find((k) => k.frame === frame)
-    if (current) onChange(upsertKeyframe(list, { ...current, easing }))
-  }
-  const atPlayhead = Math.round(playFrame)
-  const hasHere = list.some((k) => k.frame === atPlayhead)
+    const current = list.find((k) => k.frame === frame);
+    if (current) onChange(upsertKeyframe(list, { ...current, easing }));
+  };
+  const atPlayhead = Math.round(playFrame);
+  const hasHere = list.some((k) => k.frame === atPlayhead);
 
   return (
     <div data-testid="keyframe-panel" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -66,10 +66,10 @@ export function KeyframePanel({
             aria-label="Start from a motion"
             value=""
             onChange={(e) => {
-              const preset = KEYFRAME_PRESETS.find((p) => p.id === e.target.value)
-              if (!preset) return
-              const { start, end } = layerSpan(layer, durationInFrames)
-              onChange(preset.build(start, Math.max(6, end - start)).map((k) => ({ ...k, frame: Math.min(k.frame, durationInFrames - 1) })))
+              const preset = KEYFRAME_PRESETS.find((p) => p.id === e.target.value);
+              if (!preset) return;
+              const { start, end } = layerSpan(layer, durationInFrames);
+              onChange(preset.build(start, Math.max(6, end - start)).map((k) => ({ ...k, frame: Math.min(k.frame, durationInFrames - 1) })));
             }}
             style={{ ...inputStyle, minHeight: 28, width: 'auto', fontSize: 11 }}
           >
@@ -113,7 +113,7 @@ export function KeyframePanel({
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 6 }}>
                 {CHANNELS.map((c) => {
-                  const value = (k[c.id] ?? NEUTRAL_KEYFRAME_STATE[c.id]) * c.scale
+                  const value = (k[c.id] ?? NEUTRAL_KEYFRAME_STATE[c.id]) * c.scale;
                   return (
                     <label key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 9, color: C.muted2 }}>
                       {c.label}
@@ -123,11 +123,11 @@ export function KeyframePanel({
                         aria-label={`${c.label} (${c.unit}) at ${secs(k.frame)}`}
                         step={c.step}
                         value={Math.round(value * 100) / 100}
-                        onChange={(e) => { if (e.target.value.trim() !== '') setChannel(k.frame, c.id, Number(e.target.value), c.scale) }}
+                        onChange={(e) => { if (e.target.value.trim() !== '') setChannel(k.frame, c.id, Number(e.target.value), c.scale); }}
                         style={{ ...inputStyle, minHeight: 26, padding: '0 6px', fontSize: 11 }}
                       />
                     </label>
-                  )
+                  );
                 })}
               </div>
             </li>
@@ -135,5 +135,5 @@ export function KeyframePanel({
         </ul>
       )}
     </div>
-  )
+  );
 }

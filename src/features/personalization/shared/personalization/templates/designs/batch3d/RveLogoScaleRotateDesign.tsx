@@ -11,18 +11,18 @@
  * name; canvas ← transparent. Sizes are canvas-relative.
  */
 
-import React from 'react'
-import { LogoScaleRotate } from '../../_upstream/rve-logo-scale-rotate/LogoScaleRotate'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { TRANSPARENT, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { rveLogoBrand, rvePx, rveRemPx, rveLogoScale } from './rveLogoShared'
+import React from 'react';
+import { LogoScaleRotate } from '../../_upstream/rve-logo-scale-rotate/LogoScaleRotate';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { TRANSPARENT, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { rveLogoBrand, rvePx, rveRemPx, rveLogoScale } from './rveLogoShared';
 
-export const RVE_LOGO_SCALE_ROTATE_ID = 'rve-logo-scale-rotate'
+export const RVE_LOGO_SCALE_ROTATE_ID = 'rve-logo-scale-rotate';
 
 export const RveLogoScaleRotateDesign: React.FC<DesignAdapterProps> = (props) => {
-  const brand = rveLogoBrand(props)
-  const k = rveLogoScale(props)
+  const brand = rveLogoBrand(props);
+  const k = rveLogoScale(props);
   return (
     <RveDesignStage designId={RVE_LOGO_SCALE_ROTATE_ID} props={props}>
       <LogoScaleRotate
@@ -41,7 +41,7 @@ export const RveLogoScaleRotateDesign: React.FC<DesignAdapterProps> = (props) =>
         companyNameMarginTop={rveRemPx(props, 1.5)}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveLogoScaleRotateDesign
+export default RveLogoScaleRotateDesign;

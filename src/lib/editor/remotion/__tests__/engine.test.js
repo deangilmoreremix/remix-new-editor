@@ -18,20 +18,24 @@ function sampleState() {
   return {
     timelineSeconds: T,
     tracks: [
-      { id: 'v', type: 'video', name: 'Main Video', items: [
+      {
+ id: 'v', type: 'video', name: 'Main Video', items: [
         at({ id: 'a', type: 'video', src: 'https://cdn.test/a.mp4', volume: 0.5 }, 0, 10),
         at({ id: 'b', type: 'image', src: 'https://cdn.test/b.jpg', fit: 'contain' }, 10, 20),
         at({ id: 'placeholder', type: 'video' }, 20, 25),
-      ] },
+      ] 
+},
       { id: 'au', type: 'audio', name: 'VO', muted: true, items: [at({ id: 'vo', type: 'audio', src: 'https://cdn.test/vo.mp3' }, 0, 20)] },
-      { id: 'tx', type: 'text', name: 'Text', items: [
+      {
+ id: 'tx', type: 'text', name: 'Text', items: [
         overlay('overlay-text', 2, 6, { text: 'Hi {{firstName}}' }),
         overlay('overlay-lower-third', 3, 8, { name: '{{firstName}} Lee' }),
         overlay('overlay-video-transition', 9.5, 10.5, { transition: 'wipeLeft' }),
         overlay('addon-pause', 4, 5),
         overlay('lead-form', 12, 15),
         at({ id: 'title', type: 'text', heading: 'Welcome', body: '' }, 20, 22),
-      ] },
+      ] 
+},
     ],
   };
 }

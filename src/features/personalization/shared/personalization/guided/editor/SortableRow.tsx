@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import { GripVertical } from 'lucide-react'
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { C } from '../tokens'
-import { Tip } from './Tip'
+import { GripVertical } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { C } from '../tokens';
+import { Tip } from './Tip';
 
 /**
  * One row of the layers list with a drag handle. The handle is the only drag activator, so the row
@@ -12,7 +12,7 @@ import { Tip } from './Tip'
  * Space to pick up, arrow keys to move, Space to drop, Esc to cancel (dnd-kit's keyboard sensor).
  */
 export function SortableRow({ id, label, children }: { id: string; label: string; children: React.ReactNode }): React.JSX.Element {
-  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id })
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id });
   return (
     <div
       ref={setNodeRef}
@@ -44,5 +44,5 @@ export function SortableRow({ id, label, children }: { id: string; label: string
       </Tip>
       <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
     </div>
-  )
+  );
 }

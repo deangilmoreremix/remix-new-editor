@@ -1,30 +1,30 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Captions as CaptionsIcon, Copy, Download, Trash2 } from 'lucide-react'
-import { captionsToAss } from '../captions/captionAss'
-import { clockLabel, cuesToSrt, cuesToText, cuesToVtt } from '../captions/captionCues'
-import { studioToCues } from '../captions/studioCaptions'
-import { LANGUAGES } from '../captions/scripts'
-import { transcriptText } from '../captions/textTools'
-import { CAPITE_CAPTION_STYLES, CAPITE_CATEGORIES, capiteStyleById } from '../captions/capiteStyles'
-import { CAPTION_POSITIONS, CAPTION_STYLES } from '../captions/captionStyle'
-import { useCaptions } from '../captions/useCaptions'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { LocalAINotice } from './LocalAINotice'
-import { SavedStylesBar } from './SavedStylesBar'
-import { applyCaptionStyle, captureCaptionStyle } from '../preview/textStyles'
-import { C, chipStyle, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from './tokens'
+import { useState } from 'react';
+import { Captions as CaptionsIcon, Copy, Download, Trash2 } from 'lucide-react';
+import { captionsToAss } from '../captions/captionAss';
+import { clockLabel, cuesToSrt, cuesToText, cuesToVtt } from '../captions/captionCues';
+import { studioToCues } from '../captions/studioCaptions';
+import { LANGUAGES } from '../captions/scripts';
+import { transcriptText } from '../captions/textTools';
+import { CAPITE_CAPTION_STYLES, CAPITE_CATEGORIES, capiteStyleById } from '../captions/capiteStyles';
+import { CAPTION_POSITIONS, CAPTION_STYLES } from '../captions/captionStyle';
+import { useCaptions } from '../captions/useCaptions';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { LocalAINotice } from './LocalAINotice';
+import { SavedStylesBar } from './SavedStylesBar';
+import { applyCaptionStyle, captureCaptionStyle } from '../preview/textStyles';
+import { C, chipStyle, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from './tokens';
 
 function saveText(text: string, fileName: string, mime: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: mime }))
-  const a = document.createElement('a')
-  a.href = url; a.download = fileName
-  document.body.appendChild(a); a.click(); a.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  const url = URL.createObjectURL(new Blob([text], { type: mime }));
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-const smallButton = { ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 5 } as const
+const smallButton = { ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padding: '0 10px', display: 'inline-flex', alignItems: 'center', gap: 5 } as const;
 
 /**
  * Captions, free and on this device. The video's own speech becomes caption text that is DRAWN INTO the video (live in
@@ -32,20 +32,20 @@ const smallButton = { ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padd
  * platforms that take a separate caption file. Lines can be corrected; the speech recogniser is not perfect.
  */
 export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null; disabled?: boolean }): React.JSX.Element | null {
-  const c = useCaptions(videoUrl)
-  const { previewSettings, updatePreviewComposition } = useDemoPersonalize()
-  const [copied, setCopied] = useState<'copied' | 'failed' | null>(null)
-  const [confirmRedo, setConfirmRedo] = useState(false)
-  if (!videoUrl) return null
-  const busy = c.ai.phase !== 'idle'
-  const studio = c.captions?.studio
+  const c = useCaptions(videoUrl);
+  const { previewSettings, updatePreviewComposition } = useDemoPersonalize();
+  const [copied, setCopied] = useState<'copied' | 'failed' | null>(null);
+  const [confirmRedo, setConfirmRedo] = useState(false);
+  if (!videoUrl) return null;
+  const busy = c.ai.phase !== 'idle';
+  const studio = c.captions?.studio;
   // With the Caption Studio available, captions are made and edited in that one window; this panel only opens it and shows the result.
-  const hosted = c.studioAvailable
-  const cues = studio ? studioToCues(studio) : c.captions?.cues ?? []
+  const hosted = c.studioAvailable;
+  const cues = studio ? studioToCues(studio) : c.captions?.cues ?? [];
   const copy = async () => {
-    try { await navigator.clipboard.writeText(cuesToText(cues)); setCopied('copied') } catch { setCopied('failed') }
-  }
-  const generate = () => { setConfirmRedo(false); void c.generate() }
+    try { await navigator.clipboard.writeText(cuesToText(cues)); setCopied('copied'); } catch { setCopied('failed'); }
+  };
+  const generate = () => { setConfirmRedo(false); void c.generate(); };
   return (
     <div data-testid="captions-panel" style={{ marginTop: 12 }}>
       <div style={{ ...labelStyle, marginBottom: 6 }}>Captions</div>
@@ -116,7 +116,7 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
 
           <label style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', fontSize: 12, color: C.text }}>
             <span style={{ ...hintStyle, margin: 0 }}>More looks:</span>
-            <select data-testid="captions-capite-select" aria-label="More caption looks" value={capiteStyleById(c.captions!.style) ? c.captions!.style : ''} onChange={(e) => { if (e.target.value) c.setStyle(e.target.value) }} style={{ ...inputStyle, width: 'auto', minHeight: 30, fontSize: 11 }}>
+            <select data-testid="captions-capite-select" aria-label="More caption looks" value={capiteStyleById(c.captions!.style) ? c.captions!.style : ''} onChange={(e) => { if (e.target.value) c.setStyle(e.target.value); }} style={{ ...inputStyle, width: 'auto', minHeight: 30, fontSize: 11 }}>
               <option value="">Choose one of {CAPITE_CAPTION_STYLES.length}…</option>
               {CAPITE_CATEGORIES.map((cat) => (
                 <optgroup key={cat.id} label={cat.label}>
@@ -133,7 +133,7 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
             styles={previewSettings.textStyles ?? []}
             onStylesChange={(next) => updatePreviewComposition({ textStyles: next.length ? next : undefined })}
             capture={() => captureCaptionStyle(c.captions!)}
-            onApply={(st) => { if (st.kind === 'captions') { const look = applyCaptionStyle(st.style); c.setStyle(look.style); c.setPosition(look.position) } }}
+            onApply={(st) => { if (st.kind === 'captions') { const look = applyCaptionStyle(st.style); c.setStyle(look.style); c.setPosition(look.position); } }}
             defaultName="Caption style"
           />
 
@@ -145,8 +145,8 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
                 <span style={{ color: C.muted, minWidth: 34 }}>{clockLabel(cue.startMs)}</span>
                 <input
                   data-testid={`captions-edit-${i}`} aria-label={`Caption at ${clockLabel(cue.startMs)}`} defaultValue={cue.text}
-                  onBlur={(e) => { if (e.target.value !== cue.text) c.editCue(i, e.target.value) }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+                  onBlur={(e) => { if (e.target.value !== cue.text) c.editCue(i, e.target.value); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
                   style={{ ...inputStyle, minHeight: 28, height: 28, fontSize: 11, padding: '0 8px', flex: 1 }}
                 />
               </li>
@@ -174,5 +174,5 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
         </div>
       )}
     </div>
-  )
+  );
 }

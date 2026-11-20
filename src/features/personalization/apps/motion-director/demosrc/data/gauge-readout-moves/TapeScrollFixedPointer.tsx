@@ -82,7 +82,8 @@ export const TapeScrollFixedPointer: React.FC = () => {
       // 数字滑到读数窗背后前淡出（不从窗沿露出半截）
       const near = Math.min(1, Math.max(0, (Math.abs(y - CY) - WIN_H / 2 - 36) / 30));
       ticks.push(
-        <div key={`n${u}`} style={{ opacity: near,
+        <div key={`n${u}`} style={{
+ opacity: near,
           position: 'absolute', left: NUM_R - 260, width: 260, top: y - 40, height: 80, lineHeight: '80px', textAlign: 'right',
           ...type(64, 600), letterSpacing: '-0.03em', color: alpha(L.ink, 0.82),
         }}>{u}</div>,

@@ -75,7 +75,7 @@ export const DEFAULT_COLOR_CORRECTION: ColorCorrection = {
   exposure: 0,
   highlights: 0,
   shadows: 0,
-}
+};
 
 export interface TimelineClip {
   id: string
@@ -123,7 +123,7 @@ export const DEFAULT_LETTERBOX: LetterboxSettings = {
   aspectRatio: '2.35:1',
   color: '#000000',
   opacity: 100,
-}
+};
 
 export type EffectType = 'blur' | 'sharpen' | 'glow' | 'vignette' | 'grain' | 'lut-cinematic' | 'lut-vintage' | 'lut-bw' | 'lut-cool' | 'lut-warm' | 'lut-muted' | 'lut-vivid'
 
@@ -149,7 +149,7 @@ export const DEFAULT_EFFECT_MASK: EffectMask = {
   feather: 20,
   invert: false,
   rotation: 0,
-}
+};
 
 export interface ClipEffect {
   id: string
@@ -194,7 +194,7 @@ export const DEFAULT_SUBTITLE_STYLE: SubtitleStyle = {
   backgroundColor: 'transparent',
   position: 'bottom',
   italic: false,
-}
+};
 
 export interface SubtitleClip {
   id: string
@@ -253,7 +253,7 @@ export const DEFAULT_TEXT_STYLE: TextOverlayStyle = {
   padding: 0,
   borderRadius: 0,
   opacity: 100,
-}
+};
 
 export interface Timeline {
   id: string
@@ -281,12 +281,12 @@ export const DEFAULT_TRACKS: Track[] = [
   { id: 'track-v3', name: 'V3', muted: false, locked: false, sourcePatched: false, kind: 'video' },
   { id: 'track-a1', name: 'A1', muted: false, locked: false, sourcePatched: true, kind: 'audio' },
   { id: 'track-a2', name: 'A2', muted: false, locked: false, sourcePatched: false, kind: 'audio' },
-]
+];
 
 export type ToolType = 'select' | 'move' | 'trim-left' | 'trim-right' | 'razor' | 'slit' | 'hand' | 'zoom' | 'text' | 'transition' | 'effect'
 
-export const PRIMARY_TOOLS: ToolType[] = ['select', 'move', 'razor', 'slit', 'hand', 'zoom']
-export const TRIM_TOOLS: ToolType[] = ['trim-left', 'trim-right']
+export const PRIMARY_TOOLS: ToolType[] = ['select', 'move', 'razor', 'slit', 'hand', 'zoom'];
+export const TRIM_TOOLS: ToolType[] = ['trim-left', 'trim-right'];
 
 export interface Gap {
   id: string
@@ -317,11 +317,11 @@ export const DEFAULT_LAYOUT: EditorLayout = {
   rightPanelWidth: 320,
   timelineHeight: 200,
   assetsHeight: 180,
-}
+};
 
 export const LAYOUT_LIMITS = {
   leftPanelWidth: { min: 180, max: 480 },
   rightPanelWidth: { min: 200, max: 500 },
   timelineHeight: { min: 80, max: 400 },
   assetsHeight: { min: 80, max: 300 },
-}
+};

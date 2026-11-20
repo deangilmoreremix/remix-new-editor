@@ -75,8 +75,10 @@ export function usePlacementGizmo(options: PlacementGizmoOptions): void {
     // declaration; this mirrors TransformControls' own getPointer helper.
     const pointer = (event: PointerEvent, button = event.button) => {
       const rect = canvas.getBoundingClientRect();
-      return { x: (event.clientX - rect.left) / rect.width * 2 - 1,
-        y: 1 - (event.clientY - rect.top) / rect.height * 2, button } as PointerEvent;
+      return {
+ x: (event.clientX - rect.left) / rect.width * 2 - 1,
+        y: 1 - (event.clientY - rect.top) / rect.height * 2, button 
+} as PointerEvent;
     };
     const consume = (event: PointerEvent) => { event.preventDefault(); event.stopImmediatePropagation(); };
     const change = () => {

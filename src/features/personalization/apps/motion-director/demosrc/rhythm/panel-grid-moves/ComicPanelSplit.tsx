@@ -356,12 +356,18 @@ export const ComicPanelSplit: React.FC = () => {
   const cut = (k: number) => SPLIT + k * BEAT;
 
   const panels = [
-    { clip: `polygon(0px 0px, ${B1 - HALF}px 0px, ${B1 - SLANT - HALF}px 1080px, 0px 1080px)`, ox: 330,
-      bg: { lx: 380, ly: 560 }, shot: <Shot id="p1" cam={{ ...CAM1, s: CAM1.s * (1 + 0.035 * hold) }} tilt={38} focus={focus} aperture={aperture} /> },
-    { clip: `polygon(${B1 + HALF}px 0px, ${B2 - HALF}px 0px, ${B2 - SLANT - HALF}px 1080px, ${B1 - SLANT + HALF}px 1080px)`, ox: 962,
-      bg: { lx: 1000, ly: 900 }, shot: <Shot id="p2" cam={{ ...CAM2, s: CAM2.s * (1 + 0.03 * hold) }} focus={focus} aperture={aperture} /> },
-    { clip: `polygon(${e + HALF}px 0px, 1920px 0px, 1920px 1080px, ${e - SLANT + HALF}px 1080px)`, ox: 1610,
-      bg: { lx: 1640, ly: 540 }, shot: <Shot id="p3" cam={cam3At(f)} focus={focus} aperture={aperture} /> },
+    {
+ clip: `polygon(0px 0px, ${B1 - HALF}px 0px, ${B1 - SLANT - HALF}px 1080px, 0px 1080px)`, ox: 330,
+      bg: { lx: 380, ly: 560 }, shot: <Shot id="p1" cam={{ ...CAM1, s: CAM1.s * (1 + 0.035 * hold) }} tilt={38} focus={focus} aperture={aperture} /> 
+},
+    {
+ clip: `polygon(${B1 + HALF}px 0px, ${B2 - HALF}px 0px, ${B2 - SLANT - HALF}px 1080px, ${B1 - SLANT + HALF}px 1080px)`, ox: 962,
+      bg: { lx: 1000, ly: 900 }, shot: <Shot id="p2" cam={{ ...CAM2, s: CAM2.s * (1 + 0.03 * hold) }} focus={focus} aperture={aperture} /> 
+},
+    {
+ clip: `polygon(${e + HALF}px 0px, 1920px 0px, 1920px 1080px, ${e - SLANT + HALF}px 1080px)`, ox: 1610,
+      bg: { lx: 1640, ly: 540 }, shot: <Shot id="p3" cam={cam3At(f)} focus={focus} aperture={aperture} /> 
+},
   ];
 
   // 一刀斜缝：3f 从上到下劈出（纸芯 + 墨边 + 一层柔影）

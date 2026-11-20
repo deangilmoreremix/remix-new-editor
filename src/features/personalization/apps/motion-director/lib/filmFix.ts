@@ -22,11 +22,13 @@ export function fixFilm(project: ProjectData): FixResult {
 
   // A7: synthetic interface sounds go.
   let removed = 0;
-  tracks = tracks.map((t) => ({ ...t, clips: t.clips.filter((c) => {
+  tracks = tracks.map((t) => ({
+ ...t, clips: t.clips.filter((c) => {
     const bad = c.cardId === 'audio-clip' && /sfxlib\/ui\/ui-/.test(String(c.props.file));
     if (bad) removed++;
     return !bad;
-  }) }));
+  }) 
+}));
   if (removed) fixed.push(`A7: removed ${removed} interface-alert sound${removed === 1 ? '' : 's'}.`);
 
   // A5: a long sample is cut to three seconds.

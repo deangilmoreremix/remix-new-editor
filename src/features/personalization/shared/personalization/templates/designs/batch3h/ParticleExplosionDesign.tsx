@@ -12,20 +12,20 @@
  * radius scales with the composition.
  */
 
-import React from 'react'
-import { ParticleExplosion } from '../../_upstream/rve-particle-explosion/ParticleExplosion'
-import { darkenColor, slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage, lightenColor, rveMaxChars, withAlpha } from '../rveSharedDesign'
-import { brandPalette, canvasScale } from './media'
+import React from 'react';
+import { ParticleExplosion } from '../../_upstream/rve-particle-explosion/ParticleExplosion';
+import { darkenColor, slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage, lightenColor, rveMaxChars, withAlpha } from '../rveSharedDesign';
+import { brandPalette, canvasScale } from './media';
 
 export const RveParticleExplosionDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const fontSizePx = Math.round(80 * k)
-  const { primary, accent, text: textColor } = brandPalette(props)
+  const k = canvasScale(props);
+  const fontSizePx = Math.round(80 * k);
+  const { primary, accent, text: textColor } = brandPalette(props);
   const text = truncateText(
     slotText(props, 'offer', ['headline', 'businessName']),
     rveMaxChars(props, fontSizePx, 24),
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-particle-explosion" props={props}>
@@ -47,7 +47,7 @@ export const RveParticleExplosionDesign: React.FC<DesignAdapterProps> = (props) 
         ]}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveParticleExplosionDesign
+export default RveParticleExplosionDesign;

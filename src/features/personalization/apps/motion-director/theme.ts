@@ -51,7 +51,8 @@ export const themedProps = (m: WorkbenchManifest | null, card: CardDef, id?: str
   const palette = validThemeColors(m, id, colors);
   const aliases: Record<string,string> = {paper:"page",ink:"text",color:"text",muted:"muted",amber:"accent",accent:"accent"};
   const custom = Object.fromEntries(Object.entries(theme?.unitDefaults?.[card.themeKey ?? ""] ?? {}).filter(([k]) => palette[aliases[k]]).map(([k]) => [k,palette[aliases[k]]]));
-  return {...defaultsOf(card),
+  return {
+...defaultsOf(card),
     ...(card.themeKey ? theme?.unitDefaults?.[card.themeKey] : {}), ...(card.themeKey ? custom : {}), ...overrides,
     ...(card.themeKey && m?.themeProp ? {[m.themeProp]: theme?.id} : {}),
     ...(card.themeKey && m?.paletteProp && Object.keys(palette).length ? {[m.paletteProp]: palette} : {}),
@@ -69,9 +70,12 @@ export const inheritedProps = (m: WorkbenchManifest, key: string | undefined, pr
  * is saved: a user can explicitly choose a color equal to another preset. */
 export const upgradeLegacyTheme = (project: ProjectData, m: WorkbenchManifest | null, cards: Record<string, CardDef>): ProjectData => {
   if (project.themeId !== undefined || !m?.themes?.length) return project;
-  return {...project, themeId: selectedTheme(m)?.id, tracks: project.tracks.map(track => ({...track,
+  return {
+...project, themeId: selectedTheme(m)?.id, tracks: project.tracks.map(track => ({
+...track,
     clips: track.clips.map(clip => ({...clip, props: inheritedProps(m, cards[clip.cardId]?.themeKey, clip.props)})),
-  }))};
+  }))
+};
 };
 
 export const switchTheme = (project: ProjectData, m: WorkbenchManifest | null, id: string): ProjectData => {

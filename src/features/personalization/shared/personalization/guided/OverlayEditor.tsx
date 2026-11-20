@@ -1,57 +1,57 @@
-'use client'
+'use client';
 
-import { SavedStylesBar } from './SavedStylesBar'
-import { applyTextStyle, captureTextStyle } from '../preview/textStyles'
-import { Fragment, useCallback, useEffect, useId, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, Eye, EyeOff, Lock, Move, Pause, Play, RotateCcw, Unlock } from 'lucide-react'
-import { ImageCollage, SplitPanel, StyledBusinessImage } from '../preview/StyledBusinessImage'
-import type { ImageStyle } from '../preview/imageStyle'
-import { imageRoleForLayerKind, presetStyle, resolveImageLook } from '../preview/imagePresets'
-import { MEDIA_ROLE_CONTRACTS, roleForLayer } from '../preview/mediaRoles'
-import { ImageStyleControls } from './ImageStyleControls'
-import { ColorField } from './editor/ColorField'
-import { SortableRow } from './editor/SortableRow'
-import { Tip } from './editor/Tip'
-import { PersonalizationPlayer } from '../preview/PersonalizationPlayer'
-import type { PlayerRef } from '@remotion/player'
-import { Timeline } from './editor/Timeline'
-import { EditorTour } from './editor/EditorTour'
-import { KeyframePanel } from './editor/KeyframePanel'
-import { moveKeyframe } from '../preview/keyframes'
-import { NEUTRAL_KEYFRAME_STATE, keyframeStateFor, keyframeTransformParts } from '../preview/keyframes'
-import { lookFilter, lookOverlays, vignetteStops } from '../preview/effects'
-import { LookPanel } from './LookPanel'
-import { AudioPanel } from './AudioPanel'
-import { LayerEffectsControls } from './editor/LayerEffectsControls'
-import { CutoutPanel } from './CutoutPanel'
-import { HANDLES, cursorForHandle, resizeFromHandle, rotationFromPointer, type HandleId, type TransformBox } from './editor/transform'
-import { isRotated, normalizeAngle, rotateCss, rotatedExtent } from '../preview/rotation'
-import type { EditorTipId } from './editor/editorTips'
-import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
-import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { canMoveLayer, moveLayer, type LayerMove } from '../preview/layerOrder'
-import { layerSnapBox, snapMove, snapTargets } from './editor/snap'
-import { BrandAndTemplates } from './editor/BrandAndTemplates'
-import { DesignLayerPlayer } from './DesignLayerPlayer'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
+import { SavedStylesBar } from './SavedStylesBar';
+import { applyTextStyle, captureTextStyle } from '../preview/textStyles';
+import { Fragment, useCallback, useEffect, useId, useRef, useState } from 'react';
+import { ArrowDown, ArrowUp, Eye, EyeOff, Lock, Move, Pause, Play, RotateCcw, Unlock } from 'lucide-react';
+import { ImageCollage, SplitPanel, StyledBusinessImage } from '../preview/StyledBusinessImage';
+import type { ImageStyle } from '../preview/imageStyle';
+import { imageRoleForLayerKind, presetStyle, resolveImageLook } from '../preview/imagePresets';
+import { MEDIA_ROLE_CONTRACTS, roleForLayer } from '../preview/mediaRoles';
+import { ImageStyleControls } from './ImageStyleControls';
+import { ColorField } from './editor/ColorField';
+import { SortableRow } from './editor/SortableRow';
+import { Tip } from './editor/Tip';
+import { PersonalizationPlayer } from '../preview/PersonalizationPlayer';
+import type { PlayerRef } from '@remotion/player';
+import { Timeline } from './editor/Timeline';
+import { EditorTour } from './editor/EditorTour';
+import { KeyframePanel } from './editor/KeyframePanel';
+import { moveKeyframe } from '../preview/keyframes';
+import { NEUTRAL_KEYFRAME_STATE, keyframeStateFor, keyframeTransformParts } from '../preview/keyframes';
+import { lookFilter, lookOverlays, vignetteStops } from '../preview/effects';
+import { LookPanel } from './LookPanel';
+import { AudioPanel } from './AudioPanel';
+import { LayerEffectsControls } from './editor/LayerEffectsControls';
+import { CutoutPanel } from './CutoutPanel';
+import { HANDLES, cursorForHandle, resizeFromHandle, rotationFromPointer, type HandleId, type TransformBox } from './editor/transform';
+import { isRotated, normalizeAngle, rotateCss, rotatedExtent } from '../preview/rotation';
+import type { EditorTipId } from './editor/editorTips';
+import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { canMoveLayer, moveLayer, type LayerMove } from '../preview/layerOrder';
+import { layerSnapBox, snapMove, snapTargets } from './editor/snap';
+import { BrandAndTemplates } from './editor/BrandAndTemplates';
+import { DesignLayerPlayer } from './DesignLayerPlayer';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
 import {
   PREVIEW_ANIMATIONS,
   PREVIEW_FONTS,
   PREVIEW_POSITIONS,
   isImageLayerKind,
-} from '../preview/presets'
-import { accentRuleStyle, ctaPillStyle, isSingleLineBox, isTextStyleKind, layerTextStyle, textAlignFor } from '../preview/textStyle'
-import { hasTextScrim, scrimForBox, scrimStyle } from '../preview/scrim'
-import { getRemotionDesignTemplate } from '../templates'
+} from '../preview/presets';
+import { accentRuleStyle, ctaPillStyle, isSingleLineBox, isTextStyleKind, layerTextStyle, textAlignFor } from '../preview/textStyle';
+import { hasTextScrim, scrimForBox, scrimStyle } from '../preview/scrim';
+import { getRemotionDesignTemplate } from '../templates';
 import type {
   RemotionDesignTextSlot,
-} from '../templates/types'
+} from '../templates/types';
 import type {
   PersonalizationPreviewSettings,
   PreviewInputProps,
   PreviewLayer,
   PreviewLayerKind,
-} from '../preview/types'
+} from '../preview/types';
 import {
   MAX_LAYER_SCALE,
   MIN_LAYER_SCALE,
@@ -66,9 +66,9 @@ import {
   scaleLayerTo,
   stageScaleFactor,
   toStageBox,
-} from './overlayGeometry'
-import { AddDesignsPanel } from './AddDesignsPanel'
-import { C, chipStyle, hintStyle, inputStyle, labelStyle, panelStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
+} from './overlayGeometry';
+import { AddDesignsPanel } from './AddDesignsPanel';
+import { C, chipStyle, hintStyle, inputStyle, labelStyle, panelStyle, secondaryButtonStyle, softPanelStyle } from './tokens';
 
 const LAYER_LABELS: Record<PreviewLayerKind, string> = {
   logo: 'Logo',
@@ -81,10 +81,10 @@ const LAYER_LABELS: Record<PreviewLayerKind, string> = {
   tagline: 'Tagline',
   endCard: 'End card',
   design: 'Design',
-}
+};
 
 /** Fonts the video renderer can actually draw. */
-const SELECTABLE_FONT_COUNT = PREVIEW_FONTS.filter((font) => font.available).length
+const SELECTABLE_FONT_COUNT = PREVIEW_FONTS.filter((font) => font.available).length;
 
 const TEXT_KINDS: PreviewLayerKind[] = [
   'businessName',
@@ -93,23 +93,23 @@ const TEXT_KINDS: PreviewLayerKind[] = [
   'cta',
   'tagline',
   'design',
-]
+];
 
 /** Corner-handle keyboard step: 2% of the frame per press, 10% with Shift. */
-const RESIZE_KEYBOARD_STEP = 0.02
-const RESIZE_KEYBOARD_STEP_LARGE = 0.1
+const RESIZE_KEYBOARD_STEP = 0.02;
+const RESIZE_KEYBOARD_STEP_LARGE = 0.1;
 
 function layerText(layer: PreviewLayer, brand: PreviewInputProps['brand']): string {
-  if (typeof layer.text === 'string' && layer.text.trim()) return layer.text
-  if (layer.kind === 'businessName') return brand.businessName
-  if (layer.kind === 'headline') return brand.headline
-  if (layer.kind === 'offer') return brand.offer
-  if (layer.kind === 'cta') return brand.cta
-  if (layer.kind === 'tagline') return brand.headline
+  if (typeof layer.text === 'string' && layer.text.trim()) return layer.text;
+  if (layer.kind === 'businessName') return brand.businessName;
+  if (layer.kind === 'headline') return brand.headline;
+  if (layer.kind === 'offer') return brand.offer;
+  if (layer.kind === 'cta') return brand.cta;
+  if (layer.kind === 'tagline') return brand.headline;
   // A design's primary slot is fed by the headline unless the customer
   // typed something on the layer.
-  if (layer.kind === 'design') return brand.headline
-  return ''
+  if (layer.kind === 'design') return brand.headline;
+  return '';
 }
 
 /**
@@ -118,15 +118,15 @@ function layerText(layer: PreviewLayer, brand: PreviewInputProps['brand']): stri
  * doesn't draw it twice; see PersonalizationComposition).
  */
 function isRepeatedBusinessName(layer: PreviewLayer, brand: PreviewInputProps['brand'], layers: PreviewLayer[]): boolean {
-  if (layer.kind !== 'headline' && layer.kind !== 'tagline') return false
-  if (typeof layer.text === 'string' && layer.text.trim()) return false
-  const text = layerText(layer, brand).trim().toLowerCase()
-  if (!text) return false
-  const name = brand.businessName.trim().toLowerCase()
+  if (layer.kind !== 'headline' && layer.kind !== 'tagline') return false;
+  if (typeof layer.text === 'string' && layer.text.trim()) return false;
+  const text = layerText(layer, brand).trim().toLowerCase();
+  if (!text) return false;
+  const name = brand.businessName.trim().toLowerCase();
   // Same rules as the video: a visible name layer showing the brand name
   // itself, or an EARLIER visible headline/tagline/name layer drawing the very
   // same fallback text, on screen during (some of) the same frames.
-  const index = layers.indexOf(layer)
+  const index = layers.indexOf(layer);
   return layers.some((other, i) =>
     other !== layer &&
     other.visible &&
@@ -136,11 +136,11 @@ function isRepeatedBusinessName(layer: PreviewLayer, brand: PreviewInputProps['b
         layerText(other, brand).trim().toLowerCase() === text &&
         // an earlier layer drawing the same text, or any layer with explicit own text
         (i < index || (typeof other.text === 'string' && other.text.trim() !== '')))),
-  )
+  );
 }
 
 function framesOverlap(a: PreviewLayer, b: PreviewLayer): boolean {
-  return Math.max(a.startFrame, b.startFrame) <= Math.min(a.endFrame ?? Infinity, b.endFrame ?? Infinity)
+  return Math.max(a.startFrame, b.startFrame) <= Math.min(a.endFrame ?? Infinity, b.endFrame ?? Infinity);
 }
 
 /* ── Design text slots ─────────────────────────────────────────────────────── */
@@ -162,27 +162,27 @@ export {
   designSlotOverrides,
   isPrimaryDesignSlot,
   resolveDesignSlotValues,
-} from '../preview/designSlots'
+} from '../preview/designSlots';
 
 import {
   designSlotLabel,
   designSlotOverrides,
   isPrimaryDesignSlot,
   resolveDesignSlotValues,
-} from '../preview/designSlots'
+} from '../preview/designSlots';
 
 /** The patch the inspector writes when a secondary slot changes. */
 function slotOverridesPatch(next: Record<string, string>): Partial<PreviewLayer> {
   // `textSlotOverrides` is a field of `PreviewLayer`; the cast keeps the
   // patch type-safe against the rest of the layer shape.
-  return { textSlotOverrides: next }
+  return { textSlotOverrides: next };
 }
 
 /** The optional character limit an adapter may put on a slot. */
 function slotMaxLength(slot: RemotionDesignTextSlot): number | undefined {
-  const raw = (slot as RemotionDesignTextSlot & { maxLength?: unknown }).maxLength
-  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return undefined
-  return Math.floor(raw)
+  const raw = (slot as RemotionDesignTextSlot & { maxLength?: unknown }).maxLength;
+  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return undefined;
+  return Math.floor(raw);
 }
 
 /**
@@ -190,30 +190,30 @@ function slotMaxLength(slot: RemotionDesignTextSlot): number | undefined {
  * stage never shows an empty box the render would fill (and vice versa).
  */
 function layerImageUrl(layer: PreviewLayer, brand: PreviewInputProps['brand']): string {
-  if (layer.imageUrl) return layer.imageUrl
-  if (layer.kind === 'logo') return brand.logoUrl || ''
-  if (layer.kind === 'productImage') return brand.productUrl || brand.serviceUrl || ''
-  if (layer.kind === 'serviceImage') return brand.serviceUrl || brand.productUrl || ''
-  return ''
+  if (layer.imageUrl) return layer.imageUrl;
+  if (layer.kind === 'logo') return brand.logoUrl || '';
+  if (layer.kind === 'productImage') return brand.productUrl || brand.serviceUrl || '';
+  if (layer.kind === 'serviceImage') return brand.serviceUrl || brand.productUrl || '';
+  return '';
 }
 
 /** Measures the stage element so layer boxes can mirror composition geometry. */
 function useStageWidth(ref: React.RefObject<HTMLDivElement | null>): number {
-  const [width, setWidth] = useState(0)
+  const [width, setWidth] = useState(0);
   useEffect(() => {
-    const element = ref.current
-    if (!element) return
-    const measure = () => setWidth(element.clientWidth || 0)
-    measure()
+    const element = ref.current;
+    if (!element) return;
+    const measure = () => setWidth(element.clientWidth || 0);
+    measure();
     if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', measure)
-      return () => window.removeEventListener('resize', measure)
+      window.addEventListener('resize', measure);
+      return () => window.removeEventListener('resize', measure);
     }
-    const observer = new ResizeObserver(measure)
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [ref])
-  return width
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref]);
+  return width;
 }
 
 interface DragState {
@@ -260,18 +260,18 @@ export interface OverlayEditorProps {
  * image-asset option mapping) lives in `./overlayGeometry`.
  */
 /** Timing is edited in SECONDS (what the customer sees on the clock) and stored in frames, so it survives a frame-rate change. */
-export const framesToSeconds = (frames: number, fps: number) => Math.round((frames / Math.max(1, fps)) * 100) / 100
-export const secondsToFrames = (seconds: number, fps: number) => Math.max(0, Math.round((Number.isFinite(seconds) ? seconds : 0) * Math.max(1, fps)))
+export const framesToSeconds = (frames: number, fps: number) => Math.round((frames / Math.max(1, fps)) * 100) / 100;
+export const secondsToFrames = (seconds: number, fps: number) => Math.max(0, Math.round((Number.isFinite(seconds) ? seconds : 0) * Math.max(1, fps)));
 
 type InspectorTab = 'content' | 'layout' | 'timing'
 const INSPECTOR_TABS: { id: InspectorTab; label: string }[] = [
   { id: 'content', label: 'Content' },
   { id: 'layout', label: 'Layout' },
   { id: 'timing', label: 'Timing' },
-]
+];
 
 export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDesigns = false }: OverlayEditorProps): React.JSX.Element {
-  const ctx = useDemoPersonalize()
+  const ctx = useDemoPersonalize();
   const {
     previewSettings,
     updatePreviewLayer,
@@ -285,78 +285,78 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
     updatePreviewComposition,
     resetPreviewLayout,
     assets,
-  } = ctx
-  const settings: PersonalizationPreviewSettings = previewSettings
-  const fieldPrefix = useId()
-  const stageRef = useRef<HTMLDivElement>(null)
-  const stageWidth = useStageWidth(stageRef)
-  const [selectedId, setSelectedId] = useState<string>(() => settings.layers[0]?.id || '')
-  const dragRef = useRef<DragState | null>(null)
-  const [confirmRemoveDesign, setConfirmRemoveDesign] = useState(false)
-  const [addDesignsOpen, setAddDesignsOpen] = useState(false)
+  } = ctx;
+  const settings: PersonalizationPreviewSettings = previewSettings;
+  const fieldPrefix = useId();
+  const stageRef = useRef<HTMLDivElement>(null);
+  const stageWidth = useStageWidth(stageRef);
+  const [selectedId, setSelectedId] = useState<string>(() => settings.layers[0]?.id || '');
+  const dragRef = useRef<DragState | null>(null);
+  const [confirmRemoveDesign, setConfirmRemoveDesign] = useState(false);
+  const [addDesignsOpen, setAddDesignsOpen] = useState(false);
   // Snap guides: on by default, switched off from the toolbar or by holding Alt while dragging.
-  const [snapOn, setSnapOn] = useState(true)
-  const [inspectorTab, setInspectorTab] = useState<InspectorTab>('content')
+  const [snapOn, setSnapOn] = useState(true);
+  const [inspectorTab, setInspectorTab] = useState<InspectorTab>('content');
   // Live stage: the person can still switch back to the still poster (lighter, and a fallback if the video cannot play).
-  const [liveWanted, setLiveWanted] = useState(true)
-  const liveOn = liveStage && liveWanted
-  const playerRef = useRef<PlayerRef | null>(null)
-  const [playFrame, setPlayFrame] = useState(0)
-  const [playing, setPlaying] = useState(false)
-  const [guides, setGuides] = useState<{ x: number[]; y: number[] }>({ x: [], y: [] })
+  const [liveWanted, setLiveWanted] = useState(true);
+  const liveOn = liveStage && liveWanted;
+  const playerRef = useRef<PlayerRef | null>(null);
+  const [playFrame, setPlayFrame] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [guides, setGuides] = useState<{ x: number[]; y: number[] }>({ x: [], y: [] });
   // Layers list reorder: top of the list = frontmost, so the list is the layer array reversed.
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  )
+  );
   const onReorderEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const frontToBack = [...settings.layers].reverse().map((l) => l.id)
-    const from = frontToBack.indexOf(String(active.id))
-    const to = frontToBack.indexOf(String(over.id))
-    if (from < 0 || to < 0) return
-    const next = [...frontToBack]
-    next.splice(to, 0, next.splice(from, 1)[0])
-    reorderPreviewLayers?.(next.reverse())
-  }
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const frontToBack = [...settings.layers].reverse().map((l) => l.id);
+    const from = frontToBack.indexOf(String(active.id));
+    const to = frontToBack.indexOf(String(over.id));
+    if (from < 0 || to < 0) return;
+    const next = [...frontToBack];
+    next.splice(to, 0, next.splice(from, 1)[0]);
+    reorderPreviewLayers?.(next.reverse());
+  };
   const restack = (id: string, move: LayerMove) => {
-    if (!canMoveLayer(settings.layers, id, move)) return
-    reorderPreviewLayers?.(moveLayer(settings.layers, id, move).map((l) => l.id))
-  }
+    if (!canMoveLayer(settings.layers, id, move)) return;
+    reorderPreviewLayers?.(moveLayer(settings.layers, id, move).map((l) => l.id));
+  };
 
   // The Layout Quality Check's "Show" selects the affected layer here.
   useEffect(() => {
     const onSelect = (event: Event) => {
-      const id = (event as CustomEvent<{ layerId?: string }>).detail?.layerId
-      if (id && settings.layers.some((l) => l.id === id)) setSelectedId(id)
-    }
-    window.addEventListener('personalization:select-layer', onSelect)
-    return () => window.removeEventListener('personalization:select-layer', onSelect)
-  }, [settings.layers])
+      const id = (event as CustomEvent<{ layerId?: string }>).detail?.layerId;
+      if (id && settings.layers.some((l) => l.id === id)) setSelectedId(id);
+    };
+    window.addEventListener('personalization:select-layer', onSelect);
+    return () => window.removeEventListener('personalization:select-layer', onSelect);
+  }, [settings.layers]);
 
-  const brand = inputProps.brand
-  const { width: compW, height: compH } = resolveCompositionSize(settings.width, settings.height)
+  const brand = inputProps.brand;
+  const { width: compW, height: compH } = resolveCompositionSize(settings.width, settings.height);
   // One factor for both axes: stagePx = compositionPx * (stageWidth / compW).
-  const factor = stageScaleFactor(stageWidth, compW)
+  const factor = stageScaleFactor(stageWidth, compW);
 
-  const editableLayers = settings.layers.filter((layer) => layer.kind !== 'endCard')
-  const selected = settings.layers.find((layer) => layer.id === selectedId) || settings.layers[0] || null
+  const editableLayers = settings.layers.filter((layer) => layer.kind !== 'endCard');
+  const selected = settings.layers.find((layer) => layer.id === selectedId) || settings.layers[0] || null;
   const selectedDesign =
     selected?.kind === 'design' && selected.designId
       ? getRemotionDesignTemplate(selected.designId)
-      : undefined
+      : undefined;
   // A design labels its primary text slot; the plain layers just say "Text".
   const selectedTextLabel =
-    selectedDesign?.textSlots?.find((slot) => slot && slot.primary)?.label ?? 'Text'
+    selectedDesign?.textSlots?.find((slot) => slot && slot.primary)?.label ?? 'Text';
   // Every slot the selected design declares, with the value each one shows.
   const selectedSlots: RemotionDesignTextSlot[] =
-    selectedDesign && Array.isArray(selectedDesign.textSlots) ? selectedDesign.textSlots : []
+    selectedDesign && Array.isArray(selectedDesign.textSlots) ? selectedDesign.textSlots : [];
   const selectedSlotValues: Record<string, string | undefined> =
-    selectedDesign && selected ? resolveDesignSlotValues(selectedDesign, selected, brand) : {}
+    selectedDesign && selected ? resolveDesignSlotValues(selectedDesign, selected, brand) : {};
 
-  const controlId = (name: string) => `${fieldPrefix}-${name}`
-  const round = (value: number) => Number(value.toFixed(4))
+  const controlId = (name: string) => `${fieldPrefix}-${name}`;
+  const round = (value: number) => Number(value.toFixed(4));
 
   /**
    * Writes one slot's new value.
@@ -367,127 +367,127 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
    * the slot falls back to its brand value again.
    */
   const onDesignSlotChange = (slot: RemotionDesignTextSlot, next: string) => {
-    if (!selected) return
+    if (!selected) return;
     if (isPrimaryDesignSlot(slot)) {
-      updatePreviewLayer(selected.id, { text: next })
-      return
+      updatePreviewLayer(selected.id, { text: next });
+      return;
     }
-    const overrides = designSlotOverrides(selected)
-    if (next.trim()) overrides[slot.key] = next
-    else delete overrides[slot.key]
-    updatePreviewLayer(selected.id, slotOverridesPatch(overrides))
-  }
+    const overrides = designSlotOverrides(selected);
+    if (next.trim()) overrides[slot.key] = next;
+    else delete overrides[slot.key];
+    updatePreviewLayer(selected.id, slotOverridesPatch(overrides));
+  };
 
   const commitPosition = useCallback(
     (layerId: string, next: PreviewLayer) => {
-      updatePreviewLayer(layerId, { x: round(next.x), y: round(next.y) })
+      updatePreviewLayer(layerId, { x: round(next.x), y: round(next.y) });
     },
     [updatePreviewLayer],
-  )
+  );
 
   const commitScale = useCallback(
     (layerId: string, next: PreviewLayer) => {
       // A resize can also pull a layer back inside the safe area.
-      updatePreviewLayer(layerId, { x: round(next.x), y: round(next.y), scale: round(next.scale) })
+      updatePreviewLayer(layerId, { x: round(next.x), y: round(next.y), scale: round(next.scale) });
     },
     [updatePreviewLayer],
-  )
+  );
 
   /** Sets a layer's rotation and keeps it inside the safe area (a rotated box is bigger). */
   const commitRotation = useCallback(
     (layer: PreviewLayer, degrees: number) => {
-      const rotation = normalizeAngle(degrees)
-      const bounded = clampLayerToBounds({ ...layer, rotation }, compW, compH)
-      updatePreviewLayer(layer.id, { rotation, x: round(bounded.x), y: round(bounded.y) })
+      const rotation = normalizeAngle(degrees);
+      const bounded = clampLayerToBounds({ ...layer, rotation }, compW, compH);
+      updatePreviewLayer(layer.id, { rotation, x: round(bounded.x), y: round(bounded.y) });
     },
     [updatePreviewLayer, compW, compH],
-  )
+  );
 
   const onPointerMove = useCallback(
     (event: PointerEvent) => {
-      const drag = dragRef.current
-      if (!drag || !stageRef.current) return
-      if (drag.pointerId !== null && event.pointerId !== drag.pointerId) return
-      const rect = stageRef.current.getBoundingClientRect()
-      if (rect.width === 0 || rect.height === 0) return
-      const dx = (event.clientX - drag.startX) / rect.width
-      const dy = (event.clientY - drag.startY) / rect.height
+      const drag = dragRef.current;
+      if (!drag || !stageRef.current) return;
+      if (drag.pointerId !== null && event.pointerId !== drag.pointerId) return;
+      const rect = stageRef.current.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      const dx = (event.clientX - drag.startX) / rect.width;
+      const dy = (event.clientY - drag.startY) / rect.height;
       if (drag.mode === 'move') {
-        const moved = offsetLayer(drag.origin, dx, dy, compW, compH)
+        const moved = offsetLayer(drag.origin, dx, dy, compW, compH);
         if (snapOn && !event.altKey) {
-          const self = settings.layers.find((l) => l.id === drag.layerId)
+          const self = settings.layers.find((l) => l.id === drag.layerId);
           const others = settings.layers
             .filter((l) => l.id !== drag.layerId && l.visible && l.kind !== 'endCard' && l.kind !== 'design' && (!isImageLayerKind(l.kind) || Boolean(layerImageUrl(l, brand))))
-            .map((l) => layerSnapBox(l, isImageLayerKind(l.kind) ? undefined : layerText(l, brand), compW, compH))
-          const text = self && !isImageLayerKind(self.kind) ? layerText(self, brand) : undefined
-          const res = snapMove(layerSnapBox(moved, text, compW, compH), snapTargets(others, SAFE_AREA_MARGIN))
-          setGuides({ x: res.guidesX, y: res.guidesY })
-          commitPosition(drag.layerId, clampLayerToBounds({ ...moved, x: moved.x + res.dx, y: moved.y + res.dy }, compW, compH))
+            .map((l) => layerSnapBox(l, isImageLayerKind(l.kind) ? undefined : layerText(l, brand), compW, compH));
+          const text = self && !isImageLayerKind(self.kind) ? layerText(self, brand) : undefined;
+          const res = snapMove(layerSnapBox(moved, text, compW, compH), snapTargets(others, SAFE_AREA_MARGIN));
+          setGuides({ x: res.guidesX, y: res.guidesY });
+          commitPosition(drag.layerId, clampLayerToBounds({ ...moved, x: moved.x + res.dx, y: moved.y + res.dy }, compW, compH));
         } else {
-          setGuides((g) => (g.x.length || g.y.length ? { x: [], y: [] } : g))
-          commitPosition(drag.layerId, moved)
+          setGuides((g) => (g.x.length || g.y.length ? { x: [], y: [] } : g));
+          commitPosition(drag.layerId, moved);
         }
       } else if (drag.mode === 'rotate' && drag.box0) {
-        const pointer = { x: ((event.clientX - rect.left) / rect.width) * compW, y: ((event.clientY - rect.top) / rect.height) * compH }
-        commitRotation(drag.origin, rotationFromPointer({ x: drag.box0.cx, y: drag.box0.cy }, pointer, { snap: event.shiftKey, current: drag.origin.rotation }))
+        const pointer = { x: ((event.clientX - rect.left) / rect.width) * compW, y: ((event.clientY - rect.top) / rect.height) * compH };
+        commitRotation(drag.origin, rotationFromPointer({ x: drag.box0.cx, y: drag.box0.cy }, pointer, { snap: event.shiftKey, current: drag.origin.rotation }));
       } else if (drag.mode === 'resize' && drag.handle && drag.box0) {
         // Resizing from any handle keeps the opposite corner (or edge) where it is and the proportions the same.
-        const pointer = { x: ((event.clientX - rect.left) / rect.width) * compW, y: ((event.clientY - rect.top) / rect.height) * compH }
-        const o = drag.origin
-        const r = resizeFromHandle(drag.box0, drag.handle, pointer, { minFactor: MIN_LAYER_SCALE / o.scale, maxFactor: MAX_LAYER_SCALE / o.scale })
-        const moved = { ...o, x: o.x + (r.cx - drag.box0.cx) / compW, y: o.y + (r.cy - drag.box0.cy) / compH }
-        commitScale(drag.layerId, scaleLayerTo(moved, o.scale * r.factor, compW, compH))
+        const pointer = { x: ((event.clientX - rect.left) / rect.width) * compW, y: ((event.clientY - rect.top) / rect.height) * compH };
+        const o = drag.origin;
+        const r = resizeFromHandle(drag.box0, drag.handle, pointer, { minFactor: MIN_LAYER_SCALE / o.scale, maxFactor: MAX_LAYER_SCALE / o.scale });
+        const moved = { ...o, x: o.x + (r.cx - drag.box0.cx) / compW, y: o.y + (r.cy - drag.box0.cy) / compH };
+        commitScale(drag.layerId, scaleLayerTo(moved, o.scale * r.factor, compW, compH));
       } else {
-        const nextScale = drag.origin.scale * (1 + dx * 2)
-        commitScale(drag.layerId, scaleLayerTo(drag.origin, nextScale, compW, compH))
+        const nextScale = drag.origin.scale * (1 + dx * 2);
+        commitScale(drag.layerId, scaleLayerTo(drag.origin, nextScale, compW, compH));
       }
     },
     [commitPosition, commitScale, commitRotation, compW, compH, snapOn, settings.layers, brand],
-  )
+  );
 
   const endDrag = useCallback(() => {
-    dragRef.current = null
-    setGuides((g) => (g.x.length || g.y.length ? { x: [], y: [] } : g))
-  }, [])
+    dragRef.current = null;
+    setGuides((g) => (g.x.length || g.y.length ? { x: [], y: [] } : g));
+  }, []);
 
   // Window-level listeners: a drag that leaves the stage (or the window)
   // keeps tracking until the pointer is released, and touch never scrolls
   // because the stage sets `touch-action: none`.
   useEffect(() => {
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', endDrag)
-    window.addEventListener('pointercancel', endDrag)
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
     return () => {
-      window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('pointerup', endDrag)
-      window.removeEventListener('pointercancel', endDrag)
-    }
-  }, [onPointerMove, endDrag])
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', endDrag);
+      window.removeEventListener('pointercancel', endDrag);
+    };
+  }, [onPointerMove, endDrag]);
 
   // A layout switch can remove the selected layer: fall back to the first
   // layer instead of leaving a stale id behind.
   useEffect(() => {
-    if (selectedId && settings.layers.some((layer) => layer.id === selectedId)) return
-    setSelectedId(settings.layers[0]?.id || '')
-  }, [selectedId, settings.layers])
+    if (selectedId && settings.layers.some((layer) => layer.id === selectedId)) return;
+    setSelectedId(settings.layers[0]?.id || '');
+  }, [selectedId, settings.layers]);
 
   /** What the customer may do with this layer, from its media role (full-frame designs and effects are neither dragged nor resized). */
   const contractOf = (layer: PreviewLayer) => {
-    const d = layer.kind === 'design' && layer.designId ? getRemotionDesignTemplate(layer.designId) : undefined
-    return MEDIA_ROLE_CONTRACTS[roleForLayer(layer, d ? { id: d.id, category: d.category } : null)]
-  }
+    const d = layer.kind === 'design' && layer.designId ? getRemotionDesignTemplate(layer.designId) : undefined;
+    return MEDIA_ROLE_CONTRACTS[roleForLayer(layer, d ? { id: d.id, category: d.category } : null)];
+  };
 
   const startDrag = (event: React.PointerEvent, layer: PreviewLayer, mode: 'move' | 'resize' | 'rotate', handle?: HandleId) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setSelectedId(layer.id)
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedId(layer.id);
     // Editing a moving picture is hard: stop playback while a layer is grabbed.
-    try { playerRef.current?.pause() } catch { /* no player */ }
-    const allowed = contractOf(layer)
-    if (mode === 'move' ? !allowed.userMovable : mode === 'rotate' ? !allowed.userRotatable : !allowed.userResizable) return
-    if (layer.locked) return // locked: selectable, but not draggable until unlocked
-    const origin = clampLayerToBounds(layer, compW, compH)
-    const m = layerBoxMetrics(origin, compW, compH, isImageLayerKind(layer.kind) || layer.kind === 'design' ? undefined : layerText(layer, brand))
+    try { playerRef.current?.pause(); } catch { /* no player */ }
+    const allowed = contractOf(layer);
+    if (mode === 'move' ? !allowed.userMovable : mode === 'rotate' ? !allowed.userRotatable : !allowed.userResizable) return;
+    if (layer.locked) return; // locked: selectable, but not draggable until unlocked
+    const origin = clampLayerToBounds(layer, compW, compH);
+    const m = layerBoxMetrics(origin, compW, compH, isImageLayerKind(layer.kind) || layer.kind === 'design' ? undefined : layerText(layer, brand));
     dragRef.current = {
       layerId: layer.id,
       pointerId: typeof event.pointerId === 'number' ? event.pointerId : null,
@@ -500,49 +500,49 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
       mode,
       handle,
       box0: { cx: m.leftPx + m.widthPx / 2, cy: m.topPx + m.heightPx / 2, w: m.widthPx, h: m.heightPx, rotation: origin.rotation ?? 0 },
-    }
+    };
     if (mode === 'move') {
       // Keep focus on the dragged box so arrow keys nudge straight after a drag.
-      const target = event.currentTarget as HTMLElement | null
-      target?.focus?.({ preventScroll: true })
+      const target = event.currentTarget as HTMLElement | null;
+      target?.focus?.({ preventScroll: true });
     }
-  }
+  };
 
   /** Arrow keys nudge (1% / Shift 5%), Delete/Backspace hides the layer. */
   const onLayerKeyDown = (event: React.KeyboardEvent, layer: PreviewLayer) => {
     if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      setSelectedId(layer.id)
-      return
+      event.preventDefault();
+      setSelectedId(layer.id);
+      return;
     }
     if (event.key === 'Delete' || event.key === 'Backspace') {
-      event.preventDefault()
-      updatePreviewLayer(layer.id, { visible: false })
-      return
+      event.preventDefault();
+      updatePreviewLayer(layer.id, { visible: false });
+      return;
     }
-    const delta = nudgeDeltaForKey(event.key, event.shiftKey)
-    if (!delta) return
-    event.preventDefault()
-    setSelectedId(layer.id)
-    if (layer.locked || !contractOf(layer).userMovable) return
-    commitPosition(layer.id, offsetLayer(layer, delta.dx, delta.dy, compW, compH))
-  }
+    const delta = nudgeDeltaForKey(event.key, event.shiftKey);
+    if (!delta) return;
+    event.preventDefault();
+    setSelectedId(layer.id);
+    if (layer.locked || !contractOf(layer).userMovable) return;
+    commitPosition(layer.id, offsetLayer(layer, delta.dx, delta.dy, compW, compH));
+  };
 
   /** Arrow keys on the corner handle resize by 2% (Shift 10%). */
   const onHandleKeyDown = (event: React.KeyboardEvent, layer: PreviewLayer) => {
     if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      return
+      event.preventDefault();
+      return;
     }
-    const delta = nudgeDeltaForKey(event.key, event.shiftKey)
-    if (!delta) return
-    event.preventDefault()
-    const grows = delta.dx > 0 || delta.dy > 0
-    const factor = event.shiftKey ? 1 + RESIZE_KEYBOARD_STEP_LARGE : 1 + RESIZE_KEYBOARD_STEP
-    commitScale(layer.id, scaleLayerTo(layer, grows ? layer.scale * factor : layer.scale / factor, compW, compH))
-  }
+    const delta = nudgeDeltaForKey(event.key, event.shiftKey);
+    if (!delta) return;
+    event.preventDefault();
+    const grows = delta.dx > 0 || delta.dy > 0;
+    const factor = event.shiftKey ? 1 + RESIZE_KEYBOARD_STEP_LARGE : 1 + RESIZE_KEYBOARD_STEP;
+    commitScale(layer.id, scaleLayerTo(layer, grows ? layer.scale * factor : layer.scale / factor, compW, compH));
+  };
 
-  const imageOptions = (layer: PreviewLayer) => imageAssetOptions(layer, assets)
+  const imageOptions = (layer: PreviewLayer) => imageAssetOptions(layer, assets);
 
   return (
     <div
@@ -550,18 +550,18 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
       onKeyDown={(event) => {
         // ⌘Z / Ctrl+Z undo, ⇧⌘Z / Ctrl+Shift+Z / Ctrl+Y redo, only while focus is in the editor and not in a field that
         // has its own undo (text boxes, number inputs, selects).
-        if (!(event.metaKey || event.ctrlKey) || event.altKey) return
-        const t = event.target as HTMLElement | null
+        if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+        const t = event.target as HTMLElement | null;
         if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) {
-          if (!(t.tagName === 'INPUT' && ['range', 'checkbox', 'radio', 'color'].includes((t as HTMLInputElement).type))) return
+          if (!(t.tagName === 'INPUT' && ['range', 'checkbox', 'radio', 'color'].includes((t as HTMLInputElement).type))) return;
         }
-        const k = event.key.toLowerCase()
+        const k = event.key.toLowerCase();
         if (k === 'z' && !event.shiftKey) {
-          event.preventDefault()
-          if (canUndoPreview) undoPreview?.()
+          event.preventDefault();
+          if (canUndoPreview) undoPreview?.();
         } else if ((k === 'z' && event.shiftKey) || k === 'y') {
-          event.preventDefault()
-          if (canRedoPreview) redoPreview?.()
+          event.preventDefault();
+          if (canRedoPreview) redoPreview?.();
         }
       }}
     >
@@ -690,29 +690,29 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
 
           {factor > 0 &&
             editableLayers.filter((layer) => layer.visible).map((layer) => {
-              const isDesign = layer.kind === 'design'
+              const isDesign = layer.kind === 'design';
               // A headline/tagline that would only repeat the business name on
               // screen isn't drawn in the video, so here it's a faded "add
               // your text" placeholder you can still grab and move.
-              const repeatsName = isRepeatedBusinessName(layer, brand, editableLayers)
-              const text = repeatsName ? `${LAYER_LABELS[layer.kind]} — add your text` : layerText(layer, brand)
-              const box = toStageBox(layer, compW, compH, stageWidth, isDesign || isImageLayerKind(layer.kind) ? undefined : text)
-              const imageUrl = layerImageUrl(layer, brand)
-              if (!isDesign && !isImageLayerKind(layer.kind) && !text.trim()) return null
-              if (isImageLayerKind(layer.kind) && !imageUrl) return null
-              const isSelected = selected?.id === layer.id
-              const color = layer.color ?? (layer.kind === 'cta' ? settings.brandColors.accent : settings.brandColors.text)
-              const design = isDesign && layer.designId ? getRemotionDesignTemplate(layer.designId) : undefined
+              const repeatsName = isRepeatedBusinessName(layer, brand, editableLayers);
+              const text = repeatsName ? `${LAYER_LABELS[layer.kind]} — add your text` : layerText(layer, brand);
+              const box = toStageBox(layer, compW, compH, stageWidth, isDesign || isImageLayerKind(layer.kind) ? undefined : text);
+              const imageUrl = layerImageUrl(layer, brand);
+              if (!isDesign && !isImageLayerKind(layer.kind) && !text.trim()) return null;
+              if (isImageLayerKind(layer.kind) && !imageUrl) return null;
+              const isSelected = selected?.id === layer.id;
+              const color = layer.color ?? (layer.kind === 'cta' ? settings.brandColors.accent : settings.brandColors.text);
+              const design = isDesign && layer.designId ? getRemotionDesignTemplate(layer.designId) : undefined;
               // Image presentation: the SAME resolver as the composition, so the stage shows what the video shows.
-              const imgHints = isImageLayerKind(layer.kind) ? inputProps.settings?.imageHints?.[imageUrl] : undefined
+              const imgHints = isImageLayerKind(layer.kind) ? inputProps.settings?.imageHints?.[imageUrl] : undefined;
               let look = isImageLayerKind(layer.kind)
                 ? resolveImageLook({ role: roleForLayer(layer), kind: layer.kind, layerStyle: layer.imageStyle, layerRole: layer.imageRole, hints: imgHints, layout: settings.layout, aspect: settings.aspectRatio })
-                : null
-              const imgUrls = [imageUrl, ...(layer.imageUrls ?? [])].filter(Boolean)
-              if (look?.style?.presetId === 'multi-image-collage' && imgUrls.length < 2) look = { ...look, style: presetStyle('rounded-floating-card', settings.aspectRatio) }
-              const isSplit = look?.style?.presetId === 'split-screen'
+                : null;
+              const imgUrls = [imageUrl, ...(layer.imageUrls ?? [])].filter(Boolean);
+              if (look?.style?.presetId === 'multi-image-collage' && imgUrls.length < 2) look = { ...look, style: presetStyle('rounded-floating-card', settings.aspectRatio) };
+              const isSplit = look?.style?.presetId === 'split-screen';
 
-              if (isSplit && look?.style && liveOn) return null // the Player draws the split panel
+              if (isSplit && look?.style && liveOn) return null; // the Player draws the split panel
               if (isSplit && look?.style) {
                 // A half-frame panel is placed in composition space (not a draggable box).
                 return (
@@ -721,27 +721,27 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                     style={{ position: 'absolute', left: 0, top: 0, width: compW * factor, height: compH * factor, opacity: layer.opacity, pointerEvents: 'none' }}>
                     <SplitPanel src={imageUrl} side={look.style.splitSide ?? (compH > compW * 1.1 ? 'bottom' : 'right')} imageStyle={look.style} compWidth={compW * factor} compHeight={compH * factor} />
                   </div>
-                )
+                );
               }
 
               // Same local scrim the render draws behind this text (stage pixels).
-              const scrimMetrics = !liveOn && hasTextScrim(layer.kind) && !repeatsName ? layerBoxMetrics(layer, compW, compH, text) : null
+              const scrimMetrics = !liveOn && hasTextScrim(layer.kind) && !repeatsName ? layerBoxMetrics(layer, compW, compH, text) : null;
               const stageScrim = scrimMetrics
                 ? scrimForBox(
                     { left: scrimMetrics.leftPx * factor, top: scrimMetrics.topPx * factor, width: scrimMetrics.widthPx * factor, height: scrimMetrics.heightPx * factor },
                     compW * factor,
                     compH * factor,
                   )
-                : null
-              const textMetrics = isTextStyleKind(layer.kind) && layer.kind !== 'cta' ? layerBoxMetrics(layer, compW, compH, text) : null
-              const stageAlign = textMetrics ? textAlignFor(layer, textMetrics, compW) : 'center'
+                : null;
+              const textMetrics = isTextStyleKind(layer.kind) && layer.kind !== 'cta' ? layerBoxMetrics(layer, compW, compH, text) : null;
+              const stageAlign = textMetrics ? textAlignFor(layer, textMetrics, compW) : 'center';
               const stageRule = scrimMetrics
                 ? accentRuleStyle(
                     layer.kind, layer.animation,
                     { leftPx: scrimMetrics.leftPx * factor, topPx: scrimMetrics.topPx * factor, widthPx: scrimMetrics.widthPx * factor, heightPx: scrimMetrics.heightPx * factor },
                     compW * factor, compH * factor, settings.brandColors.accent, stageAlign,
                   )
-                : null
+                : null;
 
               const layerContent = (
                 <>
@@ -805,20 +805,20 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                     </div>
                   )}
                 </>
-              )
+              );
 
-              const kfState = isDesign ? NEUTRAL_KEYFRAME_STATE : keyframeStateFor(layer.keyframes, playFrame)
-              const boxTransform = [...keyframeTransformParts(kfState, compW * factor, compH * factor), rotateCss(layer.rotation)].filter(Boolean).join(' ')
-              let toolbarTop = 0
-              let rotateInside = false
+              const kfState = isDesign ? NEUTRAL_KEYFRAME_STATE : keyframeStateFor(layer.keyframes, playFrame);
+              const boxTransform = [...keyframeTransformParts(kfState, compW * factor, compH * factor), rotateCss(layer.rotation)].filter(Boolean).join(' ');
+              let toolbarTop = 0;
+              let rotateInside = false;
               if (isSelected) {
-                const drawn = layerBoxMetrics(layer, compW, compH, isImageLayerKind(layer.kind) ? undefined : text)
-                const h = drawn.heightPx * factor
-                const ext = rotatedExtent(box.width, h, layer.rotation ?? 0)
-                const mid = box.top + h / 2
-                rotateInside = mid - ext.h / 2 < 40
-                const below = mid + ext.h / 2 + 8
-                toolbarTop = below + 38 > compH * factor ? mid - ext.h / 2 - 8 - 52 : below
+                const drawn = layerBoxMetrics(layer, compW, compH, isImageLayerKind(layer.kind) ? undefined : text);
+                const h = drawn.heightPx * factor;
+                const ext = rotatedExtent(box.width, h, layer.rotation ?? 0);
+                const mid = box.top + h / 2;
+                rotateInside = mid - ext.h / 2 < 40;
+                const below = mid + ext.h / 2 + 8;
+                toolbarTop = below + 38 > compH * factor ? mid - ext.h / 2 - 8 - 52 : below;
               }
 
               return (
@@ -883,8 +883,10 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                     </span>
                   ))}
                   {isSelected && contractOf(layer).userRotatable && !layer.locked && layer.kind !== 'design' && (
-                    <span style={{ position: 'absolute', left: '50%', // Normally above the top edge; a layer at the very top of the frame would put it outside the (clipped) stage, so it sits just inside instead.
-                      top: rotateInside ? 8 : -34, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 4 }}>
+                    <span style={{
+ position: 'absolute', left: '50%', // Normally above the top edge; a layer at the very top of the frame would put it outside the (clipped) stage, so it sits just inside instead.
+                      top: rotateInside ? 8 : -34, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 4 
+}}>
                       <Tip id="rotateHandle" side="top">
                         <div
                           role="slider"
@@ -896,16 +898,16 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                           aria-valuetext={`${layer.rotation ?? 0} degrees`}
                           data-testid="rotate-handle"
                           onPointerDown={(event) => startDrag(event, layer, 'rotate')}
-                          onDoubleClick={(event) => { event.stopPropagation(); commitRotation(layer, 0) }}
+                          onDoubleClick={(event) => { event.stopPropagation(); commitRotation(layer, 0); }}
                           onKeyDown={(event) => {
-                            const step = event.shiftKey ? 15 : 1
+                            const step = event.shiftKey ? 15 : 1;
                             const next = event.key === 'ArrowLeft' || event.key === 'ArrowDown' ? (layer.rotation ?? 0) - step
                               : event.key === 'ArrowRight' || event.key === 'ArrowUp' ? (layer.rotation ?? 0) + step
-                              : event.key === 'Home' ? 0 : null
-                            if (next === null) return
-                            event.preventDefault()
-                            event.stopPropagation()
-                            commitRotation(layer, next)
+                              : event.key === 'Home' ? 0 : null;
+                            if (next === null) return;
+                            event.preventDefault();
+                            event.stopPropagation();
+                            commitRotation(layer, next);
                           }}
                           style={{ width: 14, height: 14, borderRadius: '50%', background: C.cyan, border: '2px solid #000000', cursor: 'grab', touchAction: 'none' }}
                         />
@@ -963,7 +965,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                     </div>
                   )}
                 </Fragment>
-              )
+              );
             })}
         </div>
         {liveStage && (
@@ -975,7 +977,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                     type="button"
                     data-testid="editor-play"
                     aria-label={playing ? 'Pause preview' : 'Play preview'}
-                    onClick={() => { const pl = playerRef.current; if (!pl) return; if (pl.isPlaying()) pl.pause(); else pl.play() }}
+                    onClick={() => { const pl = playerRef.current; if (!pl) return; if (pl.isPlaying()) pl.pause(); else pl.play(); }}
                     style={{ ...secondaryButtonStyle, minHeight: 28, width: 34, padding: 0, display: 'grid', placeItems: 'center' }}
                   >
                     {playing ? <Pause size={13} /> : <Play size={13} />}
@@ -988,7 +990,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                   min={0}
                   max={Math.max(1, Math.round(settings.durationInFrames) - 1)}
                   value={Math.min(playFrame, Math.max(1, Math.round(settings.durationInFrames) - 1))}
-                  onChange={(event) => { try { playerRef.current?.pause(); playerRef.current?.seekTo(Number(event.target.value)) } catch { /* no player */ } }}
+                  onChange={(event) => { try { playerRef.current?.pause(); playerRef.current?.seekTo(Number(event.target.value)); } catch { /* no player */ } }}
                   style={{ flex: 1, accentColor: C.cyan }}
                 />
                 <span data-testid="editor-timecode" style={{ ...hintStyle, margin: 0, fontVariantNumeric: 'tabular-nums', minWidth: 74, textAlign: 'right' }}>
@@ -1023,10 +1025,10 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
           audio={(settings.audioTracks ?? []).map((t) => ({ id: t.id, name: t.name, start: t.start, length: t.length, muted: t.muted }))}
           onAudioChange={(id, patch) => updatePreviewComposition({ audioTracks: (settings.audioTracks ?? []).map((t) => (t.id === id ? { ...t, start: patch.start, length: patch.length } : t)) })}
           onKeyframeMove={(id, from, to) => {
-            const layer = settings.layers.find((l) => l.id === id)
-            if (layer) updatePreviewLayer(id, { keyframes: moveKeyframe(layer.keyframes, from, to, settings.durationInFrames) })
+            const layer = settings.layers.find((l) => l.id === id);
+            if (layer) updatePreviewLayer(id, { keyframes: moveKeyframe(layer.keyframes, from, to, settings.durationInFrames) });
           }}
-          onSeek={liveOn ? (f) => { try { playerRef.current?.pause(); playerRef.current?.seekTo(f) } catch { /* no player */ } } : undefined}
+          onSeek={liveOn ? (f) => { try { playerRef.current?.pause(); playerRef.current?.seekTo(f); } catch { /* no player */ } } : undefined}
         />
         </div>
 
@@ -1042,7 +1044,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
             const layerDesign =
               layer.kind === 'design' && layer.designId
                 ? getRemotionDesignTemplate(layer.designId)
-                : undefined
+                : undefined;
             return (
               <SortableRow key={layer.id} id={layer.id} label={LAYER_LABELS[layer.kind]}>
               <div
@@ -1052,10 +1054,10 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                 aria-pressed={selected?.id === layer.id}
                 onKeyDown={(event) => {
                   // Keys aimed at the row's own buttons (show/hide) are theirs.
-                  if (event.target !== event.currentTarget) return
+                  if (event.target !== event.currentTarget) return;
                   if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    setSelectedId(layer.id)
+                    event.preventDefault();
+                    setSelectedId(layer.id);
                   }
                 }}
                 onClick={() => setSelectedId(layer.id)}
@@ -1081,8 +1083,8 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                     aria-label={`${layer.visible ? 'Hide' : 'Show'} ${LAYER_LABELS[layer.kind]}`}
                     aria-pressed={layer.visible}
                     onClick={(event) => {
-                      event.stopPropagation()
-                      updatePreviewLayer(layer.id, { visible: !layer.visible })
+                      event.stopPropagation();
+                      updatePreviewLayer(layer.id, { visible: !layer.visible });
                     }}
                     style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: layer.visible ? C.cyan : C.muted2, padding: 2 }}
                   >
@@ -1092,7 +1094,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                 )}
               </div>
               </SortableRow>
-            )
+            );
           })}
           </SortableContext>
           </DndContext>
@@ -1145,7 +1147,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                   ) : (
                     <span role="alert" style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 10, color: C.muted }}>
                       Remove “{selectedDesign.name}” from the video?
-                      <button type="button" data-testid="design-remove-confirm" onClick={() => { setConfirmRemoveDesign(false); removePreviewDesignLayer(selected.id) }} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Yes, remove</button>
+                      <button type="button" data-testid="design-remove-confirm" onClick={() => { setConfirmRemoveDesign(false); removePreviewDesignLayer(selected.id); }} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Yes, remove</button>
                       <button type="button" onClick={() => setConfirmRemoveDesign(false)} style={{ ...secondaryButtonStyle, minHeight: 26, fontSize: 10, padding: '0 8px' }}>Keep</button>
                     </span>
                   )}
@@ -1159,8 +1161,8 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                       /* One editable field per slot the design declares. */
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {selectedSlots.map((slot) => {
-                          const label = designSlotLabel(slot)
-                          const slotId = controlId(`slot-${slot.key}`)
+                          const label = designSlotLabel(slot);
+                          const slotId = controlId(`slot-${slot.key}`);
                           return (
                             <div key={slot.key}>
                               <label style={labelStyle} htmlFor={slotId}>{label}</label>
@@ -1174,7 +1176,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                                 style={{ ...inputStyle, padding: '8px 11px', resize: 'vertical' }}
                               />
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     ) : (
@@ -1252,7 +1254,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                   capture={() => captureTextStyle(selected, settings.brandColors)}
                   applyDisabled={Boolean(selected.locked)}
                   defaultName={`${LAYER_LABELS[selected.kind]} style`}
-                  onApply={(s) => { if (s.kind === 'text') updatePreviewLayer(selected.id, applyTextStyle(s.style, settings.brandColors)) }}
+                  onApply={(s) => { if (s.kind === 'text') updatePreviewLayer(selected.id, applyTextStyle(s.style, settings.brandColors)); }}
                 />
               )}
 
@@ -1275,15 +1277,15 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
               )}
 
               {isImageLayerKind(selected.kind) && (() => {
-                const url = (selected.imageUrl || (selected.kind === 'logo' ? brand.logoUrl : selected.kind === 'serviceImage' ? brand.serviceUrl ?? brand.productUrl : brand.productUrl ?? brand.serviceUrl)) ?? ''
-                const hints = inputProps.settings?.imageHints?.[url]
-                const resolved = resolveImageLook({ role: roleForLayer(selected), kind: selected.kind, layerStyle: selected.imageStyle, layerRole: selected.imageRole, hints, layout: settings.layout, aspect: settings.aspectRatio })
-                if (!resolved.style) return null
-                const current: ImageStyle = resolved.style
+                const url = (selected.imageUrl || (selected.kind === 'logo' ? brand.logoUrl : selected.kind === 'serviceImage' ? brand.serviceUrl ?? brand.productUrl : brand.productUrl ?? brand.serviceUrl)) ?? '';
+                const hints = inputProps.settings?.imageHints?.[url];
+                const resolved = resolveImageLook({ role: roleForLayer(selected), kind: selected.kind, layerStyle: selected.imageStyle, layerRole: selected.imageRole, hints, layout: settings.layout, aspect: settings.aspectRatio });
+                if (!resolved.style) return null;
+                const current: ImageStyle = resolved.style;
                 // An edit starts from the look being shown and makes it the customer's own.
                 const edit = (patch: Partial<ImageStyle>) => {
-                  updatePreviewLayer(selected.id, { imageStyle: { ...current, ...patch, auto: false } })
-                }
+                  updatePreviewLayer(selected.id, { imageStyle: { ...current, ...patch, auto: false } });
+                };
                 return (
                   <ImageStyleControls
                     role={(selected.imageRole ?? hints?.role ?? imageRoleForLayerKind(selected.kind))}
@@ -1299,7 +1301,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                     onChange={edit}
                     onReset={() => updatePreviewLayer(selected.id, { imageStyle: undefined })}
                   />
-                )
+                );
               })()}
 
               </div>
@@ -1316,8 +1318,8 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                   step={0.01}
                   value={selected.scale}
                   onChange={(event) => {
-                    const next = scaleLayerTo(selected, Number(event.target.value), compW, compH)
-                    commitScale(selected.id, next)
+                    const next = scaleLayerTo(selected, Number(event.target.value), compW, compH);
+                    commitScale(selected.id, next);
                   }}
                   style={{ width: '100%', accentColor: C.cyan }}
                 />
@@ -1363,9 +1365,9 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                         value={selected.rotation ?? 0}
                         disabled={Boolean(selected.locked)}
                         onChange={(event) => {
-                          if (event.target.value.trim() === '') return
-                          const n = Number(event.target.value)
-                          if (Number.isFinite(n)) commitRotation(selected, n)
+                          if (event.target.value.trim() === '') return;
+                          const n = Number(event.target.value);
+                          if (Number.isFinite(n)) commitRotation(selected, n);
                         }}
                         style={{ ...inputStyle, width: 90 }}
                       />
@@ -1442,7 +1444,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                   fps={settings.fps}
                   durationInFrames={settings.durationInFrames}
                   onChange={(keyframes) => updatePreviewLayer(selected.id, { keyframes })}
-                  onSeek={liveOn ? (f) => { try { playerRef.current?.pause(); playerRef.current?.seekTo(f) } catch { /* no player */ } } : undefined}
+                  onSeek={liveOn ? (f) => { try { playerRef.current?.pause(); playerRef.current?.seekTo(f); } catch { /* no player */ } } : undefined}
                 />
               )}
 
@@ -1469,8 +1471,8 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
                       type="button"
                       aria-label={`Move layer to ${position.label}`}
                       onClick={() => {
-                        const next = clampLayerToBounds({ ...selected, x: position.x, y: position.y }, compW, compH)
-                        commitPosition(selected.id, next)
+                        const next = clampLayerToBounds({ ...selected, x: position.x, y: position.y }, compW, compH);
+                        commitPosition(selected.id, next);
                       }}
                       style={{ ...chipStyle(false), minHeight: 28, fontSize: 10 }}
                     >
@@ -1509,5 +1511,5 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
         {`@media (max-width: 720px) { .guided-overlay-grid { grid-template-columns: minmax(0, 1fr); } }`}
       </style>
     </div>
-  )
+  );
 }

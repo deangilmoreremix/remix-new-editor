@@ -17,16 +17,16 @@
  * two lines of the canvas width.
  */
 
-import React from 'react'
-import { SlideWipe } from '../../_upstream/slide-wipe/SlideWipe'
-import { DesignStage, TRANSPARENT, pickColor, slotText, type DesignAdapterProps } from '../shared'
-import { charsPerLine, fitWords } from './shared'
+import React from 'react';
+import { SlideWipe } from '../../_upstream/slide-wipe/SlideWipe';
+import { DesignStage, TRANSPARENT, pickColor, slotText, type DesignAdapterProps } from '../shared';
+import { charsPerLine, fitWords } from './shared';
 
-export const SLIDE_WIPE_END_FRAME = 75
+export const SLIDE_WIPE_END_FRAME = 75;
 
 export const SlideWipeDesign: React.FC<DesignAdapterProps> = (props) => {
-  const perLine = charsPerLine(props.width, props.height * 0.166, { letterSpacing: 6 })
-  const label = fitWords(slotText(props, 'businessName', ['headline']), perLine, 2)
+  const perLine = charsPerLine(props.width, props.height * 0.166, { letterSpacing: 6 });
+  const label = fitWords(slotText(props, 'businessName', ['headline']), perLine, 2);
 
   return (
     <DesignStage designId="slide-wipe" props={props}>
@@ -39,7 +39,7 @@ export const SlideWipeDesign: React.FC<DesignAdapterProps> = (props) => {
         backdropColor={TRANSPARENT}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default SlideWipeDesign
+export default SlideWipeDesign;

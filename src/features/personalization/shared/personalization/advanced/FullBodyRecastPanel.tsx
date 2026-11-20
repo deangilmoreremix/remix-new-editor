@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * Advanced Editing → "Full Body Recast" tab.
@@ -11,12 +11,12 @@
  * running when the user switches tab or closes the modal.
  */
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { useDemoPersonalize, getGenerationAssetUrl } from '../DemoPersonalizeProvider'
-import { uploadPersonalizationAsset } from '../assetUploadService'
-import { resolveModelCapabilities } from '../modelCapabilityResolver'
-import type { PersonalizationAsset, PersonalizationSource } from '../types'
-import { C } from '../guided/tokens'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useDemoPersonalize, getGenerationAssetUrl } from '../DemoPersonalizeProvider';
+import { uploadPersonalizationAsset } from '../assetUploadService';
+import { resolveModelCapabilities } from '../modelCapabilityResolver';
+import type { PersonalizationAsset, PersonalizationSource } from '../types';
+import { C } from '../guided/tokens';
 import {
   RECAST_MAX_SECONDS,
   RECAST_MIN_SECONDS,
@@ -24,7 +24,7 @@ import {
   readVideoDuration,
   validateRecastClipFile,
   validateRecastDuration,
-} from '../recast/recastJob'
+} from '../recast/recastJob';
 
 type ClipState = {
   kind: 'current' | 'upload'
@@ -36,16 +36,16 @@ type ClipState = {
   error: string
 }
 
-const EMPTY_CLIP: ClipState = { kind: 'current', url: '', label: '', previewUrl: '', duration: 0, status: 'idle', error: '' }
+const EMPTY_CLIP: ClipState = { kind: 'current', url: '', label: '', previewUrl: '', duration: 0, status: 'idle', error: '' };
 
-const STEPS = ['Source clip', 'Person', 'Recast', 'Use it'] as const
+const STEPS = ['Source clip', 'Person', 'Recast', 'Use it'] as const;
 
 function panelCaption(text: string): CSSProperties {
   return {
     position: 'absolute', top: 0, left: 0, right: 0, zIndex: 2, padding: '8px 10px', margin: 0,
     background: 'linear-gradient(rgba(0,0,0,.85), rgba(0,0,0,.55))', color: '#fff',
     fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase',
-  }
+  };
 }
 
 function RecastPanel({ caption, children }: { caption: string; children: ReactNode }) {
@@ -54,12 +54,12 @@ function RecastPanel({ caption, children }: { caption: string; children: ReactNo
       <figcaption style={panelCaption(caption)}>{caption}</figcaption>
       {children}
     </figure>
-  )
+  );
 }
 
 // `contain`: show the whole clip / photo, letterboxed on the dark panel, instead of
 // cropping a landscape clip into a tall portrait panel.
-const mediaStyle: CSSProperties = { width: '100%', height: '100%', objectFit: 'contain', display: 'block' }
+const mediaStyle: CSSProperties = { width: '100%', height: '100%', objectFit: 'contain', display: 'block' };
 
 /** Bundled example (open-genjutsu sample media, MIT) in public/media/recast-example. */
 export const RECAST_EXAMPLE = {
@@ -68,23 +68,23 @@ export const RECAST_EXAMPLE = {
   character: '/media/recast-example/character.jpg',
   result: '/media/recast-example/recast-result.mp4',
   resultPoster: '/media/recast-example/result-poster.jpg',
-} as const
+} as const;
 
 /**
  * "See an example result": what a recast does, before the user spends
  * anything. The source and result clips play in sync.
  */
 function RecastExample({ defaultOpen }: { defaultOpen: boolean }) {
-  const sourceRef = useRef<HTMLVideoElement | null>(null)
-  const resultRef = useRef<HTMLVideoElement | null>(null)
+  const sourceRef = useRef<HTMLVideoElement | null>(null);
+  const resultRef = useRef<HTMLVideoElement | null>(null);
   const sync = () => {
-    const source = sourceRef.current
-    const result = resultRef.current
-    if (!source || !result) return
-    source.currentTime = result.currentTime
-  }
-  const exampleCaption: CSSProperties = { ...panelCaption(''), fontSize: 9, padding: '6px 8px' }
-  const tile: CSSProperties = { position: 'relative', margin: 0, aspectRatio: '9 / 16', maxHeight: 300, background: '#0b0d10', overflow: 'hidden' }
+    const source = sourceRef.current;
+    const result = resultRef.current;
+    if (!source || !result) return;
+    source.currentTime = result.currentTime;
+  };
+  const exampleCaption: CSSProperties = { ...panelCaption(''), fontSize: 9, padding: '6px 8px' };
+  const tile: CSSProperties = { position: 'relative', margin: 0, aspectRatio: '9 / 16', maxHeight: 300, background: '#0b0d10', overflow: 'hidden' };
   return (
     <details open={defaultOpen} data-testid="pz-recast-example" style={{ margin: '12px 0 4px', border: `1px solid ${C.border}`, borderRadius: 14, background: C.panel, padding: '10px 12px' }}>
       <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: C.text }}>
@@ -123,101 +123,101 @@ function RecastExample({ defaultOpen }: { defaultOpen: boolean }) {
         <a href="https://github.com/deangilmoreremix/open-genjutsu" target="_blank" rel="noreferrer" style={{ color: C.muted }}>open-genjutsu</a> (MIT).
       </p>
     </details>
-  )
+  );
 }
 
 export function FullBodyRecastSection({ source }: { source: PersonalizationSource | null }) {
-  const ctx = useDemoPersonalize()
+  const ctx = useDemoPersonalize();
   const {
     apiKey, access, assets, previewVideo, preRecastVideo, genOptions, updateGenOptions,
     recastJob, startRecast, cancelRecast, retryRecast, dismissRecast,
     restoreOriginalVideo, applyPresenterVideo, removePresenterVideo, addIdentityFiles,
-  } = ctx
-  const isAnonymous = access !== 'authenticated'
+  } = ctx;
+  const isAnonymous = access !== 'authenticated';
 
   // The video in use right now: the chosen preview video, else the source clip.
-  const currentVideoUrl = (previewVideo?.kind !== 'recast' ? previewVideo?.url : preRecastVideo?.url) || source?.sourceMedia || ''
-  const [clip, setClip] = useState<ClipState>(EMPTY_CLIP)
-  const [identityId, setIdentityId] = useState('')
-  const [prompt, setPrompt] = useState('')
-  const [now, setNow] = useState(Date.now())
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const photoInputRef = useRef<HTMLInputElement | null>(null)
-  const sourceVideoRef = useRef<HTMLVideoElement | null>(null)
+  const currentVideoUrl = (previewVideo?.kind !== 'recast' ? previewVideo?.url : preRecastVideo?.url) || source?.sourceMedia || '';
+  const [clip, setClip] = useState<ClipState>(EMPTY_CLIP);
+  const [identityId, setIdentityId] = useState('');
+  const [prompt, setPrompt] = useState('');
+  const [now, setNow] = useState(Date.now());
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
+  const sourceVideoRef = useRef<HTMLVideoElement | null>(null);
 
   // Default the source clip to the current video, reading its length.
   useEffect(() => {
-    if (clip.kind !== 'current') return
+    if (clip.kind !== 'current') return;
     if (!currentVideoUrl) {
-      setClip(EMPTY_CLIP)
-      return
+      setClip(EMPTY_CLIP);
+      return;
     }
-    let cancelled = false
-    setClip({ kind: 'current', url: currentVideoUrl, label: 'Current video', previewUrl: currentVideoUrl, duration: 0, status: 'reading', error: '' })
+    let cancelled = false;
+    setClip({ kind: 'current', url: currentVideoUrl, label: 'Current video', previewUrl: currentVideoUrl, duration: 0, status: 'reading', error: '' });
     readVideoDuration(currentVideoUrl)
       .then((duration) => {
-        if (cancelled) return
-        const error = validateRecastDuration(duration)
-        setClip((prev) => ({ ...prev, duration, status: error ? 'error' : 'ready', error: error ? `${error} Upload a clip instead.` : '' }))
+        if (cancelled) return;
+        const error = validateRecastDuration(duration);
+        setClip((prev) => ({ ...prev, duration, status: error ? 'error' : 'ready', error: error ? `${error} Upload a clip instead.` : '' }));
       })
       .catch(() => {
-        if (cancelled) return
-        setClip((prev) => ({ ...prev, status: 'error', error: 'Could not read the current video. Upload a clip instead.' }))
-      })
-    return () => { cancelled = true }
-  }, [currentVideoUrl, clip.kind])
+        if (cancelled) return;
+        setClip((prev) => ({ ...prev, status: 'error', error: 'Could not read the current video. Upload a clip instead.' }));
+      });
+    return () => { cancelled = true; };
+  }, [currentVideoUrl, clip.kind]);
 
-  const identities = assets.identities || []
+  const identities = assets.identities || [];
   // The provider ignores photos past the model's limit, so say so up front.
-  const photoLimitReached = Boolean(source) && identities.length >= resolveModelCapabilities(source!, genOptions).maxImages
+  const photoLimitReached = Boolean(source) && identities.length >= resolveModelCapabilities(source!, genOptions).maxImages;
   const selectedIdentity: PersonalizationAsset | null =
-    identities.find((asset) => asset.id === identityId) || assets.primaryIdentity || identities[0] || null
-  const identityUrl = getGenerationAssetUrl(selectedIdentity)
+    identities.find((asset) => asset.id === identityId) || assets.primaryIdentity || identities[0] || null;
+  const identityUrl = getGenerationAssetUrl(selectedIdentity);
 
-  const running = recastJob?.status === 'running'
-  const done = recastJob?.status === 'done'
-  const usingRecast = previewVideo?.kind === 'recast'
+  const running = recastJob?.status === 'running';
+  const done = recastJob?.status === 'done';
+  const usingRecast = previewVideo?.kind === 'recast';
 
   useEffect(() => {
-    if (!running) return
-    const timer = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(timer)
-  }, [running])
+    if (!running) return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [running]);
 
   // The clip picked last, so an older pick's upload is skipped.
-  const latestPreviewRef = useRef('')
+  const latestPreviewRef = useRef('');
   const handleClipFile = async (file: File | null) => {
-    const fileError = validateRecastClipFile(file)
+    const fileError = validateRecastClipFile(file);
     if (fileError || !file) {
-      setClip((prev) => ({ ...prev, error: fileError }))
-      return
+      setClip((prev) => ({ ...prev, error: fileError }));
+      return;
     }
-    const previewUrl = URL.createObjectURL(file)
-    latestPreviewRef.current = previewUrl
-    setClip({ kind: 'upload', url: '', label: file.name, previewUrl, duration: 0, status: 'reading', error: '' })
+    const previewUrl = URL.createObjectURL(file);
+    latestPreviewRef.current = previewUrl;
+    setClip({ kind: 'upload', url: '', label: file.name, previewUrl, duration: 0, status: 'reading', error: '' });
     try {
-      const duration = await readVideoDuration(previewUrl)
-      const durationError = validateRecastDuration(duration)
-      if (durationError) throw new Error(durationError)
-      if (latestPreviewRef.current !== previewUrl) return
-      setClip((prev) => (prev.previewUrl === previewUrl ? { ...prev, duration, status: 'uploading' } : prev))
-      const uploaded = await uploadPersonalizationAsset(apiKey, { file })
-      setClip((prev) => (prev.previewUrl === previewUrl ? { ...prev, url: uploaded.url, status: 'ready' } : prev))
+      const duration = await readVideoDuration(previewUrl);
+      const durationError = validateRecastDuration(duration);
+      if (durationError) throw new Error(durationError);
+      if (latestPreviewRef.current !== previewUrl) return;
+      setClip((prev) => (prev.previewUrl === previewUrl ? { ...prev, duration, status: 'uploading' } : prev));
+      const uploaded = await uploadPersonalizationAsset(apiKey, { file });
+      setClip((prev) => (prev.previewUrl === previewUrl ? { ...prev, url: uploaded.url, status: 'ready' } : prev));
     } catch (error) {
       setClip((prev) => (prev.previewUrl === previewUrl
         ? { ...prev, status: 'error', error: error instanceof Error ? error.message : 'The clip could not be uploaded.' }
-        : prev))
+        : prev));
     }
-  }
+  };
 
-  const useCurrentVideo = () => setClip({ ...EMPTY_CLIP, kind: 'current' })
+  const useCurrentVideo = () => setClip({ ...EMPTY_CLIP, kind: 'current' });
 
   // The recast service fetches the clip itself: a site-relative demo path
   // becomes a full address; a browser-only blob: URL can't be fetched.
   const remoteClipUrl = /^https?:\/\//.test(clip.url)
     ? clip.url
-    : clip.url.startsWith('/') && typeof window !== 'undefined' ? new URL(clip.url, window.location.origin).href : ''
-  const canRecast = !isAnonymous && Boolean(apiKey) && !running && !clip.error && clip.status === 'ready' && Boolean(remoteClipUrl) && Boolean(identityUrl) && Boolean(genOptions.consentGiven)
+    : clip.url.startsWith('/') && typeof window !== 'undefined' ? new URL(clip.url, window.location.origin).href : '';
+  const canRecast = !isAnonymous && Boolean(apiKey) && !running && !clip.error && clip.status === 'ready' && Boolean(remoteClipUrl) && Boolean(identityUrl) && Boolean(genOptions.consentGiven);
   const blocker = isAnonymous
     ? 'Sign in to recast videos.'
     : !apiKey
@@ -232,10 +232,10 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
           ? 'The person’s photo is still uploading…'
           : !genOptions.consentGiven
             ? 'Confirm you have permission to use this person’s likeness.'
-            : ''
+            : '';
 
   const runRecast = () => {
-    if (!canRecast || !selectedIdentity || !identityUrl || !source) return
+    if (!canRecast || !selectedIdentity || !identityUrl || !source) return;
     void startRecast({
       sourceId: source.id,
       sourceUrl: remoteClipUrl,
@@ -245,17 +245,17 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
       identityUrl,
       duration: clip.duration,
       prompt,
-    })
-  }
+    });
+  };
 
   // While a job exists, its own inputs are what the panels show.
-  const shownSourceUrl = recastJob && recastJob.status !== 'cancelled' ? recastJob.sourceUrl : clip.previewUrl
-  const shownSourceLength = recastJob && recastJob.status !== 'cancelled' ? recastJob.duration : clip.duration
-  const shownIdentityUrl = recastJob && recastJob.status !== 'cancelled' ? recastJob.identityUrl : (selectedIdentity?.url || '')
+  const shownSourceUrl = recastJob && recastJob.status !== 'cancelled' ? recastJob.sourceUrl : clip.previewUrl;
+  const shownSourceLength = recastJob && recastJob.status !== 'cancelled' ? recastJob.duration : clip.duration;
+  const shownIdentityUrl = recastJob && recastJob.status !== 'cancelled' ? recastJob.identityUrl : (selectedIdentity?.url || '');
 
-  const stepIndex = done || usingRecast ? 3 : running ? 2 : clip.status === 'ready' && selectedIdentity ? 2 : clip.status === 'ready' ? 1 : 0
+  const stepIndex = done || usingRecast ? 3 : running ? 2 : clip.status === 'ready' && selectedIdentity ? 2 : clip.status === 'ready' ? 1 : 0;
 
-  const presenterVideos = useMemo(() => [...(assets.presenterVideos || [])].reverse(), [assets.presenterVideos])
+  const presenterVideos = useMemo(() => [...(assets.presenterVideos || [])].reverse(), [assets.presenterVideos]);
 
   return (
     <section id="pz-recast" style={{ padding: '20px 0', scrollMarginTop: 64 }}>
@@ -269,8 +269,8 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
 
       <ol aria-label="Recast steps" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 6, listStyle: 'none', margin: '14px 0', padding: 0 }}>
         {STEPS.map((label, index) => {
-          const active = index === stepIndex
-          const complete = index < stepIndex
+          const active = index === stepIndex;
+          const complete = index < stepIndex;
           return (
             <li
               key={label}
@@ -286,7 +286,7 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
               </span>
               <span className="truncate">{label}</span>
             </li>
-          )
+          );
         })}
       </ol>
 
@@ -300,7 +300,7 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
             </button>
           )}
           {done && (
-            <button type="button" onClick={() => { dismissRecast(); setClip({ ...EMPTY_CLIP, kind: 'current' }) }} style={{ minHeight: 28, padding: '0 10px', borderRadius: 8, border: `1px solid ${C.cyanBorder}`, background: 'transparent', color: C.cyan, fontSize: 10, fontWeight: 800 }}>
+            <button type="button" onClick={() => { dismissRecast(); setClip({ ...EMPTY_CLIP, kind: 'current' }); }} style={{ minHeight: 28, padding: '0 10px', borderRadius: 8, border: `1px solid ${C.cyanBorder}`, background: 'transparent', color: C.cyan, fontSize: 10, fontWeight: 800 }}>
               Recast again
             </button>
           )}
@@ -350,10 +350,10 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
               style={mediaStyle}
               data-testid="pz-recast-result"
               onPlay={(event) => {
-                const sourceVideo = sourceVideoRef.current
-                if (!sourceVideo) return
-                sourceVideo.currentTime = event.currentTarget.currentTime % (sourceVideo.duration || Infinity)
-                void sourceVideo.play().catch(() => {})
+                const sourceVideo = sourceVideoRef.current;
+                if (!sourceVideo) return;
+                sourceVideo.currentTime = event.currentTarget.currentTime % (sourceVideo.duration || Infinity);
+                void sourceVideo.play().catch(() => {});
               }}
               onPause={() => sourceVideoRef.current?.pause()}
             />
@@ -399,13 +399,13 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
             accept="video/mp4,video/quicktime,.mp4,.mov"
             className="hidden"
             data-testid="pz-recast-file"
-            onChange={(event) => { void handleClipFile(event.target.files?.[0] || null); event.target.value = '' }}
+            onChange={(event) => { void handleClipFile(event.target.files?.[0] || null); event.target.value = ''; }}
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <span style={{ color: C.muted, fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>Person</span>
           {identities.map((asset) => {
-            const active = asset.id === selectedIdentity?.id
+            const active = asset.id === selectedIdentity?.id;
             return (
               <button
                 key={asset.id}
@@ -419,7 +419,7 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
               >
                 <img src={asset.url} alt={asset.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </button>
-            )
+            );
           })}
           <button
             type="button"
@@ -436,7 +436,7 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(event) => { addIdentityFiles(event.target.files); event.target.value = '' }}
+            onChange={(event) => { addIdentityFiles(event.target.files); event.target.value = ''; }}
           />
         </div>
       </div>
@@ -502,7 +502,7 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
           <div style={{ color: C.muted, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', marginBottom: 8 }}>Saved recast videos</div>
           <div className="flex flex-wrap" style={{ gap: 10 }}>
             {presenterVideos.map((asset) => {
-              const inUse = usingRecast && previewVideo?.url === asset.url
+              const inUse = usingRecast && previewVideo?.url === asset.url;
               return (
                 <div key={asset.id} style={{ width: 120 }} data-testid="pz-presenter-video">
                   <video src={asset.url} muted playsInline preload="metadata" style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: 8, background: '#000' }} />
@@ -515,11 +515,11 @@ export function FullBodyRecastSection({ source }: { source: PersonalizationSourc
                     </button>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
       )}
     </section>
-  )
+  );
 }

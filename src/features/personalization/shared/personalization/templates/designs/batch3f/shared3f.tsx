@@ -25,40 +25,40 @@
  * `RemotionDesignTemplate`.
  */
 
-import React from 'react'
-import type { RemotionDesignComponentProps } from '../../types'
-import { darkenColor, pickColor } from '../shared'
-import { lightenColor } from '../rveSharedDesign'
+import React from 'react';
+import type { RemotionDesignComponentProps } from '../../types';
+import { darkenColor, pickColor } from '../shared';
+import { lightenColor } from '../rveSharedDesign';
 
 /* -------------------------------------------------------------------------- */
 /* Colour                                                                      */
 /* -------------------------------------------------------------------------- */
 
 function parseHex(value: string): { r: number; g: number; b: number } | null {
-  const hex = value.trim().replace(/^#/, '')
+  const hex = value.trim().replace(/^#/, '');
   if (/^[0-9a-f]{3}$/i.test(hex)) {
     return {
       r: parseInt(hex[0] + hex[0], 16),
       g: parseInt(hex[1] + hex[1], 16),
       b: parseInt(hex[2] + hex[2], 16),
-    }
+    };
   }
   if (/^[0-9a-f]{6}$/i.test(hex)) {
     return {
       r: parseInt(hex.slice(0, 2), 16),
       g: parseInt(hex.slice(2, 4), 16),
       b: parseInt(hex.slice(4, 6), 16),
-    }
+    };
   }
-  return null
+  return null;
 }
 
 /** Normalises a hex colour to `#rrggbb`; other colours are returned unchanged. */
 export function toHex6(value: string): string {
-  const parsed = parseHex(value)
-  if (!parsed) return value
-  const pair = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0')
-  return `#${pair(parsed.r)}${pair(parsed.g)}${pair(parsed.b)}`
+  const parsed = parseHex(value);
+  if (!parsed) return value;
+  const pair = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+  return `#${pair(parsed.r)}${pair(parsed.g)}${pair(parsed.b)}`;
 }
 
 /**
@@ -69,10 +69,10 @@ export function toHex6(value: string): string {
  * A colour that is not hex is returned unchanged.
  */
 export function rgba(value: string, alpha: number): string {
-  const parsed = parseHex(value)
-  if (!parsed) return value
-  const a = Math.max(0, Math.min(1, alpha))
-  return `rgba(${parsed.r}, ${parsed.g}, ${parsed.b}, ${a})`
+  const parsed = parseHex(value);
+  if (!parsed) return value;
+  const a = Math.max(0, Math.min(1, alpha));
+  return `rgba(${parsed.r}, ${parsed.g}, ${parsed.b}, ${a})`;
 }
 
 /** The `{ r, g, b }` channels of a hex colour (`fallback` for anything else). */
@@ -80,33 +80,33 @@ export function rgbOf(
   value: string,
   fallback: { r: number; g: number; b: number },
 ): { r: number; g: number; b: number } {
-  return parseHex(value) ?? fallback
+  return parseHex(value) ?? fallback;
 }
 
 /** Relative luminance (0 = black, 1 = white); `null` for a non-hex colour. */
 function luminance(value: string): number | null {
-  const parsed = parseHex(value)
-  if (!parsed) return null
+  const parsed = parseHex(value);
+  if (!parsed) return null;
   const lin = (c: number) => {
-    const s = c / 255
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
-  }
-  return 0.2126 * lin(parsed.r) + 0.7152 * lin(parsed.g) + 0.0722 * lin(parsed.b)
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * lin(parsed.r) + 0.7152 * lin(parsed.g) + 0.0722 * lin(parsed.b);
 }
 
 /** The brand primary, with the shared default. */
 export function brandPrimary(props: RemotionDesignComponentProps): string {
-  return toHex6(pickColor([props.colors?.primary], '#29d3f2'))
+  return toHex6(pickColor([props.colors?.primary], '#29d3f2'));
 }
 
 /** The brand accent (falls back to the primary). */
 export function brandAccent(props: RemotionDesignComponentProps): string {
-  return toHex6(pickColor([props.colors?.accent, props.colors?.primary], '#28c98b'))
+  return toHex6(pickColor([props.colors?.accent, props.colors?.primary], '#28c98b'));
 }
 
 /** The customer's text colour (layer override first, then the brand text). */
 export function brandText(props: RemotionDesignComponentProps): string {
-  return pickColor([props.color, props.colors?.text], '#ffffff')
+  return pickColor([props.color, props.colors?.text], '#ffffff');
 }
 
 /**
@@ -117,10 +117,10 @@ export function brandText(props: RemotionDesignComponentProps): string {
  * falls back to white; a light or mid brand text colour is used as is.
  */
 export function readableOnDark(props: RemotionDesignComponentProps): string {
-  const text = brandText(props)
-  const lum = luminance(text)
-  if (lum !== null && lum < 0.35) return '#ffffff'
-  return text
+  const text = brandText(props);
+  const lum = luminance(text);
+  if (lum !== null && lum < 0.35) return '#ffffff';
+  return text;
 }
 
 /**
@@ -131,9 +131,9 @@ export function readableOnDark(props: RemotionDesignComponentProps): string {
  * colour is lifted towards white. Mid and light colours are kept as is.
  */
 export function onDarkSeries(value: string): string {
-  const lum = luminance(value)
-  if (lum !== null && lum < 0.1) return toHex6(lightenColor(value, 0.45))
-  return value
+  const lum = luminance(value);
+  if (lum !== null && lum < 0.1) return toHex6(lightenColor(value, 0.45));
+  return value;
 }
 
 /**
@@ -145,13 +145,13 @@ export function brandBackdrop(
   props: RemotionDesignComponentProps,
   direction = 'to bottom right',
 ): string {
-  const primary = brandPrimary(props)
-  return `linear-gradient(${direction}, ${darkenColor(primary, 0.12)}, ${darkenColor(primary, 0.26)})`
+  const primary = brandPrimary(props);
+  return `linear-gradient(${direction}, ${darkenColor(primary, 0.12)}, ${darkenColor(primary, 0.26)})`;
 }
 
 /** The solid colour the backdrop starts from (used where the upstream needs one). */
 export function brandBackdropSolid(props: RemotionDesignComponentProps): string {
-  return darkenColor(brandPrimary(props), 0.14)
+  return darkenColor(brandPrimary(props), 0.14);
 }
 
 /**
@@ -162,8 +162,8 @@ export function brandBackdropSolid(props: RemotionDesignComponentProps): string 
  * progress-bars upstream appends a hex alpha to it).
  */
 export function brandPalette(props: RemotionDesignComponentProps, count: number): string[] {
-  const primary = onDarkSeries(brandPrimary(props))
-  const accent = onDarkSeries(brandAccent(props))
+  const primary = onDarkSeries(brandPrimary(props));
+  const accent = onDarkSeries(brandAccent(props));
   const ramp = [
     primary,
     accent,
@@ -173,8 +173,8 @@ export function brandPalette(props: RemotionDesignComponentProps, count: number)
     darkenColor(accent, 0.7),
     lightenColor(primary, 0.65),
     lightenColor(accent, 0.65),
-  ].map(toHex6)
-  return Array.from({ length: Math.max(0, count) }, (_, i) => ramp[i % ramp.length])
+  ].map(toHex6);
+  return Array.from({ length: Math.max(0, count) }, (_, i) => ramp[i % ramp.length]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -196,11 +196,11 @@ export function fitScale(
   preferred: number,
   fill = 0.92,
 ): number {
-  const width = Math.max(1, props.width)
-  const height = Math.max(1, props.height)
-  const base = Math.min(width, height) / 1080
-  const k = Math.min(preferred * base, (width * fill) / contentW, (height * fill) / contentH)
-  return Math.max(0.1, Math.round(k * 1000) / 1000)
+  const width = Math.max(1, props.width);
+  const height = Math.max(1, props.height);
+  const base = Math.min(width, height) / 1080;
+  const k = Math.min(preferred * base, (width * fill) / contentW, (height * fill) / contentH);
+  return Math.max(0.1, Math.round(k * 1000) / 1000);
 }
 
 /**
@@ -208,8 +208,8 @@ export function fitScale(
  * `fontPx`, clamped to `[min, max]`. Bold type averages ~0.6 em per glyph.
  */
 export function fitChars(availablePx: number, fontPx: number, max: number, min = 6): number {
-  const perChar = Math.max(1, fontPx * 0.6)
-  return Math.max(min, Math.min(max, Math.floor(availablePx / perChar)))
+  const perChar = Math.max(1, fontPx * 0.6);
+  return Math.max(min, Math.min(max, Math.floor(availablePx / perChar)));
 }
 
 /**
@@ -229,8 +229,8 @@ export function FitCanvas({
   scale: number
   children: React.ReactNode
 }): React.ReactElement {
-  const k = scale > 0 ? scale : 1
-  const identity = Math.abs(k - 1) < 0.0001
+  const k = scale > 0 ? scale : 1;
+  const identity = Math.abs(k - 1) < 0.0001;
   return (
     <div
       data-rve-fit-canvas
@@ -246,5 +246,5 @@ export function FitCanvas({
     >
       {children}
     </div>
-  )
+  );
 }

@@ -70,8 +70,10 @@ function client({ video, rpcs = {}, notes = [], business = 'acme' } = {}) {
   };
   return { calls, from: chain, rpc: async (name, args) => { calls.push(['rpc', name, args]); const v = rpcs[name]; return { data: typeof v === 'function' ? v(args) : v ?? null, error: null }; } };
 }
-const VIDEO = { id: 'abcdefgh12', title: 'Kitchen', published: true, slug: 'kitchen', revision: 3, updated_at: 'x',
-  project: { timelineSeconds: 100, tracks: [{ type: 'video', items: [{ id: 'a', name: 'Designs', left: 0, width: 50 }, { id: 'b', name: 'Pricing', left: 50, width: 50 }] }, { items: [{ id: 'cta1', buttonText: 'Get a quote' }] }] } };
+const VIDEO = {
+ id: 'abcdefgh12', title: 'Kitchen', published: true, slug: 'kitchen', revision: 3, updated_at: 'x',
+  project: { timelineSeconds: 100, tracks: [{ type: 'video', items: [{ id: 'a', name: 'Designs', left: 0, width: 50 }, { id: 'b', name: 'Pricing', left: 50, width: 50 }] }, { items: [{ id: 'cta1', buttonText: 'Get a quote' }] }] } 
+};
 const ROW = { id: 'proj-1', name: 'Kitchen Renovation', thumbnail_url: 'https://cdn/x.png' };
 
 describe('loadAnalytics', () => {

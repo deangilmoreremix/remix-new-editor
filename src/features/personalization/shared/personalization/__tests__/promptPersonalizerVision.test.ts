@@ -1,20 +1,20 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@ohb/shared/api/openai', () => ({
   callOpenAIChat: vi.fn(),
-}))
+}));
 
-import { callOpenAIChat } from '@ohb/shared/api/openai'
-import { personalizePrompt } from '../promptPersonalizer'
-import { EMPTY_ASSET_LIBRARY } from '../types'
+import { callOpenAIChat } from '@ohb/shared/api/openai';
+import { personalizePrompt } from '../promptPersonalizer';
+import { EMPTY_ASSET_LIBRARY } from '../types';
 
-const mockedCallOpenAIChat = callOpenAIChat as any
+const mockedCallOpenAIChat = callOpenAIChat as any;
 
 describe('SmartVideo GO Vision prompt personalization', () => {
   beforeEach(() => {
-    mockedCallOpenAIChat.mockReset()
-    mockedCallOpenAIChat.mockResolvedValue('personalized result')
-  })
+    mockedCallOpenAIChat.mockReset();
+    mockedCallOpenAIChat.mockResolvedValue('personalized result');
+  });
 
   it('passes Vision asset intelligence and Video Ready status into the generation prompt', async () => {
     const product = {
@@ -44,7 +44,7 @@ describe('SmartVideo GO Vision prompt personalization', () => {
         summary: 'Primary roofing product package.',
         analyzedAt: new Date().toISOString(),
       },
-    }
+    };
 
     await personalizePrompt({
       originalPrompt: 'Create a strong product ad.',
@@ -70,14 +70,14 @@ describe('SmartVideo GO Vision prompt personalization', () => {
         products: [product],
       },
       outputType: 'video',
-    })
+    });
 
-    expect(mockedCallOpenAIChat).toHaveBeenCalledTimes(1)
-    const messages = mockedCallOpenAIChat.mock.calls[0][0]
-    const userMessage = messages.find((m: any) => m.role === 'user')?.content
-    expect(userMessage).toContain('Primary roofing product package')
-    expect(userMessage).toContain('target role: Product Overlay')
-    expect(userMessage).toContain('status: video ready')
-    expect(userMessage).toContain('protect: packaging, logo, label text')
-  })
-})
+    expect(mockedCallOpenAIChat).toHaveBeenCalledTimes(1);
+    const messages = mockedCallOpenAIChat.mock.calls[0][0];
+    const userMessage = messages.find((m: any) => m.role === 'user')?.content;
+    expect(userMessage).toContain('Primary roofing product package');
+    expect(userMessage).toContain('target role: Product Overlay');
+    expect(userMessage).toContain('status: video ready');
+    expect(userMessage).toContain('protect: packaging, logo, label text');
+  });
+});

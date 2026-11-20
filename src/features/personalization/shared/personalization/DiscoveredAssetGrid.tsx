@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * The discovered-asset review grid, shared by Advanced Editing and the guided
@@ -8,30 +8,30 @@
  * passed) on-device background removal with a before/after viewer.
  */
 
-import { useEffect, useState, type DragEvent } from 'react'
-import { Loader2, X } from 'lucide-react'
-import type { AssignedSection, DiscoveredAsset, DiscoveredAssetCategory } from './types'
-import { isImageEditSupported } from './image-editor/imageEditSupport'
-import { C } from './guided/tokens'
-import { BeforeAfterSlider, CHECKERBOARD } from './BeforeAfterSlider'
-import type { AutoCutoutControls } from './backgroundRemoval/useAutoCutout'
+import { useEffect, useState, type DragEvent } from 'react';
+import { Loader2, X } from 'lucide-react';
+import type { AssignedSection, DiscoveredAsset, DiscoveredAssetCategory } from './types';
+import { isImageEditSupported } from './image-editor/imageEditSupport';
+import { C } from './guided/tokens';
+import { BeforeAfterSlider, CHECKERBOARD } from './BeforeAfterSlider';
+import type { AutoCutoutControls } from './backgroundRemoval/useAutoCutout';
 
-const EDIT_WITH_AI = 'Edit with AI'
-const REMOVE_BG = 'Remove BG'
+const EDIT_WITH_AI = 'Edit with AI';
+const REMOVE_BG = 'Remove BG';
 
 /** What a tile / the viewer shows: the cutout by default, the original on request. */
 export function discoveredAssetDisplayUrl(a: DiscoveredAsset): string {
   // "Original" only applies while a cutout exists; a later AI edit must show itself.
-  return a.showOriginal && hasBgCutout(a) ? a.originalPreviewUrl || a.previewUrl : a.editedDataUrl || a.previewUrl
+  return a.showOriginal && hasBgCutout(a) ? a.originalPreviewUrl || a.previewUrl : a.editedDataUrl || a.previewUrl;
 }
 
 /** True once BG0 produced a transparent cutout for this asset. */
 export function hasBgCutout(a: DiscoveredAsset): boolean {
-  return Boolean(a.editedDataUrl) && a.editMetadata?.engine === 'bg0' && Boolean(a.hasTransparency)
+  return Boolean(a.editedDataUrl) && a.editMetadata?.engine === 'bg0' && Boolean(a.hasTransparency);
 }
 
 function showsTransparency(a: DiscoveredAsset): boolean {
-  return Boolean(a.hasTransparency) && !(a.showOriginal && hasBgCutout(a))
+  return Boolean(a.hasTransparency) && !(a.showOriginal && hasBgCutout(a));
 }
 
 export const DISCOVERED_ASSET_CATEGORIES: readonly DiscoveredAssetCategory[] = [
@@ -46,10 +46,10 @@ export const DISCOVERED_ASSET_CATEGORIES: readonly DiscoveredAssetCategory[] = [
   'team',
   'brand',
   'irrelevant',
-]
+];
 
 /** The drag payload type a drop zone in this grid accepts. */
-const DRAG_MIME = 'application/x-discovered-asset-id'
+const DRAG_MIME = 'application/x-discovered-asset-id';
 
 export function DiscoveredAssetThumb({
   asset,
@@ -80,14 +80,14 @@ export function DiscoveredAssetThumb({
   /** Clicking the card opens it full screen. */
   onOpen?: () => void
 }) {
-  const canEdit = Boolean(onEdit) && isImageEditSupported(asset)
-  const bg = asset.bgRemoval
-  const bgBusy = bg?.status === 'running' || bg?.status === 'queued'
-  const cutDone = hasBgCutout(asset)
+  const canEdit = Boolean(onEdit) && isImageEditSupported(asset);
+  const bg = asset.bgRemoval;
+  const bgBusy = bg?.status === 'running' || bg?.status === 'queued';
+  const cutDone = hasBgCutout(asset);
   const handleOpen = () => {
-    if (onOpen) onOpen()
-    else onToggle()
-  }
+    if (onOpen) onOpen();
+    else onToggle();
+  };
 
   return (
     <div
@@ -96,10 +96,10 @@ export function DiscoveredAssetThumb({
       aria-label={`View ${asset.category.replace(/_/g, ' ')} asset full screen`}
       onClick={handleOpen}
       onKeyDown={(e) => {
-        if (e.target !== e.currentTarget) return
+        if (e.target !== e.currentTarget) return;
         if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          handleOpen()
+          e.preventDefault();
+          handleOpen();
         }
       }}
       draggable={draggable}
@@ -144,7 +144,7 @@ export function DiscoveredAssetThumb({
         cutDone ? (
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); cutout.toggleOriginal(asset.id) }}
+            onClick={(e) => { e.stopPropagation(); cutout.toggleOriginal(asset.id); }}
             className="absolute bottom-[19px] left-1 right-1 z-20 truncate rounded-md py-0.5 text-center text-[7px] font-black uppercase leading-none"
             style={{ background: 'rgba(0,0,0,.75)', color: '#fff', border: '1px solid rgba(255,255,255,.35)' }}
             aria-label={asset.showOriginal ? 'Show cutout' : 'Show original'}
@@ -155,7 +155,7 @@ export function DiscoveredAssetThumb({
         ) : bg?.status === 'error' ? (
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); cutout.retry(asset.id) }}
+            onClick={(e) => { e.stopPropagation(); cutout.retry(asset.id); }}
             className="absolute bottom-[19px] left-1 right-1 z-20 truncate rounded-md py-0.5 text-center text-[7px] font-black uppercase leading-none"
             style={{ background: 'rgba(239,68,68,.9)', color: '#fff' }}
             aria-label="Retry background removal"
@@ -174,7 +174,7 @@ export function DiscoveredAssetThumb({
         ) : !asset.hasTransparency ? (
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); cutout.requestRemoval([asset.id]) }}
+            onClick={(e) => { e.stopPropagation(); cutout.requestRemoval([asset.id]); }}
             className="absolute bottom-[19px] left-1 right-1 z-20 truncate rounded-md py-0.5 text-center text-[7px] font-black uppercase leading-none"
             style={{ background: 'rgba(255,255,255,.9)', color: '#000000' }}
             aria-label="Remove background"
@@ -186,7 +186,7 @@ export function DiscoveredAssetThumb({
       {canEdit && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onEdit?.() }}
+          onClick={(e) => { e.stopPropagation(); onEdit?.(); }}
           className="absolute right-1 top-6 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
           style={{ background: 'rgba(0,0,0,.72)', border: `1px solid ${C.cyan}`, color: C.cyan }}
           aria-label="Edit discovered image"
@@ -198,7 +198,7 @@ export function DiscoveredAssetThumb({
       {asset.edited && onRevert && !cutDone && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onRevert() }}
+          onClick={(e) => { e.stopPropagation(); onRevert(); }}
           className="absolute left-1 top-6 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
           style={{ background: 'rgba(255,255,255,.9)', color: '#000000' }}
           aria-label="Revert to original"
@@ -224,7 +224,7 @@ export function DiscoveredAssetThumb({
       {/* Select checkbox */}
       <button
         type="button"
-        onClick={(e) => { e.stopPropagation(); onToggle() }}
+        onClick={(e) => { e.stopPropagation(); onToggle(); }}
         className="absolute top-1 left-1 z-10 rounded-full w-4 h-4 flex items-center justify-center"
         style={{
           border: `2px solid ${asset.selected ? C.cyan : 'rgba(255,255,255,.5)'}`,
@@ -244,7 +244,7 @@ export function DiscoveredAssetThumb({
       )}
       <button
         type="button"
-        onClick={(e) => { e.stopPropagation(); onRemove() }}
+        onClick={(e) => { e.stopPropagation(); onRemove(); }}
         className="absolute top-1 right-1 z-10 rounded-full p-0.5"
         style={{ background: 'rgba(239,68,68,.85)' }}
         aria-label="Remove"
@@ -254,7 +254,7 @@ export function DiscoveredAssetThumb({
       {asset.assignedSection && onRemoveFromSection && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onRemoveFromSection() }}
+          onClick={(e) => { e.stopPropagation(); onRemoveFromSection(); }}
           className="absolute bottom-8 right-1 z-10 rounded-full p-0.5"
           style={{ background: 'rgba(255,255,255,.2)' }}
           aria-label="Remove from section"
@@ -283,7 +283,7 @@ export function DiscoveredAssetThumb({
         ))}
       </select>
     </div>
-  )
+  );
 }
 
 /**
@@ -314,33 +314,33 @@ export function DiscoveredAssetLightbox({
   /** Save this asset to the project's assets (imports it). */
   onSaveToAssets?: (id: string) => void | Promise<unknown>
 }) {
-  const [compare, setCompare] = useState(false)
+  const [compare, setCompare] = useState(false);
   // One Save per asset: a second click while its import is pending would add the asset twice.
-  const [saving, setSaving] = useState<ReadonlySet<string>>(() => new Set())
-  const asset = assets[index]
-  const count = assets.length
-  const go = (delta: number) => onIndexChange((index + delta + count) % count)
+  const [saving, setSaving] = useState<ReadonlySet<string>>(() => new Set());
+  const asset = assets[index];
+  const count = assets.length;
+  const go = (delta: number) => onIndexChange((index + delta + count) % count);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // The Before / After range needs the arrow keys itself.
-      const onRange = (e.target as HTMLElement | null)?.tagName === 'INPUT'
-      if (onRange && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) return
-      if (e.key === 'ArrowRight') { e.preventDefault(); go(1) }
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1) }
-      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onClose() }
-    }
+      const onRange = (e.target as HTMLElement | null)?.tagName === 'INPUT';
+      if (onRange && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onClose(); }
+    };
     // Capture phase, so Escape closes the viewer before it can close the modal.
-    window.addEventListener('keydown', onKey, true)
-    return () => window.removeEventListener('keydown', onKey, true)
-  })
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  });
 
-  if (!asset) return null
-  const src = discoveredAssetDisplayUrl(asset)
-  const canEdit = Boolean(onEdit) && isImageEditSupported(asset)
-  const cutDone = hasBgCutout(asset)
-  const bgBusy = asset.bgRemoval?.status === 'running' || asset.bgRemoval?.status === 'queued'
-  const showCompare = cutDone && compare && Boolean(asset.editedDataUrl)
+  if (!asset) return null;
+  const src = discoveredAssetDisplayUrl(asset);
+  const canEdit = Boolean(onEdit) && isImageEditSupported(asset);
+  const cutDone = hasBgCutout(asset);
+  const bgBusy = asset.bgRemoval?.status === 'running' || asset.bgRemoval?.status === 'queued';
+  const showCompare = cutDone && compare && Boolean(asset.editedDataUrl);
   const arrowStyle = {
     position: 'absolute' as const,
     top: '50%',
@@ -353,7 +353,7 @@ export function DiscoveredAssetLightbox({
     color: 'white',
     fontSize: 22,
     cursor: 'pointer',
-  }
+  };
   const actionStyle = {
     minHeight: 34,
     padding: '0 14px',
@@ -365,7 +365,7 @@ export function DiscoveredAssetLightbox({
     fontWeight: 800,
     textTransform: 'uppercase' as const,
     cursor: 'pointer',
-  }
+  };
 
   return (
     <div
@@ -423,8 +423,8 @@ export function DiscoveredAssetLightbox({
         )}
         {count > 1 && (
           <>
-            <button type="button" aria-label="Previous asset" onClick={(e) => { e.stopPropagation(); go(-1) }} style={{ ...arrowStyle, left: 14 }}>‹</button>
-            <button type="button" aria-label="Next asset" onClick={(e) => { e.stopPropagation(); go(1) }} style={{ ...arrowStyle, right: 14 }}>›</button>
+            <button type="button" aria-label="Previous asset" onClick={(e) => { e.stopPropagation(); go(-1); }} style={{ ...arrowStyle, left: 14 }}>‹</button>
+            <button type="button" aria-label="Next asset" onClick={(e) => { e.stopPropagation(); go(1); }} style={{ ...arrowStyle, right: 14 }}>›</button>
           </>
         )}
       </div>
@@ -441,7 +441,7 @@ export function DiscoveredAssetLightbox({
           {asset.selected ? 'Selected ✓' : 'Select'}
         </button>
         {canEdit && (
-          <button type="button" onClick={() => { onClose(); onEdit?.(asset) }} style={{ ...actionStyle, background: 'transparent', color: C.cyan, borderColor: C.cyan }}>
+          <button type="button" onClick={() => { onClose(); onEdit?.(asset); }} style={{ ...actionStyle, background: 'transparent', color: C.cyan, borderColor: C.cyan }}>
             {EDIT_WITH_AI}
           </button>
         )}
@@ -454,7 +454,7 @@ export function DiscoveredAssetLightbox({
           <>
             <button
               type="button"
-              onClick={() => { setCompare(false); cutout.toggleOriginal(asset.id) }}
+              onClick={() => { setCompare(false); cutout.toggleOriginal(asset.id); }}
               style={actionStyle}
             >
               {asset.showOriginal ? 'Show Cutout' : 'Show Original'}
@@ -475,7 +475,7 @@ export function DiscoveredAssetLightbox({
               Download Transparent PNG
             </a>
             {onRevert && (
-              <button type="button" onClick={() => { setCompare(false); onRevert(asset.id) }} style={actionStyle}>
+              <button type="button" onClick={() => { setCompare(false); onRevert(asset.id); }} style={actionStyle}>
                 Restore Original
               </button>
             )}
@@ -486,17 +486,17 @@ export function DiscoveredAssetLightbox({
             type="button"
             disabled={bgBusy || saving.has(asset.id)}
             onClick={() => {
-              if (saving.has(asset.id)) return
-              setSaving((prev) => new Set(prev).add(asset.id))
+              if (saving.has(asset.id)) return;
+              setSaving((prev) => new Set(prev).add(asset.id));
               // Hold the lock only while the import runs, so a failed save can be retried.
               void Promise.resolve(onSaveToAssets(asset.id)).catch(() => undefined).finally(() =>
                 setSaving((prev) => {
-                  const next = new Set(prev)
-                  next.delete(asset.id)
-                  return next
+                  const next = new Set(prev);
+                  next.delete(asset.id);
+                  return next;
                 }),
-              )
-              if (count <= 1) onClose()
+              );
+              if (count <= 1) onClose();
             }}
             style={{ ...actionStyle, opacity: bgBusy || saving.has(asset.id) ? 0.5 : 1, cursor: bgBusy || saving.has(asset.id) ? 'not-allowed' : 'pointer' }}
           >
@@ -506,10 +506,10 @@ export function DiscoveredAssetLightbox({
         <button
           type="button"
           onClick={() => {
-            onRemove(asset.id)
+            onRemove(asset.id);
             // The removed asset leaves the list; stay on the same position.
-            if (count <= 1) onClose()
-            else if (index >= count - 1) onIndexChange(index - 1)
+            if (count <= 1) onClose();
+            else if (index >= count - 1) onIndexChange(index - 1);
           }}
           style={{ ...actionStyle, color: C.danger, borderColor: 'rgba(239,68,68,.45)' }}
         >
@@ -517,7 +517,7 @@ export function DiscoveredAssetLightbox({
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 /**
@@ -526,10 +526,10 @@ export function DiscoveredAssetLightbox({
  * Selected". Everything else in the grid works the same with or without it.
  */
 export function BackgroundRemovalBar({ assets, cutout }: { assets: DiscoveredAsset[]; cutout: AutoCutoutControls }) {
-  const { stats } = cutout
+  const { stats } = cutout;
   const selectedToCut = assets.filter(
     (a) => a.selected && !a.rejected && !a.hasTransparency && a.bgRemoval?.status !== 'running' && a.bgRemoval?.status !== 'queued',
-  )
+  );
   const barButton = {
     minHeight: 26,
     padding: '0 10px',
@@ -541,7 +541,7 @@ export function BackgroundRemovalBar({ assets, cutout }: { assets: DiscoveredAss
     fontWeight: 800,
     textTransform: 'uppercase' as const,
     cursor: 'pointer',
-  }
+  };
   return (
     <div data-testid="background-removal-bar" style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -600,7 +600,7 @@ export function BackgroundRemovalBar({ assets, cutout }: { assets: DiscoveredAss
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export interface DiscoveredAssetDropZone {
@@ -647,22 +647,22 @@ export function DiscoveredAssetGrid({
   /** Show at most this many per category, with "Show more" (omitted: show all). */
   pageSize?: number
 }) {
-  const [shownPerCategory, setShownPerCategory] = useState<Record<string, number>>({})
-  const [dragOverZone, setDragOverZone] = useState<AssignedSection | null>(null)
+  const [shownPerCategory, setShownPerCategory] = useState<Record<string, number>>({});
+  const [dragOverZone, setDragOverZone] = useState<AssignedSection | null>(null);
   // Browsers that cannot run background removal at all get the grid exactly as before.
-  const cutout = cutoutProp && cutoutProp.supported !== false ? cutoutProp : undefined
-  const [viewerIndex, setViewerIndex] = useState<number | null>(null)
-  const hasZones = Boolean(dropZones && dropZones.length > 0 && onDropToSection)
-  const removedCount = assets.filter((a) => a.rejected).length
+  const cutout = cutoutProp && cutoutProp.supported !== false ? cutoutProp : undefined;
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const hasZones = Boolean(dropZones && dropZones.length > 0 && onDropToSection);
+  const removedCount = assets.filter((a) => a.rejected).length;
   // The viewer steps through the assets in the order the grid shows them.
-  const visible = DISCOVERED_ASSET_CATEGORIES.flatMap((cat) => assets.filter((a) => a.category === cat && !a.rejected))
+  const visible = DISCOVERED_ASSET_CATEGORIES.flatMap((cat) => assets.filter((a) => a.category === cat && !a.rejected));
 
   const startDrag = (asset: DiscoveredAsset, e: DragEvent) => {
     // The grid's own zones read the asset id; a caller's handler adds its payload.
-    e.dataTransfer.setData(DRAG_MIME, asset.id)
-    e.dataTransfer.effectAllowed = 'move'
-    onDragStart?.(asset, e)
-  }
+    e.dataTransfer.setData(DRAG_MIME, asset.id);
+    e.dataTransfer.effectAllowed = 'move';
+    onDragStart?.(asset, e);
+  };
 
   return (
     <div>
@@ -682,9 +682,9 @@ export function DiscoveredAssetGrid({
       )}
       {cutout && assets.length > 0 && <BackgroundRemovalBar assets={assets} cutout={cutout} />}
       {DISCOVERED_ASSET_CATEGORIES.map((cat) => {
-        const items = assets.filter((a) => a.category === cat && !a.rejected)
-        if (items.length === 0) return null
-        const catLabel = cat.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+        const items = assets.filter((a) => a.category === cat && !a.rejected);
+        if (items.length === 0) return null;
+        const catLabel = cat.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
         return (
           <div key={cat} style={{ marginBottom: 16 }} data-category={cat}>
             <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: C.muted, marginBottom: 8 }}>
@@ -705,8 +705,8 @@ export function DiscoveredAssetGrid({
                   draggable={Boolean(onDragStart) || hasZones}
                   onDragStart={(e) => startDrag(asset, e)}
                   onDragEnd={(e) => {
-                    setDragOverZone(null)
-                    onDragEnd?.(e)
+                    setDragOverZone(null);
+                    onDragEnd?.(e);
                   }}
                   onOpen={() => setViewerIndex(visible.findIndex((a) => a.id === asset.id))}
                 />
@@ -723,7 +723,7 @@ export function DiscoveredAssetGrid({
               </button>
             )}
           </div>
-        )
+        );
       })}
 
       {removedCount > 0 && onRestoreAll && (
@@ -750,16 +750,16 @@ export function DiscoveredAssetGrid({
                 key={zone.section}
                 data-drop-section={zone.section}
                 onDragOver={(e) => {
-                  e.preventDefault()
-                  e.dataTransfer.dropEffect = 'move'
-                  setDragOverZone(zone.section)
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  setDragOverZone(zone.section);
                 }}
                 onDragLeave={() => setDragOverZone((current) => (current === zone.section ? null : current))}
                 onDrop={(e) => {
-                  e.preventDefault()
-                  setDragOverZone(null)
-                  const id = e.dataTransfer.getData(DRAG_MIME)
-                  if (id) onDropToSection!(id, zone.section)
+                  e.preventDefault();
+                  setDragOverZone(null);
+                  const id = e.dataTransfer.getData(DRAG_MIME);
+                  if (id) onDropToSection!(id, zone.section);
                 }}
                 style={{
                   minHeight: 54,
@@ -781,5 +781,5 @@ export function DiscoveredAssetGrid({
         </div>
       )}
     </div>
-  )
+  );
 }

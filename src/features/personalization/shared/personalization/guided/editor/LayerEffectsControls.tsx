@@ -1,8 +1,8 @@
-import { C, hintStyle, labelStyle, secondaryButtonStyle } from '../tokens'
-import { ColorField } from './ColorField'
-import { Tip } from './Tip'
-import { NEUTRAL_LAYER_EFFECTS, isNeutralLayerEffects, type LayerEffects } from '../../preview/effects'
-import type { PreviewLayer } from '../../preview/types'
+import { C, hintStyle, labelStyle, secondaryButtonStyle } from '../tokens';
+import { ColorField } from './ColorField';
+import { Tip } from './Tip';
+import { NEUTRAL_LAYER_EFFECTS, isNeutralLayerEffects, type LayerEffects } from '../../preview/effects';
+import type { PreviewLayer } from '../../preview/types';
 
 /** Brightness, contrast, saturation, blur, glow and shadow for one layer. Reset removes them all. */
 export function LayerEffectsControls({
@@ -13,18 +13,18 @@ export function LayerEffectsControls({
   brand: { primary: string; accent: string; text: string }
   posterUrl?: string | null
 }): React.JSX.Element {
-  const fx: LayerEffects = layer.effects ?? NEUTRAL_LAYER_EFFECTS
-  const active = !isNeutralLayerEffects(layer.effects)
+  const fx: LayerEffects = layer.effects ?? NEUTRAL_LAYER_EFFECTS;
+  const active = !isNeutralLayerEffects(layer.effects);
   const set = (patch: Partial<LayerEffects>) => {
-    const next = { ...fx, ...patch }
-    onChange(isNeutralLayerEffects(next) ? undefined : next)
-  }
+    const next = { ...fx, ...patch };
+    onChange(isNeutralLayerEffects(next) ? undefined : next);
+  };
   const slider = (id: string, label: string, value: number, min: number, max: number, step: number, onC: (v: number) => void) => (
     <div>
       <label style={labelStyle} htmlFor={id}>{label}</label>
       <input id={id} data-testid={id} type="range" aria-label={label} min={min} max={max} step={step} value={value} onChange={(e) => onC(Number(e.target.value))} style={{ width: '100%', accentColor: C.cyan }} />
     </div>
-  )
+  );
   return (
     <div data-testid="layer-effects" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <Tip id="layerEffects" side="top"><div style={labelStyle}>Effects</div></Tip>
@@ -40,5 +40,5 @@ export function LayerEffectsControls({
       <p style={{ ...hintStyle, margin: 0 }}>Shown live; turn Live off and the still picture previews the video look only.</p>
       <button type="button" data-testid="fx-reset" disabled={!active} onClick={() => onChange(undefined)} style={{ ...secondaryButtonStyle, minHeight: 28, fontSize: 11, alignSelf: 'flex-start', opacity: active ? 1 : 0.5 }}>Reset effects</button>
     </div>
-  )
+  );
 }

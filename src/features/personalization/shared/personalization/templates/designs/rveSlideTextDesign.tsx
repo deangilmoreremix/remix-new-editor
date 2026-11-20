@@ -18,10 +18,10 @@
  * canvas. The adapter truncates it to what fits on one line.
  */
 
-import React from 'react'
-import { SlideText } from '../_upstream/rve-slide-text/SlideText'
-import { pickColor, slotText, truncateText, type DesignAdapterProps } from './shared'
-import { RveDesignStage, rveFontSizePx, rveMaxChars } from './rveSharedDesign'
+import React from 'react';
+import { SlideText } from '../_upstream/rve-slide-text/SlideText';
+import { pickColor, slotText, truncateText, type DesignAdapterProps } from './shared';
+import { RveDesignStage, rveFontSizePx, rveMaxChars } from './rveSharedDesign';
 
 /**
  * The heading's size, as a fraction of the composition's short edge.
@@ -30,19 +30,19 @@ import { RveDesignStage, rveFontSizePx, rveMaxChars } from './rveSharedDesign'
  * font size) — `rem` is not canvas-relative, so the adapter passes a px
  * value instead (contract addition C9).
  */
-const FONT_SIZE_RATIO = 0.07
+const FONT_SIZE_RATIO = 0.07;
 
 /** The hard character ceiling. The real limit is the composition width. */
-const MAX_HEADLINE_LENGTH = 40
+const MAX_HEADLINE_LENGTH = 40;
 
 export const RveSlideTextDesign: React.FC<DesignAdapterProps> = (props) => {
-  const fontSizePx = rveFontSizePx(props, FONT_SIZE_RATIO)
-  const maxChars = rveMaxChars(props, fontSizePx, MAX_HEADLINE_LENGTH)
+  const fontSizePx = rveFontSizePx(props, FONT_SIZE_RATIO);
+  const maxChars = rveMaxChars(props, fontSizePx, MAX_HEADLINE_LENGTH);
 
   const text = truncateText(
     slotText(props, 'headline', ['offer', 'businessName']),
     maxChars,
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-slide-text" props={props}>
@@ -53,7 +53,7 @@ export const RveSlideTextDesign: React.FC<DesignAdapterProps> = (props) => {
         fontWeight="bold"
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveSlideTextDesign
+export default RveSlideTextDesign;

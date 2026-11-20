@@ -1,19 +1,19 @@
-'use client'
+'use client';
 
-import { AssetUsagePanel } from './AssetUsagePanel'
-import { CopySuggestionsPanel } from './CopySuggestionsPanel'
-import { useEffect, useRef, useState } from 'react'
-import { LayoutTemplate, Palette } from 'lucide-react'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { PREVIEW_LAYOUTS } from '../preview/presets'
-import { layoutOnVideo } from '../preview/designAddons'
-import { buildCtaSuggestions, ratingLine } from '../preview/ctaSuggestions'
-import { designPrimarySlotUpdates } from '../preview/designSlots'
-import { C, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, softPanelStyle } from './tokens'
-import { ColorField } from './editor/ColorField'
-import { LayoutThumbnails } from './LayoutThumbnails'
-import type { ClientProfile } from '../types'
-import type { PreviewLayerKind, PreviewLayoutId } from '../preview/types'
+import { AssetUsagePanel } from './AssetUsagePanel';
+import { CopySuggestionsPanel } from './CopySuggestionsPanel';
+import { useEffect, useRef, useState } from 'react';
+import { LayoutTemplate, Palette } from 'lucide-react';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { PREVIEW_LAYOUTS } from '../preview/presets';
+import { layoutOnVideo } from '../preview/designAddons';
+import { buildCtaSuggestions, ratingLine } from '../preview/ctaSuggestions';
+import { designPrimarySlotUpdates } from '../preview/designSlots';
+import { C, hintStyle, inputStyle, labelStyle, panelStyle, primaryButtonStyle, softPanelStyle } from './tokens';
+import { ColorField } from './editor/ColorField';
+import { LayoutThumbnails } from './LayoutThumbnails';
+import type { ClientProfile } from '../types';
+import type { PreviewLayerKind, PreviewLayoutId } from '../preview/types';
 
 const LAYER_LABELS: Record<PreviewLayerKind, string> = {
   logo: 'Logo',
@@ -26,7 +26,7 @@ const LAYER_LABELS: Record<PreviewLayerKind, string> = {
   tagline: 'Tagline',
   endCard: 'Branded end card',
   design: 'Design',
-}
+};
 
 /**
  * The layout SmartVideo GO AI applies for the customer when they have not
@@ -39,9 +39,9 @@ const LAYER_LABELS: Record<PreviewLayerKind, string> = {
  * default still applies, so a compatible layout always exists.
  */
 function preferredLayout(options: { hasLogo: boolean; hasProductImages: boolean }): PreviewLayoutId {
-  if (options.hasLogo) return 'business-introduction'
-  if (options.hasProductImages) return 'product-showcase'
-  return 'service-promotion'
+  if (options.hasLogo) return 'business-introduction';
+  if (options.hasProductImages) return 'product-showcase';
+  return 'service-promotion';
 }
 
 /**
@@ -66,7 +66,7 @@ export function StepPersonalize({
   layoutChosenByUser: chosenByWizard,
   onChooseLayout,
 }: StepPersonalizeProps = {}): React.JSX.Element {
-  const ctx = useDemoPersonalize()
+  const ctx = useDemoPersonalize();
   const {
     clientForm = {},
     selectedBusiness = null,
@@ -79,59 +79,59 @@ export function StepPersonalize({
     updatePreviewBrandColors,
     updatePreviewComposition,
     setGuidedStep,
-  } = ctx
+  } = ctx;
 
   // LOCAL-only marker: once the visitor picks a layout chip, the auto-apply
   // below stops overriding their choice for the rest of this visit. Falls back
   // to local state when the component is used outside the wizard.
-  const [localChosenByUser, setLocalChosenByUser] = useState(false)
-  const layoutChosenByUser = chosenByWizard || localChosenByUser
+  const [localChosenByUser, setLocalChosenByUser] = useState(false);
+  const layoutChosenByUser = chosenByWizard || localChosenByUser;
 
-  const layers = previewSettings.layers
-  const logoAvailable = Boolean(assets?.primaryLogo)
-  const productAvailable = (assets?.products?.length || 0) > 0
-  const taglineLayer = layers.find((item) => item.kind === 'tagline')
-  const activeLayout = PREVIEW_LAYOUTS.find((layout) => layout.id === previewSettings.layout) || PREVIEW_LAYOUTS[0]
+  const layers = previewSettings.layers;
+  const logoAvailable = Boolean(assets?.primaryLogo);
+  const productAvailable = (assets?.products?.length || 0) > 0;
+  const taglineLayer = layers.find((item) => item.kind === 'tagline');
+  const activeLayout = PREVIEW_LAYOUTS.find((layout) => layout.id === previewSettings.layout) || PREVIEW_LAYOUTS[0];
   // Read what is actually on the video, not the "main design" id. A design ADDED on top keeps the layout's own
   // layers; only Replace leaves nothing but design layers.
-  const showingLayout = layoutOnVideo(previewSettings)
-  const designLayer = layers.find((item) => item.kind === 'design' && item.designId)
+  const showingLayout = layoutOnVideo(previewSettings);
+  const designLayer = layers.find((item) => item.kind === 'design' && item.designId);
   const designOnVideo = designLayer?.designId
     ? remotionDesignTemplates.find((design) => design.id === designLayer.designId) ?? null
-    : null
-  const activeTemplate = showingLayout ? activeLayout : (designOnVideo ?? activeLayout)
+    : null;
+  const activeTemplate = showingLayout ? activeLayout : (designOnVideo ?? activeLayout);
 
   // Auto-apply a compatible layout on mount, and again while nothing was chosen
   // explicitly (e.g. a product photo imported later). The ref guard keeps it to
   // one call per source, so it can never loop.
-  const autoAppliedRef = useRef<string | null>(null)
+  const autoAppliedRef = useRef<string | null>(null);
   useEffect(() => {
-    if (layoutChosenByUser) return
-    const next = preferredLayout({ hasLogo: logoAvailable, hasProductImages: productAvailable })
+    if (layoutChosenByUser) return;
+    const next = preferredLayout({ hasLogo: logoAvailable, hasProductImages: productAvailable });
     if (previewSettings.layout === next) {
-      autoAppliedRef.current = previewSettings.layout
-      return
+      autoAppliedRef.current = previewSettings.layout;
+      return;
     }
-    if (autoAppliedRef.current === next) return
-    autoAppliedRef.current = next
-    setPreviewLayout(next)
+    if (autoAppliedRef.current === next) return;
+    autoAppliedRef.current = next;
+    setPreviewLayout(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: keyed on availability, not the settings object
-  }, [logoAvailable, productAvailable, previewSettings.layout, layoutChosenByUser, setPreviewLayout])
+  }, [logoAvailable, productAvailable, previewSettings.layout, layoutChosenByUser, setPreviewLayout]);
 
   // Keep the tagline layer in sync with the Tagline field whenever the active
   // layout has one — e.g. the customer typed a tagline under a layout without
   // a tagline layer and then switched. A non-empty field value is pushed onto
   // the layer; an empty field never wipes text the customer did not type.
-  const taglineSyncRef = useRef<string>('')
+  const taglineSyncRef = useRef<string>('');
   useEffect(() => {
-    const fieldText = clientForm.brandDescription || ''
-    const key = `${taglineLayer?.id ?? ''}|${taglineLayer?.text ?? ''}|${fieldText}`
-    if (taglineSyncRef.current === key) return
-    taglineSyncRef.current = key
-    if (!fieldText || !taglineLayer) return
-    if ((taglineLayer.text || '') === fieldText) return
-    updatePreviewLayer(taglineLayer.id, { text: fieldText })
-  }, [clientForm.brandDescription, taglineLayer?.id, taglineLayer?.text, updatePreviewLayer])
+    const fieldText = clientForm.brandDescription || '';
+    const key = `${taglineLayer?.id ?? ''}|${taglineLayer?.text ?? ''}|${fieldText}`;
+    if (taglineSyncRef.current === key) return;
+    taglineSyncRef.current = key;
+    if (!fieldText || !taglineLayer) return;
+    if ((taglineLayer.text || '') === fieldText) return;
+    updatePreviewLayer(taglineLayer.id, { text: fieldText });
+  }, [clientForm.brandDescription, taglineLayer?.id, taglineLayer?.text, updatePreviewLayer]);
 
   /** Update a client field AND the matching layer text so both stay in sync. */
   // Suggested call-to-action lines, built only from details the business really has.
@@ -141,21 +141,21 @@ export function StepPersonalize({
     email: clientForm.email || selectedBusiness?.email,
     instagram: clientForm.instagram || selectedBusiness?.instagram,
     openingHours: selectedBusiness?.openingHours,
-  })
+  });
 
-  const foundRating = ctx.foundSignals?.rating
-  const foundRatingLine = ratingLine(foundRating)
+  const foundRating = ctx.foundSignals?.rating;
+  const foundRatingLine = ratingLine(foundRating);
 
   const setField = (field: keyof ClientProfile, value: string, layerKind: PreviewLayerKind) => {
-    updateClientForm({ ...clientForm, [field]: value })
-    const layer = layers.find((item) => item.kind === layerKind)
-    if (layer) updatePreviewLayer(layer.id, { text: value })
+    updateClientForm({ ...clientForm, [field]: value });
+    const layer = layers.find((item) => item.kind === layerKind);
+    if (layer) updatePreviewLayer(layer.id, { text: value });
     // An applied design keeps its primary text on its own layer; keep it in
     // sync with the form too, or the preview and export show the old value.
     for (const update of designPrimarySlotUpdates(layers, remotionDesignTemplates, layerKind, value)) {
-      updatePreviewLayer(update.layerId, { text: update.text })
+      updatePreviewLayer(update.layerId, { text: update.text });
     }
-  }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -332,9 +332,9 @@ export function StepPersonalize({
         <LayoutThumbnails
           activeLayoutId={showingLayout ? previewSettings.layout : null}
           onChoose={(layoutId) => {
-            setLocalChosenByUser(true)
-            onChooseLayout?.()
-            setPreviewLayout(layoutId)
+            setLocalChosenByUser(true);
+            onChooseLayout?.();
+            setPreviewLayout(layoutId);
           }}
         />
       </div>
@@ -349,10 +349,10 @@ export function StepPersonalize({
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 8 }}>
           {layers.map((layer) => {
-            const isImageLayer = layer.kind === 'logo' || layer.kind === 'productImage' || layer.kind === 'serviceImage'
-            const hasImage = isImageLayer ? Boolean(layer.imageUrl) : true
-            const text = layer.text || ''
-            const ready = layer.kind === 'endCard' ? previewSettings.showEndCard : hasImage && (isImageLayer || text.trim().length > 0)
+            const isImageLayer = layer.kind === 'logo' || layer.kind === 'productImage' || layer.kind === 'serviceImage';
+            const hasImage = isImageLayer ? Boolean(layer.imageUrl) : true;
+            const text = layer.text || '';
+            const ready = layer.kind === 'endCard' ? previewSettings.showEndCard : hasImage && (isImageLayer || text.trim().length > 0);
             return (
               <div key={layer.id} style={{ ...softPanelStyle, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span
@@ -370,7 +370,7 @@ export function StepPersonalize({
                   {ready ? 'Ready' : layer.kind === 'productImage' && !productAvailable ? 'Add a photo in Advanced Editing' : isImageLayer && !hasImage ? 'Add an image' : 'Nothing to show'}
                 </span>
               </div>
-            )
+            );
           })}
         </div>
         {!logoAvailable && (
@@ -397,5 +397,5 @@ export function StepPersonalize({
         </button>
       </div>
     </div>
-  )
+  );
 }

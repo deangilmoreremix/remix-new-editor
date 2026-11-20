@@ -10,23 +10,23 @@ export interface Stroke {
 }
 
 function trace(ctx: CanvasRenderingContext2D, stroke: Stroke) {
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
-  ctx.lineWidth = stroke.size
-  ctx.beginPath()
-  stroke.points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)))
-  if (stroke.points.length === 1) ctx.lineTo(stroke.points[0].x + 0.01, stroke.points[0].y)
-  ctx.stroke()
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = stroke.size;
+  ctx.beginPath();
+  stroke.points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+  if (stroke.points.length === 1) ctx.lineTo(stroke.points[0].x + 0.01, stroke.points[0].y);
+  ctx.stroke();
 }
 
 /** Paint the strokes on a canvas (overlay in mask mode: translucent cyan; markup: solid red). */
 export function drawStrokes(ctx: CanvasRenderingContext2D, strokes: Stroke[], color: string) {
   for (const s of strokes) {
-    ctx.save()
-    ctx.globalCompositeOperation = s.erase ? 'destination-out' : 'source-over'
-    ctx.strokeStyle = color
-    trace(ctx, s)
-    ctx.restore()
+    ctx.save();
+    ctx.globalCompositeOperation = s.erase ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = color;
+    trace(ctx, s);
+    ctx.restore();
   }
 }
 
@@ -35,41 +35,41 @@ export function drawStrokes(ctx: CanvasRenderingContext2D, strokes: Stroke[], co
  * ("repaint here"); everything else stays opaque ("keep").
  */
 export function strokesToMaskPng(width: number, height: number, strokes: Stroke[]): string {
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Drawing is not supported in this browser.')
-  ctx.fillStyle = '#000'
-  ctx.fillRect(0, 0, width, height)
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Drawing is not supported in this browser.');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, width, height);
   for (const s of strokes) {
-    ctx.save()
+    ctx.save();
     // Painting makes pixels transparent; the eraser puts the opaque "keep" layer back.
-    ctx.globalCompositeOperation = s.erase ? 'source-over' : 'destination-out'
-    ctx.strokeStyle = '#000'
-    trace(ctx, s)
-    ctx.restore()
+    ctx.globalCompositeOperation = s.erase ? 'source-over' : 'destination-out';
+    ctx.strokeStyle = '#000';
+    trace(ctx, s);
+    ctx.restore();
   }
-  return canvas.toDataURL('image/png')
+  return canvas.toDataURL('image/png');
 }
 
 /** The image with the user's markup drawn on it, as a PNG data URL. */
 export function composeMarkup(img: HTMLImageElement, strokes: Stroke[]): string {
-  const canvas = document.createElement('canvas')
-  canvas.width = img.naturalWidth
-  canvas.height = img.naturalHeight
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Drawing is not supported in this browser.')
-  ctx.drawImage(img, 0, 0)
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Drawing is not supported in this browser.');
+  ctx.drawImage(img, 0, 0);
   // Strokes go on their own transparent layer first, so the eraser removes only markup (never the picture).
-  const overlay = document.createElement('canvas')
-  overlay.width = img.naturalWidth
-  overlay.height = img.naturalHeight
-  const octx = overlay.getContext('2d')
-  if (!octx) throw new Error('Drawing is not supported in this browser.')
-  drawStrokes(octx, strokes, '#ff2d2d')
-  ctx.drawImage(overlay, 0, 0)
-  return canvas.toDataURL('image/png')
+  const overlay = document.createElement('canvas');
+  overlay.width = img.naturalWidth;
+  overlay.height = img.naturalHeight;
+  const octx = overlay.getContext('2d');
+  if (!octx) throw new Error('Drawing is not supported in this browser.');
+  drawStrokes(octx, strokes, '#ff2d2d');
+  ctx.drawImage(overlay, 0, 0);
+  return canvas.toDataURL('image/png');
 }
 
 /**
@@ -77,17 +77,17 @@ export function composeMarkup(img: HTMLImageElement, strokes: Stroke[]): string 
  * The picture itself is sent untouched, so nothing has to be "removed" from it afterwards.
  */
 export function strokesToMarkupPng(width: number, height: number, strokes: Stroke[]): string {
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Drawing is not supported in this browser.')
-  drawStrokes(ctx, strokes, '#ff2d2d')
-  return canvas.toDataURL('image/png')
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Drawing is not supported in this browser.');
+  drawStrokes(ctx, strokes, '#ff2d2d');
+  return canvas.toDataURL('image/png');
 }
 
 export const NATIVE_MARKUP_INSTRUCTION =
-  'Apply the edits shown by the markup layer (circles, arrows and notes), and keep everything else exactly as it is.'
+  'Apply the edits shown by the markup layer (circles, arrows and notes), and keep everything else exactly as it is.';
 
 export const MARKUP_INSTRUCTION =
-  'The image has red markup drawn on it that shows the edits to make. Apply those edits, then remove all of the red markup completely and keep everything else exactly as it is.'
+  'The image has red markup drawn on it that shows the edits to make. Apply those edits, then remove all of the red markup completely and keep everything else exactly as it is.';

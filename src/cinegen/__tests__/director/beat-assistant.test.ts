@@ -21,16 +21,20 @@ describe('needsJsonRetry', () => {
   });
 });
 
-const bs: BeatSheet = { beats: [
+const bs: BeatSheet = {
+ beats: [
   { id: 'b1', n: 1, action: 'Old action.', location: 'INT. A', shot: '' },
   { id: 'b2', n: 2, action: 'Second.', location: 'EXT. B', shot: '' },
-] };
+] 
+};
 
 describe('parseAssistantResponse beatEdits', () => {
   it('parses a reply with beatEdits', () => {
-    const raw = JSON.stringify({ reply: 'Added a beat.', beatEdits: [
+    const raw = JSON.stringify({
+ reply: 'Added a beat.', beatEdits: [
       { op: 'insert-after', targetBeatId: 'b1', beats: [{ id: 'n1', n: 0, action: 'New.', location: 'INT. C', shot: '' }] },
-    ] });
+    ] 
+});
     const res = parseAssistantResponse(raw);
     expect(res.reply).toBe('Added a beat.');
     expect(res.beatEdits).toHaveLength(1);

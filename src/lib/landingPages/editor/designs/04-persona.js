@@ -13,7 +13,9 @@ export default {
     root: { props: { design: 'persona', accent: '#8a6a1f', background: '#f7f0e6', text: '#2a2118', surface: '#fcf8f2' } },
     content: [
       { type: 'NavBar', props: { id: id('nav'), brand: 'SmartVideo AI', logo: '/landing-art/04/logo.webp', links: [{ label: 'Platform', url: '' }, { label: 'Solutions', url: '' }, { label: 'How It Works', url: '' }, { label: 'Success Stories', url: '' }, { label: 'Resources', url: '' }], loginLabel: '', loginUrl: '', ctaLabel: 'Book a Private Strategy Call' } },
-      { type: 'PersonaHero', props: { id: id('hero'),
+      {
+ type: 'PersonaHero', props: {
+ id: id('hero'),
         eyebrow: 'PERSONALIZED VIDEO LEAD GENERATION',
         headline: 'Turn Personal Connection into Predictable Growth',
         subhead: 'Create, deliver, and scale personalized videos that captivate, qualify, and convert your ideal prospects — all on one elegant platform.',
@@ -23,7 +25,9 @@ export default {
         photo: '/landing-art/04/presenter.webp',
         formTitle: 'Request a Private Consultation', formSubtitle: 'Let’s explore how personalized video can drive results for your business.',
         formFields: [{ key: 'name', label: 'Full Name', type: 'text', required: true }, { key: 'email', label: 'Business Email', type: 'email', required: true }, { key: 'company', label: 'Company', type: 'text', required: false }, { key: 'goals', label: 'Tell us about your goals', type: 'select', options: 'Generate more leads, Nurture existing clients, Launch a new offer, Something else', required: false }],
-        submitLabel: 'Request My Consultation', privacy: 'A concierge will be in touch within 1 business day.' } },
+        submitLabel: 'Request My Consultation', privacy: 'A concierge will be in touch within 1 business day.' 
+} 
+},
       { type: 'PersonaLogos', props: { id: id('strip'), title: 'TRUSTED BY LEADING BRANDS', items: [{ name: 'Forbes', subline: '' }, { name: 'LUXE REALTY', subline: 'GROUP' }, { name: 'VANTAGE', subline: 'CAPITAL' }, { name: 'Asteria', subline: 'WELLNESS' }, { name: 'CARRINGTON', subline: 'ADVISORS' }, { name: 'The Haven', subline: 'COLLECTION™' }] } },
       {
         type: 'PersonaTestimonials',

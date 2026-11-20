@@ -19,11 +19,11 @@
  * The SVG declares no `id`s, so this design has no one-instance constraint.
  */
 
-import React from 'react'
-import { CountdownIntro } from '../../_upstream/rve-countdown-intro/CountdownIntro'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { CountdownIntro } from '../../_upstream/rve-countdown-intro/CountdownIntro';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   brandPrimary,
   brandSceneColor,
@@ -35,26 +35,26 @@ import {
   remUnit,
   slotText,
   truncateText,
-} from './batch3eShared'
+} from './batch3eShared';
 
-export const RVE_COUNTDOWN_INTRO_ID = 'rve-countdown-intro'
+export const RVE_COUNTDOWN_INTRO_ID = 'rve-countdown-intro';
 
 /** 3 s countdown + 1 s on the closing word, at 30 fps. */
-export const COUNTDOWN_INTRO_FRAMES = 120
+export const COUNTDOWN_INTRO_FRAMES = 120;
 
-const ZOOM = 2
+const ZOOM = 2;
 
 export const RveCountdownIntroDesign: React.FC<DesignAdapterProps> = (props) => {
-  const rem = remUnit(props, ZOOM)
-  const unit = rem / 16
-  const goPx = 3.5 * rem
+  const rem = remUnit(props, ZOOM);
+  const unit = rem / 16;
+  const goPx = 3.5 * rem;
 
   const goText = truncateText(
     slotText(props, 'cta', ['offer', 'businessName']),
     fitChars(props.width * 0.86, goPx, 1, 24),
-  )
+  );
 
-  const primary = brandPrimary(props)
+  const primary = brandPrimary(props);
 
   return (
     <RveDesignStage designId={RVE_COUNTDOWN_INTRO_ID} props={props}>
@@ -74,7 +74,7 @@ export const RveCountdownIntroDesign: React.FC<DesignAdapterProps> = (props) => 
         goWhiteSpace="nowrap"
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveCountdownIntroDesign
+export default RveCountdownIntroDesign;

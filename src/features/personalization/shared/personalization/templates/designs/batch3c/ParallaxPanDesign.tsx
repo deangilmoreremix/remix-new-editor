@@ -21,17 +21,17 @@
  * text (72 px below 1920 px width, 108 px at 1920), so both are capped.
  */
 
-import React from 'react'
-import { ParallaxPan } from '../../_upstream/parallax-pan/ParallaxPan'
-import { DesignStage, pickColor, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
-import { readableOnDark, shade, toHex6 } from './batch3cShared'
+import React from 'react';
+import { ParallaxPan } from '../../_upstream/parallax-pan/ParallaxPan';
+import { DesignStage, pickColor, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
+import { readableOnDark, shade, toHex6 } from './batch3cShared';
 
-const MAX_TITLE_LENGTH = 40
-const MAX_SUBTITLE_LENGTH = 56
+const MAX_TITLE_LENGTH = 40;
+const MAX_SUBTITLE_LENGTH = 56;
 
 export const ParallaxPanDesign: React.FC<DesignAdapterProps> = (props) => {
-  const primary = toHex6(props.colors?.primary, '#1e3a8a')
-  const accent = toHex6(props.colors?.accent, '#f59e0b')
+  const primary = toHex6(props.colors?.primary, '#1e3a8a');
+  const accent = toHex6(props.colors?.accent, '#f59e0b');
 
   return (
     <DesignStage designId="parallax-pan" props={props}>
@@ -47,7 +47,7 @@ export const ParallaxPanDesign: React.FC<DesignAdapterProps> = (props) => {
         panDistance={600}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default ParallaxPanDesign
+export default ParallaxPanDesign;

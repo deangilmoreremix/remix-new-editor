@@ -31,12 +31,12 @@
  * `__tests__/demoCategories.test.ts` asserts the shared ids stay aligned.
  */
 
-import { NICHE_KEYWORDS, SUB_NICHE_KEYWORDS } from '@ohb/lib/nicheClassifier'
-import { DEMO_CATEGORIES as DEMO_STYLE_CATEGORY_IDS } from '@ohb/data/types'
-import type { VideoDemo } from '@ohb/data/types'
+import { NICHE_KEYWORDS, SUB_NICHE_KEYWORDS } from '@ohb/lib/nicheClassifier';
+import { DEMO_CATEGORIES as DEMO_STYLE_CATEGORY_IDS } from '@ohb/data/types';
+import type { VideoDemo } from '@ohb/data/types';
 
 /** Id of the catch-all category. Every eligible demo belongs to it. */
-export const ALL_DEMOS_CATEGORY_ID = 'all'
+export const ALL_DEMOS_CATEGORY_ID = 'all';
 
 /** A sub-category of a business niche (e.g. `ecommerce` → `tech-products`). */
 export interface DemoSubcategory {
@@ -156,7 +156,7 @@ export const DEMO_CATEGORIES: readonly DemoCategory[] = [
     description: 'See What’s Possible. Remix the Style. Make It Yours.',
     icon: 'trending-up',
   },
-] as const
+] as const;
 
 /**
  * The real AI Viral *style* categories — the seven canonical landing-page
@@ -169,7 +169,7 @@ export const DEMO_STYLE_CATEGORIES: readonly DemoCategory[] = DEMO_STYLE_CATEGOR
   id: id.toLowerCase(),
   label: id,
   description: `${id} style demos.`,
-}))
+}));
 
 /**
  * Sub-category structure, derived from the real sub-niche keyword table.
@@ -181,7 +181,7 @@ export const DEMO_SUBCATEGORIES: Readonly<Record<string, readonly DemoSubcategor
     niche,
     Object.keys(subMap).map((id) => ({ id, label: humanizeTaxonomyId(id) })),
   ]),
-)
+);
 
 /**
  * Humanise a machine id exactly the way the AI Viral Studio API does
@@ -191,7 +191,7 @@ export const DEMO_SUBCATEGORIES: Readonly<Record<string, readonly DemoSubcategor
 export function humanizeTaxonomyId(id: string): string {
   return id
     .replace(/-/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /**
@@ -239,12 +239,12 @@ const EXTRA_CATEGORY_KEYWORDS: Record<string, string[]> = {
     'montage',
     'meme',
   ],
-}
+};
 
 /** Build a word-boundary regex for a keyword phrase (mirrors `nicheRegex`). */
 function keywordRegex(keyword: string): RegExp {
-  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return new RegExp(`\\b${escaped}\\b`, 'i')
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`\\b${escaped}\\b`, 'i');
 }
 
 const NICHE_REGEXES: Record<string, RegExp[]> = Object.fromEntries(
@@ -252,14 +252,14 @@ const NICHE_REGEXES: Record<string, RegExp[]> = Object.fromEntries(
     niche,
     keywords.map(keywordRegex),
   ]),
-)
+);
 
 const EXTRA_CATEGORY_REGEXES: Record<string, RegExp[]> = Object.fromEntries(
   Object.entries(EXTRA_CATEGORY_KEYWORDS).map(([niche, keywords]) => [
     niche,
     keywords.map(keywordRegex),
   ]),
-)
+);
 
 const SUB_NICHE_REGEXES: Record<string, Record<string, RegExp[]>> = Object.fromEntries(
   Object.entries(SUB_NICHE_KEYWORDS).map(([niche, subMap]) => [
@@ -268,7 +268,7 @@ const SUB_NICHE_REGEXES: Record<string, Record<string, RegExp[]>> = Object.fromE
       Object.entries(subMap).map(([subNiche, keywords]) => [subNiche, keywords.map(keywordRegex)]),
     ),
   ]),
-)
+);
 
 /**
  * The text a demo is classified on.
@@ -288,18 +288,18 @@ const SUB_NICHE_REGEXES: Record<string, Record<string, RegExp[]>> = Object.fromE
 function demoClassificationText(demo: VideoDemo): string {
   return [demo.title, demo.useCase, demo.rawCategory, ...(demo.tags || [])]
     .filter(Boolean)
-    .join(' ')
+    .join(' ');
 }
 
 /** Score a text against one niche's keyword regexes (longer match = higher). */
 function scoreNiche(text: string, regexes: RegExp[] | undefined): number {
-  if (!regexes) return 0
-  let score = 0
+  if (!regexes) return 0;
+  let score = 0;
   for (const regex of regexes) {
-    const match = text.match(regex)
-    if (match) score += match[0].length
+    const match = text.match(regex);
+    if (match) score += match[0].length;
   }
-  return score
+  return score;
 }
 
 /**
@@ -312,21 +312,21 @@ function scoreNiche(text: string, regexes: RegExp[] | undefined): number {
  * is exactly how the AI Viral sidebar counts work.
  */
 export function getDemoCategoryIds(demo: VideoDemo): string[] {
-  const text = demoClassificationText(demo)
-  const scored: Array<{ id: string; score: number }> = []
+  const text = demoClassificationText(demo);
+  const scored: Array<{ id: string; score: number }> = [];
 
   for (const [niche, regexes] of Object.entries(NICHE_REGEXES)) {
-    const score = scoreNiche(text, regexes)
-    if (score > 0) scored.push({ id: niche, score })
+    const score = scoreNiche(text, regexes);
+    if (score > 0) scored.push({ id: niche, score });
   }
   for (const [niche, regexes] of Object.entries(EXTRA_CATEGORY_REGEXES)) {
-    const score = scoreNiche(text, regexes)
-    if (score > 0) scored.push({ id: niche, score })
+    const score = scoreNiche(text, regexes);
+    if (score > 0) scored.push({ id: niche, score });
   }
 
-  if (scored.length === 0) return ['general-business']
+  if (scored.length === 0) return ['general-business'];
 
-  return scored.sort((a, b) => b.score - a.score).map((entry) => entry.id)
+  return scored.sort((a, b) => b.score - a.score).map((entry) => entry.id);
 }
 
 /**
@@ -338,17 +338,17 @@ export function getDemoCategoryIds(demo: VideoDemo): string[] {
  * instead.
  */
 export function getDemoSubcategoryIds(demo: VideoDemo, nicheId?: string): string[] {
-  const primary = nicheId ?? getDemoCategoryIds(demo)[0]
-  const subMap = SUB_NICHE_REGEXES[primary]
-  if (!subMap) return []
+  const primary = nicheId ?? getDemoCategoryIds(demo)[0];
+  const subMap = SUB_NICHE_REGEXES[primary];
+  if (!subMap) return [];
 
-  const text = demoClassificationText(demo)
-  const matched: Array<{ id: string; score: number }> = []
+  const text = demoClassificationText(demo);
+  const matched: Array<{ id: string; score: number }> = [];
   for (const [subNiche, regexes] of Object.entries(subMap)) {
-    const score = scoreNiche(text, regexes)
-    if (score > 0) matched.push({ id: subNiche, score })
+    const score = scoreNiche(text, regexes);
+    if (score > 0) matched.push({ id: subNiche, score });
   }
-  return matched.sort((a, b) => b.score - a.score).map((entry) => entry.id)
+  return matched.sort((a, b) => b.score - a.score).map((entry) => entry.id);
 }
 
 /**
@@ -360,13 +360,13 @@ export function getDemoSubcategoryIds(demo: VideoDemo, nicheId?: string): string
  * `"<niche>/<sub>"` (e.g. `ecommerce/fashion`).
  */
 export function getQualifiedSubcategoryId(nicheId: string, subcategoryId: string): string {
-  return `${nicheId}/${subcategoryId}`
+  return `${nicheId}/${subcategoryId}`;
 }
 
 /** True when `categoryId` names one of the seven canonical style categories. */
 export function isStyleCategoryId(categoryId: string): boolean {
-  const id = categoryId.trim().toLowerCase()
-  return DEMO_STYLE_CATEGORY_IDS.some((style) => style.toLowerCase() === id)
+  const id = categoryId.trim().toLowerCase();
+  return DEMO_STYLE_CATEGORY_IDS.some((style) => style.toLowerCase() === id);
 }
 
 /**
@@ -381,28 +381,28 @@ export function isStyleCategoryId(categoryId: string): boolean {
  *    `ecommerce/fashion`) — matches the demo's sub-niche classification.
  */
 export function isCategoryActiveForDemo(categoryId: string, demo: VideoDemo): boolean {
-  const raw = categoryId.trim()
-  if (!raw) return false
-  const id = raw.toLowerCase()
-  if (id === ALL_DEMOS_CATEGORY_ID) return true
+  const raw = categoryId.trim();
+  if (!raw) return false;
+  const id = raw.toLowerCase();
+  if (id === ALL_DEMOS_CATEGORY_ID) return true;
 
   // Qualified sub-category: "<niche>/<sub>" (e.g. "ecommerce/fashion").
   if (raw.includes('/')) {
-    const [niche, sub] = raw.split('/', 2)
-    const subcategories = DEMO_SUBCATEGORIES[niche]
-    if (!subcategories) return false
-    if (!subcategories.some((entry) => entry.id === sub)) return false
+    const [niche, sub] = raw.split('/', 2);
+    const subcategories = DEMO_SUBCATEGORIES[niche];
+    if (!subcategories) return false;
+    if (!subcategories.some((entry) => entry.id === sub)) return false;
     return (
       getDemoCategoryIds(demo).includes(niche) &&
       getDemoSubcategoryIds(demo, niche).includes(sub)
-    )
+    );
   }
 
   if (isStyleCategoryId(id)) {
-    return (demo.category || '').trim().toLowerCase() === id
+    return (demo.category || '').trim().toLowerCase() === id;
   }
 
-  return getDemoCategoryIds(demo).includes(id)
+  return getDemoCategoryIds(demo).includes(id);
 }
 
 /**
@@ -417,33 +417,33 @@ export function isCategoryActiveForDemo(categoryId: string, demo: VideoDemo): bo
  * shares the same bare word.
  */
 export function countDemosByCategory(demos: readonly VideoDemo[]): Record<string, number> {
-  const counts: Record<string, number> = { [ALL_DEMOS_CATEGORY_ID]: demos.length }
+  const counts: Record<string, number> = { [ALL_DEMOS_CATEGORY_ID]: demos.length };
   for (const category of DEMO_CATEGORIES) {
-    if (category.id === ALL_DEMOS_CATEGORY_ID) continue
-    counts[category.id] = 0
+    if (category.id === ALL_DEMOS_CATEGORY_ID) continue;
+    counts[category.id] = 0;
   }
   for (const category of DEMO_STYLE_CATEGORIES) {
-    counts[category.id] = 0
+    counts[category.id] = 0;
   }
   for (const [niche, subcategories] of Object.entries(DEMO_SUBCATEGORIES)) {
     for (const sub of subcategories) {
-      counts[getQualifiedSubcategoryId(niche, sub.id)] = 0
+      counts[getQualifiedSubcategoryId(niche, sub.id)] = 0;
     }
   }
   for (const demo of demos) {
     for (const id of getDemoCategoryIds(demo)) {
-      if (id in counts) counts[id] += 1
+      if (id in counts) counts[id] += 1;
     }
     for (const [niche, subcategories] of Object.entries(DEMO_SUBCATEGORIES)) {
       for (const sub of getDemoSubcategoryIds(demo, niche)) {
-        const key = getQualifiedSubcategoryId(niche, sub)
-        if (key in counts) counts[key] += 1
+        const key = getQualifiedSubcategoryId(niche, sub);
+        if (key in counts) counts[key] += 1;
       }
     }
-    const styleId = (demo.category || '').trim().toLowerCase()
-    if (styleId in counts) counts[styleId] += 1
+    const styleId = (demo.category || '').trim().toLowerCase();
+    if (styleId in counts) counts[styleId] += 1;
   }
-  return counts
+  return counts;
 }
 
 /** Filter demos down to one category, preserving the input order. */
@@ -451,8 +451,8 @@ export function filterDemosByCategory(
   demos: readonly VideoDemo[],
   categoryId: string,
 ): VideoDemo[] {
-  if (!categoryId || categoryId === ALL_DEMOS_CATEGORY_ID) return [...demos]
-  return demos.filter((demo) => isCategoryActiveForDemo(categoryId, demo))
+  if (!categoryId || categoryId === ALL_DEMOS_CATEGORY_ID) return [...demos];
+  return demos.filter((demo) => isCategoryActiveForDemo(categoryId, demo));
 }
 
 /**
@@ -461,21 +461,21 @@ export function filterDemosByCategory(
  * and tags are matched, case-insensitively.
  */
 export function matchesDemoQuery(demo: VideoDemo, query: string): boolean {
-  const term = query.trim().toLowerCase()
-  if (!term) return true
+  const term = query.trim().toLowerCase();
+  if (!term) return true;
   return (
     (demo.title || '').toLowerCase().includes(term) ||
     (demo.useCase || '').toLowerCase().includes(term) ||
     (demo.prompt || '').toLowerCase().includes(term) ||
     (demo.tags || []).some((tag) => tag.toLowerCase().includes(term))
-  )
+  );
 }
 
 /** Look a category up by id. */
 export function getDemoCategory(categoryId: string): DemoCategory | undefined {
-  const id = categoryId.trim().toLowerCase()
+  const id = categoryId.trim().toLowerCase();
   return (
     DEMO_CATEGORIES.find((category) => category.id === id) ??
     DEMO_STYLE_CATEGORIES.find((category) => category.id === id)
-  )
+  );
 }

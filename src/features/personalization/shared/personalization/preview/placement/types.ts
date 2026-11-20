@@ -6,10 +6,10 @@
  * regions), luminance samples (measured from real frames in the browser), and
  * the layers' own boxes. Anything it cannot know it reports as "unverified".
  */
-import type { OverlayMediaRole } from '../mediaRoles'
-import type { NormRect, PreviewLayer, ProtectedZone } from '../types'
+import type { OverlayMediaRole } from '../mediaRoles';
+import type { NormRect, PreviewLayer, ProtectedZone } from '../types';
 
-export type { NormRect, ProtectedZone }
+export type { NormRect, ProtectedZone };
 
 /** A grid of measured luminance (0..1, sRGB luma) for one frame of the footage. */
 export interface LumaSample {

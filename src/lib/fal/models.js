@@ -133,9 +133,11 @@ export const MODEL_REGISTRY = {
       { id: 'num_images', portType: 'number', label: 'Num Images', required: false, falParam: 'num_images', fieldType: 'number', default: 1, min: 1, max: 4, step: 1 },
       { id: 'output_format', portType: 'text', label: 'Format', required: false, falParam: 'output_format', fieldType: 'select', default: 'jpeg', options: PNG_JPEG_OPTS },
       { id: 'enable_safety_checker', portType: 'number', label: 'Safety Checker', required: false, falParam: 'enable_safety_checker', fieldType: 'toggle', default: true },
-      { id: 'acceleration', portType: 'text', label: 'Acceleration', required: false, falParam: 'acceleration', fieldType: 'select', default: 'none', options: [
+      {
+ id: 'acceleration', portType: 'text', label: 'Acceleration', required: false, falParam: 'acceleration', fieldType: 'select', default: 'none', options: [
         { value: 'none', label: 'None' }, { value: 'regular', label: 'Regular' }, { value: 'high', label: 'High' },
-      ]},
+      ]
+},
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
       { id: 'guidance_scale', portType: 'number', label: 'Guidance', required: false, falParam: 'guidance_scale', fieldType: 'range', default: 3.5, min: 0, max: 20, step: 0.5 },
       { id: 'num_inference_steps', portType: 'number', label: 'Steps', required: false, falParam: 'num_inference_steps', fieldType: 'range', default: 28, min: 1, max: 50, step: 1 },
@@ -153,10 +155,12 @@ export const MODEL_REGISTRY = {
       { id: 'num_images', portType: 'number', label: 'Num Images', required: false, falParam: 'num_images', fieldType: 'number', default: 1, min: 1, max: 4, step: 1 },
       { id: 'output_format', portType: 'text', label: 'Format', required: false, falParam: 'output_format', fieldType: 'select', default: 'jpeg', options: PNG_JPEG_OPTS },
       { id: 'enable_safety_checker', portType: 'number', label: 'Safety Checker', required: false, falParam: 'enable_safety_checker', fieldType: 'toggle', default: true },
-      { id: 'safety_tolerance', portType: 'text', label: 'Safety Tolerance', required: false, falParam: 'safety_tolerance', fieldType: 'select', default: '2', options: [
+      {
+ id: 'safety_tolerance', portType: 'text', label: 'Safety Tolerance', required: false, falParam: 'safety_tolerance', fieldType: 'select', default: '2', options: [
         { value: '1', label: '1 (strict)' }, { value: '2', label: '2' }, { value: '3', label: '3' },
         { value: '4', label: '4' }, { value: '5', label: '5' }, { value: '6', label: '6 (permissive)' },
-      ]},
+      ]
+},
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
     ],
   },
@@ -171,9 +175,11 @@ export const MODEL_REGISTRY = {
       { id: 'negative_prompt', portType: 'text', label: 'Negative Prompt', required: false, falParam: 'negative_prompt', fieldType: 'port' },
       { id: 'image_size', portType: 'text', label: 'Size', required: false, falParam: 'image_size', fieldType: 'select', default: 'landscape_4_3', options: FLUX_IMAGE_SIZE_OPTS },
       { id: 'num_images', portType: 'number', label: 'Num Images', required: false, falParam: 'num_images', fieldType: 'number', default: 1, min: 1, max: 4, step: 1 },
-      { id: 'format', portType: 'text', label: 'Format', required: false, falParam: 'format', fieldType: 'select', default: 'jpeg', options: [
+      {
+ id: 'format', portType: 'text', label: 'Format', required: false, falParam: 'format', fieldType: 'select', default: 'jpeg', options: [
         { value: 'jpeg', label: 'JPEG' }, { value: 'png', label: 'PNG' },
-      ]},
+      ]
+},
       { id: 'enable_safety_checker', portType: 'number', label: 'Safety Checker', required: false, falParam: 'enable_safety_checker', fieldType: 'toggle', default: true },
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
       { id: 'guidance_scale', portType: 'number', label: 'Guidance', required: false, falParam: 'guidance_scale', fieldType: 'range', default: 7.5, min: 0, max: 20, step: 0.5 },
@@ -225,16 +231,20 @@ export const MODEL_REGISTRY = {
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'Image 1', required: false, falParam: 'image_urls', fieldType: 'port' },
       { id: 'extra_images', portType: 'image', label: 'Image', required: false, falParam: 'image_urls', fieldType: 'element-list', max: 13 },
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '1K', options: [
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '1K', options: [
         { value: '1K', label: '1K' }, { value: '2K', label: '2K' }, { value: '4K', label: '4K' },
-      ]},
+      ]
+},
       { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: '1:1', options: NANO_BANANA_ASPECT_OPTS.filter((o) => o.value !== 'auto') },
       { id: 'num_images', portType: 'number', label: 'Num Images', required: false, falParam: 'num_images', fieldType: 'number', default: 1, min: 1, max: 4, step: 1 },
       { id: 'output_format', portType: 'text', label: 'Format', required: false, falParam: 'output_format', fieldType: 'select', default: 'png', options: PNG_JPEG_WEBP_OPTS },
-      { id: 'safety_tolerance', portType: 'text', label: 'Safety Tolerance', required: false, falParam: 'safety_tolerance', fieldType: 'select', default: '4', options: [
+      {
+ id: 'safety_tolerance', portType: 'text', label: 'Safety Tolerance', required: false, falParam: 'safety_tolerance', fieldType: 'select', default: '4', options: [
         { value: '1', label: '1 (strict)' }, { value: '2', label: '2' }, { value: '3', label: '3' },
         { value: '4', label: '4' }, { value: '5', label: '5' }, { value: '6', label: '6 (permissive)' },
-      ]},
+      ]
+},
       { id: 'limit_generations', portType: 'number', label: 'Limit Generations', required: false, falParam: 'limit_generations', fieldType: 'toggle', default: true },
       { id: 'enable_web_search', portType: 'number', label: 'Web Search', required: false, falParam: 'enable_web_search', fieldType: 'toggle', default: false },
     ],
@@ -250,21 +260,27 @@ export const MODEL_REGISTRY = {
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'Image 1', required: false, falParam: 'image_urls', fieldType: 'port' },
       { id: 'extra_images', portType: 'image', label: 'Image', required: false, falParam: 'image_urls', fieldType: 'element-list', max: 13 },
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '1K', options: [
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '1K', options: [
         { value: '0.5K', label: '0.5K' }, { value: '1K', label: '1K' }, { value: '2K', label: '2K' }, { value: '4K', label: '4K' },
-      ]},
+      ]
+},
       { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: NANO_BANANA2_ASPECT_OPTS },
       { id: 'output_format', portType: 'text', label: 'Format', required: false, falParam: 'output_format', fieldType: 'select', default: 'png', options: PNG_JPEG_WEBP_OPTS },
       { id: 'num_images', portType: 'number', label: 'Num Images', required: false, falParam: 'num_images', fieldType: 'number', default: 1, min: 1, max: 4, step: 1 },
-      { id: 'safety_tolerance', portType: 'text', label: 'Safety Tolerance', required: false, falParam: 'safety_tolerance', fieldType: 'select', default: '4', options: [
+      {
+ id: 'safety_tolerance', portType: 'text', label: 'Safety Tolerance', required: false, falParam: 'safety_tolerance', fieldType: 'select', default: '4', options: [
         { value: '1', label: '1 (strict)' }, { value: '2', label: '2' }, { value: '3', label: '3' },
         { value: '4', label: '4' }, { value: '5', label: '5' }, { value: '6', label: '6 (permissive)' },
-      ]},
+      ]
+},
       { id: 'limit_generations', portType: 'number', label: 'Limit Generations', required: false, falParam: 'limit_generations', fieldType: 'toggle', default: true },
       { id: 'enable_web_search', portType: 'number', label: 'Web Search', required: false, falParam: 'enable_web_search', fieldType: 'toggle', default: false },
-      { id: 'thinking_level', portType: 'text', label: 'Thinking Level', required: false, falParam: 'thinking_level', fieldType: 'select', default: 'minimal', options: [
+      {
+ id: 'thinking_level', portType: 'text', label: 'Thinking Level', required: false, falParam: 'thinking_level', fieldType: 'select', default: 'minimal', options: [
         { value: 'minimal', label: 'Minimal' }, { value: 'high', label: 'High' },
-      ]},
+      ]
+},
     ],
   },
   'veo-3-1': {
@@ -276,15 +292,21 @@ export const MODEL_REGISTRY = {
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'negative_prompt', portType: 'text', label: 'Negative Prompt', required: false, falParam: 'negative_prompt', fieldType: 'port' },
-      { id: 'duration', portType: 'text', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '8s', options: [
+      {
+ id: 'duration', portType: 'text', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '8s', options: [
         { value: '4s', label: '4s' }, { value: '6s', label: '6s' }, { value: '8s', label: '8s' },
-      ]},
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: '16:9', options: [
+      ]
+},
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: '16:9', options: [
         { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' },
-      ]},
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '720p', options: [
+      ]
+},
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '720p', options: [
         { value: '720p', label: '720p' }, { value: '1080p', label: '1080p' }, { value: '4k', label: '4K' },
-      ]},
+      ]
+},
       { id: 'generate_audio', portType: 'number', label: 'Generate Audio', required: false, falParam: 'generate_audio', fieldType: 'toggle', default: true },
       { id: 'auto_fix', portType: 'number', label: 'Auto Fix Prompt', required: false, falParam: 'auto_fix', fieldType: 'toggle', default: true },
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
@@ -302,12 +324,16 @@ export const MODEL_REGISTRY = {
       { id: 'negative_prompt', portType: 'text', label: 'Negative Prompt', required: false, falParam: 'negative_prompt', fieldType: 'port' },
       { id: 'duration', portType: 'text', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '5', options: KLING_V3_DURATION_OPTS },
       { id: 'quality', portType: 'text', label: 'Quality', required: false, falParam: 'quality', fieldType: 'select', default: 'pro', options: KLING_V3_QUALITY_OPTS },
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: '16:9', options: [
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: '16:9', options: [
         { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' }, { value: '1:1', label: '1:1' },
-      ]},
-      { id: 'shot_type', portType: 'text', label: 'Shot Type', required: false, falParam: 'shot_type', fieldType: 'select', default: 'customize', options: [
+      ]
+},
+      {
+ id: 'shot_type', portType: 'text', label: 'Shot Type', required: false, falParam: 'shot_type', fieldType: 'select', default: 'customize', options: [
         { value: 'customize', label: 'Customize' }, { value: 'intelligent', label: 'Intelligent' },
-      ]},
+      ]
+},
       { id: 'generate_audio', portType: 'number', label: 'Generate Audio', required: false, falParam: 'generate_audio', fieldType: 'toggle', default: true },
       { id: 'cfg_scale', portType: 'number', label: 'CFG Scale', required: false, falParam: 'cfg_scale', fieldType: 'range', default: 0.5, min: 0, max: 1, step: 0.1 },
     ],
@@ -327,9 +353,11 @@ export const MODEL_REGISTRY = {
       { id: 'elements', portType: 'image', label: 'Element', required: false, falParam: 'elements', fieldType: 'element-list', max: 5 },
       { id: 'duration', portType: 'text', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '5', options: KLING_V3_DURATION_OPTS },
       { id: 'quality', portType: 'text', label: 'Quality', required: false, falParam: 'quality', fieldType: 'select', default: 'pro', options: KLING_V3_QUALITY_OPTS },
-      { id: 'shot_type', portType: 'text', label: 'Shot Type', required: false, falParam: 'shot_type', fieldType: 'select', default: 'customize', options: [
+      {
+ id: 'shot_type', portType: 'text', label: 'Shot Type', required: false, falParam: 'shot_type', fieldType: 'select', default: 'customize', options: [
         { value: 'customize', label: 'Customize' }, { value: 'intelligent', label: 'Intelligent' },
-      ]},
+      ]
+},
       { id: 'generate_audio', portType: 'number', label: 'Generate Audio', required: false, falParam: 'generate_audio', fieldType: 'toggle', default: true },
       { id: 'cfg_scale', portType: 'number', label: 'CFG Scale', required: false, falParam: 'cfg_scale', fieldType: 'range', default: 0.5, min: 0, max: 1, step: 0.1 },
     ],
@@ -343,12 +371,16 @@ export const MODEL_REGISTRY = {
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'negative_prompt', portType: 'text', label: 'Negative Prompt', required: false, falParam: 'negative_prompt', fieldType: 'port' },
-      { id: 'duration', portType: 'text', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '5', options: [
+      {
+ id: 'duration', portType: 'text', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '5', options: [
         { value: '5', label: '5s' }, { value: '10', label: '10s' },
-      ]},
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: '16:9', options: [
+      ]
+},
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: '16:9', options: [
         { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' }, { value: '1:1', label: '1:1' },
-      ]},
+      ]
+},
       { id: 'cfg_scale', portType: 'number', label: 'CFG Scale', required: false, falParam: 'cfg_scale', fieldType: 'range', default: 0.5, min: 0, max: 1, step: 0.1 },
     ],
   },
@@ -404,12 +436,16 @@ export const MODEL_REGISTRY = {
       { id: 'image_url', portType: 'image', label: 'Image', required: true, falParam: 'image_url', fieldType: 'port' },
       { id: 'end_image_url', portType: 'image', label: 'Last Frame', required: false, falParam: 'end_image_url', fieldType: 'port' },
       { id: 'negative_prompt', portType: 'text', label: 'Negative Prompt', required: false, falParam: 'negative_prompt', fieldType: 'port' },
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '720p', options: [
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '720p', options: [
         { value: '480p', label: '480p' }, { value: '580p', label: '580p' }, { value: '720p', label: '720p' },
-      ]},
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
+      ]
+},
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
         { value: 'auto', label: 'Auto' }, { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' }, { value: '1:1', label: '1:1' },
-      ]},
+      ]
+},
       { id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'range', default: 81, min: 17, max: 161, step: 4 },
       { id: 'frames_per_second', portType: 'number', label: 'FPS', required: false, falParam: 'frames_per_second', fieldType: 'range', default: 16, min: 4, max: 60, step: 1 },
       { id: 'guidance_scale', portType: 'number', label: 'Guidance', required: false, falParam: 'guidance_scale', fieldType: 'range', default: 3.5, min: 1, max: 10, step: 0.5 },
@@ -428,20 +464,26 @@ export const MODEL_REGISTRY = {
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'First Frame', required: false, falParam: 'image_url', fieldType: 'port' },
       { id: 'end_image_url', portType: 'image', label: 'Last Frame', required: false, falParam: 'end_image_url', fieldType: 'port' },
-      { id: 'duration', portType: 'text', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: 'auto', options: [
+      {
+ id: 'duration', portType: 'text', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: 'auto', options: [
         { value: 'auto', label: 'Auto' },
         { value: '4', label: '4s' }, { value: '5', label: '5s' }, { value: '6', label: '6s' },
         { value: '7', label: '7s' }, { value: '8', label: '8s' }, { value: '9', label: '9s' },
         { value: '10', label: '10s' }, { value: '11', label: '11s' }, { value: '12', label: '12s' },
         { value: '13', label: '13s' }, { value: '14', label: '14s' }, { value: '15', label: '15s' },
-      ]},
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '720p', options: [
+      ]
+},
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '720p', options: [
         { value: '480p', label: '480p' }, { value: '720p', label: '720p' }, { value: '1080p', label: '1080p' },
-      ]},
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
+      ]
+},
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
         { value: 'auto', label: 'Auto' }, { value: '21:9', label: '21:9' }, { value: '16:9', label: '16:9' },
         { value: '4:3', label: '4:3' }, { value: '1:1', label: '1:1' }, { value: '3:4', label: '3:4' }, { value: '9:16', label: '9:16' },
-      ]},
+      ]
+},
       { id: 'generate_audio', portType: 'number', label: 'Generate Audio', required: false, falParam: 'generate_audio', fieldType: 'toggle', default: true },
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
     ],
@@ -459,20 +501,26 @@ export const MODEL_REGISTRY = {
       { id: 'extra_images', portType: 'image', label: 'Image', required: false, falParam: 'image_urls', fieldType: 'element-list', max: 8 },
       { id: 'reference_video', portType: 'video', label: 'Reference Video', required: false, falParam: 'video_urls', fieldType: 'port' },
       { id: 'reference_audio', portType: 'audio', label: 'Reference Audio', required: false, falParam: 'audio_urls', fieldType: 'port' },
-      { id: 'duration', portType: 'text', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: 'auto', options: [
+      {
+ id: 'duration', portType: 'text', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: 'auto', options: [
         { value: 'auto', label: 'Auto' },
         { value: '4', label: '4s' }, { value: '5', label: '5s' }, { value: '6', label: '6s' },
         { value: '7', label: '7s' }, { value: '8', label: '8s' }, { value: '9', label: '9s' },
         { value: '10', label: '10s' }, { value: '11', label: '11s' }, { value: '12', label: '12s' },
         { value: '13', label: '13s' }, { value: '14', label: '14s' }, { value: '15', label: '15s' },
-      ]},
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '720p', options: [
+      ]
+},
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '720p', options: [
         { value: '480p', label: '480p' }, { value: '720p', label: '720p' }, { value: '1080p', label: '1080p' },
-      ]},
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
+      ]
+},
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
         { value: 'auto', label: 'Auto' }, { value: '21:9', label: '21:9' }, { value: '16:9', label: '16:9' },
         { value: '4:3', label: '4:3' }, { value: '1:1', label: '1:1' }, { value: '3:4', label: '3:4' }, { value: '9:16', label: '9:16' },
-      ]},
+      ]
+},
       { id: 'generate_audio', portType: 'number', label: 'Generate Audio', required: false, falParam: 'generate_audio', fieldType: 'toggle', default: true },
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
     ],
@@ -502,9 +550,11 @@ export const MODEL_REGISTRY = {
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'duration', portType: 'number', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '6', options: LTX_DURATION_OPTS },
       { id: 'quality', portType: 'text', label: 'Quality', required: false, falParam: 'quality', fieldType: 'select', default: 'pro', options: LTX23_QUALITY_OPTS },
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: '16:9', options: [
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: '16:9', options: [
         { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' },
-      ]},
+      ]
+},
       { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '1080p', options: LTX_RES_OPTS },
       { id: 'fps', portType: 'number', label: 'FPS', required: false, falParam: 'fps', fieldType: 'select', default: '25', options: LTX_FPS_OPTS },
       { id: 'generate_audio', portType: 'number', label: 'Generate Audio', required: false, falParam: 'generate_audio', fieldType: 'toggle', default: true },
@@ -519,9 +569,11 @@ export const MODEL_REGISTRY = {
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'duration', portType: 'number', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '6', options: LTX_FAST_DURATION_OPTS },
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: '16:9', options: [
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: '16:9', options: [
         { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' },
-      ]},
+      ]
+},
       { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '1080p', options: LTX_RES_OPTS },
       { id: 'fps', portType: 'number', label: 'FPS', required: false, falParam: 'fps', fieldType: 'select', default: '25', options: LTX_FPS_OPTS },
       { id: 'generate_audio', portType: 'number', label: 'Generate Audio', required: false, falParam: 'generate_audio', fieldType: 'toggle', default: true },
@@ -539,9 +591,11 @@ export const MODEL_REGISTRY = {
       { id: 'end_image_url', portType: 'image', label: 'Last Frame', required: false, falParam: 'end_image_url', fieldType: 'port' },
       { id: 'duration', portType: 'number', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '6', options: LTX_DURATION_OPTS },
       { id: 'quality', portType: 'text', label: 'Quality', required: false, falParam: 'quality', fieldType: 'select', default: 'pro', options: LTX23_QUALITY_OPTS },
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
         { value: 'auto', label: 'Auto' }, { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' },
-      ]},
+      ]
+},
       { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '1080p', options: LTX_RES_OPTS },
       { id: 'fps', portType: 'number', label: 'FPS', required: false, falParam: 'fps', fieldType: 'select', default: '25', options: LTX_FPS_OPTS },
       { id: 'generate_audio', portType: 'number', label: 'Generate Audio', required: false, falParam: 'generate_audio', fieldType: 'toggle', default: true },
@@ -558,9 +612,11 @@ export const MODEL_REGISTRY = {
       { id: 'image_url', portType: 'image', label: 'First Frame', required: true, falParam: 'image_url', fieldType: 'port' },
       { id: 'end_image_url', portType: 'image', label: 'Last Frame', required: false, falParam: 'end_image_url', fieldType: 'port' },
       { id: 'duration', portType: 'number', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '6', options: LTX_FAST_DURATION_OPTS },
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
         { value: 'auto', label: 'Auto' }, { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' },
-      ]},
+      ]
+},
       { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '1080p', options: LTX_RES_OPTS },
       { id: 'fps', portType: 'number', label: 'FPS', required: false, falParam: 'fps', fieldType: 'select', default: '25', options: LTX_FPS_OPTS },
       { id: 'generate_audio', portType: 'number', label: 'Generate Audio', required: false, falParam: 'generate_audio', fieldType: 'toggle', default: true },
@@ -574,9 +630,11 @@ export const MODEL_REGISTRY = {
       { id: 'audio_url', portType: 'audio', label: 'Audio', required: true, falParam: 'audio_url', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'First Frame', required: false, falParam: 'image_url', fieldType: 'port' },
       { id: 'prompt', portType: 'text', label: 'Prompt', required: false, falParam: 'prompt', fieldType: 'port' },
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
         { value: 'auto', label: 'Auto' }, { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' },
-      ]},
+      ]
+},
       { id: 'guidance_scale', portType: 'number', label: 'Guidance', required: false, falParam: 'guidance_scale', fieldType: 'range', default: 5, min: 1, max: 50, step: 0.5 },
     ],
   },
@@ -588,9 +646,11 @@ export const MODEL_REGISTRY = {
       { id: 'video_url', portType: 'video', label: 'Video', required: true, falParam: 'video_url', fieldType: 'port' },
       { id: 'prompt', portType: 'text', label: 'Prompt', required: false, falParam: 'prompt', fieldType: 'port' },
       { id: 'duration', portType: 'number', label: 'Extension (s)', required: false, falParam: 'duration', fieldType: 'range', default: 5, min: 1, max: 20, step: 1 },
-      { id: 'mode', portType: 'text', label: 'Mode', required: false, falParam: 'mode', fieldType: 'select', default: 'end', options: [
+      {
+ id: 'mode', portType: 'text', label: 'Mode', required: false, falParam: 'mode', fieldType: 'select', default: 'end', options: [
         { value: 'end', label: 'Extend End' }, { value: 'start', label: 'Extend Start' },
-      ]},
+      ]
+},
       { id: 'context', portType: 'number', label: 'Context (s)', required: false, falParam: 'context', fieldType: 'range', default: 3, min: 1, max: 20, step: 0.5 },
     ],
   },
@@ -603,9 +663,11 @@ export const MODEL_REGISTRY = {
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'start_time', portType: 'number', label: 'Start (s)', required: false, falParam: 'start_time', fieldType: 'range', default: 0, min: 0, max: 20, step: 0.5 },
       { id: 'duration', portType: 'number', label: 'Duration (s)', required: false, falParam: 'duration', fieldType: 'range', default: 5, min: 2, max: 20, step: 0.5 },
-      { id: 'retake_mode', portType: 'text', label: 'Retake Mode', required: false, falParam: 'retake_mode', fieldType: 'select', default: 'replace_audio_and_video', options: [
+      {
+ id: 'retake_mode', portType: 'text', label: 'Retake Mode', required: false, falParam: 'retake_mode', fieldType: 'select', default: 'replace_audio_and_video', options: [
         { value: 'replace_audio_and_video', label: 'Audio + Video' }, { value: 'replace_video', label: 'Video Only' }, { value: 'replace_audio', label: 'Audio Only' },
-      ]},
+      ]
+},
     ],
   },
   'sora-2': {
@@ -617,17 +679,23 @@ export const MODEL_REGISTRY = {
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'Image', required: true, falParam: 'image_url', fieldType: 'port' },
-      { id: 'duration', portType: 'number', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '4', options: [
+      {
+ id: 'duration', portType: 'number', label: 'Duration', required: false, falParam: 'duration', fieldType: 'select', default: '4', options: [
         { value: '4', label: '4s' }, { value: '8', label: '8s' }, { value: '12', label: '12s' },
         { value: '16', label: '16s' }, { value: '20', label: '20s' },
-      ]},
+      ]
+},
       { id: 'quality', portType: 'text', label: 'Quality', required: false, falParam: 'quality', fieldType: 'select', default: 'pro', options: SORA2_QUALITY_OPTS },
-      { id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
+      {
+ id: 'aspect_ratio', portType: 'text', label: 'Aspect Ratio', required: false, falParam: 'aspect_ratio', fieldType: 'select', default: 'auto', options: [
         { value: 'auto', label: 'Auto' }, { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' },
-      ]},
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: 'auto', options: [
+      ]
+},
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: 'auto', options: [
         { value: 'auto', label: 'Auto' }, { value: '720p', label: '720p' }, { value: '1080p', label: '1080p' }, { value: 'true_1080p', label: 'True 1080p' },
-      ]},
+      ]
+},
       { id: 'delete_video', portType: 'number', label: 'Delete After Gen', required: false, falParam: 'delete_video', fieldType: 'toggle', default: true },
       { id: 'detect_and_block_ip', portType: 'number', label: 'Block IP Content', required: false, falParam: 'detect_and_block_ip', fieldType: 'toggle', default: true },
     ],
@@ -639,10 +707,12 @@ export const MODEL_REGISTRY = {
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: false, falParam: 'prompt', fieldType: 'port' },
       { id: 'composition_plan', portType: 'composition_plan', label: 'Composition Plan', required: false, falParam: 'composition_plan', fieldType: 'port' },
-      { id: 'music_length_ms', portType: 'number', label: 'Duration', required: false, falParam: 'music_length_ms', fieldType: 'select', default: '60000', options: [
+      {
+ id: 'music_length_ms', portType: 'number', label: 'Duration', required: false, falParam: 'music_length_ms', fieldType: 'select', default: '60000', options: [
         { value: '15000', label: '15s' }, { value: '30000', label: '30s' }, { value: '60000', label: '1m' },
         { value: '120000', label: '2m' }, { value: '180000', label: '3m' }, { value: '300000', label: '5m' },
-      ]},
+      ]
+},
       { id: 'force_instrumental', portType: 'number', label: 'Instrumental', required: false, falParam: 'force_instrumental', fieldType: 'toggle', default: false },
       { id: 'respect_sections_durations', portType: 'number', label: 'Strict Durations', required: false, falParam: 'respect_sections_durations', fieldType: 'toggle', default: true },
       { id: 'output_format', portType: 'text', label: 'Format', required: false, falParam: 'output_format', fieldType: 'select', default: 'mp3_44100_128', options: ELEVENLABS_MP3_OPTS },
@@ -654,7 +724,8 @@ export const MODEL_REGISTRY = {
     responseMapping: { path: 'audio.url' },
     inputs: [
       { id: 'text', portType: 'text', label: 'Text', required: true, falParam: 'text', fieldType: 'port' },
-      { id: 'voice', portType: 'text', label: 'Voice', required: false, falParam: 'voice', fieldType: 'select', default: 'Rachel', options: [
+      {
+ id: 'voice', portType: 'text', label: 'Voice', required: false, falParam: 'voice', fieldType: 'select', default: 'Rachel', options: [
         { value: 'Rachel', label: 'Rachel' }, { value: 'Aria', label: 'Aria' }, { value: 'Roger', label: 'Roger' },
         { value: 'Sarah', label: 'Sarah' }, { value: 'Laura', label: 'Laura' }, { value: 'Charlie', label: 'Charlie' },
         { value: 'George', label: 'George' }, { value: 'Callum', label: 'Callum' }, { value: 'River', label: 'River' },
@@ -662,11 +733,14 @@ export const MODEL_REGISTRY = {
         { value: 'Matilda', label: 'Matilda' }, { value: 'Will', label: 'Will' }, { value: 'Jessica', label: 'Jessica' },
         { value: 'Eric', label: 'Eric' }, { value: 'Chris', label: 'Chris' }, { value: 'Brian', label: 'Brian' },
         { value: 'Daniel', label: 'Daniel' }, { value: 'Lily', label: 'Lily' }, { value: 'Bill', label: 'Bill' },
-      ]},
+      ]
+},
       { id: 'stability', portType: 'number', label: 'Stability', required: false, falParam: 'stability', fieldType: 'range', default: 0.5, min: 0, max: 1, step: 0.05 },
-      { id: 'apply_text_normalization', portType: 'text', label: 'Normalization', required: false, falParam: 'apply_text_normalization', fieldType: 'select', default: 'auto', options: [
+      {
+ id: 'apply_text_normalization', portType: 'text', label: 'Normalization', required: false, falParam: 'apply_text_normalization', fieldType: 'select', default: 'auto', options: [
         { value: 'auto', label: 'Auto' }, { value: 'on', label: 'On' }, { value: 'off', label: 'Off' },
-      ]},
+      ]
+},
       { id: 'timestamps', portType: 'number', label: 'Timestamps', required: false, falParam: 'timestamps', fieldType: 'toggle', default: false },
       { id: 'language_code', portType: 'text', label: 'Language Code', required: false, falParam: 'language_code', fieldType: 'text', default: '' },
     ],
@@ -677,7 +751,8 @@ export const MODEL_REGISTRY = {
     responseMapping: { path: 'audio.url' },
     inputs: [
       { id: 'audio_url', portType: 'audio', label: 'Audio', required: true, falParam: 'audio_url', fieldType: 'port' },
-      { id: 'voice', portType: 'text', label: 'Voice', required: false, falParam: 'voice', fieldType: 'select', default: 'Rachel', options: [
+      {
+ id: 'voice', portType: 'text', label: 'Voice', required: false, falParam: 'voice', fieldType: 'select', default: 'Rachel', options: [
         { value: 'Rachel', label: 'Rachel' }, { value: 'Aria', label: 'Aria' }, { value: 'Roger', label: 'Roger' },
         { value: 'Sarah', label: 'Sarah' }, { value: 'Laura', label: 'Laura' }, { value: 'Charlie', label: 'Charlie' },
         { value: 'George', label: 'George' }, { value: 'Callum', label: 'Callum' }, { value: 'River', label: 'River' },
@@ -685,7 +760,8 @@ export const MODEL_REGISTRY = {
         { value: 'Matilda', label: 'Matilda' }, { value: 'Will', label: 'Will' }, { value: 'Jessica', label: 'Jessica' },
         { value: 'Eric', label: 'Eric' }, { value: 'Chris', label: 'Chris' }, { value: 'Brian', label: 'Brian' },
         { value: 'Daniel', label: 'Daniel' }, { value: 'Lily', label: 'Lily' }, { value: 'Bill', label: 'Bill' },
-      ]},
+      ]
+},
       { id: 'remove_background_noise', portType: 'number', label: 'Remove Noise', required: false, falParam: 'remove_background_noise', fieldType: 'toggle', default: false },
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
       { id: 'output_format', portType: 'text', label: 'Format', required: false, falParam: 'output_format', fieldType: 'select', default: 'mp3_44100_128', options: ELEVENLABS_MP3_OPTS },
@@ -718,21 +794,27 @@ export const MODEL_REGISTRY = {
     responseMapping: { path: 'text' },
     inputs: [
       { id: 'audio_url', portType: 'media', label: 'Audio / Video', required: true, falParam: 'audio_url', fieldType: 'port' },
-      { id: 'task', portType: 'text', label: 'Task', required: false, falParam: 'task', fieldType: 'select', default: 'transcribe', options: [
+      {
+ id: 'task', portType: 'text', label: 'Task', required: false, falParam: 'task', fieldType: 'select', default: 'transcribe', options: [
         { value: 'transcribe', label: 'Transcribe' },
         { value: 'translate', label: 'Translate to English' },
-      ]},
+      ]
+},
       { id: 'language', portType: 'text', label: 'Language', required: false, falParam: 'language', fieldType: 'text', default: '' },
-      { id: 'chunk_level', portType: 'text', label: 'Timestamp Chunks', required: false, falParam: 'chunk_level', fieldType: 'select', default: 'segment', options: [
+      {
+ id: 'chunk_level', portType: 'text', label: 'Timestamp Chunks', required: false, falParam: 'chunk_level', fieldType: 'select', default: 'segment', options: [
         { value: 'segment', label: 'Segment' },
         { value: 'none', label: 'None' },
-      ]},
+      ]
+},
       { id: 'max_segment_len', portType: 'number', label: 'Max Segment Length', required: false, falParam: 'max_segment_len', fieldType: 'number', default: 29, min: 1 },
       { id: 'merge_chunks', portType: 'number', label: 'Merge Chunks', required: false, falParam: 'merge_chunks', fieldType: 'toggle', default: true },
-      { id: 'version', portType: 'text', label: 'Version', required: false, falParam: 'version', fieldType: 'select', default: '3', options: [
+      {
+ id: 'version', portType: 'text', label: 'Version', required: false, falParam: 'version', fieldType: 'select', default: '3', options: [
         { value: '3', label: 'v3 (latest)' },
         { value: '2', label: 'v2' },
-      ]},
+      ]
+},
     ],
   },
   'whisper-cloud': {
@@ -742,23 +824,29 @@ export const MODEL_REGISTRY = {
     responseMapping: { path: 'text' },
     inputs: [
       { id: 'audio_url', portType: 'media', label: 'Audio / Video', required: true, falParam: 'audio_url', fieldType: 'port' },
-      { id: 'task', portType: 'text', label: 'Task', required: false, falParam: 'task', fieldType: 'select', default: 'transcribe', options: [
+      {
+ id: 'task', portType: 'text', label: 'Task', required: false, falParam: 'task', fieldType: 'select', default: 'transcribe', options: [
         { value: 'transcribe', label: 'Transcribe' },
         { value: 'translate', label: 'Translate to English' },
-      ]},
+      ]
+},
       { id: 'language', portType: 'text', label: 'Language', required: false, falParam: 'language', fieldType: 'text', default: '' },
-      { id: 'chunk_level', portType: 'text', label: 'Timestamp Chunks', required: false, falParam: 'chunk_level', fieldType: 'select', default: 'word', options: [
+      {
+ id: 'chunk_level', portType: 'text', label: 'Timestamp Chunks', required: false, falParam: 'chunk_level', fieldType: 'select', default: 'word', options: [
         { value: 'word', label: 'Word' },
         { value: 'segment', label: 'Segment' },
         { value: 'none', label: 'None' },
-      ]},
+      ]
+},
       { id: 'diarize', portType: 'number', label: 'Speaker Diarization', required: false, falParam: 'diarize', fieldType: 'toggle', default: false },
       { id: 'batch_size', portType: 'number', label: 'Batch Size', required: false, falParam: 'batch_size', fieldType: 'number', default: 64, min: 1 },
       { id: 'num_speakers', portType: 'number', label: 'Num Speakers', required: false, falParam: 'num_speakers', fieldType: 'number', min: 1 },
       { id: 'prompt', portType: 'text', label: 'Prompt', required: false, falParam: 'prompt', fieldType: 'text', default: '' },
-      { id: 'version', portType: 'text', label: 'Version', required: false, falParam: 'version', fieldType: 'select', default: '3', options: [
+      {
+ id: 'version', portType: 'text', label: 'Version', required: false, falParam: 'version', fieldType: 'select', default: '3', options: [
         { value: '3', label: 'v3' }, { value: '2', label: 'v2' },
-      ]},
+      ]
+},
     ],
   },
   'elevenlabs-dubbing': {
@@ -769,13 +857,15 @@ export const MODEL_REGISTRY = {
       { id: 'audio_url', portType: 'audio', label: 'Audio', required: false, falParam: 'audio_url', fieldType: 'port' },
       { id: 'video_url', portType: 'video', label: 'Video', required: false, falParam: 'video_url', fieldType: 'port' },
       { id: 'source_lang', portType: 'text', label: 'Source Language', required: false, falParam: 'source_lang', fieldType: 'text', default: '' },
-      { id: 'target_lang', portType: 'text', label: 'Target Language', required: true, falParam: 'target_lang', fieldType: 'select', default: 'es', options: [
+      {
+ id: 'target_lang', portType: 'text', label: 'Target Language', required: true, falParam: 'target_lang', fieldType: 'select', default: 'es', options: [
         { value: 'es', label: 'Spanish' }, { value: 'fr', label: 'French' }, { value: 'de', label: 'German' },
         { value: 'it', label: 'Italian' }, { value: 'pt', label: 'Portuguese' }, { value: 'ja', label: 'Japanese' },
         { value: 'ko', label: 'Korean' }, { value: 'zh', label: 'Chinese' }, { value: 'hi', label: 'Hindi' },
         { value: 'ar', label: 'Arabic' }, { value: 'ru', label: 'Russian' }, { value: 'pl', label: 'Polish' },
         { value: 'nl', label: 'Dutch' }, { value: 'tr', label: 'Turkish' }, { value: 'sv', label: 'Swedish' },
-      ]},
+      ]
+},
       { id: 'num_speakers', portType: 'number', label: 'Num Speakers', required: false, falParam: 'num_speakers', fieldType: 'number', min: 1 },
       { id: 'highest_resolution', portType: 'number', label: 'High Resolution', required: false, falParam: 'highest_resolution', fieldType: 'toggle', default: true },
     ],
@@ -868,26 +958,32 @@ export const LOCAL_MODEL_REGISTRY = {
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'First Frame', required: false, falParam: 'image_url', fieldType: 'port' },
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '896x512', options: [
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '896x512', options: [
         { value: '896x512',  label: '16:9 — 896×512'  },
         { value: '512x896',  label: '9:16 — 512×896'  },
         { value: '512x512',  label: '1:1 — 512×512'   },
         { value: '1280x704', label: '16:9 — 1280×704 HD' },
         { value: '704x1280', label: '9:16 — 704×1280 HD' },
         { value: '768x768',  label: '1:1 — 768×768 Med'  },
-      ]},
-      { id: 'duration_secs', portType: 'number', label: 'Duration', required: false, falParam: 'duration_secs', fieldType: 'select', default: '4', options: [
+      ]
+},
+      {
+ id: 'duration_secs', portType: 'number', label: 'Duration', required: false, falParam: 'duration_secs', fieldType: 'select', default: '4', options: [
         { value: '2', label: '2s' }, { value: '3', label: '3s' }, { value: '4', label: '4s' },
         { value: '5', label: '5s' }, { value: '6', label: '6s' }, { value: '8', label: '8s' },
         { value: '10', label: '10s' }, { value: '12', label: '12s' },
-      ]},
-      { id: 'frame_rate', portType: 'number', label: 'FPS', required: false, falParam: 'frame_rate', fieldType: 'select', default: '24', options: [
+      ]
+},
+      {
+ id: 'frame_rate', portType: 'number', label: 'FPS', required: false, falParam: 'frame_rate', fieldType: 'select', default: '24', options: [
         { value: '24', label: '24fps — film' },
         { value: '25', label: '25fps — PAL' },
         { value: '30', label: '30fps — standard' },
         { value: '60', label: '60fps — smooth' },
         { value: '12', label: '12fps — slow-mo' },
-      ]},
+      ]
+},
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: 42 },
       { id: 'enhance_prompt', portType: 'number', label: 'Enhance Prompt', required: false, falParam: 'enhance_prompt', fieldType: 'toggle', default: false },
     ],
@@ -913,12 +1009,14 @@ export const LOCAL_MODEL_REGISTRY = {
     responseMapping: { path: 'output_path' },
     inputs: [
       { id: 'image_url', portType: 'image', label: 'Image', required: true, falParam: 'image_url', fieldType: 'port' },
-      { id: 'inpainter', portType: 'text', label: 'Inpainter', required: false, falParam: 'inpainter', fieldType: 'select', default: 'qwen-edit-local', options: [
+      {
+ id: 'inpainter', portType: 'text', label: 'Inpainter', required: false, falParam: 'inpainter', fieldType: 'select', default: 'qwen-edit-local', options: [
         { value: 'qwen-edit-local', label: 'Qwen Edit (Local)' },
         { value: 'qwen-edit-cloud', label: 'Qwen Edit (Cloud)' },
         { value: 'qwen-edit-runpod', label: 'Qwen Edit (RunPod)' },
         { value: 'lama', label: 'LaMa (Fast)' },
-      ]},
+      ]
+},
       { id: 'reconstruct_bg', portType: 'number', label: 'Reconstruct Background', required: false, falParam: 'reconstruct_bg', fieldType: 'toggle', default: true },
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: 42 },
     ],
@@ -939,11 +1037,13 @@ export const LOCAL_MODEL_REGISTRY = {
     responseMapping: { path: 'output_text' },
     inputs: [
       { id: 'audio_url', portType: 'media', label: 'Audio / Video', required: true, falParam: 'audio_url', fieldType: 'port' },
-      { id: 'model', portType: 'text', label: 'Model', required: false, falParam: 'model', fieldType: 'select', default: 'base', options: [
+      {
+ id: 'model', portType: 'text', label: 'Model', required: false, falParam: 'model', fieldType: 'select', default: 'base', options: [
         { value: 'base', label: 'Base (fastest)' },
         { value: 'medium', label: 'Medium (balanced)' },
         { value: 'large-v3', label: 'Large v3 (best)' },
-      ]},
+      ]
+},
       { id: 'language', portType: 'text', label: 'Language', required: false, falParam: 'language', fieldType: 'text', default: '' },
       { id: 'diarize', portType: 'text', label: 'Speaker Diarization', required: false, falParam: 'diarize', fieldType: 'toggle', default: true },
     ],
@@ -961,16 +1061,22 @@ export const RUNPOD_MODEL_REGISTRY = {
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'negative_prompt', portType: 'text', label: 'Negative Prompt', required: false, falParam: 'negative_prompt', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'Image (img2img)', required: false, falParam: 'image_url', fieldType: 'port' },
-      { id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '1024', options: [
+      {
+ id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '1024', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' }, { value: '1280', label: '1280' },
-      ]},
-      { id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '1024', options: [
+      ]
+},
+      {
+ id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '1024', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' }, { value: '1280', label: '1280' },
-      ]},
-      { id: 'scheduler', portType: 'text', label: 'Scheduler', required: false, falParam: 'scheduler', fieldType: 'select', default: 'DDIM', options: [
+      ]
+},
+      {
+ id: 'scheduler', portType: 'text', label: 'Scheduler', required: false, falParam: 'scheduler', fieldType: 'select', default: 'DDIM', options: [
         { value: 'DDIM', label: 'DDIM' }, { value: 'K_EULER', label: 'K Euler' }, { value: 'DPMSolverMultistep', label: 'DPM Solver' },
         { value: 'KLMS', label: 'KLMS' }, { value: 'PNDM', label: 'PNDM' },
-      ]},
+      ]
+},
       { id: 'num_inference_steps', portType: 'number', label: 'Steps', required: false, falParam: 'num_inference_steps', fieldType: 'range', default: 25, min: 10, max: 100, step: 1 },
       { id: 'guidance_scale', portType: 'number', label: 'Guidance', required: false, falParam: 'guidance_scale', fieldType: 'range', default: 7.5, min: 1, max: 20, step: 0.5 },
       { id: 'strength', portType: 'number', label: 'Strength (img2img)', required: false, falParam: 'strength', fieldType: 'range', default: 0.3, min: 0, max: 1, step: 0.05 },
@@ -986,15 +1092,21 @@ export const RUNPOD_MODEL_REGISTRY = {
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'First Frame', required: false, falParam: 'image_url', fieldType: 'port' },
-      { id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '768', options: [
+      {
+ id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '768', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' },
-      ]},
-      { id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '512', options: [
+      ]
+},
+      {
+ id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '512', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' },
-      ]},
-      { id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '97', options: [
+      ]
+},
+      {
+ id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '97', options: [
         { value: '25', label: '25f (~1s)' }, { value: '49', label: '49f (~2s)' }, { value: '97', label: '97f (~4s)' }, { value: '129', label: '129f (~5s)' },
-      ]},
+      ]
+},
       { id: 'num_inference_steps', portType: 'number', label: 'Steps', required: false, falParam: 'num_inference_steps', fieldType: 'range', default: 30, min: 10, max: 50, step: 1 },
       { id: 'guidance_scale', portType: 'number', label: 'Guidance', required: false, falParam: 'guidance_scale', fieldType: 'range', default: 3.5, min: 1, max: 10, step: 0.5 },
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
@@ -1009,12 +1121,16 @@ export const RUNPOD_MODEL_REGISTRY = {
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'negative_prompt', portType: 'text', label: 'Negative Prompt', required: false, falParam: 'negative_prompt', fieldType: 'port' },
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '480p', options: [
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '480p', options: [
         { value: '480p', label: '480p' }, { value: '720p', label: '720p' },
-      ]},
-      { id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '81', options: [
+      ]
+},
+      {
+ id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '81', options: [
         { value: '33', label: '33f (~2s)' }, { value: '49', label: '49f (~3s)' }, { value: '81', label: '81f (~5s)' },
-      ]},
+      ]
+},
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
     ],
   },
@@ -1028,12 +1144,16 @@ export const RUNPOD_MODEL_REGISTRY = {
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'Image', required: true, falParam: 'image_url', fieldType: 'port' },
       { id: 'negative_prompt', portType: 'text', label: 'Negative Prompt', required: false, falParam: 'negative_prompt', fieldType: 'port' },
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '480p', options: [
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '480p', options: [
         { value: '480p', label: '480p' }, { value: '720p', label: '720p' },
-      ]},
-      { id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '81', options: [
+      ]
+},
+      {
+ id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '81', options: [
         { value: '33', label: '33f (~2s)' }, { value: '49', label: '49f (~3s)' }, { value: '81', label: '81f (~5s)' },
-      ]},
+      ]
+},
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
     ],
   },
@@ -1056,12 +1176,16 @@ export const RUNPOD_MODEL_REGISTRY = {
     responseMapping: { path: 'output.images[0].url' },
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
-      { id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '1024', options: [
+      {
+ id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '1024', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' }, { value: '1280', label: '1280' },
-      ]},
-      { id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '1024', options: [
+      ]
+},
+      {
+ id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '1024', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' }, { value: '1280', label: '1280' },
-      ]},
+      ]
+},
       { id: 'num_inference_steps', portType: 'number', label: 'Steps', required: false, falParam: 'num_inference_steps', fieldType: 'range', default: 28, min: 1, max: 50, step: 1 },
       { id: 'guidance_scale', portType: 'number', label: 'Guidance', required: false, falParam: 'guidance_scale', fieldType: 'range', default: 3.5, min: 1, max: 20, step: 0.5 },
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
@@ -1075,12 +1199,16 @@ export const RUNPOD_MODEL_REGISTRY = {
     responseMapping: { path: 'output.image_url' },
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
-      { id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '1024', options: [
+      {
+ id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '1024', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' }, { value: '1280', label: '1280' },
-      ]},
-      { id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '1024', options: [
+      ]
+},
+      {
+ id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '1024', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' }, { value: '1280', label: '1280' },
-      ]},
+      ]
+},
       { id: 'num_inference_steps', portType: 'number', label: 'Steps', required: false, falParam: 'num_inference_steps', fieldType: 'range', default: 50, min: 10, max: 100, step: 1 },
       { id: 'guidance_scale', portType: 'number', label: 'Guidance', required: false, falParam: 'guidance_scale', fieldType: 'range', default: 1.0, min: 0.5, max: 5, step: 0.5 },
       { id: 'true_cfg_scale', portType: 'number', label: 'True CFG', required: false, falParam: 'true_cfg_scale', fieldType: 'range', default: 4.0, min: 1, max: 10, step: 0.5 },
@@ -1099,16 +1227,22 @@ export const POD_MODEL_REGISTRY = {
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'negative_prompt', portType: 'text', label: 'Negative Prompt', required: false, falParam: 'negative_prompt', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'Image (img2img)', required: false, falParam: 'image_url', fieldType: 'port' },
-      { id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '1024', options: [
+      {
+ id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '1024', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' }, { value: '1280', label: '1280' },
-      ]},
-      { id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '1024', options: [
+      ]
+},
+      {
+ id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '1024', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' }, { value: '1280', label: '1280' },
-      ]},
-      { id: 'scheduler', portType: 'text', label: 'Scheduler', required: false, falParam: 'scheduler', fieldType: 'select', default: 'DDIM', options: [
+      ]
+},
+      {
+ id: 'scheduler', portType: 'text', label: 'Scheduler', required: false, falParam: 'scheduler', fieldType: 'select', default: 'DDIM', options: [
         { value: 'DDIM', label: 'DDIM' }, { value: 'K_EULER', label: 'K Euler' }, { value: 'DPMSolverMultistep', label: 'DPM Solver' },
         { value: 'KLMS', label: 'KLMS' }, { value: 'PNDM', label: 'PNDM' },
-      ]},
+      ]
+},
       { id: 'num_inference_steps', portType: 'number', label: 'Steps', required: false, falParam: 'num_inference_steps', fieldType: 'range', default: 25, min: 10, max: 100, step: 1 },
       { id: 'guidance_scale', portType: 'number', label: 'Guidance', required: false, falParam: 'guidance_scale', fieldType: 'range', default: 7.5, min: 1, max: 20, step: 0.5 },
       { id: 'strength', portType: 'number', label: 'Strength (img2img)', required: false, falParam: 'strength', fieldType: 'range', default: 0.3, min: 0, max: 1, step: 0.05 },
@@ -1122,12 +1256,16 @@ export const POD_MODEL_REGISTRY = {
     responseMapping: { path: 'output.image_url' },
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
-      { id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '1024', options: [
+      {
+ id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '1024', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' }, { value: '1280', label: '1280' },
-      ]},
-      { id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '1024', options: [
+      ]
+},
+      {
+ id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '1024', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' }, { value: '1280', label: '1280' },
-      ]},
+      ]
+},
       { id: 'num_inference_steps', portType: 'number', label: 'Steps', required: false, falParam: 'num_inference_steps', fieldType: 'range', default: 28, min: 1, max: 50, step: 1 },
       { id: 'guidance_scale', portType: 'number', label: 'Guidance', required: false, falParam: 'guidance_scale', fieldType: 'range', default: 3.5, min: 1, max: 20, step: 0.5 },
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
@@ -1151,15 +1289,21 @@ export const POD_MODEL_REGISTRY = {
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'First Frame', required: false, falParam: 'image_url', fieldType: 'port' },
-      { id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '768', options: [
+      {
+ id: 'width', portType: 'number', label: 'Width', required: false, falParam: 'width', fieldType: 'select', default: '768', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' },
-      ]},
-      { id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '512', options: [
+      ]
+},
+      {
+ id: 'height', portType: 'number', label: 'Height', required: false, falParam: 'height', fieldType: 'select', default: '512', options: [
         { value: '512', label: '512' }, { value: '768', label: '768' }, { value: '1024', label: '1024' },
-      ]},
-      { id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '97', options: [
+      ]
+},
+      {
+ id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '97', options: [
         { value: '25', label: '25f (~1s)' }, { value: '49', label: '49f (~2s)' }, { value: '97', label: '97f (~4s)' }, { value: '129', label: '129f (~5s)' },
-      ]},
+      ]
+},
       { id: 'num_inference_steps', portType: 'number', label: 'Steps', required: false, falParam: 'num_inference_steps', fieldType: 'range', default: 30, min: 10, max: 50, step: 1 },
       { id: 'guidance_scale', portType: 'number', label: 'Guidance', required: false, falParam: 'guidance_scale', fieldType: 'range', default: 3.5, min: 1, max: 10, step: 0.5 },
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
@@ -1173,12 +1317,16 @@ export const POD_MODEL_REGISTRY = {
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'negative_prompt', portType: 'text', label: 'Negative Prompt', required: false, falParam: 'negative_prompt', fieldType: 'port' },
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '480p', options: [
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '480p', options: [
         { value: '480p', label: '480p' }, { value: '720p', label: '720p' },
-      ]},
-      { id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '81', options: [
+      ]
+},
+      {
+ id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '81', options: [
         { value: '33', label: '33f (~2s)' }, { value: '49', label: '49f (~3s)' }, { value: '81', label: '81f (~5s)' },
-      ]},
+      ]
+},
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
     ],
   },
@@ -1191,12 +1339,16 @@ export const POD_MODEL_REGISTRY = {
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'image_url', portType: 'image', label: 'Image', required: true, falParam: 'image_url', fieldType: 'port' },
       { id: 'negative_prompt', portType: 'text', label: 'Negative Prompt', required: false, falParam: 'negative_prompt', fieldType: 'port' },
-      { id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '480p', options: [
+      {
+ id: 'resolution', portType: 'text', label: 'Resolution', required: false, falParam: 'resolution', fieldType: 'select', default: '480p', options: [
         { value: '480p', label: '480p' }, { value: '720p', label: '720p' },
-      ]},
-      { id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '81', options: [
+      ]
+},
+      {
+ id: 'num_frames', portType: 'number', label: 'Frames', required: false, falParam: 'num_frames', fieldType: 'select', default: '81', options: [
         { value: '33', label: '33f (~2s)' }, { value: '49', label: '49f (~3s)' }, { value: '81', label: '81f (~5s)' },
-      ]},
+      ]
+},
       { id: 'seed', portType: 'number', label: 'Seed', required: false, falParam: 'seed', fieldType: 'number', default: -1 },
     ],
   },
@@ -1208,7 +1360,8 @@ export const POD_MODEL_REGISTRY = {
     inputs: [
       { id: 'prompt', portType: 'text', label: 'Prompt', required: true, falParam: 'prompt', fieldType: 'port' },
       { id: 'system_prompt', portType: 'text', label: 'System Prompt', required: false, falParam: 'system_prompt', fieldType: 'textarea', default: '' },
-      { id: 'model', portType: 'text', label: 'Model', required: true, falParam: 'model', fieldType: 'select', default: 'google/gemini-2.5-flash', options: [
+      {
+ id: 'model', portType: 'text', label: 'Model', required: true, falParam: 'model', fieldType: 'select', default: 'google/gemini-2.5-flash', options: [
         { value: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
         { value: 'anthropic/claude-sonnet-4.6', label: 'Claude Sonnet 4.6' },
         { value: 'anthropic/claude-opus-4.6', label: 'Claude Opus 4.6' },
@@ -1216,7 +1369,8 @@ export const POD_MODEL_REGISTRY = {
         { value: 'openai/gpt-4.1', label: 'GPT-4.1' },
         { value: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B' },
         { value: 'meta-llama/llama-4-maverick', label: 'Llama 4 Maverick' },
-      ]},
+      ]
+},
       { id: 'temperature', portType: 'number', label: 'Temperature', required: false, falParam: 'temperature', fieldType: 'range', default: 1, min: 0, max: 2, step: 0.1 },
       { id: 'max_tokens', portType: 'number', label: 'Max Tokens', required: false, falParam: 'max_tokens', fieldType: 'number', default: 1024, min: 1, max: 128000, step: 1 },
       { id: 'reasoning', portType: 'number', label: 'Reasoning', required: false, falParam: 'reasoning', fieldType: 'toggle', default: false },

@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import React, { useEffect, useRef, useState } from 'react'
-import { Player } from '@remotion/player'
-import type { PlayerRef } from '@remotion/player'
-import { AlertTriangle, Pause, Play, RotateCcw, Volume2, VolumeX } from 'lucide-react'
-import { PersonalizationComposition } from './PersonalizationComposition'
-import { previewPlayerRef } from './PreviewControls'
+import React, { useEffect, useRef, useState } from 'react';
+import { Player } from '@remotion/player';
+import type { PlayerRef } from '@remotion/player';
+import { AlertTriangle, Pause, Play, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { PersonalizationComposition } from './PersonalizationComposition';
+import { previewPlayerRef } from './PreviewControls';
 import {
   isFailureForVideo,
   previewMediaLabel,
   subscribePreviewMediaFailure,
-} from './previewMediaEvents'
-import type { PreviewMediaFailure } from './previewMediaEvents'
-import type { PreviewInputProps } from './types'
+} from './previewMediaEvents';
+import type { PreviewMediaFailure } from './previewMediaEvents';
+import type { PreviewInputProps } from './types';
 
 export interface PersonalizationPlayerProps {
   inputProps: PreviewInputProps
@@ -36,12 +36,12 @@ export interface PersonalizationPlayerProps {
 }
 
 function formatTimecode(frame: number, fps: number): string {
-  const safeFps = fps > 0 ? fps : 30
-  const safeFrame = Number.isFinite(frame) ? Math.max(0, Math.floor(frame)) : 0
-  const totalSeconds = safeFrame / safeFps
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds - minutes * 60
-  return `${minutes}:${seconds.toFixed(1).padStart(4, '0')}`
+  const safeFps = fps > 0 ? fps : 30;
+  const safeFrame = Number.isFinite(frame) ? Math.max(0, Math.floor(frame)) : 0;
+  const totalSeconds = safeFrame / safeFps;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds - minutes * 60;
+  return `${minutes}:${seconds.toFixed(1).padStart(4, '0')}`;
 }
 
 /**
@@ -65,55 +65,55 @@ export function PersonalizationPlayer(
     onPlayingChange,
     muted,
     onMutedChange,
-  } = props
+  } = props;
 
-  const settings = inputProps.settings
-  const durationInFrames = Math.max(1, Math.round(settings.durationInFrames))
-  const compositionWidth = settings.width
-  const compositionHeight = settings.height
-  const fps = settings.fps
-  const videoUrl = inputProps.videoUrl
+  const settings = inputProps.settings;
+  const durationInFrames = Math.max(1, Math.round(settings.durationInFrames));
+  const compositionWidth = settings.width;
+  const compositionHeight = settings.height;
+  const fps = settings.fps;
+  const videoUrl = inputProps.videoUrl;
 
-  const ref = playerRefOverride ?? previewPlayerRef
-  const [frame, setFrame] = useState(0)
-  const [playing, setPlaying] = useState(false)
-  const [internalMuted, setInternalMuted] = useState(muted ?? true)
-  const [mediaFailure, setMediaFailure] = useState<PreviewMediaFailure | null>(null)
-  const didMountRef = useRef(false)
+  const ref = playerRefOverride ?? previewPlayerRef;
+  const [frame, setFrame] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [internalMuted, setInternalMuted] = useState(muted ?? true);
+  const [mediaFailure, setMediaFailure] = useState<PreviewMediaFailure | null>(null);
+  const didMountRef = useRef(false);
 
   // Latest callbacks without re-subscribing the emitter listeners on every
   // render: inline arrow props from the parent (e.g. the Before/After sync
   // handlers) would otherwise remove and re-add the listeners each render.
-  const onFrameChangeRef = useRef(onFrameChange)
-  const onPlayingChangeRef = useRef(onPlayingChange)
-  onFrameChangeRef.current = onFrameChange
-  onPlayingChangeRef.current = onPlayingChange
+  const onFrameChangeRef = useRef(onFrameChange);
+  const onPlayingChangeRef = useRef(onPlayingChange);
+  onFrameChangeRef.current = onFrameChange;
+  onPlayingChangeRef.current = onPlayingChange;
 
   useEffect(() => {
-    const player = ref.current
-    if (!player || typeof player.addEventListener !== 'function') return
+    const player = ref.current;
+    if (!player || typeof player.addEventListener !== 'function') return;
     const onFrameUpdate = (event: { detail: { frame: number } }) => {
-      const next = typeof event?.detail?.frame === 'number' ? event.detail.frame : 0
-      setFrame(next)
-      onFrameChangeRef.current?.(next)
-    }
+      const next = typeof event?.detail?.frame === 'number' ? event.detail.frame : 0;
+      setFrame(next);
+      onFrameChangeRef.current?.(next);
+    };
     const onPlay = () => {
-      setPlaying(true)
-      onPlayingChangeRef.current?.(true)
-    }
+      setPlaying(true);
+      onPlayingChangeRef.current?.(true);
+    };
     const onPause = () => {
-      setPlaying(false)
-      onPlayingChangeRef.current?.(false)
-    }
-    player.addEventListener('frameupdate', onFrameUpdate)
-    player.addEventListener('play', onPlay)
-    player.addEventListener('pause', onPause)
+      setPlaying(false);
+      onPlayingChangeRef.current?.(false);
+    };
+    player.addEventListener('frameupdate', onFrameUpdate);
+    player.addEventListener('play', onPlay);
+    player.addEventListener('pause', onPause);
     return () => {
-      player.removeEventListener('frameupdate', onFrameUpdate)
-      player.removeEventListener('play', onPlay)
-      player.removeEventListener('pause', onPause)
-    }
-  }, [ref])
+      player.removeEventListener('frameupdate', onFrameUpdate);
+      player.removeEventListener('play', onPlay);
+      player.removeEventListener('pause', onPause);
+    };
+  }, [ref]);
 
   // Media failures are reported by the composition on a module-level channel
   // (the Player instantiates the composition, so props cannot bubble up).
@@ -122,7 +122,7 @@ export function PersonalizationPlayer(
   useEffect(
     () =>
       subscribePreviewMediaFailure((failure) => {
-        setMediaFailure(isFailureForVideo(failure, videoUrl) ? failure : null)
+        setMediaFailure(isFailureForVideo(failure, videoUrl) ? failure : null);
       }),
     [videoUrl],
   );
@@ -131,78 +131,78 @@ export function PersonalizationPlayer(
   // is driven imperatively through the ref.
   useEffect(() => {
     if (!didMountRef.current) {
-      didMountRef.current = true
-      return
+      didMountRef.current = true;
+      return;
     }
-    if (muted === undefined) return
-    const player = ref.current
-    if (!player) return
+    if (muted === undefined) return;
+    const player = ref.current;
+    if (!player) return;
     try {
-      if (muted) player.mute()
-      else player.unmute()
+      if (muted) player.mute();
+      else player.unmute();
     } catch {
       // A player without an attached media element cannot (un)mute yet.
     }
-  }, [muted, ref])
+  }, [muted, ref]);
 
-  const isMuted = muted ?? internalMuted
+  const isMuted = muted ?? internalMuted;
 
   const handleTogglePlay = () => {
-    const player = ref.current
-    if (!player) return
-    let currentlyPlaying = false
+    const player = ref.current;
+    if (!player) return;
+    let currentlyPlaying = false;
     try {
-      currentlyPlaying = player.isPlaying()
+      currentlyPlaying = player.isPlaying();
     } catch {
-      currentlyPlaying = playing
+      currentlyPlaying = playing;
     }
     try {
-      if (currentlyPlaying) player.pause()
-      else player.play()
+      if (currentlyPlaying) player.pause();
+      else player.play();
     } catch {
       // Autoplay policies can reject play(); the transport stays usable.
     }
-  }
+  };
 
   const handleSeek = (value: number) => {
-    const player = ref.current
-    if (!player) return
-    const target = Number.isFinite(value) ? Math.round(value) : 0
-    player.seekTo(Math.max(0, Math.min(durationInFrames - 1, target)))
-  }
+    const player = ref.current;
+    if (!player) return;
+    const target = Number.isFinite(value) ? Math.round(value) : 0;
+    player.seekTo(Math.max(0, Math.min(durationInFrames - 1, target)));
+  };
 
   const handleReplay = () => {
-    const player = ref.current
-    if (!player) return
-    player.seekTo(0)
+    const player = ref.current;
+    if (!player) return;
+    player.seekTo(0);
     try {
-      player.play()
+      player.play();
     } catch {
       // Autoplay policies can reject play(); the seek still applied.
     }
-  }
+  };
 
   const handleToggleMute = () => {
-    const nextMuted = !isMuted
-    if (muted === undefined) setInternalMuted(nextMuted)
-    const player = ref.current
+    const nextMuted = !isMuted;
+    if (muted === undefined) setInternalMuted(nextMuted);
+    const player = ref.current;
     if (player) {
       try {
-        if (nextMuted) player.mute()
-        else player.unmute()
+        if (nextMuted) player.mute();
+        else player.unmute();
       } catch {
         // A player without an attached media element cannot (un)mute yet.
       }
     }
-    onMutedChange?.(nextMuted)
-  }
+    onMutedChange?.(nextMuted);
+  };
 
   // `Player` infers loose component/inputProps types; the composition's props
   // are an interface (no implicit index signature), so both are widened here.
   const PreviewComposition = PersonalizationComposition as unknown as React.ComponentType<
     Record<string, unknown>
-  >
-  const playerInputProps = inputProps as unknown as Record<string, unknown>
+  >;
+  const playerInputProps = inputProps as unknown as Record<string, unknown>;
 
   const errorBanner = mediaFailure ? (
     <div
@@ -233,7 +233,7 @@ export function PersonalizationPlayer(
         </span>
       </span>
     </div>
-  ) : null
+  ) : null;
 
   const transportBar = (
     <div
@@ -327,7 +327,7 @@ export function PersonalizationPlayer(
         <RotateCcw size={16} />
       </button>
     </div>
-  )
+  );
 
   return (
     <div
@@ -373,5 +373,5 @@ export function PersonalizationPlayer(
         </>
       )}
     </div>
-  )
+  );
 }

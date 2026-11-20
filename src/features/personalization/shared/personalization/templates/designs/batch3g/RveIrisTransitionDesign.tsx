@@ -12,14 +12,14 @@
  * circle instead, so the opening iris shows the video inside it.
  */
 
-import React from 'react'
-import { IrisTransition } from '../../_upstream/rve-iris-transition/IrisTransition'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared'
+import React from 'react';
+import { IrisTransition } from '../../_upstream/rve-iris-transition/IrisTransition';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared';
 
 export const RveIrisTransitionDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-iris-transition" props={props}>
       <IrisTransition
@@ -29,7 +29,7 @@ export const RveIrisTransitionDesign: React.FC<RemotionDesignComponentProps> = (
         sceneB={TRANSPARENT_SCENE}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveIrisTransitionDesign
+export default RveIrisTransitionDesign;

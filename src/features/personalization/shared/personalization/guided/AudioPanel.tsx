@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
-import { Music, Mic, Trash2, Volume2 } from 'lucide-react'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { Tip } from './editor/Tip'
-import { loadWaveform, type WaveformData } from './editor/waveform'
-import { AUDIO_ACCEPT_ATTRIBUTE, validateAudioFile } from './audioTrack'
-import { C, chipStyle, hintStyle, inputStyle, labelStyle, panelStyle, secondaryButtonStyle } from './tokens'
-import { MAX_AUDIO_TRACKS, SOLO_VIDEO, type AudioTrack, type AudioTrackKind } from '../preview/audioMix'
+import { useEffect, useRef, useState } from 'react';
+import { Music, Mic, Trash2, Volume2 } from 'lucide-react';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { Tip } from './editor/Tip';
+import { loadWaveform, type WaveformData } from './editor/waveform';
+import { AUDIO_ACCEPT_ATTRIBUTE, validateAudioFile } from './audioTrack';
+import { C, chipStyle, hintStyle, inputStyle, labelStyle, panelStyle, secondaryButtonStyle } from './tokens';
+import { MAX_AUDIO_TRACKS, SOLO_VIDEO, type AudioTrack, type AudioTrackKind } from '../preview/audioMix';
 
 /**
  * Audio mix (Step 4): the video's own sound and any number of tracks (music, voiceover) with volume, fades, start, trim, mute and
@@ -13,34 +13,34 @@ import { MAX_AUDIO_TRACKS, SOLO_VIDEO, type AudioTrack, type AudioTrackKind } fr
  * the live preview and the exported video. Uploading is free and uses no credits.
  */
 export function AudioPanel(): React.JSX.Element {
-  const { previewSettings, updatePreviewComposition, addAudioTrack, removeAudioTrack } = useDemoPersonalize()
-  const [open, setOpen] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [pickKind, setPickKind] = useState<AudioTrackKind>('music')
-  const fileRef = useRef<HTMLInputElement>(null)
-  const tracks = previewSettings.audioTracks ?? []
-  const videoVolume = previewSettings.videoVolume ?? 1
-  const solo = previewSettings.audioSolo
-  const durationSec = previewSettings.durationInFrames / Math.max(1, previewSettings.fps)
+  const { previewSettings, updatePreviewComposition, addAudioTrack, removeAudioTrack } = useDemoPersonalize();
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pickKind, setPickKind] = useState<AudioTrackKind>('music');
+  const fileRef = useRef<HTMLInputElement>(null);
+  const tracks = previewSettings.audioTracks ?? [];
+  const videoVolume = previewSettings.videoVolume ?? 1;
+  const solo = previewSettings.audioSolo;
+  const durationSec = previewSettings.durationInFrames / Math.max(1, previewSettings.fps);
 
   const setTrack = (id: string, patch: Partial<AudioTrack>) =>
-    updatePreviewComposition({ audioTracks: tracks.map((t) => (t.id === id ? { ...t, ...patch } : t)) })
-  const toggleSolo = (id: string) => updatePreviewComposition({ audioSolo: solo === id ? undefined : id })
+    updatePreviewComposition({ audioTracks: tracks.map((t) => (t.id === id ? { ...t, ...patch } : t)) });
+  const toggleSolo = (id: string) => updatePreviewComposition({ audioSolo: solo === id ? undefined : id });
 
   const onFile = (file: File | undefined) => {
-    if (!file) return
-    const problem = validateAudioFile(file)
-    if (problem) { setError(problem); return }
-    setError(null)
-    void addAudioTrack(file, pickKind)
-  }
+    if (!file) return;
+    const problem = validateAudioFile(file);
+    if (problem) { setError(problem); return; }
+    setError(null);
+    void addAudioTrack(file, pickKind);
+  };
 
   const num = (id: string, label: string, value: number, min: number, max: number, step: number, onChange: (v: number) => void) => (
     <label htmlFor={id} style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 9, color: C.muted2 }}>
       {label}
-      <input id={id} data-testid={id} type="number" aria-label={label} min={min} max={max} step={step} value={Math.round(value * 100) / 100} onChange={(e) => { if (e.target.value.trim() !== '') onChange(Math.min(max, Math.max(min, Number(e.target.value)))) }} style={{ ...inputStyle, minHeight: 26, padding: '0 6px', fontSize: 11 }} />
+      <input id={id} data-testid={id} type="number" aria-label={label} min={min} max={max} step={step} value={Math.round(value * 100) / 100} onChange={(e) => { if (e.target.value.trim() !== '') onChange(Math.min(max, Math.max(min, Number(e.target.value)))); }} style={{ ...inputStyle, minHeight: 26, padding: '0 6px', fontSize: 11 }} />
     </label>
-  )
+  );
 
   return (
     <div data-testid="audio-panel" style={{ ...panelStyle, padding: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -103,36 +103,36 @@ export function AudioPanel(): React.JSX.Element {
                   type="button"
                   data-testid={`audio-add-${kind}`}
                   disabled={tracks.length >= MAX_AUDIO_TRACKS}
-                  onClick={() => { setPickKind(kind); fileRef.current?.click() }}
+                  onClick={() => { setPickKind(kind); fileRef.current?.click(); }}
                   style={{ ...secondaryButtonStyle, minHeight: 30, fontSize: 11, padding: '0 12px', borderColor: C.cyan, color: C.cyan }}
                 >
                   {kind === 'music' ? 'Add music' : 'Add voiceover'}
                 </button>
               </Tip>
             ))}
-            <input ref={fileRef} type="file" hidden data-testid="audio-file" accept={AUDIO_ACCEPT_ATTRIBUTE} onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = '' }} />
+            <input ref={fileRef} type="file" hidden data-testid="audio-file" accept={AUDIO_ACCEPT_ATTRIBUTE} onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} />
           </div>
           {error && <div role="alert" data-testid="audio-error" style={{ color: '#fca5a5', fontSize: 11 }}>{error}</div>}
           <p style={{ ...hintStyle, margin: 0 }}>Free, no credits. MP3, M4A, WAV, OGG or AAC, up to 25 MB each. Your original video's sound is never changed.</p>
         </div>
       )}
     </div>
-  )
+  );
 }
 
 /** A waveform drawn on a strip as wide as the video, positioned and sized by the track's start, skip and length. */
 function WaveStrip({ track, videoDurationSec }: { track: AudioTrack; videoDurationSec: number }) {
-  const [wave, setWave] = useState<WaveformData | null>(null)
+  const [wave, setWave] = useState<WaveformData | null>(null);
   useEffect(() => {
-    let live = true
-    void loadWaveform(track.url).then((w) => { if (live) setWave(w) })
-    return () => { live = false }
-  }, [track.url])
-  const total = Math.max(0.1, videoDurationSec)
-  const fileLeft = wave ? Math.max(0, wave.durationSec - track.trimStart) : 0
-  const playSec = track.length !== undefined ? Math.min(track.length, fileLeft || track.length) : Math.min(fileLeft || total, total - track.start)
-  const leftPct = (track.start / total) * 100
-  const widthPct = Math.max(1, Math.min(100 - leftPct, (playSec / total) * 100))
+    let live = true;
+    void loadWaveform(track.url).then((w) => { if (live) setWave(w); });
+    return () => { live = false; };
+  }, [track.url]);
+  const total = Math.max(0.1, videoDurationSec);
+  const fileLeft = wave ? Math.max(0, wave.durationSec - track.trimStart) : 0;
+  const playSec = track.length !== undefined ? Math.min(track.length, fileLeft || track.length) : Math.min(fileLeft || total, total - track.start);
+  const leftPct = (track.start / total) * 100;
+  const widthPct = Math.max(1, Math.min(100 - leftPct, (playSec / total) * 100));
   return (
     <div data-testid="audio-wave-strip" aria-hidden style={{ position: 'relative', height: 28, background: 'rgba(255,255,255,.04)', borderRadius: 6, overflow: 'hidden' }}>
       <div data-testid="audio-wave-bar" style={{ position: 'absolute', top: 0, bottom: 0, left: `${leftPct}%`, width: `${widthPct}%`, background: track.muted ? 'rgba(255,255,255,.08)' : C.cyanSoft, border: `1px solid ${C.cyan}`, borderRadius: 4, boxSizing: 'border-box', overflow: 'hidden' }}>
@@ -143,5 +143,5 @@ function WaveStrip({ track, videoDurationSec }: { track: AudioTrack; videoDurati
         )}
       </div>
     </div>
-  )
+  );
 }

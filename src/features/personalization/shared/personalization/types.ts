@@ -2,7 +2,7 @@
  * Shared Personalization System — Types
  */
 
-import type { PreviewLayer, PreviewInputProps } from './preview/types'
+import type { PreviewLayer, PreviewInputProps } from './preview/types';
 
 export type PersonalizationSourceType =
   | 'landing-demo'
@@ -173,7 +173,7 @@ export const EMPTY_CLIENT: ClientProfile = {
   brandDescription: '',
   createdAt: '',
   updatedAt: '',
-}
+};
 
 export type AssetRole =
   | 'presenter_identity'
@@ -259,7 +259,7 @@ export const EMPTY_ASSET_LIBRARY: AssetLibrary = {
   ctaGraphic: null,
   audio: [],
   savedReferences: [],
-}
+};
 
 export interface PromptState {
   original: string
@@ -271,7 +271,7 @@ export const EMPTY_PROMPT_STATE: PromptState = {
   original: '',
   personalized: '',
   edited: '',
-}
+};
 
 export type OutputType = 'prompt' | 'image' | 'video' | 'everything'
 
@@ -304,7 +304,7 @@ export const DEFAULT_GENERATION_OPTIONS: GenerationOptions = {
   firstFrameMode: 'none',
   lastFrameMode: 'none',
   consentGiven: false,
-}
+};
 
 export interface GenerationState {
   status: 'idle' | 'personalizing-prompt' | 'generating' | 'processing' | 'complete' | 'error'
@@ -319,7 +319,7 @@ export const EMPTY_GENERATION_STATE: GenerationState = {
   progress: 0,
   progressMessage: '',
   errorMessage: null,
-}
+};
 
 export interface PersonalizationProject {
   id: string
@@ -678,7 +678,7 @@ export type {
   PreviewBrandColors,
   PreviewVideoRef,
   PersonalizationPreviewSettings,
-} from './preview/types'
+} from './preview/types';
 
 // ── Shared Remotion design registry ──────────────────────────────────────────
 
@@ -699,7 +699,7 @@ export type {
   RemotionDesignTemplateRegistry,
   RemotionDesignTextField,
   RemotionDesignTextSlot,
-} from './templates/types'
+} from './templates/types';
 
 export type GuidedStep = 1 | 2 | 3 | 4
 

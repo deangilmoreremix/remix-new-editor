@@ -82,8 +82,10 @@ export function savedGenerationReferences(value: unknown, assets: Asset[]): Gene
     if (!kind || !['image', 'video', 'audio'].includes(kind)) return [];
     const url = displayUrl(ref.url) || displayUrl(asset?.sourceUrl) || displayUrl(asset?.url);
     const thumbnailUrl = previewUrl(ref.thumbnailUrl || asset?.thumbnailUrl);
-    return [{ id: text(ref.id) || asset?.id || `reference-${index + 1}`, title: text(ref.title) || asset?.name || `Reference ${index + 1}`,
+    return [{
+ id: text(ref.id) || asset?.id || `reference-${index + 1}`, title: text(ref.title) || asset?.name || `Reference ${index + 1}`,
       kind, assetId: asset?.id, url, previewUrl: previewUrl(ref.previewUrl) || previewUrl(url), thumbnailUrl,
-      elementId: text(ref.elementId) || undefined, imageId: text(ref.imageId) || undefined, variationId: text(ref.variationId) || undefined }];
+      elementId: text(ref.elementId) || undefined, imageId: text(ref.imageId) || undefined, variationId: text(ref.variationId) || undefined 
+}];
   });
 }

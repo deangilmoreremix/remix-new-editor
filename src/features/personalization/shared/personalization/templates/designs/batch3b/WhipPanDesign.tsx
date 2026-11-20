@@ -20,26 +20,26 @@
  * they are fitted to two lines, subtitles to one line.
  */
 
-import React from 'react'
-import { WhipPan } from '../../_upstream/whip-pan/WhipPan'
-import { DesignStage, pickColor, slotText, slotValue, type DesignAdapterProps } from '../shared'
-import { FadeOut, Timebox, charsPerLine, ensureDark, fitWords, hex6, mix } from './shared'
+import React from 'react';
+import { WhipPan } from '../../_upstream/whip-pan/WhipPan';
+import { DesignStage, pickColor, slotText, slotValue, type DesignAdapterProps } from '../shared';
+import { FadeOut, Timebox, charsPerLine, ensureDark, fitWords, hex6, mix } from './shared';
 
-export const WHIP_PAN_DURATION = 90
-export const WHIP_PAN_FADE_START = 76
+export const WHIP_PAN_DURATION = 90;
+export const WHIP_PAN_FADE_START = 76;
 
 export const WhipPanDesign: React.FC<DesignAdapterProps> = (props) => {
-  const wide = props.width >= 1920
-  const titlePerLine = charsPerLine(props.width - 160, wide ? 132 : 92, { safe: 0.95, advanceEm: 0.66, letterSpacing: 4 })
-  const subPerLine = charsPerLine(props.width - 160, wide ? 40 : 32, { safe: 0.95, letterSpacing: 2 })
-  const textColor = pickColor([props.color, props.colors?.text], '#ffffff')
+  const wide = props.width >= 1920;
+  const titlePerLine = charsPerLine(props.width - 160, wide ? 132 : 92, { safe: 0.95, advanceEm: 0.66, letterSpacing: 4 });
+  const subPerLine = charsPerLine(props.width - 160, wide ? 40 : 32, { safe: 0.95, letterSpacing: 2 });
+  const textColor = pickColor([props.color, props.colors?.text], '#ffffff');
 
-  const name = slotText(props, 'businessName', ['headline'])
-  const headline = slotValue(props, 'headline')
-  const offer = slotValue(props, 'offer') || headline || name
-  const cta = slotValue(props, 'cta')
+  const name = slotText(props, 'businessName', ['headline']);
+  const headline = slotValue(props, 'headline');
+  const offer = slotValue(props, 'offer') || headline || name;
+  const cta = slotValue(props, 'cta');
 
-  const accent = hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#7c3aed')
+  const accent = hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#7c3aed');
 
   return (
     <DesignStage designId="whip-pan" props={props}>
@@ -66,7 +66,7 @@ export const WhipPanDesign: React.FC<DesignAdapterProps> = (props) => {
         </Timebox>
       </FadeOut>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default WhipPanDesign
+export default WhipPanDesign;

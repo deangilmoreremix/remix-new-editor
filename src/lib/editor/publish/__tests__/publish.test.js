@@ -16,13 +16,15 @@ function project() {
     version: 1, title: 'Demo', timelineSeconds: T,
     tracks: [
       { id: 'v', type: 'video', items: [clipAt(0, 20, { id: 'vid', type: 'video', src: 'https://cdn/x.mp4' })] },
-      { id: 't', type: 'text', items: [
+      {
+ id: 't', type: 'text', items: [
         clipAt(2, 3, { id: 'p1', type: 'addon-pause', addon: { duration: 0, continueText: 'Go on' } }),
         clipAt(5, 6, { id: 'lf', type: 'lead-form', heading: 'Hi {{firstname}}', fields: [{ id: 'email', type: 'email', label: 'Email', required: true }], ctaText: 'Send', skipButtonEnabled: true }),
         clipAt(8, 12, { id: 'cta', type: 'click-to-call', linkUrl: 'https://example.com/buy', buttonText: 'Buy', style: {} }),
         clipAt(9, 10, { id: 'sk', type: 'addon-skip', addon: {} }),
         clipAt(1, 15, { id: 'txt', type: 'overlay-text', addon: { text: 'Hello {{firstname}}{{company}}', linkUrl: 'https://example.com/site', geometry: { left: 10, top: 10, width: 30, height: 10 } } }),
-      ] },
+      ] 
+},
     ],
     listBuilder: null,
   };

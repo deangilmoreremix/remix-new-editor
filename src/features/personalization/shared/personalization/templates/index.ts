@@ -15,8 +15,8 @@
  * that registered late would be missing from the export.
  */
 
-export * from './types'
-export * from './registry'
+export * from './types';
+export * from './registry';
 
 // The concrete design catalog registers itself on import.
-import './catalog'
+import './catalog';

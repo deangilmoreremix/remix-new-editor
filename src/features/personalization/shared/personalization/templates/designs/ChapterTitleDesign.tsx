@@ -24,9 +24,9 @@
  * composition is taller than it is wide, so nothing has to be fitted.
  */
 
-import React from 'react'
-import { ChapterTitle } from '../_upstream/chapter-title/ChapterTitle'
-import { useDesignFonts } from './fonts'
+import React from 'react';
+import { ChapterTitle } from '../_upstream/chapter-title/ChapterTitle';
+import { useDesignFonts } from './fonts';
 import {
   DesignStage,
   TRANSPARENT,
@@ -35,22 +35,22 @@ import {
   slotValue,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** The upstream's type is relative to the canvas, so the caps are generous. */
-const MAX_LABEL_LENGTH = 24
-const MAX_TITLE_LENGTH = 48
-const MAX_SUBTITLE_LENGTH = 48
+const MAX_LABEL_LENGTH = 24;
+const MAX_TITLE_LENGTH = 48;
+const MAX_SUBTITLE_LENGTH = 48;
 
 export const ChapterTitleDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
+  useDesignFonts();
 
-  const chapterLabel = truncateText(slotValue(props, 'chapterLabel'), MAX_LABEL_LENGTH)
+  const chapterLabel = truncateText(slotValue(props, 'chapterLabel'), MAX_LABEL_LENGTH);
   const title = truncateText(
     slotText(props, 'title', ['headline', 'businessName']),
     MAX_TITLE_LENGTH,
-  )
-  const subtitle = truncateText(slotValue(props, 'subtitle'), MAX_SUBTITLE_LENGTH)
+  );
+  const subtitle = truncateText(slotValue(props, 'subtitle'), MAX_SUBTITLE_LENGTH);
 
   return (
     <DesignStage designId="chapter-title" props={props}>
@@ -63,7 +63,7 @@ export const ChapterTitleDesign: React.FC<DesignAdapterProps> = (props) => {
         titleColor={pickColor([props.color, props.colors?.text], '#ffffff')}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default ChapterTitleDesign
+export default ChapterTitleDesign;

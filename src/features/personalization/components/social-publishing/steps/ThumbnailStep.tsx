@@ -113,86 +113,86 @@ export default function ThumbnailStep({
   copy,
   onRequestApiKey,
 }: ThumbnailStepProps) {
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(thumbnail.templateId)
-  const [viewMode, setViewMode] = useState<'recommended' | 'explore'>('recommended')
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(thumbnail.templateId);
+  const [viewMode, setViewMode] = useState<'recommended' | 'explore'>('recommended');
 
-  const [prompt, setPrompt] = useState('')
-  const [enhancedPrompt, setEnhancedPrompt] = useState('')
-  const [selectedModel, setSelectedModel] = useState<string>(MODEL_OPTIONS[0].value)
-  const [aspectRatio, setAspectRatio] = useState<string>(thumbnail.aspectRatio || '16:9')
-  const [generationCount, setGenerationCount] = useState<GenerationCount>(1)
+  const [prompt, setPrompt] = useState('');
+  const [enhancedPrompt, setEnhancedPrompt] = useState('');
+  const [selectedModel, setSelectedModel] = useState<string>(MODEL_OPTIONS[0].value);
+  const [aspectRatio, setAspectRatio] = useState<string>(thumbnail.aspectRatio || '16:9');
+  const [generationCount, setGenerationCount] = useState<GenerationCount>(1);
   /** Show the picture while it draws (one image at a time). Free of extra setup; off if you prefer the finished picture only. */
-  const [livePreview, setLivePreview] = useState(true)
-  const [partialUrl, setPartialUrl] = useState<string | null>(null)
+  const [livePreview, setLivePreview] = useState(true);
+  const [partialUrl, setPartialUrl] = useState<string | null>(null);
   /** Optional AI graphics (SVG) the designer can place as picture layers. */
-  const [graphics, setGraphics] = useState<DesignerGraphic[]>([])
-  const [isEnhancing, setIsEnhancing] = useState(false)
-  const [style, setStyle] = useState('vibrant')
+  const [graphics, setGraphics] = useState<DesignerGraphic[]>([]);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [style, setStyle] = useState('vibrant');
 
-  const [results, setResults] = useState<ThumbnailGenerateResult[]>([])
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-  const [generating, setGenerating] = useState(false)
-  const [generatingCount, setGeneratingCount] = useState(0)
-  const [error, setError] = useState<string | null>(null)
+  const [results, setResults] = useState<ThumbnailGenerateResult[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [generatingCount, setGeneratingCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
-  const [references, setReferences] = useState<string[]>(thumbnail.references || [])
-  const [useAssetReference, setUseAssetReference] = useState(true)
-  const [assetReference, setAssetReference] = useState<string | null>(null)
-  const [assetReferenceState, setAssetReferenceState] = useState<'loading' | 'ready' | 'unavailable'>('loading')
-  const [showAdvanced, setShowAdvanced] = useState(false)
-  const [showConcepts, setShowConcepts] = useState(false)
-  const [designing, setDesigning] = useState(false)
+  const [references, setReferences] = useState<string[]>(thumbnail.references || []);
+  const [useAssetReference, setUseAssetReference] = useState(true);
+  const [assetReference, setAssetReference] = useState<string | null>(null);
+  const [assetReferenceState, setAssetReferenceState] = useState<'loading' | 'ready' | 'unavailable'>('loading');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showConcepts, setShowConcepts] = useState(false);
+  const [designing, setDesigning] = useState(false);
   /** Open the designer straight on its "Edit a region" panel. */
-  const [designerEditRegion, setDesignerEditRegion] = useState(false)
-  const [canvasAdjustments, setCanvasAdjustments] = useState<CanvasAdjustments | null>(null)
+  const [designerEditRegion, setDesignerEditRegion] = useState(false);
+  const [canvasAdjustments, setCanvasAdjustments] = useState<CanvasAdjustments | null>(null);
 
-  const [headline, setHeadline] = useState(copy.headline || '')
-  const [subheadline, setSubheadline] = useState(copy.subheadline || '')
-  const [font, setFont] = useState('Inter')
-  const [fontSize, setFontSize] = useState(48)
-  const [textAlignment, setTextAlignment] = useState<'left' | 'center' | 'right'>('center')
-  const [textPosition, setTextPosition] = useState<'top' | 'center' | 'bottom'>('bottom')
-  const [textWeight, setTextWeight] = useState<'normal' | 'bold' | 'black'>('bold')
-  const [textColor, setTextColor] = useState('#ffffff')
-  const [hasStroke, setHasStroke] = useState(true)
-  const [hasShadow, setHasShadow] = useState(true)
+  const [headline, setHeadline] = useState(copy.headline || '');
+  const [subheadline, setSubheadline] = useState(copy.subheadline || '');
+  const [font, setFont] = useState('Inter');
+  const [fontSize, setFontSize] = useState(48);
+  const [textAlignment, setTextAlignment] = useState<'left' | 'center' | 'right'>('center');
+  const [textPosition, setTextPosition] = useState<'top' | 'center' | 'bottom'>('bottom');
+  const [textWeight, setTextWeight] = useState<'normal' | 'bold' | 'black'>('bold');
+  const [textColor, setTextColor] = useState('#ffffff');
+  const [hasStroke, setHasStroke] = useState(true);
+  const [hasShadow, setHasShadow] = useState(true);
 
-  const abortControllerRef = useRef<AbortController | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (thumbnail.templateId && thumbnail.templateId !== selectedTemplateId) {
-      setSelectedTemplateId(thumbnail.templateId)
+      setSelectedTemplateId(thumbnail.templateId);
     }
     if (thumbnail.aspectRatio && thumbnail.aspectRatio !== aspectRatio) {
-      setAspectRatio(thumbnail.aspectRatio)
+      setAspectRatio(thumbnail.aspectRatio);
     }
-  }, [thumbnail])
+  }, [thumbnail]);
 
   useEffect(() => {
-    return () => { abortControllerRef.current?.abort() }
-  }, [])
+    return () => { abortControllerRef.current?.abort(); };
+  }, []);
 
   // Every studio opens this modal with its output (image or video). Use that
   // output as the visual reference so the thumbnail shows what was made.
   useEffect(() => {
-    let cancelled = false
-    setAssetReference(null)
-    setAssetReferenceState('loading')
+    let cancelled = false;
+    setAssetReference(null);
+    setAssetReferenceState('loading');
     resolveAssetReference(asset).then((ref) => {
-      if (cancelled) return
-      setAssetReference(ref)
-      setAssetReferenceState(ref ? 'ready' : 'unavailable')
-    }).catch(() => { if (!cancelled) setAssetReferenceState('unavailable') })
-    return () => { cancelled = true }
-  }, [asset.url, asset.type, asset.thumbnailUrl])
+      if (cancelled) return;
+      setAssetReference(ref);
+      setAssetReferenceState(ref ? 'ready' : 'unavailable');
+    }).catch(() => { if (!cancelled) setAssetReferenceState('unavailable'); });
+    return () => { cancelled = true; };
+  }, [asset.url, asset.type, asset.thumbnailUrl]);
 
   const effectiveReferences = useMemo(() => {
-    const list = useAssetReference && assetReference ? [assetReference, ...references] : references
-    return Array.from(new Set(list))
-  }, [useAssetReference, assetReference, references])
+    const list = useAssetReference && assetReference ? [assetReference, ...references] : references;
+    return Array.from(new Set(list));
+  }, [useAssetReference, assetReference, references]);
 
   const buildFullPrompt = useCallback(() => {
-    let base = enhancedPrompt || prompt
+    let base = enhancedPrompt || prompt;
     if (!base && selectedTemplateId) {
       const templatePrompts: Record<string, string> = {
         'creator-reaction': 'YouTuber-style reaction face, dramatic lighting, bold yellow text overlay area, high contrast, shocked expression, clean background',
@@ -207,23 +207,23 @@ export default function ThumbnailStep({
         'creative-3d': '3D rendered scene, isometric perspective, vibrant materials, soft volumetric lighting',
         'lifestyle-blog': 'Lifestyle blogger thumbnail, warm natural light, cozy aesthetic, soft pastels, relatable composition',
         'business-podcast': 'Professional podcast thumbnail, headshot composition, clean gradient background, bold episode number',
-      }
-      base = templatePrompts[selectedTemplateId] || ''
+      };
+      base = templatePrompts[selectedTemplateId] || '';
     }
     if (!base && useAssetReference && assetReference) {
-      base = 'Eye-catching, high-click-through thumbnail built from the reference image: bold focal point, strong contrast, clean composition'
+      base = 'Eye-catching, high-click-through thumbnail built from the reference image: bold focal point, strong contrast, clean composition';
     }
 
-    const textParts: string[] = []
-    if (headline) textParts.push(`HEADLINE TEXT: "${headline}"`)
-    if (subheadline) textParts.push(`SUBHEADLINE TEXT: "${subheadline}"`)
+    const textParts: string[] = [];
+    if (headline) textParts.push(`HEADLINE TEXT: "${headline}"`);
+    if (subheadline) textParts.push(`SUBHEADLINE TEXT: "${subheadline}"`);
     if (textParts.length > 0) {
-      base += '. ' + textParts.join('. ') + '. Leave clear space for text overlay at ' + textPosition + '.'
+      base += '. ' + textParts.join('. ') + '. Leave clear space for text overlay at ' + textPosition + '.';
     }
     if (useAssetReference && assetReference) {
-      base += ' The first reference image is the actual ' + (asset.type === 'video' ? 'video frame' : 'image') + ' this thumbnail is for — keep its subject, product and look recognisable.'
+      base += ' The first reference image is the actual ' + (asset.type === 'video' ? 'video frame' : 'image') + ' this thumbnail is for — keep its subject, product and look recognisable.';
     } else if (references.length > 0) {
-      base += ' Reference images provided for style/content guidance.'
+      base += ' Reference images provided for style/content guidance.';
     }
     const stylePrompts: Record<string, string> = {
       'cinematic': 'Cinematic lighting, movie poster style, ultra detailed.',
@@ -234,37 +234,37 @@ export default function ThumbnailStep({
       'neon': 'Neon glow effects, cyberpunk aesthetic, dark background, futuristic.',
       'retro': 'Retro vintage style, film grain, muted tones, classic design.',
       'photorealism': 'Photorealistic, ultra high resolution, professional photography, 8K.',
-    }
+    };
     if (style && stylePrompts[style]) {
-      base += ' ' + stylePrompts[style]
+      base += ' ' + stylePrompts[style];
     }
-    return base
-  }, [prompt, enhancedPrompt, selectedTemplateId, headline, subheadline, textPosition, references, style, useAssetReference, assetReference, asset.type])
+    return base;
+  }, [prompt, enhancedPrompt, selectedTemplateId, headline, subheadline, textPosition, references, style, useAssetReference, assetReference, asset.type]);
 
   const handleEnhance = useCallback(async () => {
-    if (!prompt.trim() || isEnhancing) return
-    setIsEnhancing(true)
+    if (!prompt.trim() || isEnhancing) return;
+    setIsEnhancing(true);
     try {
-      const result = await enhancePrompt(prompt)
-      if (result) setEnhancedPrompt(result)
+      const result = await enhancePrompt(prompt);
+      if (result) setEnhancedPrompt(result);
     } catch { /* noop */ }
-    finally { setIsEnhancing(false) }
-  }, [prompt, isEnhancing])
+    finally { setIsEnhancing(false); }
+  }, [prompt, isEnhancing]);
 
   const handleGenerate = useCallback(async () => {
-    const fullPrompt = buildFullPrompt()
-    if (!fullPrompt.trim()) return
+    const fullPrompt = buildFullPrompt();
+    if (!fullPrompt.trim()) return;
 
-    setError(null)
-    setGenerating(true)
-    setGeneratingCount(generationCount)
-    setResults([])
-    setSelectedIndex(null)
-    setPartialUrl(null)
+    setError(null);
+    setGenerating(true);
+    setGeneratingCount(generationCount);
+    setResults([]);
+    setSelectedIndex(null);
+    setPartialUrl(null);
 
-    abortControllerRef.current?.abort()
-    const ac = new AbortController()
-    abortControllerRef.current = ac
+    abortControllerRef.current?.abort();
+    const ac = new AbortController();
+    abortControllerRef.current = ac;
 
     try {
       const genResults = await generateThumbnail({
@@ -278,13 +278,13 @@ export default function ThumbnailStep({
         referenceUrls: effectiveReferences.length > 0 ? effectiveReferences : undefined,
         style,
         quality: 'medium',
-      }, livePreview && generationCount === 1 ? { onPartial: (url) => { if (!ac.signal.aborted) setPartialUrl(url) }, signal: ac.signal } : undefined)
+      }, livePreview && generationCount === 1 ? { onPartial: (url) => { if (!ac.signal.aborted) setPartialUrl(url); }, signal: ac.signal } : undefined);
 
-      if (ac.signal.aborted) return
-      setPartialUrl(null)
-      setResults(genResults)
+      if (ac.signal.aborted) return;
+      setPartialUrl(null);
+      setResults(genResults);
       if (genResults.length > 0) {
-        setSelectedIndex(0)
+        setSelectedIndex(0);
         onUpdateThumbnail({
           imageUrl: genResults[0].url,
           responseId: genResults[0].responseId,
@@ -292,110 +292,110 @@ export default function ThumbnailStep({
           templateId: selectedTemplateId,
           aspectRatio,
           references: references.length > 0 ? references : undefined,
-        })
+        });
       }
     } catch (err) {
-      if (ac.signal.aborted) return
-      const message = err instanceof Error ? err.message : 'Generation failed'
-      setError(message)
+      if (ac.signal.aborted) return;
+      const message = err instanceof Error ? err.message : 'Generation failed';
+      setError(message);
     } finally {
       if (!ac.signal.aborted) {
-        setGenerating(false)
-        setGeneratingCount(0)
-        setPartialUrl(null)
+        setGenerating(false);
+        setGeneratingCount(0);
+        setPartialUrl(null);
       }
     }
-  }, [buildFullPrompt, selectedTemplateId, selectedModel, aspectRatio, generationCount, headline, subheadline, references, effectiveReferences, style, livePreview, onUpdateThumbnail])
+  }, [buildFullPrompt, selectedTemplateId, selectedModel, aspectRatio, generationCount, headline, subheadline, references, effectiveReferences, style, livePreview, onUpdateThumbnail]);
 
   const handleSelectResult = useCallback((index: number) => {
-    setSelectedIndex(index)
+    setSelectedIndex(index);
     if (results[index]) {
       onUpdateThumbnail({
         imageUrl: results[index].url,
         responseId: results[index].responseId,
         design: undefined,
-      })
+      });
     }
-  }, [results, onUpdateThumbnail])
+  }, [results, onUpdateThumbnail]);
 
   const handleDownloadResult = useCallback((url: string, _index: number) => {
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `thumbnail-${Date.now()}.png`
-    a.target = '_blank'
-    a.rel = 'noopener noreferrer'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  }, [])
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `thumbnail-${Date.now()}.png`;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, []);
 
   const handleRefineResults = useCallback((refineResults: ThumbnailGenerateResult[]) => {
     const refined = refineResults.map(r => ({
       url: r.url,
       responseId: r.responseId,
       revisedPrompt: r.revisedPrompt,
-    }))
-    setResults(refined)
+    }));
+    setResults(refined);
     if (refined.length > 0) {
-      setSelectedIndex(0)
+      setSelectedIndex(0);
       onUpdateThumbnail({
         imageUrl: refined[0].url,
         responseId: refined[0].responseId,
         design: undefined,
-      })
+      });
     }
-  }, [onUpdateThumbnail])
+  }, [onUpdateThumbnail]);
 
   // The picture being edited: the selected result, or (after Back/Next remounts this step) the retained thumbnail.
-  const activeImageUrl: string | null = selectedIndex !== null && results[selectedIndex] ? results[selectedIndex].url : thumbnail.imageUrl ?? null
+  const activeImageUrl: string | null = selectedIndex !== null && results[selectedIndex] ? results[selectedIndex].url : thumbnail.imageUrl ?? null;
 
   /** With a saved design, refinement must start from the exported picture (the layers), not the original. */
-  const refineSourceUrl = thumbnail.design && thumbnail.imageUrl ? thumbnail.imageUrl : activeImageUrl
+  const refineSourceUrl = thumbnail.design && thumbnail.imageUrl ? thumbnail.imageUrl : activeImageUrl;
   /** The designer can only edit a region of a picture background. */
-  const canEditRegion = thumbnail.design ? thumbnail.design.background.mode === 'image' && !!thumbnail.design.background.imageSrc : !!activeImageUrl
+  const canEditRegion = thumbnail.design ? thumbnail.design.background.mode === 'image' && !!thumbnail.design.background.imageSrc : !!activeImageUrl;
 
   /** Concepts made by the concept panel replace the current results, like a normal generation. */
   const handleConceptResults = useCallback((conceptResults: ThumbnailGenerateResult[], context: { aspectRatio: string }) => {
-    setError(null)
-    setResults(conceptResults)
-    setSelectedIndex(conceptResults.length > 0 ? 0 : null)
+    setError(null);
+    setResults(conceptResults);
+    setSelectedIndex(conceptResults.length > 0 ? 0 : null);
     if (conceptResults.length > 0) {
-      setAspectRatio(context.aspectRatio)
-      onUpdateThumbnail({ imageUrl: conceptResults[0].url, responseId: conceptResults[0].responseId, aspectRatio: context.aspectRatio, design: undefined })
+      setAspectRatio(context.aspectRatio);
+      onUpdateThumbnail({ imageUrl: conceptResults[0].url, responseId: conceptResults[0].responseId, aspectRatio: context.aspectRatio, design: undefined });
     }
-  }, [onUpdateThumbnail])
+  }, [onUpdateThumbnail]);
 
   const handleConceptGenerating = useCallback((pending: number) => {
-    setGenerating(pending > 0)
-    setGeneratingCount(pending)
-    if (pending > 0) { setResults([]); setSelectedIndex(null) }
-  }, [])
+    setGenerating(pending > 0);
+    setGeneratingCount(pending);
+    if (pending > 0) { setResults([]); setSelectedIndex(null); }
+  }, []);
 
   /** The designer exported a finished thumbnail: it becomes the one attached to the post (uploaded at publish time). */
   const handleDesignDone = useCallback((result: DesignerResult) => {
-    onUpdateThumbnail({ imageUrl: result.dataUrl, responseId: undefined, design: result.project })
-    setDesigning(false)
-    setDesignerEditRegion(false)
-  }, [onUpdateThumbnail])
+    onUpdateThumbnail({ imageUrl: result.dataUrl, responseId: undefined, design: result.project });
+    setDesigning(false);
+    setDesignerEditRegion(false);
+  }, [onUpdateThumbnail]);
 
   /** Back to the concept picture the design was built on. */
   const handleRemoveDesign = useCallback(() => {
-    const original = (selectedIndex !== null && results[selectedIndex]?.url) || thumbnail.design?.background.imageSrc
-    onUpdateThumbnail({ imageUrl: original, design: undefined })
-  }, [selectedIndex, results, thumbnail.design, onUpdateThumbnail])
+    const original = (selectedIndex !== null && results[selectedIndex]?.url) || thumbnail.design?.background.imageSrc;
+    onUpdateThumbnail({ imageUrl: original, design: undefined });
+  }, [selectedIndex, results, thumbnail.design, onUpdateThumbnail]);
 
   const handleAutoFillFromWrite = useCallback(() => {
-    const sourceHeadline = copy.headline || copy.title || ''
-    const sourceSubject = copy.subject || ''
-    const sourceVisualIdea = copy.visualIdea || ''
-    if (sourceHeadline) setHeadline(sourceHeadline)
-    const parts = [sourceHeadline, sourceSubject, sourceVisualIdea].filter(Boolean)
-    if (parts.length > 0) setPrompt(parts.join(' — '))
-  }, [copy])
+    const sourceHeadline = copy.headline || copy.title || '';
+    const sourceSubject = copy.subject || '';
+    const sourceVisualIdea = copy.visualIdea || '';
+    if (sourceHeadline) setHeadline(sourceHeadline);
+    const parts = [sourceHeadline, sourceSubject, sourceVisualIdea].filter(Boolean);
+    if (parts.length > 0) setPrompt(parts.join(' — '));
+  }, [copy]);
 
-  const canGenerate = !!(prompt.trim() || selectedTemplateId || (useAssetReference && assetReference))
+  const canGenerate = !!(prompt.trim() || selectedTemplateId || (useAssetReference && assetReference));
 
-  const hasWriteContent = useMemo(() => !!(copy.headline || copy.title || copy.subject || copy.visualIdea), [copy])
+  const hasWriteContent = useMemo(() => !!(copy.headline || copy.title || copy.subject || copy.visualIdea), [copy]);
 
   return (
     <div className="space-y-4" role="region" aria-label="Thumbnail creation step">
@@ -410,7 +410,7 @@ export default function ThumbnailStep({
           graphics={graphics}
           openEditRegion={designerEditRegion}
           onDone={handleDesignDone}
-          onCancel={() => { setDesigning(false); setDesignerEditRegion(false) }}
+          onCancel={() => { setDesigning(false); setDesignerEditRegion(false); }}
         />
       )}
       <div className="space-y-4" hidden={designing}>
@@ -461,7 +461,7 @@ export default function ThumbnailStep({
       )}
 
       {selectedTemplateId && (
-        <ReferenceUploadZone templateId={selectedTemplateId} references={references} onUpdate={(updates) => { setReferences(updates.references || references); onUpdateThumbnail({ references: updates.references || references }) }} disabled={generating} />
+        <ReferenceUploadZone templateId={selectedTemplateId} references={references} onUpdate={(updates) => { setReferences(updates.references || references); onUpdateThumbnail({ references: updates.references || references }); }} disabled={generating} />
       )}
 
       <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -507,13 +507,13 @@ export default function ThumbnailStep({
         <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Aspect Ratio</p>
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Aspect ratio options">
           {ASPECT_PRESETS.map(preset => {
-            const isSelected = aspectRatio === preset.value
+            const isSelected = aspectRatio === preset.value;
             return (
-              <button key={preset.value} type="button" role="radio" aria-checked={isSelected} onClick={() => { setAspectRatio(preset.value); onUpdateThumbnail({ aspectRatio: preset.value }) }} disabled={generating} className="px-3 py-2 rounded-xl text-[11px] font-medium transition-all disabled:opacity-50" style={{ background: isSelected ? 'rgba(217,255,0,0.12)' : 'rgba(255,255,255,0.04)', color: isSelected ? '#d9ff00' : 'rgba(255,255,255,0.5)', border: `1px solid ${isSelected ? 'rgba(217,255,0,0.3)' : 'rgba(255,255,255,0.08)'}` }}>
+              <button key={preset.value} type="button" role="radio" aria-checked={isSelected} onClick={() => { setAspectRatio(preset.value); onUpdateThumbnail({ aspectRatio: preset.value }); }} disabled={generating} className="px-3 py-2 rounded-xl text-[11px] font-medium transition-all disabled:opacity-50" style={{ background: isSelected ? 'rgba(217,255,0,0.12)' : 'rgba(255,255,255,0.04)', color: isSelected ? '#d9ff00' : 'rgba(255,255,255,0.5)', border: `1px solid ${isSelected ? 'rgba(217,255,0,0.3)' : 'rgba(255,255,255,0.08)'}` }}>
                 <span className="block font-bold">{preset.label}</span>
                 <span className="text-[9px] opacity-60">{preset.platforms.join(', ')}</span>
               </button>
-            )
+            );
           })}
         </div>
       </div>
@@ -521,7 +521,7 @@ export default function ThumbnailStep({
       <div className="space-y-2">
         <p className="text-[11px] font-bold uppercase tracking-widest text-white/40">Prompt</p>
         <div className="relative rounded-xl" style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <textarea value={prompt} onChange={(e) => { setPrompt(e.target.value); setEnhancedPrompt('') }} placeholder={selectedTemplateId ? 'Describe what you want in this thumbnail…' : 'Describe the thumbnail you want to create…'} rows={3} disabled={generating} className="w-full resize-none text-sm outline-none rounded-xl p-3 pr-10 disabled:opacity-50" style={{ color: 'white', background: 'transparent' }} aria-label="Thumbnail generation prompt" />
+          <textarea value={prompt} onChange={(e) => { setPrompt(e.target.value); setEnhancedPrompt(''); }} placeholder={selectedTemplateId ? 'Describe what you want in this thumbnail…' : 'Describe the thumbnail you want to create…'} rows={3} disabled={generating} className="w-full resize-none text-sm outline-none rounded-xl p-3 pr-10 disabled:opacity-50" style={{ color: 'white', background: 'transparent' }} aria-label="Thumbnail generation prompt" />
           <button type="button" onClick={handleEnhance} disabled={isEnhancing || !prompt.trim() || generating} title="AI enhance prompt" className="absolute top-2 right-2 p-1.5 rounded-lg transition-all disabled:opacity-40" style={{ background: 'rgba(217,255,0,0.1)' }} aria-label="Enhance prompt with AI">
             {isEnhancing ? <Loader2 size={13} className="animate-spin text-[#d9ff00]" /> : <Wand2 size={13} className="text-[#d9ff00]" />}
           </button>
@@ -653,7 +653,7 @@ export default function ThumbnailStep({
         </p>
       )}
 
-      {(() => { const u = describeUsage(results[0]?.usage, results[0]?.model ?? selectedModel); return u ? <p className="text-[10px] text-white/40" data-testid="thumbnail-usage">{u.text}</p> : null })()}
+      {(() => { const u = describeUsage(results[0]?.usage, results[0]?.model ?? selectedModel); return u ? <p className="text-[10px] text-white/40" data-testid="thumbnail-usage">{u.text}</p> : null; })()}
 
       <ThumbnailGenerationResults results={results} selectedIndex={selectedIndex} onSelect={handleSelectResult} generating={generating} error={error} generatingCount={generatingCount} partialUrl={partialUrl} onRetry={generating ? undefined : handleGenerate} onDownload={handleDownloadResult} thumbnail={thumbnail} onUpdateThumbnail={onUpdateThumbnail} />
 
@@ -664,10 +664,10 @@ export default function ThumbnailStep({
           <p className="text-[10px] text-white/40">{thumbnail.design ? 'Edit the text and layers again, or go back to the picture.' : activeImageUrl ? 'Add your headline, logo, subject and arrows on top of this picture.' : 'Generate or pick a thumbnail first, then design it here.'}</p>
         </div>
         {thumbnail.design && <button type="button" onClick={handleRemoveDesign} disabled={generating} className="shrink-0 text-[10px] text-white/40 transition-colors hover:text-red-400 disabled:opacity-50">Remove design</button>}
-        <button type="button" onClick={() => { setDesignerEditRegion(true); setDesigning(true) }} disabled={generating || !canEditRegion} className="flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-medium text-white/70 transition-colors hover:bg-white/10 disabled:opacity-50" style={{ border: '1px solid rgba(255,255,255,0.12)' }}>
+        <button type="button" onClick={() => { setDesignerEditRegion(true); setDesigning(true); }} disabled={generating || !canEditRegion} className="flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-medium text-white/70 transition-colors hover:bg-white/10 disabled:opacity-50" style={{ border: '1px solid rgba(255,255,255,0.12)' }}>
           <Wand2 size={13} />Edit a region
         </button>
-        <button type="button" onClick={() => { setDesignerEditRegion(false); setDesigning(true) }} disabled={generating || (!activeImageUrl && !thumbnail.design)} className="flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-semibold transition-all disabled:opacity-50" style={{ background: 'var(--color-primary, #d9ff00)', color: 'black' }}>
+        <button type="button" onClick={() => { setDesignerEditRegion(false); setDesigning(true); }} disabled={generating || (!activeImageUrl && !thumbnail.design)} className="flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-semibold transition-all disabled:opacity-50" style={{ background: 'var(--color-primary, #d9ff00)', color: 'black' }}>
           <Paintbrush size={13} />{thumbnail.design ? 'Edit design' : 'Design this thumbnail'}
         </button>
       </div>
@@ -693,10 +693,10 @@ export default function ThumbnailStep({
       {selectedTemplateId && (
         <div className="flex items-center justify-between p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
           <span className="text-[10px] text-white/30">Template: {selectedTemplateId}</span>
-          <button type="button" onClick={() => { setSelectedTemplateId(undefined); onUpdateThumbnail({ templateId: undefined }) }} disabled={generating} className="text-[10px] text-white/30 hover:text-red-400 transition-colors disabled:opacity-50" aria-label="Clear template selection">Clear</button>
+          <button type="button" onClick={() => { setSelectedTemplateId(undefined); onUpdateThumbnail({ templateId: undefined }); }} disabled={generating} className="text-[10px] text-white/30 hover:text-red-400 transition-colors disabled:opacity-50" aria-label="Clear template selection">Clear</button>
         </div>
       )}
       </div>
     </div>
-  )
+  );
 }

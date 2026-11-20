@@ -21,8 +21,8 @@
  *    reads as a CTA card rather than a rectangular wipe.
  */
 
-import React from 'react'
-import { EndCard } from '../_upstream/end-card/EndCard'
+import React from 'react';
+import { EndCard } from '../_upstream/end-card/EndCard';
 import {
   DesignStage,
   darkenColor,
@@ -30,35 +30,35 @@ import {
   slotValue,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** The card fill is the brand primary, darkened for legibility. */
-const CARD_DARKEN_FACTOR = 0.3
+const CARD_DARKEN_FACTOR = 0.3;
 
 /** The bounded card gets rounded corners so it reads as a card. */
-const CARD_RADIUS = 24
-const CARD_SHADOW = '0 18px 48px rgba(0,0,0,0.35)'
+const CARD_RADIUS = 24;
+const CARD_SHADOW = '0 18px 48px rgba(0,0,0,0.35)';
 
 /** Long copy is truncated so it never leaves the card. */
-const MAX_TITLE_LENGTH = 48
-const MAX_SUBTITLE_LENGTH = 64
-const MAX_CTA_LENGTH = 24
+const MAX_TITLE_LENGTH = 48;
+const MAX_SUBTITLE_LENGTH = 64;
+const MAX_CTA_LENGTH = 24;
 
-const FALLBACK_CTA = 'Learn more'
+const FALLBACK_CTA = 'Learn more';
 
 export const PromoCtaDesign: React.FC<DesignAdapterProps> = (props) => {
-  const headline = slotValue(props, 'headline')
-  const offer = slotValue(props, 'offer')
-  const businessName = slotValue(props, 'businessName')
+  const headline = slotValue(props, 'headline');
+  const offer = slotValue(props, 'offer');
+  const businessName = slotValue(props, 'businessName');
 
-  const title = truncateText(headline || offer || businessName, MAX_TITLE_LENGTH)
+  const title = truncateText(headline || offer || businessName, MAX_TITLE_LENGTH);
 
   // The subtitle supports the title; it never repeats it.
   const subtitleSource =
-    offer && offer !== title ? offer : businessName !== title ? businessName : ''
-  const subtitle = truncateText(subtitleSource, MAX_SUBTITLE_LENGTH)
+    offer && offer !== title ? offer : businessName !== title ? businessName : '';
+  const subtitle = truncateText(subtitleSource, MAX_SUBTITLE_LENGTH);
 
-  const ctaText = truncateText(slotValue(props, 'cta'), MAX_CTA_LENGTH) || FALLBACK_CTA
+  const ctaText = truncateText(slotValue(props, 'cta'), MAX_CTA_LENGTH) || FALLBACK_CTA;
 
   return (
     <DesignStage
@@ -78,7 +78,7 @@ export const PromoCtaDesign: React.FC<DesignAdapterProps> = (props) => {
         accentColor={pickColor([props.colors?.accent, props.colors?.primary], '#d4af37')}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default PromoCtaDesign
+export default PromoCtaDesign;

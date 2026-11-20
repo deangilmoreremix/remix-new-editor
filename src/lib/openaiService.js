@@ -406,16 +406,16 @@ Include qualification elements and risk mitigation`
    * Get focus area context
    */
   getFocusContext(focus) {
-    if (!focus || focus.length === 0) return 'General conversion optimization'
+    if (!focus || focus.length === 0) return 'General conversion optimization';
 
     const focusContexts = {
       'lead-gen': 'Lead Generation Focus: Optimize for capturing contact information and qualifying prospects',
       awareness: 'Brand Awareness Focus: Optimize for building recognition and consideration',
       education: 'Education Focus: Optimize for teaching and knowledge sharing',
       demo: 'Product Demo Focus: Optimize for showcasing capabilities and benefits'
-    }
+    };
 
-    return focus.map(area => focusContexts[area]).filter(Boolean).join('; ')
+    return focus.map(area => focusContexts[area]).filter(Boolean).join('; ');
   }
 
   getCinematicContext(cinematicOptions = {}) {

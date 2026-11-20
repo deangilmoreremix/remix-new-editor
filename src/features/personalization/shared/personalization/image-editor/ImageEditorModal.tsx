@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   Check,
   ChevronDown,
@@ -21,18 +21,18 @@ import {
   Undo2,
   Wand2,
   X,
-} from 'lucide-react'
-import { type ImageFormat, type ImageQuality, type ImageSize } from '@ohb/shared/api/openaiImage'
-import { editSmartVideoGoImage, type ImageEditModel } from './imageEditApi'
-import { buttons, iconBadge, semantic } from '@ohb/shared/styles/designTokens'
+} from 'lucide-react';
+import { type ImageFormat, type ImageQuality, type ImageSize } from '@ohb/shared/api/openaiImage';
+import { editSmartVideoGoImage, type ImageEditModel } from './imageEditApi';
+import { buttons, iconBadge, semantic } from '@ohb/shared/styles/designTokens';
 import type {
   AssetRole,
   DiscoveredAssetCategory,
   PersonalizationVisionAnalysis,
   PersonalizationVisionValidation,
-} from '../types'
-import MaskEditor from './MaskEditor'
-import { ensureModelSupportedImage } from './normalizeImage'
+} from '../types';
+import MaskEditor from './MaskEditor';
+import { ensureModelSupportedImage } from './normalizeImage';
 import {
   getAssetRecipe,
   getSourceAssetRecipe,
@@ -42,12 +42,12 @@ import {
   type EditorOperationGroup,
   type EditorOperationId,
   IMAGE_EDIT_OPERATIONS,
-} from './imageEditRegistry'
+} from './imageEditRegistry';
 import {
   analyzePersonalizationImages,
   responsesSmartEditStream,
   validatePersonalizationImageEdit,
-} from './responsesVisionApi'
+} from './responsesVisionApi';
 
 export type PersonalizationImageEditorAsset = {
   id: string
@@ -99,10 +99,10 @@ type ModelMode = 'auto' | 'fast' | 'precision'
 type EngineChoice = 'standard' | 'draft' | 'detail'
 type QualityChoice = 'default' | ImageQuality
 type ComplexityChoice = '' | 'low' | 'medium' | 'high'
-const ENGINE_LABELS: Record<EngineChoice, string> = { standard: 'Standard (2.5)', draft: 'Fast draft (2.6 Flare)', detail: 'Detailed render (2.6 Sunburst)' }
-const QUALITY_CHOICES: QualityChoice[] = ['default', 'low', 'medium', 'high', 'xhigh', 'max']
-const COMPLEXITY_CHOICES: ComplexityChoice[] = ['', 'low', 'medium', 'high']
-const isSunburst = (model: string) => model.endsWith('-sunburst')
+const ENGINE_LABELS: Record<EngineChoice, string> = { standard: 'Standard (2.5)', draft: 'Fast draft (2.6 Flare)', detail: 'Detailed render (2.6 Sunburst)' };
+const QUALITY_CHOICES: QualityChoice[] = ['default', 'low', 'medium', 'high', 'xhigh', 'max'];
+const COMPLEXITY_CHOICES: ComplexityChoice[] = ['', 'low', 'medium', 'high'];
+const isSunburst = (model: string) => model.endsWith('-sunburst');
 type AspectRatio = 'original' | '9:16' | '16:9' | '1:1' | '4:5'
 type EditorMode = 'simple' | 'advanced'
 type FitMode = 'contain' | 'cover'
@@ -118,7 +118,7 @@ const PROTECTION_LABELS: Record<ProtectionKey, string> = {
   logo: 'Logo',
   text: 'Text',
   brandColors: 'Brand Colors',
-}
+};
 
 function defaultProtections(kind: ReturnType<typeof resolveEditorAssetKind>): Protections {
   return {
@@ -128,7 +128,7 @@ function defaultProtections(kind: ReturnType<typeof resolveEditorAssetKind>): Pr
     logo: kind === 'logo' || kind === 'brand' || kind === 'storefront' || kind === 'branded_vehicle' || kind === 'cta_graphic',
     text: kind === 'logo' || kind === 'product' || kind === 'brand' || kind === 'storefront' || kind === 'branded_vehicle' || kind === 'cta_graphic' || kind === 'last_frame',
     brandColors: kind !== 'general' && kind !== 'background_reference',
-  }
+  };
 }
 
 type Version = {
@@ -153,14 +153,14 @@ const aspectSizes: Record<Exclude<AspectRatio, 'original'>, ImageSize> = {
   '16:9': '1792x1024',
   '1:1': '1024x1024',
   '4:5': '1024x1280',
-}
+};
 
 const aspectCanvas: Record<Exclude<AspectRatio, 'original'>, [number, number]> = {
   '9:16': [1024, 1792],
   '16:9': [1792, 1024],
   '1:1': [1024, 1024],
   '4:5': [1024, 1280],
-}
+};
 
 const GROUP_LABELS: Record<EditorOperationGroup, string> = {
   smart: 'Smart',
@@ -175,115 +175,115 @@ const GROUP_LABELS: Record<EditorOperationGroup, string> = {
   video: 'Video',
   effects: 'Effects',
   transform: 'Transform',
-}
+};
 
 function dataUrlToBlob(dataUrl: string): Blob {
-  const parts = dataUrl.split(',')
-  const header = parts[0] || ''
-  const base64 = parts[1] || ''
-  const mime = header.match(/:(.*?);/)?.[1] || 'image/png'
-  const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i)
-  return new Blob([bytes], { type: mime })
+  const parts = dataUrl.split(',');
+  const header = parts[0] || '';
+  const base64 = parts[1] || '';
+  const mime = header.match(/:(.*?);/)?.[1] || 'image/png';
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
 }
 
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result || ''))
-    reader.onerror = () => reject(reader.error || new Error('Unable to read image'))
-    reader.readAsDataURL(blob)
-  })
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(reader.error || new Error('Unable to read image'));
+    reader.readAsDataURL(blob);
+  });
 }
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error('Unable to load image'))
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Unable to load image'));
     if (/^https?:\/\//i.test(url)) {
-      img.crossOrigin = 'anonymous'
+      img.crossOrigin = 'anonymous';
     }
-    img.src = url
-  })
+    img.src = url;
+  });
 }
 
 
 async function normalizeDataUrlToPng(dataUrl: string): Promise<string> {
-  if (dataUrl.startsWith('data:image/png')) return dataUrl
-  const image = await loadImage(dataUrl)
-  const canvas = document.createElement('canvas')
-  canvas.width = image.naturalWidth
-  canvas.height = image.naturalHeight
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Browser canvas is unavailable')
-  ctx.drawImage(image, 0, 0)
-  return canvas.toDataURL('image/png')
+  if (dataUrl.startsWith('data:image/png')) return dataUrl;
+  const image = await loadImage(dataUrl);
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Browser canvas is unavailable');
+  ctx.drawImage(image, 0, 0);
+  return canvas.toDataURL('image/png');
 }
 
 function fileExtension(format: ImageFormat) {
-  if (format === 'jpeg') return 'jpg'
-  return format
+  if (format === 'jpeg') return 'jpg';
+  return format;
 }
 
 export default function ImageEditorModal({ open, asset, onClose, onApply, onDropAsset }: Props) {
-  const modalRef = useRef<HTMLDivElement>(null)
-  const previousFocusRef = useRef<HTMLElement | null>(null)
-  const mountedRef = useRef(true)
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const mountedRef = useRef(true);
 
-  const [editorMode, setEditorMode] = useState<EditorMode>('simple')
-  const [modelMode, setModelMode] = useState<ModelMode>('auto')
-  const [engine, setEngine] = useState<EngineChoice>('standard')
-  const [qualityChoice, setQualityChoice] = useState<QualityChoice>('default')
-  const [complexity, setComplexity] = useState<ComplexityChoice>('')
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('original')
-  const [outputFormat, setOutputFormat] = useState<ImageFormat>('png')
-  const [outputCompression, setOutputCompression] = useState<number | undefined>(undefined)
-  const [versions, setVersions] = useState<Version[]>([])
-  const [versionIndex, setVersionIndex] = useState(0)
-  const [customPrompt, setCustomPrompt] = useState('')
-  const [busyLabel, setBusyLabel] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [compareMode, setCompareMode] = useState(false)
-  const [activeGroup, setActiveGroup] = useState<EditorOperationGroup>('smart')
-  const [canvasToolsOpen, setCanvasToolsOpen] = useState(false)
-  const [maskMode, setMaskMode] = useState(false)
-  const [maskBlob, setMaskBlob] = useState<Blob | null>(null)
-  const [safeArea, setSafeArea] = useState(false)
-  const [protections, setProtections] = useState<Protections>(() => defaultProtections('general'))
-  const [visionAnalysis, setVisionAnalysis] = useState<PersonalizationVisionAnalysis | undefined>(undefined)
-  const [visionAnalyzing, setVisionAnalyzing] = useState(false)
-  const [validationOverrideVersionId, setValidationOverrideVersionId] = useState<string | null>(null)
-  const [streamingPreview, setStreamingPreview] = useState<string | null>(null)
-  const [smartEditFailed, setSmartEditFailed] = useState(false)
-  const [dragOver, setDragOver] = useState(false)
+  const [editorMode, setEditorMode] = useState<EditorMode>('simple');
+  const [modelMode, setModelMode] = useState<ModelMode>('auto');
+  const [engine, setEngine] = useState<EngineChoice>('standard');
+  const [qualityChoice, setQualityChoice] = useState<QualityChoice>('default');
+  const [complexity, setComplexity] = useState<ComplexityChoice>('');
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('original');
+  const [outputFormat, setOutputFormat] = useState<ImageFormat>('png');
+  const [outputCompression, setOutputCompression] = useState<number | undefined>(undefined);
+  const [versions, setVersions] = useState<Version[]>([]);
+  const [versionIndex, setVersionIndex] = useState(0);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [busyLabel, setBusyLabel] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [compareMode, setCompareMode] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<EditorOperationGroup>('smart');
+  const [canvasToolsOpen, setCanvasToolsOpen] = useState(false);
+  const [maskMode, setMaskMode] = useState(false);
+  const [maskBlob, setMaskBlob] = useState<Blob | null>(null);
+  const [safeArea, setSafeArea] = useState(false);
+  const [protections, setProtections] = useState<Protections>(() => defaultProtections('general'));
+  const [visionAnalysis, setVisionAnalysis] = useState<PersonalizationVisionAnalysis | undefined>(undefined);
+  const [visionAnalyzing, setVisionAnalyzing] = useState(false);
+  const [validationOverrideVersionId, setValidationOverrideVersionId] = useState<string | null>(null);
+  const [streamingPreview, setStreamingPreview] = useState<string | null>(null);
+  const [smartEditFailed, setSmartEditFailed] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
-  const [rotation, setRotation] = useState(0)
-  const [flipX, setFlipX] = useState(false)
-  const [flipY, setFlipY] = useState(false)
-  const [zoom, setZoom] = useState(100)
-  const [brightness, setBrightness] = useState(100)
-  const [contrast, setContrast] = useState(100)
-  const [saturation, setSaturation] = useState(100)
-  const [opacity, setOpacity] = useState(100)
-  const [blur, setBlur] = useState(0)
-  const [grayscale, setGrayscale] = useState(0)
-  const [sepia, setSepia] = useState(0)
-  const [padding, setPadding] = useState(0)
-  const [borderSize, setBorderSize] = useState(0)
-  const [shadow, setShadow] = useState(0)
-  const [fitMode, setFitMode] = useState<FitMode>('contain')
-  const [backgroundColor, setBackgroundColor] = useState('transparent')
-  const [overlayText, setOverlayText] = useState('')
-  const [textSize, setTextSize] = useState(48)
-  const [textPosition, setTextPosition] = useState<TextPosition>('bottom')
+  const [rotation, setRotation] = useState(0);
+  const [flipX, setFlipX] = useState(false);
+  const [flipY, setFlipY] = useState(false);
+  const [zoom, setZoom] = useState(100);
+  const [brightness, setBrightness] = useState(100);
+  const [contrast, setContrast] = useState(100);
+  const [saturation, setSaturation] = useState(100);
+  const [opacity, setOpacity] = useState(100);
+  const [blur, setBlur] = useState(0);
+  const [grayscale, setGrayscale] = useState(0);
+  const [sepia, setSepia] = useState(0);
+  const [padding, setPadding] = useState(0);
+  const [borderSize, setBorderSize] = useState(0);
+  const [shadow, setShadow] = useState(0);
+  const [fitMode, setFitMode] = useState<FitMode>('contain');
+  const [backgroundColor, setBackgroundColor] = useState('transparent');
+  const [overlayText, setOverlayText] = useState('');
+  const [textSize, setTextSize] = useState(48);
+  const [textPosition, setTextPosition] = useState<TextPosition>('bottom');
 
-  const kind = useMemo(() => resolveEditorAssetKind(asset?.category, asset?.role), [asset?.category, asset?.role])
-  const recipe = useMemo(() => getAssetRecipe(asset?.category, asset?.role), [asset?.category, asset?.role])
-  const sourceRecipe = useMemo(() => getSourceAssetRecipe(asset?.category, asset?.role), [asset?.category, asset?.role])
-  const groupedOperations = useMemo(() => operationGroupsForAsset(kind), [kind])
+  const kind = useMemo(() => resolveEditorAssetKind(asset?.category, asset?.role), [asset?.category, asset?.role]);
+  const recipe = useMemo(() => getAssetRecipe(asset?.category, asset?.role), [asset?.category, asset?.role]);
+  const sourceRecipe = useMemo(() => getSourceAssetRecipe(asset?.category, asset?.role), [asset?.category, asset?.role]);
+  const groupedOperations = useMemo(() => operationGroupsForAsset(kind), [kind]);
   const mergedPreserve = useMemo(
     () => Array.from(new Set([
       ...(sourceRecipe.preserve || []),
@@ -291,18 +291,18 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       ...(visionAnalysis?.preserve || []),
     ])),
     [recipe.preserve, sourceRecipe.preserve, visionAnalysis?.preserve],
-  )
+  );
 
   useEffect(() => {
-    if (!open || !asset) return
-    previousFocusRef.current = document.activeElement as HTMLElement | null
-    setEditorMode('simple')
-    setModelMode('auto')
-    setEngine('standard')
-    setQualityChoice('default')
-    setComplexity('')
-    setAspectRatio('original')
-    setOutputFormat('png')
+    if (!open || !asset) return;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    setEditorMode('simple');
+    setModelMode('auto');
+    setEngine('standard');
+    setQualityChoice('default');
+    setComplexity('');
+    setAspectRatio('original');
+    setOutputFormat('png');
     setVersions([{
       id: 'original',
       label: 'Original',
@@ -312,95 +312,95 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       model: 'local',
       transparent: false,
       videoReady: false,
-    }])
-    setVersionIndex(0)
-    setCustomPrompt('')
-    setBusyLabel(null)
-    setSaving(false)
-    setError(null)
-    setSmartEditFailed(false)
-    setCompareMode(false)
-    setActiveGroup('smart')
-    setCanvasToolsOpen(false)
-    setMaskMode(false)
-    setMaskBlob(null)
-    setSafeArea(false)
-    setProtections(defaultProtections(kind))
-    setVisionAnalysis(asset.visionAnalysis)
-    setVisionAnalyzing(false)
-    setValidationOverrideVersionId(null)
-    setStreamingPreview(null)
-    resetLocalControls()
-  }, [open, asset?.id, kind])
+    }]);
+    setVersionIndex(0);
+    setCustomPrompt('');
+    setBusyLabel(null);
+    setSaving(false);
+    setError(null);
+    setSmartEditFailed(false);
+    setCompareMode(false);
+    setActiveGroup('smart');
+    setCanvasToolsOpen(false);
+    setMaskMode(false);
+    setMaskBlob(null);
+    setSafeArea(false);
+    setProtections(defaultProtections(kind));
+    setVisionAnalysis(asset.visionAnalysis);
+    setVisionAnalyzing(false);
+    setValidationOverrideVersionId(null);
+    setStreamingPreview(null);
+    resetLocalControls();
+  }, [open, asset?.id, kind]);
 
   useEffect(() => {
-    if (!open) return
-    const modal = modalRef.current
-    if (!modal) return
-    const focusable = modal.querySelectorAll<HTMLElement>('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])')
-    const first = focusable[0]
-    const last = focusable[focusable.length - 1]
-    first?.focus()
+    if (!open) return;
+    const modal = modalRef.current;
+    if (!modal) return;
+    const focusable = modal.querySelectorAll<HTMLElement>('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    first?.focus();
 
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        event.preventDefault()
-        onClose()
-        return
+        event.preventDefault();
+        onClose();
+        return;
       }
-      if (event.key !== 'Tab' || !first || !last) return
+      if (event.key !== 'Tab' || !first || !last) return;
       if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
+        event.preventDefault();
+        last.focus();
       } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first.focus()
+        event.preventDefault();
+        first.focus();
       }
-    }
+    };
 
-    document.addEventListener('keydown', handleKey)
+    document.addEventListener('keydown', handleKey);
     return () => {
-      document.removeEventListener('keydown', handleKey)
-      previousFocusRef.current?.focus()
-    }
-  }, [open, onClose])
+      document.removeEventListener('keydown', handleKey);
+      previousFocusRef.current?.focus();
+    };
+  }, [open, onClose]);
 
   useEffect(() => {
-    if (versions.length === 0) return
-    setVersionIndex((value) => Math.max(0, Math.min(versions.length - 1, value)))
-  }, [versions.length])
+    if (versions.length === 0) return;
+    setVersionIndex((value) => Math.max(0, Math.min(versions.length - 1, value)));
+  }, [versions.length]);
 
-  const currentVersion = versions[versionIndex]
-  const displayUrl = currentVersion?.dataUrl || asset?.imageUrl || ''
-  const hasChanges = versionIndex > 0 || versions.length > 1
+  const currentVersion = versions[versionIndex];
+  const displayUrl = currentVersion?.dataUrl || asset?.imageUrl || '';
+  const hasChanges = versionIndex > 0 || versions.length > 1;
 
   const resolvedModel = useCallback((operationId: EditorOperationId) => {
-    const operation = getOperation(operationId)
-    if (engine === 'draft') return 'gpt-image-2.6-flare' as ImageEditModel
-    if (engine === 'detail') return 'gpt-image-2.6-sunburst' as ImageEditModel
-    if (modelMode === 'fast') return 'gpt-image-2.5-flare' as ImageEditModel
-    if (modelMode === 'precision') return 'gpt-image-2.5-sunburst' as ImageEditModel
+    const operation = getOperation(operationId);
+    if (engine === 'draft') return 'gpt-image-2.6-flare' as ImageEditModel;
+    if (engine === 'detail') return 'gpt-image-2.6-sunburst' as ImageEditModel;
+    if (modelMode === 'fast') return 'gpt-image-2.5-flare' as ImageEditModel;
+    if (modelMode === 'precision') return 'gpt-image-2.5-sunburst' as ImageEditModel;
     return (operation?.precision || sourceRecipe.precisionRecommended || recipe.precisionRecommended || visionAnalysis?.precisionRecommended
       ? 'gpt-image-2.5-sunburst'
-      : 'gpt-image-2.5-flare') as ImageEditModel
-  }, [engine, modelMode, recipe.precisionRecommended, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended])
+      : 'gpt-image-2.5-flare') as ImageEditModel;
+  }, [engine, modelMode, recipe.precisionRecommended, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended]);
 
   const resolveQuality = useCallback((model: string): ImageQuality => {
-    if (qualityChoice !== 'default') return qualityChoice
-    return isSunburst(model) ? (modelMode === 'precision' ? 'xhigh' : 'high') : 'medium'
-  }, [modelMode, qualityChoice])
+    if (qualityChoice !== 'default') return qualityChoice;
+    return isSunburst(model) ? (modelMode === 'precision' ? 'xhigh' : 'high') : 'medium';
+  }, [modelMode, qualityChoice]);
 
   const readDataUrl = useCallback(async (url: string) => {
-    if (url.startsWith('data:')) return url
+    if (url.startsWith('data:')) return url;
     if (url.startsWith('blob:')) {
-      const sourceFile = asset?.file
+      const sourceFile = asset?.file;
       if (sourceFile instanceof File) {
         return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader()
-          reader.onload = () => resolve(String(reader.result || ''))
-          reader.onerror = () => reject(new Error('Unable to read local image file'))
-          reader.readAsDataURL(sourceFile)
-        })
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ''));
+          reader.onerror = () => reject(new Error('Unable to read local image file'));
+          reader.readAsDataURL(sourceFile);
+        });
       }
     }
 
@@ -409,19 +409,19 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
       body: JSON.stringify({ urls: [url] }),
-    })
-    let payload: Record<string, unknown>
+    });
+    let payload: Record<string, unknown>;
     try {
-      payload = await downloadRes.json()
+      payload = await downloadRes.json();
     } catch {
-      if (!downloadRes.ok) throw new Error('Unable to prepare image for editing')
-      throw new Error('Unable to parse download response')
+      if (!downloadRes.ok) throw new Error('Unable to prepare image for editing');
+      throw new Error('Unable to parse download response');
     }
-    if (!downloadRes.ok) throw new Error(typeof payload?.error === 'string' ? payload.error : `Download failed (HTTP ${downloadRes.status})`)
-    const result = payload?.results?.[0]
-    if (!result?.ok || !result?.dataUrl) throw new Error(typeof result?.error === 'string' ? result.error : 'Unable to download image')
-    return result.dataUrl as string
-  }, [asset?.file])
+    if (!downloadRes.ok) throw new Error(typeof payload?.error === 'string' ? payload.error : `Download failed (HTTP ${downloadRes.status})`);
+    const result = payload?.results?.[0];
+    if (!result?.ok || !result?.dataUrl) throw new Error(typeof result?.error === 'string' ? result.error : 'Unable to download image');
+    return result.dataUrl as string;
+  }, [asset?.file]);
 
   // Websites serve SVG, ICO and AVIF files the models reject as "not a valid
   // image"; those are re-encoded as PNG. Supported images pass through at
@@ -429,13 +429,13 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
   const prepareDataUrl = useCallback(
     async (url: string) => ensureModelSupportedImage(await readDataUrl(url)),
     [readDataUrl],
-  )
+  );
 
   const analyzeCurrentImage = useCallback(async (sourceUrl = displayUrl) => {
-    if (!asset) return undefined
-    setVisionAnalyzing(true)
+    if (!asset) return undefined;
+    setVisionAnalyzing(true);
     try {
-      const imageUrl = await prepareDataUrl(sourceUrl)
+      const imageUrl = await prepareDataUrl(sourceUrl);
       const analyses = await analyzePersonalizationImages({
         images: [{
           id: asset.id,
@@ -450,58 +450,58 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
           brandDescription: asset.brandDescription,
         },
         targetVideoFormat: aspectRatio === 'original' ? undefined : aspectRatio,
-      })
-      const analysis = analyses[0]
+      });
+      const analysis = analyses[0];
       if (analysis && mountedRef.current) {
-        setVisionAnalysis(analysis)
+        setVisionAnalysis(analysis);
         if (analysis.precisionRecommended && modelMode === 'auto') {
           // Auto routing will select Sunburst through resolvedModel.
         }
       }
-      return analysis
+      return analysis;
     } finally {
-      if (mountedRef.current) setVisionAnalyzing(false)
+      if (mountedRef.current) setVisionAnalyzing(false);
     }
-  }, [asset, aspectRatio, displayUrl, modelMode, prepareDataUrl])
+  }, [asset, aspectRatio, displayUrl, modelMode, prepareDataUrl]);
 
   /** "Analyze Image" button: same analysis, with failures shown. */
   const runAnalyzeButton = useCallback(async () => {
-    setError(null)
+    setError(null);
     try {
-      await analyzeCurrentImage()
+      await analyzeCurrentImage();
     } catch (err) {
-      if (mountedRef.current) setError(err instanceof Error ? err.message : 'Image analysis failed')
+      if (mountedRef.current) setError(err instanceof Error ? err.message : 'Image analysis failed');
     }
-  }, [analyzeCurrentImage])
+  }, [analyzeCurrentImage]);
 
   const buildPrompt = useCallback((operationId: EditorOperationId, custom = '') => {
-    const operation = getOperation(operationId)
-    const businessContext = [asset?.businessName, asset?.industry].filter(Boolean).join(' - ')
-    const preserve = mergedPreserve.length ? ' Preserve: ' + mergedPreserve.join(', ') + '.' : ''
+    const operation = getOperation(operationId);
+    const businessContext = [asset?.businessName, asset?.industry].filter(Boolean).join(' - ');
+    const preserve = mergedPreserve.length ? ' Preserve: ' + mergedPreserve.join(', ') + '.' : '';
     const explicitProtections = (Object.entries(protections) as [ProtectionKey, boolean][])
       .filter(([, enabled]) => enabled)
-      .map(([key]) => PROTECTION_LABELS[key])
+      .map(([key]) => PROTECTION_LABELS[key]);
     const protectionInstruction = explicitProtections.length
       ? ' Do not alter these protected elements unless the requested operation explicitly requires it: ' + explicitProtections.join(', ') + '.'
-      : ''
-    const context = businessContext ? ' Business context: ' + businessContext + '.' : ''
-    const ratio = aspectRatio === 'original' ? '' : ' Target composition: ' + aspectRatio + '.'
-    const maskInstruction = maskBlob ? ' Apply the requested change primarily to the masked region and preserve unmasked content as closely as possible.' : ''
-    const userInstruction = operationId === 'custom' ? custom.trim() : operation.prompt
-    return 'Edit this image for SmartVideo GO. ' + userInstruction + preserve + protectionInstruction + context + ratio + maskInstruction
-  }, [asset?.businessName, asset?.industry, aspectRatio, maskBlob, mergedPreserve, protections])
+      : '';
+    const context = businessContext ? ' Business context: ' + businessContext + '.' : '';
+    const ratio = aspectRatio === 'original' ? '' : ' Target composition: ' + aspectRatio + '.';
+    const maskInstruction = maskBlob ? ' Apply the requested change primarily to the masked region and preserve unmasked content as closely as possible.' : '';
+    const userInstruction = operationId === 'custom' ? custom.trim() : operation.prompt;
+    return 'Edit this image for SmartVideo GO. ' + userInstruction + preserve + protectionInstruction + context + ratio + maskInstruction;
+  }, [asset?.businessName, asset?.industry, aspectRatio, maskBlob, mergedPreserve, protections]);
 
   const appendVersion = useCallback((version: Omit<Version, 'id'>) => {
     const next: Version = {
       ...version,
       id: 'version_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-    }
+    };
     setVersions((previous) => {
-      const truncated = previous.slice(0, versionIndex + 1)
-      return [...truncated, next]
-    })
-    setVersionIndex(versionIndex + 1)
-  }, [versionIndex])
+      const truncated = previous.slice(0, versionIndex + 1);
+      return [...truncated, next];
+    });
+    setVersionIndex(versionIndex + 1);
+  }, [versionIndex]);
 
   const executeAiEdit = useCallback(async (
     operationId: EditorOperationId,
@@ -510,18 +510,18 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     addVersion = true,
     options: { forceTransparent?: boolean; useMask?: boolean } = {},
   ) => {
-    if (!asset) throw new Error('No image selected')
-    const operation = getOperation(operationId)
-    const activeMask = options.useMask === false ? null : maskBlob
-    let sourceDataUrl = await prepareDataUrl(sourceUrl)
-    if (activeMask) sourceDataUrl = await normalizeDataUrlToPng(sourceDataUrl)
-    const sourceBlob = dataUrlToBlob(sourceDataUrl)
-    const model = resolvedModel(operationId)
-    const prompt = buildPrompt(operationId, custom)
-    const transparent = Boolean(options.forceTransparent || operation.transparency || (operationId === 'video_ready' && recipe.transparencyRecommended))
-    const quality = resolveQuality(model)
-    const size = aspectRatio === 'original' ? 'auto' : aspectSizes[aspectRatio]
-    const format: ImageFormat = transparent && outputFormat === 'jpeg' ? 'png' : outputFormat
+    if (!asset) throw new Error('No image selected');
+    const operation = getOperation(operationId);
+    const activeMask = options.useMask === false ? null : maskBlob;
+    let sourceDataUrl = await prepareDataUrl(sourceUrl);
+    if (activeMask) sourceDataUrl = await normalizeDataUrlToPng(sourceDataUrl);
+    const sourceBlob = dataUrlToBlob(sourceDataUrl);
+    const model = resolvedModel(operationId);
+    const prompt = buildPrompt(operationId, custom);
+    const transparent = Boolean(options.forceTransparent || operation.transparency || (operationId === 'video_ready' && recipe.transparencyRecommended));
+    const quality = resolveQuality(model);
+    const size = aspectRatio === 'original' ? 'auto' : aspectSizes[aspectRatio];
+    const format: ImageFormat = transparent && outputFormat === 'jpeg' ? 'png' : outputFormat;
 
     const results = await editSmartVideoGoImage({
       operation: operationId,
@@ -535,13 +535,13 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       outputFormat: format,
       background: transparent ? 'transparent' : 'auto',
       inputFidelity: operation?.precision || sourceRecipe.precisionRecommended || recipe.precisionRecommended || visionAnalysis?.precisionRecommended ? 'high' : 'low',
-    })
+    });
 
-    const first = results?.[0]
-    let dataUrl = first?.b64_json ? 'data:image/' + format + ';base64,' + first.b64_json : ''
+    const first = results?.[0];
+    let dataUrl = first?.b64_json ? 'data:image/' + format + ';base64,' + first.b64_json : '';
 
-    if (!dataUrl && first?.url) dataUrl = await prepareDataUrl(first.url)
-    if (!dataUrl) throw new Error('The AI edit completed without an image result')
+    if (!dataUrl && first?.url) dataUrl = await prepareDataUrl(first.url);
+    if (!dataUrl) throw new Error('The AI edit completed without an image result');
 
     const version = {
       label: operation.label,
@@ -552,49 +552,49 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       quality,
       transparent,
       videoReady: operationId === 'video_ready',
-    } satisfies Omit<Version, 'id'>
+    } satisfies Omit<Version, 'id'>;
 
-    if (addVersion) appendVersion(version)
-    return version
-  }, [appendVersion, aspectRatio, asset, buildPrompt, complexity, maskBlob, outputFormat, resolveQuality, prepareDataUrl, recipe.precisionRecommended, recipe.transparencyRecommended, resolvedModel, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended])
+    if (addVersion) appendVersion(version);
+    return version;
+  }, [appendVersion, aspectRatio, asset, buildPrompt, complexity, maskBlob, outputFormat, resolveQuality, prepareDataUrl, recipe.precisionRecommended, recipe.transparencyRecommended, resolvedModel, sourceRecipe.precisionRecommended, visionAnalysis?.precisionRecommended]);
 
   const runAiEdit = useCallback(async (operationId: EditorOperationId, custom = '') => {
-    if (operationId === 'custom' && !custom.trim()) return
-    setError(null)
-    setBusyLabel(getOperation(operationId).label)
+    if (operationId === 'custom' && !custom.trim()) return;
+    setError(null);
+    setBusyLabel(getOperation(operationId).label);
     try {
-      await executeAiEdit(operationId, displayUrl, custom)
-      if (operationId === 'custom') setCustomPrompt('')
-      setMaskBlob(null)
-      setMaskMode(false)
+      await executeAiEdit(operationId, displayUrl, custom);
+      if (operationId === 'custom') setCustomPrompt('');
+      setMaskBlob(null);
+      setMaskMode(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Image edit failed')
+      setError(err instanceof Error ? err.message : 'Image edit failed');
     } finally {
-      setBusyLabel(null)
+      setBusyLabel(null);
     }
-  }, [displayUrl, executeAiEdit])
+  }, [displayUrl, executeAiEdit]);
 
   const runResponsesSmartEdit = useCallback(async () => {
-    if (!asset || !customPrompt.trim()) return
+    if (!asset || !customPrompt.trim()) return;
     // Masks are deterministic regional edits; keep those on the direct image-edit path.
     if (maskBlob) {
-      await runAiEdit('custom', customPrompt)
-      return
+      await runAiEdit('custom', customPrompt);
+      return;
     }
 
-    setError(null)
-    setSmartEditFailed(false)
-    setBusyLabel('Smart Edit')
+    setError(null);
+    setSmartEditFailed(false);
+    setBusyLabel('Smart Edit');
     try {
-      const canContinueConversation = Boolean(currentVersion?.responseId)
-      const sourceImage = canContinueConversation ? undefined : await prepareDataUrl(displayUrl)
+      const canContinueConversation = Boolean(currentVersion?.responseId);
+      const sourceImage = canContinueConversation ? undefined : await prepareDataUrl(displayUrl);
       const references = canContinueConversation
         ? []
-        : (await Promise.all((asset.referenceImages || []).slice(0, 6).map((url) => prepareDataUrl(url).catch(() => '')))).filter(Boolean)
-      const chosenModel = resolvedModel('custom')
+        : (await Promise.all((asset.referenceImages || []).slice(0, 6).map((url) => prepareDataUrl(url).catch(() => '')))).filter(Boolean);
+      const chosenModel = resolvedModel('custom');
       // Smart Edit (Responses API) only supports the 2.5 pair; map 2.6 choices to the same tier.
-      const model = (isSunburst(chosenModel) ? 'gpt-image-2.5-sunburst' : 'gpt-image-2.5-flare') as 'gpt-image-2.5-flare' | 'gpt-image-2.5-sunburst'
-      setStreamingPreview(null)
+      const model = (isSunburst(chosenModel) ? 'gpt-image-2.5-sunburst' : 'gpt-image-2.5-flare') as 'gpt-image-2.5-flare' | 'gpt-image-2.5-sunburst';
+      setStreamingPreview(null);
       const result = await responsesSmartEditStream({
         imageUrl: sourceImage,
         referenceImages: references,
@@ -618,8 +618,8 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         },
         partialImages: 2,
       }, (partialDataUrl) => {
-        if (mountedRef.current) setStreamingPreview(partialDataUrl)
-      })
+        if (mountedRef.current) setStreamingPreview(partialDataUrl);
+      });
 
       appendVersion({
         label: 'Smart Edit',
@@ -633,19 +633,19 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         responseId: result.responseId,
         imageGenerationCallId: result.imageGenerationCallId,
         revisedPrompt: result.revisedPrompt,
-      })
-      if (mountedRef.current) setCustomPrompt('')
-      if (mountedRef.current) setValidationOverrideVersionId(null)
-      if (mountedRef.current) setSmartEditFailed(false)
+      });
+      if (mountedRef.current) setCustomPrompt('');
+      if (mountedRef.current) setValidationOverrideVersionId(null);
+      if (mountedRef.current) setSmartEditFailed(false);
     } catch (err) {
       if (mountedRef.current) {
-        setSmartEditFailed(true)
-        setError(err instanceof Error ? err.message : 'SmartVideo GO Smart Edit failed')
+        setSmartEditFailed(true);
+        setError(err instanceof Error ? err.message : 'SmartVideo GO Smart Edit failed');
       }
     } finally {
       if (mountedRef.current) {
-        setStreamingPreview(null)
-        setBusyLabel(null)
+        setStreamingPreview(null);
+        setBusyLabel(null);
       }
     }
   }, [
@@ -665,43 +665,43 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     runAiEdit,
     smartEditFailed,
     visionAnalysis?.targetRole,
-  ])
+  ]);
 
   const runVideoReady = useCallback(async () => {
-    if (!asset) return
-    setError(null)
-    setBusyLabel('SmartVideo GO is analyzing this asset')
+    if (!asset) return;
+    setError(null);
+    setBusyLabel('SmartVideo GO is analyzing this asset');
     try {
-      const analysis = visionAnalysis || await analyzeCurrentImage(displayUrl)
-      setBusyLabel('SmartVideo GO is making this video ready')
-      let source = displayUrl
-      let finalResult: Omit<Version, 'id'> | null = null
-      let preserveTransparency = false
+      const analysis = visionAnalysis || await analyzeCurrentImage(displayUrl);
+      setBusyLabel('SmartVideo GO is making this video ready');
+      let source = displayUrl;
+      let finalResult: Omit<Version, 'id'> | null = null;
+      let preserveTransparency = false;
 
       const visionSteps = (analysis?.recommendedOperations || [])
         .filter((id): id is EditorOperationId => id in IMAGE_EDIT_OPERATIONS)
         .filter((id) => {
-          const operation = IMAGE_EDIT_OPERATIONS[id]
-          const applicable = operation.applicableTo
+          const operation = IMAGE_EDIT_OPERATIONS[id];
+          const applicable = operation.applicableTo;
           return (
             id !== 'custom' &&
             id !== 'video_ready' &&
             !operation.destructiveCreative &&
             (!applicable || applicable.includes(kind))
-          )
+          );
         })
-        .slice(0, 3)
-      const recipeSteps = recipe.makeVideoReadySteps.length ? recipe.makeVideoReadySteps : ['video_ready'] as EditorOperationId[]
-      const steps = Array.from(new Set([...visionSteps, ...recipeSteps])).slice(0, 4)
+        .slice(0, 3);
+      const recipeSteps = recipe.makeVideoReadySteps.length ? recipe.makeVideoReadySteps : ['video_ready'] as EditorOperationId[];
+      const steps = Array.from(new Set([...visionSteps, ...recipeSteps])).slice(0, 4);
 
       for (const stepId of steps) {
-        const step = getOperation(stepId)
-        preserveTransparency = preserveTransparency || Boolean(step.transparency) || (stepId === 'video_ready' && recipe.transparencyRecommended)
+        const step = getOperation(stepId);
+        preserveTransparency = preserveTransparency || Boolean(step.transparency) || (stepId === 'video_ready' && recipe.transparencyRecommended);
         finalResult = await executeAiEdit(stepId, source, '', false, {
           forceTransparent: preserveTransparency,
           useMask: false,
-        })
-        source = finalResult.dataUrl
+        });
+        source = finalResult.dataUrl;
       }
 
       if (finalResult && mountedRef.current) {
@@ -710,44 +710,44 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
           label: 'Make Video Ready',
           operation: 'video_ready',
           videoReady: true,
-        })
+        });
       }
       if (mountedRef.current) {
-        setMaskBlob(null)
-        setMaskMode(false)
+        setMaskBlob(null);
+        setMaskMode(false);
       }
     } catch (err) {
-      if (mountedRef.current) setError(err instanceof Error ? err.message : 'Make Video Ready failed')
+      if (mountedRef.current) setError(err instanceof Error ? err.message : 'Make Video Ready failed');
     } finally {
-      if (mountedRef.current) setBusyLabel(null)
+      if (mountedRef.current) setBusyLabel(null);
     }
-  }, [analyzeCurrentImage, appendVersion, asset, displayUrl, executeAiEdit, kind, recipe.makeVideoReadySteps, visionAnalysis])
+  }, [analyzeCurrentImage, appendVersion, asset, displayUrl, executeAiEdit, kind, recipe.makeVideoReadySteps, visionAnalysis]);
 
   function resetLocalControls() {
-    setRotation(0)
-    setFlipX(false)
-    setFlipY(false)
-    setZoom(100)
-    setBrightness(100)
-    setContrast(100)
-    setSaturation(100)
-    setOpacity(100)
-    setBlur(0)
-    setGrayscale(0)
-    setSepia(0)
-    setPadding(0)
-    setBorderSize(0)
-    setShadow(0)
-    setFitMode('contain')
-    setBackgroundColor('transparent')
-    setOverlayText('')
-    setTextSize(48)
-    setTextPosition('bottom')
+    setRotation(0);
+    setFlipX(false);
+    setFlipY(false);
+    setZoom(100);
+    setBrightness(100);
+    setContrast(100);
+    setSaturation(100);
+    setOpacity(100);
+    setBlur(0);
+    setGrayscale(0);
+    setSepia(0);
+    setPadding(0);
+    setBorderSize(0);
+    setShadow(0);
+    setFitMode('contain');
+    setBackgroundColor('transparent');
+    setOverlayText('');
+    setTextSize(48);
+    setTextPosition('bottom');
   }
 
   const applyLocalAdjustments = useCallback(async () => {
-    setError(null)
-    setBusyLabel('Applying local edit')
+    setError(null);
+    setBusyLabel('Applying local edit');
     try {
       // Try the fast path first: load the source image directly. data: /
       // blob: URLs are same-origin so they always succeed; remote http(s)
@@ -756,86 +756,86 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
       // server doesn't, fall through to the existing same-origin
       // /api/personalization/download-image proxy (which performs SSRF,
       // MIME, size and timeout checks) and load the data URL it returns.
-      let source = displayUrl
-      let image: HTMLImageElement
+      let source = displayUrl;
+      let image: HTMLImageElement;
       try {
-        image = await loadImage(displayUrl)
+        image = await loadImage(displayUrl);
       } catch {
-        source = await prepareDataUrl(displayUrl)
-        image = await loadImage(source)
+        source = await prepareDataUrl(displayUrl);
+        image = await loadImage(source);
       }
-      let canvasWidth = image.naturalWidth
-      let canvasHeight = image.naturalHeight
-      if (aspectRatio !== 'original') [canvasWidth, canvasHeight] = aspectCanvas[aspectRatio]
+      let canvasWidth = image.naturalWidth;
+      let canvasHeight = image.naturalHeight;
+      if (aspectRatio !== 'original') [canvasWidth, canvasHeight] = aspectCanvas[aspectRatio];
 
-      const maxEdge = 2048
-      const edgeScale = Math.min(1, maxEdge / Math.max(canvasWidth, canvasHeight))
-      canvasWidth = Math.max(1, Math.round(canvasWidth * edgeScale))
-      canvasHeight = Math.max(1, Math.round(canvasHeight * edgeScale))
+      const maxEdge = 2048;
+      const edgeScale = Math.min(1, maxEdge / Math.max(canvasWidth, canvasHeight));
+      canvasWidth = Math.max(1, Math.round(canvasWidth * edgeScale));
+      canvasHeight = Math.max(1, Math.round(canvasHeight * edgeScale));
 
-      const canvas = document.createElement('canvas')
-      canvas.width = canvasWidth
-      canvas.height = canvasHeight
-      const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('Browser canvas is unavailable')
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Browser canvas is unavailable');
 
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
       if (backgroundColor !== 'transparent') {
-        ctx.fillStyle = backgroundColor
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
       }
 
-      const innerWidth = Math.max(1, canvasWidth - padding * 2)
-      const innerHeight = Math.max(1, canvasHeight - padding * 2)
-      const containScale = Math.min(innerWidth / image.naturalWidth, innerHeight / image.naturalHeight)
-      const coverScale = Math.max(innerWidth / image.naturalWidth, innerHeight / image.naturalHeight)
-      const baseScale = fitMode === 'cover' ? coverScale : containScale
-      const scale = baseScale * (zoom / 100)
-      const drawWidth = image.naturalWidth * scale
-      const drawHeight = image.naturalHeight * scale
+      const innerWidth = Math.max(1, canvasWidth - padding * 2);
+      const innerHeight = Math.max(1, canvasHeight - padding * 2);
+      const containScale = Math.min(innerWidth / image.naturalWidth, innerHeight / image.naturalHeight);
+      const coverScale = Math.max(innerWidth / image.naturalWidth, innerHeight / image.naturalHeight);
+      const baseScale = fitMode === 'cover' ? coverScale : containScale;
+      const scale = baseScale * (zoom / 100);
+      const drawWidth = image.naturalWidth * scale;
+      const drawHeight = image.naturalHeight * scale;
 
-      ctx.save()
-      ctx.translate(canvasWidth / 2, canvasHeight / 2)
-      ctx.rotate((rotation * Math.PI) / 180)
-      ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1)
-      ctx.globalAlpha = opacity / 100
+      ctx.save();
+      ctx.translate(canvasWidth / 2, canvasHeight / 2);
+      ctx.rotate((rotation * Math.PI) / 180);
+      ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+      ctx.globalAlpha = opacity / 100;
       ctx.filter =
         'brightness(' + brightness + '%) contrast(' + contrast + '%) saturate(' + saturation + '%) ' +
-        'blur(' + blur + 'px) grayscale(' + grayscale + '%) sepia(' + sepia + '%)'
+        'blur(' + blur + 'px) grayscale(' + grayscale + '%) sepia(' + sepia + '%)';
       if (shadow > 0) {
-        ctx.shadowColor = 'rgba(0,0,0,.45)'
-        ctx.shadowBlur = shadow
-        ctx.shadowOffsetY = Math.max(2, shadow / 3)
+        ctx.shadowColor = 'rgba(0,0,0,.45)';
+        ctx.shadowBlur = shadow;
+        ctx.shadowOffsetY = Math.max(2, shadow / 3);
       }
-      ctx.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight)
-      ctx.restore()
+      ctx.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+      ctx.restore();
 
       if (borderSize > 0) {
-        ctx.save()
-        ctx.strokeStyle = '#ffffff'
-        ctx.lineWidth = borderSize
-        ctx.strokeRect(borderSize / 2, borderSize / 2, canvasWidth - borderSize, canvasHeight - borderSize)
-        ctx.restore()
+        ctx.save();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = borderSize;
+        ctx.strokeRect(borderSize / 2, borderSize / 2, canvasWidth - borderSize, canvasHeight - borderSize);
+        ctx.restore();
       }
 
       if (overlayText.trim()) {
-        ctx.save()
-        const scaledSize = Math.max(18, Math.round(textSize * edgeScale))
-        ctx.font = '700 ' + scaledSize + 'px system-ui, -apple-system, sans-serif'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.lineWidth = Math.max(3, scaledSize * 0.08)
-        ctx.strokeStyle = 'rgba(0,0,0,.75)'
-        ctx.fillStyle = '#ffffff'
-        const y = textPosition === 'top' ? scaledSize * 1.3 : textPosition === 'center' ? canvasHeight / 2 : canvasHeight - scaledSize * 1.3
-        ctx.strokeText(overlayText.trim(), canvasWidth / 2, y, canvasWidth * 0.9)
-        ctx.fillText(overlayText.trim(), canvasWidth / 2, y, canvasWidth * 0.9)
-        ctx.restore()
+        ctx.save();
+        const scaledSize = Math.max(18, Math.round(textSize * edgeScale));
+        ctx.font = '700 ' + scaledSize + 'px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineWidth = Math.max(3, scaledSize * 0.08);
+        ctx.strokeStyle = 'rgba(0,0,0,.75)';
+        ctx.fillStyle = '#ffffff';
+        const y = textPosition === 'top' ? scaledSize * 1.3 : textPosition === 'center' ? canvasHeight / 2 : canvasHeight - scaledSize * 1.3;
+        ctx.strokeText(overlayText.trim(), canvasWidth / 2, y, canvasWidth * 0.9);
+        ctx.fillText(overlayText.trim(), canvasWidth / 2, y, canvasWidth * 0.9);
+        ctx.restore();
       }
 
-      const format: ImageFormat = backgroundColor === 'transparent' && outputFormat === 'jpeg' ? 'png' : outputFormat
-      const mime = format === 'jpeg' ? 'image/jpeg' : 'image/' + format
-      const dataUrl = canvas.toDataURL(mime, format === 'jpeg' || format === 'webp' ? 0.92 : undefined)
+      const format: ImageFormat = backgroundColor === 'transparent' && outputFormat === 'jpeg' ? 'png' : outputFormat;
+      const mime = format === 'jpeg' ? 'image/jpeg' : 'image/' + format;
+      const dataUrl = canvas.toDataURL(mime, format === 'jpeg' || format === 'webp' ? 0.92 : undefined);
 
       appendVersion({
         label: 'Local Edit',
@@ -845,13 +845,13 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         model: 'local',
         transparent: backgroundColor === 'transparent',
         videoReady: currentVersion?.videoReady || false,
-      })
-      resetLocalControls()
+      });
+      resetLocalControls();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Local edit failed')
+      setError(err instanceof Error ? err.message : 'Local edit failed');
     } finally {
-      setBusyLabel(null)
-      setSaving(false)
+      setBusyLabel(null);
+      setSaving(false);
     }
   }, [
     appendVersion,
@@ -879,34 +879,34 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     textPosition,
     textSize,
     zoom,
-  ])
+  ]);
 
   const handleApply = useCallback(async () => {
-    if (!asset || !currentVersion) return
+    if (!asset || !currentVersion) return;
     if (versionIndex === 0) {
-      onClose()
-      return
+      onClose();
+      return;
     }
 
-    setSaving(true)
-    setError(null)
-    let applied = false
+    setSaving(true);
+    setError(null);
+    let applied = false;
     try {
-      const dataUrl = await prepareDataUrl(currentVersion.dataUrl)
+      const dataUrl = await prepareDataUrl(currentVersion.dataUrl);
       // Saving rejects images over 10 MB; say so before trying.
       if (dataUrlToBlob(dataUrl).size > 10 * 1024 * 1024) {
-        throw new Error('That image is over 10 MB. Choose a smaller image or edit it to reduce its size.')
+        throw new Error('That image is over 10 MB. Choose a smaller image or edit it to reduce its size.');
       }
-      let validation = currentVersion.visionValidation
+      let validation = currentVersion.visionValidation;
 
       if (
         currentVersion.model !== 'local' &&
         validationOverrideVersionId !== currentVersion.id &&
         !validation?.passed
       ) {
-        setBusyLabel('SmartVideo GO Vision is validating the edit')
+        setBusyLabel('SmartVideo GO Vision is validating the edit');
         try {
-          const originalUrlForValidation = await prepareDataUrl(asset.originalImageUrl)
+          const originalUrlForValidation = await prepareDataUrl(asset.originalImageUrl);
           validation = await validatePersonalizationImageEdit({
             originalImageUrl: originalUrlForValidation,
             editedImageUrl: dataUrl,
@@ -916,31 +916,31 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
               businessName: asset.businessName,
               industry: asset.industry,
             },
-          })
+          });
         } catch (checkError) {
           // The check couldn't run (no key, limit, network): say so and let
           // the user decide, instead of blocking the edit for good.
-          setValidationOverrideVersionId(currentVersion.id)
+          setValidationOverrideVersionId(currentVersion.id);
           setError(
             "SmartVideo GO Vision couldn't check this edit (" +
             (checkError instanceof Error ? checkError.message : 'unknown error') +
             '). Review it, then click Use Anyway to apply it.',
-          )
-          return
+          );
+          return;
         }
 
         setVersions((previous) => previous.map((version) => (
           version.id === currentVersion.id ? { ...version, visionValidation: validation } : version
-        )))
+        )));
 
         if (!validation.passed) {
-          setValidationOverrideVersionId(currentVersion.id)
+          setValidationOverrideVersionId(currentVersion.id);
           setError(
             'SmartVideo GO Vision found a possible unintended change: ' +
             (validation.issues.join(' • ') || validation.summary) +
             '. Review the comparison, then click Use Anyway if the result is acceptable.',
-          )
-          return
+          );
+          return;
         }
       }
 
@@ -961,18 +961,18 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         outputFormat,
         outputCompression,
         inputFidelity: getOperation(currentVersion.operation as EditorOperationId)?.precision || sourceRecipe.precisionRecommended || recipe.precisionRecommended || visionAnalysis?.precisionRecommended ? 'high' : 'low',
-      })
-      applied = true
+      });
+      applied = true;
     } catch (err) {
-      if (mountedRef.current) setError(err instanceof Error ? err.message : 'Unable to save edited asset')
+      if (mountedRef.current) setError(err instanceof Error ? err.message : 'Unable to save edited asset');
     } finally {
       if (mountedRef.current) {
-        setBusyLabel(null)
-        setSaving(false)
+        setBusyLabel(null);
+        setSaving(false);
       }
       // Close only once the edit is applied; otherwise stay open so the
       // warning (and "Use Anyway") or the error can be seen.
-      if (applied) onClose()
+      if (applied) onClose();
     }
   }, [
     asset,
@@ -984,33 +984,33 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
     validationOverrideVersionId,
     versionIndex,
     visionAnalysis,
-  ])
+  ]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragOver(true)
-  }, [])
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(true);
+  }, []);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragOver(false)
-  }, [])
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragOver(false)
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
 
     // An image file from the computer replaces the image as a new version
     // (so Undo brings the previous one back).
-    const file = Array.from(e.dataTransfer.files || []).find((candidate) => candidate.type.startsWith('image/'))
+    const file = Array.from(e.dataTransfer.files || []).find((candidate) => candidate.type.startsWith('image/'));
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onload = async () => {
         try {
-          const dataUrl = await ensureModelSupportedImage(String(reader.result))
+          const dataUrl = await ensureModelSupportedImage(String(reader.result));
           appendVersion({
             dataUrl,
             label: 'Dropped Image',
@@ -1019,59 +1019,59 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
             model: 'local',
             transparent: false,
             videoReady: false,
-          })
+          });
         } catch (err) {
-          setError("Couldn't use that image: " + (err instanceof Error ? err.message : 'unknown error'))
+          setError("Couldn't use that image: " + (err instanceof Error ? err.message : 'unknown error'));
         }
-      }
-      reader.onerror = () => setError("Couldn't read that file.")
-      reader.readAsDataURL(file)
-      return
+      };
+      reader.onerror = () => setError("Couldn't read that file.");
+      reader.readAsDataURL(file);
+      return;
     }
 
-    if (!onDropAsset) return
+    if (!onDropAsset) return;
 
-    let payload: { assetId: string; source: string; assetType: string } | null = null
+    let payload: { assetId: string; source: string; assetType: string } | null = null;
     try {
-      const data = e.dataTransfer.getData('application/json')
-      if (data) payload = JSON.parse(data)
+      const data = e.dataTransfer.getData('application/json');
+      if (data) payload = JSON.parse(data);
     } catch {
       // ignore invalid payload
     }
     if (payload) {
-      onDropAsset(payload)
+      onDropAsset(payload);
     } else {
-      setError('Drop an image file, or an asset from the personalization panel.')
+      setError('Drop an image file, or an asset from the personalization panel.');
     }
-  }, [appendVersion, onDropAsset])
+  }, [appendVersion, onDropAsset]);
 
-  if (!open || !asset || !currentVersion) return null
+  if (!open || !asset || !currentVersion) return null;
 
   // "Local Adjustments" is the canvas edit (free, uses the sliders), not a
   // paid AI call with nothing to go on.
   const runOperation = (operationId: EditorOperationId) => (
     operationId === 'local_adjustments' ? applyLocalAdjustments() : runAiEdit(operationId)
-  )
+  );
 
   const recommendedOperationIds = (visionAnalysis?.recommendedOperations || recipe.recommended)
     .filter((id): id is EditorOperationId => id in IMAGE_EDIT_OPERATIONS)
     .filter((id) => {
-      const applicable = IMAGE_EDIT_OPERATIONS[id].applicableTo
-      return !applicable || applicable.includes(kind)
-    })
-  const recommendedOperations = recommendedOperationIds.map(getOperation)
+      const applicable = IMAGE_EDIT_OPERATIONS[id].applicableTo;
+      return !applicable || applicable.includes(kind);
+    });
+  const recommendedOperations = recommendedOperationIds.map(getOperation);
   // Quick actions: this asset's recommendations, plus a plain background
   // removal whenever this asset supports it.
-  const quickOperations = recommendedOperations.slice(0, 6)
+  const quickOperations = recommendedOperations.slice(0, 6);
   if (
     !quickOperations.some((operation) => operation.id === 'remove_background') &&
     groupedOperations.get('background')?.some((operation) => operation.id === 'remove_background')
   ) {
-    quickOperations.push(getOperation('remove_background'))
+    quickOperations.push(getOperation('remove_background'));
   }
-  const noEditYet = versionIndex === 0
-  const advancedGroups = Array.from(groupedOperations.entries())
-  const activeOperations = groupedOperations.get(activeGroup) || []
+  const noEditYet = versionIndex === 0;
+  const advancedGroups = Array.from(groupedOperations.entries());
+  const activeOperations = groupedOperations.get(activeGroup) || [];
 
   return (
     <div
@@ -1127,10 +1127,10 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
               <button
                 type="button"
                 onClick={async () => {
-                  if (!asset) return
-                  setError(null)
+                  if (!asset) return;
+                  setError(null);
                   try {
-                    const originalDataUrl = await prepareDataUrl(asset.originalImageUrl)
+                    const originalDataUrl = await prepareDataUrl(asset.originalImageUrl);
                     appendVersion({
                       dataUrl: originalDataUrl,
                       label: 'Reverted to Original',
@@ -1139,9 +1139,9 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                       model: 'local',
                       transparent: false,
                       videoReady: false,
-                    })
+                    });
                   } catch (err) {
-                    setError("Couldn't load the original image: " + (err instanceof Error ? err.message : 'unknown error'))
+                    setError("Couldn't load the original image: " + (err instanceof Error ? err.message : 'unknown error'));
                   }
                 }}
                 className="rounded-lg px-2 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white/70 transition hover:bg-white/10 hover:text-white"
@@ -1179,7 +1179,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
               {asset.source === 'discovered' && <><span>•</span><span>Discovered Asset</span></>}
             </div>
 
-            <VersionStrip versions={versions} versionIndex={versionIndex} onSelect={(index) => { setVersionIndex(index); setValidationOverrideVersionId(null) }} compact />
+            <VersionStrip versions={versions} versionIndex={versionIndex} onSelect={(index) => { setVersionIndex(index); setValidationOverrideVersionId(null); }} compact />
           </div>
 
           <div className="flex flex-col border-white/10 lg:min-h-0 lg:border-l">
@@ -1219,7 +1219,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
               ))}
               <button
                 type="button"
-                onClick={() => { setEditorMode('advanced'); setCanvasToolsOpen(true) }}
+                onClick={() => { setEditorMode('advanced'); setCanvasToolsOpen(true); }}
                 className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold"
                 style={buttons.ghost}
               >
@@ -1311,8 +1311,8 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
               <div className="mt-4 border-t border-white/10 pt-3">
                 <button type="button" onClick={() => {
                   // Turning the mask off also drops it, so later edits apply to the whole image.
-                  if (maskMode) setMaskBlob(null)
-                  setMaskMode(!maskMode)
+                  if (maskMode) setMaskBlob(null);
+                  setMaskMode(!maskMode);
                 }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold" style={maskMode ? buttons.activePill : buttons.ghost}>
                   <Paintbrush size={14} /> Select / Mask Area
                 </button>
@@ -1341,7 +1341,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
                       opacity: opacity / 100,
                     }}
                   />
-                  <VersionStrip versions={versions} versionIndex={versionIndex} onSelect={(index) => { setVersionIndex(index); setValidationOverrideVersionId(null) }} compact />
+                  <VersionStrip versions={versions} versionIndex={versionIndex} onSelect={(index) => { setVersionIndex(index); setValidationOverrideVersionId(null); }} compact />
                 </>
               )}
 
@@ -1514,7 +1514,7 @@ export default function ImageEditorModal({ open, asset, onClose, onApply, onDrop
         )}
       </div>
     </div>
-  )
+  );
 }
 
 function MediaStage({
@@ -1545,7 +1545,7 @@ function MediaStage({
         <PreviewCard label="Original" src={originalSrc} />
         <PreviewCard label="Edited" src={src} />
       </div>
-    )
+    );
   }
 
   return (
@@ -1571,7 +1571,7 @@ function MediaStage({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function PreviewCard({ label, src }: { label: string; src: string }) {
@@ -1582,7 +1582,7 @@ function PreviewCard({ label, src }: { label: string; src: string }) {
         <img src={src} alt={label} className="max-h-[58vh] max-w-full object-contain" />
       </div>
     </div>
-  )
+  );
 }
 
 function VersionStrip({
@@ -1607,7 +1607,7 @@ function VersionStrip({
         </button>
       ))}
     </div>
-  )
+  );
 }
 
 function ControlLabel({ label, children }: { label: string; children: ReactNode }) {
@@ -1616,7 +1616,7 @@ function ControlLabel({ label, children }: { label: string; children: ReactNode 
       <div className="mb-1.5 text-[9px] font-bold uppercase tracking-wide text-white/35">{label}</div>
       {children}
     </div>
-  )
+  );
 }
 
 function Slider({
@@ -1639,9 +1639,9 @@ function Slider({
       <div className="mb-1 flex justify-between text-[9px] font-semibold text-white/45"><span>{label}</span><span>{value}{suffix}</span></div>
       <input type="range" min={min} max={max} value={value} onChange={(event) => onChange(Number(event.target.value))} className="w-full accent-primary" />
     </label>
-  )
+  );
 }
 
 function ErrorBox({ message }: { message: string }) {
-  return <div className="rounded-xl border border-red-400/20 bg-red-400/[0.06] p-3 text-xs leading-5 text-red-300">{message}</div>
+  return <div className="rounded-xl border border-red-400/20 bg-red-400/[0.06] p-3 text-xs leading-5 text-red-300">{message}</div>;
 }

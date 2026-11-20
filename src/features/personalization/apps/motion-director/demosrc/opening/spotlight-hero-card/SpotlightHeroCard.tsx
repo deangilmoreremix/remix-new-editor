@@ -202,8 +202,10 @@ export const SpotlightHeroCard: React.FC = () => {
               {/* 悬浮时卡面受光：右上角暖光 → 左下渐暗 */}
               <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(200deg, rgba(${LAMP},0.35), rgba(${LAMP},0) 45%, rgba(20,16,10,0.08) 100%)`, opacity: lift, pointerEvents: 'none' }} />
             </div>
-            <div style={{ position: 'absolute', inset: 0, borderRadius: RADIUS, // 轮廓光：一圈暖白发丝边 + 极淡外溢，让卡的轮廓在暗页上读得清（锁定后亮起）
-              boxShadow: `inset 0 0 0 1px rgba(255,255,255,${(0.7 * lift).toFixed(3)}), 0 0 0 1.5px rgba(255,236,205,${(0.7 * cardLight).toFixed(3)}), 0 0 44px rgba(255,214,160,${(0.18 * cardLight).toFixed(3)})`, pointerEvents: 'none' }} />
+            <div style={{
+ position: 'absolute', inset: 0, borderRadius: RADIUS, // 轮廓光：一圈暖白发丝边 + 极淡外溢，让卡的轮廓在暗页上读得清（锁定后亮起）
+              boxShadow: `inset 0 0 0 1px rgba(255,255,255,${(0.7 * lift).toFixed(3)}), 0 0 0 1.5px rgba(255,236,205,${(0.7 * cardLight).toFixed(3)}), 0 0 44px rgba(255,214,160,${(0.18 * cardLight).toFixed(3)})`, pointerEvents: 'none' 
+}} />
 
             {/* 轮廓光束：SVG 圆角矩形，pathLength=1 的行进弧段 */}
             {(beam1On || beam2On) && lift > 0.4 ? (

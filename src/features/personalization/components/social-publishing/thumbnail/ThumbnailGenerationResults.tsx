@@ -24,7 +24,7 @@ const ASPECT_LABELS: Record<string, string> = {
   '1:1': 'Instagram',
   '4:5': 'Instagram 4:5',
   '9:16': 'Reels/TikTok',
-}
+};
 
 export default function ThumbnailGenerationResults({
   results,
@@ -39,32 +39,32 @@ export default function ThumbnailGenerationResults({
   thumbnail,
   onUpdateThumbnail,
 }: ThumbnailGenerationResultsProps) {
-  const [fullscreenUrl, setFullscreenUrl] = useState<string | null>(null)
+  const [fullscreenUrl, setFullscreenUrl] = useState<string | null>(null);
 
   const handleDownload = useCallback((url: string, index: number) => {
     if (onDownload) {
-      onDownload(url, index)
-      return
+      onDownload(url, index);
+      return;
     }
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `thumbnail-${Date.now()}-${index + 1}.png`
-    a.target = '_blank'
-    a.rel = 'noopener noreferrer'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  }, [onDownload])
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `thumbnail-${Date.now()}-${index + 1}.png`;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }, [onDownload]);
 
   const handleSelectWithUpdate = useCallback((index: number) => {
-    onSelect(index)
+    onSelect(index);
     if (onUpdateThumbnail && results[index]) {
       onUpdateThumbnail({
         imageUrl: results[index].url,
         responseId: results[index].responseId,
-      })
+      });
     }
-  }, [onSelect, onUpdateThumbnail, results])
+  }, [onSelect, onUpdateThumbnail, results]);
 
   return (
     <div className="space-y-3" aria-live="polite" aria-atomic="true">
@@ -146,14 +146,14 @@ export default function ThumbnailGenerationResults({
           aria-label="Generated thumbnails"
         >
           {results.map((result, index) => {
-            const isSelected = selectedIndex === index
+            const isSelected = selectedIndex === index;
             return (
               <div
                 key={`${result.url}-${index}`}
                 role="radio"
                 aria-checked={isSelected}
                 tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectWithUpdate(index) } }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectWithUpdate(index); } }}
                 onClick={() => handleSelectWithUpdate(index)}
                 className={`
                   group relative rounded-xl overflow-hidden cursor-pointer transition-all
@@ -195,7 +195,7 @@ export default function ThumbnailGenerationResults({
                 <div className="absolute inset-x-0 bottom-0 p-2 flex justify-center gap-1.5 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity bg-gradient-to-t from-black/80 to-transparent pt-6">
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setFullscreenUrl(result.url) }}
+                    onClick={(e) => { e.stopPropagation(); setFullscreenUrl(result.url); }}
                     className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
                     aria-label="Preview full size"
                     title="Preview"
@@ -204,7 +204,7 @@ export default function ThumbnailGenerationResults({
                   </button>
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); handleDownload(result.url, index) }}
+                    onClick={(e) => { e.stopPropagation(); handleDownload(result.url, index); }}
                     className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
                     aria-label="Download thumbnail"
                     title="Download"
@@ -214,7 +214,7 @@ export default function ThumbnailGenerationResults({
                   {onRetry && (
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); onRetry() }}
+                      onClick={(e) => { e.stopPropagation(); onRetry(); }}
                       className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
                       aria-label="Regenerate"
                       title="Regenerate"
@@ -224,7 +224,7 @@ export default function ThumbnailGenerationResults({
                   )}
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       )}
@@ -239,5 +239,5 @@ export default function ThumbnailGenerationResults({
         </div>
       )}
     </div>
-  )
+  );
 }

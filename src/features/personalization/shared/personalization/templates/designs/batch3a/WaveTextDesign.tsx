@@ -16,37 +16,37 @@
  * shrinks it to the canvas width, and the wave amplitude scales with it.
  */
 
-import React from 'react'
-import { WaveText } from '../../_upstream/wave-text/WaveText'
-import { useDesignFonts } from '../fonts'
-import { DesignStage, TRANSPARENT, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared'
-import { ScopedUpstream, brandPalette, fitFontSize, mixHex, scopeSelector, useScopeId } from './batch3aShared'
+import React from 'react';
+import { WaveText } from '../../_upstream/wave-text/WaveText';
+import { useDesignFonts } from '../fonts';
+import { DesignStage, TRANSPARENT, slotText, slotValue, truncateText, type DesignAdapterProps } from '../shared';
+import { ScopedUpstream, brandPalette, fitFontSize, mixHex, scopeSelector, useScopeId } from './batch3aShared';
 
-const MAX_TEXT_LENGTH = 28
-const MAX_SUB_LENGTH = 40
-const UPSTREAM_FONT_SIZE = 140
-const UPSTREAM_AMPLITUDE = 18
+const MAX_TEXT_LENGTH = 28;
+const MAX_SUB_LENGTH = 40;
+const UPSTREAM_FONT_SIZE = 140;
+const UPSTREAM_AMPLITUDE = 18;
 
 export const WaveTextDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
-  const scopeId = useScopeId('wave-text')
-  const palette = brandPalette(props)
+  useDesignFonts();
+  const scopeId = useScopeId('wave-text');
+  const palette = brandPalette(props);
 
-  const text = truncateText(slotText(props, 'text', ['offer', 'businessName']), MAX_TEXT_LENGTH)
-  const subText = truncateText(slotValue(props, 'subText'), MAX_SUB_LENGTH)
+  const text = truncateText(slotText(props, 'text', ['offer', 'businessName']), MAX_TEXT_LENGTH);
+  const subText = truncateText(slotValue(props, 'subText'), MAX_SUB_LENGTH);
 
   const fitted = fitFontSize(text, {
     maxWidth: props.width * 0.9,
     maxSize: UPSTREAM_FONT_SIZE,
     advance: 0.64,
     wrap: false,
-  })
-  const sel = scopeSelector(scopeId)
+  });
+  const sel = scopeSelector(scopeId);
   const css =
     `${sel} > div:first-child { background: transparent !important; }` +
     (fitted < UPSTREAM_FONT_SIZE
       ? `\n${sel} > div:first-child > span:first-child { font-size: ${fitted}px !important; }`
-      : '')
+      : '');
 
   return (
     <DesignStage designId="wave-text" props={props}>
@@ -63,7 +63,7 @@ export const WaveTextDesign: React.FC<DesignAdapterProps> = (props) => {
         />
       </ScopedUpstream>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default WaveTextDesign
+export default WaveTextDesign;

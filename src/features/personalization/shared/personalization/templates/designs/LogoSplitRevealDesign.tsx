@@ -21,9 +21,9 @@
  * `revealDuration` and `duration` are in SECONDS, not frames.
  */
 
-import React from 'react'
-import { LogoSplitReveal } from '../_upstream/logo-split-reveal/LogoSplitReveal'
-import { useDesignFonts } from './fonts'
+import React from 'react';
+import { LogoSplitReveal } from '../_upstream/logo-split-reveal/LogoSplitReveal';
+import { useDesignFonts } from './fonts';
 import {
   DesignStage,
   TRANSPARENT,
@@ -31,25 +31,25 @@ import {
   slotText,
   truncateText,
   type DesignAdapterProps,
-} from './shared'
+} from './shared';
 
 /** The upstream's own display size, in px, on a 1920 px wide composition. */
-const UPSTREAM_FONT_SIZE = 260
+const UPSTREAM_FONT_SIZE = 260;
 
 /** Long wordmarks are cut so the two halves stay readable. */
-const MAX_WORDMARK_LENGTH = 20
+const MAX_WORDMARK_LENGTH = 20;
 
 /** The upstream's own motion constants (seconds). */
-const REVEAL_DURATION_SECONDS = 1.4
-const DURATION_SECONDS = 4
+const REVEAL_DURATION_SECONDS = 1.4;
+const DURATION_SECONDS = 4;
 
 export const LogoSplitRevealDesign: React.FC<DesignAdapterProps> = (props) => {
-  useDesignFonts()
+  useDesignFonts();
 
   const wordmark = truncateText(
     slotText(props, 'businessName', ['headline']),
     MAX_WORDMARK_LENGTH,
-  )
+  );
 
   return (
     <DesignStage designId="logo-split-reveal" props={props}>
@@ -63,7 +63,7 @@ export const LogoSplitRevealDesign: React.FC<DesignAdapterProps> = (props) => {
         duration={DURATION_SECONDS}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default LogoSplitRevealDesign
+export default LogoSplitRevealDesign;

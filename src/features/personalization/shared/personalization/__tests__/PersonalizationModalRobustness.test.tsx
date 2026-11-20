@@ -64,7 +64,7 @@ vi.mock('next/navigation', () => ({
     refresh: vi.fn(),
     prefetch: vi.fn(),
   }),
-}))
+}));
 
 vi.mock('@ohb/components/SocialPublishProvider', () => ({
   SocialPublishContext: {
@@ -72,9 +72,9 @@ vi.mock('@ohb/components/SocialPublishProvider', () => ({
     Consumer: ({ children }: { children: (value: unknown) => ReactNode }) => children(null),
   } satisfies SocialPublishContextStub,
   useSocialPublish: () => {
-    throw new Error('useSocialPublish must be used within a <SocialPublishProvider>')
+    throw new Error('useSocialPublish must be used within a <SocialPublishProvider>');
   },
-}))
+}));
 
 vi.mock('@ohb/lib/authConfig', () => ({
   useAuthConfig: () => ({
@@ -88,14 +88,14 @@ vi.mock('@ohb/lib/authConfig', () => ({
     hasOpenAiKey: false,
     isAuthenticated: true,
   }),
-}))
+}));
 
 vi.mock('@ohb/packages/studio/src/muapi', () => ({
   uploadFile: vi.fn(),
-}))
+}));
 
-URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test')
-URL.revokeObjectURL = vi.fn()
+URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test');
+URL.revokeObjectURL = vi.fn();
 
 // ── z-index scale ────────────────────────────────────────────────────────────
 //
@@ -213,13 +213,13 @@ describe('PersonalizationModal robustness guards', () => {
   afterEach(() => {
     while (mountedRoots.length > 0) {
       const root = mountedRoots.pop()!;
-      act(() => root.unmount())
+      act(() => root.unmount());
     }
-    document.querySelectorAll('[data-testid="personalization-root"]').forEach((el) => el.remove())
-    delete (window as unknown as PersonalizationDebugWindow).__personalizationCtx
+    document.querySelectorAll('[data-testid="personalization-root"]').forEach((el) => el.remove());
+    delete (window as unknown as PersonalizationDebugWindow).__personalizationCtx;
     // Never leak one test's body overflow into the next.
-    document.body.style.overflow = ''
-  })
+    document.body.style.overflow = '';
+  });
 
   it('modal root layers above the studio modals and the API-key modal but below the upgrade gate', async () => {
     const { container } = await mountModal();

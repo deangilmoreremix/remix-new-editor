@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { Check, X, Loader2, AlertCircle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react'
-import type { Destination, PublishResult } from '../types'
+import React from 'react';
+import { Check, X, Loader2, AlertCircle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import type { Destination, PublishResult } from '../types';
 
 interface AccountCardProps {
   destination: Destination
@@ -35,12 +35,12 @@ export default function AccountCard({
   retrying,
   children,
 }: AccountCardProps) {
-  const statusLabel = result?.status || 'idle'
-  const isPending = statusLabel === 'queued' || statusLabel === 'uploading' || statusLabel === 'processing'
-  const isFailed = statusLabel === 'failed'
-  const isPublished = statusLabel === 'published'
+  const statusLabel = result?.status || 'idle';
+  const isPending = statusLabel === 'queued' || statusLabel === 'uploading' || statusLabel === 'processing';
+  const isFailed = statusLabel === 'failed';
+  const isPublished = statusLabel === 'published';
 
-  const statusColor = isPublished ? '#22c55e' : isFailed ? '#ef4444' : isPending ? '#eab308' : '#71717a'
+  const statusColor = isPublished ? '#22c55e' : isFailed ? '#ef4444' : isPending ? '#eab308' : '#71717a';
 
   return (
     <div
@@ -135,5 +135,5 @@ export default function AccountCard({
         </div>
       )}
     </div>
-  )
+  );
 }

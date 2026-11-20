@@ -12,7 +12,7 @@
  * (same-origin paths, blob:/data: URLs, unknown hosts) is returned unchanged.
  */
 
-export const REMOTE_MEDIA_PROXY_PATH = '/api/media/remote'
+export const REMOTE_MEDIA_PROXY_PATH = '/api/media/remote';
 
 /** Hosts the proxy is allowed to fetch from. Exact hostnames only. */
 export const REMOTE_MEDIA_ALLOWED_HOSTS: readonly string[] = [
@@ -22,26 +22,26 @@ export const REMOTE_MEDIA_ALLOWED_HOSTS: readonly string[] = [
   // sends CORS headers we can rely on), so they must come through the same-origin proxy.
   'cdn.muapi.ai',
   'd3adwkbyhxyrtq.cloudfront.net',
-]
+];
 
 export function isProxiableRemoteMediaHost(hostname: string): boolean {
-  return REMOTE_MEDIA_ALLOWED_HOSTS.includes(hostname.toLowerCase())
+  return REMOTE_MEDIA_ALLOWED_HOSTS.includes(hostname.toLowerCase());
 }
 
 /** Parse an absolute https URL on an allow-listed host, or return null. */
 export function parseProxiableRemoteMediaUrl(raw: string | null | undefined): URL | null {
-  if (typeof raw !== 'string' || raw.trim() === '') return null
-  let url: URL
+  if (typeof raw !== 'string' || raw.trim() === '') return null;
+  let url: URL;
   try {
-    url = new URL(raw.trim())
+    url = new URL(raw.trim());
   } catch {
-    return null
+    return null;
   }
   // HTTPS only: the proxy never fetches plaintext media.
-  if (url.protocol !== 'https:') return null
-  if (url.username || url.password) return null
-  if (!isProxiableRemoteMediaHost(url.hostname)) return null
-  return url
+  if (url.protocol !== 'https:') return null;
+  if (url.username || url.password) return null;
+  if (!isProxiableRemoteMediaHost(url.hostname)) return null;
+  return url;
 }
 
 /**
@@ -51,8 +51,8 @@ export function parseProxiableRemoteMediaUrl(raw: string | null | undefined): UR
 export function toPlayablePreviewMediaUrl(src: string): string
 export function toPlayablePreviewMediaUrl(src: string | null | undefined): string | null
 export function toPlayablePreviewMediaUrl(src: string | null | undefined): string | null {
-  if (!src) return src ?? null
-  const url = parseProxiableRemoteMediaUrl(src)
-  if (!url) return src
-  return `${REMOTE_MEDIA_PROXY_PATH}?url=${encodeURIComponent(url.toString())}`
+  if (!src) return src ?? null;
+  const url = parseProxiableRemoteMediaUrl(src);
+  if (!url) return src;
+  return `${REMOTE_MEDIA_PROXY_PATH}?url=${encodeURIComponent(url.toString())}`;
 }

@@ -57,12 +57,16 @@ export async function captureShapeShot(handle: SetViewerHandle, options: {
   const kinds = passesWithinBudget(options.maxReferences);
   const blobs = await handle.capture(kinds, options.width, options.height);
   const camera = handle.readCamera(`Set shot ${new Date().toLocaleString()}`);
-  const prompt = buildCameraPrompt({ focalMm: options.focalMm, sensor: options.sensor,
+  const prompt = buildCameraPrompt({
+ focalMm: options.focalMm, sensor: options.sensor,
     cameraHeightM: handle.cameraHeight(), subjectDistanceM: handle.subjectDistance(),
-    subjectFrameX: handle.subjectFrameX(), subject: options.subject });
-  return { setId: options.setId, camera,
+    subjectFrameX: handle.subjectFrameX(), subject: options.subject 
+});
+  return {
+ setId: options.setId, camera,
     files: kinds.map(kind => new File([blobs[kind]], `shape-shot-${kind}.png`, { type: 'image/png' })),
-    promptBlock: referencePrompt(kinds, prompt.block) };
+    promptBlock: referencePrompt(kinds, prompt.block) 
+};
 }
 
 export interface SetSendOptions {
@@ -83,7 +87,9 @@ export async function captureSetView(handle: SetViewerHandle, options: {
     : '';
   const standIns = options.enhance && options.includeStandIns
     ? ' Any gray mannequins are placement guides only. Replace them with characters described in the prompt or character references; otherwise omit them. Preserve their position, scale, and pose when replacing them.' : '';
-  return { mode: 'view', setId: options.setId, camera: handle.readCamera(`Set view ${new Date().toLocaleString()}`),
+  return {
+ mode: 'view', setId: options.setId, camera: handle.readCamera(`Set view ${new Date().toLocaleString()}`),
     files: [new File([blobs[kind]], 'set-view.png', { type: 'image/png' })],
-    promptBlock: [`${guidance}${standIns}`, options.instructions.trim()].filter(Boolean).join('\n\n') };
+    promptBlock: [`${guidance}${standIns}`, options.instructions.trim()].filter(Boolean).join('\n\n') 
+};
 }

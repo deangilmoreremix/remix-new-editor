@@ -1,15 +1,15 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest'
-import { act } from 'react'
-import { createRoot } from 'react-dom/client'
-import { screen } from '@testing-library/react'
-import { DemoPersonalizeProvider, useDemoPersonalize } from '../DemoPersonalizeProvider'
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
+import { act } from 'react';
+import { createRoot } from 'react-dom/client';
+import { screen } from '@testing-library/react';
+import { DemoPersonalizeProvider, useDemoPersonalize } from '../DemoPersonalizeProvider';
 
 beforeAll(() => {
-  globalThis.IS_REACT_ACT_ENVIRONMENT = true
-  URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test')
-  URL.revokeObjectURL = vi.fn()
-})
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test');
+  URL.revokeObjectURL = vi.fn();
+});
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -20,14 +20,14 @@ vi.mock('next/navigation', () => ({
     refresh: vi.fn(),
     prefetch: vi.fn(),
   }),
-}))
+}));
 
 vi.mock('@ohb/components/SocialPublishProvider', () => ({
   SocialPublishContext: { Provider: ({ children }: any) => children, Consumer: ({ children }: any) => children(null) } as any,
   useSocialPublish: () => {
-    throw new Error('useSocialPublish must be used within a <SocialPublishProvider>')
+    throw new Error('useSocialPublish must be used within a <SocialPublishProvider>');
   },
-}))
+}));
 
 vi.mock('@ohb/lib/authConfig', () => ({
   useAuthConfig: () => ({
@@ -42,25 +42,25 @@ vi.mock('@ohb/lib/authConfig', () => ({
     hasOpenAiKey: false,
     isAuthenticated: true,
   }),
-}))
+}));
 
 vi.mock('../promptPersonalizer', () => ({
   personalizePrompt: vi.fn(),
   regeneratePrompt: vi.fn(),
-}))
+}));
 
 vi.mock('../generationRouter', () => ({
   runGeneration: vi.fn(),
-}))
+}));
 
 vi.mock('../postProcessor', () => ({
   applyPostProcessing: vi.fn(),
   generateEndCardImage: vi.fn(),
-}))
+}));
 
 vi.mock('@ohb/packages/studio/src/muapi', () => ({
   uploadFile: vi.fn().mockResolvedValue('https://uploaded.example.com/asset.png'),
-}))
+}));
 
 // The provider uploads an edited asset through the durable-storage service.
 // Without a storage backend that call rejects ("Durable storage is not
@@ -73,47 +73,47 @@ vi.mock('../assetUploadService', async (importOriginal) => ({
   uploadPersonalizationAsset: vi.fn().mockRejectedValue(
     new Error('Durable storage is not configured, so this file cannot be saved for later re-use.'),
   ),
-}))
+}));
 
 function TestOpener({ source, onMounted }: { source: any; onMounted: (open: (opts: any) => void) => void }) {
   const ctx = useDemoPersonalize()
-  ;(window as any).__personalizationCtx = ctx
-  onMounted(ctx.openPersonalize)
-  return null
+  ;(window as any).__personalizationCtx = ctx;
+  onMounted(ctx.openPersonalize);
+  return null;
 }
 
 describe('Edited asset upload failure', () => {
-  const roots: { root: ReturnType<typeof createRoot>; container: HTMLDivElement }[] = []
+  const roots: { root: ReturnType<typeof createRoot>; container: HTMLDivElement }[] = [];
 
   const unmountAll = async () => {
     for (const { root, container } of roots) {
       try {
         await act(async () => {
-          root.unmount()
-        })
+          root.unmount();
+        });
       } catch {}
-      container.remove()
+      container.remove();
     }
-    roots.length = 0
-  }
+    roots.length = 0;
+  };
 
   const renderProvider = () => {
-    const container = document.createElement('div')
-    document.body.appendChild(container)
-    const root = createRoot(container)
-    roots.push({ root, container })
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    roots.push({ root, container });
     act(() => {
       root.render(
         <DemoPersonalizeProvider>
           <TestOpener source={null} onMounted={() => {}} />
         </DemoPersonalizeProvider>,
-      )
-    })
-    return container
-  }
+      );
+    });
+    return container;
+  };
 
   const openSource = () => {
-    const c = (window as any).__personalizationCtx
+    const c = (window as any).__personalizationCtx;
     act(() => {
       c.openPersonalize({
         source: {
@@ -128,17 +128,17 @@ describe('Edited asset upload failure', () => {
           originalPrompt: 'test',
           sourceMetadata: {},
         } as any,
-      })
-    })
-  }
+      });
+    });
+  };
 
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   afterEach(async () => {
-    await unmountAll()
-  })
+    await unmountAll();
+  });
 
   const EDIT_META = {
     operation: 'remove_background',
@@ -153,35 +153,35 @@ describe('Edited asset upload failure', () => {
     outputFormat: 'png',
     outputCompression: null,
     inputFidelity: 'high',
-  }
+  };
 
   it('a failed durable upload is NOT swallowed: the edit rejects and the asset is marked as errored', async () => {
-    renderProvider()
-    await openSource()
-    let c = (window as any).__personalizationCtx
+    renderProvider();
+    await openSource();
+    let c = (window as any).__personalizationCtx;
     await act(async () => {
-      c.addIdentityUrl('https://example.com/person.png')
-    })
-    c = (window as any).__personalizationCtx
-    const identity = c.assets.primaryIdentity
-    expect(identity).toBeDefined()
+      c.addIdentityUrl('https://example.com/person.png');
+    });
+    c = (window as any).__personalizationCtx;
+    const identity = c.assets.primaryIdentity;
+    expect(identity).toBeDefined();
 
-    let failure: unknown = null
+    let failure: unknown = null;
     await act(async () => {
       try {
-        await c.applyEditedPersonalizationAsset(identity.id, 'data:image/png;base64,editedperson', EDIT_META)
+        await c.applyEditedPersonalizationAsset(identity.id, 'data:image/png;base64,editedperson', EDIT_META);
       } catch (error) {
-        failure = error
+        failure = error;
       }
-    })
+    });
     // The caller (ImageEditorModal) receives the error and shows it.
-    expect(failure).toBeInstanceOf(Error)
-    expect((failure as Error).message).toMatch(/Durable storage is not configured/)
+    expect(failure).toBeInstanceOf(Error);
+    expect((failure as Error).message).toMatch(/Durable storage is not configured/);
 
     // The asset carries the error so the UI can offer a retry.
-    c = (window as any).__personalizationCtx
-    const after = c.assets.primaryIdentity
-    expect(after.uploadStatus).toBe('error')
-    expect(String(after.uploadError ?? '')).toMatch(/Durable storage is not configured/)
-  })
-})
+    c = (window as any).__personalizationCtx;
+    const after = c.assets.primaryIdentity;
+    expect(after.uploadStatus).toBe('error');
+    expect(String(after.uploadError ?? '')).toMatch(/Durable storage is not configured/);
+  });
+});

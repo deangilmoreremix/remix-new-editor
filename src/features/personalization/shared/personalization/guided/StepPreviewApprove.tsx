@@ -1,25 +1,25 @@
-'use client'
+'use client';
 
-import { AddDesignsPanel } from './AddDesignsPanel'
-import { ShapeExportPanel } from './ShapeExportPanel'
-import { useState } from 'react'
-import { CheckCircle2, Download, Loader2, PlayCircle, ShieldCheck, Sparkles, Upload, X } from 'lucide-react'
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { saveToRemixAssetLibrary } from '@ohb/lib/remixAssetLibrary'
-import { BeforeAfterPreview } from '../preview/BeforeAfterPreview'
-import { buildPreviewInput } from './buildPreviewInput'
-import { OverlayEditor } from './OverlayEditor'
-import { Tip } from './editor/Tip'
-import { RemoveBrandingControl } from './RemoveBrandingControl'
-import { videoBeforeRecast } from '../DemoPersonalizeProvider'
-import { LayoutQualityPanel } from './LayoutQualityPanel'
-import { useLayoutQuality } from './useLayoutQuality'
-import { C, badgeStyle, chipStyle, hintStyle, labelStyle, panelStyle, primaryButtonStyle, secondaryButtonStyle, softPanelStyle } from './tokens'
-import { PREVIEW_ASPECT_RATIOS } from '../preview/types'
-import { PREVIEW_LAYOUTS } from '../preview/presets'
-import { chooseFinalOutputPath } from '../finalOutput'
-import { ExtraFormatsExport } from './ExtraFormatsExport'
-import { CaptionsPanel } from './CaptionsPanel'
+import { AddDesignsPanel } from './AddDesignsPanel';
+import { ShapeExportPanel } from './ShapeExportPanel';
+import { useState } from 'react';
+import { CheckCircle2, Download, Loader2, PlayCircle, ShieldCheck, Sparkles, Upload, X } from 'lucide-react';
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { saveToRemixAssetLibrary } from '@ohb/lib/remixAssetLibrary';
+import { BeforeAfterPreview } from '../preview/BeforeAfterPreview';
+import { buildPreviewInput } from './buildPreviewInput';
+import { OverlayEditor } from './OverlayEditor';
+import { Tip } from './editor/Tip';
+import { RemoveBrandingControl } from './RemoveBrandingControl';
+import { videoBeforeRecast } from '../DemoPersonalizeProvider';
+import { LayoutQualityPanel } from './LayoutQualityPanel';
+import { useLayoutQuality } from './useLayoutQuality';
+import { C, badgeStyle, chipStyle, hintStyle, labelStyle, panelStyle, primaryButtonStyle, secondaryButtonStyle, softPanelStyle } from './tokens';
+import { PREVIEW_ASPECT_RATIOS } from '../preview/types';
+import { PREVIEW_LAYOUTS } from '../preview/presets';
+import { chooseFinalOutputPath } from '../finalOutput';
+import { ExtraFormatsExport } from './ExtraFormatsExport';
+import { CaptionsPanel } from './CaptionsPanel';
 
 /**
  * Simple Mode step 4 — free Before/After preview, direct on-video overlay
@@ -31,10 +31,10 @@ import { CaptionsPanel } from './CaptionsPanel'
  * implies otherwise. Nothing in the preview itself calls MuAPI or OpenAI.
  */
 /** Title of the preview video produced by "Remove branding", so the original can be offered back. */
-const BRANDING_REMOVED_TITLE = 'Branding removed'
+const BRANDING_REMOVED_TITLE = 'Branding removed';
 
 export function StepPreviewApprove(): React.JSX.Element {
-  const ctx = useDemoPersonalize()
+  const ctx = useDemoPersonalize();
   const {
     source,
     access,
@@ -61,67 +61,67 @@ export function StepPreviewApprove(): React.JSX.Element {
     generation,
     result,
     mode,
-  } = ctx
+  } = ctx;
 
-  const isAnonymous = access !== 'authenticated'
-  const generating = generation?.status === 'generating' || generation?.status === 'processing' || generation?.status === 'personalizing-prompt'
-  const inputProps = buildPreviewInput({ source, previewSettings, previewVideo, clientForm, assets })
-  const quality = useLayoutQuality(inputProps)
+  const isAnonymous = access !== 'authenticated';
+  const generating = generation?.status === 'generating' || generation?.status === 'processing' || generation?.status === 'personalizing-prompt';
+  const inputProps = buildPreviewInput({ source, previewSettings, previewVideo, clientForm, assets });
+  const quality = useLayoutQuality(inputProps);
   // Only a CONFIRMED critical rendering failure blocks the branded render; layout
   // judgments (Needs adjustment / Review required) only warn.
-  const exportBlocked = quality.report.blocksExport
-  const [rightsConfirmed, setRightsConfirmed] = useState(false)
+  const exportBlocked = quality.report.blocksExport;
+  const [rightsConfirmed, setRightsConfirmed] = useState(false);
   // True while "Also export other shapes" renders: the main render shares its renderer, so it waits.
-  const [extraRunning, setExtraRunning] = useState(false)
-  const rightsGate = quality.rightsNeedConfirmation && !rightsConfirmed
+  const [extraRunning, setExtraRunning] = useState(false);
+  const rightsGate = quality.rightsNeedConfirmation && !rightsConfirmed;
   // Overlay-only personalizations render locally; AI modes keep the generation
   // pipeline. The active path is the primary action; the other stays visible
   // (and disabled) so the two operations are never conflated.
-  const finalPath = chooseFinalOutputPath({ personalizationMode: mode || null })
-  const isBrandedPath = finalPath === 'branded-render'
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const [uploadSuccess, setUploadSuccess] = useState(false)
+  const finalPath = chooseFinalOutputPath({ personalizationMode: mode || null });
+  const isBrandedPath = finalPath === 'branded-render';
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   const handleCreate = async () => {
-    if (generating) return
+    if (generating) return;
     try {
-      await createFinalVideo()
+      await createFinalVideo();
     } catch {
       /* generation errors surface through the existing generation state */
     }
-  }
+  };
 
   const handleDownload = () => {
-    if (!result?.url) return
-    const link = document.createElement('a')
-    link.href = result.url
-    link.download = (result.metadata?.fileName as string) || 'personalized-video.mp4'
-    link.rel = 'noopener'
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-  }
+    if (!result?.url) return;
+    const link = document.createElement('a');
+    link.href = result.url;
+    link.download = (result.metadata?.fileName as string) || 'personalized-video.mp4';
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
 
   const handleUpload = async () => {
-    if (!result?.url) return
-    setIsUploading(true)
-    setUploadError(null)
-    setUploadSuccess(false)
+    if (!result?.url) return;
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadSuccess(false);
     try {
-      const response = await fetch(result.url)
-      const blob = await response.blob()
-      const fileName = (result.metadata?.fileName as string) || `personalized-video.${blob.type.replace('video/', '')}`
-      const file = new File([blob], fileName, { type: blob.type })
+      const response = await fetch(result.url);
+      const blob = await response.blob();
+      const fileName = (result.metadata?.fileName as string) || `personalized-video.${blob.type.replace('video/', '')}`;
+      const file = new File([blob], fileName, { type: blob.type });
       // remix: save into the permanent Asset Library the Library page lists.
-      await saveToRemixAssetLibrary(file)
-      setUploadSuccess(true)
+      await saveToRemixAssetLibrary(file);
+      setUploadSuccess(true);
     } catch (error) {
-      setUploadError(error instanceof Error ? error.message : 'Upload failed')
+      setUploadError(error instanceof Error ? error.message : 'Upload failed');
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -195,8 +195,8 @@ export function StepPreviewApprove(): React.JSX.Element {
               max={120}
               value={Math.round(previewSettings.durationInFrames / (previewSettings.fps || 30))}
               onChange={(event) => {
-                const seconds = Math.max(1, Number(event.target.value) || 1)
-                updatePreviewComposition({ durationInFrames: Math.round(seconds * (previewSettings.fps || 30)) })
+                const seconds = Math.max(1, Number(event.target.value) || 1);
+                updatePreviewComposition({ durationInFrames: Math.round(seconds * (previewSettings.fps || 30)) });
               }}
               style={{ ...softPanelStyle, width: '100%', color: C.text, fontSize: 12 }}
             />
@@ -332,9 +332,9 @@ export function StepPreviewApprove(): React.JSX.Element {
                   <button
                     type="button"
                     onClick={() => {
-                      setViewMode('advanced')
-                      setAdvancedSection?.('create', 'output')
-                      setAdvancedTab?.('create')
+                      setViewMode('advanced');
+                      setAdvancedSection?.('create', 'output');
+                      setAdvancedTab?.('create');
                     }}
                     style={{ background: 'none', border: 0, padding: 0, color: C.cyan, fontWeight: 800, cursor: 'pointer', font: 'inherit' }}
                   >
@@ -380,7 +380,7 @@ export function StepPreviewApprove(): React.JSX.Element {
             <ShapeExportPanel
               state={shapeExport}
               disabled={generating || exportBlocked || rightsGate || extraRunning}
-              onStart={() => { void exportAllShapes() }}
+              onStart={() => { void exportAllShapes(); }}
               onCancel={cancelShapeExport}
             />
           </>
@@ -416,5 +416,5 @@ export function StepPreviewApprove(): React.JSX.Element {
         )}
       </div>
     </div>
-  )
+  );
 }

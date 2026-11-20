@@ -33,29 +33,29 @@
  *    from, the second is the canonical project the attribution points at.
  */
 
-import { registerRemotionDesignTemplates } from './registry'
-import type { RemotionDesignTemplate } from './types'
+import { registerRemotionDesignTemplates } from './registry';
+import type { RemotionDesignTemplate } from './types';
 import {
   AnimatedHeadlineDesign,
   LogoRevealDesign,
   LowerThirdDesign,
   PromoCtaDesign,
   VisualEffectDesign,
-} from './designs'
+} from './designs';
 // The Phase 2 batch-1 adapters are imported from their own modules rather
 // than from the `./designs` barrel: the barrel is a shared file, and this
 // lane must not write to a file another lane may be editing at the same time.
 // A11 may add the barrel re-exports once every lane has landed.
-import { BarChartAnimDesign, BAR_CHART_PLACEHOLDER_BARS } from './designs/BarChartAnimDesign'
-import { BrushStrokeRevealDesign } from './designs/BrushStrokeRevealDesign'
-import { ChapterTitleDesign } from './designs/ChapterTitleDesign'
-import { GlitchTextDesign } from './designs/GlitchTextDesign'
-import { LogoBlurRevealDesign } from './designs/LogoBlurRevealDesign'
-import { LogoBounceDropDesign } from './designs/LogoBounceDropDesign'
-import { LogoMaskWipeDesign } from './designs/LogoMaskWipeDesign'
-import { LogoSplitRevealDesign } from './designs/LogoSplitRevealDesign'
-import { StarfieldWarpDesign } from './designs/StarfieldWarpDesign'
-import { TextMaskRevealDesign } from './designs/TextMaskRevealDesign'
+import { BarChartAnimDesign, BAR_CHART_PLACEHOLDER_BARS } from './designs/BarChartAnimDesign';
+import { BrushStrokeRevealDesign } from './designs/BrushStrokeRevealDesign';
+import { ChapterTitleDesign } from './designs/ChapterTitleDesign';
+import { GlitchTextDesign } from './designs/GlitchTextDesign';
+import { LogoBlurRevealDesign } from './designs/LogoBlurRevealDesign';
+import { LogoBounceDropDesign } from './designs/LogoBounceDropDesign';
+import { LogoMaskWipeDesign } from './designs/LogoMaskWipeDesign';
+import { LogoSplitRevealDesign } from './designs/LogoSplitRevealDesign';
+import { StarfieldWarpDesign } from './designs/StarfieldWarpDesign';
+import { TextMaskRevealDesign } from './designs/TextMaskRevealDesign';
 // The Phase 2 batch-2 entries (the React Video Editor templates) come from
 // their own module, which exports ready-to-register entries and registers
 // nothing by itself.
@@ -63,45 +63,45 @@ import {
   RVE_ATTRIBUTION,
   RVE_CATALOG_ENTRIES,
   RVE_LICENSE_NOTICE,
-} from './designs/rveCatalogEntries'
+} from './designs/rveCatalogEntries';
 // Phase 4: the remaining upstream templates, one module per porting batch.
-import { BATCH_3A_FIXED_SVG_IDS, BATCH_3A_TEMPLATES } from './designs/batch3a/entries'
-import { BATCH_3B_FIXED_SVG_IDS, BATCH_3B_TEMPLATES } from './designs/batch3b/entries'
-import { BATCH_3C_FIXED_SVG_IDS, BATCH_3C_TEMPLATES } from './designs/batch3c/entries'
-import { BATCH_3D_FIXED_SVG_IDS, BATCH_3D_TEMPLATES } from './designs/batch3d/entries'
-import { BATCH_3E_FIXED_SVG_IDS, BATCH_3E_TEMPLATES } from './designs/batch3e/entries'
-import { BATCH_3F_FIXED_SVG_IDS, BATCH_3F_TEMPLATES } from './designs/batch3f/entries'
-import { BATCH_3G_FIXED_SVG_IDS, BATCH_3G_TEMPLATES } from './designs/batch3g/entries'
-import { BATCH_3H_FIXED_SVG_IDS, BATCH_3H_TEMPLATES } from './designs/batch3h/entries'
-import { DESIGN_FONT_ALIAS_NOTE, DESIGN_FONT_ATTRIBUTION, DESIGN_FONT_LICENSE_FILE } from './typography'
+import { BATCH_3A_FIXED_SVG_IDS, BATCH_3A_TEMPLATES } from './designs/batch3a/entries';
+import { BATCH_3B_FIXED_SVG_IDS, BATCH_3B_TEMPLATES } from './designs/batch3b/entries';
+import { BATCH_3C_FIXED_SVG_IDS, BATCH_3C_TEMPLATES } from './designs/batch3c/entries';
+import { BATCH_3D_FIXED_SVG_IDS, BATCH_3D_TEMPLATES } from './designs/batch3d/entries';
+import { BATCH_3E_FIXED_SVG_IDS, BATCH_3E_TEMPLATES } from './designs/batch3e/entries';
+import { BATCH_3F_FIXED_SVG_IDS, BATCH_3F_TEMPLATES } from './designs/batch3f/entries';
+import { BATCH_3G_FIXED_SVG_IDS, BATCH_3G_TEMPLATES } from './designs/batch3g/entries';
+import { BATCH_3H_FIXED_SVG_IDS, BATCH_3H_TEMPLATES } from './designs/batch3h/entries';
+import { DESIGN_FONT_ALIAS_NOTE, DESIGN_FONT_ATTRIBUTION, DESIGN_FONT_LICENSE_FILE } from './typography';
 
 // The typeface constants are re-exported from the catalog lane (like the
 // repo-2 notices above), so the product's credits surface can reach every
 // upstream AND typeface notice from ONE module (Phase 3 decision D2).
-export { DESIGN_FONT_ATTRIBUTION, DESIGN_FONT_LICENSE_FILE }
+export { DESIGN_FONT_ATTRIBUTION, DESIGN_FONT_LICENSE_FILE };
 
 // The repo-2 credit constants are re-exported from the catalog lane, so the
 // product's credits surface can reach every upstream's notice from ONE
 // module.
-export { RVE_ATTRIBUTION, RVE_LICENSE_NOTICE }
+export { RVE_ATTRIBUTION, RVE_LICENSE_NOTICE };
 
 /* -------------------------------------------------------------------------- */
 /* Attribution                                                                 */
 /* -------------------------------------------------------------------------- */
 
 /** The upstream repository the templates were copied from. */
-export const REMOTION_DESIGN_REPOSITORY = 'free-remotion-templates'
+export const REMOTION_DESIGN_REPOSITORY = 'free-remotion-templates';
 
 /** The clone the templates were copied from (the upstream's own git remote). */
 export const REMOTION_DESIGN_REPOSITORY_URL =
-  'https://github.com/deangilmoreremix/free-remotion-templates'
+  'https://github.com/deangilmoreremix/free-remotion-templates';
 
 /** The canonical upstream project (the repo's own `package.json → repository`). */
 export const REMOTION_DESIGN_CANONICAL_REPOSITORY_URL =
-  'https://github.com/RenderComp/free-remotion-templates'
+  'https://github.com/RenderComp/free-remotion-templates';
 
 /** The SPDX identifier of the upstream licence. */
-export const REMOTION_DESIGN_LICENSE = 'MIT'
+export const REMOTION_DESIGN_LICENSE = 'MIT';
 
 /**
  * The credit line the product must display.
@@ -110,7 +110,7 @@ export const REMOTION_DESIGN_LICENSE = 'MIT'
  * its `source.attribution`.
  */
 export const REMOTION_DESIGN_ATTRIBUTION =
-  '© 2026 Trimora Inc. — Remotion templates by RenderComp (free-remotion-templates), MIT License. https://github.com/RenderComp/free-remotion-templates'
+  '© 2026 Trimora Inc. — Remotion templates by RenderComp (free-remotion-templates), MIT License. https://github.com/RenderComp/free-remotion-templates';
 
 /**
  * The verbatim MIT permission notice.
@@ -137,7 +137,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.`
+SOFTWARE.`;
 
 /**
  * The credit line shown in the product UI.
@@ -152,17 +152,17 @@ SOFTWARE.`
  * project that uses designs from both repositories has to show both credits.
  */
 export function getRemotionDesignAttributionLine(): string {
-  const lines: string[] = []
+  const lines: string[] = [];
   for (const template of REMOTION_DESIGN_TEMPLATES) {
-    const attribution = template?.source?.attribution?.trim()
-    if (!attribution) continue
-    if (!lines.includes(attribution)) lines.push(attribution)
+    const attribution = template?.source?.attribution?.trim();
+    if (!attribution) continue;
+    if (!lines.includes(attribution)) lines.push(attribution);
   }
   // The typeface attribution (Phase 3 decision D2): every design is set in
   // the bundled Inter subset, so the OFL notice joins the upstream credits.
   // Appended last, after the repository lines.
-  lines.push(DESIGN_FONT_ATTRIBUTION)
-  return lines.join('\n')
+  lines.push(DESIGN_FONT_ATTRIBUTION);
+  return lines.join('\n');
 }
 
 /**
@@ -176,7 +176,7 @@ export function getRemotionDesignLicenseNotice(): string {
   // The typeface notice (Phase 3 decision D2): OFL 1.1 clause 2 requires the
   // licence to accompany every copy of the font, so the credits surface
   // points at the shipped licence file.
-  return `${REMOTION_DESIGN_LICENSE_NOTICE}\n\n${RVE_LICENSE_NOTICE}\n\nTypeface licence: the bundled Inter subset is distributed under the SIL Open Font License 1.1 (Copyright 2016 The Inter Project Authors). The full licence text ships at ${DESIGN_FONT_LICENSE_FILE}. ${DESIGN_FONT_ALIAS_NOTE}`
+  return `${REMOTION_DESIGN_LICENSE_NOTICE}\n\n${RVE_LICENSE_NOTICE}\n\nTypeface licence: the bundled Inter subset is distributed under the SIL Open Font License 1.1 (Copyright 2016 The Inter Project Authors). The full licence text ships at ${DESIGN_FONT_LICENSE_FILE}. ${DESIGN_FONT_ALIAS_NOTE}`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -213,7 +213,7 @@ export const REMOTION_DESIGN_FIXED_SVG_IDS: Record<string, string[]> = {
   ...BATCH_3F_FIXED_SVG_IDS,
   ...BATCH_3G_FIXED_SVG_IDS,
   ...BATCH_3H_FIXED_SVG_IDS,
-}
+};
 
 /**
  * The human-readable warning for a design that uses fixed SVG ids.
@@ -225,14 +225,14 @@ export const REMOTION_DESIGN_FIXED_SVG_IDS: Record<string, string[]> = {
 export function getRemotionDesignFixedSvgIdWarning(
   templateId: string | null | undefined,
 ): string | null {
-  if (!templateId) return null
-  const fixedIds = REMOTION_DESIGN_FIXED_SVG_IDS[templateId]
-  if (!fixedIds || fixedIds.length === 0) return null
-  const idList = fixedIds.map((id) => `"${id}"`).join(', ')
+  if (!templateId) return null;
+  const fixedIds = REMOTION_DESIGN_FIXED_SVG_IDS[templateId];
+  if (!fixedIds || fixedIds.length === 0) return null;
+  const idList = fixedIds.map((id) => `"${id}"`).join(', ');
   return (
     `This design uses fixed SVG ids (${idList}), so only ONE instance of it can appear per composition — ` +
     'a second instance is clipped by the first because the SVG ids collide.'
-  )
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -247,7 +247,7 @@ function upstreamSource(sourcePath: string): RemotionDesignTemplate['source'] {
     sourcePath,
     license: REMOTION_DESIGN_LICENSE,
     attribution: REMOTION_DESIGN_ATTRIBUTION,
-  }
+  };
 }
 
 /**
@@ -288,7 +288,7 @@ export const animatedHeadlineTemplate: RemotionDesignTemplate = {
       'The upstream hardcodes fontSize 130, which the scale-wrapper keeps proportional to the composition.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The logo reveal.
@@ -334,7 +334,7 @@ export const logoRevealTemplate: RemotionDesignTemplate = {
       'design may be mounted per composition (contract addition C7).',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The lower third.
@@ -382,7 +382,7 @@ export const lowerThirdTemplate: RemotionDesignTemplate = {
       'Verify in an exported frame.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The promotional end card.
@@ -433,7 +433,7 @@ export const promoCtaTemplate: RemotionDesignTemplate = {
       'brand accent and its label uses the card colour — pick an accent that contrasts with the primary.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The bokeh particle effect.
@@ -481,7 +481,7 @@ export const visualEffectTemplate: RemotionDesignTemplate = {
       'matrix (error: null).',
   },
   previewCompatible: true,
-}
+};
 
 /* -------------------------------------------------------------------------- */
 /* Phase 2 — batch 1 designs (upstream repo 1)                                */
@@ -541,7 +541,7 @@ export const starfieldWarpTemplate: RemotionDesignTemplate = {
       'quantisation in the exported MP4; the frozen upstream file is unmodified.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The bouncing logo drop.
@@ -586,7 +586,7 @@ export const logoBounceDropTemplate: RemotionDesignTemplate = {
       'computed from the composition width — the upstream default of 240px assumes a 1920px canvas.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The diagonal mask wipe.
@@ -633,7 +633,7 @@ export const logoMaskWipeTemplate: RemotionDesignTemplate = {
       'so use at most one instance of this design per composition.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The split logo reveal.
@@ -675,7 +675,7 @@ export const logoSplitRevealTemplate: RemotionDesignTemplate = {
       'and the upstream clamps the wordmark to the title-safe area itself.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The brush-stroke headline.
@@ -721,7 +721,7 @@ export const brushStrokeRevealTemplate: RemotionDesignTemplate = {
       'and the canvas fill is never left at the upstream default.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The masked text reveal.
@@ -768,7 +768,7 @@ export const textMaskRevealTemplate: RemotionDesignTemplate = {
       'placed at scale 0.7 and the glow stays inside the box.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The glitch headline.
@@ -813,7 +813,7 @@ export const glitchTextTemplate: RemotionDesignTemplate = {
       'repaint the background colour, which is transparent, so they read as transparent tear bands.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The defocusing logo reveal.
@@ -855,7 +855,7 @@ export const logoBlurRevealTemplate: RemotionDesignTemplate = {
       'thing on screen. The display size is computed from the composition width.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The chapter title.
@@ -903,7 +903,7 @@ export const chapterTitleTemplate: RemotionDesignTemplate = {
       'rgba(255,255,255,0.6), which is low contrast over a light video.',
   },
   previewCompatible: true,
-}
+};
 
 /**
  * The animated bar chart.
@@ -955,7 +955,7 @@ export const barChartAnimTemplate: RemotionDesignTemplate = {
       'with the brand accent.',
   },
   previewCompatible: true,
-}
+};
 
 /** The five Phase 1 designs, in registration order. */
 export const REMOTION_DESIGN_PHASE1_TEMPLATES: RemotionDesignTemplate[] = [
@@ -964,7 +964,7 @@ export const REMOTION_DESIGN_PHASE1_TEMPLATES: RemotionDesignTemplate[] = [
   lowerThirdTemplate,
   promoCtaTemplate,
   visualEffectTemplate,
-]
+];
 
 /** The ten Phase 2 batch-1 designs, in registration order. */
 export const REMOTION_DESIGN_BATCH1_TEMPLATES: RemotionDesignTemplate[] = [
@@ -978,7 +978,7 @@ export const REMOTION_DESIGN_BATCH1_TEMPLATES: RemotionDesignTemplate[] = [
   logoBlurRevealTemplate,
   chapterTitleTemplate,
   barChartAnimTemplate,
-]
+];
 
 /**
  * The four Phase 2 batch-2 designs, in registration order.
@@ -989,7 +989,7 @@ export const REMOTION_DESIGN_BATCH1_TEMPLATES: RemotionDesignTemplate[] = [
  */
 export const REMOTION_DESIGN_BATCH2_TEMPLATES: RemotionDesignTemplate[] = [
   ...RVE_CATALOG_ENTRIES,
-]
+];
 
 /** Phase 4: every remaining upstream template, across the porting batches. */
 export const REMOTION_DESIGN_PHASE4_TEMPLATES: RemotionDesignTemplate[] = [
@@ -1001,7 +1001,7 @@ export const REMOTION_DESIGN_PHASE4_TEMPLATES: RemotionDesignTemplate[] = [
   ...BATCH_3F_TEMPLATES,
   ...BATCH_3G_TEMPLATES,
   ...BATCH_3H_TEMPLATES,
-]
+];
 
 /** Every design, in registration order. */
 export const REMOTION_DESIGN_TEMPLATES: RemotionDesignTemplate[] = [
@@ -1009,8 +1009,8 @@ export const REMOTION_DESIGN_TEMPLATES: RemotionDesignTemplate[] = [
   ...REMOTION_DESIGN_BATCH1_TEMPLATES,
   ...REMOTION_DESIGN_BATCH2_TEMPLATES,
   ...REMOTION_DESIGN_PHASE4_TEMPLATES,
-]
+];
 
 // The catalog registers itself on import, so the designs exist before the
 // first preview frame.
-registerRemotionDesignTemplates(REMOTION_DESIGN_TEMPLATES)
+registerRemotionDesignTemplates(REMOTION_DESIGN_TEMPLATES);

@@ -20,10 +20,10 @@
  * of this design in one composition would share it (contract addition C7).
  */
 
-import React from 'react'
-import { CircularProgress } from '../_upstream/rve-circular-progress/CircularProgress'
-import { darkenColor, pickColor, type DesignAdapterProps } from './shared'
-import { RveDesignStage, rveFontSizePx, withAlpha } from './rveSharedDesign'
+import React from 'react';
+import { CircularProgress } from '../_upstream/rve-circular-progress/CircularProgress';
+import { darkenColor, pickColor, type DesignAdapterProps } from './shared';
+import { RveDesignStage, rveFontSizePx, withAlpha } from './rveSharedDesign';
 
 /**
  * The percentage label's size, as a fraction of the composition's short edge.
@@ -32,17 +32,17 @@ import { RveDesignStage, rveFontSizePx, withAlpha } from './rveSharedDesign'
  * font size) — `rem` is not canvas-relative, so the adapter passes a px
  * value instead (contract addition C9).
  */
-const FONT_SIZE_RATIO = 0.06
+const FONT_SIZE_RATIO = 0.06;
 
 /** The unfilled ring's opacity over the video. */
-const TRACK_ALPHA = 0.12
+const TRACK_ALPHA = 0.12;
 
 /** How much darker the gradient's second stop is than the accent. */
-const GRADIENT_DARKEN_FACTOR = 0.45
+const GRADIENT_DARKEN_FACTOR = 0.45;
 
 export const RveCircularProgressDesign: React.FC<DesignAdapterProps> = (props) => {
-  const accent = pickColor([props.colors?.accent, props.colors?.primary], '#3b82f6')
-  const primary = pickColor([props.colors?.primary], '#3b82f6')
+  const accent = pickColor([props.colors?.accent, props.colors?.primary], '#3b82f6');
+  const primary = pickColor([props.colors?.primary], '#3b82f6');
 
   return (
     <RveDesignStage designId="rve-circular-progress" props={props}>
@@ -55,7 +55,7 @@ export const RveCircularProgressDesign: React.FC<DesignAdapterProps> = (props) =
         fontSize={`${rveFontSizePx(props, FONT_SIZE_RATIO)}px`}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveCircularProgressDesign
+export default RveCircularProgressDesign;

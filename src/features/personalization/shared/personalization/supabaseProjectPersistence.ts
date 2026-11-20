@@ -17,7 +17,7 @@
  */
 export function stripSessionScopedUrls(state: PersonalizationProjectState): PersonalizationProjectState {
   const isBlobUrl = (url: string | null | undefined): boolean =>
-    typeof url === 'string' && url.startsWith('blob:')
+    typeof url === 'string' && url.startsWith('blob:');
 
   return {
     ...state,
@@ -55,22 +55,22 @@ export function stripSessionScopedUrls(state: PersonalizationProjectState): Pers
            ...(state.previewSettings.cutout ? { cutout: cutoutForSave(state.previewSettings.cutout) } : {}),
          }
        : state.previewSettings,
-  }
+  };
 }
 
 /** True for an `http(s)://` URL — the only kind that survives a reload. */
 export function isDurableMediaUrl(value: unknown): value is string {
-  return typeof value === 'string' && /^https?:\/\//i.test(value)
+  return typeof value === 'string' && /^https?:\/\//i.test(value);
 }
 
 /** Keeps only `id → http(s) URL` pairs; anything else (blob:, data:, junk) is dropped. */
 export function durableAssetUrls(value: unknown): Record<string, string> {
-  const out: Record<string, string> = {}
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return out
+  const out: Record<string, string> = {};
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return out;
   for (const [id, url] of Object.entries(value as Record<string, unknown>)) {
-    if (id && isDurableMediaUrl(url)) out[id] = url
+    if (id && isDurableMediaUrl(url)) out[id] = url;
   }
-  return out
+  return out;
 }
 
 /**
@@ -83,14 +83,14 @@ export function resolveRestoredAssetUrl(
   id: string,
   assetUrls: Record<string, string> | undefined,
 ): string | null {
-  const saved = assetUrls?.[id]
-  if (isDurableMediaUrl(saved)) return saved
-  return isDurableMediaUrl(id) ? id : null
+  const saved = assetUrls?.[id];
+  if (isDurableMediaUrl(saved)) return saved;
+  return isDurableMediaUrl(id) ? id : null;
 }
 
-import { cutoutForSave } from './preview/cutout/cutoutSettings'
-import type { ClientProfile, AssetLibrary, PersonalizationSource, GenerationOptions, GenerationState, PromptState, OutputType, VideoPersonalizationMode, ImagePersonalizationMode, PersonalizationViewMode } from './types'
-import type { PersonalizationPreviewSettings, PreviewVideoRef } from './preview/types'
+import { cutoutForSave } from './preview/cutout/cutoutSettings';
+import type { ClientProfile, AssetLibrary, PersonalizationSource, GenerationOptions, GenerationState, PromptState, OutputType, VideoPersonalizationMode, ImagePersonalizationMode, PersonalizationViewMode } from './types';
+import type { PersonalizationPreviewSettings, PreviewVideoRef } from './preview/types';
 
 export interface PersonalizationProjectState {
   id?: string
@@ -140,7 +140,7 @@ export interface PersonalizationProjectState {
   outputGeneratedAt?: string
 }
 
-const API_ROUTE = '/api/personalization/project'
+const API_ROUTE = '/api/personalization/project';
 
 export interface ProjectPersistenceOptions {
   /** Delay in ms before persisting after last change (default: 1500) */
@@ -178,41 +178,41 @@ export interface LoadProjectResult {
 type SavedProjectRow = Record<string, unknown>
 
 /** A `personalization_saved_projects.id` is a uuid; anything else is not a row id. */
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function asRecord(value: unknown): SavedProjectRow {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? (value as SavedProjectRow)
-    : {}
+    : {};
 }
 
 function asString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value : null
+  return typeof value === 'string' && value.trim() ? value : null;
 }
 
 /** Accepts `['a','b']` and `[{id:'a'},{id:'b'}]` alike. */
 function toIdList(value: unknown): string[] {
-  if (!Array.isArray(value)) return []
-  const ids: string[] = []
+  if (!Array.isArray(value)) return [];
+  const ids: string[] = [];
   for (const item of value) {
     if (typeof item === 'string') {
-      if (item) ids.push(item)
-      continue
+      if (item) ids.push(item);
+      continue;
     }
-    const id = asString(asRecord(item).id)
-    if (id) ids.push(id)
+    const id = asString(asRecord(item).id);
+    if (id) ids.push(id);
   }
-  return ids
+  return ids;
 }
 
 /** First candidate that is an array wins; empty arrays are skipped. */
 function firstIdList(...candidates: unknown[]): string[] {
   for (const candidate of candidates) {
-    if (!Array.isArray(candidate)) continue
-    const ids = toIdList(candidate)
-    if (ids.length > 0) return ids
+    if (!Array.isArray(candidate)) continue;
+    const ids = toIdList(candidate);
+    if (ids.length > 0) return ids;
   }
-  return []
+  return [];
 }
 
 /**
@@ -220,14 +220,14 @@ function firstIdList(...candidates: unknown[]): string[] {
  * Returns `null` when the row is not an object.
  */
 export function projectStateFromRow(row: unknown): PersonalizationProjectState | null {
-  if (!row || typeof row !== 'object' || Array.isArray(row)) return null
+  if (!row || typeof row !== 'object' || Array.isArray(row)) return null;
 
-  const r = row as SavedProjectRow
-  const source = asRecord(r.source)
-  const client = asRecord(r.client)
-  const assets = asRecord(r.assets)
-  const prompt = asRecord(r.prompt)
-  const generation = asRecord(r.generation)
+  const r = row as SavedProjectRow;
+  const source = asRecord(r.source);
+  const client = asRecord(r.client);
+  const assets = asRecord(r.assets);
+  const prompt = asRecord(r.prompt);
+  const generation = asRecord(r.generation);
 
   // `generation` is this module's envelope when it carries any envelope key,
   // otherwise it is a legacy `GenerationOptions` object.
@@ -240,16 +240,16 @@ export function projectStateFromRow(row: unknown): PersonalizationProjectState |
     'guidedStep',
     'viewMode',
     'layersMissing',
-  ]
-  const isEnvelope = envelopeKeys.some((key) => key in generation)
-  const generationSettings = isEnvelope ? asRecord(generation.settings) : generation
-  const outputUrls = isEnvelope ? generation.outputUrls : undefined
-  const previewSettings = isEnvelope ? generation.previewSettings : undefined
-  const previewVideo = isEnvelope ? generation.previewVideo : undefined
-  const guidedStep = isEnvelope ? generation.guidedStep : undefined
-  const viewMode = isEnvelope ? generation.viewMode : undefined
-  const layersMissing = isEnvelope && generation.layersMissing === true
-  const outputGeneratedAt = isEnvelope && typeof generation.outputGeneratedAt === 'string' ? generation.outputGeneratedAt : ''
+  ];
+  const isEnvelope = envelopeKeys.some((key) => key in generation);
+  const generationSettings = isEnvelope ? asRecord(generation.settings) : generation;
+  const outputUrls = isEnvelope ? generation.outputUrls : undefined;
+  const previewSettings = isEnvelope ? generation.previewSettings : undefined;
+  const previewVideo = isEnvelope ? generation.previewVideo : undefined;
+  const guidedStep = isEnvelope ? generation.guidedStep : undefined;
+  const viewMode = isEnvelope ? generation.viewMode : undefined;
+  const layersMissing = isEnvelope && generation.layersMissing === true;
+  const outputGeneratedAt = isEnvelope && typeof generation.outputGeneratedAt === 'string' ? generation.outputGeneratedAt : '';
 
   return {
     id: asString(r.id) ?? undefined,
@@ -326,7 +326,7 @@ export function projectStateFromRow(row: unknown): PersonalizationProjectState |
     viewMode: viewMode as PersonalizationViewMode | undefined,
     ...(layersMissing ? { layersMissing: true } : {}),
     ...(outputGeneratedAt ? { outputGeneratedAt } : {}),
-  }
+  };
 }
 
 /**
@@ -387,42 +387,42 @@ export function projectRowFromState(state: PersonalizationProjectState): SavedPr
     mode: state.personalizationMode ?? null,
     status: state.status ?? 'idle',
     errorMessage: null,
-  }
+  };
 }
 
 /** The saved row id from a POST response (`project` is a row or a one-row array). */
 function upsertedProjectId(body: unknown): string | null {
-  const project = asRecord(body).project
-  const row = Array.isArray(project) ? project[0] : project
-  const id = asString(asRecord(row).id)
-  return id && UUID_PATTERN.test(id) ? id : null
+  const project = asRecord(body).project;
+  const row = Array.isArray(project) ? project[0] : project;
+  const id = asString(asRecord(row).id);
+  return id && UUID_PATTERN.test(id) ? id : null;
 }
 
 export function createProjectPersistence(opts: ProjectPersistenceOptions = {}) {
-  const debounceMs = opts.debounceMs ?? 1500
-  let timer: ReturnType<typeof setTimeout> | null = null
-  let pendingState: PersonalizationProjectState | null = null
+  const debounceMs = opts.debounceMs ?? 1500;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let pendingState: PersonalizationProjectState | null = null;
   // The row this session writes to. Every save carries it, so autosaves update
   // one row instead of inserting a new row each time (the upsert RPC inserts
   // whenever `p_id` is null). It is set by the restore, adopted from the
   // server's response to the first insert, and reset by `setProjectId` when
   // the modal moves to another source; `epoch` makes a late response from
   // before that reset harmless.
-  let projectId: string | null = null
-  let epoch = 0
+  let projectId: string | null = null;
+  let epoch = 0;
   // Saves run one after another, so a second save cannot race the first
   // insert's response and insert a duplicate row.
-  let queue: Promise<unknown> = Promise.resolve()
+  let queue: Promise<unknown> = Promise.resolve();
 
   function flush(state: PersonalizationProjectState): void {
-    pendingState = null
+    pendingState = null;
     if (timer) {
-      clearTimeout(timer)
-      timer = null
+      clearTimeout(timer);
+      timer = null;
     }
     save(state).catch(() => {
       /* best-effort; do not throw */
-    })
+    });
   }
 
   function save(state: PersonalizationProjectState): Promise<{ ok: boolean; error?: string }> {
@@ -430,21 +430,21 @@ export function createProjectPersistence(opts: ProjectPersistenceOptions = {}) {
     // behind an in-flight one when the modal switches source belongs to the
     // old session and must be dropped, or it would be sent with the new
     // session's row id and overwrite that project.
-    const queuedEpoch = epoch
+    const queuedEpoch = epoch;
     const run = queue.then(() =>
       queuedEpoch === epoch
         ? send(state, queuedEpoch)
         : { ok: false, error: 'Superseded by a newer project session' },
-    )
-    queue = run.catch(() => undefined)
-    return run
+    );
+    queue = run.catch(() => undefined);
+    return run;
   }
 
   function send(
     state: PersonalizationProjectState,
     sentEpoch: number,
   ): Promise<{ ok: boolean; error?: string }> {
-    const sanitized = stripSessionScopedUrls({ ...state, id: state.id || projectId || undefined })
+    const sanitized = stripSessionScopedUrls({ ...state, id: state.id || projectId || undefined });
     // Route the fetch through a promise step so a synchronous throw (e.g. fetch
     // missing after environment teardown) or a non-thenable return (e.g. a mock
     // returning undefined) becomes an ordinary rejected-promise flow handled by
@@ -460,35 +460,35 @@ export function createProjectPersistence(opts: ProjectPersistenceOptions = {}) {
         })
       )
       .then(async (res) => {
-        if (!res) return { ok: false, error: 'No response from server' }
+        if (!res) return { ok: false, error: 'No response from server' };
         if (!res.ok) {
-          const data = await res.json().catch(() => ({}))
-          return { ok: false, error: data?.error || `HTTP ${res.status}` }
+          const data = await res.json().catch(() => ({}));
+          return { ok: false, error: data?.error || `HTTP ${res.status}` };
         }
         if (sentEpoch === epoch && !projectId && typeof res.json === 'function') {
-          const savedId = upsertedProjectId(await res.json().catch(() => null))
-          if (savedId && sentEpoch === epoch) projectId = savedId
+          const savedId = upsertedProjectId(await res.json().catch(() => null));
+          if (savedId && sentEpoch === epoch) projectId = savedId;
         }
-        return { ok: true }
+        return { ok: true };
       })
       .catch((error) => {
-        return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' }
-      })
+        return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      });
   }
 
   return {
     /** Schedule a debounced persist of the given project state */
     persist(state: PersonalizationProjectState): void {
-      pendingState = state
-      if (timer) clearTimeout(timer)
+      pendingState = state;
+      if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
-        if (pendingState) flush(pendingState)
-      }, debounceMs)
+        if (pendingState) flush(pendingState);
+      }, debounceMs);
     },
 
     /** Immediately persist without waiting for debounce */
     flush(state: PersonalizationProjectState): void {
-      flush(state)
+      flush(state);
     },
 
     /**
@@ -496,24 +496,24 @@ export function createProjectPersistence(opts: ProjectPersistenceOptions = {}) {
      * `null`, at a fresh row (a different source, or no saved project yet).
      */
     setProjectId(id: string | null | undefined): void {
-      epoch += 1
-      projectId = id && UUID_PATTERN.test(id) ? id : null
+      epoch += 1;
+      projectId = id && UUID_PATTERN.test(id) ? id : null;
     },
 
     /** The row id saves are currently written to (`null` until the first insert). */
     getProjectId(): string | null {
-      return projectId
+      return projectId;
     },
 
     /** Cancel any pending debounced persist */
     cancel(): void {
       if (timer) {
-        clearTimeout(timer)
-        timer = null
+        clearTimeout(timer);
+        timer = null;
       }
-      pendingState = null
+      pendingState = null;
     },
-  }
+  };
 }
 
 /**
@@ -535,96 +535,96 @@ export function createProjectPersistence(opts: ProjectPersistenceOptions = {}) {
  * loudly in development instead of becoming a silent 400 in production.
  */
 export async function loadProject(opts: LoadProjectOptions = {}): Promise<LoadProjectResult> {
-  const { projectId, sourceId } = opts
+  const { projectId, sourceId } = opts;
 
   // ── Loud guards ────────────────────────────────────────────────────────────
   // An id that is present but blank is a programming error: it must fail
   // loudly in development and must NOT reach the server, because a request
   // without `id`/`list` is answered with `400 MISSING_PROJECT_ID`.
-  const projectIdTrimmed = projectId != null ? String(projectId).trim() : null
-  const sourceIdTrimmed = sourceId != null ? String(sourceId).trim() : null
+  const projectIdTrimmed = projectId != null ? String(projectId).trim() : null;
+  const sourceIdTrimmed = sourceId != null ? String(sourceId).trim() : null;
 
   for (const [label, value] of [
     ['projectId', projectIdTrimmed],
     ['sourceId', sourceIdTrimmed],
   ] as const) {
-    if (value === null) continue
+    if (value === null) continue;
     if (value === '') {
-      const message = `loadProject: ${label} must be a non-empty string`
+      const message = `loadProject: ${label} must be a non-empty string`;
       if (process.env.NODE_ENV !== 'production') {
         // eslint-disable-next-line no-console
-        console.error(message, { [label]: value })
+        console.error(message, { [label]: value });
       }
-      return { ok: false, error: message }
+      return { ok: false, error: message };
     }
   }
 
   // A project id addresses exactly one row; a source id addresses the most
   // recent row for that demo. When both are supplied the project id wins.
-  const effectiveProjectId = projectIdTrimmed || null
-  const effectiveSourceId = effectiveProjectId ? null : sourceIdTrimmed || null
+  const effectiveProjectId = projectIdTrimmed || null;
+  const effectiveSourceId = effectiveProjectId ? null : sourceIdTrimmed || null;
 
   if (!effectiveProjectId && !effectiveSourceId) {
-    const message = 'loadProject: requires a projectId or a sourceId'
+    const message = 'loadProject: requires a projectId or a sourceId';
     if (process.env.NODE_ENV !== 'production') {
       // eslint-disable-next-line no-console
-      console.error(message)
+      console.error(message);
     }
-    return { ok: false, error: message }
+    return { ok: false, error: message };
   }
 
-  const url = new URL('/api/personalization/project', typeof window !== 'undefined' ? window.location.origin : 'http://localhost')
+  const url = new URL('/api/personalization/project', typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
   if (effectiveProjectId) {
-    url.searchParams.set('id', effectiveProjectId)
+    url.searchParams.set('id', effectiveProjectId);
   } else {
     // Source-scoped restore: route must always get a param it reads, or it
     // returns `400 MISSING_PROJECT_ID`. The list RPC's RLS predicate is still
     // the only trust boundary on ownership.
-    url.searchParams.set('list', 'true')
-    url.searchParams.set('sourceId', effectiveSourceId as string)
+    url.searchParams.set('list', 'true');
+    url.searchParams.set('sourceId', effectiveSourceId as string);
   }
 
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 30_000)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
   try {
     const res = await fetch(url.toString(), {
       method: 'GET',
       credentials: 'same-origin',
       signal: controller.signal,
-    })
+    });
 
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
-      if (res.status === 404) return { ok: true, data: undefined }
-      const data = await res.json().catch(() => ({}))
-      return { ok: false, error: data?.error || `HTTP ${res.status}` }
+      if (res.status === 404) return { ok: true, data: undefined };
+      const data = await res.json().catch(() => ({}));
+      return { ok: false, error: data?.error || `HTTP ${res.status}` };
     }
 
-    const payload = await res.json().catch(() => ({}))
+    const payload = await res.json().catch(() => ({}));
     const body = payload as {
       project?: unknown
       projects?: unknown
       data?: unknown
-    }
+    };
 
     // The route answers a single row as `{ project }` and a list as
     // `{ projects }`. `data` is accepted as a legacy alias.
-    let rawEntry: unknown
+    let rawEntry: unknown;
     if (effectiveProjectId) {
-      rawEntry = body.project ?? body.data
+      rawEntry = body.project ?? body.data;
     } else {
       const rows = Array.isArray(body.projects)
         ? body.projects
         : Array.isArray(body.data)
           ? body.data
-          : []
-      rawEntry = rows[0]
+          : [];
+      rawEntry = rows[0];
     }
 
-    const entry = projectStateFromRow(rawEntry)
-    if (!entry) return { ok: true, data: undefined }
+    const entry = projectStateFromRow(rawEntry);
+    if (!entry) return { ok: true, data: undefined };
 
     // When a source was requested the row must belong to that source. A row
     // that carries no source identifier means the server could not filter
@@ -632,24 +632,24 @@ export async function loadProject(opts: LoadProjectOptions = {}): Promise<LoadPr
     // accepted as the caller's most recent project.
     if (effectiveSourceId) {
       if (entry.sourceDemoId && entry.sourceDemoId !== effectiveSourceId) {
-        return { ok: true, data: undefined }
+        return { ok: true, data: undefined };
       }
       if (!entry.sourceDemoId && process.env.NODE_ENV !== 'production') {
         // eslint-disable-next-line no-console
         console.warn(
           'loadProject: the saved project carries no source id — the server could not filter by source',
           { sourceId: effectiveSourceId },
-        )
+        );
       }
     }
 
-    return { ok: true, data: entry }
+    return { ok: true, data: entry };
   } catch (error) {
-    clearTimeout(timeoutId)
+    clearTimeout(timeoutId);
     if (error instanceof Error && error.name === 'AbortError') {
-      return { ok: false, error: 'Request timed out' }
+      return { ok: false, error: 'Request timed out' };
     }
-    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -658,7 +658,7 @@ export async function loadProject(opts: LoadProjectOptions = {}): Promise<LoadPr
 export type SavedProject = PersonalizationProjectState
 
 export async function saveProject(state: PersonalizationProjectState): Promise<{ ok: boolean; error?: string }> {
-  const sanitized = stripSessionScopedUrls(state)
+  const sanitized = stripSessionScopedUrls(state);
   // Same hardening as `save` above: a synchronous throw or non-thenable return
   // from fetch becomes a handled `{ ok: false, error }` result rather than an
   // uncaught exception.
@@ -672,41 +672,41 @@ export async function saveProject(state: PersonalizationProjectState): Promise<{
       })
     )
     .then(async (res) => {
-      if (!res) return { ok: false, error: 'No response from server' }
+      if (!res) return { ok: false, error: 'No response from server' };
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        return { ok: false, error: data?.error || `HTTP ${res.status}` }
+        const data = await res.json().catch(() => ({}));
+        return { ok: false, error: data?.error || `HTTP ${res.status}` };
       }
-      return { ok: true }
+      return { ok: true };
     })
     .catch((error) => {
-      return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' }
-    })
+      return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    });
 }
 
 export async function listProjects(): Promise<PersonalizationProjectState[]> {
-  const url = new URL('/api/personalization/project', typeof window !== 'undefined' ? window.location.origin : 'http://localhost')
+  const url = new URL('/api/personalization/project', typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
   // The route answers a list request with `{ projects }`; `data` is accepted as
   // a legacy alias.
-  url.searchParams.set('list', 'true')
+  url.searchParams.set('list', 'true');
   const res = await fetch(url.toString(), {
     method: 'GET',
     credentials: 'same-origin',
-  })
+  });
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}))
-    throw new Error(data?.error || `HTTP ${res.status}`)
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.error || `HTTP ${res.status}`);
   }
-  const payload = await res.json().catch(() => ({}))
-  const body = payload as { projects?: unknown; data?: unknown }
+  const payload = await res.json().catch(() => ({}));
+  const body = payload as { projects?: unknown; data?: unknown };
   const rows = Array.isArray(body.projects)
     ? body.projects
     : Array.isArray(body.data)
       ? body.data
-      : []
+      : [];
   return rows
     .map((row) => projectStateFromRow(row))
-    .filter((state): state is PersonalizationProjectState => state !== null)
+    .filter((state): state is PersonalizationProjectState => state !== null);
 }
 
 export async function deleteProject(projectId: string): Promise<{ ok: boolean; error?: string }> {
@@ -714,24 +714,24 @@ export async function deleteProject(projectId: string): Promise<{ ok: boolean; e
   // must fail locally and must NOT reach the server, because a request whose
   // only param is a blank `id` is answered with `400 MISSING_PROJECT_ID`
   // (the route's falsy check treats an empty param as absent).
-  const trimmed = typeof projectId === 'string' ? projectId.trim() : ''
+  const trimmed = typeof projectId === 'string' ? projectId.trim() : '';
   if (!trimmed) {
-    const message = 'deleteProject: projectId must be a non-empty string'
+    const message = 'deleteProject: projectId must be a non-empty string';
     if (process.env.NODE_ENV !== 'production') {
       // eslint-disable-next-line no-console
-      console.error(message)
+      console.error(message);
     }
-    return { ok: false, error: message }
+    return { ok: false, error: message };
   }
-  const url = new URL('/api/personalization/project', typeof window !== 'undefined' ? window.location.origin : 'http://localhost')
-  url.searchParams.set('id', trimmed)
+  const url = new URL('/api/personalization/project', typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+  url.searchParams.set('id', trimmed);
   const res = await fetch(url.toString(), {
     method: 'DELETE',
     credentials: 'same-origin',
-  })
+  });
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}))
-    return { ok: false, error: data?.error || `HTTP ${res.status}` }
+    const data = await res.json().catch(() => ({}));
+    return { ok: false, error: data?.error || `HTTP ${res.status}` };
   }
-  return { ok: true }
+  return { ok: true };
 }

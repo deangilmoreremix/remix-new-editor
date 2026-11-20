@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import React, { useMemo } from 'react'
-import { Copy } from 'lucide-react'
-import type { CopyState } from '../types'
-import { PlatformCopyTabs } from '../copy/PlatformCopyTabs'
+import React, { useMemo } from 'react';
+import { Copy } from 'lucide-react';
+import type { CopyState } from '../types';
+import { PlatformCopyTabs } from '../copy/PlatformCopyTabs';
 
 const PLATFORMS = [
   { id: 'master', label: 'Master' },
@@ -15,23 +15,23 @@ const PLATFORMS = [
   { id: 'pinterest', label: 'Pinterest' },
   { id: 'threads', label: 'Threads' },
   { id: 'x', label: 'X' },
-]
+];
 
 export interface CopyPreviewCardProps {
   copy: CopyState
 }
 
 export default function CopyPreviewCard({ copy }: CopyPreviewCardProps) {
-  const [active, setActive] = React.useState('master')
+  const [active, setActive] = React.useState('master');
 
   const currentText = useMemo(() => {
-    if (active === 'master') return copy.master
-    const pc = copy.platforms[active]
-    if (!pc) return ''
-    return pc.caption || pc.title || pc.description || ''
-  }, [active, copy])
+    if (active === 'master') return copy.master;
+    const pc = copy.platforms[active];
+    if (!pc) return '';
+    return pc.caption || pc.title || pc.description || '';
+  }, [active, copy]);
 
-  const charCount = currentText.length
+  const charCount = currentText.length;
 
   return (
     <div
@@ -83,5 +83,5 @@ export default function CopyPreviewCard({ copy }: CopyPreviewCardProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

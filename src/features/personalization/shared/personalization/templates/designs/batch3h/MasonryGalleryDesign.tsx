@@ -10,10 +10,10 @@
  * Portrait formats use two columns of three blocks.
  */
 
-import React from 'react'
-import { MasonryGallery } from '../../_upstream/rve-masonry-gallery/MasonryGallery'
-import { slotText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { MasonryGallery } from '../../_upstream/rve-masonry-gallery/MasonryGallery';
+import { slotText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   BrandMediaFill,
   brandGradients,
@@ -24,7 +24,7 @@ import {
   fitLine,
   isPortrait,
   sceneBackground,
-} from './media'
+} from './media';
 
 /** The upstream's three-column layout (column, height, delay). */
 const LANDSCAPE_LAYOUT = [
@@ -34,7 +34,7 @@ const LANDSCAPE_LAYOUT = [
   { col: 1, height: '40%', delay: 9 },
   { col: 2, height: '40%', delay: 5 },
   { col: 2, height: '55%', delay: 11 },
-]
+];
 
 /** Two columns of three for 9:16 / 4:5. */
 const PORTRAIT_LAYOUT = [
@@ -44,25 +44,25 @@ const PORTRAIT_LAYOUT = [
   { col: 1, height: '36%', delay: 3 },
   { col: 1, height: '26%', delay: 8 },
   { col: 1, height: '32%', delay: 12 },
-]
+];
 
 export const RveMasonryGalleryDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const portrait = isPortrait(props)
-  const layout = portrait ? PORTRAIT_LAYOUT : LANDSCAPE_LAYOUT
-  const columnCount = portrait ? 2 : 3
-  const gap = Math.round(16 * k)
+  const k = canvasScale(props);
+  const portrait = isPortrait(props);
+  const layout = portrait ? PORTRAIT_LAYOUT : LANDSCAPE_LAYOUT;
+  const columnCount = portrait ? 2 : 3;
+  const gap = Math.round(16 * k);
 
-  const gradients = brandGradients(props)
-  const slots = cycleImages(brandImages(props), layout.length)
-  const { text: textColor } = brandPalette(props)
+  const gradients = brandGradients(props);
+  const slots = cycleImages(brandImages(props), layout.length);
+  const { text: textColor } = brandPalette(props);
 
-  const colWidth = (props.width * 0.9 - gap * (columnCount - 1)) / columnCount
-  const labelPx = Math.round(40 * k)
-  const label = fitLine(slotText(props, 'businessName', ['headline']), colWidth * 0.85, labelPx, 32)
+  const colWidth = (props.width * 0.9 - gap * (columnCount - 1)) / columnCount;
+  const labelPx = Math.round(40 * k);
+  const label = fitLine(slotText(props, 'businessName', ['headline']), colWidth * 0.85, labelPx, 32);
   // The placeholder name sits on the tallest block of the middle column
   // (landscape) / the first block (portrait).
-  const labelIndex = portrait ? 0 : 2
+  const labelIndex = portrait ? 0 : 2;
 
   const blocks = layout.map((item, i) => ({
     ...item,
@@ -77,7 +77,7 @@ export const RveMasonryGalleryDesign: React.FC<DesignAdapterProps> = (props) => 
         showLabel={i === labelIndex}
       />
     ),
-  }))
+  }));
 
   return (
     <RveDesignStage designId="rve-masonry-gallery" props={props}>
@@ -90,7 +90,7 @@ export const RveMasonryGalleryDesign: React.FC<DesignAdapterProps> = (props) => 
         borderRadius={`${Math.round(14 * k)}px`}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveMasonryGalleryDesign
+export default RveMasonryGalleryDesign;

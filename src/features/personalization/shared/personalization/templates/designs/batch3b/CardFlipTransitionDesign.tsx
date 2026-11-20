@@ -18,17 +18,17 @@
  * word boundaries, so the name is fitted to the canvas width (two lines max).
  */
 
-import React from 'react'
-import { CardFlipTransition } from '../../_upstream/card-flip-transition/CardFlipTransition'
-import { DesignStage, TRANSPARENT, pickColor, slotText, type DesignAdapterProps } from '../shared'
-import { charsPerLine, fitWords } from './shared'
+import React from 'react';
+import { CardFlipTransition } from '../../_upstream/card-flip-transition/CardFlipTransition';
+import { DesignStage, TRANSPARENT, pickColor, slotText, type DesignAdapterProps } from '../shared';
+import { charsPerLine, fitWords } from './shared';
 
-export const CARD_FLIP_END_FRAME = 75
-const LABEL_FONT_SIZE = 180
+export const CARD_FLIP_END_FRAME = 75;
+const LABEL_FONT_SIZE = 180;
 
 export const CardFlipTransitionDesign: React.FC<DesignAdapterProps> = (props) => {
-  const perLine = charsPerLine(props.width, LABEL_FONT_SIZE, { letterSpacing: 6 })
-  const label = fitWords(slotText(props, 'businessName', ['headline']), perLine, 2)
+  const perLine = charsPerLine(props.width, LABEL_FONT_SIZE, { letterSpacing: 6 });
+  const label = fitWords(slotText(props, 'businessName', ['headline']), perLine, 2);
 
   return (
     <DesignStage designId="card-flip-transition" props={props}>
@@ -41,7 +41,7 @@ export const CardFlipTransitionDesign: React.FC<DesignAdapterProps> = (props) =>
         backdropColor={TRANSPARENT}
       />
     </DesignStage>
-  )
-}
+  );
+};
 
-export default CardFlipTransitionDesign
+export default CardFlipTransitionDesign;

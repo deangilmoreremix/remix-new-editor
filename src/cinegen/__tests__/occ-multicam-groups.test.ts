@@ -5,8 +5,10 @@ import { clipEndTime, type Clip } from '@cinegen/types/timeline';
 
 const clip = (id: string, trackId: string, startTime: number, duration: number, extra: Partial<Clip> = {}): Clip => ({ id, assetId: id, trackId, name: id, startTime, duration, trimStart: 0, trimEnd: 0, speed: 1, opacity: 1, volume: 1, flipH: false, flipV: false, keyframes: [], ...extra });
 const track = (id: string, kind: 'video' | 'audio') => ({ id, name: id, kind, color: '#fff', muted: false, solo: false, locked: false, visible: true, volume: 1 });
-const base = (): MulticamTimeline => ({ id: 't', name: 't', tracks: [track('V1', 'video'), track('V2', 'video'), track('A1', 'audio'), track('A2', 'audio')], markers: [], transitions: [], duration: 20,
-  clips: [clip('camA', 'V1', 0, 20, { linkedClipIds: ['audA'] }), clip('audA', 'A1', 0, 20, { linkedClipIds: ['camA'] }), clip('camB', 'V2', 0, 20, { linkedClipIds: ['audB'] }), clip('audB', 'A2', 0, 20, { linkedClipIds: ['camB'] })] } as never);
+const base = (): MulticamTimeline => ({
+ id: 't', name: 't', tracks: [track('V1', 'video'), track('V2', 'video'), track('A1', 'audio'), track('A2', 'audio')], markers: [], transitions: [], duration: 20,
+  clips: [clip('camA', 'V1', 0, 20, { linkedClipIds: ['audA'] }), clip('audA', 'A1', 0, 20, { linkedClipIds: ['camA'] }), clip('camB', 'V2', 0, 20, { linkedClipIds: ['audB'] }), clip('audB', 'A2', 0, 20, { linkedClipIds: ['camB'] })] 
+} as never);
 const segs = (tl: MulticamTimeline, trackId: string) => tl.clips.filter((c) => c.trackId === trackId).sort((a, b) => a.startTime - b.startTime).map((c) => [Math.round(c.startTime * 100) / 100, Math.round(clipEndTime(c) * 100) / 100, Math.round(c.trimStart * 100) / 100]);
 
 describe('multicam groups', () => {

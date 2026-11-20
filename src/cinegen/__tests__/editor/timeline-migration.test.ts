@@ -52,9 +52,11 @@ describe('migrateSequenceToTimelines', () => {
       sequence: {
         id: 'seq-1',
         tracks: [
-          { id: 't1', name: 'Track 1', clips: [
+          {
+ id: 't1', name: 'Track 1', clips: [
             { id: 'c1', assetId: 'audio-asset', trackId: 't1', name: 'Music', startTime: 0, duration: 5, trimStart: 0, trimEnd: 0 },
-          ]},
+          ]
+},
         ],
         duration: 5,
       },

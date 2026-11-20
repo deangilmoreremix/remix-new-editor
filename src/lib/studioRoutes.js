@@ -165,21 +165,26 @@ export function getGroupedStudioRoutes() {
 // rename, reorder or retire a studio in the navigation; the top bar and the
 // studio pages no longer carry their own menus.
 export const NAV_GROUPS = [
-  { title: '', items: [
+  {
+ title: '', items: [
     { id: 'apps', label: 'Apps' },
     { id: 'explore', label: 'Explore' },
     { id: 'templates', label: 'Templates' },
     { id: 'academy', label: 'Academy' },
-  ] },
-  { title: 'Image', items: [
+  ] 
+},
+  {
+ title: 'Image', items: [
     { id: 'image', label: 'Image' },
     { id: 'edit', label: 'Edit' },
     { id: 'upscale', label: 'Upscale' },
     { id: 'character', label: 'Character' },
     { id: 'commercial', label: 'Product Shot' },
     { id: 'brand', label: 'Brand' },
-  ] },
-  { title: 'Video', items: [
+  ] 
+},
+  {
+ title: 'Video', items: [
     { id: 'video', label: 'Video' },
     { id: 'cinema', label: 'Cinema' },
     { id: 'cinema-template', label: 'Cinema Templates' },
@@ -191,8 +196,10 @@ export const NAV_GROUPS = [
     { id: 'videotools', label: 'Video Tools' },
     { id: 'avatar', label: 'Avatar' },
     { id: 'audio', label: 'Audio' },
-  ] },
-  { title: 'Agents', items: [
+  ] 
+},
+  {
+ title: 'Agents', items: [
     { id: 'video-agent', label: 'Video Agent' },
     { id: 'zackd', label: 'Zack D' },
     { id: 'director', label: 'Director' },
@@ -202,11 +209,14 @@ export const NAV_GROUPS = [
     { id: 'personalizer', label: 'Personalizer' },
     { id: 'video-pages', label: 'Video Pages' },
     { id: 'website-builder', label: 'Website' },
-  ] },
-  { title: 'My Work', items: [
+  ] 
+},
+  {
+ title: 'My Work', items: [
     { id: 'library', label: 'Library' },
     { id: 'content-library', label: 'Content' },
-  ] },
+  ] 
+},
 ];
 
 // Routes that are part of a menu entry without being one themselves.

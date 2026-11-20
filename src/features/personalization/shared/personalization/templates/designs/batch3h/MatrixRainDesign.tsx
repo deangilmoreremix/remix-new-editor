@@ -10,15 +10,15 @@
  * composition so every format has the same density.
  */
 
-import React from 'react'
-import { MatrixRain } from '../../_upstream/rve-matrix-rain/MatrixRain'
-import { TRANSPARENT, type DesignAdapterProps } from '../shared'
-import { RveDesignStage, withAlpha } from '../rveSharedDesign'
-import { brandPalette, canvasScale, rgbTriple } from './media'
+import React from 'react';
+import { MatrixRain } from '../../_upstream/rve-matrix-rain/MatrixRain';
+import { TRANSPARENT, type DesignAdapterProps } from '../shared';
+import { RveDesignStage, withAlpha } from '../rveSharedDesign';
+import { brandPalette, canvasScale, rgbTriple } from './media';
 
 export const RveMatrixRainDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const { primary, text } = brandPalette(props)
+  const k = canvasScale(props);
+  const { primary, text } = brandPalette(props);
 
   return (
     <RveDesignStage designId="rve-matrix-rain" props={props}>
@@ -30,7 +30,7 @@ export const RveMatrixRainDesign: React.FC<DesignAdapterProps> = (props) => {
         glow={`0 0 ${Math.max(4, Math.round(8 * k))}px ${withAlpha(primary, 0.9)}`}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveMatrixRainDesign
+export default RveMatrixRainDesign;

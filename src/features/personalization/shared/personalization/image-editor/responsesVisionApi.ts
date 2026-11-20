@@ -2,7 +2,7 @@ import type {
   DiscoveredAssetCategory,
   PersonalizationVisionAnalysis,
   PersonalizationVisionValidation,
-} from '../types'
+} from '../types';
 
 export type VisionAnalyzeInput = {
   id: string
@@ -33,20 +33,20 @@ export async function analyzePersonalizationImages(params: {
       businessContext: params.businessContext,
       targetVideoFormat: params.targetVideoFormat,
     }),
-  })
+  });
 
-  let payload: Record<string, unknown>
+  let payload: Record<string, unknown>;
   try {
-    payload = await response.json()
+    payload = await response.json();
   } catch {
-    if (!response.ok) throw new Error('SmartVideo GO Vision analysis failed')
-    throw new Error('Unable to parse vision analysis response')
+    if (!response.ok) throw new Error('SmartVideo GO Vision analysis failed');
+    throw new Error('Unable to parse vision analysis response');
   }
   if (!response.ok) {
-    throw new Error(typeof payload?.message === 'string' ? payload.message : typeof payload?.error === 'string' ? payload.error : 'SmartVideo GO Vision analysis failed')
+    throw new Error(typeof payload?.message === 'string' ? payload.message : typeof payload?.error === 'string' ? payload.error : 'SmartVideo GO Vision analysis failed');
   }
 
-  return Array.isArray(payload?.analyses) ? payload.analyses : []
+  return Array.isArray(payload?.analyses) ? payload.analyses : [];
 }
 
 export async function validatePersonalizationImageEdit(params: {
@@ -64,20 +64,20 @@ export async function validatePersonalizationImageEdit(params: {
       mode: 'validate',
       ...params,
     }),
-  })
+  });
 
-  let payload: Record<string, unknown>
+  let payload: Record<string, unknown>;
   try {
-    payload = await response.json()
+    payload = await response.json();
   } catch {
-    if (!response.ok) throw new Error('SmartVideo GO Vision validation failed')
-    throw new Error('Unable to parse vision validation response')
+    if (!response.ok) throw new Error('SmartVideo GO Vision validation failed');
+    throw new Error('Unable to parse vision validation response');
   }
   if (!response.ok) {
-    throw new Error(typeof payload?.message === 'string' ? payload.message : typeof payload?.error === 'string' ? payload.error : 'SmartVideo GO Vision validation failed')
+    throw new Error(typeof payload?.message === 'string' ? payload.message : typeof payload?.error === 'string' ? payload.error : 'SmartVideo GO Vision validation failed');
   }
-  if (!payload?.validation) throw new Error('SmartVideo GO Vision returned no validation result.')
-  return payload.validation as PersonalizationVisionValidation
+  if (!payload?.validation) throw new Error('SmartVideo GO Vision returned no validation result.');
+  return payload.validation as PersonalizationVisionValidation;
 }
 
 export type ResponsesSmartEditResult = {
@@ -115,21 +115,21 @@ export async function responsesSmartEdit(params: {
     headers: { 'Content-Type': 'application/json' },
     credentials: 'same-origin',
     body: JSON.stringify(params),
-  })
+  });
 
-  let payload: Record<string, unknown>
+  let payload: Record<string, unknown>;
   try {
-    payload = await response.json()
+    payload = await response.json();
   } catch {
-    if (!response.ok) throw new Error('SmartVideo GO Smart Edit failed')
-    throw new Error('Unable to parse smart edit response')
+    if (!response.ok) throw new Error('SmartVideo GO Smart Edit failed');
+    throw new Error('Unable to parse smart edit response');
   }
   if (!response.ok) {
-    throw new Error(typeof payload?.message === 'string' ? payload.message : typeof payload?.error === 'string' ? payload.error : 'SmartVideo GO Smart Edit failed')
+    throw new Error(typeof payload?.message === 'string' ? payload.message : typeof payload?.error === 'string' ? payload.error : 'SmartVideo GO Smart Edit failed');
   }
-  if (!payload?.imageDataUrl) throw new Error('SmartVideo GO Smart Edit returned no image.')
+  if (!payload?.imageDataUrl) throw new Error('SmartVideo GO Smart Edit returned no image.');
 
-  return payload as ResponsesSmartEditResult
+  return payload as ResponsesSmartEditResult;
 }
 
 export async function responsesSmartEditStream(
@@ -145,69 +145,69 @@ export async function responsesSmartEditStream(
       stream: true,
       partialImages: Math.max(1, Math.min(3, Math.round(params.partialImages || 2))),
     }),
-  })
+  });
 
   if (!response.ok) {
-    let payload: Record<string, unknown>
+    let payload: Record<string, unknown>;
     try {
-      payload = await response.json()
+      payload = await response.json();
     } catch {
-      throw new Error('SmartVideo GO Smart Edit streaming failed')
+      throw new Error('SmartVideo GO Smart Edit streaming failed');
     }
-    throw new Error(typeof payload?.message === 'string' ? payload.message : typeof payload?.error === 'string' ? payload.error : 'SmartVideo GO Smart Edit streaming failed')
+    throw new Error(typeof payload?.message === 'string' ? payload.message : typeof payload?.error === 'string' ? payload.error : 'SmartVideo GO Smart Edit streaming failed');
   }
-  if (!response.body) throw new Error('SmartVideo GO Smart Edit returned no stream.')
+  if (!response.body) throw new Error('SmartVideo GO Smart Edit returned no stream.');
 
   const outputFormat =
-    params.outputFormat === 'jpeg' || params.outputFormat === 'webp' ? params.outputFormat : 'png'
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-  let finalResponse: any = null
+    params.outputFormat === 'jpeg' || params.outputFormat === 'webp' ? params.outputFormat : 'png';
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let finalResponse: any = null;
 
   const readWithTimeout = async (): Promise<{ value?: Uint8Array; done: boolean }> => {
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('SmartVideo GO Smart Edit streaming timed out after 90 seconds')), 90000)
-    })
+      setTimeout(() => reject(new Error('SmartVideo GO Smart Edit streaming timed out after 90 seconds')), 90000);
+    });
     try {
-      return await Promise.race([reader.read(), timeoutPromise])
+      return await Promise.race([reader.read(), timeoutPromise]);
     } catch (err) {
       try {
-        await reader.cancel()
+        await reader.cancel();
       } catch {
         // ignore cancel errors
       }
-      throw err
+      throw err;
     }
-  }
+  };
 
   const handleEvent = (raw: string) => {
     const dataLines = raw
       .split(/\r?\n/)
       .filter((line) => line.startsWith('data:'))
-      .map((line) => line.slice(5).trim())
-    if (!dataLines.length) return
-    const data = dataLines.join('\n')
-    if (!data || data === '[DONE]') return
+      .map((line) => line.slice(5).trim());
+    if (!dataLines.length) return;
+    const data = dataLines.join('\n');
+    if (!data || data === '[DONE]') return;
 
-    let event: any
+    let event: any;
     try {
-      event = JSON.parse(data)
+      event = JSON.parse(data);
     } catch {
-      return
+      return;
     }
 
     if (event?.type === 'response.image_generation_call.partial_image' && event.partial_image_b64) {
       onPartialImage(
         `data:image/${outputFormat};base64,${event.partial_image_b64}`,
         Number(event.partial_image_index) || 0,
-      )
-      return
+      );
+      return;
     }
 
     if (event?.type === 'response.completed' && event.response) {
-      finalResponse = event.response
-      return
+      finalResponse = event.response;
+      return;
     }
 
     if (event?.type === 'error' || event?.type === 'response.failed') {
@@ -215,27 +215,27 @@ export async function responsesSmartEditStream(
         event?.error?.message ||
         event?.response?.error?.message ||
         'SmartVideo GO Smart Edit streaming failed',
-      )
+      );
     }
-  }
+  };
 
   while (true) {
-    const { value, done } = await readWithTimeout()
-    buffer += decoder.decode(value || new Uint8Array(), { stream: !done })
-    if (done) break
-    const events = buffer.split(/\r?\n\r?\n/)
-    buffer = events.pop() || ''
-    for (const raw of events) handleEvent(raw)
+    const { value, done } = await readWithTimeout();
+    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+    if (done) break;
+    const events = buffer.split(/\r?\n\r?\n/);
+    buffer = events.pop() || '';
+    for (const raw of events) handleEvent(raw);
   }
-  buffer += decoder.decode()
-  if (buffer.trim()) handleEvent(buffer)
+  buffer += decoder.decode();
+  if (buffer.trim()) handleEvent(buffer);
 
   const calls = Array.isArray(finalResponse?.output)
     ? finalResponse.output.filter((item: any) => item?.type === 'image_generation_call')
-    : []
-  const call = calls[0]
-  const result = typeof call?.result === 'string' ? call.result : ''
-  if (!result) throw new Error('SmartVideo GO Smart Edit stream returned no final image.')
+    : [];
+  const call = calls[0];
+  const result = typeof call?.result === 'string' ? call.result : '';
+  if (!result) throw new Error('SmartVideo GO Smart Edit stream returned no final image.');
 
   return {
     imageDataUrl: `data:image/${outputFormat};base64,${result}`,
@@ -247,5 +247,5 @@ export async function responsesSmartEditStream(
     usage: finalResponse?.usage,
     outputFormat,
     outputCompression: params.outputCompression ?? null,
-  }
+  };
 }

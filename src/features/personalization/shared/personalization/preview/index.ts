@@ -4,9 +4,9 @@
  * overlays. No paid API is ever called.
  */
 
-export * from './types'
-export * from './presets'
-export * from './PersonalizationComposition'
-export * from './PreviewControls'
-export * from './PersonalizationPlayer'
-export * from './BeforeAfterPreview'
+export * from './types';
+export * from './presets';
+export * from './PersonalizationComposition';
+export * from './PreviewControls';
+export * from './PersonalizationPlayer';
+export * from './BeforeAfterPreview';

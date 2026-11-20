@@ -17,9 +17,9 @@ const readSaved = ():SavedPalette[] => {
     const items:unknown=JSON.parse(localStorage.getItem(savedKey) ?? '[]');
     if(!Array.isArray(items))return [];
     return items.slice(0,50).flatMap(item=>{
-      try{return typeof item?.id==='string' ? [{id:item.id,preset:parsePalette(JSON.stringify(item.preset),THEME_MANIFEST)}] : []}catch{return []}
+      try{return typeof item?.id==='string' ? [{id:item.id,preset:parsePalette(JSON.stringify(item.preset),THEME_MANIFEST)}] : [];}catch{return [];}
     });
-  }catch{return []}
+  }catch{return [];}
 };
 
 const fields = [['page','theme.field.page'],['surface','theme.field.surface'],['text','theme.field.text'],['muted','theme.field.muted'],['accent','theme.field.accent'],['field','theme.field.field'],['border','theme.field.border']] as const;
@@ -58,8 +58,8 @@ export const ThemePanel = () => {
   const fileInput = useRef<HTMLInputElement>(null);
   const colorHistory = useRef<ReturnType<typeof useStore.getState>["past"] | null>(null);
   const persist = (next:SavedPalette[]) => {
-    try{localStorage.setItem(savedKey,JSON.stringify(next));setSaved(next);return true}
-    catch{setMessage(t("theme.saveFailed"));return false}
+    try{localStorage.setItem(savedKey,JSON.stringify(next));setSaved(next);return true;}
+    catch{setMessage(t("theme.saveFailed"));return false;}
   };
   const apply = (preset:PalettePreset) => {
     const s=useStore.getState();s.setPreview(null);s.setProject(applyPalette(s.project,preset));setName(preset.name);setMessage(t("theme.applied", { name: preset.name }));

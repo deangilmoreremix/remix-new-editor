@@ -31,28 +31,28 @@
  *
  * Nothing here registers itself: importing this module has no side effect.
  */
-import type { RemotionDesignTemplate } from '../../types'
-import { RVE_ATTRIBUTION } from '../rveSharedDesign'
-import { RveAreaChartDesign } from './RveAreaChartDesign'
-import { RveChartAnimationDesign } from './RveChartAnimationDesign'
-import { RveComparisonChartDesign } from './RveComparisonChartDesign'
-import { RveCountdownTimerDesign } from './RveCountdownTimerDesign'
-import { RveDonutChartDesign } from './RveDonutChartDesign'
-import { RveGeometricPatternsDesign } from './RveGeometricPatternsDesign'
-import { RveGradientShiftDesign } from './RveGradientShiftDesign'
-import { RveGridPulseDesign } from './RveGridPulseDesign'
-import { RveLineChartDesign } from './RveLineChartDesign'
-import { RvePieChartDesign } from './RvePieChartDesign'
-import { RveProgressBarsDesign } from './RveProgressBarsDesign'
-import { RveProgressStepsDesign } from './RveProgressStepsDesign'
-import { RveSoundWaveDesign } from './RveSoundWaveDesign'
-import { RveStatCounterDesign } from './RveStatCounterDesign'
+import type { RemotionDesignTemplate } from '../../types';
+import { RVE_ATTRIBUTION } from '../rveSharedDesign';
+import { RveAreaChartDesign } from './RveAreaChartDesign';
+import { RveChartAnimationDesign } from './RveChartAnimationDesign';
+import { RveComparisonChartDesign } from './RveComparisonChartDesign';
+import { RveCountdownTimerDesign } from './RveCountdownTimerDesign';
+import { RveDonutChartDesign } from './RveDonutChartDesign';
+import { RveGeometricPatternsDesign } from './RveGeometricPatternsDesign';
+import { RveGradientShiftDesign } from './RveGradientShiftDesign';
+import { RveGridPulseDesign } from './RveGridPulseDesign';
+import { RveLineChartDesign } from './RveLineChartDesign';
+import { RvePieChartDesign } from './RvePieChartDesign';
+import { RveProgressBarsDesign } from './RveProgressBarsDesign';
+import { RveProgressStepsDesign } from './RveProgressStepsDesign';
+import { RveSoundWaveDesign } from './RveSoundWaveDesign';
+import { RveStatCounterDesign } from './RveStatCounterDesign';
 
 /* -------------------------------------------------------------------------- */
 /* Shared                                                                      */
 /* -------------------------------------------------------------------------- */
 
-const RVE_REPOSITORY_URL = 'https://github.com/deangilmoreremix/remotion-templates'
+const RVE_REPOSITORY_URL = 'https://github.com/deangilmoreremix/remotion-templates';
 
 /** Builds the `source` block every repo-2 design carries. */
 function rveSource(slug: string): RemotionDesignTemplate['source'] {
@@ -62,14 +62,14 @@ function rveSource(slug: string): RemotionDesignTemplate['source'] {
     sourcePath: `templates/${slug}.tsx`,
     license: 'MIT',
     attribution: RVE_ATTRIBUTION,
-  }
+  };
 }
 
-const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5']
+const ALL_RATIOS: RemotionDesignTemplate['aspectRatios'] = ['16:9', '9:16', '1:1', '4:5'];
 
 /** Intro-card placement: full frame, no layer entrance, ends at `endFrame`. */
 function introCard(endFrame: number): RemotionDesignTemplate['placement'] {
-  return { x: 0.5, y: 0.5, scale: 1, opacity: 1, animation: 'none', endFrame }
+  return { x: 0.5, y: 0.5, scale: 1, opacity: 1, animation: 'none', endFrame };
 }
 
 const CHART_TITLE_SLOT = {
@@ -78,18 +78,18 @@ const CHART_TITLE_SLOT = {
   label: 'Chart title',
   primary: true,
   maxLength: 44,
-}
+};
 
 const INTRO_NOTE =
   'Data-visualization intro card: the designed backdrop (a deep shade of the brand primary) covers the frame, ' +
-  'then the layer ends at placement.endFrame and the video is revealed. '
+  'then the layer ends at placement.endFrame and the video is revealed. ';
 
 const PLACEHOLDER_NOTE =
   'The customer cannot enter chart data, so the values are a PINNED, generically labelled placeholder ' +
-  'dataset (the upstream demo dataset is never used and no numbers are derived from brand text). '
+  'dataset (the upstream demo dataset is never used and no numbers are derived from brand text). ';
 
 const EXPORT_NOTE =
-  'Renders in the browser export path: inline SVG / CSS only, no external assets, no network fetches. '
+  'Renders in the browser export path: inline SVG / CSS only, no external assets, no network fetches. ';
 
 /* -------------------------------------------------------------------------- */
 /* Data visualization                                                          */
@@ -124,7 +124,7 @@ export const rveAreaChartTemplate: RemotionDesignTemplate = {
       'per composition.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveChartAnimationTemplate: RemotionDesignTemplate = {
   id: 'rve-chart-animation',
@@ -159,7 +159,7 @@ export const rveChartAnimationTemplate: RemotionDesignTemplate = {
       'mounted per composition; if the export rasteriser drops the SVG filter the bars simply lose their soft shadow.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveComparisonChartTemplate: RemotionDesignTemplate = {
   id: 'rve-comparison-chart',
@@ -190,7 +190,7 @@ export const rveComparisonChartTemplate: RemotionDesignTemplate = {
       'No SVG ids.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveDonutChartTemplate: RemotionDesignTemplate = {
   id: 'rve-donut-chart',
@@ -225,7 +225,7 @@ export const rveDonutChartTemplate: RemotionDesignTemplate = {
       'No SVG ids.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveLineChartTemplate: RemotionDesignTemplate = {
   id: 'rve-line-chart',
@@ -256,7 +256,7 @@ export const rveLineChartTemplate: RemotionDesignTemplate = {
       'No SVG ids.',
   },
   previewCompatible: true,
-}
+};
 
 export const rvePieChartTemplate: RemotionDesignTemplate = {
   id: 'rve-pie-chart',
@@ -287,7 +287,7 @@ export const rvePieChartTemplate: RemotionDesignTemplate = {
       'No SVG ids.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveProgressBarsTemplate: RemotionDesignTemplate = {
   id: 'rve-progress-bars',
@@ -318,7 +318,7 @@ export const rveProgressBarsTemplate: RemotionDesignTemplate = {
       'No SVG ids.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveProgressStepsTemplate: RemotionDesignTemplate = {
   id: 'rve-progress-steps',
@@ -350,7 +350,7 @@ export const rveProgressStepsTemplate: RemotionDesignTemplate = {
       'No SVG ids.',
   },
   previewCompatible: true,
-}
+};
 
 /* -------------------------------------------------------------------------- */
 /* Full scene                                                                  */
@@ -387,7 +387,7 @@ export const rveGeometricPatternsTemplate: RemotionDesignTemplate = {
       'external assets.',
   },
   previewCompatible: true,
-}
+};
 
 /* -------------------------------------------------------------------------- */
 /* Overlays                                                                    */
@@ -420,7 +420,7 @@ export const rveSoundWaveTemplate: RemotionDesignTemplate = {
       'removed (non-deterministic in a frame render). Box-shadow glow only; no SVG ids, no external assets.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveGridPulseTemplate: RemotionDesignTemplate = {
   id: 'rve-grid-pulse',
@@ -445,7 +445,7 @@ export const rveGridPulseTemplate: RemotionDesignTemplate = {
       'on 1:1, 4:5 and 9:16. Plain divs only; no SVG ids, no external assets.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveGradientShiftTemplate: RemotionDesignTemplate = {
   id: 'rve-gradient-shift',
@@ -474,7 +474,7 @@ export const rveGradientShiftTemplate: RemotionDesignTemplate = {
       'linear-gradient only; no SVG ids, no external assets.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveCountdownTimerTemplate: RemotionDesignTemplate = {
   id: 'rve-countdown-timer',
@@ -504,7 +504,7 @@ export const rveCountdownTimerTemplate: RemotionDesignTemplate = {
       'clip, the gradient would show as a box, so verify it in the browser export. No SVG ids, no external assets.',
   },
   previewCompatible: true,
-}
+};
 
 export const rveStatCounterTemplate: RemotionDesignTemplate = {
   id: 'rve-stat-counter',
@@ -537,7 +537,7 @@ export const rveStatCounterTemplate: RemotionDesignTemplate = {
       'en-US locale so the export is machine-independent. No SVG ids, no external assets.',
   },
   previewCompatible: true,
-}
+};
 
 /* -------------------------------------------------------------------------- */
 /* Registration lists                                                          */
@@ -559,10 +559,10 @@ export const BATCH_3F_TEMPLATES: RemotionDesignTemplate[] = [
   rveGridPulseTemplate,
   rveGradientShiftTemplate,
   rveGeometricPatternsTemplate,
-]
+];
 
 /** Batch 3f designs that hardcode SVG ids (one instance per composition). */
 export const BATCH_3F_FIXED_SVG_IDS: Record<string, string[]> = {
   'rve-area-chart': ['areaGradient', 'revealClip'],
   'rve-chart-animation': ['shadow'],
-}
+};

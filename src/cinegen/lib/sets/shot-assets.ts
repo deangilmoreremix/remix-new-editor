@@ -9,9 +9,11 @@ export async function prepareShotAssets(result: ShapeShotResult): Promise<Asset[
   for (const file of result.files) {
     const url = await resolveMediaFileUrl(file);
     const localPath = getLocalPathForFile(file);
-    assets.push({ id: generateId(), name: file.name, type: 'image', url, fileSize: file.size,
+    assets.push({
+ id: generateId(), name: file.name, type: 'image', url, fileSize: file.size,
       createdAt: timestamp(), ...(localPath ? { fileRef: localPath } : {}),
-      metadata: { generatedVia: 'set-shot', setId: result.setId } });
+      metadata: { generatedVia: 'set-shot', setId: result.setId } 
+});
   }
   return assets;
 }

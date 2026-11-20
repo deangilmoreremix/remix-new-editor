@@ -37,7 +37,8 @@ export function pluginResourceItems(
         badge: '扩展',
         ...(item.thumb ? { thumb: item.thumb } : {}),
         ...(item.type === 'zoom'
-          ? { data: {
+          ? {
+ data: {
               envelope: item.envelope,
               shape: item.shape,
               magnification: item.magnification ?? 1.5,
@@ -46,7 +47,8 @@ export function pluginResourceItems(
               easeInFrames: item.easeInFrames,
               easeOutFrames: item.easeOutFrames,
               label: item.name,
-            } }
+            } 
+}
           : {}),
       });
     }

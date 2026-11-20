@@ -10,10 +10,10 @@
  * brand-tinted gradient. Portrait formats flip the grid to 2x3.
  */
 
-import React from 'react'
-import { GalleryGrid } from '../../_upstream/rve-gallery-grid/GalleryGrid'
-import { slotText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { GalleryGrid } from '../../_upstream/rve-gallery-grid/GalleryGrid';
+import { slotText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   BrandMediaFill,
   brandGradients,
@@ -24,26 +24,26 @@ import {
   fitLine,
   isPortrait,
   sceneBackground,
-} from './media'
+} from './media';
 
 export const RveGalleryGridDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const portrait = isPortrait(props)
-  const cols = portrait ? 2 : 3
-  const rows = portrait ? 3 : 2
-  const gap = Math.round(16 * k)
-  const padding = Math.round(32 * k)
+  const k = canvasScale(props);
+  const portrait = isPortrait(props);
+  const cols = portrait ? 2 : 3;
+  const rows = portrait ? 3 : 2;
+  const gap = Math.round(16 * k);
+  const padding = Math.round(32 * k);
 
-  const gradients = brandGradients(props)
-  const slots = cycleImages(brandImages(props), 6)
-  const { text: textColor } = brandPalette(props)
+  const gradients = brandGradients(props);
+  const slots = cycleImages(brandImages(props), 6);
+  const { text: textColor } = brandPalette(props);
 
-  const tileWidth = (props.width * 0.9 - gap * (cols - 1)) / cols
-  const labelPx = Math.round(40 * k)
-  const label = fitLine(slotText(props, 'businessName', ['headline']), tileWidth * 0.85, labelPx, 32)
+  const tileWidth = (props.width * 0.9 - gap * (cols - 1)) / cols;
+  const labelPx = Math.round(40 * k);
+  const label = fitLine(slotText(props, 'businessName', ['headline']), tileWidth * 0.85, labelPx, 32);
   // The placeholder name goes on ONE tile (the top-centre one in 3x2, the
   // middle-left one in 2x3) so the grid reads as a designed card, not a list.
-  const labelIndex = portrait ? 2 : 1
+  const labelIndex = portrait ? 2 : 1;
 
   const cells = gradients.map((gradient, i) => ({
     gradient,
@@ -58,7 +58,7 @@ export const RveGalleryGridDesign: React.FC<DesignAdapterProps> = (props) => {
         showLabel={i === labelIndex}
       />
     ),
-  }))
+  }));
 
   return (
     <RveDesignStage designId="rve-gallery-grid" props={props}>
@@ -72,7 +72,7 @@ export const RveGalleryGridDesign: React.FC<DesignAdapterProps> = (props) => {
         borderRadius={`${Math.round(14 * k)}px`}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveGalleryGridDesign
+export default RveGalleryGridDesign;

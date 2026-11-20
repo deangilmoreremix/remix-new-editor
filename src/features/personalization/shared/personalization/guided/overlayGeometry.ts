@@ -42,41 +42,41 @@
  * and keyboard moves always persist in-bounds values).
  */
 
-import { isImageLayerKind, toBox } from '../preview/presets'
-import { isRotated, rotatedExtent } from '../preview/rotation'
-import type { PreviewLayer, PreviewLayerKind } from '../preview/types'
-import type { AssetLibrary, PersonalizationAsset } from '../types'
+import { isImageLayerKind, toBox } from '../preview/presets';
+import { isRotated, rotatedExtent } from '../preview/rotation';
+import type { PreviewLayer, PreviewLayerKind } from '../preview/types';
+import type { AssetLibrary, PersonalizationAsset } from '../types';
 
 /** Inset from the frame edges a layer box may never cross (2% per side). */
-export const SAFE_AREA_MARGIN = 0.02
+export const SAFE_AREA_MARGIN = 0.02;
 
 /** Absolute scale range: a layer never shrinks below 5% or grows past 1.5x. */
-export const MIN_LAYER_SCALE = 0.05
+export const MIN_LAYER_SCALE = 0.05;
 // The render caps a layer at its full default size (presets `toBox`), so the
 // size control stops there too.
-export const MAX_LAYER_SCALE = 1
+export const MAX_LAYER_SCALE = 1;
 
 /** Keyboard nudge steps, as fractions of the composition size. */
-export const NUDGE_STEP = 0.01
-export const NUDGE_STEP_LARGE = 0.05
+export const NUDGE_STEP = 0.01;
+export const NUDGE_STEP_LARGE = 0.05;
 
 /** Line height used by the composition's text boxes. */
-export const TEXT_LINE_HEIGHT = 1.15
+export const TEXT_LINE_HEIGHT = 1.15;
 
 /** Character-width ratio shared with toBox's own width estimate. */
-const APPROX_CHAR_WIDTH_RATIO = 0.55
+const APPROX_CHAR_WIDTH_RATIO = 0.55;
 
 /** Guard rail for pathological text lengths. */
-const MAX_TEXT_LINES = 8
+const MAX_TEXT_LINES = 8;
 
 /** Composition size used when the settings carry no usable dimensions. */
-const FALLBACK_COMPOSITION = { width: 1920, height: 1080 }
+const FALLBACK_COMPOSITION = { width: 1920, height: 1080 };
 
 /** Bisection precision when searching for the largest fitting scale. */
-const FIT_ITERATIONS = 20
+const FIT_ITERATIONS = 20;
 
 /** Half-pixel tolerance, because toBox rounds to whole composition pixels. */
-const FIT_TOLERANCE_PX = 0.5
+const FIT_TOLERANCE_PX = 0.5;
 
 export interface LayerBoxMetrics {
   leftPx: number
@@ -111,24 +111,24 @@ export interface ImageAssetOption {
 }
 
 function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
-  const n = typeof value === 'number' && Number.isFinite(value) ? value : fallback
-  return Math.min(max, Math.max(min, n))
+  const n = typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  return Math.min(max, Math.max(min, n));
 }
 
 /** Mirrors the composition's `settings.width > 0 ? … : videoConfig` fallback. */
 export function resolveCompositionSize(width: number, height: number): { width: number; height: number } {
   const usableWidth =
-    typeof width === 'number' && Number.isFinite(width) && width > 0 ? width : FALLBACK_COMPOSITION.width
+    typeof width === 'number' && Number.isFinite(width) && width > 0 ? width : FALLBACK_COMPOSITION.width;
   const usableHeight =
-    typeof height === 'number' && Number.isFinite(height) && height > 0 ? height : FALLBACK_COMPOSITION.height
-  return { width: usableWidth, height: usableHeight }
+    typeof height === 'number' && Number.isFinite(height) && height > 0 ? height : FALLBACK_COMPOSITION.height;
+  return { width: usableWidth, height: usableHeight };
 }
 
 /** Composition pixels → stage pixels (0 before the stage has been measured). */
 export function stageScaleFactor(stageWidth: number, compW: number): number {
-  if (!Number.isFinite(stageWidth) || stageWidth <= 0) return 0
-  const { width } = resolveCompositionSize(compW, FALLBACK_COMPOSITION.height)
-  return stageWidth / width
+  if (!Number.isFinite(stageWidth) || stageWidth <= 0) return 0;
+  const { width } = resolveCompositionSize(compW, FALLBACK_COMPOSITION.height);
+  return stageWidth / width;
 }
 
 /**
@@ -138,13 +138,13 @@ export function stageScaleFactor(stageWidth: number, compW: number): number {
  * (`min(compW * 0.9, fontSize * chars)`); rounding it first would drop a line.
  */
 export function estimateTextLineCount(text: string, fontSizePx: number, boxWidthPx: number): number {
-  const trimmed = typeof text === 'string' ? text.trim() : ''
-  if (!trimmed || fontSizePx <= 0 || boxWidthPx <= 0) return 1
+  const trimmed = typeof text === 'string' ? text.trim() : '';
+  if (!trimmed || fontSizePx <= 0 || boxWidthPx <= 0) return 1;
   const charsPerLine = Math.max(
     1,
     Math.floor(boxWidthPx / (fontSizePx * APPROX_CHAR_WIDTH_RATIO) + 1e-9),
-  )
-  return Math.min(MAX_TEXT_LINES, Math.max(1, Math.ceil(trimmed.length / charsPerLine)))
+  );
+  return Math.min(MAX_TEXT_LINES, Math.max(1, Math.ceil(trimmed.length / charsPerLine)));
 }
 
 /**
@@ -159,12 +159,12 @@ export function layerBoxMetrics(
   compH: number,
   resolvedText?: string,
 ): LayerBoxMetrics {
-  const { width, height } = resolveCompositionSize(compW, compH)
-  const box = toBox(layer, width, height, resolvedText)
+  const { width, height } = resolveCompositionSize(compW, compH);
+  const box = toBox(layer, width, height, resolvedText);
   if (layer.kind === 'design') {
     // A design owns an explicit box: the video's own shape scaled down, so
     // the design keeps the composition's proportions wherever it sits.
-    const heightPx = box.heightPx ?? height
+    const heightPx = box.heightPx ?? height;
     return {
       leftPx: box.leftPx,
       topPx: box.topPx,
@@ -174,7 +174,7 @@ export function layerBoxMetrics(
       fontSizePx: 0,
       isImage: false,
       isDesign: true,
-    }
+    };
   }
   if (isImageLayerKind(layer.kind)) {
     return {
@@ -186,13 +186,13 @@ export function layerBoxMetrics(
       fontSizePx: 0,
       isImage: true,
       isDesign: false,
-    }
+    };
   }
   // Same width estimate toBox makes, kept unrounded so the wrap count is exact.
-  const drawn = resolvedText ?? layer.text ?? ''
-  const chars = Math.max(4, (drawn.length || 8) * APPROX_CHAR_WIDTH_RATIO)
-  const unroundedWidthPx = Math.min(width * 0.9, box.fontSizePx * chars)
-  const lines = estimateTextLineCount(drawn, box.fontSizePx, unroundedWidthPx)
+  const drawn = resolvedText ?? layer.text ?? '';
+  const chars = Math.max(4, (drawn.length || 8) * APPROX_CHAR_WIDTH_RATIO);
+  const unroundedWidthPx = Math.min(width * 0.9, box.fontSizePx * chars);
+  const lines = estimateTextLineCount(drawn, box.fontSizePx, unroundedWidthPx);
   return {
     leftPx: box.leftPx,
     topPx: box.topPx,
@@ -202,45 +202,45 @@ export function layerBoxMetrics(
     fontSizePx: box.fontSizePx,
     isImage: false,
     isDesign: false,
-  }
+  };
 }
 
 function usableFrame(width: number, height: number): { w: number; h: number } {
   return {
     w: width * (1 - SAFE_AREA_MARGIN * 2),
     h: height * (1 - SAFE_AREA_MARGIN * 2),
-  }
+  };
 }
 
 /** True when a box fits inside the frame's safe area. A rotated layer is judged by its rotated bounding box. */
 export function boxFitsSafeArea(metrics: LayerBoxMetrics, compW: number, compH: number, rotation?: number): boolean {
-  const { width, height } = resolveCompositionSize(compW, compH)
-  const frame = usableFrame(width, height)
-  const ext = isRotated(rotation) ? rotatedExtent(metrics.widthPx, metrics.heightPx, rotation as number) : { w: metrics.widthPx, h: metrics.heightPx }
-  return ext.w <= frame.w + FIT_TOLERANCE_PX && ext.h <= frame.h + FIT_TOLERANCE_PX
+  const { width, height } = resolveCompositionSize(compW, compH);
+  const frame = usableFrame(width, height);
+  const ext = isRotated(rotation) ? rotatedExtent(metrics.widthPx, metrics.heightPx, rotation as number) : { w: metrics.widthPx, h: metrics.heightPx };
+  return ext.w <= frame.w + FIT_TOLERANCE_PX && ext.h <= frame.h + FIT_TOLERANCE_PX;
 }
 
 /** Largest scale inside [MIN_LAYER_SCALE, MAX_LAYER_SCALE] that still fits. */
 export function maxScaleThatFits(layer: PreviewLayer, compW: number, compH: number): number {
-  const { width, height } = resolveCompositionSize(compW, compH)
-  const at = (scale: number) => layerBoxMetrics({ ...layer, scale }, width, height)
-  const fits = (scale: number) => boxFitsSafeArea(at(scale), width, height, layer.rotation)
-  if (fits(MAX_LAYER_SCALE)) return MAX_LAYER_SCALE
-  if (!fits(MIN_LAYER_SCALE)) return MIN_LAYER_SCALE
+  const { width, height } = resolveCompositionSize(compW, compH);
+  const at = (scale: number) => layerBoxMetrics({ ...layer, scale }, width, height);
+  const fits = (scale: number) => boxFitsSafeArea(at(scale), width, height, layer.rotation);
+  if (fits(MAX_LAYER_SCALE)) return MAX_LAYER_SCALE;
+  if (!fits(MIN_LAYER_SCALE)) return MIN_LAYER_SCALE;
 
-  let low = MIN_LAYER_SCALE
-  let high = MAX_LAYER_SCALE
+  let low = MIN_LAYER_SCALE;
+  let high = MAX_LAYER_SCALE;
   for (let step = 0; step < FIT_ITERATIONS; step += 1) {
-    const mid = (low + high) / 2
-    if (fits(mid)) low = mid
-    else high = mid
+    const mid = (low + high) / 2;
+    if (fits(mid)) low = mid;
+    else high = mid;
   }
-  return low
+  return low;
 }
 
 /** Bounds a scale to the absolute range the editor supports. */
 export function clampScale(scale: number): number {
-  return clampNumber(scale, MIN_LAYER_SCALE, MAX_LAYER_SCALE, MIN_LAYER_SCALE)
+  return clampNumber(scale, MIN_LAYER_SCALE, MAX_LAYER_SCALE, MIN_LAYER_SCALE);
 }
 
 /**
@@ -254,41 +254,41 @@ export function clampScale(scale: number): number {
  * layer is centered rather than pushed off screen. Pure: returns a new layer.
  */
 export function clampLayerToBounds(layer: PreviewLayer, compW: number, compH: number): PreviewLayer {
-  const { width, height } = resolveCompositionSize(compW, compH)
-  const scale = Math.min(clampScale(layer.scale), maxScaleThatFits(layer, width, height))
-  const next: PreviewLayer = { ...layer, scale }
-  const metrics = layerBoxMetrics(next, width, height)
+  const { width, height } = resolveCompositionSize(compW, compH);
+  const scale = Math.min(clampScale(layer.scale), maxScaleThatFits(layer, width, height));
+  const next: PreviewLayer = { ...layer, scale };
+  const metrics = layerBoxMetrics(next, width, height);
 
   // A rotated layer is bounded by its rotated bounding box about the center of the drawn box: shift the layer by the
   // smallest amount that brings that box back inside the safe area (centering it on an axis where it cannot fit).
   if (isRotated(layer.rotation)) {
-    const ext = rotatedExtent(metrics.widthPx, metrics.heightPx, layer.rotation as number)
+    const ext = rotatedExtent(metrics.widthPx, metrics.heightPx, layer.rotation as number);
     // The center comes from the layer's own x/y (toBox pre-clamps the DRAWN position, which would hide how far out it is):
     // x is the horizontal center; y anchors the box so that top = y*height - anchorHeight/2.
-    const cx = layer.x * width
-    const cy = layer.y * height - metrics.anchorHeightPx / 2 + metrics.heightPx / 2
-    const mx = width * SAFE_AREA_MARGIN
-    const my = height * SAFE_AREA_MARGIN
+    const cx = layer.x * width;
+    const cy = layer.y * height - metrics.anchorHeightPx / 2 + metrics.heightPx / 2;
+    const mx = width * SAFE_AREA_MARGIN;
+    const my = height * SAFE_AREA_MARGIN;
     const shift = (c: number, extent: number, lo: number, hi: number) =>
-      extent >= hi - lo ? (lo + hi) / 2 - c : c - extent / 2 < lo ? lo + extent / 2 - c : c + extent / 2 > hi ? hi - extent / 2 - c : 0
-    next.x = layer.x + shift(cx, ext.w, mx, width - mx) / width
-    next.y = layer.y + shift(cy, ext.h, my, height - my) / height
-    return next
+      extent >= hi - lo ? (lo + hi) / 2 - c : c - extent / 2 < lo ? lo + extent / 2 - c : c + extent / 2 > hi ? hi - extent / 2 - c : 0;
+    next.x = layer.x + shift(cx, ext.w, mx, width - mx) / width;
+    next.y = layer.y + shift(cy, ext.h, my, height - my) / height;
+    return next;
   }
 
   // Horizontal: left = x * width - widthPx / 2.
-  const halfW = metrics.widthPx / 2 / width
-  const minX = SAFE_AREA_MARGIN + halfW
-  const maxX = 1 - SAFE_AREA_MARGIN - halfW
+  const halfW = metrics.widthPx / 2 / width;
+  const minX = SAFE_AREA_MARGIN + halfW;
+  const maxX = 1 - SAFE_AREA_MARGIN - halfW;
 
   // Vertical: top = y * height - anchorHeightPx / 2, bottom = top + heightPx.
-  const anchor = metrics.anchorHeightPx / 2 / height
-  const minY = SAFE_AREA_MARGIN + anchor
-  const maxY = 1 - SAFE_AREA_MARGIN - (metrics.heightPx / height - anchor)
+  const anchor = metrics.anchorHeightPx / 2 / height;
+  const minY = SAFE_AREA_MARGIN + anchor;
+  const maxY = 1 - SAFE_AREA_MARGIN - (metrics.heightPx / height - anchor);
 
-  next.x = minX <= maxX ? clampNumber(layer.x, minX, maxX, minX) : 0.5
-  next.y = minY <= maxY ? clampNumber(layer.y, minY, maxY, minY) : 0.5
-  return next
+  next.x = minX <= maxX ? clampNumber(layer.x, minX, maxX, minX) : 0.5;
+  next.y = minY <= maxY ? clampNumber(layer.y, minY, maxY, minY) : 0.5;
+  return next;
 }
 
 /** Drag delta (fractions of the stage/frame) applied to a layer, clamped. */
@@ -299,13 +299,13 @@ export function offsetLayer(
   compW: number,
   compH: number,
 ): PreviewLayer {
-  const dx = Number.isFinite(deltaX) ? deltaX : 0
-  const dy = Number.isFinite(deltaY) ? deltaY : 0
+  const dx = Number.isFinite(deltaX) ? deltaX : 0;
+  const dy = Number.isFinite(deltaY) ? deltaY : 0;
   return clampLayerToBounds(
     { ...layer, x: clampNumber(layer.x, 0, 1, 0) + dx, y: clampNumber(layer.y, 0, 1, 0) + dy },
     compW,
     compH,
-  )
+  );
 }
 
 /** Corner-handle resize: applies a new scale, clamped into the safe area. */
@@ -315,7 +315,7 @@ export function scaleLayerTo(
   compW: number,
   compH: number,
 ): PreviewLayer {
-  return clampLayerToBounds({ ...layer, scale: nextScale }, compW, compH)
+  return clampLayerToBounds({ ...layer, scale: nextScale }, compW, compH);
 }
 
 /**
@@ -329,12 +329,12 @@ export function nudgeLayer(
   compW: number,
   compH: number,
 ): PreviewLayer {
-  return offsetLayer(layer, stepX, stepY, compW, compH)
+  return offsetLayer(layer, stepX, stepY, compW, compH);
 }
 
 /** Step size for the next keyboard nudge (Shift → coarse). */
 export function nudgeStep(shiftKey?: boolean): number {
-  return shiftKey ? NUDGE_STEP_LARGE : NUDGE_STEP
+  return shiftKey ? NUDGE_STEP_LARGE : NUDGE_STEP;
 }
 
 /** Arrow key → normalized nudge delta, or null for non-arrow keys. */
@@ -342,18 +342,18 @@ export function nudgeDeltaForKey(
   key: string,
   shiftKey?: boolean,
 ): { dx: number; dy: number } | null {
-  const step = nudgeStep(shiftKey)
+  const step = nudgeStep(shiftKey);
   switch (key) {
     case 'ArrowLeft':
-      return { dx: -step, dy: 0 }
+      return { dx: -step, dy: 0 };
     case 'ArrowRight':
-      return { dx: step, dy: 0 }
+      return { dx: step, dy: 0 };
     case 'ArrowUp':
-      return { dx: 0, dy: -step }
+      return { dx: 0, dy: -step };
     case 'ArrowDown':
-      return { dx: 0, dy: step }
+      return { dx: 0, dy: step };
     default:
-      return null
+      return null;
   }
 }
 
@@ -369,10 +369,10 @@ export function toStageBox(
   stageWidth: number,
   resolvedText?: string,
 ): StageBoxPx {
-  const { width, height } = resolveCompositionSize(compW, compH)
-  const factor = stageScaleFactor(stageWidth, width)
-  const bounded = clampLayerToBounds(layer, width, height)
-  const box = layerBoxMetrics(bounded, width, height, resolvedText)
+  const { width, height } = resolveCompositionSize(compW, compH);
+  const factor = stageScaleFactor(stageWidth, width);
+  const bounded = clampLayerToBounds(layer, width, height);
+  const box = layerBoxMetrics(bounded, width, height, resolvedText);
   return {
     left: box.leftPx * factor,
     top: box.topPx * factor,
@@ -383,31 +383,31 @@ export function toStageBox(
         ? box.heightPx * factor
         : undefined,
     fontSize: box.fontSizePx * factor,
-  }
+  };
 }
 
 // ── Image asset picker ───────────────────────────────────────────────────────
 
 /** Assets the image picker offers for a layer kind. */
 export function assetPoolForKind(kind: PreviewLayerKind, assets?: Partial<AssetLibrary>): PersonalizationAsset[] {
-  const library = assets || {}
-  if (kind === 'logo') return Array.isArray(library.logos) ? library.logos : []
+  const library = assets || {};
+  if (kind === 'logo') return Array.isArray(library.logos) ? library.logos : [];
   if (kind === 'productImage' || kind === 'serviceImage') {
-    return Array.isArray(library.products) ? library.products : []
+    return Array.isArray(library.products) ? library.products : [];
   }
-  return []
+  return [];
 }
 
 /** Best URL for an asset: the uploaded copy wins over the discovered one. */
 export function imageAssetUrl(asset: PersonalizationAsset): string {
-  return (typeof asset?.uploadedUrl === 'string' && asset.uploadedUrl) || asset?.url || ''
+  return (typeof asset?.uploadedUrl === 'string' && asset.uploadedUrl) || asset?.url || '';
 }
 
 /** Label for the option that drops back to the brand fallback image. */
 export function imageAssetDefaultLabel(kind: PreviewLayerKind): string {
-  if (kind === 'logo') return 'Use your logo'
-  if (kind === 'productImage' || kind === 'serviceImage') return 'Use your photo'
-  return 'Use default'
+  if (kind === 'logo') return 'Use your logo';
+  if (kind === 'productImage' || kind === 'serviceImage') return 'Use your photo';
+  return 'Use default';
 }
 
 /**
@@ -425,5 +425,5 @@ export function imageAssetOptions(
     .map((asset, index) => ({
       value: imageAssetUrl(asset),
       label: (typeof asset.name === 'string' && asset.name.trim()) || `${layer.kind} ${index + 1}`,
-    }))
+    }));
 }

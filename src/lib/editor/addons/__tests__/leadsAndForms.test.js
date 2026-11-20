@@ -88,9 +88,13 @@ describe('lead client', () => {
     expect(integrationStatusText('kit', { ok: true, configured: false })).toMatch(/not set up on the server/i);
     expect(integrationStatusText('kit', { ok: true, configured: true, kit: true })).toMatch(/^Kit connected/);
     expect(integrationStatusText('mailerlite', { ok: true, configured: true, mailerlite: false })).toBe('MailerLite not connected yet');
-    const supa = { functions: { invoke: vi.fn()
+    const supa = {
+ functions: {
+ invoke: vi.fn()
       .mockResolvedValueOnce({ data: { ok: true, configured: true, kit: true, mailerlite: false }, error: null })
-      .mockResolvedValueOnce({ data: { ok: false, error: 'Kit rejected that API key' }, error: null }) } };
+      .mockResolvedValueOnce({ data: { ok: false, error: 'Kit rejected that API key' }, error: null }) 
+} 
+};
     expect(await fetchIntegrations(supa)).toEqual({ ok: true, configured: true, kit: true, mailerlite: false });
     expect(await saveIntegration(supa, 'kit', 'bad')).toEqual({ ok: false, error: 'Kit rejected that API key' });
     expect(supa.functions.invoke.mock.calls[1][1].body).toEqual({ action: 'integration-save', provider: 'kit', apiKey: 'bad' });

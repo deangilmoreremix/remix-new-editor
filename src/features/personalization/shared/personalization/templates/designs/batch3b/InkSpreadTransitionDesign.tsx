@@ -22,23 +22,23 @@
  * the design is offered for 16:9 only, and the labels are fitted to two lines.
  */
 
-import React from 'react'
-import { InkSpreadTransition } from '../../_upstream/ink-spread-transition/InkSpreadTransition'
-import { DesignStage, pickColor, slotText, slotValue, type DesignAdapterProps } from '../shared'
-import { FadeOut, charsPerLine, ensureDark, fitWords, hex6, mix } from './shared'
+import React from 'react';
+import { InkSpreadTransition } from '../../_upstream/ink-spread-transition/InkSpreadTransition';
+import { DesignStage, pickColor, slotText, slotValue, type DesignAdapterProps } from '../shared';
+import { FadeOut, charsPerLine, ensureDark, fitWords, hex6, mix } from './shared';
 
-export const INK_FADE_START = 70
-export const INK_END_FRAME = 84
-const LABEL_FONT_SIZE = 220
+export const INK_FADE_START = 70;
+export const INK_END_FRAME = 84;
+const LABEL_FONT_SIZE = 220;
 
 export const InkSpreadTransitionDesign: React.FC<DesignAdapterProps> = (props) => {
-  const primary = hex6(props.colors?.primary, '#f5f1e8')
-  const ink = ensureDark(mix(hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#1a1a1a'), '#000000', 0.7), 0.03)
+  const primary = hex6(props.colors?.primary, '#f5f1e8');
+  const ink = ensureDark(mix(hex6(pickColor([props.colors?.accent, props.colors?.primary]), '#1a1a1a'), '#000000', 0.7), 0.03);
   // The before label uses the widest spacing the after label animates from.
-  const beforePerLine = charsPerLine(props.width, LABEL_FONT_SIZE, { letterSpacing: 16 })
-  const afterPerLine = charsPerLine(props.width, LABEL_FONT_SIZE, { letterSpacing: 34 })
-  const before = fitWords(slotText(props, 'businessName', ['headline']), beforePerLine, 2)
-  const after = fitWords(slotValue(props, 'headline') || slotValue(props, 'offer'), afterPerLine, 2)
+  const beforePerLine = charsPerLine(props.width, LABEL_FONT_SIZE, { letterSpacing: 16 });
+  const afterPerLine = charsPerLine(props.width, LABEL_FONT_SIZE, { letterSpacing: 34 });
+  const before = fitWords(slotText(props, 'businessName', ['headline']), beforePerLine, 2);
+  const after = fitWords(slotValue(props, 'headline') || slotValue(props, 'offer'), afterPerLine, 2);
 
   return (
     <DesignStage designId="ink-spread-transition" props={props}>
@@ -52,7 +52,7 @@ export const InkSpreadTransitionDesign: React.FC<DesignAdapterProps> = (props) =
         />
       </FadeOut>
     </DesignStage>
-  )
-}
+  );
+};
 
-export default InkSpreadTransitionDesign
+export default InkSpreadTransitionDesign;

@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { Sparkles, Loader2 } from 'lucide-react'
+import React from 'react';
+import { Sparkles, Loader2 } from 'lucide-react';
 
 export interface CopyVariantCardsProps {
   variants: Array<{ id: string; label: string; text: string }>
@@ -40,7 +40,7 @@ export function CopyVariantCards({
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {variants.map((variant) => {
-          const isActive = selectedId === variant.id
+          const isActive = selectedId === variant.id;
           return (
             <button
               key={variant.id}
@@ -59,9 +59,9 @@ export function CopyVariantCards({
                 )}
               </p>
             </button>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

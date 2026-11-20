@@ -33,4 +33,4 @@ export const BUSINESS_NICHES: BusinessNiche[] = [
   { key: 'auto-detailing', label: 'Auto Detailing' },
   { key: 'pet-services', label: 'Pet Services' },
   { key: 'professional-services', label: 'Professional Services' },
-]
+];

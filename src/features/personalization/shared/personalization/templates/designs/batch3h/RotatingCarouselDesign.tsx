@@ -13,10 +13,10 @@
  * gradient.
  */
 
-import React from 'react'
-import { RotatingCarousel } from '../../_upstream/rve-rotating-carousel/RotatingCarousel'
-import { darkenColor, slotText, slotValue, type DesignAdapterProps } from '../shared'
-import { RveDesignStage, withAlpha } from '../rveSharedDesign'
+import React from 'react';
+import { RotatingCarousel } from '../../_upstream/rve-rotating-carousel/RotatingCarousel';
+import { darkenColor, slotText, slotValue, type DesignAdapterProps } from '../shared';
+import { RveDesignStage, withAlpha } from '../rveSharedDesign';
 import {
   BrandMediaFill,
   brandImages,
@@ -25,37 +25,37 @@ import {
   cycleImages,
   fitLine,
   sceneBackground,
-} from './media'
+} from './media';
 
 /** How much larger than the upstream cards the adapter draws. */
-const CARD_SCALE = 2
+const CARD_SCALE = 2;
 
 export const RveRotatingCarouselDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = canvasScale(props)
-  const f = CARD_SCALE * k
-  const cardWidth = Math.round(180 * f)
-  const titlePx = Math.round(28.8 * f)
-  const labelPx = Math.round(16 * f)
-  const cardPadding = Math.round(24 * f)
+  const k = canvasScale(props);
+  const f = CARD_SCALE * k;
+  const cardWidth = Math.round(180 * f);
+  const titlePx = Math.round(28.8 * f);
+  const labelPx = Math.round(16 * f);
+  const cardPadding = Math.round(24 * f);
 
-  const { primary, accent, text: textColor } = brandPalette(props)
-  const name = slotText(props, 'businessName', ['headline'])
-  const title = fitLine(name, props.width * 0.9, titlePx, 40)
+  const { primary, accent, text: textColor } = brandPalette(props);
+  const name = slotText(props, 'businessName', ['headline']);
+  const title = fitLine(name, props.width * 0.9, titlePx, 40);
 
   const candidates = ['headline', 'offer', 'cta', 'website']
     .map((key) => slotValue(props, key))
-    .filter(Boolean)
-  const pool = candidates.length > 0 ? candidates : [name]
+    .filter(Boolean);
+  const pool = candidates.length > 0 ? candidates : [name];
   const cards = Array.from({ length: 4 }, (_, i) =>
     // A nowrap label may run into the card's padding, so the fit width is the
     // content box plus one padding.
     fitLine(pool[i % pool.length], cardWidth + cardPadding, labelPx, 24),
-  )
+  );
 
-  const images = brandImages(props)
-  const slots = cycleImages(images, 4)
-  const iconBackground = `linear-gradient(135deg, ${primary}, ${accent})`
-  const iconSize = Math.round((images.length > 0 ? 64 : 48) * f)
+  const images = brandImages(props);
+  const slots = cycleImages(images, 4);
+  const iconBackground = `linear-gradient(135deg, ${primary}, ${accent})`;
+  const iconSize = Math.round((images.length > 0 ? 64 : 48) * f);
 
   return (
     <RveDesignStage designId="rve-rotating-carousel" props={props}>
@@ -96,7 +96,7 @@ export const RveRotatingCarouselDesign: React.FC<DesignAdapterProps> = (props) =
         )}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveRotatingCarouselDesign
+export default RveRotatingCarouselDesign;

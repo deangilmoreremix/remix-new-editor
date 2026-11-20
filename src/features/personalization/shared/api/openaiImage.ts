@@ -4,7 +4,7 @@
  * Docs: https://developers.openai.com/api/docs/guides/image-generation
  */
 
-const BASE = 'https://api.openai.com/v1'
+const BASE = 'https://api.openai.com/v1';
 
 // NOTE: Raw API keys must not be persisted in localStorage.
 // Generation calls are proxied through /api/proxy/openai-image,
@@ -58,17 +58,17 @@ function authHeaders(isFormData = false) {
   if (isFormData) {
     return {} as Record<string, string>;
   }
-  return { 'Content-Type': 'application/json' }
+  return { 'Content-Type': 'application/json' };
 }
 
 // ── Helper: convert b64 to object URL for display ────────────────────────────
 export function b64ToObjectUrl(b64: string, format: ImageFormat = 'png'): string {
-  const byteChars = atob(b64)
-  const byteNums = new Array(byteChars.length)
-  for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i)
-  const byteArray = new Uint8Array(byteNums)
-  const blob = new Blob([byteArray], { type: `image/${format}` })
-  return URL.createObjectURL(blob)
+  const byteChars = atob(b64);
+  const byteNums = new Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+  const byteArray = new Uint8Array(byteNums);
+  const blob = new Blob([byteArray], { type: `image/${format}` });
+  return URL.createObjectURL(blob);
 }
 
 // ── Generate images from text ─────────────────────────────────────────────────
@@ -79,72 +79,72 @@ export async function generateImages(params: GenerateImageParams): Promise<Image
     n: params.n || 1,
     quality: params.quality || 'auto',
     size: params.size || 'auto',
-  }
-  if (params.output_format) body.output_format = params.output_format
-  if (params.output_compression !== undefined) body.output_compression = params.output_compression
-  if (params.moderation) body.moderation = params.moderation
-  if (params.background) body.background = params.background
+  };
+  if (params.output_format) body.output_format = params.output_format;
+  if (params.output_compression !== undefined) body.output_compression = params.output_compression;
+  if (params.moderation) body.moderation = params.moderation;
+  if (params.background) body.background = params.background;
 
   const res = await fetch('/api/proxy/openai-image', {
     method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify(body),
-  })
+  });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    const msg = err?.error?.message || res.statusText
+    const err = await res.json().catch(() => ({}));
+    const msg = err?.error?.message || res.statusText;
     if (err?.error?.code === 'moderation_blocked') {
-      throw new Error('Content moderation blocked this request. Please revise your prompt.')
+      throw new Error('Content moderation blocked this request. Please revise your prompt.');
     }
-    throw new Error(`OpenAI Image API error: ${msg}`)
+    throw new Error(`OpenAI Image API error: ${msg}`);
   }
 
-  const data = await res.json()
-  return data.data as ImageResult[]
+  const data = await res.json();
+  return data.data as ImageResult[];
 }
 
 // ── Edit / inpaint an existing image ─────────────────────────────────────────
 export async function editImage(params: EditImageParams): Promise<ImageResult[]> {
-  const formData = new FormData()
-  formData.append('model', params.model || 'gpt-image-2')
-  formData.append('prompt', params.prompt)
-  formData.append('n', String(params.n || 1))
-  if (params.quality) formData.append('quality', params.quality)
-  if (params.size) formData.append('size', params.size)
-  if (params.output_format) formData.append('output_format', params.output_format)
-  if (params.output_compression !== undefined) formData.append('output_compression', String(params.output_compression))
-  if (params.background) formData.append('background', params.background)
-  if (params.input_fidelity) formData.append('input_fidelity', params.input_fidelity)
+  const formData = new FormData();
+  formData.append('model', params.model || 'gpt-image-2');
+  formData.append('prompt', params.prompt);
+  formData.append('n', String(params.n || 1));
+  if (params.quality) formData.append('quality', params.quality);
+  if (params.size) formData.append('size', params.size);
+  if (params.output_format) formData.append('output_format', params.output_format);
+  if (params.output_compression !== undefined) formData.append('output_compression', String(params.output_compression));
+  if (params.background) formData.append('background', params.background);
+  if (params.input_fidelity) formData.append('input_fidelity', params.input_fidelity);
 
   // Handle image input
   if (typeof params.image === 'string') {
     // base64 data URL — convert to blob
-    const res = await fetch(params.image)
-    const blob = await res.blob()
-    formData.append('image[]', blob, 'image.png')
+    const res = await fetch(params.image);
+    const blob = await res.blob();
+    formData.append('image[]', blob, 'image.png');
   } else {
-    formData.append('image[]', params.image, 'image.png')
+    formData.append('image[]', params.image, 'image.png');
   }
 
   // Optional mask
   if (params.mask) {
-    formData.append('mask', params.mask, 'mask.png')
+    formData.append('mask', params.mask, 'mask.png');
   }
 
   const res = await fetch('/api/proxy/openai-image', {
     method: 'POST',
     headers: authHeaders(true),
     body: formData,
-  })
+  });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err?.error?.message || `Edit API error: ${res.statusText}`)
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `Edit API error: ${res.statusText}`);
   }
 
-  const data = await res.json()
-  return data.data as ImageResult[]
+  const data = await res.json();
+  return data.data as ImageResult[];
 }
 
 // ── Streaming generation (returns async generator of partial images) ──────────
@@ -159,40 +159,40 @@ export async function* generateImageStream(
     size: params.size || 'auto',
     stream: true,
     partial_images: params.partial_images ?? 2,
-  }
-  if (params.output_format) body.output_format = params.output_format
+  };
+  if (params.output_format) body.output_format = params.output_format;
 
   const res = await fetch('/api/proxy/openai-image', {
     method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify({ ...body, _endpoint: 'images/generations' }),
-  })
+  });
 
   if (!res.ok || !res.body) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err?.error?.message || 'Stream failed')
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || 'Stream failed');
   }
 
-  const reader = res.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
 
   while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() || ''
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
     for (const line of lines) {
-      if (!line.startsWith('data: ')) continue
-      const raw = line.slice(6).trim()
-      if (raw === '[DONE]') return
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if (raw === '[DONE]') return;
       try {
-        const event = JSON.parse(raw)
+        const event = JSON.parse(raw);
         if (event.type === 'image_generation.partial_image') {
-          yield { partial: true, index: event.partial_image_index, b64: event.b64_json }
+          yield { partial: true, index: event.partial_image_index, b64: event.b64_json };
         } else if (event.data?.[0]?.b64_json) {
-          yield { partial: false, index: 0, b64: event.data[0].b64_json }
+          yield { partial: false, index: 0, b64: event.data[0].b64_json };
         }
       } catch {}
     }
@@ -203,68 +203,68 @@ export async function* generateImageStream(
 export async function* editImageStream(
   params: EditImageParams & { partial_images?: number }
 ): AsyncGenerator<{ partial: boolean; index: number; b64: string }> {
-  const formData = new FormData()
-  formData.append('model', params.model || 'gpt-image-2')
-  formData.append('prompt', params.prompt)
-  formData.append('n', String(params.n || 1))
-  formData.append('stream', 'true')
-  formData.append('partial_images', String(params.partial_images ?? 2))
-  if (params.quality) formData.append('quality', params.quality)
-  if (params.size) formData.append('size', params.size)
-  if (params.output_format) formData.append('output_format', params.output_format)
-  if (params.output_compression !== undefined) formData.append('output_compression', String(params.output_compression))
-  if (params.background) formData.append('background', params.background)
-  if (params.input_fidelity) formData.append('input_fidelity', params.input_fidelity)
+  const formData = new FormData();
+  formData.append('model', params.model || 'gpt-image-2');
+  formData.append('prompt', params.prompt);
+  formData.append('n', String(params.n || 1));
+  formData.append('stream', 'true');
+  formData.append('partial_images', String(params.partial_images ?? 2));
+  if (params.quality) formData.append('quality', params.quality);
+  if (params.size) formData.append('size', params.size);
+  if (params.output_format) formData.append('output_format', params.output_format);
+  if (params.output_compression !== undefined) formData.append('output_compression', String(params.output_compression));
+  if (params.background) formData.append('background', params.background);
+  if (params.input_fidelity) formData.append('input_fidelity', params.input_fidelity);
 
   // Handle reference image input(s)
   if (typeof params.image === 'string') {
-    const res = await fetch(params.image)
-    const blob = await res.blob()
-    formData.append('image[]', blob, 'image.png')
+    const res = await fetch(params.image);
+    const blob = await res.blob();
+    formData.append('image[]', blob, 'image.png');
   } else {
-    formData.append('image[]', params.image, 'image.png')
+    formData.append('image[]', params.image, 'image.png');
   }
 
   // Optional mask
   if (params.mask) {
-    formData.append('mask', params.mask, 'mask.png')
+    formData.append('mask', params.mask, 'mask.png');
   }
 
   const res = await fetch('/api/proxy/openai-image', {
     method: 'POST',
     headers: authHeaders(true),
     body: formData,
-  })
+  });
 
   if (!res.ok || !res.body) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err?.error?.message || 'Edit stream failed')
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || 'Edit stream failed');
   }
 
-  const reader = res.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
 
   while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() || ''
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
 
     for (const line of lines) {
-      if (!line.startsWith('data: ')) continue
-      const raw = line.slice(6).trim()
-      if (raw === '[DONE]') return
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if (raw === '[DONE]') return;
       try {
-        const event = JSON.parse(raw)
+        const event = JSON.parse(raw);
         if (event.type === 'image_edit.partial_image') {
-          yield { partial: true, index: event.partial_image_index, b64: event.b64_json }
+          yield { partial: true, index: event.partial_image_index, b64: event.b64_json };
         } else if (event.type === 'image_edit.completed') {
-          yield { partial: false, index: 0, b64: event.b64_json }
+          yield { partial: false, index: 0, b64: event.b64_json };
         } else if (event.data?.[0]?.b64_json) {
           // Fallback for non-event final payloads
-          yield { partial: false, index: 0, b64: event.data[0].b64_json }
+          yield { partial: false, index: 0, b64: event.data[0].b64_json };
         }
       } catch {}
     }
@@ -288,29 +288,29 @@ export async function generateWithResponses(params: {
       ...(params.quality && { quality: params.quality }),
       ...(params.size && { size: params.size }),
     }],
-  }
-  if (params.previousResponseId) body.previous_response_id = params.previousResponseId
+  };
+  if (params.previousResponseId) body.previous_response_id = params.previousResponseId;
 
   const res = await fetch('/api/proxy/openai-image', {
     method: 'POST',
     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...body, _endpoint: 'responses' }),
-  })
+  });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err?.error?.message || 'Responses API error')
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || 'Responses API error');
   }
 
-  const data = await res.json()
-  const imageCall = data.output?.find((o: any) => o.type === 'image_generation_call')
-  if (!imageCall) throw new Error('No image generated')
+  const data = await res.json();
+  const imageCall = data.output?.find((o: any) => o.type === 'image_generation_call');
+  if (!imageCall) throw new Error('No image generated');
 
   return {
     b64: imageCall.result,
     revisedPrompt: imageCall.revised_prompt,
     responseId: data.id,
-  }
+  };
 }
 
 // ── Thumbnail-specific size presets ──────────────────────────────────────────
@@ -322,4 +322,4 @@ export const THUMBNAIL_SIZES: Record<string, { size: ImageSize; label: string; d
   '4:3':   { size: '1280x960',  label: '4:3',   description: 'Classic format (1280×960)' },
   '2k':    { size: '2048x1152', label: '2K',    description: '2K landscape (2048×1152)' },
   '4k':    { size: '3840x2160', label: '4K',    description: '4K landscape (experimental)' },
-}
+};

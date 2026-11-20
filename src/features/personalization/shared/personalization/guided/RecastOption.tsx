@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useDemoPersonalize } from '../DemoPersonalizeProvider'
-import { FullBodyRecastSection } from '../advanced/FullBodyRecastPanel'
-import { C, badgeStyle, hintStyle, panelStyle } from './tokens'
+import { useDemoPersonalize } from '../DemoPersonalizeProvider';
+import { FullBodyRecastSection } from '../advanced/FullBodyRecastPanel';
+import { C, badgeStyle, hintStyle, panelStyle } from './tokens';
 
 /**
  * Optional Full Body Recast inside Simple Mode, right after a video is chosen. It is the SAME recast
@@ -12,10 +12,10 @@ import { C, badgeStyle, hintStyle, panelStyle } from './tokens'
  * after (template, overlays, preview, browser render) is free.
  */
 export function RecastOption(): React.JSX.Element | null {
-  const { source, previewVideo, recastJob } = useDemoPersonalize()
-  if (!source) return null
-  const usingRecast = previewVideo?.kind === 'recast'
-  const running = recastJob?.status === 'running'
+  const { source, previewVideo, recastJob } = useDemoPersonalize();
+  if (!source) return null;
+  const usingRecast = previewVideo?.kind === 'recast';
+  const running = recastJob?.status === 'running';
   return (
     <div data-testid="guided-recast-option" style={{ ...panelStyle }}>
       <details open={usingRecast || running || undefined}>
@@ -38,5 +38,5 @@ export function RecastOption(): React.JSX.Element | null {
         )}
       </div>
     </div>
-  )
+  );
 }

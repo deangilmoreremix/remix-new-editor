@@ -13,28 +13,28 @@
  * to the icon.
  */
 
-import React from 'react'
-import { LogoTypewriter } from '../../_upstream/rve-logo-typewriter/LogoTypewriter'
-import { DESIGN_FONT_STACK } from '../fonts'
-import { TRANSPARENT, slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
-import { britoFitChars } from './britoShared'
-import { rveLogoBrand, rvePx, rveRemPx, rveLogoScale } from './rveLogoShared'
+import React from 'react';
+import { LogoTypewriter } from '../../_upstream/rve-logo-typewriter/LogoTypewriter';
+import { DESIGN_FONT_STACK } from '../fonts';
+import { TRANSPARENT, slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
+import { britoFitChars } from './britoShared';
+import { rveLogoBrand, rvePx, rveRemPx, rveLogoScale } from './rveLogoShared';
 
-export const RVE_LOGO_TYPEWRITER_ID = 'rve-logo-typewriter'
+export const RVE_LOGO_TYPEWRITER_ID = 'rve-logo-typewriter';
 
 /** Hard ceiling; at 0.15 chars/frame, 24 characters type out in 160 frames. */
-const MAX_WORDMARK_LENGTH = 24
+const MAX_WORDMARK_LENGTH = 24;
 
 export const RveLogoTypewriterDesign: React.FC<DesignAdapterProps> = (props) => {
-  const brand = rveLogoBrand(props)
-  const k = rveLogoScale(props)
-  const fontSizePx = 32 * k
-  const room = props.width * 0.88 - (50 + 16) * k
+  const brand = rveLogoBrand(props);
+  const k = rveLogoScale(props);
+  const fontSizePx = 32 * k;
+  const room = props.width * 0.88 - (50 + 16) * k;
   const wordmark = truncateText(
     slotText(props, 'wordmark', ['businessName']).toUpperCase(),
     britoFitChars(room, fontSizePx, MAX_WORDMARK_LENGTH, 0.74),
-  )
+  );
   return (
     <RveDesignStage designId={RVE_LOGO_TYPEWRITER_ID} props={props}>
       <LogoTypewriter
@@ -51,7 +51,7 @@ export const RveLogoTypewriterDesign: React.FC<DesignAdapterProps> = (props) => 
         cursorMarginLeft={rvePx(props, 2)}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveLogoTypewriterDesign
+export default RveLogoTypewriterDesign;

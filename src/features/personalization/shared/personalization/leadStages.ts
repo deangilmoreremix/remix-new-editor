@@ -24,12 +24,12 @@ export const LEAD_STAGES = [
   'Responded',
   'Converted',
   'Not Interested',
-] as const
+] as const;
 
 export type LeadStage = (typeof LEAD_STAGES)[number]
 
 /** Stage a lead is created with. Mirrors the column default in SQL. */
-export const DEFAULT_LEAD_STAGE: LeadStage = 'New'
+export const DEFAULT_LEAD_STAGE: LeadStage = 'New';
 
 /**
  * Exact, case-sensitive membership test. Stage values are persisted verbatim
@@ -40,7 +40,7 @@ export function isLeadStage(value: unknown): value is LeadStage {
   return (
     typeof value === 'string' &&
     (LEAD_STAGES as readonly string[]).includes(value)
-  )
+  );
 }
 
 /**
@@ -58,8 +58,8 @@ const LEAD_STAGE_LABELS: Record<LeadStage, string> = {
   Responded: 'Responded',
   Converted: 'Converted',
   'Not Interested': 'Not Interested',
-}
+};
 
 export function leadStageLabel(stage: LeadStage): string {
-  return LEAD_STAGE_LABELS[stage] ?? stage
+  return LEAD_STAGE_LABELS[stage] ?? stage;
 }

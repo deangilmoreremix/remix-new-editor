@@ -1,5 +1,5 @@
-import React from 'react'
-import { collageTiles } from './imagePresets'
+import React from 'react';
+import { collageTiles } from './imagePresets';
 import {
   borderPx,
   borderRadiusCss,
@@ -9,7 +9,7 @@ import {
   hexToRgba,
   shadowCss,
   type ImageStyle,
-} from './imageStyle'
+} from './imageStyle';
 
 export interface StyledImageProps {
   src: string
@@ -43,19 +43,19 @@ export interface StyledBusinessImageProps {
 
 const PlainImg: React.FC<StyledImageProps> = ({ src, alt = '', style }) => (
   <img src={src} alt={alt} style={style} draggable={false} />
-)
+);
 
 /** Heart doodle + sparkles (inline SVG, strokes only so it survives any renderer). */
 const HeartDoodle: React.FC<{ size: number }> = ({ size }) => (
   <svg data-styled-image="heart" width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block' }}>
     <path d="M12 20.5C6 16 3 12.6 3 9a4.5 4.5 0 0 1 9-1.2A4.5 4.5 0 0 1 21 9c0 3.6-3 7-9 11.5Z" fill="none" stroke="#ff5a7a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
-)
+);
 const Sparkle: React.FC<{ size: number }> = ({ size }) => (
   <svg data-styled-image="sparkle" width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block' }}>
     <path d="M12 1v22M1 12h22M5 5l14 14M19 5L5 19" fill="none" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" style={{ filter: "drop-shadow(0 0 2px rgba(0,0,0,0.6))" }} />
   </svg>
-)
+);
 
 /**
  * A business image drawn as a polished overlay.
@@ -72,12 +72,12 @@ const Sparkle: React.FC<{ size: number }> = ({ size }) => (
 export const StyledBusinessImage: React.FC<StyledBusinessImageProps> = ({
   src, imageStyle, boxWidth, boxHeight, compHeight, compShort, factor = 1, brand, aspect, ImageComponent = PlainImg, testId, revealProgress = 1, revealScale = 1,
 }) => {
-  const frame = frameRect(imageStyle, boxWidth, boxHeight, aspect)
-  const comp = { short: compShort ?? compHeight, factor }
-  const radius = borderRadiusCss(imageStyle, frame, comp)
-  const border = borderPx(imageStyle, compHeight, factor)
-  const shadow = shadowCss(imageStyle, compHeight, factor)
-  const plain = imageStyle.shape === 'square' && !border && !shadow && !imageStyle.fill
+  const frame = frameRect(imageStyle, boxWidth, boxHeight, aspect);
+  const comp = { short: compShort ?? compHeight, factor };
+  const radius = borderRadiusCss(imageStyle, frame, comp);
+  const border = borderPx(imageStyle, compHeight, factor);
+  const shadow = shadowCss(imageStyle, compHeight, factor);
+  const plain = imageStyle.shape === 'square' && !border && !shadow && !imageStyle.fill;
 
   const image = (
     <ImageComponent
@@ -90,43 +90,43 @@ export const StyledBusinessImage: React.FC<StyledBusinessImageProps> = ({
         display: 'block',
       }}
     />
-  )
+  );
 
-  const reveal = imageStyle.reveal
-  const hasPreset = imageStyle.spotlight || imageStyle.frame === 'polaroid' || imageStyle.mask === 'soft' || !!reveal || !!imageStyle.tilt || !!imageStyle.badge
+  const reveal = imageStyle.reveal;
+  const hasPreset = imageStyle.spotlight || imageStyle.frame === 'polaroid' || imageStyle.mask === 'soft' || !!reveal || !!imageStyle.tilt || !!imageStyle.badge;
 
   if (hasPreset) {
-    const short = Math.min(frame.width, frame.height)
-    const polaroid = imageStyle.frame === 'polaroid'
-    const pad = polaroid ? Math.round(short * 0.05) : 0
-    const padBottom = polaroid ? Math.round(short * 0.17) : 0
-    const outer = { left: frame.left - pad, top: frame.top - pad, width: frame.width + 2 * pad, height: frame.height + pad + padBottom }
-    const outerRadius = polaroid ? `${Math.round(short * 0.02)}px` : radius
-    const soft = imageStyle.mask === 'soft'
-    const mask = soft ? 'radial-gradient(ellipse at center, #000 38%, rgba(0,0,0,0) 98%)' : undefined
-    const wipe = reveal === 'wipe'
-    const diagonal = reveal === 'diagonal'
+    const short = Math.min(frame.width, frame.height);
+    const polaroid = imageStyle.frame === 'polaroid';
+    const pad = polaroid ? Math.round(short * 0.05) : 0;
+    const padBottom = polaroid ? Math.round(short * 0.17) : 0;
+    const outer = { left: frame.left - pad, top: frame.top - pad, width: frame.width + 2 * pad, height: frame.height + pad + padBottom };
+    const outerRadius = polaroid ? `${Math.round(short * 0.02)}px` : radius;
+    const soft = imageStyle.mask === 'soft';
+    const mask = soft ? 'radial-gradient(ellipse at center, #000 38%, rgba(0,0,0,0) 98%)' : undefined;
+    const wipe = reveal === 'wipe';
+    const diagonal = reveal === 'diagonal';
     // Diagonal wipe: the edge slants by SKEW % and travels from 0 to 100 + SKEW; clip-path polygon, frame-driven.
-    const SKEW = 22
-    const edgeTop = revealProgress * (100 + SKEW)
-    const edgeBottom = edgeTop - SKEW
-    const clamp100 = (v: number) => Math.max(0, Math.min(100, v))
+    const SKEW = 22;
+    const edgeTop = revealProgress * (100 + SKEW);
+    const edgeBottom = edgeTop - SKEW;
+    const clamp100 = (v: number) => Math.max(0, Math.min(100, v));
     const clip = wipe
       ? `inset(0 ${Math.round((1 - revealProgress) * 100)}% 0 0)`
       : diagonal && revealProgress < 1
         ? `polygon(0% 0%, ${clamp100(edgeTop).toFixed(2)}% 0%, ${clamp100(edgeBottom).toFixed(2)}% 100%, 0% 100%)`
-        : undefined
+        : undefined;
     const streak = diagonal && revealProgress > 0.001 && revealProgress < 0.999
       ? `polygon(${clamp100(edgeTop - 5).toFixed(2)}% 0%, ${clamp100(edgeTop).toFixed(2)}% 0%, ${clamp100(edgeBottom).toFixed(2)}% 100%, ${clamp100(edgeBottom - 5).toFixed(2)}% 100%)`
-      : null
+      : null;
     const transforms = [
       imageStyle.tilt ? `rotate(${imageStyle.tilt}deg)` : '',
       revealScale !== 1 ? `scale(${revealScale})` : '',
-    ].filter(Boolean).join(' ')
+    ].filter(Boolean).join(' ');
     // A soft mask feathers the edge, so the glow follows the visible silhouette (drop-shadow is alpha-aware).
-    const glowFilter = soft && imageStyle.glow ? `drop-shadow(0 0 ${Math.round(short * 0.06)}px ${hexToRgba(imageStyle.glow, 0.7)})` : undefined
-    const outerShadow = soft ? undefined : shadow
-    const badgeSize = Math.max(10, Math.round(short * 0.075))
+    const glowFilter = soft && imageStyle.glow ? `drop-shadow(0 0 ${Math.round(short * 0.06)}px ${hexToRgba(imageStyle.glow, 0.7)})` : undefined;
+    const outerShadow = soft ? undefined : shadow;
+    const badgeSize = Math.max(10, Math.round(short * 0.075));
     return (
       <div data-styled-image="preset" data-preset={imageStyle.presetId} data-testid={testId} style={{ position: 'absolute', inset: 0 }}>
         {imageStyle.spotlight && (
@@ -208,7 +208,7 @@ export const StyledBusinessImage: React.FC<StyledBusinessImageProps> = ({
           )}
         </div>
       </div>
-    )
+    );
   }
 
   if (plain) {
@@ -216,7 +216,7 @@ export const StyledBusinessImage: React.FC<StyledBusinessImageProps> = ({
       <div data-styled-image="plain" data-testid={testId} style={{ position: 'absolute', left: frame.left, top: frame.top, width: frame.width, height: frame.height }}>
         {image}
       </div>
-    )
+    );
   }
 
   return (
@@ -249,8 +249,8 @@ export const StyledBusinessImage: React.FC<StyledBusinessImageProps> = ({
         {image}
       </div>
     </div>
-  )
-}
+  );
+};
 
 
 /**
@@ -269,41 +269,41 @@ export const ImageCollage: React.FC<{
   ImageComponent?: React.ComponentType<StyledImageProps>
   testId?: string
 }> = ({ urls, imageStyle, boxWidth, boxHeight, compHeight, compShort, factor = 1, brand, ImageComponent = PlainImg, testId }) => {
-  const tiles = collageTiles(urls.length)
-  const border = borderPx(imageStyle, compHeight, factor)
-  const shadow = shadowCss(imageStyle, compHeight, factor)
-  const comp = { short: compShort ?? compHeight, factor }
+  const tiles = collageTiles(urls.length);
+  const border = borderPx(imageStyle, compHeight, factor);
+  const shadow = shadowCss(imageStyle, compHeight, factor);
+  const comp = { short: compShort ?? compHeight, factor };
   return (
     <div data-styled-image="collage" data-count={tiles.length} data-testid={testId} style={{ position: 'absolute', inset: 0 }}>
       {tiles.map((t, i) => {
-        const w = t.w * boxWidth
-        const h = t.h * boxHeight
-        const radius = borderRadiusCss(imageStyle, { width: w, height: h }, comp)
+        const w = t.w * boxWidth;
+        const h = t.h * boxHeight;
+        const radius = borderRadiusCss(imageStyle, { width: w, height: h }, comp);
         return (
           <div key={i} data-styled-image="tile" style={{ position: 'absolute', left: t.x * boxWidth, top: t.y * boxHeight, width: w, height: h, borderRadius: radius, boxShadow: shadow }}>
             <div style={{ width: '100%', height: '100%', borderRadius: radius, overflow: 'hidden', boxSizing: 'border-box', border: border ? `${border}px solid ${resolveBorderColor(imageStyle.borderColor, brand)}` : undefined }}>
               <ImageComponent src={urls[i]} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: objectPosition(imageStyle), display: 'block' }} />
             </div>
           </div>
-        )
+        );
       })}
     </div>
-  )
-}
+  );
+};
 
 /** Polygon (px) of a split panel with a diagonal divider, in composition coordinates. */
 export function splitPanelPolygon(side: 'left' | 'right' | 'top' | 'bottom', w: number, h: number): { points: [number, number][]; line: [[number, number], [number, number]] } {
-  const horizontal = side === 'left' || side === 'right'
-  const s = (horizontal ? w : h) * 0.06 // the divider leans by 2s over the frame
-  const cx = w / 2
-  const cy = h / 2
-  let points: [number, number][]
-  let line: [[number, number], [number, number]]
-  if (side === 'right') { points = [[cx + s, 0], [w, 0], [w, h], [cx - s, h]]; line = [[cx + s, 0], [cx - s, h]] }
-  else if (side === 'left') { points = [[0, 0], [cx + s, 0], [cx - s, h], [0, h]]; line = [[cx + s, 0], [cx - s, h]] }
-  else if (side === 'bottom') { points = [[0, cy + s], [w, cy - s], [w, h], [0, h]]; line = [[0, cy + s], [w, cy - s]] }
-  else { points = [[0, 0], [w, 0], [w, cy - s], [0, cy + s]]; line = [[0, cy + s], [w, cy - s]] }
-  return { points, line }
+  const horizontal = side === 'left' || side === 'right';
+  const s = (horizontal ? w : h) * 0.06; // the divider leans by 2s over the frame
+  const cx = w / 2;
+  const cy = h / 2;
+  let points: [number, number][];
+  let line: [[number, number], [number, number]];
+  if (side === 'right') { points = [[cx + s, 0], [w, 0], [w, h], [cx - s, h]]; line = [[cx + s, 0], [cx - s, h]]; }
+  else if (side === 'left') { points = [[0, 0], [cx + s, 0], [cx - s, h], [0, h]]; line = [[cx + s, 0], [cx - s, h]]; }
+  else if (side === 'bottom') { points = [[0, cy + s], [w, cy - s], [w, h], [0, h]]; line = [[0, cy + s], [w, cy - s]]; }
+  else { points = [[0, 0], [w, 0], [w, cy - s], [0, cy + s]]; line = [[0, cy + s], [w, cy - s]]; }
+  return { points, line };
 }
 
 /**
@@ -320,12 +320,12 @@ export const SplitPanel: React.FC<{
   ImageComponent?: React.ComponentType<StyledImageProps>
   testId?: string
 }> = ({ src, side, imageStyle, compWidth, compHeight, ImageComponent = PlainImg, testId }) => {
-  const { points, line } = splitPanelPolygon(side, compWidth, compHeight)
-  const poly = `polygon(${points.map(([x, y]) => `${x.toFixed(2)}px ${y.toFixed(2)}px`).join(', ')})`
-  const [[x1, y1], [x2, y2]] = line
-  const len = Math.hypot(x2 - x1, y2 - y1)
-  const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI
-  const thick = Math.max(2, Math.round(compHeight * 0.003))
+  const { points, line } = splitPanelPolygon(side, compWidth, compHeight);
+  const poly = `polygon(${points.map(([x, y]) => `${x.toFixed(2)}px ${y.toFixed(2)}px`).join(', ')})`;
+  const [[x1, y1], [x2, y2]] = line;
+  const len = Math.hypot(x2 - x1, y2 - y1);
+  const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
+  const thick = Math.max(2, Math.round(compHeight * 0.003));
   return (
     <div data-styled-image="split" data-side={side} data-testid={testId} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
       <div
@@ -345,5 +345,5 @@ export const SplitPanel: React.FC<{
         }}
       />
     </div>
-  )
-}
+  );
+};

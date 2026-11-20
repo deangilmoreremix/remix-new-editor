@@ -26,7 +26,7 @@ const CHIP_PROMPTS: Record<string, string> = {
   'professional': 'Make this look more professional and polished, corporate-grade quality, refined aesthetic.',
   'negative-space': 'Add much more negative space, minimalist layout, subject smaller and off-center.',
   'similar': 'Generate a variation similar to this image, keeping the same style and composition.',
-}
+};
 
 export interface ThumbnailRefinementProps {
   sourceImageUrl: string | null
@@ -44,23 +44,23 @@ export default function ThumbnailRefinement({
   onResults,
   onError,
 }: ThumbnailRefinementProps) {
-  const [refinementPrompt, setRefinementPrompt] = useState('')
-  const [selectedChip, setSelectedChip] = useState<string | null>(null)
-  const [refining, setRefining] = useState(false)
-  const [refineError, setRefineError] = useState<string | null>(null)
+  const [refinementPrompt, setRefinementPrompt] = useState('');
+  const [selectedChip, setSelectedChip] = useState<string | null>(null);
+  const [refining, setRefining] = useState(false);
+  const [refineError, setRefineError] = useState<string | null>(null);
 
   const handleChipClick = useCallback((chipId: string) => {
-    setSelectedChip(prev => prev === chipId ? null : chipId)
+    setSelectedChip(prev => prev === chipId ? null : chipId);
     if (chipId !== selectedChip) {
-      setRefinementPrompt(CHIP_PROMPTS[chipId] || '')
+      setRefinementPrompt(CHIP_PROMPTS[chipId] || '');
     }
-  }, [selectedChip])
+  }, [selectedChip]);
 
   const handleRefine = useCallback(async () => {
-    if (!sourceImageUrl || !refinementPrompt.trim() || refining) return
+    if (!sourceImageUrl || !refinementPrompt.trim() || refining) return;
 
-    setRefining(true)
-    setRefineError(null)
+    setRefining(true);
+    setRefineError(null);
 
     try {
       const results = await refineThumbnail({
@@ -69,24 +69,24 @@ export default function ThumbnailRefinement({
         aspectRatio,
         n: 1,
         strength: selectedChip === 'similar' ? 0.3 : 0.5,
-      })
-      onResults(results)
-      setSelectedChip(null)
+      });
+      onResults(results);
+      setSelectedChip(null);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Refinement failed'
-      setRefineError(message)
-      onError?.(message)
+      const message = err instanceof Error ? err.message : 'Refinement failed';
+      setRefineError(message);
+      onError?.(message);
     } finally {
-      setRefining(false)
+      setRefining(false);
     }
-  }, [sourceImageUrl, refinementPrompt, aspectRatio, refining, selectedChip, onResults, onError])
+  }, [sourceImageUrl, refinementPrompt, aspectRatio, refining, selectedChip, onResults, onError]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleRefine()
+      e.preventDefault();
+      handleRefine();
     }
-  }
+  };
 
   if (!sourceImageUrl) {
     return (
@@ -94,7 +94,7 @@ export default function ThumbnailRefinement({
         <Wand2 size={16} className="mx-auto mb-2 opacity-50" />
         Generate a thumbnail first to enable refinement.
       </div>
-    )
+    );
   }
 
   return (
@@ -109,7 +109,7 @@ export default function ThumbnailRefinement({
       {/* Quick chips */}
       <div className="flex flex-wrap gap-1.5" role="group" aria-label="Quick refinement options">
         {QUICK_CHIPS.map(chip => {
-          const isActive = selectedChip === chip.id
+          const isActive = selectedChip === chip.id;
           return (
             <button
               key={chip.id}
@@ -126,7 +126,7 @@ export default function ThumbnailRefinement({
             >
               {chip.label}
             </button>
-          )
+          );
         })}
       </div>
 
@@ -169,5 +169,5 @@ export default function ThumbnailRefinement({
         Uses image-to-image generation. Results replace the current selection.
       </p>
     </div>
-  )
+  );
 }

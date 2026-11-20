@@ -77,13 +77,13 @@
  * and the raw media dimensions are always exposed on `entry.media`.
  */
 
-import type { DemoCategory, VideoDemo } from './types'
-import { DEMO_CATEGORIES as CANONICAL_CATEGORY_IDS } from './types'
-import { MINIMAX_H3_DEMOS } from './minimaxH3Demos'
-import { SEEDANCE_25_DEMOS } from './seedance25Demos'
+import type { DemoCategory, VideoDemo } from './types';
+import { DEMO_CATEGORIES as CANONICAL_CATEGORY_IDS } from './types';
+import { MINIMAX_H3_DEMOS } from './minimaxH3Demos';
+import { SEEDANCE_25_DEMOS } from './seedance25Demos';
 // The Template videos library (also shown in the timeline editor): hosted, reviewed and labeled No logo / Has logo.
 // @ts-expect-error plain JS data module
-import { templateVideos as TEMPLATE_LIBRARY } from '../../../data/templateVideoLibrary.js'
+import { templateVideos as TEMPLATE_LIBRARY } from '../../../data/templateVideoLibrary.js';
 
 // ---------------------------------------------------------------------------
 // Collections
@@ -94,7 +94,7 @@ export const DEMO_COLLECTION_IDS = [
   'minimax-h3',
   'seedance-25',
   'template-library',
-] as const
+] as const;
 
 export type DemoCollectionId = (typeof DEMO_COLLECTION_IDS)[number]
 
@@ -160,7 +160,7 @@ export const EXCLUDED_DEMO_COLLECTIONS: readonly ExcludedDemoCollection[] = [
     reason:
       'NOT entitlement-gated — the exclusion is a remote-only-delivery exclusion. The AI Viral Studio serves its video content from remote CDN URLs (`cdn.seedance2prompt.com`) via `app/api/go-ai-viral/seedance/route.ts` and `src/data/seedance_prompts.json`; its source catalog `src/data/seedance2PromptDemos.ts` holds 2419 entries, every one of them a remote URL and none of them a local file. Nothing is served from `public/media/`, so none of it can be registered as a local demo.',
   },
-]
+];
 
 // ---------------------------------------------------------------------------
 // Categories
@@ -186,10 +186,10 @@ export const DEMO_CATEGORIES: readonly DemoCategoryDescriptor[] = [
   { id: 'Fashion', label: 'Fashion' },
   { id: 'Social', label: 'Social' },
   { id: 'UGC', label: 'UGC' },
-]
+];
 
 /** The plain canonical category id list (same ids as `src/data/types.ts`). */
-export const DEMO_CATEGORY_IDS: readonly DemoCategory[] = CANONICAL_CATEGORY_IDS
+export const DEMO_CATEGORY_IDS: readonly DemoCategory[] = CANONICAL_CATEGORY_IDS;
 
 // ---------------------------------------------------------------------------
 // Probed media facts (verification allowlist + fallback metadata)
@@ -289,7 +289,7 @@ export const DEMO_MEDIA_FACTS: Readonly<Record<string, DemoMediaFacts>> = {
   '/media/seedance-25/videos/video-ed330e25450df86c.webm': { width: 960, height: 720, durationSeconds: 30.12 },
   '/media/seedance-25/videos/video-f2fc1e8469fd757a.webm': { width: 1280, height: 720, durationSeconds: 30.12 },
   '/media/seedance-25/videos/video-f3424e4cae5380e2.webm': { width: 1280, height: 720, durationSeconds: 30.15 },
-}
+};
 
 // ---------------------------------------------------------------------------
 // Registry entries
@@ -370,42 +370,42 @@ const STANDARD_ASPECT_RATIOS = [
   '16:9',
   '9:16',
   '21:9',
-] as const
+] as const;
 
 function gcd(a: number, b: number): number {
-  return b ? gcd(b, a % b) : a
+  return b ? gcd(b, a % b) : a;
 }
 
 /** Derive an `"W:H"` aspect ratio string from real pixel dimensions. */
 export function deriveAspectRatio(facts: DemoMediaFacts): string {
-  const ratio = facts.width / facts.height
-  let best: string = ''
-  let bestDelta = Number.POSITIVE_INFINITY
+  const ratio = facts.width / facts.height;
+  let best: string = '';
+  let bestDelta = Number.POSITIVE_INFINITY;
   for (const candidate of STANDARD_ASPECT_RATIOS) {
-    const [w, h] = candidate.split(':').map(Number)
-    const delta = Math.abs(w / h - ratio)
+    const [w, h] = candidate.split(':').map(Number);
+    const delta = Math.abs(w / h - ratio);
     if (delta < bestDelta) {
-      bestDelta = delta
-      best = candidate
+      bestDelta = delta;
+      best = candidate;
     }
   }
   // Only snap when the file is genuinely close to the standard ratio;
   // otherwise keep the exact reduced ratio so nothing is misrepresented.
-  if (best && bestDelta <= 0.05) return best
-  const divisor = gcd(facts.width, facts.height) || 1
-  return `${Math.round(facts.width / divisor)}:${Math.round(facts.height / divisor)}`
+  if (best && bestDelta <= 0.05) return best;
+  const divisor = gcd(facts.width, facts.height) || 1;
+  return `${Math.round(facts.width / divisor)}:${Math.round(facts.height / divisor)}`;
 }
 
 function positiveNumber(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : undefined
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : undefined;
 }
 
 function styleHint(demo: VideoDemo): string {
-  const raw = typeof demo.rawCategory === 'string' ? demo.rawCategory.trim() : ''
-  if (raw) return raw
-  const tag = Array.isArray(demo.tags) ? demo.tags.find((t) => typeof t === 'string' && t.trim()) : undefined
-  if (tag) return tag.trim()
-  return demo.category
+  const raw = typeof demo.rawCategory === 'string' ? demo.rawCategory.trim() : '';
+  if (raw) return raw;
+  const tag = Array.isArray(demo.tags) ? demo.tags.find((t) => typeof t === 'string' && t.trim()) : undefined;
+  if (tag) return tag.trim();
+  return demo.category;
 }
 
 const SOURCE_LIBRARIES: ReadonlyArray<{
@@ -433,7 +433,7 @@ const SOURCE_LIBRARIES: ReadonlyArray<{
     // Built from TEMPLATE_LIBRARY in buildRegistry(), not from a VideoDemo catalog.
     demos: [],
   },
-]
+];
 
 type TemplateRow = {
   id: string
@@ -452,24 +452,24 @@ type TemplateRow = {
   marks?: string
 }
 
-const TEMPLATE_ROWS = TEMPLATE_LIBRARY as unknown as TemplateRow[]
-const TEMPLATE_BY_ID = new Map(TEMPLATE_ROWS.map((row) => [row.id, row]))
+const TEMPLATE_ROWS = TEMPLATE_LIBRARY as unknown as TemplateRow[];
+const TEMPLATE_BY_ID = new Map(TEMPLATE_ROWS.map((row) => [row.id, row]));
 
 /** Template-library set that carries the same clips (same slugs) as a legacy catalog collection. */
-const LEGACY_TO_TEMPLATE_SET: Partial<Record<DemoCollectionId, string>> = { 'minimax-h3': 'mmxLegacy', 'seedance-25': 'sd25' }
+const LEGACY_TO_TEMPLATE_SET: Partial<Record<DemoCollectionId, string>> = { 'minimax-h3': 'mmxLegacy', 'seedance-25': 'sd25' };
 
 /** Hosted media (the demo-template-videos bucket) and repo files are the only video sources a demo may use. */
-const PLAYABLE_SRC = /^(https:\/\/bzxohkrxcwodllketcpz\.supabase\.co\/storage\/v1\/object\/public\/demo-template-videos\/|\/media\/)/
+const PLAYABLE_SRC = /^(https:\/\/bzxohkrxcwodllketcpz\.supabase\.co\/storage\/v1\/object\/public\/demo-template-videos\/|\/media\/)/;
 
 /** Picture size for a clip whose file was measured by the template-library build (long side 1280). */
 function factsFromRow(row: TemplateRow): DemoMediaFacts {
-  const [w, h] = row.aspectRatio.split(':').map(Number)
-  const ratio = w > 0 && h > 0 ? w / h : 16 / 9
+  const [w, h] = row.aspectRatio.split(':').map(Number);
+  const ratio = w > 0 && h > 0 ? w / h : 16 / 9;
   return {
     width: ratio >= 1 ? 1280 : Math.round(1280 * ratio),
     height: ratio >= 1 ? Math.round(1280 / ratio) : 1280,
     durationSeconds: row.duration ?? 10,
-  }
+  };
 }
 
 const TEMPLATE_CATEGORY: Record<string, DemoCategory> = {
@@ -480,30 +480,30 @@ const TEMPLATE_CATEGORY: Record<string, DemoCategory> = {
   Fashion: 'Fashion',
   Social: 'Social',
   VFX: 'Animation',
-}
+};
 
 function buildRegistry(): DemoLibraryEntry[] {
-  const entries: DemoLibraryEntry[] = []
-  const seenIds = new Set<string>()
-  const usedTemplateIds = new Set<string>()
+  const entries: DemoLibraryEntry[] = [];
+  const seenIds = new Set<string>();
+  const usedTemplateIds = new Set<string>();
 
   // 1. The original catalogs. A catalog demo is shown only when the template library carries the same clip (same slug): the library
   //    holds the verified, playable (hosted) media and the logo label. Demos whose video files were never shipped are hidden.
   for (const library of SOURCE_LIBRARIES) {
-    const templateSet = LEGACY_TO_TEMPLATE_SET[library.id]
-    if (!templateSet) continue
+    const templateSet = LEGACY_TO_TEMPLATE_SET[library.id];
+    if (!templateSet) continue;
     for (const demo of library.demos) {
-      const row = TEMPLATE_BY_ID.get(`${templateSet}:${demo.slug}`)
-      if (!row || !PLAYABLE_SRC.test(row.videoSrc)) continue
-      const posterSrc = row.posterSrc ?? demo.posterSrc
-      if (!posterSrc) continue
+      const row = TEMPLATE_BY_ID.get(`${templateSet}:${demo.slug}`);
+      if (!row || !PLAYABLE_SRC.test(row.videoSrc)) continue;
+      const posterSrc = row.posterSrc ?? demo.posterSrc;
+      if (!posterSrc) continue;
 
-      const id = `${library.id}:${demo.slug}`
-      if (seenIds.has(id)) continue
-      seenIds.add(id)
-      usedTemplateIds.add(row.id)
+      const id = `${library.id}:${demo.slug}`;
+      if (seenIds.has(id)) continue;
+      seenIds.add(id);
+      usedTemplateIds.add(row.id);
 
-      const media = DEMO_MEDIA_FACTS[demo.videoSrc] ?? factsFromRow(row)
+      const media = DEMO_MEDIA_FACTS[demo.videoSrc] ?? factsFromRow(row);
       entries.push({
         id,
         title: row.title,
@@ -533,20 +533,20 @@ function buildRegistry(): DemoLibraryEntry[] {
         media,
         branding: row.branding,
         ...(row.marks ? { marks: row.marks } : {}),
-      })
+      });
     }
   }
 
   // 2. Every other clip of the template library (clean ones first, as the library orders them).
-  const templateCollection = SOURCE_LIBRARIES.find((library) => library.id === 'template-library')!
+  const templateCollection = SOURCE_LIBRARIES.find((library) => library.id === 'template-library')!;
   TEMPLATE_ROWS.forEach((row, index) => {
-    if (usedTemplateIds.has(row.id) || !PLAYABLE_SRC.test(row.videoSrc) || !row.posterSrc) return
-    const slug = row.id.replace(':', '-')
-    const id = `${templateCollection.id}:${slug}`
-    if (seenIds.has(id)) return
-    seenIds.add(id)
-    const media = factsFromRow(row)
-    const style = row.subcategory
+    if (usedTemplateIds.has(row.id) || !PLAYABLE_SRC.test(row.videoSrc) || !row.posterSrc) return;
+    const slug = row.id.replace(':', '-');
+    const id = `${templateCollection.id}:${slug}`;
+    if (seenIds.has(id)) return;
+    seenIds.add(id);
+    const media = factsFromRow(row);
+    const style = row.subcategory;
     entries.push({
       id,
       title: row.title,
@@ -571,14 +571,14 @@ function buildRegistry(): DemoLibraryEntry[] {
       media,
       branding: row.branding,
       ...(row.marks ? { marks: row.marks } : {}),
-    })
-  })
+    });
+  });
 
-  return entries
+  return entries;
 }
 
 /** Every eligible demo video in the library, across all collections. */
-export const DEMO_LIBRARY_REGISTRY: readonly DemoLibraryEntry[] = buildRegistry()
+export const DEMO_LIBRARY_REGISTRY: readonly DemoLibraryEntry[] = buildRegistry();
 
 /** Collection metadata, in registry order. */
 export const demoCollections: readonly DemoCollectionMeta[] = SOURCE_LIBRARIES.map((library) => ({
@@ -587,32 +587,32 @@ export const demoCollections: readonly DemoCollectionMeta[] = SOURCE_LIBRARIES.m
   sourceRepo: library.id,
   sourceUrl: library.sourceUrl,
   count: DEMO_LIBRARY_REGISTRY.filter((entry) => entry.collectionId === library.id).length,
-}))
+}));
 
 // ---------------------------------------------------------------------------
 // Lookups
 // ---------------------------------------------------------------------------
 
-const REGISTRY_BY_ID = new Map(DEMO_LIBRARY_REGISTRY.map((entry) => [entry.id, entry]))
+const REGISTRY_BY_ID = new Map(DEMO_LIBRARY_REGISTRY.map((entry) => [entry.id, entry]));
 
 /** Look up a demo by its stable source-qualified id. */
 export function getDemoById(id: string): DemoLibraryEntry | undefined {
-  return REGISTRY_BY_ID.get(id)
+  return REGISTRY_BY_ID.get(id);
 }
 
 /** All registered demos of one collection, in registry order. */
 export function getDemosByCollection(collectionId: DemoCollectionId): DemoLibraryEntry[] {
-  return DEMO_LIBRARY_REGISTRY.filter((entry) => entry.collectionId === collectionId)
+  return DEMO_LIBRARY_REGISTRY.filter((entry) => entry.collectionId === collectionId);
 }
 
 /** All registered demos of one canonical category, in registry order. */
 export function getDemosByCategory(category: DemoCategory): DemoLibraryEntry[] {
-  return DEMO_LIBRARY_REGISTRY.filter((entry) => entry.category === category)
+  return DEMO_LIBRARY_REGISTRY.filter((entry) => entry.category === category);
 }
 
 /** Probed media facts for a video path, when the file was verified. */
 export function getMediaFacts(videoSrc: string): DemoMediaFacts | undefined {
-  return DEMO_MEDIA_FACTS[videoSrc]
+  return DEMO_MEDIA_FACTS[videoSrc];
 }
 
 /**
@@ -644,8 +644,8 @@ export function toVideoDemo(entry: DemoLibraryEntry): VideoDemo {
     model: entry.model,
     modelName: entry.modelName,
     branding: entry.branding,
-  }
+  };
 }
 
 /** The legacy `VideoDemo[]` view of the whole registry. */
-export const DEMO_LIBRARY_VIDEO_DEMOS: VideoDemo[] = DEMO_LIBRARY_REGISTRY.map(toVideoDemo)
+export const DEMO_LIBRARY_VIDEO_DEMOS: VideoDemo[] = DEMO_LIBRARY_REGISTRY.map(toVideoDemo);

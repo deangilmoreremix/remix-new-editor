@@ -14,8 +14,10 @@ export function parsePhotoStart(value: unknown): SetStartView | null {
   const up = new THREE.Vector3(...data.up);
   if (direction.length() < 1e-8 || up.length() < 1e-8 || direction.clone().normalize().cross(up.clone().normalize()).length() < 1e-6) return null;
   if (typeof data.verticalFov !== 'number' || !Number.isFinite(data.verticalFov) || data.verticalFov <= 0 || data.verticalFov >= 179) return null;
-  return { position: [...data.position], target: [...data.target], up: up.normalize().toArray(), verticalFov: data.verticalFov,
-    ...(typeof data.sourceImage === 'string' ? { sourceImage: data.sourceImage } : {}) };
+  return {
+ position: [...data.position], target: [...data.target], up: up.normalize().toArray(), verticalFov: data.verticalFov,
+    ...(typeof data.sourceImage === 'string' ? { sourceImage: data.sourceImage } : {}) 
+};
 }
 
 /** Room.ply pairs with Room.start-view.json. Optional metadata must never stop

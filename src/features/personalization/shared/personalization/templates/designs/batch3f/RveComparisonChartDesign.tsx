@@ -17,10 +17,10 @@
  * headline as the title.
  */
 
-import React from 'react'
-import { ComparisonChart } from '../../_upstream/rve-comparison-chart/ComparisonChart'
-import { slotText, truncateText, type DesignAdapterProps } from '../shared'
-import { RveDesignStage } from '../rveSharedDesign'
+import React from 'react';
+import { ComparisonChart } from '../../_upstream/rve-comparison-chart/ComparisonChart';
+import { slotText, truncateText, type DesignAdapterProps } from '../shared';
+import { RveDesignStage } from '../rveSharedDesign';
 import {
   FitCanvas,
   brandBackdrop,
@@ -29,24 +29,24 @@ import {
   fitScale,
   readableOnDark,
   rgba,
-} from './shared3f'
+} from './shared3f';
 
 /** The pinned placeholder values (0-100). */
-export const COMPARISON_CHART_PLACEHOLDER = { before: 35, after: 90 } as const
+export const COMPARISON_CHART_PLACEHOLDER = { before: 35, after: 90 } as const;
 
 /** The upstream card: 700 x 480 + 40 px padding on each side. */
-const CARD_W = 780
-const CARD_H = 560
-const PREFERRED_SCALE = 1.25
+const CARD_W = 780;
+const CARD_H = 560;
+const PREFERRED_SCALE = 1.25;
 
 export const RveComparisonChartDesign: React.FC<DesignAdapterProps> = (props) => {
-  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE)
-  const [before, after] = brandPalette(props, 2)
-  const text = readableOnDark(props)
+  const k = fitScale(props, CARD_W, CARD_H, PREFERRED_SCALE);
+  const [before, after] = brandPalette(props, 2);
+  const text = readableOnDark(props);
   const title = truncateText(
     slotText(props, 'headline', ['businessName']),
     fitChars(700 - 20, 28, 38),
-  )
+  );
 
   return (
     <RveDesignStage designId="rve-comparison-chart" props={props}>
@@ -66,7 +66,7 @@ export const RveComparisonChartDesign: React.FC<DesignAdapterProps> = (props) =>
         />
       </FitCanvas>
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveComparisonChartDesign
+export default RveComparisonChartDesign;

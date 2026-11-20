@@ -6,23 +6,23 @@
  * the layer's box, with the resolved brand values — and an unregistered
  * design must render nothing at all (and warn only once).
  */
-import React from 'react'
-import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
-import { act } from 'react'
-import { createRoot } from 'react-dom/client'
-import { PersonalizationComposition } from '../PersonalizationComposition'
-import { applyDesignTemplate, createDefaultPreviewSettings } from '../presets'
-import { __resetRemotionDesignRegistry, registerRemotionDesignTemplate } from '../../templates/registry'
-import type { RemotionDesignComponent, RemotionDesignComponentProps } from '../../templates/types'
-import type { PreviewInputProps } from '../types'
+import React from 'react';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { act } from 'react';
+import { createRoot } from 'react-dom/client';
+import { PersonalizationComposition } from '../PersonalizationComposition';
+import { applyDesignTemplate, createDefaultPreviewSettings } from '../presets';
+import { __resetRemotionDesignRegistry, registerRemotionDesignTemplate } from '../../templates/registry';
+import type { RemotionDesignComponent, RemotionDesignComponentProps } from '../../templates/types';
+import type { PreviewInputProps } from '../types';
 
 /** Deterministic frame: the layer's startFrame is 0, so it is visible. */
-const FRAME = 30
+const FRAME = 30;
 
 vi.mock('@remotion/media', () => ({
   Video: () => <div data-testid="media-video" />,
   Audio: () => null,
-}))
+}));
 
 vi.mock('remotion', async () => {
   return {
@@ -48,16 +48,16 @@ vi.mock('remotion', async () => {
     // The real easing functions: some upstream designs build eased curves
     // when their module loads, so a stub would crash the import.
     Easing: (await vi.importActual<typeof import('remotion')>('remotion')).Easing,
-  }
-})
+  };
+});
 
 /** Records the props the composition handed to the design component. */
-const received: RemotionDesignComponentProps[] = []
+const received: RemotionDesignComponentProps[] = [];
 
 const Design: RemotionDesignComponent = (props) => {
-  received.push(props)
-  return <div data-testid="design-layer">design</div>
-}
+  received.push(props);
+  return <div data-testid="design-layer">design</div>;
+};
 
 function registerFixture() {
   registerRemotionDesignTemplate({
@@ -85,7 +85,7 @@ function registerFixture() {
     requiredMedia: ['logo'],
     capabilities: { preview: true, browserExport: true },
     previewCompatible: true,
-  })
+  });
 }
 
 function makeInputProps(
@@ -109,93 +109,93 @@ function makeInputProps(
       serviceUrl: null,
     },
     ...overrides,
-  }
+  };
 }
 
-const mounted: Array<{ root: ReturnType<typeof createRoot>; container: HTMLElement }> = []
+const mounted: Array<{ root: ReturnType<typeof createRoot>; container: HTMLElement }> = [];
 
 function mountComposition(inputProps: PreviewInputProps) {
-  const container = document.createElement('div')
-  document.body.appendChild(container)
-  const root = createRoot(container)
-  mounted.push({ root, container })
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  mounted.push({ root, container });
   act(() => {
-    root.render(<PersonalizationComposition {...inputProps} />)
-  })
-  return container
+    root.render(<PersonalizationComposition {...inputProps} />);
+  });
+  return container;
 }
 
 beforeEach(() => {
-  received.length = 0
-  __resetRemotionDesignRegistry()
-})
+  received.length = 0;
+  __resetRemotionDesignRegistry();
+});
 
 afterEach(() => {
   while (mounted.length > 0) {
-    const { root, container } = mounted.pop()!
-    act(() => root.unmount())
-    container.remove()
+    const { root, container } = mounted.pop()!;
+    act(() => root.unmount());
+    container.remove();
   }
-  __resetRemotionDesignRegistry()
-  vi.restoreAllMocks()
-})
+  __resetRemotionDesignRegistry();
+  vi.restoreAllMocks();
+});
 
 describe('PersonalizationComposition design layer', () => {
   it('mounts the registered design component with the resolved brand values', () => {
-    registerFixture()
+    registerFixture();
     const settings = applyDesignTemplate(
       createDefaultPreviewSettings(),
       'fixture-design',
       { headline: 'Roofing done right', businessName: 'Acme Roofing' },
-    )
+    );
 
-    const container = mountComposition(makeInputProps({ settings }))
+    const container = mountComposition(makeInputProps({ settings }));
 
-    expect(container.querySelector('[data-testid="design-layer"]')).not.toBeNull()
-    expect(received).toHaveLength(1)
+    expect(container.querySelector('[data-testid="design-layer"]')).not.toBeNull();
+    expect(received).toHaveLength(1);
 
-    const props = received[0]
+    const props = received[0];
     // The primary slot carries what the customer typed on the layer.
-    expect(props.text).toBe('Roofing done right')
+    expect(props.text).toBe('Roofing done right');
     expect(props.textSlots).toEqual({
       headline: 'Roofing done right',
       business: 'Acme Roofing',
-    })
+    });
     expect(props.colors).toEqual({
       primary: '#d9ff00',
       accent: '#22c55e',
       text: '#ffffff',
       backgroundDim: 0.18,
-    })
-    expect(props.media).toEqual({ logo: 'https://cdn.example.com/logo.png' })
-    expect(props.width).toBe(1920)
-    expect(props.height).toBe(1080)
-    expect(props.fps).toBe(30)
-    expect(props.opacity).toBe(1)
-    expect(props.color).toBe('#ffffff')
+    });
+    expect(props.media).toEqual({ logo: 'https://cdn.example.com/logo.png' });
+    expect(props.width).toBe(1920);
+    expect(props.height).toBe(1080);
+    expect(props.fps).toBe(30);
+    expect(props.opacity).toBe(1);
+    expect(props.color).toBe('#ffffff');
     // The design box is a scaled copy of the composition.
-    expect(props.box.widthPx).toBe(Math.round(0.8 * 1920))
-    expect(props.box.heightPx).toBe(Math.round(0.8 * 1080))
-  })
+    expect(props.box.widthPx).toBe(Math.round(0.8 * 1920));
+    expect(props.box.heightPx).toBe(Math.round(0.8 * 1080));
+  });
 
   it('lets the layer text override the primary slot', () => {
-    registerFixture()
+    registerFixture();
     const settings = applyDesignTemplate(
       createDefaultPreviewSettings(),
       'fixture-design',
       { headline: 'From the brand' },
-    )
-    settings.layers = settings.layers.map((layer) => ({ ...layer, text: 'Typed by the customer' }))
+    );
+    settings.layers = settings.layers.map((layer) => ({ ...layer, text: 'Typed by the customer' }));
 
-    mountComposition(makeInputProps({ settings }))
+    mountComposition(makeInputProps({ settings }));
 
-    expect(received[0].text).toBe('Typed by the customer')
-    expect(received[0].textSlots.headline).toBe('Typed by the customer')
-  })
+    expect(received[0].text).toBe('Typed by the customer');
+    expect(received[0].textSlots.headline).toBe('Typed by the customer');
+  });
 
   it('renders nothing and warns once for an unregistered design', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const settings = createDefaultPreviewSettings()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const settings = createDefaultPreviewSettings();
     settings.layers = [
       {
         id: 'design',
@@ -210,13 +210,13 @@ describe('PersonalizationComposition design layer', () => {
         opacity: 1,
         designId: 'not-registered',
       },
-    ]
+    ];
 
-    const container = mountComposition(makeInputProps({ settings }))
+    const container = mountComposition(makeInputProps({ settings }));
 
-    expect(container.querySelector('[data-testid="design-layer"]')).toBeNull()
-    expect(received).toHaveLength(0)
-    expect(warn).toHaveBeenCalledTimes(1)
-    expect(String(warn.mock.calls[0][0])).toContain('not-registered')
-  })
-})
+    expect(container.querySelector('[data-testid="design-layer"]')).toBeNull();
+    expect(received).toHaveLength(0);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0][0])).toContain('not-registered');
+  });
+});

@@ -10,14 +10,14 @@
  * timing). The incoming scene is empty and the root fill is transparent.
  */
 
-import React from 'react'
-import { FadeThroughBlack } from '../../_upstream/rve-fade-through-black/FadeThroughBlack'
-import type { RemotionDesignComponentProps } from '../../types'
-import { RveDesignStage } from '../rveSharedDesign'
-import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared'
+import React from 'react';
+import { FadeThroughBlack } from '../../_upstream/rve-fade-through-black/FadeThroughBlack';
+import type { RemotionDesignComponentProps } from '../../types';
+import { RveDesignStage } from '../rveSharedDesign';
+import { BrandCardContent, TRANSPARENT_SCENE, brandPalette } from './batch3gShared';
 
 export const RveFadeThroughBlackDesign: React.FC<RemotionDesignComponentProps> = (props) => {
-  const palette = brandPalette(props)
+  const palette = brandPalette(props);
   return (
     <RveDesignStage designId="rve-fade-through-black" props={props}>
       <FadeThroughBlack
@@ -27,7 +27,7 @@ export const RveFadeThroughBlackDesign: React.FC<RemotionDesignComponentProps> =
         scene2={TRANSPARENT_SCENE}
       />
     </RveDesignStage>
-  )
-}
+  );
+};
 
-export default RveFadeThroughBlackDesign
+export default RveFadeThroughBlackDesign;
