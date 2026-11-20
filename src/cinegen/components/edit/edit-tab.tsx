@@ -505,6 +505,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     updatePersistedTimelineView(timeline.id, { vaSplit: Math.max(0.15, Math.min(0.85, vaSplit)) });
   }, [timeline.id, updatePersistedTimelineView]);
 
+  useEffect(() => { void import('@cinegen/lib/occ/user-fonts').then((m) => m.loadUserFonts()).catch(() => undefined); }, []); // [remix] fonts imported earlier (captions, Smart Text) are registered when the editor opens
   // Spacebar / Arrow keys / Tool shortcuts
   useEffect(() => {
     const FRAME_DURATION = 1 / 24;

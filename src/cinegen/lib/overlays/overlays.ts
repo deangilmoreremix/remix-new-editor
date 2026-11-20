@@ -26,6 +26,10 @@ export const OVERLAY_KINDS: Array<{ kind: OverlayKind; label: string; blurb: str
   { kind: 'overlay-sticker', label: 'Stickers', blurb: 'Emoji, shapes and animated stickers.' },
   { kind: 'overlay-background', label: 'Wrapper', blurb: 'A colour or gradient background behind the video.' },
   { kind: 'overlay-lower-third', label: 'Lower Thirds', blurb: 'Name and title bars that animate in and out.' },
+  { kind: 'addon-pause', label: 'Pause', blurb: 'Pause the video here, for N seconds or until the viewer clicks. Works on the published link.' },
+  { kind: 'addon-skip', label: 'Skip', blurb: 'Jump over this section during playback. Works on the published link.' },
+  { kind: 'addon-loop', label: 'Loop', blurb: 'Repeat this section a set number of times, or forever. Works on the published link.' },
+  { kind: 'addon-hotspot', label: 'Hotspot', blurb: 'A clickable area on the video: open a link, call a number or jump to another point. Works on the published link.' },
   { kind: 'overlay-studio-design', label: 'Studio Design', blurb: 'A Personalization Studio design (headline, logo reveal, call to action...) filled with each contact\'s details.' },
 ];
 

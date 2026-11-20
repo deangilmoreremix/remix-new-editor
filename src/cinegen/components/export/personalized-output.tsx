@@ -17,6 +17,8 @@ import { renderBatchHub } from '../../../lib/editor/panels/personalPanels.js';
 import * as publishClient from '../../../lib/editor/publish/publishClient.js';
 // @ts-expect-error plain JS
 import * as personalLinks from '../../../lib/editor/publish/personalLinksClient.js';
+import { personalizedImageKeys } from '@cinegen/lib/personalize/contact-image-services';
+import { unreviewedFor } from '@cinegen/lib/personalize/contact-check';
 import '../../../../styles/personalize-ui.css';
 import '../../../../styles/timeline-addons.css';
 
@@ -48,7 +50,9 @@ export function PersonalizedOutput({ renderRef, busy, hasClips }: Props) {
       issues: (p: unknown) => {
         const gaps = new Map((contactImageGaps(project(), [p]) as Array<{ id: unknown; missing: string[] }>).map((g) => [String(g.id), g.missing]));
         const own = gaps.get(String((p as { id: unknown }).id)) || [];
-        return [...own.map((m) => `no ${m}`), ...(personalLinkIssues(p, tokensIn(latest.current.overlays as never[])).length ? ['image only in this browser (links)'] : [])];
+        // pictures the AI made for this contact that nobody has approved yet (Check contacts, in the editor's Add to timeline window)
+        const review = unreviewedFor(p as never, personalizedImageKeys(latest.current.overlays as never)).length ? ['AI picture needs review'] : [];
+        return [...own.map((m) => `no ${m}`), ...review, ...(personalLinkIssues(p, tokensIn(latest.current.overlays as never[])).length ? ['image only in this browser (links)'] : [])];
       },
       guest: () => !(window as unknown as { Clerk?: { user?: unknown } }).Clerk?.user,
       exportEach: () => { if (!latest.current.busy && latest.current.hasClips) renderRef.current?.(listContactProfiles(contactStore).map((p: { id: unknown }) => String(p.id))); },

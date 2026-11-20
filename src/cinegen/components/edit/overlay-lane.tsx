@@ -6,6 +6,9 @@ import { LiveStage, STAGE_BG, useInView, useLiveSlot } from './preview-card';
 import type { CardPreview } from './preview-types';
 import { isGateOverlay } from '@cinegen/lib/overlays/overlays';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
+import { usePreviewContact, type ContactProfile } from '@cinegen/lib/personalize/preview-contact';
+// @ts-expect-error plain JS: fills {{tokens}} with a contact's details (the same call the viewer makes)
+import { resolveOverlayText } from '../../../lib/editor/addons/overlayRender.js';
 // @ts-expect-error plain JS add-on modules (the same Lottie builder the viewer uses)
 import { buildLowerThirdLottie, LT_HOLD_FRAME } from '../../../lib/editor/addons/lowerThirds.js';
 // @ts-expect-error plain JS add-on registry
@@ -45,6 +48,7 @@ const ICON_BTN = { flex: '0 0 auto', background: 'transparent', color: 'inherit'
 
 export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onOpenAdd, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate, onRemove, onLibraryDrop, onAssetDrop }: Props) {
   const selected = useSelectedOverlay();
+  const contact = usePreviewContact(); // the contact the preview shows: the lane's pictures and text use them too
   const overlaysRef = useRef(overlays); overlaysRef.current = overlays;
   const rowsRef = useRef<Map<string, number>>(new Map());
   const countRef = useRef(1);
@@ -138,7 +142,7 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
             const row = open ? (rows.get(o.id) ?? 0) : 0;
             const w = Math.max(24, (o.end - o.start) * pxPerSecond);
             const thumb = overlayThumb(o);
-            const text = overlayText(o);
+            const text = overlayText(o, contact.profile);
             return (
               <div key={o.id} role="button" tabIndex={0} data-testid={`overlay-card-${o.id}`}
                 className={`overlay-lane__item overlay-card${on ? ' overlay-lane__item--selected overlay-card--selected' : ''}${open ? '' : ' overlay-card--compact'}`}
@@ -147,8 +151,8 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
                 onKeyDown={(e) => { if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); onRemove(o.id); } }}
                 style={{ left: o.start * pxPerSecond, width: w, top: 4 + row * rowH, height: rowH - 6, bottom: 'auto' }}>
                 {!gate && <span className="overlay-card__handle overlay-card__handle--start" onPointerDown={(e) => begin(e, o, 'start')} />}
-                {open && o.type === ('overlay-lower-third' as OverlayKind) && <LowerThirdThumb clip={o} />}
-                {open && !thumb && o.type !== ('overlay-lower-third' as OverlayKind) && <OverlayStill clip={o} />}
+                {open && o.type === ('overlay-lower-third' as OverlayKind) && <LowerThirdThumb clip={o} profile={contact.profile} version={contact.version} />}
+                {open && !thumb && o.type !== ('overlay-lower-third' as OverlayKind) && <OverlayStill clip={o} profile={contact.profile} version={contact.version} />}
                 {open && thumb && <img className="overlay-card__thumb" src={thumb} alt="" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
                 <span className="overlay-card__body">
                   <span className="overlay-card__name">{gate ? `🔒 ${o.name}` : o.name}</span>
@@ -174,7 +178,7 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
 /** The live stage is drawn at a normal card size and scaled down to fit the block: drawn directly into the small box it was cropped to a corner of the form. */
 const STILL_W = 480;
 const STILL_H = 270;
-function OverlayStill({ clip }: { clip: OverlayClip }) {
+function OverlayStill({ clip, profile = null, version = 0 }: { clip: OverlayClip; profile?: ContactProfile | null; version?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const visible = useInView(ref);
   const slot = useLiveSlot(visible);
@@ -196,7 +200,7 @@ function OverlayStill({ clip }: { clip: OverlayClip }) {
     <div ref={ref} className="overlay-card__thumb" aria-hidden="true" style={{ position: 'relative', background: STAGE_BG, overflow: 'hidden' }}>
       {visible && slot && (
         <div style={{ position: 'absolute', left: 0, top: 0, width: STILL_W, height: STILL_H, transform: `scale(${scale})`, transformOrigin: '0 0' }}>
-          <LiveStage preview={preview} playing={false} />
+          <LiveStage preview={preview} playing={false} profile={profile} profileVersion={version} />
         </div>
       )}
     </div>
@@ -204,9 +208,9 @@ function OverlayStill({ clip }: { clip: OverlayClip }) {
 }
 
 /** A small picture of the lower third (its template, text and colours) at its fully-in frame, so the block shows the animation itself. */
-function LowerThirdThumb({ clip }: { clip: OverlayClip }) {
+function LowerThirdThumb({ clip, profile = null, version = 0 }: { clip: OverlayClip; profile?: ContactProfile | null; version?: number }) {
   const host = useRef<HTMLDivElement>(null);
-  const key = JSON.stringify((clip as unknown as { addon?: unknown }).addon ?? null);
+  const key = `${String(profile?.id ?? '')}#${version}|${JSON.stringify((clip as unknown as { addon?: unknown }).addon ?? null)}`;
   useEffect(() => {
     const el = host.current;
     if (!el) return undefined;
@@ -215,7 +219,8 @@ function LowerThirdThumb({ clip }: { clip: OverlayClip }) {
     try {
       const opts = addonOptions(clip) as Record<string, unknown>;
       ensureFormFont(opts.fontFamily);
-      const data = buildLowerThirdLottie(opts);
+      // name and title are filled in for the previewed contact, like the video does
+      const data = buildLowerThirdLottie({ ...opts, name: resolveOverlayText(opts.name, profile), title: resolveOverlayText(opts.title, profile) });
       void import('lottie-web').then(({ default: lottie }) => {
         if (!live || !el.isConnected) return;
         anim = lottie.loadAnimation({ container: el, renderer: 'svg', loop: false, autoplay: false, animationData: data });
@@ -243,12 +248,13 @@ function overlayThumb(o: OverlayClip): string | null {
 }
 
 /** The overlay's own text, so the block shows what it says and not just its name. */
-function overlayText(o: OverlayClip): string {
+function overlayText(o: OverlayClip, profile: ContactProfile | null = null): string {
   const props = (o.props && typeof o.props === 'object' ? (o.props as Record<string, unknown>) : {});
-  for (const src of [o, props]) {
+  const addon = (o.addon && typeof o.addon === 'object' ? (o.addon as Record<string, unknown>) : {}); // Smart Text and the other add-ons keep their options here
+  for (const src of [o, props, addon]) {
     for (const k of ['text', 'title', 'headline', 'heading', 'label', 'buttonText', 'name1', 'line1']) {
       const v = (src as Record<string, unknown>)[k];
-      if (typeof v === 'string' && v.trim() && v !== o.name) return v.trim().slice(0, 80);
+      if (typeof v === 'string' && v.trim() && v !== o.name) return String(resolveOverlayText(v.trim(), profile)).slice(0, 80);
     }
   }
   return '';

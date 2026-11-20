@@ -510,6 +510,13 @@
 /* ---- Overlay settings controls (addonEditor.js) ---- */
 .addon-field--tokens textarea { width: 100%; }
 .addon-token-insert { margin-top: 4px; width: 100%; }
+/* Smart Text box: tokens as chips (upstream .personalized-token), plain text typed around them */
+.addon-rich { width: 100%; min-height: 4.2em; max-height: 14em; overflow-y: auto; box-sizing: border-box; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border, rgba(255, 255, 255, 0.14)); background: rgba(255, 255, 255, 0.04); color: inherit; font: inherit; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; outline: none; }
+.addon-rich:focus { border-color: var(--cyan, #22d3ee); }
+.addon-rich .personalized-token { display: inline-block; padding: 1px 7px; margin: 0 1px; border-radius: 4px; border: 1px solid var(--red, #ef4444); line-height: 1.2; font-size: 0.92em; user-select: all; cursor: default; }
+.addon-rich .personalized-token.token-uppercase { text-transform: uppercase; }
+.addon-position-grid .mini-btn { display: inline-flex; align-items: center; justify-content: center; padding: 6px 0; }
+.addon-position-grid .mini-btn img { display: block; width: 14px; height: 14px; pointer-events: none; }
 .addon-image-preview { width: 100%; aspect-ratio: 16 / 9; background: rgba(255, 255, 255, 0.04) center / contain no-repeat; border-radius: 6px; margin-bottom: 6px; border: 1px solid var(--border, rgba(255, 255, 255, 0.1)); }
 .addon-image-actions { display: flex; gap: 6px; margin-top: 6px; }
 .addon-upload-btn { cursor: pointer; }
@@ -1435,3 +1442,61 @@
 .addon-overlay-layer .retarget-form .optin-steps { display: flex; justify-content: center; gap: .4em; margin-top: .6em; }
 .addon-overlay-layer .retarget-form .optin-steps span { width: .55em; height: .55em; border-radius: 50%; background: currentColor; opacity: .25; }
 .addon-overlay-layer .retarget-form .optin-steps span.on { opacity: .9; background: var(--optin-btn-bg, #eb5054); }
+
+/* Smart Text edited in place on the video (double-click) */
+.addon-overlay-layer .popcorn-text .personalizer-input.is-editing { outline: 2px dashed var(--cyan, #22d3ee); outline-offset: 2px; cursor: text; min-width: 1ch; user-select: text; white-space: pre-wrap; }
+.addon-overlay-layer .popcorn-text .personalized-token { display: inline-block; padding: 0 5px; border: 1px solid var(--red, #ef4444); border-radius: 4px; font-size: 0.85em; }
+
+/* Smart Text Advanced tab (upstream layout): B / I buttons, alignment icons, colour swatches, switch + colour rows */
+.addon-field.is-disabled { opacity: 0.45; }
+.addon-panel .addon-field.addon-field--togglebtn, .clip-editor__field.addon-field--togglebtn { display: inline-block; width: calc(50% - 8px); margin-right: 4px; box-sizing: border-box; }
+.addon-togglebtn { width: 100%; }
+.addon-togglebtn { padding: 6px 10px; }
+.addon-togglebtn.is-on, .addon-position-grid .mini-btn.is-on { background: rgba(34, 211, 238, 0.18); border-color: var(--cyan, #22d3ee); box-shadow: inset 0 0 0 1px var(--cyan, #22d3ee); color: #fff; }
+.addon-colorrow { display: flex; gap: 8px; align-items: center; }
+.addon-colorrow input[type="color"] { flex: 0 0 56px; height: 30px; padding: 0; }
+.addon-hex { flex: 1; min-width: 0; font-family: ui-monospace, monospace; text-transform: uppercase; }
+.addon-swatches { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.addon-swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.25); padding: 0; cursor: pointer; }
+.addon-swatch.is-on, .addon-swatch:hover { border-color: var(--cyan, #22d3ee); }
+.addon-panel .addon-field.addon-field--togglecolor, .clip-editor__field.addon-field--togglecolor { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
+.addon-field--togglecolor > label { display: flex; align-items: center; gap: 8px; margin: 0; flex: 1; }
+.addon-field--togglecolor input[type="checkbox"] { width: auto; flex: 0 0 auto; }
+.addon-field--togglecolor input[type="color"] { flex: 0 0 56px; }
+.addon-field--togglecolor input[type="color"] { width: 56px; height: 28px; padding: 0; }
+.addon-field--togglecolor input[type="color"]:disabled { opacity: 0.35; }
+.addon-font-preview { margin-top: 6px; padding: 8px 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); font-size: 20px; line-height: 1.2; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* Animation picker: effect tiles that play on hover (upstream's "Add Animation" window) */
+.addon-anim-phase { margin-top: 6px; }
+.addon-anim-browse { margin-top: 4px; width: 100%; }
+.addon-anim-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; max-height: 280px; overflow-y: auto; margin-top: 6px; padding: 2px; }
+.addon-anim-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 4px; border-radius: 8px; border: 1px solid var(--border, rgba(255, 255, 255, 0.12)); background: rgba(255, 255, 255, 0.04); color: inherit; cursor: pointer; overflow: hidden; }
+.addon-anim-tile:hover, .addon-anim-tile:focus-visible { border-color: var(--cyan, #22d3ee); }
+.addon-anim-tile.is-on { border-color: var(--cyan, #22d3ee); background: rgba(34, 211, 238, 0.16); box-shadow: inset 0 0 0 1px var(--cyan, #22d3ee); }
+.addon-anim-sample { display: block; font-weight: 700; font-size: 18px; line-height: 1.2; }
+.addon-anim-sample.animated { animation-duration: 0.8s; animation-fill-mode: both; }
+.addon-anim-sample.animated.infinite { animation-iteration-count: infinite; }
+.addon-anim-name { font-size: 10px; line-height: 1.2; text-align: center; color: var(--text-dim, rgba(255, 255, 255, 0.7)); }
+
+/* Smart Text effects that Animate.css does not have (src/lib/editor/addons/textEffects.js; the export draws the same motion) */
+@keyframes typing { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes blurIn { from { opacity: 0; filter: blur(14px); } to { opacity: 1; filter: blur(0); } }
+@keyframes flicker { 0%, 8%, 10%, 42%, 44%, 70%, 72%, 100% { opacity: 1; } 8.5% { opacity: 0.3; } 43% { opacity: 0.3; } 71% { opacity: 0.3; } }
+@keyframes blink { 0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0.15; } }
+.addon-overlay-layer .animated.typing, .addon-anim-sample.animated.typing { animation-name: typing; animation-timing-function: steps(20, end); }
+.addon-overlay-layer .animated.blurIn, .addon-anim-sample.animated.blurIn { animation-name: blurIn; }
+.addon-overlay-layer .animated.flicker, .addon-anim-sample.animated.flicker { animation-name: flicker; animation-duration: 2s; }
+.addon-overlay-layer .animated.blink, .addon-anim-sample.animated.blink { animation-name: blink; animation-duration: 1s; animation-timing-function: step-end; }
+
+/* Smart Text style presets */
+.addon-style-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.addon-style-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px 6px; border-radius: 8px; border: 1px solid var(--border, rgba(255, 255, 255, 0.12)); background: rgba(255, 255, 255, 0.04); color: inherit; cursor: pointer; overflow: hidden; }
+.addon-style-tile:hover, .addon-style-tile:focus-visible { border-color: var(--cyan, #22d3ee); }
+.addon-style-sample { font-size: 24px; line-height: 1.2; }
+.addon-style-name { font-size: 10px; color: var(--text-dim, rgba(255, 255, 255, 0.7)); }
+
+/* Font import under the Font list (same control the captions have) */
+.addon-font-import { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.addon-font-import .mini-btn { align-self: flex-start; }
+.addon-font-error { font-size: 11px; color: #ff6b6b; }
