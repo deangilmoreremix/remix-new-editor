@@ -798,7 +798,7 @@ export function fillUrlTokens(url, tokens = {}) {
   });
 }
 
-/** Token names used anywhere in a page's editable (Puck) data: every text, link and picture field. */
+/** Token names used anywhere in a page's editable data: every text, link and picture field. */
 export function tokensInEditorData(data) {
   const own = new Set(['sender', 'brand', 'duration']);
   const blob = JSON.stringify(data ?? {});

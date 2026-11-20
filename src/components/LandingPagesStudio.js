@@ -311,7 +311,7 @@ export function LandingPagesStudio() {
       };
       updateSample();
       bar.append(el('span', 'font-bold', 'Design'), tplSel, el('span', '', 'Click any text on the page to edit it. Use the left panel to add, remove and reorder sections. Save when you are done.'), sampleNote);
-      const host = el('div', 'rounded-2xl border border-white/10 overflow-hidden bg-white');
+      const host = el('div', 'rounded-2xl border border-white/10 overflow-hidden rx-editor');
       host.style.height = '78vh';
       // Preview as: the sample, nobody (shows the {{token|fallback}} text), or any real contact of this page
       // (their own name, logo, colour, picture and video, exactly what their personal link shows).

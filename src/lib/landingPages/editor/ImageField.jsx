@@ -6,8 +6,8 @@
 import { useState } from 'react';
 
 const labelStyle = { display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 };
-const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, font: 'inherit' };
-const btnStyle = { marginTop: 6, padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#f8fafc', cursor: 'pointer', font: 'inherit', fontSize: 12 };
+const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg, #fff)', color: 'var(--lp-field-text, inherit)', font: 'inherit' };
+const btnStyle = { marginTop: 6, padding: '6px 10px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg-alt, #f8fafc)', color: 'var(--lp-field-text, inherit)', cursor: 'pointer', font: 'inherit', fontSize: 12 };
 
 export const isHttpsImage = (e) => e && e.type !== 'video' && e.type !== 'audio' && typeof e.url === 'string' && /^https:\/\//i.test(e.url);
 export const isHttpsVideo = (e) => e && e.type === 'video' && typeof e.url === 'string' && /^https:\/\//i.test(e.url);
@@ -22,8 +22,8 @@ function Library({ onPick, onClose, kind = 'image' }) {
       .catch(() => setErr('Could not load your library.'));
   }
   return (
-    <div style={{ marginTop: 8, padding: 8, border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff' }}>
-      {err ? <p style={{ fontSize: 12, color: '#b91c1c' }}>{err}</p> : null}
+    <div style={{ marginTop: 8, padding: 8, border: '1px solid var(--lp-field-border, #e2e8f0)', borderRadius: 8, background: 'var(--lp-field-bg, #fff)' }}>
+      {err ? <p style={{ fontSize: 12, color: '#f87171' }}>{err}</p> : null}
       {items && !items.length ? <p style={{ fontSize: 12 }}>No {kind === 'video' ? 'videos' : 'images'} in your library yet. Make one in any studio and it will appear here.</p> : null}
       {items === null && !err ? <p style={{ fontSize: 12 }}>Loading…</p> : null}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, maxHeight: 220, overflowY: 'auto' }}>

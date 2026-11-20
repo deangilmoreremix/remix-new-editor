@@ -10,8 +10,8 @@ import { fillTokens, fillUrlTokens, TOKEN_CHOICES } from '../templates.js';
 import { usePage } from './context.js';
 
 const labelStyle = { display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 };
-const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, font: 'inherit' };
-const selectStyle = { marginTop: 6, padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#f8fafc', font: 'inherit', fontSize: 12 };
+const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg, #fff)', color: 'var(--lp-field-text, inherit)', font: 'inherit' };
+const selectStyle = { marginTop: 6, padding: '5px 8px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg-alt, #f8fafc)', color: 'var(--lp-field-text, inherit)', font: 'inherit', fontSize: 12 };
 
 /** Pure: insert `token` into `value` at the cursor (or the end). Returns { value, caret }. */
 export function insertToken(value, token, start, end) {

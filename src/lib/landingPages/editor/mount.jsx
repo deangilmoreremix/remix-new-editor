@@ -8,6 +8,7 @@ import { createRoot } from 'react-dom/client';
 import { Puck as PageEditor, Render } from '@page-editor/core';
 import '@page-editor/core/no-external.css';
 import '../../../../styles/page-editor.css';
+import '../../../../styles/page-editor-theme.css'; // dark chrome (.rx-editor) + the shared accent variables
 // One stylesheet per design (styles/page-editor/NN-name.css), loaded AFTER the base styles so a design can override them.
 import './designCss.js';
 import { PageContext } from './context.js';

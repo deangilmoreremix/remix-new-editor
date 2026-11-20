@@ -106,7 +106,7 @@ describe('fillPropTokens', () => {
 });
 
 describe('tokens in use, and a customer\'s extras', () => {
-  it('lists tokens found anywhere in a Puck page', () => {
+  it('lists tokens found anywhere in an editable page', () => {
     const cfg = { template: 'editable-leadiq', editor: { root: { props: {} }, content: [{ type: 'PageImage', props: { src: '{{image}}', alt: '{{firstname}}' } }] } };
     expect(tokensUsed(cfg)).toEqual(expect.arrayContaining(['image', 'firstname']));
   });

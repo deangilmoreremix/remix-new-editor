@@ -15,6 +15,7 @@ const ALLOWED_FILES = new Set([
   'src/lib/models.js', 'src/lib/muapi/liveModels.json', 'src/features/personalization/packages/studio/src/models.js',
   'src/cinegen/adapters/web-elevenlabs.ts', 'src/cinegen/__tests__/adapters/elevenlabs.test.ts', SELF,
   'src/cinegen/components/edit/stage4/local-audio-panel.tsx', // Kokoro's own voice id (am_puck), a value the speech model needs
+  'styles/page-editor-theme.css', // skins the editor library through its own CSS variable names (--puck-color-*), which are not ours to rename
 ]);
 const TEXT = /\.(js|jsx|ts|tsx|mjs|cjs|css|json|md|html)$/;
 const ROOTS = ['src', 'styles', 'scripts', 'docs', 'netlify', 'public'];

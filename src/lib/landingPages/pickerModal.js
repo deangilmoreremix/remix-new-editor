@@ -74,7 +74,7 @@ export function toPickerVideo(input) {
 const CSS = {
   // Never filled, like the studios' prompt bar: outlined; the main action has a lime left edge (like Generate).
   [BTN]: 'background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
-  [BTN_PRIMARY]: 'background:transparent;border:1px solid rgba(255,255,255,.14);border-left:2px solid #d9ff00;color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
+  [BTN_PRIMARY]: 'background:transparent;border:1px solid rgba(255,255,255,.14);border-left:2px solid var(--lp-accent, #d9ff00);color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
   [`${INPUT} max-w-sm`]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;min-width:220px',
   [INPUT]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;width:100%',
   card: 'background:#141414;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;text-align:left;color:#fff;cursor:pointer',
@@ -403,7 +403,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     if (sel.length) {
       const note = el('div', 'px-4 md:px-6 pt-1 text-xs');
       note.dataset.personalizedNote = '';
-      note.style.cssText = 'color:#d9ff00;display:flex;gap:10px;align-items:center;flex-wrap:wrap';
+      note.style.cssText = 'color:var(--lp-accent, #d9ff00);display:flex;gap:10px;align-items:center;flex-wrap:wrap';
       note.appendChild(el('span', '', (withBrand || withImage)
         ? `Personalized for ${one.label}${applied.length ? `: ${applied.join(', ')} filled in` : ''}. Previewing as ${sel[0].label}.`
         : sel.length === 1 ? `Plain design. Previewing as ${sel[0].label}.` : `${sel.length} personal links will be made when you save. Previewing as ${sel[0].label}.`));
@@ -415,7 +415,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
       }
       noteEl = note;
     }
-    const host = el('div', 'flex-1 min-h-0 m-3 md:m-4 rounded-2xl border border-white/10 overflow-hidden bg-white');
+    const host = el('div', 'flex-1 min-h-0 m-3 md:m-4 rounded-2xl border border-white/10 overflow-hidden rx-editor');
     host.dataset.editorHost = '';
     body.replaceChildren(...[hint, noteEl, host].filter(Boolean));
     try {
