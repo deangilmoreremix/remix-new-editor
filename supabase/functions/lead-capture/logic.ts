@@ -421,6 +421,22 @@ export function isMissingColumnError(err: { code?: string } | null | undefined):
   return err?.code === "42703" || err?.code === "PGRST204";
 }
 
+type InsertResult = { error: { code?: string } | null };
+/**
+ * Insert a lead row carrying its `email_key` (when the lead has an email), so the unique index makes a repeat sign-up
+ * (same owner, page / video, form and email) a no-op. Falls back to the row without the column while the migration is not
+ * applied yet. `duplicate` is true when the index rejected the row: the caller must not deliver it again.
+ */
+export async function insertLeadRow(
+  insert: (row: Record<string, unknown>) => PromiseLike<InsertResult>,
+  row: Record<string, unknown>,
+  emailKey: string,
+): Promise<{ error: { code?: string } | null; duplicate: boolean }> {
+  let { error } = await insert(emailKey ? { ...row, email_key: emailKey } : row);
+  if (isMissingColumnError(error)) ({ error } = await insert(row));
+  return { error, duplicate: isDuplicateError(error) };
+}
+
 /** The domain part of an address, lower-cased ("" when there is none). */
 export function emailDomain(raw: string): string {
   const s = raw.trim().toLowerCase();
