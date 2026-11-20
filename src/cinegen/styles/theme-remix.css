@@ -402,14 +402,17 @@
 @media (max-width: 1500px) {
   .cinegen-root .top-nav__tabs { left: auto; right: 150px; transform: none; max-width: calc(100% - 320px); overflow-x: auto; }
 }
-/* [remix] The labelled Retarget button sits with the action icons: keep the tabs clear of it, and show only its icon on narrower windows. */
+/* [remix] With the Retarget button the tabs sit between the title and the action buttons, whatever their widths are right now (top-tabs.tsx
+   measures both groups): they scroll before they could run under either one. The label drops to an icon on narrower windows. */
 @media (max-width: 1500px) {
-  .cinegen-root .top-nav--retarget .top-nav__tabs { right: 270px; max-width: calc(100% - 440px); }
+  .cinegen-root .top-nav--retarget .top-nav__tabs {
+    right: calc(var(--top-nav-actions-w, 250px) + 28px);
+    max-width: calc(100% - var(--top-nav-left-w, 390px) - var(--top-nav-actions-w, 250px) - 56px);
+  }
 }
 @media (max-width: 1400px) {
   .cinegen-root .top-nav--retarget .top-nav__retarget-label { display: none; }
   .cinegen-root .top-nav--retarget .top-nav__retarget { padding: 0 8px; }
-  .cinegen-root .top-nav--retarget .top-nav__tabs { right: 190px; max-width: calc(100% - 360px); }
 }
 
 /* ============================================================================================================

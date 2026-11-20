@@ -26,6 +26,34 @@ describe('header Retarget button', () => {
   });
 });
 
+describe('header layout with the Retarget button', () => {
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  it('measures the title group and the action group so the tabs can never sit under either, and stops measuring on unmount', () => {
+    const observed: Element[] = [];
+    const disconnect = vi.fn();
+    class FakeResizeObserver { observe(el: Element) { observed.push(el); } unobserve() {} disconnect() { disconnect(); } constructor(public cb: () => void) {} }
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    const { container, unmount } = render(<TopTabs activeTab="llm" onTabChange={vi.fn()} onOpenRetarget={vi.fn()} showSkillsButton onOpenSkills={vi.fn()} />);
+    const nav = container.querySelector('nav') as HTMLElement;
+    expect(nav).toHaveClass('top-nav--retarget');
+    expect(observed.map((el) => el.className)).toEqual(['top-nav__left', 'top-nav__actions']);
+    expect(nav.style.getPropertyValue('--top-nav-left-w')).toMatch(/px$/);
+    expect(nav.style.getPropertyValue('--top-nav-actions-w')).toMatch(/px$/);
+    unmount();
+    expect(disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not observe anything (or add the layout class) when there is no Retarget button', () => {
+    const observed: Element[] = [];
+    class FakeResizeObserver { observe(el: Element) { observed.push(el); } unobserve() {} disconnect() {} constructor(public cb: () => void) {} }
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    const { container } = render(<TopTabs activeTab="edit" onTabChange={vi.fn()} />);
+    expect(container.querySelector('nav')).not.toHaveClass('top-nav--retarget');
+    expect(observed).toEqual([]);
+  });
+});
+
 describe('requestRetarget', () => {
   const store = new Map<string, string>();
   beforeEach(() => {
