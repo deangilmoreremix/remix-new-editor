@@ -586,9 +586,10 @@ export function AnimatePage() {
         <a href="${state.result.videoUrl}" download class="btn-secondary-modern text-xs">Download</a>
       </div>
     `;
+    let captionedPrev = null; // the earlier captioned render (a blob: URL), freed when a new one replaces it
     meta.querySelector('.caption-studio-btn').onclick = () => addCaptionButton({
       videoUrl: state.result.videoUrl, appTheme: 'animate',
-      onComplete: (captionedUrl) => { video.src = captionedUrl; meta.querySelector('a[download]').href = captionedUrl; showToast('Preview updated with captions'); },
+      onComplete: (captionedUrl) => { if (captionedPrev) URL.revokeObjectURL(captionedPrev); captionedPrev = captionedUrl; video.src = captionedUrl; meta.querySelector('a[download]').href = captionedUrl; showToast('Preview updated with captions'); },
       onError: (err) => showToast(err?.message || 'Captions failed'),
     });
     card.appendChild(meta);
