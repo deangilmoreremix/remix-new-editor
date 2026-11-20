@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
 import { dispatchPush } from '../_shared/pushAdapter.js';
-import { buildSummaryPayload, summaryCounts, SUMMARY_TAG } from '../_shared/pushSummary.js';
+import { buildSummaryPayload, summaryCounts, SUMMARY_TAG, PAGE_SIZE, MAX_PAGES } from '../_shared/pushSummary.js';
 import { run, config } from '../push-quiet-flush.mjs';
 import { fakeSupabase } from './_fakeSupabase.js';
 
@@ -130,6 +130,27 @@ describe('flush', () => {
   it('quiet hours disabled (null) counts as "not in quiet hours"', async () => {
     const s = setup({ prefs: { ...PREFS, quiet_hours: null } });
     expect(await s.go()).toMatchObject({ sent: 1 });
+  });
+  it('owners behind a full page of held rows are still flushed (the oldest rows must not starve everyone else)', async () => {
+    const held = Array.from({ length: PAGE_SIZE }, (_, i) => def(`h${i}`, 'new_lead', { clerk_user_id: 'user_held' }));
+    const sb = fakeSupabase({
+      owner_push_deferred: [...held, def('late1', 'new_lead', { clerk_user_id: 'user_late' })].map((r) => ({ ...r })),
+      retarget_preferences: [{ ...PREFS, clerk_user_id: 'user_held', quiet_hours: QUIET_NOW }, { ...PREFS, clerk_user_id: 'user_late' }],
+      owner_push_subscriptions: [sub('s9', { clerk_user_id: 'user_late' })],
+    }, { now: NOW });
+    const webpush = { setVapidDetails: vi.fn(), sendNotification: vi.fn(async () => ({ statusCode: 201 })) };
+    const r = await run({ env: ENV, fetchImpl: sb.fetchImpl, webpush, now: NOW, adapter: NOOP });
+    expect(r).toMatchObject({ ok: true, owners: 2, held: 1, sent: 1 });
+    expect(webpush.sendNotification).toHaveBeenCalledTimes(1);
+    expect(sb.db.owner_push_deferred).toHaveLength(PAGE_SIZE); // only the held owner's rows remain
+  });
+  it('looks at no more than MAX_PAGES pages per run and says so', async () => {
+    const many = Array.from({ length: PAGE_SIZE * MAX_PAGES + 5 }, (_, i) => def(`m${i}`, 'new_lead', { clerk_user_id: 'user_held' }));
+    const sb = fakeSupabase({ owner_push_deferred: many, retarget_preferences: [{ ...PREFS, clerk_user_id: 'user_held', quiet_hours: QUIET_NOW }] }, { now: NOW });
+    const webpush = { setVapidDetails: vi.fn(), sendNotification: vi.fn() };
+    const r = await run({ env: ENV, fetchImpl: sb.fetchImpl, webpush, now: NOW, adapter: NOOP });
+    expect(r).toMatchObject({ ok: true, truncated: true, held: 1 });
+    expect(sb.calls.filter((c) => c.path === 'owner_push_deferred' && c.method === 'GET')).toHaveLength(MAX_PAGES);
   });
   it('handles several owners independently', async () => {
     const rows = [...ROWS, def('e1', 'new_lead', { clerk_user_id: 'user_2' })];

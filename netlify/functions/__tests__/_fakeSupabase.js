@@ -1,5 +1,5 @@
 // Tiny in-memory PostgREST stand-in for the owner-alert tests (not a test file). Supports eq / in / lt / lte filters,
-// on_conflict + "resolution=ignore-duplicates", return=representation, PATCH and DELETE. Never reads real data.
+// limit + offset paging, on_conflict + "resolution=ignore-duplicates", return=representation, PATCH and DELETE. Never reads real data.
 let seq = 0;
 const UNIQUE = { notification_email_queue: 'notification_id', owner_push_deferred: 'notification_id' };
 const DEFAULTS = {
@@ -11,7 +11,7 @@ export function fakeSupabase(tables = {}, { now = new Date('2026-11-18T12:00:00Z
   const db = { owner_notifications: [], retarget_preferences: [], owner_push_subscriptions: [], notification_email_queue: [], owner_push_deferred: [], ...tables };
   const calls = [];
   const matches = (row, params) => [...params].every(([k, v]) => {
-    if (['select', 'order', 'limit', 'on_conflict'].includes(k)) return true;
+    if (['select', 'order', 'limit', 'offset', 'on_conflict'].includes(k)) return true;
     const [op, ...rest] = v.split('.'); const arg = rest.join('.');
     if (op === 'eq') return String(row[k]) === arg;
     if (op === 'in') return arg.replace(/^\(|\)$/g, '').split(',').map((x) => x.replace(/^"|"$/g, '')).includes(String(row[k]));
@@ -42,7 +42,8 @@ export function fakeSupabase(tables = {}, { now = new Date('2026-11-18T12:00:00Z
     if (method === 'PATCH') { hit.forEach((r) => Object.assign(r, body)); return res(200, prefer.includes('return=representation') ? hit : undefined); }
     if (method === 'DELETE') { db[path] = db[path].filter((r) => !hit.includes(r)); return res(200, prefer.includes('return=representation') ? hit : undefined); }
     const limit = Number(params.get('limit')) || hit.length;
-    return res(200, hit.slice(0, limit));
+    const offset = Number(params.get('offset')) || 0;
+    return res(200, hit.slice(offset, offset + limit));
   };
   return { db, calls, fetchImpl };
 }

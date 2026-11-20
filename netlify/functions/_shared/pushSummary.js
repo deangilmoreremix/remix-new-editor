@@ -17,7 +17,8 @@ import { rest, supabaseConfig, inList } from './supabaseRest.js';
 export const SUMMARY_TAG = 'quiet-summary';
 export const SUMMARY_TITLE = 'While you were away';
 export const DEFERRED_TTL_MS = 3 * 24 * 3600_000;
-const ROW_LIMIT = 1000;
+export const PAGE_SIZE = 1000;
+export const MAX_PAGES = 10; // at most 10,000 deferred rows are looked at per run; the rest wait for the next run
 const DELETE_CHUNK = 50;
 
 const LABELS = [['New lead', 'new lead', 'new leads'], ['Retarget', 'retarget alert', 'retarget alerts'], ['Video', 'video update', 'video updates']];
@@ -33,6 +34,22 @@ export function summaryCounts(types) {
 export function buildSummaryPayload(counts) {
   const body = LABELS.filter(([c]) => counts[c] > 0).map(([c, one, many]) => `${counts[c]} ${counts[c] === 1 ? one : many}`).join(', ');
   return { title: SUMMARY_TITLE, body, tag: SUMMARY_TAG, type: 'quiet_summary', url: DEEP_LINK };
+}
+
+/**
+ * Every deferred row, oldest first, read page by page BEFORE anything is flushed (so deleting rows cannot shift a later page).
+ * A single page of the oldest rows is not enough: if those belong to owners still in quiet hours (or whose devices keep failing)
+ * they are held again and again and every owner behind them would never be flushed.
+ */
+async function loadDeferredRows(call) {
+  const rows = [];
+  for (let page = 0; page < MAX_PAGES; page += 1) {
+    const batch = await call(`owner_push_deferred?select=id,clerk_user_id,type&order=created_at.asc,id.asc&limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`);
+    if (!Array.isArray(batch)) break;
+    rows.push(...batch);
+    if (batch.length < PAGE_SIZE) return { rows, truncated: false };
+  }
+  return { rows, truncated: true };
 }
 
 async function deleteRows(call, ids) {
@@ -73,8 +90,9 @@ export async function flushQuietSummaries({ env = process.env, fetchImpl = fetch
   try {
     const old = await call(`owner_push_deferred?created_at=lt.${encodeURIComponent(new Date(now.getTime() - DEFERRED_TTL_MS).toISOString())}&select=id`, { method: 'DELETE', prefer: 'return=representation' });
     out.pruned = Array.isArray(old) ? old.length : 0;
-    const rows = await call(`owner_push_deferred?select=id,clerk_user_id,type&order=created_at.asc&limit=${ROW_LIMIT}`);
-    if (!rows?.length) return out;
+    const { rows, truncated } = await loadDeferredRows(call);
+    if (truncated) out.truncated = true;
+    if (!rows.length) return out;
     const byOwner = new Map();
     for (const r of rows) byOwner.set(r.clerk_user_id, [...(byOwner.get(r.clerk_user_id) || []), r]);
     const prefRows = await call(`retarget_preferences?select=*&clerk_user_id=${inList([...byOwner.keys()])}`);
