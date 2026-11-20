@@ -372,6 +372,7 @@ const HERO_THUMBNAILS = {
 // Where to aim the banner crop (CSS object-position) per page. The default is the
 // centre; pages whose picture has its subject elsewhere are listed here.
 const BANNER_FOCUS = {
+  zackd: '50% 19%', // portrait 9:16 keyframe in a wide banner: frame the head and the title card, not the torso
   // Apps-page (studios/) pictures are ~1.8:1 and the banner box ~2.4:1, so only a
   // little is cropped; aim at the subject.
   character: '50% 25%', // faces are in the upper half

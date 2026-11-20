@@ -480,7 +480,18 @@ export function ZackDStudio() {
         const v = el('video'); v.src = t.demo; v.poster = t.poster; v.controls = true; v.preload = 'none'; v.playsInline = true; v.style.width = '100%'; v.style.aspectRatio = '9 / 16'; v.style.maxHeight = '320px'; v.style.objectFit = 'cover';
         media.appendChild(v);
       } else {
-        media.appendChild(el('div', 'text-xs text-white/40 p-6 text-center', 'Script only'));
+        // No media of its own: show the same-topic keyframe when the finished demo has one, else a topic poster.
+        const sameTopic = TEMPLATES.find((x) => x.demo && x.topic === t.topic);
+        if (sameTopic) {
+          const img = el('img'); img.src = sameTopic.poster; img.alt = t.title; img.loading = 'lazy';
+          img.style.cssText = 'width:100%;aspect-ratio:9/16;max-height:320px;object-fit:cover;object-position:50% 25%';
+          media.appendChild(img);
+        } else {
+          const poster = el('div', 'flex flex-col items-center justify-center gap-2 p-6 text-center');
+          poster.style.cssText = 'width:100%;aspect-ratio:9/16;max-height:320px;background:radial-gradient(circle at 30% 20%,rgba(217,255,0,.18),transparent 55%),linear-gradient(160deg,#2a1a3a,#0a0a14)';
+          poster.append(el('div', 'text-[10px] font-bold tracking-widest text-primary uppercase', 'Script'), el('div', 'text-lg font-black text-white leading-tight', t.topic));
+          media.appendChild(poster);
+        }
       }
       const body = el('div', 'p-3 flex flex-col gap-2');
       body.appendChild(el('div', 'text-sm font-bold text-white', t.title));
