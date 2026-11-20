@@ -17,6 +17,11 @@ import { rest, supabaseConfig } from './_shared/supabaseRest.js';
 
 export const config = { schedule: '17 6 * * *' };
 
+// Alerts younger than RECOVERY_MIN_AGE_MINUTES are left to the immediate path, so each daily window must reach back one day PLUS that gap: an alert
+// created 5 minutes before today's sweep is skipped today and must still be inside tomorrow's window (24 h 5 min back).
+export const RECOVERY_MIN_AGE_MINUTES = 15;
+export const RECOVERY_LOOKBACK_HOURS = 24 + 1;
+
 export { emailDb };
 
 /** Exported for tests: runs every job and reports what happened. */
@@ -33,7 +38,7 @@ export async function run({ env = process.env, fetchImpl = fetch, now = new Date
   await step('interest_surges', () => rpc('detect_interest_surges'));
   await step('prune', () => rpc('prune_video_analytics', { p_raw_days: 90 }));
   const db = emailDb(call);
-  await step('email_enqueue', () => enqueueNotificationEmails({ adapter, db, now, sinceHours: 24, minAgeMinutes: 15 })); // digests, plus alerts the immediate path missed
+  await step('email_enqueue', () => enqueueNotificationEmails({ adapter, db, now, sinceHours: RECOVERY_LOOKBACK_HOURS, minAgeMinutes: RECOVERY_MIN_AGE_MINUTES })); // digests, plus alerts the immediate path missed
   await step('email_drain', async () => { const res = await drainEmailQueue({ adapter, db, now, url: alertsUrl(env) }); delete res.outcomes; return res; });
   return result;
 }

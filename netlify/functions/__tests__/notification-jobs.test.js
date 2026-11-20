@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
 import { NOOP_ADAPTER, getEmailAdapter, inQuietHours, backoffMs, MAX_ATTEMPTS, enqueueNotificationEmails, drainEmailQueue } from '../_shared/emailAdapter.js';
-import { run } from '../digest-daily.mjs';
+import { run, RECOVERY_LOOKBACK_HOURS, RECOVERY_MIN_AGE_MINUTES } from '../digest-daily.mjs';
 
 const NOW = new Date('2026-11-11T12:00:00Z');
 const fake = (over = {}) => ({ name: 'fake', configured: true, resolveRecipient: vi.fn(async () => 'owner@example.test'), send: vi.fn(async () => ({ ok: true })), ...over });
@@ -177,6 +177,29 @@ describe('scheduled job', () => {
     expect(r.jobs.interest_surges.error).toMatch(/failed/);
     expect(r.jobs.prune).toBe(2);
     expect(await run({ env: {}, fetchImpl: mkFetch() })).toEqual({ ok: false, error: 'not_configured' });
+  });
+  it('an alert the immediate path missed just before one sweep is recovered by the NEXT daily sweep (the windows overlap by the minimum age)', async () => {
+    const sweep1 = new Date('2026-11-11T06:17:00Z');
+    const sweep2 = new Date('2026-11-12T06:17:00Z');
+    const missed = { id: 'missed', clerk_user_id: 'u1', type: 'new_lead', created_at: new Date(sweep1.getTime() - 5 * 60_000).toISOString() }; // 06:12: too young for sweep 1
+    const queued = new Set();
+    const f = vi.fn(async (url, init) => {
+      const name = url.split('/rest/v1/')[1];
+      let data = [];
+      if (name.startsWith('owner_notifications?select=id,clerk_user_id')) { const since = decodeURIComponent(name.match(/created_at=gte\.([^&]+)/)[1]); data = missed.created_at >= since ? [missed] : []; }   // like the real query: only rows newer than the window start
+      if (name.startsWith('retarget_preferences')) data = [{ clerk_user_id: 'u1', email: true }];
+      if (name.startsWith('notification_email_queue?select=notification_id')) data = [...queued].map((notification_id) => ({ notification_id }));
+      if (name.startsWith('notification_email_queue?on_conflict') && init.method === 'POST') JSON.parse(init.body).forEach((r) => queued.add(r.notification_id));
+      if (name.startsWith('rpc/')) data = 0;
+      return { ok: true, status: 200, text: async () => JSON.stringify(data) };
+    });
+    const first = await run({ env, fetchImpl: f, adapter: fake(), now: sweep1 });
+    expect(first.jobs.email_enqueue.queued).toBe(0);                    // 5 minutes old: left to the immediate path
+    expect(queued.has('missed')).toBe(false);
+    const second = await run({ env, fetchImpl: f, adapter: fake(), now: sweep2 });   // 24 h 5 min old now: still inside the window
+    expect(second.jobs.email_enqueue.queued).toBe(1);
+    expect(queued.has('missed')).toBe(true);
+    expect(RECOVERY_LOOKBACK_HOURS * 60).toBeGreaterThanOrEqual(24 * 60 + RECOVERY_MIN_AGE_MINUTES);
   });
   it('drains a configured adapter end to end against the REST shape', async () => {
     const calls = [];
