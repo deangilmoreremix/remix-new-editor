@@ -1,5 +1,11 @@
 // Recipe Engine - registry and orchestration for multi-step AI workflows.
 // Recipes are additive and run through the existing muapi proxy path.
+//
+// A step's `prompt` is a template: `{{prompt}}` is the user's base prompt.
+// To chain steps, give a step an `input` ('image_url' | 'video_url' |
+// 'audio_url'): the previous step's output URL is sent in that field, which is
+// what the muapi endpoints read. (`{{previous}}` still works inside a prompt
+// template, but a URL is not a useful prompt, so no built-in recipe uses it.)
 
 export const RECIPES = [
   {
@@ -9,7 +15,7 @@ export const RECIPES = [
     category: 'commercial',
     steps: [
       { label: 'Generate product image', type: 'image', model: 'ai-product-shot', prompt: '{{prompt}}' },
-      { label: 'Animate to video', type: 'i2v', model: 'wan-3.0-i2v', prompt: '{{previous}}' }
+      { label: 'Animate to video', type: 'i2v', model: 'wan-3.0-i2v', prompt: '{{prompt}}', input: 'image_url' }
     ]
   },
   {
@@ -19,46 +25,49 @@ export const RECIPES = [
     category: 'character',
     steps: [
       { label: 'Generate character', type: 'image', model: 'flux-pulid', prompt: '{{prompt}}' },
-      { label: 'Animate character', type: 'i2v', model: 'wan-3.0-i2v', prompt: '{{previous}}' }
+      { label: 'Animate character', type: 'i2v', model: 'wan-3.0-i2v', prompt: '{{prompt}}', input: 'image_url' }
     ]
   },
   {
     id: 'cinematic-short',
     name: 'Cinematic Short',
-    description: 'Generate cinematic footage from text with audio.',
+    description: 'Generate cinematic footage from text, plus a matching soundtrack.',
     category: 'cinema',
     steps: [
       { label: 'Generate video', type: 't2v', model: 'seedance-2.5-t2v', prompt: '{{prompt}}' },
-      { label: 'Generate narration', type: 'audio', model: 'flux-3-audio', prompt: ' narration for: {{previous}}' }
+      { label: 'Generate soundtrack', type: 'audio', model: 'flux-3-audio', prompt: 'Cinematic soundtrack for: {{prompt}}' }
     ]
   },
   {
     id: 'social-ad-bundle',
     name: 'Social Ad Bundle',
-    description: 'Produce image + video variants for social ads.',
+    description: 'Produce a hero image, then a video variant of it for social ads.',
     category: 'social',
     steps: [
       { label: 'Generate hero image', type: 'image', model: 'flux-dev', prompt: '{{prompt}}' },
-      { label: 'Generate video variant', type: 'i2v', model: 'wan-3.0-i2v', prompt: '{{previous}}' }
+      { label: 'Generate video variant', type: 'i2v', model: 'wan-3.0-i2v', prompt: '{{prompt}}', input: 'image_url' }
     ]
   },
   {
-    id: 'voiceover-script',
-    name: 'Voiceover + Script',
-    description: 'Write narration and generate matching audio.',
+    // flux-3-audio generates music (style + duration), not speech, so this
+    // recipe is a music track rather than a voiceover.
+    id: 'music-track',
+    name: 'Music Track',
+    description: 'Generate a music track that matches your prompt.',
     category: 'audio',
     steps: [
-      { label: 'Generate audio', type: 'audio', model: 'flux-3-audio', prompt: '{{prompt}}' }
+      { label: 'Generate music', type: 'audio', model: 'flux-3-audio', prompt: '{{prompt}}' }
     ]
   },
   {
+    // wan-3.0-upscale takes a video (video_url), so this generates a clip first.
     id: 'upscale-workflow',
     name: 'Upscale Workflow',
-    description: 'Generate then upscale for final delivery.',
+    description: 'Generate a video clip, then upscale it for final delivery.',
     category: 'utility',
     steps: [
-      { label: 'Generate image', type: 'image', model: 'flux-dev', prompt: '{{prompt}}' },
-      { label: 'Upscale', type: 'video-tool', model: 'wan-3.0-upscale', prompt: '{{previous}}' }
+      { label: 'Generate video', type: 't2v', model: 'seedance-2.5-t2v', prompt: '{{prompt}}' },
+      { label: 'Upscale', type: 'video-tool', model: 'wan-3.0-upscale', prompt: '{{prompt}}', input: 'video_url' }
     ]
   }
 ];
@@ -100,6 +109,8 @@ const STEP_PARAM_KEYS = [
   'last_image_url', 'sheet_url',
 ];
 
+const CHAIN_FIELDS = ['image_url', 'video_url', 'audio_url'];
+
 async function dispatchStep(muapiClient, type, params, signal) {
   const method = STEP_METHOD[type];
   if (method) {
@@ -112,6 +123,13 @@ async function dispatchStep(muapiClient, type, params, signal) {
   return muapiClient.generateImage(params, signal);
 }
 
+// Runs the steps in order and returns the last step's output URL.
+// - `onLog(text)`: progress lines.
+// - `onStep({ index, total, label, status, url })`: status is 'running' | 'done'.
+//   Every finished step's URL is reported here, so callers can show all outputs
+//   (e.g. both the clip and the soundtrack), not just the last one.
+// A failed step, or a chained step with nothing to chain from, throws after
+// logging; outputs of earlier steps were already delivered through onStep.
 export async function runRecipe(muapiClient, recipe, options = {}) {
   const {
     basePrompt = ' cinematic quality',
@@ -121,21 +139,39 @@ export async function runRecipe(muapiClient, recipe, options = {}) {
     reference_images,
     signal,
     onLog = () => {},
+    onStep = () => {},
   } = options;
 
   const client = muapiClient || (await import('./muapi.js')).muapi;
+  const base = basePrompt || ' cinematic quality';
+  const total = recipe.steps.length;
   let prev = previousResult || '';
 
-  for (const step of recipe.steps) {
-    onLog(`Step: ${step.label}`);
+  for (let index = 0; index < total; index++) {
+    const step = recipe.steps[index];
+    onLog(`Step ${index + 1}/${total}: ${step.label}`);
+    onStep({ index, total, label: step.label, status: 'running', url: '' });
     try {
       const prompt = String(step.prompt || '')
-        .replace('{{previous}}', prev)
-        .replace('{{prompt}}', basePrompt || ' cinematic quality');
+        .replace(/\{\{previous\}\}/g, prev)
+        .replace(/\{\{prompt\}\}/g, base);
 
       const params = { prompt, model: step.model };
       for (const key of STEP_PARAM_KEYS) {
+        // `prompt` is the already-substituted template above; copying the
+        // step's own field here would send the raw "{{prompt}}" text.
+        if (key === 'prompt') continue;
         if (key in step) params[key] = step[key];
+      }
+
+      if (step.input) {
+        if (!CHAIN_FIELDS.includes(step.input)) {
+          throw new Error(`Step "${step.label}" has an unsupported input "${step.input}".`);
+        }
+        if (!prev) {
+          throw new Error(`Step "${step.label}" needs the previous step's output, but none was returned.`);
+        }
+        params[step.input] = prev;
       }
 
       if (native_audio !== undefined && params.native_audio === undefined) {
@@ -149,11 +185,15 @@ export async function runRecipe(muapiClient, recipe, options = {}) {
       }
 
       const result = await dispatchStep(client, step.type, params, signal);
-      prev = result?.url || result?.outputs?.[0] || '';
-      onLog(`Done: ${prev ? 'output ready' : 'no output'}`);
+      const url = result?.url || result?.outputs?.[0] || '';
+      onLog(`Done: ${url ? 'output ready' : 'no output'}`);
+      onStep({ index, total, label: step.label, status: 'done', url });
+      // A step that returns nothing must not silently feed the next one the
+      // previous step's output, so chaining restarts from this step's result.
+      prev = url;
     } catch (err) {
       onLog(`Error: ${err?.message || err}`);
-      break;
+      throw err;
     }
   }
 

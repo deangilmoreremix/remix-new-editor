@@ -1,6 +1,13 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
+
+vi.mock('../lib/muapi.js', () => ({
+  muapi: {
+    generateImage: vi.fn(async () => ({ url: 'https://cdn/img.png' })),
+    generateI2V: vi.fn(async () => ({ url: 'https://cdn/clip.mp4' })),
+  },
+}));
 
 describe('RecipeModal', () => {
   let modal;
@@ -27,5 +34,20 @@ describe('RecipeModal', () => {
     search.dispatchEvent(new Event('input', { bubbles: true }));
     const names = [...document.querySelectorAll('.recipe-name')].map(n => n.textContent);
     expect(names).toEqual(['Cinematic Short']);
+  });
+
+  it('runs a recipe: marks each step done, links every output, and records history', async () => {
+    localStorage.clear();
+    const onRunRecipe = vi.fn();
+    modal = await openRecipeModal({ basePrompt: 'red sneakers', onRunRecipe });
+    document.querySelector('[data-select-recipe="product-commercial"]').click();
+    expect(document.querySelector('.recipe-cost').textContent).toContain('2 paid generation calls');
+    document.querySelector('[data-action="run-recipe"]').click();
+    await vi.waitFor(() => expect(onRunRecipe).toHaveBeenCalledWith('https://cdn/clip.mp4'));
+    expect(document.querySelectorAll('.step--done')).toHaveLength(2);
+    const links = [...document.querySelectorAll('.recipe-result a')].map(a => a.getAttribute('href'));
+    expect(links).toEqual(['https://cdn/img.png', 'https://cdn/clip.mp4']);
+    expect(document.querySelector('.recipe-history__row')).toBeTruthy();
+    expect(JSON.parse(localStorage.getItem('recipeHistory'))[0].results).toHaveLength(2);
   });
 });

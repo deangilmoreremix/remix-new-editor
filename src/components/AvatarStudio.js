@@ -21,7 +21,6 @@ import { addCaptionButton } from '../lib/editor/captionActions.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
 import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
@@ -250,7 +249,7 @@ const triggerBtn = document.createElement('button');
   promptInput.oninput = (e) => { prompt = e.target.value; };
   promptGroup.appendChild(promptInput);
 
-  // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+  // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -260,7 +259,6 @@ const triggerBtn = document.createElement('button');
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -294,8 +292,6 @@ const triggerBtn = document.createElement('button');
             onRunRecipe: (url) => {
             }
           }).catch(() => {});
-        } else if (action === 'monetize') {
-          openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'avatar-studio',

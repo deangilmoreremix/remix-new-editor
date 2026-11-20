@@ -1,4 +1,3 @@
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { getStudioIcon, NAV_GROUPS, getNavItemForRoute } from '../lib/studioRoutes.js';
 
 export function Sidebar(navigate) {
@@ -32,10 +31,6 @@ export function Sidebar(navigate) {
       if (item.id === 'settings') {
         const event = new CustomEvent('navigate', { detail: { page: 'settings' } });
         window.dispatchEvent(event);
-        return;
-      }
-      if (item.id === 'monetize') {
-        openMonetizationHub().catch(() => {});
         return;
       }
       navigate(item.id);

@@ -50,6 +50,12 @@ Monetization Hub also dumps the full multi-hundred-word track description into e
 Proposed: shared shell, search with `/`, tabs and filters as pills, selected-card ring, clamped descriptions, and a sticky footer with
 the primary action. The Monetization mockup's lesson list, durations and "Open track" button are illustrative, not from real data.
 
+## Update: decisions made
+- Monetization Hub removed (buttons, modal, helper, curriculum data). `businessTemplates.js` is kept because `template-protection.test.js` guards it.
+- Recipes fixed (chaining via `input`, prompt substitution, per-step status, all outputs linked, recent runs, cost note).
+- Prompt Gallery redesigned in place; Recipes shares the same catalog styles. Mockups `06-monetization-hub.png` and the Monetization notes above are
+  obsolete. The accent follows the host app's `--primary` (lime in the studios), not the Edit tab's cyan.
+
 ## Phases
 0. **Decide the accent** (cyan as the Edit tab shows now, or lime as the tokens say). Mockups use cyan. Switching is one token
    change: `--acc`, `--acc-dim`, `--acc-line` at the top of `mock.css`.

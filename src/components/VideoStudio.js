@@ -39,7 +39,6 @@ import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 
 export function VideoStudio() {
@@ -662,7 +661,7 @@ export function VideoStudio() {
       },
     });
 
-    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -672,7 +671,6 @@ export function VideoStudio() {
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -705,8 +703,6 @@ export function VideoStudio() {
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal().catch(() => {});
-        } else if (action === 'monetize') {
-          openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-studio',

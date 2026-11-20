@@ -40,7 +40,6 @@ import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateReso
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 export function ImageStudio() {
     const container = document.createElement('div');
@@ -317,17 +316,6 @@ export function ImageStudio() {
     recipeBtn.addEventListener('click', () => openImageRecipes());
 
 
-    // Monetization Hub button
-    const monetizationBtn = document.createElement('button');
-    monetizationBtn.type = 'button';
-    monetizationBtn.textContent = '💼 Monetize';
-    monetizationBtn.title = 'Open Smart Video AI Monetization Hub';
-    monetizationBtn.setAttribute('aria-label', 'Open Smart Video AI Monetization Hub');
-    monetizationBtn.className = 'btn-ghost-modern';
-    monetizationBtn.addEventListener('click', () => {
-      openMonetizationHub().catch(() => {});
-    });
-
     textarea.placeholder = 'Describe the image you want to create';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.rows = 1;
@@ -427,7 +415,7 @@ export function ImageStudio() {
       },
     });
 
-    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -437,7 +425,6 @@ export function ImageStudio() {
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -470,8 +457,6 @@ export function ImageStudio() {
           }).catch(() => {});
         } else if (action === 'recipe') {
           openImageRecipes();
-        } else if (action === 'monetize') {
-      openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'image-studio',

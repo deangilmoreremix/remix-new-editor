@@ -31,6 +31,8 @@ export class RecipeModal extends BaseModal {
     this.logs = [];
     this._basePrompt = options.basePrompt || '';
     this.lastResult = '';
+    this.results = [];
+    this.stepStatus = [];
     this.history = this._loadHistory();
     this.loading = options.loading || false;
     this.showShortcuts = false;
@@ -70,8 +72,8 @@ export class RecipeModal extends BaseModal {
       el.oninput = (e) => { this.query = e.target.value; this._refresh(); };
     });
 
-    root.querySelectorAll('[data-category]').forEach(el => {
-      el.onchange = (e) => { this.category = e.target.value; this._refresh(); };
+    root.querySelectorAll('[data-category-chip]').forEach(el => {
+      el.onclick = () => { this.category = el.dataset.categoryChip; this._refresh(); };
     });
 
     root.querySelectorAll('[data-select-recipe]').forEach(el => {
@@ -79,6 +81,8 @@ export class RecipeModal extends BaseModal {
         this.selectedRecipeId = el.dataset.selectRecipe;
         this.logs = [];
         this.lastResult = '';
+        this.results = [];
+        this.stepStatus = [];
         this._refresh();
       };
       el.onkeydown = (e) => {
@@ -95,6 +99,8 @@ export class RecipeModal extends BaseModal {
         this.running = true;
         this.logs = [];
         this.lastResult = '';
+        this.results = [];
+        this.stepStatus = [];
         this._addLog('Starting recipe...');
         this._refresh();
         this._runRecipe(this.selectedRecipeId);
@@ -114,30 +120,58 @@ export class RecipeModal extends BaseModal {
 
   async _runRecipe(recipeId) {
     const recipe = getRecipeById(recipeId);
-    if (!recipe) return;
+    if (!recipe) {
+      this.running = false;
+      this._refresh();
+      return;
+    }
 
     const onLog = (text) => {
       this._addLog(text);
       this._refresh();
     };
 
-    let previousResult = '';
+    const results = [];
+    this.stepStatus = recipe.steps.map(() => 'pending');
+    let failed = false;
     try {
-      previousResult = await runRecipe(muapi, recipe, {
+      await runRecipe(muapi, recipe, {
         basePrompt: this._basePrompt,
         onLog,
+        onStep: ({ index, status, label, url }) => {
+          this.stepStatus[index] = status;
+          if (status === 'done' && url) results.push({ label, url });
+          this.results = [...results];
+        },
       });
-    } catch (err) {
-      onLog(`Error: ${err.message}`);
+    } catch {
+      failed = true;
+      this.stepStatus = this.stepStatus.map((st) => (st === 'running' ? 'error' : st));
     }
 
     this.running = false;
-    this.lastResult = previousResult || '';
-    this._addLog('Recipe finished.');
-    this.history = [{ id: recipeId, time: new Date().toISOString(), result: this.lastResult }, ...this.history];
+    this.results = [...results];
+    const last = results[results.length - 1];
+    this.lastResult = failed ? '' : (last?.url || '');
+    this._addLog(failed ? 'Recipe stopped.' : 'Recipe finished.');
+    // Keep partial outputs of a failed run too: they were already paid for.
+    this.history = [{ id: recipeId, time: new Date().toISOString(), results, failed }, ...this.history];
     this._saveHistory();
     this._refresh();
-    if (previousResult) this.onRunRecipe(previousResult);
+    if (this.lastResult) this.onRunRecipe(this.lastResult);
+  }
+
+  _recentRuns(recipeId) {
+    return this.history
+      .filter((h) => h.id === recipeId)
+      .map((h) => ({
+        time: h.time,
+        failed: !!h.failed,
+        // Older entries stored a single `result` URL.
+        results: Array.isArray(h.results) ? h.results : (h.result ? [{ label: 'Result', url: h.result }] : []),
+      }))
+      .filter((h) => h.results.length)
+      .slice(0, 3);
   }
 
   _refresh() {
@@ -163,26 +197,23 @@ export class RecipeModal extends BaseModal {
     const selected = getRecipeById(this.selectedRecipeId);
 
     return `
-      <div class="recipe-split">
+      <div class="cm-root recipe-split">
         <div class="recipe-catalog">
           <div class="recipe-controls">
-            <input type="search" data-search placeholder="Search recipes..." value="${esc(this.query)}" />
-            <select data-category>
-              <option value="">All Categories</option>
-              <option value="commercial" ${this.category === 'commercial' ? 'selected' : ''}>Commercial</option>
-              <option value="character" ${this.category === 'character' ? 'selected' : ''}>Character</option>
-              <option value="cinema" ${this.category === 'cinema' ? 'selected' : ''}>Cinema</option>
-              <option value="social" ${this.category === 'social' ? 'selected' : ''}>Social</option>
-              <option value="audio" ${this.category === 'audio' ? 'selected' : ''}>Audio</option>
-              <option value="utility" ${this.category === 'utility' ? 'selected' : ''}>Utility</option>
-            </select>
+            <label class="cm-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="search" id="recipe-search" data-search placeholder="Search recipes..." value="${esc(this.query)}" aria-label="Search recipes" />
+            </label>
+            <div class="cm-chips">
+              ${[['', 'All'], ['commercial', 'Commercial'], ['character', 'Character'], ['cinema', 'Cinema'], ['social', 'Social'], ['audio', 'Audio'], ['utility', 'Utility']].map(([v, l]) => `<button type="button" class="cm-chip ${this.category === v ? 'on' : ''}" data-category-chip="${v}">${l}</button>`).join('')}
+            </div>
           </div>
           <div class="recipe-list">
             ${this.loading ? this.renderSkeleton() : recipes.length ? recipes.map(r => `
               <div class="recipe-card ${this.selectedRecipeId === r.id ? 'selected' : ''}" data-select-recipe="${r.id}" role="button" tabindex="0">
                 <div class="recipe-name">${r.name}</div>
                 <div class="recipe-desc">${r.description}</div>
-                <div class="recipe-meta">${r.steps.length} steps · ${r.category}</div>
+                <div class="recipe-meta">${r.steps.length} ${r.steps.length === 1 ? 'step' : 'steps'} · ${r.category}</div>
               </div>
             `).join('') : '<div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block;color:var(--muted)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>No recipes match your search.</div>'}
           </div>
@@ -190,22 +221,25 @@ export class RecipeModal extends BaseModal {
         <div class="recipe-detail">
           ${selected ? `
             <div class="detail-header">
+              <div class="cm-label">Recipe</div>
               <div class="detail-title">${selected.name}</div>
               <div class="detail-desc">${selected.description}</div>
               <div class="detail-steps">
-                ${selected.steps.map((s, i) => `<div class="step"><span class="step-num">${i + 1}</span>${s.label} <span class="step-meta">${s.model}</span></div>`).join('')}
+                ${selected.steps.map((s, i) => { const st = this.stepStatus[i] || ''; return `<div class="step ${st ? 'step--' + st : ''}"><span class="step-num">${st === 'done' ? '✓' : st === 'error' ? '!' : i + 1}</span>${esc(s.label)} <span class="step-meta">${esc(s.model)}</span></div>`; }).join('')}
               </div>
+              <div class="recipe-cost">Each run makes ${selected.steps.length} paid generation call${selected.steps.length === 1 ? '' : 's'} and uses credits from your MuAPI account.</div>
               <label class="text-xs text-muted mt-3 block">Base Prompt</label>
               <textarea class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50" rows="3" data-base-prompt placeholder="Base prompt used across steps...">${esc(this._basePrompt)}</textarea>
             </div>
             <div class="detail-actions">
               <button type="button" class="btn-primary-modern" data-action="run-recipe" ${this.running ? 'disabled' : ''}>${this.running ? 'Running...' : 'Run Recipe'}</button>
             </div>
-            <div class="recipe-log">
+            ${this.logs.length ? `<div class="recipe-log">
               ${this.logs.map(l => `<div class="log-line"><span class="log-time">${new Date(l.time).toLocaleTimeString()}</span>${esc(l.text)}</div>`).join('')}
-            </div>
-            ${this.lastResult && !this.running ? `<div class="recipe-result"><a href="${esc(this.lastResult)}" target="_blank" rel="noopener noreferrer">Open result ↗</a></div>` : ''}
-          ` : this.loading ? '<div class="empty-state"><div class="skeleton-card" style="height:120px"></div></div>' : '<div class="empty-state">Select a recipe to preview steps.</div>'}
+            </div>` : ''}
+            ${this.results.length ? `<div class="recipe-result">${this.results.map((r) => `<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.label)} ↗</a>`).join('')}</div>` : ''}
+            ${this._recentRuns(selected.id).length ? `<div class="recipe-history"><div class="recipe-history__title">Recent runs</div>${this._recentRuns(selected.id).map((h) => `<div class="recipe-history__row"><span>${esc(new Date(h.time).toLocaleString())}${h.failed ? ' · stopped early' : ''}</span>${h.results.map((r) => `<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.label)} ↗</a>`).join('')}</div>`).join('')}</div>` : ''}
+          ` : this.loading ? '<div class="empty-state"><div class="skeleton-card" style="height:120px"></div></div>' : '<div class="empty-state">Pick a recipe on the left to see its steps, then run it with your prompt.</div>'}
         </div>
       </div>
       ${this.showShortcuts ? renderShortcutsOverlay(MODAL_SHORTCUTS({ '↑↓': 'Navigate recipes', 'Enter': 'Run recipe' })) : ''}

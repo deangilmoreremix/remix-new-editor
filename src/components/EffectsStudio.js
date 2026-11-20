@@ -30,7 +30,6 @@ import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateReso
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -495,7 +494,7 @@ generateBtn.type = 'button';
     promptRow.appendChild(effectsPublishBtn);
     const actionRow = createActionRow();
     const personalizeHandle = mountPersonalizeTrigger({ controlsContainer: actionRow, getTextarea: () => promptInput, appId: 'effects-studio' });
-    // Enhancement tools overflow menu (Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -504,7 +503,6 @@ generateBtn.type = 'button';
       </button>
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -530,8 +528,6 @@ generateBtn.type = 'button';
             onRunRecipe: (url) => {
             }
           }).catch((err) => console.error('[Recipe] open failed:', err));
-        } else if (action === 'monetize') {
-          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-studio',

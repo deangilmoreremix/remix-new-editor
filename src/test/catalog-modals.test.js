@@ -2,11 +2,9 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { BaseModal } from '../components/modals/BaseModal.jsx';
 import { PromptGalleryModal } from '../components/modals/PromptGalleryModal.jsx';
-import { MonetizationHubModal, templateToText } from '../components/modals/MonetizationHubModal.jsx';
 import { ExtendModal } from '../components/modals/ExtendModal.jsx';
 import { FillGapModal } from '../components/modals/FillGapModal.jsx';
 import { MusicGenerationModal } from '../components/modals/MusicGenerationModal.jsx';
-import { getTemplateById } from '../lib/businessTemplates.js';
 
 vi.mock('../lib/cinegenIntegration.js', () => ({
   CINEGEN_TOOLS: { EXTEND: 'extend', GAP_FILL: 'gap_fill' },
@@ -65,26 +63,34 @@ describe('PromptGalleryModal', () => {
   });
 });
 
-describe('MonetizationHubModal', () => {
+describe('PromptGalleryModal filters and favorites', () => {
   let modal;
-  afterEach(() => { modal?.destroy(); document.body.innerHTML = ''; });
+  afterEach(() => { modal?.destroy(); document.body.innerHTML = ''; localStorage.clear(); });
 
-  it('filters templates by category and previews real template text', () => {
-    modal = new MonetizationHubModal();
+  it('filters by category chip and source chip, and shows the result count', () => {
+    modal = new PromptGalleryModal({});
     modal.open();
-    document.querySelector('[data-select-track]').click();
-    expect(document.querySelector('.monetization-card.selected')).toBeTruthy();
+    const all = document.querySelectorAll('.prompt-card').length;
+    expect(all).toBeGreaterThan(5);
+    document.querySelector('[data-category-chip="portrait"]').click();
+    const portrait = document.querySelectorAll('.prompt-card');
+    expect(portrait.length).toBeGreaterThan(0);
+    expect(portrait.length).toBeLessThan(all);
+    expect(document.querySelector('[data-category-chip="portrait"]').classList.contains('on')).toBe(true);
+    expect(document.querySelector('.cm-count').textContent).toBe(String(portrait.length));
+    document.querySelector('[data-source-chip="seedance"]').click();
+    for (const badge of document.querySelectorAll('.prompt-card .prompt-source-badge')) {
+      expect(badge.textContent).toBe('seedance');
+    }
+  });
 
-    document.querySelector('[data-tab="templates"]').click();
-    const filter = document.querySelector('[data-template-type]');
-    filter.value = 'positioning';
-    filter.dispatchEvent(new Event('change', { bubbles: true }));
-    const cards = document.querySelectorAll('[data-select-template]');
-    expect(cards.length).toBe(2);
-    cards[0].click();
-    const preview = document.querySelector('.template-preview').textContent;
-    expect(preview).not.toContain('undefined');
-    expect(preview).toBe(templateToText(getTemplateById(cards[0].dataset.selectTemplate)));
+  it('favorites a prompt, shows the count on the tab, and lists it under Favorites', () => {
+    modal = new PromptGalleryModal({});
+    modal.open();
+    document.querySelector('[data-action="toggle-favorite"]').click();
+    expect(document.querySelector('[data-tab="favorites"] .tab-count').textContent).toBe('1');
+    document.querySelector('[data-tab="favorites"]').click();
+    expect(document.querySelectorAll('.prompt-card')).toHaveLength(1);
   });
 });
 
