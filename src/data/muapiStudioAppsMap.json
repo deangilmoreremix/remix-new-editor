@@ -283,7 +283,8 @@
         "parameters": [],
         "sliders": [],
         "presets": []
-      }
+      },
+      "notes": "API test 2026-11-20: two calls to POST /api/v1/ai-skin-enhancer with {image_url} (the exact payload the Studio sends; WebP and PNG inputs) were accepted but the result failed with 'Application \"retoucher\" not found' (request ids 296c7a99-26ab-47a5-a117-8af01665b84f, a7138132-4298-4462-9369-84d26c5686f8). No credits were charged. Re-test before relying on it."
     },
     {
       "id": "outfit-swap",

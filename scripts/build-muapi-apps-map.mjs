@@ -89,6 +89,12 @@ const SIMILAR_WORKFLOW = {
   poster: 'product-advertisement-wan2-6-image-edit',
 };
 
+// Factual test notes (kept separate from status so they never silently change it).
+const NOTES = {
+  'skin-enhancer':
+    'API test 2026-11-20: two calls to POST /api/v1/ai-skin-enhancer with {image_url} (the exact payload the Studio sends; WebP and PNG inputs) were accepted but the result failed with \'Application "retoucher" not found\' (request ids 296c7a99-26ab-47a5-a117-8af01665b84f, a7138132-4298-4462-9369-84d26c5686f8). No credits were charged. Re-test before relying on it.',
+};
+
 // Endpoints that are dedicated tools (the app is a thin wrapper); all others are generic
 // models driven by a muapi-written prompt template.
 const DEDICATED = new Set(['ai-skin-enhancer', 'ai-image-face-swap', 'ai-video-face-swap', 'video-background-remover']);
@@ -130,6 +136,7 @@ for (const [categoryKey, list] of Object.entries(catalog)) {
     if (entry.status === 'preset') {
       entry.notes = "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.";
     }
+    if (NOTES[a.slug]) entry.notes = NOTES[a.slug];
     const wfSlug = SIMILAR_WORKFLOW[a.slug];
     if (wfSlug) {
       const w = workflows.get(wfSlug);
