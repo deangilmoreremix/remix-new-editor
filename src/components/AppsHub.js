@@ -2,6 +2,8 @@ import { navigate } from '../lib/router.js';
 import { getStudioThumbnail, getHeroThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 import { directoryByGroup, STUDIO_DIRECTORY } from '../lib/studioDirectory.js';
 import { COLLAB_APPS } from '../lib/collabSuite.js';
+import { FAVORITES_EVENT, getFavorites, toggleFavorite } from '../lib/onboarding/store.js';
+import { currentUserId, yourStudios } from '../lib/onboarding/yourStudios.js';
 
 const CORE_STUDIOS = [
   { id: 'image', name: 'Image Studio', description: 'Generate images with 20+ AI models', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: '20+ models', color: 'bg-primary/10 text-primary border-primary/20' },
@@ -97,6 +99,9 @@ export function AppsHub() {
   total.textContent = `${STUDIO_DIRECTORY.length} studios`;
   inner.appendChild(total);
 
+  // "Your studios": what was picked in the onboarding (favorites first, then recommendations). Re-drawn when a star changes.
+  let yourRow = createYourStudiosRow();
+  if (yourRow) inner.appendChild(yourRow);
   const recentRow = createRecentRow();
   if (recentRow) inner.appendChild(recentRow);
 
@@ -117,8 +122,23 @@ export function AppsHub() {
 
   container.appendChild(inner);
 
+  const createdAt = Date.now();
+  const onFavorites = () => {
+    // The router drops this page when you leave it: stop listening once it is no longer on screen.
+    if (!container.isConnected && Date.now() - createdAt > 2000) { window.removeEventListener(FAVORITES_EVENT, onFavorites); return; }
+    const next = createYourStudiosRow();
+    if (yourRow && next) yourRow.replaceWith(next);
+    else if (yourRow) yourRow.remove();
+    else if (next) total.after(next);
+    yourRow = next;
+    if (yourRow && searchInput.value.trim()) yourRow.style.display = 'none';
+    syncStars(container);
+  };
+  window.addEventListener(FAVORITES_EVENT, onFavorites);
+
   searchInput.oninput = () => {
     const q = searchInput.value.trim().toLowerCase();
+    if (yourRow) yourRow.style.display = q ? 'none' : ''; // the favorites row is not part of the search
     let total = 0;
     container.querySelectorAll('[data-app-section]').forEach(section => {
       let visible = 0;
@@ -141,12 +161,12 @@ export function AppsHub() {
 }
 
 // One studio card: its screenshot, name and description, as a real link (#/<route>) so it also opens in a new tab.
-function createStudioCard(studio) {
+function createStudioCard(studio, { reco = false } = {}) {
   const card = document.createElement('a');
   card.href = studio.href;
   card.className = 'group block bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden hover:bg-white/[0.06] hover:border-primary/30 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50';
-  card.dataset.searchable = `${studio.name} ${studio.description || ''}`;
-  card.dataset.studioCard = studio.id;
+  if (reco) card.dataset.recoCard = studio.id; // the "Your studios" copy: not one of the 38 section cards, not searched
+  else { card.dataset.searchable = `${studio.name} ${studio.description || ''}`; card.dataset.studioCard = studio.id; }
   card.setAttribute('data-studio-link', studio.href);
   card.setAttribute('aria-label', `Open ${studio.name}`);
   card.addEventListener('click', (e) => {
@@ -179,6 +199,7 @@ function createStudioCard(studio) {
     img.src = studio.image;
     frame.appendChild(img);
   }
+  frame.appendChild(createStar(studio));
   card.appendChild(frame);
 
   const text = document.createElement('div');
@@ -192,6 +213,54 @@ function createStudioCard(studio) {
   text.append(name, desc);
   card.appendChild(text);
   return card;
+}
+
+// The star on a card: add or remove the studio from "Your studios" (a real button; it never follows the card's link).
+function createStar(studio) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.setAttribute('data-fav-toggle', studio.id);
+  b.className = 'absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full text-white/80 backdrop-blur-md transition-colors hover:text-primary';
+  b.style.background = 'rgba(0,0,0,0.55)';
+  b.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>';
+  const sync = () => {
+    const on = getFavorites(currentUserId()).includes(studio.id);
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-label', on ? `Remove ${studio.name} from your studios` : `Add ${studio.name} to your studios`);
+  };
+  sync();
+  b.addEventListener('click', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    toggleFavorite(currentUserId(), studio.id);
+  });
+  return b;
+}
+
+function syncStars(root) {
+  const mine = getFavorites(currentUserId());
+  root.querySelectorAll('[data-fav-toggle]').forEach((b) => {
+    const on = mine.includes(b.getAttribute('data-fav-toggle'));
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-label', (on ? 'Remove ' : 'Add ') + (b.getAttribute('aria-label') || '').replace(/^(Add|Remove) /, '').replace(/ (to|from) your studios$/, '') + (on ? ' from your studios' : ' to your studios'));
+  });
+}
+
+function createYourStudiosRow() {
+  const studios = yourStudios(currentUserId());
+  if (!studios.length) return null;
+  const section = document.createElement('div');
+  section.className = 'mb-10 animate-fade-in-up';
+  section.setAttribute('data-your-studios', '');
+  const heading = document.createElement('h2');
+  heading.className = 'text-lg font-bold text-white mb-4 flex items-center gap-2';
+  heading.innerHTML = 'Your studios <span class="text-xs font-medium text-muted"></span>';
+  heading.querySelector('span').textContent = String(studios.length);
+  section.appendChild(heading);
+  const grid = document.createElement('div');
+  grid.className = 'grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4';
+  studios.forEach((s) => grid.appendChild(createStudioCard(s, { reco: true })));
+  section.appendChild(grid);
+  return section;
 }
 
 function createStudioSection(title, studios) {

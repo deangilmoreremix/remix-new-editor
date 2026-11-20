@@ -323,6 +323,52 @@ export function SettingsModal(onClose) {
     };
     modal.appendChild(redoBtn);
 
+    // Edit the studios picked in the onboarding ("Your studios" on the Apps page and in the side menu).
+    const studiosBox = document.createElement('details');
+    studiosBox.setAttribute('data-edit-studios', '');
+    studiosBox.className = 'text-xs text-white/60';
+    const studiosSummary = document.createElement('summary');
+    studiosSummary.textContent = 'Edit your studios';
+    studiosSummary.className = 'cursor-pointer font-semibold text-white/45 hover:text-white';
+    studiosBox.appendChild(studiosSummary);
+    studiosBox.addEventListener('toggle', async () => {
+        if (!studiosBox.open || studiosBox.dataset.ready) return;
+        studiosBox.dataset.ready = '1';
+        try {
+            const [{ buildToolGroups }, { currentUserId }, store] = await Promise.all([
+                import('../lib/onboarding/toolCatalog.js'), import('../lib/onboarding/yourStudios.js'), import('../lib/onboarding/store.js'),
+            ]);
+            const uid = currentUserId();
+            const mine = new Set(store.getFavorites(uid));
+            const list = document.createElement('div');
+            list.className = 'mt-2 max-h-48 overflow-y-auto pr-1 flex flex-col gap-2';
+            buildToolGroups().forEach((g) => {
+                const head = document.createElement('div');
+                head.className = 'text-[10px] font-black uppercase tracking-wider text-white/30';
+                head.textContent = g.title;
+                list.appendChild(head);
+                g.items.forEach((t) => {
+                    const row = document.createElement('label');
+                    row.className = 'flex items-center gap-2 cursor-pointer';
+                    const box = document.createElement('input');
+                    box.type = 'checkbox';
+                    box.checked = mine.has(t.id);
+                    box.setAttribute('data-edit-studio', t.id);
+                    box.addEventListener('change', () => {
+                        const now = store.getFavorites(uid);
+                        store.setFavorites(uid, box.checked ? [...now.filter((x) => x !== t.id), t.id] : now.filter((x) => x !== t.id));
+                    });
+                    const name = document.createElement('span');
+                    name.textContent = t.name;
+                    row.append(box, name);
+                    list.appendChild(row);
+                });
+            });
+            studiosBox.appendChild(list);
+        } catch { studiosBox.appendChild(Object.assign(document.createElement('p'), { textContent: 'Could not load your studios.' })); }
+    });
+    modal.appendChild(studiosBox);
+
     // Guided tours: replay the app tour, show every tour again, or turn tours off / on.
     const toursRow = document.createElement('div');
     toursRow.className = 'flex flex-wrap items-center gap-x-4 gap-y-1';

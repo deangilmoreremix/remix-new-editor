@@ -1,5 +1,7 @@
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { getStudioIcon, NAV_GROUPS, getNavItemForRoute } from '../lib/studioRoutes.js';
+import { FAVORITES_EVENT } from '../lib/onboarding/store.js';
+import { currentUserId, favoriteStudios } from '../lib/onboarding/yourStudios.js';
 
 export function Sidebar(navigate) {
   const element = document.createElement('aside');
@@ -14,9 +16,12 @@ export function Sidebar(navigate) {
     { id: 'settings', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>', label: 'Settings' },
   ];
 
-  const buttons = {};
+  const yoursSlot = document.createElement('div');
+  yoursSlot.className = 'flex flex-col w-full items-center';
+  yoursSlot.dataset.sidebarYours = '';
+  const buttons = {}; // id -> [{ container, iconBtn, label }]: a studio can appear twice (its group and "Your studios")
 
-  const createButton = (item) => {
+  const createButton = (item, { copy = false } = {}) => {
     const container = document.createElement('div');
     container.className = 'flex flex-col items-center gap-0.5 mb-0.5 cursor-pointer group w-full px-2';
 
@@ -43,8 +48,9 @@ export function Sidebar(navigate) {
 
     container.appendChild(iconBtn);
     container.appendChild(label);
-    container.dataset.sidebarItem = item.id;
-    buttons[item.id] = { container, iconBtn, label };
+    // A "Your studios" copy is not the studio's menu entry: tours and tests that look it up by id get the real one.
+    if (copy) container.dataset.sidebarYoursItem = item.id; else container.dataset.sidebarItem = item.id;
+    (buttons[item.id] ||= []).push({ container, iconBtn, label });
     return container;
   };
 
@@ -59,8 +65,28 @@ export function Sidebar(navigate) {
       navContainer.appendChild(heading);
     }
     group.items.forEach(item => navContainer.appendChild(createButton(item)));
+    if (gi === 0) navContainer.appendChild(yoursSlot);
   });
   element.appendChild(navContainer);
+
+  // "Your studios": the studios picked in the onboarding, right under the first group. Built at run time from the
+  // person's own list (nothing is hard-coded here) and redrawn when it changes. No picks = no group.
+  const renderYours = () => {
+    Object.keys(buttons).forEach((id) => {
+      buttons[id] = buttons[id].filter((b) => !yoursSlot.contains(b.container));
+      if (!buttons[id].length) delete buttons[id];
+    });
+    yoursSlot.replaceChildren();
+    const studios = favoriteStudios(currentUserId(), 8);
+    if (!studios.length) return;
+    const heading = document.createElement('div');
+    heading.className = 'w-full mt-3 mb-1 pt-3 border-t border-white/5 text-center text-[8px] font-black uppercase tracking-[0.18em] text-white/30';
+    heading.textContent = 'Your studios';
+    heading.dataset.sidebarGroup = 'Your studios';
+    yoursSlot.appendChild(heading);
+    studios.forEach((st) => yoursSlot.appendChild(createButton({ id: st.id, label: st.name.replace(/ Studio$/, ''), icon: getStudioIcon(st.id) }, { copy: true })));
+    setActive(typeof window !== 'undefined' ? window.location.hash.slice(2) : '');
+  };
 
   const bottomContainer = document.createElement('div');
   bottomContainer.className = 'flex flex-col w-full items-center mt-auto';
@@ -69,8 +95,8 @@ export function Sidebar(navigate) {
 
   const setActive = (page) => {
     const activeId = getNavItemForRoute(page);
-    Object.entries(buttons).forEach(([id, { container, iconBtn, label }]) => {
-      const active = id === activeId;
+    Object.entries(buttons).forEach(([id, copies]) => copies.forEach(({ container, iconBtn, label }) => {
+      const active = id === activeId || id === page;
       iconBtn.style.color = active ? 'var(--color-primary)' : '';
       iconBtn.classList.toggle('bg-primary/10', active);
       label.style.color = active ? 'var(--color-primary)' : '';
@@ -89,11 +115,15 @@ export function Sidebar(navigate) {
       } else {
         container.removeAttribute('aria-current');
       }
-    });
+    }));
   };
 
+  renderYours();
   setActive(typeof window !== 'undefined' ? window.location.hash.slice(2) : '');
   element.addEventListener('route-changed', (e) => setActive(e.detail.page));
+  const onFavorites = () => { if (!element.isConnected && Date.now() - createdAt > 2000) { window.removeEventListener(FAVORITES_EVENT, onFavorites); return; } renderYours(); };
+  const createdAt = Date.now();
+  window.addEventListener(FAVORITES_EVENT, onFavorites);
 
   // Mobile menu toggle button. On desktop the sidebar is always visible (via
   // the `hidden md:flex` class), so this button is `md:hidden` and only

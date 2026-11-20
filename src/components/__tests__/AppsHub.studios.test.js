@@ -65,3 +65,54 @@ describe('Apps page: all 38 studios', () => {
     expect(img.getAttribute('src')).toBe(STUDIO_DIRECTORY.find((s) => s.id === 'image').fallback);
   });
 });
+
+describe('Apps page: Your studios row and stars', () => {
+  const key = 'smartvideo-app-onboarding-v1:guest';
+  const mount = (answers) => {
+    localStorage.clear(); document.body.innerHTML = '';
+    if (answers) localStorage.setItem(key, JSON.stringify(answers));
+    document.body.appendChild(AppsHub());
+  };
+
+  it('guests with no answers see no row, and still 38 cards in 5 sections', () => {
+    mount(null);
+    expect(document.querySelector('[data-your-studios]')).toBeNull();
+    expect(all('[data-studio-card]')).toHaveLength(38);
+  });
+
+  it('shows favorites first (primary first), then recommendations, capped at 8, without changing the 38 cards', () => {
+    mount({ step: 6, videoTypes: ['talking'], tools: ['image', 'avatar'], primaryTool: 'avatar' });
+    const ids = all('[data-reco-card]').map((c) => c.getAttribute('data-reco-card'));
+    expect(ids.slice(0, 2)).toEqual(['avatar', 'image']);
+    expect(ids).toContain('lipsync'); // recommended for "talking"
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.length).toBeLessThanOrEqual(8);
+    expect(all('[data-studio-card]')).toHaveLength(38);
+    expect(all('[data-app-section]').length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('a star toggles the favorite, does not navigate, and the row follows', () => {
+    mount({ step: 6, tools: ['image'], primaryTool: 'image' });
+    navigate.mockClear();
+    const star = document.querySelector('[data-studio-card="video"] [data-fav-toggle]');
+    expect(star.getAttribute('aria-pressed')).toBe('false');
+    star.click();
+    expect(navigate).not.toHaveBeenCalled();
+    expect(document.querySelector('[data-studio-card="video"] [data-fav-toggle]').getAttribute('aria-pressed')).toBe('true');
+    expect(all('[data-reco-card]').map((c) => c.getAttribute('data-reco-card'))).toEqual(['image', 'video']);
+    document.querySelector('[data-studio-card="image"] [data-fav-toggle]').click();
+    expect(all('[data-reco-card]').map((c) => c.getAttribute('data-reco-card'))).toEqual(['video']);
+  });
+
+  it('a first star creates the row for a guest, and the row hides while searching', () => {
+    mount(null);
+    document.querySelector('[data-studio-card="avatar"] [data-fav-toggle]').click();
+    const row = document.querySelector('[data-your-studios]');
+    expect(row).not.toBeNull();
+    const input = document.querySelector('input[placeholder="Search apps..."]');
+    input.value = 'lip'; input.dispatchEvent(new Event('input'));
+    expect(row.style.display).toBe('none');
+    input.value = ''; input.dispatchEvent(new Event('input'));
+    expect(row.style.display).toBe('');
+  });
+});

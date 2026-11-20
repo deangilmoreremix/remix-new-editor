@@ -148,4 +148,34 @@ test.describe('App-wide onboarding', () => {
     await expect(page.locator('[data-onb-bar]')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
+
+  test('picked studios show up in the Apps page and the side menu, and a star keeps both in step', async ({ page }) => {
+    await page.addInitScript(() => { // no guided tour over the studio
+      try { localStorage.setItem('smartvideo-tours-v1:guest', JSON.stringify({ __disabled__: { version: 1, seenAt: new Date().toISOString() } })); } catch { /* ignore */ }
+    });
+    await open(page);
+    await answerUpToSource(page);
+    await page.click('[data-onb-heard="linkedin"]');
+    await page.click('[data-onb-type="talking"]');
+    await page.click('[data-onb-continue]');
+    await page.click('[data-onb-tool="avatar"]');
+    await page.click('[data-onb-tool="image"]');
+    await page.click('[data-onb-start]');
+    await page.click('[data-onb-ready-skip]');
+    await page.waitForFunction(() => location.hash === '#/avatar', null, { timeout: 30_000 });
+    await page.waitForSelector('[data-sidebar-group="Your studios"]', { state: 'attached', timeout: 30_000 });
+    await expect(page.locator('[data-sidebar-yours-item]')).toHaveCount(2);
+
+    await page.goto('/?dev#/apps', { waitUntil: 'domcontentloaded' }); // a fresh load of the Apps page
+    await page.waitForSelector('[data-your-studios]', { timeout: 30_000 });
+    const ids = await page.locator('[data-reco-card]').evaluateAll((n) => n.map((e) => e.getAttribute('data-reco-card')));
+    expect(ids.slice(0, 2)).toEqual(['avatar', 'image']);
+    await expect(page.locator('[data-studio-card]')).toHaveCount(38);
+
+    // un-star Image on its section card: the row and the side menu both drop it
+    await page.locator('[data-studio-card="image"] [data-fav-toggle]').click();
+    await expect(page.locator('[data-sidebar-yours-item="image"]')).toHaveCount(0);
+    await expect(page.locator('[data-reco-card="image"]')).toHaveCount(0); // not recommended for "talking" either
+    await expect(page.locator('[data-reco-card="avatar"]')).toHaveCount(1);
+  });
 });
