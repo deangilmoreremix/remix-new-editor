@@ -118,14 +118,13 @@ import {
   applyLayoutPreset,
   applyDesignTemplate,
   addDesignTemplate,
-  removeDesignLayer,
   resetLayoutToDefaults,
   resetPreviewDesign,
   normalizePreviewSettings,
   getCompositionDimensions,
   reflowLayersForAspect,
 } from './preview/presets'
-import { addDesignWithRules, moveDesignLayer } from './preview/designAddons'
+import { addDesignWithRules, moveDesignLayer, removeDesignKeepingLayout } from './preview/designAddons'
 import {
   applyResearchedBrandColors,
   firstParagraphOf,
@@ -5936,7 +5935,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
   const removePreviewDesignLayer = useCallback((layerId: string) => {
     markSessionStarted()
-    setPreviewSettings((prev) => removeDesignLayer(prev, layerId))
+    setPreviewSettings((prev) => removeDesignKeepingLayout(prev, layerId, previewSeedRef.current))
   }, [])
 
   // ── Undo / redo for edits to the preview ─────────────────────────────────
