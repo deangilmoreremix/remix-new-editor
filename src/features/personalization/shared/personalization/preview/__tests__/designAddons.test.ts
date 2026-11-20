@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { applyLayoutPreset, createDefaultPreviewSettings, removeDesignLayer } from '../presets'
-import { addDesignWithRules, canAddDesign, latestIntroStart, layoutOnVideo, listAddedDesigns, moveDesignLayer } from '../designAddons'
+import { applyDesignTemplate, applyLayoutPreset, createDefaultPreviewSettings, removeDesignLayer } from '../presets'
+import { addDesignWithRules, removeDesignKeepingLayout, canAddDesign, latestIntroStart, layoutOnVideo, listAddedDesigns, moveDesignLayer } from '../designAddons'
 import { listRemotionDesignTemplates } from '../../templates'
 
 const base = () => applyLayoutPreset(createDefaultPreviewSettings(), 'business-introduction')
@@ -129,5 +129,30 @@ describe('layoutOnVideo', () => {
     expect(layoutOnVideo(withDesign)).toBe(true)
     expect(layoutOnVideo({ ...withDesign, layers: listAddedDesigns(withDesign) })).toBe(false)
     expect(layoutOnVideo({ ...b, layers: [] })).toBe(false)
+  })
+})
+
+describe('removing a design never leaves an empty video', () => {
+  const av = { logo: true, product: true, service: true }
+  it('after Replace my layout, removing the design brings the default layout back', () => {
+    const b = base()
+    const d = all.find((x) => canAddDesign(b, x, av).ok)!
+    const replaced = applyDesignTemplate(b, d.id, ctx)
+    expect(replaced.layers.every((l) => l.kind === 'design')).toBe(true)
+    const removed = removeDesignKeepingLayout(replaced, replaced.layers[0].id, ctx)
+    expect(removed.layers.length).toBeGreaterThan(0)
+    expect(layoutOnVideo(removed)).toBe(true)
+    expect(removed.remotionDesignId).toBeNull()
+  })
+  it('for a design added on top, only that design goes and the layout is untouched', () => {
+    const b = base()
+    const d = all.find((x) => canAddDesign(b, x, av).ok)!
+    const withDesign = addDesignWithRules(b, d.id, ctx).settings
+    const removed = removeDesignKeepingLayout(withDesign, listAddedDesigns(withDesign)[0].id, ctx)
+    expect(removed.layers).toEqual(b.layers)
+  })
+  it('an unknown layer id changes nothing', () => {
+    const b = base()
+    expect(removeDesignKeepingLayout(b, 'nope', ctx)).toBe(b)
   })
 })

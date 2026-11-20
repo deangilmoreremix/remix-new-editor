@@ -108,16 +108,21 @@ export function ContentLibraryPage() {
   // Upload picker setup
   const uploadPicker = createUploadPicker({
     anchorContainer: controls,
-    onSelect: async ({ url, urls }) => {
+    onSelect: async ({ url, urls, assets }) => {
       const urlsToSave = urls || (url ? [url] : []);
+      // The picker knows each file's media type; pass it on so an upload whose
+      // storage URL has no usable extension (e.g. ".bin") is still saved as audio.
+      const typeByUrl = new Map((assets || []).map((a) => [a.url, a.type]));
       for (const uploadedUrl of urlsToSave) {
-        await saveContentLibraryEntry(uploadedUrl);
+        const t = typeByUrl.get(uploadedUrl);
+        await saveContentLibraryEntry(uploadedUrl, ['audio', 'video', 'image'].includes(t) ? { type: t } : {});
       }
       await refreshContent();
     },
     onClear: () => {},
     maxImages: 10,
     acceptVideo: true,
+    acceptAudio: true,
   });
 
   // Wire the upload picker trigger into the visible controls

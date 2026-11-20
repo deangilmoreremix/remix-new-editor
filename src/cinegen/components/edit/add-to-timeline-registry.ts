@@ -7,12 +7,17 @@ import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
 import { createMgOverlay, type MgTemplate } from '@cinegen/lib/occ/mg-templates';
 import { OVERLAY_KINDS, overlayTemplates, createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
 import type { CardPreview } from './preview-types';
+import type { OverlayPreset } from '@cinegen/lib/overlays/overlay-presets';
 
 export interface AddToTimelineActions {
   onPickAnimation?: (item: HfItem) => void; // omitted when the HyperFrames flag is off
   onPickMotion: (t: MgTemplate) => void;
   onPickTemplateVideo?: (item: TemplateVideo) => void; // Template videos tab (hidden when omitted)
   onPickLandingPage?: (designId: string) => void; // Landing pages tab (hidden when omitted)
+  onPickPreset?: (preset: OverlayPreset) => void; // My presets tab (hidden when omitted)
+  onAddLayout?: (layoutId: string) => { ok: boolean; message: string }; // Personalized layouts tab (hidden when omitted)
+  getOverlays?: () => Array<{ type: string; addon?: unknown }>; // the timeline's overlays, for "Check contacts"
+  onMakeAllVideoReady?: (h: { onProgress: (done: number, total: number, who: string) => void; notify: (message: string, kind?: 'info' | 'error' | 'success') => void }) => Promise<{ total: number; done: number; message: string }>; // "Make all Video Ready" on the Personalized layouts tab
   onAddKind: (kind: OverlayKind) => void;
   onAddTemplate: (templateId: string, phone?: string) => void;
 }
@@ -89,7 +94,7 @@ export function buildCatalog(a: Pick<AddToTimelineActions, 'onAddKind' | 'onAddT
 /** The Library sidebar (a sibling of the timeline) opens the modal through this window event; TimelineEditor listens for it. */
 export const OPEN_ADD_MODAL_EVENT = 'cinegen:open-add-to-timeline';
 /** Tabs of the Add to timeline window ('videos' = Template videos). */
-export type AddModalTab = 'all' | CatalogTab | 'videos' | 'landing';
+export type AddModalTab = 'all' | CatalogTab | 'videos' | 'landing' | 'presets' | 'layouts';
 /** What the next-opened window should show: the tab and a search to pre-fill (so a clicked Library card appears in it). Kept here (not in
  *  timeline-editor.tsx) so that file stays close to upstream CineGen. */
 let pendingTab: AddModalTab | undefined;

@@ -5,6 +5,8 @@ import {
 } from '../publishClient.js';
 import { mountWatchPage } from '../../../../pages/WatchPage.jsx';
 import { renderSharePanel } from '../sharePanel.js';
+import { normalizeDomain, setCustomDomain, customDomainUrl } from '../publishClient.js';
+import { readableLinkId, newLinkId, syncPersonalLinks } from '../personalLinksClient.js';
 
 describe('slug helpers', () => {
   it('validates like the database', () => {
@@ -126,5 +128,66 @@ describe('share panel publish title', () => {
     box.querySelector('[data-share-publish]').click();
     await new Promise((r) => setTimeout(r, 0));
     expect(publish).toHaveBeenCalledWith({ title: 'My custom title' });
+  });
+});
+
+describe('custom domain', () => {
+  it('normalizes a plain hostname and rejects the rest', () => {
+    expect(normalizeDomain('https://Videos.Acme.com/intro')).toBe('videos.acme.com');
+    expect(normalizeDomain('videos.acme.com')).toBe('videos.acme.com');
+    expect(normalizeDomain('acme')).toBeNull();
+    expect(normalizeDomain('my app.com')).toBeNull();
+    expect(normalizeDomain('foo.smartvid.app')).toBeNull();
+    expect(normalizeDomain('x.netlify.app')).toBeNull();
+  });
+  it('sends the hostname to the database and clears on empty', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: 'videos.acme.com', error: null });
+    expect(await setCustomDomain({ rpc }, 'https://videos.acme.com/')).toBe('videos.acme.com');
+    expect(rpc).toHaveBeenCalledWith('set_custom_domain', { p_domain: 'videos.acme.com' });
+    rpc.mockResolvedValueOnce({ data: null, error: null });
+    expect(await setCustomDomain({ rpc }, '  ')).toBeNull();
+    expect(rpc).toHaveBeenLastCalledWith('set_custom_domain', { p_domain: null });
+    await expect(setCustomDomain({ rpc }, 'not a domain')).rejects.toThrow(/videos\.yourbusiness\.com/);
+  });
+  it('maps a taken domain to a readable message', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: { message: 'domain_taken' } });
+    await expect(setCustomDomain({ rpc }, 'videos.acme.com')).rejects.toThrow(/already used/);
+  });
+  it('builds the domain link only when a domain and slug exist', () => {
+    expect(customDomainUrl({ customDomain: 'videos.acme.com', slug: 'intro' })).toBe('https://videos.acme.com/intro');
+    expect(customDomainUrl({ slug: 'intro' })).toBeNull();
+    expect(customDomainUrl({ customDomain: 'videos.acme.com' })).toBeNull();
+  });
+});
+
+describe('personal link ids from contacts', () => {
+  const rule = /^[A-Za-z0-9_-]{16,32}$/;
+  it('labels a new link with the company, never the person\'s name', async () => {
+    const inserted = [];
+    const list = { eq: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) };
+    const client = { from: () => ({ select: () => list, insert: (rows) => { inserted.push(...rows); return Promise.resolve({ error: null }); } }) };
+    await syncPersonalLinks(client, 'abcdefgh12', [
+      { contactId: 'c1', name: 'John Smith', company: 'Acme Dental', variables: {} },
+      { contactId: 'c2', name: 'Jane Doe', company: '', variables: {} },
+    ]);
+    expect(inserted).toHaveLength(2);
+    expect(inserted[0].id).toMatch(/^acme-dental-/);
+    expect(inserted[1].id).toMatch(rule);
+    for (const r of inserted) expect(r.id).not.toMatch(/john|smith|jane|doe/i);
+  });
+});
+
+describe('readable personal link ids', () => {
+  const rule = /^[A-Za-z0-9_-]{16,32}$/;
+  it('reads like the contact but always ends in random characters', () => {
+    const a = readableLinkId('Acme Dental');
+    expect(a).toMatch(/^acme-dental-/);
+    expect(a).toMatch(rule);
+    expect(readableLinkId('Acme Dental')).not.toBe(a);
+  });
+  it('stays within the database rule for short, long and unusable labels', () => {
+    for (const label of ['Al', 'A very long business name that goes on and on', '★★★', '', undefined]) {
+      expect(newLinkId(label)).toMatch(rule);
+    }
   });
 });

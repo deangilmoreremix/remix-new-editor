@@ -26,6 +26,10 @@ export const OVERLAY_KINDS: Array<{ kind: OverlayKind; label: string; blurb: str
   { kind: 'overlay-sticker', label: 'Stickers', blurb: 'Emoji, shapes and animated stickers.' },
   { kind: 'overlay-background', label: 'Wrapper', blurb: 'A colour or gradient background behind the video.' },
   { kind: 'overlay-lower-third', label: 'Lower Thirds', blurb: 'Name and title bars that animate in and out.' },
+  { kind: 'addon-pause', label: 'Pause', blurb: 'Pause the video here, for N seconds or until the viewer clicks. Works on the published link.' },
+  { kind: 'addon-skip', label: 'Skip', blurb: 'Jump over this section during playback. Works on the published link.' },
+  { kind: 'addon-loop', label: 'Loop', blurb: 'Repeat this section a set number of times, or forever. Works on the published link.' },
+  { kind: 'addon-hotspot', label: 'Hotspot', blurb: 'A clickable area on the video: open a link, call a number or jump to another point. Works on the published link.' },
   { kind: 'overlay-studio-design', label: 'Studio Design', blurb: 'A Personalization Studio design (headline, logo reveal, call to action...) filled with each contact\'s details.' },
 ];
 
@@ -40,6 +44,13 @@ export const startAfterGate = (overlays: OverlayClip[], startSec: number) => (fi
 const KINDS = new Set<string>([...OVERLAY_KINDS.map((k) => k.kind), 'mg-template', 'hyperframes']);
 
 /** Add-ons driven by the old registry's schema (options live under `addon`), as opposed to the flat forms. */
+/**
+ * Whether a form holds the video at its place on the timeline. A Lead Generator can instead appear "at the end", "when the viewer
+ * pauses" or "on exit intent" (published video only), so the editor must not pause the preview for it at its timeline spot.
+ * The List Builder and every other kind always follow the timeline.
+ */
+export const gatesOnTimeline = (o: { type: string; trigger?: unknown }): boolean => o.type !== 'lead-form' || !o.trigger || o.trigger === 'time';
+
 export const isRegistryOverlay = (kind: string) => !['lead-form', 'list-builder', 'click-to-call'].includes(kind) && !!getAddon(kind);
 
 export function normalizeOverlays(value: unknown): OverlayClip[] {

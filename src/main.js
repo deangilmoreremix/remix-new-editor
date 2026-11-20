@@ -90,6 +90,11 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
+// Notification clicks from the service worker (Web Push): open the owner's alerts like the header bell does.
+import { installPushMessageListener, consumeAlertsMarker } from './lib/push/openAlerts.js';
+installPushMessageListener();
+consumeAlertsMarker();
+
 // Visibility change handler - pause/resume operations when tab is hidden
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -135,6 +140,10 @@ try {
     const hashPage = hash.slice(2).replace(/^\//, '');
     if (hashPage) initialPage = hashPage;
   }
+
+  // A business's own domain (netlify/edge-functions/custom-domain.js): videos.acme.com/intro opens /v/acme/intro.
+  const customRoute = document.querySelector('meta[name="sv-route"]')?.getAttribute('content');
+  if (customRoute && /^v\/[a-z0-9-]+\/[a-z0-9-]+$/.test(customRoute)) initialPage = customRoute;
 
   // Handle studio query param
   const studioParam = new URLSearchParams(window.location.search).get('studio');

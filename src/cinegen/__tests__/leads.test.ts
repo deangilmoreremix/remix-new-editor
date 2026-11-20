@@ -1,6 +1,6 @@
 // [remix] Leads tab logic: forms, counts, filter/search, columns, CSV, includes, delete/list via a fake client, tab registration.
 import { describe, it, expect } from 'vitest';
-import { cleanFollowUp, hasFollowUp, statusLabel, LEAD_STATUSES, answerColumns, collapseRepeats, leadEmail, leadsPerDay, fromMp4, rowSource, variantOf, variantCounts, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, csvSafe, sourceLabel, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
+import { sessionOf, watchTag, watchPercent, sessionKeys, cleanFollowUp, hasFollowUp, statusLabel, LEAD_STATUSES, answerColumns, collapseRepeats, leadEmail, leadsPerDay, fromMp4, rowSource, variantOf, variantCounts, countsByForm, filterRows, leadForms, publishIncludes, rowFormKey, rowsToCsv, csvSafe, sourceLabel, whenLabel, type LeadRow } from '@cinegen/lib/leads/leads';
 import { createOverlay } from '@cinegen/lib/overlays/overlays';
 import { setLeadsForm, getLeadsForm } from '@cinegen/lib/leads/leads-filter';
 // @ts-expect-error plain JS
@@ -163,6 +163,41 @@ describe('lead follow-up (status, notes, tags)', () => {
     const res = await fetchLeadRows(client, {});
     expect(res.rows[0]).toMatchObject({ status: 'contacted', notes: '', tags: ['a'] });
     expect(res.rows[1]).not.toHaveProperty('status');
+  });
+  it('fetchLeadRows carries updatedAt when the hardening migration is applied', async () => {
+    const client = { functions: { invoke: async () => ({ data: { ok: true, leads: [{ id: '1', data: {}, created_at: 't', clip_id: 'c', kind: 'lead-form', status: 'new', tags: [], updated_at: '2026-11-18T10:00:00Z' }] }, error: null }) } };
+    expect((await fetchLeadRows(client, {})).rows[0]).toMatchObject({ updatedAt: '2026-11-18T10:00:00Z' });
+  });
+});
+
+describe('how much a lead watched', () => {
+  const r = (session?: unknown): LeadRow => ({ id: Math.random().toString(), kind: 'list-builder', clipId: 'list-builder', createdAt: 't', data: { EMAIL: 'a@b.c' }, source: { page: 'p', ...(session !== undefined ? { session: session as string } : {}) } });
+  it('reads a well-formed session id only', () => {
+    expect(sessionOf(r('abcDEF1234567890abcd'))).toBe('abcDEF1234567890abcd');
+    for (const bad of ['short', 'has space 1234567890abc', 12, null, undefined]) expect(sessionOf(r(bad))).toBe('');
+  });
+  it('tags interest: hot at 75% or finished, warm from 25%, cold below, nothing when unknown', () => {
+    expect(watchTag({ progress: 0.9, completed: false })).toBe('Hot');
+    expect(watchTag({ progress: 0.2, completed: true })).toBe('Hot');
+    expect(watchTag({ progress: 0.75, completed: false })).toBe('Hot');
+    expect(watchTag({ progress: 0.5, completed: false })).toBe('Warm');
+    expect(watchTag({ progress: 0.25, completed: false })).toBe('Warm');
+    expect(watchTag({ progress: 0.1, completed: false })).toBe('Cold');
+    expect(watchTag(undefined)).toBe('');
+    expect(watchPercent({ progress: 0.456, completed: false })).toBe('46%');
+    expect(watchPercent({ progress: 3, completed: false })).toBe('100%');
+    expect(watchPercent(null)).toBe('');
+  });
+  it('looks up each session once, capped', () => {
+    const a = 'a'.repeat(20); const b = 'b'.repeat(20);
+    expect(sessionKeys([r(a), r(a), r(b), r()])).toEqual([a, b]);
+    expect(sessionKeys(Array.from({ length: 300 }, (_, i) => r(String(i).padStart(20, 'x'))))).toHaveLength(200);
+  });
+  it('adds Watched % and Interest to the CSV only for leads that have it', () => {
+    const key = 'a'.repeat(20);
+    const csv = rowsToCsv([r(key), r()], [], { [key]: { progress: 0.8, completed: false } });
+    expect(csv).toContain('"Watched %"'); expect(csv).toContain('"80"'); expect(csv).toContain('"Hot"');
+    expect(rowsToCsv([r(key)], [])).not.toContain('Watched');
   });
 });
 
