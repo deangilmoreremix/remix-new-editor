@@ -7,6 +7,7 @@
 // renderProspectTable({ links, contacts, stats, filter, setFilter, total, onAddProspects, share(l), menu(l) })
 //   stats: { [contactId]: { views, plays, completes, ctaClicks, progress } } or null while loading
 //   menu(l): [{ label, attr, href? , onClick? }]
+//   remove(l): delete this prospect (a Delete button on their row); leave out for no button
 
 const el = (tag, cls = '', txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt !== undefined) n.textContent = txt; return n; };
 const LOOK = {
@@ -65,9 +66,9 @@ const COLORS = ['#6366f1', '#f97316', '#eab308', '#10b981', '#ec4899', '#06b6d4'
 export const avatarColor = (s) => COLORS[[...String(s || '')].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7) % COLORS.length];
 const host = (u) => String(u || '').replace(/^https?:\/\/(www\.)?/i, '').replace(/\/.*$/, '');
 
-const COLS = 'lg:grid-cols-[150px_minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_110px_80px_150px]';
+const COLS = 'lg:grid-cols-[150px_minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_110px_80px_220px]';
 
-export function renderProspectTable({ links = [], contacts = [], stats = null, filter = 'all', setFilter = () => {}, total = links.length, onAddProspects = () => {}, share = () => {}, menu = () => [] } = {}) {
+export function renderProspectTable({ links = [], contacts = [], stats = null, filter = 'all', setFilter = () => {}, total = links.length, onAddProspects = () => {}, share = () => {}, menu = () => [], remove = null } = {}) {
   const box = el('div', 'flex flex-col gap-4');
   box.setAttribute('data-outreach-prospect-table', '');
   const generated = links.filter((l) => l.link).length;
@@ -114,8 +115,15 @@ export function renderProspectTable({ links = [], contacts = [], stats = null, f
     if (l.heard) { const h = el('div', 'truncate text-[11px] text-white/40', `Hears: “${l.heard}”`); h.setAttribute('data-outreach-heard', ''); words.appendChild(h); }
     who.append(av, words);
     const company = el('div', 'truncate text-sm text-white/80', c.company || l.company || '');
-    const site = el('div', 'truncate text-sm');
+    const site = el('div', 'flex min-w-0 items-center truncate text-sm');
     if (c.website) { const a = el('a', 'text-primary hover:underline', host(c.website)); a.href = /^https?:\/\//.test(c.website) ? c.website : `https://${c.website}`; a.target = '_blank'; a.rel = 'noopener noreferrer'; site.appendChild(a); }
+    // Sendspark's orange fallback indicator: this prospect's video shows the fallback website.
+    if (l.site === 'fallback') {
+      const f = el('span', 'ml-2 inline-flex rounded-full border border-orange-400/40 bg-orange-400/10 px-2 py-0.5 text-[10px] font-bold text-orange-300', 'Fallback');
+      f.title = l.siteError ? 'Their website returned an error, so their video uses your fallback website.' : 'No website, so their video uses your fallback website.';
+      f.setAttribute('data-outreach-fallback', l.siteError ? 'error' : 'none');
+      site.appendChild(f);
+    }
     const [label, dot] = STATUS[status];
     const stEl = el('div', 'flex items-center gap-2 text-sm');
     stEl.setAttribute('data-outreach-status', status);
@@ -145,6 +153,14 @@ export function renderProspectTable({ links = [], contacts = [], stats = null, f
     });
     more.addEventListener('click', () => { pop.classList.toggle('hidden'); pop.classList.toggle('flex'); });
     acts.append(sh, more, pop);
+    if (remove) {
+      const del = btn('Delete');
+      del.setAttribute('aria-label', `Delete ${l.name || 'this prospect'}`);
+      del.setAttribute('data-outreach-delete', '');
+      del.classList.add('hover:!text-red-300', 'hover:!border-red-400/40');
+      del.addEventListener('click', () => remove(l));
+      acts.insertBefore(del, pop);
+    }
     row.append(thumb, who, company, site, stEl, watch, acts);
     table.appendChild(row);
   });

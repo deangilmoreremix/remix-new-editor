@@ -79,13 +79,15 @@ export function defaultDraft() {
     // round camera bubble: their website, an image (theirs or yours), or a map of their address.
     // bubble: where your camera sits over the background ('fixed' in a corner, or 'spotlight': larger, bottom centre).
     // scroll / scrollBack: a website background scrolls down (and back up); cursor: a pointer moves over it.
-    background: { mode: 'recording', fallbackSite: '', image: '', bubble: { mode: 'fixed', corner: 'bottom-left' }, scroll: true, scrollBack: false },
+    background: { mode: 'recording', fallbackSite: '', image: '', bubble: { mode: 'fixed', corner: 'bottom-left' }, scroll: true, scrollBack: false, onMissing: 'fallback' },
     // Map captures during Generate: { [normalized address]: image URL }.
     mapShots: {},
     // Profile cards drawn during Generate (src/lib/outreach/profileCard.js): { [card key]: image URL }.
     profileShots: {},
     // Screenshots captured during Generate: { [site home page]: image URL }.
     siteShots: {},
+    // Websites that could not be captured: { [site home page]: message }.
+    siteErrors: {},
     // Company logos found while capturing websites: { [site home page]: image URL }.
     siteLogos: {},
     email: { ...DEFAULT_EMAIL },
@@ -127,6 +129,7 @@ export function loadDraft(storage = globalThis.localStorage) {
       contacts: Array.isArray(saved.contacts) ? saved.contacts : [],
       background: { ...base.background, ...(saved.background || {}), bubble: { ...base.background.bubble, ...(saved.background?.bubble || {}) } },
       siteShots: saved.siteShots && typeof saved.siteShots === 'object' ? saved.siteShots : {},
+      siteErrors: saved.siteErrors && typeof saved.siteErrors === 'object' ? saved.siteErrors : {},
       mapShots: saved.mapShots && typeof saved.mapShots === 'object' ? saved.mapShots : {},
       profileShots: saved.profileShots && typeof saved.profileShots === 'object' ? saved.profileShots : {},
       siteLogos: saved.siteLogos && typeof saved.siteLogos === 'object' ? saved.siteLogos : {},
@@ -448,6 +451,27 @@ export function sitesToCapture(draft) {
   return [...sites];
 }
 
+// Error handling (Sendspark's dynamic-background settings): when a prospect has no website, or theirs can't be
+// captured, either make their video over the fallback website, or make nothing and show an error to fix first.
+export const SITE_ERROR = 'URL returned an error. Please use a different URL.';
+export const MISSING_MODES = [['fallback', 'Generate video using fallback data'], ['error', 'Don\u2019t generate: show an error so I can update it']];
+export const onMissingOf = (draft) => (draft.background?.onMissing === 'error' ? 'error' : 'fallback');
+
+/** A contact's website background: 'own' (captured), 'error' (could not be captured), 'none' (no website), 'pending' (not checked yet). */
+export function siteStatus(draft, c) {
+  const key = siteKey(c?.website);
+  if (!key) return 'none';
+  if (draft.siteShots?.[key]) return 'own';
+  if (draft.siteErrors?.[key]) return 'error';
+  return 'pending';
+}
+
+/** Contacts that stop the campaign when Error handling is "show an error": no website, or one that failed. */
+export function backgroundProblems(draft) {
+  if (draft.background?.mode !== 'website' || onMissingOf(draft) !== 'error') return [];
+  return (draft.contacts || []).filter((c) => ['none', 'error'].includes(siteStatus(draft, c)));
+}
+
 export const BACKGROUND_MODES = ['recording', 'website', 'image', 'map', 'profile'];
 export const BUBBLE_CORNERS = [['bottom-left', 'Bottom left'], ['bottom-right', 'Bottom right'], ['top-left', 'Top left'], ['top-right', 'Top right']];
 
@@ -635,6 +659,7 @@ export function campaignLinks(draft, watchUrl, personalLink, variants = {}) {
     voiced: !!variants[c.id]?.url,
     // Which background the contact sees: their own site, or the fallback.
     ...(website ? { site: backgroundShotFor(draft, c) ? 'own' : 'fallback' } : {}),
+    ...(website && draft.background?.mode === 'website' && siteStatus(draft, c) === 'error' ? { siteError: true } : {}),
     link: personalLink(watchUrl, website ? contactProfileFor(draft, c) : contactProfile(c), tokens),
   }));
 }

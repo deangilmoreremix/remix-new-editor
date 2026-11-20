@@ -22,6 +22,7 @@ import {
   loadDraft, saveDraft, stepErrors, fillTemplate, speakRequest, tokensIn,
   parseCsv, guessMapping, contactsFromRows, contactsFromLeads, makeContact, mergeContacts, contactProfile, contactValues,
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
+  SITE_ERROR, MISSING_MODES, onMissingOf, siteStatus, backgroundProblems,
   usesBackground, fallbackShotFor, backgroundShotFor, contactProfileFor, addressesToCapture, mapKey,
   saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage, DYNAMIC_KINDS,
   BUBBLE_CORNERS, bubbleOf, cardSide,
@@ -1294,6 +1295,23 @@ export function OutreachStudio() {
     step = SETUP_STEPS + 1; notice = ''; render();
   }
 
+  // Error handling (Sendspark's settings wheel): a prospect without a working website gets the fallback, or stops Generate.
+  function renderErrorHandling() {
+    const box = el('div', 'flex flex-col gap-1.5');
+    box.setAttribute('data-bg-on-missing', '');
+    box.appendChild(el('div', 'text-xs font-semibold text-white/70', 'Error handling'));
+    MISSING_MODES.forEach(([k, label]) => {
+      const row = el('label', 'flex items-center gap-2 text-sm text-white/80');
+      const r = el('input'); r.type = 'radio'; r.name = 'outreach-on-missing'; r.value = k; r.checked = onMissingOf(draft) === k;
+      r.setAttribute('data-on-missing', k);
+      r.addEventListener('change', () => { draft.background = { ...draft.background, onMissing: k }; persist(); render(); });
+      row.append(r, el('span', '', label));
+      box.appendChild(row);
+    });
+    box.appendChild(el('p', 'text-[11px] text-white/45', 'When a prospect has no website, or theirs can\u2019t be loaded.'));
+    return box;
+  }
+
   function renderBackgroundCard() {
     // Background: the recording as it is, or each contact's own website behind a round camera bubble.
     const bg = el('div', 'flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5');
@@ -1313,6 +1331,7 @@ export function OutreachStudio() {
       fallback.addEventListener('input', () => { draft.background = { ...draft.background, fallbackSite: fallback.value.trim() }; draft.campaign = null; persist(); });
       fallback.addEventListener('change', () => render());
       bg.appendChild(field('Fallback URL', fallback, 'Shown for contacts without a website, or whose site could not be captured.'));
+      bg.appendChild(renderErrorHandling());
     }
     if (draft.background.mode === 'profile') {
       const p = el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a card with each contact\u2019s name, job title, company, their logo (or initials) and their LinkedIn address, from your prospect list. Cards are drawn when you generate the campaign. (LinkedIn pages themselves can\u2019t be captured: they need a login.)');
@@ -1555,6 +1574,39 @@ export function OutreachStudio() {
     return box;
   }
 
+  // Website backgrounds on the Prospects step: each prospect's status, and a free check of every website.
+  function siteBadge(c) {
+    const st = siteStatus(draft, c);
+    const then = onMissingOf(draft) === 'error' ? 'Fix or remove before generating.' : 'Their video uses the fallback.';
+    const [cls, text] = {
+      own: ['text-emerald-300', '\u2713 Website ready'],
+      error: ['text-orange-300', `${SITE_ERROR} ${then}`],
+      none: ['text-orange-300', `No website. ${then}`],
+      pending: ['text-white/40', 'Website not checked yet'],
+    }[st];
+    const b = el('div', `text-[11px] ${cls}`, text);
+    b.setAttribute('data-outreach-site-status', st);
+    return b;
+  }
+
+  function renderSiteCheck() {
+    const box = el('div', 'flex flex-wrap items-center gap-2');
+    const todo = sitesToCapture(draft).filter((s) => !draft.siteShots[s]).length;
+    const check = button(todo ? `Check websites (${todo})` : 'Websites checked', { small: true });
+    check.setAttribute('data-outreach-check-sites', '');
+    check.disabled = !todo || !!busy;
+    check.addEventListener('click', async () => {
+      abort = new AbortController();
+      try { await captureSites({ requireFallback: false }); busy = ''; notice = ''; } catch (err) { busy = ''; if (err?.name !== 'AbortError') notice = err.message; }
+      render();
+    });
+    const bad = draft.contacts.filter((c) => ['error', 'none'].includes(siteStatus(draft, c))).length;
+    box.append(check, el('span', 'text-[11px] text-white/45', bad ? `${bad} without a working website (${onMissingOf(draft) === 'error' ? 'they stop Generate' : 'they get the fallback'}).` : 'Screenshots are taken now and reused when you generate.'));
+    const wrap = el('div', 'flex flex-col gap-3 border-t border-white/5 pt-3');
+    wrap.append(box, renderErrorHandling());
+    return wrap;
+  }
+
   function renderContacts() {
     const grid = el('div', 'grid gap-5 lg:grid-cols-[1fr_380px]');
     const main = card('Add contacts', 'Upload a CSV, or add people one at a time. Each contact gets their own link.');
@@ -1630,12 +1682,14 @@ export function OutreachStudio() {
       const who = el('div', 'min-w-0 flex-1');
       who.append(el('div', 'truncate font-semibold', [c.firstName, c.lastName].filter(Boolean).join(' ') || '(no name)'),
         el('div', 'truncate text-xs text-white/50', [c.email, c.company].filter(Boolean).join(' · ')));
+      if (draft.background.mode === 'website') who.appendChild(siteBadge(c));
       const rm = button('Remove', { small: true });
       rm.addEventListener('click', () => { draft.contacts = draft.contacts.filter((x) => x.id !== c.id); draft.campaign = null; persist(); render(); });
       row.append(who, rm);
       list.appendChild(row);
     });
     side.appendChild(list);
+    if (draft.background.mode === 'website' && draft.contacts.length) side.appendChild(renderSiteCheck());
     if (draft.contacts.length) {
       const clear = button('Remove all', { small: true });
       clear.addEventListener('click', () => { if (window.confirm('Remove every contact from this campaign?')) { draft.contacts = []; draft.campaign = null; persist(); render(); } });
@@ -1673,11 +1727,14 @@ export function OutreachStudio() {
         const body = await res.json().catch(() => ({}));
         if (!res.ok || !body.imageUrl) throw new Error(body.error || `HTTP ${res.status}`);
         draft.siteShots = { ...draft.siteShots, [todo[i]]: body.imageUrl };
+        if (draft.siteErrors?.[todo[i]]) { const { [todo[i]]: _gone, ...rest } = draft.siteErrors; draft.siteErrors = rest; }
         if (body.logoUrl) draft.siteLogos = { ...draft.siteLogos, [todo[i]]: body.logoUrl };
         persist();
       } catch (err) {
         if (err?.name === 'AbortError') throw err;
         failed.push(todo[i]);
+        draft.siteErrors = { ...draft.siteErrors, [todo[i]]: SITE_ERROR };
+        persist();
       }
     }
     const fallback = siteKey(draft.background.fallbackSite);
@@ -1750,6 +1807,14 @@ export function OutreachStudio() {
     try {
       onStage('site');
       if (draft.background.mode === 'website') await captureSites({ onProgress: (part) => onStage('site', part) });
+      // Error handling "show an error": nothing is made (or paid for) until every prospect has a working website.
+      const problems = backgroundProblems(draft);
+      if (problems.length) {
+        busy = ''; progress = null;
+        notice = `${problems.length} prospect${problems.length === 1 ? ' has' : 's have'} no working website: ${problems.slice(0, 5).map((c) => [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email).join(', ')}${problems.length > 5 ? '…' : ''}. Fix or remove them on Prospects, or set Error handling to use the fallback. Nothing was generated.`;
+        render();
+        return false;
+      }
       if (draft.background.mode === 'map') await captureMaps();
       if (draft.background.mode === 'profile') await captureProfiles();
       let variants = {};
@@ -1953,6 +2018,7 @@ export function OutreachStudio() {
         setFilter: (k) => { prospectFilter = k; render(); },
         onAddProspects: () => { step = 4; notice = ''; render(); },
         share: (l) => openShare(l),
+        remove: (l) => removeProspect(l),
         menu: (l) => {
           const c = contactOfLink(l);
           const sent = () => markSent(l);
@@ -1978,6 +2044,16 @@ export function OutreachStudio() {
       wrap.appendChild(renderAlertsCard());
     }
     return wrap;
+  }
+
+  // Delete a prospect from a generated campaign (a test or sample contact): their row, link and thumbnail go.
+  function removeProspect(l) {
+    if (!window.confirm(`Delete ${l.name || 'this prospect'} from this campaign? Their row and link are removed here.`)) return;
+    draft.contacts = draft.contacts.filter((c) => c.id !== l.contactId);
+    draft.campaign = { ...draft.campaign, links: draft.campaign.links.filter((x) => x.contactId !== l.contactId) };
+    persist();
+    notice = `${l.name || 'Prospect'} deleted.`;
+    render();
   }
 
   async function loadLinkStats() {

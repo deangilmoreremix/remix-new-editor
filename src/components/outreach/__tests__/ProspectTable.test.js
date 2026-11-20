@@ -59,4 +59,18 @@ describe('prospect table', () => {
     expect(setFilter).toHaveBeenCalledWith('watched');
     expect(document.querySelector('[data-prospect-filter="all"]').textContent).toBe('All 4');
   });
+  it('marks prospects whose video uses the fallback website', () => {
+    const box = renderProspectTable({ links: [{ ...links[0], site: 'own' }, { ...links[1], site: 'fallback', siteError: true }, { ...links[2], site: 'fallback' }], contacts });
+    const marks = [...box.querySelectorAll('[data-outreach-fallback]')].map((n) => n.getAttribute('data-outreach-fallback'));
+    expect(marks).toEqual(['error', 'none']);
+    expect(box.querySelector('[data-outreach-link-row="m"] [data-outreach-fallback]')).toBeNull();
+  });
+  it('has a Delete button per row only when deleting is allowed', () => {
+    expect(renderProspectTable({ links, contacts }).querySelector('[data-outreach-delete]')).toBeNull();
+    const remove = vi.fn();
+    const box = renderProspectTable({ links, contacts, remove });
+    expect(box.querySelectorAll('[data-outreach-delete]').length).toBe(links.length);
+    box.querySelector('[data-outreach-link-row="s"] [data-outreach-delete]').click();
+    expect(remove).toHaveBeenCalledWith(expect.objectContaining({ contactId: 's' }));
+  });
 });
