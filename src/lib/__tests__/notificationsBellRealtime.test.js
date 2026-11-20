@@ -208,6 +208,37 @@ describe('notifications bell realtime: synchronous owner id', () => {
     expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
     bell.destroy();
   });
+  it('a slow refresh from before an account switch never overwrites the new owner\'s count', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1'; let slow = false; let release; const gate = new Promise((r) => { release = r; });
+    const srv = { n: 7, rpc: vi.fn(async () => { const v = srv.n; if (slow) await gate; return { data: v, error: null }; }) };
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 100000 });
+    await tick(); await tick();
+    expect(bell._count()).toBe(7);
+    slow = true; srv.n = 7;
+    const old = bell.refresh();                         // the previous owner's request is in flight (answer: 7)
+    await tick();
+    cur = 'user_2'; rt.userId = 'user_2'; slow = false; srv.n = 3;
+    rt.handlers[0]({ new: { id: 'n1', type: 'new_lead', title: 'x', read_at: null } });   // drops the old channel and reconnects, which refreshes
+    await wait(50);
+    expect(bell._count()).toBe(3);
+    release(); await old; await tick();
+    expect(bell._count()).toBe(3);                      // the late answer for the previous owner is discarded
+    bell.destroy();
+  });
+  it('signed in with no channel (after a sign-out and a different sign-in) the timer reconnects', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1'; let signedIn = true;
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => signedIn, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 20 });
+    await tick(); await tick();
+    signedIn = false; cur = ''; rt.userId = null;
+    await wait(100);                                    // the channel is removed
+    expect(rt.removed.length).toBeGreaterThan(0);
+    const before = rt.filters.length;
+    signedIn = true; cur = 'user_2'; rt.userId = 'user_2';
+    await wait(150);
+    expect(rt.filters.length).toBeGreaterThan(before);
+    expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
+    bell.destroy();
+  });
   it('the badge is also cleared when the owner changes during the asynchronous lookup', async () => {
     const rt = fakeRealtime(); let cur = 'user_1'; let slow = false; let release; const gate = new Promise((r) => { release = r; });
     const getRealtime = vi.fn(async () => { if (slow) await gate; return rt.getRealtime(); });
