@@ -15,7 +15,7 @@
     "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
-    "lint": "NODE_OPTIONS=--max-old-space-size=8192 eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint": "NODE_OPTIONS=--max-old-space-size=8192 eslint src --quiet --ext .js,.jsx,.ts,.tsx",
     "lint:cinema-hex": "node scripts/check-cinema-hex.mjs",
     "build:ask-index": "node scripts/build-ask-index.mjs",
     "check:ask-index": "node scripts/build-ask-index.mjs --check",
