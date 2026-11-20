@@ -330,7 +330,7 @@ const Zt = () => {
   }
 }, Qe = "muapi-studio:labels:v1", Ze = "muapi-studio:hidden:v1";
 function Yt(e, t, a) {
-  const [n, d] = N(() => Ke()), [l, o] = N([]), [y, m] = N(null), [p, $] = N(!1), [x, b] = N(null), _ = Q(!1), [A, R] = N(() => We(Qe, {})), [C, E] = N(() => We(Ze, [])), T = Q(/* @__PURE__ */ new Set()), g = Q(new AbortController()), v = Q([]);
+  const [n, d] = N(() => Ke()), [l, o] = N([]), [y, m] = N(null), [p, $] = N(!1), [x, b] = N(null), _ = Q(!1), [A, L] = N(() => We(Qe, {})), [C, E] = N(() => We(Ze, [])), T = Q(/* @__PURE__ */ new Set()), g = Q(new AbortController()), v = Q([]);
   v.current = t ?? [], z(() => Qt(n), [n]), z(() => Xe(Qe, A), [A]), z(() => Xe(Ze, C), [C]), z(() => (g.current = new AbortController(), () => g.current.abort()), []);
   const I = te((i, c) => d((f) => f.map((k) => k.id === i ? { ...k, ...c } : k)), []), q = te(async (i, c) => {
     if (!T.current.has(i)) {
@@ -393,7 +393,7 @@ function Yt(e, t, a) {
     const i = (c) => ({ ...c, label: c.requestId && A[c.requestId] || c.label });
     return Kt(n.map(i), l.map(i), new Set(C));
   }, [n, l, A, C]), J = te((i, c) => {
-    i.requestId && R((f) => {
+    i.requestId && L((f) => {
       const k = { ...f };
       return c ? k[i.requestId] = c : delete k[i.requestId], k;
     }), I(i.id, { label: c });
@@ -469,7 +469,7 @@ function fr({ url: e, hidden: t, onOpen: a }) {
   ] }) : /* @__PURE__ */ r("button", { type: "button", onClick: a, "aria-label": "Open full size", className: "block w-full", children: /* @__PURE__ */ r("img", { src: e, alt: "Generated output", loading: "lazy", style: n, className: "aspect-square w-full bg-black object-contain" }) });
 }
 function gr({ g: e, hidden: t, onLabel: a, onRemove: n, onReuse: d, onRerun: l, onDeleteMedia: o, onOpen: y, estimateFor: m }) {
-  const p = e.outputs[0], $ = !!p && xt(p) === "text", [x, b] = N(!1), [_, A] = N(null), R = gt(), C = "flex h-7 items-center justify-center whitespace-nowrap rounded-md border border-line px-2 text-[11px] text-secondary hover:text-primary", E = "flex h-7 w-7 items-center justify-center rounded-md border";
+  const p = e.outputs[0], $ = !!p && xt(p) === "text", [x, b] = N(!1), [_, A] = N(null), L = gt(), C = "flex h-7 items-center justify-center whitespace-nowrap rounded-md border border-line px-2 text-[11px] text-secondary hover:text-primary", E = "flex h-7 w-7 items-center justify-center rounded-md border";
   return /* @__PURE__ */ s("article", { className: "overflow-hidden rounded-card border border-line bg-card-bg", children: [
     e.status === "completed" && p ? /* @__PURE__ */ r(fr, { url: p, hidden: t, onOpen: () => y(p) }) : e.status === "failed" ? /* @__PURE__ */ s("div", { role: "alert", className: "flex aspect-video flex-col items-center justify-center gap-1 p-4 text-center text-xs text-danger", children: [
       /* @__PURE__ */ r(be, {}),
@@ -529,7 +529,7 @@ function gr({ g: e, hidden: t, onLabel: a, onRemove: n, onReuse: d, onRerun: l, 
           e.source === "server" ? " · synced" : ""
         ] }),
         /* @__PURE__ */ s("span", { className: "flex shrink-0 gap-3", children: [
-          R.deleteMedia && e.requestId && e.status === "completed" && p && /* @__PURE__ */ r("button", { type: "button", title: "Delete the generated files from muapi", onClick: () => {
+          L.deleteMedia && e.requestId && e.status === "completed" && p && /* @__PURE__ */ r("button", { type: "button", title: "Delete the generated files from muapi", onClick: () => {
             window.confirm("Delete the generated files from muapi? This cannot be undone.") && (A(null), o(e).catch((T) => A(T.message || "Could not delete")));
           }, className: "hover:text-danger", children: "Delete" }),
           /* @__PURE__ */ r("button", { type: "button", onClick: () => n(e), className: "hover:text-danger", title: "Hide from this view", children: "Hide" })
@@ -548,7 +548,7 @@ function br({ url: e, onClose: t }) {
   ] });
 }
 function et({ mode: e, items: t, batch: a, onBatch: n, onLabel: d, onRemove: l, onReuse: o, onRerun: y, onDeleteMedia: m, onLoadMore: p, hasMore: $, loadingMore: x, serverError: b, estimateFor: _ }) {
-  const [A, R] = N("All"), [C, E] = N(""), [T, g] = N(!1), [v, I] = N(null), q = Y(() => {
+  const [A, L] = N("All"), [C, E] = N(""), [T, g] = N(!1), [v, I] = N(null), q = Y(() => {
     const w = C.trim().toLowerCase();
     return t.filter((G) => G.mode !== e || A === "Approved" && G.label !== "approved" || A === "Rejected" && G.label !== "rejected" || A === "Unlabeled" && G.label !== null ? !1 : !w || G.prompt.toLowerCase().includes(w) || G.model.toLowerCase().includes(w));
   }, [t, e, A, C]);
@@ -560,7 +560,7 @@ function et({ mode: e, items: t, batch: a, onBatch: n, onLabel: d, onRemove: l, 
         {
           role: "tab",
           "aria-selected": A === w,
-          onClick: () => R(w),
+          onClick: () => L(w),
           className: `rounded-full px-3 py-1 text-[11px] font-semibold ${A === w ? "bg-primary text-primary-ink" : "text-secondary hover:text-fg"}`,
           children: w
         },
@@ -671,11 +671,11 @@ function $r(e, t, a) {
 }
 const nt = "Auto (let model decide)", Ee = "__auto__";
 function je({ id: e, label: t, options: a, value: n, onChange: d, allowAuto: l, auto: o, onAuto: y, combobox: m }) {
-  const p = Et(), $ = e ?? `ms-dd-${p}`, x = m ?? a.length > kr, [b, _] = N(!1), [A, R] = N(""), [C, E] = N(0), [T, g] = N("down"), v = Q(null), I = Q(null), q = Q(null), w = a.find((c) => n !== void 0 && Se(c.value) === Se(n)), G = Y(() => x ? Sr(a, A) : a, [x, a, A]), D = Y(
+  const p = Et(), $ = e ?? `ms-dd-${p}`, x = m ?? a.length > kr, [b, _] = N(!1), [A, L] = N(""), [C, E] = N(0), [T, g] = N("down"), v = Q(null), I = Q(null), q = Q(null), w = a.find((c) => n !== void 0 && Se(c.value) === Se(n)), G = Y(() => x ? Sr(a, A) : a, [x, a, A]), D = Y(
     () => [...l ? [{ key: Ee, label: nt, value: Ee, isAuto: !0 }] : [], ...G.map((c) => ({ key: Se(c.value), label: c.label, hint: c.hint, value: c.value }))],
     [l, G]
   ), V = o ? Ee : w ? Se(w.value) : void 0, J = () => {
-    _(!1), R("");
+    _(!1), L("");
   }, F = (c) => {
     c.isAuto ? y == null || y() : d(c.value), J();
   };
@@ -751,7 +751,7 @@ function je({ id: e, label: t, options: a, value: n, onChange: d, allowAuto: l, 
         {
           ref: q,
           value: A,
-          onChange: (c) => R(c.target.value),
+          onChange: (c) => L(c.target.value),
           placeholder: `Search ${t.toLowerCase()}…`,
           "aria-label": `Search ${t}`,
           role: "combobox",
@@ -795,7 +795,7 @@ function Er({ a: e }) {
   return e.media_type === "image" ? /* @__PURE__ */ r("img", { src: e.url, alt: e.name ?? "Image", loading: "lazy", className: "h-full w-full object-cover" }) : e.media_type === "video" ? /* @__PURE__ */ r("video", { src: e.url, preload: "metadata", muted: !0, className: "h-full w-full object-cover" }) : /* @__PURE__ */ r("div", { className: "flex h-full w-full items-center justify-center text-secondary", children: /* @__PURE__ */ r(Ie, {}) });
 }
 function _r({ client: e, max: t, initialType: a = "image", onInsert: n, onClose: d }) {
-  const [l, o] = N(a), [y, m] = N(""), [p, $] = N(1), [x, b] = N(null), [_, A] = N(null), [R, C] = N(!1), [E, T] = N([]), [g, v] = N(""), [I, q] = N(!1), w = Q(null), G = Q(null), D = te(async () => {
+  const [l, o] = N(a), [y, m] = N(""), [p, $] = N(1), [x, b] = N(null), [_, A] = N(null), [L, C] = N(!1), [E, T] = N([]), [g, v] = N(""), [I, q] = N(!1), w = Q(null), G = Q(null), D = te(async () => {
     C(!0), A(null);
     try {
       b(await e.mediaLibrary({ mediaType: l, search: y, page: p }));
@@ -911,7 +911,7 @@ function _r({ client: e, max: t, initialType: a = "image", onInsert: n, onClose:
     ] }),
     /* @__PURE__ */ s("div", { className: "min-h-[240px] flex-1 overflow-y-auto p-4", children: [
       _ && /* @__PURE__ */ r("p", { role: "alert", className: "mb-3 text-sm text-danger", children: _ }),
-      R && !x ? /* @__PURE__ */ s("div", { className: "flex items-center justify-center gap-2 py-16 text-secondary", children: [
+      L && !x ? /* @__PURE__ */ s("div", { className: "flex items-center justify-center gap-2 py-16 text-secondary", children: [
         /* @__PURE__ */ r(we, {}),
         " Loading…"
       ] }) : x != null && x.items.length ? /* @__PURE__ */ r("ul", { className: "grid gap-3", style: { gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))" }, children: x.items.map((i) => {
@@ -965,7 +965,7 @@ async function Or(e, t) {
   })), a;
 }
 function Pe({ client: e, field: t, multiple: a, max: n, current: d, onUrls: l, onError: o }) {
-  const y = Q(null), [m, p] = N(!1), [$, x] = N(!1), [b, _] = N(!1), A = n - d.length, R = gt(), C = async (g) => {
+  const y = Q(null), [m, p] = N(!1), [$, x] = N(!1), [b, _] = N(!1), A = n - d.length, L = gt(), C = async (g) => {
     if (g.length) {
       p(!0);
       try {
@@ -1012,19 +1012,19 @@ function Pe({ client: e, field: t, multiple: a, max: n, current: d, onUrls: l, o
             var g;
             return (g = y.current) == null ? void 0 : g.click();
           }, "aria-label": "Upload file", title: "Upload file", className: T, children: m ? /* @__PURE__ */ r(we, { width: 16, height: 16 }) : /* @__PURE__ */ r(wt, { width: 16, height: 16 }) }),
-          R.library && /* @__PURE__ */ r("button", { type: "button", onClick: () => _(!0), "aria-label": "Choose from media library", title: "Media library", className: T, children: /* @__PURE__ */ s("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true", children: [
+          L.library && /* @__PURE__ */ r("button", { type: "button", onClick: () => _(!0), "aria-label": "Choose from media library", title: "Media library", className: T, children: /* @__PURE__ */ s("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": "true", children: [
             /* @__PURE__ */ r("ellipse", { cx: "12", cy: "5", rx: "8", ry: "3" }),
             /* @__PURE__ */ r("path", { d: "M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" })
           ] }) })
         ] }),
         /* @__PURE__ */ r("p", { className: "mt-1.5 text-[11px] text-primary", children: "Drag & drop or click to upload" }),
-        b && R.library && /* @__PURE__ */ r(_r, { client: e, max: a ? Math.max(A, 1) : 1, initialType: Lr(t.prop.field, t.prop.name), onInsert: l, onClose: () => _(!1) })
+        b && L.library && /* @__PURE__ */ r(_r, { client: e, max: a ? Math.max(A, 1) : 1, initialType: Lr(t.prop.field, t.prop.name), onInsert: l, onClose: () => _(!1) })
       ]
     }
   );
 }
 function Dr({ field: e, values: t, onChange: a, client: n, onError: d, tagCount: l = 0 }) {
-  const { prop: o, kind: y, required: m } = e, p = t[o.name], $ = (g) => a(o.name, g), x = o.title || o.name, b = `ms-f-${o.name}`, _ = p == null ? "" : String(p), A = Array.isArray(p) ? p : [], R = t[pe(o.name)] === !0, C = Q(null), E = (g) => {
+  const { prop: o, kind: y, required: m } = e, p = t[o.name], $ = (g) => a(o.name, g), x = o.title || o.name, b = `ms-f-${o.name}`, _ = p == null ? "" : String(p), A = Array.isArray(p) ? p : [], L = t[pe(o.name)] === !0, C = Q(null), E = (g) => {
     const v = C.current, I = typeof p == "string" ? p : "", q = (v == null ? void 0 : v.selectionStart) ?? I.length, w = (v == null ? void 0 : v.selectionEnd) ?? q;
     $(I.slice(0, q) + g + " " + I.slice(w)), requestAnimationFrame(() => {
       v == null || v.focus(), v == null || v.setSelectionRange(q + g.length + 1, q + g.length + 1);
@@ -1052,7 +1052,7 @@ function Dr({ field: e, values: t, onChange: a, client: n, onError: d, tagCount:
           $(v), a(pe(o.name), !1);
         },
         allowAuto: rt(e),
-        auto: R,
+        auto: L,
         onAuto: () => a(pe(o.name), !0)
       }
     );
@@ -1072,9 +1072,9 @@ function Dr({ field: e, values: t, onChange: a, client: n, onError: d, tagCount:
     );
   } else if (y === "number") {
     const g = o.minValue !== void 0 && o.maxValue !== void 0;
-    T = /* @__PURE__ */ s("div", { className: `flex items-center gap-3 ${R ? "opacity-40" : ""}`, children: [
-      g && /* @__PURE__ */ r("input", { type: "range", disabled: R, "aria-label": `${x} slider`, min: o.minValue, max: o.maxValue, step: o.step ?? (o.type === "number" ? 0.01 : 1), value: _ === "" ? o.minValue : Number(_), onChange: (v) => $(Number(v.target.value)), className: "min-w-0 flex-1" }),
-      /* @__PURE__ */ r("input", { id: b, type: "number", disabled: R, min: o.minValue, max: o.maxValue, step: o.step ?? (o.type === "number" ? "any" : 1), value: _, onChange: (v) => $(v.target.value === "" ? "" : Number(v.target.value)), className: `px-3 py-2 text-sm ${g ? "w-24" : "w-full"}` })
+    T = /* @__PURE__ */ s("div", { className: `flex items-center gap-3 ${L ? "opacity-40" : ""}`, children: [
+      g && /* @__PURE__ */ r("input", { type: "range", disabled: L, "aria-label": `${x} slider`, min: o.minValue, max: o.maxValue, step: o.step ?? (o.type === "number" ? 0.01 : 1), value: _ === "" ? o.minValue : Number(_), onChange: (v) => $(Number(v.target.value)), className: "min-w-0 flex-1" }),
+      /* @__PURE__ */ r("input", { id: b, type: "number", disabled: L, min: o.minValue, max: o.maxValue, step: o.step ?? (o.type === "number" ? "any" : 1), value: _, onChange: (v) => $(v.target.value === "" ? "" : Number(v.target.value)), className: `px-3 py-2 text-sm ${g ? "w-24" : "w-full"}` })
     ] });
   } else if (y === "media")
     T = /* @__PURE__ */ r(Pe, { client: n, field: e, multiple: !1, max: 1, current: _ ? [_] : [], onUrls: (g) => $(g[0]), onError: d });
@@ -1096,7 +1096,7 @@ function Dr({ field: e, values: t, onChange: a, client: n, onError: d, tagCount:
         o.description && /* @__PURE__ */ r("span", { title: o.description, className: "text-muted", children: /* @__PURE__ */ r(lr, { width: 13, height: 13 }) })
       ] }),
       rt(e) && y === "number" ? /* @__PURE__ */ s("label", { className: "flex items-center gap-1.5 text-[11px] text-secondary", children: [
-        /* @__PURE__ */ r("input", { type: "checkbox", checked: R, onChange: (g) => a(pe(o.name), g.target.checked), style: { width: 14, height: 14, padding: 0, accentColor: "var(--ms-primary)" } }),
+        /* @__PURE__ */ r("input", { type: "checkbox", checked: L, onChange: (g) => a(pe(o.name), g.target.checked), style: { width: 14, height: 14, padding: 0, accentColor: "var(--ms-primary)" } }),
         " Auto (let model decide)"
       ] }) : /* @__PURE__ */ r("span", { className: "text-[11px] text-primary", children: y === "media-list" ? `${A.length}/${o.maxItems ?? 8} items${m ? " · required" : ""}` : m ? "* required" : "" })
     ] }),
@@ -1236,13 +1236,13 @@ function _e({ label: e, active: t, onClick: a, hue: n, children: d }) {
 }
 function Wr({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: d, usage: l, showGroup: o, scope: y = "default" }) {
   var B;
-  const [m, p] = N(!1), [$, x] = N(""), [b, _] = N("popular"), [A, R] = N(!1), C = Q(null), E = Y(() => Fr(e), [e]), T = Y(() => Hr(e), [e]), g = Jr(e, E), v = T.length >= qr, [I, q] = N(() => it(`muapi-studio:provider:${y}`, ee)), [w, G] = N(() => it(`muapi-studio:category:${y}`, ee)), D = g && (I === me || I === ee || E.some((u) => u.id === I)) ? I : ee, V = v && (w === ee || T.some((u) => u.id === w)) ? w : ee, J = (u) => {
+  const [m, p] = N(!1), [$, x] = N(""), [b, _] = N("popular"), [A, L] = N(!1), C = Q(null), E = Y(() => Fr(e), [e]), T = Y(() => Hr(e), [e]), g = Jr(e, E), v = T.length >= qr, [I, q] = N(() => it(`muapi-studio:provider:${y}`, ee)), [w, G] = N(() => it(`muapi-studio:category:${y}`, ee)), D = g && (I === me || I === ee || E.some((u) => u.id === I)) ? I : ee, V = v && (w === ee || T.some((u) => u.id === w)) ? w : ee, J = (u) => {
     q(u), st(`muapi-studio:provider:${y}`, u);
   }, F = (u) => {
     G(u), st(`muapi-studio:category:${y}`, u);
   }, h = Q(null);
   z(() => {
-    m || R(!1);
+    m || L(!1);
   }, [m]), z(() => {
     if (!m) return;
     const u = (O) => {
@@ -1307,7 +1307,7 @@ function Wr({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: 
                 "aria-label": "Sort models",
                 "aria-haspopup": "menu",
                 "aria-expanded": A,
-                onClick: () => R((u) => !u),
+                onClick: () => L((u) => !u),
                 className: `flex h-full items-center rounded-ctl border px-3 ${A ? "border-primary bg-primary-soft text-primary" : "border-line bg-card-bg text-secondary hover:text-fg"}`,
                 children: /* @__PURE__ */ r(cr, { width: 16, height: 16 })
               }
@@ -1319,7 +1319,7 @@ function Wr({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: 
                 role: "menuitemradio",
                 "aria-checked": b === u.id,
                 onClick: () => {
-                  _(u.id), R(!1);
+                  _(u.id), L(!1);
                 },
                 className: `flex w-full items-center justify-between rounded-ctl px-3 py-2 text-left text-sm ${b === u.id ? "bg-primary-soft text-primary" : "hover:bg-card-bg"}`,
                 children: [
@@ -1410,7 +1410,7 @@ const lt = (e, t) => {
   }
 }, At = 0.25;
 function Xr({ mode: e, models: t, client: a, batch: n, onRun: d, usage: l, reuse: o }) {
-  const y = ge.find((S) => S.id === e), m = Y(() => Vt(t, e), [t, e]), [p, $] = N(), [x, b] = N(null), [_, A] = N(null), [R, C] = N({}), [E, T] = N(null), [g, v] = N(null), [I, q] = N(() => lt("muapi-studio:favorites", [])), [w, G] = N("form"), [D, V] = N(!1), [J, F] = N("{}"), [h, i] = N(null), c = Q(0), f = Q(null);
+  const y = ge.find((S) => S.id === e), m = Y(() => Vt(t, e), [t, e]), [p, $] = N(), [x, b] = N(null), [_, A] = N(null), [L, C] = N({}), [E, T] = N(null), [g, v] = N(null), [I, q] = N(() => lt("muapi-studio:favorites", [])), [w, G] = N("form"), [D, V] = N(!1), [J, F] = N("{}"), [h, i] = N(null), c = Q(0), f = Q(null);
   z(() => {
     var K, re, ce;
     const S = lt(`muapi-studio:model:${e}`, null), U = ((K = m.find((ie) => ie.name === S)) == null ? void 0 : K.name) ?? ((re = m.find((ie) => ie.name === Gt[e])) == null ? void 0 : re.name) ?? ((ce = bt(m, "popular")[0]) == null ? void 0 : ce.name);
@@ -1434,7 +1434,7 @@ function Xr({ mode: e, models: t, client: a, batch: n, onRun: d, usage: l, reuse
       S = !1;
     };
   }, [p, a]);
-  const B = Y(() => x ? tt(x) : [], [x]), u = Y(() => at(B, R), [B, R]), P = Y(() => {
+  const B = Y(() => x ? tt(x) : [], [x]), u = Y(() => at(B, L), [B, L]), P = Y(() => {
     try {
       const S = JSON.parse(J);
       return S && typeof S == "object" && !Array.isArray(S) ? S : null;
@@ -1491,7 +1491,7 @@ function Xr({ mode: e, models: t, client: a, batch: n, onRun: d, usage: l, reuse
         return;
       }
     } else {
-      const U = wr(B, R);
+      const U = wr(B, L);
       if (U) {
         v(U);
         return;
@@ -1504,10 +1504,10 @@ function Xr({ mode: e, models: t, client: a, batch: n, onRun: d, usage: l, reuse
       return;
     }
     await le();
-  }, [x, w, P, B, R, X, n, le]), j = !!x && !_, Z = (() => {
+  }, [x, w, P, B, L, X, n, le]), j = !!x && !_, Z = (() => {
     var U;
     const S = B.find((K) => K.kind === "media-list");
-    return S ? Math.max(((U = R[S.prop.name]) == null ? void 0 : U.length) ?? 0, 1) : 0;
+    return S ? Math.max(((U = L[S.prop.name]) == null ? void 0 : U.length) ?? 0, 1) : 0;
   })();
   return /* @__PURE__ */ s("section", { "aria-label": y.title, className: "flex max-h-[85dvh] min-h-0 w-full flex-col border-b border-line bg-panel-bg md:max-h-none md:w-[360px] md:shrink-0 md:border-b-0 md:border-r", children: [
     /* @__PURE__ */ s("div", { className: "min-h-0 flex-1 overflow-y-auto p-4", children: [
@@ -1542,7 +1542,7 @@ function Xr({ mode: e, models: t, client: a, batch: n, onRun: d, usage: l, reuse
         Dr,
         {
           field: S,
-          values: R,
+          values: L,
           client: a,
           onError: v,
           tagCount: S.prop.name === "prompt" ? Z : 0,
@@ -1649,7 +1649,7 @@ const $e = [
   { id: "ads", label: "Ads & Products", blurb: "Product videos, posters and ad scenes" },
   { id: "games-characters", label: "Games & Characters", blurb: "Game, toy and 3D character styles" },
   { id: "trending-templates", label: "Trending Templates", blurb: "Viral looks and scenes from one photo" }
-], M = (e, t, a, n, d) => ({ id: e, label: t, hint: a, prompt: n, values: d }), Ue = (e, t, a, n = "") => `${e > 0 ? t : a} ${Math.abs(e)}${n}`, H = (e, t, a, n, d, l, o = {}) => ({ slug: e, name: t, emoji: a, category: n, badge: "IMAGE", template: "seedream", blurb: d, prompt: l, ...o }), L = (e, t, a, n, d, l, o = {}) => ({ slug: e, name: t, emoji: a, category: n, badge: "VIDEO", template: "seedance", blurb: d, prompt: l, ...o }), Me = [
+], M = (e, t, a, n, d) => ({ id: e, label: t, hint: a, prompt: n, values: d }), Ue = (e, t, a, n = "") => `${e > 0 ? t : a} ${Math.abs(e)}${n}`, H = (e, t, a, n, d, l, o = {}) => ({ slug: e, name: t, emoji: a, category: n, badge: "IMAGE", template: "seedream", blurb: d, prompt: l, ...o }), R = (e, t, a, n, d, l, o = {}) => ({ slug: e, name: t, emoji: a, category: n, badge: "VIDEO", template: "seedance", blurb: d, prompt: l, ...o }), Me = [
   { id: "rotation", label: "Rotation", min: -180, max: 180, step: 5, unit: "°", phrase: (e) => `Orbit the camera ${Ue(e, "right", "left", " degrees")} around the subject.` },
   { id: "tilt", label: "Tilt", min: -90, max: 90, step: 5, unit: "°", phrase: (e) => `Tilt the camera ${Ue(e, "up", "down", " degrees")}.` },
   { id: "zoom", label: "Zoom", min: -100, max: 100, step: 5, phrase: (e) => e > 0 ? `Move in closer by ${e} percent.` : `Pull back to show ${Math.abs(e)} percent more of the scene.` }
@@ -1720,7 +1720,7 @@ const $e = [
     "Re-render this image with a different zoom level and perspective, keeping the subject and style consistent.",
     { sliders: Yr.map((e) => e.id === "vertical" ? { ...e, label: "Vertical angle" } : e) }
   ),
-  L(
+  R(
     "behind-the-scenes",
     "Behind the Scenes",
     "🎞️",
@@ -1728,7 +1728,7 @@ const $e = [
     "Pull back from the photo to reveal the film set around it.",
     "Start on this photograph, then pull the camera back to reveal it is a film set with lighting rigs, cameras and crew working around the scene."
   ),
-  L(
+  R(
     "transitions",
     "Transitions",
     "🔄",
@@ -1835,7 +1835,7 @@ const $e = [
     "Turn a portrait into a holographic glitter sticker on a street wall.",
     "Turn this portrait into a shiny holographic glitter sticker stuck onto a gritty urban surface."
   ),
-  L(
+  R(
     "outfit-shot",
     "Outfit Shot",
     "🧥",
@@ -1921,7 +1921,7 @@ const $e = [
     blurb: "Turn a clip into a glittery sticker animation.",
     prompt: "Turn this into a playful animation where the subject becomes a sparkling holographic sticker, with match cuts between sticker frames."
   },
-  L(
+  H(
     "breakdown",
     "Breakdown",
     "🔍",
@@ -1929,35 +1929,35 @@ const $e = [
     "Split an image into labeled components.",
     "Break this image down into its individual objects and items, separating and labeling each part one by one."
   ),
-  L(
+  H(
     "japanese-show",
     "Japanese Show",
     "📺",
     "video-editing",
     "Retro variety-show look with CRT scanlines.",
-    "Turn this photo into a scene from a retro 2000s Japanese variety show, with CRT scanlines, on-screen captions and broadcast effects."
+    "Turn this photo into a still from a retro 2000s Japanese variety show, with CRT scanlines, on-screen captions and broadcast effects."
   ),
   { slug: "video-bg-remover", name: "Video Background Remover", emoji: "🎬", category: "video-editing", badge: "VIDEO", template: "bg-remover", blurb: "Remove the background from a video.", prompt: "" },
   // ---- Ads & Products (the uploaded image is the product or subject)
-  L("click-to-ad", "Click to Ad", "🎬", "ads", "A person interacts with your product in a short ad.", "Create a dynamic short video ad in which a character picks up and interacts with the product shown in the image."),
-  L("asmr-add-on", "ASMR Add-on", "🎧", "ads", "Whispered, intimate ASMR product moment.", "Create an intimate ASMR-style video where a character quietly whispers about the product in the image, close to the camera."),
-  L("asmr-classic", "ASMR Classic", "🤫", "ads", "Gentle tapping and touching ASMR product video.", "Create a calm ASMR product video with gentle touching, tapping and slow rotation of the item in the image."),
+  R("click-to-ad", "Click to Ad", "🎬", "ads", "A person interacts with your product in a short ad.", "Create a dynamic short video ad in which a character picks up and interacts with the product shown in the image."),
+  R("asmr-add-on", "ASMR Add-on", "🎧", "ads", "Whispered, intimate ASMR product moment.", "Create an intimate ASMR-style video where a character quietly whispers about the product in the image, close to the camera."),
+  R("asmr-classic", "ASMR Classic", "🤫", "ads", "Gentle tapping and touching ASMR product video.", "Create a calm ASMR product video with gentle touching, tapping and slow rotation of the item in the image."),
   H("poster", "Poster", "🖼️", "ads", "A marketing poster for your product.", "Design a professional marketing poster featuring the product in this image, with bold composition, clean typography space and strong lighting."),
-  L("bullet-time-scene", "Bullet Time Scene", "⏱️", "ads", "Frozen-moment bullet-time camera move.", "Create a bullet-time effect: time freezes while the camera sweeps around the subject and product in the image."),
-  L("chameleon", "Chameleon", "🦎", "ads", "A character changes to match the product’s look.", "Show the character smoothly transforming their outfit and colors to match the brand look of the product in the image."),
-  L("asmr-host", "ASMR Host", "🎙️", "ads", "A whispering host presents the product.", "Create an ASMR presentation where a soft-spoken host presents the product from the image up close."),
-  L("packshot", "Packshot", "📦", "ads", "Polished product showcase with slow rotation.", "Create a clean studio packshot video of the product in the image, slowly rotating under soft studio lighting."),
-  L("macro-scene", "Macro Scene", "🔬", "ads", "Extreme close-up of product details.", "Create an extreme macro close-up video that glides over the textures and details of the product in the image."),
-  L("magic-button", "Magic Button", "✨", "ads", "The product appears in a burst of light.", "Show the product from the image appearing magically in a burst of light and drifting particles."),
-  L("truck-ad", "Truck Ad", "🚛", "ads", "Product displayed on a truck driving through a city.", "Show the product from the image printed large on the side of a truck driving through a busy city street."),
-  L("giant-product", "Giant Product", "🦖", "ads", "A building-sized product towering over a person.", "Create a surreal scene where the product from the image is as tall as a building, towering over a small person on the street."),
-  L("bullet-time-white", "Bullet Time White", "⚪", "ads", "360° rotation on a clean white background.", "Create a bullet-time 360 degree rotation around the subject and product in the image on a clean white background."),
-  L("kick-ad", "Kick Ad", "🦵", "ads", "A character kicks the product into frame.", "Create an energetic action ad where a character kicks the product from the image into the frame."),
-  L("billboard-ad", "Billboard Ad", "🏙️", "ads", "Product on a glowing billboard at night.", "Show the product from the image on a huge glowing billboard in a busy city at night."),
+  R("bullet-time-scene", "Bullet Time Scene", "⏱️", "ads", "Frozen-moment bullet-time camera move.", "Create a bullet-time effect: time freezes while the camera sweeps around the subject and product in the image."),
+  R("chameleon", "Chameleon", "🦎", "ads", "A character changes to match the product’s look.", "Show the character smoothly transforming their outfit and colors to match the brand look of the product in the image."),
+  R("asmr-host", "ASMR Host", "🎙️", "ads", "A whispering host presents the product.", "Create an ASMR presentation where a soft-spoken host presents the product from the image up close."),
+  R("packshot", "Packshot", "📦", "ads", "Polished product showcase with slow rotation.", "Create a clean studio packshot video of the product in the image, slowly rotating under soft studio lighting."),
+  R("macro-scene", "Macro Scene", "🔬", "ads", "Extreme close-up of product details.", "Create an extreme macro close-up video that glides over the textures and details of the product in the image."),
+  R("magic-button", "Magic Button", "✨", "ads", "The product appears in a burst of light.", "Show the product from the image appearing magically in a burst of light and drifting particles."),
+  R("truck-ad", "Truck Ad", "🚛", "ads", "Product displayed on a truck driving through a city.", "Show the product from the image printed large on the side of a truck driving through a busy city street."),
+  R("giant-product", "Giant Product", "🦖", "ads", "A building-sized product towering over a person.", "Create a surreal scene where the product from the image is as tall as a building, towering over a small person on the street."),
+  R("bullet-time-white", "Bullet Time White", "⚪", "ads", "360° rotation on a clean white background.", "Create a bullet-time 360 degree rotation around the subject and product in the image on a clean white background."),
+  R("kick-ad", "Kick Ad", "🦵", "ads", "A character kicks the product into frame.", "Create an energetic action ad where a character kicks the product from the image into the frame."),
+  R("billboard-ad", "Billboard Ad", "🏙️", "ads", "Product on a glowing billboard at night.", "Show the product from the image on a huge glowing billboard in a busy city at night."),
   H("graffiti-ad", "Graffiti Ad", "🎨", "ads", "Product as colorful street art on a brick wall.", "Paint the product from this image as vibrant street-art graffiti on a textured brick wall."),
-  L("bullet-time-splash", "Bullet Time Splash", "💧", "ads", "Rotation with dramatic liquid splashes.", "Create a bullet-time rotation around the product in the image with dramatic frozen liquid splashes."),
-  L("fridge-ad", "Fridge Ad", "🧊", "ads", "Product revealed inside an opening fridge.", "Reveal the product from the image inside a fridge as the door opens, with cool mist and a fresh feel."),
-  L("volcano-ad", "Volcano Ad", "🌋", "ads", "Product rises out of a volcanic eruption.", "Show the product from the image rising dramatically out of an erupting volcano with lava and smoke."),
+  R("bullet-time-splash", "Bullet Time Splash", "💧", "ads", "Rotation with dramatic liquid splashes.", "Create a bullet-time rotation around the product in the image with dramatic frozen liquid splashes."),
+  R("fridge-ad", "Fridge Ad", "🧊", "ads", "Product revealed inside an opening fridge.", "Reveal the product from the image inside a fridge as the door opens, with cool mist and a fresh feel."),
+  R("volcano-ad", "Volcano Ad", "🌋", "ads", "Product rises out of a volcanic eruption.", "Show the product from the image rising dramatically out of an erupting volcano with lava and smoke."),
   H("macroshot-product", "Macroshot Product", "📸", "ads", "Macro product photo with shallow depth of field.", "Create a professional macro photograph of the product in this image with very shallow depth of field and crisp detail."),
   // ---- Games & Characters (generic style wording, no brand names)
   H(
@@ -1994,26 +1994,26 @@ const $e = [
     { presetLabel: "Pixel style", presets: [M("8bit", "8-bit", void 0, "Use a limited 8-bit palette and chunky pixels."), M("16bit", "16-bit", void 0, "Use a richer 16-bit palette."), M("32bit", "32-bit", void 0, "Use a detailed 32-bit style."), M("gb", "Handheld green", void 0, "Use a four-shade green handheld screen palette.")] }
   ),
   H("brick-cube", "Brick Cube", "🧱", "games-characters", "A toy-brick block figure.", "Rebuild the subject of this photo as a toy-brick figure made of interlocking plastic blocks."),
-  L("sketch-to-real", "Sketch to Real", "✏️", "games-characters", "Bring a hand-drawn sketch to life as a realistic scene.", "Transform this hand-drawn sketch into a realistic live-action scene, animating it as it comes to life."),
+  R("sketch-to-real", "Sketch to Real", "✏️", "games-characters", "Bring a hand-drawn sketch to life as a realistic scene.", "Transform this hand-drawn sketch into a realistic live-action scene, animating it as it comes to life."),
   // ---- Trending Templates
-  L("j-magazine", "J Magazine", "📰", "trending-templates", "Your photo on a Japanese-style magazine cover.", `Place this person on the cover of a Japanese-style fashion magazine with layered text and a lively page-turn animation. ${ra}`),
-  L("roller-coaster", "Roller Coaster", "🎢", "trending-templates", "A thrilling roller-coaster ride.", "Put the person from this photo on a roller coaster ride with wind, speed and a dramatic camera."),
-  L("60s-cafe", "60s Cafe", "☕", "trending-templates", "A vintage 1960s cafe scene.", "Place the person from this photo in a vintage 1960s cafe with retro decor, warm film tones and gentle motion."),
-  L("victory-card", "Victory Card", "🃏", "trending-templates", "A winning playing-card moment.", "Turn this photo into a winning playing card, with the person triumphant as the card flips and glows."),
-  L("sand-worm", "Sand Worm", "🐛", "trending-templates", "An epic desert creature scene.", "Place the person from this photo in an epic desert scene with a giant sand creature rising behind them."),
-  L("skibidi", "Toilet Meme", "🚽", "trending-templates", "A silly toilet-character meme look.", "Turn this photo into a goofy toilet-themed meme character with exaggerated head bobbing."),
-  L("j-poster", "J Poster", "🎌", "trending-templates", "A Japanese-style poster.", "Turn this photo into a bold Japanese-style poster with dramatic typography and animated accents."),
-  L("mascot", "Mascot", "🏈", "trending-templates", "A sports mascot character.", "Transform the person in this photo into an energetic sports mascot character cheering in a stadium."),
-  L("storm-creature", "Storm Creature", "⛈️", "trending-templates", "An epic storm creature scene.", "Place the person from this photo in a stormy sky scene with a giant creature made of clouds and lightning."),
-  L("burning-sunset", "Burning Sunset", "🌅", "trending-templates", "An epic burning-sunset scene.", "Place the person from this photo against an epic burning sunset sky with drifting embers."),
-  L("on-fire", "On Fire", "🔥", "trending-templates", "A calm-in-chaos burning-room meme scene.", "Show the person from this photo calmly sitting in a room that is on fire, in a humorous cartoon-like meme style."),
-  L("comic-book", "Comic Book", "💥", "trending-templates", "Comic-book panels and action lines.", "Turn this photo into an animated comic-book page with bold ink lines, halftone dots and action bursts."),
-  L("cloud-surf", "Cloud Surf", "☁️", "trending-templates", "Surfing on dreamy pink clouds.", "Show the person from this photo surfing on a wave of dreamy pink clouds at sunset."),
-  L("mukbang", "Mukbang", "🍜", "trending-templates", "A viral eating-show scene.", "Turn this photo into a viral eating-show video with the person enjoying a big spread of food at a table."),
-  L("melting-doodle", "Melting Doodle", "🫠", "trending-templates", "Mesmerizing melting doodle art.", "Turn this photo into colorful doodle art that slowly melts and swirls."),
-  L("giallo-horror", "Giallo Horror", "🩸", "trending-templates", "A stylised 1970s thriller scene.", "Turn this photo into a stylised 1970s Italian thriller scene with saturated colors, dramatic shadows and a suspenseful camera move. Keep it non-graphic."),
-  L("renaissance", "Renaissance", "🖼️", "trending-templates", "A classical gallery painting.", "Turn this photo into a classical Renaissance oil painting hanging in a gallery, subtly coming to life."),
-  L("rap-god", "Rap God", "🎤", "trending-templates", "A rap-video style clip.", "Turn this photo into a stylish rap music video clip with the person performing, with dynamic lighting and camera moves.")
+  R("j-magazine", "J Magazine", "📰", "trending-templates", "Your photo on a Japanese-style magazine cover.", `Place this person on the cover of a Japanese-style fashion magazine with layered text and a lively page-turn animation. ${ra}`),
+  R("roller-coaster", "Roller Coaster", "🎢", "trending-templates", "A thrilling roller-coaster ride.", "Put the person from this photo on a roller coaster ride with wind, speed and a dramatic camera."),
+  R("60s-cafe", "60s Cafe", "☕", "trending-templates", "A vintage 1960s cafe scene.", "Place the person from this photo in a vintage 1960s cafe with retro decor, warm film tones and gentle motion."),
+  R("victory-card", "Victory Card", "🃏", "trending-templates", "A winning playing-card moment.", "Turn this photo into a winning playing card, with the person triumphant as the card flips and glows."),
+  R("sand-worm", "Sand Worm", "🐛", "trending-templates", "An epic desert creature scene.", "Place the person from this photo in an epic desert scene with a giant sand creature rising behind them."),
+  R("skibidi", "Toilet Meme", "🚽", "trending-templates", "A silly toilet-character meme look.", "Turn this photo into a goofy toilet-themed meme character with exaggerated head bobbing."),
+  R("j-poster", "J Poster", "🎌", "trending-templates", "A Japanese-style poster.", "Turn this photo into a bold Japanese-style poster with dramatic typography and animated accents."),
+  R("mascot", "Mascot", "🏈", "trending-templates", "A sports mascot character.", "Transform the person in this photo into an energetic sports mascot character cheering in a stadium."),
+  R("storm-creature", "Storm Creature", "⛈️", "trending-templates", "An epic storm creature scene.", "Place the person from this photo in a stormy sky scene with a giant creature made of clouds and lightning."),
+  R("burning-sunset", "Burning Sunset", "🌅", "trending-templates", "An epic burning-sunset scene.", "Place the person from this photo against an epic burning sunset sky with drifting embers."),
+  R("on-fire", "On Fire", "🔥", "trending-templates", "A calm-in-chaos burning-room meme scene.", "Show the person from this photo calmly sitting in a room that is on fire, in a humorous cartoon-like meme style."),
+  R("comic-book", "Comic Book", "💥", "trending-templates", "Comic-book panels and action lines.", "Turn this photo into an animated comic-book page with bold ink lines, halftone dots and action bursts."),
+  R("cloud-surf", "Cloud Surf", "☁️", "trending-templates", "Surfing on dreamy pink clouds.", "Show the person from this photo surfing on a wave of dreamy pink clouds at sunset."),
+  R("mukbang", "Mukbang", "🍜", "trending-templates", "A viral eating-show scene.", "Turn this photo into a viral eating-show video with the person enjoying a big spread of food at a table."),
+  R("melting-doodle", "Melting Doodle", "🫠", "trending-templates", "Mesmerizing melting doodle art.", "Turn this photo into colorful doodle art that slowly melts and swirls."),
+  R("giallo-horror", "Giallo Horror", "🩸", "trending-templates", "A stylised 1970s thriller scene.", "Turn this photo into a stylised 1970s Italian thriller scene with saturated colors, dramatic shadows and a suspenseful camera move. Keep it non-graphic."),
+  R("renaissance", "Renaissance", "🖼️", "trending-templates", "A classical gallery painting.", "Turn this photo into a classical Renaissance oil painting hanging in a gallery, subtly coming to life."),
+  R("rap-god", "Rap God", "🎤", "trending-templates", "A rap-video style clip.", "Turn this photo into a stylish rap music video clip with the person performing, with dynamic lighting and camera moves.")
 ], xe = (e) => qe.find((t) => t.slug === e), aa = (e) => !!e && $e.some((t) => t.id === e);
 function na(e) {
   const t = new URLSearchParams(e), a = xe(t.get("app")) ? t.get("app") : null, n = t.get("category");
@@ -2220,11 +2220,11 @@ function $a({ app: e, models: t, client: a, batch: n, onBack: d, onRun: l }) {
   z(() => {
     y(pt(e)), p(null), x(null), _(null);
   }, [e]);
-  const R = Sa(e), C = t.find((h) => h.name === R), E = Ct[e.template], T = Y(() => Ca(e, o), [e, o]), g = JSON.stringify(T), v = (h) => y((i) => ({ ...i, ...h }));
+  const L = Sa(e), C = t.find((h) => h.name === L), E = Ct[e.template], T = Y(() => Ca(e, o), [e, o]), g = JSON.stringify(T), v = (h) => y((i) => ({ ...i, ...h }));
   z(() => {
     if (!C) return;
     const h = ++A.current, i = setTimeout(() => {
-      a.estimate(R, T).then((c) => {
+      a.estimate(L, T).then((c) => {
         h === A.current && x(c);
       }).catch(() => {
         h === A.current && x(null);
@@ -2233,7 +2233,7 @@ function $a({ app: e, models: t, client: a, batch: n, onBack: d, onRun: l }) {
     return () => clearTimeout(i);
   }, [g, C, a]);
   const I = C ? Fe(C, $) : null, q = ((J = $e.find((h) => h.id === e.category)) == null ? void 0 : J.label) ?? "", w = Mt(e), G = async () => {
-    C && (_(null), await l({ model: R, endpointUrl: C.endpoint_url, mode: "apps", prompt: It(e, o) || e.name, payload: T, count: n, kind: Ge(C.category), unitCost: I == null ? void 0 : I.current }));
+    C && (_(null), await l({ model: L, endpointUrl: C.endpoint_url, mode: "apps", prompt: It(e, o) || e.name, payload: T, count: n, kind: Ge(C.category), unitCost: I == null ? void 0 : I.current }));
   }, D = async () => {
     const h = Aa(e, o);
     if (h) {
@@ -2272,7 +2272,7 @@ function $a({ app: e, models: t, client: a, batch: n, onBack: d, onRun: l }) {
       e.consent && /* @__PURE__ */ r("p", { role: "note", className: "mb-4 rounded-ctl border border-line bg-card-bg p-2.5 text-[11px] text-secondary", children: "Only use photos and videos of people who have agreed, or that you have the rights to use." }),
       !C && /* @__PURE__ */ s("p", { role: "alert", className: "mb-4 text-sm text-danger", children: [
         "This app needs the model “",
-        R,
+        L,
         "”, which is not in your catalog right now."
       ] }),
       w.map((h) => /* @__PURE__ */ s("div", { className: "mb-5", children: [
@@ -2367,7 +2367,7 @@ function Ta() {
   }
 }
 function La({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a = !0, title: n = "Studio", teamId: d, theme: l = "lime", layout: o, apiKey: y, onRequestApiKey: m, getHeaders: p, connected: $, fetchImpl: x, features: b, className: _ = "", onTabChange: A }) {
-  const R = $ === !1 || y === "" || y === null, C = Q(p);
+  const L = $ === !1 || y === "" || y === null, C = Q(p);
   C.current = p;
   const E = Y(() => new Rt(e, d, { apiKey: y || void 0, getHeaders: () => {
     var j;
@@ -2382,8 +2382,8 @@ function La({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
     E.balance().then(k).catch(() => k(null));
   }, [E]), [u, P] = N(null), O = Yt(E, F, B), ae = Y(() => Wt(O.items), [O.items]);
   z(() => {
-    R || (c(null), h(null), E.models().then(h).catch((j) => c(j.message)), B(), (b == null ? void 0 : b.library) !== !1 && E.probe().then(g));
-  }, [E, B, R, b == null ? void 0 : b.library]);
+    L || (c(null), h(null), E.models().then(h).catch((j) => c(j.message)), B(), (b == null ? void 0 : b.library) !== !1 && E.probe().then(g));
+  }, [E, B, L, b == null ? void 0 : b.library]);
   const se = (j) => {
     w(j), A == null || A(j);
     try {
@@ -2420,7 +2420,7 @@ function La({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
         /* @__PURE__ */ r("b", { className: "text-primary", children: oe(f.balance) })
       ] })
     ] }),
-    R ? /* @__PURE__ */ s("div", { className: "flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center", children: [
+    L ? /* @__PURE__ */ s("div", { className: "flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center", children: [
       /* @__PURE__ */ r("h2", { className: "text-lg font-semibold", children: "Connect your MuAPI key" }),
       /* @__PURE__ */ r("p", { className: "max-w-sm text-sm text-secondary", children: "Add your MuAPI API key to browse models and generate. Your key stays in your own account." }),
       m && /* @__PURE__ */ r("button", { type: "button", onClick: m, className: "rounded-btn bg-primary px-5 py-3 text-sm font-semibold text-primary-ink shadow-glow hover:bg-primary-hover", children: "Add API key" })
