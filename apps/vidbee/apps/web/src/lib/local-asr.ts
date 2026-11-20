@@ -71,9 +71,13 @@ export const transcribeLocally = (
 ): { promise: Promise<LocalCue[]>; cancel: () => void } => {
 	let worker: Worker | null = null;
 	let rejectRun: ((error: Error) => void) | null = null;
+	let cancelled = false;
 	const promise = (async () => {
 		options.onProgress({ phase: "decoding" });
 		const audio = await decodeToMono16k(data);
+		if (cancelled) {
+			throw new Error("Cancelled.");
+		}
 		const durationMs = (audio.length / TARGET_RATE) * 1000;
 		return await new Promise<LocalCue[]>((resolve, reject) => {
 			rejectRun = reject;
@@ -111,6 +115,7 @@ export const transcribeLocally = (
 	return {
 		promise,
 		cancel: () => {
+			cancelled = true;
 			worker?.terminate();
 			rejectRun?.(new Error("Cancelled."));
 		},

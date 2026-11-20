@@ -125,6 +125,7 @@ export const createResponse = async (options: CreateResponseOptions): Promise<Re
   const doneItems: OutputItem[] = []
   let completedOutput: OutputItem[] | null = null
   let streamedText = ''
+  let completed = false
 
   const handle = (block: string): void => {
     let eventName = ''
@@ -159,8 +160,13 @@ export const createResponse = async (options: CreateResponseOptions): Promise<Re
       options.onTextDelta?.(payload.delta)
     } else if (type === 'response.output_item.done' && payload.item) {
       doneItems.push(payload.item)
-    } else if (type === 'response.completed' && Array.isArray(payload.response?.output)) {
-      completedOutput = payload.response.output
+    } else if (type === 'response.completed') {
+      completed = true
+      if (Array.isArray(payload.response?.output)) {
+        completedOutput = payload.response.output
+      }
+    } else if (type === 'response.incomplete') {
+      throw new Error('OpenAI returned an incomplete response.')
     } else if (type === 'response.failed') {
       throw new Error(payload.response?.error?.message ?? 'OpenAI reported a failure.')
     } else if (type === 'error') {
@@ -188,6 +194,9 @@ export const createResponse = async (options: CreateResponseOptions): Promise<Re
     handle(buffer)
   }
 
+  if (!completed) {
+    throw new Error('The OpenAI stream ended before the response completed.')
+  }
   const output = completedOutput ?? doneItems
   const text =
     output
