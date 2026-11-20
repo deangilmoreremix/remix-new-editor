@@ -67,6 +67,11 @@ describe('content library — audio support', () => {
       expect(insertSpy.mock.calls[0][0].type).toBe('video');
     });
 
+    it('saves as audio when the picker passes the type but the URL has no usable extension', async () => {
+      await saveContentLibraryEntry('https://storage.test/uploads/user-1/upload-123.bin', { type: 'audio' });
+      expect(insertSpy.mock.calls[0][0].type).toBe('audio');
+    });
+
     it('uses the real content-type from the HEAD probe when available', async () => {
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
