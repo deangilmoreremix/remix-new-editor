@@ -12,6 +12,7 @@ type AppPage =
 	| "download"
 	| "settings"
 	| "subscriptions"
+	| "tools"
 	| "transcripts";
 
 interface AppShellProps {
@@ -22,10 +23,6 @@ interface AppShellProps {
 export const AppShell = ({ children, page }: AppShellProps) => {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
-
-	const openExternal = (url: string) => {
-		window.open(url, "_blank", "noopener,noreferrer");
-	};
 
 	const items: AppSidebarItem[] = [
 		{
@@ -59,8 +56,9 @@ export const AppShell = ({ children, page }: AppShellProps) => {
 			id: "tools",
 			icon: appSidebarIcons.tools,
 			label: t("menu.tools"),
+			active: page === "tools",
 			onClick: () => {
-				openExternal("https://vidbee.org/tools/");
+				void navigate({ to: "/tools" });
 			},
 		},
 	];

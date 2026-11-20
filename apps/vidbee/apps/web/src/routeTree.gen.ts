@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
+import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as TranscriptsRouteImport } from './routes/transcripts'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const SubscriptionsRoute = SubscriptionsRouteImport.update({
   path: '/subscriptions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsRoute = ToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TranscriptsRoute = TranscriptsRouteImport.update({
   id: '/transcripts',
   path: '/transcripts',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
+  '/tools': typeof ToolsRoute
   '/transcripts': typeof TranscriptsRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
+  '/tools': typeof ToolsRoute
   '/transcripts': typeof TranscriptsRoute
 }
 export interface FileRoutesById {
@@ -61,19 +69,33 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
+  '/tools': typeof ToolsRoute
   '/transcripts': typeof TranscriptsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/settings' | '/subscriptions' | '/transcripts'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/settings'
+    | '/subscriptions'
+    | '/tools'
+    | '/transcripts'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/settings' | '/subscriptions' | '/transcripts'
+  to:
+    | '/'
+    | '/about'
+    | '/settings'
+    | '/subscriptions'
+    | '/tools'
+    | '/transcripts'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/settings'
     | '/subscriptions'
+    | '/tools'
     | '/transcripts'
   fileRoutesById: FileRoutesById
 }
@@ -82,6 +104,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   SettingsRoute: typeof SettingsRoute
   SubscriptionsRoute: typeof SubscriptionsRoute
+  ToolsRoute: typeof ToolsRoute
   TranscriptsRoute: typeof TranscriptsRoute
 }
 
@@ -115,6 +138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubscriptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools': {
+      id: '/tools'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof ToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/transcripts': {
       id: '/transcripts'
       path: '/transcripts'
@@ -130,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   SettingsRoute: SettingsRoute,
   SubscriptionsRoute: SubscriptionsRoute,
+  ToolsRoute: ToolsRoute,
   TranscriptsRoute: TranscriptsRoute,
 }
 export const routeTree = rootRouteImport
