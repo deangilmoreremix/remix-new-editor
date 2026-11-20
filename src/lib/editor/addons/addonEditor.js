@@ -564,7 +564,13 @@ export function renderAddonEditor(container, {
         return;
       }
       if (btn?.dataset.designPick) {
-        setAndEmit(btn.dataset.pickKey, btn.dataset.designPick);
+        // A design that carries a `patch` (the opt-in form's 30 designs) sets all its options at once; plain designs (pointer arrows) set just their id.
+        const field = drawnFields.find((f) => f.key === btn.dataset.pickKey);
+        const design = (field?.designs || []).find((x) => x.id === btn.dataset.designPick);
+        if (design?.patch) {
+          Object.entries(design.patch).forEach(([k, v]) => setPath(current, k, v));
+          emit(true, btn.dataset.pickKey);
+        } else setAndEmit(btn.dataset.pickKey, btn.dataset.designPick);
         return;
       }
       if (btn?.dataset.themePick) {

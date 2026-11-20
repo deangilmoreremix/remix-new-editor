@@ -1500,3 +1500,91 @@
 .addon-font-import { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
 .addon-font-import .mini-btn { align-self: flex-start; }
 .addon-font-error { font-size: 11px; color: #ff6b6b; }
+
+/* ==== Opt-in designs (src/lib/editor/addons/optinDesigns.js) ============== */
+/* Each design is a preset of ordinary options; this block only adds the layouts
+   (data-dlayout) and the decoration that cannot be expressed as an option
+   (data-design). Colours, radius, card, fields and button all still come from the
+   options, so everything stays editable. */
+.addon-overlay-layer .retarget-form .optin-eyebrow { width: 100%; font-size: 38%; letter-spacing: .2em; text-transform: uppercase; opacity: .85; margin-bottom: .7em; }
+.addon-overlay-layer .retarget-form .optin-subtitle { width: 100%; font-size: 40%; opacity: .8; margin: 0 0 1.4em; line-height: 1.4; }
+.addon-overlay-layer .retarget-form .form-inner::before,
+.addon-overlay-layer .retarget-form .form-inner::after { content: none; position: absolute; pointer-events: none; }
+.addon-overlay-layer .retarget-form .form-scrollable { z-index: 1; }
+
+/* ---- layouts ---- */
+.addon-overlay-layer .retarget-form[data-dlayout="split"] .form-scrollable-inner { flex-direction: row; align-items: center; gap: 6%; padding: 4%; }
+.addon-overlay-layer .retarget-form .optin-side { flex: 1 1 42%; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+.addon-overlay-layer .retarget-form .optin-main { flex: 1 1 54%; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.addon-overlay-layer .retarget-form .optin-main .input-wrapper-container { width: 100%; }
+.addon-overlay-layer .retarget-form[data-dlayout="side-card"] .form-inner { margin: auto 4% auto auto !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="sheet"] .form-inner { margin: auto auto 3% !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="sheet"] .form-inner::before { content: ""; left: 50%; top: 5px; width: 8%; height: 3px; border-radius: 3px; background: rgba(255,255,255,.35); transform: translateX(-50%); }
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .retarget-caption,
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .optin-subtitle { box-sizing: border-box; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); border-radius: 14px 14px 14px 4px; padding: .7em 1em; text-align: left !important; width: 88%; align-self: flex-start; margin-bottom: .9em; }
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .optin-subtitle { order: -1; font-size: 46%; }
+
+/* testimonial + stats (side panel) */
+.addon-overlay-layer .retarget-form .optin-proof { text-align: left; font-size: 50%; width: 100%; }
+.addon-overlay-layer .retarget-form .optin-proof blockquote { margin: 0 0 .6em; font-size: 140%; line-height: 1.35; font-weight: 700; }
+.addon-overlay-layer .retarget-form .optin-proof blockquote::before { content: "\201C"; }
+.addon-overlay-layer .retarget-form .optin-proof blockquote::after { content: "\201D"; }
+.addon-overlay-layer .retarget-form .optin-proof cite { display: block; font-style: normal; opacity: .7; margin-bottom: 1em; }
+.addon-overlay-layer .retarget-form .optin-proof cite::before { content: "\2014\00a0"; }
+.addon-overlay-layer .retarget-form .optin-stats { display: flex; gap: .8em; flex-wrap: wrap; }
+.addon-overlay-layer .retarget-form .optin-stats span { display: flex; flex-direction: column; font-size: 70%; opacity: .85; }
+.addon-overlay-layer .retarget-form .optin-stats b { font-size: 170%; line-height: 1.1; }
+
+/* ---- decoration per design ---- */
+.addon-overlay-layer .retarget-form[data-design]::before { content: ""; position: absolute; inset: 0; pointer-events: none; }
+.addon-overlay-layer .retarget-form[data-design="aurora-glass"]::before { background: radial-gradient(ellipse 45% 30% at 12% 40%, rgba(34,211,238,.55), transparent 70%), radial-gradient(ellipse 40% 35% at 92% 25%, rgba(168,85,247,.55), transparent 70%), radial-gradient(ellipse 50% 25% at 70% 100%, rgba(79,140,255,.4), transparent 70%); }
+.addon-overlay-layer .retarget-form[data-design="holographic-card"] .form-inner::before { content: ""; inset: -3px; border-radius: inherit; background: conic-gradient(#22d3ee, #a855f7, #f472b6, #facc15, #22d3ee); filter: blur(6px); opacity: .75; }
+.addon-overlay-layer .retarget-form[data-design="neon-floating-card"] .form-inner::before { content: ""; inset: -12px; border-radius: inherit; border: 2px solid #22d3ee; opacity: .75; box-shadow: 0 0 18px #22d3ee; }
+.addon-overlay-layer .retarget-form[data-design="neon-spotlight"]::before { background: radial-gradient(ellipse 60% 55% at 30% 45%, rgba(109,76,255,.28), transparent 70%); }
+.addon-overlay-layer .retarget-form[data-design="gradient-mesh"]::before { background: radial-gradient(circle at 90% 85%, rgba(251,146,60,.85), transparent 45%), radial-gradient(circle at 8% 10%, rgba(244,114,182,.55), transparent 40%); }
+.addon-overlay-layer .retarget-form[data-design="floating-pill-inputs"]::before { background: radial-gradient(circle at 9% 18%, #a78bfa 0 4%, transparent 4.3%), radial-gradient(circle at 96% 55%, #6d4cff 0 6%, transparent 6.3%); }
+.addon-overlay-layer .retarget-form[data-design="soft-pastel-frost"]::before { background: radial-gradient(circle at 15% 85%, rgba(255,255,255,.7), transparent 35%), radial-gradient(circle at 85% 15%, rgba(255,255,255,.6), transparent 30%); }
+.addon-overlay-layer .retarget-form[data-design="cosmic-portal"]::before { background: radial-gradient(1.5px 1.5px at 10% 20%, #fff 50%, transparent), radial-gradient(1.5px 1.5px at 30% 80%, #fff 50%, transparent), radial-gradient(1px 1px at 55% 12%, #fff 50%, transparent), radial-gradient(1.5px 1.5px at 80% 70%, #fff 50%, transparent), radial-gradient(1px 1px at 92% 25%, #fff 50%, transparent), radial-gradient(1px 1px at 18% 55%, #e9d5ff 50%, transparent), radial-gradient(ellipse 40% 55% at 50% 50%, rgba(168,85,247,.35), transparent 70%); }
+.addon-overlay-layer .retarget-form[data-design="geometric-frames"] .form-inner::before,
+.addon-overlay-layer .retarget-form[data-design="geometric-frames"] .form-inner::after { content: ""; inset: 0; clip-path: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%); background: #22d3ee; }
+.addon-overlay-layer .retarget-form[data-design="geometric-frames"] .form-inner::after { inset: 3px; background: #05303f; }
+.addon-overlay-layer .retarget-form[data-design="geometric-frames"]::before { background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(34,229,196,.18), transparent 70%); }
+.addon-overlay-layer .retarget-form[data-design="blueprint-grid"]::before { background: linear-gradient(rgba(147,197,253,.16) 1px, transparent 1px) 0 0 / 5% 8.9%, linear-gradient(90deg, rgba(147,197,253,.16) 1px, transparent 1px) 0 0 / 5% 8.9%; }
+.addon-overlay-layer .retarget-form[data-design="blueprint-grid"] .form-inner::before { content: ""; inset: -2%; border: 0; background:
+  linear-gradient(#93c5fd, #93c5fd) top left / 7% 2px no-repeat, linear-gradient(#93c5fd, #93c5fd) top left / 2px 12% no-repeat,
+  linear-gradient(#93c5fd, #93c5fd) top right / 7% 2px no-repeat, linear-gradient(#93c5fd, #93c5fd) top right / 2px 12% no-repeat,
+  linear-gradient(#93c5fd, #93c5fd) bottom left / 7% 2px no-repeat, linear-gradient(#93c5fd, #93c5fd) bottom left / 2px 12% no-repeat,
+  linear-gradient(#93c5fd, #93c5fd) bottom right / 7% 2px no-repeat, linear-gradient(#93c5fd, #93c5fd) bottom right / 2px 12% no-repeat; }
+.addon-overlay-layer .retarget-form[data-design="retro-terminal"]::before { background: repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 2px, transparent 2px 4px); z-index: 2; }
+.addon-overlay-layer .retarget-form[data-design="retro-terminal"] .retarget-caption::before { content: "> "; }
+.addon-overlay-layer .retarget-form[data-design="retro-terminal"] .form-inner::after { content: ""; right: 4%; top: 3%; width: 1.6em; height: .4em; background: radial-gradient(circle, #22c55e 45%, transparent 50%) 0 0 / 33% 100%; }
+.addon-overlay-layer .retarget-form[data-design="modular-bento"] .form-scrollable { margin-left: 32%; height: 100%; }
+.addon-overlay-layer .retarget-form[data-design="modular-bento"] .form-inner::before { content: ""; left: 3%; top: 8%; bottom: 8%; width: 27%; border-radius: 14px; border: 1px solid rgba(255,255,255,.25); background: linear-gradient(135deg, rgba(168,85,247,.55), rgba(79,70,229,.35)); }
+.addon-overlay-layer .retarget-form[data-design="modular-bento"] .form-inner::after { content: ""; left: 11%; top: 50%; width: 0; height: 0; transform: translateY(-50%); border-style: solid; border-width: 1.1em 0 1.1em 1.8em; border-color: transparent transparent transparent #fff; }
+.addon-overlay-layer .retarget-form[data-design="spotlight-theater"]::before { background: linear-gradient(90deg, #7f1d1d 0, rgba(127,29,29,.0) 13%, rgba(127,29,29,0) 87%, #7f1d1d 100%), radial-gradient(ellipse 28% 80% at 22% 0, rgba(255,255,255,.28), transparent 70%), radial-gradient(ellipse 28% 80% at 78% 0, rgba(255,255,255,.28), transparent 70%), radial-gradient(ellipse 45% 10% at 50% 94%, rgba(239,68,68,.55), transparent 70%); }
+.addon-overlay-layer .retarget-form[data-design="high-contrast-monochrome"]::before { background: linear-gradient(115deg, #fff 0 8%, transparent 8% 11%, #fff 11% 13%, transparent 13%); }
+.addon-overlay-layer .retarget-form[data-design="high-contrast-monochrome"] .retarget-caption { text-transform: uppercase; letter-spacing: .02em; }
+.addon-overlay-layer .retarget-form[data-design="horizontal-ribbon"]::before { background: radial-gradient(circle at 100% 100%, rgba(251,146,60,.7), transparent 40%); }
+.addon-overlay-layer .retarget-form[data-design="horizontal-ribbon"] .buttons-inner button { clip-path: polygon(0 0, 100% 0, 96% 50%, 100% 100%, 0 100%, 4% 50%); }
+.addon-overlay-layer .retarget-form[data-design="ticket-invitation"] .optin-side { border-right: 2px dashed rgba(245,184,58,.65); padding-right: 5%; }
+.addon-overlay-layer .retarget-form[data-design="dark-brutalist"]::before { background: linear-gradient(135deg, #dc2626 0 12%, transparent 12%), linear-gradient(315deg, #dc2626 0 4%, transparent 4%); }
+.addon-overlay-layer .retarget-form[data-design="dark-brutalist"] .retarget-caption { text-transform: uppercase; line-height: .98; font-weight: 400; }
+.addon-overlay-layer .retarget-form[data-design="dark-brutalist"] .buttons-inner button { text-transform: uppercase; letter-spacing: .05em; }
+.addon-overlay-layer .retarget-form[data-design="luxe-platinum"]::before { background: linear-gradient(118deg, transparent 56%, #c9a24a 56% 58%, transparent 58% 61%, #e7d08a 61% 62.5%, transparent 62.5%); opacity: .8; }
+.addon-overlay-layer .retarget-form[data-design="vip-access"] .form-inner::before { content: ""; inset: 5px; border: 1px solid rgba(201,162,74,.6); }
+.addon-overlay-layer .retarget-form[data-design="vip-access"] .retarget-caption { letter-spacing: .08em; text-transform: uppercase; }
+.addon-overlay-layer .retarget-form[data-design="vip-access"] .optin-eyebrow::before,
+.addon-overlay-layer .retarget-form[data-design="vip-access"] .optin-eyebrow::after { content: "\25C6"; margin: 0 .6em; font-size: 70%; color: #c9a24a; }
+.addon-overlay-layer .retarget-form[data-design="editorial-minimalist"] .form-inner::before { content: ""; left: 0; top: 6%; bottom: 6%; width: 2px; background: #111; }
+.addon-overlay-layer .retarget-form[data-design="editorial-minimalist"] .form-scrollable { padding-left: 4%; }
+.addon-overlay-layer .retarget-form[data-design="left-rail"] .optin-side { flex: 0 0 28%; }
+.addon-overlay-layer .retarget-form[data-design="left-rail"] .optin-main { flex: 1 1 66%; background: #fff; color: #1f2937; border-radius: 16px; padding: 4%; box-sizing: border-box; }
+.addon-overlay-layer .retarget-form[data-design="social-proof"] .optin-side { flex: 0 0 40%; align-self: stretch; background: #fff; color: #1f2937; border-radius: 12px; padding: 5%; box-sizing: border-box; }
+.addon-overlay-layer .retarget-form[data-design="social-proof"] .optin-main { align-items: center; }
+.addon-overlay-layer .retarget-form[data-design="accordion-form"] .input-wrapper > * { min-height: 2.9em; }
+.addon-overlay-layer .retarget-form[data-design="progress-milestones"] .optin-steps { counter-reset: s; gap: .8em; }
+.addon-overlay-layer .retarget-form[data-design="progress-milestones"] .optin-steps span { counter-increment: s; width: 1.5em; height: 1.5em; opacity: .35; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 70%; font-weight: 700; }
+.addon-overlay-layer .retarget-form[data-design="progress-milestones"] .optin-steps span::before { content: counter(s); }
+.addon-overlay-layer .retarget-form[data-design="progress-milestones"] .optin-steps span.on { opacity: 1; }
+.addon-overlay-layer .retarget-form[data-design="two-step-wizard"] .optin-steps span { width: 1.2em; height: 1.2em; opacity: .3; }
+.addon-overlay-layer .retarget-form[data-design="two-step-wizard"] .optin-steps span.on { opacity: 1; }

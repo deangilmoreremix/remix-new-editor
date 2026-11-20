@@ -14,6 +14,7 @@
 
 import { pointerSvg, getPointerDesign, safeColor, HINT_STYLES } from './pointerDesigns.js';
 import { turnstileSiteKey, mountTurnstile } from '../publish/turnstile.js';
+import { safeDesignId } from './optinDesigns.js';
 
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -143,7 +144,28 @@ export function formBackground(config) {
   if (config.backgroundImage) return `url(${JSON.stringify(String(config.backgroundImage))}) center / cover`;
   const c = config.backgroundColor;
   if (!c) return '';
+  if (config.backgroundColor2) {
+    const angle = Math.max(0, Math.min(360, Number(config.bgAngle ?? 135) || 0));
+    return `linear-gradient(${angle}deg, ${cssColor(c, '#000000')}, ${cssColor(config.backgroundColor2, '#000000')})`;
+  }
   return `radial-gradient(circle, ${hexToRgba(c, 0.07)} 10%, ${hexToRgba(c, 0.8)} 90%, ${hexToRgba(c, 1)} 100%)`;
+}
+
+/** A colour an option may hold: hex, rgb()/hsl(), or "transparent". Anything else falls back. */
+const cssColor = (value, fallback = '') => (String(value).trim().toLowerCase() === 'transparent' ? 'transparent' : safeColor(value, fallback));
+
+const ICON_PATHS = {
+  email: '<rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="C" stroke-width="2"/><path d="M3.5 7l8.5 6 8.5-6" fill="none" stroke="C" stroke-width="2"/>',
+  user: '<circle cx="12" cy="8" r="4" fill="C"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z" fill="C"/>',
+  phone: '<path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z" fill="C"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="C" stroke-width="2" stroke-linecap="round"/>',
+};
+/** Small icon at the left of a box (designs turn it on with "Show icons in the boxes"). */
+function inputIcon(type, color) {
+  const kind = type === 'email' ? 'email' : type === 'tel' ? 'phone' : type === 'url' ? 'link' : 'user';
+  const c = String(safeColor(color, '#888888')).replace('#', '%23');
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>${ICON_PATHS[kind].replace(/C/g, c)}</svg>`;
+  return `url("data:image/svg+xml;utf8,${svg.replace(/"/g, "'").replace(/</g, '%3C').replace(/>/g, '%3E')}")`;
 }
 
 const PHONE_PATTERN = '[0-9+\\(\\)\\-. ]{7,30}'; // valid under both the u and v regex flags browsers use for pattern=
@@ -226,9 +248,16 @@ function buildInput(declaration, prefill, config = {}) {
   input.setAttribute('aria-label', declaration.label || token);
   if (declaration.required) input.required = true;
   input.style.borderRadius = `${Number(config.inputBorderRadius ?? INPUT_BORDER_RADIUS)}px`;
-  if (config.inputBackground) input.style.background = config.inputBackground;
+  if (config.inputBackground) {
+    const op = config.inputOpacity === undefined || config.inputOpacity === '' ? 100 : Math.max(0, Math.min(100, Number(config.inputOpacity)));
+    input.style.background = op < 100 ? hexToRgba(config.inputBackground, op / 100) : config.inputBackground;
+  }
   if (config.inputFontColor) input.style.color = config.inputFontColor;
-  if (config.inputBorderColor) input.style.border = `1px solid ${config.inputBorderColor}`;
+  if (config.inputBorderColor) input.style.border = `1px solid ${cssColor(config.inputBorderColor, '#c1c1c1')}`;
+  if (config.inputIcons && input.tagName === 'INPUT') {
+    input.classList.add('has-icon');
+    Object.assign(input.style, { backgroundImage: inputIcon(input.type, config.inputFontColor || '#888888'), backgroundRepeat: 'no-repeat', backgroundPosition: '0.7em center', backgroundSize: '1.1em', paddingLeft: '2.3em' });
+  }
   if (prefill?.[token]) input.value = prefill[token];
   return input;
 }
@@ -257,6 +286,11 @@ export function resolveFieldLayout(count, wanted = 'auto') {
   return 'stacked';
 }
 
+/** Font stack with a fallback, so text stays readable while (or if) the web font loads. */
+const MONO_FONTS = /mono|code|courier/i;
+const SERIF_FONTS = /playfair|cinzel|bevan|serif/i;
+export const fontStack = (family) => (family ? `"${String(family).replace(/"/g, '')}", ${MONO_FONTS.test(family) ? 'ui-monospace, monospace' : SERIF_FONTS.test(family) ? 'Georgia, serif' : 'system-ui, sans-serif'}` : '');
+
 /** Load a Google Font once, as upstream's buildForm did with its fontSheet. */
 export function ensureFormFont(family) {
   if (!family || typeof document === 'undefined') return;
@@ -279,6 +313,10 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   form.className = `popcorn retarget-form addon-optin ${config.transition && config.transition !== 'popcorn-none' ? config.transition : ''}`.trim();
   form.setAttribute('action', '#');
   form.noValidate = false;
+  const designId = safeDesignId(config.designPreset);
+  if (designId) form.dataset.design = designId;
+  const designLayout = ['split', 'side-card', 'sheet', 'chat'].includes(config.designLayout) ? config.designLayout : 'center';
+  form.dataset.dlayout = designLayout;
 
   const inner = document.createElement('div');
   inner.className = 'form-inner';
@@ -288,6 +326,12 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   if (config.innerColor && Number(config.innerOpacity) > 0) {
     inner.style.background = hexToRgba(config.innerColor, Number(config.innerOpacity) / 100);
   }
+  // Card styling (corner, border, glow, frosted blur) — designs use these; all optional.
+  const radius = Number(config.cardRadius) || 0;
+  if (radius > 0) inner.style.borderRadius = radius >= 200 ? '50%' : `${radius}px`;
+  if (Number(config.cardBorderWidth) > 0 && config.cardBorderColor) inner.style.border = `${Math.min(8, Number(config.cardBorderWidth))}px solid ${cssColor(config.cardBorderColor, '#ffffff')}`;
+  if (config.cardGlow) inner.style.boxShadow = `0 0 24px ${hexToRgba(cssColor(config.cardGlow, '#ffffff'), 0.55)}, inset 0 0 18px ${hexToRgba(cssColor(config.cardGlow, '#ffffff'), 0.18)}`;
+  if (Number(config.cardBlur) > 0) inner.style.backdropFilter = inner.style.webkitBackdropFilter = `blur(${Math.min(40, Number(config.cardBlur))}px)`;
 
   const scrollable = document.createElement('div');
   scrollable.className = 'form-scrollable';
@@ -302,6 +346,15 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
     scrollInner.appendChild(logo);
   }
 
+  if (config.eyebrow) {
+    const eyebrow = document.createElement('div');
+    eyebrow.className = 'optin-eyebrow';
+    eyebrow.textContent = config.eyebrow;
+    eyebrow.dataset.editKey = 'eyebrow';
+    eyebrow.style.textAlign = config.captionAlignment || 'center';
+    scrollInner.appendChild(eyebrow);
+  }
+
   const caption = document.createElement('div');
   caption.className = 'retarget-caption';
   caption.textContent = config.caption ?? '';
@@ -313,6 +366,42 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   if (config.captionColor) caption.style.color = config.captionColor;
   if (config.captionBold === false) caption.style.fontWeight = '400';
   scrollInner.appendChild(caption);
+
+  if (config.subtitle) {
+    const sub = document.createElement('div');
+    sub.className = 'optin-subtitle';
+    sub.textContent = config.subtitle;
+    sub.dataset.editKey = 'subtitle';
+    sub.style.textAlign = config.captionAlignment || 'center';
+    scrollInner.appendChild(sub);
+  }
+  // Testimonial + stats (Social proof design): a quote, who said it, and "50,000+ Creators, 5M+ Videos" tiles.
+  if (config.sideQuote || config.sideStats) {
+    const proof = document.createElement('div');
+    proof.className = 'optin-proof';
+    if (config.sideQuote) {
+      const q = document.createElement('blockquote');
+      q.textContent = config.sideQuote;
+      q.dataset.editKey = 'sideQuote';
+      proof.appendChild(q);
+      if (config.sideAuthor) { const a = document.createElement('cite'); a.textContent = config.sideAuthor; a.dataset.editKey = 'sideAuthor'; proof.appendChild(a); }
+    }
+    const stats = String(config.sideStats || '').split(';').map((x) => x.trim()).filter(Boolean).slice(0, 4);
+    if (stats.length) {
+      const row = document.createElement('div');
+      row.className = 'optin-stats';
+      stats.forEach((t) => {
+        const m = t.match(/^(\S+)\s+(.*)$/);
+        const cell = document.createElement('span');
+        const b = document.createElement('b'); b.textContent = m ? m[1] : t;
+        cell.appendChild(b);
+        if (m) cell.appendChild(document.createTextNode(m[2]));
+        row.appendChild(cell);
+      });
+      proof.appendChild(row);
+    }
+    scrollInner.appendChild(proof);
+  }
 
   const inputWrapper = document.createElement('div');
   inputWrapper.className = 'input-wrapper';
@@ -342,6 +431,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
     color: config.buttonFontColor || '#ffffff',
   });
   if (config.buttonFontWeight) submitButton.style.fontWeight = String(config.buttonFontWeight);
+  if (config.buttonBackground2) submitButton.style.background = `linear-gradient(90deg, ${cssColor(config.buttonBackground, '#eb5054')}, ${cssColor(config.buttonBackground2, '#eb5054')})`;
   if (config.btnBottomBorder && config.btnBottomBorder !== 'none') submitButton.style.borderBottom = `1px solid ${config.btnBottomBorder}`;
   form.style.setProperty('--optin-btn-bg', config.buttonBackground || '#eb5054');
   form.style.setProperty('--optin-btn-hover', config.buttonHoverColor || config.buttonBackground || '#eb5054');
@@ -412,6 +502,18 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   status.setAttribute('aria-live', 'polite');
   scrollInner.appendChild(status);
 
+  if (designLayout === 'split') {
+    // Title column on the left (logo, eyebrow, caption, subtitle, testimonial), the boxes + Play on the right.
+    const proofOnly = !!(config.sideQuote || config.sideStats); // a testimonial panel: only the quote sits left, the form keeps its title
+    const side = document.createElement('div');
+    side.className = 'optin-side';
+    const main = document.createElement('div');
+    main.className = 'optin-main';
+    Array.from(scrollInner.children).forEach((el) => {
+      (el.matches(proofOnly ? '.optin-proof' : '.brand-logo, .optin-eyebrow, .retarget-caption, .optin-subtitle, .optin-proof') ? side : main).appendChild(el);
+    });
+    scrollInner.append(side, main);
+  }
   scrollable.appendChild(scrollInner);
   inner.appendChild(scrollable);
   form.appendChild(inner);
@@ -435,12 +537,12 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
     height: `${height}%`,
     background: formBackground(config),
     color: config.fontColor || '#ffffff',
-    fontFamily: config.fontFamily ? `"${config.fontFamily}"` : '',
+    fontFamily: fontStack(config.fontFamily),
   });
   if (config.backgroundImage) form.style.backgroundSize = 'cover';
   form.querySelectorAll('button, input, textarea').forEach((el) => {
     el.style.fontSize = `${Number(config.fontSize) || 60}%`;
-    if (config.fontFamily) el.style.fontFamily = `"${config.fontFamily}"`;
+    if (config.fontFamily) el.style.fontFamily = fontStack(config.fontFamily);
   });
   // Play button text size, as a % of the form text size (100 = same)
   if (Number(config.buttonFontSize) > 0 && Number(config.buttonFontSize) !== 100) {
