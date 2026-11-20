@@ -18,17 +18,17 @@
  * runtime and never pull the package into a bundle.
  */
 
-import { ensureMasks } from './preview/cutout/maskStore';
+import { ensureMasks } from './preview/cutout/maskStore'
 import type {
   CanRenderMediaOnWebOptions,
   CanRenderMediaOnWebResult,
   WebRendererAudioCodec,
   WebRendererContainer,
   WebRendererVideoCodec,
-} from '@remotion/web-renderer';
-import type React from 'react';
-import type { PreviewInputProps } from './preview/types';
-import { PersonalizationComposition } from './preview/PersonalizationComposition';
+} from '@remotion/web-renderer'
+import type React from 'react'
+import type { PreviewInputProps } from './preview/types'
+import { PersonalizationComposition } from './preview/PersonalizationComposition'
 import {
   PERSONALIZATION_COMPOSITION_ID,
   WEB_RENDER_EXTENSION,
@@ -38,7 +38,7 @@ import {
   type WebExportAudioSupport,
   type WebExportPlan,
   type WebRenderCodecSupport,
-} from './finalOutput';
+} from './finalOutput'
 
 /** Video codecs the export engine can ask the renderer for. */
 export type WebExportVideoCodec = 'h264' | 'vp9' | 'vp8'
@@ -135,21 +135,21 @@ type LoadedWebRenderer = {
  * Aborting must reach the renderer even when the caller passed no signal, so
  * the UI can always cancel through `cancelActiveExport()`.
  */
-let activeController: AbortController | null = null;
+let activeController: AbortController | null = null
 /** When the active render was asked to cancel (0 = not cancelled). */
-let cancelRequestedAt = 0;
+let cancelRequestedAt = 0
 /**
  * After a cancel, a new render is refused for this long while the cancelled one unwinds. A real renderer settles
  * within milliseconds of an abort; if one ever hangs, this stops it from blocking every later render until reload.
  */
-export const CANCEL_SETTLE_GRACE_MS = 5_000;
+export const CANCEL_SETTLE_GRACE_MS = 5_000
 
 /** Cancel the in-flight export, if any. Returns true when one was running. */
 export function cancelActiveExport(): boolean {
-  if (!activeController) return false;
-  if (!activeController.signal.aborted) cancelRequestedAt = Date.now();
-  activeController.abort();
-  return true;
+  if (!activeController) return false
+  if (!activeController.signal.aborted) cancelRequestedAt = Date.now()
+  activeController.abort()
+  return true
 }
 
 /**
@@ -157,28 +157,28 @@ export function cancelActiveExport(): boolean {
  * normal code cancels with `cancelActiveExport()` and lets the render finish unwinding.
  */
 export function resetActiveExport(): void {
-  activeController = null;
-  cancelRequestedAt = 0;
+  activeController = null
+  cancelRequestedAt = 0
 }
 
 /** True while a render is running, or still settling inside the grace period after a cancel. */
 function renderBlocksNewOne(): boolean {
-  if (!activeController) return false;
-  if (!activeController.signal.aborted) return true;
-  return Date.now() - cancelRequestedAt < CANCEL_SETTLE_GRACE_MS;
+  if (!activeController) return false
+  if (!activeController.signal.aborted) return true
+  return Date.now() - cancelRequestedAt < CANCEL_SETTLE_GRACE_MS
 }
 
 /** True while an export is running. */
 export function isExportActive(): boolean {
-  return activeController !== null;
+  return activeController !== null
 }
 
 /** Clamp a renderer progress value into 0..1. */
 export function clampProgress(value: unknown): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
-  if (value <= 0) return 0;
-  if (value >= 1) return 1;
-  return value;
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0
+  if (value <= 0) return 0
+  if (value >= 1) return 1
+  return value
 }
 
 /**
@@ -189,29 +189,29 @@ export function clampProgress(value: unknown): number {
 export function webExportFailureReason(
   issues: readonly { type: string }[],
 ): WebExportFailureReason {
-  const types = new Set(issues.map((issue) => issue.type));
+  const types = new Set(issues.map((issue) => issue.type))
   if (types.has('webcodecs-unavailable') || types.has('webgl-unsupported')) {
-    return 'unsupported-browser';
+    return 'unsupported-browser'
   }
   if (
     types.has('video-codec-unsupported') ||
     types.has('audio-codec-unsupported') ||
     types.has('container-codec-mismatch')
   ) {
-    return 'unsupported-codec';
+    return 'unsupported-codec'
   }
-  return 'render-failed';
+  return 'render-failed'
 }
 
 /** h264 needs even dimensions; rounding also guards odd custom compositions. */
 function evenDimension(value: number): number {
-  const rounded = Math.max(2, Math.round(value));
-  return rounded % 2 === 0 ? rounded : rounded + 1;
+  const rounded = Math.max(2, Math.round(value))
+  return rounded % 2 === 0 ? rounded : rounded + 1
 }
 
 /** Loads the renderer only when an export is actually requested. */
 async function loadWebRenderer(): Promise<LoadedWebRenderer> {
-  return (await import('@remotion/web-renderer')) as unknown as LoadedWebRenderer;
+  return (await import('@remotion/web-renderer')) as unknown as LoadedWebRenderer
 }
 
 /**
@@ -222,13 +222,13 @@ async function detectCodecSupport(renderer: LoadedWebRenderer): Promise<{
   video: WebRenderCodecSupport
   audio: WebExportAudioSupport
 }> {
-  const empty = [] as string[];
+  const empty = [] as string[]
   const [mp4Video, webmVideo, mp4Audio, webmAudio] = await Promise.all([
     renderer.getEncodableVideoCodecs('mp4').catch(() => empty),
     renderer.getEncodableVideoCodecs('webm').catch(() => empty),
     renderer.getEncodableAudioCodecs('mp4').catch(() => empty),
     renderer.getEncodableAudioCodecs('webm').catch(() => empty),
-  ]);
+  ])
   return {
     video: {
       h264: mp4Video.includes('h264'),
@@ -236,7 +236,7 @@ async function detectCodecSupport(renderer: LoadedWebRenderer): Promise<{
       vp8: webmVideo.includes('vp8'),
     },
     audio: { mp4: mp4Audio, webm: webmAudio },
-  };
+  }
 }
 
 /**
@@ -246,44 +246,44 @@ async function detectCodecSupport(renderer: LoadedWebRenderer): Promise<{
 export async function exportPersonalizedVideo(
   options: WebExportOptions,
 ): Promise<WebExportResult> {
-  const { inputProps, onProgress, signal } = options;
+  const { inputProps, onProgress, signal } = options
 
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return {
       ok: false,
       reason: 'unsupported-browser',
       error: 'The branded video is rendered in your browser, which is not available right now.',
-    };
+    }
   }
   if (signal?.aborted) {
-    return { ok: false, reason: 'cancelled', error: 'Render cancelled before it started.' };
+    return { ok: false, reason: 'cancelled', error: 'Render cancelled before it started.' }
   }
 
-  const settings = inputProps.settings;
-  const width = evenDimension(settings?.width ?? 0);
-  const height = evenDimension(settings?.height ?? 0);
-  const fps = settings?.fps && settings.fps > 0 ? settings.fps : 30;
-  const durationInFrames = Math.max(1, Math.round(settings?.durationInFrames ?? 1));
+  const settings = inputProps.settings
+  const width = evenDimension(settings?.width ?? 0)
+  const height = evenDimension(settings?.height ?? 0)
+  const fps = settings?.fps && settings.fps > 0 ? settings.fps : 30
+  const durationInFrames = Math.max(1, Math.round(settings?.durationInFrames ?? 1))
 
   // Background removal: the export draws the presenter from measured masks. If this page does not have them
   // yet (for example the project was just reopened), measure them first rather than exporting the original
   // background by mistake.
   if (settings?.cutout?.enabled && inputProps.videoUrl && !inputProps.isImageSource) {
     try {
-      await ensureMasks(inputProps.videoUrl, { signal });
+      await ensureMasks(inputProps.videoUrl, { signal })
     } catch (error) {
-      if (signal?.aborted) return { ok: false, reason: 'cancelled', error: 'Render cancelled.' };
+      if (signal?.aborted) return { ok: false, reason: 'cancelled', error: 'Render cancelled.' }
       return {
         ok: false,
         reason: 'render-failed',
         error: `Background removal could not be prepared: ${error instanceof Error ? error.message : String(error)}`,
-      };
+      }
     }
   }
 
-  let renderer: LoadedWebRenderer;
+  let renderer: LoadedWebRenderer
   try {
-    renderer = await loadWebRenderer();
+    renderer = await loadWebRenderer()
   } catch (error) {
     return {
       ok: false,
@@ -291,13 +291,13 @@ export async function exportPersonalizedVideo(
       error: `Could not load the in-browser video renderer: ${
         error instanceof Error ? error.message : String(error)
       }`,
-    };
+    }
   }
 
   // ── Capability detection, BEFORE anything is rendered ────────────────────
-  let codecSupport: Awaited<ReturnType<typeof detectCodecSupport>>;
+  let codecSupport: Awaited<ReturnType<typeof detectCodecSupport>>
   try {
-    codecSupport = await detectCodecSupport(renderer);
+    codecSupport = await detectCodecSupport(renderer)
   } catch (error) {
     return {
       ok: false,
@@ -305,7 +305,7 @@ export async function exportPersonalizedVideo(
       error: `This browser could not report its video encoding support: ${
         error instanceof Error ? error.message : String(error)
       }`,
-    };
+    }
   }
 
   const plan = chooseWebExportProfile({
@@ -313,12 +313,12 @@ export async function exportPersonalizedVideo(
     audio: codecSupport.audio,
     requestedVideoCodec: options.videoCodec ?? null,
     requestedAudioCodec: options.audioCodec ?? null,
-  });
+  })
   if (plan.error) {
-    return { ok: false, reason: plan.errorReason, error: plan.error };
+    return { ok: false, reason: plan.errorReason, error: plan.error }
   }
 
-  let capability: CanRenderMediaOnWebResult;
+  let capability: CanRenderMediaOnWebResult
   try {
     capability = await renderer.canRenderMediaOnWeb({
       container: plan.profile.container,
@@ -327,7 +327,7 @@ export async function exportPersonalizedVideo(
       width,
       height,
       muted: plan.muted,
-    });
+    })
   } catch (error) {
     return {
       ok: false,
@@ -335,20 +335,20 @@ export async function exportPersonalizedVideo(
       error: `This browser could not be checked for video encoding support: ${
         error instanceof Error ? error.message : String(error)
       }`,
-    };
+    }
   }
 
   if (!capability.canRender) {
-    const reason = webExportFailureReason(capability.issues);
+    const reason = webExportFailureReason(capability.issues)
     const details = capability.issues
       .filter((issue) => issue.severity === 'error')
       .map((issue) => issue.message)
-      .join(' ');
+      .join(' ')
     const fallback =
       reason === 'unsupported-browser'
         ? webRenderUnsupportedMessage(plan.profile)
-        : 'The in-browser render could not be started.';
-    return { ok: false, reason, error: details || fallback };
+        : 'The in-browser render could not be started.'
+    return { ok: false, reason, error: details || fallback }
   }
 
   // ── Render ───────────────────────────────────────────────────────────────
@@ -360,18 +360,18 @@ export async function exportPersonalizedVideo(
       ok: false,
       reason: 'busy',
       error: 'Another render is still running or finishing. Try again in a moment.',
-    };
+    }
   }
-  const controller = new AbortController();
-  activeController = controller;
-  cancelRequestedAt = 0;
-  const forwardAbort = () => controller.abort();
+  const controller = new AbortController()
+  activeController = controller
+  cancelRequestedAt = 0
+  const forwardAbort = () => controller.abort()
   if (signal) {
     if (signal.aborted) {
-      activeController = null;
-      return { ok: false, reason: 'cancelled', error: 'Render cancelled.' };
+      activeController = null
+      return { ok: false, reason: 'cancelled', error: 'Render cancelled.' }
     }
-    signal.addEventListener('abort', forwardAbort, { once: true });
+    signal.addEventListener('abort', forwardAbort, { once: true })
   }
 
   try {
@@ -392,46 +392,46 @@ export async function exportPersonalizedVideo(
       muted: plan.muted,
       signal: controller.signal,
       onProgress: (progress) => {
-        onProgress?.(clampProgress(progress.progress));
+        onProgress?.(clampProgress(progress.progress))
       },
-    });
-    const blob = await result.getBlob();
+    })
+    const blob = await result.getBlob()
     return {
       ok: true,
       blob,
       mimeType: WEB_RENDER_MIME_TYPE[plan.profile.container],
       extension: WEB_RENDER_EXTENSION[plan.profile.container],
       warning: plan.warning,
-    };
+    }
   } catch (error) {
     if (controller.signal.aborted) {
-      return { ok: false, reason: 'cancelled', error: 'Render cancelled.' };
+      return { ok: false, reason: 'cancelled', error: 'Render cancelled.' }
     }
     return {
       ok: false,
       reason: 'render-failed',
       error: error instanceof Error ? error.message : 'The in-browser render failed.',
-    };
+    }
   } finally {
-    if (signal) signal.removeEventListener('abort', forwardAbort);
-    if (activeController === controller) activeController = null;
+    if (signal) signal.removeEventListener('abort', forwardAbort)
+    if (activeController === controller) activeController = null
   }
 }
 
 /** Hand the finished file to the user as a direct download. */
 export function downloadWebExportBlob(blob: Blob, fileName: string): void {
-  if (typeof document === 'undefined') return;
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  link.rel = 'noopener';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  if (typeof document === 'undefined') return
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  link.rel = 'noopener'
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
   // The download owns the blob once the click has been dispatched; the URL is
   // only kept around long enough for slow browsers to pick it up.
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  setTimeout(() => URL.revokeObjectURL(url), 60_000)
 }
 
-export type { WebExportPlan };
+export type { WebExportPlan }
