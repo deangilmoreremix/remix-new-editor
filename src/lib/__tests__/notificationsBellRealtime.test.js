@@ -239,6 +239,20 @@ describe('notifications bell realtime: synchronous owner id', () => {
     expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
     bell.destroy();
   });
+  it('after a channel drop a plain (non-forced) refresh is not throttled by the discarded request', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1';
+    const srv = live(7);
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 100000 });
+    await tick(); await tick();
+    cur = 'user_2'; rt.userId = null; srv.s.n = 4;   // the new owner has no channel yet, so only a plain refresh can restore the number
+    rt.handlers[0]({ new: { id: 'n1', type: 'new_lead', title: 'x', read_at: null } });   // drops the channel (count 0)
+    await tick();
+    srv.rpc.mockClear();
+    globalThis.dispatchEvent(new Event('focus')); await tick(); await tick();
+    expect(srv.rpc).toHaveBeenCalled();
+    expect(bell._count()).toBe(4);
+    bell.destroy();
+  });
   it('the badge is also cleared when the owner changes during the asynchronous lookup', async () => {
     const rt = fakeRealtime(); let cur = 'user_1'; let slow = false; let release; const gate = new Promise((r) => { release = r; });
     const getRealtime = vi.fn(async () => { if (slow) await gate; return rt.getRealtime(); });

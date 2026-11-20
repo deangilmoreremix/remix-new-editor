@@ -23,7 +23,8 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   badge.setAttribute('role', 'status');
   btn.appendChild(badge);
 
-  let count = 0; let last = 0; let alive = true; let timer = null; let refreshSeq = 0;
+  let count = 0; let last = 0; let alive = true; let timer = null;
+  let refreshSeq = 0; // generation counter: a refresh answer is discarded if a newer refresh or an owner change started meanwhile
   const draw = () => {
     btn.classList.toggle('hidden', !isSignedIn());
     badge.classList.toggle('hidden', count <= 0);
@@ -87,7 +88,7 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   };
   // Removes the channel AND the previous owner's unread number, so a stale badge is never shown to someone else.
   // (guardedInsert reconnects for whoever is signed in now; the identity timer only watches a channel that still exists.)
-  const dropChannel = () => { refreshSeq += 1; count = 0; draw(); return stopRealtime(); };
+  const dropChannel = () => { ++refreshSeq; last = 0; count = 0; draw(); return stopRealtime(); };
   async function guardedInsert(payload, mine) {
     if (!alive || rt !== mine) return;
     if (!isSignedIn() || ownerChanged(mine)) { dropChannel().then(() => ensureRealtime()); return; }               // signed out or another account: drop the channel now
