@@ -9,6 +9,7 @@
  */
 import type { WebChat, WebChatMessage, WebChatStatus } from '@vidbee/transcription/web-contract'
 import { getDatabaseConnection } from './database'
+import { chatChannel, publishLive } from './live-events'
 import { createResponse, type OutputItem, requireOpenAiConfig } from './openai-responses'
 import { getTranscriptDetail, getTranscriptStatusMap } from './transcripts-host'
 
@@ -249,10 +250,12 @@ export const sendChat = (downloadId: string, message: string): WebChat => {
   const controller = new AbortController()
   const state = { status: 'running' as WebChatStatus, partial: '', error: null as string | null, controller }
   live.set(downloadId, state)
+  const channel = chatChannel(downloadId)
 
   const history = readMessages(downloadId)
   history.push({ role: 'user', text })
   writeMessages(downloadId, history)
+  queueMicrotask(() => publishLive(channel, 'state', getChat(downloadId)))
 
   void (async () => {
     try {
@@ -275,6 +278,7 @@ export const sendChat = (downloadId: string, message: string): WebChat => {
           signal: controller.signal,
           onTextDelta: (delta) => {
             state.partial += delta
+            publishLive(channel, 'delta', { delta })
           }
         })
         const calls = result.output.filter((item) => item.type === 'function_call')
@@ -299,6 +303,7 @@ export const sendChat = (downloadId: string, message: string): WebChat => {
           }
           notes.push({ role: 'tool', text: `${name}(${JSON.stringify(args)})` })
           input.push({ type: 'function_call_output', call_id: call.call_id, output })
+          publishLive(channel, 'state', { ...getChat(downloadId), messages: [...history, ...notes] })
         }
         state.partial = ''
         if (round === MAX_ROUNDS - 1) {
@@ -308,14 +313,17 @@ export const sendChat = (downloadId: string, message: string): WebChat => {
       writeMessages(downloadId, [...history, ...notes, { role: 'assistant', text: answer || '(no answer)' }])
       state.status = 'idle'
       state.partial = ''
+      publishLive(channel, 'state', getChat(downloadId))
     } catch (error) {
       if (controller.signal.aborted) {
         state.status = 'idle'
         state.partial = ''
+        publishLive(channel, 'state', getChat(downloadId))
         return
       }
       state.status = 'failed'
       state.error = error instanceof Error ? error.message : 'Chat failed.'
+      publishLive(channel, 'state', getChat(downloadId))
     }
   })()
 

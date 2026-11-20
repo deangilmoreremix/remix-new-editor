@@ -22,6 +22,7 @@ import type {
 import { apiDataDir, trimEnv } from './api-paths'
 import { getDatabaseConnection } from './database'
 import { createResponse, aiSettingsFile, getOpenAiConfig, readStoredAiSettings } from './openai-responses'
+import { aiChannel, publishLive } from './live-events'
 import { getTranscriptDetail } from './transcripts-host'
 
 /** Refuse rather than silently truncate: one request must hold the whole transcript. */
@@ -275,6 +276,8 @@ export const startAiRun = (input: {
   }
   live.set(key, { run, controller })
   save(run, createdAt)
+  const channel = aiChannel(input.downloadId, input.skillId)
+  publishLive(channel, 'state', { ...run })
 
   const finish = (status: WebAiRunStatus, error: string | null): void => {
     run.status = status
@@ -282,6 +285,7 @@ export const startAiRun = (input: {
     run.updatedAt = Date.now()
     save(run, createdAt)
     live.delete(key)
+    publishLive(channel, 'state', { ...run })
   }
 
   void (async () => {
@@ -292,6 +296,7 @@ export const startAiRun = (input: {
         onTextDelta: (delta) => {
           run.text += delta
           run.updatedAt = Date.now()
+          publishLive(channel, 'delta', { delta })
         }
       })
       if (!run.text) {

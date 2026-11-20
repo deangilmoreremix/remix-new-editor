@@ -9,6 +9,7 @@ import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { aiClient } from "../../lib/orpc-client";
+import { useLiveStream } from "../../lib/use-live-stream";
 
 const messageOf = (error: unknown): string =>
 	error instanceof Error && error.message ? error.message : "Request failed";
@@ -190,14 +191,39 @@ export const AiSummaryPanel = ({
 		void refreshRuns();
 	}, [refreshRuns]);
 
-	const running = Object.values(runs).some((run) => run.status === "running");
+	const current = runs[skillId];
+	const busy = current?.status === "running";
+	const anyRunning = Object.values(runs).some((item) => item.status === "running");
+
+	// Live text for the selected skill while it runs; polling covers other skills
+	// and is the fallback when the stream is not connected.
+	const streaming = useLiveStream(
+		busy,
+		{ channel: "ai", downloadId, skillId },
+		{
+			onState: (state) => {
+				if (state && typeof state === "object") {
+					setRuns((previous) => ({ ...previous, [skillId]: state as WebAiRun }));
+				}
+			},
+			onDelta: (delta) => {
+				setRuns((previous) => {
+					const existing = previous[skillId];
+					return existing
+						? { ...previous, [skillId]: { ...existing, text: existing.text + delta } }
+						: previous;
+				});
+			},
+		},
+	);
+
 	useEffect(() => {
-		if (!running) {
+		if (!anyRunning || streaming) {
 			return;
 		}
 		const timer = window.setInterval(() => void refreshRuns(), 1000);
 		return () => window.clearInterval(timer);
-	}, [running, refreshRuns]);
+	}, [anyRunning, streaming, refreshRuns]);
 
 	const run = async () => {
 		try {
@@ -220,9 +246,6 @@ export const AiSummaryPanel = ({
 			toast.error(messageOf(error));
 		}
 	};
-
-	const current = runs[skillId];
-	const busy = current?.status === "running";
 
 	return (
 		<div className="flex min-h-0 flex-1 flex-col">

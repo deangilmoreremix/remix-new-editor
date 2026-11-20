@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { chatClient } from "../../lib/orpc-client";
+import { useLiveStream } from "../../lib/use-live-stream";
 
 const messageOf = (error: unknown): string =>
 	error instanceof Error && error.message ? error.message : "Request failed";
@@ -35,13 +36,29 @@ export const ChatPanel = ({
 	}, [refresh]);
 
 	const running = chat?.status === "running";
+	const streaming = useLiveStream(
+		true,
+		{ channel: "chat", downloadId },
+		{
+			onState: (state) => {
+				if (state && typeof state === "object") {
+					setChat(state as WebChat);
+				}
+			},
+			onDelta: (delta) => {
+				setChat((previous) =>
+					previous ? { ...previous, partial: previous.partial + delta } : previous,
+				);
+			},
+		},
+	);
 	useEffect(() => {
-		if (!running) {
+		if (!running || streaming) {
 			return;
 		}
 		const timer = window.setInterval(() => void refresh(), 700);
 		return () => window.clearInterval(timer);
-	}, [running, refresh]);
+	}, [running, streaming, refresh]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: scroll when content changes
 	useEffect(() => {

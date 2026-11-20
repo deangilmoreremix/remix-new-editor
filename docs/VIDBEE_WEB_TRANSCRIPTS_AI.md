@@ -27,6 +27,10 @@ Summaries, chat and translation use the OpenAI **Responses API** (`POST {baseUrl
 The key is never returned to the browser. Transcript text is sent to the configured endpoint when you press Run.
 Transcripts longer than `VIDBEE_AI_MAX_TRANSCRIPT_CHARS` (default 400000 characters) are refused rather than truncated.
 
+## Live streaming
+Summary and chat text reach the browser as server-sent events from `GET /stream?channel=ai&downloadId=&skillId=` or
+`?channel=chat&downloadId=` (a `snapshot`, then `delta` text chunks and `state` updates). If the stream cannot connect, the page falls back to polling.
+
 ## API
 `/rpc/transcripts/*`, `/rpc/ai/*` (settings, skills, run, get, list, cancel), `/rpc/chat/*` (get, send, cancel, reset) and `/rpc/translate/*` (list, start, cancel, export).
 Contracts: `apps/vidbee/packages/transcription/src/web-contract.ts`.

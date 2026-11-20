@@ -12,7 +12,10 @@ import Fastify from 'fastify'
 import { startTaskQueue, stopTaskQueue, taskQueue } from './lib/downloader'
 import { startEngines, stopEngines } from './lib/engines'
 import { resolveReadableMediaFile } from './lib/managed-files'
+import { getAiRun } from './lib/ai-host'
 import { aiRouter } from './lib/ai-router'
+import { getChat } from './lib/chat-host'
+import { aiChannel, chatChannel, subscribeLive } from './lib/live-events'
 import { chatRouter } from './lib/chat-router'
 import { failInterruptedTranslations } from './lib/translate-host'
 import { translateRouter } from './lib/translate-router'
@@ -360,6 +363,41 @@ export const createApiServer = async () => {
 
     request.raw.on('close', () => {
       sseHub.removeClient(response)
+    })
+  })
+
+  // Live AI output: `GET /stream?channel=ai&downloadId=&skillId=` or `?channel=chat&downloadId=`.
+  // Sends one `snapshot`, then `delta` (text chunks) and `state` (full run/chat) events.
+  fastify.get('/stream', async (request, reply) => {
+    const query = request.query as Record<string, string | undefined>
+    const downloadId = query.downloadId?.trim()
+    const skillId = query.skillId?.trim()
+    const isAi = query.channel === 'ai'
+    if (!downloadId || (isAi && !skillId) || !(isAi || query.channel === 'chat')) {
+      return reply.code(400).send({ error: 'Expected channel=ai&downloadId&skillId or channel=chat&downloadId' })
+    }
+    const requestOrigin = request.headers.origin?.trim()
+    reply.hijack()
+    reply.raw.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+      'Access-Control-Allow-Origin': requestOrigin || '*',
+      ...(requestOrigin ? { Vary: 'Origin' } : {})
+    })
+    const response = reply.raw as ServerResponse
+    const send = (event: string, payload: unknown): void => {
+      response.write(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`)
+    }
+    const channel = isAi ? aiChannel(downloadId, skillId ?? '') : chatChannel(downloadId)
+    // Subscribe before reading the snapshot so no delta is missed in between.
+    const unsubscribe = subscribeLive(channel, (item) => send(item.event, item.payload))
+    send('snapshot', isAi ? getAiRun(downloadId, skillId ?? '') : getChat(downloadId))
+    const heartbeat = setInterval(() => response.write(': heartbeat\n\n'), 15_000)
+    request.raw.on('close', () => {
+      clearInterval(heartbeat)
+      unsubscribe()
     })
   })
 
