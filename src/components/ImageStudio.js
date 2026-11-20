@@ -41,6 +41,7 @@ import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 export function ImageStudio() {
     const container = document.createElement('div');
@@ -1268,6 +1269,8 @@ generateBtn.type = 'button';
     publishBtn.textContent = 'Publish to Social';
 
     canvasControls.appendChild(publishBtn);
+    const landingBtn = createLandingPageButton();
+    canvasControls.appendChild(landingBtn);
 
     canvas.appendChild(imageContainer);
     canvas.appendChild(canvasControls);
@@ -1287,6 +1290,7 @@ generateBtn.type = 'button';
             canvasControls.classList.add('opacity-100');
         };
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: imageUrl, mediaType: 'image' });
+        landingBtn.onclick = () => { void openLandingPageFor({ url: imageUrl, type: 'image', studio: 'image' }); };
     };
 
     // --- Helper: Add to history ---

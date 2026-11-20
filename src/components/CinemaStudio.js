@@ -38,6 +38,7 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -1293,6 +1294,8 @@ export function CinemaStudio() {
     publishBtn.textContent = 'Publish to Social';
 
     canvasControls.appendChild(publishBtn);
+    const landingBtn = createLandingPageButton();
+    canvasControls.appendChild(landingBtn);
 
     canvas.appendChild(canvasControls);
 
@@ -1438,6 +1441,7 @@ export function CinemaStudio() {
         canvasControls.classList.add('opacity-100');
 
         publishBtn.onclick = () => { const mediaUrl = currentResultUrl; if (mediaUrl) { const isVid = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(mediaUrl); openSocialPublish({ mediaUrl, mediaType: isVid ? 'video' : 'image' }); } };
+        landingBtn.onclick = () => { const url = currentResultUrl; if (url) void openLandingPageFor({ url, type: /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url) ? 'video' : 'image', studio: 'cinema' }); };
         if (/\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url)) {
           const captionBtn = document.createElement('button');
           captionBtn.type = 'button';

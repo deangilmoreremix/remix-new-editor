@@ -6,6 +6,7 @@
 
 import { confirmDeleteGeneration } from '../../lib/generationHistory.js';
 import { showToast } from '../../lib/loading.js';
+import { canMakeLandingPage, openLandingPageFor } from './landingPageAction.js';
 
 const VIDEO_RE = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i;
 const AUDIO_RE = /\.(mp3|wav|ogg|m4a|aac|flac)(\?|$)|audio\//i;
@@ -144,6 +145,7 @@ export function createResultsGallery({ kind = 'image', historyType = kind, gridC
         saveToContent({ url: item.url, type: isVid ? 'video' : (item.type || kind), prompt: item.prompt || '', model: item.model || '', studio: historyType });
         showToast('Saved to Content', 'success');
       } },
+      ...(canMakeLandingPage({ url: item.url, type: isVid ? 'video' : 'image' }) ? [{ kind: 'landing', label: 'Create landing page', run: () => { void openLandingPageFor({ url: item.url, type: isVid ? 'video' : 'image', prompt: item.prompt || '', studio: historyType }); } }] : []),
       ...((extraActions?.(item) || []).map((a) => ({ kind: 'extra', label: a.label, run: a.onSelect }))),
       { kind: 'delete', label: 'Delete', danger: true, run: () => removeItem(item) },
     ];
