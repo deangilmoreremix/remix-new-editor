@@ -15,6 +15,7 @@ import { startEngines, stopEngines } from './lib/engines'
 import { resolveReadableMediaFile } from './lib/managed-files'
 import { getAiRun } from './lib/ai-host'
 import { aiRouter } from './lib/ai-router'
+import { contentDisposition } from './lib/content-disposition'
 import { ExportBusyError, exportVideoWithSubtitles } from './lib/video-export-host'
 import { getChat } from './lib/chat-host'
 import { aiChannel, chatChannel, subscribeLive, translateChannel } from './lib/live-events'
@@ -233,10 +234,7 @@ export const createApiServer = async () => {
     const fileName = path.basename(resolvedPath)
     const size = (await stat(resolvedPath)).size
     reply.header('content-type', FILE_CONTENT_TYPES.get(extension) ?? 'application/octet-stream')
-    reply.header(
-      'content-disposition',
-      `${request.query.inline === '1' ? 'inline' : 'attachment'}; filename="${fileName.replaceAll('"', '')}"`
-    )
+    reply.header('content-disposition', contentDisposition(request.query.inline === '1' ? 'inline' : 'attachment', fileName))
     // Byte ranges let <video> and <audio> seek without downloading the whole file.
     reply.header('accept-ranges', 'bytes')
     const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.range ?? '')
@@ -414,7 +412,7 @@ export const createApiServer = async () => {
         const size = (await stat(result.filePath)).size
         reply.header('content-type', result.mimeType)
         reply.header('content-length', size)
-        reply.header('content-disposition', `attachment; filename="${result.filename.replaceAll('"', '')}"`)
+        reply.header('content-disposition', contentDisposition('attachment', result.filename))
         const stream = createReadStream(result.filePath)
         stream.on('close', result.cleanup)
         return reply.send(stream)

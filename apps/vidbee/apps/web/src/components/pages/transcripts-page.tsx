@@ -69,6 +69,8 @@ export const TranscriptsPage = () => {
 	const playerRef = useRef<MediaPlayerHandle>(null);
 	const [showPlayer, setShowPlayer] = useState(true);
 	const [localOpen, setLocalOpen] = useState(false);
+	const [translationVersion, setTranslationVersion] = useState(0);
+	const onTranslationCompleted = useCallback(() => setTranslationVersion((value) => value + 1), []);
 	const [playheadMs, setPlayheadMs] = useState(0);
 	const [playing, setPlaying] = useState(false);
 	const [followPlayback, setFollowPlayback] = useState(true);
@@ -395,6 +397,7 @@ export const TranscriptsPage = () => {
 									onPlayingChange={setPlaying}
 									onTime={setPlayheadMs}
 									record={detail.record}
+									translationVersion={translationVersion}
 									ref={playerRef}
 								/>
 							)}
@@ -442,6 +445,7 @@ export const TranscriptsPage = () => {
 
 							{tab === "translate" && (
 								<TranslatePanel
+									onCompleted={onTranslationCompleted}
 									downloadId={detail.downloadId}
 									hasTranscript={Boolean(detail.record)}
 								/>
@@ -489,6 +493,7 @@ export const TranscriptsPage = () => {
 										downloadId={detail.downloadId}
 										sourceFilePath={detail.sourceFilePath}
 										title={detail.title ?? detail.downloadId}
+										translationVersion={translationVersion}
 									/>
 								</div>
 							)}

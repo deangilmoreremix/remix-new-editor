@@ -17,9 +17,12 @@ const messageOf = (error: unknown): string =>
 export const TranslatePanel = ({
 	downloadId,
 	hasTranscript,
+	onCompleted,
 }: {
 	downloadId: string;
 	hasTranscript: boolean;
+	/** Called when a translation finishes, so other parts of the page can offer it (caption tracks, video export). */
+	onCompleted?: () => void;
 }) => {
 	const { t } = useTranslation();
 	const [items, setItems] = useState<WebTranslation[]>([]);
@@ -43,6 +46,9 @@ export const TranslatePanel = ({
 	useEffect(() => {
 		for (const item of items) {
 			const before = lastStatus.current[item.language];
+			if (before === "running" && item.status === "completed") {
+				onCompleted?.();
+			}
 			if (before === "running" && (item.status === "completed" || item.status === "failed")) {
 				notify(
 					item.status === "completed"
@@ -53,7 +59,7 @@ export const TranslatePanel = ({
 			}
 			lastStatus.current[item.language] = item.status;
 		}
-	}, [items, t]);
+	}, [items, t, onCompleted]);
 	const streaming = useLiveStream(
 		true,
 		{ channel: "translate", downloadId },

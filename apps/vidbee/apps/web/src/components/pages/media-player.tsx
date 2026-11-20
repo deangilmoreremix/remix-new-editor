@@ -63,10 +63,12 @@ export const MediaPlayer = forwardRef<
 		downloadId: string;
 		filePath: string;
 		record: TranscriptRecord | null;
+		/** Changes when a translation finishes, so its caption track is added without remounting the player. */
+		translationVersion?: number;
 		onTime: (ms: number) => void;
 		onPlayingChange?: (playing: boolean) => void;
 	}
->(({ downloadId, filePath, record, onTime, onPlayingChange }, ref) => {
+>(({ downloadId, filePath, record, translationVersion = 0, onTime, onPlayingChange }, ref) => {
 	const { t } = useTranslation();
 	const mediaRef = useRef<HTMLVideoElement & HTMLAudioElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -148,7 +150,7 @@ export const MediaPlayer = forwardRef<
 			}
 		};
 		// biome-ignore lint/correctness/useExhaustiveDependencies: rebuilt when the transcript version changes
-	}, [downloadId, recordVersion, t]);
+	}, [downloadId, recordVersion, translationVersion, t]);
 
 	// Show exactly one caption track (or none).
 	// biome-ignore lint/correctness/useExhaustiveDependencies: tracks are rebuilt with the elements

@@ -13,10 +13,13 @@ export const VideoExport = ({
 	downloadId,
 	title,
 	sourceFilePath,
+	translationVersion = 0,
 }: {
 	downloadId: string;
 	title: string;
 	sourceFilePath: string;
+	/** Changes when a translation finishes, so it appears in the language menu. */
+	translationVersion?: number;
 }) => {
 	const { t } = useTranslation();
 	const [translations, setTranslations] = useState<WebTranslation[]>([]);
@@ -29,7 +32,7 @@ export const VideoExport = ({
 			.list({ downloadId })
 			.then((list) => setTranslations(list.filter((item) => item.status === "completed")))
 			.catch(() => setTranslations([]));
-	}, [downloadId]);
+	}, [downloadId, translationVersion]);
 
 	const run = async () => {
 		const dot = sourceFilePath.lastIndexOf(".");

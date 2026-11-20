@@ -6,6 +6,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { netFetch } from './net-fetch.mjs';
 
 const dataDir = path.resolve(process.env.VIDBEE_DATA_DIR || path.join(os.homedir(), '.vidbee-web'));
 const downloadsDir = path.resolve(process.env.VIDBEE_DOWNLOAD_DIR || path.join(dataDir, 'downloads'));
@@ -201,7 +202,11 @@ export const protocol = {
   isProtocolHandled: (scheme) => __protocolHandlers.has(scheme),
 };
 export const session = noop('session');
-export const net = noop('net');
+// `net.fetch` is real (artifact images and videos depend on it); everything else on `net` stays a no-op.
+const netBase = noop('net');
+export const net = new Proxy(netBase, {
+  get: (target, prop, receiver) => (prop === 'fetch' ? netFetch : prop === 'isOnline' ? () => true : Reflect.get(target, prop, receiver)),
+});
 export const nativeTheme = Object.assign(new EventEmitter(), { shouldUseDarkColors: true, themeSource: 'system' });
 export const powerSaveBlocker = { start: () => 0, stop() {}, isStarted: () => false };
 export const ShareMenu = class { popup() {} };
