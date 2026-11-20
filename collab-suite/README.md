@@ -1,12 +1,11 @@
 # Collab Suite
 
-Standalone collaboration apps, independent of SmartVideo (no imports from it; move this folder to its own repo as-is).
+Standalone Teamchat and Meetings, independent of SmartVideo (no imports from it; move this folder to its own repo as-is).
 
 | App | Source | Status |
 |---|---|---|
 | Teamchat | upstream `HeyPuter/everything` (vendored, unmodified) | Real app; needs a Puter account |
 | Meetings | upstream `HeyPuter/everything` (vendored, unmodified) | Real app; needs a Puter account |
-| Calendar, Contacts, Email, Signatures | prototypes written here | Work locally in the browser only; to be replaced by upstream's |
 
 Teamchat and Meetings are upstream's own code in `vendor/everything/` (see `VENDORED.md` there for the source,
 commit and license). The shell only embeds their built output; the one piece of glue is `Embed` in

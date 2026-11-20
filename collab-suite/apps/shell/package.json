@@ -7,10 +7,6 @@
     "build": "vite build --config ../../vite.app.config.ts"
   },
   "dependencies": {
-    "@collab/core": "*",
-    "@collab/contacts": "*",
-    "@collab/calendar": "*",
-    "@collab/signatures": "*",
-    "@collab/email": "*"
+    "@collab/core": "*"
   }
 }
