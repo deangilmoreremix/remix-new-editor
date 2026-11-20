@@ -9,6 +9,8 @@ import { TEAM_SIZES, VOLUMES, SOURCES } from '../../lib/outreach/onboarding.js';
 import { APP_ONBOARDING_STEPS, cleanAppOnboarding, workReady, normalizeWebsite } from '../../lib/onboarding/store.js';
 import { GOAL_CARDS, buildToolGroups, orderedVideoTypes, recommendedTools } from '../../lib/onboarding/toolCatalog.js';
 import '../../styles/onboarding.css';
+import { getStudio } from '../../lib/studioDirectory.js';
+import { testAndSaveMuapiKey, hasMuapiKey } from '../../lib/onboarding/keySetup.js';
 import { ToolCard } from './ToolCard.js';
 import { el, svg, ICONS, TYPE_ICONS, logo } from './obIcons.js';
 
@@ -24,7 +26,7 @@ const LAST = APP_ONBOARDING_STEPS;
  */
 export function mountOnboarding(host, { name = '', initial = null, onChange = () => {}, onFinish = () => {}, onDismiss = () => {}, onEvent = () => {} } = {}) {
   let a = cleanAppOnboarding(initial || {});
-  let part = a.videoTypes.length ? 'tools' : 'type'; // step 6: 'type' (video kind) or 'tools'
+  let part = a.videoTypes.length ? 'tools' : 'type'; // step 6: 'type' (video kind), 'tools' (studios) or 'ready' (key + first result)
 
   const root = el('div', 'ob');
   root.setAttribute('data-onboarding', '');
@@ -69,6 +71,7 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
   function leave(route) { change({ skippedAt: new Date().toISOString() }); destroy(); onDismiss(a, route); }
   function back() {
     emit('back', { step: a.step, props: { from: a.step } });
+    if (a.step === LAST && part === 'ready') { part = 'tools'; paint(); root.scrollTop = 0; return; }
     if (a.step === LAST && part === 'tools') { part = 'type'; paint(); root.scrollTop = 0; return; }
     go(a.step - 1);
   }
@@ -296,7 +299,7 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
     const count = el('span', 'ob-count');
     const start = filled('ob-primary');
     start.setAttribute('data-onb-start', '');
-    start.addEventListener('click', finish);
+    start.addEventListener('click', () => { part = 'ready'; paint(); root.scrollTop = 0; });
     bar2.append(count, start);
     function sync() {
       const n = a.tools.length;
@@ -308,7 +311,84 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
     root.classList.add('ob-has-bottom');
   }
 
-  function step6() { (part === 'tools' ? step6Tools : step6Type)(); }
+  // 6c -- get ready: connect the Muapi key (optional) so the first generation works, then open the studio
+  function step6Ready() {
+    const studio = getStudio(a.primaryTool);
+    titles('Get ready for your first result', studio ? `You are about to open ${studio.name}. One quick thing first, and you can skip it.` : 'One quick thing first, and you can skip it.');
+    const box = el('div', 'ob-ready');
+    box.setAttribute('data-onb-ready', '');
+    const status = el('p', 'ob-key-status');
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-live', 'polite');
+    const connected = () => {
+      box.querySelector('[data-onb-key-form]')?.remove();
+      const ok = el('div', 'ob-key-ok');
+      ok.setAttribute('data-onb-key-connected', '');
+      ok.innerHTML = svg(ICONS.check, 18);
+      ok.appendChild(el('span', '', 'Your Muapi key is connected.'));
+      box.prepend(ok);
+    };
+    if (hasMuapiKey()) {
+      connected();
+    } else {
+      const form = el('form', 'ob-form ob-key');
+      form.setAttribute('data-onb-key-form', '');
+      const field = el('label', 'ob-field');
+      field.appendChild(el('span', '', 'Muapi API key'));
+      const input = el('input', 'ob-input');
+      input.type = 'password'; input.name = 'muapiKey'; input.autocomplete = 'off'; input.spellcheck = false;
+      input.placeholder = 'Paste your key to generate right away';
+      input.setAttribute('data-onb-key-input', '');
+      field.appendChild(input);
+      const test = filled('ob-primary ob-block', 'Test and save');
+      test.type = 'submit';
+      test.setAttribute('data-onb-key-test', '');
+      form.append(field, test, status);
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        test.disabled = true; status.textContent = 'Testing your key…'; status.className = 'ob-key-status';
+        let r;
+        try { r = await testAndSaveMuapiKey(input.value); } catch { r = { ok: false, status: 'invalid', error: 'We could not save that key. Try again.' }; }
+        test.disabled = false;
+        emit('key_tested', { step: LAST, sub: 'ready', props: { ok: !!r.ok } });
+        if (!r.ok) { status.textContent = r.error; status.className = 'ob-key-status is-error'; return; }
+        emit('key_saved', { step: LAST, sub: 'ready', props: { provider: 'muapi' } });
+        input.value = '';
+        connected();
+        const ok = box.querySelector('[data-onb-key-connected] span');
+        if (ok) ok.textContent = r.status === 'valid' ? `Your key works${Number.isFinite(r.balance) ? ` (${r.balance} credits)` : ''}.` : 'Your key is saved. We could not check it just now, it will be used when you generate.';
+      });
+      box.appendChild(form);
+    }
+    // Neutral note about access (no plan advice): generating needs full access; "See plans" opens the pricing prompt.
+    const access = el('div', 'ob-access');
+    access.setAttribute('data-onb-access', '');
+    access.append(el('span', '', 'Generating needs full access.'));
+    const plans = el('button', 'ob-link', 'See plans');
+    plans.type = 'button';
+    plans.setAttribute('data-onb-plans', '');
+    plans.addEventListener('click', async () => {
+      try { const m = await import('../UpgradePrompt.js'); m.default({ feature: 'generation' }); } catch { /* pricing unavailable offline */ }
+    });
+    access.appendChild(plans);
+    box.appendChild(access);
+    content.appendChild(box);
+
+    const bar2 = el('div', 'ob-bottom');
+    bar2.setAttribute('data-onb-bar', '');
+    const skipKey = el('button', 'ob-link', 'Skip for now');
+    skipKey.type = 'button';
+    skipKey.setAttribute('data-onb-ready-skip', '');
+    skipKey.addEventListener('click', () => { emit('skip_step', { step: LAST, sub: 'ready' }); finish(); });
+    const go = filled('ob-primary', studio ? `Open ${studio.name}` : 'Open the studios');
+    go.setAttribute('data-onb-finish', '');
+    go.addEventListener('click', finish);
+    bar2.append(skipKey, go);
+    root.appendChild(bar2);
+    root.classList.add('ob-has-bottom');
+  }
+
+  function step6() { (part === 'ready' ? step6Ready : part === 'tools' ? step6Tools : step6Type)(); }
 
   const VIEWS = { 1: step1, 2: step2, 3: step3, 4: step4, 5: step5, 6: step6 };
   let lastView = '';

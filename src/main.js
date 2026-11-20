@@ -273,6 +273,8 @@ try {
     // The guided tours (src/lib/tours) start from it.
     window.dispatchEvent(new CustomEvent('app:route-ready', { detail: { page } }));
   });
+  // A sample prompt chosen in the onboarding lands in the studio's empty prompt box.
+  import('./lib/onboarding/samplePrompt.js').then((m) => m.installSampleHandoff()).catch(() => {});
 
   // Guided tours: the app tour once, then each studio's tour the first time it is opened. Set up before the first
   // navigation so the first page is covered; a failure here must never stop the app.

@@ -81,7 +81,7 @@ export class ApiKeyManager {
         }
 
         const trimmedKey = key.trim();
-        if (trimmedKey.length < 10) {
+        if (trimmedKey.length < 10 && trimmedKey !== DEV_PLACEHOLDER_KEY) {
             throw new Error('API key too short');
         }
 
@@ -310,7 +310,7 @@ export const isDevBypass =
     (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('dev'));
 
 if (isDevBypass && !apiKeyManager.hasKey()) {
-    apiKeyManager.setKey(DEV_PLACEHOLDER_KEY, true).then(() => {
+    apiKeyManager.setKey(DEV_PLACEHOLDER_KEY, false).then(() => {
         console.info('[dev] Auth bypass active — seeded placeholder API key (no real Muapi key set).');
     }).catch(console.error);
 }

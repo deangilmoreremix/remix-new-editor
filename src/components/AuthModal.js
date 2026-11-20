@@ -6,7 +6,7 @@ export function AuthModal(onSuccess) {
 
     import('./SettingsModal.js').then(({ SettingsModal }) => {
         const overlay = SettingsModal(() => {
-            if (apiKeyManager.hasAnyKey() && onSuccess) {
+            if (apiKeyManager.hasMuapiKey() && onSuccess) {
                 onSuccess();
             }
         });

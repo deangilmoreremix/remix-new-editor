@@ -171,6 +171,30 @@ export class MuapiClient {
         return Number.isFinite(balance) ? balance : null;
     }
 
+    /**
+     * Probes the stored key with the (free) balance call and says what happened:
+     * { status: 'valid', balance } | { status: 'invalid' } (401/403) | { status: 'unknown' } (network, server, odd reply)
+     * | { status: 'missing' }. Used by the onboarding "Test" so a typo is caught before the first generation.
+     */
+    async checkKey(signal) {
+        if (!this.apiKeyManager.getMuapiKey()) return { status: 'missing' };
+        try {
+            const response = await fetch(this.proxyUrl, {
+                method: 'POST',
+                headers: this._getMuapiHeaders(),
+                body: JSON.stringify({ endpoint: 'account/balance', params: {}, generationType: 'list', studioType: 'image' }),
+                signal,
+            });
+            if (response.status === 401 || response.status === 403) return { status: 'invalid' };
+            if (!response.ok) return { status: 'unknown' };
+            const data = await response.json();
+            const balance = Number(data?.balance ?? data?.data?.balance);
+            return Number.isFinite(balance) ? { status: 'valid', balance } : { status: 'unknown' };
+        } catch {
+            return { status: 'unknown' };
+        }
+    }
+
     // ─── Calls ported from upstream Open-Generative-AI's muapi.js ────────────
     // All go through the same edge proxy as every other generate call, so the
     // user's key never leaves the proxy header path.

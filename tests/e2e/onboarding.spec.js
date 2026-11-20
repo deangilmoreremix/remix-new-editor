@@ -50,8 +50,46 @@ test.describe('App-wide onboarding', () => {
     await page.click('[data-onb-tool="avatar"]');
     await expect(page.locator('[data-onb-start]')).toHaveText('Start');
     await page.click('[data-onb-start]');
+
+    // 6c: get ready. Try a wrong key (rejected, nothing saved), then a good one, then open the studio.
+    await expect(page.locator('h1')).toContainText('Get ready for your first result');
+    await expect(page.locator('[data-onb-finish]')).toHaveText('Open Lip Sync Studio');
+    await page.route('**/functions/v1/muapi-proxy', async (route) => {
+      const key = route.request().headers()['x-api-key'];
+      if (key === 'wrongkey123456') return route.fulfill({ status: 401, contentType: 'application/json', body: '{"error":"bad key"}' });
+      return route.fulfill({ status: 200, contentType: 'application/json', body: '{"balance": 25}' });
+    });
+    await page.fill('[data-onb-key-input]', 'wrongkey123456');
+    await page.click('[data-onb-key-test]');
+    await expect(page.locator('.ob-key-status')).toContainText('did not accept');
+    await expect(page.locator('[data-onb-key-form]')).toHaveCount(1);
+    await page.fill('[data-onb-key-input]', 'goodkey1234567');
+    await page.click('[data-onb-key-test]');
+    await expect(page.locator('[data-onb-key-connected]')).toContainText('25 credits');
+    await page.click('[data-onb-finish]');
     await page.waitForFunction(() => location.hash === '#/lipsync', null, { timeout: 30_000 });
     await expect(page.locator('[data-onboarding]')).toHaveCount(0);
+    // the setup popup does not cover the studio, and the sample prompt is waiting in its prompt box
+    await expect(page.locator('[data-studio-prompt]')).toHaveValue(/Acme Inc\./, { timeout: 30_000 });
+    await expect(page.locator('[data-redo-onboarding], [data-auth-modal]')).toHaveCount(0);
+  });
+
+  test('Skip for now on the get-ready screen opens the studio without a key', async ({ page }) => {
+    await open(page);
+    await answerUpToSource(page);
+    await page.click('[data-onb-heard="linkedin"]');
+    await page.click('[data-onb-type="talking"]');
+    await page.click('[data-onb-continue]');
+    await page.click('[data-onb-tool="avatar"]');
+    await page.click('[data-onb-start]');
+    await expect(page.locator('[data-onb-key-form]')).toHaveCount(1); // the dev placeholder key is not a real key
+    await page.click('[data-onb-plans]');
+    await expect(page.locator('[data-upgrade]')).toHaveCount(1);
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => document.querySelector('[data-upgrade] button[aria-label="Close"]')?.click());
+    await page.click('[data-onb-ready-skip]');
+    await page.waitForFunction(() => location.hash === '#/avatar', null, { timeout: 30_000 });
+    await expect(page.locator('[data-redo-onboarding], [data-auth-modal]')).toHaveCount(0);
   });
 
   test('step 1 is two large cards; the Academy button leaves to the Academy and onboarding does not come back', async ({ page }) => {
@@ -83,6 +121,7 @@ test.describe('App-wide onboarding', () => {
     await page.click('[data-onb-heard="google"]');
     await page.click('[data-onb-all-tools]');
     await page.click('[data-onb-start]'); // nothing selected: Explore all tools
+    await page.click('[data-onb-finish]');
     await page.waitForFunction(() => location.hash === '#/apps', null, { timeout: 30_000 });
 
     await page.goto(OPEN, { waitUntil: 'domcontentloaded' });

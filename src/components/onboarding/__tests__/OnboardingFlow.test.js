@@ -48,6 +48,9 @@ describe('app onboarding flow', () => {
     $('[data-onb-tool="avatar"]').click();
     expect($('[data-onb-start]').textContent).toBe('Start');
     $('[data-onb-start]').click();
+    expect(onFinish).not.toHaveBeenCalled();
+    expect(document.querySelector('[data-onb-ready]')).not.toBeNull(); // 6c get ready
+    $('[data-onb-finish]').click();
     expect(onFinish).toHaveBeenCalledTimes(1);
     expect(onFinish.mock.calls[0][0]).toMatchObject({ goal: 'ai-video', team: '2-5', volume: '100+', company: 'Acme', website: 'acme.com', jobTitle: 'AE', heard: 'linkedin', videoTypes: ['talking'], tools: ['lipsync', 'avatar'], primaryTool: 'lipsync' });
     expect(onFinish.mock.calls[0][0].completedAt).toBeTruthy();

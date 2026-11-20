@@ -3,6 +3,7 @@
 // Full-page onboarding (#/onboarding, no header or side menu), mounted by src/main.js. Loads the saved answers
 // (browser + Supabase), shows the flow, saves every answer, and on the way out opens the tool the person chose.
 import { mountOnboarding } from './OnboardingFlow.js';
+import { stageSamplePrompt } from '../../lib/onboarding/samplePrompt.js';
 import { telemetry } from '../../lib/onboarding/telemetry.js';
 import { isAppDone, isAppSkipped, loadBestAppOnboarding, persistAppOnboarding, saveLocalAppOnboarding, cleanAppOnboarding, seedOutreach } from '../../lib/onboarding/store.js';
 
@@ -26,6 +27,8 @@ const flushEvents = () => Promise.race([telemetry.flush(), new Promise((r) => se
 // parameters (utm tags, ?dev) are kept; only the redo flag is dropped.
 function leaveTo(route) {
   try { sessionStorage.setItem(SESSION_KEY, '1'); } catch { /* storage blocked */ }
+  // The key popup would sit on top of the studio they are about to open; this screen already offered the key.
+  try { sessionStorage.setItem('setup_popup_shown', '1'); } catch { /* storage blocked */ }
   const params = new URLSearchParams(window.location.search);
   params.delete('redo');
   const query = params.toString();
@@ -69,6 +72,7 @@ export async function mountOnboardingPage(host, { redo = false } = {}) {
         },
       });
       seedOutreach(uid, a);
+      try { stageSamplePrompt(destinationFor(a), a); } catch { /* a missing sample must never block leaving */ }
       await Promise.all([flush(a), flushEvents()]);
       leaveTo(destinationFor(a));
     },
