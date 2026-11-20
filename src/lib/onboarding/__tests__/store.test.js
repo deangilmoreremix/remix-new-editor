@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   cleanAppOnboarding, blankAppOnboarding, toAppRow, fromAppRow, newerAppOnboarding, shouldPromptOnboarding,
   saveLocalAppOnboarding, loadLocalAppOnboarding, seedOutreach, isAppDone, isAppSkipped,
+  getFavorites, setFavorites, toggleFavorite, FAVORITES_EVENT,
 } from '../store.js';
 import { loadLocalOnboarding } from '../../outreach/onboarding.js';
 
@@ -68,5 +69,54 @@ describe('pre-filling the Video Outreach welcome', () => {
     seedOutreach('u1', { ...app, company: 'Other' }, s);
     o = loadLocalOnboarding('u1', s);
     expect(o.company).toBe('Acme');
+  });
+});
+
+describe('updatedAt and favorites', () => {
+  it('keeps updatedAt through clean and the Supabase row, and prefers the later edit when the rank ties', () => {
+    expect(cleanAppOnboarding({ updatedAt: '2026-11-20T10:00:00Z' }).updatedAt).toBe('2026-11-20T10:00:00Z');
+    expect(cleanAppOnboarding({ updatedAt: 'garbage' }).updatedAt).toBeNull();
+    expect(fromAppRow({ updated_at: '2026-11-20T10:00:00Z' }).updatedAt).toBe('2026-11-20T10:00:00Z');
+    const old = cleanAppOnboarding({ step: 6, completedAt: '2026-11-01T00:00:00Z', tools: ['image'], updatedAt: '2026-11-02T00:00:00Z' });
+    const fresh = cleanAppOnboarding({ step: 1, completedAt: '2026-11-01T00:00:00Z', tools: ['video'], updatedAt: '2026-11-10T00:00:00Z' });
+    expect(newerAppOnboarding(old, fresh)).toBe(fresh);
+    expect(newerAppOnboarding(fresh, old)).toBe(fresh);
+    // without timestamps the older rule (further along wins) still applies; finished still beats in progress
+    expect(newerAppOnboarding(cleanAppOnboarding({ step: 2 }), cleanAppOnboarding({ step: 4 })).step).toBe(4);
+    expect(newerAppOnboarding(cleanAppOnboarding({ step: 6, updatedAt: '2026-12-01T00:00:00Z' }), cleanAppOnboarding({ completedAt: '2026-11-01T00:00:00Z' })).completedAt).toBeTruthy();
+  });
+
+  it('getFavorites lists the primary first; none for a user without answers', () => {
+    const st = mem();
+    expect(getFavorites('u1', st)).toEqual([]);
+    saveLocalAppOnboarding('u1', { tools: ['image', 'video', 'avatar'], primaryTool: 'video' }, st);
+    expect(getFavorites('u1', st)).toEqual(['video', 'image', 'avatar']);
+  });
+
+  it('setFavorites keeps other answers, drops unknown ids, stamps updatedAt, and tells the page', () => {
+    const st = mem();
+    saveLocalAppOnboarding('u1', { goal: 'personal', company: 'Acme', completedAt: '2026-11-01T00:00:00Z', tools: ['image'], primaryTool: 'image' }, st);
+    const seen = [];
+    const h = (e) => seen.push(e.detail);
+    window.addEventListener(FAVORITES_EVENT, h);
+    const list = setFavorites('u1', ['video', 'nope', 'image'], { persist: false, storage: st });
+    window.removeEventListener(FAVORITES_EVENT, h);
+    expect(list).toEqual(['video', 'image']);
+    const saved = loadLocalAppOnboarding('u1', st);
+    expect(saved).toMatchObject({ goal: 'personal', company: 'Acme', primaryTool: 'image' });
+    expect(isAppDone(saved)).toBe(true);
+    expect(saved.updatedAt).toBeTruthy();
+    expect(seen).toHaveLength(1);
+    expect(seen[0].tools).toEqual(['video', 'image']);
+  });
+
+  it('toggleFavorite adds and removes, and moves the primary when it is removed', () => {
+    const st = mem();
+    expect(toggleFavorite('u1', 'video', { persist: false, storage: st })).toBe(true);
+    expect(toggleFavorite('u1', 'image', { persist: false, storage: st })).toBe(true);
+    expect(getFavorites('u1', st)).toEqual(['video', 'image']);
+    expect(toggleFavorite('u1', 'video', { persist: false, storage: st })).toBe(false);
+    expect(getFavorites('u1', st)).toEqual(['image']);
+    expect(loadLocalAppOnboarding('u1', st).primaryTool).toBe('image');
   });
 });

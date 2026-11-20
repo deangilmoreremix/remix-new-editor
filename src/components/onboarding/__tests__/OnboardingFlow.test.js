@@ -111,4 +111,33 @@ describe('app onboarding flow', () => {
     expect($('[data-onb-team]').tagName).toBe('BUTTON');
     expect($('[data-keep-fill]')).toBeNull();
   });
+
+  it('reports the funnel events with choice ids only, never typed text', () => {
+    const onEvent = vi.fn();
+    mountOnboarding($('#host'), { onEvent });
+    $('[data-onb-goal="personal"]').click();
+    $('[data-onb-skip]').click(); // skip step 2
+    $('[data-onb-back]').click();
+    $('[data-onb-team="2-5"]').click();
+    $('[data-onb-volume="100+"]').click();
+    typeIn('company', 'Secret Co'); typeIn('website', 'https://secret.example'); typeIn('jobTitle', 'CEO');
+    $('[data-onb-work]').dispatchEvent(new Event('submit', { cancelable: true }));
+    $('[data-onb-heard="linkedin"]').click();
+    $('[data-onb-type="talking"]').click();
+    $('[data-onb-continue]').click();
+    const names = onEvent.mock.calls.map((c) => c[0]);
+    expect(names[0]).toBe('step_view');
+    expect(names).toEqual(expect.arrayContaining(['step_answer', 'skip_step', 'back']));
+    const views = onEvent.mock.calls.filter((c) => c[0] === 'step_view').map((c) => `${c[1].step}${c[1].sub ? `:${c[1].sub}` : ''}`);
+    expect(views).toEqual(expect.arrayContaining(['1', '2', '3', '4', '5', '6:type', '6:tools']));
+    expect(onEvent.mock.calls.find((c) => c[0] === 'step_answer' && c[1].props.field === 'goal')[1].props.value).toBe('personal');
+    expect(JSON.stringify(onEvent.mock.calls)).not.toMatch(/Secret|secret\.example|CEO/);
+  });
+
+  it('a throwing event listener never breaks the flow', () => {
+    mountOnboarding($('#host'), { onEvent: () => { throw new Error('boom'); } });
+    expect(() => $('[data-onb-goal="personal"]').click()).not.toThrow();
+    expect(document.body.textContent).toContain('Step 2 of 6');
+  });
 });
+

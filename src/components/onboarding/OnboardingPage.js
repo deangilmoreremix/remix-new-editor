@@ -3,7 +3,7 @@
 // Full-page onboarding (#/onboarding, no header or side menu), mounted by src/main.js. Loads the saved answers
 // (browser + Supabase), shows the flow, saves every answer, and on the way out opens the tool the person chose.
 import { mountOnboarding } from './OnboardingFlow.js';
-import { analytics } from '../../lib/analytics.js';
+import { telemetry } from '../../lib/onboarding/telemetry.js';
 import { isAppDone, isAppSkipped, loadBestAppOnboarding, persistAppOnboarding, saveLocalAppOnboarding, cleanAppOnboarding, seedOutreach } from '../../lib/onboarding/store.js';
 
 export const ONBOARDING_ROUTE = 'onboarding';
@@ -17,6 +17,11 @@ export function destinationFor(a) {
   return a?.primaryTool || 'apps';
 }
 
+// Funnel events (src/lib/onboarding/telemetry.js): choice ids and booleans only, never company, website or job title.
+const track = (event, o) => { try { telemetry.track(event, o); } catch { /* reporting must never block onboarding */ } };
+// Waits (briefly) for the queued events to be sent: the reload that follows would otherwise lose the last ones.
+const flushEvents = () => Promise.race([telemetry.flush(), new Promise((r) => setTimeout(r, 1500))]).catch(() => {});
+
 // The shell is not mounted on this page, so leaving means a real load of the target route. Other query
 // parameters (utm tags, ?dev) are kept; only the redo flag is dropped.
 function leaveTo(route) {
@@ -28,9 +33,6 @@ function leaveTo(route) {
   window.location.replace(`${window.location.pathname}${search}#/${route}`);
   if (search === window.location.search) window.location.reload(); // only the hash differs: no navigation happens by itself
 }
-
-// Product analytics (no company, website or other answers that identify the person; only the choices).
-const track = (type, props) => { try { analytics.track(type, props); } catch { /* analytics must never block onboarding */ } };
 
 /**
  * mountOnboardingPage(host, { redo }) -> Promise<{ destroy }>
@@ -48,8 +50,7 @@ export async function mountOnboardingPage(host, { redo = false } = {}) {
   // Redo starts again at step 1 with the old answers as defaults. The earlier completion is kept until the new run
   // finishes, so abandoning a redo does not bring the onboarding back as if it were never done.
   if (redo && initial) initial = cleanAppOnboarding({ ...initial, step: 1 });
-  track('onboarding_start', { redo, resumedAtStep: initial?.step || 1 });
-  let lastStep = initial?.step || 1;
+  track('start', { props: { redo, resumedAtStep: initial?.step || 1 } });
 
   let timer = null;
   const save = (a) => persistAppOnboarding(uid, a);
@@ -58,20 +59,23 @@ export async function mountOnboardingPage(host, { redo = false } = {}) {
   return mountOnboarding(host, {
     name: String(user?.firstName || '').trim().slice(0, 40),
     initial,
-    onChange: (a) => {
-      if (a.step !== lastStep) { lastStep = a.step; track('onboarding_step', { step: a.step }); }
-      saveLocalAppOnboarding(uid, a); clearTimeout(timer); timer = setTimeout(() => save(a), 500);
-    },
+    onChange: (a) => { saveLocalAppOnboarding(uid, a); clearTimeout(timer); timer = setTimeout(() => save(a), 500); },
+    onEvent: (event, { step, sub, props } = {}) => track(event, { step, sub, props }),
     onFinish: async (a) => {
-      track('onboarding_complete', { goal: a.goal, team: a.team, volume: a.volume, heard: a.heard, videoTypes: a.videoTypes, tools: a.tools, primaryTool: a.primaryTool });
+      track('complete', {
+        props: {
+          goal: a.goal, team: a.team, volume: a.volume, heard: a.heard, types: a.videoTypes, tools: a.tools, primary: a.primaryTool,
+          company: !!a.company, website: !!a.website, jobTitle: !!a.jobTitle,
+        },
+      });
       seedOutreach(uid, a);
-      await flush(a);
+      await Promise.all([flush(a), flushEvents()]);
       leaveTo(destinationFor(a));
     },
     // The person left early (the Academy button): remember it, then open where they asked to go.
     onDismiss: async (a, destination) => {
-      track('onboarding_skip', { atStep: a.step, to: destination || SKIP_DEST });
-      await flush(a);
+      track('leave', { props: { to: destination === 'academy' ? 'academy' : 'image', atStep: a.step } });
+      await Promise.all([flush(a), flushEvents()]);
       leaveTo(destination || SKIP_DEST);
     },
   });

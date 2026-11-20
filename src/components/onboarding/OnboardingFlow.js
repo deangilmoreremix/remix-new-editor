@@ -16,11 +16,13 @@ const GOAL_ICONS = { 'ai-video': 'sparkles', personal: 'camera' };
 const LAST = APP_ONBOARDING_STEPS;
 
 /**
- * mountOnboarding(host, { name, initial, onChange(answers), onFinish(answers), onDismiss(answers, destination) }) -> { destroy, answers }
+ * mountOnboarding(host, { name, initial, onChange(answers), onFinish(answers), onDismiss(answers, destination), onEvent(name, { step, sub, props }) })
+ *   -> { destroy, answers }
+ * onEvent reports what the person does for the funnel (step_view, step_answer, back, skip_step, open_studio); props only carry choice ids.
  * onFinish runs after the last step (or Skip on it); onDismiss when the person leaves early (the Academy button),
  * with the route to open.
  */
-export function mountOnboarding(host, { name = '', initial = null, onChange = () => {}, onFinish = () => {}, onDismiss = () => {} } = {}) {
+export function mountOnboarding(host, { name = '', initial = null, onChange = () => {}, onFinish = () => {}, onDismiss = () => {}, onEvent = () => {} } = {}) {
   let a = cleanAppOnboarding(initial || {});
   let part = a.videoTypes.length ? 'tools' : 'type'; // step 6: 'type' (video kind) or 'tools'
 
@@ -53,12 +55,20 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
   });
   root.appendChild(chat);
 
-  const change = (patch) => { a = cleanAppOnboarding({ ...a, ...patch }); onChange(a); };
+  const emit = (event, o) => { try { onEvent(event, o); } catch { /* reporting must never break the flow */ } };
+  const ANSWERED = ['goal', 'team', 'volume', 'heard'];
+  const change = (patch) => {
+    const before = a;
+    a = cleanAppOnboarding({ ...a, ...patch, updatedAt: new Date().toISOString() });
+    ANSWERED.forEach((k) => { if (k in patch && a[k] && a[k] !== before[k]) emit('step_answer', { step: a.step, props: { field: k, value: a[k] } }); });
+    onChange(a);
+  };
   const go = (step) => { change({ step }); if (step === LAST) part = a.videoTypes.length ? 'tools' : 'type'; paint(); root.scrollTop = 0; };
   const next = () => (a.step >= LAST ? finish() : go(a.step + 1));
   function finish() { change({ completedAt: new Date().toISOString(), skippedAt: null }); destroy(); onFinish(a); }
   function leave(route) { change({ skippedAt: new Date().toISOString() }); destroy(); onDismiss(a, route); }
   function back() {
+    emit('back', { step: a.step, props: { from: a.step } });
     if (a.step === LAST && part === 'tools') { part = 'type'; paint(); root.scrollTop = 0; return; }
     go(a.step - 1);
   }
@@ -82,7 +92,7 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
       const skip = el('button', 'ob-nav', 'Skip');
       skip.type = 'button';
       skip.setAttribute('data-onb-skip', '');
-      skip.addEventListener('click', next);
+      skip.addEventListener('click', () => { emit('skip_step', { step: a.step }); next(); });
       right.appendChild(skip);
     }
     head.append(left, mid, right);
@@ -238,7 +248,7 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
     const cont = filled('ob-primary', a.videoTypes.length ? 'Show me the studios' : 'Pick a kind of video to continue');
     cont.disabled = !a.videoTypes.length;
     cont.setAttribute('data-onb-continue', '');
-    cont.addEventListener('click', () => { part = 'tools'; paint(); root.scrollTop = 0; });
+    cont.addEventListener('click', () => { emit('step_answer', { step: 6, sub: 'type', props: { field: 'videoTypes', value: a.videoTypes } }); part = 'tools'; paint(); root.scrollTop = 0; });
     const all = el('button', 'ob-link', 'Not sure? Show me every studio');
     all.type = 'button';
     all.setAttribute('data-onb-all-tools', '');
@@ -271,7 +281,7 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
           recommended: rec.includes(t.id),
           onToggle: toggle,
           // "Open": finish now and go straight to this studio (it becomes the first choice; other picks are kept).
-          onOpen: (id) => { change({ tools: [id, ...a.tools.filter((x) => x !== id)], primaryTool: id }); finish(); },
+          onOpen: (id) => { emit('open_studio', { step: 6, sub: 'tools', props: { studio: id } }); change({ tools: [id, ...a.tools.filter((x) => x !== id)], primaryTool: id }); finish(); },
         });
         cards.set(t.id, c);
         grid.appendChild(c);
@@ -301,6 +311,7 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
   function step6() { (part === 'tools' ? step6Tools : step6Type)(); }
 
   const VIEWS = { 1: step1, 2: step2, 3: step3, 4: step4, 5: step5, 6: step6 };
+  let lastView = '';
   function paint() {
     root.querySelectorAll('[data-onb-bar]').forEach((n) => n.remove());
     root.classList.remove('ob-has-bottom');
@@ -308,6 +319,9 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
     main.replaceChildren();
     content.replaceChildren();
     VIEWS[a.step]();
+    const sub = a.step === LAST ? part : undefined;
+    const key = `${a.step}:${sub || ''}`;
+    if (key !== lastView) { lastView = key; emit('step_view', { step: a.step, sub }); }
   }
   function destroy() { document.body.classList.remove('ob-active'); root.remove(); }
   paint();

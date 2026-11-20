@@ -25,7 +25,7 @@ const iso = (v) => (typeof v === 'string' && !Number.isNaN(Date.parse(v)) ? v : 
 export function blankAppOnboarding() {
   return {
     step: 1, goal: '', team: '', volume: '', company: '', website: '', jobTitle: '', heard: '', heardOther: '',
-    videoTypes: [], tools: [], primaryTool: '', completedAt: null, skippedAt: null,
+    videoTypes: [], tools: [], primaryTool: '', completedAt: null, skippedAt: null, updatedAt: null,
   };
 }
 
@@ -48,6 +48,7 @@ export function cleanAppOnboarding(x = {}) {
     primaryTool: tools.includes(o.primaryTool) ? o.primaryTool : (tools[0] || ''),
     completedAt: iso(o.completedAt),
     skippedAt: iso(o.skippedAt),
+    updatedAt: iso(o.updatedAt),
   };
 }
 
@@ -77,7 +78,7 @@ export const toAppRow = (o) => {
 export const fromAppRow = (r) => cleanAppOnboarding({
   step: r?.step, goal: r?.goal, team: r?.team_size, volume: r?.videos_per_month, company: r?.company, website: r?.website,
   jobTitle: r?.job_title, heard: r?.heard_from, heardOther: r?.heard_other, videoTypes: r?.video_types, tools: r?.tools,
-  primaryTool: r?.primary_tool, completedAt: r?.completed_at, skippedAt: r?.skipped_at,
+  primaryTool: r?.primary_tool, completedAt: r?.completed_at, skippedAt: r?.skipped_at, updatedAt: r?.updated_at,
 });
 
 /** The saved answers, or null (none yet, signed out, or the table is not there). */
@@ -98,12 +99,15 @@ export async function saveAppOnboarding(client, o, userId) {
   } catch { return false; }
 }
 
-/** The newer of two copies: finished beats skipped beats in progress; then the one further along. */
+/** The newer of two copies: finished beats skipped beats in progress; on a tie the later edit, then the one further along. */
 export function newerAppOnboarding(a, b) {
   if (!a) return b || null;
   if (!b) return a;
   const rank = (o) => (isAppDone(o) ? 2 : isAppSkipped(o) ? 1 : 0);
   if (rank(a) !== rank(b)) return rank(a) > rank(b) ? a : b;
+  const ta = Date.parse(a.updatedAt || '') || 0;
+  const tb = Date.parse(b.updatedAt || '') || 0;
+  if (ta && tb && ta !== tb) return tb > ta ? b : a;
   return (b.step || 0) > (a.step || 0) ? b : a;
 }
 
@@ -164,4 +168,36 @@ export async function needsOnboarding(userId) {
   const local = loadLocalAppOnboarding(userId);
   if (local && !shouldPromptOnboarding(local)) return false;
   return shouldPromptOnboarding(await loadBestAppOnboarding(userId));
+}
+
+// ---- favorites: the studios picked in step 6 double as "Your studios" (Apps page, side menu) ------------------
+export const FAVORITES_EVENT = 'smartvideo:favorites-changed';
+const MAX_FAVORITES = 40;
+
+/** Favorite studio ids for this user (the primary one first), from the browser copy. */
+export function getFavorites(userId, storage = globalThis.localStorage) {
+  const c = loadLocalAppOnboarding(userId, storage);
+  if (!c) return [];
+  return c.primaryTool ? [c.primaryTool, ...c.tools.filter((t) => t !== c.primaryTool)] : [...c.tools];
+}
+
+/** Replaces the favorites (keeps every other answer), saves everywhere and tells the page. Returns the clean list. */
+export function setFavorites(userId, list, { persist = true, storage = globalThis.localStorage } = {}) {
+  const cur = loadLocalAppOnboarding(userId, storage) || blankAppOnboarding();
+  const tools = ids(toolIds(), list, MAX_FAVORITES);
+  const next = cleanAppOnboarding({
+    ...cur, tools, primaryTool: tools.includes(cur.primaryTool) ? cur.primaryTool : tools[0] || '', updatedAt: new Date().toISOString(),
+  });
+  saveLocalAppOnboarding(userId, next, storage);
+  if (persist && userId) void persistAppOnboarding(userId, next);
+  try { globalThis.window?.dispatchEvent(new CustomEvent(FAVORITES_EVENT, { detail: { tools: next.tools, primaryTool: next.primaryTool } })); } catch { /* no window */ }
+  return next.tools;
+}
+
+/** Adds or removes one studio; returns true when it is now a favorite. */
+export function toggleFavorite(userId, id, opts) {
+  const cur = getFavorites(userId, opts?.storage);
+  const on = !cur.includes(id);
+  setFavorites(userId, on ? [...cur, id] : cur.filter((x) => x !== id), opts);
+  return on;
 }
