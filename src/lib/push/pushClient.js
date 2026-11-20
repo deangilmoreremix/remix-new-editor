@@ -48,12 +48,34 @@ function rowFor(subscription, env) {
 }
 
 /**
- * Saves this device's subscription. There is no UPDATE policy, so an existing row is deleted first; if the new row cannot be
- * saved, the previous one is put back so a working registration is never lost to a failed refresh.
+ * Saves this device's subscription. Preferred: the database function register_push_subscription, which creates or refreshes the
+ * row in ONE statement (an endpoint that belongs to another account still fails with 23505, as a plain insert would).
+ * Until that migration is applied (function missing) it falls back to the older delete + insert, below.
  */
 export async function storeSubscription({ client, subscription, env = globalThis }) {
   const row = rowFor(subscription, env);
   if (!row) throw new Error('The browser returned an incomplete push subscription.');
+  if (typeof client?.rpc === 'function') {
+    let res = null;
+    try { res = await client.rpc('register_push_subscription', { p_endpoint: row.endpoint, p_p256dh: row.p256dh, p_auth: row.auth, p_user_agent: row.user_agent }); } catch { res = null; }
+    if (res && !res.error) return;
+    if (res?.error && !isMissingFunction(res.error)) {
+      const err = new Error(res.error.message || 'Could not save this device registration');
+      err.code = res.error.code;
+      throw err;
+    }
+    // function not there yet (or the call itself failed): use the older path
+  }
+  return storeSubscriptionLegacy({ client, row });
+}
+
+const isMissingFunction = (e) => e?.code === 'PGRST202' || e?.code === '42883';
+
+/**
+ * The pre-function path. There is no UPDATE policy, so an existing row is deleted first; if the new row cannot be
+ * saved, the previous one is put back so a working registration is never lost to a failed refresh.
+ */
+async function storeSubscriptionLegacy({ client, row }) {
   let previous = null;
   try {
     const found = await client.from(PUSH_TABLE).select?.('endpoint, p256dh, auth, user_agent')?.eq?.('endpoint', row.endpoint)?.limit?.(1);
