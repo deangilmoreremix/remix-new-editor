@@ -50,21 +50,21 @@ function rowFor(subscription, env) {
 /**
  * Saves this device's subscription. Preferred: the database function register_push_subscription, which creates or refreshes the
  * row in ONE statement (an endpoint that belongs to another account still fails with 23505, as a plain insert would).
- * Until that migration is applied (function missing) it falls back to the older delete + insert, below.
+ * Only while that migration is not applied (function missing) does it fall back to the older delete + insert, below.
  */
 export async function storeSubscription({ client, subscription, env = globalThis }) {
   const row = rowFor(subscription, env);
   if (!row) throw new Error('The browser returned an incomplete push subscription.');
   if (typeof client?.rpc === 'function') {
-    let res = null;
-    try { res = await client.rpc('register_push_subscription', { p_endpoint: row.endpoint, p_p256dh: row.p256dh, p_auth: row.auth, p_user_agent: row.user_agent }); } catch { res = null; }
-    if (res && !res.error) return;
-    if (res?.error && !isMissingFunction(res.error)) {
+    // A call that throws (network failure, timeout) is NOT a reason to switch to the non-atomic path: it surfaces as an error the owner can retry.
+    const res = await client.rpc('register_push_subscription', { p_endpoint: row.endpoint, p_p256dh: row.p256dh, p_auth: row.auth, p_user_agent: row.user_agent });
+    if (!res?.error) return;
+    if (!isMissingFunction(res.error)) {
       const err = new Error(res.error.message || 'Could not save this device registration');
       err.code = res.error.code;
       throw err;
     }
-    // function not there yet (or the call itself failed): use the older path
+    // only a function that is not there yet (migration not applied) falls back to the older path
   }
   return storeSubscriptionLegacy({ client, row });
 }

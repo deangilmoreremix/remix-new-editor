@@ -186,8 +186,13 @@ describe('registration through register_push_subscription (atomic)', () => {
     await expect(storeSubscription({ client: c, subscription: makeSub(), env: makeEnv() })).rejects.toMatchObject({ code: '28000', message: 'not signed in' });
     expect(c.legacy).toEqual([]);
   });
-  it('before the migration (function missing: PGRST202 / 42883) or if the call itself fails, it falls back to delete + insert', async () => {
-    for (const first of [{ error: { code: 'PGRST202', message: 'Could not find the function' } }, { error: { code: '42883', message: 'function does not exist' } }, new Error('network')]) {
+  it('a call that throws (network failure) is an error for the caller, never a silent switch to the non-atomic path', async () => {
+    const c = rpcClient([new Error('network down')]);
+    await expect(storeSubscription({ client: c, subscription: makeSub(), env: makeEnv() })).rejects.toThrow(/network down/);
+    expect(c.legacy).toEqual([]);
+  });
+  it('before the migration (function missing: PGRST202 / 42883) it falls back to delete + insert', async () => {
+    for (const first of [{ error: { code: 'PGRST202', message: 'Could not find the function' } }, { error: { code: '42883', message: 'function does not exist' } }]) {
       const c = rpcClient([first]);
       c.from = () => makeStoreClient().from();           // a working table
       const used = []; const base = c.from;
