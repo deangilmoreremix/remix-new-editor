@@ -1,0 +1,333 @@
+{
+  "id": "brand-dna",
+  "name": "Brand DNA Editor",
+  "route": "#/brand-dna",
+  "description": "The Brand DNA Editor lets you review and correct a saved brand: name, tagline, audience, tone, messages, fonts, colors and logo, plus its past campaigns.",
+  "shortDescription": "Review and fix your brand's name, voice, messages, fonts and colors",
+  "fullDescription": "The Brand DNA Editor (#/brand-dna, titled 'Brand DNA') opens after Brand Studio analyses a website, or when you click a brand under Recent Brands or the Brand DNA card in Brand Studio. It shows the brand's website screenshot and logo, then editable fields (Brand Name, Industry, Tagline, Value Proposition, Target Audience, Imagery Style, Layout Style, Logo URL), chip lists (Tone of Voice, Brand Personality, Key Messages, Detected Fonts) and Primary and Secondary color palettes. Nothing is stored until you click Save. Header buttons open Campaign Studio ('New campaign'), Photo Studio and Animate for this brand, a Personalize button opens the personalization tool on the website screenshot, and 'Past campaigns' lists the campaigns made for this brand. The page itself uses no AI; it only edits the brand record kept in your browser, which Campaign Studio, the Asset Editor and Photo Studio then use.",
+  "bestFor": "Anyone who analysed a website in Brand Studio and wants the brand's voice, messages, colors and logo to be right before generating campaigns or photos.",
+  "whenToUse": [
+    "Brand Studio's analysis got something wrong (name, tone, audience, colors, logo).",
+    "You want to add or remove tone words, personality traits or key messages.",
+    "You want to change the brand palette or fonts used in the Asset Editor.",
+    "You want to start a new campaign, a product photo shoot or an animation for this brand.",
+    "You want to reopen a past campaign."
+  ],
+  "whenToUseAnother": [
+    "Use Brand Studio (#/brand) to analyse a new website and create a brand.",
+    "Use Campaign Studio (#/campaign) to generate concepts and platform assets.",
+    "Use the Asset Editor (via an asset's Edit button) to change one creative's layout and text.",
+    "Use Photo Studio (#/photo-studio) for branded product photos.",
+    "Use Find My Brand (#/find-my-brand) if you do not have a brand or website yet."
+  ],
+  "keyFeatures": [
+    "Website screenshot and logo preview.",
+    "Editable brand fields including Logo URL.",
+    "Chip editors for Tone of Voice, Brand Personality, Key Messages and Detected Fonts.",
+    "Primary and Secondary color palettes: edit, remove or add swatches.",
+    "Past campaigns list.",
+    "New campaign, Photo Studio and Animate shortcuts.",
+    "Personalize the website screenshot.",
+    "Save (shows 'Saved!')."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Website screenshot and logo",
+      "explanation": "Below the brand name and industry, the page shows the website screenshot and the logo found when the site was analysed. The header shows the brand name (or 'Untitled Brand') and industry (or 'No industry set').",
+      "whyToUse": "Check at a glance that the right site and logo were picked up.",
+      "inputRequired": "A saved brand.",
+      "restrictions": "Each image only appears if the analysis found one. The screenshot cannot be replaced here; the logo can be changed with the Logo URL field."
+    },
+    {
+      "feature": "Personalize",
+      "explanation": "A Personalize button under the screenshot opens the shared personalization tool (the same one behind Personalize buttons in other studios) with the website screenshot as a 16:9 image and the tagline, or else the value proposition, as the prompt.",
+      "whyToUse": "Make personalized versions of your site visual, for example for outreach.",
+      "inputRequired": "A brand with a website screenshot.",
+      "restrictions": "Only shown when the brand has a screenshot."
+    },
+    {
+      "feature": "Brand details fields",
+      "explanation": "Text fields for Brand Name, Industry, Tagline, Imagery Style, Layout Style and Logo URL, and larger boxes for Value Proposition and Target Audience. Imagery Style and Layout Style start as 'modern' if the analysis left them empty.",
+      "whyToUse": "These fields are written into every campaign concept and creative, so correcting them improves all later results.",
+      "inputRequired": "None.",
+      "restrictions": "Changes are kept only after you click Save. Campaign Studio uses the Logo URL as a reference image only if it points to a PNG, JPG or WebP picture."
+    },
+    {
+      "feature": "Tone of Voice, Brand Personality and Key Messages",
+      "explanation": "Three chip lists. Type in the box (for example 'Add tone of voice...') and click Add or press Enter to add a chip; click the × on a chip to remove it.",
+      "whyToUse": "Campaign concepts and copy are written to match these words and messages.",
+      "inputRequired": "None.",
+      "restrictions": "Empty text is ignored. Changes are kept only after Save."
+    },
+    {
+      "feature": "Detected Fonts",
+      "explanation": "A chip list of the fonts found on the website ('Add detected fonts...'). You can add or remove fonts the same way as the other chips.",
+      "whyToUse": "These fonts appear first in the Asset Editor's Font list, marked '(brand)', and new campaign assets use the first one.",
+      "inputRequired": "None.",
+      "restrictions": "Font names are only labels; the font shows correctly only if it is available in your browser."
+    },
+    {
+      "feature": "Colors",
+      "explanation": "Under 'Colors' there are Primary and Secondary palettes. Click a swatch to change it with a color picker, click its × to remove it, or click + to add a new swatch (it starts as #3366ff).",
+      "whyToUse": "The palette is written into campaign image prompts and offered as swatches in the Asset Editor.",
+      "inputRequired": "None.",
+      "restrictions": "Changes are kept only after Save."
+    },
+    {
+      "feature": "Past campaigns",
+      "explanation": "When the brand has campaigns, a 'Past campaigns' section lists them newest first. Each card shows the goal and '<N> concepts · <N> assets · <date>'. Clicking a card opens that campaign's page with its concepts and assets.",
+      "whyToUse": "Go back to an earlier campaign to edit or animate its assets.",
+      "inputRequired": "At least one campaign made in Campaign Studio for this brand.",
+      "restrictions": "The card title is the stored goal code, for example 'product-launch'. Hidden when there are no campaigns."
+    },
+    {
+      "feature": "New campaign, Photo Studio and Animate",
+      "explanation": "Header buttons that open Campaign Studio, Photo Studio and Animate Studio for this brand.",
+      "whyToUse": "Move straight on to making content with this brand.",
+      "inputRequired": "None.",
+      "restrictions": "They do not save your edits first; click Save before leaving or unsaved changes are lost."
+    },
+    {
+      "feature": "Save",
+      "explanation": "The Save button in the header stores all fields, chips, fonts, colors and the logo URL in your browser. The button reads 'Saved!' for a moment to confirm.",
+      "whyToUse": "Keep your corrections so every brand tool uses them.",
+      "inputRequired": "None.",
+      "restrictions": "Nothing on the page is saved until you click it. Brand data is kept in this browser only."
+    }
+  ],
+  "howToUse": "1. Open a brand: analyse a website in Brand Studio, or click a brand under Recent Brands or the Brand DNA card. 2. Check the screenshot and logo. 3. Correct the brand fields. 4. Add or remove chips for Tone of Voice, Brand Personality, Key Messages and Detected Fonts. 5. Adjust the Primary and Secondary colors. 6. Click Save and wait for 'Saved!'. 7. Click New campaign, Photo Studio or Animate, or open a card under Past campaigns.",
+  "howToSteps": [
+    "Open the brand from Brand Studio.",
+    "Fix the text fields.",
+    "Edit the chip lists.",
+    "Adjust colors.",
+    "Click Save.",
+    "Open New campaign, Photo Studio, Animate or a past campaign."
+  ],
+  "gettingStarted": [
+    "Create a brand first by analysing a website in Brand Studio.",
+    "Click Save after every round of edits."
+  ],
+  "inputs": [
+    "Brand Name",
+    "Industry",
+    "Tagline",
+    "Value Proposition",
+    "Target Audience",
+    "Imagery Style",
+    "Layout Style",
+    "Logo URL",
+    "Tone of Voice",
+    "Brand Personality",
+    "Key Messages",
+    "Detected Fonts",
+    "Primary and Secondary colors"
+  ],
+  "requiredInputs": [
+    "A saved brand"
+  ],
+  "optionalInputs": [
+    "Every field, chip and color on the page"
+  ],
+  "inputDetails": [
+    {
+      "name": "Logo URL",
+      "description": "Web address of the brand logo.",
+      "required": false,
+      "whenToUse": "When the detected logo is wrong or missing.",
+      "restrictions": "Campaign Studio uses it as a reference only if it is a PNG, JPG or WebP image."
+    },
+    {
+      "name": "Key Messages",
+      "description": "Short statements the brand always wants to get across.",
+      "required": false,
+      "whenToUse": "To steer campaign concepts.",
+      "restrictions": "Added one at a time with Add or Enter."
+    },
+    {
+      "name": "Colors",
+      "description": "Primary and Secondary swatches.",
+      "required": false,
+      "whenToUse": "To keep creatives on palette.",
+      "restrictions": "New swatches start as #3366ff."
+    }
+  ],
+  "generationModes": [
+    "None (editing only)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Editing only",
+      "description": "This page has no AI generation; it reads and writes the brand record.",
+      "useCase": "Correcting the brand before using generation tools."
+    }
+  ],
+  "modelCapabilities": "The Brand DNA Editor does not call any AI model. The fields it saves are used by Campaign Studio, the Asset Editor and Photo Studio.",
+  "outputs": [
+    "An updated Brand DNA record in your browser"
+  ],
+  "limitations": [
+    "Edits are lost if you leave without clicking Save.",
+    "The website screenshot cannot be changed here.",
+    "Brands are stored in this browser only (up to 50 brands).",
+    "Past campaign cards show the goal's code (e.g. 'product-launch') rather than its label."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "No auto-save",
+      "impact": "Leaving with New campaign, Photo Studio, Animate or a past campaign card drops unsaved edits.",
+      "workaround": "Click Save first and wait for 'Saved!'."
+    },
+    {
+      "limitation": "Browser-only storage",
+      "impact": "Another browser or cleared site data will not have your brand.",
+      "workaround": "Analyse the website again and redo your edits."
+    }
+  ],
+  "troubleshooting": [
+    "'Brand not found - The brand you are looking for does not exist.': you have no saved brand or the link is for a deleted one; click 'Back to Brand Studio' and analyse a site or pick a recent brand.",
+    "My edits disappeared: they were not saved; edit again and click Save.",
+    "No Personalize button: the brand has no website screenshot.",
+    "Logo not used in campaign assets: set Logo URL to a PNG, JPG or WebP image and Save.",
+    "Past campaigns section missing: no campaigns have been made for this brand yet."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Campaign copy has the wrong tone",
+      "steps": [
+        "Edit Tone of Voice and Brand Personality chips.",
+        "Update Key Messages.",
+        "Click Save.",
+        "Click New campaign and generate again."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Colors in creatives look off",
+      "whyItHappens": "The palette came from the website analysis.",
+      "howToFix": "Fix the Primary and Secondary swatches and click Save."
+    },
+    {
+      "problem": "A brand font does not display in the Asset Editor",
+      "whyItHappens": "Detected Fonts are names only; the browser needs the font available.",
+      "howToFix": "Pick one of the system fonts in the Asset Editor instead."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Clean up after analysis",
+      "steps": [
+        "Fix Brand Name and Tagline.",
+        "Remove generic tone words and add your own.",
+        "Add three Key Messages.",
+        "Correct the primary color.",
+        "Click Save."
+      ]
+    },
+    {
+      "title": "Reopen a campaign",
+      "steps": [
+        "Scroll to Past campaigns.",
+        "Click the campaign card.",
+        "Click Edit on an asset."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Agency client setup",
+      "description": "Make sure a client's voice and palette are right before producing work.",
+      "steps": [
+        "Edit fields and chips.",
+        "Save.",
+        "Start a new campaign."
+      ],
+      "expectedOutput": "A corrected brand used by every brand tool."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Does this page use AI?",
+      "answer": "No. It only edits the saved brand."
+    },
+    {
+      "question": "Do my edits save automatically?",
+      "answer": "No. Click Save; the button shows 'Saved!'."
+    },
+    {
+      "question": "Can I change more than one color?",
+      "answer": "Yes. Edit, remove or add any number of Primary and Secondary swatches."
+    },
+    {
+      "question": "Where are the fonts used?",
+      "answer": "In the Asset Editor's Font list (marked '(brand)') and as the default font of new campaign assets."
+    },
+    {
+      "question": "How do I get back to an old campaign?",
+      "answer": "Click its card under Past campaigns."
+    }
+  ],
+  "glossary": {
+    "Brand DNA": "The saved profile of your brand used by all brand tools.",
+    "Chip": "A small removable tag such as a tone word or key message.",
+    "Primary / Secondary colors": "The main and accent colors of the brand palette.",
+    "Detected Fonts": "Font names found on your website."
+  },
+  "tips": [
+    "Keep Key Messages short and specific.",
+    "Use a PNG or JPG logo URL so campaign images can use it.",
+    "Click Save before clicking New campaign."
+  ],
+  "bestPractices": [
+    "Review every field after analysis.",
+    "Limit tone words to a few that really describe the brand."
+  ],
+  "relatedStudios": [
+    "brand",
+    "campaign",
+    "asset-edit",
+    "animate",
+    "find-my-brand"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "brand",
+      "relationship": "Creates the brand",
+      "whenToMove": "You want to analyse another website.",
+      "why": "Brand Studio builds the Brand DNA."
+    },
+    {
+      "studio": "campaign",
+      "relationship": "Uses the brand to write campaigns",
+      "whenToMove": "The brand is correct and saved.",
+      "why": "'New campaign' opens it for this brand."
+    },
+    {
+      "studio": "asset-edit",
+      "relationship": "Uses the palette and fonts",
+      "whenToMove": "You want to edit a campaign asset.",
+      "why": "Brand colors and fonts appear there as choices."
+    }
+  ],
+  "notConfirmed": [
+    "What the Personalize tool offers in detail; it is the shared personalization modal documented with the Personalizer.",
+    "Whether brands sync to a cloud account: the store tries to sync when signed in and a database is configured, but only browser storage was confirmed."
+  ],
+  "sourceFiles": [
+    "src/components/BrandDnaEditor.js",
+    "src/components/BrandStudio.js",
+    "src/lib/brandStore.js",
+    "src/lib/brandNavigation.js",
+    "src/lib/campaignGenerator.js",
+    "src/lib/imageRefs.js",
+    "src/components/AssetCanvasEditor.js",
+    "src/features/personalization/mount.jsx"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read BrandDnaEditor.js and how its fields are used in campaignGenerator.js, AssetCanvasEditor.js (fonts, palette) and brandStore.js. Screen checked in the dev build with a seeded brand and campaign.",
+    "verifiedAt": "2026-11-20",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

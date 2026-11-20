@@ -1,0 +1,17 @@
+{
+  "calendar-tab": {
+    "selector": "button:text-is(\"Calendar\")"
+  },
+  "schedule-tab": {
+    "selector": "button:text-is(\"Schedule\")",
+    "click": true
+  },
+  "analytics-tab": {
+    "selector": "button:text-is(\"Analytics\")",
+    "click": true
+  },
+  "ai-assist-button": {
+    "selector": "button:text-is(\"AI Assist\")",
+    "click": false
+  }
+}
