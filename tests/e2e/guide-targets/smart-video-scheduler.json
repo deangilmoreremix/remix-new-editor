@@ -9,9 +9,5 @@
   "analytics-tab": {
     "selector": "button:text-is(\"Analytics\")",
     "click": true
-  },
-  "ai-assist-button": {
-    "selector": "button:text-is(\"AI Assist\")",
-    "click": false
   }
 }

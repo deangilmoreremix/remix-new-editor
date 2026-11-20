@@ -550,8 +550,7 @@
     "features": {
       "calendar-tab": "/guides/smart-video-scheduler/calendar-tab.webp",
       "schedule-tab": "/guides/smart-video-scheduler/schedule-tab.webp",
-      "analytics-tab": "/guides/smart-video-scheduler/analytics-tab.webp",
-      "ai-assist-button": "/guides/smart-video-scheduler/ai-assist-button.webp"
+      "analytics-tab": "/guides/smart-video-scheduler/analytics-tab.webp"
     },
     "overview": "/guides/smart-video-scheduler/overview.webp"
   },
@@ -662,7 +661,8 @@
   "video-to-video": {
     "features": {
       "title-banner": "/guides/video-to-video/title-banner.webp",
-      "open-video-studio-from-the-side-menu": "/guides/video-to-video/open-video-studio-from-the-side-menu.webp",
+      "get-started-free": "/guides/video-to-video/get-started-free.webp",
+      "gtm-boost": "/guides/video-to-video/gtm-boost.webp",
       "video-to-video-in-video-studio": "/guides/video-to-video/video-to-video-in-video-studio.webp"
     },
     "overview": "/guides/video-to-video/overview.webp"

@@ -4,7 +4,7 @@
   "route": "#/image-to-video",
   "description": "Image to Video is an overview page: browse 19 animation models and example motions, then open Video Studio to animate your image.",
   "shortDescription": "Browse image-animation models and examples, then animate in Video Studio.",
-  "fullDescription": "Image to Video (#/image-to-video) is a starting page, not a generator. It has an 'Animate Any Image' section with 'Animate Your Images' and '🎯 GTM Boost', four highlight cards, an 'Available Models' grid of 19 image-to-video models, five 'Example Animations' with 'Try this →', and a 'Bring Images to Life' section with 'Get Started Free'. There is no image upload or Generate button here: everything opens Video Studio (#/video). An example puts its motion prompt into Video Studio's prompt box. The model you click is not selected in Video Studio (none of the 19 names match its list), and no image is passed, so in Video Studio you add your start image, which switches it to image-to-video, then pick the model.",
+  "fullDescription": "Image to Video (#/image-to-video) is a starting page, not a generator. It has an 'Animate Any Image' section with 'Animate Your Images' and '🎯 GTM Boost', four highlight cards, an 'Available Models' grid ('19 featured models out of 188 image-to-video models in Video Studio'), five 'Example Animations' with 'Try this →', and a 'Bring Images to Life' section with 'Get Started Free'. There is no image upload or Generate button here: everything opens Video Studio (#/video). An example puts its motion prompt into Video Studio's prompt box. The model you click is not selected in Video Studio (it opens on its text-to-video list, and the page passes no model), and no image is passed, so in Video Studio you add your start image, which switches it to image-to-video, then pick the model.",
   "bestFor": "Users who want ideas for animating a still image and a quick way into Video Studio.",
   "whenToUse": [
     "You want to see image-to-video model families (Kling I2V, Veo3 I2V, Runway I2V, Seedance I2V, Hailuo I2V, Sora 2 I2V...).",
@@ -40,17 +40,17 @@
     },
     {
       "feature": "Highlight cards",
-      "explanation": "Four information cards: 'Image to Video', '60+ Models', 'Motion Effects' and 'Smooth Animation'. They are not buttons.",
+      "explanation": "Four information cards: 'Image to Video', '188 Models', 'Motion Effects' and 'Smooth Animation'. They are not buttons.",
       "whyToUse": "Summary of what animating an image can do.",
       "inputRequired": "None.",
-      "restrictions": "Marketing text: the page lists 19 models while the card says '60+ Models'."
+      "restrictions": "'188 Models' is the number of image-to-video models in Video Studio; the page grid shows 19 featured ones."
     },
     {
       "feature": "Available Models",
-      "explanation": "A grid of 19 cards ('Choose from 19+ powerful animation models'): Kling I2V (and 1.2, 1.5, 1.6, 2.0), Veo3 I2V, Runway I2V, Wan I2V, Midjourney v7 I2V, Hunyuan I2V, Seedance I2V, Pixverse I2V, Vidu Q1/Q2 Reference, Hailuo I2V, Sora 2 I2V, OVI I2V, LTX 2 I2V and Leonardoai Motion 2.0. Clicking a card opens Video Studio.",
+      "explanation": "A grid of 19 cards ('19 featured models out of 188 image-to-video models in Video Studio'): Kling I2V (and 1.2, 1.5, 1.6, 2.0), Veo3 I2V, Runway I2V, Wan I2V, Midjourney v7 I2V, Hunyuan I2V, Seedance I2V, Pixverse I2V, Vidu Q1/Q2 Reference, Hailuo I2V, Sora 2 I2V, OVI I2V, LTX 2 I2V and Leonardoai Motion 2.0. Clicking a card opens Video Studio.",
       "whyToUse": "See which animation model families exist.",
       "inputRequired": "A click on a card.",
-      "restrictions": "None of these names match Video Studio's list, so Video Studio opens on its default text-to-video model (Seedance Lite). Add your image, then pick the image-to-video model in Video Studio."
+      "restrictions": "No model is passed to Video Studio, so it opens on its default text-to-video model (Seedance Lite). Add your image, then pick the image-to-video model in Video Studio."
     },
     {
       "feature": "Example Animations",
@@ -117,7 +117,7 @@
       "useCase": "Get a motion idea, then animate in Video Studio."
     }
   ],
-  "modelCapabilities": "The page lists 19 image-to-video names (Kling I2V family, Veo3 I2V, Runway I2V, Wan I2V, Midjourney v7 I2V, Hunyuan I2V, Seedance I2V, Pixverse I2V, Vidu Q1/Q2 Reference, Hailuo I2V, Sora 2 I2V, OVI I2V, LTX 2 I2V, Leonardoai Motion 2.0). Video Studio itself has 188 image-to-video models; the page does not select any of them.",
+  "modelCapabilities": "The page lists 19 featured image-to-video names (Kling I2V family, Veo3 I2V, Runway I2V, Wan I2V, Midjourney v7 I2V, Hunyuan I2V, Seedance I2V, Pixverse I2V, Vidu Q1/Q2 Reference, Hailuo I2V, Sora 2 I2V, OVI I2V, LTX 2 I2V, Leonardoai Motion 2.0) out of the 188 image-to-video models in Video Studio; the page does not select any of them.",
   "outputs": [
     "No output on this page; it opens Video Studio, optionally with a prompt filled in."
   ],
@@ -154,7 +154,7 @@
   "commonProblems": [
     {
       "problem": "The model I clicked is not selected",
-      "whyItHappens": "The page's model names do not match Video Studio's model list.",
+      "whyItHappens": "The page does not pass a model to Video Studio, which opens on its text-to-video list.",
       "howToFix": "Search for the model in Video Studio's picker after attaching your image."
     }
   ],
@@ -239,7 +239,6 @@
     }
   ],
   "notConfirmed": [
-    "The '60+ Models' card claim; the page lists 19.",
     "Which of Video Studio's image-to-video models each card corresponds to."
   ],
   "sourceFiles": [
@@ -256,6 +255,6 @@
     "status": "code-review",
     "verifiedAt": "2026-11-20",
     "verifiedBy": "Code review (LLM-assisted)",
-    "evidence": "Read ImageToVideoPage.js: all buttons navigate to 'video'. VideoStudio.js resolves prefill_model against t2vModels only; running resolvePrefillModel over the 19 names matched none. prefill_prompt is read into Video Studio's prompt box."
+    "evidence": "Read ImageToVideoPage.js: all buttons navigate to 'video'; model and example clicks call storePrefillModel([], name), which stores no model and clears any old one; counts come from i2vModels.length (188). VideoStudio.js resolves prefill_model against t2vModels only (default t2vModels[0] = Seedance Lite). prefill_prompt is read into Video Studio's prompt box and cleared."
   }
 }

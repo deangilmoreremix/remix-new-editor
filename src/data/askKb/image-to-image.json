@@ -2,26 +2,26 @@
   "id": "image-to-image",
   "name": "Image to Image",
   "route": "#/image-to-image",
-  "description": "Image to Image is an overview page: browse 21 image editing models and example edits, then open Edit Studio to edit your photo.",
-  "shortDescription": "Browse image editing models and examples, then edit a photo in Edit Studio.",
-  "fullDescription": "Image to Image (#/image-to-image) is a starting page, not an editor. It has a 'Ready to Transform?' section with 'Get Started Free', four 'Powerful Image Editing' highlight cards, an 'Available Models' grid of 21 editing models and tools, five 'Example Transformations' cards, and a 'Start Editing Now' section with 'Start Editing' and '🎯 GTM Boost'. There is no upload, prompt box or Generate button here: every button and card opens Edit Studio (#/edit). Edit Studio does not pick up the model or example prompt you clicked here, so choose the tool and write the edit in Edit Studio. For prompt-based image-to-image with a reference photo you can also use Image Studio (#/image), which switches to image-to-image when you add a reference image.",
-  "bestFor": "Users who want to see what kinds of image edits and models are available before opening Edit Studio.",
+  "description": "Image to Image is an overview page: browse 21 featured image editing models and example edits, then open Edit Studio to edit a photo or Image Studio to restyle one with a prompt.",
+  "shortDescription": "Browse image editing models and examples, then edit in Edit Studio or Image Studio.",
+  "fullDescription": "Image to Image (#/image-to-image) is a starting page, not an editor. It has a 'Ready to Transform?' section with 'Get Started Free', four 'Powerful Image Editing' highlight cards, an 'Available Models' grid ('21 featured models out of 92 image-to-image models'), five 'Example Transformations' cards, and a 'Start Editing Now' section with 'Start Editing' and '🎯 GTM Boost'. There is no upload, prompt box or Generate button here. 'Get Started Free' and 'Start Editing' open Edit Studio (#/edit), the photo editing tools. A model card, an example card and GTM Boost's Apply open Image Studio (#/image) instead: an example or GTM Boost prompt is placed in Image Studio's prompt box (and then cleared, so it does not reappear later), and a clicked model is selected only when Image Studio has a model with that exact name. Image Studio opens in text-to-image and switches to image-to-image models when you add a reference image.",
+  "bestFor": "Users who want to see what kinds of image edits and models are available before opening Edit Studio or Image Studio.",
   "whenToUse": [
     "You want an overview of image editing models (Nano Banana Edit, Flux Kontext, GPT Image Edit, Seededit and more).",
-    "You want ideas for transformations (watercolor, film noir, cyberpunk...).",
+    "You want ideas for transformations (watercolor, film noir, cyberpunk...) carried into Image Studio's prompt box.",
     "You want a quick link into Edit Studio."
   ],
   "whenToUseAnother": [
     "Use Edit Studio (#/edit) directly to upload a photo and run a tool.",
-    "Use Image Studio (#/image) for prompt-based image-to-image: add a reference image and it switches to image-to-image models.",
+    "Use Image Studio (#/image) directly for prompt-based image-to-image: add a reference image and it switches to image-to-image models.",
     "Use Text to Image (#/text-to-image) when you have no photo and want to start from words."
   ],
   "keyFeatures": [
     "'Get Started Free' and 'Start Editing' buttons that open Edit Studio.",
     "'Powerful Image Editing' highlight cards (information only).",
-    "'Available Models' grid of 21 editing models and AI tools.",
-    "'Example Transformations' with 'Try this →'.",
-    "'🎯 GTM Boost' prompt helper."
+    "'Available Models' grid of 21 featured editing models and AI tools; a click opens Image Studio.",
+    "'Example Transformations' with 'Try this →' that put the prompt into Image Studio.",
+    "'🎯 GTM Boost' prompt helper that opens Image Studio with the prompt filled in."
   ],
   "featureExplanations": [
     {
@@ -29,56 +29,56 @@
       "explanation": "The 'Get Started Free' button in the 'Ready to Transform?' section opens Edit Studio (#/edit).",
       "whyToUse": "Fastest way to the photo editing tools.",
       "inputRequired": "None.",
-      "restrictions": "Nothing is edited on this page."
+      "restrictions": "Nothing is edited on this page. Edit Studio opens with no tool, model or prompt chosen."
     },
     {
       "feature": "Powerful Image Editing cards",
-      "explanation": "Four information cards: 'Smart Transformations', '55+ Models', 'Style Transfer' and 'Professional Tools' ('Background removal, face swap, skin enhancement & more'). They are not buttons.",
+      "explanation": "Four information cards: 'Smart Transformations', '92 Models', 'Style Transfer' and 'Professional Tools' ('Background removal, face swap, skin enhancement & more'). They are not buttons.",
       "whyToUse": "Summary of the kinds of edits available.",
       "inputRequired": "None.",
-      "restrictions": "Marketing text: the page grid lists 21 models while the card says '55+ Models'."
+      "restrictions": "'92 Models' is the number of image-to-image models in Image Studio; the page grid shows 21 featured ones."
     },
     {
       "feature": "Available Models",
-      "explanation": "A grid of 21 cards ('Choose from 21+ powerful editing models'): editing models (Nano Banana Edit, Flux Kontext Dev/Pro/Max I2I, Flux Redux, Flux Pulid, GPT-4o Edit, GPT Image 1.5 Edit, Midjourney v7 I2I, Seededit v3, Bytedance Seedream Edit, Qwen Image Edit, Wan Image Edit, Ideogram Character) and AI tools (AI Background Remover, AI Face Swap, AI Dress Change, AI Skin Enhancer, AI Product Shot). Clicking a card opens Edit Studio.",
+      "explanation": "A grid of 21 cards ('21 featured models out of 92 image-to-image models'): editing models (Nano Banana Edit, Flux Kontext Dev/Pro/Max I2I, Flux Redux, Flux Pulid, GPT-4o Edit, GPT Image 1.5 Edit, Midjourney v7 I2I, Seededit v3, Bytedance Seedream Edit, Qwen Image Edit, Wan Image Edit, Ideogram Character) and AI tools (AI Background Remover, AI Face Swap, AI Dress Change, AI Skin Enhancer, AI Product Shot). Clicking a card opens Image Studio (#/image).",
       "whyToUse": "See which editing models and tools exist.",
       "inputRequired": "A click on a card.",
-      "restrictions": "Edit Studio does not pre-select the model you clicked; pick the matching tool there (for example Remove Background, Face Swap, Change Dress, Enhance Skin, Product Shot)."
+      "restrictions": "Image Studio selects the clicked model only if its starting (text-to-image) list has a model with that exact name; of these cards only Flux Redux and Flux Pulid match. For the others Image Studio opens on your last-used (or default) model. Add a reference image to switch to image-to-image models and pick the editing model there, or use the matching Edit Studio tool (Remove Background, Face Swap, Change Dress, Enhance Skin, Product Shot)."
     },
     {
       "feature": "Example Transformations",
-      "explanation": "Five example cards with a model badge and 'Try this →' (for example 'Convert to watercolor painting style with soft colors' with Nano Banana Edit). Clicking one opens Edit Studio.",
+      "explanation": "Five example cards with a model badge and 'Try this →' (for example 'Convert to watercolor painting style with soft colors' with Nano Banana Edit). Clicking the card or 'Try this →' opens Image Studio with the example text in the prompt box.",
       "whyToUse": "Ideas for what to write when you edit.",
       "inputRequired": "A click on an example.",
-      "restrictions": "Edit Studio does not fill in the example text; copy the idea into the edit prompt yourself."
+      "restrictions": "Only the Flux Redux example's model is selected in Image Studio; the other badges (Nano Banana Edit, GPT Image 1.5 Edit, Midjourney v7 I2I, Seededit v3) have no exact match there. No image is attached: add your photo as a reference image in Image Studio before generating."
     },
     {
       "feature": "Start Editing",
       "explanation": "In 'Start Editing Now' ('Upload an image and let AI transform it'), 'Start Editing' opens Edit Studio, where you upload your image.",
       "whyToUse": "Open the editor after reading the page.",
       "inputRequired": "None here; the upload happens in Edit Studio.",
-      "restrictions": "No upload on this page."
+      "restrictions": "No upload on this page. Edit Studio opens with no tool chosen."
     },
     {
       "feature": "GTM Boost",
-      "explanation": "The '🎯 GTM Boost' button opens the GTM Boost window ('🎯 GTM Boost · Image Edit'). You write your idea, pick an angle, audience and goal, and click the Boost button to get a conversion-focused prompt. 'Apply' closes the window and opens Edit Studio, but Edit Studio does not read the prompt, so copy it with the Copy button first and paste it yourself.",
+      "explanation": "The '🎯 GTM Boost' button opens the GTM Boost window ('🎯 GTM Boost · Image Edit'). You write your idea, pick an angle, audience and goal, and click the Boost button to get a conversion-focused prompt. 'Apply' closes the window and opens Image Studio with that prompt already in the prompt box; add a reference image there to edit a photo with it.",
       "whyToUse": "Turn a rough marketing idea into a ready-to-use prompt before you start.",
       "inputRequired": "An idea in step 1 (otherwise the window says 'Add your ... idea first.').",
-      "restrictions": "Without an OpenAI key the window shows 'Add your OpenAI key for AI-written results. Until then GTM Boost uses a built-in template.'"
+      "restrictions": "Without an OpenAI key the window shows 'Add your OpenAI key for AI-written results. Until then GTM Boost uses a built-in template.' The prompt goes to Image Studio, not Edit Studio."
     }
   ],
-  "howToUse": "1. Open Image to Image (#/image-to-image). 2. Browse 'Available Models' and 'Example Transformations' for ideas. 3. Click 'Get Started Free', 'Start Editing', a model card or an example: Edit Studio (#/edit) opens. 4. In Edit Studio choose a tool, upload your image, describe the edit if the tool asks, and run it.",
+  "howToUse": "1. Open Image to Image (#/image-to-image). 2. Browse 'Available Models' and 'Example Transformations' for ideas. 3. To use an Edit Studio tool, click 'Get Started Free' or 'Start Editing': Edit Studio (#/edit) opens; choose a tool, upload your image and run it. 4. To restyle a photo with a prompt, click an example (or a model card, or GTM Boost and Apply): Image Studio (#/image) opens with the prompt filled in. 5. In Image Studio add your photo as a reference image, check the model and click Generate.",
   "howToSteps": [
     "Open #/image-to-image.",
     "Pick an idea from the model or example cards.",
-    "Click 'Start Editing' (or any card) to open Edit Studio.",
-    "In Edit Studio, choose a tool and upload your image.",
-    "Run the edit in Edit Studio."
+    "Click 'Start Editing' for Edit Studio's tools, or an example card for Image Studio.",
+    "Upload or attach your image in that studio.",
+    "Run the edit there."
   ],
   "gettingStarted": [
-    "Read the 'Example Transformations' for edit ideas.",
-    "Click 'Start Editing' and upload a photo in Edit Studio.",
-    "For a free-form prompt edit, try Image Studio with a reference image instead."
+    "Read the 'Example Transformations' for edit ideas; clicking one fills Image Studio's prompt box.",
+    "Click 'Start Editing' and upload a photo in Edit Studio for tools like background removal.",
+    "In Image Studio, add a reference image to switch to image-to-image models."
   ],
   "inputs": [
     "Model card choice",
@@ -86,7 +86,7 @@
     "GTM Boost idea"
   ],
   "requiredInputs": [
-    "None on this page (it only opens Edit Studio)."
+    "None on this page (it only opens Edit Studio or Image Studio)."
   ],
   "optionalInputs": [
     "A model card",
@@ -96,68 +96,71 @@
   "inputDetails": [
     {
       "name": "Model card",
-      "description": "One of 21 editing models or AI tools; the click opens Edit Studio.",
+      "description": "One of 21 editing models or AI tools; the click opens Image Studio.",
       "required": false,
       "whenToUse": "To learn what is available.",
-      "restrictions": "Not carried over to Edit Studio."
+      "restrictions": "Selected in Image Studio only when the name matches exactly (Flux Redux, Flux Pulid)."
     },
     {
       "name": "Example transformation",
-      "description": "One of five example edit prompts; the click opens Edit Studio.",
+      "description": "One of five example edit prompts; the click opens Image Studio with the text in the prompt box.",
       "required": false,
       "whenToUse": "For ideas.",
-      "restrictions": "The text is not filled into Edit Studio."
+      "restrictions": "No image is attached; add your reference image in Image Studio."
     }
   ],
   "generationModes": [
-    "None on this page (editing happens in Edit Studio)"
+    "None on this page (editing happens in Edit Studio or Image Studio)"
   ],
   "modeExplanations": [
     {
       "mode": "Launcher",
-      "description": "Every control opens Edit Studio (#/edit).",
-      "useCase": "Get ideas, then edit in Edit Studio."
+      "description": "'Get Started Free' and 'Start Editing' open Edit Studio (#/edit); model cards, examples and GTM Boost open Image Studio (#/image).",
+      "useCase": "Get ideas, then edit in the matching studio."
     }
   ],
-  "modelCapabilities": "The page lists 21 names: 16 editing models (Nano Banana Edit, Nano Banana Pro Edit, Nano Banana 2 Edit, Flux Kontext Dev/Pro/Max I2I, Flux Redux, Flux Pulid, GPT-4o Edit, GPT Image 1.5 Edit, Midjourney v7 I2I, Seededit v3, Bytedance Seedream Edit, Qwen Image Edit, Wan Image Edit, Ideogram Character) and 5 AI tools (AI Background Remover, AI Face Swap, AI Dress Change, AI Skin Enhancer, AI Product Shot). The page does not select any of them for you in Edit Studio.",
+  "modelCapabilities": "The page lists 21 featured names out of Image Studio's 92 image-to-image models: 16 editing models (Nano Banana Edit, Nano Banana Pro Edit, Nano Banana 2 Edit, Flux Kontext Dev/Pro/Max I2I, Flux Redux, Flux Pulid, GPT-4o Edit, GPT Image 1.5 Edit, Midjourney v7 I2I, Seededit v3, Bytedance Seedream Edit, Qwen Image Edit, Wan Image Edit, Ideogram Character) and 5 AI tools (AI Background Remover, AI Face Swap, AI Dress Change, AI Skin Enhancer, AI Product Shot). Only Flux Redux and Flux Pulid are pre-selected in Image Studio when clicked.",
   "outputs": [
-    "No output on this page; it opens Edit Studio."
+    "No output on this page; it opens Edit Studio, or Image Studio with a prompt and sometimes a model filled in."
   ],
   "limitations": [
     "No upload, prompt box or Generate button on this page.",
-    "The model or example you click is not carried into Edit Studio.",
-    "A GTM Boost result is not placed in Edit Studio's prompt; copy it first."
+    "Most model cards are not pre-selected in Image Studio (only Flux Redux and Flux Pulid match).",
+    "No image is passed on; attach it in the studio.",
+    "Get Started Free and Start Editing open Edit Studio without a prompt or tool."
   ],
   "limitationDetails": [
     {
-      "limitation": "Clicked model is not pre-selected",
-      "impact": "Edit Studio opens without that model chosen.",
-      "workaround": "Choose the matching tool in Edit Studio, or use Image Studio's model picker with a reference image."
+      "limitation": "Clicked model is usually not pre-selected",
+      "impact": "Image Studio opens on your last-used or default model.",
+      "workaround": "Add a reference image in Image Studio, then choose the editing model with its model button."
     },
     {
-      "limitation": "Example prompt is not filled in",
-      "impact": "Edit Studio's prompt stays empty.",
-      "workaround": "Type or paste the example text yourself."
+      "limitation": "Edit Studio gets no prompt",
+      "impact": "Edit Studio's tools open empty.",
+      "workaround": "Use an example card to send the prompt to Image Studio, or type it in Edit Studio yourself."
     }
   ],
   "troubleshooting": [
-    "Edit Studio did not use the model I clicked: this page does not pass the model to Edit Studio; pick the tool there.",
-    "A prompt I clicked here appeared later in Image Studio or Video Studio: the page stores the example text for the studios, and Edit Studio does not use it up, so the next Image, Video or Cinema Studio visit fills it in. Clear the prompt box there."
+    "Image Studio did not select the model I clicked: only Flux Redux and Flux Pulid match a model in Image Studio's starting list; pick the model there after adding a reference image.",
+    "Image Studio made a new image instead of editing my photo: add your photo as a reference image first, so it switches to image-to-image models.",
+    "Edit Studio opened without my example text: 'Get Started Free' and 'Start Editing' do not carry a prompt; click the example card instead (it opens Image Studio)."
   ],
   "troubleshootingSteps": [
     {
-      "issue": "Unexpected prompt in Image Studio later",
+      "issue": "Image Studio is in text-to-image",
       "steps": [
-        "Clear the prompt box in Image Studio.",
-        "Type your own prompt."
+        "Add your photo as a reference image in Image Studio.",
+        "Check that the model button now shows an image-to-image model.",
+        "Click Generate."
       ]
     }
   ],
   "commonProblems": [
     {
-      "problem": "I clicked an example but Edit Studio's prompt is empty",
-      "whyItHappens": "Edit Studio does not read prompts sent from this page.",
-      "howToFix": "Type the example text into Edit Studio yourself."
+      "problem": "I clicked a model card but Image Studio shows another model",
+      "whyItHappens": "The card's name has no exact match in Image Studio's starting model list.",
+      "howToFix": "Add your reference image, then choose the model with Image Studio's model button."
     }
   ],
   "exampleWorkflows": [
@@ -169,6 +172,15 @@
         "In Edit Studio choose Remove Background and upload your photo.",
         "Run the tool in Edit Studio."
       ]
+    },
+    {
+      "title": "Watercolor version of a photo",
+      "steps": [
+        "Click the 'Convert to watercolor painting style with soft colors' example.",
+        "Image Studio opens with that prompt.",
+        "Add your photo as a reference image.",
+        "Click Generate."
+      ]
     }
   ],
   "useCases": [
@@ -177,20 +189,24 @@
       "description": "Compare editing models and AI tools before you start.",
       "steps": [
         "Browse the grid",
-        "Open Edit Studio",
-        "Pick the tool"
+        "Open Edit Studio or Image Studio",
+        "Pick the tool or model"
       ],
-      "expectedOutput": "Edit Studio opened, ready for your upload."
+      "expectedOutput": "The right studio opened, ready for your image."
     }
   ],
   "faqs": [
     {
       "question": "Can I generate directly on this page?",
-      "answer": "No. This page has no prompt box, upload, ratio or Generate button. Every button and card opens Edit Studio (#/edit), where the actual generation happens."
+      "answer": "No. This page has no prompt box, upload, ratio or Generate button. 'Get Started Free' and 'Start Editing' open Edit Studio (#/edit); model cards, examples and GTM Boost open Image Studio (#/image)."
     },
     {
       "question": "Where can I do prompt-based image-to-image with a reference photo?",
-      "answer": "In Image Studio (#/image): add a reference image and it switches to image-to-image models."
+      "answer": "In Image Studio (#/image): add a reference image and it switches to image-to-image models. The example cards here open it with the prompt filled in."
+    },
+    {
+      "question": "Will an example prompt show up again later in another studio?",
+      "answer": "No. Image Studio reads the prompt once and clears it."
     }
   ],
   "glossary": {
@@ -201,7 +217,7 @@
     "Image-to-image": "Making a new or changed image starting from a photo you supply."
   },
   "tips": [
-    "Use the example texts as wording ideas for your edit prompt.",
+    "Click an example card to start Image Studio with its wording, then add your photo.",
     "For background removal, face swap, dress change, skin or product shots, use the matching Edit Studio tool."
   ],
   "bestPractices": [
@@ -218,13 +234,13 @@
       "studio": "edit",
       "relationship": "Where these edits happen",
       "whenToMove": "As soon as you want to edit a photo.",
-      "why": "Every button on this page opens Edit Studio."
+      "why": "'Get Started Free' and 'Start Editing' open Edit Studio."
     },
     {
       "studio": "image",
       "relationship": "Prompt-based image-to-image",
       "whenToMove": "When you want to restyle a photo with a free-form prompt and choose the editing model.",
-      "why": "Image Studio switches to image-to-image models when you add a reference image."
+      "why": "Model cards, examples and GTM Boost open Image Studio, which switches to image-to-image models when you add a reference image."
     },
     {
       "studio": "text-to-image",
@@ -240,7 +256,7 @@
     }
   ],
   "notConfirmed": [
-    "The '55+ Models' card claim; the page lists 21.",
+    "Which image-to-image model Image Studio selects when you add a reference image after arriving with Flux Redux or Flux Pulid pre-selected.",
     "Which Edit Studio tool or model corresponds to each card (for example Flux Redux or Midjourney v7 I2I); the page does not link them."
   ],
   "sourceFiles": [
@@ -258,6 +274,6 @@
     "status": "code-review",
     "verifiedAt": "2026-11-20",
     "verifiedBy": "Code review (LLM-assisted)",
-    "evidence": "Read ImageToImagePage.js: all buttons navigate to 'edit' (EditStudio). Searched EditStudio.js and src/components/edit for prefill_prompt / prefill_model: neither is read there. ImageStudio.js, VideoStudio.js and CinemaStudio.js read prefill_prompt, so a value left by this page appears on the next visit to them."
+    "evidence": "Read ImageToImagePage.js: 'Get Started Free' (.cta-btn) and 'Start Editing' (.start-btn) navigate to 'edit'; model cards, example cards, 'Try this →' and GTM Boost navigate to 'image', storing prefill_prompt and storePrefillModel(t2iModels, name). ImageStudio.js reads and clears prefill_prompt and prefill_model (resolved against t2iModels). Running resolvePrefillModel over the 21 card names matched only Flux Redux and Flux Pulid; i2iModels has 92 entries."
   }
 }

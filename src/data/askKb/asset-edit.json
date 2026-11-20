@@ -4,7 +4,7 @@
   "route": "#/asset-edit",
   "description": "The Asset Editor lays a campaign asset's headline, body and CTA over its picture and lets you change their text, position, size, color, background and font.",
   "shortDescription": "Place, style and save the text on a campaign creative",
-  "fullDescription": "The Asset Editor (#/asset-edit) opens one campaign asset, from the Edit button on an asset in Campaign Studio or on a campaign page. It shows a canvas in the asset's platform shape (for example 1:1 for Instagram Feed, 16:9 for Web Banner) with the picture filling it and the Headline, Body and CTA laid on top on a 3 x 3 grid. Pick a block with the Headline / Body / CTA tabs or by clicking it on the canvas, then change its Text, Position, Size, Align, Color, Background and Font in the right-hand panel. The top bar has Swap image and Clean background (AI makes a new picture), Upload image, Animate →, a status message and Save. Your brand's colors and fonts are offered as choices. Changes are kept only when you click Save ('Asset saved').",
+  "fullDescription": "The Asset Editor (#/asset-edit) opens one campaign asset, from the Edit button on an asset in Campaign Studio or on a campaign page, or from the Asset Editor card in Brand Studio (which opens your brand's most recent asset). It shows a canvas in the asset's platform shape (for example 1:1 for Instagram Feed, 16:9 for Web Banner) with the picture filling it and the Headline, Body and CTA laid on top on a 3 x 3 grid. Pick a block with the Headline / Body / CTA tabs or by clicking it on the canvas, then change its Text, Position, Size, Align, Color, Background and Font in the right-hand panel. The top bar has Swap image and Clean background (AI makes a new picture), Upload image, Animate →, a status message and Save. Your brand's colors and fonts are offered as choices. Changes are kept only when you click Save ('Asset saved').",
   "bestFor": "Anyone finishing a Campaign Studio creative who wants the copy placed and styled on the picture.",
   "whenToUse": [
     "The text on a campaign asset needs to move, resize or change color.",
@@ -79,10 +79,10 @@
     },
     {
       "feature": "Background",
-      "explanation": "A color behind the selected block's text. The first swatch (crossed out) means none; then white, black and your brand colors, plus a color picker and a hex box (placeholder '(none)').",
-      "whyToUse": "Meant to make text stand out on a busy picture or give the CTA a colored button shape.",
+      "explanation": "A color behind the selected block's text. The first swatch (crossed out) means none; then white, black and your brand colors, plus a color picker and a hex box (placeholder '(none)'). The canvas shows the color as a box behind the text (rounded for body and headline, a pill shape for the CTA).",
+      "whyToUse": "Make text stand out on a busy picture or give the CTA a colored button shape.",
       "inputRequired": "None.",
-      "restrictions": "This colors the text block, not the whole canvas. In the current version the chosen block background is saved but does not show on the canvas preview, because the app's button styling removes it (the CTA's default white background is hidden the same way)."
+      "restrictions": "This colors the text block, not the whole canvas. Choose none to remove it."
     },
     {
       "feature": "Font",
@@ -136,8 +136,8 @@
     "Click Save."
   ],
   "gettingStarted": [
-    "Open the editor from an asset's Edit button; the Asset Editor card in Brand Studio does not say which asset to open, so it shows 'Asset not found'.",
-    "Generate at least one asset in Campaign Studio first."
+    "Open the editor from an asset's Edit button, or click the Asset Editor card in Brand Studio to open your brand's most recent asset.",
+    "Generate at least one asset in Campaign Studio first; without one, the Brand Studio card opens Campaign Studio with the message 'Create a campaign first to edit its assets'."
   ],
   "inputs": [
     "Text for Headline, Body and CTA",
@@ -201,7 +201,7 @@
     "The updated asset (text, picture and layout) saved in your browser"
   ],
   "limitations": [
-    "Opens only with an asset id, i.e. from an asset's Edit button.",
+    "Opens only with an asset: from an asset's Edit button or Brand Studio's Asset Editor card (latest asset).",
     "No download or export.",
     "Text sits on a fixed 3 x 3 grid; no dragging.",
     "No undo; unsaved changes are lost when you leave.",
@@ -215,18 +215,17 @@
     },
     {
       "limitation": "Needs an asset",
-      "impact": "Opening #/asset-edit directly shows 'Asset not found'.",
-      "workaround": "Click Edit on an asset in Campaign Studio or on a campaign page."
+      "impact": "Opening #/asset-edit directly, without an asset, shows 'Asset not found'.",
+      "workaround": "Click Edit on an asset in Campaign Studio or on a campaign page, or use the Asset Editor card in Brand Studio."
     }
   ],
   "troubleshooting": [
-    "'Asset not found - Open an asset from a campaign to edit it.': open the editor with an asset's Edit button.",
+    "'Asset not found - Open an asset from a campaign to edit it.': open the editor with an asset's Edit button, or from Brand Studio's Asset Editor card once your brand has an asset.",
     "'Brand not found - Select a brand first to edit assets.': the asset's brand was removed; create or pick a brand in Brand Studio.",
     "'This asset has no campaign concept to regenerate from': this asset cannot use Swap image or Clean background; use Upload image instead.",
     "'Upload failed (...); using a local copy': the picture is still used; click Save, or try a smaller file.",
     "My changes are gone: they were not saved; edit again and click Save.",
-    "No Animate → button: the asset has no picture yet.",
-    "Background color or the CTA's white background does not show on the canvas: a known display issue; the value is saved, use text Color for contrast meanwhile."
+    "No Animate → button: the asset has no picture yet."
   ],
   "troubleshootingSteps": [
     {
@@ -249,11 +248,6 @@
       "problem": "Brand font looks like a default font",
       "whyItHappens": "The font is not available in your browser.",
       "howToFix": "Choose a system font from the Font list."
-    },
-    {
-      "problem": "Block Background color has no visible effect",
-      "whyItHappens": "The canvas draws text blocks as buttons, and the app's outline-only button styling removes their background color in the preview.",
-      "howToFix": "Use the text Color for contrast for now; the background value is still saved with the asset."
     }
   ],
   "exampleWorkflows": [
@@ -290,7 +284,7 @@
   "faqs": [
     {
       "question": "How do I open the Asset Editor?",
-      "answer": "Click Edit on an asset in Campaign Studio or on a campaign page."
+      "answer": "Click Edit on an asset in Campaign Studio or on a campaign page. The Asset Editor card in Brand Studio opens your brand's most recent asset; if the brand has none it opens Campaign Studio ('Create a campaign first to edit its assets'), and with no brand it shows 'Analyze a brand first, then create a campaign to edit its assets'."
     },
     {
       "question": "Can I download the result?",
@@ -369,7 +363,7 @@
   ],
   "verification": {
     "status": "code-review",
-    "evidence": "Read AssetCanvasEditor.js, layout.js, platforms.js, campaignGenerator.regenerateImage and muapi.uploadBrandAsset, and how the Edit buttons open it (?id=<asset id>). Screen checked in the dev build with a seeded asset.",
+    "evidence": "Read AssetCanvasEditor.js (text blocks carry data-keep-fill, so outline-buttons.css keeps their background), layout.js, platforms.js, campaignGenerator.regenerateImage and muapi.uploadBrandAsset, and how the Edit buttons and BrandStudio.js's openLatestAsset open it (?id=<asset id>). Screen checked in the dev build with a seeded asset.",
     "verifiedAt": "2026-11-20",
     "verifiedBy": "Code review (LLM-assisted)"
   }

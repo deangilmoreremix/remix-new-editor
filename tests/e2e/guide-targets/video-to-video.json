@@ -2,8 +2,16 @@
   "title-banner": {
     "selector": ".hero-banner"
   },
-  "open-video-studio-from-the-side-menu": {
-    "selector": "xpath=//div[contains(@class,'cursor-pointer')][./span[normalize-space(.)='Video']]"
+  "get-started-free": {
+    "selector": ".cta-btn"
+  },
+  "gtm-boost": {
+    "steps": [
+      {
+        "selector": ".gtm-boost-btn",
+        "wait": 2000
+      }
+    ]
   },
   "video-to-video-in-video-studio": {
     "route": "video",

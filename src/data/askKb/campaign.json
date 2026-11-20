@@ -4,7 +4,7 @@
   "route": "#/campaign",
   "description": "Campaign Studio turns a saved Brand DNA and a goal into 4 on-brand campaign concepts, then writes and illustrates assets sized for up to 8 platforms.",
   "shortDescription": "Pick a goal, get 4 on-brand concepts and creatives for up to 8 platforms",
-  "fullDescription": "Campaign Studio (#/campaign) is part of Brand Studio. It opens for one of your saved brands (the brand you came from, otherwise the brand you used last, otherwise your first brand). You pick a Campaign Goal (Product Launch, Lead Generation, Brand Awareness, Engagement, Thought Leadership or Direct Sales), can add an optional direction, and click Generate Concepts to get 4 concepts written in your brand's voice. Select one concept, toggle the platforms you need (Instagram Feed, Instagram Story, LinkedIn, Facebook Ad, X / Twitter, Web Banner, Email Header, YouTube Thumbnail) and click Generate Assets. Each asset gets a headline, body and call to action trimmed to that platform's word limits and a matching picture with no text baked in. Every run is saved as a campaign. The 'View campaign' button and the 'Past campaigns' cards on the Brand DNA page open the campaign page (#/campaign-page), which shows the saved goal, direction, concepts and assets with Edit and Animate buttons. Campaigns and assets are stored in your browser.",
+  "fullDescription": "Campaign Studio (#/campaign) is part of Brand Studio. It opens for one of your saved brands (the brand you came from, otherwise the brand you used last, otherwise your first brand). You pick a Campaign Goal (Product Launch, Lead Generation, Brand Awareness, Engagement, Thought Leadership or Direct Sales), can add an optional direction, and click Generate Concepts. The goal cards and direction box stay on the page, so you can change either before generating again to get 4 concepts written in your brand's voice. Select one concept, toggle the platforms you need (Instagram Feed, Instagram Story, LinkedIn, Facebook Ad, X / Twitter, Web Banner, Email Header, YouTube Thumbnail) and click Generate Assets. Each asset gets a headline, body and call to action trimmed to that platform's word limits and a matching picture with no text baked in. Each goal's run is saved as a campaign: generating concepts again for the same goal updates that campaign, while picking a different goal starts a new one. The 'View campaign' button and the 'Past campaigns' cards on the Brand DNA page open the campaign page (#/campaign-page), which shows the saved goal, direction, concepts and assets with Edit and Animate buttons. Campaigns and assets are stored in your browser.",
   "bestFor": "Marketers, founders and agencies who already have a Brand DNA and want matching campaign ideas and platform-sized creatives quickly.",
   "whenToUse": [
     "You have analysed your brand in Brand Studio and want campaign ideas for a specific goal.",
@@ -20,35 +20,35 @@
     "Use Image Studio (#/image) for free-form images that are not tied to a brand or campaign."
   ],
   "keyFeatures": [
-    "6 campaign goals.",
+    "6 campaign goals; the chosen goal stays highlighted and can be changed.",
     "Optional direction or theme for the concepts.",
     "4 AI-written concepts per run, each with title, key message, CTA and tone notes.",
     "8 platform chips with per-platform aspect ratios and copy word limits.",
     "Assets generated up to three platforms at a time with running / done / error status rows.",
     "Asset cards with Edit (Asset Editor) and Animate (Animate Studio) buttons.",
-    "Every run saved as a campaign you can reopen from 'View campaign' or the Brand DNA page's 'Past campaigns'."
+    "Each goal's run saved as a campaign you can reopen from 'View campaign' or the Brand DNA page's 'Past campaigns'."
   ],
   "featureExplanations": [
     {
       "feature": "Campaign Goal",
-      "explanation": "Under 'Campaign Goal' you see six cards: Product Launch, Lead Generation, Brand Awareness, Engagement, Thought Leadership and Direct Sales. Clicking a card picks that goal and moves straight on to the Concepts step. The header shows 'Campaign Studio' with your brand name and industry.",
+      "explanation": "Under 'Campaign Goal' you see six cards: Product Launch, Lead Generation, Brand Awareness, Engagement, Thought Leadership and Direct Sales. Clicking a card picks that goal (its border is highlighted) and opens the Concepts step below. The goal cards and the direction box stay visible, so you can switch goals at any time. The header shows 'Campaign Studio' with your brand name and industry.",
       "whyToUse": "The goal steers what the 4 concepts are about.",
       "inputRequired": "A saved brand, and one goal card.",
-      "restrictions": "After you click a goal the goal cards and the direction box are hidden; to choose a different goal, open Campaign Studio again. With no saved brand the page shows 'Brand not found - Select a brand first to create a campaign.' and a 'Back to Brand Studio' button."
+      "restrictions": "Switching to a different goal clears the concepts, the selected concept and the assets shown, and the next Generate Concepts saves a new campaign (assets already made stay saved in the earlier campaign). Clicking the goal that is already picked keeps the concepts but hides the Assets step until you click Select again. With no saved brand the page shows 'Brand not found - Select a brand first to create a campaign.' and a 'Back to Brand Studio' button."
     },
     {
       "feature": "Optional direction or theme",
       "explanation": "A text box below the goal cards (placeholder 'Optional direction or theme...'). What you type is added to the concept request as the user direction and is saved with the campaign.",
       "whyToUse": "Point the concepts at a season, offer, product or angle (for example 'Holiday gifting season').",
       "inputRequired": "None; it is optional.",
-      "restrictions": "Type it before clicking a goal card, because clicking a goal hides this box. No length limit is set in the code."
+      "restrictions": "It is read when you click Generate Concepts, so you can type or change it before or after picking a goal. No length limit is set in the code."
     },
     {
       "feature": "Generate Concepts",
       "explanation": "In the Concepts step, the 'Generate Concepts' button asks the AI for exactly 4 distinct concepts for your brand and goal. While it runs the button reads 'Generating…' and an overlay says 'Generating campaign concepts...'. Each concept card shows its title, key message, CTA and Tone Notes. The concepts are written from your Brand DNA (name, industry, tagline, value proposition, audience, tone, personality, key messages, primary colors, imagery and layout style). The campaign is saved as soon as the concepts arrive.",
       "whyToUse": "Get four different on-brand angles to choose from.",
       "inputRequired": "A goal (the button does nothing without one).",
-      "restrictions": "Needs a connected API key. Errors appear as a red toast with the error text, e.g. 'Concepts response had no concepts'. Clicking Generate Concepts again creates and saves a new campaign rather than replacing the last one."
+      "restrictions": "Needs a connected API key. Errors appear as a red toast with the error text, e.g. 'Concepts response had no concepts'. Clicking Generate Concepts again for the same goal replaces the concepts and updates the same campaign instead of saving a new one."
     },
     {
       "feature": "Select a concept",
@@ -73,7 +73,7 @@
     },
     {
       "feature": "Asset cards: Edit and Animate",
-      "explanation": "Each finished asset is shown as a card with its picture, platform, format, headline, body and CTA, plus two buttons. Edit opens the asset in the Asset Editor. Animate sends the asset's picture to Animate Studio.",
+      "explanation": "Each finished asset is shown as a card with its picture, platform name (for example 'Instagram Feed' or 'X / Twitter'), format, headline, body and CTA, plus two buttons. Edit opens the asset in the Asset Editor. Animate sends the asset's picture to Animate Studio.",
       "whyToUse": "Fine-tune the layout and text, or turn the creative into motion.",
       "inputRequired": "A generated asset.",
       "restrictions": "Animate shows 'This asset has no image to animate' if the asset has no picture. Copy cannot be edited on the card itself; use Edit."
@@ -87,10 +87,10 @@
     },
     {
       "feature": "Campaign page (saved campaigns)",
-      "explanation": "The campaign page (#/campaign-page) shows a saved campaign: a 'Campaign' header with the brand name and goal, Goal, Created and Direction cards, the Concepts (each with Concept number, title, theme, key message, hook, CTA and Tone notes) and the Assets ('N generated assets for this campaign.') with Edit and Animate buttons. Its 'Generate Assets' button opens Campaign Studio for the same brand and 'Back to Brand' opens the Brand DNA page. You reach it from 'View campaign' or from a card under 'Past campaigns' on the Brand DNA page.",
+      "explanation": "The campaign page (#/campaign-page) shows a saved campaign: a 'Campaign' header with the brand name and goal (for example 'Product Launch'), Goal, Created and Direction cards, the Concepts (each with Concept number, title, theme, key message, hook, CTA and Tone notes) and the Assets ('N generated assets for this campaign.'), each card with its platform name, Edit and Animate buttons. Its 'Generate Assets' button opens Campaign Studio for the same brand and 'Back to Brand' opens the Brand DNA page. You reach it from 'View campaign' or from a card under 'Past campaigns' on the Brand DNA page.",
       "whyToUse": "Come back to an earlier campaign and keep working on its assets.",
       "inputRequired": "A saved campaign.",
-      "restrictions": "A link to a campaign that no longer exists shows 'Campaign not found'. The Goal is shown as its stored code (for example 'product-launch'). 'Generate Assets' starts a fresh Campaign Studio run; it does not add assets to the campaign you were viewing. Shows 'No assets generated yet.' when the campaign has none."
+      "restrictions": "A link to a campaign that no longer exists shows 'Campaign not found'. 'Generate Assets' starts a fresh Campaign Studio run; it does not add assets to the campaign you were viewing. Shows 'No assets generated yet.' when the campaign has none."
     },
     {
       "feature": "Back to Brand",
@@ -100,11 +100,11 @@
       "restrictions": "Concepts and assets are already saved when they are generated, but the selected concept and platform chips are not kept when you leave."
     }
   ],
-  "howToUse": "1. Open Brand Studio and analyse your website, or open an existing brand, then click 'New campaign' on the Brand DNA page (or the Campaigns card under 'Brand tools' in Brand Studio). 2. Optionally type a direction in 'Optional direction or theme...'. 3. Click a Campaign Goal card. 4. Click Generate Concepts and wait for the 4 concept cards. 5. Click Select on the concept you like. 6. Turn on the platform chips you need. 7. Click Generate Assets and watch the status rows. 8. Use Edit on an asset to adjust it in the Asset Editor, or Animate to send it to Animate Studio. 9. Click View campaign to see the saved campaign page.",
+  "howToUse": "1. Open Brand Studio and analyse your website, or open an existing brand, then click 'New campaign' on the Brand DNA page (or the Campaigns card under 'Brand tools' in Brand Studio). 2. Click a Campaign Goal card. 3. Optionally type a direction in 'Optional direction or theme...'. 4. Click Generate Concepts and wait for the 4 concept cards. 5. Click Select on the concept you like. 6. Turn on the platform chips you need. 7. Click Generate Assets and watch the status rows. 8. Use Edit on an asset to adjust it in the Asset Editor, or Animate to send it to Animate Studio. 9. Click View campaign to see the saved campaign page.",
   "howToSteps": [
     "Open Campaign Studio from the Brand DNA page ('New campaign').",
-    "Type an optional direction.",
     "Click a Campaign Goal.",
+    "Type an optional direction.",
     "Click Generate Concepts.",
     "Click Select on a concept.",
     "Turn on platform chips.",
@@ -138,14 +138,14 @@
       "description": "Product Launch, Lead Generation, Brand Awareness, Engagement, Thought Leadership or Direct Sales.",
       "required": true,
       "whenToUse": "First step.",
-      "restrictions": "Clicking a goal moves on immediately; reopen the page to change it."
+      "restrictions": "Can be changed at any time; a different goal clears the current concepts and starts a new campaign."
     },
     {
       "name": "Direction or theme",
       "description": "Free text added to the concept request.",
       "required": false,
       "whenToUse": "To focus the concepts on an offer, season or angle.",
-      "restrictions": "Enter it before picking a goal."
+      "restrictions": "Used the next time you click Generate Concepts."
     },
     {
       "name": "Concept",
@@ -187,17 +187,11 @@
   ],
   "limitations": [
     "Campaigns and assets are stored in your browser (up to 200 campaigns and 500 assets, about 4MB of brand data in total).",
-    "The goal cannot be changed after it is picked without reopening the page.",
     "Only one concept is turned into assets per run.",
     "Asset pictures contain no text; the copy is shown as text on the card and laid over the picture in the Asset Editor.",
     "There is no download button in Campaign Studio or on the campaign page."
   ],
   "limitationDetails": [
-    {
-      "limitation": "Goal is locked once picked",
-      "impact": "You cannot switch goals in the same session.",
-      "workaround": "Open Campaign Studio again (for example with 'New campaign' on the Brand DNA page)."
-    },
     {
       "limitation": "Browser-only storage",
       "impact": "Clearing site data or switching browser loses saved campaigns and assets.",
@@ -238,27 +232,27 @@
   ],
   "commonProblems": [
     {
-      "problem": "The direction I typed disappeared",
-      "whyItHappens": "Clicking a goal card hides the goal picker and direction box.",
-      "howToFix": "Nothing is lost: the direction is still used. To change it, reopen Campaign Studio and type it before picking the goal."
-    },
-    {
       "problem": "My platform choices were cleared",
       "whyItHappens": "Selecting a concept resets the platform chips.",
       "howToFix": "Pick the concept first, then the platforms."
     },
     {
       "problem": "Several campaigns appear under Past campaigns",
-      "whyItHappens": "Each Generate Concepts click saves a new campaign.",
-      "howToFix": "Open the one you want from the Brand DNA page."
+      "whyItHappens": "Each goal you generate concepts for is saved as its own campaign, and each new visit to Campaign Studio starts a new one.",
+      "howToFix": "Open the one you want from the Brand DNA page. To refine one campaign, stay on the same goal and click Generate Concepts again."
+    },
+    {
+      "problem": "My concepts disappeared after clicking a goal",
+      "whyItHappens": "Switching to a different goal clears the concepts and assets on screen (they stay saved in the earlier campaign).",
+      "howToFix": "Open the earlier campaign from 'Past campaigns' on the Brand DNA page, or switch back and generate again."
     }
   ],
   "exampleWorkflows": [
     {
       "title": "Holiday launch set",
       "steps": [
-        "Type 'Holiday gifting season' in the direction box.",
         "Click Product Launch.",
+        "Type 'Holiday gifting season' in the direction box.",
         "Click Generate Concepts.",
         "Select the concept you like.",
         "Turn on Instagram Feed, Instagram Story and Email Header.",
@@ -323,7 +317,7 @@
     },
     {
       "question": "Can I change the goal after picking it?",
-      "answer": "Not on the same page; open Campaign Studio again."
+      "answer": "Yes. The goal cards stay on the page; click another goal. That clears the current concepts and the next Generate Concepts saves a new campaign."
     }
   ],
   "glossary": {
@@ -334,7 +328,7 @@
     "Campaign page": "The saved view of a campaign's goal, concepts and assets."
   },
   "tips": [
-    "Type the direction before you click a goal.",
+    "You can change the goal or direction before each Generate Concepts.",
     "Start with one or two platforms to check the style, then add the rest.",
     "Give the brand a PNG or JPG logo URL on the Brand DNA page so assets can use it.",
     "Use the Asset Editor to place the text where the picture has space."
@@ -397,7 +391,7 @@
   ],
   "verification": {
     "status": "code-review",
-    "evidence": "Read CampaignWizard.js and CampaignPage.js (the campaign page only shows a campaign made here, so it is covered in this guide) plus campaignGenerator, platforms, layout, imageRefs, brandStore, brandNavigation, router and the muapi text/image/imageEdit calls. Screens checked in the dev build with seeded brand data.",
+    "evidence": "Read CampaignWizard.js (goal cards stay visible and are highlighted; changing goal resets concepts, assets and campaign id; Generate Concepts reuses the campaign id; asset cards show the platform label) and CampaignPage.js (goalLabel and platform labels; the campaign page only shows a campaign made here, so it is covered in this guide) plus campaignGenerator, platforms, layout, imageRefs, brandStore, brandNavigation, router and the muapi text/image/imageEdit calls. Screens checked in the dev build with seeded brand data.",
     "verifiedAt": "2026-11-20",
     "verifiedBy": "Code review (LLM-assisted)"
   }

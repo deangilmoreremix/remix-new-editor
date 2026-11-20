@@ -2,9 +2,9 @@
   "id": "text-to-image",
   "name": "Text to Image",
   "route": "#/text-to-image",
-  "description": "Text to Image is an overview page: browse 27 image models and example prompts, then open Image Studio with your pick filled in.",
+  "description": "Text to Image is an overview page: browse 27 featured image models and example prompts, then open Image Studio with your pick filled in.",
   "shortDescription": "Pick an image model or example prompt, then create it in Image Studio.",
-  "fullDescription": "Text to Image (#/text-to-image) is a starting page, not a generator. It has a 'Start Creating Free' banner button, four 'Why Choose Our Text to Image?' highlight cards, an 'Available Models' grid of 27 model cards, five 'Example Prompts' cards with 'Try this →', and a 'Ready to Create?' section with 'Get Started Free' and '🎯 GTM Boost'. There is no prompt box, upload, aspect ratio or Generate button here: every button and card opens Image Studio (#/image). Clicking a model card opens Image Studio with that model selected when Image Studio has a text-to-image model with the same name; clicking an example prompt also puts the prompt text into Image Studio's prompt box. You then set the ratio and click Generate in Image Studio.",
+  "fullDescription": "Text to Image (#/text-to-image) is a starting page, not a generator. It has a 'Start Creating Free' banner button, four 'Why Choose Our Text to Image?' highlight cards, an 'Available Models' grid of 27 featured model cards ('27 featured models out of 84 text-to-image models in Image Studio'), five 'Example Prompts' cards with 'Try this →', and a 'Ready to Create?' section with 'Get Started Free' and '🎯 GTM Boost'. There is no prompt box, upload, aspect ratio or Generate button here: every button and card opens Image Studio (#/image). Clicking a model card opens Image Studio with that model selected when Image Studio has a text-to-image model with the same name; clicking an example prompt also puts the prompt text into Image Studio's prompt box. You then set the ratio and click Generate in Image Studio.",
   "bestFor": "New users who want to see which image models exist and start from a ready-made example prompt before opening Image Studio.",
   "whenToUse": [
     "You want to browse image models by name and family before you start.",
@@ -26,21 +26,21 @@
   "featureExplanations": [
     {
       "feature": "Start Creating Free",
-      "explanation": "The 'Start Creating Free' button on the 'Text to Image' banner opens Image Studio (#/image).",
+      "explanation": "The 'Start Creating Free' button on the 'Text to Image' banner ('Transform your ideas into stunning, professional-quality images with 84 AI models') opens Image Studio (#/image).",
       "whyToUse": "Quickest way from this page to the actual image generator.",
       "inputRequired": "None.",
       "restrictions": "It only opens Image Studio; nothing is generated here."
     },
     {
       "feature": "Why Choose Our Text to Image? cards",
-      "explanation": "Four information cards: 'Lightning Fast', '50+ Models', 'Multiple Ratios' and 'High Resolution' ('Generate images up to 4K resolution'). They are not buttons.",
+      "explanation": "Four information cards: 'Lightning Fast', '84 Models', 'Multiple Ratios' and 'High Resolution' ('Generate images up to 4K resolution'). They are not buttons.",
       "whyToUse": "A quick summary of what Image Studio offers.",
       "inputRequired": "None.",
-      "restrictions": "Marketing text: the page itself lists 27 models while the card says '50+ Models'; Image Studio holds 84 text-to-image models. Available ratios and resolutions depend on the model you pick in Image Studio."
+      "restrictions": "'84 Models' is the number of text-to-image models in Image Studio; the page grid shows 27 featured ones. Available ratios and resolutions depend on the model you pick in Image Studio."
     },
     {
       "feature": "Available Models",
-      "explanation": "A grid of 27 model cards ('Choose from 27+ powerful image generation models'), each with a name, a family badge (Flux, Nano, Seedream, Midjourney, OpenAI, Ideogram, Google, SD, Wan, Hunyuan, Kling, Qwen) and a one-line description. Clicking a card opens Image Studio and pre-selects that model if Image Studio has a text-to-image model with the same name.",
+      "explanation": "A grid of 27 model cards ('27 featured models out of 84 text-to-image models in Image Studio'), each with a name, a family badge (Flux, Nano, Seedream, Midjourney, OpenAI, Ideogram, Google, SD, Wan, Hunyuan, Kling, Qwen) and a one-line description. Clicking a card opens Image Studio and pre-selects that model if Image Studio has a text-to-image model with the same name.",
       "whyToUse": "Start Image Studio on a specific model without searching its picker.",
       "inputRequired": "A click on a card.",
       "restrictions": "These names have no exact match in Image Studio, so it opens on your last-used (or default Nano Banana) model instead: Bytedance Seedream v3, GPT-4o, Ideogram v3, SDXL, Wan 2.1, Wan 2.5, Wan 2.6, Kling O1, Sora and Veo 3. Check the model button in Image Studio."
@@ -133,7 +133,7 @@
   "limitations": [
     "No prompt box, upload, ratio or Generate button on this page.",
     "10 of the 27 model cards do not match an Image Studio model, so Image Studio keeps its own model.",
-    "Highlight cards ('50+ Models', 'up to 4K') are general marketing text, not settings."
+    "Highlight cards ('84 Models', 'up to 4K') are general summary text, not settings."
   ],
   "limitationDetails": [
     {
@@ -206,8 +206,8 @@
       "answer": "No. This page has no prompt box, upload, ratio or Generate button. Every button and card opens Image Studio (#/image), where the actual generation happens."
     },
     {
-      "question": "Why does the page say 27 models but a card says 50+?",
-      "answer": "The '50+ Models' card is general marketing text. The page grid shows 27 names; Image Studio itself has 84 text-to-image models."
+      "question": "Why does the page show 27 models but a card says 84?",
+      "answer": "The grid shows 27 featured names; '84 Models' is the full number of text-to-image models in Image Studio's model picker."
     }
   ],
   "glossary": {
@@ -256,7 +256,7 @@
     }
   ],
   "notConfirmed": [
-    "Whether the '50+ Models', 'Generate images in seconds' and 'up to 4K' claims hold for every model; these are static marketing texts on the page.",
+    "Whether the 'Generate images in seconds' and 'up to 4K' claims hold for every model; these are static texts on the page.",
     "Credit cost of generating; nothing on this page charges or states prices."
   ],
   "sourceFiles": [
@@ -273,6 +273,6 @@
     "status": "code-review",
     "verifiedAt": "2026-11-20",
     "verifiedBy": "Code review (LLM-assisted)",
-    "evidence": "Read TextToImagePage.js and the code it calls: ImageStudio.js prefill handling (prefill_prompt, prefill_model), prefillModel.js, GTMPromptModal.jsx and gtmStudioProfiles.js. Model-name matching checked by loading models.js and running resolvePrefillModel over the page's 27 names."
+    "evidence": "Read TextToImagePage.js and the code it calls: ImageStudio.js prefill handling (prefill_prompt, prefill_model), prefillModel.js (storePrefillModel stores a clicked model only if t2iModels has it, otherwise clears the key), GTMPromptModal.jsx and gtmStudioProfiles.js. Model-name matching checked by loading models.js (84 text-to-image models) and running resolvePrefillModel over the page's 27 names (17 match)."
   }
 }

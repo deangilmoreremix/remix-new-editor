@@ -166,7 +166,7 @@
         "slug": "image-to-image",
         "name": "Image to Image",
         "route": "image-to-image",
-        "shortDescription": "Browse image editing models and examples, then edit a photo in Edit Studio.",
+        "shortDescription": "Browse image editing models and examples, then edit in Edit Studio or Image Studio.",
         "features": 6,
         "thumbnail": "/guides/image-to-image/overview.webp"
       },
@@ -198,8 +198,8 @@
         "slug": "video-to-video",
         "name": "Video to Video",
         "route": "video-to-video",
-        "shortDescription": "Title page only; transform videos in Video Studio's video-to-video mode.",
-        "features": 3,
+        "shortDescription": "Starting page for video-to-video; the work happens in Video Studio.",
+        "features": 4,
         "thumbnail": "/guides/video-to-video/overview.webp"
       },
       {
@@ -309,7 +309,7 @@
         "name": "Smart Video Scheduler",
         "route": "smart-video-scheduler",
         "shortDescription": "Content calendar page with Calendar, Schedule and Analytics tabs (preview).",
-        "features": 4,
+        "features": 3,
         "thumbnail": "/guides/smart-video-scheduler/overview.webp"
       },
       {

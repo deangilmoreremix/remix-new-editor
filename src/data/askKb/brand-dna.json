@@ -75,10 +75,10 @@
     },
     {
       "feature": "Past campaigns",
-      "explanation": "When the brand has campaigns, a 'Past campaigns' section lists them newest first. Each card shows the goal and '<N> concepts · <N> assets · <date>'. Clicking a card opens that campaign's page with its concepts and assets.",
+      "explanation": "When the brand has campaigns, a 'Past campaigns' section lists them newest first. Each card shows the campaign goal (for example 'Product Launch' or 'Direct Sales') and '<N> concepts · <N> assets · <date>'. Clicking a card opens that campaign's page with its concepts and assets.",
       "whyToUse": "Go back to an earlier campaign to edit or animate its assets.",
       "inputRequired": "At least one campaign made in Campaign Studio for this brand.",
-      "restrictions": "The card title is the stored goal code, for example 'product-launch'. Hidden when there are no campaigns."
+      "restrictions": "Hidden when there are no campaigns. A campaign saved without a goal is titled 'Campaign'."
     },
     {
       "feature": "New campaign, Photo Studio and Animate",
@@ -169,8 +169,7 @@
   "limitations": [
     "Edits are lost if you leave without clicking Save.",
     "The website screenshot cannot be changed here.",
-    "Brands are stored in this browser only (up to 50 brands).",
-    "Past campaign cards show the goal's code (e.g. 'product-launch') rather than its label."
+    "Brands are stored in this browser only (up to 50 brands)."
   ],
   "limitationDetails": [
     {
@@ -326,7 +325,7 @@
   ],
   "verification": {
     "status": "code-review",
-    "evidence": "Read BrandDnaEditor.js and how its fields are used in campaignGenerator.js, AssetCanvasEditor.js (fonts, palette) and brandStore.js. Screen checked in the dev build with a seeded brand and campaign.",
+    "evidence": "Read BrandDnaEditor.js and how its fields are used in campaignGenerator.js, AssetCanvasEditor.js (fonts, palette) and brandStore.js. Screen checked in the dev build with a seeded brand and campaign. Past campaign titles use goalLabel() from campaignGenerator.js (goal label, not the stored code).",
     "verifiedAt": "2026-11-20",
     "verifiedBy": "Code review (LLM-assisted)"
   }

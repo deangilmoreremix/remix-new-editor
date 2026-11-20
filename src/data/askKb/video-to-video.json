@@ -2,12 +2,13 @@
   "id": "video-to-video",
   "name": "Video to Video",
   "route": "#/video-to-video",
-  "description": "Video to Video currently shows only a title banner. To transform a video, open Video Studio and attach your clip.",
-  "shortDescription": "Title page only; transform videos in Video Studio's video-to-video mode.",
-  "fullDescription": "Video to Video (#/video-to-video) currently shows only a banner with the title 'Video to Video' and the line 'Transform and enhance your videos with AI-powered tools'. The page has no buttons, upload, prompt or Generate. (Its code builds a 'Transform Your Videos' section with 'Get Started Free', '🎯 GTM Boost' and a video upload button, but never adds it to the page.) To work on a video, open Video Studio (#/video) from the side menu's Video button and attach a video: the studio switches to its video-to-video model list (77 entries; the first is AI Video Watermark Remover), with workflows such as Edit video, Extend uploaded video and Motion transfer.",
-  "bestFor": "Anyone looking for video-to-video; the real tools are in Video Studio.",
+  "description": "Video to Video is a short starting page: a title banner and a 'Transform Your Videos' section whose buttons open Video Studio, where you attach your clip and transform it.",
+  "shortDescription": "Starting page for video-to-video; the work happens in Video Studio.",
+  "fullDescription": "Video to Video (#/video-to-video) is a starting page, not an editor. It shows a banner titled 'Video to Video' ('Transform and enhance your videos with AI-powered tools') and a 'Transform Your Videos' section ('Start editing your videos with powerful AI tools. Upload a clip in Video Studio to restyle it, extend it or remove a watermark.') with two buttons: 'Get Started Free' opens Video Studio (#/video), and '🎯 GTM Boost' helps you write a marketing prompt and then opens Video Studio with it in the prompt box. There is no upload, prompt box or Generate button on this page. In Video Studio, attach a video with the video button (tooltip 'Upload video to remove watermark'): the studio switches to its video-to-video model list (77 entries; the first is AI Video Watermark Remover), with workflows such as Edit video, Extend uploaded video and Motion transfer.",
+  "bestFor": "Anyone who wants to transform a clip they already have; this page points you to Video Studio, where the video-to-video tools are.",
   "whenToUse": [
-    "You arrived here looking for video-to-video and need to know where to go."
+    "You want to start a video-to-video job (watermark removal, edit, extend, motion transfer) and need the way in.",
+    "You want GTM Boost to write a marketing-style video prompt before you open Video Studio."
   ],
   "whenToUseAnother": [
     "Use Video Studio (#/video) to attach a video and run watermark removal, edit, extend or motion transfer.",
@@ -15,24 +16,32 @@
     "Use Upscale Suite (#/upscale) to increase resolution."
   ],
   "keyFeatures": [
-    "Title banner only (no controls).",
-    "The side menu's Video button opens Video Studio.",
+    "Title banner.",
+    "'Transform Your Videos' section with 'Get Started Free', which opens Video Studio.",
+    "'🎯 GTM Boost' prompt helper that opens Video Studio with the prompt filled in.",
     "Video Studio's video upload button switches it to video-to-video models."
   ],
   "featureExplanations": [
     {
       "feature": "Title banner",
-      "explanation": "The page shows a banner titled 'Video to Video' with 'Transform and enhance your videos with AI-powered tools'. Nothing else is shown.",
+      "explanation": "The page opens with a banner titled 'Video to Video' and the line 'Transform and enhance your videos with AI-powered tools'.",
       "whyToUse": "Confirms where you are.",
       "inputRequired": "None.",
-      "restrictions": "There are no buttons, uploads or Generate on this page."
+      "restrictions": "Information only."
     },
     {
-      "feature": "Open Video Studio from the side menu",
-      "explanation": "Click 'Video' in the left side menu to open Video Studio (#/video), where video-to-video actually happens.",
-      "whyToUse": "This page has no link of its own to the tools.",
+      "feature": "Get Started Free",
+      "explanation": "Below the banner, the 'Transform Your Videos' section says 'Start editing your videos with powerful AI tools. Upload a clip in Video Studio to restyle it, extend it or remove a watermark.' Its 'Get Started Free' button opens Video Studio (#/video).",
+      "whyToUse": "Fastest way from this page to the video-to-video tools.",
       "inputRequired": "None.",
-      "restrictions": "Video Studio opens in text-to-video until you attach a video."
+      "restrictions": "It only opens Video Studio; nothing is uploaded or generated here. Video Studio opens in text-to-video until you attach a video."
+    },
+    {
+      "feature": "GTM Boost",
+      "explanation": "The '🎯 GTM Boost' button next to 'Get Started Free' opens the GTM Boost window ('🎯 GTM Boost · Video to Video'). You write your idea, pick an angle, audience and goal, and click the Boost button to get a conversion-focused prompt. 'Apply' closes the window and opens Video Studio with that prompt already in the prompt box.",
+      "whyToUse": "Turn a rough marketing idea into a ready-to-use prompt before you start.",
+      "inputRequired": "An idea in step 1 (otherwise the window says 'Add your ... idea first.').",
+      "restrictions": "Without an OpenAI key the window shows 'Add your OpenAI key for AI-written results. Until then GTM Boost uses a built-in template.' The prompt is not attached to any video: add your clip in Video Studio yourself."
     },
     {
       "feature": "Video-to-video in Video Studio",
@@ -42,26 +51,35 @@
       "restrictions": "Video uploads are limited to 50MB (shared upload limits). Some workflows need a prompt or a character image; see the Video Studio guide."
     }
   ],
-  "howToUse": "1. Click 'Video' in the left side menu to open Video Studio (#/video). 2. Click the video button (tooltip 'Upload video to remove watermark') and attach your clip. 3. The studio switches to video-to-video models; pick a workflow or model. 4. Add a prompt if the model needs one and click Generate.",
+  "howToUse": "1. Open Video to Video (#/video-to-video). 2. Click 'Get Started Free' to open Video Studio, or click '🎯 GTM Boost' to write a prompt first and click Apply. 3. In Video Studio, click the video button (tooltip 'Upload video to remove watermark') and attach your clip. 4. The studio switches to video-to-video models; pick a workflow or model. 5. Add a prompt if the model needs one and click Generate.",
   "howToSteps": [
-    "Open Video Studio from the side menu.",
-    "Attach your video with the video button.",
+    "Open #/video-to-video.",
+    "Click 'Get Started Free' (or use GTM Boost and Apply).",
+    "In Video Studio, attach your video with the video button.",
     "Choose a video-to-video model or workflow.",
-    "Add a prompt if required.",
-    "Click Generate in Video Studio."
+    "Add a prompt if required and click Generate."
   ],
   "gettingStarted": [
-    "Go to Video Studio and attach a short clip.",
+    "Click 'Get Started Free' and attach a short clip in Video Studio.",
     "Try the default AI Video Watermark Remover, which needs no prompt."
   ],
   "inputs": [
-    "None on this page"
+    "GTM Boost idea (optional)"
   ],
   "requiredInputs": [
     "None on this page; a video file is needed in Video Studio."
   ],
-  "optionalInputs": [],
+  "optionalInputs": [
+    "A GTM Boost idea"
+  ],
   "inputDetails": [
+    {
+      "name": "GTM Boost idea",
+      "description": "A short description of the video you want; GTM Boost turns it into a marketing-style prompt.",
+      "required": false,
+      "whenToUse": "When you want help writing the prompt.",
+      "restrictions": "The prompt goes to Video Studio's prompt box; no video is attached."
+    },
     {
       "name": "Video file (in Video Studio)",
       "description": "The clip to transform, attached with Video Studio's video button.",
@@ -75,6 +93,11 @@
   ],
   "modeExplanations": [
     {
+      "mode": "Launcher",
+      "description": "'Get Started Free' and GTM Boost's Apply open Video Studio (#/video).",
+      "useCase": "Get to the video tools, optionally with a prompt ready."
+    },
+    {
       "mode": "Video-to-video (in Video Studio)",
       "description": "Starts when you attach a video in Video Studio; the first model is AI Video Watermark Remover.",
       "useCase": "Remove watermarks, edit, extend or re-animate footage."
@@ -82,27 +105,29 @@
   ],
   "modelCapabilities": "This page lists no models. Video Studio's video-to-video list has 77 entries (src/lib/models.js v2vModels), starting with AI Video Watermark Remover.",
   "outputs": [
-    "None on this page."
+    "No output on this page; it opens Video Studio, optionally with a GTM Boost prompt filled in."
   ],
   "limitations": [
-    "The page shows only a banner; its call-to-action section, GTM Boost and upload button are built in code but not displayed.",
-    "No link to Video Studio on the page itself; use the side menu."
+    "No upload, prompt box or Generate button on this page.",
+    "No video is passed to Video Studio; attach it there.",
+    "A GTM Boost prompt fills Video Studio's prompt box but does not pick a video-to-video model."
   ],
   "limitationDetails": [
     {
-      "limitation": "No controls on the page",
+      "limitation": "No controls for the video itself",
       "impact": "You cannot start a video-to-video job here.",
-      "workaround": "Open Video Studio from the side menu and attach your video."
+      "workaround": "Click 'Get Started Free' and attach your video in Video Studio."
     }
   ],
   "troubleshooting": [
-    "The page is empty below the banner: that is the current page design (the rest of the section is not added). Use Video Studio."
+    "Video Studio opened in text-to-video: that is expected; attach your video with the video button and it switches to video-to-video models.",
+    "Nothing happens after GTM Boost: write an idea in step 1 and click the Boost button, then Apply."
   ],
   "troubleshootingSteps": [
     {
       "issue": "Cannot find an upload button",
       "steps": [
-        "Click 'Video' in the side menu.",
+        "Click 'Get Started Free'.",
         "In Video Studio, click the video button next to the prompt.",
         "Attach your clip."
       ]
@@ -110,28 +135,37 @@
   ],
   "commonProblems": [
     {
-      "problem": "Nothing to click on Video to Video",
-      "whyItHappens": "The page only adds its banner.",
-      "howToFix": "Use Video Studio's video-to-video mode."
+      "problem": "No upload on Video to Video",
+      "whyItHappens": "The page is a starting point; uploads happen in Video Studio.",
+      "howToFix": "Click 'Get Started Free' and attach the clip in Video Studio."
     }
   ],
   "exampleWorkflows": [
     {
       "title": "Remove a watermark from a clip",
       "steps": [
-        "Open Video Studio from the side menu.",
-        "Click the video button and attach the clip.",
+        "Open #/video-to-video and click 'Get Started Free'.",
+        "In Video Studio, click the video button and attach the clip.",
         "Keep 'AI Video Watermark Remover' selected.",
         "Click Generate."
+      ]
+    },
+    {
+      "title": "Restyle a clip with a marketing prompt",
+      "steps": [
+        "Click '🎯 GTM Boost' and describe the video.",
+        "Click the Boost button, then Apply.",
+        "In Video Studio, attach your clip and pick an edit workflow.",
+        "Check the prompt and click Generate."
       ]
     }
   ],
   "useCases": [
     {
-      "title": "Finding the video-to-video tools",
-      "description": "Get from this page to the place where video transformations run.",
+      "title": "Getting to the video-to-video tools",
+      "description": "Go from this page to the place where video transformations run.",
       "steps": [
-        "Side menu > Video",
+        "Get Started Free",
         "Attach video",
         "Generate"
       ],
@@ -140,19 +174,25 @@
   ],
   "faqs": [
     {
-      "question": "Why is this page empty?",
-      "answer": "It currently shows only its banner. The video-to-video tools are in Video Studio: attach a video there."
+      "question": "Can I upload a video on this page?",
+      "answer": "No. Click 'Get Started Free' to open Video Studio and attach your video there with the video button."
+    },
+    {
+      "question": "What does GTM Boost do here?",
+      "answer": "It turns your idea into a marketing-focused video prompt and, when you click Apply, opens Video Studio with that prompt in the prompt box."
     }
   ],
   "glossary": {
     "Video-to-video": "Making a new or changed video from a video you supply.",
-    "Watermark remover": "A model that removes logos, captions or overlay text from a clip."
+    "Watermark remover": "A model that removes logos, captions or overlay text from a clip.",
+    "GTM Boost": "A helper window that rewrites your idea as a marketing-focused video prompt (GTM = go-to-market)."
   },
   "tips": [
-    "Keep clips under 50MB before attaching them in Video Studio."
+    "Keep clips under 50MB before attaching them in Video Studio.",
+    "Use GTM Boost when you need help wording the edit prompt."
   ],
   "bestPractices": [
-    "Go straight to Video Studio for video-to-video work."
+    "Treat this page as a starting point; do the upload and generation in Video Studio."
   ],
   "relatedStudios": [
     "video",
@@ -164,7 +204,7 @@
     {
       "studio": "video",
       "relationship": "Where video-to-video actually happens",
-      "whenToMove": "Right away.",
+      "whenToMove": "Right away: 'Get Started Free' takes you there.",
       "why": "Video Studio has the video upload and the video-to-video models."
     },
     {
@@ -187,18 +227,21 @@
     }
   ],
   "notConfirmed": [
-    "Whether the hidden 'Transform Your Videos' section is meant to be shown; the code builds it but never adds it to the page."
+    "Whether a prompt applied from GTM Boost stays in Video Studio's prompt box after you attach a video (the box is filled when the studio opens)."
   ],
   "sourceFiles": [
     "src/components/VideoToVideoPage.js",
     "src/components/VideoStudio.js",
     "src/lib/models.js",
+    "src/lib/uiIntegration.js",
+    "src/components/modals/GTMPromptModal.jsx",
+    "src/lib/gtmStudioProfiles.js",
     "src/lib/router.js"
   ],
   "verification": {
     "status": "code-review",
     "verifiedAt": "2026-11-20",
     "verifiedBy": "Code review (LLM-assisted)",
-    "evidence": "Read VideoToVideoPage.js: only the hero is appended to the container; promptWrapper, bar, topRow, ctaSection and videoPickerBtn are created but never appended, so container.querySelector('.gtm-boost-btn') is null and no handler is attached. Confirmed in a browser at #/video-to-video (only the banner renders). VideoStudio.js: video button title and v2vModels[0]."
+    "evidence": "Read VideoToVideoPage.js: the hero and the 'Transform Your Videos' section are added to the page; 'Get Started Free' navigates to 'video' and GTM Boost opens openGTMPromptModal('video-to-video'), storing prefill_prompt before navigating to 'video'. VideoStudio.js reads and clears prefill_prompt; video button title and v2vModels[0]. gtmStudioProfiles.js: studioName 'Video to Video'."
   }
 }
