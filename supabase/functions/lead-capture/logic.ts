@@ -433,7 +433,7 @@ export async function insertLeadRow(
   emailKey: string,
 ): Promise<{ error: { code?: string } | null; duplicate: boolean }> {
   let { error } = await insert(emailKey ? { ...row, email_key: emailKey } : row);
-  if (isMissingColumnError(error)) ({ error } = await insert(row));
+  if (isMissingColumnError(error)) { const retry = await insert(row); error = retry.error; }
   return { error, duplicate: isDuplicateError(error) };
 }
 

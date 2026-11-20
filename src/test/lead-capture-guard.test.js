@@ -23,6 +23,13 @@ describe('insertLeadRow (repeat sign-ups are stored once)', () => {
       expect(a.calls).toEqual([{ kind: 'lead-form', email_key: 'ann@x.io' }, { kind: 'lead-form' }]);
     }
   });
+  it('if the retry without email_key fails too, that error is returned (and a duplicate on the retry is still a duplicate)', async () => {
+    const failed = recorder([{ code: '42703' }, { code: '500' }]);
+    expect(await insertLeadRow(failed.insert, { kind: 'lead-form' }, 'ann@x.io')).toEqual({ error: { code: '500' }, duplicate: false });
+    expect(failed.calls).toHaveLength(2);
+    const dup = recorder([{ code: 'PGRST204' }, { code: '23505' }]);
+    expect(await insertLeadRow(dup.insert, { kind: 'lead-form' }, 'ann@x.io')).toEqual({ error: { code: '23505' }, duplicate: true });
+  });
   it('any other error is returned as is (not a duplicate)', async () => {
     const a = recorder([{ code: '500' }]);
     expect(await insertLeadRow(a.insert, {}, 'ann@x.io')).toEqual({ error: { code: '500' }, duplicate: false });
