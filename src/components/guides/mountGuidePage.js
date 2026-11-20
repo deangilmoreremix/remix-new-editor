@@ -65,5 +65,6 @@ export function mountGuidePage(app, slug) {
       getPage: () => (guide ? guide.route : ''),
       onGuidePage: true,
     }))
-    .catch(() => { /* the guide works without the assistant */ });
+    // The guide works without the assistant; just note why it is missing.
+    .catch((err) => console.warn('[GuidePage] Ask SmartVideo failed to load:', err));
 }

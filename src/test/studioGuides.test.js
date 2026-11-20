@@ -43,13 +43,16 @@ describe('studio feature guides', () => {
     );
   });
 
-  it('renders every feature, FAQ JSON-LD and a canonical URL', () => {
-    const g = getGuide('image-studio');
-    const html = renderGuideHtml(g, GUIDES.length);
-    for (const f of g.features) expect(html).toContain(`id="feature-${f.id}"`);
-    const head = guideHead(g, 'https://example.com', GUIDES_BY_CATEGORY);
-    expect(head.canonical).toBe('https://example.com/studios/image-studio/');
-    expect(head.jsonLd.map((j) => j['@type'])).toEqual(expect.arrayContaining(['SoftwareApplication', 'BreadcrumbList', 'FAQPage']));
+  it('renders every feature, its JSON-LD and a canonical URL for every guide', () => {
+    for (const g of GUIDES) {
+      const html = renderGuideHtml(g, GUIDES.length);
+      for (const f of g.features) expect(html, `${g.slug}/${f.id}`).toContain(`id="feature-${f.id}"`);
+      const head = guideHead(g, 'https://example.com', GUIDES_BY_CATEGORY);
+      expect(head.canonical, g.slug).toBe(`https://example.com/studios/${g.slug}/`);
+      const types = head.jsonLd.map((j) => j['@type']);
+      expect(types, g.slug).toEqual(expect.arrayContaining(['SoftwareApplication', 'BreadcrumbList']));
+      if (g.faqs.length) expect(types, g.slug).toContain('FAQPage');
+    }
     const hub = renderHubHtml(GUIDES_BY_CATEGORY, GUIDES.length);
     for (const x of GUIDES) expect(hub).toContain(`href="/studios/${x.slug}/"`);
   });
