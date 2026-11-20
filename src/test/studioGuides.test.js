@@ -4,11 +4,12 @@ import path from 'node:path';
 import { GUIDES, GUIDES_BY_CATEGORY, getGuide } from '../data/studioGuides.js';
 import { renderGuideHtml, renderHubHtml, guideHead } from '../components/guides/renderGuide.js';
 import GUIDE_INDEX from '../data/studioGuideIndex.json';
+import { UNLISTED_GUIDES } from '../data/studioGuides.core.js';
 
-const kbCount = fs.readdirSync('src/data/askKb').filter((f) => f.endsWith('.json') && !f.startsWith('_')).length;
+const kbCount = fs.readdirSync('src/data/askKb').filter((f) => f.endsWith('.json') && !f.startsWith('_') && !UNLISTED_GUIDES.has(f.slice(0, -5))).length;
 
 describe('studio feature guides', () => {
-  it('has one guide per studio knowledge file, with unique URL-safe slugs', () => {
+  it('has one guide per listed studio knowledge file, with unique URL-safe slugs', () => {
     expect(GUIDES.length).toBe(kbCount);
     const slugs = GUIDES.map((g) => g.slug);
     expect(new Set(slugs).size).toBe(slugs.length);

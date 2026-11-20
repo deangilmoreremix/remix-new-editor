@@ -4,8 +4,15 @@ import { STUDIO_ACADEMY, TRACK_TITLES } from '../../data/askAcademyMap.js';
 import JOURNEYS from '../../data/askJourneyList.json';
 import GUIDE_INDEX from '../../data/studioGuideIndex.json';
 
-// App routes that have their own studio guide (askKb/<route>.json).
-const GUIDE_ROUTES = new Set(GUIDE_INDEX.flatMap((c) => c.guides.map((g) => g.route)));
+// Every studio knowledge file (askKb/<route>.json) by route, name only (tree-shaken), so the
+// assistant knows each page's studio even when it has no public guide page.
+const KB_NAMES = Object.fromEntries(Object.entries(import.meta.glob(['../../data/askKb/*.json', '!../../data/askKb/_*.json'], { eager: true, import: 'name' }))
+  .map(([file, name]) => [file.split('/').pop().replace(/\.json$/, ''), name])
+  .filter(([route]) => !route.startsWith('_')));
+// App routes that have their own studio guide or knowledge file.
+const GUIDE_ROUTES = new Set([...Object.keys(KB_NAMES), ...GUIDE_INDEX.flatMap((c) => c.guides.map((g) => g.route))]);
+/** Studio name for a route: the app menu label, else the knowledge file's name. */
+export const studioLabel = (id) => { const l = getStudioLabel(id); return l !== id ? l : KB_NAMES[id] || id; };
 
 export const ENDPOINT = '/api/ask-smartvideo';
 
@@ -71,7 +78,7 @@ export function parseSSE(buffer) {
 const GUIDE_ALIASES = {
   'timeline-classic': 'timeline', openthorn: 'website-builder',
   brightbean: 'smart-video-scheduler', 'brand-photo-studio': 'photo-studio',
-  'video-agent-studio': 'video-agent', 'zackd-studio': 'zackd',
+  'video-agent-studio': 'video-agent', 'zackd-studio': 'zackd', 'campaign-page': 'campaign',
 };
 
 /**
@@ -100,7 +107,7 @@ export const journeyPrompts = () => JOURNEYS.map((j) => ({ id: j.id, title: j.ti
 export function starterPrompts(studioId) {
   if (!studioId || studioId === 'apps') return GENERIC;
   if (studioId === 'academy') return ['How do the Academy tracks work?', 'Which Academy track should I start with?', 'How do I save my progress in a lesson?'];
-  const label = getStudioLabel(studioId);
+  const label = studioLabel(studioId);
   if (label === studioId) return GENERIC;
   const out = [`How do I use ${label} step by step?`, `What inputs does ${label} need?`];
   out.push(STUDIO_ACADEMY[studioId]?.lessons?.length ? `Which Academy lessons cover ${label}?` : `What should I do if ${label} fails?`);
@@ -111,7 +118,7 @@ export function starterPrompts(studioId) {
 export function chipFor(s) {
   if (String(s.url).startsWith('#/academy')) return { label: 'Academy: ' + String(s.title).split(' — ')[0], url: s.url };
   if (s.kind === 'model') return { label: 'Models', url: s.url };
-  if (s.kind === 'studio' && s.studioId) return { label: `Open ${getStudioLabel(s.studioId)}`, url: s.url };
+  if (s.kind === 'studio' && s.studioId) return { label: `Open ${studioLabel(s.studioId)}`, url: s.url };
   return { label: String(s.title).split(' — ')[0], url: s.url };
 }
 
@@ -127,7 +134,7 @@ export function pickChips(answer, sources) {
       // A walkthrough: one chip per studio on the path (in order), then its Academy course.
       for (const id of (s.studios || []).slice(0, 5)) {
         const url = `#/${id}`;
-        if (!seen.has(url)) { seen.add(url); chips.push({ label: `Open ${getStudioLabel(id)}`, url }); }
+        if (!seen.has(url)) { seen.add(url); chips.push({ label: `Open ${studioLabel(id)}`, url }); }
       }
       if (s.guideUrl && !seen.has(s.guideUrl)) { seen.add(s.guideUrl); chips.push({ label: 'Academy course', url: s.guideUrl, academy: true }); }
       continue;

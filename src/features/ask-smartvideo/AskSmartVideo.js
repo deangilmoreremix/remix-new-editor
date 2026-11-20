@@ -6,8 +6,7 @@
 // sessionStorage for the tab.
 import { apiKeyManager } from '../../lib/apiKeyManager.js';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
-import { getStudioLabel } from '../../lib/studioRoutes.js';
-import { ENDPOINT, studioForRoute, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
+import { ENDPOINT, studioLabel, studioForRoute, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
 import { guideForStudio, searchGuides, guideUrl } from './askGuides.js';
 
 const STORE = 'askSmartVideo:v1';
@@ -75,7 +74,7 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
   const panel = $('panel'); const log = $('log'); const input = $('input'); const sendBtn = $('send'); const keycard = $('keycard');
 
   const studioId = () => studioForRoute(getPage());
-  const ctx = () => (studioId() ? `Help for ${getStudioLabel(studioId())} and the whole app` : 'Help for every studio, the Academy and more');
+  const ctx = () => (studioId() ? `Help for ${studioLabel(studioId())} and the whole app` : 'Help for every studio, the Academy and more');
   const bubble = (role, html) => {
     const d = document.createElement('div');
     d.className = role === 'user' ? 'ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary/90 text-black px-3 py-2 text-sm whitespace-pre-wrap' : 'ask-body max-w-[95%] rounded-2xl rounded-bl-sm bg-white/5 text-white px-3 py-2 text-sm';

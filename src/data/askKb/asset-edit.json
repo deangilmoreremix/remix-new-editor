@@ -30,7 +30,7 @@
   "featureExplanations": [
     {
       "feature": "Canvas",
-      "explanation": "The main area shows the asset in its platform's shape (Instagram Feed, LinkedIn and Facebook Ad 1:1; Instagram Story 9:16; X / Twitter, Web Banner, Email Header and YouTube Thumbnail 16:9) with the picture filling it. The headline, body and CTA are drawn on top; the CTA is a rounded pill. Click a text block to select it; the selected block has a dashed outline. New campaign assets start with all three blocks at the bottom left, the headline huge and white, the body small and white, and the CTA medium black text on white.",
+      "explanation": "The main area shows the asset in its platform's shape (Instagram Feed, LinkedIn and Facebook Ad 1:1; Instagram Story 9:16; X / Twitter, Web Banner, Email Header and YouTube Thumbnail 16:9) with the picture filling it. The headline, body and CTA are drawn on top; Click a text block to select it; the selected block has a dashed outline. New campaign assets start with all three blocks at the bottom left, the headline huge and white, the body small and white, and the CTA medium black text with a white background.",
       "whyToUse": "See exactly how the creative will look while you edit.",
       "inputRequired": "An asset opened from a campaign.",
       "restrictions": "Tall formats are limited to 75% of the window height. A block with empty text is not shown on the canvas."
@@ -80,9 +80,9 @@
     {
       "feature": "Background",
       "explanation": "A color behind the selected block's text. The first swatch (crossed out) means none; then white, black and your brand colors, plus a color picker and a hex box (placeholder '(none)').",
-      "whyToUse": "Make text stand out on a busy picture, or style the CTA pill.",
+      "whyToUse": "Meant to make text stand out on a busy picture or give the CTA a colored button shape.",
       "inputRequired": "None.",
-      "restrictions": "This colors the text block, not the whole canvas."
+      "restrictions": "This colors the text block, not the whole canvas. In the current version the chosen block background is saved but does not show on the canvas preview, because the app's button styling removes it (the CTA's default white background is hidden the same way)."
     },
     {
       "feature": "Font",
@@ -225,7 +225,8 @@
     "'This asset has no campaign concept to regenerate from': this asset cannot use Swap image or Clean background; use Upload image instead.",
     "'Upload failed (...); using a local copy': the picture is still used; click Save, or try a smaller file.",
     "My changes are gone: they were not saved; edit again and click Save.",
-    "No Animate → button: the asset has no picture yet."
+    "No Animate → button: the asset has no picture yet.",
+    "Background color or the CTA's white background does not show on the canvas: a known display issue; the value is saved, use text Color for contrast meanwhile."
   ],
   "troubleshootingSteps": [
     {
@@ -248,6 +249,11 @@
       "problem": "Brand font looks like a default font",
       "whyItHappens": "The font is not available in your browser.",
       "howToFix": "Choose a system font from the Font list."
+    },
+    {
+      "problem": "Block Background color has no visible effect",
+      "whyItHappens": "The canvas draws text blocks as buttons, and the app's outline-only button styling removes their background color in the preview.",
+      "howToFix": "Use the text Color for contrast for now; the background value is still saved with the asset."
     }
   ],
   "exampleWorkflows": [
@@ -256,7 +262,7 @@
       "steps": [
         "Click Edit on a Web Banner asset.",
         "Headline: Position top left, Size huge.",
-        "CTA: Background set to a brand color.",
+        "CTA: Color set to a brand color.",
         "Click Save."
       ]
     },
@@ -305,13 +311,13 @@
   ],
   "glossary": {
     "Block": "One piece of text on the canvas: Headline, Body or CTA.",
-    "CTA": "Call to action, shown as a rounded pill.",
+    "CTA": "Call to action, the short action phrase such as 'Shop Now'.",
     "Clean background": "A new AI picture with no text in it.",
     "Swap image": "A new AI picture that includes the headline."
   },
   "tips": [
     "Use Clean background when you place text with the editor.",
-    "Give the CTA a brand-colored Background.",
+    "Pick a text Color that contrasts with the picture.",
     "Save often; there is no undo."
   ],
   "bestPractices": [

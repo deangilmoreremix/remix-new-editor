@@ -158,6 +158,100 @@
     ]
   },
   {
+    "id": "Generate",
+    "title": "Quick Generators",
+    "blurb": "Single-purpose pages and an all-in-one hub for fast image and video generation.",
+    "guides": [
+      {
+        "slug": "image-to-image",
+        "name": "Image to Image",
+        "route": "image-to-image",
+        "shortDescription": "Browse image editing models and examples, then edit a photo in Edit Studio.",
+        "features": 6,
+        "thumbnail": "/guides/image-to-image/overview.webp"
+      },
+      {
+        "slug": "image-to-video",
+        "name": "Image to Video",
+        "route": "image-to-video",
+        "shortDescription": "Browse image-animation models and examples, then animate in Video Studio.",
+        "features": 6,
+        "thumbnail": "/guides/image-to-video/overview.webp"
+      },
+      {
+        "slug": "text-to-image",
+        "name": "Text to Image",
+        "route": "text-to-image",
+        "shortDescription": "Pick an image model or example prompt, then create it in Image Studio.",
+        "features": 6,
+        "thumbnail": "/guides/text-to-image/overview.webp"
+      },
+      {
+        "slug": "text-to-video",
+        "name": "Text to Video",
+        "route": "text-to-video",
+        "shortDescription": "Pick a video model or example prompt, then create the clip in Video Studio.",
+        "features": 6,
+        "thumbnail": "/guides/text-to-video/overview.webp"
+      },
+      {
+        "slug": "video-to-video",
+        "name": "Video to Video",
+        "route": "video-to-video",
+        "shortDescription": "Title page only; transform videos in Video Studio's video-to-video mode.",
+        "features": 3,
+        "thumbnail": "/guides/video-to-video/overview.webp"
+      },
+      {
+        "slug": "video-watermark-remover",
+        "name": "Video Watermark Remover",
+        "route": "video-watermark",
+        "shortDescription": "Intro page that sends you to Video Studio to remove video watermarks.",
+        "features": 7,
+        "thumbnail": "/guides/video-watermark-remover/overview.webp"
+      }
+    ]
+  },
+  {
+    "id": "Brand",
+    "title": "Brand & Campaigns",
+    "blurb": "Brand kits, product photo shoots, campaigns and asset editing.",
+    "guides": [
+      {
+        "slug": "asset-editor",
+        "name": "Asset Editor",
+        "route": "asset-edit",
+        "shortDescription": "Place, style and save the text on a campaign creative",
+        "features": 14,
+        "thumbnail": "/guides/asset-editor/overview.webp"
+      },
+      {
+        "slug": "brand-dna-editor",
+        "name": "Brand DNA Editor",
+        "route": "brand-dna",
+        "shortDescription": "Review and fix your brand's name, voice, messages, fonts and colors",
+        "features": 9,
+        "thumbnail": "/guides/brand-dna-editor/overview.webp"
+      },
+      {
+        "slug": "campaign-studio",
+        "name": "Campaign Studio",
+        "route": "campaign",
+        "shortDescription": "Pick a goal, get 4 on-brand concepts and creatives for up to 8 platforms",
+        "features": 10,
+        "thumbnail": "/guides/campaign-studio/overview.webp"
+      },
+      {
+        "slug": "photo-studio",
+        "name": "Photo Studio",
+        "route": "photo-studio",
+        "shortDescription": "Turn one product photo into styled shots with 30 brand-aware presets.",
+        "features": 12,
+        "thumbnail": "/guides/photo-studio/overview.webp"
+      }
+    ]
+  },
+  {
     "id": "Agents",
     "title": "AI Agents & Automation",
     "blurb": "Agents and tools that plan, build, personalize and send video for you.",
@@ -209,6 +303,14 @@
         "shortDescription": "Record webcam and screen together, add captions and scenes, export a finished video.",
         "features": 6,
         "thumbnail": "/guides/recorder/overview.webp"
+      },
+      {
+        "slug": "smart-video-scheduler",
+        "name": "Smart Video Scheduler",
+        "route": "smart-video-scheduler",
+        "shortDescription": "Content calendar page with Calendar, Schedule and Analytics tabs (preview).",
+        "features": 4,
+        "thumbnail": "/guides/smart-video-scheduler/overview.webp"
       },
       {
         "slug": "smart-video-viral",

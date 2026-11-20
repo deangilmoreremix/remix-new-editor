@@ -3,10 +3,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { searchGuides, guideForStudio, guideUrl } from '../askGuides.js';
 import { pickChips } from '../askCore.js';
+import { UNLISTED_GUIDES } from '../../../data/studioGuides.core.js';
 import INDEX from '../../../data/askIndex.json';
 
 const ROOT = path.resolve(__dirname, '../../../..');
-const kbIds = fs.readdirSync(path.join(ROOT, 'src/data/askKb')).filter((f) => f.endsWith('.json') && !f.startsWith('_')).map((f) => f.slice(0, -5));
+const kbIds = fs.readdirSync(path.join(ROOT, 'src/data/askKb')).filter((f) => f.endsWith('.json') && !f.startsWith('_')).map((f) => f.slice(0, -5)).filter((id) => !UNLISTED_GUIDES.has(id));
 
 describe('studio guides in Ask SmartVideo', () => {
   it('has a guide for every studio knowledge file', async () => {
