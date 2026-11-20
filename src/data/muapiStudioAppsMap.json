@@ -5,6 +5,17 @@
     "apiBase": "https://api.muapi.ai",
     "auth": "x-api-key header",
     "generatedBy": "scripts/build-muapi-apps-map.mjs",
+    "checked": [
+      "Public OpenAPI spec, /api/v1/models, /api/v1/get-template-workflows, /app/get_studio_models, /app/get_homepage_models",
+      "/workflow/get-published-workflows, /workflow/get-workflow-defs, /agents/templates/agents, /app/interests",
+      "Studio page HTML and its 29 public JS chunks (no app names found; the app list is loaded elsewhere)",
+      "Keyword search of names and descriptions across all of the above"
+    ],
+    "notChecked": [
+      "The logged-in dashboard pages (Apps, Workflow, Agents, Integrations)",
+      "The requests the Studio makes when an app is opened or run",
+      "The user's own (non-public) workflows"
+    ],
     "caveats": [
       "The Studio apps themselves are closed source and are not published as named API endpoints.",
       "The app list is partial: it was transcribed from screenshots, and some cards (e.g. part of Ads & Products) were not visible.",
@@ -13,8 +24,8 @@
     "counts": {
       "total": 78,
       "workflow-similar": 9,
-      "unmatched": 60,
-      "endpoint-probable": 5,
+      "unmatched": 59,
+      "endpoint-probable": 6,
       "endpoint": 4
     }
   },
@@ -305,17 +316,16 @@
       "studioTab": "Face & Identity",
       "mediaType": "video",
       "description": "Character swap for any video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "status": "endpoint-probable",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-motion-control",
+        "model": "seedance-2-motion-control",
         "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "video_url"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "notes": "Model description: \"recast an existing performance video with new performers\". Needs a reference video plus character images; see the spec for the optional fields."
     },
     {
       "id": "character-swap",

@@ -126,6 +126,7 @@ const MATCH = {
   'Expand Image': { status: 'endpoint-probable', model: 'ai-image-extension' },
   'Outfit Swap': { status: 'endpoint-probable', model: 'ai-dress-change', workflow: 'virtual-try-on-seedream-flux-kling-o1' },
   'Pixel Game': { status: 'endpoint-probable', model: 'nano-banana-effects', effectName: '16bit Game Character' },
+  'Recast': { status: 'endpoint-probable', model: 'seedance-2-motion-control', notes: 'Model description: "recast an existing performance video with new performers". Needs a reference video plus character images; see the spec for the optional fields.' },
   'Angles': { status: 'workflow-similar', workflow: 'multi-angle-photo-reshoot-nano-banana-2' },
   'Giant Product': { status: 'workflow-similar', workflow: 'giant-product-vfx-ad-nano-banana-2' },
   'Headshot Generator': { status: 'workflow-similar', workflow: 'professional-fashion-headshots-flux-2-pro' },
@@ -200,6 +201,17 @@ const result = {
     apiBase: BASE,
     auth: 'x-api-key header',
     generatedBy: 'scripts/build-muapi-apps-map.mjs',
+    checked: [
+      'Public OpenAPI spec, /api/v1/models, /api/v1/get-template-workflows, /app/get_studio_models, /app/get_homepage_models',
+      '/workflow/get-published-workflows, /workflow/get-workflow-defs, /agents/templates/agents, /app/interests',
+      'Studio page HTML and its 29 public JS chunks (no app names found; the app list is loaded elsewhere)',
+      'Keyword search of names and descriptions across all of the above',
+    ],
+    notChecked: [
+      'The logged-in dashboard pages (Apps, Workflow, Agents, Integrations)',
+      'The requests the Studio makes when an app is opened or run',
+      "The user's own (non-public) workflows",
+    ],
     caveats: [
       'The Studio apps themselves are closed source and are not published as named API endpoints.',
       'The app list is partial: it was transcribed from screenshots, and some cards (e.g. part of Ads & Products) were not visible.',
