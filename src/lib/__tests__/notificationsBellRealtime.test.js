@@ -261,6 +261,17 @@ describe('notifications bell realtime: synchronous owner id', () => {
     expect(getRealtime.mock.calls.length).toBeGreaterThan(1); // but it is still retried
     bell.destroy();
   });
+  it('a different owner signing in while there is no channel is not held back by the retry cooldown', async () => {
+    const rt = fakeRealtime(); let cur = 'user_1'; rt.userId = null;     // setup fails for user_1: no channel
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime: rt.getRealtime, getCurrentUserId: () => cur, identityCheckMs: 10, reconnectCooldownMs: 100000 });
+    await wait(80);                                   // attempts for user_1 fail; the cooldown is now running
+    const before = rt.filters.length;
+    cur = 'user_2'; rt.userId = 'user_2';             // another account signs in, the channel can now be opened
+    await wait(80);
+    expect(rt.filters.length).toBeGreaterThan(before);
+    expect(rt.filters[rt.filters.length - 1].filter).toBe('clerk_user_id=eq.user_2');
+    bell.destroy();
+  });
   it('the badge is also cleared when the owner changes during the asynchronous lookup', async () => {
     const rt = fakeRealtime(); let cur = 'user_1'; let slow = false; let release; const gate = new Promise((r) => { release = r; });
     const getRealtime = vi.fn(async () => { if (slow) await gate; return rt.getRealtime(); });

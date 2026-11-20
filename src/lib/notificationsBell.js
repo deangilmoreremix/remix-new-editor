@@ -25,6 +25,7 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
 
   let count = 0; let last = 0; let alive = true; let timer = null;
   let lastReconnect = 0; // when the identity timer last tried to open a missing channel
+  let lastReconnectFor = null; // the owner that attempt was for: a different owner is never held back by the cooldown
   let refreshSeq = 0; // generation counter: a refresh answer is discarded if a newer refresh or an owner change started meanwhile
   const draw = () => {
     btn.classList.toggle('hidden', !isSignedIn());
@@ -87,6 +88,7 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   const ownerChanged = (mine) => {
     try { return typeof getCurrentUserId === 'function' && (getCurrentUserId() || '') !== mine.userId; } catch { return false; } // a throwing host callback never breaks the bell
   };
+  const currentOwner = () => { try { return getCurrentUserId() || ''; } catch { return ''; } };
   // Removes the channel AND the previous owner's unread number, so a stale badge is never shown to someone else.
   // (guardedInsert reconnects for whoever is signed in now; the identity timer only watches a channel that still exists.)
   const dropChannel = () => { ++refreshSeq; last = 0; lastReconnect = 0; count = 0; draw(); return stopRealtime(); };
@@ -136,7 +138,10 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
     ? setInterval(() => {
       const cur = rt;
       if (cur) { if (!isSignedIn() || ownerChanged(cur)) dropChannel().then(() => ensureRealtime()); }
-      else if (isSignedIn() && Date.now() - lastReconnect >= reconnectCooldownMs) { lastReconnect = Date.now(); ensureRealtime(); } // signed in but no channel (e.g. after a sign-out and a different sign-in): reconnect, but a failing setup is retried at most once per cooldown
+      else if (isSignedIn()) {                            // signed in but no channel (e.g. after a sign-out and a different sign-in): reconnect, but a failing setup is retried at most once per cooldown
+        const who = currentOwner();
+        if (Date.now() - lastReconnect >= reconnectCooldownMs || who !== lastReconnectFor) { lastReconnect = Date.now(); lastReconnectFor = who; ensureRealtime(); }
+      }
     }, identityCheckMs)
     : null;
   refresh(true); ensureRealtime();
