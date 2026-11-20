@@ -1,5 +1,11 @@
 import type { ElectronAPI } from '../../../electron';
 import { browserEvents } from './events';
+import {
+  getBrowserTranscription,
+  isBrowserTranscriptionJob,
+  onBrowserTranscriptionProgress,
+  startBrowserTranscription,
+} from './browser-transcription';
 import { getUploadReference, invokeRpc, invokeRpcAt, uploadFile } from './rpc';
 
 type DialogOpenOptions = Parameters<ElectronAPI['dialog']['showOpen']>[0];
@@ -588,9 +594,24 @@ export const browserElectronAPI: BrowserElectronAPI = {
     persistGeneratedAsset: (params) => rpc('media', 'persistGeneratedAsset', params),
   },
   transcription: {
-    start: (params) => rpc('transcription', 'start', params),
-    get: (jobId) => rpc('transcription', 'get', jobId),
-    onProgress: (callback) => subscribe('transcription:progress', callback),
+    start: async (params) => {
+      if (params.engine === 'whisper-cloud') return rpc('transcription', 'start', params);
+      try {
+        return await rpc<{ jobId: string }>('transcription', 'start', params);
+      } catch (error) {
+        // No server Whisper worker configured: run Whisper in this browser.
+        if ((error as { code?: string } | null)?.code !== 'WEB_CAPABILITY_UNAVAILABLE') throw error;
+        return startBrowserTranscription(params);
+      }
+    },
+    get: async (jobId) => (
+      isBrowserTranscriptionJob(jobId) ? getBrowserTranscription(jobId) : rpc('transcription', 'get', jobId)
+    ),
+    onProgress: (callback) => {
+      const unsubscribeServer = subscribe('transcription:progress', callback);
+      const unsubscribeBrowser = onBrowserTranscriptionProgress(callback);
+      return () => { unsubscribeServer(); unsubscribeBrowser(); };
+    },
   },
   sam3: {
     start: () => rpc('sam3', 'start'),
