@@ -12,6 +12,8 @@ import Fastify from 'fastify'
 import { startTaskQueue, stopTaskQueue, taskQueue } from './lib/downloader'
 import { startEngines, stopEngines } from './lib/engines'
 import { resolveReadableMediaFile } from './lib/managed-files'
+import { aiRouter } from './lib/ai-router'
+import { failInterruptedAiRuns } from './lib/ai-host'
 import { projectTaskForApi } from './lib/projection'
 import { rpcRouter } from './lib/rpc-router'
 import { SseHub } from './lib/sse'
@@ -133,6 +135,8 @@ export const createApiServer = async () => {
   const rpcHandler = new RPCHandler(rpcRouter)
   const subscriptionsRpcHandler = new RPCHandler(subscriptionsRouter)
   const transcriptsRpcHandler = new RPCHandler(transcriptsRouter)
+  const aiRpcHandler = new RPCHandler(aiRouter)
+  failInterruptedAiRuns()
   const openApiHandler = new OpenAPIHandler(rpcRouter, {
     plugins: [
       new OpenAPIReferencePlugin({
@@ -366,6 +370,12 @@ export const createApiServer = async () => {
   fastify.all('/rpc/transcripts/*', async (request, reply) => {
     await transcriptsRpcHandler.handle(request, reply, {
       prefix: '/rpc/transcripts'
+    })
+  })
+
+  fastify.all('/rpc/ai/*', async (request, reply) => {
+    await aiRpcHandler.handle(request, reply, {
+      prefix: '/rpc/ai'
     })
   })
 

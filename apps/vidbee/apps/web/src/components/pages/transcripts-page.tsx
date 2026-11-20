@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { transcriptsClient } from "../../lib/orpc-client";
 import { AppShell } from "../layout/app-shell";
+import { AiSummaryPanel } from "./ai-summary-panel";
 
 const ACTIVE_STATES = new Set(["queued", "running", "retry-scheduled"]);
 const EXPORT_FORMATS: WebTranscriptExportFormat[] = ["txt", "md", "srt", "vtt"];
@@ -53,6 +54,7 @@ export const TranscriptsPage = () => {
 	const [detail, setDetail] = useState<WebTranscriptDetail | null>(null);
 	const [query, setQuery] = useState("");
 	const [busy, setBusy] = useState(false);
+	const [tab, setTab] = useState<"transcript" | "ai">("transcript");
 
 	const refreshList = useCallback(async () => {
 		try {
@@ -260,7 +262,33 @@ export const TranscriptsPage = () => {
 								</p>
 							)}
 
-							{detail.record && (
+							<div className="flex gap-1 border-b px-3 pt-2">
+								{(["transcript", "ai"] as const).map((name) => (
+									<button
+										className={`border-b-2 px-3 py-1.5 text-sm ${
+											tab === name
+												? "border-primary font-medium"
+												: "border-transparent text-muted-foreground"
+										}`}
+										key={name}
+										onClick={() => setTab(name)}
+										type="button"
+									>
+										{name === "ai"
+											? t("transcript.ai.tab", { defaultValue: "AI summary" })
+											: t("transcript.tab", { defaultValue: "Transcript" })}
+									</button>
+								))}
+							</div>
+
+							{tab === "ai" && (
+								<AiSummaryPanel
+									downloadId={detail.downloadId}
+									hasTranscript={Boolean(detail.record)}
+								/>
+							)}
+
+							{tab === "transcript" && detail.record && (
 								<div className="flex flex-wrap items-center gap-2 border-b p-3">
 									<Input
 										className="max-w-xs"
@@ -286,6 +314,7 @@ export const TranscriptsPage = () => {
 								</div>
 							)}
 
+							{tab === "transcript" && (
 							<div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
 								{segments.map((segment) => {
 									const speaker = segment.speakerId
@@ -317,6 +346,7 @@ export const TranscriptsPage = () => {
 									</p>
 								)}
 							</div>
+							)}
 						</>
 					) : (
 						<p className="p-6 text-muted-foreground text-sm">
