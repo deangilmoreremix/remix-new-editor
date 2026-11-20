@@ -36,6 +36,21 @@ export const isAllowed = (user, env = process.env) => {
   return [user?.id, user?.email].filter(Boolean).some((v) => list.includes(String(v).toLowerCase()));
 };
 
+/**
+ * The cookie is SameSite=None on HTTPS (Media Hub runs in an iframe), so the browser attaches it to cross-site requests.
+ * State-changing requests must therefore come from VidBee's own pages: same origin as this host. A browser always sends
+ * Origin (and Sec-Fetch-Site) on a cross-site POST; requests without either do not come from a web page.
+ */
+export const isSameOriginMutation = (req) => {
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return true;
+  const site = req.headers['sec-fetch-site'];
+  if (site) return site === 'same-origin' || site === 'none';
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim().toLowerCase();
+  try { return new URL(origin).host.toLowerCase() === host; } catch { return false; }
+};
+
 export function createVidBeeRouters({ auth }) {
   const session = express.Router();
   // Credentialed CORS for this one endpoint only (the cookie is scoped to /vidbee and is HttpOnly).
@@ -50,6 +65,7 @@ export function createVidBeeRouters({ auth }) {
 
   const proxy = (req, res) => {
     if (!verify(readCookie(req, COOKIE))) return res.status(401).type('text').send('Open Media Hub from the app to start a session.');
+    if (!isSameOriginMutation(req)) return res.status(403).type('text').send('Cross-site request blocked.');
     const t = target();
     const headers = { ...req.headers, host: t.host };
     delete headers.cookie; // never forward host-app credentials upstream

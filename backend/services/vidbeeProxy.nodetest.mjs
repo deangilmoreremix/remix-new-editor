@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import cors from 'cors';
 import express from 'express';
-import { installVidBee, isAllowed } from './vidbeeProxy.js';
+import { installVidBee, isAllowed, isSameOriginMutation } from './vidbeeProxy.js';
 
 describe('vidbee gate allowlist', () => {
   it('denies everyone outside development when unset', () => {
@@ -64,5 +64,20 @@ describe('vidbee gate CORS order', () => {
     const { headers } = await request(app, 'OPTIONS', '/api/vidbee/session', preflight);
     assert.equal(headers['access-control-allow-credentials'], undefined);
     assert.equal(headers['access-control-allow-origin'], '*');
+  });
+});
+
+describe('vidbee proxy cross-site protection', () => {
+  const req = (method, headers) => ({ method, headers });
+  it('blocks a cross-site POST', () => {
+    assert.equal(isSameOriginMutation(req('POST', { 'sec-fetch-site': 'cross-site', origin: 'https://evil.example', host: 'api.example.com' })), false);
+    assert.equal(isSameOriginMutation(req('POST', { origin: 'https://evil.example', host: 'api.example.com' })), false);
+    assert.equal(isSameOriginMutation(req('POST', { origin: 'null', host: 'api.example.com' })), false);
+  });
+  it('allows VidBee\'s own pages and reads', () => {
+    assert.equal(isSameOriginMutation(req('POST', { 'sec-fetch-site': 'same-origin', host: 'api.example.com' })), true);
+    assert.equal(isSameOriginMutation(req('POST', { origin: 'https://api.example.com', host: 'api.example.com' })), true);
+    assert.equal(isSameOriginMutation(req('POST', { origin: 'https://api.example.com', 'x-forwarded-host': 'api.example.com', host: 'internal:3000' })), true);
+    assert.equal(isSameOriginMutation(req('GET', { 'sec-fetch-site': 'cross-site' })), true);
   });
 });
