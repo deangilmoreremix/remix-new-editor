@@ -1,0 +1,92 @@
+# VidBee as ONE container (for Beam or any single-container host): API + web, one public port (3000).
+# Build from this folder:  docker build -f Dockerfile.beam -t vidbee .
+# Mount ONE persistent disk at /data (downloads in /data/downloads, database and settings in /data/vidbee).
+# Run exactly one instance: SQLite, the task queue and live AI runs are in-process.
+
+FROM node:22-alpine AS api-builder
+ENV PNPM_HOME=/pnpm
+ENV PATH=${PNPM_HOME}:${PATH}
+ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
+ENV HUSKY=0
+RUN apk add --no-cache python3 make g++ && corepack enable
+WORKDIR /app
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY patches patches
+COPY apps/api/package.json apps/api/package.json
+COPY packages/db/package.json packages/db/package.json
+COPY packages/downloader-core/package.json packages/downloader-core/package.json
+COPY packages/i18n/package.json packages/i18n/package.json
+COPY packages/logger/package.json packages/logger/package.json
+COPY packages/subscriptions-core/package.json packages/subscriptions-core/package.json
+COPY packages/task-queue/package.json packages/task-queue/package.json
+COPY packages/transcription/package.json packages/transcription/package.json
+RUN pnpm install --filter "{./apps/api}..." --frozen-lockfile
+COPY apps/api apps/api
+COPY packages/db packages/db
+COPY packages/downloader-core packages/downloader-core
+COPY packages/i18n packages/i18n
+COPY packages/logger packages/logger
+COPY packages/subscriptions-core packages/subscriptions-core
+COPY packages/task-queue packages/task-queue
+COPY packages/transcription packages/transcription
+RUN pnpm --filter ./apps/api run build
+RUN pnpm --filter ./apps/api deploy --prod --legacy --config.allowUnusedPatches=true /prod/api
+
+FROM node:22-alpine AS web-builder
+ENV PNPM_HOME=/pnpm
+ENV PATH=${PNPM_HOME}:${PATH}
+RUN corepack enable
+WORKDIR /app
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY patches patches
+COPY apps/web/package.json apps/web/package.json
+COPY packages/downloader-core/package.json packages/downloader-core/package.json
+COPY packages/i18n/package.json packages/i18n/package.json
+COPY packages/logger/package.json packages/logger/package.json
+COPY packages/subscriptions-core/package.json packages/subscriptions-core/package.json
+COPY packages/ui/package.json packages/ui/package.json
+RUN pnpm install --filter "{./apps/web}..." --frozen-lockfile --ignore-scripts
+COPY apps/web apps/web
+COPY packages/downloader-core packages/downloader-core
+COPY packages/i18n packages/i18n
+COPY packages/logger packages/logger
+COPY packages/subscriptions-core packages/subscriptions-core
+COPY packages/ui packages/ui
+RUN pnpm --filter ./apps/web run build
+RUN mkdir -p /prod/web/node_modules/@vidbee && cp -RL packages/logger /prod/web/node_modules/@vidbee/logger
+
+FROM node:22-alpine AS runner
+ENV NODE_ENV=production
+ENV YTDLP_PATH=/usr/bin/yt-dlp
+ENV FFMPEG_PATH=/usr/bin/ffmpeg
+ENV VIDBEE_API_HOST=127.0.0.1
+ENV VIDBEE_API_PORT=3100
+ENV VIDBEE_DOWNLOAD_DIR=/data/downloads
+ENV VIDBEE_DATA_DIR=/data/vidbee
+ENV VIDBEE_MIGRATIONS_DIR=/app/api/resources/drizzle
+ENV VIDBEE_PERSIST_QUEUE=1
+ENV VIDBEE_SKILLS_DIR=/app/api/skills
+ENV VIDBEE_AI_LOCK_SETTINGS=1
+ENV VIDBEE_API_URL_INTERNAL=http://127.0.0.1:3100
+ENV VIDBEE_WEB_HOST=0.0.0.0
+ENV VIDBEE_WEB_PORT=3000
+# Behind a platform URL the host name is not localhost: do not reject it.
+ENV VIDBEE_ALLOWED_HOSTS=*
+
+RUN apk add --no-cache yt-dlp ffmpeg wget
+RUN apk add --no-cache fontconfig font-dejavu || apk add --no-cache fontconfig ttf-dejavu
+
+WORKDIR /app
+COPY --from=api-builder /prod/api/node_modules ./api/node_modules
+COPY --from=api-builder /app/apps/api/dist ./api/dist
+COPY apps/desktop/resources/drizzle ./api/resources/drizzle
+COPY skills ./api/skills
+COPY --from=web-builder /app/apps/web/dist ./web/dist
+COPY --from=web-builder /app/apps/web/server.mjs ./web/server.mjs
+COPY --from=web-builder /prod/web/node_modules ./web/node_modules
+COPY beam/start.sh /app/start.sh
+
+# Runs as root on purpose: a platform-mounted disk is usually root-owned, and a non-root user could not write to it.
+RUN mkdir -p /data/downloads /data/vidbee
+EXPOSE 3000
+CMD ["/app/start.sh"]
