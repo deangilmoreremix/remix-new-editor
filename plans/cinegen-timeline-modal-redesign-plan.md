@@ -40,6 +40,16 @@ One shared modal shell, built from existing tokens (no new palette):
 - Transitions gets a context strip (Clip 1 → Clip 2) with a duration slider.
 - Master/detail variant (list left, detail right, steps with a status log) for Recipes, Prompt Gallery, Monetization Hub.
 
+## Catalog modals: current vs proposed
+Current (captured from the real components): `current-recipes.png`, `current-prompt-gallery.png`, `current-monetization-hub.png`.
+Proposed: `04-recipes-catalog.png`, `05-prompt-gallery.png`, `06-monetization-hub.png`.
+
+What the current ones have in common: grey `#111` panels with a lime accent unrelated to the Edit tab, a plain title bar with no icon or
+context, native `<select>` filters, a detail pane that starts empty ("Select a prompt to preview"), and a buttons-without-footer layout.
+Monetization Hub also dumps the full multi-hundred-word track description into each list card, so only one card fits on screen.
+Proposed: shared shell, search with `/`, tabs and filters as pills, selected-card ring, clamped descriptions, and a sticky footer with
+the primary action. The Monetization mockup's lesson list, durations and "Open track" button are illustrative, not from real data.
+
 ## Phases
 0. **Decide the accent** (cyan as the Edit tab shows now, or lime as the tokens say). Mockups use cyan. Switching is one token
    change: `--acc`, `--acc-dim`, `--acc-line` at the top of `mock.css`.
