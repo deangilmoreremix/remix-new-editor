@@ -65,10 +65,13 @@ export function inQuietHours(quiet, now = new Date()) {
  * Queue e-mails for recent in-app notifications whose owners opted in.
  * db: { recentNotifications(sinceIso), preferences(ownerIds), queuedIds(ids), enqueue(rows) }
  */
-export async function enqueueNotificationEmails({ adapter, db, now = new Date(), sinceHours = 24, types }) {
+export async function enqueueNotificationEmails({ adapter, db, now = new Date(), sinceHours = 24, types, minAgeMinutes = 0 }) {
   if (!adapter?.configured) return { queued: 0, reason: 'not_configured' };
   const since = new Date(now.getTime() - sinceHours * 3600_000).toISOString();
-  const notes = (await db.recentNotifications(since)).filter((n) => !types || types.includes(n.type)); // `types`: only these (the daily job passes the digests; alerts are e-mailed right away)
+  // `types`: only these. `minAgeMinutes`: leave notifications younger than that to the immediate path (push-dispatch), which queues and sends them itself;
+  // the daily recovery sweep uses it so it only picks up what that path never queued (it failed before enqueuing).
+  const youngest = now.getTime() - minAgeMinutes * 60_000;
+  const notes = (await db.recentNotifications(since)).filter((n) => (!types || types.includes(n.type)) && (!minAgeMinutes || !n.created_at || new Date(n.created_at).getTime() <= youngest));
   if (!notes.length) return { queued: 0 };
   const prefs = await db.preferences([...new Set(notes.map((n) => n.clerk_user_id))]);
   const already = new Set(await db.queuedIds(notes.map((n) => n.id)));
