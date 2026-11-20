@@ -9,6 +9,7 @@ import { after, before, describe, it } from 'node:test'
 
 const SERVER_KEY = 'server-secret-key'
 const seen = { legit: [], other: [] }
+const INTERNAL_BODY = 'internal-service-secret-body'
 const listen = (name) =>
   new Promise((resolve) => {
     const server = http
@@ -27,9 +28,19 @@ const listen = (name) =>
 let ai
 let legit
 let other
+let internal
 before(async () => {
   legit = await listen('legit')
   other = await listen('other')
+  internal = await new Promise((resolve) => {
+    const server = http
+      .createServer((req, res) => {
+        req.resume()
+        res.writeHead(500, { 'content-type': 'text/plain' })
+        res.end(INTERNAL_BODY)
+      })
+      .listen(0, '127.0.0.1', () => resolve({ server, url: `http://127.0.0.1:${server.address().port}` }))
+  })
   const base = mkdtempSync(path.join(os.tmpdir(), 'vb-ai-cred-'))
   Object.assign(process.env, {
     VIDBEE_DATA_DIR: path.join(base, 'data'),
@@ -45,6 +56,7 @@ before(async () => {
 after(() => {
   legit.server.close()
   other.server.close()
+  internal.server.close()
   setTimeout(() => process.exit(0), 50).unref()
 })
 
@@ -66,6 +78,13 @@ describe('server key and base URL', () => {
     await ai.testConnection({ baseUrl: other.url, apiKey: 'typed-by-user' })
     assert.deepEqual(seen.other, ['Bearer typed-by-user'])
     assert.equal(seen.other.includes(`Bearer ${SERVER_KEY}`), false)
+  })
+
+  it('does not echo what another address returns (a base URL can point at an internal service)', async () => {
+    const result = await ai.testConnection({ baseUrl: internal.url, apiKey: 'typed-by-user' })
+    assert.equal(result.ok, false)
+    assert.equal(result.error.includes(INTERNAL_BODY), false)
+    assert.match(result.error, /OpenAI error 500/)
   })
 
   it('when the settings are locked, nothing the caller sends is used', async () => {

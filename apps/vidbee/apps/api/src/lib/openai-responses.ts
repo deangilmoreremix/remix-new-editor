@@ -80,9 +80,11 @@ const errorFromResponse = async (response: Response): Promise<string> => {
       return `OpenAI error ${response.status}: ${parsed.error.message}`
     }
   } catch {
-    // fall through to the generic message
+    // Not a JSON error body.
   }
-  return `OpenAI error ${response.status}${raw ? `: ${raw.slice(0, 300)}` : ''}`
+  // Never echo a body that is not an API error: the base URL can point anywhere, and the caller must not be able
+  // to read what an internal address returns.
+  return `OpenAI error ${response.status}${response.statusText ? ` ${response.statusText}` : ''}`
 }
 
 const textOfMessage = (item: OutputItem): string => {
