@@ -99,7 +99,7 @@ for (const [categoryKey, list] of Object.entries(catalog)) {
     const model = a.endpoint.replace(/^\//, '');
     const path = `/api/v1/${model}`;
     if (!spec.paths[path]) errors.add(`endpoint not in openapi: ${path} (${a.slug})`);
-    const m = models.get(model);
+    const m = models.get(model) ?? models.get(a.targetModel);
     const entry = {
       id: a.slug,
       name: a.name,
@@ -116,6 +116,15 @@ for (const [categoryKey, list] of Object.entries(catalog)) {
         mediaInputs: (a.mediaInputs ?? []).map(({ key, label, type, required }) => ({ key, label, type, required })),
         defaultParams: a.defaultParams,
         hasPromptTemplate: Boolean(a.promptTemplate),
+        // Request fields the Studio sends besides prompt/media (values come from these controls).
+        parameters: (a.parameters ?? []).map((p) => ({
+          key: p.key, label: p.label, type: p.type, default: p.default,
+          options: p.options?.map((o) => o.value),
+        })),
+        // Sliders append " <label>: <value><unit>." to the prompt when moved off default.
+        sliders: (a.sliders ?? []).map(({ key, label, min, max, step, default: def, unit }) => ({ key, label, min, max, step, default: def, unit })),
+        // Presets swap in a different prompt and/or preset values; only the labels are kept.
+        presets: (a.presets ?? []).map((p) => ({ label: p.label, values: p.values })),
       },
     };
     if (entry.status === 'preset') {
@@ -146,12 +155,25 @@ const result = {
       endpoint: 'A dedicated muapi tool endpoint; call it directly.',
       preset: "A generic muapi model driven by a muapi-written prompt template (not copied here). The endpoint is public and callable; you supply the prompt.",
     },
+    howItWorks: {
+      source: "Read from the Studio's JavaScript (Apps runner chunk) and confirmed by opening all 78 app screens in a browser.",
+      steps: [
+        '1. The user uploads the media in mediaInputs (image/video/audio); the Studio uploads it and keeps the returned URL.',
+        '2. prompt = promptTemplate (or the chosen preset\'s prompt) + for each slider moved off its default: " <label>: <value><unit>." + the user\'s optional custom prompt. Apps with requiresPrompt=false send no prompt.',
+        '3. payload = { prompt, ...each entry of parameters (aspect_ratio, resolution, duration, ...), mediaInputs }. A media input named images_list is sent as an array [url]; any other key is sent as a string URL.',
+        '4. POST https://api.muapi.ai/api/v1<endpoint>  (the site proxies it as /api/api/v1<endpoint>; optional ?team_id=). Response carries request_id.',
+        '5. Poll GET /api/v1/predictions/{request_id}/result until it completes.',
+        '6. Cost shown on the button comes from POST /api/app/calculate_dynamic_cost {task_name: targetModel, payload}, falling back to defaultCostUsd.',
+        'Generate requires sign-in; signed-out users are redirected to /login.',
+      ],
+    },
     checked: [
       'Studio page and its lazy-loaded Apps chunk (the full 78-app catalog)',
       'Public OpenAPI spec, /api/v1/models, /api/v1/get-template-workflows',
+      'All 78 app screens opened in a headless browser (signed out); controls matched the catalog',
       'Docs pages incl. introduction, specialized-apps, white-label, embedding, cli, mcp, workflows, agents, design-agent-api',
     ],
-    notChecked: ['The logged-in dashboard pages', 'Live network calls from a signed-in Studio session (cost, extra inputs)'],
+    notChecked: ['The logged-in dashboard pages', 'A real signed-in generation (requires login and spends credits); the request shape comes from the Studio code, not from a captured call'],
     caveats: [
       "Prompt templates, presets and sliders are muapi's content; they were read for analysis but not stored. Check muapi's terms before reusing them.",
       'Some presets/sliders add inputs beyond mediaInputs; verify by running an app.',

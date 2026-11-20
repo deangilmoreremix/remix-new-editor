@@ -9,14 +9,27 @@
       "endpoint": "A dedicated muapi tool endpoint; call it directly.",
       "preset": "A generic muapi model driven by a muapi-written prompt template (not copied here). The endpoint is public and callable; you supply the prompt."
     },
+    "howItWorks": {
+      "source": "Read from the Studio's JavaScript (Apps runner chunk) and confirmed by opening all 78 app screens in a browser.",
+      "steps": [
+        "1. The user uploads the media in mediaInputs (image/video/audio); the Studio uploads it and keeps the returned URL.",
+        "2. prompt = promptTemplate (or the chosen preset's prompt) + for each slider moved off its default: \" <label>: <value><unit>.\" + the user's optional custom prompt. Apps with requiresPrompt=false send no prompt.",
+        "3. payload = { prompt, ...each entry of parameters (aspect_ratio, resolution, duration, ...), mediaInputs }. A media input named images_list is sent as an array [url]; any other key is sent as a string URL.",
+        "4. POST https://api.muapi.ai/api/v1<endpoint>  (the site proxies it as /api/api/v1<endpoint>; optional ?team_id=). Response carries request_id.",
+        "5. Poll GET /api/v1/predictions/{request_id}/result until it completes.",
+        "6. Cost shown on the button comes from POST /api/app/calculate_dynamic_cost {task_name: targetModel, payload}, falling back to defaultCostUsd.",
+        "Generate requires sign-in; signed-out users are redirected to /login."
+      ]
+    },
     "checked": [
       "Studio page and its lazy-loaded Apps chunk (the full 78-app catalog)",
       "Public OpenAPI spec, /api/v1/models, /api/v1/get-template-workflows",
+      "All 78 app screens opened in a headless browser (signed out); controls matched the catalog",
       "Docs pages incl. introduction, specialized-apps, white-label, embedding, cli, mcp, workflows, agents, design-agent-api"
     ],
     "notChecked": [
       "The logged-in dashboard pages",
-      "Live network calls from a signed-in Studio session (cost, extra inputs)"
+      "A real signed-in generation (requires login and spends credits); the request shape comes from the Studio code, not from a captured call"
     ],
     "caveats": [
       "Prompt templates, presets and sliders are muapi's content; they were read for analysis but not stored. Check muapi's terms before reusing them.",
@@ -53,7 +66,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -72,7 +88,55 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "Casual"
+          },
+          {
+            "label": "Formal"
+          },
+          {
+            "label": "Streetwear"
+          },
+          {
+            "label": "Athletic"
+          },
+          {
+            "label": "Evening"
+          },
+          {
+            "label": "Vintage"
+          }
+        ]
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -89,7 +153,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -112,7 +179,73 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [
+          {
+            "key": "direction",
+            "label": "Light Direction",
+            "min": -180,
+            "max": 180,
+            "step": 15,
+            "default": 0,
+            "unit": "°"
+          },
+          {
+            "key": "temperature",
+            "label": "Color Temperature",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "brightness",
+            "label": "Brightness",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "contrast",
+            "label": "Contrast",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          }
+        ],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -146,7 +279,10 @@
           }
         ],
         "defaultParams": {},
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [],
+        "sliders": [],
+        "presets": []
       }
     },
     {
@@ -162,7 +298,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -181,7 +320,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -198,7 +366,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -217,7 +388,55 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "Boho Chic"
+          },
+          {
+            "label": "Minimalist"
+          },
+          {
+            "label": "Punk Rock"
+          },
+          {
+            "label": "Preppy"
+          },
+          {
+            "label": "Y2K"
+          },
+          {
+            "label": "Cottagecore"
+          }
+        ]
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -234,7 +453,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -253,7 +475,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -270,7 +521,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -289,7 +543,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -328,7 +611,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "similarWorkflow": {
@@ -350,7 +666,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -369,7 +688,61 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "FPS Shooter"
+          },
+          {
+            "label": "RPG Fantasy"
+          },
+          {
+            "label": "Racing"
+          },
+          {
+            "label": "Fighting"
+          },
+          {
+            "label": "Survival Horror"
+          },
+          {
+            "label": "Sports"
+          },
+          {
+            "label": "Open World"
+          },
+          {
+            "label": "Platformer"
+          }
+        ]
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -386,7 +759,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -405,7 +781,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -422,7 +827,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -441,7 +849,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -458,7 +895,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -477,7 +917,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -494,7 +963,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -513,7 +985,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -530,7 +1031,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -549,7 +1053,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -566,7 +1099,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -585,7 +1121,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "similarWorkflow": {
@@ -607,7 +1172,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -626,7 +1194,49 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "8-bit"
+          },
+          {
+            "label": "16-bit"
+          },
+          {
+            "label": "32-bit"
+          },
+          {
+            "label": "Game Boy"
+          }
+        ]
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -643,7 +1253,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -662,7 +1275,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -701,7 +1343,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -740,7 +1415,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "similarWorkflow": {
@@ -784,7 +1492,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -823,7 +1564,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -840,7 +1614,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -859,7 +1636,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "similarWorkflow": {
@@ -903,7 +1709,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -942,7 +1781,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -981,7 +1853,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1020,7 +1925,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "similarWorkflow": {
@@ -1064,7 +2002,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1103,7 +2074,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1142,7 +2146,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1181,7 +2218,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "similarWorkflow": {
@@ -1225,7 +2295,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "similarWorkflow": {
@@ -1269,7 +2372,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1308,7 +2444,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1325,7 +2494,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -1344,7 +2516,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1383,7 +2584,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1422,7 +2656,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1461,7 +2728,40 @@
           "duration": 8,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1478,7 +2778,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -1497,7 +2800,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1544,7 +2876,51 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": false
+        "hasPromptTemplate": false,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Resolution",
+            "type": "dropdown",
+            "default": "480p",
+            "options": [
+              "480p",
+              "720p"
+            ]
+          },
+          {
+            "key": "quality",
+            "label": "Quality Level",
+            "type": "dropdown",
+            "default": "medium",
+            "options": [
+              "medium",
+              "high"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              5,
+              8
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1561,7 +2937,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -1580,7 +2959,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1623,7 +3031,23 @@
         "defaultParams": {
           "target_index": 0
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "target_index",
+            "label": "Target Face Index",
+            "type": "dropdown",
+            "default": 0,
+            "options": [
+              0,
+              1,
+              2,
+              3
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       }
     },
     {
@@ -1639,7 +3063,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -1658,7 +3085,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1702,7 +3158,34 @@
           "target_gender": "All",
           "target_index": 0
         },
-        "hasPromptTemplate": false
+        "hasPromptTemplate": false,
+        "parameters": [
+          {
+            "key": "target_gender",
+            "label": "Target Gender Filter",
+            "type": "dropdown",
+            "default": "All",
+            "options": [
+              "All",
+              "Female",
+              "Male"
+            ]
+          },
+          {
+            "key": "target_index",
+            "label": "Target Face Index",
+            "type": "dropdown",
+            "default": 0,
+            "options": [
+              0,
+              1,
+              2,
+              3
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       }
     },
     {
@@ -1718,7 +3201,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -1737,7 +3223,49 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "Corporate"
+          },
+          {
+            "label": "Creative"
+          },
+          {
+            "label": "LinkedIn"
+          },
+          {
+            "label": "Executive"
+          }
+        ]
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "similarWorkflow": {
@@ -1787,7 +3315,34 @@
           "resolution": "2k",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 10,
+            "options": [
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Resolution",
+            "type": "dropdown",
+            "default": "2k",
+            "options": [
+              "2k"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1832,7 +3387,34 @@
           "resolution": "2k",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 10,
+            "options": [
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Resolution",
+            "type": "dropdown",
+            "default": "2k",
+            "options": [
+              "2k"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1877,7 +3459,34 @@
           "resolution": "2k",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Resolution",
+            "type": "dropdown",
+            "default": "2k",
+            "options": [
+              "2k"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1894,7 +3503,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -1913,7 +3525,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1930,7 +3571,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -1949,7 +3593,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -1987,7 +3660,53 @@
           "output_container_and_codec": "webm_vp9",
           "preserve_audio": true
         },
-        "hasPromptTemplate": false
+        "hasPromptTemplate": false,
+        "parameters": [
+          {
+            "key": "background_color",
+            "label": "Background Color",
+            "type": "dropdown",
+            "default": "Transparent",
+            "options": [
+              "Transparent",
+              "Black",
+              "White",
+              "Gray",
+              "Green",
+              "Blue",
+              "Red",
+              "Yellow",
+              "Cyan",
+              "Magenta",
+              "Orange"
+            ]
+          },
+          {
+            "key": "output_container_and_codec",
+            "label": "Output Container & Codec",
+            "type": "dropdown",
+            "default": "webm_vp9",
+            "options": [
+              "webm_vp9",
+              "mp4_h264",
+              "mp4_h265",
+              "mov_proresks",
+              "gif"
+            ]
+          },
+          {
+            "key": "preserve_audio",
+            "label": "Audio Track",
+            "type": "dropdown",
+            "default": true,
+            "options": [
+              true,
+              false
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       }
     },
     {
@@ -2025,7 +3744,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2064,7 +3816,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2103,7 +3888,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2142,7 +3960,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2181,7 +4032,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2220,7 +4104,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2259,7 +4176,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2298,7 +4248,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2337,7 +4320,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2376,7 +4392,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2415,7 +4464,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2454,7 +4536,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2493,7 +4608,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2532,7 +4680,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2571,7 +4752,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2610,7 +4824,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2649,7 +4896,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2688,7 +4968,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2727,7 +5040,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2766,7 +5112,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2783,7 +5162,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -2805,7 +5187,121 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [
+          {
+            "key": "rotation",
+            "label": "Rotation",
+            "min": -180,
+            "max": 180,
+            "step": 5,
+            "default": 0,
+            "unit": "°"
+          },
+          {
+            "key": "tilt",
+            "label": "Tilt",
+            "min": -90,
+            "max": 90,
+            "step": 5,
+            "default": 0,
+            "unit": "°"
+          },
+          {
+            "key": "zoom",
+            "label": "Zoom",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          }
+        ],
+        "presets": [
+          {
+            "label": "Front View (0°)",
+            "values": {
+              "rotation": 0,
+              "tilt": 0,
+              "zoom": 0
+            }
+          },
+          {
+            "label": "Right 45° Front-Quarter",
+            "values": {
+              "rotation": 45,
+              "tilt": 0,
+              "zoom": 0
+            }
+          },
+          {
+            "label": "Left 45° Front-Quarter",
+            "values": {
+              "rotation": -45,
+              "tilt": 0,
+              "zoom": 0
+            }
+          },
+          {
+            "label": "Right Side Profile (+90°)",
+            "values": {
+              "rotation": 90,
+              "tilt": 0,
+              "zoom": 0
+            }
+          },
+          {
+            "label": "Top-Down Overhead",
+            "values": {
+              "rotation": 0,
+              "tilt": 40,
+              "zoom": 10
+            }
+          },
+          {
+            "label": "Low Hero Angle",
+            "values": {
+              "rotation": 0,
+              "tilt": -30,
+              "zoom": 0
+            }
+          },
+          {
+            "label": "Close-up Zoom",
+            "values": {
+              "rotation": 20,
+              "tilt": -10,
+              "zoom": 40
+            }
+          }
+        ]
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "similarWorkflow": {
@@ -2827,7 +5323,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -2846,7 +5345,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2863,7 +5391,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -2882,7 +5413,61 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "Wide"
+          },
+          {
+            "label": "Medium"
+          },
+          {
+            "label": "Close-up"
+          },
+          {
+            "label": "Extreme close-up"
+          },
+          {
+            "label": "Over-the-shoulder"
+          },
+          {
+            "label": "Low angle"
+          },
+          {
+            "label": "High angle"
+          },
+          {
+            "label": "Dutch angle"
+          }
+        ]
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2899,7 +5484,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -2921,7 +5509,64 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [
+          {
+            "key": "zoom",
+            "label": "Zoom",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "tilt",
+            "label": "Vertical angle",
+            "min": -90,
+            "max": 90,
+            "step": 5,
+            "default": 0,
+            "unit": "°"
+          },
+          {
+            "key": "rotation",
+            "label": "Rotation",
+            "min": -180,
+            "max": 180,
+            "step": 5,
+            "default": 0,
+            "unit": "°"
+          }
+        ],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2960,7 +5605,40 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -2999,7 +5677,56 @@
           "duration": 5,
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "Morph"
+          },
+          {
+            "label": "Dissolve"
+          },
+          {
+            "label": "Zoom through"
+          },
+          {
+            "label": "Whip pan"
+          },
+          {
+            "label": "Match cut"
+          }
+        ]
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -3016,7 +5743,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -3035,7 +5765,36 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
@@ -3052,7 +5811,10 @@
         "path": "/api/v1/seedream-5.0-pro-edit",
         "model": "seedream-5.0-pro-edit",
         "targetModel": "bytedance-seedream-5.0-pro-edit",
-        "requiredFields": null
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
       },
       "studio": {
         "defaultCostUsd": 0.045,
@@ -3078,7 +5840,122 @@
           "resolution": "1K",
           "custom_prompt": ""
         },
-        "hasPromptTemplate": true
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [
+          {
+            "key": "temperature",
+            "label": "Temperature",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "contrast",
+            "label": "Contrast",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "saturation",
+            "label": "Saturation",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "highlights",
+            "label": "Highlights",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "exposure",
+            "label": "Exposure",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "sharpness",
+            "label": "Sharpness",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "grain",
+            "label": "Film Grain",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          }
+        ],
+        "presets": [
+          {
+            "label": "Natural"
+          },
+          {
+            "label": "Cinematic"
+          },
+          {
+            "label": "Split Tone"
+          },
+          {
+            "label": "Soft Skin"
+          },
+          {
+            "label": "Old Lens"
+          },
+          {
+            "label": "16mm Film"
+          },
+          {
+            "label": "Moody"
+          }
+        ]
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     }
