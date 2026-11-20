@@ -40,7 +40,7 @@
       "explanation": "A dropdown next to the product button listing your brands, plus 'No brand logo'. It opens on the brand you came from (?brandId=) or the last brand you used.",
       "whyToUse": "Adds the brand's logo as a second reference and its colours and imagery style to the prompt, and saves the results to that brand's photoshoots.",
       "inputRequired": "At least one saved brand; the dropdown is hidden if you have none.",
-      "restrictions": "An SVG or ICO logo is left out, since the edit model would reject it."
+      "restrictions": "An SVG, ICO, GIF, AVIF, BMP or TIFF logo is left out, since the edit model would reject it; use PNG, JPG or WebP."
     },
     {
       "feature": "Direction",
@@ -230,7 +230,7 @@
       "issue": "Logo does not appear to be used",
       "steps": [
         "Check the brand dropdown is set to your brand.",
-        "An SVG or ICO logo is skipped; upload a PNG or JPG logo to the brand.",
+        "An SVG, ICO, GIF, AVIF, BMP or TIFF logo is skipped; give the brand a PNG, JPG or WebP logo.",
         "Logo and colours are only used in Brand API mode."
       ]
     }
