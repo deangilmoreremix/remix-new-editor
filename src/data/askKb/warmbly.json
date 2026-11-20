@@ -1,0 +1,823 @@
+{
+  "id": "warmbly",
+  "name": "Warmbly Studio",
+  "route": "#/warmbly",
+  "description": "Warmbly Studio is the open-source Warmbly platform for B2B cold email and mailbox warmup, open inside the app as a studio. Warmbly sends cold email from mailboxes you own. It warms them up, spreads your campaigns across them, and brings every reply into one inbox.",
+  "shortDescription": "Cold email campaigns, mailbox warmup, a shared inbox and a CRM, from the mailboxes you own.",
+  "keyFeatures": [
+    "Mailboxes: Connect sender accounts, providers, and how they are assigned to workers.",
+    "Import mailboxes: Connect hundreds or thousands of mailboxes from a spreadsheet, a vendor export, or a pasted list.",
+    "Migrate from another tool: Bring your blocklist, mailboxes, campaigns and leads over from Smartlead, Instantly, lemlist, Reply.io, Woodpecker, Mailshake, Saleshandy, Snov.io, Apollo or QuickMail with an API key.",
+    "Sending domains: Every domain your mailboxes send from, with its authentication, tracking host and a redirect for visitors to the bare domain.",
+    "Sending behavior: Give each mailbox a human workday: randomized hours, volume, lunch break, and spacing, in its own timezone.",
+    "Warmup: Natural warmup threads, placement evidence, participation and conservative pacing.",
+    "Warmbly Cloud for self-hosted instances: How a self-hosted instance already linked to Warmbly Cloud warms its mailboxes in the hosted pool. Warmbly Cloud no longer links new instances.",
+    "Partnership plan: Connect mailboxes through the API, sign Google and Microsoft mailboxes in through your own OAuth app, and let Warmbly run their warmup on Warmbly Cloud.",
+    "Campaigns: Create and send cold outreach campaigns safely.",
+    "Sequences & steps: Multi-step sequences, follow-ups, A/B variants, and reply branching.",
+    "Personalization & Expressions: Merge fields, conditionals, fallbacks, functions, spintax, and automation expressions: the templating language shared by campaign emails and automations.",
+    "Deliverability: Bounce, complaint, and spam-placement health, with the thresholds Warmbly acts on.",
+    "Inbox placement tests: Send a campaign step or a template from one of your mailboxes, or from a whole fleet at once, to seed inboxes at the major providers, and see where each copy landed.",
+    "Unsubscribe and suppression: How recipients opt out of campaign email, what Warmbly does when they do, and how the suppression list works.",
+    "Advisor: Warmbly watches your sending and tells you what to fix, on the page where the fix lives.",
+    "Contacts & CRM: Import contacts, custom fields, labels, deals, and pipelines.",
+    "Lead finder: Find local businesses on a map, read their websites for the people who run them, emails and socials, filter and score them, then export them or add them to contacts and campaigns.",
+    "Segments: Save reusable audiences built from contact fields, labels, campaign activity and email engagement, then add them to campaigns in one step.",
+    "Sending by region and timezone: Place every contact from what their record already says, split an audience by region, and send each lead inside their own working day.",
+    "Forms: Build a hosted lead-capture form, style it to match your site, embed it anywhere, and turn every submission into a contact.",
+    "Website tracking: Install the tracking snippet, see which pages a contact visits, and control consent and retention.",
+    "Unibox: A unified inbox across all connected mailboxes, with labels and threading.",
+    "Meetings: Calendly / Cal.com scheduling, booking links, and the meetings timeline.",
+    "Automations: A visual flow builder: a trigger event connected to action steps across your integrations.",
+    "AI steps in automations: Add an AI step or an AI switch to an automation so a flow can read the event with a model, take reversible actions, or route down one of your cases.",
+    "Balance and usage: How the workspace balance pays for AI and other metered work in US dollars, the monthly allowance each plan includes, what typical actions cost, adding money, automatic reload, notices and spend limits.",
+    "AI variables: Drop AI blocks into a campaign email that write a unique, personalized snippet for each recipient at send time.",
+    "Remie, the AI assistant: Remie, Warmbly's in-product AI assistant, searches your data, edits records, sends messages with your approval, and manages campaigns, mailboxes, and settings, never doing anything your own role could not.",
+    "AI contact research: Research a contact on the public web to gather current, cited facts and ready-to-use openers, one at a time or in bulk.",
+    "Inbox agent: When someone replies, the inbox agent drafts a suggested reply in your voice and holds it in the unibox for you to approve, edit, or discard. It never sends on its own.",
+    "Automatic inbox tagging: Label and score inbound mail as it arrives, keep automated mail out of the inbox, and let a confident verdict hold, stop, follow up or suppress. Optional, off by default.",
+    "AI skills: Teach your AI features how your team works by writing reusable playbooks Remie, research, and reply drafts follow.",
+    "Connect MCP tools: Give Remie extra tools by connecting an external MCP server, reviewing what it exposes, and turning it on.",
+    "Webhooks: Receive real-time HTTP callbacks when things happen in your Warmbly workspace.",
+    "Integrations: Connect third-party tools over OAuth and send data out via webhooks.",
+    "Slack: Ask the Warmbly assistant from Slack, work inbox replies in a Slack channel, and route notifications to the right channels.",
+    "HubSpot: Run your workspace's CRM on HubSpot: deals, tasks and notes written through, outreach logged on the timeline, and campaigns that stop when HubSpot says a contact has moved on.",
+    "Pipedrive: Run your workspace's CRM on Pipedrive: deals, activities and notes written through, outreach logged on the person, and campaigns that stop when Pipedrive says someone has moved on.",
+    "Salesforce: Two-way Salesforce sync: activity on the timeline, Lead Status writeback, do-not-email in step, imports from list views and Campaigns, and Salesforce context on every contact.",
+    "Apollo: Import saved Apollo lists into Warmbly, keep them in sync every hour, and enrich contacts from Apollo's people database with your own API key.",
+    "Clay: Send enriched rows from a Clay table into Warmbly as contacts, and send replies, bounces, meetings and other Warmbly events back into a Clay table.",
+    "Zapier: Connect Warmbly to thousands of apps with triggers, actions, and searches.",
+    "Make: Connect Warmbly to Make.com with triggers, actions, and searches.",
+    "n8n: Connect Warmbly to n8n workflows, self-hosted or cloud, with the REST API and webhooks in both directions.",
+    "Browsing and filters: Keep your filters, searches, sorting and view choices when refreshing or returning to a browsing view.",
+    "Plans and billing: How plans unlock features, how to upgrade from anywhere in the dashboard, and what changes when you switch.",
+    "Agencies: Run outreach for many clients from one account: a workspace per client, staff who reach every client, one shared monthly send pool, a shared AI balance and one bill.",
+    "White-label: Put your own brand, domain, theme and website on the pages your clients see: connect links, shared reports, report emails, forms and the dashboard on your own domain.",
+    "Analytics: Campaign and account performance metrics.",
+    "Client reports: Share a live, branded report of a client's campaigns by link, embed it on your site, and email it to the client every week or month.",
+    "Notifications: In-app notification feed and per-category preferences.",
+    "Appearance: Light, dark, or matching your device: how the dashboard and iOS app theme is chosen and what it changes.",
+    "Security: Two-factor authentication, passkeys, and sessions.",
+    "Export and import: Move a whole workspace between Warmbly instances, including mailboxes, campaigns, contacts, and inbox history.",
+    "Team & roles: Invite members and control access with roles, permissions, and resource scopes.",
+    "Live collaboration: See your team working in real time across the whole dashboard."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Mailboxes",
+      "explanation": "Connect sender accounts, providers, and how they are assigned to workers. A mailbox is a sender account you connect to Warmbly. Every warmup message and campaign email goes out through one you own."
+    },
+    {
+      "feature": "Import mailboxes",
+      "explanation": "Connect hundreds or thousands of mailboxes from a spreadsheet, a vendor export, or a pasted list. Import mailboxes connects many mailboxes in one go, from the file your inbox vendor or your previous sending tool gave you. Only an address and a password are required: servers, ports and encryption are found for you. Moving from Smartlead, Instantly or another outreach tool? Migrate from another tool brings the mailboxes over with your campaigns, leads and blocklist from an API key."
+    },
+    {
+      "feature": "Migrate from another tool",
+      "explanation": "Bring your blocklist, mailboxes, campaigns and leads over from Smartlead, Instantly, lemlist, Reply.io, Woodpecker, Mailshake, Saleshandy, Snov.io, Apollo or QuickMail with an API key. Migrate from another tool reads your old outreach tool through its API and rebuilds what it holds in Warmbly: the blocklist, the mailboxes, the campaigns with their steps and the leads in them. You paste an API key, see what Warmbly found, and choose what comes over. Warmbly only reads from the other tool and never changes anything there."
+    },
+    {
+      "feature": "Sending domains",
+      "explanation": "Every domain your mailboxes send from, with its authentication, tracking host and a redirect for visitors to the bare domain. A sending domain is any domain one of your mailboxes has an address on. Warmbly lists them for you, and from here you give each one a tracking host and a redirect for visitors to the bare domain."
+    },
+    {
+      "feature": "Sending behavior",
+      "explanation": "Give each mailbox a human workday: randomized hours, volume, lunch break, and spacing, in its own timezone. Sending behavior gives each mailbox a human workday, so its sending does not look automated. You set ranges instead of fixed values, and each day the mailbox rolls its own start, finish, lunch break, daily target and hourly ceiling, in its own timezone."
+    },
+    {
+      "feature": "Warmup",
+      "explanation": "Natural warmup threads, placement evidence, participation and conservative pacing. Warmup sends ordinary-looking plain-text threads between participating mailboxes and records where they land. It reveals configuration and delivery problems, but it does not guarantee inbox placement."
+    },
+    {
+      "feature": "Warmbly Cloud for self-hosted instances",
+      "explanation": "How a self-hosted instance already linked to Warmbly Cloud warms its mailboxes in the hosted pool. Warmbly Cloud no longer links new instances. Linking is closed on every plan. Existing connections keep working. To warm in the hosted pool, use a hosted workspace on app.warmbly.com and move the mailboxes there; a workspace export can carry the rest of the workspace. A self-hosted instance that is not linked connects Google and Microsoft mailboxes through its own OAuth apps and serves its root redirects itself. This page is for a self-hosted instance that is already linked to Warmbly Cloud. A linked instance's enrolled mailboxes warm in the hosted pool, instead of only against the few other…"
+    },
+    {
+      "feature": "Partnership plan",
+      "explanation": "Connect mailboxes through the API, sign Google and Microsoft mailboxes in through your own OAuth app, and let Warmbly run their warmup on Warmbly Cloud. The Partnership plan is for a business that brings many mailboxes to Warmbly from its own product. You connect mailboxes through the API, Warmbly warms them in the premium pool on its own workers, and you read their health and placement back through the same API."
+    },
+    {
+      "feature": "Campaigns",
+      "explanation": "Create and send cold outreach campaigns safely. A campaign sends a sequence of emails to a list of contacts, spread across your connected mailboxes. Warmbly handles the timing, volume limits and mailbox rotation, so sending looks natural and stays safe."
+    },
+    {
+      "feature": "Sequences & steps",
+      "explanation": "Multi-step sequences, follow-ups, A/B variants, and reply branching. A sequence is the series of emails a campaign sends each contact: the first email, then follow-ups spaced over days. You build it on a visual canvas where each step is a card, and the lines between cards decide who goes where next."
+    },
+    {
+      "feature": "Personalization & Expressions",
+      "explanation": "Merge fields, conditionals, fallbacks, functions, spintax, and automation expressions: the templating language shared by campaign emails and automations. Personalization lets you write one email that comes out tailored for every contact, using merge fields like {{.FirstName}}. The same language also powers automation conditions and action text, and needs no programming knowledge."
+    },
+    {
+      "feature": "Deliverability",
+      "explanation": "Bounce, complaint, and spam-placement health, with the thresholds Warmbly acts on. Deliverability is whether your mail reaches the inbox instead of bouncing, getting marked as spam, or landing in junk. Warmbly tracks it per mailbox and per campaign, and acts automatically when a mailbox looks risky."
+    },
+    {
+      "feature": "Inbox placement tests",
+      "explanation": "Send a campaign step or a template from one of your mailboxes, or from a whole fleet at once, to seed inboxes at the major providers, and see where each copy landed. A placement test sends a copy of your email from one of your real mailboxes to seed inboxes at different providers. It then shows where each copy landed: the primary inbox, a Gmail tab, spam, or nowhere at all."
+    },
+    {
+      "feature": "Unsubscribe and suppression",
+      "explanation": "How recipients opt out of campaign email, what Warmbly does when they do, and how the suppression list works. Every campaign email gives its recipient a way to stop hearing from you. Every opt-out is honoured automatically across the whole workspace."
+    },
+    {
+      "feature": "Advisor",
+      "explanation": "Warmbly watches your sending and tells you what to fix, on the page where the fix lives. The Advisor checks your workspace for problems that quietly hurt cold outreach, such as climbing complaints or a domain missing DMARC. It says what is wrong and what to do, on the page where the problem is. It only speaks up when something is hurting deliverability or stopping mail from going out, and never about a choice that is yours to make. A one-email campaign, a long follow-up gap, a single copy variant or a high cap on a mailbox with clean numbers is left alone."
+    },
+    {
+      "feature": "Contacts & CRM",
+      "explanation": "Import contacts, custom fields, labels, deals, and pipelines. Contacts are the people you reach out to. The CRM tracks what happens after they reply."
+    },
+    {
+      "feature": "Lead finder",
+      "explanation": "Find local businesses on a map, read their websites for the people who run them, emails and socials, filter and score them, then export them or add them to contacts and campaigns. The lead finder searches a map for businesses of a kind, in the exact area you choose, and keeps every one it finds as a lead in your workspace. From there you can read each business's own website for the people who work there, email addresses and social profiles, work out and check those people's addresses, sort and filter the results, and turn the good ones into contacts or a campaign's leads. Open it from Lead finder in the sidebar."
+    },
+    {
+      "feature": "Segments",
+      "explanation": "Save reusable audiences built from contact fields, labels, campaign activity and email engagement, then add them to campaigns in one step. A segment is a saved audience: a set of conditions over your contacts, plus any contacts you pin in or out by hand. Membership is evaluated live, so a contact who starts matching is in the segment with no rebuild step."
+    },
+    {
+      "feature": "Sending by region and timezone",
+      "explanation": "Place every contact from what their record already says, split an audience by region, and send each lead inside their own working day. Warmbly works out where each contact is from the data you already have: the timezone, country, state, city or location columns you import or sync, the phone number and the email domain. Nothing has to be typed in. That location powers three things: segment conditions by region, country and timezone; campaigns that read their sending window in each lead's own timezone; and a per-campaign breakdown of where its leads are."
+    },
+    {
+      "feature": "Forms",
+      "explanation": "Build a hosted lead-capture form, style it to match your site, embed it anywhere, and turn every submission into a contact. Forms turn website visitors into contacts. You build a form, publish it to a hosted page, and share the link or embed it on any website."
+    },
+    {
+      "feature": "Website tracking",
+      "explanation": "Install the tracking snippet, see which pages a contact visits, and control consent and retention. Website tracking adds visits to your own site to a contact's activity timeline: which pages they saw, where they came from and which campaign brought them. It is off until you turn it on."
+    },
+    {
+      "feature": "Unibox",
+      "explanation": "A unified inbox across all connected mailboxes, with labels and threading. Unibox is one inbox for every connected mailbox. You read, sort and reply from a single screen instead of logging into each account."
+    },
+    {
+      "feature": "Meetings",
+      "explanation": "Calendly / Cal.com scheduling, booking links, and the meetings timeline. Browsing filters, searches and view choices are remembered in your browser tab across refreshes and navigation, separately for each user and workspace. Booked calls are a first-class part of your pipeline: they appear on the Meetings page and the contact's timeline live, and can trigger automations. Meetings arrive two ways. Auto, when a prospect self-books through a connected Calendly or Cal.com link, captured over that provider's webhook. Manual, when you log a call yourself with New meeting, created instantly with no external redirect."
+    },
+    {
+      "feature": "Automations",
+      "explanation": "A visual flow builder: a trigger event connected to action steps across your integrations. An automation does work for you when something happens: a reply arrives or a meeting is booked, and Warmbly posts to Slack, pushes to your CRM or labels a contact. You build it on a canvas, with no code."
+    },
+    {
+      "feature": "AI steps in automations",
+      "explanation": "Add an AI step or an AI switch to an automation so a flow can read the event with a model, take reversible actions, or route down one of your cases. AI steps let an automation read an event with a model and act on it, or route it down one of your cases. They are built in and need no integration."
+    },
+    {
+      "feature": "Balance and usage",
+      "explanation": "How the workspace balance pays for AI and other metered work in US dollars, the monthly allowance each plan includes, what typical actions cost, adding money, automatic reload, notices and spend limits. AI and other metered features are paid from the workspace balance, in US dollars, and they need a paid plan. Your plan includes a monthly allowance that resets each billing cycle. Money you add never expires and is spent after the allowance. Each charge is what the work actually used, at the provider's price plus a markup."
+    },
+    {
+      "feature": "AI variables",
+      "explanation": "Drop AI blocks into a campaign email that write a unique, personalized snippet for each recipient at send time. An AI variable is a block you place inside a campaign email that generates its own copy for every recipient. Where a normal variable like {{.FirstName}} substitutes a stored field, an AI variable runs a short instruction against each contact and writes a snippet tailored to them, right where you dropped it. The rest of the email is yours; the AI variable fills one spot with something specific to the person receiving it. Because it runs per recipient, an AI variable is charged to the workspace balance for each contact it resolves. Plan for that the same way you plan send volume."
+    },
+    {
+      "feature": "Remie, the AI assistant",
+      "explanation": "Remie, Warmbly's in-product AI assistant, searches your data, edits records, sends messages with your approval, and manages campaigns, mailboxes, and settings, never doing anything your own role could not. Remie is Warmbly's AI assistant: a chat panel in the dashboard that reads across your workspace and takes almost any action you could take yourself. It asks before it changes anything, unless a member with Manage settings has chosen Always allow for that kind of action."
+    },
+    {
+      "feature": "AI contact research",
+      "explanation": "Research a contact on the public web to gather current, cited facts and ready-to-use openers, one at a time or in bulk. AI contact research reads the public web for a specific person and their company, then saves a small set of accurate, cited facts you can use to write a genuinely personal first email. It is grounded in your workspace voice profile, so what it saves is judged by what you actually sell and who you sell to. It gathers raw material; it never writes or sends the email. You stay in control of the outreach."
+    },
+    {
+      "feature": "Inbox agent",
+      "explanation": "When someone replies, the inbox agent drafts a suggested reply in your voice and holds it in the unibox for you to approve, edit, or discard. It never sends on its own. The inbox agent watches your replies. When a real person replies to one of your campaigns, it reads the thread, drafts a suggested reply in your voice, and attaches it to the conversation for you to review. You approve and send it, edit it first, or discard it. Nothing is ever sent because the agent wrote it: a person decides every time. This is a paid feature and it is off until you turn it on."
+    },
+    {
+      "feature": "Automatic inbox tagging",
+      "explanation": "Label and score inbound mail as it arrives, keep automated mail out of the inbox, and let a confident verdict hold, stop, follow up or suppress. Optional, off by default. Automatic tagging reads each inbound message, files it under workspace labels and scores how much it deserves your attention. It is optional and off until an operator turns it on."
+    },
+    {
+      "feature": "AI skills",
+      "explanation": "Teach your AI features how your team works by writing reusable playbooks Remie, research, and reply drafts follow. AI skills are short playbooks you write once and your AI features reuse everywhere. A skill captures how your team actually works: how you qualify a lead, handle a common objection, or run a first call. Remie, contact research, and reply drafts all read your enabled skills, so their output follows your process instead of a generic default. Skills live under Settings, AI skills and require the Manage settings permission."
+    },
+    {
+      "feature": "Connect MCP tools",
+      "explanation": "Give Remie extra tools by connecting an external MCP server, reviewing what it exposes, and turning it on. Remie, the AI assistant, can use tools from external MCP servers you connect, on top of Warmbly's built-in ones. Connect your own server or a third-party one, review the tools it offers, and enable it. From then on Remie can call those tools, always asking you first. Connections live under Settings, Connections and require the Manage settings permission."
+    },
+    {
+      "feature": "Webhooks",
+      "explanation": "Receive real-time HTTP callbacks when things happen in your Warmbly workspace. Webhooks send a signed HTTP POST to your own URL when something happens in your workspace, such as a reply landing or a campaign completing. Use them to update your CRM or trigger other tools without polling the API."
+    },
+    {
+      "feature": "Integrations",
+      "explanation": "Connect third-party tools over OAuth and send data out via webhooks. Integrations connect Warmbly to the rest of your tools. When a reply lands, a meeting is booked or an email bounces, your CRM, chat channel or automation tool hears about it."
+    },
+    {
+      "feature": "Slack",
+      "explanation": "Ask the Warmbly assistant from Slack, work inbox replies in a Slack channel, and route notifications to the right channels. Warmbly for Slack brings the AI assistant, your inbox replies and Warmbly notifications into the Slack workspace your team already uses."
+    },
+    {
+      "feature": "HubSpot",
+      "explanation": "Run your workspace's CRM on HubSpot: deals, tasks and notes written through, outreach logged on the timeline, and campaigns that stop when HubSpot says a contact has moved on. HubSpot mode makes HubSpot your workspace's CRM. The deals, pipelines, tasks and notes you see in Warmbly are HubSpot's records, and your outreach is logged on each contact's HubSpot timeline."
+    },
+    {
+      "feature": "Pipedrive",
+      "explanation": "Run your workspace's CRM on Pipedrive: deals, activities and notes written through, outreach logged on the person, and campaigns that stop when Pipedrive says someone has moved on. Pipedrive mode makes Pipedrive your workspace's CRM. The deals, tasks and notes you see in Warmbly are Pipedrive's records, and your outreach is logged on each person."
+    },
+    {
+      "feature": "Salesforce",
+      "explanation": "Two-way Salesforce sync: activity on the timeline, Lead Status writeback, do-not-email in step, imports from list views and Campaigns, and Salesforce context on every contact. The Salesforce integration keeps your Salesforce org and Warmbly in step. Campaign emails, replies and meetings are logged on the Lead or Contact, and an opt-out on either side stops email on both."
+    },
+    {
+      "feature": "Apollo",
+      "explanation": "Import saved Apollo lists into Warmbly, keep them in sync every hour, and enrich contacts from Apollo's people database with your own API key. The Apollo integration brings people from your Apollo account into Warmbly and fills in what your contacts are missing. It acts with your own Apollo API key, so it uses your Apollo plan and credits."
+    },
+    {
+      "feature": "Clay",
+      "explanation": "Send enriched rows from a Clay table into Warmbly as contacts, and send replies, bounces, meetings and other Warmbly events back into a Clay table. The Clay integration works in both directions. A Clay table sends rows to Warmbly, which become contacts and can go straight into a campaign. Warmbly sends events back to a Clay table, so a Clay workflow can act on a reply, a bounce or a booked meeting. Clay has no app to install and needs no Clay API key. Both directions use URLs."
+    },
+    {
+      "feature": "Zapier",
+      "explanation": "Connect Warmbly to thousands of apps with triggers, actions, and searches. Wire Warmbly into thousands of apps without code: start a Zap when a reply lands, push form leads into a campaign, or sync deals onward."
+    },
+    {
+      "feature": "Make",
+      "explanation": "Connect Warmbly to Make.com with triggers, actions, and searches. Wire Warmbly into Make.com scenarios without code: start a scenario when a reply lands, push form leads into a campaign, or sync deals onward."
+    },
+    {
+      "feature": "n8n",
+      "explanation": "Connect Warmbly to n8n workflows, self-hosted or cloud, with the REST API and webhooks in both directions. n8n has no Warmbly node yet, and it does not need one: its HTTP Request and Webhook nodes cover both directions, and every Warmbly endpoint is documented in the API reference."
+    },
+    {
+      "feature": "Browsing and filters",
+      "explanation": "Keep your filters, searches, sorting and view choices when refreshing or returning to a browsing view. Warmbly remembers browsing controls in your current browser tab. Refreshing a page, leaving for another page and returning restores your last choices instead of silently resetting the list."
+    },
+    {
+      "feature": "Plans and billing",
+      "explanation": "How plans unlock features, how to upgrade from anywhere in the dashboard, and what changes when you switch. Each owner's first hosted workspace starts with a 14-day free trial, no card needed: two mailboxes warming, 20 sends a day, the unified inbox, contacts and campaigns. After the trial, connecting and warming mailboxes needs a paid plan, and the plan decides what else is on: sending from Warmbly Cloud, the unified inbox, contacts, the CRM, automations and integrations come with the plans compared below."
+    },
+    {
+      "feature": "Agencies",
+      "explanation": "Run outreach for many clients from one account: a workspace per client, staff who reach every client, one shared monthly send pool, a shared AI balance and one bill. An agency groups the workspaces you run for clients. Each client keeps its own workspace, with its own mailboxes, contacts, campaigns and inbox, and the agency adds four things on top: your staff reach every client without being invited one by one, every client sends from one shared monthly pool, every client can draw on one shared AI balance, and the whole agency is billed once. There is no per-client fee and no limit on the number of clients."
+    },
+    {
+      "feature": "White-label",
+      "explanation": "Put your own brand, domain, theme and website on the pages your clients see: connect links, shared reports, report emails, forms and the dashboard on your own domain. White-label puts your brand on every page a client sees instead of Warmbly's. It covers the client connect page, shared reports and their emails, hosted forms, the unsubscribe page and, for clients you invite into the dashboard, the dashboard itself."
+    },
+    {
+      "feature": "Analytics",
+      "explanation": "Campaign and account performance metrics. Analytics turns every send, open, click, reply, bounce and complaint into rates you can act on, for the whole workspace, each campaign and each mailbox."
+    },
+    {
+      "feature": "Client reports",
+      "explanation": "Share a live, branded report of a client's campaigns by link, embed it on your site, and email it to the client every week or month. A client report is a saved view of the results you get for one client: the campaigns, campaign folders and mailboxes it covers, which sections it shows, and the period it opens on. You share it with a link, and the client sees the same numbers your dashboard shows, without signing in and without seeing anything outside the report."
+    },
+    {
+      "feature": "Notifications",
+      "explanation": "In-app notification feed and per-category preferences. The bell in the dashboard shows your unread notifications, such as bounces, spam complaints, worker downtime and billing alerts. Each person chooses which ones they get and how."
+    },
+    {
+      "feature": "Appearance",
+      "explanation": "Light, dark, or matching your device: how the dashboard and iOS app theme is chosen and what it changes. The dashboard comes in a light and a dark theme. Light is the default. System follows your device's light or dark setting and switches with it, so a laptop that goes dark at sunset takes the dashboard along without a reload."
+    },
+    {
+      "feature": "Security",
+      "explanation": "Two-factor authentication, passkeys, and sessions. Settings > Security is where you protect how you sign in to Warmbly: two-factor authentication, passkeys and your signed-in devices."
+    },
+    {
+      "feature": "Export and import",
+      "explanation": "Move a whole workspace between Warmbly instances, including mailboxes, campaigns, contacts, and inbox history. A workspace archive is one file holding everything a workspace owns. Use it to move a workspace between Warmbly instances, for example from a self-hosted install to the cloud or back."
+    },
+    {
+      "feature": "Team & roles",
+      "explanation": "Invite members and control access with roles, permissions, and resource scopes. Share a workspace with your team: invite people by email and give each one a role that decides what they can see and change."
+    },
+    {
+      "feature": "Live collaboration",
+      "explanation": "See your team working in real time across the whole dashboard. The dashboard is live: sends, opens, replies, new mail and other changes appear for everyone the moment they happen, with no refresh. You can also see who is online and what each teammate is working on."
+    }
+  ],
+  "howToSteps": [
+    "Connect your mailboxes: Open Accounts and choose Add account. Connect Google Workspace or Microsoft 365, or any host over SMTP and IMAP.",
+    "Check your domains: Sending domains shows whether SPF, DKIM and DMARC are published for every domain you send from.",
+    "Turn on warmup: New mailboxes start with warmup off. Switch it on from the mailbox's Warmup tab. Warmup is part of every paid plan.",
+    "Send a campaign: Open Campaigns, choose New campaign, write the emails, add contacts and pick the sending hours.",
+    "Answer the replies: Every reply, from every mailbox, lands in the Inbox. With inbox tagging turned on, replies are also labelled by what the person wants."
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Mailboxes",
+      "steps": [
+        "Open Accounts and choose Add account.",
+        "Pick Google, Microsoft, or Other (SMTP / IMAP) for any other host.",
+        "On Google Workspace, have your Workspace administrator mark Warmbly as a trusted app once, then sign in each mailbox with Google. On Microsoft 365, the administrator's grant connects every mailbox in the organization with no sign-in each. Personal Gmail connects with an app password."
+      ]
+    },
+    {
+      "title": "Import mailboxes",
+      "steps": [
+        "Open Accounts, choose Add account, then Import mailboxes.",
+        "Upload a CSV, TSV or XLSX file, or paste a list such as address:password, one mailbox per line.",
+        "Check the preview: each column is matched for you and can be reassigned by hand.",
+        "Start the import. It runs on the server, so closing the tab does not stop it."
+      ]
+    },
+    {
+      "title": "Migrate from another tool",
+      "steps": [
+        "Open Settings, then Migrate from another tool, and choose Start a migration. An agency starts from Migrate in the agency dashboard instead (see Agencies).",
+        "Tool: pick the tool you are moving from.",
+        "Connect: paste its API key. The step says where that tool keeps it, and the tools below do too. For a tool that issues one key per workspace, choose Add another workspace key for each workspace you want brought over.",
+        "Preview: Warmbly reads the account and shows, for each source workspace, how many mailboxes, campaigns, leads and blocklist entries it holds, with every campaign listed. Choose what to bring over, which campaigns, whether to Skip finished campaigns, whether to Start warmup on connected mailboxes, and what happens to leads part way through a sequence. Nothing changes in Warmbly until you start.",
+        "Migrate: start it and follow the progress for each source workspace. It runs on the server, so closing the window does not stop it. When it finishes, the same screen lists what is left for you to do.",
+        "Connect the mailboxes listed under Mailboxes to connect again, yourself or through a connect link.",
+        "Choose Link senders again, so the draft campaigns pick up the mailboxes you just connected.",
+        "Open each campaign under Draft campaigns to review. Read its copy, check its senders and schedule, and read what is listed under Did not carry over.",
+        "Pause the campaign in the old tool.",
+        "Launch it in Warmbly."
+      ]
+    },
+    {
+      "title": "Sending domains",
+      "steps": [
+        "Tick the domains in the list, or the box in the header for every domain shown.",
+        "In the bar at the bottom, choose Tracking domain or Redirect.",
+        "Set the tracking subdomain (link unless you change it) and the website to send visitors to.",
+        "Add the DNS records the dialog lists at your DNS provider, unless an inbox vendor sets them up for you."
+      ]
+    },
+    {
+      "title": "Sending behavior",
+      "steps": [
+        "Open Mailboxes and pick a mailbox.",
+        "Open the Sending tab and turn on Variable sending plan.",
+        "Keep the default ranges, or adjust them.",
+        "Check today's rolled workday at the top of the tab to see when the mailbox will send."
+      ]
+    },
+    {
+      "title": "Warmup",
+      "steps": [
+        "Open a mailbox from the Accounts list and go to the Warmup tab of its drawer.",
+        "Start warmup to turn on diagnostic sending.",
+        "Choose where warmup mail is filed: Its own folder (the default), Leave it in the inbox, or Archive it.",
+        "Pause to stop both sending and receiving warmup mail, or Stop to also turn diagnostic participation off, both while keeping the ramp history. Stop also lifts the cold sending ceiling; Pause keeps it."
+      ]
+    },
+    {
+      "title": "Partnership plan",
+      "steps": [
+        "Send the owner to Google or Microsoft with your app's client ID and your own redirect URI, as you already do for your product. Ask for Warmbly's permissions as well as yours: Google: https://mail.google.com/ and https://www.googleapis.com/auth/gmail.settings.basic, with access_type=offline and prompt=consent so Google returns a refresh token. Microsoft: offline_access, User.Read, Mail.Send and Mail.ReadWrite.",
+        "The provider redirects to your callback with a code. Hand it to Warmbly in one of two ways: You keep the mailbox too. Exchange the code yourself, as usual, and send Warmbly the refresh token. You and Warmbly then each refresh it independently; neither one's use affects the other's. Only Warmbly needs it. Send Warmbly the code itself, with the redirect_uri it was issued for and your PKCE code_verifier if you used one. Warmbly redeems it, so do not redeem it yourself: a code works once.",
+        "Call the API from your server: or, with the code, \"code\": \"4/0Ab...\", \"redirect_uri\": \"https://app.yourproduct.com/oauth/google/callback\", \"code_verifier\": \"...\" in place of refresh_token.",
+        "In the Google Cloud console, create a project for the app and enable the Gmail API under APIs & Services > Library.",
+        "Under Google Auth Platform > Branding, set the app name, support email, logo, home page, privacy policy and terms. This is what mailbox owners see. Under Audience, choose External so mailboxes outside your own organization can sign in.",
+        "Under Data Access, add the scopes https://mail.google.com/ and https://www.googleapis.com/auth/gmail.settings.basic. The first lets Warmbly send, read and file warmup mail; the second reads the mailbox's send-as addresses.",
+        "Under Clients, create a client of type Web application. Add the redirect URI shown under Settings > Mailbox sign-in (or in callbacks) to Authorized redirect URIs, exactly as shown. Copy the client ID and secret.",
+        "Save them in Warmbly under Settings > Mailbox sign-in > Google.",
+        "In the Microsoft Entra admin center, open App registrations > New registration. Name it as mailbox owners should see it, and under Supported account types choose Accounts in any organizational directory and personal Microsoft accounts.",
+        "Under Redirect URI, pick Web and paste the redirect URI shown under Settings > Mailbox sign-in > Microsoft. Register the app and copy its Application (client) ID.",
+        "Under API permissions, add these Microsoft Graph delegated permissions: offline_access, openid, email, profile, User.Read, Mail.Send and Mail.ReadWrite.",
+        "Under Certificates & secrets, create a client secret and copy its Value (not its ID).",
+        "Under Branding & properties, add your logo, home page, terms and privacy statement, and complete publisher verification. Many organizations only let their users consent to apps from a verified publisher.",
+        "Save the client ID and secret in Warmbly under Settings > Mailbox sign-in > Microsoft."
+      ]
+    },
+    {
+      "title": "Campaigns",
+      "steps": [
+        "Open Campaigns and choose New campaign.",
+        "On Leads, name the campaign and pick one or more lead lists.",
+        "On Emails, write the first email and any follow-ups.",
+        "On Schedule, choose when it starts, the sending days and hours, the mailboxes to send from and the daily limit per mailbox.",
+        "On Review, check the finish date, then choose Launch or Save as draft."
+      ]
+    },
+    {
+      "title": "Sequences & steps",
+      "steps": [
+        "Open the campaign's Steps tab. The first email sits below the Start card.",
+        "Click a card to write that step's subject and body in the side panel.",
+        "Press the + at the end of a path to add a follow-up after it.",
+        "Click the line into a step to set how many days it waits.",
+        "Turn on Stop on reply in the flow toolbar, so a reply ends the cold follow-ups."
+      ]
+    },
+    {
+      "title": "Personalization & Expressions",
+      "steps": [
+        "In a campaign step's subject or body, type a merge field such as {{.FirstName}}.",
+        "Give fields that may be empty a fallback: {{.FirstName | default \"there\"}}.",
+        "Open the Preview to check it renders as expected, with no leftover {{...}} tokens."
+      ]
+    },
+    {
+      "title": "Deliverability",
+      "steps": [
+        "Pick a window with the 7d, 30d or 90d range tabs.",
+        "Start with the headline rates: bounce at 5% and complaints at 0.1% are the highlighted danger lines.",
+        "If a rate looks off, switch the chart to that metric and find the day it spiked.",
+        "Read the at-risk lists to see which mailboxes and campaigns Warmbly is already acting on."
+      ]
+    },
+    {
+      "title": "Inbox placement tests",
+      "steps": [
+        "Open Placement tests in the dashboard and start a new test.",
+        "Choose a sending mailbox (connected, active, and not a seed inbox) and a seed panel.",
+        "Pick a campaign step to test, or write a subject and body for an ad-hoc template.",
+        "Choose a pace: Spaced (the default, around 20 minutes for 20 seeds) or Quick (under 3 minutes).",
+        "Watch the results appear on the test as each seed syncs its copy."
+      ]
+    },
+    {
+      "title": "Unsubscribe and suppression",
+      "steps": [
+        "Open Settings > Sending > Unsubscribe to set the workspace's opt-out mode.",
+        "Pick Reply to opt out (the default), Unsubscribe link, or Nothing.",
+        "Change the wording of the sentence or the link text if you want.",
+        "To use a different mode for one campaign, set it under Preferences on that campaign."
+      ]
+    },
+    {
+      "title": "Advisor",
+      "steps": [
+        "Click the colored flag on a mailbox or campaign row to open its findings.",
+        "Read Why to see the measured numbers behind the finding.",
+        "Check What changes, which shows the exact before and after of every field.",
+        "Apply the fix. Done offers Undo where the change can be reverted."
+      ]
+    },
+    {
+      "title": "Contacts & CRM",
+      "steps": [
+        "Start a file import from Contacts: a CSV, TSV or XLSX file of up to 50 MB and 50,000 rows.",
+        "Upload the file. Nothing is written to your contacts yet.",
+        "Map columns, with at least one column mapped to Email.",
+        "On Review, check the counts and choose Leave as is or Update details for contacts you already have.",
+        "Import. It runs on the server, so you can close the window while it finishes."
+      ]
+    },
+    {
+      "title": "Lead finder",
+      "steps": [
+        "Pick a category, type what you are looking for (for example vegan bakery or a business name), or both.",
+        "Type a city, neighborhood or address under Where to move the map there.",
+        "Search the visible map, or draw the exact area first with the rectangle, circle or shape tool on the left of the map. Draw a rectangle or circle by dragging across the map. Draw a shape by clicking its corners, then double-click (or press Enter) to finish. Escape cancels a drawing.",
+        "Press Search this area. Pins appear on the map and the businesses fill the list below it."
+      ]
+    },
+    {
+      "title": "Segments",
+      "steps": [
+        "Open Contacts > Segments and choose New segment, or set filters on the contact list and press Save as segment.",
+        "Give the segment a name and a color.",
+        "Add conditions, and pick whether a contact must match all of them or any.",
+        "Watch the live count of matching contacts, then save."
+      ]
+    },
+    {
+      "title": "Sending by region and timezone",
+      "steps": [
+        "Import your contacts with whatever location columns your export has. Country, State, City, Location and Time Zone are kept automatically; see importing.",
+        "Open the segment (or create one), then choose Split by region to get one live segment per region. Or add a World region, Country or Timezone condition yourself.",
+        "Create a campaign for the segment. On its sending window (or the Schedule tab later), turn on Send in each lead's local time.",
+        "Check Where your leads are on the Schedule tab: how many leads are in each timezone, and how many have no location yet.",
+        "For mailboxes meant for one region, set their timezone under Settings > Profile > Timezones, so their warmup and working hours follow that region's day."
+      ]
+    },
+    {
+      "title": "Forms",
+      "steps": [
+        "Open Forms in the sidebar and choose New form.",
+        "Add and arrange blocks in the builder. The canvas shows exactly what the hosted page renders.",
+        "Style it on the Design tab, then pick labels or a campaign on the Settings tab.",
+        "Press Publish, then copy a link or embed code from the Share tab."
+      ]
+    },
+    {
+      "title": "Website tracking",
+      "steps": [
+        "Open Settings > Website tracking and switch on Record website visits.",
+        "Add the hosts your site runs on under Your website hosts.",
+        "Paste the snippet from the settings page before the closing `` tag on every page.",
+        "In the default Ask first mode, call warmbly('consent', 'granted') from your cookie banner once a visitor accepts."
+      ]
+    },
+    {
+      "title": "Unibox",
+      "steps": [
+        "Open Inbox from the main navigation.",
+        "Pick a folder, view or mailbox in the scope rail on the left.",
+        "Click a conversation in the list to read the whole thread.",
+        "Reply in the thread. From starts on the mailbox that holds the message."
+      ]
+    },
+    {
+      "title": "Automations",
+      "steps": [
+        "Open the Automations tab and choose New automation.",
+        "Pick the trigger it should run on, such as Reply received.",
+        "Press + to add actions, and an If / else wherever the flow should branch.",
+        "Press Test to dry-run it against sample data.",
+        "Press Save and make sure the automation is switched on."
+      ]
+    },
+    {
+      "title": "AI steps in automations",
+      "steps": [
+        "In an automation, add an action node.",
+        "Under Run, choose Warmbly (built-in), then AI step or AI switch.",
+        "Write a plain-language instruction. Drop in event fields with {{.field}}.",
+        "Press Test to see the real output. AI steps run for real in a test and are charged to the balance."
+      ]
+    },
+    {
+      "title": "Balance and usage",
+      "steps": [
+        "Open the Balance tab of Settings > Billing (it needs the Manage billing permission).",
+        "Pick an amount: $10, $25, $50, $100, $250, or any other amount from $5 to $5,000.",
+        "With a saved card, confirm Pay and the money is added at once. Without one, or to use another card, choose Pay another way to finish in Stripe Checkout, which saves the card for next time."
+      ]
+    },
+    {
+      "title": "Remie, the AI assistant",
+      "steps": [
+        "Open Remie from the blue blob in the top bar, or press Cmd/Ctrl + I.",
+        "Ask in plain words. It knows what page you are on, so \"summarize this campaign\" works.",
+        "Choose Approve or Skip on each approval card Remie shows before a change."
+      ]
+    },
+    {
+      "title": "Automatic inbox tagging",
+      "steps": [
+        "An operator sets TYPESAFE_API_KEY to a key from typesafe.ai.",
+        "The operator sets INBOX_TAGGING_ENABLED=true, since tagging stays off even when a key is present.",
+        "Open Settings > Inbox tagging to see every decision and what it did.",
+        "After watching it for a week, turn on the suppression under Settings > Sending > Classified replies if you want it."
+      ]
+    },
+    {
+      "title": "Webhooks",
+      "steps": [
+        "Open Settings -> Webhooks and click Add endpoint.",
+        "Enter the public HTTPS URL where Warmbly should POST events.",
+        "Choose the events to subscribe to, or leave the list empty to receive all standard events.",
+        "Click Create and copy the signing secret right away. It is shown only once.",
+        "Answer Warmbly's test request with any 2xx to verify the endpoint, and real events start."
+      ]
+    },
+    {
+      "title": "Integrations",
+      "steps": [
+        "Open Integrations and find the app in Discover, All apps or a category, or search for it.",
+        "Select Connect on its card or its page.",
+        "Sign in to the provider for a one-click connection, or paste an API key or webhook URL when asked."
+      ]
+    },
+    {
+      "title": "Slack",
+      "steps": [
+        "Open Integrations > Slack and select Connect.",
+        "Pick the Slack workspace and approve the app's permissions.",
+        "Mention @Warmbly or message it to link your Slack account. When your Slack email matches your Warmbly account, it links you automatically.",
+        "Under Integrations > Slack, pick a Default channel for notifications and, if you want, an Inbox channel."
+      ]
+    },
+    {
+      "title": "HubSpot",
+      "steps": [
+        "Open Integrations > HubSpot and select Connect.",
+        "Sign in to HubSpot, pick the account, and approve the permissions.",
+        "Go through the setup wizard. Every question has a default that works, so you can finish without changing anything.",
+        "Finish the wizard. The dashboard fills in as the first pull runs, usually within a minute or two."
+      ]
+    },
+    {
+      "title": "Pipedrive",
+      "steps": [
+        "Open Integrations > Pipedrive and select Connect.",
+        "Sign in to Pipedrive, pick the company, and approve the permissions.",
+        "In the setup wizard, select Switch to Pipedrive, then press Looks good through the rest.",
+        "Finish the wizard. The dashboard fills in as the first pull runs, usually within a minute or two."
+      ]
+    },
+    {
+      "title": "Salesforce",
+      "steps": [
+        "Open Integrations > Salesforce > Connect.",
+        "Choose where your org lives: Production, Sandbox, or Custom domain.",
+        "Sign in to Salesforce and approve access.",
+        "On the connection's page, use Overview > Run permission check to see anything missing."
+      ]
+    },
+    {
+      "title": "Apollo",
+      "steps": [
+        "In Apollo, open Settings > Integrations > API and create a key. A master key works. A restricted key needs access to lists, contact search and people enrichment.",
+        "In Warmbly, open Integrations > Apollo > Connect and paste the key.",
+        "Warmbly checks the key against everything the integration uses before saving it, and shows which Apollo account it acts as. A key that cannot read lists or search contacts is refused with the reason.",
+        "List. Pick one of your saved lists of people. Leave Verified addresses only on to skip people whose Apollo email status is guessed, unavailable or anything other than verified: unverified addresses bounce more and hurt your mailboxes.",
+        "Preview. See how many people the list holds and a sample of them, with who is already a Warmbly contact and who will be left out (no address, unverified, or suppressed).",
+        "Options. Name the import, optionally add everyone to a campaign and give them labels, and choose whether to keep the list in sync."
+      ]
+    },
+    {
+      "title": "Clay",
+      "steps": [
+        "In your Clay table, add a column and choose HTTP API.",
+        "Set the method to POST and paste your Clay URL as the endpoint.",
+        "Write a JSON body. Type / to insert a column. Only email is required:",
+        "Run the column on a few rows and check the result, then turn on auto-run.",
+        "In Clay, add a source to the table and choose Webhook. Copy its URL, and its auth token if you turned one on.",
+        "On the Clay page under Send events to Clay, paste the webhook URL and the token.",
+        "Choose the events to send, save, and use Send a test row to check that Clay receives it."
+      ]
+    },
+    {
+      "title": "Plans and billing",
+      "steps": [
+        "Open a feature your plan does not include, or choose Change plan under Settings > Billing.",
+        "Pick a plan, and monthly or annual billing.",
+        "With no subscription yet, finish in Stripe Checkout. An existing subscription switches in place."
+      ]
+    },
+    {
+      "title": "Agencies",
+      "steps": [
+        "Open the workspace menu in the header and select Set up an agency. If you picked Agency when you signed up, Warmbly offers this at the end of onboarding. You can skip it and come back later.",
+        "Name the agency. You become its owner.",
+        "On a hosted account, choose a plan under Agency > Billing. Until you do, client workspaces stay on whatever plan they had. A self-hosted instance has no billing: every agency feature is available, the pool has no cap and AI is not charged."
+      ]
+    },
+    {
+      "title": "White-label",
+      "steps": [
+        "Open Settings > Branding in a workspace, or Agency > Branding to brand every client of an agency at once.",
+        "Set a Name, upload a Logo (PNG or JPG, up to 2 MB and 1024px on each side), pick an Accent colour and add your Website (https:// only). The preview shows a connect page and a report header as a client sees them, and on Agency > Branding the portal's sign-in page too. To see the dashboard itself in your brand, select Dashboard in the preview's tabs: it saves your changes, then opens a client's workspace the way its members see it (see view as client).",
+        "Changes save on their own. Public pages pick them up within a minute."
+      ]
+    },
+    {
+      "title": "Analytics",
+      "steps": [
+        "Check the four headline rates for your window: 7d, 30d or 90d.",
+        "If one looks off, switch the chart to that metric and find the day it moved.",
+        "Open that campaign and read its per-step stats to see which touch is responsible.",
+        "For bounces or complaints, check the per-mailbox breakdown to find the sender at fault."
+      ]
+    },
+    {
+      "title": "Client reports",
+      "steps": [
+        "Open Reports and select New report. Name it after the client.",
+        "Choose what it covers: the whole workspace, or selected campaigns, campaign folders and mailboxes.",
+        "Turn on the sections the client should see and pick the period it opens on.",
+        "Open the report, select Create link and copy the link. It is shown once; keep it somewhere safe or create a new one later.",
+        "To send it automatically, open Schedule, add the client's addresses and choose weekly or monthly."
+      ]
+    },
+    {
+      "title": "Notifications",
+      "steps": [
+        "Open Settings > Notifications.",
+        "Turn each category on or off. Changes save automatically.",
+        "Under Email delivery, pick how often unread notifications are emailed to you."
+      ]
+    },
+    {
+      "title": "Security",
+      "steps": [
+        "Open Settings > Security.",
+        "Choose Add a passkey so daily sign-in is fast and phishing-resistant.",
+        "Turn on two-factor authentication with any standard authenticator app, and store the recovery codes safely.",
+        "Review Sessions now and then, and sign out anything unfamiliar."
+      ]
+    },
+    {
+      "title": "Export and import",
+      "steps": [
+        "On the source instance, open Settings > Data, pick the groups to export, and select Start export.",
+        "To keep mailboxes connected, turn on Include mailbox credentials and choose a passphrase.",
+        "When the archive lands in the Archives list, select Download.",
+        "On the destination, choose the archive file, enter its passphrase, and select Check this archive.",
+        "Read the report, pick the groups to apply, and confirm."
+      ]
+    },
+    {
+      "title": "Team & roles",
+      "steps": [
+        "Open Settings > Members.",
+        "Type addresses into Emails in the Invite teammates box.",
+        "Pick one or more Roles, and optionally narrow their Access.",
+        "Press Send invitations."
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "section": "Sending",
+      "guides": [
+        "Mailboxes",
+        "Import mailboxes",
+        "Migrate from another tool",
+        "Sending domains",
+        "Sending behavior",
+        "Warmup",
+        "Warmbly Cloud for self-hosted instances",
+        "Partnership plan",
+        "Campaigns",
+        "Sequences & steps",
+        "Personalization & Expressions",
+        "Deliverability",
+        "Inbox placement tests",
+        "Unsubscribe and suppression",
+        "Advisor"
+      ]
+    },
+    {
+      "section": "Contacts and inbox",
+      "guides": [
+        "Contacts & CRM",
+        "Lead finder",
+        "Segments",
+        "Sending by region and timezone",
+        "Forms",
+        "Website tracking",
+        "Unibox",
+        "Meetings"
+      ]
+    },
+    {
+      "section": "Automation",
+      "guides": [
+        "Automations",
+        "AI steps in automations"
+      ]
+    },
+    {
+      "section": "AI",
+      "guides": [
+        "Balance and usage",
+        "AI variables",
+        "Remie, the AI assistant",
+        "AI contact research",
+        "Inbox agent",
+        "Automatic inbox tagging",
+        "AI skills",
+        "Connect MCP tools"
+      ]
+    },
+    {
+      "section": "Integrations",
+      "guides": [
+        "Webhooks",
+        "Integrations",
+        "Slack",
+        "HubSpot",
+        "Pipedrive",
+        "Salesforce",
+        "Apollo",
+        "Clay",
+        "Zapier",
+        "Make",
+        "n8n"
+      ]
+    },
+    {
+      "section": "Account and team",
+      "guides": [
+        "Browsing and filters",
+        "Plans and billing",
+        "Agencies",
+        "White-label",
+        "Analytics",
+        "Client reports",
+        "Notifications",
+        "Appearance",
+        "Security",
+        "Export and import",
+        "Team & roles",
+        "Live collaboration"
+      ]
+    }
+  ],
+  "sourceFiles": [
+    "warmbly/docs/content/docs/guides/*.mdx",
+    "warmbly/docs/content/docs/guides/meta.json",
+    "warmbly/web/src/app/app"
+  ],
+  "fullDescription": "Warmbly Studio is the open-source Warmbly platform for B2B cold email and mailbox warmup, open inside the app as a studio. Warmbly sends cold email from mailboxes you own. It warms them up, spreads your campaigns across them, and brings every reply into one inbox. 56 feature guides cover: Sending; Contacts and inbox; Automation; AI; Integrations; Account and team.",
+  "bestFor": "Teams that send B2B cold email from their own mailboxes and want warmup, campaigns, one inbox and a CRM in one place.",
+  "howToUse": "1. Connect your mailboxes: Open Accounts and choose Add account. Connect Google Workspace or Microsoft 365, or any host over SMTP and IMAP. 2. Check your domains: Sending domains shows whether SPF, DKIM and DMARC are published for every domain you send from. 3. Turn on warmup: New mailboxes start with warmup off. Switch it on from the mailbox's Warmup tab. Warmup is part of every paid plan. 4. Send a campaign: Open Campaigns, choose New campaign, write the emails, add contacts and pick the sending hours. 5. Answer the replies: Every reply, from every mailbox, lands in the Inbox. With inbox tagging turned on, replies are also labelled by what the person wants.",
+  "gettingStarted": [
+    "Connect your mailboxes: Open Accounts and choose Add account. Connect Google Workspace or Microsoft 365, or any host over SMTP and IMAP.",
+    "Check your domains: Sending domains shows whether SPF, DKIM and DMARC are published for every domain you send from.",
+    "Turn on warmup: New mailboxes start with warmup off. Switch it on from the mailbox's Warmup tab. Warmup is part of every paid plan.",
+    "Send a campaign: Open Campaigns, choose New campaign, write the emails, add contacts and pick the sending hours.",
+    "Answer the replies: Every reply, from every mailbox, lands in the Inbox. With inbox tagging turned on, replies are also labelled by what the person wants."
+  ],
+  "relatedStudios": [
+    "leadfinder",
+    "personalizer",
+    "video-pages"
+  ],
+  "notConfirmed": [
+    "Whether each feature is available depends on the connected Warmbly backend and plan; these guides are Warmbly's own and also describe Warmbly Cloud, which does not apply to a self-hosted instance."
+  ],
+  "verification": {
+    "status": "docs-derived",
+    "evidence": "Generated by scripts/build-warmbly-guide.mjs from 56 Warmbly feature guides."
+  }
+}

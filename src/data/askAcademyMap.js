@@ -211,6 +211,7 @@ export const STUDIO_ACADEMY = {
   },
   'find-my-brand': { tracks: [], lessons: [] },
   'website-builder': { tracks: [], lessons: [] },
+  warmbly: { tracks: [], lessons: [] },
   render: { tracks: [], lessons: [] },
   academy: { tracks: [], lessons: [] },
   library: { tracks: [], lessons: [] },
