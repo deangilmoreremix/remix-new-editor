@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { transcriptsClient } from "../../lib/orpc-client";
 import { AppShell } from "../layout/app-shell";
 import { AiSummaryPanel } from "./ai-summary-panel";
+import { ChatPanel } from "./chat-panel";
+import { TranslatePanel } from "./translate-panel";
 
 const ACTIVE_STATES = new Set(["queued", "running", "retry-scheduled"]);
 const EXPORT_FORMATS: WebTranscriptExportFormat[] = ["txt", "md", "srt", "vtt"];
@@ -54,7 +56,7 @@ export const TranscriptsPage = () => {
 	const [detail, setDetail] = useState<WebTranscriptDetail | null>(null);
 	const [query, setQuery] = useState("");
 	const [busy, setBusy] = useState(false);
-	const [tab, setTab] = useState<"transcript" | "ai">("transcript");
+	const [tab, setTab] = useState<"transcript" | "ai" | "chat" | "translate">("transcript");
 
 	const refreshList = useCallback(async () => {
 		try {
@@ -263,7 +265,7 @@ export const TranscriptsPage = () => {
 							)}
 
 							<div className="flex gap-1 border-b px-3 pt-2">
-								{(["transcript", "ai"] as const).map((name) => (
+								{(["transcript", "ai", "chat", "translate"] as const).map((name) => (
 									<button
 										className={`border-b-2 px-3 py-1.5 text-sm ${
 											tab === name
@@ -274,15 +276,34 @@ export const TranscriptsPage = () => {
 										onClick={() => setTab(name)}
 										type="button"
 									>
-										{name === "ai"
-											? t("transcript.ai.tab", { defaultValue: "AI summary" })
-											: t("transcript.tab", { defaultValue: "Transcript" })}
+										{name === "ai" &&
+											t("transcript.ai.tab", { defaultValue: "AI summary" })}
+										{name === "chat" &&
+											t("transcript.chat.tab", { defaultValue: "Chat" })}
+										{name === "translate" &&
+											t("transcript.translate.tab", { defaultValue: "Translate" })}
+										{name === "transcript" &&
+											t("transcript.tab", { defaultValue: "Transcript" })}
 									</button>
 								))}
 							</div>
 
 							{tab === "ai" && (
 								<AiSummaryPanel
+									downloadId={detail.downloadId}
+									hasTranscript={Boolean(detail.record)}
+								/>
+							)}
+
+							{tab === "chat" && (
+								<ChatPanel
+									downloadId={detail.downloadId}
+									hasTranscript={Boolean(detail.record)}
+								/>
+							)}
+
+							{tab === "translate" && (
+								<TranslatePanel
 									downloadId={detail.downloadId}
 									hasTranscript={Boolean(detail.record)}
 								/>

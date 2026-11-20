@@ -93,3 +93,59 @@ export const aiContract = {
     .input(type<{ downloadId: string; skillId: string }>())
     .output(type<WebAiRun | null>())
 }
+
+// ---------- chat (function calling) ----------
+
+export interface WebChatMessage {
+  role: 'user' | 'assistant' | 'tool'
+  /** Text for user/assistant; a short "name(args)" label for tool calls. */
+  text: string
+}
+
+export type WebChatStatus = 'idle' | 'running' | 'failed'
+
+export interface WebChat {
+  downloadId: string
+  status: WebChatStatus
+  messages: WebChatMessage[]
+  /** Streamed assistant text for the turn in progress. */
+  partial: string
+  error: string | null
+  updatedAt: number
+}
+
+export const chatContract = {
+  get: oc.input(type<{ downloadId: string }>()).output(type<WebChat>()),
+  /** Adds a user message and runs the model (with tools) in the background. */
+  send: oc.input(type<{ downloadId: string; message: string }>()).output(type<WebChat>()),
+  cancel: oc.input(type<{ downloadId: string }>()).output(type<WebChat>()),
+  reset: oc.input(type<{ downloadId: string }>()).output(type<WebChat>())
+}
+
+// ---------- subtitle translation (structured outputs) ----------
+
+export type WebTranslationStatus = 'running' | 'completed' | 'failed' | 'cancelled'
+
+export interface WebTranslation {
+  downloadId: string
+  language: string
+  status: WebTranslationStatus
+  done: number
+  total: number
+  error: string | null
+  updatedAt: number
+}
+
+export const translateContract = {
+  list: oc.input(type<{ downloadId: string }>()).output(type<WebTranslation[]>()),
+  /** Starts translating the current transcript's cues into `language` in the background. */
+  start: oc
+    .input(type<{ downloadId: string; language: string }>())
+    .output(type<WebTranslation>()),
+  cancel: oc
+    .input(type<{ downloadId: string; language: string }>())
+    .output(type<WebTranslation | null>()),
+  export: oc
+    .input(type<{ downloadId: string; language: string; format: 'srt' | 'vtt' | 'txt' }>())
+    .output(type<{ filename: string; mimeType: string; content: string }>())
+}

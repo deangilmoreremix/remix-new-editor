@@ -21,10 +21,9 @@ import type {
 } from '@vidbee/transcription/web-contract'
 import { apiDataDir, trimEnv } from './api-paths'
 import { getDatabaseConnection } from './database'
+import { createResponse, aiSettingsFile, getOpenAiConfig, readStoredAiSettings } from './openai-responses'
 import { getTranscriptDetail } from './transcripts-host'
 
-const DEFAULT_BASE_URL = 'https://api.openai.com/v1'
-const DEFAULT_MODEL = 'gpt-4.1-mini'
 /** Refuse rather than silently truncate: one request must hold the whole transcript. */
 const MAX_TRANSCRIPT_CHARS = Number(trimEnv('VIDBEE_AI_MAX_TRANSCRIPT_CHARS')) || 400_000
 
@@ -41,36 +40,9 @@ const PROMPT_SKILL_IDS = [
 
 // ---------- settings ----------
 
-interface StoredAiSettings {
-  apiKey?: string
-  baseUrl?: string
-  model?: string
-}
-
-const settingsFile = path.join(apiDataDir, 'ai-settings.json')
-
-const readStored = (): StoredAiSettings => {
-  try {
-    return JSON.parse(fs.readFileSync(settingsFile, 'utf-8')) as StoredAiSettings
-  } catch {
-    return {}
-  }
-}
-
-const effective = () => {
-  const stored = readStored()
-  const envKey = trimEnv('OPENAI_API_KEY')
-  const storedKey = stored.apiKey?.trim() || undefined
-  return {
-    apiKey: storedKey ?? envKey,
-    keyFromEnv: !storedKey && Boolean(envKey),
-    baseUrl: (stored.baseUrl?.trim() || trimEnv('OPENAI_BASE_URL') || DEFAULT_BASE_URL).replace(
-      /\/+$/,
-      ''
-    ),
-    model: stored.model?.trim() || trimEnv('VIDBEE_OPENAI_MODEL') || DEFAULT_MODEL
-  }
-}
+const settingsFile = aiSettingsFile
+const readStored = readStoredAiSettings
+const effective = getOpenAiConfig
 
 export const getAiSettings = (): WebAiSettings => {
   const current = effective()
@@ -266,78 +238,6 @@ const buildTranscriptText = (downloadId: string, timestamps: boolean): string =>
 
 // ---------- OpenAI Responses call ----------
 
-const errorFromResponse = async (response: Response): Promise<string> => {
-  const raw = await response.text().catch(() => '')
-  try {
-    const parsed = JSON.parse(raw) as { error?: { message?: string } }
-    if (parsed.error?.message) {
-      return `OpenAI error ${response.status}: ${parsed.error.message}`
-    }
-  } catch {
-    // fall through to the generic message
-  }
-  return `OpenAI error ${response.status}${raw ? `: ${raw.slice(0, 300)}` : ''}`
-}
-
-/** Read an SSE stream and call `onDelta` for each `response.output_text.delta`. */
-const streamResponses = async (
-  response: Response,
-  onDelta: (delta: string) => void
-): Promise<void> => {
-  if (!response.body) {
-    throw new Error('OpenAI returned an empty response body.')
-  }
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-  const handle = (block: string): void => {
-    let eventName = ''
-    const dataLines: string[] = []
-    for (const line of block.split(/\r?\n/)) {
-      if (line.startsWith('event:')) {
-        eventName = line.slice(6).trim()
-      } else if (line.startsWith('data:')) {
-        dataLines.push(line.slice(5).trimStart())
-      }
-    }
-    if (dataLines.length === 0) {
-      return
-    }
-    const data = dataLines.join('\n')
-    if (data === '[DONE]') {
-      return
-    }
-    let payload: { type?: string; delta?: string; error?: { message?: string }; message?: string }
-    try {
-      payload = JSON.parse(data)
-    } catch {
-      return
-    }
-    const type = payload.type ?? eventName
-    if (type === 'response.output_text.delta' && typeof payload.delta === 'string') {
-      onDelta(payload.delta)
-    } else if (type === 'response.failed' || type === 'error') {
-      throw new Error(payload.error?.message ?? payload.message ?? 'OpenAI reported a failure.')
-    }
-  }
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) {
-      break
-    }
-    buffer += decoder.decode(value, { stream: true })
-    let index = buffer.search(/\r?\n\r?\n/)
-    while (index !== -1) {
-      handle(buffer.slice(0, index))
-      buffer = buffer.slice(index).replace(/^\r?\n\r?\n/, '')
-      index = buffer.search(/\r?\n\r?\n/)
-    }
-  }
-  if (buffer.trim()) {
-    handle(buffer)
-  }
-}
-
 export const startAiRun = (input: {
   downloadId: string
   skillId: string
@@ -386,28 +286,17 @@ export const startAiRun = (input: {
 
   void (async () => {
     try {
-      const response = await fetch(`${settings.baseUrl}/responses`, {
-        method: 'POST',
-        headers: {
-          authorization: `Bearer ${settings.apiKey}`,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: settings.model,
-          instructions,
-          input: transcript,
-          stream: true,
-          store: false
-        }),
-        signal: controller.signal
+      const result = await createResponse({
+        body: { instructions, input: transcript },
+        signal: controller.signal,
+        onTextDelta: (delta) => {
+          run.text += delta
+          run.updatedAt = Date.now()
+        }
       })
-      if (!response.ok) {
-        throw new Error(await errorFromResponse(response))
+      if (!run.text) {
+        run.text = result.text
       }
-      await streamResponses(response, (delta) => {
-        run.text += delta
-        run.updatedAt = Date.now()
-      })
       if (!run.text.trim()) {
         throw new Error('The model returned no text.')
       }

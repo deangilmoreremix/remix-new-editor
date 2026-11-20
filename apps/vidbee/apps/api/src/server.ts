@@ -13,6 +13,9 @@ import { startTaskQueue, stopTaskQueue, taskQueue } from './lib/downloader'
 import { startEngines, stopEngines } from './lib/engines'
 import { resolveReadableMediaFile } from './lib/managed-files'
 import { aiRouter } from './lib/ai-router'
+import { chatRouter } from './lib/chat-router'
+import { failInterruptedTranslations } from './lib/translate-host'
+import { translateRouter } from './lib/translate-router'
 import { failInterruptedAiRuns } from './lib/ai-host'
 import { projectTaskForApi } from './lib/projection'
 import { rpcRouter } from './lib/rpc-router'
@@ -136,7 +139,10 @@ export const createApiServer = async () => {
   const subscriptionsRpcHandler = new RPCHandler(subscriptionsRouter)
   const transcriptsRpcHandler = new RPCHandler(transcriptsRouter)
   const aiRpcHandler = new RPCHandler(aiRouter)
+  const chatRpcHandler = new RPCHandler(chatRouter)
+  const translateRpcHandler = new RPCHandler(translateRouter)
   failInterruptedAiRuns()
+  failInterruptedTranslations()
   const openApiHandler = new OpenAPIHandler(rpcRouter, {
     plugins: [
       new OpenAPIReferencePlugin({
@@ -370,6 +376,18 @@ export const createApiServer = async () => {
   fastify.all('/rpc/transcripts/*', async (request, reply) => {
     await transcriptsRpcHandler.handle(request, reply, {
       prefix: '/rpc/transcripts'
+    })
+  })
+
+  fastify.all('/rpc/chat/*', async (request, reply) => {
+    await chatRpcHandler.handle(request, reply, {
+      prefix: '/rpc/chat'
+    })
+  })
+
+  fastify.all('/rpc/translate/*', async (request, reply) => {
+    await translateRpcHandler.handle(request, reply, {
+      prefix: '/rpc/translate'
     })
   })
 
