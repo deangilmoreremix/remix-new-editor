@@ -31,7 +31,6 @@ import { soundEffectSrc } from '@cinegen/lib/occ/sound-library';
 import { ClipPropertiesPanel } from './clip-properties-panel';
 import { OverlaySettingsPanel } from './overlay-settings-panel';
 import { textEditUpdates } from '@cinegen/lib/overlays/text-edit';
-import { loadUserFonts } from '@cinegen/lib/occ/user-fonts';
 import { selectOverlay, useSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { useEditorLayout } from './use-editor-layout';
 import { usePlaybackEngine } from './use-playback-engine';
@@ -506,7 +505,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     updatePersistedTimelineView(timeline.id, { vaSplit: Math.max(0.15, Math.min(0.85, vaSplit)) });
   }, [timeline.id, updatePersistedTimelineView]);
 
-  useEffect(() => { void loadUserFonts(); }, []); // [remix] fonts imported earlier (captions, Smart Text) are registered when the editor opens
+  useEffect(() => { void import('@cinegen/lib/occ/user-fonts').then((m) => m.loadUserFonts()).catch(() => undefined); }, []); // [remix] fonts imported earlier (captions, Smart Text) are registered when the editor opens
   // Spacebar / Arrow keys / Tool shortcuts
   useEffect(() => {
     const FRAME_DURATION = 1 / 24;
