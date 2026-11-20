@@ -35,7 +35,7 @@
     "lint:video-agent-studio": "cd apps/video-agent-studio && npm run lint --if-present",
     "verify:video-agent-studio": "node scripts/verify-video-agent-studio.mjs",
     "build:warmbly": "cd warmbly/web && npx --yes pnpm@10.30.3 install --frozen-lockfile && VITE_DOCS_URL=/warmbly-docs npx --yes pnpm@10.30.3 exec vite build --base=/warmbly-app/ && rm -rf ../../public/warmbly-app && cp -r dist ../../public/warmbly-app",
-    "build:warmbly-docs": "cd warmbly/docs && npx --yes pnpm@10.30.3 install --frozen-lockfile && (DOCS_BASE_PATH=/warmbly-docs npx --yes pnpm@10.30.3 exec next build || DOCS_BASE_PATH=/warmbly-docs npx --yes pnpm@10.30.3 exec next build) && rm -rf ../../public/warmbly-docs && cp -r out ../../public/warmbly-docs",
+    "build:warmbly-docs": "cd warmbly/docs && npx --yes pnpm@10.30.3 install --frozen-lockfile && (DOCS_SITE_URL=${URL:-http://localhost} DOCS_BASE_PATH=/warmbly-docs npx --yes pnpm@10.30.3 exec next build || DOCS_SITE_URL=${URL:-http://localhost} DOCS_BASE_PATH=/warmbly-docs npx --yes pnpm@10.30.3 exec next build) && rm -rf ../../public/warmbly-docs && cp -r out ../../public/warmbly-docs",
     "build:openthorn": "cd apps/openthorn && npx vite build --base=/openthorn/ && rm -rf ../../public/openthorn && cp -r dist ../../public/openthorn",
     "dev:openthorn": "cd apps/openthorn && npm run dev",
     "update:video-agent-studio-subtree": "git fetch openchatcut && git subtree pull --prefix=apps/video-agent-studio openchatcut main --squash",

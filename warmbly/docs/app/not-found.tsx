@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { HomeLayout } from 'fumadocs-ui/layouts/home';
 import { baseOptions } from '@/lib/layout.shared';
-import { BookOpen, Braces, GraduationCap, Wrench } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -15,24 +15,6 @@ const sections = [
     icon: BookOpen,
     title: 'Guides',
     description: 'How every part of the product works.',
-  },
-  {
-    href: '/learn/email-warmup/',
-    icon: GraduationCap,
-    title: 'Learn',
-    description: 'Cold email and deliverability fundamentals.',
-  },
-  {
-    href: '/api/',
-    icon: Braces,
-    title: 'API Reference',
-    description: 'Authenticate and drive Warmbly programmatically.',
-  },
-  {
-    href: '/development/architecture/',
-    icon: Wrench,
-    title: 'Development',
-    description: 'Self-host, deploy, and develop Warmbly.',
   },
 ];
 

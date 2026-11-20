@@ -5,8 +5,6 @@ description: "Import contacts, custom fields, labels, deals, and pipelines."
 
 Contacts are the people you reach out to. The CRM tracks what happens after they reply.
 
-![The contacts list with company, subscription status and campaign membership](/guides/contacts.webp)
-
 ## Import contacts
 
 <Steps>
@@ -46,7 +44,6 @@ On **Review**, check the counts and choose **Leave as is** or **Update details**
 ## Good to know
 
 - Duplicates match on lowercased email across the workspace, so one address is one contact.
-- The contact limit belongs to the workspace: it comes from the workspace's plan (or an approved limit increase) and counts every member's contacts, so it is the same whoever imports. Updating a contact the workspace already has never counts against it.
 - A blank cell never erases a value you already have, so re-importing a partial export is safe.
 - Custom fields feed personalization, such as `{{.industry}}` in an email.
 - Unsubscribed contacts are skipped by every campaign automatically.
@@ -96,7 +93,7 @@ A column whose header names an existing field is mapped to it before you open th
 
 Columns that say where a contact is are kept too, even when no field exists for them yet: `Country`, `Country/Region`, `State`, `State/Province`, `Region`, `City`, `Location`, `Time Zone` and their company versions (`Company Country` and so on) are mapped to custom fields (`country`, `state`, `region`, `city`, `location`, `timezone`) instead of being skipped. Warmbly reads them to place each contact for [region segments and local-time sending](/guides/regions-and-timezones/).
 
-When the instance has TypeSafe configured, the columns no header matched are also placed by what their header means: `Job Title` onto your `Title` field, `Firmenname` onto Company, `Sector` onto `Industry`. Only a confident answer is applied, each field still goes to one column, and those rows are marked **Matched by meaning. Check it.** until you change them. It picks names, Company, Phone and your custom fields only: Subscribed and Labels change who gets mail and which labels exist, so they are never guessed. What is sent is the column headers, the kind of value each column holds and your field names, never a cell, and nothing at all unless the first row is clearly headers (no address, date or number in it, and a named Email column); see [data control](/development/data-control/#typesafe-judgments). A column of addresses under any header, or none, is mapped to Email either way.
+When the instance has TypeSafe configured, the columns no header matched are also placed by what their header means: `Job Title` onto your `Title` field, `Firmenname` onto Company, `Sector` onto `Industry`. Only a confident answer is applied, each field still goes to one column, and those rows are marked **Matched by meaning. Check it.** until you change them. It picks names, Company, Phone and your custom fields only: Subscribed and Labels change who gets mail and which labels exist, so they are never guessed. What is sent is the column headers, the kind of value each column holds and your field names, never a cell, and nothing at all unless the first row is clearly headers (no address, date or number in it, and a named Email column); see data control. A column of addresses under any header, or none, is mapped to Email either way.
 
 Each custom mapping says what it will do: **Fills your existing field**, **Creates a new field**, or, when the name you typed differs from an existing field only in case or separators, **You already have `Industry`**, with **Use it** to switch to that field. **Keep N more as custom fields** uses the same matching, so the columns it claims land on your existing fields where it can.
 
@@ -121,8 +118,6 @@ Problems with the mapping itself, an unnamed custom field or a name Warmbly cann
 On the **Review** step, **Campaigns** enrols everyone in the file as leads of the campaigns you pick (started from a campaign's Leads tab, that campaign is shown as the fixed target), and **Segments** pins them into the [segments](/guides/segments/) you pick as manual includes, so they stay members whatever the segment's conditions say. A segment created from the picker has no conditions, so it holds exactly the contacts pinned into it. Started from a segment, that segment is always applied and shown as a fixed row; the picker below it adds more.
 
 **From Google Sheets**, a sheet is a reusable **sync source** rather than a one-time upload. Connect it once (Warmbly reads only the tab you choose, every column of it, and never writes back), paste the spreadsheet ID from the URL between `/d/` and `/edit`, pick the tab, map columns, then set duplicate handling, a label, and optionally a campaign to enroll into, labels to apply and segments to pin into. **Nothing syncs automatically**: press **Sync now**, or save and sync immediately.
-
-If **Connect with Google** reports that OAuth credentials are not configured, the instance operator must complete the [Google Sheets app setup](/development/configuration/#google-sheets-app). Connecting a Gmail mailbox or signing into Warmbly with Google does not configure this client. On Warmbly Cloud, contact support; on a self-hosted instance, configure the backend credentials and restart it.
 
 Segment targets apply on every run, so a sheet you keep adding rows to keeps feeding the same audience. Opening **Sync sources** from a segment's member list lists only the sources feeding it and pre-targets a new one to it. A segment deleted later is dropped from the run rather than stopping it.
 
@@ -206,8 +201,6 @@ A sort on a custom field orders the values as text. Contacts that do not have th
 
 Each contact's avatar carries a small badge with the logo of whoever hosts their inbox: Google Workspace, Gmail, Microsoft 365, Outlook.com, Yahoo Mail, iCloud Mail, Zoho Mail and the other hosts Warmbly recognises. Hover it for the provider's name. It works for company domains too: `dana@acme.com` reads as Google Workspace when Acme's mail is hosted by Google. Warmbly reads it from the domain's mail records in the background, usually within a minute of a contact being added, and fills the list in live. No badge means the check has not reached the contact yet, or the domain has no mail server Warmbly recognises.
 
-A contact on a company domain shows that company's logo in place of their initials, and the **Company** column shows it beside the company name; when no company is on file, the column shows the domain their address is on. Personal inboxes (Gmail, Outlook.com, Yahoo and the like) keep their initials. Logos are on for Warmbly Cloud and off on a self-hosted instance unless its operator turns them on, because the browser fetches each one from DuckDuckGo; see [data control](/development/data-control/#outbound-calls).
-
 It shows on the contacts page and on a campaign's Leads tab alike. You can sort by it from **Sort**, filter with **Add filter** > **Email provider** (including **Unknown or not checked yet**), select every match and act on them in bulk (add them to a campaign, label them, export them), or save the filter as a segment. Campaign [ESP matching](/guides/campaigns/) uses the same data to pair each lead with a same-provider mailbox.
 
 </Fold>
@@ -220,10 +213,6 @@ Tick a row's checkbox to select it, or the one in the table header to select eve
 
 When more contacts match than are loaded, a bar appears under the header: **Select all N matching**. Clicking it hands the whole filtered set to the next action, however many pages that is, and the selection bar counts the full number rather than the loaded rows. Unticking a row afterwards takes just that contact out and the count follows. **Clear selection** in the bar, or the header checkbox, drops back to nothing.
 
-The set is the one the list is showing: search, filters, the subscription facet, and the campaign or segment the list is scoped to all narrow it. Changing any of them clears the selection, because it would no longer mean what it did when you made it. A selection past `250,000` contacts is refused rather than half-applied; add a filter and work through it in parts.
-
-Every bulk action reads the selection: **Edit**, **Segment**, **Remove from segment**, **Remove from campaign**, **Research**, **Verify**, **Mark deliverable** and **Delete**. **Push to CRM** and **Research** are the exceptions: a push calls the CRM once per contact while you wait, and each research run is charged to the workspace balance, so both stay capped at `500` at a time. A workspace in [HubSpot mode](/guides/hubspot/) or [Pipedrive mode](/guides/pipedrive/) does not need **Push to CRM** for that CRM: a contact is created there the first time Warmbly emails it.
-
 **Select all matching** is in the **From contacts** picker too, on a campaign's Leads tab and a segment page, so a whole search can be added as leads or members in one step.
 
 </Fold>
@@ -232,8 +221,6 @@ Every bulk action reads the selection: **Edit**, **Segment**, **Remove from segm
 
 ## Editing one contact
 
-Clicking a row opens the contact's panel. Its **Details** tab edits the fields the contact is made of: name, email address, company, phone, subscription, campaigns, labels and custom fields. Nothing is sent until **Save**, **Discard** puts the panel back to the stored values, and closing it with unsaved edits asks first.
-
 The email address can be changed here, which is the right move when someone's address was mistyped on import or they moved to a new domain. It is stored lowercased and stripped of any display name, and it has to be free: an address another contact already holds is refused, because merging two people's campaign history is not something the edit could undo. A new address also clears the contact's [verification](/guides/deliverability/#address-verification) verdict and everything the platform had observed about the old mailbox, so the background check starts the new address from scratch on its next pass, and the recipient provider Warmbly matches senders against is worked out again from the new domain. Emails already sent went to the old address and stay in the timeline as they happened.
 
 </Fold>
@@ -241,8 +228,6 @@ The email address can be changed here, which is the right move when someone's ad
 <Fold>
 
 ## Editing many contacts at once
-
-Tick rows in any contact list, a segment's members or a campaign's leads, and the selection bar's **Edit** opens a bulk panel. It can add or remove campaigns, add or remove labels, force a subscription state, and queue custom-field operations (add, edit, delete, rename) that run on every selected contact (the key box suggests your existing fields as you type), including a **Select all matching** selection that reaches past the loaded pages.
 
 Nothing is applied while you build it up. The header names the list the selection came from, and a **Will apply** strip above the buttons lists every queued change as a chip you can take back one at a time before pressing Apply. A field operation missing its key, or its value where one is needed, is marked and skipped rather than sent half-finished.
 
@@ -293,8 +278,6 @@ A new contact is also an event. `contact.created` goes to your [webhooks](/guide
 ## Activity timeline
 
 The **Activity** tab of a contact is one workspace-wide feed, newest first, of everything Warmbly knows about them. Every member with permission to view contacts sees the same timeline, regardless of who created the contact or its campaigns. It includes every campaign email sent, opened, clicked, replied to or bounced (with the campaign, step, subject and sending mailbox), replies with their classified intent, deliverability and suppression events, notes, meetings, and the contact's lifecycle: when it was created and how, and each time it joined or left a campaign or gained or lost a label.
-
-Opens appear once per event, not once per email: a second open from another device is its own row. Opens show the device and mail client they were read on, such as **iPhone · Apple Mail app** or **Gmail · device hidden**, and clicks the device and browser the link opened in, with the city and country when known (see [How an open was read](/guides/analytics/#how-an-open-was-read)); expanded, the operating system, browser and full location, and why a device is hidden when a mail provider's image proxy fetched the email. The Overview tab sums this up under **How they read**: each client and device the contact's opens came from, with the count and the latest. A click names the link: the row reads **Clicked Pricing** and, expanded, shows the link's text, its full URL, the UTM source, medium, campaign and content it carried, and the browser. Every link in an email is tracked on its own, so two links clicked are two rows. Opens and clicks that came from a machine rather than the person (a mail privacy proxy, a security gateway that follows every link at delivery) carry an **auto** badge, and the expanded row says which rule caught them; see [Link tracking and UTM parameters](/guides/campaigns/#link-tracking-and-utm-parameters).
 
 Filter chips narrow the feed (**Emails**, **Replies**, **Deliv.**, **Notes**, **Meetings**, **Campaigns**, **Lifecycle**), the search box matches subjects, campaigns, steps, mailboxes, labels, reasons and, for clicks, the link's text, URL and UTM values, and the date picker bounds it. Each row stays to one line until you click it; expanded, it shows every detail the event carries. The feed updates live as teammates and the schedulers write to it.
 
@@ -390,8 +373,6 @@ The classification does more than decide the task: an automated reply never coun
 <Fold>
 
 ## Suppression
-
-A suppressed contact receives no further mail. Unsubscribed contacts are skipped by every campaign automatically; toggle subscription on the Details tab, and filter the list by Subscribed or Unsubscribed.
 
 Suppression also happens automatically when a recipient unsubscribes or replies asking to stop, on a hard bounce or spam complaint, and when a sequence runs an **Unsubscribe** action. The **Suppression list** tab holds every entry, takes addresses and whole domains by hand, and lets you lift an entry; a suppressed contact's Overview tab shows why and offers the same.
 

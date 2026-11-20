@@ -95,13 +95,9 @@ Client pages end with a small "Powered by Warmbly" line. Removing it is part of 
 | Agency Scale and Enterprise | Yes | Yes | Yes |
 | Self-hosted | Yes | Yes | Yes |
 
-A client workspace of an agency follows the agency's plan. Turning the switch on without the plan answers `403` `white_label_not_entitled`. If a plan changes later, the setting is kept but client pages show the line again until the plan includes it.
-
-A self-hosted instance that sets no `EMAIL_BRAND_*` website shows no "Powered by" line at all, so there is nothing to remove. See [configuration](/development/configuration/).
+A self-hosted instance that sets no `EMAIL_BRAND_*` website shows no "Powered by" line at all, so there is nothing to remove. See configuration.
 
 ## Your own domain
-
-Connect pages and shared reports are served by Warmbly's portal service. Without a domain of your own they live on the shared portal address: `portal.warmbly.com` on Warmbly Cloud, or the address a self-hosted instance set as `PORTAL_DOMAIN`.
 
 An agency can serve them on a subdomain it owns instead. Set a **Portal domain** under **Agency > Branding**, such as `portal.youragency.com`, and every client's connect links and reports are built on it. Form links are never built on it: they stay on the client's [forms domain](/guides/forms/#custom-domain) or the shared forms host. A workspace's forms domain serves that workspace's forms only, never its connect links or reports.
 
@@ -109,12 +105,9 @@ Add the two records the page shows, then select **Save and verify**:
 
 | Type | Name | Value |
 |---|---|---|
-| CNAME | `portal.youragency.com` | the shared portal address: `portal.warmbly.com` on Warmbly Cloud (a self-hosted instance shows its own) |
 | TXT | `_warmbly.portal.youragency.com` | the `warmbly-verify=...` value the page shows |
 
 The TXT record is needed only the first time. Links keep working on the shared portal address until the records resolve, and Warmbly re-checks every hour.
-
-HTTPS is set up for you once the domain verifies. On Warmbly Cloud the certificate is issued through Cloudflare, usually within a few minutes. If Cloudflare needs one more proof of the domain first, the page lists a third record, a TXT at `_cf-custom-hostname.portal.youragency.com` (the API returns it in `portal_domain.edge_records`). Add it while it is listed; it goes away once the domain is live. A self-hosted instance obtains the certificate itself the first time the domain is opened.
 
 A portal domain serves only its own agency's clients. Another workspace's connect link or report on your domain answers "not found", and so does any of yours on another agency's domain. Every form answers "not found" there too, because form links are never built on it. The shared portal address serves any workspace's connect links and reports and nothing else: no dashboard and no forms.
 
@@ -123,7 +116,6 @@ A portal domain serves only its own agency's clients. Another workspace's connec
 Once an agency's portal domain verifies, it also serves the full dashboard. Your clients sign in at `https://portal.youragency.com` and use the same dashboard as on Warmbly's address, in your brand:
 
 - your logo and name on the sign-in page, in the header and menu, in the browser tab title and as its icon, in your accent colour, and in your [portal theme](#portal-theme) when you set one
-- no Warmbly name or links, and a small "Powered by" line under the sign-in form only while your plan keeps it (see [Powered by](#powered-by))
 - the workspace picker lists only your client workspaces, plus the [agency view](/guides/agencies/#the-agency-view) for your staff, who land there when they sign in. Any other workspace a person belongs to is reachable on the main address
 - mailbox connections, integrations and single sign-on (Google, Apple or your identity provider) return to your domain when they finish
 

@@ -3,8 +3,6 @@ title: "Notifications"
 description: "In-app notification feed and per-category preferences."
 ---
 
-The bell in the dashboard shows your unread notifications, such as bounces, spam complaints, worker downtime and billing alerts. Each person chooses which ones they get and how.
-
 ## Choose your notifications
 
 <Steps>
@@ -45,7 +43,7 @@ The bell in the dashboard chrome shows your unread count. Every time you open it
 
 **Feeds are per user**, not shared across the workspace, so two teammates see different things depending on what they own and what they enabled.
 
-Notifications are kept, read or not, unless the instance sets a window, after which an older one leaves the feed and the bell count. One still waiting to be emailed is kept until it is sent. A self-hosted instance sets this window with `retention.notification_days` (see [data control](/development/data-control/#event-history)).
+Notifications are kept, read or not, unless the instance sets a window, after which an older one leaves the feed and the bell count. One still waiting to be emailed is kept until it is sent. A self-hosted instance sets this window with `retention.notification_days` (see data control).
 
 The feed floats above the dashboard instead of being clipped by the header or page. It stays within the screen on narrow displays, with the list scrolling while its filters and settings link remain accessible. Press outside it, press Escape, or open another dashboard menu to close it.
 
@@ -69,7 +67,6 @@ The feed and the bell count update live, without refreshing.
 | Placement monitor alert | Health | On, including email | A campaign's scheduled [placement test](/guides/placement-tests/#campaign-placement-monitors) landed less of its mail in the primary inbox than the monitor's threshold |
 | Placement test finished | Health | On | A [placement test](/guides/placement-tests/) you started has a verdict for every copy |
 | New sign-in | Security | On | Your account is accessed from a new device, with browser, OS, and rough location |
-| Billing alerts | Billing | On, including email | A trial expired or sending was paused for billing |
 | Teammate joined | Team | On | Someone accepted an invitation |
 | Positive reply | Inbound | On | A recipient answered a cold email and the reply was classified as positive |
 | Reply received | Inbound | Off | A person replied to a cold email, whatever they said. Automatic replies are not included |
@@ -78,10 +75,6 @@ The feed and the bell count update live, without refreshing.
 Health defaults **on** because those alerts are operationally important and low volume. **Positive reply** defaults **on** for the same reason: interested replies are few, and they are what a campaign is for. The other inbound categories default **off** because a large campaign would generate one notification per recipient and flood the feed. Turn **Reply received** on only for smaller, higher-touch campaigns.
 
 **Positive reply** and **Reply received** never announce the same message twice. With **Reply received** on, a positive reply is delivered as a **Reply received** notification, on that category's channels. With it off, positive replies use the **Positive reply** channels and every other reply from a person stays quiet. Automatic replies follow their own **Out-of-office detected** preference either way. All three need reply intent on in the workspace's outreach settings, which is the default. A positive reply is one the [reply classification](/guides/contacts-crm/) read as interested. A reply it read as neutral, a question or negative raises only **Reply received**, and classification can be wrong, so the [Unibox](/guides/unibox/) remains the full record.
-
-<Callout type="info" title="Who gets notified">
-Workspace events never fan out to everyone. Reply and bounce alerts go to the owner of the mailbox or campaign, worker downtime to members who can manage mailboxes, mailbox mail that needs action to members who can both manage mailboxes and use the inbox, a finished placement test to whoever started it, a placement monitor alert to members who can view campaigns, billing to those who can manage billing, and team changes to those who can manage the team. The person who joined is not notified about themselves.
-</Callout>
 
 </Fold>
 

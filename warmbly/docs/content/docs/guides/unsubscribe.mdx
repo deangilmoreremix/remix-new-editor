@@ -170,7 +170,7 @@ Suppression entries travel with a [workspace export](/guides/workspace-export-im
 
 An opt-out fires the `campaign.unsubscribed` [webhook](/guides/webhooks/) with a `source` of `one_click` (the mail client's button), `link` (the link in the email), `reply` (a reply asking to stop) or `action` (a sequence's **Unsubscribe** step).
 
-The suppression list is available over the API as `GET /suppressions`, `POST /suppressions` and `DELETE /suppressions/:id`. See [deliverability and ops](/api/reference/deliverability-ops/#list-the-suppression-list).
+The suppression list is available over the API as `GET /suppressions`, `POST /suppressions` and `DELETE /suppressions/:id`. See deliverability and ops.
 
 </Fold>
 
@@ -182,7 +182,7 @@ Unsubscribe links are served by the API process on the origin in `API_PUBLIC_URL
 
 A link minted today is a row in the database, so it survives a secret rotation and travels with a workspace export. Links minted before short tickets existed carry the whole claim inside the token, signed under `AUTH_SECRET`: those are still honoured, and rotating that secret invalidates the ones still in inboxes.
 
-Nothing in a campaign email points at warmbly.com. The opt-out address, the tracking pixel and every wrapped link are built from your own `API_PUBLIC_URL` and `TRACKING_DOMAIN`, and a workspace on your instance that verifies its own tracking domain gets the opt-out on that domain instead. A workspace's verified domain is a CNAME to your `TRACKING_DOMAIN`, so the tracking service serves the unsubscribe routes as well as the pixel and click tickets: an install running [core only](/development/install/) has no tracking service, keeps `TRACKING_DOMAIN` unset, and serves every opt-out from the API address.
+Nothing in a campaign email points at warmbly.com. The opt-out address, the tracking pixel and every wrapped link are built from your own `API_PUBLIC_URL` and `TRACKING_DOMAIN`, and a workspace on your instance that verifies its own tracking domain gets the opt-out on that domain instead. A workspace's verified domain is a CNAME to your `TRACKING_DOMAIN`, so the tracking service serves the unsubscribe routes as well as the pixel and click tickets: an install running core only has no tracking service, keeps `TRACKING_DOMAIN` unset, and serves every opt-out from the API address.
 
 One-click (`List-Unsubscribe-Post`) is attached only when the link is `https`. An instance reachable over plain HTTP still sends the plain `List-Unsubscribe` header, because a provider POSTing an opt-out to an `http` address either refuses it or sends the token in the clear.
 

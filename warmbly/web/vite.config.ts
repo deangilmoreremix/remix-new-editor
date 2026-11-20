@@ -48,7 +48,10 @@ function docsLinks(docsUrl: string | undefined): Plugin {
         enforce: "pre",
         transform(code, id) {
             if (!docsUrl || id.includes("node_modules") || !/\.[jt]sx?$/.test(id) || !code.includes("https://docs.warmbly.com")) return null;
-            return { code: code.replaceAll("https://docs.warmbly.com", docsUrl.replace(/\/$/, "")), map: null };
+            const base = docsUrl.replace(/\/$/, "");
+            // The hosted copy holds the how-to guides only; a link to anything else lands on the guides home.
+            const gone = /^\/(api|development|learn)(\/|$)|^\/guides\/(warmbly-cloud|billing|partnership|ai-credits)(\/|$)/;
+            return { code: code.replace(/https:\/\/docs\.warmbly\.com(\/[^"'`\s)]*)?/g, (_m, path: string = "/") => (gone.test(path) ? `${base}/guides/` : `${base}${path}`)), map: null };
         },
     };
 }

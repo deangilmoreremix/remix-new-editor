@@ -49,7 +49,7 @@ After watching it for a week, turn on the suppression under **Settings > Sending
 
 Automatic tagging reads each inbound message and files it under workspace labels, then scores how much it deserves your attention. It is optional and off until an operator turns it on.
 
-Classification sends message content to TypeSafe, so it is opt-in twice: an operator supplies a key, and separately switches the feature on. An instance that does neither never calls TypeSafe and behaves exactly as it did before. Other optional AI features can also send content to their configured provider; see [data control](/development/data-control/).
+Classification sends message content to TypeSafe, so it is opt-in twice: an operator supplies a key, and separately switches the feature on. An instance that does neither never calls TypeSafe and behaves exactly as it did before. Other optional AI features can also send content to their configured provider; see data control.
 
 </Fold>
 
@@ -85,7 +85,6 @@ Labels are plain words, so anyone on the team can read them without learning a t
 |---|---|
 | **Interested** | They said yes to the call, the partnership or the next step |
 | **Meeting** | They asked for a call or meeting, or proposed or confirmed a time |
-| **Pricing** | They asked about price, terms or commercials |
 | **Question** | Open to it, but asking questions before deciding |
 | **Update** | News on something already agreed, or the answer to something you asked |
 | **Not now** | Interested in principle, but the timing is wrong |
@@ -104,8 +103,6 @@ The classifier answers more questions than this (whether the sender is the decis
 
 ## Automated mail stays out of the inbox
 
-Sign-in and verification codes, routine security, account and billing notices, receipts, newsletters, bounces and auto-replies are not mail anyone has to answer. When the verdict is that no person wrote a message, its conversation leaves **Inbox**, Unread, every mailbox and tag view and the unread badge, and is listed under the **Automated** view instead. **All mail** still shows everything.
-
 Only a confident verdict moves a conversation: a message the classifier was unsure about stays in the inbox. A conversation counts as automated only while every message in it that is not yours was judged automated, so a reply from a person brings it back to the inbox the moment it arrives, before it is even classified. Nothing is moved in the mailbox itself; the provider's folders are untouched.
 
 Common senders and headers (no-reply addresses, bulk mail, out-of-office subjects, delivery failures) are decided offline. Everything else is judged by the model.
@@ -115,8 +112,6 @@ Common senders and headers (no-reply addresses, bulk mail, out-of-office subject
 <Fold>
 
 ## Mail that needs your action
-
-Mailboxes used only for campaigns still receive mail a person has to deal with: a failed payment for the mailbox's subscription, a suspended or restricted account, a suspicious sign-in, a sending limit or policy notice from the provider, a domain or service about to expire. Nobody logs into those mailboxes one by one, so if that mail went to Automated with the receipts it would never be seen.
 
 So every notification is also asked one question: does it tell the recipient about a problem with their own account, payment, domain or service that they must act on? When the answer is yes:
 
@@ -188,7 +183,6 @@ Four actions, each behind its own switch under **Settings > Sending > Classified
 | Hold a contact who says not now | **Not now** | The contact's sequences are parked, in every campaign they are in, for the number of days you set (default 30, between 1 and 90). The hold shows on the campaign's Leads tab and lifts on its own |
 | Stop a contact who declines | **Not interested**, **Wrong person** | The contact's sequences are parked for a year, in every campaign they are in. Nothing is unsubscribed and nothing is deleted; resume the lead from the Leads tab if the reply was misread |
 | Open a task when they ask for a call | **Meeting** | A high-priority CRM task for the mailbox owner, due in 24 hours, titled with what they asked |
-| Suppress a contact who asks to be removed | requests removal at `0.80` or above | The sender goes on the suppression list with the reason, and the contact's subscription flag is cleared, exactly as a reply that says "unsubscribe" does today |
 
 The suppression follows the same rule as a reply that says "unsubscribe": it only fires for someone replying in one of your campaign threads, or one of your contacts writing in, and never for mail sent to a list. It is the one irreversible action, so it reads its own yes/no question ("the sender asks to be removed") at the strong floor rather than the eight-way intent, and when it fires nothing else does: a suppressed address has no sequence left to hold or chase. A hold written by a classified reply never overrides a hold a member set by hand, and never cuts a longer automatic hold short. A call request opens one task, whichever of the tagging switch and the reply follow-up setting would have opened it.
 
@@ -248,7 +242,6 @@ Tagging languages are part of the workspace settings, so they travel with a [wor
 
 Three other features reuse a stored verdict rather than paying for a second judgment:
 
-- **Campaign reply handling.** The reply classifier that drives `stop_on_reply`, the reply branches and the campaign's reply quality reads the stored kind and intent when one exists, ahead of its keyword phrases, so an interested reply, a pricing question or a request for more information routes as positive and a declined one as negative with the classifier's real confidence. Header-detected autoresponders and a request to stop are decided before it and never asked. A reply the classifier was unsure about counts as unclassified, the campaign's match for **Needs review**, rather than whatever a keyword guessed. The intent a webhook, an automation, a CRM task and the contact's timeline record is the same verdict, and so is the tag on a [Slack](/guides/slack/) inbox card; the workspace keyword lists under reply intent decide only a reply nothing else decided. The intent itself is also stored on the contact's progress, and a sequence can branch on it with the `reply_intent` condition (see [Campaigns](/guides/campaigns/)). Without tagging, the classifier asks TypeSafe one three-way question instead. Without a key, the keyword phrases decide, and the platform LLM reads what they leave open.
 - **Reply automations and webhooks.** The `campaign.reply_received` event carries the verdict as `ai_labels`, `ai_intent`, `ai_intent_confidence`, `ai_kind`, `ai_relevance` and `ai_needs_review`, held to the same confidence floor as the labels, so an automation can notify you about Interested or Meeting replies (see [Automations](/guides/automations/#filtering-replies-on-inbox-tagging)).
 - **The inbox agent.** A reply the verdict shows as closed (Not interested, Unsubscribe, Wrong person, Not now), a one-line acknowledgement, a legal threat or a message that needs a person to read it is not drafted, so nothing is charged for answering it.
 
@@ -298,7 +291,7 @@ Common out-of-office subject prefixes and automated sender addresses are checked
 
 With no `TYPESAFE_API_KEY`, Warmbly can still compute **Follow up** locally from sent-message dates. It makes no external call. **Needs reply** and **Gone quiet** also need a trusted stored classification so an automated message is not mistaken for a person and a weak intent is not treated as interest, and without classification nothing leaves the inbox as automated.
 
-The key and switch add message classification. When both are unset, automatic inbox tagging sends no message content to TypeSafe. Other optional AI features use their separately configured provider; see [data control](/development/data-control/).
+The key and switch add message classification. When both are unset, automatic inbox tagging sends no message content to TypeSafe. Other optional AI features use their separately configured provider; see data control.
 
 </Fold>
 
@@ -358,14 +351,6 @@ Only messages stored as a notification by a verdict that never asked the action 
 <Fold>
 
 ## What it costs
-
-One call contains every question for a message and currently uses about 1,300 input tokens on the recorded fixture set. A notification recognised offline costs one smaller call, for the action check and any of your questions asked of notifications, and nothing when neither is on. An away message recognised offline costs one small call when its return date is checked, and nothing otherwise. TypeSafe evaluates the questions in parallel, but each question still contributes tokens, so check its current pricing before a large backfill. Output tokens are not billed.
-
-The same configured API key also serves reply classification, campaign-copy checks, generated warmup-content review, form triage, bounce classification and import helpers. These all count against the key's TypeSafe account, not just inbox tagging. Self-hosts use their own key and billing account when configured; there is no shared hosted key supplied by default.
-
-Operators can filter backend and consumer logs by `event=typesafe_usage`. Each request attempt records its feature, question count and HTTP status (zero when no usable API response was received). Successful responses also record the model and input tokens, with the workspace identifier when available. Sum `input_tokens` on successful responses to compare features; failed attempts have no reported token usage. Logs contain no message content, question text, credentials or API keys. Saved inbox and copy verdicts alone are not an account-wide billing ledger: some features do not persist usage, and the TypeSafe console remains the authority for the balance and charges.
-
-If TypeSafe returns a billing error (HTTP 402), paid judgments pause for five minutes. The next eligible request after that interval becomes a single recovery probe; a successful probe resumes requests, and a failed probe pauses them again. Backend and consumer coordinate this through their existing Redis connection for the same API key. If Redis is unavailable, each process retains its own bounded pause. This prevents repeated failing requests, but does not replenish credits or lower the price of successful judgments.
 
 Incoming mail is still saved during the pause. Offline rules and already stored verdicts remain available; unavailable model answers are not invented. After restoring credits, a plain backfill can classify skipped historical mail, and `--recheck-notifications` can check notifications filed without an action answer. Recovery probes happen on demand, not by sending paid synthetic health checks.
 

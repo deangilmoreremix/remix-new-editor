@@ -53,11 +53,7 @@ Browsing filters, searches and view choices are [remembered in your browser tab]
 
 One inbox for every connected mailbox. Read, sort, and reply from a single screen instead of logging into each account. Three columns: a **scope rail** for picking what to look at, a **conversation list**, and a **thread view** where you read and reply.
 
-Verified [warmup mail](/guides/warmup/) stays out of Unibox, including your mailbox's Sent copies and warmup run by [Warmbly Cloud](/guides/warmbly-cloud/). It does not create inbox notifications, raise the unread count or trigger reply classification. The consumer also checks existing messages in batches (once a day and after every restart) and removes confirmed warmup from Unibox, and any reply notification it had raised goes with it. This leaves the messages in your email provider and keeps ordinary conversations intact.
-
 ### Warmup from other services
-
-Warmup sent by anything other than this workspace arrives as ordinary mail: another warmup tool warming the same mailboxes, or [Warmbly Cloud](/guides/warmbly-cloud/) warming a mailbox in a separate workspace without a link to this one. To keep it out, open **Settings > Sending > Warmup from other services**:
 
 - **Hide warmup from another Warmbly** hides mail carrying a Warmbly warmup marker that this workspace did not send. Warmup sent from an Outlook or Microsoft 365 mailbox loses that marker in transit, so it still needs a tag.
 - **Warmup tags** hides mail containing any of the codes you add, anywhere in its subject or text, in any case. Most warmup tools give each account one, usually as the filter tag in their warmup settings. A tag needs at least 4 characters, and up to 20 can be added.
@@ -160,15 +156,12 @@ Below those sit the premade **Views**, which answer the questions a pipeline tur
 | View | Shows |
 | --- | --- |
 | Action required | Automated mail that needs someone to act: a failed payment, a suspended account, a suspicious sign-in, a sending limit, a service about to expire |
-| Hot leads | Replies labelled Interested, Meeting or Pricing |
 | Needs a reply | They wrote last and nobody has answered for two days or more |
 | Follow up | You wrote last and heard nothing, or an interested thread went quiet |
 | Declined | Not interested, wrong person, or asked to unsubscribe |
 | Automated | Mail nobody wrote: sign-in codes, receipts, notifications, newsletters, bounces and auto-replies |
 
 A view is a filter over its labels, so a conversation appears in it as soon as a label lands and leaves it when the label does. Without a classifier key on the instance only the two follow-up views fill, from sent-message dates alone.
-
-**Automated** is different: it is where machine mail lives instead of the inbox. When automatic tagging judges that nobody wrote a conversation, it leaves **Inbox**, Unread, every mailbox and tag view, and the unread badge, and shows only under Automated (and in All mail). A message the classifier was not sure about stays in the inbox. A reply from a person brings the conversation straight back, before it is even classified. Automated mail that needs your action, such as a failed payment for a mailbox's subscription or a suspended account, never goes to Automated: it stays in the inbox labelled **Action required**, and the **Action required** view lists it with its unread count (see [Mail that needs your action](/guides/inbox-tagging/#mail-that-needs-your-action)).
 
 Below the views, the rail lists each mailbox with its unread count, plus your **Labels** and **Tags**. Long lists collapse to the first few with a `Show all` toggle and an inline filter. For a slice of time (today, the last week), use the date range in the filters rather than a view; the list's title shows which view you are in, with how many conversations are loaded.
 
@@ -338,8 +331,6 @@ These reply drafts are personal to your signed-in user and workspace in this bro
 
 AI lives at your cursor, not in the toolbar. With the cursor in the body, click the sparkle (or press **⌘J**) for three options: write something inline, **Draft a reply from this thread**, or **Continue writing**.
 
-A thread draft is grounded in the whole conversation, the contact's record and campaign membership, and your workspace **voice profile**. Grounding reads the messages themselves, not their preview lines, with quoted history stripped and the most recent messages given the most room, so the draft answers what was actually asked rather than the opening sentence. While it writes, a review bar offers **Keep**, **Retry**, **Adjust** (steer with an instruction like "shorter"), or **Discard**. Nothing sends until you press Send. Each draft is charged to the [workspace balance](/guides/ai-credits/) for what it uses, typically $0.02 to $0.03.
-
 Select any text for a floating **Edit with AI** pill: quick actions (improve, shorten, expand, fix grammar, friendlier, more formal) or a free instruction, rewriting just the selection with **Undo** and **Again** one click away. Each rewrite is charged for what it uses, typically about $0.01. The same control works in the campaign step editor.
 
 An edit applies your instruction and leaves everything else alone: it does not rewrite the passage into a fresh email, and "fix the grammar" changes the grammar and nothing more. Personalization tokens, conditions, spintax, AI blocks, form links and links (their destinations included) are carried through unchanged, so rewriting copy never drops a `{{.FirstName}}` or an opt-out link. Bold, italic and headings inside the rewritten selection are not preserved, so select around them when the styling matters. When the model decides the passage already satisfies the instruction, the review row says **No change** rather than claiming a rewrite you cannot see.
@@ -416,8 +407,6 @@ However low that goes, every mailbox keeps at least 50 recipients a day, so a co
 - any one hour takes at most a fifth of it, so a burst cannot spend the whole day
 - one email goes to at most 100 recipients, or the hourly allowance if that is smaller. A longer list belongs in a campaign
 - new emails that start a conversation take at most a quarter of it. Replies and forwards inside a conversation do not count toward this part, so a mailbox can always keep answering
-
-Your plan sets a second, workspace-wide allowance across all your mailboxes together: twice the plan's daily email limit in any 24 hours, and never less than 100. The free trial's 20 emails a day gives 100 unibox recipients, Starter's 150 gives 300, and Grow's 3,000 gives 6,000. An approved increase to your daily limit raises it too. A plan with no daily limit has no workspace allowance, and neither does a self-hosted instance without billing.
 
 A mailbox that is paused or reconnecting, held after a send problem, or cooling down after a provider limit sends nothing from the unibox either.
 

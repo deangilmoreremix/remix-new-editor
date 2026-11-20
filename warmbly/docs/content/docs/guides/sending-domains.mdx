@@ -122,8 +122,6 @@ While any domain still uses the shared tracking host or has no redirect, the top
 
 A domain bought for cold email usually answers nothing when someone types it into a browser. A recipient who checks who wrote to them, or a filter that looks at the domain, finds an empty page or an error, which reads as a throwaway domain. A redirect sends visitors to the bare domain (and its `www`) on to your company's main website instead, so the domain looks like what it is: part of a real business.
 
-Warmbly serves the redirect from this instance's tracking service once DNS proves two things: that you control the domain, and that its root points here. A self-hosted instance already linked to Warmbly Cloud can [have Cloud serve it](#serve-it-from-warmbly-cloud) instead, with nothing to set up on its own server.
-
 ### Set one up
 
 Enter the website to send visitors to, such as `https://yourcompany.com`. It must be an `http` or `https` address on one of your workspace's own domains: a domain you have a mailbox on, a verified tracking host, your verified [forms domain](/guides/forms/), a website you [confirmed](#confirm-your-website), or a subdomain of one of them. A redirect back to the same domain or its `www` is refused. A destination saved earlier that no longer qualifies, for example after the last mailbox on its domain is removed, is kept but shows **Not in use**, and the domain answers as if it had no redirect until you change it or confirm the website. **Include www** is on by default. Warmbly then lists the records to add at your DNS provider:
@@ -135,8 +133,6 @@ Enter the website to send visitors to, such as `https://yourcompany.com`. It mus
 | www | `CNAME` | `www.<domain>` | `<domain>` | No |
 
 The ownership value is unique to your workspace and the domain on this instance, so a record another workspace published proves nothing for yours. It is the same record a [Google Workspace admin grant](/guides/mailbox-import/#prove-the-workspace-controls-the-domain) accepts as proof, so a domain that has one for either needs nothing more for the other.
-
-On Warmbly Cloud, and on any instance that registers customer domains with [Cloudflare for SaaS](/development/configuration/#customer-domains-behind-cloudflare-for-saas), the root record is a `CNAME` to the tracking host, because the tracking host sits behind Cloudflare and its addresses are Cloudflare's shared ones, which change. A `CNAME` at the root works where the DNS provider flattens it: Cloudflare does this on its own, and providers such as Namecheap, Porkbun, DNSimple, Bunny and NS1 offer an `ALIAS` or `ANAME` record that does the same. A provider with none of these cannot point the root here; use its domain forwarding to send the domain to your website instead. While Cloudflare is still activating the domain it may list one more record, an **Activation** `TXT` named `_cf-custom-hostname.<domain>` (and one for `www`). Add it when it is listed; it is no longer listed once the domain is live.
 
 The `www` record points at the domain itself, so it follows whatever the root does. A `www` that is a `CNAME` straight to the tracking host keeps working too.
 
@@ -170,8 +166,6 @@ Saving the redirect again, to change the website or the `www` setting, keeps the
 
 A visit to the domain (and to its `www` when included) answers with a `302` to the website you entered, cacheable for five minutes. The path they asked for is not carried over: every visit lands on that one address. The answer is temporary on purpose, so a change or a deletion reaches every visitor within minutes instead of lingering in browsers.
 
-HTTPS needs a certificate for your domain. Warmbly Cloud issues one on demand the first time someone visits, and only for a domain whose redirect is verified, including redirects it serves for a linked instance. A self-hosted instance installed with the bundled Caddy does the same. Behind an operator's own proxy, the proxy has to route the domain to the tracking service and hold a certificate for it; see [custom tracking domain](/guides/mailboxes/#custom-tracking-domain) for the same caveat.
-
 ### When visitors do not get it
 
 The redirect's tab says what the check saw and, for the usual causes, what to change:
@@ -179,7 +173,6 @@ The redirect's tab says what the check saw and, for the usual causes, what to ch
 | What the check saw | What it usually means | What to do |
 | --- | --- | --- |
 | Cloudflare refused the domain with error `1000` | The root's `A` or `AAAA` records point straight at Cloudflare's own addresses, which Cloudflare only serves through a `CNAME` | Delete every `A` and `AAAA` record on the root and add the root record the tab lists, set to DNS only. The tab shows the exact records |
-| Cloudflare answered with error `1014` or `1001` | Cloudflare received the visit but has not activated the domain yet | On Warmbly Cloud, add the **Activation** record when the tab lists one; otherwise it activates by itself within a few minutes of the records verifying. On your own instance behind Cloudflare, point the records straight at your server, or add the domain to that Cloudflare zone as a custom hostname |
 | Another web server answered, often a `404`, and the tab names it when it can tell (Traefik, nginx, Caddy, Apache) | A proxy in front of Warmbly only answers for the hostnames it was set up with | Add the domain wherever the tracking host is set up, since that one already reaches Warmbly. The tab shows the exact change for Traefik, Coolify, Dokploy, nginx and Caddy |
 | The tracking service answered but did not recognise the domain | The proxy sends the visit on under a different hostname | Pass the original `Host` header through, for example `proxy_set_header Host $host;` in nginx |
 | The domain redirects somewhere else | Another redirect answers first: a proxy rule, or forwarding at the domain or DNS provider | Remove that redirect |
@@ -201,29 +194,12 @@ server_name t.example.com acme.io www.acme.io;
 proxy_set_header Host $host;
 ```
 
-On a self-hosted instance already linked to Warmbly Cloud, the same tab also offers to skip all of this and [serve the redirect from Warmbly Cloud](#serve-it-from-warmbly-cloud).
-
-### Serve it from Warmbly Cloud
-
-On a self-hosted instance already [linked to Warmbly Cloud](/guides/warmbly-cloud/), a redirect has a **Served from** choice: **This server** or **Warmbly Cloud**. Cloud serves the redirect and its certificate from its own tracking service, so nothing on your server has to route the domain. You point the root at the addresses Cloud lists and publish the ownership value it lists, which is Cloud's own and differs from your instance's.
-
-- Warmbly Cloud no longer links new self-hosted instances, so an instance that is not linked has no **Served from** choice and serves every redirect itself, through its own tracking host and proxy.
-- While the instance is linked, the dashboard picks Warmbly Cloud for a new redirect (the API keeps this instance unless `served_by` says otherwise). Bulk setup has the same choice; there, a domain that already has a redirect keeps where it is served from unless you pick a server, and the dashboard asks before moving a live one.
-- Cloud checks the records and opens the domain on its own schedule, the same one described above. Your instance shows Cloud's verdict, records and last visit, and reads them again on its own schedule and on **Check now**.
-- Moving a redirect between this server and Cloud changes its root records, so a live redirect pauses until the new records are in place. The dashboard asks before it moves one.
-- Your instance checks the website against your workspace's own domains, both when you save and on every check. A redirect Cloud serves whose website no longer qualifies is released from Cloud and stops until you change it.
-- Only the domain, the website and the `www` setting go to Cloud. See [data control](/development/data-control/#outbound-calls).
-- If Cloud cannot be reached when you save, the redirect is kept as waiting for Cloud and sent as soon as it answers. A redirect Cloud still serves that no workspace here has any more, after a workspace is deleted for example, is released within about half an hour.
-- Disconnecting the instance, or unlinking it from Warmbly Cloud, stops every redirect Cloud served for it. Each one then says so and can be moved back to this server. A redirect Cloud no longer has while the link is still up is put back by the next check.
-
 ### Limits
 
 - The workspace must have a mailbox on the domain.
 - The website must be on one of the workspace's own domains or a [confirmed website](#confirm-your-website), as described in [set one up](#set-one-up).
 - Domains of shared email providers, such as `gmail.com` or `outlook.com`, are refused.
 - One workspace per domain on an instance. While one workspace's redirect for a domain is verified, another workspace's redirect for it is refused with `domain_redirect_taken` and does not verify.
-- The instance needs a tracking host (`TRACKING_DOMAIN`), because the tracking service is what answers. Without one, redirects are not offered, except from Warmbly Cloud on a linked instance.
-- Warmbly Cloud serves up to 200 redirects for one linked instance.
 
 </Fold>
 
@@ -259,8 +235,6 @@ The vendor's domain list is read with the workspace's own API key, only for conn
 <Fold>
 
 ## What travels in an export
-
-Redirects travel in a [workspace export](/guides/workspace-export-import/). They arrive unverified and are served once the destination's own check sees both records. One Warmbly Cloud served for the source arrives served by the destination itself. The ownership value belongs to the workspace on the instance that issued it, so the destination lists its own value: publish that value in the `TXT` record, and point the root at the destination. A tracking host is part of each mailbox's settings and travels with the mailbox; it arrives unverified, and the destination's hourly check verifies it once the `CNAME` points at the destination and the destination's ownership value is published. Forwarding set through a vendor lives at the vendor and is unaffected by a move. [Confirmed websites](#confirm-your-website) do not travel: their record is bound to the source workspace, so the destination shows its own record to add for each website its redirects point at.
 
 </Fold>
 

@@ -63,7 +63,7 @@ In the **Invite teammates** box, paste or type addresses into **Emails**, separa
 
 Warmbly sends one invitation per address and reports results as "Invited 2 · 1 failed". Invalid addresses are skipped and called out. The chips clear when the batch finishes.
 
-When several trusted dashboards share one backend, invitation emails link back to the dashboard that sent the invitation. Copying an invitation link also keeps that dashboard's hostname. See [multi-dashboard configuration](/development/configuration/#multiple-dashboards-on-one-backend).
+When several trusted dashboards share one backend, invitation emails link back to the dashboard that sent the invitation. Copying an invitation link also keeps that dashboard's hostname. See multi-dashboard configuration.
 
 An invitation works for 48 hours. A self-hosted instance can shorten that, but not lengthen it.
 
@@ -83,7 +83,7 @@ Two things work differently when you run Warmbly yourself.
 
 **Invitations may not arrive by email.** Platform mail defaults to a transport that writes messages to the backend log instead of delivering them, so copying the invite link is the path rather than the fallback. The members page shows an amber notice above the **Emails** field when the server reports that mail is not delivered, telling you to invite the person and then copy the link from their row under **Pending invitations**.
 
-Both are covered in [accounts and access](/development/accounts-and-access/#without-a-mail-relay), along with how to point the instance at a real relay.
+Both are covered in accounts and access, along with how to point the instance at a real relay.
 
 </Fold>
 
@@ -98,8 +98,6 @@ To remove someone, hover (or tap) their row and click the remove icon. **You can
 ### Transfer ownership
 
 A workspace has exactly one owner. The owner sees a key icon on every other member's row: click it, confirm, and that member becomes the owner. You are asked to sign in again first if you have not done so recently. The new owner must already be a member, so invite them and wait for them to accept before handing over.
-
-The handover takes effect at once. The new owner gets full control, including billing, deleting the workspace and transferring ownership again, and any roles or restricted access they held are cleared. You stay in the workspace as an Admin, and only the new owner can hand ownership back. Mailboxes, campaigns, contacts, warmup, API keys and a link to Warmbly Cloud are untouched: they belong to the workspace, not to its owner.
 
 A member whose account is scheduled for deletion or suspended cannot take ownership. Only the owner can transfer, and the action is not available to API keys.
 
@@ -141,8 +139,6 @@ A restricted member's roles apply only inside their grants, and only as far as t
 | **Use unified inbox** | Read the granted mailboxes' conversations | Also reply and forward from a granted mailbox, label, mark read or unread, archive, delete, snooze, and cancel a scheduled reply |
 | **Manage campaigns** | Nothing | Edit a granted campaign's name, description, schedule, sending options and steps |
 | **Send campaigns** | Nothing | Start and pause a granted campaign |
-
-Every other permission is set aside while the scope is restricted: team, billing, settings, API keys, integrations, AI, contacts and mailbox settings never apply to a client, whatever their role. A role lets clients act when **Clients can act inside what is shared with them** is on in its editor; it is off for every role until you turn it on, so a role a client already holds keeps them read-only until then. Turning it on or off needs every permission the role grants.
 
 The member dialog offers three presets, added to **Roles & access** as ordinary roles the first time you pick one:
 
@@ -193,7 +189,6 @@ Roles are workspace data. Every workspace starts with three seeded roles that ar
 | --- | --- |
 | **Owner** (status) | Full control, including ownership transfer |
 | **Admin** | Everything except transferring ownership |
-| **Manager** | Day-to-day operator: campaigns, contacts, mailboxes, integrations. No team, billing, settings, or API keys |
 | **Viewer** | Read-only |
 
 ### Permissions
@@ -205,19 +200,15 @@ Roles are workspace data. Every workspace starts with three seeded roles that ar
 | | Manage sequences | Edit step content and spacing |
 | | View analytics | Deliverability and engagement reports |
 | | Use integrations | Push contacts and deals to connected tools, view and test automations |
-| | Use AI | Remie and AI drafting, spending the shared workspace balance |
 | **People** | Manage team | Invite, remove, re-role members |
 | | Transfer ownership | Hand ownership to another member |
 | **Sending** | Manage mailboxes | Connect, disconnect, configure senders |
 | | Send campaigns | Start, pause, resume |
 | | Use unified inbox | Read and reply from the shared inbox |
 | **Workspace** | Manage settings | Workspace-wide settings, connecting integrations, building automations |
-| | Manage billing | Checkout, invoices, plan changes and cancellation |
 | | Manage API keys | Create and revoke workspace keys |
 
-How the seeded roles map: **Viewer** holds only the two view permissions plus analytics. **Manager** adds everything operational (manage campaigns, contacts, sequences, mailboxes, send, unibox, integrations, AI). **Admin** adds team, settings, billing, and API keys. **Owner** is Admin plus ownership transfer.
-
-A role also bounds what its members hand to software. An API key a member creates, and an app a member authorizes over OAuth, only gets the [API permissions their role covers](/api/permissions/#what-a-role-can-delegate), and an app's access shrinks with the member's role if it changes later. Members with **Manage API keys** or **Manage settings** can see every member's authorized apps under **Settings > OAuth apps > Authorized apps** and revoke any of them.
+A role also bounds what its members hand to software. An API key a member creates, and an app a member authorizes over OAuth, only gets the API permissions their role covers, and an app's access shrinks with the member's role if it changes later. Members with **Manage API keys** or **Manage settings** can see every member's authorized apps under **Settings > OAuth apps > Authorized apps** and revoke any of them.
 
 </Fold>
 
@@ -248,4 +239,4 @@ Custom roles apply everywhere permissions do: API access checks, dashboard visib
   <Card title="Permissions reference (API keys)" href="/api/permissions/" />
 </Cards>
 
-These roles control what teammates can do in the dashboard. **API key** permissions are separate and control what programmatic integrations can do; see the [Permissions reference](/api/permissions/).
+These roles control what teammates can do in the dashboard. **API key** permissions are separate and control what programmatic integrations can do; see the Permissions reference.

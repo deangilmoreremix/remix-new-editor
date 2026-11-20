@@ -113,7 +113,7 @@ The event picker in Settings shows the full catalog grouped by category. A few t
 - High-volume events (campaign sends, opens, clicks, inbox syncs) are marked **firehose** and must be added explicitly. Subscribe to them only if your receiver can handle the sustained volume.
 - You can update the event list at any time without affecting the signing secret or verification state.
 
-The complete event catalog is available programmatically at `GET /webhooks/event-types`. See the [webhooks API reference](/api/reference/webhooks/) for the full list.
+The complete event catalog is available programmatically at `GET /webhooks/event-types`. See the webhooks API reference for the full list.
 
 </Fold>
 
@@ -130,7 +130,7 @@ Every delivery attempt is logged. Open an endpoint in Settings -> Webhooks and g
 
 You can also query deliveries across all endpoints with `GET /webhooks/deliveries`, or scope it to one endpoint with `GET /webhooks/{id}/deliveries`. Both support filtering by status and event type, and return opaque cursor pagination.
 
-A settled delivery stays in the log unless the instance sets a window, measured from its last attempt; one past that window can no longer be redelivered. A delivery still being retried stays until it settles. A self-hosted instance sets this window with `retention.webhook_delivery_days` (see [data control](/development/data-control/#event-history)).
+A settled delivery stays in the log unless the instance sets a window, measured from its last attempt; one past that window can no longer be redelivered. A delivery still being retried stays until it settles. A self-hosted instance sets this window with `retention.webhook_delivery_days` (see data control).
 
 If an event was throttled rather than delivered, it appears in `GET /webhooks/throttle-drops` instead of the delivery log.
 
@@ -191,7 +191,7 @@ If an endpoint fails continuously over a sustained window, Warmbly auto-disables
 
 ## OAuth app allowed domains
 
-If your OAuth app registers webhook endpoints on behalf of its users, it must declare the allowed domains in `allowed_webhook_domains` when creating or updating the app (see [OAuth](/api/oauth/)). Any endpoint URL your app registers must have a host within that list. An empty list means webhook registration is blocked for the app.
+If your OAuth app registers webhook endpoints on behalf of its users, it must declare the allowed domains in `allowed_webhook_domains` when creating or updating the app (see OAuth). Any endpoint URL your app registers must have a host within that list. An empty list means webhook registration is blocked for the app.
 
 Domain matching is subdomain-inclusive when you prefix the entry with a dot: `.acme.com` matches `acme.com`, `hooks.acme.com`, and any deeper subdomain. A bare entry like `acme.com` matches that exact host only.
 
@@ -199,6 +199,6 @@ Domain matching is subdomain-inclusive when you prefix the entry with a dot: `.a
 
 ## What comes next
 
-- [Webhooks API reference](/api/reference/webhooks/) for the full endpoint, payload, and delivery log spec.
+- Webhooks API reference for the full endpoint, payload, and delivery log spec.
 - [Automations](/guides/automations/) if you want to react to events inside Warmbly without a public URL.
 - [Integrations](/guides/integrations/) for connecting third-party CRM, Slack, and automation tools.

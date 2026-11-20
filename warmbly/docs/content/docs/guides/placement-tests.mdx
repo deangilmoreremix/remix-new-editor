@@ -45,8 +45,6 @@ Watch the results appear on the test as each seed syncs its copy.
 
 - Every copy is a real send, charged to the sending mailbox's daily campaign limit.
 - A copy not seen within 120 minutes of being sent is marked never arrived.
-- On the hosted product, a paid plan gets `40` free tests a month on the shared panel by default, then `$0.50` per test from the workspace balance at the default prices. A trial gets `3`.
-- The [Partnership plan](/guides/partnership/) can run tests too, with the same free tests as a paid plan. It has no balance to pay for more, so past them a test waits for the next month.
 - Tests on your own seed inboxes are never counted and never cost anything.
 - One test is noise. Look for a pattern across several tests and providers.
 
@@ -92,8 +90,6 @@ Results are broken down by provider family: Gmail, Google Workspace, Outlook.com
 
 Each copy is rendered the way a campaign send is, in the same order: merge fields and spintax for a sample lead, AI blocks for that lead, form links, the mailbox's signature, the opt-out line, the `List-Unsubscribe` header, attachments, and the open pixel and wrapped links when tracking is on. What a test leaves out is what only a real conversation has: threading into an earlier message, the A/B variant choice, and the campaign's CC and BCC.
 
-When you test a campaign step, the copy renders for the campaign's first lead unless you pick another contact (on the Warmbly Cloud panel it renders for a placeholder instead, so a lead's details leave your instance only when you pick one, and AI blocks are left out), and the step is copied when the test starts, so an edit halfway through does not change what the later seeds receive. A follow-up step that threads under an earlier one has no subject of its own, so the test uses the subject of the step it threads under, without the `Re:`. A template you write by hand renders the way a new campaign would, with the workspace's default opt-out line and the unsubscribe header on.
-
 Nothing is added to the message for the test's sake: no marker in the subject, no special header, no hidden text. Each copy is found again by its Message-ID, so what the seed's filter judges is exactly what a prospect would receive.
 
 The test also runs the same [content check](/guides/campaigns/#content-checks) the campaign editor uses and shows its score and issues next to the results.
@@ -115,8 +111,6 @@ The sending mailbox's own copy of each probe is kept out of your unibox.
 
 Seed inboxes are ordinary connected mailboxes that Warmbly syncs. As a seed's mail comes in, each copy is matched by its Message-ID and the folder and Gmail labels it arrived with become its verdict. Results appear on the test live, one copy at a time, for everyone looking at it.
 
-A copy not seen within 120 minutes of being sent is marked **never arrived**. Copies on Warmbly Cloud's panel get half an hour more, because their verdict travels back from the cloud. A test finishes when every copy has a verdict. A test in which no copy was delivered at all ends as **failed**, with the reason.
-
 </Fold>
 
 <Fold>
@@ -129,11 +123,8 @@ A test runs against one panel of seed inboxes:
 |-------|-------------|-----------|
 | **Shared panel** | The panel the instance operator runs for every workspace (`instance` in the API). On the hosted product this is Warmbly's own | Whenever the operator has put seed inboxes on it. On a self-hosted instance, an administrator adds them from the admin panel |
 | **Your seed inboxes** | Mailboxes of your own workspace that you marked as seeds (`workspace` in the API) | Once you mark at least one |
-| **Warmbly Cloud panel** | Warmbly Cloud's panel (`cloud` in the API) | Only on a self-hosted instance [linked to Warmbly Cloud](/guides/warmbly-cloud/#placement-tests-on-warmbly-clouds-seed-panel) |
 
 The page shows each panel's seed count and its mix of providers, and says why a panel is unavailable when it is.
-
-Addresses on the instance and Warmbly Cloud panels are shown masked (`a***@gmail.com`), so a shared panel cannot be listed and added to a sender's allowlist. Your own seed inboxes are shown in full.
 
 Each test uses up to 20 seeds by default (the operator can change this). They are picked round-robin across provider families, so even a small test covers every provider the panel has. Two kinds of seed are always skipped:
 
@@ -144,13 +135,9 @@ If nothing is left after that, the test is refused with `placement_no_seeds` and
 
 ### Testing only some providers
 
-On the shared and Warmbly Cloud panels, the **Providers** chips under the panel narrow a test to the providers you pick, for example only Outlook.com and Microsoft 365 when that is where replies dried up. The test then picks its seeds from those providers alone, still round-robin and still without showing their addresses. Leave **All** selected to cover every provider the panel has.
-
 ### Choosing which of your seeds get a copy
 
 On **Your seed inboxes**, you can pick the seeds a test goes to instead of letting Warmbly spread it across providers, for example only the Gmail and Outlook.com seeds you are about to open and check by hand. The chooser under the panel lists your seed inboxes with their provider, and a chip per provider selects all of that provider's seeds at once. Choose none and the test picks as usual.
-
-Every seed you choose gets a copy: the usual seeds-per-test cap does not apply to seeds you picked by hand. When the sending mailbox has too little of its daily limit left for all of them, the test is refused with the numbers rather than quietly skipping some. Seeds on the sender's domain are greyed out and skipped, and a seed that is not connected cannot be chosen. Choosing individual seeds is only possible on your own panel, because addresses on the shared and Warmbly Cloud panels are masked; there you pick providers instead.
 
 </Fold>
 
@@ -212,21 +199,10 @@ A mailbox runs one test at a time: until every copy of a test has been sent, ano
 
 On the hosted product, every workspace gets free tests on the shared panel each month:
 
-| Workspace | Free tests per month | After that |
-|-----------|----------------------|------------|
-| On a free trial | `3` | Wait for next month, or upgrade |
-| On a paid plan | `40` | `$0.50` per test from the [balance](/guides/ai-credits/) |
-
 These are the defaults, and the operator can change both numbers and the price. The price is the operator's placement test price plus the markup (`$0.40` plus 25% by default), and a price of `0` turns paid tests off. The month is the calendar month in UTC. A tracking comparison counts as two tests. The placement tests page shows how many free tests you have used, and the new-test dialog says which free test a test uses.
 
-**A paid test never starts without you agreeing to its price.** Once the free tests are used up, the dialog shows what the test costs and your balance, and you tick **Pay $0.50 for this test** before it can start; the button repeats the price. Through the API the same agreement is `max_usd`, the most you agree to pay in dollars; a price above it (because the last free test went to a teammate in the meantime, say) is refused with `placement_quota_exceeded`, naming the price, and nothing is charged. The price is drawn from the balance like any other spend, monthly allowance first and money you added after, and your [spend limits](/guides/ai-credits/#spend-limits) apply. The charge is logged as **Placement test** in the balance history.
-
-- **A test that delivers nothing is refunded.** When no copy of a paid test left the sender (the worker was offline, or you cancelled before the first copy went out), its price goes back to the part of the balance it came from, logged as **Placement test refund**, and it stops counting against your spend limits. Allowance that has reset since the charge is not returned, because it would have expired with the reset. A free test that ended that way does not use up a free test either.
 - **A comparison with one free test left** uses the free test for one half and pays for the other.
 - **Monitors never spend the balance.** A monitor's scheduled test uses the free tests like any other, and once they are gone it records why and tries again a day later.
-- **A trial cannot pay.** The balance comes with a paid plan, so a trial waits for the next month.
-
-Tests on your own seed inboxes are never counted and never cost anything. A self-hosted instance does not meter its own panel at all. Tests on Warmbly Cloud's panel use the free tests of the Warmbly Cloud workspace the instance is linked to; paying for more is not offered there.
 
 </Fold>
 
@@ -239,7 +215,6 @@ A monitor re-tests a running campaign on a schedule, so a drop in placement show
 | Setting | Default | Range |
 |---------|---------|-------|
 | Interval | every `7` days | `1` to `30` days |
-| Panel | Instance | Instance, your seed inboxes, or Warmbly Cloud |
 | Alert below | `70%` inbox | `0` to `100` |
 | Pause on alert | off | on or off |
 

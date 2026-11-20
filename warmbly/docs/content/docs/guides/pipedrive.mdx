@@ -322,8 +322,8 @@ A self-hosted instance uses its own Pipedrive app. Create one in the Pipedrive D
 
 1. Set the callback URL to `BACKEND_PUBLIC_URL` plus `/integrations/oauth/callback`, or to the value of `INTEGRATIONS_OAUTH_REDIRECT_URL` when you set one.
 2. Give the app these scopes: deals (full access), contacts (full access), activities (full access), users (read), search (read), leads (full access), contact fields (full access) and webhooks (full access). Pipedrive mode needs the first four; without the others, lead creation, the Warmbly fields or instant updates are skipped.
-3. Set `PIPEDRIVE_OAUTH_CLIENT_ID` and `PIPEDRIVE_OAUTH_CLIENT_SECRET` on the backend and the consumer, and set `APP_URL` so the **Open in Warmbly** field points at your dashboard. See [configuration](/development/configuration/#integrations).
-4. Optionally add the [Warmbly panel](#working-from-inside-pipedrive) under **App extensions**: a JSON panel and two JSON modals, whose schemas are in the repository's `pipedrive-app/` directory. The steps are in [configuration](/development/configuration/#pipedrive-app).
+3. Set `PIPEDRIVE_OAUTH_CLIENT_ID` and `PIPEDRIVE_OAUTH_CLIENT_SECRET` on the backend and the consumer, and set `APP_URL` so the **Open in Warmbly** field points at your dashboard. See configuration.
+4. Optionally add the [Warmbly panel](#working-from-inside-pipedrive) under **App extensions**: a JSON panel and two JSON modals, whose schemas are in the repository's `pipedrive-app/` directory. The steps are in configuration.
 
 The consumer runs the pull and the sync queue. Change notifications are registered by Warmbly itself when a workspace switches, one set per connection, delivered to `<backend>/api/v1/integrations/pipedrive/webhooks/<connection id>`. They need `BACKEND_PUBLIC_URL` to be an `https` address Pipedrive can reach; without one, Warmbly checks Pipedrive every five minutes instead. Pipedrive authenticates each delivery with a password Warmbly derives for that connection from the client secret, and a delivery only makes Warmbly read the named record sooner: it always reads the record from Pipedrive itself, and removes a mirrored record only when Pipedrive answers that it is gone.
 
@@ -340,8 +340,6 @@ A [workspace export](/guides/workspace-export-import/) carries the CRM mode, its
 <Fold>
 
 ## FAQ
-
-**Which Pipedrive plans work?** Every plan has the deals, people, activities, notes and filters Pipedrive mode uses. Unsubscribe status is only recorded on companies with Pipedrive Campaigns, so the unsubscribe exit rule and guard do nothing without it.
 
 **Why are emails logged as activities?** Pipedrive only lets an app add email through its own mailbox sync. A done Email activity is the closest Pipedrive record: it sits on the person's timeline with the subject and body, and counts in Pipedrive's activity reports.
 

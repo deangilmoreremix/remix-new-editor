@@ -320,7 +320,7 @@ A self-hosted instance uses its own HubSpot app. Create one in a HubSpot develop
 
 1. Set the redirect URL to `BACKEND_PUBLIC_URL` plus `/integrations/oauth/callback`, or to the value of `INTEGRATIONS_OAUTH_REDIRECT_URL` when you set one.
 2. Add the required scopes: `oauth`, `crm.objects.contacts.read`, `crm.objects.contacts.write`, `crm.objects.companies.read`, `crm.objects.companies.write`, `crm.objects.deals.read`, `crm.objects.deals.write`, `crm.objects.owners.read`, `crm.schemas.contacts.read` and `crm.schemas.contacts.write`. Add `crm.lists.read` and `sales-email-read` as optional scopes.
-3. Set `HUBSPOT_OAUTH_CLIENT_ID` and `HUBSPOT_OAUTH_CLIENT_SECRET` on the backend and the consumer, and set `APP_URL` so the `warmbly_link` property points at your dashboard. See [configuration](/development/configuration/#integrations).
+3. Set `HUBSPOT_OAUTH_CLIENT_ID` and `HUBSPOT_OAUTH_CLIENT_SECRET` on the backend and the consumer, and set `APP_URL` so the `warmbly_link` property points at your dashboard. See configuration.
 
 The consumer runs the minute-by-minute pull and the sync queue, so HubSpot mode needs no inbound traffic from HubSpot. Webhooks are optional: subscribe the app to `contact.creation`, `contact.propertyChange`, `contact.deletion`, `deal.creation`, `deal.propertyChange` and `deal.deletion` with the target URL `<backend>/api/v1/integrations/hubspot/webhooks`, and a change is picked up within seconds instead of within the minute. Deliveries are verified with HubSpot's `X-HubSpot-Signature-v3` signature over `BACKEND_PUBLIC_URL` and only make the next read come sooner; Warmbly always reads the record from HubSpot itself, and removes a deal or task only when HubSpot answers that it is gone.
 

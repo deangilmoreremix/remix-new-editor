@@ -11,8 +11,6 @@
     "Sending domains: Every domain your mailboxes send from, with its authentication, tracking host and a redirect for visitors to the bare domain.",
     "Sending behavior: Give each mailbox a human workday: randomized hours, volume, lunch break, and spacing, in its own timezone.",
     "Warmup: Natural warmup threads, placement evidence, participation and conservative pacing.",
-    "Warmbly Cloud for self-hosted instances: How a self-hosted instance already linked to Warmbly Cloud warms its mailboxes in the hosted pool. Warmbly Cloud no longer links new instances.",
-    "Partnership plan: Connect mailboxes through the API, sign Google and Microsoft mailboxes in through your own OAuth app, and let Warmbly run their warmup on Warmbly Cloud.",
     "Campaigns: Create and send cold outreach campaigns safely.",
     "Sequences & steps: Multi-step sequences, follow-ups, A/B variants, and reply branching.",
     "Personalization & Expressions: Merge fields, conditionals, fallbacks, functions, spintax, and automation expressions: the templating language shared by campaign emails and automations.",
@@ -30,7 +28,6 @@
     "Meetings: Calendly / Cal.com scheduling, booking links, and the meetings timeline.",
     "Automations: A visual flow builder: a trigger event connected to action steps across your integrations.",
     "AI steps in automations: Add an AI step or an AI switch to an automation so a flow can read the event with a model, take reversible actions, or route down one of your cases.",
-    "Balance and usage: How the workspace balance pays for AI and other metered work in US dollars, the monthly allowance each plan includes, what typical actions cost, adding money, automatic reload, notices and spend limits.",
     "AI variables: Drop AI blocks into a campaign email that write a unique, personalized snippet for each recipient at send time.",
     "Remie, the AI assistant: Remie, Warmbly's in-product AI assistant, searches your data, edits records, sends messages with your approval, and manages campaigns, mailboxes, and settings, never doing anything your own role could not.",
     "AI contact research: Research a contact on the public web to gather current, cited facts and ready-to-use openers, one at a time or in bulk.",
@@ -50,7 +47,6 @@
     "Make: Connect Warmbly to Make.com with triggers, actions, and searches.",
     "n8n: Connect Warmbly to n8n workflows, self-hosted or cloud, with the REST API and webhooks in both directions.",
     "Browsing and filters: Keep your filters, searches, sorting and view choices when refreshing or returning to a browsing view.",
-    "Plans and billing: How plans unlock features, how to upgrade from anywhere in the dashboard, and what changes when you switch.",
     "Agencies: Run outreach for many clients from one account: a workspace per client, staff who reach every client, one shared monthly send pool, a shared AI balance and one bill.",
     "White-label: Put your own brand, domain, theme and website on the pages your clients see: connect links, shared reports, report emails, forms and the dashboard on your own domain.",
     "Analytics: Campaign and account performance metrics.",
@@ -86,14 +82,6 @@
     {
       "feature": "Warmup",
       "explanation": "Natural warmup threads, placement evidence, participation and conservative pacing. Warmup sends ordinary-looking plain-text threads between participating mailboxes and records where they land. It reveals configuration and delivery problems, but it does not guarantee inbox placement."
-    },
-    {
-      "feature": "Warmbly Cloud for self-hosted instances",
-      "explanation": "How a self-hosted instance already linked to Warmbly Cloud warms its mailboxes in the hosted pool. Warmbly Cloud no longer links new instances. Linking is closed on every plan. Existing connections keep working. To warm in the hosted pool, use a hosted workspace on app.warmbly.com and move the mailboxes there; a workspace export can carry the rest of the workspace. A self-hosted instance that is not linked connects Google and Microsoft mailboxes through its own OAuth apps and serves its root redirects itself. This page is for a self-hosted instance that is already linked to Warmbly Cloud. A linked instance's enrolled mailboxes warm in the hosted pool, instead of only against the few other…"
-    },
-    {
-      "feature": "Partnership plan",
-      "explanation": "Connect mailboxes through the API, sign Google and Microsoft mailboxes in through your own OAuth app, and let Warmbly run their warmup on Warmbly Cloud. The Partnership plan is for a business that brings many mailboxes to Warmbly from its own product. You connect mailboxes through the API, Warmbly warms them in the premium pool on its own workers, and you read their health and placement back through the same API."
     },
     {
       "feature": "Campaigns",
@@ -164,12 +152,8 @@
       "explanation": "Add an AI step or an AI switch to an automation so a flow can read the event with a model, take reversible actions, or route down one of your cases. AI steps let an automation read an event with a model and act on it, or route it down one of your cases. They are built in and need no integration."
     },
     {
-      "feature": "Balance and usage",
-      "explanation": "How the workspace balance pays for AI and other metered work in US dollars, the monthly allowance each plan includes, what typical actions cost, adding money, automatic reload, notices and spend limits. AI and other metered features are paid from the workspace balance, in US dollars, and they need a paid plan. Your plan includes a monthly allowance that resets each billing cycle. Money you add never expires and is spent after the allowance. Each charge is what the work actually used, at the provider's price plus a markup."
-    },
-    {
       "feature": "AI variables",
-      "explanation": "Drop AI blocks into a campaign email that write a unique, personalized snippet for each recipient at send time. An AI variable is a block you place inside a campaign email that generates its own copy for every recipient. Where a normal variable like {{.FirstName}} substitutes a stored field, an AI variable runs a short instruction against each contact and writes a snippet tailored to them, right where you dropped it. The rest of the email is yours; the AI variable fills one spot with something specific to the person receiving it. Because it runs per recipient, an AI variable is charged to the workspace balance for each contact it resolves. Plan for that the same way you plan send volume."
+      "explanation": "Drop AI blocks into a campaign email that write a unique, personalized snippet for each recipient at send time. An AI variable is a block you place inside a campaign email that generates its own copy for every recipient. Where a normal variable like {{.FirstName}} substitutes a stored field, an AI variable runs a short instruction against each contact and writes a snippet tailored to them, right where you dropped it. The rest of the email is yours; the AI variable fills one spot with something specific to the person receiving it."
     },
     {
       "feature": "Remie, the AI assistant",
@@ -244,10 +228,6 @@
       "explanation": "Keep your filters, searches, sorting and view choices when refreshing or returning to a browsing view. Warmbly remembers browsing controls in your current browser tab. Refreshing a page, leaving for another page and returning restores your last choices instead of silently resetting the list."
     },
     {
-      "feature": "Plans and billing",
-      "explanation": "How plans unlock features, how to upgrade from anywhere in the dashboard, and what changes when you switch. Each owner's first hosted workspace starts with a 14-day free trial, no card needed: two mailboxes warming, 20 sends a day, the unified inbox, contacts and campaigns. After the trial, connecting and warming mailboxes needs a paid plan, and the plan decides what else is on: sending from Warmbly Cloud, the unified inbox, contacts, the CRM, automations and integrations come with the plans compared below."
-    },
-    {
       "feature": "Agencies",
       "explanation": "Run outreach for many clients from one account: a workspace per client, staff who reach every client, one shared monthly send pool, a shared AI balance and one bill. An agency groups the workspaces you run for clients. Each client keeps its own workspace, with its own mailboxes, contacts, campaigns and inbox, and the agency adds four things on top: your staff reach every client without being invited one by one, every client sends from one shared monthly pool, every client can draw on one shared AI balance, and the whole agency is billed once. There is no per-client fee and no limit on the number of clients."
     },
@@ -265,7 +245,7 @@
     },
     {
       "feature": "Notifications",
-      "explanation": "In-app notification feed and per-category preferences. The bell in the dashboard shows your unread notifications, such as bounces, spam complaints, worker downtime and billing alerts. Each person chooses which ones they get and how."
+      "explanation": "In-app notification feed and per-category preferences."
     },
     {
       "feature": "Appearance",
@@ -291,7 +271,7 @@
   "howToSteps": [
     "Connect your mailboxes: Open Accounts and choose Add account. Connect Google Workspace or Microsoft 365, or any host over SMTP and IMAP.",
     "Check your domains: Sending domains shows whether SPF, DKIM and DMARC are published for every domain you send from.",
-    "Turn on warmup: New mailboxes start with warmup off. Switch it on from the mailbox's Warmup tab. Warmup is part of every paid plan.",
+    "Turn on warmup:",
     "Send a campaign: Open Campaigns, choose New campaign, write the emails, add contacts and pick the sending hours.",
     "Answer the replies: Every reply, from every mailbox, lands in the Inbox. With inbox tagging turned on, replies are also labelled by what the person wants."
   ],
@@ -353,25 +333,6 @@
         "Start warmup to turn on diagnostic sending.",
         "Choose where warmup mail is filed: Its own folder (the default), Leave it in the inbox, or Archive it.",
         "Pause to stop both sending and receiving warmup mail, or Stop to also turn diagnostic participation off, both while keeping the ramp history. Stop also lifts the cold sending ceiling; Pause keeps it."
-      ]
-    },
-    {
-      "title": "Partnership plan",
-      "steps": [
-        "Send the owner to Google or Microsoft with your app's client ID and your own redirect URI, as you already do for your product. Ask for Warmbly's permissions as well as yours: Google: https://mail.google.com/ and https://www.googleapis.com/auth/gmail.settings.basic, with access_type=offline and prompt=consent so Google returns a refresh token. Microsoft: offline_access, User.Read, Mail.Send and Mail.ReadWrite.",
-        "The provider redirects to your callback with a code. Hand it to Warmbly in one of two ways: You keep the mailbox too. Exchange the code yourself, as usual, and send Warmbly the refresh token. You and Warmbly then each refresh it independently; neither one's use affects the other's. Only Warmbly needs it. Send Warmbly the code itself, with the redirect_uri it was issued for and your PKCE code_verifier if you used one. Warmbly redeems it, so do not redeem it yourself: a code works once.",
-        "Call the API from your server: or, with the code, \"code\": \"4/0Ab...\", \"redirect_uri\": \"https://app.yourproduct.com/oauth/google/callback\", \"code_verifier\": \"...\" in place of refresh_token.",
-        "In the Google Cloud console, create a project for the app and enable the Gmail API under APIs & Services > Library.",
-        "Under Google Auth Platform > Branding, set the app name, support email, logo, home page, privacy policy and terms. This is what mailbox owners see. Under Audience, choose External so mailboxes outside your own organization can sign in.",
-        "Under Data Access, add the scopes https://mail.google.com/ and https://www.googleapis.com/auth/gmail.settings.basic. The first lets Warmbly send, read and file warmup mail; the second reads the mailbox's send-as addresses.",
-        "Under Clients, create a client of type Web application. Add the redirect URI shown under Settings > Mailbox sign-in (or in callbacks) to Authorized redirect URIs, exactly as shown. Copy the client ID and secret.",
-        "Save them in Warmbly under Settings > Mailbox sign-in > Google.",
-        "In the Microsoft Entra admin center, open App registrations > New registration. Name it as mailbox owners should see it, and under Supported account types choose Accounts in any organizational directory and personal Microsoft accounts.",
-        "Under Redirect URI, pick Web and paste the redirect URI shown under Settings > Mailbox sign-in > Microsoft. Register the app and copy its Application (client) ID.",
-        "Under API permissions, add these Microsoft Graph delegated permissions: offline_access, openid, email, profile, User.Read, Mail.Send and Mail.ReadWrite.",
-        "Under Certificates & secrets, create a client secret and copy its Value (not its ID).",
-        "Under Branding & properties, add your logo, home page, terms and privacy statement, and complete publisher verification. Many organizations only let their users consent to apps from a verified publisher.",
-        "Save the client ID and secret in Warmbly under Settings > Mailbox sign-in > Microsoft."
       ]
     },
     {
@@ -524,14 +485,6 @@
       ]
     },
     {
-      "title": "Balance and usage",
-      "steps": [
-        "Open the Balance tab of Settings > Billing (it needs the Manage billing permission).",
-        "Pick an amount: $10, $25, $50, $100, $250, or any other amount from $5 to $5,000.",
-        "With a saved card, confirm Pay and the money is added at once. Without one, or to use another card, choose Pay another way to finish in Stripe Checkout, which saves the card for next time."
-      ]
-    },
-    {
       "title": "Remie, the AI assistant",
       "steps": [
         "Open Remie from the blue blob in the top bar, or press Cmd/Ctrl + I.",
@@ -626,22 +579,6 @@
       ]
     },
     {
-      "title": "Plans and billing",
-      "steps": [
-        "Open a feature your plan does not include, or choose Change plan under Settings > Billing.",
-        "Pick a plan, and monthly or annual billing.",
-        "With no subscription yet, finish in Stripe Checkout. An existing subscription switches in place."
-      ]
-    },
-    {
-      "title": "Agencies",
-      "steps": [
-        "Open the workspace menu in the header and select Set up an agency. If you picked Agency when you signed up, Warmbly offers this at the end of onboarding. You can skip it and come back later.",
-        "Name the agency. You become its owner.",
-        "On a hosted account, choose a plan under Agency > Billing. Until you do, client workspaces stay on whatever plan they had. A self-hosted instance has no billing: every agency feature is available, the pool has no cap and AI is not charged."
-      ]
-    },
-    {
       "title": "White-label",
       "steps": [
         "Open Settings > Branding in a workspace, or Agency > Branding to brand every client of an agency at once.",
@@ -715,8 +652,6 @@
         "Sending domains",
         "Sending behavior",
         "Warmup",
-        "Warmbly Cloud for self-hosted instances",
-        "Partnership plan",
         "Campaigns",
         "Sequences & steps",
         "Personalization & Expressions",
@@ -749,7 +684,6 @@
     {
       "section": "AI",
       "guides": [
-        "Balance and usage",
         "AI variables",
         "Remie, the AI assistant",
         "AI contact research",
@@ -779,7 +713,6 @@
       "section": "Account and team",
       "guides": [
         "Browsing and filters",
-        "Plans and billing",
         "Agencies",
         "White-label",
         "Analytics",
@@ -798,13 +731,13 @@
     "warmbly/docs/content/docs/guides/meta.json",
     "warmbly/web/src/app/app"
   ],
-  "fullDescription": "Warmbly Studio is the open-source Warmbly platform for B2B cold email and mailbox warmup, open inside the app as a studio. Warmbly sends cold email from mailboxes you own. It warms them up, spreads your campaigns across them, and brings every reply into one inbox. 56 feature guides cover: Sending; Contacts and inbox; Automation; AI; Integrations; Account and team.",
+  "fullDescription": "Warmbly Studio is the open-source Warmbly platform for B2B cold email and mailbox warmup, open inside the app as a studio. Warmbly sends cold email from mailboxes you own. It warms them up, spreads your campaigns across them, and brings every reply into one inbox. 52 feature guides cover: Sending; Contacts and inbox; Automation; AI; Integrations; Account and team.",
   "bestFor": "Teams that send B2B cold email from their own mailboxes and want warmup, campaigns, one inbox and a CRM in one place.",
-  "howToUse": "1. Connect your mailboxes: Open Accounts and choose Add account. Connect Google Workspace or Microsoft 365, or any host over SMTP and IMAP. 2. Check your domains: Sending domains shows whether SPF, DKIM and DMARC are published for every domain you send from. 3. Turn on warmup: New mailboxes start with warmup off. Switch it on from the mailbox's Warmup tab. Warmup is part of every paid plan. 4. Send a campaign: Open Campaigns, choose New campaign, write the emails, add contacts and pick the sending hours. 5. Answer the replies: Every reply, from every mailbox, lands in the Inbox. With inbox tagging turned on, replies are also labelled by what the person wants.",
+  "howToUse": "1. Connect your mailboxes: Open Accounts and choose Add account. Connect Google Workspace or Microsoft 365, or any host over SMTP and IMAP. 2. Check your domains: Sending domains shows whether SPF, DKIM and DMARC are published for every domain you send from. 3. Turn on warmup: 4. Send a campaign: Open Campaigns, choose New campaign, write the emails, add contacts and pick the sending hours. 5. Answer the replies: Every reply, from every mailbox, lands in the Inbox. With inbox tagging turned on, replies are also labelled by what the person wants.",
   "gettingStarted": [
     "Connect your mailboxes: Open Accounts and choose Add account. Connect Google Workspace or Microsoft 365, or any host over SMTP and IMAP.",
     "Check your domains: Sending domains shows whether SPF, DKIM and DMARC are published for every domain you send from.",
-    "Turn on warmup: New mailboxes start with warmup off. Switch it on from the mailbox's Warmup tab. Warmup is part of every paid plan.",
+    "Turn on warmup:",
     "Send a campaign: Open Campaigns, choose New campaign, write the emails, add contacts and pick the sending hours.",
     "Answer the replies: Every reply, from every mailbox, lands in the Inbox. With inbox tagging turned on, replies are also labelled by what the person wants."
   ],
@@ -814,10 +747,10 @@
     "video-pages"
   ],
   "notConfirmed": [
-    "Whether each feature is available depends on the connected Warmbly backend and plan; these guides are Warmbly's own and also describe Warmbly Cloud, which does not apply to a self-hosted instance."
+    "Which features are available depends on the connected Warmbly backend; these guides are Warmbly's own how-to guides."
   ],
   "verification": {
     "status": "docs-derived",
-    "evidence": "Generated by scripts/build-warmbly-guide.mjs from 56 Warmbly feature guides."
+    "evidence": "Generated by scripts/build-warmbly-guide.mjs from 52 Warmbly feature guides."
   }
 }

@@ -59,8 +59,6 @@ Indicators are workspace-scoped. Teammates see only your name, avatar, current p
 - Mailbox tags, labels and campaign folders each have their own shared set per workspace, so a label anyone creates appears in everybody's pickers and chips as they make it.
 - The audit log streams new entries, so the activity trail is itself a live feed.
 
-**Events are permission-aware**: a member without inbox access never receives unibox events, and billing events reach only those who can manage billing. See [Team roles](/guides/team-roles/).
-
 A member restricted to [selected resources](/guides/team-roles/#access-scope) receives only events about what they were granted: new mail in their mailboxes, and activity on their campaigns. They are not part of presence or live cursors, in either direction: they do not appear online, and they do not see who else is or what teammates are viewing.
 
 </Fold>
@@ -71,7 +69,7 @@ A member restricted to [selected resources](/guides/team-roles/#access-scope) re
 
 A dot in the header reports the live connection: green **Live** when it is healthy, amber **Slow connection** or red **Poor connection** when heartbeats are taking longer than they should, amber **Reconnecting...** while it retries, and red **Disconnected** when it is down. The reading comes from the measured round trip to the realtime service, so amber means your connection genuinely is slow rather than merely busy.
 
-Stored data still catches up while it is down. Warmbly refreshes counts and lists on a slower cycle, and on reconnect it refetches everything that could have drifted. The events themselves are never replayed, so live-only signals such as presence and cursors resume from wherever things stand rather than backfilling what you missed. On a self-hosted install a permanently disconnected dot usually means the realtime service is not running; see [troubleshooting](/development/troubleshooting/).
+Stored data still catches up while it is down. Warmbly refreshes counts and lists on a slower cycle, and on reconnect it refetches everything that could have drifted. The events themselves are never replayed, so live-only signals such as presence and cursors resume from wherever things stand rather than backfilling what you missed. On a self-hosted install a permanently disconnected dot usually means the realtime service is not running; see troubleshooting.
 
 </Fold>
 
@@ -114,6 +112,6 @@ The realtime service enforces both, so a hidden signal is **never sent**, not me
 
 ## Developers
 
-The same stream, including presence events, is available over a WebSocket. See the [Realtime WebSocket](/api/realtime/) reference.
+The same stream, including presence events, is available over a WebSocket. See the Realtime WebSocket reference.
 
 </Fold>

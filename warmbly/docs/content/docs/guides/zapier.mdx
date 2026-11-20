@@ -9,8 +9,6 @@ Wire Warmbly into thousands of apps without code: start a Zap when a reply lands
 
 In the Zapier editor, pick Warmbly, add any trigger or action, and click **Connect a new account**. You approve access on a Warmbly consent screen and return with the connection ready, labelled with your organization and email so multiple workspaces stay distinguishable. Nothing to copy or paste.
 
-It requests only the scopes the modules need (contacts, campaigns, mailboxes, inbox, CRM records, templates, plus read-only analytics). **It never requests billing or team-management access.**
-
 ## Triggers
 
 | Trigger | Fires when |
@@ -23,8 +21,6 @@ It requests only the scopes the modules need (contacts, campaigns, mailboxes, in
 | New CRM Task | A task is created |
 | New Campaign / Campaign Completed | A campaign is created / finishes sending |
 | New Mailbox Connected | An email account is connected |
-
-Triggers poll on Zapier's schedule (frequency depends on your plan). Zapier remembers what it has seen, so a Zap runs once per new item. New or Updated Contact re-runs on change, with the real id in `contact_id`. New Email Received needs the Unibox feature, part of an active trial or paid plan.
 
 ## Actions
 
@@ -68,4 +64,4 @@ The follow-up still runs through the campaign's mailboxes, so a burst of leads q
 - **Adding a contact is idempotent by email.** Re-running Create or Update Contact with the same address updates the record and merges custom fields rather than duplicating.
 - If a connection stops working, reconnect in Zapier. Tokens refresh automatically; reconnecting re-runs consent.
 
-For lower-latency, event-driven delivery, use [webhooks](/guides/webhooks/) or the [developer websocket](/api/realtime/).
+For lower-latency, event-driven delivery, use [webhooks](/guides/webhooks/) or the developer websocket.

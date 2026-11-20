@@ -3,11 +3,11 @@ title: n8n
 description: Connect Warmbly to n8n workflows, self-hosted or cloud, with the REST API and webhooks in both directions.
 ---
 
-n8n has no Warmbly node yet, and it does not need one: its HTTP Request and Webhook nodes cover both directions, and every Warmbly endpoint is documented in the [API reference](/api/endpoints/).
+n8n has no Warmbly node yet, and it does not need one: its HTTP Request and Webhook nodes cover both directions, and every Warmbly endpoint is documented in the API reference.
 
 ## Connecting
 
-Create a scoped [API key](/api/authentication/) in Settings > API keys with only the scopes the workflow needs (contacts and campaigns for lead intake; add inbox for replies). In n8n, add a **Header Auth** credential with the name `Authorization` and the value `Bearer <your key>`, and attach it to every HTTP Request node that calls Warmbly.
+Create a scoped API key in Settings > API keys with only the scopes the workflow needs (contacts and campaigns for lead intake; add inbox for replies). In n8n, add a **Header Auth** credential with the name `Authorization` and the value `Bearer <your key>`, and attach it to every HTTP Request node that calls Warmbly.
 
 ## Warmbly to n8n
 
@@ -33,5 +33,5 @@ n8n's *Facebook Lead Ads Trigger* node fires on a new Facebook or Instagram subm
 ## Good to know
 
 - **Sending respects your limits.** Sends and replies made through the API honor each mailbox's daily cap and spacing.
-- **Rate limits** apply per API key; a large backfill should go through the [import endpoints](/api/reference/contacts/#commit-an-import) rather than one request per row.
-- For the lowest latency without hosting a URL, subscribe to the [developer websocket](/api/realtime/) instead of a webhook.
+- **Rate limits** apply per API key; a large backfill should go through the import endpoints rather than one request per row.
+- For the lowest latency without hosting a URL, subscribe to the developer websocket instead of a webhook.

@@ -166,8 +166,6 @@ Verification reports the same outcomes as a tracking domain: verified, no record
 
 A visitor who opens the domain itself, with no form in the path, gets a short page saying the address serves forms and that each one has its own link. No form is listed there, and nothing on it identifies your workspace, so a customer who types the domain out of curiosity sees something deliberate rather than an error.
 
-Verification proves DNS, not HTTPS. Warmbly Cloud and a self-hosted instance installed with the bundled Caddy both obtain the certificate for your domain on their own, the first time a page on it is loaded. Behind an operator's own proxy it is that proxy's job, so a domain that verifies here but serves a certificate warning is something to raise with the operator.
-
 Links already sent keep resolving on whichever host they were built with. Only new links pick up a change.
 
 A forms domain serves forms only. Client connect links and shared reports are served by the portal service, on the shared portal address or an agency's [portal domain](/guides/white-label/#your-own-domain), and form links are never built on either: a client workspace's form links use its own forms domain, or the shared host when it has none.

@@ -66,7 +66,7 @@ Open **Integrations > Slack** and select **Connect**. Slack asks you to pick the
 When the connection was made before Warmbly asked for a permission it now uses, the Slack panel lists the missing permissions and a **Reconnect** button. Reconnecting grants them and keeps your settings and linked accounts.
 
 <Callout type="info" title="Self-hosted instances need a Slack app first">
-On a self-hosted instance the Slack card stays unavailable until the operator creates the instance's own Slack app. See [Slack app](/development/slack-app/).
+On a self-hosted instance the Slack card stays unavailable until the operator creates the instance's own Slack app. See Slack app.
 </Callout>
 
 </Fold>
@@ -150,8 +150,6 @@ Anything that sends mail to a real recipient needs your approval every time, and
 </Callout>
 
 ### Cost and history
-
-A conversation in Slack is charged to the [workspace balance](/guides/ai-credits/) exactly like the same conversation in the dashboard, and needs the same things: a paid plan and the **Use AI** permission.
 
 Every Slack conversation is also in your assistant history in the dashboard, and the bot's reply carries an **Open in Warmbly** link to it. It follows the same privacy rules as any other conversation: private to you unless the workspace turned on shared history.
 
@@ -264,8 +262,8 @@ Slack delivers other messages from channels the bot is in, including the team's 
 
 | What you see | What to do |
 |---|---|
-| The Slack card says Slack is not available | The instance has no Slack app. On a self-hosted instance, ask the operator to follow [Slack app](/development/slack-app/) |
-| Notifications post, but the bot never answers and buttons do nothing | The Slack app is only partly configured: posting works but Slack cannot reach Warmbly. On a self-hosted instance the operator needs to set the signing secret ([Slack app](/development/slack-app/#environment-variables)) |
+| The Slack card says Slack is not available | The instance has no Slack app. On a self-hosted instance, ask the operator to follow Slack app |
+| Notifications post, but the bot never answers and buttons do nothing | The Slack app is only partly configured: posting works but Slack cannot reach Warmbly. On a self-hosted instance the operator needs to set the signing secret (Slack app) |
 | The Slack panel lists missing permissions | Select **Reconnect**. A feature needing a permission the connection lacks stays off until then |
 | The bot says it sent you a link, or replies with a **Link your Warmbly account** button | Your Slack account is not linked yet, or the link was removed. Follow the button in your DM with Warmbly; the bot then answers what you asked |
 | Warmbly did not link you automatically | Your Slack email is not the email of a Warmbly member of the workspace, or the connection predates email matching. Follow the link button and select **Continue with Slack** |

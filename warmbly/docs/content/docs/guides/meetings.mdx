@@ -54,7 +54,6 @@ It contains a long random secret that authenticates incoming bookings, so treat 
 
 Both providers can sign each delivery, and Warmbly checks the signature once you give it the key. In the connection's **Inbound URL** settings, paste:
 
-- **Calendly**: the webhook subscription's signing key (the `signing_key` you set when creating it, or the one Calendly returned)
 - **Cal.com**: the **Secret** set on the webhook
 
 From then on a delivery without a valid signature is refused, so a leaked URL on its own is not enough to post a booking. Calendly signatures older than five minutes are refused too, which stops a captured delivery from being replayed. **Remove** goes back to the URL alone.

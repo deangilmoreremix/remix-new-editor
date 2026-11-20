@@ -39,7 +39,6 @@ Pause to stop both sending and receiving warmup mail, or Stop to also turn diagn
 
 ## Good to know
 
-- On Warmbly Cloud, every paid plan warms unlimited mailboxes in the premium pool. A new workspace warms up to 2 mailboxes in the free pool during its 14-day [free trial](/guides/billing/#the-free-trial), and a workspace that had the free plan before it closed to new workspaces keeps warming up to 10 there. Otherwise warmup needs a paid plan.
 - A self-hosted instance warms every mailbox, but only against the other mailboxes on that instance, with no shared pool.
 - New mailboxes start with warmup off. Once on, it starts at `10` emails a day by default and climbs by `+1` a day to a ceiling of `40`.
 - Keep warmup on after campaigns start. A mailbox backing a live campaign drops to at most five warmup messages a day, and the pool replies to more of them.
@@ -51,10 +50,6 @@ Pause to stop both sending and receiving warmup mail, or Stop to also turn diagn
 ## What warmup is and who gets it
 
 Warmup sends natural plain-text threads between participating mailboxes. It measures observed placement and bounded actual-message DKIM evidence. It does not establish organic engagement or guarantee reputation improvement or inbox placement.
-
-<Callout type="info" title="Warmup is a paid feature">
-  On Warmbly Cloud a workspace with no paid plan, no free trial and no free plan kept from before cannot connect mailboxes, and no warmup traffic is scheduled for it; pending warmup activity is skipped rather than sent. During the 14-day free trial a new workspace warms up to 2 mailboxes in the free pool; when the trial ends, warmup is paused, and choosing a plan resumes it with the ramp where it stopped. A workspace that had the free plan before it closed to new workspaces keeps warming up to 10 mailboxes in the free pool. See [billing](/guides/billing/#without-a-paid-plan).
-</Callout>
 
 </Fold>
 
@@ -78,7 +73,7 @@ Providers may strip headers or replace identifiers. Exact authorized lineage and
 
 When an SMTP relay rewrites a Message-ID, a valid recipient-bound verification token, the expected sender address and a confirmed send can authorize one received copy. Replies and message-specific DKIM verification use that copy's received identifier. Headerless arrivals still require an exact confirmed identifier for new diagnostic lineage; a matching subject or mailbox pair alone does not authorize a reply. Arrivals held before send confirmation or during a verification outage are retained and retried automatically while their token remains valid.
 
-New mailboxes default off. Independent send/receive controls and shared daily/rolling limits are on the Warmup tab. Start/resume enables warmup sending and, when starting from Off or legacy, receiving with provider-supported spam rescue, reads, importance and stars or flags. Pause stops receiving as well as sending, and Stop disables both participation directions, each while retaining ramp history and holds. A mailbox whose warmup is paused or was never started receives no warmup mail, whatever its receive setting; the send and receive settings only narrow participation while warmup is on. Recipient-only (sending off, receiving on, warmup on) keeps receiving and cannot reply. Sender-only does not authorize recipient engagement. Existing receive-enabled diagnostic mailboxes also use these actions after the consumer, backend and workers are upgraded; no new setting or data migration is needed. Existing NULL stays legacy until explicit action; unrelated edits do not relabel it. Cloud controls require updated Cloud replicas. See [send safety](/development/send-safety/).
+New mailboxes default off. Independent send/receive controls and shared daily/rolling limits are on the Warmup tab. Start/resume enables warmup sending and, when starting from Off or legacy, receiving with provider-supported spam rescue, reads, importance and stars or flags. Pause stops receiving as well as sending, and Stop disables both participation directions, each while retaining ramp history and holds. A mailbox whose warmup is paused or was never started receives no warmup mail, whatever its receive setting; the send and receive settings only narrow participation while warmup is on. Recipient-only (sending off, receiving on, warmup on) keeps receiving and cannot reply. Sender-only does not authorize recipient engagement. Existing receive-enabled diagnostic mailboxes also use these actions after the consumer, backend and workers are upgraded; no new setting or data migration is needed. Existing NULL stays legacy until explicit action; unrelated edits do not relabel it. Cloud controls require updated Cloud replicas. See send safety.
 
 ### When a send fails
 
@@ -96,13 +91,9 @@ A missing mailbox also requests another reload through the worker heartbeat. Exi
 
 Recovery runs at backend startup and every minute in bounded batches. The ten-minute cutoff is unchanged: it protects recent authorizations, not a waiting period added after each release. Existing older commands can be retired on the first pass; large fleets can need subsequent passes to reseed every schedule. Sending hours, quotas and actual provider failures still apply.
 
-Kafka workers process independent mailbox lanes concurrently instead of making the whole worker wait for one command. Older queued commands are grouped by their mailbox payload too. The broker checkpoint never passes unfinished or failed work, and failed subscriptions reopen for replay. The default is eight lanes; see [worker configuration](/development/configuration/#workers).
-
 Unacknowledged warmup filing actions remain durable. They retry every five minutes initially, then every fifteen minutes after twenty minutes of pending time, capped at every thirty minutes after an hour. Repeated arrivals do not reset that age. This reduces repeat commands during a worker backlog without discarding pending filing or counting it as a failed send.
 
 If outbound admission refuses a warmup command before publication, a successful deferral returns it to the schedule without recording a failed send. A deferral whose database outcome is uncertain is not treated as proof of failure. Existing records affected by an older preparation-result race also recover automatically, but only when the recorded internal preparation failure predates the new authorization and there is no execution, outbound reservation, provider-confirmed send or receipt. Only that provably unstarted command's false conflict is released; genuine conflicting outcomes remain held.
-
-Follow a provider-specific error when one is shown. Google and Microsoft sign-ins use their native APIs, not SMTP settings. Reconnect those mailboxes only for a reported sign-in or permission error. SMTP host, port, password and IP allowlist checks apply to SMTP mailboxes when the error reports a mail-server connection problem. Warmbly Cloud makes those connections from its own network, not your self-hosted instance's address.
 
 Recovery does not bypass paused participation, provider limits or deliverability holds. If the warning persists, give support the mailbox address and the failure time so it can be matched to the worker's loading and sending records.
 
@@ -114,7 +105,7 @@ Every instance ships with a hand-written library of about seventy threads, so wa
 
 For each new thread, Warmbly picks a conversation neither mailbox has seen in the last 30 days, as sender or recipient, preferring ones neither has ever seen and the least used. When a pair has seen everything recently, it reuses the one they saw longest ago instead of waiting, so a generation outage never pauses warmup. Duplicate subjects or openings are rejected across the library and every approved batch. Threads started with the retired "Simulated diagnostic" wording stop at their next reply, and the mailbox carries on with new content.
 
-The generator refills the AI bank every six hours toward a target of at least 200 threads, rising with demand up to 5,000, in batches of at most 250 and within a default budget of 1,000 a day. Operators can adjust cadence, targets and budgets in the admin content controls; see [generation configuration](/development/warmup-generation/). None of this guarantees inbox placement or reputation improvement.
+The generator refills the AI bank every six hours toward a target of at least 200 threads, rising with demand up to 5,000, in batches of at most 250 and within a default budget of 1,000 a day. Operators can adjust cadence, targets and budgets in the admin content controls; see generation configuration. None of this guarantees inbox placement or reputation improvement.
 
 ### Your campaign copy
 
@@ -136,16 +127,9 @@ Each email step of a campaign shows its **Warmup placement** under the step's A/
 
 ## Pools
 
-A pool is the set of mailboxes that warm each other. Your mailbox exchanges warmup mail within its own pool, with the mirrored crossings documented below. Every instance has both pools from install, so a self-hosted instance warms within its own pools from the first mailbox. Only an instance [linked to Warmbly Cloud](/guides/warmbly-cloud/) earlier joins the hosted one; Cloud links no new instances.
-
 | Pool | Who is in it |
 |------|--------------|
 | `premium` | Paid organizations' mailboxes. The default for paid accounts, isolated from lower-trust traffic. |
-| `free` | Mailboxes of workspaces in their free trial or that kept the earlier free plan, and lower-trust mailboxes, kept separate so free traffic does not mix into premium reputation. Other workspaces without a plan do not join it. |
-
-A mailbox belongs to exactly one pool at a time. When its plan changes the mailbox moves between pools rather than joining a second one, and it takes its warmup standing with it, so a quarantine or block is not cleared by changing tier.
-
-Premium access is to the safe partner set, not just to receivers with paid subscriptions. Its eligible recipients include free-tier mailboxes that have been pool members for at least three days, are healthy now, and belong to another workspace in good standing. These partners are available even when the premium tier is large. Both tiers are weighted by coverage, observed placement and exchange balance, without a paid-receiver-first preference. Every borrowed mailbox is checked against its own pool's standing before use. Mailboxes remain members of their original pool; this is a permitted exchange, not a pool merge.
 
 The borrow is returned: a free-tier mailbox that meets the same bar (healthy now, a member for at least three days, in a workspace in good standing) may write to a paying mailbox that wrote to it in the last 14 days, and to no other paying mailbox. A visit is returned alongside the mailbox's own tier rather than after it, so a paying inbox is written back to even when the free tier is large. Nothing unsolicited from the free tier reaches a paying inbox: the paying side always opens the exchange, and a free mailbox on watch keeps warming in its own tier but stops calling on paying ones.
 
@@ -154,8 +138,6 @@ Every draw also favours the inbox that is owed the most. A mailbox that has sent
 Partner/domain diversity broadens diagnostic coverage. It is not identity rotation to evade quotas or evidence of reputation efficacy.
 
 A [placement seed inbox](/guides/placement-tests/#your-own-seed-inboxes) never joins a pool: marking a mailbox as a seed turns its warmup off, and starting warmup on a seed is refused, because a seed that exchanged mail with the pool would stop being a stranger to every sender in it. It never sends campaign mail either.
-
-Self-hosted instances warm only among their own mailboxes. That local warmup works, but it is not effective: providers learn to recognise a few mailboxes that only write to each other, and one instance has nowhere near enough of them. For these pools of thousands of real mailboxes, use a hosted workspace on [app.warmbly.com](https://app.warmbly.com) and move the mailboxes there. Warmbly Cloud no longer links new self-hosted instances; one [linked earlier](/guides/warmbly-cloud/) keeps its enrolled mailboxes in these pools. On an instance that is not linked, the **Mailboxes** page says so in a banner, with **Upgrade on Warmbly Cloud** and **Community on Discord**, since Warmbly does not support self-hosted instances. **Upgrade on Warmbly Cloud** opens sign-up on app.warmbly.com (an existing account can sign in from the same page) and then the plan chooser. The banner also links to **Settings > Data**, where a [workspace export](/guides/workspace-export-import/) carries the workspace and, with **Include mailbox credentials** on, its mailboxes still connected.
 
 ### Choosing partners
 
@@ -187,7 +169,7 @@ Nothing is permanent about it. One warmup email that arrives brings the mailbox 
 
 The drawer shows confirmed partners/domains/workspaces and verified arrivals over seven days, locally or through Cloud. Pending and failed attempts do not count as confirmed sending. Narrow coverage is a diagnostic limitation, not a reputation verdict.
 
-The **Analytics** tab of the same drawer charts the exchange over time: sent, received and replies per day, with the total received against the total sent for the range. The same numbers are in the [warmup analytics](/api/reference/analytics/#get-warmup-analytics) endpoint.
+The **Analytics** tab of the same drawer charts the exchange over time: sent, received and replies per day, with the total received against the total sent for the range. The same numbers are in the warmup analytics endpoint.
 
 Pause and Stop both end receiving: no new warmup mail or reply is sent to the mailbox, and unstarted sends already queued for it are withdrawn. Mail a provider accepted before then can still arrive. The mailbox keeps its pool standing. Turning warmup back on resumes sending, and resumes receiving only when the mailbox's participation setting allows it. Lost authority, disconnection, quarantine or block also restrict participation. Health alone is not consent.
 
@@ -215,7 +197,7 @@ The **inbox rate** is inbox plus category tabs over everything delivered in the 
 
 The rate is taken at Google, Microsoft and Yahoo only, the providers that judge a mailbox. Smaller mail hosts run their own filters, so their spam folders never count toward it: a mailbox whose warmup mail only reached small hosts shows no rate rather than one built from them. Other mail hosts are still shown: their inbox rate sits right under the headline in the drawer and on **Deliverability**, and they appear in the daily charts, the counts and the per-provider breakdown. It only appears once `20` deliveries at those three are in the window, the same sample the pool needs before it acts on spam placement. Until then the mailbox shows how far along it is (`8/20`) rather than a percentage that would swing on every delivery. The mailbox's health score is capped at its inbox rate, so a mailbox with some mail in spam reads `97`, not a flat `100`.
 
-Filter by provider to distinguish observations from gaps. Confirmed out of spam counts the rescues the recipient's mailbox reported done, beside how many were requested, how many found the message already gone, how many the provider refused and how many have no outcome reported (rescues from before outcomes were recorded stay in that last group). A move is not proof of a reputation benefit. Only mail that arrived in spam is rescued. Receiving-authorized warmup can request spam rescue, but placement remains the originally observed folder, not a rewritten success after a move. Unconfirmed means not observed after timeout, not verified failure. First-folder evidence is separate from housekeeping; absent historical folders stay unknown. Days are UTC. See [warmup placement](/api/reference/analytics/#get-warmup-placement).
+Filter by provider to distinguish observations from gaps. Confirmed out of spam counts the rescues the recipient's mailbox reported done, beside how many were requested, how many found the message already gone, how many the provider refused and how many have no outcome reported (rescues from before outcomes were recorded stay in that last group). A move is not proof of a reputation benefit. Only mail that arrived in spam is rescued. Receiving-authorized warmup can request spam rescue, but placement remains the originally observed folder, not a rewritten success after a move. Unconfirmed means not observed after timeout, not verified failure. First-folder evidence is separate from housekeeping; absent historical folders stay unknown. Days are UTC. See warmup placement.
 
 </Fold>
 
@@ -230,8 +212,6 @@ Filter by provider to distinguish observations from gaps. Confirmed out of spam 
 | Ceiling | `40`/day (`25`/day on a free Gmail or Outlook.com account) | Where the ramp stops climbing |
 
 Configured diagnostic targets start at 10/day and rise by one toward 40/day before other constraints. These are product pacing defaults, not universal safe volumes or readiness evidence.
-
-On a self-hosted instance, a mailbox warmed by Warmbly Cloud runs the ramp, hours and days Warmbly Cloud holds for it. The Warmup tab edits those through the cloud, and hides the content segment, placement, folder and retention, which only apply to warmup sent from your instance. See [warmup settings](/guides/warmbly-cloud/#warmup-settings).
 
 Four things shape the real daily number: sends are spread across your warmup hours with jitter, the target is capped by how many eligible partners exist, a mailbox whose health drops gets reduced volume and wider spacing until it recovers, and a recent spam placement holds the ramp where it is.
 
@@ -316,9 +296,7 @@ The filing is per mailbox, on the **Warmup** tab of its drawer:
 
 The folder is created the first time it is needed, and it is also the answer to "what is this message?": nothing but warmup is filed there, so the folder itself is what identifies warmup traffic in a mail client. If another tool already made a folder you use for this, name that one instead and warmup joins it rather than adding a second.
 
-Spam rescue is provider-specific: Gmail removes Spam and supports Important and Starred labels; Microsoft moves verified Junk messages to Inbox and supports high importance and a follow-up flag; IMAP moves messages out of recognized Spam/Junk folders and uses flags plus best-effort not-junk keywords. After a rescue runs, the mailbox reports whether the message moved, was already out of spam, was no longer there or was refused, and that is what the placement history shows. IMAP does not have a universal Gmail-style Important label, and SMTP-only mailboxes cannot perform recipient-side actions without mailbox access. A move is not proof that a provider learned a positive reputation signal. Filing remains housekeeping, not engagement evidence. Historical NULL/legacy retains existing behavior until explicit action. Upgrade the consumer, backend and workers together; previously skipped engagement is not replayed onto old mail.
-
-On a mailbox connected with **Sign in with Google**, or through a [whole-domain grant](/development/whole-domain-connect/#optional-scope-for-warmup-engagement-over-imap) whose delegation entry lists the optional `https://mail.google.com/` scope, the recipient-side actions (taking a message out of Spam, marking it read, starring it and marking it important) run over IMAP at `imap.gmail.com`, signed in with the mailbox's own Google token. A rescued message moves out of Spam to where the filing setting puts warmup: the inbox, the warmup label, or All Mail for **Archive it**. Starring sets Gmail's star, and marking important adds the Important label. Filing, retention deletes and removal checks still run on the Gmail API. The worker opens one IMAP session per mailbox at a time and closes it after a short idle period. A mailbox whose token lacks full mail access (a sign-in mailbox connected before Warmbly asked for it, or a delegation entry without the optional scope), or whose Workspace administrator has turned IMAP off, runs the same actions on the Gmail API instead. [Re-authorizing](/guides/mailboxes/#reconnecting-an-account) a Google sign-in mailbox asks for full mail access and moves its warmup actions to IMAP.
+On a mailbox connected with **Sign in with Google**, or through a whole-domain grant whose delegation entry lists the optional `https://mail.google.com/` scope, the recipient-side actions (taking a message out of Spam, marking it read, starring it and marking it important) run over IMAP at `imap.gmail.com`, signed in with the mailbox's own Google token. A rescued message moves out of Spam to where the filing setting puts warmup: the inbox, the warmup label, or All Mail for **Archive it**. Starring sets Gmail's star, and marking important adds the Important label. Filing, retention deletes and removal checks still run on the Gmail API. The worker opens one IMAP session per mailbox at a time and closes it after a short idle period. A mailbox whose token lacks full mail access (a sign-in mailbox connected before Warmbly asked for it, or a delegation entry without the optional scope), or whose Workspace administrator has turned IMAP off, runs the same actions on the Gmail API instead. [Re-authorizing](/guides/mailboxes/#reconnecting-an-account) a Google sign-in mailbox asks for full mail access and moves its warmup actions to IMAP.
 
 Mail that arrives somewhere unexpected is still handled. A server-side rule, or another warmup tool's filter, can put warmup mail in a folder of its own choosing before Warmbly sees it; the message is found there and filed from there, and one already sitting in the destination is left alone rather than moved onto itself.
 
@@ -340,13 +318,11 @@ When a tool can only filter on what a message says, turn on **Filter tag** on th
 - **Outlook:** add a rule for messages whose body includes the code, and move them to a folder.
 - **Other tools:** match mail whose body contains the code.
 
-It is off by default, and nothing about a mailbox's warmup changes until it is turned on. Use your own code instead of the random one through the [API](/api/reference/mailboxes/#warmup-filter-tag); **New code** issues a fresh one, after which filters on the old code stop matching new mail. The code goes only on mail this mailbox receives, and only from the moment it is on. The same code on every warmup email to the mailbox is a pattern its provider can see, which warmup otherwise avoids, so leave it off unless a tool needs it. A mailbox [Warmbly Cloud](/guides/warmbly-cloud/) warms gets its warmup from Cloud, which does not add the code.
-
 ### Retention
 
 Authorized retention deletes old diagnostic mail after its window, 30 days by default. Gmail moves it to Trash; Outlook, Microsoft 365 and IMAP delete it. Stored copies follow retention policy. Recipient deletion is not tampering or proof of failure.
 
-Set warmup_retention_days on the Warmup tab or API. Empty follows the instance default; the minimum is three days. Self-host operators configure Instance > Configuration > Data retention. See [data control](/development/data-control/#warmup-mail-in-mailboxes).
+Set warmup_retention_days on the Warmup tab or API. Empty follows the instance default; the minimum is three days. Self-host operators configure Instance > Configuration > Data retention. See data control.
 
 At the volumes warmup runs, a few plaintext messages of a couple of kilobytes each, a mailbox in balance takes years to fill even on a small hosting quota, so the retention is there so that you never have to think about it rather than because the folder is about to overflow. You do not need to clear the folder by hand, and if you do, see [pool safety](#pool-safety) for what counts.
 
@@ -428,8 +404,6 @@ Withdrawal creates no unconditional deletion/spam tampering strike. Owner-attrib
 Getting back in requires requalifying, not just waiting: healthy authentication, no recent complaints or hard-bounce spikes, and spam placement back to a low level. Return is gradual, not a jump back to the old ceiling.
 
 A quarantine or a block also holds for its full term. The signals behind it age out of their windows long before it ends, and that does not release it early; a more serious finding can still replace it. A throttle is different and lifts as soon as the mailbox recovers, as the table says. When support lifts a pause or block, or approves an appeal against one, the strikes behind it are cleared with it, so the next evaluation does not reimpose it.
-
-On a self-hosted instance linked to [Warmbly Cloud](/guides/warmbly-cloud/#safety-and-enforcement), a mailbox the cloud warms is judged there, and the instance applies the cloud's standing to its own campaigns with the same effects as this table.
 
 The standing follows the address, not the connection. Removing a mailbox from the workspace and adding it back, or dropping out of the pool and rejoining, does not clear its score or its block: the same address in the same workspace rejoins with the standing it left with. That standing is kept for 90 days after the block ends or after the mailbox was removed, whichever is later; a block that requires review never lapses. A mailbox in good standing leaves nothing behind.
 

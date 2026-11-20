@@ -24,26 +24,7 @@ export function baseOptions(): BaseLayoutProps {
         </div>
       ),
     },
-    githubUrl: 'https://github.com/warmbly/warmbly',
     themeSwitch: { mode: 'light-dark' },
-    links: [
-      {
-        text: 'warmbly.com',
-        url: 'https://warmbly.com',
-      },
-      {
-        type: 'custom',
-        on: 'nav',
-        secondary: true,
-        children: (
-          <a
-            href="https://app.warmbly.com"
-            className="inline-flex h-8 items-center whitespace-nowrap rounded-full bg-fd-foreground px-3.5 text-[13px] font-medium text-fd-background transition-opacity hover:opacity-85"
-          >
-            Open dashboard
-          </a>
-        ),
-      },
-    ],
+    links: [],
   };
 }

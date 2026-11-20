@@ -284,9 +284,9 @@ A migration and its stored key do not move with a [workspace export](/guides/wor
 
 Everything the wizard does is also available to an API key with the `IMPORT_TOOLS` permission, or an agency key with `AGENCY_MIGRATE`. A migration started this way never uses mailbox passwords from the other tool.
 
-- **REST**: `GET /migrations/providers` lists the tools and the credentials each needs. `POST /migrations` checks the key and starts the scan, `GET /migrations/:id` returns the preview once its `status` is `ready`, and `POST /migrations/:id/start` takes your choices. An agency uses the same routes under `/agency/:agencyId/migrations` and maps each source workspace in `targets`; a target that creates a new client also needs `AGENCY_MANAGE_CLIENTS` on an agency key. See the [endpoint scope map](/api/endpoints/#tool-migrations) and the [error codes](/api/error-codes/#tool-migration-refusals).
-- **MCP**: the [MCP server](/api/mcp/) has `create_migration`, `get_migration`, `start_migration` and the rest, for a workspace and for an agency.
-- **CLI**: `warmbly migration` and `warmbly agency migration` in the [CLI](/api/cli/).
+- **REST**: `GET /migrations/providers` lists the tools and the credentials each needs. `POST /migrations` checks the key and starts the scan, `GET /migrations/:id` returns the preview once its `status` is `ready`, and `POST /migrations/:id/start` takes your choices. An agency uses the same routes under `/agency/:agencyId/migrations` and maps each source workspace in `targets`; a target that creates a new client also needs `AGENCY_MANAGE_CLIENTS` on an agency key. See the endpoint scope map and the error codes.
+- **MCP**: the MCP server has `create_migration`, `get_migration`, `start_migration` and the rest, for a workspace and for an agency.
+- **CLI**: `warmbly migration` and `warmbly agency migration` in the CLI.
 
 Create the migration with `POST /v1/migrations`. Each entry in `credentials` is one key, with the field names `GET /migrations/providers` lists for the tool:
 

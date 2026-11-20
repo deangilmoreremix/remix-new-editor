@@ -12,7 +12,7 @@ Connections live under **Settings, Connections** and require the **Manage settin
 Press **Add server** and provide:
 
 - **Name**: how the connection appears, and part of each tool's name in Remie.
-- **Server URL**: an `https` URL to a streamable-HTTP MCP endpoint. Only public https URLs are allowed; internal or private addresses are rejected. A self-hosted instance can allow a server on its own network (an `http://` URL or a private address) by setting `WARMBLY_ALLOW_UNSAFE_WEBHOOK_URLS=true` on the backend; see [configuration](/development/configuration/).
+- **Server URL**: an `https` URL to a streamable-HTTP MCP endpoint. Only public https URLs are allowed; internal or private addresses are rejected. A self-hosted instance can allow a server on its own network (an `http://` URL or a private address) by setting `WARMBLY_ALLOW_UNSAFE_WEBHOOK_URLS=true` on the backend; see configuration.
 - **Authentication**: **None**, or a **Bearer token**. A bearer token is stored encrypted with your workspace key and is never shown again or returned by the API.
 
 When you connect, Warmbly reaches out to the server, runs the MCP handshake, and lists the tools it offers. The connection starts **disabled** so nothing is exposed to Remie until you have looked at the tools.

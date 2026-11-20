@@ -160,7 +160,7 @@ A segment linked to a campaign cannot be deleted; detach it from the campaign fi
 
 ## Segments in the API
 
-Everything above can be driven from the [API](/api/reference/contacts/#segments): list, create, update and delete segments, pin contacts in or out, look up a contact's segments, enrol a segment into a campaign once, and [link segments to a campaign](/api/reference/campaigns/#list-linked-segments) as a live audience. Contact search and export take `segment_ids` to scope any contact query to a segment, so an external system (a signup form, a CRM sync) can keep a segment current and let campaigns pick it up from there.
+Everything above can be driven from the API: list, create, update and delete segments, pin contacts in or out, look up a contact's segments, enrol a segment into a campaign once, and link segments to a campaign as a live audience. Contact search and export take `segment_ids` to scope any contact query to a segment, so an external system (a signup form, a CRM sync) can keep a segment current and let campaigns pick it up from there.
 
 API calls address a segment by its ID. It is shown at the bottom of the segment page header (click it to copy), in the **Copy segment ID** entry of a segment's row menu on the Segments tab, and in every segment the API returns. Reads take the `READ_CONTACTS` key scope, writes `WRITE_CONTACTS`, and enrolling into a campaign `WRITE_CAMPAIGNS`.
 

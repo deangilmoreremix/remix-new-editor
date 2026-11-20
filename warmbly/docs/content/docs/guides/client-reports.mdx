@@ -75,8 +75,6 @@ The page carries your brand in its header and footer: the [workspace or agency b
 
 The link is a long random token. Warmbly stores only a hash of it, so the full link is shown once, when you create it; afterwards the report shows its first characters so you can tell links apart. Anyone with a live link can open the report, so share it the way you would share a password-protected document.
 
-The page lives on the shared portal address (`portal.warmbly.com` on Warmbly Cloud), or on the agency's [portal domain](/guides/white-label/#your-own-domain) once it is verified. On a portal domain, only that agency's clients' reports open.
-
 To put a report on your own website, use the embed code on the report's share panel. Any site may frame a report page.
 
 ## Scheduled emails
@@ -97,7 +95,7 @@ Pause a schedule to stop emails without losing the recipients.
 
 Seeing reports takes **View analytics**. Creating or changing a report, its link or its schedule also takes **Manage campaigns**, because a link shows the numbers to anyone who holds it. Members limited to [selected resources](/guides/team-roles/#access-scope) cannot open Reports.
 
-With an API key, reads take `READ_ANALYTICS` and changes take `MANAGE_REPORTS`. See [endpoints](/api/endpoints/#client-reports) and [error codes](/api/error-codes/#client-report-refusals).
+With an API key, reads take `READ_ANALYTICS` and changes take `MANAGE_REPORTS`. See endpoints and error codes.
 
 Every change is recorded in the audit log and refreshes the Reports list for everyone in the workspace.
 
@@ -107,6 +105,6 @@ Reports travel in a [workspace archive](/guides/workspace-export-import/) with t
 
 ## Self-hosting
 
-Report links need the portal service and its address, `PORTAL_DOMAIN` (see [the portal service](/development/configuration/#portal-service)); without it, creating a link or a schedule is refused with `report_links_unavailable`. Scheduled emails go out through the instance's outgoing mail. Nothing else needs configuring.
+Report links need the portal service and its address, `PORTAL_DOMAIN` (see the portal service); without it, creating a link or a schedule is refused with `report_links_unavailable`. Scheduled emails go out through the instance's outgoing mail. Nothing else needs configuring.
 
 </Fold>

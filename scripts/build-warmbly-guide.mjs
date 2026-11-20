@@ -78,7 +78,7 @@ if (fs.existsSync(askKb)) {
     howToUse: steps.map((s, i) => `${i + 1}. ${s}`).join(' '),
     gettingStarted: steps,
     relatedStudios: ['leadfinder', 'personalizer', 'video-pages'],
-    notConfirmed: ['Whether each feature is available depends on the connected Warmbly backend and plan; these guides are Warmbly\'s own and also describe Warmbly Cloud, which does not apply to a self-hosted instance.'],
+    notConfirmed: ['Which features are available depends on the connected Warmbly backend; these guides are Warmbly\'s own how-to guides.'],
     sourceFiles: common.sourceFiles,
     verification: { status: 'docs-derived', evidence: source },
   });
@@ -91,7 +91,7 @@ if (fs.existsSync(askKb)) {
     howToUse: `Open Warmbly Studio at /studio/warmbly. ${common.howToSteps.map((s, i) => `${i + 1}. ${s}`).join(' ')}`,
     inputs: ['mailboxes you own', 'contacts', 'campaign sequences'], requiredInputs: ['a connected mailbox'], optionalInputs: ['contacts', 'sending domains', 'integrations'],
     outputs: ['sent campaigns', 'replies in one inbox', 'deliverability and analytics reports'],
-    limitations: ['Needs the Warmbly backend connected', 'Warmup between a self-hosted instance\'s own mailboxes is not effective'],
+    limitations: ['Needs the Warmbly backend connected'],
     relatedStudios: ['video-pages', 'go-ai-viral'],
     verification: { status: 'verified', evidence: source, verifiedAt: new Date().toISOString().slice(0, 10) },
   };

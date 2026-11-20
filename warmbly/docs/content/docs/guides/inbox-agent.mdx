@@ -11,17 +11,11 @@ This is a paid feature and it is off until you turn it on.
 
 Open **Settings, Workspace** and find **Inbox agent** (it needs the **Manage settings** permission). Toggle **Draft replies for me** on. From then on, every inbound human reply to a campaign gets a draft.
 
-<Callout type="info" title="Paid and opt-in">
-The inbox agent is available on paid plans and is off by default. Turning it on is an explicit choice, and each reply it drafts is charged to the workspace balance for the tokens it uses, typically $0.05 to $0.06. See [Balance and usage](/guides/ai-credits/).
-</Callout>
-
 ## What triggers a draft
 
 A draft is created when all of these are true:
 
 - A person replies to one of your campaign emails (automated replies like out-of-office and bounces never trigger it).
-- Your workspace is on a paid plan and has the inbox agent turned on.
-- The workspace balance covers a typical draft (about $0.05).
 - The reply has enough substance to answer. A one-line acknowledgement ("thanks", "got it") is skipped, so you are never charged to draft a reply to a throwaway line.
 
 The agent does not start new conversations and never messages a new recipient. It only ever drafts a reply to someone who already replied to you.
@@ -49,7 +43,6 @@ The agent writes with the same context as an [AI reply draft](/guides/unibox/#ai
 ## Cost and failures
 
 - **Charged for what each handled reply uses**, when a draft is created. If the model is unavailable, no draft is created and nothing is charged.
-- **Balance too low.** When the balance does not cover a typical draft, the agent simply does not draft that reply. Your inbox and campaigns are unaffected; you just handle that one by hand. Add money, or turn on automatic reload, under **Settings, Billing**.
 - **No auto-send, ever.** There is no setting that lets the agent send for you. Approving is always a person's explicit action.
 
 ## Turning it off
@@ -59,5 +52,4 @@ Toggle **Draft replies for me** off under **Settings, Workspace**. New replies s
 ## See also
 
 - [Unified inbox](/guides/unibox/) for the inbox and the manual AI reply draft.
-- [Balance and usage](/guides/ai-credits/) for costs and the balance.
 - [AI skills](/guides/ai-skills/) for playbooks the agent follows.
