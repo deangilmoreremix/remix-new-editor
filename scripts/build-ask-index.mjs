@@ -113,7 +113,7 @@ const academyUrl = (track, lesson) => (lesson ? academyLessonUrl(track, lesson) 
 for (const kb of studios) {
   const url = kb.route || `#/${kb.id}`;
   const guide = guideByKb.get(kb);
-  const guideUrl = guide ? `/studios/${guide.slug}` : undefined;
+  const guideUrl = guide ? `/studios/${guide.slug}/` : undefined;
   for (const [group, fields] of GROUPS) {
     const body = fields.filter((f) => !isEmpty(kb[f])).map((f) => `${LABELS[f]}:\n${render(kb[f])}`).join('\n');
     if (!body) continue;

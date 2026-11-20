@@ -8,7 +8,7 @@ const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 // Slugs and routes are URL-safe by construction (see studioGuides.test.js); escaped anyway.
-const guideHref = (slug) => esc(`/studios/${encodeURIComponent(slug)}`);
+const guideHref = (slug) => esc(`/studios/${encodeURIComponent(slug)}/`);
 const studioHref = (route) => esc(`/#/${route}`);
 
 export const GUIDE_CSS = `
@@ -125,14 +125,14 @@ function topBar() {
   return `<header class="sg-top"><div class="sg-wrap">
   <a class="sg-logo" href="/">Smart Video <span>AI Studio</span></a>
   <nav aria-label="Main">
-    <a href="/studios" class="hide-sm">All studio guides</a>
+    <a href="/studios/" class="hide-sm">All studio guides</a>
     <a href="/#/apps" class="hide-sm">Open the app</a>
     <a href="/signup" class="sg-btn primary">Get started</a>
   </nav></div></header>`;
 }
 
 function footer(guides) {
-  const cats = GUIDE_CATEGORIES.map((c) => `<a href="/studios#${esc(slugCat(c.id))}">${esc(c.title)}</a>`).join('');
+  const cats = GUIDE_CATEGORIES.map((c) => `<a href="/studios/#${esc(slugCat(c.id))}">${esc(c.title)}</a>`).join('');
   return `<footer class="sg-foot"><div class="sg-wrap">
   <span>© ${new Date().getFullYear()} ${esc(SITE_NAME)} · ${guides} studio guides</span>
   <nav aria-label="Guides">${cats}<a href="/">Home</a></nav></div></footer>`;
@@ -205,7 +205,7 @@ export function renderGuideHtml(g, allCount) {
     `<div class="sg-rel">${g.related.map((r) => `<a class="sg-tile" href="${guideHref(r.slug)}">${img(r.thumbnail, r.name)}<div><strong>${esc(r.name)}</strong><p>${esc(r.why || r.shortDescription)}</p></div></a>`).join('')}</div>`));
 
   return `<div class="sg" data-guide="${esc(g.slug)}">${topBar()}<main class="sg-wrap">
-  <nav class="sg-crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/studios">Studio guides</a> / <span aria-current="page">${esc(g.name)}</span></nav>
+  <nav class="sg-crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/studios/">Studio guides</a> / <span aria-current="page">${esc(g.name)}</span></nav>
   <section class="sg-hero"><div>
     <span class="sg-eyebrow">${esc(categoryTitle(g.category))} · Feature guide</span>
     <h1>${esc(g.name)} <em>Feature Guide</em></h1>
@@ -217,7 +217,7 @@ export function renderGuideHtml(g, allCount) {
   <nav class="sg-toc" aria-label="On this page"><strong>On this page</strong><ul>${toc.map(([id, l]) => `<li><a href="#${id}">${esc(l)}</a></li>`).join('')}</ul></nav>
   ${parts.join('')}
   <div class="sg-band"><h2>Try ${esc(g.name)} now</h2><p>Open the studio and put these features to work, or browse the guides for all ${allCount} studios.</p>
-  <div class="sg-cta"><a class="sg-btn primary" href="${studioHref(g.route)}">Open ${esc(g.name)}</a><a class="sg-btn ghost" href="/studios">All studio guides</a></div></div>
+  <div class="sg-cta"><a class="sg-btn primary" href="${studioHref(g.route)}">Open ${esc(g.name)}</a><a class="sg-btn ghost" href="/studios/">All studio guides</a></div></div>
   </main>${footer(allCount)}</div>`;
 }
 
@@ -248,7 +248,7 @@ export function guideHead(g, origin, groups) {
   const abs = (p) => (/^https?:/.test(p) ? p : o + p);
   if (!g) {
     const all = groups.flatMap((c) => c.guides);
-    const url = `${o}/studios`;
+    const url = `${o}/studios/`;
     return {
       title: `All Studio Feature Guides | ${SITE_NAME}`,
       description: `Guides to all ${all.length} studios in ${SITE_NAME}: every feature defined and shown, how to use it, inputs, outputs, limits and FAQs.`,
@@ -258,7 +258,7 @@ export function guideHead(g, origin, groups) {
       jsonLd: [
         {
  '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Studio Feature Guides', url,
-          mainEntity: { '@type': 'ItemList', itemListElement: all.map((x, i) => ({ '@type': 'ListItem', position: i + 1, name: x.name, url: `${o}/studios/${x.slug}` })) } 
+          mainEntity: { '@type': 'ItemList', itemListElement: all.map((x, i) => ({ '@type': 'ListItem', position: i + 1, name: x.name, url: `${o}/studios/${x.slug}/` })) } 
 },
         {
  '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
@@ -268,7 +268,7 @@ export function guideHead(g, origin, groups) {
       ],
     };
   }
-  const url = `${o}/studios/${g.slug}`;
+  const url = `${o}/studios/${g.slug}/`;
   const jsonLd = [
     {
  '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: g.name, applicationCategory: 'MultimediaApplication', operatingSystem: 'Web',
@@ -278,7 +278,7 @@ export function guideHead(g, origin, groups) {
     {
  '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: `${o}/` },
-      { '@type': 'ListItem', position: 2, name: 'Studio guides', item: `${o}/studios` },
+      { '@type': 'ListItem', position: 2, name: 'Studio guides', item: `${o}/studios/` },
       { '@type': 'ListItem', position: 3, name: g.name, item: url }] 
 },
   ];

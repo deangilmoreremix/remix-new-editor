@@ -62,7 +62,7 @@ export function FinalCTASection() {
         <div class="border-t border-white/10 pt-8">
           <div class="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
             <a href="/apps" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Explore All Apps</a>
-            <a href="/studios" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Studio Feature Guides</a>
+            <a href="/studios/" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Studio Feature Guides</a>
             <a href="/docs" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Documentation</a>
             <a href="/community" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Community</a>
             <a href="/privacy" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Privacy Policy</a>

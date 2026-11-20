@@ -47,8 +47,8 @@ export function mountGuidePage(app, slug) {
     document.head.appendChild(style);
   }
   const guide = slug ? getGuide(slug) : null;
-  if (slug && !guide && window.location.pathname !== '/studios') {
-    window.history.replaceState(null, '', '/studios');
+  if (slug && !guide && window.location.pathname !== '/studios/') {
+    window.history.replaceState(null, '', '/studios/');
   }
   app.innerHTML = guide ? renderGuideHtml(guide, GUIDES.length) : renderHubHtml(GUIDES_BY_CATEGORY, GUIDES.length, slug && !guide ? slug : '');
   applyHead(guideHead(guide, window.location.origin, GUIDES_BY_CATEGORY));

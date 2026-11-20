@@ -33,7 +33,7 @@ export function StudioGuidesSection() {
             <p class="text-sm text-gray-400 mb-4">${esc(c.blurb)}</p>
             <ul class="space-y-1.5">
               ${c.guides.map((g) => `
-                <li><a href="/studios/${esc(g.slug)}" class="group flex items-baseline justify-between gap-3 text-gray-200 hover:text-primary transition-colors">
+                <li><a href="/studios/${esc(g.slug)}/" class="group flex items-baseline justify-between gap-3 text-gray-200 hover:text-primary transition-colors">
                   <span class="font-medium">${esc(g.name)}</span>
                   <span class="text-xs text-gray-500 group-hover:text-primary/80 whitespace-nowrap">${g.features} features</span>
                 </a></li>`).join('')}
@@ -41,7 +41,7 @@ export function StudioGuidesSection() {
           </div>`).join('')}
       </div>
       <div class="text-center mt-10">
-        <a href="/studios" class="inline-flex items-center gap-2 px-8 py-4 bg-primary text-black font-bold rounded-xl hover:bg-primary-hover hover:shadow-glow transition-all">Browse all studio guides →</a>
+        <a href="/studios/" class="inline-flex items-center gap-2 px-8 py-4 bg-primary text-black font-bold rounded-xl hover:bg-primary-hover hover:shadow-glow transition-all">Browse all studio guides →</a>
       </div>
     </div>`;
   return section;

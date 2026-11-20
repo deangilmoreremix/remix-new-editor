@@ -25,7 +25,7 @@ export async function guideForStudio(studioId) {
   return guides.find((g) => g.route === studioId) || null;
 }
 
-export const guideUrl = (g, f) => `/studios/${g.slug}${f ? `#feature-${f.id}` : ''}`;
+export const guideUrl = (g, f) => `/studios/${g.slug}/${f ? `#feature-${f.id}` : ''}`;
 
 const STOP = new Set(('the and for with how can what does that this from into your you are use using about which when where why who '
   + 'there their them then than its it my me our out get make do does did have has not but all any one way want need help tell show '

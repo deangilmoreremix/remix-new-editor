@@ -47,7 +47,7 @@ function navigateOrReload(route, params = {}) {
 // src/lib/router.js pageLoaders); `label` is the displayed text; `isNew`
 // adds the small "New" pill on the landing page header.
 const NAV_ITEMS = [
-  { label: 'Guides',        href: '/studios' },
+  { label: 'Guides',        href: '/studios/' },
   { label: 'Explore',       route: 'explore' },
   { label: 'Image',         route: 'image' },
   { label: 'Video',         route: 'video' },

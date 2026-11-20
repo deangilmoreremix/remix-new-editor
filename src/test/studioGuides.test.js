@@ -48,10 +48,10 @@ describe('studio feature guides', () => {
     const html = renderGuideHtml(g, GUIDES.length);
     for (const f of g.features) expect(html).toContain(`id="feature-${f.id}"`);
     const head = guideHead(g, 'https://example.com', GUIDES_BY_CATEGORY);
-    expect(head.canonical).toBe('https://example.com/studios/image-studio');
+    expect(head.canonical).toBe('https://example.com/studios/image-studio/');
     expect(head.jsonLd.map((j) => j['@type'])).toEqual(expect.arrayContaining(['SoftwareApplication', 'BreadcrumbList', 'FAQPage']));
     const hub = renderHubHtml(GUIDES_BY_CATEGORY, GUIDES.length);
-    for (const x of GUIDES) expect(hub).toContain(`href="/studios/${x.slug}"`);
+    for (const x of GUIDES) expect(hub).toContain(`href="/studios/${x.slug}/"`);
   });
 
   it('escapes content', () => {

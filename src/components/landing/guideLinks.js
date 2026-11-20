@@ -40,5 +40,5 @@ export function guideSlugFor(key) {
 /** /studios/<slug> for a studio name or route, or null when there is no guide. */
 export function guideHrefFor(key) {
   const slug = guideSlugFor(key);
-  return slug ? `/studios/${slug}` : null;
+  return slug ? `/studios/${slug}/` : null;
 }
