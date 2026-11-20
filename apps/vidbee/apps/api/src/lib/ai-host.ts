@@ -45,6 +45,9 @@ const settingsFile = aiSettingsFile
 const readStored = readStoredAiSettings
 const effective = getOpenAiConfig
 
+/** `VIDBEE_AI_LOCK_SETTINGS=1`: the key, model and base URL come from the server environment only. */
+const settingsLocked = (): boolean => trimEnv('VIDBEE_AI_LOCK_SETTINGS') === '1'
+
 export const getAiSettings = (): WebAiSettings => {
   const current = effective()
   return {
@@ -52,7 +55,8 @@ export const getAiSettings = (): WebAiSettings => {
     hasApiKey: Boolean(current.apiKey),
     apiKeyHint: current.apiKey ? current.apiKey.slice(-4) : null,
     keyFromEnv: current.keyFromEnv,
-    model: current.model
+    model: current.model,
+    locked: settingsLocked()
   }
 }
 
@@ -62,6 +66,9 @@ export const setAiSettings = (input: {
   baseUrl?: string
   model?: string
 }): WebAiSettings => {
+  if (settingsLocked()) {
+    throw new Error('AI settings are managed by the server and cannot be changed here.')
+  }
   const stored = readStored()
   if (input.clearApiKey) {
     stored.apiKey = undefined
@@ -111,12 +118,84 @@ const parseSkill = (id: string, raw: string): LoadedSkill => {
   return { id, name: field('name') || id, description: field('description'), body }
 }
 
+/** Id of the structured-output skill whose result is JSON, not Markdown. */
+export const CHAPTERS_SKILL_ID = 'chapters'
+
+const CHAPTERS_SKILL: LoadedSkill = {
+  id: CHAPTERS_SKILL_ID,
+  name: CHAPTERS_SKILL_ID,
+  description: 'Split the transcript into chapters with key quotes that jump to the moment.',
+  body: [
+    'Split this transcript into navigable chapters and pick key quotes.',
+    'Each transcript line starts with [m:ss] or [h:mm:ss]. Read the whole transcript first and cover the full timeline.',
+    'Start each chapter at the first line that introduces its topic. Use only moments that appear in the transcript, in order, with no duplicates.',
+    'Express every moment as start_seconds: the number of seconds from the start (for example [1:05] is 65).',
+    'Choose chapters by real topic changes and give each a specific title and a one-sentence summary. Do not split into equal intervals or invent topics.',
+    'Pick 3-5 key quotes that are surprising, memorable or striking. Quotes must be the speaker\'s own words, lightly cleaned of filler.',
+    'Write titles, summaries and quotes in the language of the transcript. Set takeaway to one sentence that captures the whole video.'
+  ].join('\n')
+}
+
+const CHAPTERS_SCHEMA = {
+  type: 'object',
+  properties: {
+    takeaway: { type: 'string' },
+    chapters: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          start_seconds: { type: 'number' },
+          title: { type: 'string' },
+          summary: { type: 'string' }
+        },
+        required: ['start_seconds', 'title', 'summary'],
+        additionalProperties: false
+      }
+    },
+    quotes: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { start_seconds: { type: 'number' }, quote: { type: 'string' } },
+        required: ['start_seconds', 'quote'],
+        additionalProperties: false
+      }
+    }
+  },
+  required: ['takeaway', 'chapters', 'quotes'],
+  additionalProperties: false
+}
+
+interface ChaptersResult {
+  takeaway: string
+  chapters: Array<{ start_seconds: number; title: string; summary: string }>
+  quotes: Array<{ start_seconds: number; quote: string }>
+}
+
+/** Parse the model's JSON, drop moments outside the video, and sort by time. */
+export const normalizeChapters = (raw: string, durationSeconds: number): string => {
+  const parsed = JSON.parse(raw) as ChaptersResult
+  const inRange = (value: unknown): value is number =>
+    typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= durationSeconds + 1
+  const chapters = (parsed.chapters ?? [])
+    .filter((c) => inRange(c.start_seconds) && c.title?.trim())
+    .sort((a, b) => a.start_seconds - b.start_seconds)
+  if (chapters.length === 0) {
+    throw new Error('The model returned no usable chapters.')
+  }
+  const quotes = (parsed.quotes ?? [])
+    .filter((q) => inRange(q.start_seconds) && q.quote?.trim())
+    .sort((a, b) => a.start_seconds - b.start_seconds)
+  return JSON.stringify({ takeaway: parsed.takeaway ?? '', chapters, quotes })
+}
+
 const loadSkills = (): LoadedSkill[] => {
   const dir = skillsDir()
+  const out: LoadedSkill[] = [CHAPTERS_SKILL]
   if (!dir) {
-    return []
+    return out
   }
-  const out: LoadedSkill[] = []
   for (const id of PROMPT_SKILL_IDS) {
     const file = path.join(dir, id, 'SKILL.md')
     if (fs.existsSync(file)) {
@@ -256,7 +335,11 @@ export const startAiRun = (input: {
   if (live.has(key)) {
     throw new Error('This summary is already running.')
   }
-  const transcript = buildTranscriptText(input.downloadId, skill.id === 'overview')
+  const timestamped = skill.id === 'overview' || skill.id === CHAPTERS_SKILL_ID
+  const transcript = buildTranscriptText(input.downloadId, timestamped)
+  const durationSeconds =
+    (getTranscriptDetail(input.downloadId).record?.segments.reduce((max, seg) => Math.max(max, seg.endMs), 0) ?? 0) /
+    1000
   if (transcript.length > MAX_TRANSCRIPT_CHARS) {
     throw new Error(
       `This transcript is too long for one request (${transcript.length} characters, limit ${MAX_TRANSCRIPT_CHARS}).`
@@ -291,7 +374,17 @@ export const startAiRun = (input: {
   void (async () => {
     try {
       const result = await createResponse({
-        body: { instructions, input: transcript },
+        body: {
+          instructions,
+          input: transcript,
+          ...(skill.id === CHAPTERS_SKILL_ID
+            ? {
+                text: {
+                  format: { type: 'json_schema', name: 'chapters', strict: true, schema: CHAPTERS_SCHEMA }
+                }
+              }
+            : {})
+        },
         signal: controller.signal,
         onTextDelta: (delta) => {
           run.text += delta
@@ -304,6 +397,9 @@ export const startAiRun = (input: {
       }
       if (!run.text.trim()) {
         throw new Error('The model returned no text.')
+      }
+      if (skill.id === CHAPTERS_SKILL_ID) {
+        run.text = normalizeChapters(run.text, durationSeconds)
       }
       finish('completed', null)
     } catch (error) {

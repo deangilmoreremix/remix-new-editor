@@ -30,6 +30,13 @@ So the screens, features, downloads, transcripts with speaker labels, AI prompts
 - (only with `HOST_THEME=1`) `host/web-shim.js` syncs upstream's theme setting (default dark; `?theme=` / postMessage from the embedding page).
 - `package.json` (desktop): `electron-ga4-telemetry` removed (telemetry), scripts replaced; workspace files trimmed.
 
+- `packages/downloader-core/src/types.ts`: `DownloadRuntimeSettings` gains the optional `downloadWithoutChannelSubfolders` and `downloadMirror` fields that
+  `DownloadRuntimeSettingsSchema` already defines (upstream's web client did not type-check without them).
+
+## Added for the web edition (not upstream)
+Transcripts, AI summaries, chat, translation and `GET /stream` in `apps/api` and `apps/web` (see `docs/VIDBEE_WEB_TRANSCRIPTS_AI.md`),
+plus `packages/transcription/src/web-contract.ts`.
+
 ## Not available in the web port
 Native window/tray/dock/auto-update/protocol handlers and VidBee Cloud sign-in (removed). **Share-image / diagram-image rendering** (`main/lib/share-capture-window.ts`) screenshots a hidden Electron window via offscreen paint events and raw bitmaps; it needs a headless Chromium on the server and is not ported.
 File pickers, drag-and-drop, exports, open/show-in-folder, clipboard and notifications are implemented by the browser (see the host table).

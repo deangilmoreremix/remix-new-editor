@@ -15,6 +15,7 @@ bus.setMaxListeners(0)
 
 export const aiChannel = (downloadId: string, skillId: string): string =>
   `ai:${downloadId}:${skillId}`
+export const translateChannel = (downloadId: string): string => `translate:${downloadId}`
 export const chatChannel = (downloadId: string): string => `chat:${downloadId}`
 
 export const publishLive = (channel: string, event: string, payload: unknown): void => {

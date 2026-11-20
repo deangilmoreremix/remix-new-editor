@@ -56,6 +56,8 @@ export const TranscriptsPage = () => {
 	const [detail, setDetail] = useState<WebTranscriptDetail | null>(null);
 	const [query, setQuery] = useState("");
 	const [busy, setBusy] = useState(false);
+	const [highlightId, setHighlightId] = useState<string | null>(null);
+	const [jumpMs, setJumpMs] = useState<number | null>(null);
 	const [tab, setTab] = useState<"transcript" | "ai" | "chat" | "translate">("transcript");
 
 	const refreshList = useCallback(async () => {
@@ -159,6 +161,32 @@ export const TranscriptsPage = () => {
 			? all.filter((segment) => segment.text.toLowerCase().includes(needle))
 			: all;
 	}, [detail, query]);
+
+	// Open the transcript at a moment: clear search, find the segment, scroll to it.
+	const jumpTo = (seconds: number) => {
+		setQuery("");
+		setTab("transcript");
+		setJumpMs(Math.max(0, seconds * 1000));
+	};
+
+	useEffect(() => {
+		if (jumpMs === null || tab !== "transcript" || !detail?.record) {
+			return;
+		}
+		const ordered = [...detail.record.segments].sort((a, b) => a.sortIndex - b.sortIndex);
+		// The segment containing the moment: the last one starting at or just after it.
+		const target = [...ordered].reverse().find((segment) => segment.startMs <= jumpMs + 500) ?? ordered[0];
+		setJumpMs(null);
+		if (!target) {
+			return;
+		}
+		setHighlightId(target.id);
+		window.requestAnimationFrame(() =>
+			document.getElementById(`seg-${target.id}`)?.scrollIntoView({ block: "center" }),
+		);
+		const timer = window.setTimeout(() => setHighlightId(null), 3000);
+		return () => window.clearTimeout(timer);
+	}, [jumpMs, tab, detail]);
 
 	const stateLabel = (state: string) =>
 		t(`transcript.state.${state}`, { defaultValue: state });
@@ -292,6 +320,7 @@ export const TranscriptsPage = () => {
 								<AiSummaryPanel
 									downloadId={detail.downloadId}
 									hasTranscript={Boolean(detail.record)}
+									onJump={jumpTo}
 								/>
 							)}
 
@@ -342,7 +371,13 @@ export const TranscriptsPage = () => {
 										? speakerNames.get(segment.speakerId)
 										: undefined;
 									return (
-										<div className="flex gap-3 text-sm" key={segment.id}>
+										<div
+											className={`flex gap-3 rounded-md text-sm ${
+												highlightId === segment.id ? "bg-primary/15" : ""
+											}`}
+											id={`seg-${segment.id}`}
+											key={segment.id}
+										>
 											<span className="w-14 shrink-0 text-muted-foreground tabular-nums">
 												{formatClock(segment.startMs)}
 											</span>

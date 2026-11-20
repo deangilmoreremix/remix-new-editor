@@ -55,6 +55,8 @@ export interface WebAiSettings {
   /** True when the key comes from the server environment, not the settings file. */
   keyFromEnv: boolean
   model: string
+  /** True when the server owner has disabled changing these settings from the browser. */
+  locked: boolean
 }
 
 export interface WebAiSkill {

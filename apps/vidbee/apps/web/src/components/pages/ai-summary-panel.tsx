@@ -30,6 +30,81 @@ const inline = (text: string): ReactNode[] =>
 		),
 	);
 
+interface ChaptersData {
+	takeaway: string;
+	chapters: Array<{ start_seconds: number; title: string; summary: string }>;
+	quotes: Array<{ start_seconds: number; quote: string }>;
+}
+
+const parseChapters = (text: string): ChaptersData | null => {
+	try {
+		const data = JSON.parse(text) as ChaptersData;
+		return Array.isArray(data.chapters) ? data : null;
+	} catch {
+		return null;
+	}
+};
+
+const clockLabel = (seconds: number): string => {
+	const total = Math.max(0, Math.floor(seconds));
+	const h = Math.floor(total / 3600);
+	const m = Math.floor((total % 3600) / 60);
+	const s = String(total % 60).padStart(2, "0");
+	return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`;
+};
+
+const ChaptersView = ({
+	data,
+	onJump,
+}: {
+	data: ChaptersData;
+	onJump: (seconds: number) => void;
+}) => (
+	<div className="space-y-4 text-sm">
+		{data.takeaway && <h2 className="font-semibold text-base">{data.takeaway}</h2>}
+		<ul className="space-y-2">
+			{data.chapters.map((chapter) => (
+				<li key={`${chapter.start_seconds}-${chapter.title}`}>
+					<button
+						className="flex w-full gap-3 rounded-md p-2 text-left hover:bg-muted"
+						onClick={() => onJump(chapter.start_seconds)}
+						type="button"
+					>
+						<span className="w-14 shrink-0 font-medium text-primary tabular-nums">
+							{clockLabel(chapter.start_seconds)}
+						</span>
+						<span>
+							<span className="block font-medium">{chapter.title}</span>
+							<span className="text-muted-foreground">{chapter.summary}</span>
+						</span>
+					</button>
+				</li>
+			))}
+		</ul>
+		{data.quotes.length > 0 && (
+			<div>
+				<h3 className="mb-1 font-semibold">Key quotes</h3>
+				<ul className="space-y-1">
+					{data.quotes.map((quote) => (
+						<li key={`${quote.start_seconds}-${quote.quote.slice(0, 20)}`}>
+							<button
+								className="flex w-full gap-3 rounded-md p-2 text-left hover:bg-muted"
+								onClick={() => onJump(quote.start_seconds)}
+								type="button"
+							>
+								<span className="w-14 shrink-0 font-medium text-primary tabular-nums">
+									{clockLabel(quote.start_seconds)}
+								</span>
+								<span>“{quote.quote}”</span>
+							</button>
+						</li>
+					))}
+				</ul>
+			</div>
+		)}
+	</div>
+);
+
 /** Minimal Markdown for the skill outputs: headings, bullet lists, bold. */
 const SimpleMarkdown = ({ text }: { text: string }) => (
 	<div className="space-y-1 text-sm">
@@ -149,9 +224,12 @@ const AiSettingsForm = ({
 export const AiSummaryPanel = ({
 	downloadId,
 	hasTranscript,
+	onJump,
 }: {
 	downloadId: string;
 	hasTranscript: boolean;
+	/** Open the transcript at this many seconds from the start. */
+	onJump: (seconds: number) => void;
 }) => {
 	const { t, i18n } = useTranslation();
 	const [settings, setSettings] = useState<WebAiSettings | null>(null);
@@ -178,7 +256,7 @@ export const AiSummaryPanel = ({
 				]);
 				setSettings(nextSettings);
 				setSkills(nextSkills);
-				if (!nextSettings.hasApiKey) {
+				if (!(nextSettings.hasApiKey || nextSettings.locked)) {
 					setShowSettings(true);
 				}
 			} catch (error) {
@@ -267,7 +345,14 @@ export const AiSummaryPanel = ({
 				</Button>
 			</div>
 			<div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
-				{showSettings && settings && (
+				{showSettings && settings?.locked && (
+					<p className="text-muted-foreground text-sm">
+						{t("transcript.ai.locked", {
+							defaultValue: "OpenAI settings are managed by the server.",
+						})}
+					</p>
+				)}
+				{showSettings && settings && !settings.locked && (
 					<AiSettingsForm
 						onSaved={(next) => {
 							setSettings(next);
@@ -305,8 +390,14 @@ export const AiSummaryPanel = ({
 					)}
 				</div>
 				{current?.error && <p className="text-destructive text-sm">{current.error}</p>}
-				{current?.text && <SimpleMarkdown text={current.text} />}
-				{busy && !current?.text && (
+				{skillId === "chapters"
+					? current?.status === "completed" &&
+						(() => {
+							const data = parseChapters(current.text);
+							return data ? <ChaptersView data={data} onJump={onJump} /> : null;
+						})()
+					: current?.text && <SimpleMarkdown text={current.text} />}
+				{busy && (skillId === "chapters" || !current?.text) && (
 					<p className="text-muted-foreground text-sm">
 						{t("transcript.ai.working", { defaultValue: "Waiting for the model…" })}
 					</p>

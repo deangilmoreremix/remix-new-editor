@@ -7,6 +7,7 @@
  */
 import type { WebTranslation, WebTranslationStatus } from '@vidbee/transcription/web-contract'
 import { getDatabaseConnection } from './database'
+import { translateChannel, publishLive } from './live-events'
 import { createResponse } from './openai-responses'
 import { getTranscriptDetail } from './transcripts-host'
 
@@ -81,6 +82,7 @@ const saveRow = (
          total = excluded.total, error = excluded.error, updated_at = excluded.updated_at`
     )
     .run(downloadId, language, JSON.stringify(cues), status, done, cues.length, error, Date.now())
+  publishLive(translateChannel(downloadId), 'state', listTranslations(downloadId))
 }
 
 export const listTranslations = (downloadId: string): WebTranslation[] =>

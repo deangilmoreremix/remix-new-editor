@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { translateClient } from "../../lib/orpc-client";
+import { useLiveStream } from "../../lib/use-live-stream";
 
 const FORMATS = ["srt", "vtt", "txt"] as const;
 const SUGGESTIONS = ["Spanish", "French", "German", "Portuguese", "Japanese", "Chinese", "Arabic"];
@@ -36,13 +37,25 @@ export const TranslatePanel = ({
 	}, [refresh]);
 
 	const running = items.some((item) => item.status === "running");
+	const streaming = useLiveStream(
+		true,
+		{ channel: "translate", downloadId },
+		{
+			onState: (state) => {
+				if (Array.isArray(state)) {
+					setItems(state as WebTranslation[]);
+				}
+			},
+			onDelta: () => undefined,
+		},
+	);
 	useEffect(() => {
-		if (!running) {
+		if (!running || streaming) {
 			return;
 		}
 		const timer = window.setInterval(() => void refresh(), 1000);
 		return () => window.clearInterval(timer);
-	}, [running, refresh]);
+	}, [running, streaming, refresh]);
 
 	const start = async (target: string) => {
 		try {

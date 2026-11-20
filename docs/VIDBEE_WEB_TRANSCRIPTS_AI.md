@@ -9,8 +9,10 @@ is unchanged and still has the full upstream feature set.
    (captions are imported when the video has them; otherwise local speech recognition runs).
 2. Open **Transcripts** in the sidebar and pick a download. You get timestamps, speaker names and a search box.
    **Transcribe / Cancel / Retry / Re-transcribe** control the job. **TXT, MD, SRT, VTT** download the transcript.
-3. Open the **AI summary** tab. Pick a skill (Overview, Bullet Points, Create Mindmap, Generate FAQ, Extract Statistics,
+3. Open the **AI summary** tab. Pick a skill (**Chapters**, Overview, Bullet Points, Create Mindmap, Generate FAQ, Extract Statistics,
    Improve Grammar, Paraphrase Content) and press **Run**. The text streams in and is saved per download and skill.
+   **Chapters** returns structured JSON (strict `json_schema`) shown as a list of titled moments and key quotes; click one to open the
+   Transcript tab scrolled to, and highlighting, that line. Moments outside the video are dropped and the list is sorted by time.
 
 4. **Chat** tab: ask questions about the video. The model can call read-only tools (`list_transcripts`, `get_video_info`,
    `read_transcript`, `search_transcript`) through OpenAI **function calling**, up to 6 tool rounds per answer, and cites `[m:ss]` timestamps.
@@ -24,12 +26,13 @@ Summaries, chat and translation use the OpenAI **Responses API** (`POST {baseUrl
 - in the AI summary tab → *OpenAI settings* (stored on the server in `ai-settings.json` in the data directory, mode 600), or
 - with `OPENAI_API_KEY` in the server environment. Optional: `OPENAI_BASE_URL`, `VIDBEE_OPENAI_MODEL` (default `gpt-4.1-mini`).
 
-The key is never returned to the browser. Transcript text is sent to the configured endpoint when you press Run.
+Set `VIDBEE_AI_LOCK_SETTINGS=1` to stop the browser from changing the key, model or base URL (recommended whenever the API is reachable by anyone but you:
+an open API could otherwise re-point the stored key at another server). The key is never returned to the browser. Transcript text is sent to the configured endpoint when you press Run.
 Transcripts longer than `VIDBEE_AI_MAX_TRANSCRIPT_CHARS` (default 400000 characters) are refused rather than truncated.
 
 ## Live streaming
 Summary and chat text reach the browser as server-sent events from `GET /stream?channel=ai&downloadId=&skillId=` or
-`?channel=chat&downloadId=` (a `snapshot`, then `delta` text chunks and `state` updates). If the stream cannot connect, the page falls back to polling.
+`?channel=chat&downloadId=` or `?channel=translate&downloadId=` (a `snapshot`, then `delta` text chunks and `state` updates). If the stream cannot connect, the page falls back to polling.
 
 ## API
 `/rpc/transcripts/*`, `/rpc/ai/*` (settings, skills, run, get, list, cancel), `/rpc/chat/*` (get, send, cancel, reset) and `/rpc/translate/*` (list, start, cancel, export).
@@ -40,5 +43,6 @@ Speaker re-labelling, switching caption languages, editing segments, ASR model m
 the desktop agent's state-changing tools (download queue, settings, clips, frames, dubbing, notes), the article-rewrite skill, and other AI providers.
 
 ## Tested
-Against seeded transcripts and a **mock** OpenAI server (streaming, errors, key handling, a function-call round trip, strict structured outputs including the retry path). Not tested: the real OpenAI API (so exact model behaviour, the reasoning-item replay rules for reasoning models, and rate limits are unverified),
-real speech recognition, Transcribe/Cancel/Retry on a real download, and the sign-in gate in front of the web app.
+Against seeded transcripts and a **mock** OpenAI server (streaming, errors, key handling, a function-call round trip, strict structured outputs including the retry path). Also exercised with a real `yt-dlp` download of a generated video served over local HTTP: automatic transcription (fake recognizer), Transcribe, force re-transcribe + Cancel, Retry, and the not-found error.
+Not tested: the real OpenAI API (so exact model behaviour, the reasoning-item replay rules for reasoning models, and rate limits are unverified),
+real speech recognition (the fake recognizer was used), and the sign-in gate in front of the web app. The web edition's API has no login of its own (as upstream): keep it on localhost or behind a gate.

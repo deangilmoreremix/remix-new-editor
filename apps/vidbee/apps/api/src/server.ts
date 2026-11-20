@@ -15,7 +15,8 @@ import { resolveReadableMediaFile } from './lib/managed-files'
 import { getAiRun } from './lib/ai-host'
 import { aiRouter } from './lib/ai-router'
 import { getChat } from './lib/chat-host'
-import { aiChannel, chatChannel, subscribeLive } from './lib/live-events'
+import { aiChannel, chatChannel, subscribeLive, translateChannel } from './lib/live-events'
+import { listTranslations } from './lib/translate-host'
 import { chatRouter } from './lib/chat-router'
 import { failInterruptedTranslations } from './lib/translate-host'
 import { translateRouter } from './lib/translate-router'
@@ -366,15 +367,18 @@ export const createApiServer = async () => {
     })
   })
 
-  // Live AI output: `GET /stream?channel=ai&downloadId=&skillId=` or `?channel=chat&downloadId=`.
+  // Live AI output: `GET /stream?channel=ai&downloadId=&skillId=`, `?channel=chat&downloadId=` or `?channel=translate&downloadId=`.
   // Sends one `snapshot`, then `delta` (text chunks) and `state` (full run/chat) events.
   fastify.get('/stream', async (request, reply) => {
     const query = request.query as Record<string, string | undefined>
     const downloadId = query.downloadId?.trim()
     const skillId = query.skillId?.trim()
     const isAi = query.channel === 'ai'
-    if (!downloadId || (isAi && !skillId) || !(isAi || query.channel === 'chat')) {
-      return reply.code(400).send({ error: 'Expected channel=ai&downloadId&skillId or channel=chat&downloadId' })
+    const isTranslate = query.channel === 'translate'
+    if (!downloadId || (isAi && !skillId) || !(isAi || isTranslate || query.channel === 'chat')) {
+      return reply.code(400).send({
+        error: 'Expected channel=ai&downloadId&skillId, channel=chat&downloadId or channel=translate&downloadId'
+      })
     }
     const requestOrigin = request.headers.origin?.trim()
     reply.hijack()
@@ -390,10 +394,21 @@ export const createApiServer = async () => {
     const send = (event: string, payload: unknown): void => {
       response.write(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`)
     }
-    const channel = isAi ? aiChannel(downloadId, skillId ?? '') : chatChannel(downloadId)
+    const channel = isAi
+      ? aiChannel(downloadId, skillId ?? '')
+      : isTranslate
+        ? translateChannel(downloadId)
+        : chatChannel(downloadId)
     // Subscribe before reading the snapshot so no delta is missed in between.
     const unsubscribe = subscribeLive(channel, (item) => send(item.event, item.payload))
-    send('snapshot', isAi ? getAiRun(downloadId, skillId ?? '') : getChat(downloadId))
+    send(
+      'snapshot',
+      isAi
+        ? getAiRun(downloadId, skillId ?? '')
+        : isTranslate
+          ? listTranslations(downloadId)
+          : getChat(downloadId)
+    )
     const heartbeat = setInterval(() => response.write(': heartbeat\n\n'), 15_000)
     request.raw.on('close', () => {
       clearInterval(heartbeat)
