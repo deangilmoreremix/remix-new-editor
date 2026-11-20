@@ -204,7 +204,8 @@ async function highlight(page, el, opened) {
     box.id = '__guide_hl';
     Object.assign(box.style, {
       position: 'fixed', left: `${r.left - 6}px`, top: `${r.top - 6}px`, width: `${r.width + 12}px`, height: `${r.height + 12}px`,
-      border: '3px solid #22d3ee', borderRadius: '12px', boxShadow: '0 0 0 9999px rgba(0,0,0,.35), 0 0 24px rgba(34,211,238,.8)',
+      // The app's lime accent, with a dark inner ring so the box still reads on lime buttons.
+      border: '3px solid #d9ff00', borderRadius: '12px', boxShadow: '0 0 0 9999px rgba(0,0,0,.35), 0 0 24px rgba(217,255,0,.75), inset 0 0 0 1px rgba(0,0,0,.6)',
       zIndex: 2147483647, pointerEvents: 'none',
     });
     document.body.appendChild(box);
@@ -286,7 +287,8 @@ for (const guide of GUIDES) {
       const el = await findControl(page, f, target);
       if (!el) { console.log(`  - ${guide.slug}/${f.id}: no matching control, uses overview`); continue; }
 
-      const label = (await el.evaluate((n) => (n.innerText || n.getAttribute('aria-label') || '').trim()).catch(() => '')) || '';
+      // The visible text plus aria-label and title: an icon-only upload button is only named by its title.
+      const label = (await el.evaluate((n) => [n.innerText, n.getAttribute('aria-label'), n.getAttribute('title')].filter(Boolean).join(' ').trim()).catch(() => '')) || '';
       const isOpener = await el.evaluate((n) => n.getAttribute('role') === 'tab' || n.hasAttribute('aria-haspopup') || n.tagName === 'SUMMARY' || !!n.querySelector('svg polyline, svg path[d*="M6 9"]')).catch(() => false);
       // An explicit click: true in the targets file is trusted; auto-detected openers are filtered.
       const opened = target?.click === true || (target?.click !== false && isOpener && !DANGEROUS.test(label));
