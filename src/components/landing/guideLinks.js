@@ -23,8 +23,14 @@ const ALIASES = {
   'product shot': 'product-shot-studio',
   academy: 'smart-video-academy',
   content: 'content-library',
+  brightbean: 'smart-video-scheduler',
+  'brand photo studio': 'photo-studio',
+  campaign: 'campaign-studio',
+  'watermark remover': 'video-watermark-remover',
 };
-for (const [k, slug] of Object.entries(ALIASES)) BY_KEY.set(norm(k), slug);
+// Only alias to guides that exist, so a renamed or missing guide never yields a dead link.
+const SLUGS = new Set(BY_KEY.values());
+for (const [k, slug] of Object.entries(ALIASES)) if (SLUGS.has(slug)) BY_KEY.set(norm(k), slug);
 
 /** Guide slug for a studio name or route, or null when there is no guide. */
 export function guideSlugFor(key) {

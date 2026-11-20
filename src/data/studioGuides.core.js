@@ -13,10 +13,19 @@ export const SITE_NAME = 'Smart Video AI Studio';
 export const GUIDE_CATEGORIES = [
   { id: 'Image', title: 'Image Studios', blurb: 'Generate, edit, upscale and brand still images.' },
   { id: 'Video', title: 'Video Studios', blurb: 'Generate, direct, animate, voice and finish video.' },
+  { id: 'Generate', title: 'Quick Generators', blurb: 'Single-purpose pages and an all-in-one hub for fast image and video generation.' },
+  { id: 'Brand', title: 'Brand & Campaigns', blurb: 'Brand kits, product photo shoots, campaigns and asset editing.' },
   { id: 'Agents', title: 'AI Agents & Automation', blurb: 'Agents and tools that plan, build, personalize and send video for you.' },
   { id: 'Home', title: 'Getting Started', blurb: 'Find apps, templates, inspiration and training.' },
   { id: 'My Work', title: 'My Work', blurb: 'Everything you have made, saved and organized.' },
 ];
+
+// Guide category for routes whose app-menu category is not a guide category (or is missing).
+const CATEGORY_OVERRIDES = {
+  'campaign-page': 'Brand',
+  'smart-video-studio': 'Generate',
+  'smart-video-scheduler': 'Agents',
+};
 
 // Slugs that should not just be the slugified studio name.
 const SLUG_OVERRIDES = {
@@ -143,7 +152,7 @@ export function buildGuides(kbByRoute, shots = {}) {
       slug,
       route,
       name,
-      category: meta.category || 'Agents',
+      category: CATEGORY_OVERRIDES[route] || meta.category || 'Agents',
       shortDescription: kb.shortDescription || '',
       description: kb.description || '',
       fullDescription: kb.fullDescription || '',
