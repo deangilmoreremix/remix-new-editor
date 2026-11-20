@@ -6,8 +6,8 @@
  *   ContactAccent                 the page root: a contact's own brand colour ({{accent}}) replaces the page accent
  */
 import { useRef } from 'react';
-import { fillTokens, fillUrlTokens, TOKEN_CHOICES } from '../templates.js';
-import { usePage } from './context.js';
+import { fillTokens, fillUrlTokens, safeImageUrl, TOKEN_CHOICES } from '../templates.js';
+import { usePage, ViewerContext } from './context.js';
 
 const labelStyle = { display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 };
 const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg, #fff)', color: 'var(--lp-field-text, inherit)', font: 'inherit' };
@@ -124,4 +124,62 @@ export function accentOverride(accent) {
 export function ContactAccent({ style, children, ...rest }) {
   const { tokens } = usePage();
   return <div style={{ ...style, ...accentOverride(tokens?.accent) }} {...rest}>{children}</div>;
+}
+
+const VIEWER_KEYS = ['viewerType', 'viewerAlt', 'viewerAspect', 'viewerControls', 'viewerAutoplay', 'viewerLoop', 'viewerCaption'];
+
+function ViewerScope({ render, props }) {
+  const value = {};
+  VIEWER_KEYS.forEach((k) => { value[k.slice(6).replace(/^./, (c) => c.toLowerCase())] = props[k]; });
+  return <ViewerContext.Provider value={value}>{render(props)}</ViewerContext.Provider>;
+}
+
+/** Components that hold a video slot hand their viewer options (shape, controls, autoplay, caption...) down to the player. */
+export function withViewerOptions(components) {
+  for (const comp of Object.values(components)) {
+    const orig = comp.render;
+    if (typeof orig !== 'function' || !comp.fields?.slotImage || orig.__viewer) continue;
+    const wrapped = (props) => <ViewerScope render={orig} props={props} />;
+    wrapped.__viewer = true;
+    comp.render = wrapped;
+  }
+  return components;
+}
+
+const HEX6S = /^#[0-9a-f]{6}$/i;
+
+/** Pure: inline style for a section's own background colour, text colour and background photo (empty when none is set). */
+export function sectionStyle({ sectionBg, sectionText, sectionImage } = {}) {
+  const style = {};
+  if (HEX6S.test(String(sectionBg || ''))) { style.background = sectionBg; style['--pk-bg'] = sectionBg; }
+  if (HEX6S.test(String(sectionText || ''))) { style.color = sectionText; style['--pk-text'] = sectionText; }
+  const img = safeImageUrl(sectionImage);
+  if (img && !/["'()\\\s<>]/.test(img)) { style.backgroundImage = `url(${JSON.stringify(img)})`; style.backgroundSize = 'cover'; style.backgroundPosition = 'center'; }
+  return style;
+}
+
+function SectionScope({ render, props }) {
+  const style = sectionStyle(props);
+  const out = render(props);
+  return Object.keys(style).length ? <div className="pk-sec" style={style}>{out}</div> : out;
+}
+
+/** Every named section gets its own background colour, text colour and background photo (nothing changes until one is set). */
+export function withSectionStyle(components, names) {
+  for (const name of names) {
+    const comp = components[name];
+    if (!comp || typeof comp.render !== 'function' || comp.render.__section) continue;
+    comp.fields = {
+      ...comp.fields,
+      sectionBg: { type: 'text', label: 'Section background colour (#hex, empty = page)' },
+      sectionText: { type: 'text', label: 'Section text colour (#hex, empty = page)' },
+      sectionImage: { type: 'text', label: 'Section background photo (https link)' },
+    };
+    comp.defaultProps = { ...comp.defaultProps, sectionBg: '', sectionText: '', sectionImage: '' };
+    const orig = comp.render;
+    const wrapped = (props) => <SectionScope render={orig} props={props} />;
+    wrapped.__section = true;
+    comp.render = wrapped;
+  }
+  return components;
 }

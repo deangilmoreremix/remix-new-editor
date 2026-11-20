@@ -190,10 +190,12 @@ export function LandingPagesStudio() {
     };
 
     const markDirty = () => { dirty = true; dirtyTag.textContent = 'Unsaved changes'; };
+    let mediaPatch = {}; // a changed video / picture / poster, saved with the next Save
     const save = async (patch = {}) => {
       saveBtn.disabled = publishBtn.disabled = true;
       try {
-        const saved = await updatePage(await ownerClient(), current.id, { title: titleInput.value, config: current.config, ...patch });
+        const saved = await updatePage(await ownerClient(), current.id, { title: titleInput.value, config: current.config, ...mediaPatch, ...patch });
+        mediaPatch = {};
         current = { ...current, ...saved, config: sanitizeConfig(saved.config) };
         dirty = false;
         dirtyTag.textContent = 'Saved';
@@ -336,7 +338,36 @@ export function LandingPagesStudio() {
         });
       }).catch(() => { /* no contacts yet, or not signed in: the sample still works */ });
       bar.append(asSel);
-      box.append(bar, host);
+      // The page's own video or picture and its poster (what the viewer shows before it plays): change them without starting over.
+      const media = el('details', 'rounded-xl border border-white/10 bg-white/5 text-xs text-secondary');
+      media.dataset.pageMedia = '';
+      const mediaBody = el('div', 'flex flex-col gap-2 p-3');
+      const vIn = el('input', INPUT); vIn.type = 'url'; vIn.value = current.video_url || ''; vIn.setAttribute('aria-label', 'Page video or picture link'); vIn.placeholder = 'https://… video (.mp4) or picture';
+      const pIn = el('input', INPUT); pIn.type = 'url'; pIn.value = current.poster_url || ''; pIn.setAttribute('aria-label', 'Poster picture link'); pIn.placeholder = 'https://… picture shown before the video plays (optional)';
+      const useLatest = el('button', BTN, 'Use my latest creation');
+      useLatest.type = 'button';
+      const applyMedia = () => {
+        const v = vIn.value.trim(); const p = pIn.value.trim();
+        if (v && !/^https:\/\/\S+$/i.test(v)) { showToast('Paste a full https:// link.', 'warning', 3000); return; }
+        mediaPatch = { ...(v ? { videoUrl: v } : {}), posterUrl: p };
+        current = { ...current, ...(v ? { video_url: v } : {}), poster_url: p || null };
+        markDirty();
+        if (mountPageEditorFn) mountEditor(current.config.editor);
+      };
+      vIn.addEventListener('change', applyMedia);
+      pIn.addEventListener('change', applyMedia);
+      useLatest.addEventListener('click', async () => {
+        try {
+          const { loadGenerationHistory } = await import('../lib/generationHistory.js');
+          const { pickLatest } = await import('./VideoPagesButton.js');
+          const l = pickLatest(await loadGenerationHistory());
+          if (!l) { showToast('Nothing in your library yet.', 'info', 3000); return; }
+          vIn.value = l.url; applyMedia();
+        } catch { showToast('Could not load your library.', 'warning', 3000); }
+      });
+      mediaBody.append(vIn, pIn, useLatest);
+      media.append(el('summary', 'cursor-pointer select-none px-3 py-2 font-bold text-primary', 'Page video or picture'), mediaBody);
+      box.append(bar, media, host);
       const danger = el('button', 'self-start text-xs text-red-300 hover:underline mt-4', 'Delete this page');
       danger.type = 'button';
       danger.addEventListener('click', async () => {

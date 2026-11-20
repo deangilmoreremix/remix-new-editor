@@ -11,3 +11,7 @@ export const useThanks = () => useContext(ThanksContext);
 /** Page-level "After the form is sent" settings (root props of the page): { afterSubmitAction, afterSubmitUrl, afterSubmitButtonText }. */
 export const AfterSubmitContext = createContext({});
 export const useAfterSubmit = () => useContext(AfterSubmitContext);
+
+/** Viewer options (type, alt text, shape, controls, autoplay, loop, caption) from the component that holds the video slot. */
+export const ViewerContext = createContext({});
+export const useViewer = () => useContext(ViewerContext);
