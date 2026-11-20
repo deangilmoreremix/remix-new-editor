@@ -1,986 +1,596 @@
 {
   "meta": {
-    "description": "Maps muapi Studio 'Apps' tab tools to the closest public muapi API endpoint or template workflow.",
-    "source": "https://muapi.ai/studio?tab=apps (transcribed from screenshots); spec: https://api.muapi.ai/openapi.json",
+    "description": "What each tool on muapi's Studio 'Apps' tab calls, read from the Studio's public JavaScript and validated against the OpenAPI spec.",
+    "source": "https://muapi.ai/studio?tab=apps (lazy-loaded Apps chunk); spec: https://api.muapi.ai/openapi.json",
     "apiBase": "https://api.muapi.ai",
     "auth": "x-api-key header",
     "generatedBy": "scripts/build-muapi-apps-map.mjs",
+    "statuses": {
+      "endpoint": "A dedicated muapi tool endpoint; call it directly.",
+      "preset": "A generic muapi model driven by a muapi-written prompt template (not copied here). The endpoint is public and callable; you supply the prompt."
+    },
     "checked": [
-      "Public OpenAPI spec, /api/v1/models, /api/v1/get-template-workflows, /app/get_studio_models, /app/get_homepage_models",
-      "/workflow/get-published-workflows, /workflow/get-workflow-defs, /agents/templates/agents, /app/interests",
-      "Studio page HTML and its 29 public JS chunks (no app names found; the app list is loaded elsewhere)",
-      "Keyword search of names and descriptions across all of the above"
+      "Studio page and its lazy-loaded Apps chunk (the full 78-app catalog)",
+      "Public OpenAPI spec, /api/v1/models, /api/v1/get-template-workflows",
+      "Docs pages incl. introduction, specialized-apps, white-label, embedding, cli, mcp, workflows, agents, design-agent-api"
     ],
     "notChecked": [
-      "The logged-in dashboard pages (Apps, Workflow, Agents, Integrations)",
-      "The requests the Studio makes when an app is opened or run",
-      "The user's own (non-public) workflows"
+      "The logged-in dashboard pages",
+      "Live network calls from a signed-in Studio session (cost, extra inputs)"
     ],
     "caveats": [
-      "The Studio apps themselves are closed source and are not published as named API endpoints.",
-      "The app list is partial: it was transcribed from screenshots, and some cards (e.g. part of Ads & Products) were not visible.",
-      "endpoint-probable and workflow-similar are name/purpose based guesses, not confirmed identical behaviour."
+      "Prompt templates, presets and sliders are muapi's content; they were read for analysis but not stored. Check muapi's terms before reusing them.",
+      "Some presets/sliders add inputs beyond mediaInputs; verify by running an app.",
+      "similarWorkflow is a name-based guess, not the app itself."
     ],
     "counts": {
       "total": 78,
-      "workflow-similar": 9,
-      "unmatched": 59,
-      "endpoint-probable": 6,
+      "preset": 74,
       "endpoint": 4
+    },
+    "endpoints": {
+      "/api/v1/seedream-5.0-pro-edit": 29,
+      "/api/v1/ai-skin-enhancer": 1,
+      "/api/v1/seedance-2-image-to-video": 41,
+      "/api/v1/wan2.2-image-to-video": 1,
+      "/api/v1/ai-image-face-swap": 1,
+      "/api/v1/ai-video-face-swap": 1,
+      "/api/v1/minimax-h3-image-to-video": 3,
+      "/api/v1/video-background-remover": 1
     }
   },
   "apps": [
     {
-      "id": "angles",
-      "name": "Angles",
-      "studioTab": "Professional",
-      "mediaType": "image",
-      "description": "Generate new camera angles from a single photo",
-      "status": "workflow-similar",
-      "workflow": {
-        "slug": "multi-angle-photo-reshoot-nano-banana-2",
-        "id": "77013608-2c1d-4fa3-865c-c7a667f62c8b",
-        "name": "Multi-Angle Photo Reshoot with Nano Banana 2",
-        "run": "POST /workflow/77013608-2c1d-4fa3-865c-c7a667f62c8b/api-execute"
-      }
-    },
-    {
-      "id": "what-s-next",
-      "name": "What's Next",
-      "studioTab": "Professional",
-      "mediaType": "image",
-      "description": "Explore what happens next in your scene",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "shots",
-      "name": "Shots",
-      "studioTab": "Professional",
-      "mediaType": "image",
-      "description": "Transform one photo into unique cinematic shots",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "zooms",
-      "name": "Zooms",
-      "studioTab": "Professional",
-      "mediaType": "image",
-      "description": "Create dynamic zoom variations",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "behind-the-scenes",
-      "name": "Behind the Scenes",
-      "studioTab": "Professional",
-      "mediaType": "video",
-      "description": "Turn any photo into a behind-the-scenes film set reveal",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "transitions",
-      "name": "Transitions",
-      "studioTab": "Professional",
-      "mediaType": "video",
-      "description": "Create seamless transitions between two images",
-      "status": "endpoint-probable",
-      "endpoint": {
-        "method": "POST",
-        "path": "/api/v1/pixverse-v6-transition",
-        "model": "pixverse-v6-transition",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ]
-      }
-    },
-    {
-      "id": "expand-image",
-      "name": "Expand Image",
-      "studioTab": "Professional",
-      "mediaType": "image",
-      "description": "Expand any image beyond its edges",
-      "status": "endpoint-probable",
-      "endpoint": {
-        "method": "POST",
-        "path": "/api/v1/ai-image-extension",
-        "model": "ai-image-extension",
-        "requiredFields": [
-          "image_url"
-        ]
-      }
-    },
-    {
-      "id": "color-grading",
-      "name": "Color Grading",
-      "studioTab": "Professional",
-      "mediaType": "image",
-      "description": "Apply professional cinematic color grading",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
       "id": "ai-stylist",
       "name": "AI Stylist",
       "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
       "mediaType": "image",
-      "description": "AI fitting room: try on outfits, change poses",
-      "status": "endpoint-probable",
+      "description": "Your AI fitting room — try on outfits, change poses, and swap backgrounds instantly.",
+      "status": "preset",
       "endpoint": {
         "method": "POST",
-        "path": "/api/v1/portrait-stylist",
-        "model": "portrait-stylist",
-        "requiredFields": [
-          "image_url",
-          "name"
-        ]
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "Requires a `name` style value; see the spec."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "relight",
       "name": "Relight",
       "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
       "mediaType": "image",
-      "description": "Adjust lighting position, color temperature and brightness",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+      "description": "Adjust lighting position, color temperature, and brightness to perfect any photo.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "direction": 0,
+          "temperature": 0,
+          "brightness": 0,
+          "contrast": 0,
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "skin-enhancer",
       "name": "Skin Enhancer",
       "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
       "mediaType": "image",
-      "description": "Smooth skin and remove blur from portraits",
+      "description": "Smooth skin and remove blur from portraits — natural, realistic skin textures.",
       "status": "endpoint",
       "endpoint": {
         "method": "POST",
         "path": "/api/v1/ai-skin-enhancer",
         "model": "ai-skin-enhancer",
+        "targetModel": "ai-skin-enhancer",
         "requiredFields": [
           "image_url"
         ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.01,
+        "imageField": "image_url",
+        "requiresPrompt": false,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Portrait photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {},
+        "hasPromptTemplate": true
       }
     },
     {
       "id": "outfit-swap",
       "name": "Outfit Swap",
       "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
       "mediaType": "image",
-      "description": "Try on any outfit with a single photo",
-      "status": "endpoint-probable",
+      "description": "Try on any outfit with a single photo — transfer clothing from a reference image.",
+      "status": "preset",
       "endpoint": {
         "method": "POST",
-        "path": "/api/v1/ai-dress-change",
-        "model": "ai-dress-change",
-        "requiredFields": [
-          "model_image_url",
-          "garment_image_url"
-        ]
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "workflow": {
-        "slug": "virtual-try-on-seedream-flux-kling-o1",
-        "id": "872e133d-db5d-4871-b649-d01505d1a603",
-        "name": "Virtual Try On with Seedream v1.5 + Flux 2 Dev + Flux 2 Flex + Flux 2 Pro + Qwen Image + Kling o1",
-        "run": "POST /workflow/872e133d-db5d-4871-b649-d01505d1a603/api-execute"
-      }
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Outfit reference",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "style-snap",
       "name": "Style Snap",
       "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
       "mediaType": "image",
-      "description": "Transform your look with instant style variations",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+      "description": "Transform your look with instant style variations — swap outfits while keeping your pose.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "outfit-vending",
       "name": "Outfit Vending",
       "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
       "mediaType": "image",
-      "description": "Outfit breakdown in an illuminated vending machine",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+      "description": "Display your outfit breakdown in an illuminated vending machine — AI deconstructs every item.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your outfit photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "glitter-sticker",
       "name": "Glitter Sticker",
       "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
       "mediaType": "image",
-      "description": "Portrait as a sparkling holographic sticker",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+      "description": "Turn your portrait into a sparkling holographic sticker on a gritty urban surface.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Portrait photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "outfit-shot",
       "name": "Outfit Shot",
       "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
       "mediaType": "video",
-      "description": "Transform outfits into a professional AI avatar photoshoot",
-      "status": "workflow-similar",
-      "workflow": {
+      "description": "Transform outfits into a professional AI avatar photoshoot with natural poses.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Clothing image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "similarWorkflow": {
         "slug": "fashion-video-generator-qwen-image-seedance-v1-5",
         "id": "f9d988cf-00e5-49eb-9bdf-d34c7967274d",
-        "name": "Fashion Video Generator with Qwen Image 2511 + Seedance v1.5 Pro I2V Fast",
         "run": "POST /workflow/f9d988cf-00e5-49eb-9bdf-d34c7967274d/api-execute"
       }
-    },
-    {
-      "id": "recast",
-      "name": "Recast",
-      "studioTab": "Face & Identity",
-      "mediaType": "video",
-      "description": "Character swap for any video",
-      "status": "endpoint-probable",
-      "endpoint": {
-        "method": "POST",
-        "path": "/api/v1/seedance-2-motion-control",
-        "model": "seedance-2-motion-control",
-        "requiredFields": [
-          "video_url"
-        ]
-      },
-      "notes": "Model description: \"recast an existing performance video with new performers\". Needs a reference video plus character images; see the spec for the optional fields."
-    },
-    {
-      "id": "character-swap",
-      "name": "Character Swap",
-      "studioTab": "Face & Identity",
-      "mediaType": "image",
-      "description": "Place a new character into any scene",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "face-swap",
-      "name": "Face Swap",
-      "studioTab": "Face & Identity",
-      "mediaType": "image",
-      "description": "Instant AI face swap for photos",
-      "status": "endpoint",
-      "endpoint": {
-        "method": "POST",
-        "path": "/api/v1/ai-image-face-swap",
-        "model": "ai-image-face-swap",
-        "requiredFields": [
-          "image_url",
-          "swap_url"
-        ]
-      }
-    },
-    {
-      "id": "commercial-faces",
-      "name": "Commercial Faces",
-      "studioTab": "Face & Identity",
-      "mediaType": "image",
-      "description": "Ad-ready spokesperson imagery",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "video-face-swap",
-      "name": "Video Face Swap",
-      "studioTab": "Face & Identity",
-      "mediaType": "video",
-      "description": "Face swapping for any video, frame by frame",
-      "status": "endpoint",
-      "endpoint": {
-        "method": "POST",
-        "path": "/api/v1/ai-video-face-swap",
-        "model": "ai-video-face-swap",
-        "requiredFields": [
-          "image_url",
-          "video_url"
-        ]
-      }
-    },
-    {
-      "id": "headshot-generator",
-      "name": "Headshot Generator",
-      "studioTab": "Face & Identity",
-      "mediaType": "image",
-      "description": "Studio-quality professional headshots",
-      "status": "workflow-similar",
-      "workflow": {
-        "slug": "professional-fashion-headshots-flux-2-pro",
-        "id": "6b41af09-a40f-459f-8179-7ee3a90d300b",
-        "name": "Professional Fashion Headshots with Flux 2 Pro",
-        "run": "POST /workflow/6b41af09-a40f-459f-8179-7ee3a90d300b/api-execute"
-      }
-    },
-    {
-      "id": "clipcut",
-      "name": "ClipCut",
-      "studioTab": "Video Editing",
-      "mediaType": "video",
-      "description": "Turn one selfie into an instant outfit reel",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "urban-cuts",
-      "name": "Urban Cuts",
-      "studioTab": "Video Editing",
-      "mediaType": "video",
-      "description": "Beat-synced AI outfit videos",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "sticker-match-cut",
-      "name": "Sticker Match Cut",
-      "studioTab": "Video Editing",
-      "mediaType": "video",
-      "description": "Turn any clip into a sparkling sticker animation",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "breakdown",
-      "name": "Breakdown",
-      "studioTab": "Video Editing",
-      "mediaType": "video",
-      "description": "Split any image into its individual components",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "japanese-show",
-      "name": "Japanese Show",
-      "studioTab": "Video Editing",
-      "mediaType": "video",
-      "description": "Photo into a retro 2000s Japanese variety show scene",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "video-background-remover",
-      "name": "Video Background Remover",
-      "studioTab": "Video Editing",
-      "mediaType": "video",
-      "description": "Strip the background from any video",
-      "status": "endpoint",
-      "endpoint": {
-        "method": "POST",
-        "path": "/api/v1/video-background-remover",
-        "model": "video-background-remover",
-        "requiredFields": [
-          "video_url"
-        ]
-      }
-    },
-    {
-      "id": "click-to-ad",
-      "name": "Click to Ad",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Character interacts with your product in a video ad",
-      "status": "workflow-similar",
-      "workflow": {
-        "slug": "ugc-ads-workflow-seedance-2-omni",
-        "id": "0e4042ae-4628-487f-b571-5dd9d598df22",
-        "name": "UGC Ads workflow with Seedance 2 Omni ",
-        "run": "POST /workflow/0e4042ae-4628-487f-b571-5dd9d598df22/api-execute"
-      }
-    },
-    {
-      "id": "asmr-add-on",
-      "name": "ASMR Add-On",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Character whispers about your product in an ASMR video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "asmr-classic",
-      "name": "ASMR Classic",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Classic ASMR product video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "poster",
-      "name": "Poster",
-      "studioTab": "Ads & Products",
-      "mediaType": "image",
-      "description": "Professional marketing poster for your product",
-      "status": "workflow-similar",
-      "workflow": {
-        "slug": "product-advertisement-wan2-6-image-edit",
-        "id": "a4cc68cb-5870-4f2d-86f5-82a53fbd10b4",
-        "name": "AI-Driven Product Advertisement Creation with Wan2.6 Image",
-        "run": "POST /workflow/a4cc68cb-5870-4f2d-86f5-82a53fbd10b4/api-execute"
-      }
-    },
-    {
-      "id": "bullet-time-scene",
-      "name": "Bullet Time Scene",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Freeze-frame bullet-time with character and product",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "chameleon",
-      "name": "Chameleon",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Character transforms to match your product's brand",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "asmr-host",
-      "name": "ASMR Host",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Hosted ASMR product presentation",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "packshot",
-      "name": "Packshot",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Product showcase with smooth rotation and studio lighting",
-      "status": "workflow-similar",
-      "workflow": {
-        "slug": "product-360-video-flux-2-flex-wan2-5",
-        "id": "1734b542-6ecd-4eee-9e28-582fa79c227e",
-        "name": "AI Product 360° Video - river with Flux 2 Flex + Wan2.5 I2V Fast",
-        "run": "POST /workflow/1734b542-6ecd-4eee-9e28-582fa79c227e/api-execute"
-      }
-    },
-    {
-      "id": "macro-scene",
-      "name": "Macro Scene",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Extreme close-up revealing product details",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "magic-button",
-      "name": "Magic Button",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Product appears magically with a burst of light",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "truck-ad",
-      "name": "Truck Ad",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Your product on a moving truck through the city",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "giant-product",
-      "name": "Giant Product",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Surreal scene with a building-sized product",
-      "status": "workflow-similar",
-      "workflow": {
-        "slug": "giant-product-vfx-ad-nano-banana-2",
-        "id": "0fb56847-2334-44d7-ab93-d2318cf3cc28",
-        "name": "Giant Product VFX Advertisement Creation with Nano Banana 2",
-        "run": "POST /workflow/0fb56847-2334-44d7-ab93-d2318cf3cc28/api-execute"
-      }
-    },
-    {
-      "id": "bullet-time-white",
-      "name": "Bullet Time White",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Bullet-time 360 rotation on a white background",
-      "status": "workflow-similar",
-      "workflow": {
-        "slug": "product-360-video-flux-2-flex-wan2-5",
-        "id": "1734b542-6ecd-4eee-9e28-582fa79c227e",
-        "name": "AI Product 360° Video - river with Flux 2 Flex + Wan2.5 I2V Fast",
-        "run": "POST /workflow/1734b542-6ecd-4eee-9e28-582fa79c227e/api-execute"
-      },
-      "notes": "Only the 360 rotation is similar; not bullet-time."
-    },
-    {
-      "id": "kick-ad",
-      "name": "Kick Ad",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Character kicks product into frame",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "billboard-ad",
-      "name": "Billboard Ad",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Your product on a glowing billboard at night",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "graffiti-ad",
-      "name": "Graffiti Ad",
-      "studioTab": "Ads & Products",
-      "mediaType": "image",
-      "description": "Your product as street-art graffiti",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "bullet-time-splash",
-      "name": "Bullet Time Splash",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Bullet-time rotation with liquid splash effects",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "fridge-ad",
-      "name": "Fridge Ad",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Product revealed inside an opening fridge",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "volcano-ad",
-      "name": "Volcano Ad",
-      "studioTab": "Ads & Products",
-      "mediaType": "video",
-      "description": "Product emerging from a volcanic eruption",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
-    },
-    {
-      "id": "macroshot-product",
-      "name": "Macroshot Product",
-      "studioTab": "Ads & Products",
-      "mediaType": "image",
-      "description": "Professional macro photography with shallow depth of field",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
-      },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
     },
     {
       "id": "game-dump",
       "name": "Game Dump",
       "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
       "mediaType": "image",
-      "description": "Transform yourself into iconic video game styles",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+      "description": "Transform yourself into iconic video game styles — become a gaming hero with in-game UI overlays.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "nano-strike",
       "name": "Nano Strike",
       "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
       "mediaType": "image",
-      "description": "AI tactical shooter character",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+      "description": "AI tactical shooter character — transform into a battle-ready operator with full gear.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "nano-theft",
       "name": "Nano Theft",
       "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
       "mediaType": "image",
-      "description": "Realistic open-world crime game style",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+      "description": "See yourself in a realistic open-world crime game style — GTA-inspired character art.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "simlife",
       "name": "Simlife",
       "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
       "mediaType": "image",
-      "description": "Stylized life-simulation character",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+      "description": "Transform into a stylized life simulation character — The Sims-inspired avatar.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "plushies",
       "name": "Plushies",
       "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
       "mediaType": "image",
-      "description": "Photo into an adorable plushie-style character",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+      "description": "Transform any photo into an adorable plushie-style character — soft toy animation.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "3d-render",
       "name": "3D Render",
       "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
       "mediaType": "image",
-      "description": "Photo into a 3D rendered object",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+      "description": "Turn any photo into a stunning 3D rendered object with professional lighting.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "3d-figure",
       "name": "3D Figure",
       "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
       "mediaType": "image",
-      "description": "Photo into a detailed 3D collectible figure",
-      "status": "workflow-similar",
-      "effect": {
-        "model": "nano-banana-effects",
-        "name": "3D Figurine"
+      "description": "Transform your photo into a detailed 3D collectible figure — action figure style.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "workflow": {
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "similarWorkflow": {
         "slug": "ai-action-figure-generator-nano-banana-2",
         "id": "0849ffba-248d-4608-b480-d0a7958d825f",
-        "name": "AI Action Figure Generator with Nano Banana 2 ",
         "run": "POST /workflow/0849ffba-248d-4608-b480-d0a7958d825f/api-execute"
       }
     },
@@ -988,417 +598,2489 @@
       "id": "pixel-game",
       "name": "Pixel Game",
       "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
       "mediaType": "image",
-      "description": "Photo into retro 8-bit / 16-bit pixel game graphics",
-      "status": "endpoint-probable",
+      "description": "Turn your photo into retro pixel game graphics — 8-bit and 16-bit art styles.",
+      "status": "preset",
       "endpoint": {
         "method": "POST",
-        "path": "/api/v1/nano-banana-effects",
-        "model": "nano-banana-effects",
-        "requiredFields": [
-          "image_url"
-        ]
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "effect": {
-        "model": "nano-banana-effects",
-        "name": "16bit Game Character"
-      }
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "brick-cube",
       "name": "Brick Cube",
       "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
       "mediaType": "image",
-      "description": "Photo into a brick-cube toy",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "flux-kontext-effects",
-        "path": "/api/v1/flux-kontext-effects",
-        "requiredFields": [
-          "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+      "description": "Transform your photo into a brick cube toy — LEGO-inspired block figure.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "sketch-to-real",
       "name": "Sketch to Real",
       "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
       "mediaType": "video",
-      "description": "Sketch into a realistic video scene",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Turn your sketch into a realistic video scene — hand-drawn doodles come to life.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your sketch",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "click-to-ad",
+      "name": "Click to Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Character interacts with your product in a dynamic video ad.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "similarWorkflow": {
+        "slug": "ugc-ads-workflow-seedance-2-omni",
+        "id": "0e4042ae-4628-487f-b571-5dd9d598df22",
+        "run": "POST /workflow/0e4042ae-4628-487f-b571-5dd9d598df22/api-execute"
+      }
+    },
+    {
+      "id": "asmr-add-on",
+      "name": "ASMR Add-On",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Character whispers about your product in an intimate ASMR video.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "asmr-classic",
+      "name": "ASMR Classic",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Classic ASMR product video — gentle touching, tapping, and rotating.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "poster",
+      "name": "Poster",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "image",
+      "description": "Generate a professional marketing poster for your product.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "similarWorkflow": {
+        "slug": "product-advertisement-wan2-6-image-edit",
+        "id": "a4cc68cb-5870-4f2d-86f5-82a53fbd10b4",
+        "run": "POST /workflow/a4cc68cb-5870-4f2d-86f5-82a53fbd10b4/api-execute"
+      }
+    },
+    {
+      "id": "bullet-time-scene",
+      "name": "Bullet Time Scene",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Freeze-frame bullet-time effect with character and product.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "chameleon",
+      "name": "Chameleon",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Character transforms to match your product's brand aesthetic.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "asmr-host",
+      "name": "ASMR Host",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Hosted ASMR product presentation with whispering narration.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "packshot",
+      "name": "Packshot",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Polished product showcase with smooth rotation and studio lighting.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "similarWorkflow": {
+        "slug": "product-360-video-flux-2-flex-wan2-5",
+        "id": "1734b542-6ecd-4eee-9e28-582fa79c227e",
+        "run": "POST /workflow/1734b542-6ecd-4eee-9e28-582fa79c227e/api-execute"
+      }
+    },
+    {
+      "id": "macro-scene",
+      "name": "Macro Scene",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Extreme close-up revealing product details and textures.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "magic-button",
+      "name": "Magic Button",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Product appears magically with a burst of light and particles.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "truck-ad",
+      "name": "Truck Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Your product displayed on a moving truck driving through the city.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "giant-product",
+      "name": "Giant Product",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Surreal scene with a building-sized product towering over a person.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "similarWorkflow": {
+        "slug": "giant-product-vfx-ad-nano-banana-2",
+        "id": "0fb56847-2334-44d7-ab93-d2318cf3cc28",
+        "run": "POST /workflow/0fb56847-2334-44d7-ab93-d2318cf3cc28/api-execute"
+      }
+    },
+    {
+      "id": "bullet-time-white",
+      "name": "Bullet Time White",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Bullet-time 360° rotation on clean white background.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "similarWorkflow": {
+        "slug": "product-360-video-flux-2-flex-wan2-5",
+        "id": "1734b542-6ecd-4eee-9e28-582fa79c227e",
+        "run": "POST /workflow/1734b542-6ecd-4eee-9e28-582fa79c227e/api-execute"
+      }
+    },
+    {
+      "id": "kick-ad",
+      "name": "Kick Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Dynamic action ad — character kicks product into frame.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "billboard-ad",
+      "name": "Billboard Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Your product on a glowing billboard in a bustling city at night.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "graffiti-ad",
+      "name": "Graffiti Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "image",
+      "description": "Your product as vibrant street art graffiti on a brick wall.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "bullet-time-splash",
+      "name": "Bullet Time Splash",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Bullet-time rotation with dramatic liquid splash effects.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "fridge-ad",
+      "name": "Fridge Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Product revealed inside an opening fridge — cool mist, fresh vibes.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "volcano-ad",
+      "name": "Volcano Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Product emerging dramatically from a volcanic eruption.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "macroshot-product",
+      "name": "Macroshot Product",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "image",
+      "description": "Professional macro photography with shallow depth of field.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "recast",
+      "name": "Recast",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "video",
+      "description": "Industry-leading character swap for any video — replace the entire persona including body and motion.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/wan2.2-image-to-video",
+        "model": "wan2.2-image-to-video",
+        "targetModel": "wan2.2-image-to-video",
         "requiredFields": [
           "prompt",
           "image_url"
-        ],
-        "prompt": ""
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 0.3,
+        "imageField": "image_url",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Character Persona Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "last_image",
+            "label": "Ending Frame Image (Optional)",
+            "type": "image",
+            "required": false
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "resolution": "480p",
+          "quality": "medium",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": false
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "character-swap",
+      "name": "Character Swap",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "image",
+      "description": "Seamlessly place a new character into any scene — maintain identity across different poses and settings.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Target scene",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "face-swap",
+      "name": "Face Swap",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "image",
+      "description": "Instant AI face swap for photos — seamlessly integrate new faces into any image.",
+      "status": "endpoint",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/ai-image-face-swap",
+        "model": "ai-image-face-swap",
+        "targetModel": "ai-image-face-swap",
+        "requiredFields": [
+          "image_url",
+          "swap_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.02,
+        "imageField": "image_url",
+        "requiresPrompt": false,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Target Base Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "swap_url",
+            "label": "New Face Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "target_index": 0
+        },
+        "hasPromptTemplate": true
+      }
+    },
+    {
+      "id": "commercial-faces",
+      "name": "Commercial Faces",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "image",
+      "description": "Generate ad-ready spokesperson imagery — professional face transformations for marketing.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your selfie",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "video-face-swap",
+      "name": "Video Face Swap",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "video",
+      "description": "Best-in-class face swapping for any video — frame-by-frame accuracy with natural blending.",
+      "status": "endpoint",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/ai-video-face-swap",
+        "model": "ai-video-face-swap",
+        "targetModel": "ai-video-face-swap",
+        "requiredFields": [
+          "image_url",
+          "video_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.1,
+        "imageField": "image_url",
+        "requiresPrompt": false,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Face / Identity Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "video_url",
+            "label": "Target Video",
+            "type": "video",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "target_gender": "All",
+          "target_index": 0
+        },
+        "hasPromptTemplate": false
+      }
+    },
+    {
+      "id": "headshot-generator",
+      "name": "Headshot Generator",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "image",
+      "description": "Studio-quality professional headshots in seconds — no photoshoot needed.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your selfie",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "similarWorkflow": {
+        "slug": "professional-fashion-headshots-flux-2-pro",
+        "id": "6b41af09-a40f-459f-8179-7ee3a90d300b",
+        "run": "POST /workflow/6b41af09-a40f-459f-8179-7ee3a90d300b/api-execute"
+      }
+    },
+    {
+      "id": "clipcut",
+      "name": "ClipCut",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "video",
+      "description": "Turn one selfie into an instant outfit reel — AI-generated fashion montage synced to music.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/minimax-h3-image-to-video",
+        "model": "minimax-h3-image-to-video",
+        "targetModel": "minimax-h3-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "image_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.825,
+        "imageField": "image_url",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Starting Frame Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "last_image_url",
+            "label": "Ending Frame Image (Optional)",
+            "type": "image",
+            "required": false
+          }
+        ],
+        "defaultParams": {
+          "duration": 10,
+          "resolution": "2k",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "urban-cuts",
+      "name": "Urban Cuts",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "video",
+      "description": "Next-gen beat-synced AI outfit videos — dynamic cuts perfectly timed to music.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/minimax-h3-image-to-video",
+        "model": "minimax-h3-image-to-video",
+        "targetModel": "minimax-h3-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "image_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.825,
+        "imageField": "image_url",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Starting Frame Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "last_image_url",
+            "label": "Ending Frame Image (Optional)",
+            "type": "image",
+            "required": false
+          }
+        ],
+        "defaultParams": {
+          "duration": 10,
+          "resolution": "2k",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "sticker-matchcut",
+      "name": "Sticker Match Cut",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "video",
+      "description": "Turn any clip into a sparkling sticker animation — glittering holographic sticker frames.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/minimax-h3-image-to-video",
+        "model": "minimax-h3-image-to-video",
+        "targetModel": "minimax-h3-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "image_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.912,
+        "imageField": "image_url",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Starting Frame Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "last_image_url",
+            "label": "Ending Frame Image (Optional)",
+            "type": "image",
+            "required": false
+          }
+        ],
+        "defaultParams": {
+          "duration": 5,
+          "resolution": "2k",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "breakdown",
+      "name": "Breakdown",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "image",
+      "description": "Split any image into its individual components — AI identifies objects, brands, and items.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "japanese-show",
+      "name": "Japanese Show",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "image",
+      "description": "Turn your photo into a retro 2000s Japanese variety show scene — CRT scanlines and broadcast effects.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "video-bg-remover",
+      "name": "Video Background Remover",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "video",
+      "description": "Upload any video and instantly strip the background — clean, frame-perfect results.",
+      "status": "endpoint",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/video-background-remover",
+        "model": "video-background-remover",
+        "targetModel": "video-background-remover",
+        "requiredFields": [
+          "video_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.05,
+        "imageField": null,
+        "requiresPrompt": false,
+        "mediaInputs": [
+          {
+            "key": "video_url",
+            "label": "Source Video",
+            "type": "video",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "background_color": "Transparent",
+          "output_container_and_codec": "webm_vp9",
+          "preserve_audio": true
+        },
+        "hasPromptTemplate": false
+      }
     },
     {
       "id": "yes-kiss",
       "name": "Yes Kiss",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Your photo gets kissed in a surreal, meme-style moment.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "latex",
       "name": "Latex",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Transform your photo into a sleek black latex style.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "j-magazine",
       "name": "J-Magazine",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Turn your photo into a Japanese magazine cover.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "roller-coaster",
       "name": "Roller Coaster",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Put your photo on a thrilling roller coaster ride.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "60s-cafe",
       "name": "60s Cafe",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Turn your photo into a vintage 60s cafe scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "victory-card",
       "name": "Victory Card",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Turn your photo into a poker winning card.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "sand-worm",
       "name": "Sand Worm",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Transform into a sand world character in an epic desert scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "skibidi",
       "name": "Skibidi",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Turn your photo into the Skibidi toilet meme.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "j-poster",
       "name": "J-Poster",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Turn your photo into a Japanese style poster.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "mascot",
       "name": "Mascot",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Transform your photo into a football mascot character.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "storm-creature",
       "name": "Storm Creature",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Turn your photo into an epic storm creature scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "burning-sunset",
       "name": "Burning Sunset",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Transform your photo into an epic burning sunset scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "on-fire",
       "name": "On Fire",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Turn your photo into the iconic 'This is Fine' meme scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "comic-book",
       "name": "Comic Book",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Transform your photo into comic book art style.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "cloud-surf",
       "name": "Cloud Surf",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Turn your photo into a dreamy pink cloud surfing scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "mukbang",
       "name": "Mukbang",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Transform your photo into a viral eating show.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "melting-doodle",
       "name": "Melting Doodle",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Turn your photo into mesmerizing melting doodle art.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "giallo-horror",
       "name": "Giallo Horror",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Transform your photo into a giallo horror scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "renaissance",
       "name": "Renaissance",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Turn your photo into a classical gallery painting.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     },
     {
       "id": "rap-god",
       "name": "Rap God",
-      "studioTab": "Trending Templates",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
       "mediaType": "video",
-      "description": "Viral trend: turn your photo into this video",
-      "status": "unmatched",
-      "rebuildAs": {
-        "model": "ai-video-effects",
-        "path": "/api/v1/generate_wan_ai_effects",
+      "description": "Transform your photo into a rap music video clip.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
         "requiredFields": [
           "prompt",
-          "image_url"
-        ],
-        "prompt": ""
+          "images_list"
+        ]
       },
-      "notes": "No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose."
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "angles",
+      "name": "Angles",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Generate new camera angles from a single photo — rotate, tilt, and shift perspective.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "rotation": 0,
+          "tilt": 0,
+          "zoom": 0,
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "similarWorkflow": {
+        "slug": "multi-angle-photo-reshoot-nano-banana-2",
+        "id": "77013608-2c1d-4fa3-865c-c7a667f62c8b",
+        "run": "POST /workflow/77013608-2c1d-4fa3-865c-c7a667f62c8b/api-execute"
+      }
+    },
+    {
+      "id": "whats-next",
+      "name": "What's Next",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Explore what happens next in your scene — AI generates narrative continuations from a single image.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "shots",
+      "name": "Shots",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Transform one photo into unique cinematic shots — different compositions and camera positions.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "zooms",
+      "name": "Zooms",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Create dynamic zoom variations — from macro close-ups to wide-angle perspectives, all from one image.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "zoom": 0,
+          "tilt": 0,
+          "rotation": 0,
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "behind-the-scenes",
+      "name": "Behind the Scenes",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "video",
+      "description": "Turn any photo into a behind-the-scenes film set reveal — cameras, crew, and the magic of filmmaking.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "transitions",
+      "name": "Transitions",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "video",
+      "description": "Create seamless transitions between two images — smooth morphs, wipes, and cinematic scene changes.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "End frame",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "expand-image",
+      "name": "Expand Image",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Expand any image beyond its edges — AI outpainting that seamlessly extends your scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
+    },
+    {
+      "id": "color-grading",
+      "name": "Color Grading",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Apply professional cinematic color grading — film-quality tones, moods, and atmospheres.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": null
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "temperature": 0,
+          "contrast": 0,
+          "saturation": 0,
+          "highlights": 0,
+          "exposure": 0,
+          "sharpness": 0,
+          "grain": 0,
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint."
     }
   ]
 }

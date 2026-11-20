@@ -1,191 +1,131 @@
 #!/usr/bin/env node
-// Builds src/data/muapiStudioAppsMap.json: for each tool on muapi's Studio "Apps"
-// tab, the closest public muapi API endpoint / template workflow, or a suggested
-// way to rebuild it. Validates every reference against muapi's live public spec.
+// Builds src/data/muapiStudioAppsMap.json: what each tool on muapi's Studio "Apps" tab
+// actually calls. The catalog is read from muapi's public Studio JavaScript (the Apps
+// tab is a lazy-loaded chunk holding one config object per app), then every endpoint
+// is validated against muapi's public OpenAPI spec.
 //
 //   node scripts/build-muapi-apps-map.mjs [--cache <dir>] [--out <file>]
 //
-// Spec files are downloaded with curl (honours the agent proxy and any API key it
-// injects) into the cache dir; delete the dir to refresh. No keys are written.
+// Only structure is kept (endpoint, model, inputs, cost). muapi's prompt templates,
+// presets and slider text are deliberately NOT copied: they are muapi's own content.
+// Files are fetched with curl (honours the agent proxy); delete the cache dir to refresh.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > -1 ? process.argv[i + 1] : d; };
 const cache = arg('--cache', join(tmpdir(), 'muapi-cache'));
 const out = arg('--out', join(root, 'src/data/muapiStudioAppsMap.json'));
-const BASE = 'https://api.muapi.ai';
+const API = 'https://api.muapi.ai';
+const SITE = 'https://muapi.ai';
+mkdirSync(join(cache, 'chunks'), { recursive: true });
 
-const SOURCES = {
-  'openapi.json': '/openapi.json',
-  'models.json': '/api/v1/models',
-  'template-workflows.json': '/api/v1/get-template-workflows',
-};
-mkdirSync(cache, { recursive: true });
-for (const [file, path] of Object.entries(SOURCES)) {
+const fetchCached = (url, file) => {
   const dest = join(cache, file);
-  if (!existsSync(dest)) execFileSync('curl', ['-fsS', '-o', dest, BASE + path]);
-}
-const load = (f) => JSON.parse(readFileSync(join(cache, f), 'utf8'));
-const spec = load('openapi.json');
-const models = new Map(load('models.json').models.map((m) => [m.name, m]));
-const workflows = new Map(load('template-workflows.json').map((w) => [w.slug, w]));
-
-// --- App catalog (transcribed from screenshots of muapi.ai/studio?tab=apps) ---------------
-// [name, mediaType, description]
-const TABS = {
-  'Professional': [
-    ['Angles', 'image', 'Generate new camera angles from a single photo'],
-    ["What's Next", 'image', 'Explore what happens next in your scene'],
-    ['Shots', 'image', 'Transform one photo into unique cinematic shots'],
-    ['Zooms', 'image', 'Create dynamic zoom variations'],
-    ['Behind the Scenes', 'video', 'Turn any photo into a behind-the-scenes film set reveal'],
-    ['Transitions', 'video', 'Create seamless transitions between two images'],
-    ['Expand Image', 'image', 'Expand any image beyond its edges'],
-    ['Color Grading', 'image', 'Apply professional cinematic color grading'],
-  ],
-  'Enhance & Style': [
-    ['AI Stylist', 'image', 'AI fitting room: try on outfits, change poses'],
-    ['Relight', 'image', 'Adjust lighting position, color temperature and brightness'],
-    ['Skin Enhancer', 'image', 'Smooth skin and remove blur from portraits'],
-    ['Outfit Swap', 'image', 'Try on any outfit with a single photo'],
-    ['Style Snap', 'image', 'Transform your look with instant style variations'],
-    ['Outfit Vending', 'image', 'Outfit breakdown in an illuminated vending machine'],
-    ['Glitter Sticker', 'image', 'Portrait as a sparkling holographic sticker'],
-    ['Outfit Shot', 'video', 'Transform outfits into a professional AI avatar photoshoot'],
-  ],
-  'Face & Identity': [
-    ['Recast', 'video', 'Character swap for any video'],
-    ['Character Swap', 'image', 'Place a new character into any scene'],
-    ['Face Swap', 'image', 'Instant AI face swap for photos'],
-    ['Commercial Faces', 'image', 'Ad-ready spokesperson imagery'],
-    ['Video Face Swap', 'video', 'Face swapping for any video, frame by frame'],
-    ['Headshot Generator', 'image', 'Studio-quality professional headshots'],
-  ],
-  'Video Editing': [
-    ['ClipCut', 'video', 'Turn one selfie into an instant outfit reel'],
-    ['Urban Cuts', 'video', 'Beat-synced AI outfit videos'],
-    ['Sticker Match Cut', 'video', 'Turn any clip into a sparkling sticker animation'],
-    ['Breakdown', 'video', 'Split any image into its individual components'],
-    ['Japanese Show', 'video', 'Photo into a retro 2000s Japanese variety show scene'],
-    ['Video Background Remover', 'video', 'Strip the background from any video'],
-  ],
-  'Ads & Products': [
-    ['Click to Ad', 'video', 'Character interacts with your product in a video ad'],
-    ['ASMR Add-On', 'video', 'Character whispers about your product in an ASMR video'],
-    ['ASMR Classic', 'video', 'Classic ASMR product video'],
-    ['Poster', 'image', 'Professional marketing poster for your product'],
-    ['Bullet Time Scene', 'video', 'Freeze-frame bullet-time with character and product'],
-    ['Chameleon', 'video', "Character transforms to match your product's brand"],
-    ['ASMR Host', 'video', 'Hosted ASMR product presentation'],
-    ['Packshot', 'video', 'Product showcase with smooth rotation and studio lighting'],
-    ['Macro Scene', 'video', 'Extreme close-up revealing product details'],
-    ['Magic Button', 'video', 'Product appears magically with a burst of light'],
-    ['Truck Ad', 'video', 'Your product on a moving truck through the city'],
-    ['Giant Product', 'video', 'Surreal scene with a building-sized product'],
-    ['Bullet Time White', 'video', 'Bullet-time 360 rotation on a white background'],
-    ['Kick Ad', 'video', 'Character kicks product into frame'],
-    ['Billboard Ad', 'video', 'Your product on a glowing billboard at night'],
-    ['Graffiti Ad', 'image', 'Your product as street-art graffiti'],
-    ['Bullet Time Splash', 'video', 'Bullet-time rotation with liquid splash effects'],
-    ['Fridge Ad', 'video', 'Product revealed inside an opening fridge'],
-    ['Volcano Ad', 'video', 'Product emerging from a volcanic eruption'],
-    ['Macroshot Product', 'image', 'Professional macro photography with shallow depth of field'],
-  ],
-  'Games & Characters': [
-    ['Game Dump', 'image', 'Transform yourself into iconic video game styles'],
-    ['Nano Strike', 'image', 'AI tactical shooter character'],
-    ['Nano Theft', 'image', 'Realistic open-world crime game style'],
-    ['Simlife', 'image', 'Stylized life-simulation character'],
-    ['Plushies', 'image', 'Photo into an adorable plushie-style character'],
-    ['3D Render', 'image', 'Photo into a 3D rendered object'],
-    ['3D Figure', 'image', 'Photo into a detailed 3D collectible figure'],
-    ['Pixel Game', 'image', 'Photo into retro 8-bit / 16-bit pixel game graphics'],
-    ['Brick Cube', 'image', 'Photo into a brick-cube toy'],
-    ['Sketch to Real', 'video', 'Sketch into a realistic video scene'],
-  ],
-  'Trending Templates': [
-    'Yes Kiss', 'Latex', 'J-Magazine', 'Roller Coaster', '60s Cafe', 'Victory Card', 'Sand Worm',
-    'Skibidi', 'J-Poster', 'Mascot', 'Storm Creature', 'Burning Sunset', 'On Fire', 'Comic Book',
-    'Cloud Surf', 'Mukbang', 'Melting Doodle', 'Giallo Horror', 'Renaissance', 'Rap God',
-  ].map((n) => [n, 'video', 'Viral trend: turn your photo into this video']),
+  if (!existsSync(dest)) execFileSync('curl', ['-fsSL', '-o', dest, url]);
+  return readFileSync(dest, 'utf8');
 };
-
-// --- Hand-chosen matches (verified against the spec below) -------------------------------
-// status: endpoint | endpoint-probable | workflow-similar. Everything else is "unmatched".
-const MATCH = {
-  'Video Face Swap': { status: 'endpoint', model: 'ai-video-face-swap' },
-  'Face Swap': { status: 'endpoint', model: 'ai-image-face-swap' },
-  'Skin Enhancer': { status: 'endpoint', model: 'ai-skin-enhancer' },
-  'Video Background Remover': { status: 'endpoint', model: 'video-background-remover' },
-  'AI Stylist': { status: 'endpoint-probable', model: 'portrait-stylist', notes: 'Requires a `name` style value; see the spec.' },
-  'Transitions': { status: 'endpoint-probable', model: 'pixverse-v6-transition' },
-  'Expand Image': { status: 'endpoint-probable', model: 'ai-image-extension' },
-  'Outfit Swap': { status: 'endpoint-probable', model: 'ai-dress-change', workflow: 'virtual-try-on-seedream-flux-kling-o1' },
-  'Pixel Game': { status: 'endpoint-probable', model: 'nano-banana-effects', effectName: '16bit Game Character' },
-  'Recast': { status: 'endpoint-probable', model: 'seedance-2-motion-control', notes: 'Model description: "recast an existing performance video with new performers". Needs a reference video plus character images; see the spec for the optional fields.' },
-  'Angles': { status: 'workflow-similar', workflow: 'multi-angle-photo-reshoot-nano-banana-2' },
-  'Giant Product': { status: 'workflow-similar', workflow: 'giant-product-vfx-ad-nano-banana-2' },
-  'Headshot Generator': { status: 'workflow-similar', workflow: 'professional-fashion-headshots-flux-2-pro' },
-  '3D Figure': { status: 'workflow-similar', workflow: 'ai-action-figure-generator-nano-banana-2', effectName: '3D Figurine', effectModel: 'nano-banana-effects' },
-  'Outfit Shot': { status: 'workflow-similar', workflow: 'fashion-video-generator-qwen-image-seedance-v1-5' },
-  'Click to Ad': { status: 'workflow-similar', workflow: 'ugc-ads-workflow-seedance-2-omni' },
-  'Packshot': { status: 'workflow-similar', workflow: 'product-360-video-flux-2-flex-wan2-5' },
-  'Bullet Time White': { status: 'workflow-similar', workflow: 'product-360-video-flux-2-flex-wan2-5', notes: 'Only the 360 rotation is similar; not bullet-time.' },
-  'Poster': { status: 'workflow-similar', workflow: 'product-advertisement-wan2-6-image-edit' },
-};
-// Rebuild routes for unmatched apps (generic models that take a prompt + image).
-const REBUILD = { image: 'flux-kontext-effects', video: 'ai-video-effects' };
-
-const slug = (s) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const errors = new Set();
-// The model list can disagree with the spec (e.g. ai-video-effects is served at
-// /api/v1/generate_wan_ai_effects), so the spec is the source of truth: use the model's
-// endpoint if it is a spec path, else the POST path whose summary names the model.
-const pathOf = (model) => {
-  const m = models.get(model);
-  if (!m) { errors.add(`unknown model: ${model}`); return null; }
-  let p = spec.paths[m.endpoint] ? m.endpoint : null;
-  p ??= Object.keys(spec.paths).find((k) => spec.paths[k].post?.summary?.split(' ')[0] === model) ?? null;
-  if (!p) { errors.add(`endpoint not in openapi: ${m.endpoint} (${model})`); return null; }
-  return { ...m, endpoint: p };
-};
-const enumOf = (schemaName) => {
-  const p = spec.components.schemas[schemaName]?.properties?.name;
-  const ref = p?.$ref || p?.anyOf?.find((x) => x.$ref)?.$ref;
-  return p?.enum || (ref && spec.components.schemas[ref.split('/').pop()]?.enum) || [];
-};
-const EFFECT_ENUM = { 'nano-banana-effects': enumOf('NanoBananaEffectsRequest') };
 
-const wf = (s) => {
-  const w = workflows.get(s);
-  if (!w) { errors.add(`workflow not in template list: ${s}`); return null; }
-  return { slug: w.slug, id: w.id, name: w.name, run: `POST /workflow/${w.id}/api-execute` };
+// --- muapi public API data -----------------------------------------------------------------
+const spec = JSON.parse(fetchCached(`${API}/openapi.json`, 'openapi.json'));
+const models = new Map(JSON.parse(fetchCached(`${API}/api/v1/models`, 'models.json')).models.map((m) => [m.name, m]));
+const workflows = new Map(JSON.parse(fetchCached(`${API}/api/v1/get-template-workflows`, 'template-workflows.json')).map((w) => [w.slug, w]));
+
+// --- Studio catalog from the site's JavaScript ---------------------------------------------
+function loadStudioCatalog() {
+  const html = fetchCached(`${SITE}/studio?tab=apps`, 'studio.html');
+  const chunkUrls = [...new Set(html.match(/\/_next\/static\/chunks\/[^"']+\.js/g) ?? [])];
+  const runtimeUrl = chunkUrls.find((u) => /\/webpack-/.test(u));
+  if (!runtimeUrl) throw new Error('webpack runtime chunk not found on /studio');
+  const runtime = fetchCached(SITE + runtimeUrl, 'chunks/runtime.js');
+  const direct = Object.fromEntries([...runtime.matchAll(/(\d+)===e\?"(static\/chunks\/[^"]+\.js)"/g)].map((m) => [m[1], m[2]]));
+  const hashed = Object.fromEntries([...runtime.matchAll(/(\d+):"([a-f0-9]{16})"/g)].map((m) => [m[1], m[2]]));
+  const chunkPath = (id) => direct[id] ?? (hashed[id] ? `static/chunks/${id}.${hashed[id]}.js` : null);
+
+  // The Studio shell lazy-loads the Apps tab ("Loading Studio apps…"); find its chunk ids.
+  let ids = null;
+  for (const u of chunkUrls) {
+    const src = fetchCached(SITE + u, `chunks/${u.split('/').pop()}`);
+    const at = src.indexOf('Loading Studio apps');
+    if (at < 0) continue;
+    const before = src.slice(Math.max(0, at - 600), at);
+    const all = [...before.matchAll(/Promise\.all\(\[([^\]]+)\]\)/g)].pop();
+    ids = all ? [...all[1].matchAll(/\.e\((\d+)\)/g)].map((m) => m[1]) : null;
+    if (ids) break;
+  }
+  if (!ids) throw new Error('could not locate the Studio apps chunk ids');
+
+  for (const id of ids) {
+    const p = chunkPath(id);
+    if (!p) continue;
+    const src = fetchCached(`${SITE}/_next/${p}`, `chunks/${id}.js`);
+    const start = src.indexOf("JSON.parse('");
+    if (start < 0 || !src.includes('"slug":"')) continue;
+    let i = start + 12, j;
+    for (;;) { j = src.indexOf("')", i); if (src[j - 1] !== '\\') break; i = j + 1; }
+    // The literal is a JS string with JS escapes (\xd7, \uD83C...), so evaluate it as JS.
+    const text = vm.runInNewContext(src.slice(start + 11, j + 1));
+    return JSON.parse(text);
+  }
+  throw new Error('Studio apps catalog literal not found in chunks ' + ids.join(','));
+}
+const catalog = loadStudioCatalog();
+
+// --- Hand-picked related template workflows (secondary info only) ---------------------------
+const SIMILAR_WORKFLOW = {
+  angles: 'multi-angle-photo-reshoot-nano-banana-2',
+  'giant-product': 'giant-product-vfx-ad-nano-banana-2',
+  'headshot-generator': 'professional-fashion-headshots-flux-2-pro',
+  '3d-figure': 'ai-action-figure-generator-nano-banana-2',
+  'outfit-shot': 'fashion-video-generator-qwen-image-seedance-v1-5',
+  'click-to-ad': 'ugc-ads-workflow-seedance-2-omni',
+  packshot: 'product-360-video-flux-2-flex-wan2-5',
+  'bullet-time-white': 'product-360-video-flux-2-flex-wan2-5',
+  poster: 'product-advertisement-wan2-6-image-edit',
 };
+
+// Endpoints that are dedicated tools (the app is a thin wrapper); all others are generic
+// models driven by a muapi-written prompt template.
+const DEDICATED = new Set(['ai-skin-enhancer', 'ai-image-face-swap', 'ai-video-face-swap', 'video-background-remover']);
 
 const apps = [];
-for (const [tab, list] of Object.entries(TABS)) {
-  for (const [name, mediaType, description] of list) {
-    const m = MATCH[name];
-    const entry = { id: slug(name), name, studioTab: tab, mediaType, description, status: m?.status ?? 'unmatched' };
-    if (m?.model) {
-      const mm = pathOf(m.model);
-      if (mm) entry.endpoint = { method: 'POST', path: mm.endpoint, model: mm.name, requiredFields: mm.required_fields };
+for (const [categoryKey, list] of Object.entries(catalog)) {
+  for (const a of list) {
+    const model = a.endpoint.replace(/^\//, '');
+    const path = `/api/v1/${model}`;
+    if (!spec.paths[path]) errors.add(`endpoint not in openapi: ${path} (${a.slug})`);
+    const m = models.get(model);
+    const entry = {
+      id: a.slug,
+      name: a.name,
+      studioTab: a.categoryName,
+      studioCategoryKey: categoryKey,
+      mediaType: a.defaultOutputMode,
+      description: a.desc,
+      status: DEDICATED.has(model) ? 'endpoint' : 'preset',
+      endpoint: { method: 'POST', path, model, targetModel: a.targetModel, requiredFields: m?.required_fields ?? null },
+      studio: {
+        defaultCostUsd: a.defaultCost,
+        imageField: a.imageField,
+        requiresPrompt: a.requiresPrompt,
+        mediaInputs: (a.mediaInputs ?? []).map(({ key, label, type, required }) => ({ key, label, type, required })),
+        defaultParams: a.defaultParams,
+        hasPromptTemplate: Boolean(a.promptTemplate),
+      },
+    };
+    if (entry.status === 'preset') {
+      entry.notes = "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.";
     }
-    if (m?.effectName) {
-      const model = m.effectModel || m.model;
-      if (!EFFECT_ENUM[model]?.includes(m.effectName)) errors.add(`effect name not in spec: ${model} / ${m.effectName}`);
-      entry.effect = { model, name: m.effectName };
-    }
-    if (m?.workflow) entry.workflow = wf(m.workflow);
-    if (m?.notes) entry.notes = m.notes;
-    if (entry.status === 'unmatched') {
-      const mm = pathOf(REBUILD[mediaType]);
-      entry.rebuildAs = { model: mm?.name, path: mm?.endpoint, requiredFields: mm?.required_fields, prompt: '' };
-      entry.notes = 'No public endpoint or workflow found. Rebuild as a prompt template on the generic route; prompt is left empty on purpose.';
+    const wfSlug = SIMILAR_WORKFLOW[a.slug];
+    if (wfSlug) {
+      const w = workflows.get(wfSlug);
+      if (!w) errors.add(`workflow not in template list: ${wfSlug}`);
+      else entry.similarWorkflow = { slug: w.slug, id: w.id, run: `POST /workflow/${w.id}/api-execute` };
     }
     apps.push(entry);
   }
@@ -193,34 +133,35 @@ for (const [tab, list] of Object.entries(TABS)) {
 
 if (errors.size) { console.error('VALIDATION FAILED:\n- ' + [...errors].join('\n- ')); process.exit(1); }
 
-const counts = apps.reduce((a, x) => ((a[x.status] = (a[x.status] || 0) + 1), a), {});
+const byStatus = apps.reduce((a, x) => ((a[x.status] = (a[x.status] || 0) + 1), a), {});
+const byEndpoint = apps.reduce((a, x) => ((a[x.endpoint.path] = (a[x.endpoint.path] || 0) + 1), a), {});
 const result = {
   meta: {
-    description: "Maps muapi Studio 'Apps' tab tools to the closest public muapi API endpoint or template workflow.",
-    source: 'https://muapi.ai/studio?tab=apps (transcribed from screenshots); spec: https://api.muapi.ai/openapi.json',
-    apiBase: BASE,
+    description: "What each tool on muapi's Studio 'Apps' tab calls, read from the Studio's public JavaScript and validated against the OpenAPI spec.",
+    source: `${SITE}/studio?tab=apps (lazy-loaded Apps chunk); spec: ${API}/openapi.json`,
+    apiBase: API,
     auth: 'x-api-key header',
     generatedBy: 'scripts/build-muapi-apps-map.mjs',
+    statuses: {
+      endpoint: 'A dedicated muapi tool endpoint; call it directly.',
+      preset: "A generic muapi model driven by a muapi-written prompt template (not copied here). The endpoint is public and callable; you supply the prompt.",
+    },
     checked: [
-      'Public OpenAPI spec, /api/v1/models, /api/v1/get-template-workflows, /app/get_studio_models, /app/get_homepage_models',
-      '/workflow/get-published-workflows, /workflow/get-workflow-defs, /agents/templates/agents, /app/interests',
-      'Studio page HTML and its 29 public JS chunks (no app names found; the app list is loaded elsewhere)',
-      'Keyword search of names and descriptions across all of the above',
+      'Studio page and its lazy-loaded Apps chunk (the full 78-app catalog)',
+      'Public OpenAPI spec, /api/v1/models, /api/v1/get-template-workflows',
+      'Docs pages incl. introduction, specialized-apps, white-label, embedding, cli, mcp, workflows, agents, design-agent-api',
     ],
-    notChecked: [
-      'The logged-in dashboard pages (Apps, Workflow, Agents, Integrations)',
-      'The requests the Studio makes when an app is opened or run',
-      "The user's own (non-public) workflows",
-    ],
+    notChecked: ['The logged-in dashboard pages', 'Live network calls from a signed-in Studio session (cost, extra inputs)'],
     caveats: [
-      'The Studio apps themselves are closed source and are not published as named API endpoints.',
-      'The app list is partial: it was transcribed from screenshots, and some cards (e.g. part of Ads & Products) were not visible.',
-      'endpoint-probable and workflow-similar are name/purpose based guesses, not confirmed identical behaviour.',
+      "Prompt templates, presets and sliders are muapi's content; they were read for analysis but not stored. Check muapi's terms before reusing them.",
+      'Some presets/sliders add inputs beyond mediaInputs; verify by running an app.',
+      'similarWorkflow is a name-based guess, not the app itself.',
     ],
-    counts: { total: apps.length, ...counts },
+    counts: { total: apps.length, ...byStatus },
+    endpoints: byEndpoint,
   },
   apps,
 };
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, JSON.stringify(result, null, 2) + '\n');
-console.log(`wrote ${out}\n`, result.meta.counts);
+console.log(`wrote ${out}\n`, result.meta.counts, result.meta.endpoints);
