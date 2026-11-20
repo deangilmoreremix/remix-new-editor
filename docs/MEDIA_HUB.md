@@ -59,6 +59,7 @@ The host bridges Electron-only calls to the browser instead of stubbing them:
 without a token (or `VIDBEE_ALLOW_OPEN=1`). `apps/desktop/host/docker/` has a Dockerfile and compose file; **they have not been built or run**.
 
 ## Not ported
+**PDF export** of chat responses (printing a document to PDF needs a real browser engine on the server, which the host does not ship): choosing it fails with a clear message; export Markdown instead, or use the browser's Print, then Save as PDF.
 Share-image / diagram capture (`main/lib/share-capture-window.ts`) needs Electron's offscreen rendering and is not available. Not exercised here (no internet in the sandbox): real speech models, a real AI provider,
 real video sites, Docker.
 

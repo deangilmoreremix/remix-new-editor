@@ -14,6 +14,7 @@ import { realpathSync } from 'node:fs'
 import { settingsManager } from '../src/main/settings'
 import { createTokenCheck } from './access-token.mjs'
 import { resolveExportFile } from './export-path.mjs'
+import { reviveBinary } from './ipc-binary.mjs'
 import { isAllowedMedia, mediaRoots } from './media-access.mjs'
 // Upstream's real main process: registers every IPC service, wires download/kernel/transcript events, boots the task queue.
 import '../src/main/index'
@@ -40,7 +41,7 @@ const MIME: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js
 const readJson = async (req: http.IncomingMessage): Promise<{ channel?: string; args?: unknown[] }> => {
   const chunks: Buffer[] = []
   for await (const chunk of req) chunks.push(chunk as Buffer)
-  try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}') } catch { return {} }
+  try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}', reviveBinary) } catch { return {} }
 }
 
 const sse = (req: http.IncomingMessage, res: http.ServerResponse) => {

@@ -64,8 +64,14 @@ export const __invoke = async (channel, args, sender) => {
 export const __handlers = handlers;
 
 const tolerant = (target) => new Proxy(target, { get: (t, p) => (p in t ? t[p] : typeof p === 'symbol' || p === 'then' ? undefined : () => undefined) });
+// Printing to PDF needs a real browser engine on the server, which this host does not ship. Fail with a clear message instead of
+// returning nothing (which upstream then tries to write to a file).
+const printToPDF = async () => {
+  throw new Error('PDF export is not available in the web edition. Export Markdown instead, or use your browser\'s Print, then Save as PDF.');
+};
 const windowContents = tolerant({
   id: 1,
+  printToPDF,
   send: (channel, ...args) => hub.emit(channel, args),
   isDestroyed: () => false,
   setWindowOpenHandler: () => {},

@@ -29,8 +29,14 @@
 
   const script = document.currentScript;
   const base = new URL('.', script ? script.src : location.href).href;
+  // binary-replacer-start
+  // JSON cannot carry binary: send ArrayBuffers and typed arrays as base64 (host/ipc-binary.mjs turns them back into bytes).
+  const toBase64 = (bytes) => { let text = ''; for (let i = 0; i < bytes.length; i += 0x8000) text += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(text); };
+  const binaryReplacer = (_key, value) => value instanceof ArrayBuffer ? { __vidbeeBinary: toBase64(new Uint8Array(value)) }
+    : ArrayBuffer.isView(value) ? { __vidbeeBinary: toBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)) } : value;
+  // binary-replacer-end
   const post = (path, body) =>
-    fetch(`${base}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), credentials: 'same-origin' });
+    fetch(`${base}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body, binaryReplacer), credentials: 'same-origin' });
 
 
   // ── What Electron did natively, done by the browser (server side: host/electron-stub.mjs, host/server.ts) ──
