@@ -253,6 +253,14 @@ describe('notifications bell realtime: synchronous owner id', () => {
     expect(bell._count()).toBe(4);
     bell.destroy();
   });
+  it('a failing channel setup is retried at most once per cooldown, not on every identity tick', async () => {
+    const getRealtime = vi.fn(async () => null);      // e.g. the token endpoint keeps failing
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime, getCurrentUserId: () => 'user_1', identityCheckMs: 10, reconnectCooldownMs: 200 });
+    await wait(450);
+    expect(getRealtime.mock.calls.length).toBeLessThan(10);   // about 45 ticks happened; without the cooldown every tick would call it
+    expect(getRealtime.mock.calls.length).toBeGreaterThan(1); // but it is still retried
+    bell.destroy();
+  });
   it('the badge is also cleared when the owner changes during the asynchronous lookup', async () => {
     const rt = fakeRealtime(); let cur = 'user_1'; let slow = false; let release; const gate = new Promise((r) => { release = r; });
     const getRealtime = vi.fn(async () => { if (slow) await gate; return rt.getRealtime(); });
