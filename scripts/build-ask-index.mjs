@@ -90,12 +90,20 @@ const LABELS = {
 const kbDir = path.join(ROOT, 'src/data/askKb');
 const kbFiles = fs.existsSync(kbDir) ? fs.readdirSync(kbDir).filter((f) => f.endsWith('.json')).sort() : [];
 const studios = [];
+const kbByRoute = {};
 for (const f of kbFiles) {
   if (f.startsWith('_')) continue;
   const kb = JSON.parse(fs.readFileSync(path.join(kbDir, f), 'utf8'));
   if (!kb.id || !kb.name) throw new Error(`${f}: missing id/name`);
   studios.push(kb);
+  kbByRoute[f.slice(0, -5)] = kb;
 }
+
+// Public feature guides (/studios/<slug>) are built from the same files: link every studio
+// chunk to its guide, and every feature to its own section of the guide.
+const { buildGuides } = await imp('src/data/studioGuides.core.js');
+const guideByKb = new Map();
+for (const g of buildGuides(kbByRoute, {})) guideByKb.set(kbByRoute[g.route], g);
 
 const { STUDIO_INTENTS = {}, TRACK_INTENTS = {} } = fs.existsSync(path.join(ROOT, 'src/data/askIntents.js')) ? await imp('src/data/askIntents.js') : {};
 const { STUDIO_ACADEMY = {}, TRACK_TITLES = {}, academyTrackUrl, academyLessonUrl } = await imp('src/data/askAcademyMap.js');
@@ -104,12 +112,26 @@ const academyUrl = (track, lesson) => (lesson ? academyLessonUrl(track, lesson) 
 
 for (const kb of studios) {
   const url = kb.route || `#/${kb.id}`;
+  const guide = guideByKb.get(kb);
+  const guideUrl = guide ? `/studios/${guide.slug}` : undefined;
   for (const [group, fields] of GROUPS) {
     const body = fields.filter((f) => !isEmpty(kb[f])).map((f) => `${LABELS[f]}:\n${render(kb[f])}`).join('\n');
     if (!body) continue;
-    add({ id: `studio:${kb.id}:${slug(group)}`, kind: 'studio', studioId: kb.id, title: `${kb.name} — ${group}`, url, text: `${kb.name} (${url}). ${group}.\n${body}` });
+    add({ id: `studio:${kb.id}:${slug(group)}`, kind: 'studio', studioId: kb.id, title: `${kb.name} — ${group}`, url, guideUrl, text: `${kb.name} (${url}). ${group}.\n${body}` });
   }
-  if (!isEmpty(kb.glossary)) add({ id: `studio:${kb.id}:glossary`, kind: 'studio', studioId: kb.id, title: `${kb.name} — Glossary`, url, text: `Glossary: ${Object.entries(kb.glossary).map(([k, v]) => `${k}: ${v}`).join(' | ')}` });
+  // One chunk per feature, so a question about one feature retrieves exactly that feature
+  // and links to its section (with screenshot) on the guide page.
+  for (const f of guide ? guide.features : []) {
+    const text = [
+      `${kb.name} feature: ${f.name}.`,
+      f.definition && `What it is: ${f.definition}`,
+      f.whyToUse && `Why use it: ${f.whyToUse}`,
+      f.inputRequired && `What you need: ${f.inputRequired}`,
+      f.restrictions && `Limits and rules: ${f.restrictions}`,
+    ].filter(Boolean).join('\n');
+    add({ id: `studio:${kb.id}:feature:${f.id}`, kind: 'studio', studioId: kb.id, title: `${kb.name} — ${f.name}`, url, guideUrl: `${guideUrl}#feature-${f.id}`, text });
+  }
+  if (!isEmpty(kb.glossary)) add({ id: `studio:${kb.id}:glossary`, kind: 'studio', studioId: kb.id, title: `${kb.name} — Glossary`, url, guideUrl, text: `Glossary: ${Object.entries(kb.glossary).map(([k, v]) => `${k}: ${v}`).join(' | ')}` });
   const intents = STUDIO_INTENTS[kb.id] || [];
   if (intents.length) add({ id: `studio:${kb.id}:ask`, kind: 'studio', studioId: kb.id, title: `${kb.name} — What you can ask or do here`, url, phrases: intents, text: `${kb.name} (${url}). People use this when they want to: ${intents.join('; ')}. ${kb.shortDescription || kb.description || ''}` });
   const ac = STUDIO_ACADEMY[kb.id];

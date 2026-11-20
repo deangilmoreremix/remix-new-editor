@@ -2,6 +2,10 @@
 import { getStudioLabel, getNavItemForRoute } from '../../lib/studioRoutes.js';
 import { STUDIO_ACADEMY, TRACK_TITLES } from '../../data/askAcademyMap.js';
 import JOURNEYS from '../../data/askJourneyList.json';
+import GUIDE_INDEX from '../../data/studioGuideIndex.json';
+
+// App routes that have their own studio guide (askKb/<route>.json).
+const GUIDE_ROUTES = new Set(GUIDE_INDEX.flatMap((c) => c.guides.map((g) => g.route)));
 
 export const ENDPOINT = '/api/ask-smartvideo';
 
@@ -64,7 +68,11 @@ export function parseSSE(buffer) {
 }
 
 // Pages that belong to a studio's guide without being a side-menu item or having the studio's own id.
-const GUIDE_ALIASES = { 'timeline-classic': 'timeline', openthorn: 'website-builder' };
+const GUIDE_ALIASES = {
+  'timeline-classic': 'timeline', openthorn: 'website-builder',
+  brightbean: 'smart-video-scheduler', 'brand-photo-studio': 'photo-studio',
+  'video-agent-studio': 'video-agent', 'zackd-studio': 'zackd',
+};
 
 /**
  * Which studio guide applies to the page the user is on. The side menu knows most studios, but
@@ -72,10 +80,13 @@ const GUIDE_ALIASES = { 'timeline-classic': 'timeline', openthorn: 'website-buil
  * menu items, so fall back to any studio that has a guide.
  */
 export function studioForRoute(route) {
-  const nav = getNavItemForRoute(route);
-  if (nav) return nav;
   const page = String(route || '').replace(/^#?\/?/, '').split('?')[0];
   const first = page.split('/')[0];
+  // A page with its own guide uses it, even if the side menu files it under another studio.
+  const own = GUIDE_ALIASES[first] || first;
+  if (GUIDE_ROUTES.has(own) && own !== 'apps') return own;
+  const nav = getNavItemForRoute(route);
+  if (nav) return nav;
   const id = GUIDE_ALIASES[first] || first.replace(/-page$/, '');
   return Object.prototype.hasOwnProperty.call(STUDIO_ACADEMY, id) ? id : null;
 }
@@ -123,6 +134,12 @@ export function pickChips(answer, sources) {
     }
     const c = chipFor(s);
     if (!seen.has(c.url)) { seen.add(c.url); chips.push(c); }
+    // The public feature guide (or the exact feature section of it) for this source.
+    if (s.kind === 'studio' && String(s.guideUrl || '').startsWith('/studios/')) {
+      const url = s.guideUrl;
+      const base = url.split('#')[0];
+      if (!seen.has(url) && !seen.has(base)) { seen.add(url); chips.push({ label: url.includes('#feature-') ? 'Feature guide' : 'Studio guide', url, guide: true }); }
+    }
     const g = s.studioId && STUDIO_ACADEMY[s.studioId]?.lessons?.[0];
     if (s.kind === 'studio' && g) {
       const url = '#/academy/track/' + g.track;

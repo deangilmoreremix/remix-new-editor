@@ -56,4 +56,14 @@ export function mountGuidePage(app, slug) {
   const hash = window.location.hash.slice(1);
   if (hash && !hash.startsWith('/')) document.getElementById(hash)?.scrollIntoView();
   else window.scrollTo(0, 0);
+
+  // Ask SmartVideo on the guide pages too, set to this guide's studio (the hub gets general help).
+  // Loaded after the page so it never delays the guide content.
+  import('../../features/ask-smartvideo/AskSmartVideo.js')
+    .then((m) => m.mountAskSmartVideo({
+      navigate: (page) => { window.location.href = `/#/${page}`; },
+      getPage: () => (guide ? guide.route : ''),
+      onGuidePage: true,
+    }))
+    .catch(() => { /* the guide works without the assistant */ });
 }
