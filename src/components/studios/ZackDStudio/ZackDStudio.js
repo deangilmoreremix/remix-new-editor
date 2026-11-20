@@ -357,7 +357,7 @@ export function ZackDStudio() {
           // the generated voice-over speaks the old text: drop it, and a cut that mixed it in, so it has to be regenerated
           if (s.narration) {
             s.narration = null; narrStale = true;
-            if (final?.mixed) { if (final.objectUrl) URL.revokeObjectURL(final.objectUrl); final = null; }
+            if (final?.mixed) { releaseCut(final); final = null; }
           }
           save();
         };
@@ -569,7 +569,7 @@ export function ZackDStudio() {
   function invalidateCuts(slot) {
     if (assembling && (slot === 'clip' || slot === 'keyframe' || slot === 'narration' || slot === 'music')) renderStale = true;
     if (final && (slot === 'clip' || slot === 'keyframe' || ((slot === 'narration' || slot === 'music') && final.mixed))) {
-      if (final.objectUrl) URL.revokeObjectURL(final.objectUrl);
+      releaseCut(final);
       final = null;
     }
   }
@@ -708,7 +708,7 @@ export function ZackDStudio() {
       if (renderStale) {
         fail(new Error('A clip or the narration changed while this was rendering, so the cut is out of date. Render it again.'));
       } else {
-        if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);
+        releaseCut(final);
         final = { objectUrl: URL.createObjectURL(blob), blob, duration, durations, saved: false, hasNarration: !!(mixVoice && narrationUrl), mixed: mixVoice }; // captions are transcribed from the cut's audio
         showToast('Final cut ready', 'success', 2500);
       }
@@ -731,6 +731,12 @@ export function ZackDStudio() {
     busy = false; paint();
   }
 
+  /** Frees the cut's video and its captioned render (both are blob: URLs that would otherwise live as long as the page). */
+  function releaseCut(cut) {
+    if (cut?.objectUrl) URL.revokeObjectURL(cut.objectUrl);
+    if (cut?.captioned?.url) URL.revokeObjectURL(cut.captioned.url);
+  }
+
   // Free: open the Caption Studio on the rendered cut. It transcribes the cut's own sound on this device (so narration is not required),
   // lets the person edit and restyle, and hands back a captioned video as a blob: URL.
   async function openFreeCaptions() {
@@ -743,6 +749,7 @@ export function ZackDStudio() {
         appTheme: 'zackd',
         onComplete: (url) => {
           if (disposed || final !== cut) { showToast('The cut changed while you were captioning, so the captioned video was not attached. Download it from the Caption Studio next time.', 'info', 5000); return; }
+          if (cut.captioned?.url) URL.revokeObjectURL(cut.captioned.url); // the earlier captioned render
           cut.captioned = { url, saved: false };
           showToast('Captions ready', 'success', 2500); paint();
         },
@@ -805,7 +812,7 @@ export function ZackDStudio() {
     window.removeEventListener('zackd:stored-updated', onStoredUpdated);
     abort.current.abort();
     closeDropdown();
-    if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);
+    releaseCut(final);
   };
   return container;
 }
