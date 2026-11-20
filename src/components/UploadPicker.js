@@ -123,9 +123,9 @@ const ACCEPT_VIDEOS = 'video/mp4,video/webm,video/quicktime,video/x-matroska,vid
 const ACCEPT_AUDIO = 'audio/mpeg,audio/wav,audio/aac,audio/ogg,audio/flac,audio/mp4,audio/x-m4a,.mp3,.wav,.aac,.ogg,.oga,.flac,.m4a';
 const ACCEPT_DOCUMENTS = 'application/pdf,application/json,application/zip,application/x-zip-compressed,.pdf,.json,.zip';
 
-// fetchUrlAsFile() builds its Blob without a MIME type, so a downloaded File has
-// an empty `type`. Recover it from the file extension so the URL flow can tell
-// image, video and audio apart (the shared pipeline is left untouched).
+// A URL-imported File may have an empty type or one the server got wrong.
+// Resolve it from the file extension so the URL flow can tell image, video and
+// audio apart before the accepted-type check.
 const EXT_MIME = {
     jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif',
     avif: 'image/avif', svg: 'image/svg+xml', bmp: 'image/bmp',
@@ -134,10 +134,14 @@ const EXT_MIME = {
 };
 
 export function withInferredMime(file) {
-    if (!file || file.type) return file;
+    if (!file) return file;
     const ext = String(file.name || '').split('?')[0].split('.').pop().toLowerCase();
     const type = EXT_MIME[ext];
-    return type ? new File([file], file.name, { type }) : file;
+    // A known media extension wins over a conflicting declared type (an .m4a
+    // served as video/mp4 is still audio); with no usable extension the
+    // declared type from the response header is kept.
+    if (!type || file.type === type) return file;
+    return new File([file], file.name, { type });
 }
 
 // One predicate for the load-from-URL check: images always, video and audio

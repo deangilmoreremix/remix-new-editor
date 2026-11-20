@@ -50,9 +50,26 @@ describe('UploadPicker load-from-URL type check', () => {
     expect(withInferredMime(untyped('mystery.xyz')).type).toBe('');
   });
 
-  it('keeps a type the file already has', () => {
-    const f = new File(['x'], 'a.mp3', { type: 'audio/wav' });
+  it('keeps the file as is when its type already matches the extension', () => {
+    const f = new File(['x'], 'a.mp3', { type: 'audio/mpeg' });
     expect(withInferredMime(f)).toBe(f);
+  });
+
+  it('lets a known media extension win over a conflicting declared type', () => {
+    const f = new File(['x'], 'voice.m4a', { type: 'video/mp4' });
+    expect(withInferredMime(f).type).toBe('audio/mp4');
+  });
+
+  it('keeps the declared type when the extension is unknown or missing', () => {
+    const noExt = new File(['x'], 'voice', { type: 'audio/mpeg' });
+    const odd = new File(['x'], 'voice.bin', { type: 'audio/mpeg' });
+    expect(withInferredMime(noExt)).toBe(noExt);
+    expect(withInferredMime(odd)).toBe(odd);
+  });
+
+  it('accepts an extension-named audio file labelled video/mp4 in an audio-only picker', () => {
+    const f = withInferredMime(new File(['x'], 'voice.m4a', { type: 'video/mp4' }));
+    expect(isAcceptedUrlFile(f, { acceptVideo: false, acceptAudio: true })).toBe(true);
   });
 
   it('accepts an audio URL file when acceptAudio is on, with or without video', () => {
