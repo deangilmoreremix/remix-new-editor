@@ -1,0 +1,378 @@
+{
+  "id": "photo-studio",
+  "name": "Photo Studio",
+  "route": "#/photo-studio",
+  "description": "AI product photography: upload one product photo, pick any of 30 style presets, and get a styled photo for each, using your brand's logo and colours.",
+  "shortDescription": "Turn one product photo into styled shots with 30 brand-aware presets.",
+  "fullDescription": "Photo Studio (#/photo-studio, also #/brand-photo-studio, under Brand in the app menu; Brand DNA's 'Photo Studio' button opens it for that brand) is 'AI product photography with brand-aware styling.' You add a product image with the reference button, optionally pick a brand (its logo and colours are used), write an optional Direction, choose a Resolution (1k, 2k default, or 4k) and select one or more of 30 presets in six categories: General (Studio white, Lifestyle natural, Dark dramatic, Gradient modern, Paper set); Beauty (Marble clean, Water splash, Ingredient flat lay, Soft pastel, Magazine editorial); Fashion (Editorial studio, Urban street, Minimalist void, Golden hour, Monochrome); Food & Beverage (Top-down marble, Rustic wood, Ingredient scatter, Restaurant plated, Bright studio); Home & Living (Scandi living, Warm kitchen, Plant-filled, Gallery white, Cozy evening); Tech & Hardware (White studio iso, Dark techy, In-use lifestyle, Minimalist desk, Blueprint). Each preset shows its aspect ratio (1:1, 4:5 or 16:9) and its style description on hover; 'Select all' selects a whole category ('Clear' undoes it). 'Generate Product Photos' makes one photo per selected preset, two at a time, with Nano Banana 2 Edit using your product (and brand logo) as references, and a prompt that keeps the product's shape, colour and materials and adds the brand palette and imagery style. A Generation Mode toggle switches from 'Brand API' to 'Direct MuAPI', where you choose a 'MuAPI Model (I2I)' and can fill Negative Prompt, Seed, Steps, Guidance Scale, Denoise Strength, CFG Scale, Style, Strength and Prompt Extend. Each result card shows the photo, the style, category, aspect and resolution, with Download, Personalize and 'Animate →' (opens Animate Studio with the photo). Results are saved to your generation history and, when a brand is selected, to that brand's photoshoots.",
+  "bestFor": "Shop owners, marketers and agencies who need many on-brand product photos (white background, lifestyle, editorial and more) from a single product shot.",
+  "whenToUse": [
+    "You have one product photo and want it staged in many settings.",
+    "You want photos that follow a brand's colours and logo.",
+    "You want product photos you can then animate into a video."
+  ],
+  "whenToUseAnother": [
+    "Use Product Shot Studio (#/commercial) for its own product-shot and ad-video flow.",
+    "Use Image Studio (#/image) for free-form image-to-image edits with any model.",
+    "Use Brand Studio (#/brand) to set up the brand (logo, colours) first.",
+    "Use Animate Studio (#/animate) to turn a photo into a video."
+  ],
+  "keyFeatures": [
+    "Product image from upload, URL or Library",
+    "Brand selector (logo and colours) or 'No brand logo'",
+    "Optional Direction text",
+    "Resolution 1k, 2k or 4k",
+    "30 presets in 6 categories with aspect ratio, and 'Select all' per category",
+    "Generation Mode: Brand API or Direct MuAPI with a model picker and advanced settings",
+    "One photo per preset, two at a time",
+    "Results with Download, Personalize and Animate →"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Product image",
+      "explanation": "Click the reference button at the top to add the product photo: 'Upload new', 'From URL' or 'Library'.",
+      "whyToUse": "The product in this photo is what every preset stages.",
+      "inputRequired": "One image.",
+      "restrictions": "Images only (no video). Uploads are limited to 10MB. Without one, Generate shows 'Please upload a product image first'."
+    },
+    {
+      "feature": "Brand selector",
+      "explanation": "A dropdown next to the product button listing your brands, plus 'No brand logo'. It opens on the brand you came from (?brandId=) or the last brand you used.",
+      "whyToUse": "Adds the brand's logo as a second reference and its colours and imagery style to the prompt, and saves the results to that brand's photoshoots.",
+      "inputRequired": "At least one saved brand; the dropdown is hidden if you have none.",
+      "restrictions": "An SVG or ICO logo is left out, since the edit model would reject it."
+    },
+    {
+      "feature": "Direction",
+      "explanation": "'Direction (optional)': describe the look, mood or details ('Describe the look, mood, or specific details...').",
+      "whyToUse": "Adds your own instructions on top of the preset.",
+      "inputRequired": "None.",
+      "restrictions": "In Direct MuAPI mode the Direction is the whole prompt."
+    },
+    {
+      "feature": "Resolution",
+      "explanation": "Choose 1k, 2k (default) or 4k.",
+      "whyToUse": "Higher for print or large banners, lower for quick drafts.",
+      "inputRequired": "None.",
+      "restrictions": "Applies to every photo in the batch."
+    },
+    {
+      "feature": "Photo style presets",
+      "explanation": "30 presets in 6 categories (General, Beauty, Fashion, Food & Beverage, Home & Living, Tech & Hardware). Each button shows the name and aspect ratio, e.g. 'Studio white · 1:1'; hover shows its style description. Click to select (it turns highlighted), click again to deselect.",
+      "whyToUse": "Each selected preset becomes one finished photo.",
+      "inputRequired": "At least one preset, otherwise 'Please select at least one photo style'.",
+      "restrictions": "Aspect ratio is fixed by the preset (1:1, 4:5 or 16:9)."
+    },
+    {
+      "feature": "Select all",
+      "explanation": "Each category has 'Select all', which selects its 5 presets; it then reads 'Clear'.",
+      "whyToUse": "Shoot a whole category at once.",
+      "inputRequired": "None.",
+      "restrictions": "More presets means more photos and more cost."
+    },
+    {
+      "feature": "Generation Mode",
+      "explanation": "The 'Brand API' button switches to 'Direct MuAPI' and back. Direct MuAPI shows 'MuAPI Model (I2I)' with 'Select a model...' and the image editing models that take a prompt.",
+      "whyToUse": "Use a different editing model than the default Nano Banana 2 Edit.",
+      "inputRequired": "A model choice in Direct MuAPI mode.",
+      "restrictions": "If you switch to Direct MuAPI but pick no model, the normal Brand API path is used. In Direct MuAPI the preset only labels the result; the brand logo and preset prompt are not sent."
+    },
+    {
+      "feature": "Advanced MuAPI settings",
+      "explanation": "In Direct MuAPI mode a card shows Negative Prompt, Seed ('-1 for random'), Steps, Guidance Scale, Denoise Strength, CFG Scale, Style ('e.g. photorealistic'), Strength and a Prompt Extend checkbox.",
+      "whyToUse": "Fine control for advanced users.",
+      "inputRequired": "None; empty fields are not sent.",
+      "restrictions": "Whether a model uses each setting depends on the model."
+    },
+    {
+      "feature": "Generate Product Photos",
+      "explanation": "Makes one photo per selected preset, two at a time, under a 'Generating product photos...' overlay. The button reads 'Generating…' meanwhile.",
+      "whyToUse": "Creates the photoshoot.",
+      "inputRequired": "A product image and at least one preset, plus an API key.",
+      "restrictions": "Ends with 'Generated N photos' and, if some failed, 'N photo(s) failed' with a red 'Error generating photo N' card each."
+    },
+    {
+      "feature": "Result cards and Download",
+      "explanation": "Each result shows the photo, '<style> · <category>' and '<aspect> · <resolution>', with a Download link.",
+      "whyToUse": "Review and save each photo.",
+      "inputRequired": "A finished generation.",
+      "restrictions": "Results on the page are cleared when you generate again or leave; they stay in your generation history (and the brand's photoshoots if a brand is selected)."
+    },
+    {
+      "feature": "Personalize",
+      "explanation": "On a result card, 'Personalize' opens the Personalize window for that photo (shown at 1:1).",
+      "whyToUse": "Make a personalized version of the photo.",
+      "inputRequired": "A result photo.",
+      "restrictions": "See the Personalizer guide for what the window offers."
+    },
+    {
+      "feature": "Animate",
+      "explanation": "On a result card, 'Animate →' opens Animate Studio with the photo loaded.",
+      "whyToUse": "Turn the product photo into a short video.",
+      "inputRequired": "A result photo.",
+      "restrictions": "Leaves Photo Studio; the page's results are not kept on the page."
+    }
+  ],
+  "howToUse": "1. Open Photo Studio (#/photo-studio, or from Brand DNA). 2. Click the reference button and add your product photo. 3. Pick the brand in the dropdown (or 'No brand logo'). 4. Optionally write a Direction and change Resolution. 5. Click the presets you want, or 'Select all' for a category. 6. Click 'Generate Product Photos'. 7. Download, Personalize or 'Animate →' each result.",
+  "howToSteps": [
+    "Open #/photo-studio.",
+    "Add the product image.",
+    "Choose the brand.",
+    "Select presets.",
+    "Click Generate Product Photos.",
+    "Download or animate the results."
+  ],
+  "gettingStarted": [
+    "Use a clear, well-lit product photo with the whole product visible.",
+    "Start with two or three presets, such as 'Studio white · 1:1' and 'Lifestyle natural · 4:5'.",
+    "Set up your brand in Brand Studio first so its logo and colours are used."
+  ],
+  "inputs": [
+    "Product image",
+    "Brand",
+    "Direction",
+    "Resolution",
+    "Presets",
+    "Generation Mode",
+    "MuAPI model",
+    "Advanced MuAPI settings"
+  ],
+  "requiredInputs": [
+    "Product image",
+    "At least one preset"
+  ],
+  "optionalInputs": [
+    "Brand",
+    "Direction",
+    "Resolution",
+    "Generation Mode and MuAPI model",
+    "Negative Prompt, Seed, Steps, Guidance Scale, Denoise Strength, CFG Scale, Style, Strength, Prompt Extend"
+  ],
+  "inputDetails": [
+    {
+      "name": "Product image",
+      "description": "The photo of your product.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "Images only, up to 10MB."
+    },
+    {
+      "name": "Brand",
+      "description": "Which saved brand's logo and colours to use.",
+      "required": false,
+      "whenToUse": "When the photos should match a brand.",
+      "restrictions": "Only shown if you have a brand."
+    },
+    {
+      "name": "Direction",
+      "description": "Extra instructions.",
+      "required": false,
+      "whenToUse": "To add mood or details.",
+      "restrictions": "No length limit in the code."
+    },
+    {
+      "name": "Presets",
+      "description": "The styles to shoot, each with a fixed aspect ratio.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "One photo per preset."
+    }
+  ],
+  "generationModes": [
+    "Brand API (default)",
+    "Direct MuAPI"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Brand API",
+      "description": "Nano Banana 2 Edit with the product (and brand logo) as references and a prompt built from the preset, brand palette, imagery style and your Direction; output PNG at the preset's aspect.",
+      "useCase": "Normal use: on-brand product photos."
+    },
+    {
+      "mode": "Direct MuAPI",
+      "description": "The image editing model you pick, sent the product image, your Direction as the prompt and any advanced settings.",
+      "useCase": "Trying a different model or fine-tuning settings."
+    }
+  ],
+  "modelCapabilities": "Brand API uses Nano Banana 2 Edit (nano-banana-2-edit), which keeps the product's geometry, colour and materials and accepts the brand logo as an extra reference. Direct MuAPI lists every image-to-image model that takes a list of images and a prompt.",
+  "outputs": [
+    "One PNG photo per preset",
+    "Entries in your generation history (Library)",
+    "Photoshoots saved to the selected brand"
+  ],
+  "limitations": [
+    "Needs an API key and credits.",
+    "Results on the page are not kept when you leave or generate again.",
+    "Aspect ratio is fixed per preset.",
+    "Direct MuAPI ignores the preset prompt and brand logo.",
+    "Two photos are made at a time, so large batches take longer."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Page results are temporary",
+      "impact": "Leaving the page clears the cards.",
+      "workaround": "Download them, or find them in Library / the brand's photoshoots."
+    },
+    {
+      "limitation": "Fixed aspect per preset",
+      "impact": "You cannot make 'Studio white' at 16:9.",
+      "workaround": "Pick a preset with the ratio you need."
+    }
+  ],
+  "troubleshooting": [
+    "'Please upload a product image first': add the product photo.",
+    "'Please select at least one photo style': click at least one preset.",
+    "'N photo(s) failed': read the red error card for each and try those presets again.",
+    "The brand dropdown is missing: you have no saved brand yet; create one in Brand Studio."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Logo does not appear to be used",
+      "steps": [
+        "Check the brand dropdown is set to your brand.",
+        "An SVG or ICO logo is skipped; upload a PNG or JPG logo to the brand.",
+        "Logo and colours are only used in Brand API mode."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "The product looks changed",
+      "whyItHappens": "AI editing can alter details.",
+      "howToFix": "Use a sharper product photo, add Direction such as 'keep the label exactly', and try again."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "E-commerce set",
+      "steps": [
+        "Add the product photo.",
+        "Select 'Studio white · 1:1', 'Lifestyle natural · 4:5' and 'Gradient modern · 1:1'.",
+        "Generate Product Photos.",
+        "Download each."
+      ]
+    },
+    {
+      "title": "Photo to video",
+      "steps": [
+        "Generate a 'Golden hour · 16:9' photo.",
+        "Click 'Animate →'.",
+        "Make the video in Animate Studio."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Online store photos",
+      "description": "Clean, consistent product shots.",
+      "steps": [
+        "Add product",
+        "Pick General presets",
+        "Generate"
+      ],
+      "expectedOutput": "Several styled PNG photos of the same product."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How many photos do I get?",
+      "answer": "One per selected preset."
+    },
+    {
+      "question": "Where are my photos saved?",
+      "answer": "In your generation history, and in the selected brand's photoshoots. Use Download to keep a file."
+    },
+    {
+      "question": "Can I change the aspect ratio?",
+      "answer": "Not directly; each preset has its own (shown on the button)."
+    },
+    {
+      "question": "What does Direct MuAPI do?",
+      "answer": "Lets you pick another image editing model and set advanced options. Your Direction becomes the prompt; the preset prompt and logo are not used."
+    }
+  ],
+  "glossary": {
+    "Preset": "A ready-made photo style with its own description and aspect ratio.",
+    "Brand API": "The default mode using Nano Banana 2 Edit with brand styling.",
+    "Direct MuAPI": "Mode where you choose the model yourself."
+  },
+  "tips": [
+    "Hover a preset to read exactly what it stages.",
+    "Use 'Select all' on one category to compare looks.",
+    "Write Direction for details the preset does not cover."
+  ],
+  "bestPractices": [
+    "Use a sharp, evenly lit product photo.",
+    "Set up the brand with a PNG/JPG logo and colours first.",
+    "Start small, then scale to more presets."
+  ],
+  "relatedStudios": [
+    "brand",
+    "commercial",
+    "image",
+    "animate",
+    "personalizer",
+    "library"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "brand",
+      "relationship": "Brand setup",
+      "whenToMove": "Before shooting, to save logo and colours.",
+      "why": "Photo Studio reads the brand list."
+    },
+    {
+      "studio": "commercial",
+      "relationship": "Product shots and ad videos",
+      "whenToMove": "When you want its product-shot or ad-video flow.",
+      "why": "A different product workflow."
+    },
+    {
+      "studio": "animate",
+      "relationship": "Photo to video",
+      "whenToMove": "After you have a photo you like.",
+      "why": "'Animate →' sends the photo there."
+    },
+    {
+      "studio": "image",
+      "relationship": "Free-form edits",
+      "whenToMove": "When no preset fits.",
+      "why": "Any model and prompt."
+    },
+    {
+      "studio": "personalizer",
+      "relationship": "Personalized versions",
+      "whenToMove": "After clicking Personalize.",
+      "why": "Personalization options."
+    },
+    {
+      "studio": "library",
+      "relationship": "Find past results",
+      "whenToMove": "After leaving the page.",
+      "why": "Generations are saved there."
+    }
+  ],
+  "notConfirmed": [
+    "Credit cost per photo.",
+    "What exactly the Personalize window offers for a photo (it is shared code in src/features/personalization).",
+    "Which advanced MuAPI fields each model actually uses.",
+    "Whether 4k is supported by every Direct MuAPI model."
+  ],
+  "sourceFiles": [
+    "src/components/PhotoStudioPage.js",
+    "src/lib/photoStudio.js",
+    "src/lib/brandStore.js",
+    "src/components/UploadPicker.js",
+    "src/lib/imageRefs.js",
+    "src/lib/generationHistory.js",
+    "src/lib/router.js",
+    "src/lib/studioRoutes.js",
+    "src/components/BrandDnaEditor.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "verifiedAt": "2026-11-20",
+    "verifiedBy": "Code review (LLM-assisted)",
+    "evidence": "Read PhotoStudioPage.js, photoStudio.js (30 presets, prompt builder, nano-banana-2-edit via imageEdit2), brandStore.js (brand list, last brand, photoshoots), UploadPicker.js (10MB images) and the router. Loaded the page in the dev app."
+  }
+}

@@ -1,0 +1,278 @@
+{
+  "id": "text-to-image",
+  "name": "Text to Image",
+  "route": "#/text-to-image",
+  "description": "Text to Image is an overview page: browse 27 image models and example prompts, then open Image Studio with your pick filled in.",
+  "shortDescription": "Pick an image model or example prompt, then create it in Image Studio.",
+  "fullDescription": "Text to Image (#/text-to-image) is a starting page, not a generator. It has a 'Start Creating Free' banner button, four 'Why Choose Our Text to Image?' highlight cards, an 'Available Models' grid of 27 model cards, five 'Example Prompts' cards with 'Try this →', and a 'Ready to Create?' section with 'Get Started Free' and '🎯 GTM Boost'. There is no prompt box, upload, aspect ratio or Generate button here: every button and card opens Image Studio (#/image). Clicking a model card opens Image Studio with that model selected when Image Studio has a text-to-image model with the same name; clicking an example prompt also puts the prompt text into Image Studio's prompt box. You then set the ratio and click Generate in Image Studio.",
+  "bestFor": "New users who want to see which image models exist and start from a ready-made example prompt before opening Image Studio.",
+  "whenToUse": [
+    "You want to browse image models by name and family before you start.",
+    "You want a ready-made example prompt filled into Image Studio for you.",
+    "You want help writing a marketing-style image prompt with GTM Boost."
+  ],
+  "whenToUseAnother": [
+    "Use Image Studio (#/image) directly when you already know what to write: that is where prompt, model, ratio and Generate are.",
+    "Use Image to Image (#/image-to-image) or Edit Studio (#/edit) when you want to change a photo you already have.",
+    "Use Text to Video (#/text-to-video) or Video Studio (#/video) when you want a moving clip instead of a still image."
+  ],
+  "keyFeatures": [
+    "'Start Creating Free' and 'Get Started Free' buttons that open Image Studio.",
+    "'Why Choose Our Text to Image?' highlight cards (information only).",
+    "'Available Models' grid of 27 model cards; a click opens Image Studio with that model selected when the name matches.",
+    "'Example Prompts' with 'Try this →' that fill Image Studio's prompt box and model.",
+    "'🎯 GTM Boost' prompt helper whose result is sent to Image Studio's prompt box."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Start Creating Free",
+      "explanation": "The 'Start Creating Free' button on the 'Text to Image' banner opens Image Studio (#/image).",
+      "whyToUse": "Quickest way from this page to the actual image generator.",
+      "inputRequired": "None.",
+      "restrictions": "It only opens Image Studio; nothing is generated here."
+    },
+    {
+      "feature": "Why Choose Our Text to Image? cards",
+      "explanation": "Four information cards: 'Lightning Fast', '50+ Models', 'Multiple Ratios' and 'High Resolution' ('Generate images up to 4K resolution'). They are not buttons.",
+      "whyToUse": "A quick summary of what Image Studio offers.",
+      "inputRequired": "None.",
+      "restrictions": "Marketing text: the page itself lists 27 models while the card says '50+ Models'; Image Studio holds 84 text-to-image models. Available ratios and resolutions depend on the model you pick in Image Studio."
+    },
+    {
+      "feature": "Available Models",
+      "explanation": "A grid of 27 model cards ('Choose from 27+ powerful image generation models'), each with a name, a family badge (Flux, Nano, Seedream, Midjourney, OpenAI, Ideogram, Google, SD, Wan, Hunyuan, Kling, Qwen) and a one-line description. Clicking a card opens Image Studio and pre-selects that model if Image Studio has a text-to-image model with the same name.",
+      "whyToUse": "Start Image Studio on a specific model without searching its picker.",
+      "inputRequired": "A click on a card.",
+      "restrictions": "These names have no exact match in Image Studio, so it opens on your last-used (or default Nano Banana) model instead: Bytedance Seedream v3, GPT-4o, Ideogram v3, SDXL, Wan 2.1, Wan 2.5, Wan 2.6, Kling O1, Sora and Veo 3. Check the model button in Image Studio."
+    },
+    {
+      "feature": "Example Prompts",
+      "explanation": "Five example cards, each with a model badge and a 'Try this →' button. Clicking the card or 'Try this →' opens Image Studio with the prompt text in the prompt box and the badge's model selected (when the name matches).",
+      "whyToUse": "Start from a proven prompt and edit it instead of writing from scratch.",
+      "inputRequired": "A click on an example.",
+      "restrictions": "The SDXL example's model name has no match in Image Studio, so only its prompt is carried over. You still click Generate in Image Studio."
+    },
+    {
+      "feature": "Get Started Free",
+      "explanation": "In the 'Ready to Create?' section, 'Get Started Free' opens Image Studio (#/image), the same as 'Start Creating Free'.",
+      "whyToUse": "Open the generator after reading the page.",
+      "inputRequired": "None.",
+      "restrictions": "Nothing is generated on this page."
+    },
+    {
+      "feature": "GTM Boost",
+      "explanation": "The '🎯 GTM Boost' button opens the GTM Boost window ('🎯 GTM Boost · Text to Image'). You write your idea, pick an angle, audience and goal, and click the Boost button to get a conversion-focused prompt. 'Apply' closes the window and opens Image Studio with that prompt already in the prompt box.",
+      "whyToUse": "Turn a rough marketing idea into a ready-to-use prompt before you start.",
+      "inputRequired": "An idea in step 1 (otherwise the window says 'Add your ... idea first.').",
+      "restrictions": "Without an OpenAI key the window shows 'Add your OpenAI key for AI-written results. Until then GTM Boost uses a built-in template.'"
+    }
+  ],
+  "howToUse": "1. Open Text to Image (#/text-to-image). 2. Browse the 'Available Models' grid and click a model, or click an 'Example Prompts' card / 'Try this →'. Or click 'Start Creating Free' / 'Get Started Free' to open Image Studio with no presets. 3. Image Studio opens; check the model button and prompt box. 4. Write or edit the prompt, choose the aspect ratio, and click Generate in Image Studio.",
+  "howToSteps": [
+    "Open #/text-to-image.",
+    "Click a model card, an example prompt, or 'Start Creating Free'.",
+    "In Image Studio, check the selected model and the prompt.",
+    "Set aspect ratio and other options in Image Studio.",
+    "Click Generate in Image Studio."
+  ],
+  "gettingStarted": [
+    "Click the first example ('A futuristic cityscape at sunset...', Flux Dev) to see a filled-in Image Studio.",
+    "Change one or two words in the prompt and click Generate in Image Studio.",
+    "Come back here to try another model card."
+  ],
+  "inputs": [
+    "Model card choice",
+    "Example prompt choice",
+    "GTM Boost idea"
+  ],
+  "requiredInputs": [
+    "None on this page (it only opens Image Studio)."
+  ],
+  "optionalInputs": [
+    "A model card",
+    "An example prompt",
+    "A GTM Boost idea"
+  ],
+  "inputDetails": [
+    {
+      "name": "Model card",
+      "description": "One of 27 named models. Passed to Image Studio, which selects it if the name matches one of its text-to-image models.",
+      "required": false,
+      "whenToUse": "When you want to start on a specific model.",
+      "restrictions": "No match (Image Studio keeps its own model): Bytedance Seedream v3, GPT-4o, Ideogram v3, SDXL, Wan 2.1, Wan 2.5, Wan 2.6, Kling O1, Sora and Veo 3."
+    },
+    {
+      "name": "Example prompt",
+      "description": "One of five ready prompts; the text goes into Image Studio's prompt box.",
+      "required": false,
+      "whenToUse": "When you want a starting prompt.",
+      "restrictions": "You can edit it in Image Studio before generating."
+    },
+    {
+      "name": "GTM Boost idea",
+      "description": "Your rough idea typed into the GTM Boost window; the boosted prompt is sent to Image Studio.",
+      "required": false,
+      "whenToUse": "For marketing or ad images.",
+      "restrictions": "AI-written results need an OpenAI key; otherwise a built-in template is used."
+    }
+  ],
+  "generationModes": [
+    "None on this page (generation happens in Image Studio)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Launcher",
+      "description": "Every control opens Image Studio, optionally with a model and/or prompt filled in.",
+      "useCase": "Pick a starting point, then generate in Image Studio."
+    }
+  ],
+  "modelCapabilities": "The page lists 27 model names: Flux Dev, Flux Schnell, Flux 2 Dev/Flex/Pro, Nano Banana, Nano Banana Pro, Nano Banana 2, Seedream 5.0, Bytedance Seedream v3/v4/v4.5, Midjourney v7, GPT-4o, GPT Image 1.5, Ideogram v3, Google Imagen4, SDXL, Wan 2.1/2.5/2.6, Hunyuan Image 2.1/3.0, Kling O1, Qwen Image, Sora and Veo 3. 17 of these match a model in Image Studio's text-to-image list (84 models); the rest open Image Studio on its usual model.",
+  "outputs": [
+    "No output on this page; it opens Image Studio, optionally with a model and prompt filled in."
+  ],
+  "limitations": [
+    "No prompt box, upload, ratio or Generate button on this page.",
+    "10 of the 27 model cards do not match an Image Studio model, so Image Studio keeps its own model.",
+    "Highlight cards ('50+ Models', 'up to 4K') are general marketing text, not settings."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Some model cards are not pre-selected",
+      "impact": "Image Studio opens on your last-used or default model.",
+      "workaround": "Pick the model again with Image Studio's model button."
+    },
+    {
+      "limitation": "Nothing is generated here",
+      "impact": "Clicking a card does not create an image.",
+      "workaround": "Click Generate in Image Studio after it opens."
+    }
+  ],
+  "troubleshooting": [
+    "Image Studio opened on a different model than the card I clicked: that card's name has no exact match in Image Studio; choose the model with Image Studio's model button.",
+    "The example prompt did not appear: make sure you clicked the card or 'Try this →', not the Get Started button."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Wrong model in Image Studio",
+      "steps": [
+        "Look at the model button in Image Studio.",
+        "Open the picker and search for the model name.",
+        "Select it and generate."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "I clicked a model but nothing was generated",
+      "whyItHappens": "This page only opens Image Studio.",
+      "howToFix": "Type a prompt in Image Studio and click Generate."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Start from an example",
+      "steps": [
+        "Open #/text-to-image.",
+        "Click 'Try this →' on the Flux Dev cityscape example.",
+        "Image Studio opens with the prompt and Flux Dev selected.",
+        "Choose an aspect ratio and click Generate."
+      ]
+    },
+    {
+      "title": "Marketing image with GTM Boost",
+      "steps": [
+        "Click '🎯 GTM Boost'.",
+        "Describe your idea, pick an angle and goal, click the Boost button.",
+        "Click Apply to open Image Studio with the prompt filled in.",
+        "Click Generate in Image Studio."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Exploring models",
+      "description": "See model names and families in one grid, then start Image Studio on one.",
+      "steps": [
+        "Click a model card",
+        "Write a prompt in Image Studio",
+        "Generate"
+      ],
+      "expectedOutput": "Image Studio opened on the chosen model (when the name matches)."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Can I generate directly on this page?",
+      "answer": "No. This page has no prompt box, upload, ratio or Generate button. Every button and card opens Image Studio (#/image), where the actual generation happens."
+    },
+    {
+      "question": "Why does the page say 27 models but a card says 50+?",
+      "answer": "The '50+ Models' card is general marketing text. The page grid shows 27 names; Image Studio itself has 84 text-to-image models."
+    }
+  ],
+  "glossary": {
+    "Prompt": "The text you write to tell the AI what to make.",
+    "Model": "The AI engine that makes the result; each one has its own style and options.",
+    "Prefill": "When this page passes a prompt or model to the studio so it is already filled in when the studio opens.",
+    "GTM Boost": "A helper window that rewrites your idea as a marketing-focused prompt (GTM = go-to-market)."
+  },
+  "tips": [
+    "Use an example prompt as a template and change the subject.",
+    "Check Image Studio's model button after clicking a model card."
+  ],
+  "bestPractices": [
+    "Treat this page as a menu; do your settings and generation in Image Studio."
+  ],
+  "relatedStudios": [
+    "image",
+    "image-to-image",
+    "text-to-video",
+    "edit"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "image",
+      "relationship": "Where Text to Image actually happens",
+      "whenToMove": "As soon as you want to generate.",
+      "why": "Image Studio has the prompt box, model picker, ratios and Generate."
+    },
+    {
+      "studio": "image-to-image",
+      "relationship": "Overview page for editing existing images",
+      "whenToMove": "When you start from a photo instead of words.",
+      "why": "It lists image editing models and opens Edit Studio."
+    },
+    {
+      "studio": "edit",
+      "relationship": "Focused photo tools",
+      "whenToMove": "When you need background removal, face swap or similar on your own photo.",
+      "why": "Edit Studio has dedicated tools for those jobs."
+    },
+    {
+      "studio": "text-to-video",
+      "relationship": "Same idea for video",
+      "whenToMove": "When you want motion.",
+      "why": "It lists video models and opens Video Studio."
+    }
+  ],
+  "notConfirmed": [
+    "Whether the '50+ Models', 'Generate images in seconds' and 'up to 4K' claims hold for every model; these are static marketing texts on the page.",
+    "Credit cost of generating; nothing on this page charges or states prices."
+  ],
+  "sourceFiles": [
+    "src/components/TextToImagePage.js",
+    "src/lib/prefillModel.js",
+    "src/components/ImageStudio.js",
+    "src/lib/models.js",
+    "src/lib/uiIntegration.js",
+    "src/components/modals/GTMPromptModal.jsx",
+    "src/lib/gtmStudioProfiles.js",
+    "src/lib/router.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "verifiedAt": "2026-11-20",
+    "verifiedBy": "Code review (LLM-assisted)",
+    "evidence": "Read TextToImagePage.js and the code it calls: ImageStudio.js prefill handling (prefill_prompt, prefill_model), prefillModel.js, GTMPromptModal.jsx and gtmStudioProfiles.js. Model-name matching checked by loading models.js and running resolvePrefillModel over the page's 27 names."
+  }
+}

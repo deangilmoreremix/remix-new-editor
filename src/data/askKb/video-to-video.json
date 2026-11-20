@@ -1,0 +1,204 @@
+{
+  "id": "video-to-video",
+  "name": "Video to Video",
+  "route": "#/video-to-video",
+  "description": "Video to Video currently shows only a title banner. To transform a video, open Video Studio and attach your clip.",
+  "shortDescription": "Title page only; transform videos in Video Studio's video-to-video mode.",
+  "fullDescription": "Video to Video (#/video-to-video) currently shows only a banner with the title 'Video to Video' and the line 'Transform and enhance your videos with AI-powered tools'. The page has no buttons, upload, prompt or Generate. (Its code builds a 'Transform Your Videos' section with 'Get Started Free', '🎯 GTM Boost' and a video upload button, but never adds it to the page.) To work on a video, open Video Studio (#/video) from the side menu's Video button and attach a video: the studio switches to its video-to-video model list (77 entries; the first is AI Video Watermark Remover), with workflows such as Edit video, Extend uploaded video and Motion transfer.",
+  "bestFor": "Anyone looking for video-to-video; the real tools are in Video Studio.",
+  "whenToUse": [
+    "You arrived here looking for video-to-video and need to know where to go."
+  ],
+  "whenToUseAnother": [
+    "Use Video Studio (#/video) to attach a video and run watermark removal, edit, extend or motion transfer.",
+    "Use Video Tools (#/videotools) for other video utilities.",
+    "Use Upscale Suite (#/upscale) to increase resolution."
+  ],
+  "keyFeatures": [
+    "Title banner only (no controls).",
+    "The side menu's Video button opens Video Studio.",
+    "Video Studio's video upload button switches it to video-to-video models."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Title banner",
+      "explanation": "The page shows a banner titled 'Video to Video' with 'Transform and enhance your videos with AI-powered tools'. Nothing else is shown.",
+      "whyToUse": "Confirms where you are.",
+      "inputRequired": "None.",
+      "restrictions": "There are no buttons, uploads or Generate on this page."
+    },
+    {
+      "feature": "Open Video Studio from the side menu",
+      "explanation": "Click 'Video' in the left side menu to open Video Studio (#/video), where video-to-video actually happens.",
+      "whyToUse": "This page has no link of its own to the tools.",
+      "inputRequired": "None.",
+      "restrictions": "Video Studio opens in text-to-video until you attach a video."
+    },
+    {
+      "feature": "Video-to-video in Video Studio",
+      "explanation": "In Video Studio, the video button (tooltip 'Upload video to remove watermark') attaches a video. The studio then switches to its video-to-video list, whose first model is 'AI Video Watermark Remover'; other workflows include Edit video, Extend uploaded video and Motion transfer.",
+      "whyToUse": "Transform footage you already have.",
+      "inputRequired": "A video file (in Video Studio).",
+      "restrictions": "Video uploads are limited to 50MB (shared upload limits). Some workflows need a prompt or a character image; see the Video Studio guide."
+    }
+  ],
+  "howToUse": "1. Click 'Video' in the left side menu to open Video Studio (#/video). 2. Click the video button (tooltip 'Upload video to remove watermark') and attach your clip. 3. The studio switches to video-to-video models; pick a workflow or model. 4. Add a prompt if the model needs one and click Generate.",
+  "howToSteps": [
+    "Open Video Studio from the side menu.",
+    "Attach your video with the video button.",
+    "Choose a video-to-video model or workflow.",
+    "Add a prompt if required.",
+    "Click Generate in Video Studio."
+  ],
+  "gettingStarted": [
+    "Go to Video Studio and attach a short clip.",
+    "Try the default AI Video Watermark Remover, which needs no prompt."
+  ],
+  "inputs": [
+    "None on this page"
+  ],
+  "requiredInputs": [
+    "None on this page; a video file is needed in Video Studio."
+  ],
+  "optionalInputs": [],
+  "inputDetails": [
+    {
+      "name": "Video file (in Video Studio)",
+      "description": "The clip to transform, attached with Video Studio's video button.",
+      "required": true,
+      "whenToUse": "For every video-to-video workflow.",
+      "restrictions": "Up to 50MB."
+    }
+  ],
+  "generationModes": [
+    "None on this page (video-to-video happens in Video Studio)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Video-to-video (in Video Studio)",
+      "description": "Starts when you attach a video in Video Studio; the first model is AI Video Watermark Remover.",
+      "useCase": "Remove watermarks, edit, extend or re-animate footage."
+    }
+  ],
+  "modelCapabilities": "This page lists no models. Video Studio's video-to-video list has 77 entries (src/lib/models.js v2vModels), starting with AI Video Watermark Remover.",
+  "outputs": [
+    "None on this page."
+  ],
+  "limitations": [
+    "The page shows only a banner; its call-to-action section, GTM Boost and upload button are built in code but not displayed.",
+    "No link to Video Studio on the page itself; use the side menu."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "No controls on the page",
+      "impact": "You cannot start a video-to-video job here.",
+      "workaround": "Open Video Studio from the side menu and attach your video."
+    }
+  ],
+  "troubleshooting": [
+    "The page is empty below the banner: that is the current page design (the rest of the section is not added). Use Video Studio."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Cannot find an upload button",
+      "steps": [
+        "Click 'Video' in the side menu.",
+        "In Video Studio, click the video button next to the prompt.",
+        "Attach your clip."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Nothing to click on Video to Video",
+      "whyItHappens": "The page only adds its banner.",
+      "howToFix": "Use Video Studio's video-to-video mode."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Remove a watermark from a clip",
+      "steps": [
+        "Open Video Studio from the side menu.",
+        "Click the video button and attach the clip.",
+        "Keep 'AI Video Watermark Remover' selected.",
+        "Click Generate."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Finding the video-to-video tools",
+      "description": "Get from this page to the place where video transformations run.",
+      "steps": [
+        "Side menu > Video",
+        "Attach video",
+        "Generate"
+      ],
+      "expectedOutput": "Video Studio in video-to-video mode."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Why is this page empty?",
+      "answer": "It currently shows only its banner. The video-to-video tools are in Video Studio: attach a video there."
+    }
+  ],
+  "glossary": {
+    "Video-to-video": "Making a new or changed video from a video you supply.",
+    "Watermark remover": "A model that removes logos, captions or overlay text from a clip."
+  },
+  "tips": [
+    "Keep clips under 50MB before attaching them in Video Studio."
+  ],
+  "bestPractices": [
+    "Go straight to Video Studio for video-to-video work."
+  ],
+  "relatedStudios": [
+    "video",
+    "videotools",
+    "upscale",
+    "text-to-video"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "video",
+      "relationship": "Where video-to-video actually happens",
+      "whenToMove": "Right away.",
+      "why": "Video Studio has the video upload and the video-to-video models."
+    },
+    {
+      "studio": "videotools",
+      "relationship": "Other video utilities",
+      "whenToMove": "For trimming, converting and similar jobs.",
+      "why": "Video Tools collects those utilities."
+    },
+    {
+      "studio": "upscale",
+      "relationship": "Resolution",
+      "whenToMove": "When the clip needs to be sharper or larger.",
+      "why": "Upscale Suite handles upscaling."
+    },
+    {
+      "studio": "text-to-video",
+      "relationship": "Start from words",
+      "whenToMove": "When you have no footage.",
+      "why": "It lists text-to-video models."
+    }
+  ],
+  "notConfirmed": [
+    "Whether the hidden 'Transform Your Videos' section is meant to be shown; the code builds it but never adds it to the page."
+  ],
+  "sourceFiles": [
+    "src/components/VideoToVideoPage.js",
+    "src/components/VideoStudio.js",
+    "src/lib/models.js",
+    "src/lib/router.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "verifiedAt": "2026-11-20",
+    "verifiedBy": "Code review (LLM-assisted)",
+    "evidence": "Read VideoToVideoPage.js: only the hero is appended to the container; promptWrapper, bar, topRow, ctaSection and videoPickerBtn are created but never appended, so container.querySelector('.gtm-boost-btn') is null and no handler is attached. Confirmed in a browser at #/video-to-video (only the banner renders). VideoStudio.js: video button title and v2vModels[0]."
+  }
+}
