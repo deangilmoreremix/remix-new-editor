@@ -168,7 +168,7 @@ export function BrandStudio() {
     grid.className = 'grid grid-cols-2 sm:grid-cols-3 gap-3';
     state.brands.slice(0, 6).forEach((brand) => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
       // Scraped / model-written text goes in as text, never as markup.
       const name = document.createElement('div');
       name.className = 'text-sm font-bold text-white truncate';

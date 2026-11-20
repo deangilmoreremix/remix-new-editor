@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createNotificationsBell } from '../notificationsBell.js';
 
 const client = (n) => ({ rpc: vi.fn(async () => ({ data: n, error: null })) });
+// a server whose unread count can change, like the real one when a new alert row is inserted
+const live = (n) => { const s = { n }; return { s, rpc: vi.fn(async () => ({ data: s.n, error: null })) }; };
 const tick = () => new Promise((r) => setTimeout(r, 0));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -19,7 +21,7 @@ function fakeRealtime({ status = 'SUBSCRIBED' } = {}) {
   state.getRealtime = vi.fn(async () => (state.userId ? { client: rc, userId: state.userId, token: state.token } : null));
   return state;
 }
-const insert = (rt, row) => rt.handlers.forEach((h) => h({ new: row }));
+const insert = async (rt, row) => { rt.handlers.forEach((h) => h({ new: row })); await tick(); await tick(); };
 const toast = () => document.body.querySelector('[aria-live=polite]');
 const setVisibility = (v) => Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => v });
 
@@ -36,9 +38,11 @@ describe('notifications bell realtime', () => {
   it('an INSERT bumps the badge immediately, fires remix:notifications-changed and toasts while visible', async () => {
     const rt = fakeRealtime(); const changed = vi.fn();
     window.addEventListener('remix:notifications-changed', changed);
-    const bell = createNotificationsBell({ getClient: async () => client(2), isSignedIn: () => true, getRealtime: rt.getRealtime });
+    const srv = live(2);
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime: rt.getRealtime });
     await tick(); await tick();
-    insert(rt, { id: 'n1', type: 'new_lead', title: 'Ann <b>Lee</b>', read_at: null });
+    srv.s.n = 3;                              // the new alert row is now in the server's count
+    await insert(rt, { id: 'n1', type: 'new_lead', title: 'Ann <b>Lee</b>', read_at: null });
     expect(bell._count()).toBe(3);
     expect(bell.element.querySelector('[role=status]').textContent).toBe('3');
     expect(changed).toHaveBeenCalled();
@@ -49,9 +53,11 @@ describe('notifications bell realtime', () => {
   });
   it('a hidden page gets the badge but no toast (push covers it)', async () => {
     const rt = fakeRealtime(); setVisibility('hidden');
-    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime: rt.getRealtime });
+    const srv = live(0);
+    const bell = createNotificationsBell({ getClient: async () => srv, isSignedIn: () => true, getRealtime: rt.getRealtime });
     await tick(); await tick();
-    insert(rt, { id: 'n1', type: 'milestone', title: 'x', read_at: null });
+    srv.s.n = 1;
+    await insert(rt, { id: 'n1', type: 'milestone', title: 'x', read_at: null });
     expect(bell._count()).toBe(1);
     expect(toast()).toBeNull();
     bell.destroy();
@@ -60,7 +66,7 @@ describe('notifications bell realtime', () => {
     const rt = fakeRealtime();
     const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime: rt.getRealtime });
     await tick(); await tick();
-    insert(rt, { id: 'n1', type: 'milestone', title: 'x', read_at: '2026-01-01' });
+    await insert(rt, { id: 'n1', type: 'milestone', title: 'x', read_at: '2026-01-01' });
     expect(bell._count()).toBe(0);
     bell.destroy();
   });
@@ -99,10 +105,35 @@ describe('notifications bell realtime', () => {
     await wait(60);
     expect(rt.removed).toHaveLength(2);
     signedIn = true; await wait(60);
-    insert(rt, { id: 'n9', type: 'new_lead', title: 'x', read_at: null });
+    await insert(rt, { id: 'n9', type: 'new_lead', title: 'x', read_at: null });
     expect(toast()).not.toBeNull();
     bell.destroy(); await tick();
     expect(rt.removed).toHaveLength(3);
     expect(toast()).toBeNull();
+  });
+});
+
+describe('notifications bell realtime: owner changes', () => {
+  it('an alert that arrives after sign-out is dropped, and the old channel is removed', async () => {
+    const rt = fakeRealtime(); let signedIn = true;
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => signedIn, getRealtime: rt.getRealtime });
+    await tick(); await tick();
+    signedIn = false;                        // signed out; the periodic check has not run yet
+    await insert(rt, { id: 'n9', type: 'new_lead', title: 'Previous owner lead', read_at: null });
+    expect(bell._count()).toBe(0);
+    expect(toast()).toBeNull();
+    expect(rt.removed.length).toBeGreaterThan(0);   // the channel itself is removed, not just ignored
+    bell.destroy();
+  });
+  it('an alert for the previous account after a switch is dropped and that channel is removed', async () => {
+    const rt = fakeRealtime();
+    const bell = createNotificationsBell({ getClient: async () => client(0), isSignedIn: () => true, getRealtime: rt.getRealtime });
+    await tick(); await tick();
+    rt.userId = 'user_2';                    // another account signed in; the old channel is still open
+    await insert(rt, { id: 'n8', type: 'new_lead', title: 'Account one lead', read_at: null });
+    expect(bell._count()).toBe(0);
+    expect(toast()).toBeNull();
+    expect(rt.removed.length).toBeGreaterThan(0);
+    bell.destroy();
   });
 });

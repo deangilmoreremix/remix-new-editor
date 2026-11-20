@@ -30,17 +30,17 @@ describe('outreach on landing page designs', () => {
 describe('your own landing page, exactly as you made it', () => {
   it('copies every design in full: nothing added, nothing rewritten, original untouched', async () => {
     const { campaignPageConfig } = await import('../landingPage.js');
-    const { PUCK_TEMPLATES } = await import('../../landingPages/puck/designs.js');
+    const { EDITABLE_TEMPLATES } = await import('../../landingPages/editor/designs.js');
     const { defaultConfig } = await import('../../landingPages/templates.js');
-    for (const t of PUCK_TEMPLATES) {
-      const mine = { ...defaultConfig(t.id, { title: 'Mine' }), puck: t.puckData };
+    for (const t of EDITABLE_TEMPLATES) {
+      const mine = { ...defaultConfig(t.id, { title: 'Mine' }), editor: t.editorData };
       const before = JSON.stringify(mine);
       const out = campaignPageConfig(mine);
       expect(out).toEqual(mine);
       expect(out).not.toBe(mine);
-      expect(out.puck.content).not.toBe(mine.puck.content);
+      expect(out.editor.content).not.toBe(mine.editor.content);
       expect(JSON.stringify(out)).not.toMatch(/OutreachActions/);
-      out.puck.content[0].props.id = 'changed';
+      out.editor.content[0].props.id = 'changed';
       expect(JSON.stringify(mine)).toBe(before);
     }
     const classic = { headline: 'My words', calendar: undefined };

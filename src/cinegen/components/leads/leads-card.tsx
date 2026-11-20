@@ -1,12 +1,14 @@
 // [remix] Right column of the Leads tab: KPIs, filter chips, search, CSV / Excel, table, score, follow-up, delete.
 import { useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
-import { LEAD_STATUSES, hasFollowUp, answerColumns, collapseRepeats, countsByForm, leadsPerDay, filterRows, fromMp4, variantCounts, variantOf, leadForms, rowFormKey, rowsToCsv, exportRecords, scoreLead, sortRows, statusCounts, sourceLabel, whenLabel, LEAD_RANGES, type LeadRange, type LeadForm, type LeadRow, type LeadSort } from '@cinegen/lib/leads/leads';
+import { LEAD_STATUSES, hasFollowUp, answerColumns, collapseRepeats, countsByForm, leadsPerDay, filterRows, fromMp4, variantCounts, variantOf, leadForms, rowFormKey, rowsToCsv, exportRecords, scoreLead, sortRows, statusCounts, sourceLabel, whenLabel, LEAD_RANGES, type LeadRange, type LeadForm, type LeadRow, type LeadSort, sessionOf, watchPercent, watchTag } from '@cinegen/lib/leads/leads';
 import { downloadLeadsXlsx } from '@cinegen/lib/leads/leads-xlsx';
 import { setLeadsForm, useLeadsForm } from '@cinegen/lib/leads/leads-filter';
 import { FollowUpCell } from './lead-followup';
 import { SAMPLE_FORMS, SAMPLE_LEADS, SAMPLE_VIEWS } from '@cinegen/lib/leads/sample-data';
+import { formStatLine } from '@cinegen/lib/leads/form-stats';
 import type { LeadsData } from './use-leads';
+import type { Insights } from './use-insights';
 
 const NEXT_SORT: Record<LeadSort, LeadSort> = { newest: 'score-desc', 'score-desc': 'score-asc', 'score-asc': 'newest' };
 const SORT_ARIA: Record<LeadSort, 'none' | 'ascending' | 'descending'> = { newest: 'none', 'score-desc': 'descending', 'score-asc': 'ascending' };
@@ -16,7 +18,7 @@ function ScorePill({ row }: { row: LeadRow }) {
   return <span className={`leads-score leads-score--${s.label.toLowerCase()}`} data-testid="lead-score" title={s.reasons.join(' · ') || 'No signals yet'}>{s.score} · {s.label}</span>;
 }
 
-function LeadsCardView({ data, published, views, formsOverride }: { data: LeadsData; published: boolean; views: number; formsOverride?: LeadForm[] }) {
+function LeadsCardView({ data, published, views, formsOverride, insights }: { data: LeadsData; published: boolean; views: number; formsOverride?: LeadForm[]; insights?: Insights }) {
   const { state } = useWorkspace();
   const form = useLeadsForm();
   const [query, setQuery] = useState('');
@@ -43,15 +45,17 @@ function LeadsCardView({ data, published, views, formsOverride }: { data: LeadsD
   const wall = counts['list-builder'] ?? 0;
   const mp4 = data.rows.filter(fromMp4).length;
   const ab = variantCounts(data.rows);
+  const watch = insights?.watch ?? {};
+  const showWatch = shown.some((r) => watch[sessionOf(r)]);
   const pct = views > 0 ? `${Math.min(100, Math.round((total / views) * 100))}%` : '—';
   const tag = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r));
   const download = () => {
-    const url = URL.createObjectURL(new Blob([rowsToCsv(shown, forms)], { type: 'text/csv' }));
+    const url = URL.createObjectURL(new Blob([rowsToCsv(shown, forms, watch)], { type: 'text/csv' }));
     const a = document.createElement('a'); a.href = url; a.download = 'leads.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 5000);
   };
   const downloadExcel = async () => {
     setXlsxBusy(true); setXlsxError('');
-    try { await downloadLeadsXlsx(exportRecords(shown, forms, { escape: false })); }
+    try { await downloadLeadsXlsx(exportRecords(shown, forms, { escape: false, watch })); }
     catch (e) { setXlsxError((e as Error).message || 'Could not create the Excel file'); }
     setXlsxBusy(false);
   };
@@ -77,6 +81,12 @@ function LeadsCardView({ data, published, views, formsOverride }: { data: LeadsD
             <button type="button" className={`leads-chip${form === 'all' ? ' is-on' : ''}`} onClick={() => setLeadsForm('all')}>All {total}</button>
             {forms.map((f) => <button key={f.key} type="button" className={`leads-chip${form === f.key ? ' is-on' : ''}`} onClick={() => setLeadsForm(f.key)}>{f.label} {counts[f.key] ?? 0}</button>)}
           </div>
+          {insights?.formStats && forms.length > 0 && (
+            <div className="leads-perf" data-testid="form-performance">
+              {forms.map((f) => <div key={f.key} className="leads-perf__row"><b>{f.label}</b><span data-testid={`perf-${f.key}`}>{formStatLine(insights.formStats?.byKey[f.key], insights.formStats?.minCohort)}</span></div>)}
+              <p className="leads-note">Views are counted when at least half of a form is on screen (last 90 days, shown once enough viewers have seen it).</p>
+            </div>
+          )}
           {followUp && (
             <div className="leads-chips" role="group" aria-label="Filter by status" data-testid="leads-status-filter">
               <button type="button" className={`leads-chip${status === 'all' ? ' is-on' : ''}`} aria-pressed={status === 'all'} onClick={() => setStatus('all')} data-testid="status-chip-all">Any status {inScope.length}</button>
@@ -90,7 +100,7 @@ function LeadsCardView({ data, published, views, formsOverride }: { data: LeadsD
             <select className="leads-input leads-select" aria-label="Date range" value={range} onChange={(e) => setRange(e.target.value as LeadRange)} data-testid="leads-range">
               {LEAD_RANGES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
             </select>
-            <button type="button" className="leads-btn" onClick={() => void data.reload()} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
+            <button type="button" className="leads-btn" onClick={() => { void data.reload(); void insights?.reload?.(); }} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
             <button type="button" className="leads-btn" onClick={download} disabled={!shown.length} data-testid="leads-csv">Download CSV</button>
             <button type="button" className="leads-btn" onClick={() => void downloadExcel()} disabled={!shown.length || xlsxBusy} data-testid="leads-xlsx">{xlsxBusy ? 'Preparing…' : 'Download Excel'}</button>
           </div>
@@ -105,13 +115,16 @@ function LeadsCardView({ data, published, views, formsOverride }: { data: LeadsD
               <thead><tr>
                 <th>When</th><th>Form</th>
                 <th aria-sort={SORT_ARIA[sort]}><button type="button" className="leads-sort" onClick={() => setSort(NEXT_SORT[sort])} data-testid="leads-sort-score" title="Sort by lead score">Score{sort === 'score-desc' ? ' ↓' : sort === 'score-asc' ? ' ↑' : ''}</button></th>
-                {cols.map((c) => <th key={c.key}>{c.label}</th>)}{showSource && <th>Source</th>}{followUp && <th>Follow-up</th>}<th />
+                {cols.map((c) => <th key={c.key}>{c.label}</th>)}{showSource && <th>Source</th>}{showWatch && <th>Watched</th>}{followUp && <th>Follow-up</th>}<th />
               </tr></thead>
               <tbody>{shown.map((r) => (
                 <tr key={r.id}><td>{whenLabel(r.createdAt)}{merge && (repeats.counts[r.id] ?? 1) > 1 && <span className="leads-tag leads-tag--rep" data-testid="repeat-tag" title="Times this email signed up on this form">×{repeats.counts[r.id]}</span>}</td><td><span className={`leads-tag leads-tag--${tag(r)?.tone ?? 'lead'}`}>{tag(r)?.short ?? 'Form'}</span>{fromMp4(r) && <span className="leads-tag leads-tag--mp4" data-testid="mp4-tag">MP4</span>}{variantOf(r) && <span className="leads-tag leads-tag--ab" data-testid="ab-tag">{variantOf(r)}</span>}</td>
                   <td><ScorePill row={r} /></td>
                   {cols.map((c) => <td key={c.key}>{r.data[c.key] ?? ''}</td>)}
                   {showSource && <td data-testid="lead-source" title={r.source?.referrer ?? ''}>{sourceLabel(r)}</td>}
+                  {showWatch && (
+                    <td data-testid="lead-watched">{watch[sessionOf(r)] ? <><span>{watchPercent(watch[sessionOf(r)])}</span><span className={`leads-tag leads-tag--${watchTag(watch[sessionOf(r)]).toLowerCase()}`}>{watchTag(watch[sessionOf(r)])}</span></> : ''}</td>
+                  )}
                   {followUp && <FollowUpCell row={r} onUpdate={(patch) => void data.update(r.id, patch)} />}
                   <td><button type="button" className="leads-x" aria-label="Delete lead" onClick={() => { if (window.confirm('Delete this lead?')) void data.remove(r.id); }}>✕</button></td></tr>
               ))}</tbody>
@@ -126,8 +139,8 @@ function LeadsCardView({ data, published, views, formsOverride }: { data: LeadsD
 const NOOP_DATA: LeadsData = { rows: SAMPLE_LEADS, loading: false, error: '', reload: async () => {}, remove: async () => {}, update: async () => {} } as LeadsData;
 
 /** Before publishing there is nothing to show, so the tab previews its layout with labelled, read-only sample rows. */
-export function LeadsCard({ data, published, views }: { data: LeadsData; published: boolean; views: number }) {
-  if (published) return <LeadsCardView data={data} published views={views} />;
+export function LeadsCard({ data, published, views, insights }: { data: LeadsData; published: boolean; views: number; insights?: Insights }) {
+  if (published) return <LeadsCardView data={data} published views={views} insights={insights} />;
   return (
     <section className="leads-card" data-testid="leads-card">
       <h3 className="leads-card__title">Leads<span className="leads-sample-badge" data-testid="leads-sample-badge">Sample data</span></h3>

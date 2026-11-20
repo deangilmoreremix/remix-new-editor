@@ -76,7 +76,7 @@ export function TextToImagePage() {
 
   contentWrapper.innerHTML = `
     <!-- Features Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-8">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-8">
       <h2 class="text-xl font-bold text-white mb-2">Why Choose Our Text to Image?</h2>
       <p class="text-sm text-secondary mb-6">Everything you need to create stunning images at scale</p>
       <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -91,7 +91,7 @@ export function TextToImagePage() {
     </div>
 
     <!-- Models Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-8">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-8">
       <h2 class="text-xl font-bold text-white mb-2">Available Models</h2>
       <p class="text-sm text-secondary mb-6">Choose from ${TEXT_TO_IMAGE_MODELS.length}+ powerful image generation models</p>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -108,7 +108,7 @@ export function TextToImagePage() {
     </div>
 
     <!-- Example Prompts Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-8">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-8">
       <h2 class="text-xl font-bold text-white mb-2">Example Prompts</h2>
       <p class="text-sm text-secondary mb-6">Get inspired by these creative prompts to start generating</p>
       <div class="grid md:grid-cols-2 gap-4">
@@ -125,7 +125,7 @@ export function TextToImagePage() {
     </div>
 
     <!-- CTA Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-10 shadow-3xl mb-8 text-center">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-10 shadow-3xl mb-8 text-center">
       <h2 class="text-xl font-bold text-white mb-2">Ready to Create?</h2>
       <p class="text-sm text-secondary mb-6">Join thousands of creators generating amazing images with our AI platform</p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3">

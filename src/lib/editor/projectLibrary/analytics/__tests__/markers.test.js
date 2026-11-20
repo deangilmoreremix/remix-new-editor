@@ -31,7 +31,7 @@ describe('buildMarkers', () => {
     const m = buildMarkers({ timelineSeconds: 200, tracks: [{ items: [{ id: 'a', type: 'lead-form', left: 25, width: 10 }] }] });
     expect(m).toEqual([{ id: 'lead-form:a', kind: 'lead-form', label: 'Lead form', startMs: 50000, endMs: 70000 }]);
     expect(buildMarkers({ tracks: [] })).toEqual([]);
-    expect(buildMarkers(null ?? {})).toEqual([]);
+    expect(buildMarkers({})).toEqual([]);
     expect(buildMarkers({ timelineSeconds: 30, tracks: [{ items: [{ type: 'overlay-text', start: 1, end: 2 }] }] })).toEqual([]);
     expect(buildMarkers({ timelineSeconds: 30, listBuilder: { enabled: false }, tracks: 'nope' })).toEqual([]);
   });

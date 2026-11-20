@@ -38,7 +38,7 @@ export function mountPushCard(host, { getClient, pushEnabled = false, onPushPref
     try { onState?.({ available: !!card.querySelector('[name=push]'), on: pref }); } catch { /* the host's callback must never break the card */ }
   };
 
-  const refresh = async () => { try { info = await inspectPush({ vapidKey, env }); } catch { info = { state: 'unsupported', message: 'Push notifications are not available here.' }; } draw(); };
+  const refresh = async () => { try { info = await inspectPush({ vapidKey, env, client: await Promise.resolve().then(() => getClient()).catch(() => null) }); } catch { info = { state: 'unsupported', message: 'Push notifications are not available here.' }; } draw(); };
 
   async function savePref(value) {
     const before = pref; pref = value;

@@ -76,6 +76,18 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
       showToast(row.type === 'new_lead' && !/^new lead/i.test(title) ? `New lead: ${title}` : title);
     }
   };
+  // An alert is only shown while the channel still belongs to the signed-in owner. After a sign-out or an account switch
+  // the old channel can outlive the change until the next periodic check, so each alert re-checks who is signed in.
+  async function guardedInsert(payload, mine) {
+    if (!alive || rt !== mine) return;
+    if (!isSignedIn()) { stopRealtime(); return; }                                   // signed out: drop the channel now
+    try {
+      const info = await getRealtime();
+      if (!alive || rt !== mine) return;
+      if (!isSignedIn() || !info?.userId || info.userId !== mine.userId) { stopRealtime(); return; } // signed out meanwhile, or another account
+    } catch { return; }
+    onInsert(payload);
+  }
   async function stopRealtime() {
     const cur = rt; rt = null;
     try { if (cur?.client && cur.channel) await cur.client.removeChannel(cur.channel); } catch { /* already closed */ }
@@ -89,10 +101,11 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
       if (!info?.client || !info.userId) { await stopRealtime(); return; }
       if (rt && rt.userId === info.userId && rt.token === info.token) return;
       await stopRealtime();
+      if (!alive) return; // destroyed while the old channel was being removed: do not open a new one
       const channel = info.client.channel(`owner-notifications-${info.userId}`);
       const mine = { client: info.client, channel, userId: info.userId, token: info.token };
       rt = mine;
-      channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'owner_notifications', filter: `clerk_user_id=eq.${info.userId}` }, onInsert)
+      channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'owner_notifications', filter: `clerk_user_id=eq.${info.userId}` }, (payload) => guardedInsert(payload, mine))
         .subscribe((status) => {
           // Unauthorised / unavailable: drop the channel and let polling carry on; the next check retries.
           if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') && rt === mine) stopRealtime();

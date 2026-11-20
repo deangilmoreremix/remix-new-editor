@@ -102,7 +102,7 @@ function createHowItWorksSection(steps) {
       <h2 class="text-3xl md:text-4xl font-bold text-white mb-12 text-center">How It Works</h2>
       <div class="grid md:grid-cols-3 gap-8">
         ${steps.map((step, i) => `
-          <div class="relative bg-[#111] border border-white/5 rounded-2xl p-8 text-center">
+          <div class="relative bg-card-bg border border-white/5 rounded-2xl p-8 text-center">
             <div class="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-xl mx-auto mb-6">${i + 1}</div>
             <h3 class="text-xl font-semibold text-white mb-3">${step.title}</h3>
             <p class="text-gray-400 leading-relaxed mb-4">${step.description}</p>
@@ -123,7 +123,7 @@ function createFeaturesSection(features) {
       <h2 class="text-3xl md:text-4xl font-bold text-white mb-12 text-center">Features</h2>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         ${features.map(feature => `
-          <div class="bg-[#111] border border-white/5 rounded-xl p-6 flex items-start gap-4">
+          <div class="bg-card-bg border border-white/5 rounded-xl p-6 flex items-start gap-4">
             <div class="w-6 h-6 rounded-full bg-cyan-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
               <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
             </div>
@@ -145,7 +145,7 @@ function createMonetizationSection(monetization) {
       <p class="text-gray-400 text-center mb-12 max-w-2xl mx-auto">Real revenue models, pricing anchors, and go-to-market motions sourced from the SmartVideo Academy.</p>
 
       <div class="grid md:grid-cols-2 gap-8 mb-12">
-        <div class="bg-[#111] border border-white/5 rounded-2xl p-8">
+        <div class="bg-card-bg border border-white/5 rounded-2xl p-8">
           <h3 class="text-xl font-semibold text-white mb-6 flex items-center gap-3">
             <span class="w-8 h-8 rounded-lg bg-green-400/20 flex items-center justify-center text-green-400 text-sm">💰</span>
             Revenue Models
@@ -160,7 +160,7 @@ function createMonetizationSection(monetization) {
           </ul>
         </div>
 
-        <div class="bg-[#111] border border-white/5 rounded-2xl p-8">
+        <div class="bg-card-bg border border-white/5 rounded-2xl p-8">
           <h3 class="text-xl font-semibold text-white mb-6 flex items-center gap-3">
             <span class="w-8 h-8 rounded-lg bg-blue-400/20 flex items-center justify-center text-blue-400 text-sm">📊</span>
             Pricing Anchors
@@ -176,7 +176,7 @@ function createMonetizationSection(monetization) {
         </div>
       </div>
 
-      <div class="bg-[#111] border border-white/5 rounded-2xl p-8 mb-12">
+      <div class="bg-card-bg border border-white/5 rounded-2xl p-8 mb-12">
         <h3 class="text-xl font-semibold text-white mb-6 flex items-center gap-3">
           <span class="w-8 h-8 rounded-lg bg-purple-400/20 flex items-center justify-center text-purple-400 text-sm">🚀</span>
           Go-To-Market Motion
@@ -225,7 +225,7 @@ function createAcademySection(academyTracks) {
       <p class="text-gray-400 text-center mb-12 max-w-2xl mx-auto">Master the business side of AI creation with SmartVideo Academy tracks.</p>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         ${academyTracks.map(track => `
-          <a href="/academy/${track.slug}" class="group bg-[#111] border border-white/5 rounded-2xl p-6 hover:border-cyan-400/30 transition-all duration-300">
+          <a href="/academy/${track.slug}" class="group bg-card-bg border border-white/5 rounded-2xl p-6 hover:border-cyan-400/30 transition-all duration-300">
             <div class="flex items-center gap-3 mb-3">
               <div class="w-10 h-10 rounded-lg bg-cyan-400/10 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-400/20 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 4.168 6.253v13C4.168 19.223 5.754 19 7.5 19s3.332.223 4.168 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 3.332 1.253v13C19.832 19.223 18.247 19 16.5 19c-1.746 0-3.332.223-4.168 1.253"/></svg>
@@ -255,7 +255,7 @@ function createGallerySection(studio, demoIds) {
           const demoSlug = id >= 1 && id <= 30 ? getDemoSlugById(id) : null;
           const imgSrc = demoSlug ? `/media/minimax-h3/previews/${demoSlug}.webp` : '';
           return `
-            <div class="aspect-video bg-[#111] rounded-xl border border-white/5 overflow-hidden flex items-center justify-center">
+            <div class="aspect-video bg-card-bg rounded-xl border border-white/5 overflow-hidden flex items-center justify-center">
               ${imgSrc ? `<img src="${imgSrc}" alt="Demo ${id}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'text-gray-600 text-sm\\'>Demo</div>'" />` : '<div class=\'text-gray-600 text-sm\'>Demo</div>'}
             </div>
           `;
@@ -376,7 +376,7 @@ export default async function StudioLandingPage(slug) {
           </div>
         </div>
         <div class="relative">
-          <div class="aspect-video bg-[#111] rounded-2xl border border-white/5 overflow-hidden">
+          <div class="aspect-video bg-card-bg rounded-2xl border border-white/5 overflow-hidden">
             <img src="${studio.thumbnail}" alt="${studio.label}" class="w-full h-full object-cover" loading="eager" />
           </div>
         </div>

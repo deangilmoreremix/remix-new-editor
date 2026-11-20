@@ -97,8 +97,14 @@ export function createHeatmapCapture(o = {}) {
   const observeAll = () => {
     if (!io || destroyed) return;
     frame.querySelectorAll?.(CTA_SELECTOR).forEach((el) => { if (!watching.has(el)) { watching.add(el); io.observe(el); } });
-    const form = frame.querySelector?.('form.addon-optin');
-    if (form && o.leadClipId && !watching.has(form)) { watching.add(form); form.dataset.ctaId = String(o.leadClipId); io.observe(form); }
+    // Every opt-in form (each Lead Generator and the List Builder wall) counts its own impressions under its own id; a form
+    // without one falls back to the project's single lead-form clip (older pages).
+    frame.querySelectorAll?.('form.addon-optin').forEach((form) => {
+      if (watching.has(form)) return;
+      if (!form.dataset.ctaId && o.leadClipId) form.dataset.ctaId = String(o.leadClipId);
+      if (!form.dataset.ctaId) return;
+      watching.add(form); io.observe(form);
+    });
   };
   const mo = MO ? new MO(observeAll) : null;
   mo?.observe(frame, { childList: true, subtree: true });

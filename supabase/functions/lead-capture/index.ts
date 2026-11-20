@@ -25,9 +25,9 @@
 //   -> answers { ok, stored } as soon as the lead is saved; webhooks (with retries),
 //      emails, Kit/MailerLite and the delivery log finish in the background.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
-  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, verifyTurnstile, parseExtraDomains, emailKeyOf, emailDomain, domainAcceptsMail, isDuplicateError, isMissingColumnError, type DnsResolver, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
+  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, verifyTurnstile, parseExtraDomains, emailKeyOf, emailDomain, domainAcceptsMail, isGuestOwner, needsHumanCheck, isDuplicateError, isMissingColumnError, type DnsResolver, declaredEmailKeys, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, autoReplyReplyTo, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
   isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, hostOf, deriveSigningSecret,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, deliverWebhook, type Delivery, type DeliverDeps, type HttpCall, type Json,
 } from "./logic.ts";
@@ -141,7 +141,9 @@ async function resolvesPublic(url: string): Promise<boolean> {
   } catch { return false; } // deny on resolver errors: only forward when every resolved address is public
 }
 
-type Db = ReturnType<typeof createClient>;
+// The untyped client (no generated schema): every table is `any`, which is what the code below expects.
+// deno-lint-ignore no-explicit-any
+type Db = SupabaseClient<any, "public", any>;
 
 /** The real network, clock and DNS guard behind deliverWebhook (tests inject fakes instead). */
 const realDeliverDeps: DeliverDeps = {
@@ -375,7 +377,8 @@ Deno.serve(async (req: Request) => {
       const settings = ((row?.settings ?? null) as Json | null);
       if (!settings) return;
       // The settings use the List Builder's shape (webhookEnabled/webhook..., emailEnabled/emailAddress..., espProvider/espListId).
-      const hooks = savedWebhooks(settings, true);
+      // Guest-owned pages (no account) never relay to webhooks, the same rule the published-video path has.
+      const hooks = isGuestOwner(ownerId) ? [] : savedWebhooks(settings, true);
       const notifyTo = savedNotifyEmails(settings, true);
       const [sent] = await Promise.all([
         hooks.length
@@ -397,8 +400,10 @@ Deno.serve(async (req: Request) => {
     if (!SUPABASE_SERVICE_ROLE_KEY) return json(req, { ok: false, error: "Lead backend not configured" }, 500);
     // Bots get the same answer a real viewer gets, but nothing is stored or forwarded.
     if (looksAutomated(body.signals)) return json(req, { ok: true, stored: true });
-    const human = await verifyTurnstile(TURNSTILE_SECRET, body["cf-turnstile-response"], clientKey(req), (url, init) => fetch(url, init));
-    if (!human.ok) return json(req, { ok: false, error: "Please complete the verification and try again." }, 400);
+    if (needsHumanCheck(body.kind)) {
+      const human = await verifyTurnstile(TURNSTILE_SECRET, body["cf-turnstile-response"], clientKey(req), (url, init) => fetch(url, init));
+      if (!human.ok) return json(req, { ok: false, error: "Please complete the verification and try again." }, 400);
+    }
     const leadData = sanitizeData(body.data);
     if (!Object.keys(leadData).length) return json(req, { ok: false, error: "Empty submission" }, 400);
     // Shared (database) limits survive across function instances: per video
@@ -418,7 +423,7 @@ Deno.serve(async (req: Request) => {
     if (videoError || !video) return json(req, { ok: false, error: "Unknown video" }, 404);
     const { config, listBuilder } = leadConfigFor(video.project as Json, leadKind, clipId);
     if (!config) return json(req, { ok: false, error: "This video has no such form" }, 400);
-    const emailIssue = emailProblem(leadData, { blockDisposable: config.blockDisposableEmails === true, extraDisposable: EXTRA_DISPOSABLE });
+    const emailIssue = emailProblem(leadData, { blockDisposable: config.blockDisposableEmails === true, emailKeys: declaredEmailKeys(config), extraDisposable: EXTRA_DISPOSABLE });
     if (emailIssue) return json(req, { ok: false, error: emailIssue }, 400);
     const emailKey = leadKind === "call-attempt" ? "" : emailKeyOf(leadData);
     if (emailKey && MX_CHECK && !(await domainAcceptsMail(emailDomain(emailKey), dnsResolver()))) {
@@ -444,7 +449,7 @@ Deno.serve(async (req: Request) => {
       ? String((config.callNotifyAddress ?? (config.addon as Json | undefined)?.callNotifyAddress) || "").trim()
       : "";
     // Guest-owned videos (no account) never have webhooks relayed on their behalf.
-    const guestOwned = String(video.clerk_user_id ?? "").startsWith("guest_");
+    const guestOwned = isGuestOwner(video.clerk_user_id);
     const hooks = leadKind === "call-attempt" || guestOwned ? [] : savedWebhooks(config, listBuilder);
     // The recipients always come from the saved project, never from the request.
     const notifyTo = leadKind === "call-attempt" ? (isValidEmail(callNotify) ? [callNotify] : []) : savedNotifyEmails(config, listBuilder);
@@ -458,7 +463,7 @@ Deno.serve(async (req: Request) => {
           ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString(), ...(Object.keys(attribution).length ? { source: attribution } : {}) }, { secret: await ownerSecret(ownerId) })
           : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
         notify(notifyTo, leadKind, leadData, attribution),
-        leadKind === "call-attempt" ? Promise.resolve() : sendAutoReply(admin, { publishedId, config, data: leadData, replyTo: notifyTo[0] ?? "" }),
+        leadKind === "call-attempt" ? Promise.resolve() : sendAutoReply(admin, { publishedId, config, data: leadData, replyTo: autoReplyReplyTo(config, notifyTo) }),
         leadKind === "call-attempt" ? Promise.resolve(null) : pushToEsp(admin, ownerId, savedEsp(config), leadData),
       ]);
       await logDeliveries(admin, ownerId, { projectId: publishedId, clipId, kind: leadKind }, sent.deliveries);

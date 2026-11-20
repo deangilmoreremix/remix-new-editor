@@ -12,7 +12,7 @@ const ENV = {
 };
 const NOTE = { id: ID, clerk_user_id: 'user_1', video_id: 'vid12345', type: 'new_lead', title: 'Ana signed up', summary: 'A new lead', dedupe_key: 'lead:1' };
 const PREFS = { push: true, enabled_types: ['new_lead', 'milestone', 'high_interest'], quiet_hours: null };
-const SUB = { id: 's1', endpoint: 'https://push.example/1', p256dh: 'k', auth: 'a', failure_count: 0 };
+const SUB = { id: 's1', endpoint: 'https://fcm.googleapis.com/fcm/send/1', p256dh: 'k', auth: 'a', failure_count: 0 };
 
 function setup({ note = NOTE, prefs = PREFS, subs = [SUB], send, noDeferredTable = false } = {}) {
   const calls = [];

@@ -61,7 +61,7 @@ describe('sw.js click routing', () => {
 describe('page side of a notification click', () => {
   const win = (hash = '') => {
     const store = new Map();
-    const w = new EventTarget();
+    const w = new globalThis.EventTarget();
     Object.assign(w, { sessionStorage: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) }, location: { hash, href: `https://app.test/?alerts=1${hash}` }, history: { replaceState: vi.fn() }, navigator: {} });
     return w;
   };
@@ -76,7 +76,7 @@ describe('page side of a notification click', () => {
     expect(seen).toHaveBeenCalled();
   });
   it('reacts to the service worker message and cleans up', () => {
-    const w = win('#/timeline'); const sws = new EventTarget(); w.navigator = { serviceWorker: sws };
+    const w = win('#/timeline'); const sws = new globalThis.EventTarget(); w.navigator = { serviceWorker: sws };
     const seen = vi.fn(); w.addEventListener('remix:open-projects', seen);
     const off = installPushMessageListener({ win: w });
     sws.dispatchEvent(Object.assign(new Event('message'), { data: { type: 'other' } })); expect(seen).not.toHaveBeenCalled();

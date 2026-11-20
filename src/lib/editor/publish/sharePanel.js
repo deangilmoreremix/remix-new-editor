@@ -21,6 +21,8 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
  *   fetchStats()   → Promise<[{ contactId, views, plays, completes, ctaClicks, leads, lastSeen }]>
  *   contactLabel(id) → display name for a contact id
  *   defaultTitle
+ *   linksOnly      true → draws only the personal links list (view, edit, new address, turn off, remove, CSV) for an
+ *                  already published video; the host page owns publishing, the link, embed code and stats
  *   guest()        → boolean   true while nobody is signed in: shows the no-account notice, hides readable link names / privacy
  *   saveLink({ business?, slug }) → Promise<info>   claim business name (if given) and set the video's slug
  *   setPrivacy('public'|'unlisted') → Promise
@@ -190,6 +192,14 @@ export function renderSharePanel(container, opts) {
   const draw = () => {
     const info = ui.info;
     const link = info ? urlOf(info) : '';
+    if (opts.linksOnly) {
+      container.innerHTML = `
+      <div class="share-panel share-panel--links-only" data-testid="personal-links-panel">
+        ${ui.error ? `<p class="agent-msg agent-msg--error" role="alert">${esc(ui.error)}</p>` : ''}
+        ${info?.published ? personalHtml(link) : '<p class="addon-field__hint">Publish the video to create personal links.</p>'}
+      </div>`;
+      return;
+    }
     container.innerHTML = `
       <div class="share-panel">
         ${opts.guest?.() ? `<p class="share-guest" role="note">${esc(GUEST_NOTICE)}</p>` : ''}

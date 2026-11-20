@@ -13,14 +13,14 @@ import { supabase, primeSupabaseIdentity, getClerkUserId } from '../supabase.js'
 import { uploadFileToSupabase } from '../uploadService.js';
 import { listBrands } from '../brandStore.js';
 import { showToast } from '../loading.js';
-import { TEMPLATES, defaultConfig, sanitizePuck, getTemplate } from './templates.js';
+import { TEMPLATES, defaultConfig, sanitizeEditorData, getTemplate } from './templates.js';
 import { sampleSections } from './sampleContent.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from './ingest.js';
 import { updatePage, pageUrl, addContacts, personalUrl } from './client.js';
 import { exportLinksCsv } from './csv.js';
 import { loadCustomers } from './customerSources.js';
 import { createCustomerPanel } from './customerPanel.js';
-import { applyCustomerToPuck, brandForConfig, customerTokens, toContactFields, dedupeCustomers } from './customerProfile.js';
+import { applyCustomerToEditor, brandForConfig, customerTokens, toContactFields, dedupeCustomers } from './customerProfile.js';
 import { isPermanentUrl, loadVideoSources, fromFile } from './sourceRegistry.js';
 import { attachDesignPreview } from './designPreview.js';
 
@@ -34,12 +34,12 @@ export const CUSTOMER_LOAD_LIMIT_MS = 5000;
 
 export const CHIPS = Object.freeze([
   { id: 'all', label: 'All', match: () => true },
-  { id: 'saas', label: 'SaaS & outreach', match: (id) => /^puck-(starter|leadiq|lead|reach|mono|poster|enterprise|neon|pb-(pro|agency|enterprise|analytics|creator))$/.test(id) },
-  { id: 'local', label: 'Local business', match: (id) => /^puck-(local|persona|spark|pb-(eats|auto|health|shop)|pa-(bistro|motors|local|spa|fitness)|pc-gym|pc-(grooming|drone)-short|pd-(grooming|drone|bees)-long|pd-restaurant)$/.test(id) },
-  { id: 'real', label: 'Property & travel', match: (id) => /^puck-(pb-agent|pa-(estate|travel)|pc-realestate|realtor|dreamhome)$/.test(id) },
-  { id: 'trades', label: 'Home services', match: (id) => /^puck-pc-(plumbing|pest|landscape|cleaning|moving|solar|roofing|hvac|detailing|(septic|radon|crawl|tub|pool)-(long|short))$|^puck-pd-(grease-long|backflow-long|septic-pumping|crawl-worker|crawl-neon)$|^puck-pc-(crawl-beforeafter|septic-elite)$/.test(id) },
-  { id: 'care', label: 'Health, beauty & kids', match: (id) => /^puck-pc-(vet|vision|preschool)$/.test(id) || /^puck-pd-(dental|chiro|medspa|salon)$/.test(id) },
-  { id: 'more', label: 'Other', match: (id) => /^puck-(pa-(business|learn|creative)|results|pc-insurance)$/.test(id) },
+  { id: 'saas', label: 'SaaS & outreach', match: (id) => /^editable-(starter|leadiq|lead|reach|mono|poster|enterprise|neon|pb-(pro|agency|enterprise|analytics|creator))$/.test(id) },
+  { id: 'local', label: 'Local business', match: (id) => /^editable-(local|persona|spark|pb-(eats|auto|health|shop)|pa-(bistro|motors|local|spa|fitness)|pc-gym|pc-(grooming|drone)-short|pd-(grooming|drone|bees)-long|pd-restaurant)$/.test(id) },
+  { id: 'real', label: 'Property & travel', match: (id) => /^editable-(pb-agent|pa-(estate|travel)|pc-realestate|realtor|dreamhome)$/.test(id) },
+  { id: 'trades', label: 'Home services', match: (id) => /^editable-pc-(plumbing|pest|landscape|cleaning|moving|solar|roofing|hvac|detailing|(septic|radon|crawl|tub|pool)-(long|short))$|^editable-pd-(grease-long|backflow-long|septic-pumping|crawl-worker|crawl-neon)$|^editable-pc-(crawl-beforeafter|septic-elite)$/.test(id) },
+  { id: 'care', label: 'Health, beauty & kids', match: (id) => /^editable-pc-(vet|vision|preschool)$/.test(id) || /^editable-pd-(dental|chiro|medspa|salon)$/.test(id) },
+  { id: 'more', label: 'Other', match: (id) => /^editable-(pa-(business|learn|creative)|results|pc-insurance)$/.test(id) },
 ]);
 
 /** Pure: which designs show for a search text and category chip. */
@@ -102,14 +102,15 @@ const brandDefaults = () => {
 
 let openCount = 0;
 
-export function openLandingPagePicker({ video = null, template = null, data: startData = null, onEdit = null, saveLabel = 'Save page', customers = [], preselect = 'active', onPick, onClose, doneLabel = '', deps = {} } = {}) {
+/** `zIndex`: where the picker stacks (default 2000); a caller that is itself a full-screen window (the Template Generator, 9999) passes a higher one. */
+export function openLandingPagePicker({ video = null, template = null, data: startData = null, onEdit = null, saveLabel = 'Save page', customers = [], preselect = 'active', onPick, onClose, doneLabel = '', zIndex = 2000, deps = {} } = {}) {
   let src = toPickerVideo(video);
   const prevOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
   openCount += 1;
 
   const overlay = el('div', 'fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-xl p-2 md:p-6');
-  overlay.style.zIndex = '2000';
+  overlay.style.zIndex = String(zIndex);
   overlay.dataset.landingPicker = '';
   const dialog = el('div', 'w-full max-w-7xl h-full max-h-[94vh] flex flex-col rounded-2xl border border-white/10 bg-panel-bg overflow-hidden text-white');
   dialog.style.cssText += CSS.dialog + ';width:100%;max-width:1280px;height:100%;max-height:94vh;display:flex;flex-direction:column';
@@ -225,7 +226,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     wrap.append(videoBar(() => showGrid()));
     const grid = el('div', 'grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5');
     grid.dataset.designGrid = '';
-    const all = TEMPLATES.filter((t) => t.puck);
+    const all = TEMPLATES.filter((t) => t.editable);
     function paint() {
       chipBtns.forEach((b, id) => {
         const on = id === state.chip;
@@ -250,7 +251,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
         const pic = el('div', '');
         pic.style.marginBottom = '8px';
         pic.setAttribute('aria-label', `Preview of ${t.name}`);
-        previews.push(attachDesignPreview(pic, t.puckData, { deps }));
+        previews.push(attachDesignPreview(pic, t.editorData, { deps }));
         const name = el('div', 'text-xs font-bold leading-tight', t.name);
         name.style.cssText = 'font-size:12px;font-weight:700';
         const desc = el('div', 'text-[11px] text-secondary mt-1 line-clamp-2', t.description);
@@ -380,10 +381,10 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     if (same) { /* keep the edits */ }
     else if (withBrand || withImage) {
       const cfg = defaultConfig(chosen.id, { title: src?.title || '', brand: withBrand ? brandForConfig(one) : brandDefaults() });
-      const r = applyCustomerToPuck(cfg.puck, one, { useImage: cp.useImage(), brand: withBrand });
+      const r = applyCustomerToEditor(cfg.editor, one, { useImage: cp.useImage(), brand: withBrand });
       data = r.data; applied = r.applied;
     } else {
-      data = defaultConfig(chosen.id, { title: src?.title || '', brand: brandDefaults() }).puck;
+      data = defaultConfig(chosen.id, { title: src?.title || '', brand: brandDefaults() }).editor;
     }
     const previewTokens = sel.length ? customerTokens(sel[0]) : SAMPLE_TOKENS;
     view = 'edit';
@@ -416,14 +417,14 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     host.dataset.editorHost = '';
     body.replaceChildren(...[hint, noteEl, host].filter(Boolean));
     try {
-      const mount = deps.mountPuckEditor || (await import('./puck/mount.jsx')).mountPuckEditor;
+      const mount = deps.mountPageEditor || (await import('./editor/mount.jsx')).mountPageEditor;
       if (view !== 'edit' || !overlay.isConnected) return;
       editor = mount(host, {
         page: { id: 'preview', title: src?.title || '', video_url: src?.url || '', poster_url: src?.posterUrl || null },
         data,
         tokens: previewTokens,
         onPublish: () => saveBtn.click(),
-        onChange: (d) => { const n = sanitizePuck(d); if (n) data = n; },
+        onChange: (d) => { const n = sanitizeEditorData(d); if (n) data = n; },
       });
     } catch (err) {
       msg.textContent = err?.message || 'Could not load the editor';
@@ -431,7 +432,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     saveBtn.addEventListener('click', async () => {
       if (onEdit) {
         if (busy) return;
-        const page = sanitizePuck(data) || data;
+        const page = sanitizeEditorData(data) || data;
         close();
         try { onEdit(page); } catch { /* caller bug */ }
         return;
@@ -443,7 +444,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
         await primeSupabaseIdentity();
         const create = deps.createPageFromVideo || createPageFromVideo;
         const row = await create(supabase, src, { template: chosen.id, brand: withBrand ? brandForConfig(one) : brandDefaults(), deps: { upload }, onStep: (l) => { saveBtn.textContent = `${l}…`; } });
-        const page = await (deps.updatePage || updatePage)(supabase, row.id, { config: { ...row.config, puck: sanitizePuck(data) || row.config?.puck } });
+        const page = await (deps.updatePage || updatePage)(supabase, row.id, { config: { ...row.config, editor: sanitizeEditorData(data) || row.config?.editor } });
         saved = { id: row.id, url: pageUrl(row.id), published: !!page.published, page, contacts: [], contactError: '' };
         const contactRows = sel.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
         if (contactRows.length) {
@@ -489,7 +490,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
       b.type = 'button';
       b.addEventListener('click', async () => {
         const tpl = chosen || getTemplate(saved.page?.config?.template);
-        const samples = sampleSections(saved.page?.config?.puck, tpl.puckData, tpl.sampleTypes || []);
+        const samples = sampleSections(saved.page?.config?.editor, tpl.editorData, tpl.sampleTypes || []);
         if (samples.length && !window.confirm(`${samples.length} section${samples.length === 1 ? ' still uses' : 's still use'} sample content (made-up names, numbers or quotes). Publish anyway?`)) return;
         b.disabled = true;
         try {
@@ -518,7 +519,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
 
   // A design chosen by the caller opens the editor right away, but only after the customers are loaded,
   // so the first draft already has the customer's brand and personalized picture.
-  if (template && TEMPLATES.some((t) => t.puck && t.id === template)) {
+  if (template && TEMPLATES.some((t) => t.editable && t.id === template)) {
     // Wait for the customers, but never more than a few seconds: a stalled request must not keep the editor closed.
     // (Editing an existing page needs no customer lookup first.)
     const loaded = onEdit ? Promise.resolve() : Promise.resolve(cp.load()).catch(() => {});

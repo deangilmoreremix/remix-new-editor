@@ -13,7 +13,7 @@ const ADDRESS = 'owner@example.test';
 const PUSH_ENV = { SUPABASE_URL: 'https://x.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'svc', VAPID_PUBLIC_KEY: 'pub', VAPID_PRIVATE_KEY: 'priv', VAPID_SUBJECT: 'mailto:ops@example.com', PUSH_DISPATCH_SECRET: 'shh' };
 const NOTE = { id: ID, clerk_user_id: 'user_1', video_id: 'vid12345', type: 'new_lead', title: 'Ana signed up', summary: 'A new lead', suggestion: 'Say hello.', dedupe_key: 'lead:1' };
 const PREFS = { clerk_user_id: 'user_1', push: true, email: true, enabled_types: ['new_lead', 'milestone'], quiet_hours: null };
-const SUB = { id: 's1', clerk_user_id: 'user_1', endpoint: 'https://push.example/1', p256dh: 'k', auth: 'a', failure_count: 0 };
+const SUB = { id: 's1', clerk_user_id: 'user_1', endpoint: 'https://fcm.googleapis.com/fcm/send/1', p256dh: 'k', auth: 'a', failure_count: 0 };
 const fakeAdapter = (over = {}) => ({ name: 'fake', configured: true, resolveRecipient: vi.fn(async () => ADDRESS), send: vi.fn(async () => ({ ok: true })), ...over });
 
 function setup({ prefs = PREFS, note = NOTE, adapter = fakeAdapter(), env = PUSH_ENV, tables = {}, sbOpts } = {}) {

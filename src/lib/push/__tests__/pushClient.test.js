@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { urlBase64ToUint8Array, pushSupported, permissionState, subscribe, unsubscribe, sendTestNotification, inspectPush, HOW_TO_REENABLE } from '../pushClient.js';
+import { urlBase64ToUint8Array, pushSupported, permissionState, subscribe, unsubscribe, sendTestNotification, inspectPush, storeSubscription, HOW_TO_REENABLE } from '../pushClient.js';
 
 const KEY = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
 
@@ -146,5 +146,57 @@ describe('unsubscribe, test notification, inspect', () => {
     expect((await inspectPush({ vapidKey: KEY, env })).state).toBe('on');
     env.Notification.permission = 'denied';
     expect((await inspectPush({ vapidKey: KEY, env })).state).toBe('blocked');
+  });
+});
+
+// A client that also supports select (to see what is stored), with room to fail the insert.
+function makeStoreClient({ stored = [], failInsertFor = new Set(), insertCode } = {}) {
+  const rows = [...stored]; const calls = [];
+  return {
+    rows, calls,
+    from: () => ({
+      select: () => ({ eq: (col, val) => ({ limit: async () => ({ data: rows.filter((r) => r[col] === val).slice(0, 1), error: null }) }) }),
+      delete: () => ({ eq: async (col, val) => { calls.push(['delete', val]); for (let i = rows.length - 1; i >= 0; i -= 1) if (rows[i][col] === val) rows.splice(i, 1); return { error: null }; } }),
+      insert: async (row) => {
+        calls.push(['insert', row.endpoint, row.p256dh]);
+        if (failInsertFor.has(row.p256dh) || rows.some((r) => r.endpoint === row.endpoint)) { return { error: { message: 'insert refused', code: insertCode } }; }
+        rows.push(row); return { error: null };
+      },
+    }),
+  };
+}
+
+describe('registration safety', () => {
+  it('puts the previous registration back when saving the new one fails', async () => {
+    const old = { endpoint: 'https://push.example/abc', p256dh: 'OLD', auth: 'OLDA', user_agent: 'Chrome' };
+    const client = makeStoreClient({ stored: [old], failInsertFor: new Set(['P']) });
+    await expect(storeSubscription({ client, subscription: makeSub(), env: makeEnv() })).rejects.toThrow(/insert refused/);
+    expect(client.rows).toEqual([old]);                       // still registered with the old keys
+  });
+  it('an endpoint already registered to another account gets a fresh subscription for this one', async () => {
+    const rows = [];
+    // the other account's row is hidden from this account (row level security), but its endpoint still blocks the insert
+    const client = { from: () => ({
+      select: () => ({ eq: () => ({ limit: async () => ({ data: [], error: null }) }) }),
+      delete: () => ({ eq: async () => ({ error: null }) }),
+      insert: async (row) => (row.endpoint === 'https://push.example/abc' ? { error: { message: 'duplicate', code: '23505' } } : (rows.push(row), { error: null })),
+    }) };
+    const reg = makeRegistration(); const fresh = makeSub('https://push.example/fresh');
+    let n = 0; reg.pushManager.subscribe = vi.fn(async () => (n++ === 0 ? reg.sub : fresh));
+    const r = await subscribe({ vapidKey: KEY, registration: reg, client, env: makeEnv() });
+    expect(r.status).toBe('subscribed');
+    expect(reg.sub.unsubscribe).toHaveBeenCalledTimes(1);     // the old browser subscription is dropped
+    expect(reg.pushManager.subscribe).toHaveBeenCalledTimes(2);
+    expect(rows.map((x) => x.endpoint)).toEqual(['https://push.example/fresh']);
+  });
+  it('inspect reports off when the browser subscription has no row for this account, on when it has one', async () => {
+    const env = makeEnv({ permission: 'granted' }); const reg = makeRegistration(); reg._set(reg.sub);
+    env.navigator.serviceWorker = { getRegistration: vi.fn(async () => reg) };
+    const mine = makeStoreClient({ stored: [{ endpoint: reg.sub.endpoint, p256dh: 'P', auth: 'A' }] });
+    const someoneElses = makeStoreClient({ stored: [] });
+    expect((await inspectPush({ vapidKey: KEY, env, client: mine })).state).toBe('on');
+    expect((await inspectPush({ vapidKey: KEY, env, client: someoneElses })).state).toBe('off');
+    const broken = { from: () => ({ select: () => ({ eq: () => ({ limit: async () => ({ data: null, error: { message: 'down' } }) }) }) }) };
+    expect((await inspectPush({ vapidKey: KEY, env, client: broken })).state).toBe('on');   // cannot check: keep what the browser says
   });
 });

@@ -21,6 +21,14 @@ import {
 import { installPersonalizationApiAuth } from './lib/apiAuth'
 import { SocialPublishProvider } from './components/SocialPublishProvider'
 import { useAuthConfig } from './lib/authConfig.ts'
+import { registerCaptionStudio } from './shared/personalization/captions/captionStudioBridge'
+import { openCaptionStudioForPersonalization } from './captionStudioHost.js'
+
+/**
+ * Captions: the personalization editor has no caption editor of its own. It opens the one Caption Studio and draws whatever comes back
+ * (pages + full style) itself, so colours, font and height carry over to the preview and every export.
+ */
+registerCaptionStudio(openCaptionStudioForPersonalization)
 
 /**
  * OpenHiggsBolt's shell listens for `muapi:auth-required` (dispatched by the

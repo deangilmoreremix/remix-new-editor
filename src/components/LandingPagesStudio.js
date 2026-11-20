@@ -10,7 +10,7 @@ import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
 import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
-import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizePuck, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
+import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizeEditorData, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
 import { AFTER_SUBMIT_OPTIONS } from '../lib/landingPages/afterSubmit.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
@@ -19,7 +19,7 @@ import { templateCards } from './landing/TemplateChooser.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
 import { createCustomerPanel } from '../lib/landingPages/customerPanel.js';
-import { applyCustomerToPuck, brandForConfig, customerTokens, toContactFields } from '../lib/landingPages/customerProfile.js';
+import { applyCustomerToEditor, brandForConfig, customerTokens, toContactFields } from '../lib/landingPages/customerProfile.js';
 import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
 import { ownPages } from '../lib/outreach/landingPage.js';
 import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
@@ -246,7 +246,7 @@ export function LandingPagesStudio() {
     // Template
     const tplHead = el('h2', 'text-sm font-extrabold uppercase tracking-wide', 'Template');
     // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    const tplCards = templateCards({ groups: [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]], selected: sel.template, onPick: (id) => { sel.template = id; } });
+    const tplCards = templateCards({ groups: [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.editable)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.editable)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]], selected: sel.template, onPick: (id) => { sel.template = id; } });
     sel.previewHandles = [tplCards];
     const tplRow = tplCards.node;
 
@@ -269,9 +269,9 @@ export function LandingPagesStudio() {
           deps: { upload },
           onStep: (label) => { status.textContent = `${label}…`; },
         });
-        if ((withBrand || withImage) && page.config?.puck) {
-          const applied = applyCustomerToPuck(page.config.puck, one, { useImage: withImage, brand: withBrand });
-          page = await updatePage(client, page.id, { config: { ...page.config, puck: applied.data } });
+        if ((withBrand || withImage) && page.config?.editor) {
+          const applied = applyCustomerToEditor(page.config.editor, one, { useImage: withImage, brand: withBrand });
+          page = await updatePage(client, page.id, { config: { ...page.config, editor: applied.data } });
         }
         const rows = chosen.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
         if (rows.length) {
@@ -296,15 +296,15 @@ export function LandingPagesStudio() {
     let current = { ...page, config: sanitizeConfig(page.config) };
     let dirty = false;
     let tab = 'design';
-    let puckHandle = null; // the visual (Puck) editor, when this page uses it
+    let editorHandle = null; // the visual editor, when this page uses it
 
     const top = el('div', 'flex flex-wrap items-center gap-3');
     const back = el('button', BTN, '← All pages');
     back.type = 'button';
     back.addEventListener('click', () => {
       if (dirty && !window.confirm('Discard unsaved changes?')) return;
-      puckHandle?.destroy();
-      puckHandle = null;
+      editorHandle?.destroy();
+      editorHandle = null;
       showList();
     });
     const titleInput = el('input', `${INPUT} flex-1 min-w-[12rem] max-w-md font-bold`);
@@ -361,9 +361,9 @@ export function LandingPagesStudio() {
     };
     saveBtn.addEventListener('click', () => save());
     publishBtn.addEventListener('click', () => {
-      if (!current.published && current.config.puck) {
+      if (!current.published && current.config.editor) {
         const tpl = getTemplate(current.config.template);
-        const left = sampleSections(current.config.puck, tpl.puckData, tpl.sampleTypes || []);
+        const left = sampleSections(current.config.editor, tpl.editorData, tpl.sampleTypes || []);
         if (left.length && !window.confirm(`These sections still contain the sample content from the design (made-up names, numbers or quotes):\n\n${left.map((x) => `• ${x.title || x.type}`).join('\n')}\n\nReplace them with your own before sharing. Publish anyway?`)) return;
       }
       save({ published: !current.published });
@@ -446,11 +446,11 @@ export function LandingPagesStudio() {
       return wrap;
     }
 
-    function puckDesignTab() {
+    function editorDesignTab() {
       const box = el('div', 'flex flex-col gap-3');
       const bar = el('div', 'flex flex-wrap items-center gap-3 text-xs text-secondary');
       const tplSel = el('select', INPUT);
-      TEMPLATES.filter((t) => t.puck).forEach((t) => { const o = el('option', '', t.name); o.value = t.id; tplSel.appendChild(o); });
+      TEMPLATES.filter((t) => t.editable).forEach((t) => { const o = el('option', '', t.name); o.value = t.id; tplSel.appendChild(o); });
       tplSel.value = current.config.template;
       tplSel.addEventListener('change', () => {
         current.config = applyTemplate(current.config, tplSel.value, { title: titleInput.value, brand: brandDefaults() });
@@ -460,7 +460,7 @@ export function LandingPagesStudio() {
       const sampleNote = el('span', 'text-amber-300 font-bold', '');
       const updateSample = () => {
         const tpl = getTemplate(current.config.template);
-        const n = sampleSections(current.config.puck, tpl.puckData, tpl.sampleTypes || []).length;
+        const n = sampleSections(current.config.editor, tpl.editorData, tpl.sampleTypes || []).length;
         sampleNote.textContent = n ? `${n} section${n === 1 ? '' : 's'} still use sample content (made-up names, numbers, quotes). Replace before sharing.` : '';
       };
       updateSample();
@@ -475,47 +475,47 @@ export function LandingPagesStudio() {
         try { await deletePage(await ownerClient(), current.id); showToast('Page deleted', 'success', 2000); showList(); } catch (err) { showToast(err.message, 'error', 4000); }
       });
       box.appendChild(danger);
-      let last = JSON.stringify(current.config.puck);
-      let mountPuckEditorFn = null;
+      let last = JSON.stringify(current.config.editor);
+      let mountPageEditorFn = null;
       const mountEditor = (data) => {
-        puckHandle?.destroy();
-        puckHandle = mountPuckEditorFn(host, {
+        editorHandle?.destroy();
+        editorHandle = mountPageEditorFn(host, {
           page: current,
           data,
           tokens: editorPreviewTokens || SAMPLE_TOKENS,
-          onPublish: () => saveBtn.click(), // Puck's own Publish button = our Save
+          onPublish: () => saveBtn.click(), // the editor's own Publish button = our Save
           onChange: (d) => {
-            const next = sanitizePuck(d);
+            const next = sanitizeEditorData(d);
             if (!next) return;
             const json = JSON.stringify(next);
             if (json === last) return;
             last = json;
-            current.config = { ...current.config, puck: next };
+            current.config = { ...current.config, editor: next };
             markDirty();
             updateSample();
           },
         });
       };
       // Apply new page data (AI rewrite accepted / undone): remount the editor on it.
-      const setPuckData = (data) => {
-        const next = sanitizePuck(data);
+      const setEditorData = (data) => {
+        const next = sanitizeEditorData(data);
         if (!next) return;
         last = JSON.stringify(next);
-        current.config = { ...current.config, puck: next };
+        current.config = { ...current.config, editor: next };
         markDirty();
         updateSample();
         mountEditor(next);
       };
-      box.insertBefore(aiRewritePanel(() => current.config.puck, setPuckData), host);
-      import('../lib/landingPages/puck/mount.jsx').then(({ mountPuckEditor }) => {
-        mountPuckEditorFn = mountPuckEditor;
-        mountEditor(current.config.puck);
+      box.insertBefore(aiRewritePanel(() => current.config.editor, setEditorData), host);
+      import('../lib/landingPages/editor/mount.jsx').then(({ mountPageEditor }) => {
+        mountPageEditorFn = mountPageEditor;
+        mountEditor(current.config.editor);
       }).catch((err) => showToast(err.message || 'Could not load the editor', 'error', 4000));
       return box;
     }
 
     function designTab() {
-      if (current.config.puck) return puckDesignTab();
+      if (current.config.editor) return editorDesignTab();
       const wrap = el('div', 'grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]');
       const form = el('div', 'flex flex-col gap-4');
       const previewBox = el('div', 'rounded-2xl border border-white/10 overflow-hidden bg-black max-h-[80vh] overflow-y-auto');
@@ -543,7 +543,7 @@ export function LandingPagesStudio() {
       };
 
       const tplSel = el('select', INPUT);
-      [['Editable landing pages', TEMPLATES.filter((t) => t.puck)], ['Page structures', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)], ['Older fixed-layout website pages', TEMPLATES.filter((t) => t.site)]].forEach(([label, list]) => {
+      [['Editable landing pages', TEMPLATES.filter((t) => t.editable)], ['Page structures', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.editable)], ['Personal intro', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)], ['Older fixed-layout website pages', TEMPLATES.filter((t) => t.site)]].forEach(([label, list]) => {
         const og = el('optgroup');
         og.label = label;
         list.forEach((t) => { const o = el('option', '', t.name); o.value = t.id; og.appendChild(o); });
@@ -1009,8 +1009,8 @@ export function LandingPagesStudio() {
     }
 
     function draw() {
-      puckHandle?.destroy();
-      puckHandle = null;
+      editorHandle?.destroy();
+      editorHandle = null;
       Object.entries(tabBtns).forEach(([id, b]) => {
         const on = id === tab;
         b.className = `px-4 py-2 text-sm font-bold border-b-2 -mb-px ${on ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-white'}`;

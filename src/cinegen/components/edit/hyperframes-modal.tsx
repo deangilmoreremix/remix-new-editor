@@ -2,23 +2,15 @@
 // search + category filter + cards; the chosen animation is added to the overlay lane at the playhead.
 // Previews run in the editor's sandboxed code-preview frame (never in this page).
 import { useMemo, useState, type CSSProperties } from 'react';
-import { hyperframesItems, searchHyperframes, type HfItem } from '@cinegen/lib/hyperframes/overlay';
+import { hyperframesItems, searchHyperframes, hfGroupOf, HF_GROUPS, type HfItem } from '@cinegen/lib/hyperframes/overlay';
 import { PreviewCard } from './preview-card';
 import { hfPreview } from './add-to-timeline-registry';
 
-/** The catalog has 24 raw categories; the library shows a handful of customer-friendly groups (display only, the catalog data is unchanged). */
-export const GROUPS: Array<[string, string[]]> = [
-  ['Lower thirds', ['lower-third', 'broadcast']],
-  ['Titles & text', ['handwritten', 'typography', 'annotation', 'branding', 'logo']],
-  ['Social & UI', ['social', 'showcase', 'video-primitive']],
-  ['Data & charts', ['data', 'data-viz', 'diagram', 'instrument']],
-  ['Code', ['code']],
-  ['Transitions', ['transition']],
-  ['Backgrounds & effects', ['background', 'snow', 'starfield', 'vfx', 'camcorder', 'motion-primitive', 'placeholder']],
-];
+/** The customer-facing groups live in lib/hyperframes/overlay.ts (shared with the Template Generator); re-exported here for the library panel and tests. */
+export const GROUPS = HF_GROUPS;
 // Items that come from the second vendored library already carry customer-friendly categories; they are shown as they are.
 export const RUI_CATEGORIES = ['Scenes', 'Primitives', 'Compositions', 'Data & media', 'Paths & shapes', 'Motion graphics', 'Maps & device', '3D', 'Shaders'];
-export const groupOf = (i: HfItem): string => (i.type === 'remotionui' ? i.category : (GROUPS.find(([, cats]) => cats.includes(i.category))?.[0] ?? 'More'));
+export const groupOf = hfGroupOf;
 const typeOf = (i: HfItem): string => (i.type === 'remotionui' ? 'block' : (i.type ?? 'block'));
 export { thumbOf } from './add-to-timeline-registry'; // the Library panel imports it from here
 const GLYPH: Record<string, string> = { All: '▦', 'Lower thirds': '▭', 'Titles & text': 'T', 'Social & UI': '◎', 'Data & charts': '▤', Code: '</>', Transitions: '⇄', 'Backgrounds & effects': '▨', Scenes: '▣', Primitives: '◇', Compositions: '▶', 'Data & media': '♪', 'Paths & shapes': '✎', 'Motion graphics': '✺', 'Maps & device': '⌖', '3D': '◈', Shaders: '◐', More: '…' };

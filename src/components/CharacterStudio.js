@@ -92,7 +92,7 @@ export function CharacterStudio() {
   container.appendChild(header);
 
   const formCard = document.createElement('div');
-  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
+  formCard.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.15s';
 
   const modelLabel = document.createElement('label');
@@ -119,7 +119,7 @@ export function CharacterStudio() {
   updateTrigger();
 
   const dropdown = document.createElement('div');
-  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.className = 'fixed z-[200] bg-card-bg border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
   dropdown.style.width = 'calc(100vw - 2rem)';
   dropdown.style.maxWidth = '480px';
   dropdown.style.maxHeight = '70vh';
@@ -500,7 +500,7 @@ const pexelsBtn = document.createElement('button');
        if (result?.url) {
          resultArea.classList.remove('hidden');
          resultArea.innerHTML = `
-           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
+           <div class="bg-card-bg/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
              <img src="${result.url}" class="w-full rounded-xl mb-3">
              <div class="flex gap-3">
                <a href="${result.url}" download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
