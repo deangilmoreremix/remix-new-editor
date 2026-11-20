@@ -188,9 +188,13 @@ export function OverlayLayer({ overlays, profile = null, profileVersion = 0, cur
   // pressing Play starts the In / Idle effects of overlays already on screen (not part of the rebuild above: pausing must not rebuild, or a sticker would jump to its first frame)
   useEffect(() => {
     const started = addonPlaying && !wasPlaying.current;
+    const stopped = !addonPlaying && wasPlaying.current;
     wasPlaying.current = addonPlaying;
     const layer = addonRef.current;
-    if (!started || !layer) return;
+    if (!layer) return;
+    // the CSS effects follow the playhead: frozen on Pause, running again on Play (a one-off preview of a changed effect still plays while paused)
+    if (started || stopped) ([...layer.children] as HTMLElement[]).forEach((c) => { c.style.animationPlayState = stopped ? 'paused' : 'running'; });
+    if (!started) return;
     for (const o of active.filter((x) => isRegistryOverlay(x.type))) {
       const animation = (o.addon as { animation?: { in?: string; idle?: string } } | undefined)?.animation;
       const el = ([...layer.children] as HTMLElement[]).find((c) => c.dataset.clipId === String(o.id));
