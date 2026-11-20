@@ -92,7 +92,7 @@ export function PlacementMonitorSection({ campaignId }: { campaignId: string }) 
         });
 
     const panels = overview.data?.panels ?? [];
-    const panelOptions = (panels.length > 0 ? panels : [{ panel: "instance" as const, available: true, reason: "" }]).map((p) => ({
+    const panelOptions = (panels.length > 0 ? panels.filter((p) => p.panel !== "cloud") : [{ panel: "instance" as const, available: true, reason: "" }]).map((p) => ({
         value: p.panel,
         label: p.available ? PANEL_LABEL[p.panel] : `${PANEL_LABEL[p.panel]} (unavailable)`,
         disabled: !p.available && p.panel !== panel,

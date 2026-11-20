@@ -590,11 +590,7 @@ export default function ContactsTable({
             return;
         }
         confirm?.show(
-            `Research ${selectionCount.toLocaleString()} ${selectionCount === 1 ? "contact" : "contacts"}? ${
-                metered
-                    ? `This costs ${fmtUsdAbout(selectionCount * AI_ESTIMATE_USD.researchRun)} from the workspace balance and runs`
-                    : "This runs"
-            } in the background.`,
+            `Research ${selectionCount.toLocaleString()} ${selectionCount === 1 ? "contact" : "contacts"}? This runs in the background.`,
             async () => {
                 const res = await batchResearch.mutateAsync({ selection, objective: "" });
                 toast.success(`Queued research for ${res.queued.toLocaleString()} contacts`);

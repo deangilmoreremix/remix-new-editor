@@ -87,14 +87,11 @@ const GROUPS: SectionGroup[] = [
             { path: "branding", label: "Branding", icon: PaletteIcon, description: "Your brand and domain on the pages clients see.", permission: "MANAGE_SETTINGS" },
             { path: "inbox-tagging", label: "Inbox tagging", icon: TagsIcon, description: "Label and score inbound mail automatically.", permission: "VIEW_ANALYTICS" },
             { path: "ai-skills", label: "AI skills", icon: SparklesIcon, description: "Playbooks your AI features follow.", permission: "MANAGE_SETTINGS" },
-            { path: "billing", label: "Billing", icon: CreditCardIcon, description: "Plan, balance, invoices.", permission: "MANAGE_BILLING", billingOnly: true },
-            { path: "limits", label: "Limits", icon: GaugeIcon, description: "Ask for a higher cap on mailboxes, contacts, seats or sends.", ownerOnly: true },
         ],
     },
     {
         label: "Developers",
         items: [
-            { path: "mailbox-sign-in", label: "Mailbox sign-in", icon: KeyRoundIcon, description: "Your own Google and Microsoft OAuth apps for mailbox sign-in.", permission: "MANAGE_EMAILS", partnerOnly: true },
             { path: "oauth-apps", label: "OAuth apps", icon: BoxesIcon, description: "Apps that connect via OAuth2, and the apps you've authorized.", permission: "MANAGE_API_KEYS" },
             { path: "webhooks", label: "Webhooks", icon: WebhookIcon, description: "Realtime HTTP callbacks for workspace events.", permission: "MANAGE_SETTINGS" },
             { path: "connections", label: "Connections", icon: PlugIcon, description: "External MCP servers that add tools to the AI.", permission: "MANAGE_SETTINGS" },
@@ -103,7 +100,6 @@ const GROUPS: SectionGroup[] = [
     {
         label: "Advanced",
         items: [
-            { path: "warmbly-cloud", label: "Warmbly Cloud", icon: CloudIcon, description: "Warm your mailboxes in the Warmbly pool.", permission: "MANAGE_SETTINGS", hostedLabel: "Linked instances", hostedDescription: "Self-hosted instances warming in this workspace." },
             { path: "migrate", label: "Migrate from another tool", icon: ArrowRightLeftIcon, description: "Bring mailboxes, campaigns and leads over from Smartlead, Instantly and more.", permission: "MANAGE_CONTACTS" },
             { path: "data", label: "Data", icon: DatabaseIcon, description: "Export this workspace, or import one from another instance.", ownerOnly: true },
             { path: "danger", label: "Danger zone", icon: AlertOctagonIcon, description: "Irreversible actions." },

@@ -120,7 +120,7 @@ export function PanelStrip({ overview }: { overview: PlacementOverview }) {
                 overview.panels.length >= 3 ? "md:grid-cols-3" : overview.panels.length === 2 ? "md:grid-cols-2" : "",
             )}
         >
-            {overview.panels.map((p, i) => {
+            {overview.panels.filter((p) => p.panel !== "cloud").map((p, i) => {
                 const families = p.families ?? [];
                 return (
                     <div

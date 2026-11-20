@@ -240,10 +240,6 @@ function DialogBody({ onClose, prefill }: { onClose: () => void; prefill?: NewPl
                       ? "This panel has no seeds at the providers you chose."
                     : cost.paid > 0 && !cost.payable
                       ? "This month's free tests are used up. Your own seed inboxes are never counted."
-                    : cost.paid > 0 && !cost.canPay
-                      ? `This test costs ${fmtUsdCost(cost.usd)} and the workspace balance is ${fmtUsd(usage?.balance_usd ?? 0)}. Add money under Settings > Billing.`
-                    : cost.paid > 0 && !consented
-                      ? `This month's free tests are used up. Tick the box to pay ${fmtUsdCost(cost.usd)} for this test.`
                     : overQuota
                       ? `This month's tests are used up${compare && usage && usage.limit != null && usage.used < usage.limit ? " (a comparison counts as 2)" : ""}. Your own seed inboxes are never counted.`
                       : null;
@@ -431,39 +427,6 @@ function DialogBody({ onClose, prefill }: { onClose: () => void; prefill?: NewPl
                                     {" "}
                                     Uses {testsNeeded === 1 ? "one" : "two"} of the {freeLeft} free test{freeLeft === 1 ? "" : "s"} left this month.
                                 </>
-                            )}
-                        </div>
-                    )}
-                    {sender && panel?.available && cost.paid > 0 && cost.payable && (
-                        <div className="rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2.5 text-[11.5px] leading-relaxed text-slate-700">
-                            <p>
-                                {cost.paid < testsNeeded
-                                    ? "One free test is left this month, so the second half of this comparison"
-                                    : "This month's free tests are used up, so this test"}{" "}
-                                costs <b className="font-medium text-slate-900">{fmtUsdCost(cost.usd)}</b>, paid from the workspace balance.
-                                {usage?.balance_usd != null && ` The balance is ${fmtUsd(usage.balance_usd)}.`} A test that delivers no copy is refunded.
-                            </p>
-                            {cost.canPay ? (
-                                <label className="mt-2 flex items-center gap-2 cursor-pointer select-none">
-                                    <Checkbox
-                                        tone="slate"
-                                        checked={consented}
-                                        onChange={(e) => patch({ payConsent: e.target.checked ? cost.usd : null })}
-                                    />
-                                    <span className="text-[12px] text-slate-900">Pay {fmtUsdCost(cost.usd)} for this test</span>
-                                </label>
-                            ) : canBuy ? (
-                                <Link
-                                    to="/app/settings/billing/{-$tab}"
-                                    params={{ tab: "balance" }}
-                                    target="_blank"
-                                    rel="noopener"
-                                    className="mt-2 inline-flex text-[12px] font-medium text-sky-700 hover:underline"
-                                >
-                                    Add money in a new tab
-                                </Link>
-                            ) : (
-                                <p className="mt-2 text-[12px] text-slate-600">Ask someone with the Manage billing permission to add money.</p>
                             )}
                         </div>
                     )}

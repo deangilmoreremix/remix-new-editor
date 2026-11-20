@@ -175,60 +175,6 @@ export default function BrandEditor({
                         />
                     )}
 
-                    {poweredBy && (
-                        <Group title="Attribution" description={`Client pages end with "Powered by ${poweredBy.name}" unless your plan lets you remove it.`}>
-                            <div className="flex items-start gap-3">
-                                <div className="min-w-0 flex-1">
-                                    <div className="text-[12.5px] font-medium text-slate-900">Hide "Powered by {poweredBy.name}"</div>
-                                    <p className="mt-0.5 text-[11.5px] leading-snug text-slate-500">
-                                        {entitled
-                                            ? "Connect pages, shared reports, report emails and forms carry only your brand."
-                                            : agencyBilling
-                                              ? "Included with Agency Pro."
-                                              : "Included with Agency Pro and Enterprise."}
-                                    </p>
-                                </div>
-                                <div className="flex shrink-0 items-center gap-2">
-                                    {!entitled && !draft.hide_powered_by && (agencyBilling ? (
-                                        // An agency's plan is chosen on the agency, never from a workspace's plans.
-                                        <Link
-                                            to="/app/agency/billing"
-                                            className="h-6 px-2 rounded-md bg-sky-50 text-sky-700 text-[11.5px] font-medium hover:bg-sky-100 inline-flex items-center gap-1"
-                                        >
-                                            <LockIcon className="w-3 h-3" />
-                                            See Agency Pro
-                                        </Link>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                upgrade.open({
-                                                    feature: "Full white-label",
-                                                    minPlan: "enterprise",
-                                                    blurb: `Remove "Powered by ${poweredBy.name}" from every page your clients see.`,
-                                                })
-                                            }
-                                            className="h-6 px-2 rounded-md bg-sky-50 text-sky-700 text-[11.5px] font-medium hover:bg-sky-100 inline-flex items-center gap-1"
-                                        >
-                                            <LockIcon className="w-3 h-3" />
-                                            Upgrade
-                                        </button>
-                                    ))}
-                                    <Toggle
-                                        value={draft.hide_powered_by}
-                                        onChange={(v) => set({ hide_powered_by: v })}
-                                        disabled={!canWrite || (!entitled && !draft.hide_powered_by)}
-                                        ariaLabel={`Hide "Powered by ${poweredBy.name}"`}
-                                    />
-                                </div>
-                            </div>
-                            {!entitled && draft.hide_powered_by && (
-                                <p className="text-[11.5px] text-amber-700">
-                                    Your current plan does not include this, so client pages still show the attribution.
-                                </p>
-                            )}
-                        </Group>
-                    )}
                 </div>
             </div>
         </div>

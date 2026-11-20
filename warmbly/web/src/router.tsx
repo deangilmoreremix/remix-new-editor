@@ -100,16 +100,12 @@ export const dashboardPages = {
     teams: () => import("./app/app/settings/teams/page"),
     workspace: () => import("./app/app/settings/workspace/page"),
     aiSkills: () => import("./app/app/settings/ai-skills/page"),
-    billing: () => import("./app/app/settings/billing/page"),
-    limits: () => import("./app/app/settings/limits/page"),
     sending: () => import("./app/app/settings/sending/page"),
     tracking: () => import("./app/app/settings/tracking/page"),
     branding: () => import("./app/app/settings/branding/page"),
     inboxTagging: () => import("./app/app/settings/inbox-tagging/page"),
     roles: () => import("./app/app/settings/roles/page"),
-    warmblyCloud: () => import("./app/app/settings/warmbly-cloud/page"),
     oauthApps: () => import("./app/app/settings/oauth-apps/page"),
-    mailboxSignIn: () => import("./app/app/settings/mailbox-sign-in/page"),
     webhooks: () => import("./app/app/settings/webhooks/page"),
     connections: () => import("./app/app/settings/connections/page"),
     data: () => import("./app/app/settings/data/page"),
@@ -121,7 +117,6 @@ export const dashboardPages = {
     agencyMailboxes: () => import("./app/app/agency/mailboxes/page"),
     agencyStaff: () => import("./app/app/agency/staff/page"),
     agencyUsage: () => import("./app/app/agency/usage/page"),
-    agencyBilling: () => import("./app/app/agency/billing/page"),
     agencyBranding: () => import("./app/app/agency/branding/page"),
     agencyAPIKeys: () => import("./app/app/agency/api-keys/page"),
     agencyMigrate: () => import("./app/app/agency/migrate/page"),
@@ -218,7 +213,6 @@ const standalone = <TPath extends string>(path: TPath, load: () => Promise<{ def
 
 const selectOrgRoute = standalone("select-org", () => import("./app/select-org/page"), "Select workspace");
 const inviteRoute = standalone("invite", () => import("./app/invite/page"), "Join workspace");
-const connectRoute = standalone("connect", () => import("./app/connect/page"), "Connect");
 // Where `warmbly auth login` sends the browser to approve its code.
 const cliRoute = standalone("cli", () => import("./app/cli/page"), "Authorize CLI");
 // Where a "confirm it is you" provider window reports back to the dashboard tab.
@@ -370,24 +364,18 @@ const settingsChildren = [
     dash(settingsRoute, "teams", dashboardPages.teams, "Teams", loaders.teamsLoader),
     dash(settingsRoute, "workspace", dashboardPages.workspace, "Workspace"),
     dash(settingsRoute, "ai-skills", dashboardPages.aiSkills, "AI skills"),
-    dash(settingsRoute, "billing/{-$tab}", dashboardPages.billing, "Billing", loaders.billingLoader),
-    dash(settingsRoute, "limits", dashboardPages.limits, "Plan & limits"),
     dash(settingsRoute, "sending", dashboardPages.sending, "Sending"),
     dash(settingsRoute, "tracking", dashboardPages.tracking, "Website tracking"),
     dash(settingsRoute, "branding", dashboardPages.branding, "Branding", loaders.brandingLoader),
     dash(settingsRoute, "inbox-tagging", dashboardPages.inboxTagging, "Automatic inbox tagging"),
     dash(settingsRoute, "roles", dashboardPages.roles, "Roles", loaders.rolesLoader),
-    dash(settingsRoute, "warmbly-cloud", dashboardPages.warmblyCloud, "Warmbly Cloud"),
     dash(settingsRoute, "oauth-apps", dashboardPages.oauthApps, "OAuth apps"),
-    dash(settingsRoute, "mailbox-sign-in", dashboardPages.mailboxSignIn, "Mailbox sign-in", loaders.mailboxSignInLoader),
     dash(settingsRoute, "webhooks", dashboardPages.webhooks, "Webhooks", loaders.webhooksLoader),
     dash(settingsRoute, "connections", dashboardPages.connections, "Connections"),
     dash(settingsRoute, "data", dashboardPages.data, "Data"),
     dash(settingsRoute, "migrate", dashboardPages.migrate, "Migrate from another tool", loaders.migrateLoader),
     dash(settingsRoute, "danger", dashboardPages.danger, "Danger zone"),
 ] as const;
-// Legacy /app/billing entry points.
-const billingLegacy = forward(appRoute, "billing", "/app/settings/billing");
 
 // Agency: its own view, outside any one workspace (AgencyShell).
 const agencyRoute = createRoute({ getParentRoute: () => appRoute, path: "agency" });
@@ -397,7 +385,6 @@ const agencyChildren = [
     dash(agencyRoute, "clients", dashboardPages.agencyClients, "Agency clients", loaders.agencyClientsLoader),
     dash(agencyRoute, "mailboxes", dashboardPages.agencyMailboxes, "Agency mailboxes", loaders.agencyMailboxesLoader),
     dash(agencyRoute, "usage", dashboardPages.agencyUsage, "Agency usage", loaders.agencyUsageLoader),
-    dash(agencyRoute, "billing", dashboardPages.agencyBilling, "Agency billing", loaders.agencyBillingLoader),
     dash(agencyRoute, "staff", dashboardPages.agencyStaff, "Agency staff", loaders.agencyStaffLoader),
     dash(agencyRoute, "branding", dashboardPages.agencyBranding, "Agency branding", loaders.agencyBrandingLoader),
     dash(agencyRoute, "api-keys", dashboardPages.agencyAPIKeys, "Agency API keys", loaders.agencyAPIKeysLoader),
@@ -410,7 +397,6 @@ const agencySettingsChildren = [
     forward(agencySettingsRoute, "clients", "/app/agency/clients", true),
     forward(agencySettingsRoute, "staff", "/app/agency/staff", true),
     forward(agencySettingsRoute, "usage", "/app/agency/usage", true),
-    forward(agencySettingsRoute, "billing", "/app/agency/billing", true),
     forward(agencySettingsRoute, "branding", "/app/agency/branding", true),
 ] as const;
 
@@ -431,7 +417,6 @@ const routeTree = rootRoute.addChildren([
     onboardingRoute.addChildren([onboardingIndex]),
     selectOrgRoute,
     inviteRoute,
-    connectRoute,
     slackLinkRoute,
     cliRoute,
     cloudOAuthDoneRoute,
@@ -477,7 +462,6 @@ const routeTree = rootRoute.addChildren([
         appSlackLinkRoute,
         slackRoute,
         settingsRoute.addChildren(settingsChildren),
-        billingLegacy,
         agencyRoute.addChildren([...agencyChildren, agencySettingsRoute.addChildren(agencySettingsChildren)]),
         uniboxRoute,
         teamLegacy,

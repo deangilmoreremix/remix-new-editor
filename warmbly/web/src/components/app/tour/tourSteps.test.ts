@@ -2,9 +2,8 @@ import { describe, expect, it } from "vitest";
 import { TOUR_CHAPTERS, TOUR_SLIDES } from "./tourSteps";
 
 describe("tour slides", () => {
-    it("opens on the welcome and ends on the plans", () => {
+    it("opens on the welcome", () => {
         expect(TOUR_SLIDES[0].scene).toBe("welcome");
-        expect(TOUR_SLIDES[TOUR_SLIDES.length - 1].scene).toBe("plans");
     });
 
     it("points sidebar slides at dashboard routes", () => {
@@ -24,7 +23,7 @@ describe("tour slides", () => {
         for (const slide of TOUR_SLIDES) expect(TOUR_CHAPTERS[slide.ci].slides[slide.si].id).toBe(slide.id);
     });
 
-    it("ends on the three plan slides", () => {
-        expect(TOUR_SLIDES.filter((s) => s.chapter.id === "plans").map((s) => s.scene)).toEqual(["planIncluded", "planCompare", "plans"]);
+    it("has no plan slides", () => {
+        expect(TOUR_SLIDES.filter((s) => s.chapter.id === "plans")).toEqual([]);
     });
 });

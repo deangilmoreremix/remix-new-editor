@@ -104,7 +104,6 @@ import { utcDay, utcToday } from "@/lib/campaignPeriod";
 import SyncStatusCard from "./SyncStatusCard";
 import SendPauseNotice from "./SendPauseNotice";
 import ServerCertificatesCard from "./ServerCertificatesCard";
-import CloudWarmupCard from "./CloudWarmupCard";
 import WarmupFilterTagField from "./WarmupFilterTagField";
 import WarmupPartnerDiversity from "./WarmupPartnerDiversity";
 import useCloudPool from "@/hooks/useCloudPool";
@@ -1406,7 +1405,6 @@ function WarmupTab({ form, update, status, mailbox, canWarmup = true, warmup }: 
             {/* Ban banner + appeal — only when the mailbox is blocked from the pool */}
             <WarmupBanBanner emailId={mailbox.id} />
 
-            <CloudWarmupCard mailboxId={mailbox.id} email={mailbox.email} provider={mailbox.provider} status={mailbox.status} />
 
             {/* Lifecycle control: only once Cloud ownership is known, so a missing report never offers a local action. */}
             {!inCloud && warmup.source === "local" && (

@@ -104,8 +104,6 @@ export default function AgencyHome() {
                 return navigate({ to: "/app/agency/usage" });
             case "client_cap_near":
                 return navigate({ to: "/app/agency/clients" });
-            case "campaigns_paused_billing":
-                return navigate({ to: "/app/agency/billing" });
         }
         if (!a.organization_id) return;
         const then = (nav: Nav) => {

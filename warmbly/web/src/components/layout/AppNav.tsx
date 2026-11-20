@@ -42,8 +42,6 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useAppStore } from "@/stores";
 import useFeatureAccess from "@/hooks/useFeatureAccess";
 import { orgHasPermission, useAccessRestricted, usePermission, type PermissionKey } from "@/hooks/usePermission";
-import { useUpgradeDialog } from "@/hooks/context/upgrade";
-import { PLAN_ACCENT_CLASSES, getPlan, type PlanID } from "@/lib/plans";
 import AccessLockedDialog from "./AccessLockedDialog";
 import useCampaigns from "@/lib/api/hooks/app/campaigns/useCampaigns";
 import useEmails from "@/lib/api/hooks/app/emails/useEmails";
@@ -132,18 +130,6 @@ interface NavItem {
         | "apikeys"
         | "integrations";
 }
-
-// Minimum plan behind each sidebar gate. The badge label and colour come
-// from lib/plans so the marketing site, header pill, sidebar badge and the
-// upgrade dialog all agree on "what does Starter look like".
-//
-//   inbox / subscription → Starter (any paid tier)
-//   advanced             → Business (15k/day + isolated sending tier)
-const REQUIRES_TO_MIN_PLAN: Record<NonNullable<NavItem["requires"]>, PlanID> = {
-    inbox: "starter",
-    subscription: "starter",
-    advanced: "business",
-};
 
 interface NavSection {
     /** Stable key for the persisted fold state, so renaming a label keeps it. */
@@ -268,7 +254,6 @@ function NavRow({ item, collapsed = false }: { item: NavItem; collapsed?: boolea
     const hasItemPermission = usePermission(item.permission ?? "VIEW_CAMPAIGNS");
     const restricted = useAccessRestricted();
     const [deniedOpen, setDeniedOpen] = useState(false);
-    const upgradeDialog = useUpgradeDialog();
     const active = isNavItemActive(pathname, item);
     const badge = item.badgeStoreKey === "unseenCount" ? unseen : undefined;
 
@@ -323,44 +308,6 @@ function NavRow({ item, collapsed = false }: { item: NavItem; collapsed?: boolea
         (item.requires === "advanced" && !access.hasAdvanced) ||
         (item.requires === "subscription" && access.locked && !(item.partnerOpen && access.partnership));
 
-    const minPlan = locked && item.requires ? REQUIRES_TO_MIN_PLAN[item.requires] : null;
-    const planBadge = minPlan
-        ? { label: getPlan(minPlan).label, classes: PLAN_ACCENT_CLASSES[getPlan(minPlan).accent].pill }
-        : null;
-
-    // Plan-gated items the org's plan doesn't include: lock the row and open
-    // the full-screen upgrade dialog on click (plans, interval, one-click
-    // checkout), instead of routing to a teasing empty page.
-    if (locked && minPlan && planBadge) {
-        return (
-            <NavTip collapsed={collapsed} label={`${item.title} · ${planBadge.label} plan`}>
-            <button
-                data-tour={item.url}
-                type="button"
-                onClick={() => upgradeDialog.open({ feature: item.title, minPlan })}
-                className={cn(
-                    rowClass(collapsed),
-                    "text-slate-400 hover:text-slate-700 hover:bg-slate-200/40",
-                )}
-            >
-                <LockIcon className="w-[13px] h-[13px] shrink-0 text-slate-300 group-hover:text-slate-500" strokeWidth={1.8} />
-                <span className={labelFade(collapsed)}>
-                    <span className="truncate flex-1 min-w-0 text-left">{item.title}</span>
-                    <span
-                        className={cn(
-                            "h-4 px-1.5 rounded text-[9.5px] font-semibold uppercase tracking-[0.06em] border inline-flex items-center",
-                            planBadge.classes,
-                        )}
-                    >
-                        {planBadge.label}
-                        {collapsed && <span className="sr-only"> plan</span>}
-                    </span>
-                </span>
-            </button>
-            </NavTip>
-        );
-    }
-
     const icon = (
         <item.icon
             className={cn(
@@ -384,7 +331,6 @@ function NavRow({ item, collapsed = false }: { item: NavItem; collapsed?: boolea
                 data-tour={item.url}
                 to={item.url}
                 aria-current={active ? "page" : undefined}
-                title={!collapsed && planBadge ? `${item.title} · ${planBadge.label} plan` : undefined}
                 className={cn(
                     rowClass(collapsed),
                     active
@@ -413,21 +359,10 @@ function NavRow({ item, collapsed = false }: { item: NavItem; collapsed?: boolea
                     {item.indicator === "analytics" && !locked && <AnalyticsActivity />}
                     {item.indicator === "apikeys" && !locked && <ApiKeysActivity />}
                     {item.indicator === "integrations" && !locked && <IntegrationsActivity />}
-                    {planBadge ? (
-                        <span
-                            className={cn(
-                                "h-4 px-1.5 rounded text-[9.5px] font-semibold uppercase tracking-[0.06em] border inline-flex items-center",
-                                planBadge.classes,
-                            )}
-                        >
-                            {planBadge.label}
-                        </span>
-                    ) : (
-                        !collapsed && badge != null && badge > 0 && (
+                    {!collapsed && badge != null && badge > 0 && (
                             <span className="text-[10px] font-medium bg-red-500 text-white rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 tabular-nums">
                                 {badge > 99 ? "99+" : badge}
                             </span>
-                        )
                     )}
                 </span>
                 {collapsed && item.advisorSurface && !locked && (

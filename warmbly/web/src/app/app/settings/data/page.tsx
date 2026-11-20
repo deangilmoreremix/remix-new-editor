@@ -62,7 +62,7 @@ export default function DataSettingsPage() {
                 }
             >
                 <ExportPanel
-                    groups={groups.data?.groups ?? []}
+                    groups={(groups.data?.groups ?? []).filter((g) => g.key !== "billing")}
                     minPassphrase={groups.data?.min_passphrase ?? 12}
                     loading={groups.isLoading}
                     onStarted={() => toast.success("Export started. It keeps running if you leave this page.")}
@@ -91,7 +91,7 @@ export default function DataSettingsPage() {
                 }
             >
                 <ImportPanel
-                    groups={groups.data?.groups ?? []}
+                    groups={(groups.data?.groups ?? []).filter((g) => g.key !== "billing")}
                     onStarted={() => toast.success("Import started. It keeps running if you leave this page.")}
                 />
             </Section>

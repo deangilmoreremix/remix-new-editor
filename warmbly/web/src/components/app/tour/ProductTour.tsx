@@ -15,11 +15,8 @@ import useFeatureAccess from "@/hooks/useFeatureAccess";
 import useUpgradeFlow from "@/hooks/useUpgradeFlow";
 import useCompleteProductTour from "@/lib/api/hooks/auth/useCompleteProductTour";
 import { usePermission } from "@/hooks/usePermission";
-import { useUpgradeDialog } from "@/hooks/context/upgrade";
 import { useUserProfile } from "@/hooks/context/user";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getPlan, type PlanID } from "@/lib/plans";
-import type { BillingInterval } from "@/lib/pricing";
 import { capture } from "@/lib/productAnalytics";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores";
@@ -27,16 +24,15 @@ import TourStage from "./TourStage";
 import TourScene from "./scenes";
 import { EASE } from "./sceneTokens";
 import { RemieCard, SlideCopy } from "./TourCopy";
-import { CloudCallout, PlanChoose, PlanCompare, PlanIncluded } from "./PlanSlides";
 import { TOUR_SLIDES, type FlatSlide } from "./tourSteps";
 import { SHOTS } from "./tourShots";
-import { PRIMARY, SECONDARY, billingPreview, hostedPlanURL } from "./tourUi";
+import { PRIMARY, SECONDARY } from "./tourUi";
 
 const CLOSE =
     "h-7 pl-2 pr-2.5 rounded-full inline-flex items-center gap-1 bg-white/85 text-[12px] text-slate-500 ring-1 ring-slate-900/[0.06] backdrop-blur-sm transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400";
 
 type Rect = { x: number; y: number; w: number; h: number };
-type Outcome = "completed" | "skipped" | "ask_remie" | "open_remie" | "connect_slack" | "choose_plan" | "add_mailbox" | "link_cloud";
+type Outcome = "completed" | "skipped" | "ask_remie" | "open_remie" | "connect_slack" | "add_mailbox";
 
 // The element a slide points at, when it is actually on screen: a sidebar row
 // inside the closed mobile drawer, or in a folded section, has no box worth lighting.
@@ -64,15 +60,7 @@ export default function ProductTour() {
     const setOpen = useAppStore((s) => s.setProductTourOpen);
     const firstName = useAppStore((s) => s.user?.first_name ?? "");
     const real = useFeatureAccess();
-    const preview = useMemo(billingPreview, []);
-    const access =
-        preview === "free"
-            ? { ...real, billing: true, paid: false, warmupOnly: false, partnership: false, locked: true, isOwner: true }
-            : preview === "paid"
-              ? { ...real, billing: true, paid: true, warmupOnly: false, partnership: false, locked: false, isOwner: true, plan: "grow" as const }
-              : real;
-    const upgrade = useUpgradeDialog();
-    const flow = useUpgradeFlow();
+    const access = real;
     const markDone = useCompleteProductTour().mutate;
     const profile = useUserProfile();
     const canAI = usePermission("USE_AI");
@@ -85,12 +73,7 @@ export default function ProductTour() {
 
     const [index, setIndex] = useState(0);
     const [dir, setDir] = useState(1);
-    const [billingInterval, setBillingInterval] = useState<BillingInterval>("annual");
-    // Set once a skip has been turned into a last look at the plans.
-    const [jumped, setJumped] = useState(false);
     const slides = TOUR_SLIDES;
-    // An instance without billing has every feature on; its plans are the hosted ones on warmbly.com.
-    const selfHost = !access.billing;
     const slide = slides[Math.min(index, slides.length - 1)];
     const last = index >= slides.length - 1;
 
@@ -127,10 +110,10 @@ export default function ProductTour() {
             done.current = true;
             markDone();
             setOpen(false);
-            capture("product_tour_finished", { outcome, step: `${slide.chapter.id}.${slide.id}`, index, skipped_to_plans: jumped });
+            capture("product_tour_finished", { outcome, step: `${slide.chapter.id}.${slide.id}`, index });
             if (outcome === "skipped") toast("You can replay the tour any time from your profile menu.");
         },
-        [setOpen, slide, index, jumped, markDone],
+        [setOpen, slide, index, markDone],
     );
 
     const go = useCallback(
@@ -142,15 +125,7 @@ export default function ProductTour() {
         [index, slides.length],
     );
 
-    // Skipping early still ends on the plans, once.
-    const skip = useCallback(() => {
-        if (!jumped && slide.chapter.id !== "plans") {
-            setJumped(true);
-            go(slides.length - 1);
-            return;
-        }
-        finish(last && !jumped ? "completed" : "skipped");
-    }, [jumped, slide.chapter.id, go, slides.length, finish, last]);
+    const skip = useCallback(() => finish(last ? "completed" : "skipped"), [finish, last]);
 
     // Fetch every screenshot up front, so no slide opens on a blank window.
     useEffect(() => {
@@ -220,37 +195,6 @@ export default function ProductTour() {
 
     const where = !rect || !slide.label ? null : slide.anchor === "remie" ? "In the top bar" : isMobile ? "In the menu" : "In the sidebar";
 
-    // Only the owner changes the plan; the cards carry the choice, so the footer only defers it.
-    const canChoose = !selfHost && access.isOwner;
-    const planName = selfHost ? null : access.warmupOnly ? getPlan(access.plan).label : productPaid ? getPlan(access.plan).label : null;
-    const heading = selfHost
-        ? {
-              lead: jumped ? "Before you go." : "Hosted plans.",
-              title: "Rather we ran it for you?",
-              body: "Every feature in this tour is already on here, on your own server. A plan on warmbly.com is the same product, hosted, updated and backed up for you.",
-          }
-        : !planName
-        ? { lead: jumped ? "Before you go." : undefined }
-        : {
-              lead: jumped ? "Before you go." : "Your plan.",
-              title: `You're on ${planName}.`,
-              body: productPaid
-                  ? "Everything in this tour is already on for your workspace. Need more sending or AI usage? Change plan any time, and the difference is prorated."
-                  : "Your mailboxes warm in the premium pool. Choose a plan to start sending and to turn on the inbox, the CRM, automations and Remie.",
-          };
-    const choosePlan = async (id: PlanID) => {
-        if (preview) {
-            toast(`Preview: this would open checkout for ${id}.`);
-            return;
-        }
-        if (id === "enterprise") {
-            act("choose_plan", () => upgrade.open({ feature: "Enterprise", title: "Choose a plan", minPlan: "enterprise" }));
-            return;
-        }
-        const outcome = await flow.upgrade(id, { interval: billingInterval, returnTo: window.location.pathname + window.location.search });
-        if (outcome === "redirect" || outcome === "changed" || outcome === "portal") finish("choose_plan");
-        else if (outcome === "contact") act("choose_plan", () => upgrade.open({ feature: "Enterprise", title: "Choose a plan", minPlan: "enterprise" }));
-    };
     const mailboxAction = canMailboxes
         ? { label: "Connect a mailbox", outcome: "add_mailbox" as Outcome, run: () => profile.setAddEmail(true) }
         : null;
@@ -265,8 +209,6 @@ export default function ProductTour() {
     if (!last) {
         const label = index === 0 ? "Show me around" : next.si === 0 && !stack ? `Next: ${next.chapter.name}` : "Next";
         primary = { label, onClick: () => go(index + 1), icon: true };
-    } else if (canChoose && !productPaid) {
-        primary = { label: "Maybe later", onClick: () => finish(jumped ? "skipped" : "completed"), quiet: true };
     } else if (mailboxAction) {
         primary = { label: mailboxAction.label, onClick: () => act(mailboxAction.outcome, mailboxAction.run) };
     } else {
@@ -274,9 +216,7 @@ export default function ProductTour() {
     }
     const secondary: { label: string; onClick: () => void } | null = !last
         ? null
-        : canChoose && !productPaid && mailboxAction
-          ? { label: "Connect a mailbox first", onClick: () => act(mailboxAction.outcome, mailboxAction.run) }
-          : primary.label !== "Finish"
+        : primary.label !== "Finish"
             ? { label: "Done", onClick: () => finish("completed") }
             : null;
 
@@ -287,8 +227,6 @@ export default function ProductTour() {
             : undefined;
 
     const onAsk = (prompt: string) => act("ask_remie", () => askRemie(prompt));
-    const current = !selfHost && access.paid ? (access.warmupOnly ? "warmup" : access.plan) : null;
-    const panel = { slide, titleId };
     const remieCard = slide.remie || slide.ask ? <RemieCard slide={slide} canAsk={canAsk} onAsk={onAsk} /> : undefined;
 
     // A horizontal swipe on a touch screen moves between slides, as the arrow keys do.
@@ -382,47 +320,7 @@ export default function ProductTour() {
                                     exit={{ opacity: 0, x: -dir * slideBy }}
                                     transition={{ duration: reduced ? 0 : 0.38, ease: EASE }}
                                 >
-                                    {slide.scene === "planIncluded" ? (
-                                        <PlanIncluded {...panel} remie={remieCard} />
-                                    ) : slide.scene === "planCompare" ? (
-                                        <PlanCompare {...panel} remie={remieCard} interval={billingInterval} onInterval={setBillingInterval} current={current} />
-                                    ) : slide.scene === "plans" ? (
-                                        selfHost ? (
-                                            <PlanChoose
-                                                {...panel}
-                                                {...heading}
-                                                interval={billingInterval}
-                                                onInterval={setBillingInterval}
-                                                current={null}
-                                                pending={null}
-                                                ownerOnly={false}
-                                                hrefFor={hostedPlanURL}
-                                                onOpen={(id) => capture("product_tour_hosted_plan", { plan: id })}
-                                            >
-                                                <CloudCallout />
-                                            </PlanChoose>
-                                        ) : (
-                                            <PlanChoose
-                                                {...panel}
-                                                {...heading}
-                                                interval={billingInterval}
-                                                onInterval={setBillingInterval}
-                                                current={current}
-                                                onChoose={canChoose ? (id) => void choosePlan(id) : undefined}
-                                                pending={flow.pending}
-                                                ownerOnly={!access.isOwner}
-                                                note={
-                                                    access.paid
-                                                        ? undefined
-                                                        : access.trial
-                                                        ? "Your trial warms up to 2 mailboxes in the free pool and sends 20 a day. Every paid plan warms them in the premium pool."
-                                                        : access.keptFreeWarmup
-                                                        ? "Only warming for now? Your free plan keeps up to 10 mailboxes warming. Every paid plan puts them in the premium pool."
-                                                        : "Mailboxes and warmup start with a plan. Every paid plan warms them in the premium pool."
-                                                }
-                                            />
-                                        )
-                                    ) : (
+                                    {(
                                         <>
                                             <div className={cn(stack ? "h-[clamp(170px,36dvh,300px)] shrink-0" : "min-h-0 flex-1 p-3 pb-0")}>
                                                 <TourStage className={cn(!stack && "rounded-[10px]")}>

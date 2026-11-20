@@ -5,7 +5,6 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
-import MailboxAllowanceDialog from "@/components/app/emails/MailboxAllowanceDialog";
 import useMailboxAllowance from "@/lib/api/hooks/app/emails/useMailboxAllowance";
 import { allowanceFull } from "@/lib/api/models/app/emails/MailboxAllowance";
 import useFeatureAccess from "@/hooks/useFeatureAccess";
@@ -114,13 +113,6 @@ export default function ImportDialogShell({
                         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">{children(ctx)}</div>
                     </motion.div>
                     <div onMouseDown={(e) => e.stopPropagation()}>
-                        <MailboxAllowanceDialog
-                            open={allowanceOpen}
-                            onClose={() => setAllowanceOpen(false)}
-                            allowance={allowance.data}
-                            reached={allowanceFull(allowance.data)}
-                            currentPlan={access.plan}
-                        />
                     </div>
                 </motion.div>
             )}

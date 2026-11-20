@@ -80,13 +80,6 @@ export const NOTIFICATION_CATEGORY_GROUPS: { id: string; label: string; categori
         ],
     },
     {
-        id: "billing",
-        label: "Billing",
-        categories: [
-            { key: "billing_alert", label: "Trial and billing alerts", hint: "Your trial is about to expire or your workspace was paused. Goes to members who manage billing." },
-        ],
-    },
-    {
         id: "team",
         label: "Team",
         categories: [

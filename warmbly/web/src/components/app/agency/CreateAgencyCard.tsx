@@ -35,9 +35,7 @@ export function CreateAgencyCard({ onCreated }: { onCreated?: () => void }) {
             <div className="text-[10px] uppercase tracking-[0.14em] text-slate-400 font-medium">Agency</div>
             <h1 className="mt-1.5 text-[20px] font-semibold text-slate-900 tracking-tight">Run outreach for your clients</h1>
             <p className="mt-2 text-[12.5px] text-slate-500 leading-relaxed">
-                An agency keeps every client in its own workspace, under one plan. Clients share one monthly send pool, so
-                a quiet week for one client is volume another can use. There is no per-client fee, and your staff get access
-                to every client automatically.
+                An agency keeps every client in its own workspace, and your staff get access to every client automatically.
             </p>
             <form
                 className="mt-6 space-y-3"

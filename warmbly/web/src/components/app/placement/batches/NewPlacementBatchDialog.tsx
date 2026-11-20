@@ -368,11 +368,7 @@ function DialogBody({ onClose, prefill }: { onClose: () => void; prefill?: NewPl
             tooLarge(fp) ??
             (fp.paid_tests > 0 && fp.usage.price_per_test_usd === 0
                 ? `This month's free tests cover ${n(fp.free_tests)} of the ${n(fp.tests)} tests, and tests past them cannot be paid for. Take a smaller sample, or use your own seed inboxes.`
-                : fp.paid_tests > 0 && !canPay
-                  ? `The paid tests cost up to ${fmtUsdCost(fp.cost_usd)} and the workspace balance is ${fmtUsd(fp.usage.balance_usd ?? 0)}. Add money under Settings > Billing, or take a smaller sample.`
-                  : fp.paid_tests > 0 && !consented
-                    ? `Tick the box to pay up to ${fmtUsdCost(fp.cost_usd)} for this batch.`
-                    : null));
+                : null));
 
     const issueOf = React.useCallback(
         (key: StepKey) => (key === "senders" ? sendersIssue : key === "email" ? emailIssue : reviewIssue),
@@ -1262,40 +1258,6 @@ function ReviewStep({
             ) : (
                 <div className={cn("space-y-3 transition-opacity", loading && "opacity-60")}>
                     <Workload preview={p} spacingSeconds={spacingSeconds} />
-                    {p.metered && p.paid_tests > 0 && (
-                        <div className="rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2.5 text-[11.5px] leading-relaxed text-slate-700">
-                            <p>
-                                {p.free_tests > 0
-                                    ? `This month's free tests cover ${n(p.free_tests)} of the ${n(p.tests)} tests. The other ${n(p.paid_tests)}`
-                                    : `This month's free tests are used up, so all ${n(p.paid_tests)} tests`}{" "}
-                                cost up to <b className="font-medium text-slate-900">{fmtUsdCost(p.cost_usd)}</b>
-                                {p.usage.price_per_test_usd > 0 && ` (${fmtUsdCost(p.usage.price_per_test_usd)} each)`}, paid from the workspace balance.
-                                {p.usage.balance_usd != null && ` The balance is ${fmtUsd(p.usage.balance_usd)}.`} A test that delivers no copy is refunded.
-                            </p>
-                            {p.usage.price_per_test_usd === 0 ? null : canPay ? (
-                                <label className="mt-2 flex items-center gap-2 cursor-pointer select-none">
-                                    <Checkbox
-                                        tone="slate"
-                                        checked={consented}
-                                        onChange={(e) => patch({ payConsent: e.target.checked ? p.cost_usd : null })}
-                                    />
-                                    <span className="text-[12px] text-slate-900">Pay up to {fmtUsdCost(p.cost_usd)} for this batch</span>
-                                </label>
-                            ) : canBuy ? (
-                                <Link
-                                    to="/app/settings/billing/{-$tab}"
-                                    params={{ tab: "balance" }}
-                                    target="_blank"
-                                    rel="noopener"
-                                    className="mt-2 inline-flex text-[12px] font-medium text-sky-700 hover:underline"
-                                >
-                                    Add money in a new tab
-                                </Link>
-                            ) : (
-                                <p className="mt-2 text-[12px] text-slate-600">Ask someone with the Manage billing permission to add money.</p>
-                            )}
-                        </div>
-                    )}
                     {p.inactive > 0 && (
                         <p className="flex items-start gap-1.5 text-[11.5px] leading-snug text-amber-700">
                             <AlertTriangleIcon className="w-3.5 h-3.5 shrink-0 mt-px" />

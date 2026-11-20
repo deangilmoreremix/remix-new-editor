@@ -95,7 +95,7 @@ export default function PermissionDeniedModal() {
                         </div>
                         <h3 className="text-[14px] font-semibold text-slate-900">
                             {isPlan
-                                ? "Upgrade required"
+                                ? "You do not have access to this"
                                 : isMFA
                                   ? "Two-factor authentication required"
                                   : (standing ?? "You don't have permission")}
@@ -114,16 +114,6 @@ export default function PermissionDeniedModal() {
                             )}
                         </p>
                         <div className="mt-4 flex items-center justify-center gap-2">
-                            {isPlan && (
-                                <Link
-                                    to="/app/settings/billing/{-$tab}"
-                                    params={{ tab: undefined }}
-                                    onClick={close}
-                                    className="inline-flex items-center h-8 px-3 rounded-md bg-violet-600 hover:bg-violet-700 text-white text-[12.5px] font-medium transition-colors"
-                                >
-                                    View plans
-                                </Link>
-                            )}
                             {isMFA && (
                                 <Link
                                     to="/app/settings/security"

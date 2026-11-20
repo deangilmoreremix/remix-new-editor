@@ -25,7 +25,6 @@ const GROUP_DESCRIPTIONS: Record<string, string> = {
     inbound: "Get notified about replies on a campaign you're running. Off by default to keep high-volume sends quiet.",
     health: "Deliverability + infrastructure alerts. Recommended on.",
     security: "Account access alerts.",
-    billing: "Trial and billing alerts.",
     team: "Activity from your teammates.",
 };
 

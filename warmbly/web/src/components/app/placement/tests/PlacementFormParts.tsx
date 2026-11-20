@@ -221,7 +221,7 @@ export function PanelChoice({
     if (loading) return <div className="h-16 rounded-md bg-slate-50 animate-pulse" />;
     return (
         <div role="radiogroup" aria-label="Seed panel" className="grid gap-1.5">
-            {panels.map((p) => {
+            {panels.filter((p) => p.panel !== "cloud").map((p) => {
                 const active = p.panel === value;
                 return (
                     <button

@@ -51,7 +51,6 @@ export function PoolMeter({ usage }: { usage: AgencyUsage }) {
             </div>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500 tabular-nums">
                 <span>Plan: {formatNumber(usage.pool_size)}</span>
-                {usage.topups > 0 && <span>Top-ups: {formatNumber(usage.topups)}</span>}
                 <span className={over ? "text-amber-700" : undefined}>
                     At this pace: {formatNumber(usage.projected)} by the period's end
                     {over ? ", more than the pool" : ""}

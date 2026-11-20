@@ -25,10 +25,7 @@ export type SceneId =
     | "remieAsk"
     | "remieAct"
     | "slackAsk"
-    | "slackInbox"
-    | "planIncluded"
-    | "planCompare"
-    | "plans";
+    | "slackInbox";
 
 export interface TourSlide {
     id: string;
@@ -431,40 +428,6 @@ export const TOUR_CHAPTERS: TourChapter[] = [
             },
         ],
     },
-    {
-        id: "plans",
-        name: "Plans",
-        slides: [
-            {
-                id: "included",
-                scene: "planIncluded",
-                lead: "Plans.",
-                title: "The whole product, on every plan.",
-                body: "Everything this tour just showed you comes with every paid plan, Starter included. Plans differ in how much you send each day and how much AI usage is included, not in which parts of Warmbly you can use.",
-                points: [],
-                remie: "I come with every plan too. The plan only decides how much AI usage is included each month.",
-                ask: "Which plan fits sending 1,000 emails a day?",
-            },
-            {
-                id: "compare",
-                scene: "planCompare",
-                lead: "Compare.",
-                title: "What changes as you grow.",
-                body: "Each plan sends more mail and includes more AI usage. Business and Enterprise also keep your sending apart from other customers.",
-                points: [],
-                remie: "Tell me how many mailboxes you have and how much you want to send, and I'll size the plan for you.",
-                ask: "Which plan fits my mailboxes and how much I want to send?",
-            },
-            {
-                id: "choose",
-                scene: "plans",
-                lead: "Last thing.",
-                title: "Pick the plan that fits.",
-                body: "Choose monthly or yearly. You can switch plans any time, and the change takes effect straight away.",
-                points: [],
-            },
-        ],
-    },
 ];
 
 export interface FlatSlide extends TourSlide {
@@ -474,5 +437,5 @@ export interface FlatSlide extends TourSlide {
     si: number;
 }
 
-/** The tour in order, the same on every instance: it always ends on the plans. */
+/** The tour in order, the same on every instance. */
 export const TOUR_SLIDES: FlatSlide[] = TOUR_CHAPTERS.flatMap((chapter, ci) => chapter.slides.map((slide, si) => ({ ...slide, chapter, ci, si })));

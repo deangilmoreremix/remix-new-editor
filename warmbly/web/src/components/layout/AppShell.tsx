@@ -17,17 +17,14 @@
 
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "@tanstack/react-router";
-import SubscriptionGate from "./SubscriptionGate";
 import { SkyChrome } from "./SkyChrome";
 import { AppHeader } from "./AppHeader";
 import { AppNav } from "./AppNav";
 import PendingDeletionBar from "./PendingDeletionBar";
 import SendingRestrictedBar from "./SendingRestrictedBar";
 import ClientViewBar from "./ClientViewBar";
-import TrialBar from "./TrialBar";
 import { useClientBrand } from "@/hooks/useClientBrand";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
-import BalanceBanner from "@/components/app/billing/BalanceBanner";
 import { RouteBoundary } from "./ErrorBoundary";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { GlobalCursorsProvider } from "@/components/app/presence/GlobalCursors";
@@ -81,8 +78,6 @@ export function AppShell() {
                 <ClientViewBar />
                 <SendingRestrictedBar />
                 <PendingDeletionBar />
-                {!clientBrand && <TrialBar />}
-                {!clientBrand && <BalanceBanner />}
 
                 <AppHeader onMenu={() => setNavOpen(true)} />
 
@@ -101,12 +96,8 @@ export function AppShell() {
                         <GlobalCursorsProvider scrollRef={scrollRef}>
                             <div ref={scrollRef} className="h-full overflow-auto">
                                 <RouteBoundary>
-                                    {/* Catches a suspend above the route's own
-                                        boundary (SubscriptionGate). */}
                                     <Suspense fallback={<RouteFallback />}>
-                                        <SubscriptionGate>
-                                            <Outlet />
-                                        </SubscriptionGate>
+                                        <Outlet />
                                     </Suspense>
                                 </RouteBoundary>
                             </div>

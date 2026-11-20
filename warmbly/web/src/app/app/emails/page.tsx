@@ -25,13 +25,9 @@ import invalidateAfterMailboxRemoval from "@/lib/api/hooks/app/emails/invalidate
 import { useUserProfile } from "@/hooks/context/user";
 import { useConfirm } from "@/hooks/context/confirm";
 import InboxDetails from "@/components/app/emails/InboxDetails";
-import WarmupCoverageNotice from "@/components/app/emails/WarmupCoverageNotice";
-import CloudPoolBanner from "@/components/app/emails/CloudPoolBanner";
-import CloudPathsPanel from "@/components/app/emails/CloudPathsPanel";
 import useCloudPool from "@/hooks/useCloudPool";
 import useAuthConfig from "@/lib/api/hooks/auth/useAuthConfig";
 import { cloudMailboxPickerOpened } from "@/lib/cloudMailboxConnect";
-import { providerSupported } from "@/app/app/settings/warmbly-cloud/providers";
 import { CloudIcon, Link2Icon, MailCheckIcon } from "lucide-react";
 import ConnectLinksDialog from "@/components/app/emails/connect-links/ConnectLinksDialog";
 import { PlacementRateBadge } from "@/components/app/placement/PlacementCharts";
@@ -668,18 +664,6 @@ export default function AddressesPage() {
                 <div className="px-5 py-3 flex flex-col gap-2 empty:hidden">
                     <AdvisorSummaryBar surface="emails" noun="mailbox" nounPlural="mailboxes" />
                     <SigninMigrationBanner total={migration.data?.total ?? 0} groups={migration.data?.data} onOpen={() => openMigration()} />
-                    <CloudPoolBanner />
-                    {!emailsData.isLoading && <CloudPathsPanel mailboxCount={stats.total} onAdd={() => p?.setAddEmail(true)} />}
-                    {/* Hosted, the pool is thousands of mailboxes: the pool-size advice is self-host only. */}
-                    {cloud.selfHosted && (
-                        <WarmupCoverageNotice
-                            warmupCount={warmupActive}
-                            totalCount={stats.total}
-                            canWarmup={canWarmup}
-                            onAdd={() => p?.setAddEmail(true)}
-                            cloudConnected={cloud.connected}
-                        />
-                    )}
                 </div>
                 {emailsData.isLoading ? (
                     <div className="divide-y divide-slate-200/60">
@@ -1025,7 +1009,6 @@ const MailboxRow = React.memo(function MailboxRow({
     const cloudResume = cloudPaused || cloudActivity === "off";
     const cloudUnknown = cloudReportMissing(warmup);
     const cloudLabel = `Warmbly Cloud: ${warmupActivityLabel[warmup.activity]}`;
-    const cloudSupported = providerSupported(box.provider);
     const cloudRun = async (fn: () => Promise<unknown>, ok: string) => {
         try {
             await fn();
@@ -1099,7 +1082,6 @@ const MailboxRow = React.memo(function MailboxRow({
         );
     };
 
-    const upsell = () => toast("Warmup is available on paid plans", { icon: "✨" });
 
     const warmupCell = cloudStatusPending ? (
         <span>{statusPending ? "Checking…" : "Unavailable"}</span>
@@ -1381,22 +1363,14 @@ const MailboxRow = React.memo(function MailboxRow({
                                     <PopoverMenuSeparator />
                                 </>
                             )}
-                            {localOwned && cloudConnected && cloudSupported && (
-                                <PopoverMenuItem
-                                    onSelect={() => void cloudRun(() => actions.cloudEnroll(box.id), `${box.email} is now warming in the pool`)}
-                                    icon={<CloudIcon className="w-3 h-3" />}
-                                >
-                                    Warm in Warmbly Cloud
-                                </PopoverMenuItem>
-                            )}
                             {localOwned && off && (
-                                <PopoverMenuItem onSelect={canWarmup ? () => run("start", "started") : upsell} icon={<PlayIcon className="w-3 h-3" />}>
-                                    {canWarmup ? "Start warmup" : "Upgrade to start warmup"}
+                                <PopoverMenuItem onSelect={() => run("start", "started")} icon={<PlayIcon className="w-3 h-3" />}>
+                                    Start warmup
                                 </PopoverMenuItem>
                             )}
                             {localOwned && paused && (
-                                <PopoverMenuItem onSelect={canWarmup ? () => run("resume", "resumed") : upsell} icon={<PlayIcon className="w-3 h-3" />}>
-                                    {canWarmup ? "Resume warmup" : "Upgrade to resume warmup"}
+                                <PopoverMenuItem onSelect={() => run("resume", "resumed")} icon={<PlayIcon className="w-3 h-3" />}>
+                                    Resume warmup
                                 </PopoverMenuItem>
                             )}
                             {localOwned && active && (

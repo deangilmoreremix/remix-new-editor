@@ -77,7 +77,6 @@ import useFeatureAccess from "@/hooks/useFeatureAccess";
 import useMailboxAllowance from "@/lib/api/hooks/app/emails/useMailboxAllowance";
 import { allowanceFull } from "@/lib/api/models/app/emails/MailboxAllowance";
 import type MailboxAllowance from "@/lib/api/models/app/emails/MailboxAllowance";
-import MailboxAllowanceDialog from "@/components/app/emails/MailboxAllowanceDialog";
 import GmailAppPasswordPanel from "@/components/app/emails/GmailAppPasswordPanel";
 import GoogleWorkspaceSigninPanel from "@/components/app/emails/GoogleWorkspaceSigninPanel";
 import MailboxImportWizard from "@/components/app/emails/import/MailboxImportWizard";
@@ -427,13 +426,6 @@ export default function AddEmailModal() {
                             </AnimatePresence>
                         </div>
                     </motion.div>
-                    <MailboxAllowanceDialog
-                        open={allowanceOpen}
-                        onClose={() => setAllowanceOpen(false)}
-                        allowance={allowance.data}
-                        reached={allowanceReached}
-                        currentPlan={access.plan}
-                    />
                 </motion.div>
             )}
         </AnimatePresence>

@@ -39,7 +39,6 @@ type ItemPath =
     | "/app/agency/mailboxes"
     | "/app/agency/inbox"
     | "/app/agency/usage"
-    | "/app/agency/billing"
     | "/app/agency/staff"
     | "/app/agency/branding"
     | "/app/agency/api-keys"
@@ -51,7 +50,6 @@ const ITEMS: { to: ItemPath; label: string; icon: LucideIcon; exact?: boolean; b
     { to: "/app/agency/mailboxes", label: "Mailboxes", icon: MailIcon },
     { to: "/app/agency/inbox", label: "Inbox", icon: InboxIcon, badge: "replies" },
     { to: "/app/agency/usage", label: "Usage", icon: GaugeIcon },
-    { to: "/app/agency/billing", label: "Billing", icon: CreditCardIcon },
     { to: "/app/agency/staff", label: "Staff", icon: UsersIcon },
     { to: "/app/agency/branding", label: "Branding", icon: PaletteIcon },
     { to: "/app/agency/api-keys", label: "API keys", icon: KeyRoundIcon },

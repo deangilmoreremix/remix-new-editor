@@ -535,7 +535,7 @@ function SendingSettings() {
 
             <Section
                 eyebrow="Warmup from other services"
-                description="Warmup Warmbly runs from this workspace never reaches the inbox. When another service also warms these mailboxes, such as Warmbly Cloud in a separate workspace or another warmup tool, its mail arrives as ordinary mail. Hide it here. Hidden mail is never stored in the inbox, and mail already there is removed within a few minutes. It stays in the mailbox at your provider, untouched, so the other service keeps working."
+                description="Warmup Warmbly runs from this workspace never reaches the inbox. When another service also warms these mailboxes, such as another warmup tool, its mail arrives as ordinary mail. Hide it here. Hidden mail is never stored in the inbox, and mail already there is removed within a few minutes. It stays in the mailbox at your provider, untouched, so the other service keeps working."
             >
                 {isLoading || !draft ? (
                     <div className="h-7 w-40 rounded bg-slate-100 animate-pulse" />
@@ -543,7 +543,7 @@ function SendingSettings() {
                     <>
                         <Row
                             label="Hide warmup from another Warmbly"
-                            description="Hides mail carrying a Warmbly warmup marker that this workspace did not send, for example when the same mailbox also warms in Warmbly Cloud or on another instance. Warmup sent from an Outlook or Microsoft 365 mailbox loses its marker in transit, so add a tag below if that is where it comes from."
+                            description="Hides mail carrying a Warmbly warmup marker that this workspace did not send, for example when the same mailbox also warms on another instance. Warmup sent from an Outlook or Microsoft 365 mailbox loses its marker in transit, so add a tag below if that is where it comes from."
                         >
                             <Toggle
                                 on={externalWarmup.hide_warmbly_marked}
