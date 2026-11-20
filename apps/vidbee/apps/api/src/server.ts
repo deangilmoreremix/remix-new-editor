@@ -21,6 +21,7 @@ import {
   stopApiSubscriptions
 } from './lib/subscriptions-host'
 import { subscriptionsRouter } from './lib/subscriptions-router'
+import { transcriptsRouter } from './lib/transcripts-router'
 
 const MAX_PROXY_IMAGE_BYTES = 10 * 1024 * 1024
 const MAX_PROXY_REDIRECTS = 5
@@ -131,6 +132,7 @@ export const createApiServer = async () => {
 
   const rpcHandler = new RPCHandler(rpcRouter)
   const subscriptionsRpcHandler = new RPCHandler(subscriptionsRouter)
+  const transcriptsRpcHandler = new RPCHandler(transcriptsRouter)
   const openApiHandler = new OpenAPIHandler(rpcRouter, {
     plugins: [
       new OpenAPIReferencePlugin({
@@ -358,6 +360,12 @@ export const createApiServer = async () => {
   fastify.all('/rpc/subscriptions/*', async (request, reply) => {
     await subscriptionsRpcHandler.handle(request, reply, {
       prefix: '/rpc/subscriptions'
+    })
+  })
+
+  fastify.all('/rpc/transcripts/*', async (request, reply) => {
+    await transcriptsRpcHandler.handle(request, reply, {
+      prefix: '/rpc/transcripts'
     })
   })
 

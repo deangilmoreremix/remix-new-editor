@@ -3,6 +3,7 @@ import { RPCLink } from "@orpc/client/fetch";
 import type { ContractRouterClient } from "@orpc/contract";
 import type { downloaderContract } from "@vidbee/downloader-core";
 import type { subscriptionContract } from "@vidbee/subscriptions-core/contract";
+import type { transcriptsContract } from "@vidbee/transcription/web-contract";
 
 const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 const normalizedApiUrl = configuredApiUrl
@@ -32,5 +33,13 @@ export const subscriptionsClient: ContractRouterClient<
 > = createORPCClient(
 	new RPCLink({
 		url: `${rpcUrl}/subscriptions`,
+	}),
+);
+
+export const transcriptsClient: ContractRouterClient<
+	typeof transcriptsContract
+> = createORPCClient(
+	new RPCLink({
+		url: `${rpcUrl}/transcripts`,
 	}),
 );
