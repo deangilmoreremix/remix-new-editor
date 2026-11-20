@@ -1,6 +1,6 @@
 # VidBee web edition: what it needs to run
 
-**Code:** repo `deangilmoreremix/remix-new-editor`, branch `claude/nifty-fermat-1d4j85` (not merged into the default branch), folder `apps/vidbee`.
+**Code:** folder `apps/vidbee` in this repository (the same folder is in `deangilmoreremix/remix-new-editor` and `deangilmoreremix/OpenHiggsBolt`).
 Everything below is relative to `apps/vidbee`.
 
 ## Services (see `docker-compose.yml`)
