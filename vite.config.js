@@ -1553,7 +1553,10 @@ export default defineConfig({
             }
         },
         sourcemap: process.env.NODE_ENV !== 'production',
-        chunkSizeWarningLimit: 1000
+        chunkSizeWarningLimit: 1000,
+        // Gzipping every multi-MB chunk just to print sizes pushed the Netlify build past its
+        // memory limit (OOM-killed, exit 137, right after "computing gzip size...").
+        reportCompressedSize: false
     },
     preview: {
         port: 3000,
