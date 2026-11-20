@@ -35,14 +35,18 @@ interface Props {
   onRemove: (id: string) => void;
   /** A Library card was dropped on this row area (time in seconds, row index). */
   onLibraryDrop?: (drag: LibraryDrag, ctx: LibraryDropCtx) => void;
+  /** A picture from the Media pool was dropped on this row area (time in seconds, row index): it becomes an Image overlay. */
+  onAssetDrop?: (assetId: string, ctx: { time: number; row?: number }) => void;
 }
+
+const ASSET_DND = 'application/x-asset-id';
 
 const MIN = 0.5;
 
 /** The small icon buttons next to + Add: each opens its own modal (they are not part of the Add modal). */
 const ICON_BTN = { flex: '0 0 auto', background: 'transparent', color: 'inherit', border: '1px solid var(--border-medium, rgba(255,255,255,.18))', borderRadius: 6, fontSize: 12, padding: '2px 4px', cursor: 'pointer' } as const;
 
-export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onOpenAdd, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate, onRemove, onLibraryDrop }: Props) {
+export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, sequenceDuration, onOpenAdd, onOpenSpeech, onOpenGenerator, onOpenPersonalization, onUpdate, onRemove, onLibraryDrop, onAssetDrop }: Props) {
   const selected = useSelectedOverlay();
   const contact = usePreviewContact(); // the contact the preview shows: the lane's pictures and text use them too
   const overlaysRef = useRef(overlays); overlaysRef.current = overlays;
@@ -89,12 +93,12 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
     return { rows: rowOf, count: Math.max(1, ...[...rowOf.values()].map((r) => r + 1)) };
   }, [overlays]);
   rowsRef.current = rows; countRef.current = count;
-  const ROW = 46;
+  const ROW = 60; // tall enough for a readable picture of what the overlay shows
   const rowH = open ? ROW : 26;
   rowHRef.current = rowH;
   const contentH = (open ? count : 1) * rowH + 8;
   const empty = overlays.length === 0;
-  const height = empty ? 30 : Math.min(contentH, 3 * ROW + 8); // empty: one slim row (just the add menu); otherwise at most 3 rows tall, more scroll inside the track
+  const height = empty ? 30 : Math.min(contentH, 2 * ROW + 8); // empty: one slim row (just the add menu); otherwise at most 2 rows tall, more scroll inside the track
 
   return (
     <div className="overlay-track" data-testid="overlay-lane" style={{ height, background: 'var(--bg-surface, #0b0e14)' }}>
@@ -114,16 +118,22 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
         </div>
       </div>
       <div className="overlay-track__clips" style={{ overflowX: 'hidden', overflowY: contentH > height ? 'auto' : 'hidden' }} onPointerMove={move} onPointerUp={end} onPointerCancel={end}
-        onDragOver={(e) => { if (hasLibraryDrag(e.dataTransfer.types)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }}
+        onDragOver={(e) => {
+          const types = Array.from(e.dataTransfer.types ?? []);
+          if (hasLibraryDrag(e.dataTransfer.types) || (onAssetDrop && types.includes(ASSET_DND))) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }
+        }}
         onDrop={(e) => {
           const drag = decodeLibraryDrag(e.dataTransfer.getData(LIBRARY_DND));
-          if (!drag || !onLibraryDrop) return;
+          const assetId = e.dataTransfer.getData(ASSET_DND);
+          if ((!drag || !onLibraryDrop) && !(assetId && onAssetDrop)) return;
           e.preventDefault(); e.stopPropagation();
           const rect = e.currentTarget.getBoundingClientRect();
           const time = Math.max(0, (e.clientX - rect.left + scrollLeft) / pxPerSecond);
           const want = open ? Math.max(0, Math.min(count, Math.floor((e.clientY - rect.top + e.currentTarget.scrollTop) / rowH))) : 0;
           const taken = overlays.some((o) => (rows.get(o.id) ?? 0) === want && o.start < time + 1 && o.end > time);
-          onLibraryDrop(drag, { time, ...(taken ? {} : { row: want }) });
+          const ctx = { time, ...(taken ? {} : { row: want }) };
+          if (drag && onLibraryDrop) onLibraryDrop(drag, ctx);
+          else if (assetId && onAssetDrop) onAssetDrop(assetId, ctx);
         }}>
         <div style={{ position: 'relative', height: contentH, width: Math.max(sequenceDuration, 1) * pxPerSecond, transform: `translateX(${-(scrollLeft)}px)` }}>
           {overlays.map((o) => {
@@ -165,14 +175,36 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
 
 /** A small still of an overlay that ships no thumbnail (lead form, list builder, call-to-action, text, stickers, end screens...), drawn
  *  with the same live renderer as the Add window's cards. Only drawn while on screen, and from a shared pool, so a long lane stays cheap. */
+/** The live stage is drawn at a normal card size and scaled down to fit the block: drawn directly into the small box it was cropped to a corner of the form. */
+const STILL_W = 480;
+const STILL_H = 270;
 function OverlayStill({ clip, profile = null, version = 0 }: { clip: OverlayClip; profile?: ContactProfile | null; version?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const visible = useInView(ref);
   const slot = useLiveSlot(visible);
+  const [scale, setScale] = useState(0.2);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const fit = () => { if (el.clientWidth > 0) setScale(el.clientWidth / STILL_W); };
+    fit();
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const span = Math.max(1, clip.end - clip.start);
   const form = clip.type === ('lead-form' as OverlayKind) || clip.type === ('list-builder' as OverlayKind);
   const preview = useMemo<CardPreview>(() => ({ kind: 'overlay', build: () => [{ ...clip, start: 0, end: span }], duration: span, still: form ? 0.2 : Math.min(span * 0.5, 2.5) }), [clip, span, form]);
-  return <div ref={ref} className="overlay-card__thumb" aria-hidden="true" style={{ position: 'relative', background: STAGE_BG, overflow: 'hidden' }}>{visible && slot && <LiveStage preview={preview} playing={false} profile={profile} profileVersion={version} />}</div>;
+  return (
+    <div ref={ref} className="overlay-card__thumb" aria-hidden="true" style={{ position: 'relative', background: STAGE_BG, overflow: 'hidden' }}>
+      {visible && slot && (
+        <div style={{ position: 'absolute', left: 0, top: 0, width: STILL_W, height: STILL_H, transform: `scale(${scale})`, transformOrigin: '0 0' }}>
+          <LiveStage preview={preview} playing={false} profile={profile} profileVersion={version} />
+        </div>
+      )}
+    </div>
+  );
 }
 
 /** A small picture of the lower third (its template, text and colours) at its fully-in frame, so the block shows the animation itself. */
@@ -204,6 +236,11 @@ function LowerThirdThumb({ clip, profile = null, version = 0 }: { clip: OverlayC
 /** A small picture for the block, when the overlay has one (library animations ship a thumbnail). */
 function overlayThumb(o: OverlayClip): string | null {
   const id = typeof o.blockId === 'string' ? o.blockId : '';
+  // an Image overlay shows the picture that was picked for it
+  if (o.type === ('overlay-image' as OverlayKind)) {
+    const src = (addonOptions(o) as { src?: unknown }).src;
+    if (typeof src === 'string' && src.trim()) return src;
+  }
   if (o.type === ('hyperframes' as OverlayKind) && id) return `/hyperframes/thumbs/${id.replace(':', '-')}.jpg`;
   // motion-graphics templates (e.g. "Portrait · keyword pop-up"): one rendered frame per template, shipped in public/occ-templates/thumbs
   const tpl = typeof (o as unknown as { templateId?: unknown }).templateId === 'string' ? (o as unknown as { templateId: string }).templateId : '';
