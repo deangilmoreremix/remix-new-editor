@@ -7,13 +7,28 @@ vi.mock('../../lib/landingPages/pickerModal.js', () => ({
   toPickerVideo: (v) => (v && /^https:\/\//.test(v.url) ? v : null),
 }));
 
-import { createVideoPagesButton, latestFromSaved } from '../VideoPagesButton.js';
+const hist = vi.hoisted(() => ({ list: [] }));
+vi.mock('../../lib/generationHistory.js', () => ({ loadGenerationHistory: async () => hist.list }));
+
+import { createVideoPagesButton, latestFromSaved, pickLatest } from '../VideoPagesButton.js';
 import { WORKBENCH_GENERATION_EVENT } from '../../lib/workbench.js';
 
 describe('Video Pages header button', () => {
   beforeEach(() => { picker.open.mockClear(); });
 
-  it('is always clickable: with nothing made yet it opens the picker on its chooser', async () => {
+  it('with nothing finished this session it loads your newest video or picture from history (no upload)', async () => {
+    hist.list = [{ type: 'audio', url: 'https://x.test/a.mp3' }, { type: 'image', url: 'https://x.test/new.png', prompt: 'Newest' }, { type: 'video', url: 'https://x.test/old.mp4' }];
+    createVideoPagesButton({ target: new EventTarget() }).click();
+    await vi.waitFor(() => expect(picker.open).toHaveBeenCalledWith({ video: expect.objectContaining({ url: 'https://x.test/new.png', type: 'image' }) }));
+  });
+
+  it('pickLatest skips audio and unusable links', () => {
+    expect(pickLatest([{ type: 'audio', url: 'https://x/a.mp3' }, { type: 'video', url: 'blob:x' }, { type: 'video', url: 'https://x/v.mp4' }])?.url).toBe('https://x/v.mp4');
+    expect(pickLatest([])).toBeNull();
+  });
+
+  it('only a user who has never made anything gets the chooser', async () => {
+    hist.list = [];
     const target = new EventTarget();
     const btn = createVideoPagesButton({ target });
     btn.click();
