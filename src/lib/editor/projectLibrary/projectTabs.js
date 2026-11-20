@@ -97,7 +97,7 @@ export function retargetTab(deps) {
       });
       root.querySelectorAll('[data-rec]').forEach((b) => b.addEventListener('click', async () => {
         b.disabled = true;
-        try { await launchFollowup({ client, original, followup: recs[Number(b.dataset.rec)].followup, navigate: deps.navigate, videoUrl: url }); } catch (e) { b.disabled = false; deps.onToast?.(e.message, 'error'); }
+        try { await launchFollowup({ client, original, followup: recs[Number(b.dataset.rec)].followup, navigate: deps.navigate, videoUrl: url, openFollowup: deps.openFollowup }); } catch (e) { b.disabled = false; deps.onToast?.(e.message, 'error'); }
       }));
     });
     return () => { alive = false; };

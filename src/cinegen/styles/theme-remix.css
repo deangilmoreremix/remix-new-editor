@@ -402,6 +402,15 @@
 @media (max-width: 1500px) {
   .cinegen-root .top-nav__tabs { left: auto; right: 150px; transform: none; max-width: calc(100% - 320px); overflow-x: auto; }
 }
+/* [remix] The labelled Retarget button sits with the action icons: keep the tabs clear of it, and show only its icon on narrower windows. */
+@media (max-width: 1500px) {
+  .cinegen-root .top-nav--retarget .top-nav__tabs { right: 270px; max-width: calc(100% - 440px); }
+}
+@media (max-width: 1400px) {
+  .cinegen-root .top-nav--retarget .top-nav__retarget-label { display: none; }
+  .cinegen-root .top-nav--retarget .top-nav__retarget { padding: 0 8px; }
+  .cinegen-root .top-nav--retarget .top-nav__tabs { right: 190px; max-width: calc(100% - 360px); }
+}
 
 /* ============================================================================================================
    [remix] ACTION buttons use the Generate look (transparent, white hairline, 2px lime LEFT EDGE, lime border + glow + lift on hover),
