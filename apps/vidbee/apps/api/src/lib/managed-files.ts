@@ -1,6 +1,6 @@
-import { stat } from 'node:fs/promises'
+import { realpath, stat } from 'node:fs/promises'
 import path from 'node:path'
-import { apiDefaultDownloadDir, isPathInside } from './api-paths'
+import { apiDataDir, apiDefaultDownloadDir, apiSettingsFilesDir, isPathInside } from './api-paths'
 import { webSettingsStore } from './web-settings-store'
 
 const managedDownloadRoots = async (): Promise<string[]> => {
@@ -26,9 +26,24 @@ export const resolveReadableMediaFile = async (rawPath: string): Promise<string 
   if (!roots.some((root) => isPathInside(root, resolvedPath))) {
     return null
   }
+  // The data directory can sit inside the default download directory; it holds the saved API key, databases
+  // and uploaded cookie files, none of which may be served as media.
+  const isPrivate = (candidate: string) =>
+    [apiDataDir, apiSettingsFilesDir].some((dir) => isPathInside(path.resolve(dir), candidate))
+  if (isPrivate(resolvedPath)) {
+    return null
+  }
   try {
     const info = await stat(resolvedPath)
     if (!info.isFile()) {
+      return null
+    }
+    // A link inside a download root must not lead into the private directory either.
+    const real = await realpath(resolvedPath)
+    const privateReal = await Promise.all(
+      [apiDataDir, apiSettingsFilesDir].map((dir) => realpath(dir).catch(() => path.resolve(dir)))
+    )
+    if (privateReal.some((dir) => isPathInside(dir, real))) {
       return null
     }
     return resolvedPath

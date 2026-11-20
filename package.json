@@ -20,7 +20,7 @@
     "build:ask-index": "node scripts/build-ask-index.mjs",
     "check:ask-index": "node scripts/build-ask-index.mjs --check",
     "test": "vitest",
-    "test:vidbee-gate": "node --test backend/services/vidbeeProxy.nodetest.mjs apps/vidbee/apps/desktop/host/access-token.nodetest.mjs apps/vidbee/apps/desktop/host/media-access.nodetest.mjs apps/vidbee/apps/desktop/host/net-fetch.nodetest.mjs apps/vidbee/apps/desktop/host/export-path.nodetest.mjs apps/vidbee/apps/desktop/host/ipc-binary.nodetest.mjs apps/vidbee/apps/desktop/host/pdf-export.nodetest.mjs",
+    "test:vidbee-gate": "node --test backend/services/vidbeeProxy.nodetest.mjs apps/vidbee/apps/desktop/host/access-token.nodetest.mjs apps/vidbee/apps/desktop/host/media-access.nodetest.mjs apps/vidbee/apps/desktop/host/net-fetch.nodetest.mjs apps/vidbee/apps/desktop/host/export-path.nodetest.mjs apps/vidbee/apps/desktop/host/ipc-binary.nodetest.mjs apps/vidbee/apps/desktop/host/pdf-export.nodetest.mjs apps/vidbee/apps/desktop/host/hub-routing.nodetest.mjs",
     "vidbee:install": "cd apps/vidbee && npm run install:vidbee",
     "vidbee:setup": "cd apps/vidbee && npm run setup",
     "vidbee:build": "cd apps/vidbee && npm run build",

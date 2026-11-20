@@ -44,10 +44,16 @@ const readJson = async (req: http.IncomingMessage): Promise<{ channel?: string; 
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}', reviveBinary) } catch { return {} }
 }
 
-const sse = (req: http.IncomingMessage, res: http.ServerResponse) => {
+const clientIdOf = (req: http.IncomingMessage): string | undefined => {
+  const raw = req.headers['x-vidbee-client']
+  const value = Array.isArray(raw) ? raw[0] : raw
+  return value && /^[\w-]{8,64}$/.test(value) ? value : undefined
+}
+
+const sse = (req: http.IncomingMessage, res: http.ServerResponse, clientId?: string) => {
   res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache, no-transform', connection: 'keep-alive', 'x-accel-buffering': 'no' })
   res.write(': connected\n\n')
-  const listener = (channel: string, args: unknown[]) => res.write(`data: ${JSON.stringify({ channel, args })}\n\n`)
+  const listener = Object.assign((channel: string, args: unknown[]) => res.write(`data: ${JSON.stringify({ channel, args })}\n\n`), { clientId })
   hub.listeners.add(listener)
   const ping = setInterval(() => res.write(': ping\n\n'), 20_000)
   req.on('close', () => { clearInterval(ping); hub.listeners.delete(listener) })
@@ -188,7 +194,7 @@ const server = http.createServer(async (req, res) => {
       const { channel, args = [] } = await readJson(req)
       if (!channel) { res.writeHead(400); return res.end('channel required') }
       try {
-        const result = await __invoke(channel, args, sender)
+        const result = await __invoke(channel, args, sender, clientIdOf(req))
         res.writeHead(200, { 'content-type': 'application/json' })
         return res.end(JSON.stringify({ ok: true, result: result === undefined ? null : result }))
       } catch (error) {
@@ -203,14 +209,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'POST' && url.pathname === '/ipc/response') {
       const { id, result } = (await readJson(req)) as { id?: string; result?: unknown }
-      if (id) hub.respond(id, result)
+      if (id) hub.respond(id, result, clientIdOf(req))
       res.writeHead(204); return res.end()
     }
     if (req.method === 'POST' && url.pathname === '/upload') return handleUpload(req, res, url.searchParams.get('name') ?? 'file')
     if (req.method === 'GET' && url.pathname === '/host/list') return handleList(res, url.searchParams.get('path') ?? '')
     const exp = /^\/exports\/([^/]+)\/(.+)$/.exec(url.pathname)
     if (req.method === 'GET' && exp) return handleExport(req, res, exp[1], exp[2])
-    if (req.method === 'GET' && url.pathname === '/ipc/events') return sse(req, res)
+    if (req.method === 'GET' && url.pathname === '/ipc/events') return sse(req, res, /^[\w-]{8,64}$/.test(url.searchParams.get('client') ?? '') ? (url.searchParams.get('client') as string) : undefined)
     const proto = /^\/protocol\/([a-z-]+)\/(.*)$/.exec(url.pathname)
     if ((req.method === 'GET' || req.method === 'HEAD') && proto) return void (await serveProtocol(req, res, proto[1], decodeURIComponent(proto[2]), url.search))
     if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname === '/media') return serveMedia(req, res, url.searchParams.get('path') ?? '')

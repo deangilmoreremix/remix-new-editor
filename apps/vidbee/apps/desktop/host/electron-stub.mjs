@@ -18,17 +18,27 @@ export const hub = (globalThis.__vidbeeHub ||= {
   listeners: new Set(),
   pending: new Map(),
   emit(channel, args) { for (const l of this.listeners) l(channel, args); },
+  /** Send to one browser only (the one that started the operation). Without a client id, or when it is gone, nobody. */
+  emitTo(clientId, channel, args) { for (const l of this.listeners) if (l.clientId === clientId) l(channel, args); },
+  hasClient(clientId) { for (const l of this.listeners) if (l.clientId === clientId) return true; return false; },
   /** Ask the connected browser to do something only a browser can (pick a file, confirm, …) and wait for its answer. */
-  request(kind, payload, fallback, timeoutMs = 10 * 60 * 1000) {
-    if (this.listeners.size === 0) return Promise.resolve(fallback);
+  request(kind, payload, fallback, timeoutMs = 10 * 60 * 1000, clientId = currentClient()) {
+    // A dialog belongs to the browser whose action caused it; with several tabs open it must not reach the others.
+    if (clientId ? !this.hasClient(clientId) : this.listeners.size === 0) return Promise.resolve(fallback);
     return new Promise((resolve) => {
       const id = crypto.randomUUID();
       const timer = setTimeout(() => { this.pending.delete(id); resolve(fallback); }, timeoutMs);
-      this.pending.set(id, (result) => { clearTimeout(timer); this.pending.delete(id); resolve(result); });
-      this.emit('host:request', [{ id, kind, payload }]);
+      this.pending.set(id, { clientId, done: (result) => { clearTimeout(timer); this.pending.delete(id); resolve(result); } });
+      if (clientId) this.emitTo(clientId, 'host:request', [{ id, kind, payload }]);
+      else this.emit('host:request', [{ id, kind, payload }]);
     });
   },
-  respond(id, result) { this.pending.get(id)?.(result); },
+  /** Only the browser the request was sent to may answer it. */
+  respond(id, result, clientId) {
+    const entry = this.pending.get(id);
+    if (!entry || (entry.clientId && entry.clientId !== clientId)) return;
+    entry.done(result);
+  },
 });
 
 /** Generic permissive stub: any property is a callable no-op that returns another stub. */
@@ -45,18 +55,19 @@ export const ipcMain = Object.assign(new EventEmitter(), {
   removeHandler: (channel) => handlers.delete(channel),
 });
 const invokeStore = new AsyncLocalStorage();
+function currentClient() { return invokeStore.getStore()?.clientId; }
 /** Files the main process "saved" during one IPC call; they are handed to the browser as downloads when the call finishes. */
 export const exportsDir = path.join(dataDir, 'exports');
-export const __invoke = async (channel, args, sender) => {
+export const __invoke = async (channel, args, sender, clientId) => {
   const fn = handlers.get(channel);
   if (!fn) throw new Error(`No handler registered for '${channel}'`);
-  const store = { exports: [] };
+  const store = { exports: [], clientId };
   try {
     return await invokeStore.run(store, () => fn({ sender, senderFrame: null }, ...args));
   } finally {
     for (const file of store.exports) {
       try {
-        if (fs.existsSync(file.path) && fs.statSync(file.path).isFile()) hub.emit('host:download', [{ url: `exports/${file.id}/${encodeURIComponent(path.basename(file.path))}` }]);
+        if (fs.existsSync(file.path) && fs.statSync(file.path).isFile()) { const a = [{ url: `exports/${file.id}/${encodeURIComponent(path.basename(file.path))}` }]; if (clientId && hub.hasClient(clientId)) hub.emitTo(clientId, 'host:download', a); else hub.emit('host:download', a); }
       } catch { /* ignore */ }
     }
   }

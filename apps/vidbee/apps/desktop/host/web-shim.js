@@ -35,8 +35,10 @@
   const binaryReplacer = (_key, value) => value instanceof ArrayBuffer ? { __vidbeeBinary: toBase64(new Uint8Array(value)) }
     : ArrayBuffer.isView(value) ? { __vidbeeBinary: toBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)) } : value;
   // binary-replacer-end
+  // Identifies this tab so the host sends its file pickers and confirmations to it alone.
+  const clientId = (crypto.randomUUID && crypto.randomUUID()) || `c${Date.now()}${Math.random().toString(36).slice(2)}`;
   const post = (path, body) =>
-    fetch(`${base}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body, binaryReplacer), credentials: 'same-origin' });
+    fetch(`${base}${path}`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-vidbee-client': clientId }, body: JSON.stringify(body, binaryReplacer), credentials: 'same-origin' });
 
 
   // ── What Electron did natively, done by the browser (server side: host/electron-stub.mjs, host/server.ts) ──
@@ -156,7 +158,7 @@
   };
   let source;
   const connect = () => {
-    source = new EventSource(`${base}ipc/events`, { withCredentials: true });
+    source = new EventSource(`${base}ipc/events?client=${clientId}`, { withCredentials: true });
     source.onmessage = (event) => {
       try { const { channel, args } = JSON.parse(event.data); if (channel.startsWith('host:')) void hostEvent(channel, args); else dispatch(channel, args ?? []); } catch { /* ignore malformed */ }
     };
