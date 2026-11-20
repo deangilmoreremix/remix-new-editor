@@ -17,6 +17,21 @@ const project = {
   ],
 };
 
+describe('buildMarkers: CTA settings under clip.addon', () => {
+  it('finds overlays and hotspots whose link / phone / button text live in the nested addon options', () => {
+    const p = { timelineSeconds: 100, tracks: [{ type: 'text', items: [
+      { id: 'a1', type: 'overlay-text', start: 10, end: 20, addon: { linkUrl: 'https://x.test', buttonText: 'Shop now' } },
+      { id: 'a2', type: 'overlay-image', start: 30, end: 40, addon: { phoneNumber: '+15551234567' } },
+      { id: 'a3', type: 'overlay-text', start: 50, end: 60, addon: { linkUrl: '   ' } },      // blank: not a CTA
+      { id: 'a4', type: 'overlay-text', start: 70, end: 80, addon: 'nope' },                    // not an object: ignored
+    ] }] };
+    expect(buildMarkers(p)).toEqual([
+      { id: 'cta:a1', kind: 'cta', label: 'CTA: Shop now', startMs: 10000, endMs: 20000 },
+      { id: 'cta:a2', kind: 'cta', label: 'CTA button', startMs: 30000, endMs: 40000 },
+    ]);
+  });
+});
+
 describe('buildMarkers', () => {
   it('finds lead forms, the List Builder wall and CTA / link overlays, sorted by time', () => {
     expect(buildMarkers(project)).toEqual([

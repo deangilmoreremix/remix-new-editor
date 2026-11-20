@@ -53,6 +53,12 @@ describe('sw.js click routing', () => {
     expect(sw.pickAppWindow([x], 'https://app.test')).toBeNull();
     expect(sw.pickAppWindow([], 'https://app.test')).toBeNull();
   });
+  it('never picks a workbench window: it has no alerts listener, so the click would do nothing', () => {
+    const bench = { url: 'https://app.test/workbench-app/index.html#/x', focused: true, visibilityState: 'visible' };
+    const editor = { url: 'https://app.test/#/timeline', focused: false, visibilityState: 'hidden' };
+    expect(sw.pickAppWindow([bench, editor], 'https://app.test')).toBe(editor);
+    expect(sw.pickAppWindow([bench], 'https://app.test')).toBeNull();   // only a workbench is open: the caller opens a new window
+  });
   it('registers the push and notificationclick handlers and keeps the caching handlers', () => {
     for (const ev of ['install', 'activate', 'fetch', 'message', 'push', 'notificationclick']) expect(swSource).toContain(`addEventListener('${ev}'`);
   });

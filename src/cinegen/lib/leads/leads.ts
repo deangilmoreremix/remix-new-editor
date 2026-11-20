@@ -262,7 +262,13 @@ export function exportRecords(rows: LeadRow[], forms: LeadForm[], { escape = tru
     if (w) { src['Watched %'] = watchPercent(w).replace('%', ''); src.Interest = watchTag(w); }
     if (r.status !== undefined) { src.Status = statusLabel(r.status); if (r.notes) src.Notes = safe(r.notes); if (r.tags?.length) src.Tags = safe(r.tags.join(', ')); }
     const { score, label } = scoreLead(r);
-    return { Submitted: r.createdAt, Form: name(r), ...r.data, ...src, 'Lead Score': score, 'Lead Rating': label };
+    // The visitor's own answers come first and are never overwritten: a computed column whose name an answer already uses
+    // (an editable label such as "Lead Score" or "Status") gets " (computed)" appended instead.
+    const rec: ExportRecord = { Submitted: r.createdAt, Form: name(r), ...r.data };
+    const put = (key: string, value: string | number) => { let k = key; while (k in rec) k = `${k} (computed)`; rec[k] = value; };
+    Object.entries(src).forEach(([k, v]) => put(k, v));
+    put('Lead Score', score); put('Lead Rating', label);
+    return rec;
   });}
 
 export const rowsToCsv = (rows: LeadRow[], forms: LeadForm[], watch: Record<string, WatchInfo> = {}): string => leadsToCsv(exportRecords(rows, forms, { watch }));

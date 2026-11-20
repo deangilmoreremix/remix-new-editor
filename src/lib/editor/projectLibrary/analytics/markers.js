@@ -11,7 +11,9 @@ import { projectDuration } from '../../publish/sections.js';
 const MAX_MARKERS = 12;
 const clean = (s, n = 30) => String(s ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
 const itemsOf = (t) => (Array.isArray(t?.items) ? t.items : Array.isArray(t?.clips) ? t.clips : []);
-const hasLink = (c) => ['linkUrl', 'phoneNumber', 'ctaUrl'].some((k) => typeof c?.[k] === 'string' && c[k].trim());
+// Published text/image overlays and link/call hotspots keep their CTA settings under `clip.addon`, the older shapes at the top level.
+const optionsOf = (c) => (c?.addon && typeof c.addon === 'object' ? { ...c, ...c.addon } : c);
+const hasLink = (c) => { const o = optionsOf(c); return ['linkUrl', 'phoneNumber', 'ctaUrl'].some((k) => typeof o?.[k] === 'string' && o[k].trim()); };
 const r1 = (v) => Math.round(v * 10) / 10;
 
 /** @returns {{id:string, kind:'lead-form'|'list-builder'|'cta', label:string, startMs:number, endMs:number}[]} sorted by start. */
@@ -31,7 +33,8 @@ export function buildMarkers(project) {
     if (kind === 'lead-form' && c.trigger === 'end') { start = dur; end = dur; } // "at the end of the video"
     if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || start > dur) return;
     end = Math.min(dur, Math.max(start, end));
-    const text = clean(c.buttonText || c.ctaText);
+    const o = optionsOf(c);
+    const text = clean(o.buttonText || o.ctaText);
     out.push({
       id: `${kind}:${c.id ?? `${ti}-${ci}`}`,
       kind,

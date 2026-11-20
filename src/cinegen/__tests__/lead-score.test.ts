@@ -90,6 +90,17 @@ describe('export records', () => {
   });
   it('leaves values as typed for Excel (cells are typed text there)', () => {
     expect(exportRecords(rows, [], { escape: false })[0].Notes).toBe('=HYPERLINK("x")');
+    {
+      // an answer whose label equals a computed column keeps its value; the computed value goes to "<name> (computed)"
+      const clash = row('c', 'lead-form', { EMAIL: 'a@acme.io', 'Lead Score': 'my own answer', 'Lead Rating': 'mine', Status: 'x' }, { status: 'won' as never });
+      const [r2] = exportRecords([clash], []);
+      expect(r2['Lead Score']).toBe('my own answer');
+      expect(r2['Lead Rating']).toBe('mine');
+      expect(r2['Lead Score (computed)']).toBe(scoreLead(clash).score);
+      expect(r2['Lead Rating (computed)']).toBe(scoreLead(clash).label);
+      expect(r2.Status).toBe('x');
+      expect(Object.keys(r2).some((k) => k.startsWith('Status ('))).toBe(true);
+    }
   });
   it('puts the score, status, notes and tags in the CSV', () => {
     const header = rowsToCsv(rows, []).split('\r\n')[0];
