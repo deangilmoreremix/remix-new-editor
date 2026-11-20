@@ -1,7 +1,9 @@
 import { allTemplates, getAllCategories } from '../lib/templates.js';
-import { getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
+import { cssEscape, getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
-import { navigate } from '../lib/router.js';
+import { navigate, getQueryParam } from '../lib/router.js';
+import { syncFavorites } from '../lib/templateCloud.js';
+import { nicheLabel as nicheName } from '../lib/templateCategories.js';
 import { getTemplateThumbnail, createThumbnailImg, createStudioHeader } from '../lib/thumbnails.js';
 import { CURATED_PROMPTS } from '../data/curatedPrompts.js';
 import { createInlineInstructions } from './InlineInstructions.js';
@@ -49,7 +51,9 @@ export function TemplatesPage() {
   const niches = Object.values(NICHE_LABELS_MAP || {});
   const allFilters = ['All', FAVORITES_FILTER, RECENT_FILTER, PROMPTS_FILTER, 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
   
-  let activeFilter = null;
+  // Opened from an Explore category card: #/templates with ?category=<chip name>.
+  const requested = getQueryParam('category');
+  let activeFilter = requested && requested !== 'All' && allFilters.includes(requested) ? requested : null;
 
   allFilters.forEach(filter => {
     if (filter === '--- Niches ---') {
@@ -60,7 +64,7 @@ export function TemplatesPage() {
       return;
     }
     
-    const isActive = filter === 'All';
+    const isActive = filter === (activeFilter ?? 'All');
     const btn = createFilterChip(filter, isActive);
     btn.onclick = () => {
       activeFilter = filter === 'All' ? null : filter;
@@ -143,10 +147,11 @@ export function TemplatesPage() {
     // Group niche templates by their niche
     const nicheGroups = {};
     nicheTemplates.forEach(t => {
-      if (!nicheGroups[t.niche]) {
-        nicheGroups[t.niche] = [];
+      const label = nicheName(t.niche);
+      if (!nicheGroups[label]) {
+        nicheGroups[label] = [];
       }
-      nicheGroups[t.niche].push(t);
+      nicheGroups[label].push(t);
     });
 
     if (activeFilter === PROMPTS_FILTER) {
@@ -205,7 +210,7 @@ export function TemplatesPage() {
         }
       });
     } else if (niches.includes(activeFilter)) {
-      const nicheTemplatesFiltered = nicheTemplates.filter(t => t.niche === activeFilter);
+      const nicheTemplatesFiltered = nicheTemplates.filter(t => nicheName(t.niche) === activeFilter);
       if (nicheTemplatesFiltered.length > 0) {
         const section = createTemplateSection(activeFilter, nicheTemplatesFiltered, true);
         sectionsContainer.appendChild(section);
@@ -237,6 +242,11 @@ export function TemplatesPage() {
 
   renderCategories();
   container.appendChild(inner);
+  if (activeFilter) setTimeout(() => filterRow.querySelector(`[data-filter="${cssEscape(activeFilter)}"]`)?.scrollIntoView?.({ block: 'nearest', inline: 'center' }), 0);
+
+  // Favorites saved to the account on another device show up here too.
+  const favoritesBefore = JSON.stringify(getFavoriteTemplateIds());
+  syncFavorites().then((ids) => { if (JSON.stringify(ids) !== favoritesBefore) renderCategories(); });
 
   // Debounced: filtering hundreds of cards on every keystroke is wasteful.
   searchInput.oninput = () => {
@@ -280,7 +290,7 @@ function createTemplateSection(category, catTemplates, isNiche) {
         ? 'bg-[#0a1628]/80 border-cyan-500/20 hover:bg-cyan-900/20 hover:border-cyan-400/40' 
         : 'bg-card-bg/90 border-white/10 hover:bg-white/[0.06] hover:border-white/10'
     }`;
-    card.dataset.searchable = `${t.name} ${t.description || ''} ${category} ${t.outputType} ${t.niche || ''}`;
+    card.dataset.searchable = `${t.name} ${t.description || ''} ${category} ${t.outputType} ${nicheName(t.niche)}`;
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
 
