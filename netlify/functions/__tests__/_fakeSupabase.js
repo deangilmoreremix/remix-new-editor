@@ -1,5 +1,5 @@
 // Tiny in-memory PostgREST stand-in for the owner-alert tests (not a test file). Supports eq / in / lt / lte filters,
-// limit + offset paging, on_conflict + "resolution=ignore-duplicates", return=representation, PATCH and DELETE. Never reads real data.
+// order, limit + offset paging, a max-rows cap (default 1,000), on_conflict + "resolution=ignore-duplicates", return=representation, PATCH and DELETE. Never reads real data.
 let seq = 0;
 const UNIQUE = { notification_email_queue: 'notification_id', owner_push_deferred: 'notification_id' };
 const DEFAULTS = {
@@ -7,7 +7,7 @@ const DEFAULTS = {
   owner_push_deferred: () => ({}),
 };
 
-export function fakeSupabase(tables = {}, { now = new Date('2026-11-18T12:00:00Z'), missing = [] } = {}) {
+export function fakeSupabase(tables = {}, { now = new Date('2026-11-18T12:00:00Z'), missing = [], maxRows = 1000 } = {}) {
   const db = { owner_notifications: [], retarget_preferences: [], owner_push_subscriptions: [], notification_email_queue: [], owner_push_deferred: [], ...tables };
   const calls = [];
   const matches = (row, params) => [...params].every(([k, v]) => {
@@ -41,9 +41,12 @@ export function fakeSupabase(tables = {}, { now = new Date('2026-11-18T12:00:00Z
     const hit = db[path].filter((r) => matches(r, params));
     if (method === 'PATCH') { hit.forEach((r) => Object.assign(r, body)); return res(200, prefer.includes('return=representation') ? hit : undefined); }
     if (method === 'DELETE') { db[path] = db[path].filter((r) => !hit.includes(r)); return res(200, prefer.includes('return=representation') ? hit : undefined); }
-    const limit = Number(params.get('limit')) || hit.length;
+    // like PostgREST: the requested order (if any) is applied, and an answer never has more than `maxRows` rows (the server's max-rows setting)
+    const order = (params.get('order') || '').split(',').filter(Boolean).map((o) => { const [col, dir = 'asc'] = o.split('.'); return [col, dir === 'desc' ? -1 : 1]; });
+    const sorted = order.length ? [...hit].sort((a, b) => { for (const [col, dir] of order) { const x = a[col] ?? ''; const y = b[col] ?? ''; if (x !== y) return (x < y ? -1 : 1) * dir; } return 0; }) : hit;
+    const limit = Math.min(Number(params.get('limit')) || sorted.length, maxRows);
     const offset = Number(params.get('offset')) || 0;
-    return res(200, hit.slice(offset, offset + limit));
+    return res(200, sorted.slice(offset, offset + limit));
   };
   return { db, calls, fetchImpl };
 }

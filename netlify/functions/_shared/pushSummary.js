@@ -49,7 +49,23 @@ async function loadDeferredRows(call) {
     rows.push(...batch);
     if (batch.length < PAGE_SIZE) return { rows, truncated: false };
   }
-  return { rows, truncated: true };
+  // Every allowed page was full: is there anything beyond them? (exact, so `truncated` can be used to watch the backlog)
+  const beyond = await call(`owner_push_deferred?select=id&order=created_at.asc,id.asc&limit=1&offset=${MAX_PAGES * PAGE_SIZE}`);
+  return { rows, truncated: Array.isArray(beyond) && beyond.length > 0 };
+}
+
+/**
+ * Preferences for these owners, read in small chunks: one request for thousands of ids is cut off by the URL length limit, and a
+ * single answer is capped at 1,000 rows, so an owner could silently come back "without preferences" and have its rows dropped.
+ */
+const PREF_CHUNK = 100;
+async function loadPreferences(call, ownerIds) {
+  const prefs = {};
+  for (let i = 0; i < ownerIds.length; i += PREF_CHUNK) {
+    const chunk = await call(`retarget_preferences?select=*&clerk_user_id=${inList(ownerIds.slice(i, i + PREF_CHUNK))}`);
+    for (const p of Array.isArray(chunk) ? chunk : []) prefs[p.clerk_user_id] = p;
+  }
+  return prefs;
 }
 
 async function deleteRows(call, ids) {
@@ -94,9 +110,8 @@ export async function flushQuietSummaries({ env = process.env, fetchImpl = fetch
     if (truncated) out.truncated = true;
     if (!rows.length) return out;
     const byOwner = new Map();
-    for (const r of rows) byOwner.set(r.clerk_user_id, [...(byOwner.get(r.clerk_user_id) || []), r]);
-    const prefRows = await call(`retarget_preferences?select=*&clerk_user_id=${inList([...byOwner.keys()])}`);
-    const prefs = Object.fromEntries((prefRows || []).map((p) => [p.clerk_user_id, p]));
+    for (const r of rows) { if (!byOwner.has(r.clerk_user_id)) byOwner.set(r.clerk_user_id, []); byOwner.get(r.clerk_user_id).push(r); }
+    const prefs = await loadPreferences(call, [...byOwner.keys()]);
     const wpRef = {};
     for (const [owner, ownerRows] of byOwner) {
       out.owners += 1;
