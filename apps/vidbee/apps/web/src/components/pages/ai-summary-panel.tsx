@@ -5,10 +5,11 @@ import type {
 	WebAiSettings,
 	WebAiSkill,
 } from "@vidbee/transcription/web-contract";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { aiClient } from "../../lib/orpc-client";
+import { notify } from "../../lib/notify";
 import { useLiveStream } from "../../lib/use-live-stream";
 
 const messageOf = (error: unknown): string =>
@@ -166,7 +167,7 @@ const AiSettingsForm = ({
 			});
 			setApiKey("");
 			onSaved(next);
-			toast.success(t("transcript.ai.saved", { defaultValue: "AI settings saved" }));
+			toast.success(t("webTranscripts.ai.saved", { defaultValue: "AI settings saved" }));
 		} catch (error) {
 			toast.error(messageOf(error));
 		} finally {
@@ -177,7 +178,7 @@ const AiSettingsForm = ({
 	return (
 		<div className="max-w-md space-y-3 rounded-md border p-4 text-sm">
 			<div className="font-medium">
-				{t("transcript.ai.settings", { defaultValue: "OpenAI settings" })}
+				{t("webTranscripts.ai.settings", { defaultValue: "OpenAI settings" })}
 			</div>
 			<label className="block space-y-1">
 				<span className="text-muted-foreground">API key</span>
@@ -203,16 +204,16 @@ const AiSettingsForm = ({
 			</label>
 			<div className="flex gap-2">
 				<Button disabled={saving} onClick={() => void save()} size="sm">
-					{t("transcript.ai.save", { defaultValue: "Save" })}
+					{t("webTranscripts.ai.save", { defaultValue: "Save" })}
 				</Button>
 				{settings.hasApiKey && !settings.keyFromEnv && (
 					<Button disabled={saving} onClick={() => void save(true)} size="sm" variant="outline">
-						{t("transcript.ai.removeKey", { defaultValue: "Remove key" })}
+						{t("webTranscripts.ai.removeKey", { defaultValue: "Remove key" })}
 					</Button>
 				)}
 			</div>
 			<p className="text-muted-foreground text-xs">
-				{t("transcript.ai.privacy", {
+				{t("webTranscripts.ai.privacy", {
 					defaultValue:
 						"The key is stored on the server and never sent back to the browser. Transcript text is sent to this OpenAI endpoint when you run a summary.",
 				})}
@@ -272,6 +273,23 @@ export const AiSummaryPanel = ({
 	const current = runs[skillId];
 	const busy = current?.status === "running";
 	const anyRunning = Object.values(runs).some((item) => item.status === "running");
+
+	// Tell the user when a summary they started finishes while the tab is in the background.
+	const lastStatus = useRef<Record<string, string>>({});
+	useEffect(() => {
+		for (const item of Object.values(runs)) {
+			const before = lastStatus.current[item.skillId];
+			if (before === "running" && item.status !== "running" && item.status !== "cancelled") {
+				notify(
+					item.status === "completed"
+						? t("webTranscripts.notify.summaryDone", { defaultValue: "AI summary ready" })
+						: t("webTranscripts.notify.summaryFailed", { defaultValue: "AI summary failed" }),
+					prettySkill({ id: item.skillId, name: item.skillId, description: "" }),
+				);
+			}
+			lastStatus.current[item.skillId] = item.status;
+		}
+	}, [runs, t]);
 
 	// Live text for the selected skill while it runs; polling covers other skills
 	// and is the fallback when the stream is not connected.
@@ -341,13 +359,13 @@ export const AiSummaryPanel = ({
 				))}
 				<span className="mr-auto" />
 				<Button onClick={() => setShowSettings((value) => !value)} size="sm" variant="ghost">
-					{t("transcript.ai.settings", { defaultValue: "OpenAI settings" })}
+					{t("webTranscripts.ai.settings", { defaultValue: "OpenAI settings" })}
 				</Button>
 			</div>
 			<div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
 				{showSettings && settings?.locked && (
 					<p className="text-muted-foreground text-sm">
-						{t("transcript.ai.locked", {
+						{t("webTranscripts.ai.locked", {
 							defaultValue: "OpenAI settings are managed by the server.",
 						})}
 					</p>
@@ -370,17 +388,17 @@ export const AiSummaryPanel = ({
 						size="sm"
 					>
 						{current?.text
-							? t("transcript.ai.rerun", { defaultValue: "Run again" })
-							: t("transcript.ai.run", { defaultValue: "Run" })}
+							? t("webTranscripts.ai.rerun", { defaultValue: "Run again" })
+							: t("webTranscripts.ai.run", { defaultValue: "Run" })}
 					</Button>
 					{busy && (
 						<Button onClick={() => void stop()} size="sm" variant="outline">
-							{t("transcript.cancel", { defaultValue: "Cancel" })}
+							{t("webTranscripts.cancel", { defaultValue: "Cancel" })}
 						</Button>
 					)}
 					{!hasTranscript && (
 						<span className="text-muted-foreground text-xs">
-							{t("transcript.ai.needTranscript", {
+							{t("webTranscripts.ai.needTranscript", {
 								defaultValue: "Transcribe this download first.",
 							})}
 						</span>
@@ -399,7 +417,7 @@ export const AiSummaryPanel = ({
 					: current?.text && <SimpleMarkdown text={current.text} />}
 				{busy && (skillId === "chapters" || !current?.text) && (
 					<p className="text-muted-foreground text-sm">
-						{t("transcript.ai.working", { defaultValue: "Waiting for the model…" })}
+						{t("webTranscripts.ai.working", { defaultValue: "Waiting for the model…" })}
 					</p>
 				)}
 			</div>

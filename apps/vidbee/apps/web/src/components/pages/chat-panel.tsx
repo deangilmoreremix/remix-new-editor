@@ -83,7 +83,7 @@ export const ChatPanel = ({
 			<div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3 text-sm">
 				{!hasTranscript && (
 					<p className="text-muted-foreground">
-						{t("transcript.ai.needTranscript", {
+						{t("webTranscripts.ai.needTranscript", {
 							defaultValue: "Transcribe this download first.",
 						})}
 					</p>
@@ -122,7 +122,7 @@ export const ChatPanel = ({
 				)}
 				{running && !chat?.partial && (
 					<p className="text-muted-foreground text-xs">
-						{t("transcript.ai.working", { defaultValue: "Waiting for the model…" })}
+						{t("webTranscripts.ai.working", { defaultValue: "Waiting for the model…" })}
 					</p>
 				)}
 				{chat?.error && <p className="text-destructive">{chat.error}</p>}
@@ -138,7 +138,7 @@ export const ChatPanel = ({
 							void send();
 						}
 					}}
-					placeholder={t("transcript.chat.placeholder", {
+					placeholder={t("webTranscripts.chat.placeholder", {
 						defaultValue: "Ask about this video…",
 					})}
 					value={draft}
@@ -148,11 +148,11 @@ export const ChatPanel = ({
 						onClick={() => void chatClient.cancel({ downloadId }).then(refresh)}
 						variant="outline"
 					>
-						{t("transcript.cancel", { defaultValue: "Cancel" })}
+						{t("webTranscripts.cancel", { defaultValue: "Cancel" })}
 					</Button>
 				) : (
 					<Button disabled={!hasTranscript || !draft.trim()} onClick={() => void send()}>
-						{t("transcript.chat.send", { defaultValue: "Send" })}
+						{t("webTranscripts.chat.send", { defaultValue: "Send" })}
 					</Button>
 				)}
 				{chat && chat.messages.length > 0 && !running && (
@@ -160,7 +160,7 @@ export const ChatPanel = ({
 						onClick={() => void chatClient.reset({ downloadId }).then(setChat)}
 						variant="ghost"
 					>
-						{t("transcript.chat.clear", { defaultValue: "Clear" })}
+						{t("webTranscripts.chat.clear", { defaultValue: "Clear" })}
 					</Button>
 				)}
 			</div>

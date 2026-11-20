@@ -1,6 +1,8 @@
 import { oc, type } from '@orpc/contract'
 import type { TranscriptRecord } from './types'
 
+export type { TranscriptRecord }
+
 /** Lifecycle shown in the web transcripts list. */
 export type WebTranscriptState =
   | 'none'

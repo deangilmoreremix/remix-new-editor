@@ -1,5 +1,6 @@
 import { lookup } from 'node:dns/promises'
 import { createReadStream } from 'node:fs'
+import { stat } from 'node:fs/promises'
 import type { ServerResponse } from 'node:http'
 import net from 'node:net'
 import path from 'node:path'
@@ -136,7 +137,9 @@ export const createApiServer = async () => {
 
   await fastify.register(cors, {
     origin: true,
-    methods: ['GET', 'POST', 'OPTIONS']
+    methods: ['GET', 'POST', 'OPTIONS'],
+    // Lets a cross-origin page read the size and range of media it streams.
+    exposedHeaders: ['Content-Range', 'Content-Length', 'Accept-Ranges']
   })
 
   const rpcHandler = new RPCHandler(rpcRouter)
@@ -214,7 +217,7 @@ export const createApiServer = async () => {
     ['.webp', 'image/webp']
   ])
 
-  fastify.get<{ Querystring: { path?: string } }>('/files', async (request, reply) => {
+  fastify.get<{ Querystring: { path?: string; inline?: string } }>('/files', async (request, reply) => {
     const rawPath = request.query.path?.trim()
     if (!rawPath) {
       return reply.code(400).send({ message: 'Missing path query parameter.' })
@@ -227,8 +230,33 @@ export const createApiServer = async () => {
 
     const extension = path.extname(resolvedPath).toLowerCase()
     const fileName = path.basename(resolvedPath)
+    const size = (await stat(resolvedPath)).size
     reply.header('content-type', FILE_CONTENT_TYPES.get(extension) ?? 'application/octet-stream')
-    reply.header('content-disposition', `attachment; filename="${fileName.replaceAll('"', '')}"`)
+    reply.header(
+      'content-disposition',
+      `${request.query.inline === '1' ? 'inline' : 'attachment'}; filename="${fileName.replaceAll('"', '')}"`
+    )
+    // Byte ranges let <video> and <audio> seek without downloading the whole file.
+    reply.header('accept-ranges', 'bytes')
+    const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.range ?? '')
+    if (range && size > 0) {
+      let start = range[1] ? Number(range[1]) : 0
+      let end = range[2] ? Number(range[2]) : size - 1
+      if (!range[1] && range[2]) {
+        // "bytes=-N" means the last N bytes.
+        start = Math.max(0, size - Number(range[2]))
+        end = size - 1
+      }
+      end = Math.min(end, size - 1)
+      if (start > end || start >= size) {
+        reply.header('content-range', `bytes */${size}`)
+        return reply.code(416).send()
+      }
+      reply.header('content-range', `bytes ${start}-${end}/${size}`)
+      reply.header('content-length', end - start + 1)
+      return reply.code(206).send(createReadStream(resolvedPath, { start, end }))
+    }
+    reply.header('content-length', size)
     return reply.send(createReadStream(resolvedPath))
   })
 

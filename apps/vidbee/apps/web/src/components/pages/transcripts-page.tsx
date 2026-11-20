@@ -6,12 +6,18 @@ import type {
 	WebTranscriptExportFormat,
 	WebTranscriptStatus,
 } from "@vidbee/transcription/web-contract";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import {
+	notificationPermission,
+	notify,
+	requestNotifications,
+} from "../../lib/notify";
 import { transcriptsClient } from "../../lib/orpc-client";
 import { AppShell } from "../layout/app-shell";
 import { AiSummaryPanel } from "./ai-summary-panel";
+import { MediaPlayer, type MediaPlayerHandle } from "./media-player";
 import { ChatPanel } from "./chat-panel";
 import { TranslatePanel } from "./translate-panel";
 
@@ -58,6 +64,13 @@ export const TranscriptsPage = () => {
 	const [busy, setBusy] = useState(false);
 	const [highlightId, setHighlightId] = useState<string | null>(null);
 	const [jumpMs, setJumpMs] = useState<number | null>(null);
+	const playerRef = useRef<MediaPlayerHandle>(null);
+	const [showPlayer, setShowPlayer] = useState(true);
+	const [playheadMs, setPlayheadMs] = useState(0);
+	const [playing, setPlaying] = useState(false);
+	const [followPlayback, setFollowPlayback] = useState(true);
+	const [notifyState, setNotifyState] = useState(notificationPermission());
+	const lastStates = useRef<Record<string, string>>({});
 	const [tab, setTab] = useState<"transcript" | "ai" | "chat" | "translate">("transcript");
 
 	const refreshList = useCallback(async () => {
@@ -162,11 +175,46 @@ export const TranscriptsPage = () => {
 			: all;
 	}, [detail, query]);
 
+	// Tell the user when a transcription they were waiting on finishes.
+	useEffect(() => {
+		for (const item of items) {
+			const before = lastStates.current[item.downloadId];
+			if (before && ACTIVE_STATES.has(before) && !ACTIVE_STATES.has(item.state)) {
+				notify(
+					item.state === "failed"
+						? t("webTranscripts.notify.failed", { defaultValue: "Transcription failed" })
+						: t("webTranscripts.notify.done", { defaultValue: "Transcription finished" }),
+					item.title ?? item.downloadId,
+				);
+			}
+			lastStates.current[item.downloadId] = item.state;
+		}
+	}, [items, t]);
+
+	// The line being spoken at the playhead.
+	const activeSegmentId = useMemo(() => {
+		if (!(detail?.record && (playing || playheadMs > 0))) {
+			return null;
+		}
+		const ordered = [...detail.record.segments].sort((a, b) => a.sortIndex - b.sortIndex);
+		return [...ordered].reverse().find((segment) => segment.startMs <= playheadMs)?.id ?? null;
+	}, [detail, playheadMs, playing]);
+
+	useEffect(() => {
+		if (!(followPlayback && playing && activeSegmentId && tab === "transcript")) {
+			return;
+		}
+		document
+			.getElementById(`seg-${activeSegmentId}`)
+			?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+	}, [activeSegmentId, followPlayback, playing, tab]);
+
 	// Open the transcript at a moment: clear search, find the segment, scroll to it.
 	const jumpTo = (seconds: number) => {
 		setQuery("");
 		setTab("transcript");
 		setJumpMs(Math.max(0, seconds * 1000));
+		playerRef.current?.seek(seconds);
 	};
 
 	useEffect(() => {
@@ -189,7 +237,7 @@ export const TranscriptsPage = () => {
 	}, [jumpMs, tab, detail]);
 
 	const stateLabel = (state: string) =>
-		t(`transcript.state.${state}`, { defaultValue: state });
+		t(`webTranscripts.state.${state}`, { defaultValue: state });
 
 	return (
 		<AppShell page="transcripts">
@@ -200,7 +248,7 @@ export const TranscriptsPage = () => {
 					</div>
 					{loaded && items.length === 0 && (
 						<p className="px-3 text-muted-foreground text-sm">
-							{t("transcript.empty", {
+							{t("webTranscripts.empty", {
 								defaultValue:
 									"No transcripts yet. Finish a download on Home, then open it here to transcribe.",
 							})}
@@ -241,6 +289,26 @@ export const TranscriptsPage = () => {
 									{detail.title ?? detail.downloadId}
 								</h2>
 								<Badge variant="secondary">{stateLabel(detail.state)}</Badge>
+								{notifyState === "default" && (
+									<Button
+										onClick={() => void requestNotifications().then(setNotifyState)}
+										size="sm"
+										variant="ghost"
+									>
+										{t("webTranscripts.notify.enable", { defaultValue: "Notify me" })}
+									</Button>
+								)}
+								{detail.sourceFilePath && (
+									<Button
+										onClick={() => setShowPlayer((value) => !value)}
+										size="sm"
+										variant="ghost"
+									>
+										{showPlayer
+											? t("webTranscripts.player.hide", { defaultValue: "Hide player" })
+											: t("webTranscripts.player.show", { defaultValue: "Show player" })}
+									</Button>
+								)}
 								{detail.stage && (
 									<span className="text-muted-foreground text-xs">
 										{detail.stage}
@@ -252,7 +320,7 @@ export const TranscriptsPage = () => {
 										onClick={() => void act((id) => transcriptsClient.start({ downloadId: id }))}
 										size="sm"
 									>
-										{t("transcript.start", { defaultValue: "Transcribe" })}
+										{t("webTranscripts.start", { defaultValue: "Transcribe" })}
 									</Button>
 								)}
 								{ACTIVE_STATES.has(detail.state) && (
@@ -262,7 +330,7 @@ export const TranscriptsPage = () => {
 										size="sm"
 										variant="outline"
 									>
-										{t("transcript.cancel", { defaultValue: "Cancel" })}
+										{t("webTranscripts.cancel", { defaultValue: "Cancel" })}
 									</Button>
 								)}
 								{(detail.state === "failed" || detail.state === "cancelled") && (
@@ -271,7 +339,7 @@ export const TranscriptsPage = () => {
 										onClick={() => void act((id) => transcriptsClient.retry({ downloadId: id }))}
 										size="sm"
 									>
-										{t("transcript.retry", { defaultValue: "Retry" })}
+										{t("webTranscripts.retry", { defaultValue: "Retry" })}
 									</Button>
 								)}
 								{detail.state === "completed" && (
@@ -281,7 +349,7 @@ export const TranscriptsPage = () => {
 										size="sm"
 										variant="outline"
 									>
-										{t("transcript.redo", { defaultValue: "Re-transcribe" })}
+										{t("webTranscripts.redo", { defaultValue: "Re-transcribe" })}
 									</Button>
 								)}
 							</header>
@@ -290,6 +358,17 @@ export const TranscriptsPage = () => {
 								<p className="border-b p-3 text-destructive text-sm">
 									{detail.error}
 								</p>
+							)}
+
+							{detail.sourceFilePath && showPlayer && (
+								<MediaPlayer
+									downloadId={detail.downloadId}
+									filePath={detail.sourceFilePath}
+									onPlayingChange={setPlaying}
+									onTime={setPlayheadMs}
+									record={detail.record}
+									ref={playerRef}
+								/>
 							)}
 
 							<div className="flex gap-1 border-b px-3 pt-2">
@@ -305,13 +384,13 @@ export const TranscriptsPage = () => {
 										type="button"
 									>
 										{name === "ai" &&
-											t("transcript.ai.tab", { defaultValue: "AI summary" })}
+											t("webTranscripts.ai.tab", { defaultValue: "AI summary" })}
 										{name === "chat" &&
-											t("transcript.chat.tab", { defaultValue: "Chat" })}
+											t("webTranscripts.chat.tab", { defaultValue: "Chat" })}
 										{name === "translate" &&
-											t("transcript.translate.tab", { defaultValue: "Translate" })}
+											t("webTranscripts.translate.tab", { defaultValue: "Translate" })}
 										{name === "transcript" &&
-											t("transcript.tab", { defaultValue: "Transcript" })}
+											t("webTranscripts.tab", { defaultValue: "Transcript" })}
 									</button>
 								))}
 							</div>
@@ -343,7 +422,7 @@ export const TranscriptsPage = () => {
 									<Input
 										className="max-w-xs"
 										onChange={(event) => setQuery(event.target.value)}
-										placeholder={t("transcript.search", {
+										placeholder={t("webTranscripts.search", {
 											defaultValue: "Search transcript",
 										})}
 										value={query}
@@ -351,6 +430,16 @@ export const TranscriptsPage = () => {
 									<span className="mr-auto text-muted-foreground text-xs">
 										{segments.length}/{detail.segmentCount}
 									</span>
+									{detail.sourceFilePath && (
+										<label className="flex items-center gap-1 text-xs">
+											<input
+												checked={followPlayback}
+												onChange={(event) => setFollowPlayback(event.target.checked)}
+												type="checkbox"
+											/>
+											{t("webTranscripts.player.follow", { defaultValue: "Follow playback" })}
+										</label>
+									)}
 									{EXPORT_FORMATS.map((format) => (
 										<Button
 											key={format}
@@ -373,14 +462,23 @@ export const TranscriptsPage = () => {
 									return (
 										<div
 											className={`flex gap-3 rounded-md text-sm ${
-												highlightId === segment.id ? "bg-primary/15" : ""
+												highlightId === segment.id
+													? "bg-primary/15"
+													: activeSegmentId === segment.id
+														? "bg-muted"
+														: ""
 											}`}
 											id={`seg-${segment.id}`}
 											key={segment.id}
 										>
-											<span className="w-14 shrink-0 text-muted-foreground tabular-nums">
+											<button
+												className="w-14 shrink-0 text-left text-muted-foreground tabular-nums hover:text-primary"
+												onClick={() => playerRef.current?.seek(segment.startMs / 1000)}
+												title={t("webTranscripts.player.seek", { defaultValue: "Play from here" })}
+												type="button"
+											>
 												{formatClock(segment.startMs)}
-											</span>
+											</button>
 											<div>
 												{speaker && (
 													<div className={`font-medium ${speaker.color}`}>
@@ -395,8 +493,8 @@ export const TranscriptsPage = () => {
 								{!detail.record && !detail.error && (
 									<p className="text-muted-foreground text-sm">
 										{ACTIVE_STATES.has(detail.state)
-											? t("transcript.working", { defaultValue: "Transcribing…" })
-											: t("transcript.none", {
+											? t("webTranscripts.working", { defaultValue: "Transcribing…" })
+											: t("webTranscripts.none", {
 													defaultValue: "No transcript for this download yet.",
 												})}
 									</p>
@@ -406,7 +504,7 @@ export const TranscriptsPage = () => {
 						</>
 					) : (
 						<p className="p-6 text-muted-foreground text-sm">
-							{t("transcript.pick", {
+							{t("webTranscripts.pick", {
 								defaultValue: "Select a download to view its transcript.",
 							})}
 						</p>

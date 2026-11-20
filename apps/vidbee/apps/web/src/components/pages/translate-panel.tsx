@@ -1,10 +1,11 @@
 import { Button } from "@vidbee/ui/components/ui/button";
 import { Input } from "@vidbee/ui/components/ui/input";
 import type { WebTranslation } from "@vidbee/transcription/web-contract";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { translateClient } from "../../lib/orpc-client";
+import { notify } from "../../lib/notify";
 import { useLiveStream } from "../../lib/use-live-stream";
 
 const FORMATS = ["srt", "vtt", "txt"] as const;
@@ -37,6 +38,22 @@ export const TranslatePanel = ({
 	}, [refresh]);
 
 	const running = items.some((item) => item.status === "running");
+
+	const lastStatus = useRef<Record<string, string>>({});
+	useEffect(() => {
+		for (const item of items) {
+			const before = lastStatus.current[item.language];
+			if (before === "running" && (item.status === "completed" || item.status === "failed")) {
+				notify(
+					item.status === "completed"
+						? t("webTranscripts.notify.translateDone", { defaultValue: "Translation ready" })
+						: t("webTranscripts.notify.translateFailed", { defaultValue: "Translation failed" }),
+					item.language,
+				);
+			}
+			lastStatus.current[item.language] = item.status;
+		}
+	}, [items, t]);
 	const streaming = useLiveStream(
 		true,
 		{ channel: "translate", downloadId },
@@ -88,7 +105,7 @@ export const TranslatePanel = ({
 					className="max-w-xs"
 					disabled={!hasTranscript}
 					onChange={(event) => setLanguage(event.target.value)}
-					placeholder={t("transcript.translate.language", {
+					placeholder={t("webTranscripts.translate.language", {
 						defaultValue: "Target language, e.g. Spanish",
 					})}
 					value={language}
@@ -98,7 +115,7 @@ export const TranslatePanel = ({
 					onClick={() => void start(language)}
 					size="sm"
 				>
-					{t("transcript.translate.start", { defaultValue: "Translate" })}
+					{t("webTranscripts.translate.start", { defaultValue: "Translate" })}
 				</Button>
 			</div>
 			<div className="flex flex-wrap gap-1">
@@ -116,7 +133,7 @@ export const TranslatePanel = ({
 			</div>
 			{!hasTranscript && (
 				<p className="text-muted-foreground">
-					{t("transcript.ai.needTranscript", { defaultValue: "Transcribe this download first." })}
+					{t("webTranscripts.ai.needTranscript", { defaultValue: "Transcribe this download first." })}
 				</p>
 			)}
 			<ul className="space-y-2">
@@ -138,7 +155,7 @@ export const TranslatePanel = ({
 								size="sm"
 								variant="outline"
 							>
-								{t("transcript.cancel", { defaultValue: "Cancel" })}
+								{t("webTranscripts.cancel", { defaultValue: "Cancel" })}
 							</Button>
 						)}
 						{item.status === "completed" &&
@@ -154,7 +171,7 @@ export const TranslatePanel = ({
 							))}
 						{(item.status === "failed" || item.status === "cancelled") && (
 							<Button onClick={() => void start(item.language)} size="sm">
-								{t("transcript.retry", { defaultValue: "Retry" })}
+								{t("webTranscripts.retry", { defaultValue: "Retry" })}
 							</Button>
 						)}
 					</li>
