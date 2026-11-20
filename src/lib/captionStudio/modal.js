@@ -396,7 +396,7 @@ export class CaptionStudioModal extends ModalShell {
       const saved = raw && JSON.parse(raw);
       if (saved?.captions?.length && !this.captions.length) {
         this.captions = sortCaptions(saved.captions);
-        this.style = { ...this.style, ...saved.style };
+        this.style = this.coerceFont({ ...this.style, ...saved.style }); // a look saved before the host limited fonts must not bring its font back
         this.note = `Restored your saved captions for this video (${this.captions.length} words).`;
         ensureCaptionFont(this.style, this.fontText());
       }
@@ -654,7 +654,13 @@ export class CaptionStudioModal extends ModalShell {
   }
 
   fail(err) {
-    if (err?.name === 'AbortError') return;
+    if (err?.name === 'AbortError') {
+      // A cancel (or a declined speech-model download) is not an error toast, but the busy state must still end.
+      this.busy = null;
+      if (/declined/i.test(err.message || '')) this.note = 'The speech model was not downloaded, so captions cannot be written from the video’s sound yet. Press Generate again and choose OK to download it once (about 40–250 MB, depending on the model).';
+      this.refresh();
+      return;
+    }
     this.errMsg = err?.message || String(err);
     this.busy = null;
     this.opts.onError?.(err);
@@ -726,8 +732,10 @@ export class CaptionStudioModal extends ModalShell {
     if (t.dataset.lineText != null) { const l = lines()[Number(t.dataset.lineText)]; if (l) this.captions = setLineText(this.captions, l, t.value); this.refresh(); return; }
     if (t.dataset.lineStart != null || t.dataset.lineEnd != null) {
       const i = Number(t.dataset.lineStart ?? t.dataset.lineEnd); const l = lines()[i]; if (!l) return;
-      const row = t.closest('.csm-line');
-      this.captions = setLineTiming(this.captions, l, Number(row.querySelector('[data-line-start]').value) * 1000, Number(row.querySelector('[data-line-end]').value) * 1000);
+      const row = t.closest('.csm-lineedit') || t.closest('.csm-seg');
+      const start = row?.querySelector('[data-line-start]'); const end = row?.querySelector('[data-line-end]');
+      if (!start || !end) return;
+      this.captions = setLineTiming(this.captions, l, Number(start.value) * 1000, Number(end.value) * 1000);
       this.refresh();
     }
   }
@@ -792,33 +800,38 @@ export class CaptionStudioModal extends ModalShell {
 
   async liveStart() {
     this.errMsg = ''; this.note = '';
+    let live = null;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { facingMode: 'user' } }).catch(() => navigator.mediaDevices.getUserMedia({ audio: true }));
       const chunks = [];
       const recorder = new MediaRecorder(stream);
       recorder.ondataavailable = (ev) => { if (ev.data.size) chunks.push(ev.data); };
-      this.live = { stream, recorder, interim: '', mode: null };
+      live = { stream, recorder, interim: '', mode: null, handle: null };
+      this.live = live;
       this.video.srcObject = stream; this.video.muted = true; this.video.controls = false; this.video.play().catch(() => {});
       recorder.onstop = () => {
         stream.getTracks().forEach((tr) => tr.stop());
         this.video.srcObject = null; this.video.muted = false; this.video.controls = true;
         const blob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
-        this.live = null;
+        if (this.live === live) this.live = null;
         this.setSource(blob, 'recording.webm');
         this.note = 'Recording saved. Live captions were approximate — press “Generate captions” for exact word timing, or keep them.';
         this.refresh();
       };
       recorder.start(500);
-      this.live.handle = await startLiveCaptions({
+      // Stop can be pressed while the recogniser is still starting: every callback below checks that this is still the live session.
+      const handle = await startLiveCaptions({
         lang: this.language === 'auto' ? (navigator.language || 'en-US') : this.language,
-        onMode: (m) => { this.live.mode = m; this.refresh(); },
-        onUpdate: ({ captions, interim }) => { this.captions = captions; if (this.live) this.live.interim = interim; const el = this.overlay?.querySelector('.csm-live'); if (el) el.textContent = interim || captions.slice(-6).map((c) => c.text).join('') || 'Listening…'; },
-        onError: (err) => this.fail(err),
+        onMode: (m) => { if (this.live === live) { live.mode = m; this.refresh(); } },
+        onUpdate: ({ captions, interim }) => { this.captions = captions; if (this.live === live) live.interim = interim; const el = this.overlay?.querySelector('.csm-live'); if (el) el.textContent = interim || captions.slice(-6).map((c) => c.text).join('') || 'Listening…'; },
+        onError: (err) => { if (this.live === live) this.fail(err); },
       });
+      if (this.live !== live) { handle?.stop?.(); return; }
+      live.handle = handle;
       this.refresh();
     } catch (err) {
-      this.live?.stream?.getTracks().forEach((tr) => tr.stop());
-      this.live = null;
+      (live?.stream || null)?.getTracks().forEach((tr) => tr.stop());
+      if (this.live === live) this.live = null;
       this.fail(err?.name === 'NotAllowedError' ? new Error('Camera/microphone permission was denied.') : err);
     }
   }
