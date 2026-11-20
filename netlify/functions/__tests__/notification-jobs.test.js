@@ -97,7 +97,7 @@ describe('drain', () => {
     expect(await drainEmailQueue({ adapter: a, db, now: NOW })).toMatchObject({ sent: 1, failed: 0 });
     expect(a.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'owner@example.test', subject: 'New lead captured', idempotencyKey: 'n1', html: expect.stringContaining('Open alerts') }));
     const { text } = a.send.mock.calls[0][0];
-    expect(text.startsWith('New lead captured\n\nA viewer submitted a form.\n\nReview it.\n\nOpen alerts: https://smartvid.app/#/timeline')).toBe(true);
+    expect(text.startsWith('New lead captured\n\nA viewer submitted a form.\n\nReview it.\n\nOpen alerts: https://smartvid.app/?alerts=1#/timeline')).toBe(true);
     expect(db.marks[0][1]).toMatchObject({ status: 'sent', attempts: 1 });
   });
   it('retries a failure with backoff, then fails permanently after the attempt limit', async () => {
@@ -132,6 +132,39 @@ describe('drain', () => {
     const db3 = mkdb([{ id: 'q3', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 }]);
     await drainEmailQueue({ adapter: noRecipient, db: db3, now: NOW });
     expect(db3.marks[0][1]).toMatchObject({ status: 'skipped', last_error: 'no_recipient' });
+  });
+  it('re-checks the CURRENT preferences before sending a queued row: e-mail off, the alert type off, or digests off skip it', async () => {
+    const row = { id: 'q1', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 };
+    const cases = [
+      [{ u1: { email: false } }, undefined],
+      [{ u1: { email: true, enabled_types: ['milestone'] } }, undefined],
+      [{ u1: { email: true, enabled_types: ['daily_digest'], digest_frequency: 'off' } }, 'daily_digest'],
+    ];
+    for (const [prefs, type] of cases) {
+      const a = fake();
+      const db = { ...mkdb([row], prefs), notification: async (id) => ({ id, type: type || 'new_lead', title: 'T', summary: 'S' }) };
+      const r = await drainEmailQueue({ adapter: a, db, now: NOW });
+      expect(r.skipped).toBe(1);
+      expect(a.send).not.toHaveBeenCalled();
+      expect(a.resolveRecipient).not.toHaveBeenCalled();
+      expect(db.marks[0][1]).toEqual({ status: 'skipped', last_error: 'pref_off' });
+    }
+    // still on (or no preferences row to compare with): sent as before
+    for (const prefs of [{ u1: { email: true, enabled_types: ['new_lead'] } }, {}]) {
+      const a = fake();
+      expect((await drainEmailQueue({ adapter: a, db: { ...mkdb([row], prefs), notification: async (id) => ({ id, type: 'new_lead', title: 'T', summary: 'S' }) }, now: NOW })).sent).toBe(1);
+    }
+  });
+  it('a transient recipient lookup failure is retried with backoff (and fails for good after the attempt limit); only a real "no address" is skipped', async () => {
+    const a = fake({ resolveRecipient: vi.fn(async () => ({ transient: true })) });
+    const db = mkdb([{ id: 'q1', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 }, { id: 'q2', notification_id: 'n2', clerk_user_id: 'u1', attempts: MAX_ATTEMPTS - 1 }]);
+    const r = await drainEmailQueue({ adapter: a, db, now: NOW });
+    expect(r).toMatchObject({ failed: 2, skipped: 0, outcomes: { q1: 'retry', q2: 'failed' } });
+    expect(a.send).not.toHaveBeenCalled();
+    expect(db.marks[0][1]).toMatchObject({ attempts: 1, last_error: 'recipient_lookup_failed' });
+    expect(db.marks[0][1].status).toBeUndefined();
+    expect(new Date(db.marks[0][1].next_attempt_at).getTime()).toBe(NOW.getTime() + 60_000);
+    expect(db.marks[1][1]).toMatchObject({ status: 'failed', attempts: MAX_ATTEMPTS });
   });
 });
 
