@@ -97,7 +97,7 @@ class Rt {
     return d;
   }
 }
-async function Ot(e, t, a = {}) {
+async function Dt(e, t, a = {}) {
   const { intervalMs: n = 2e3, timeoutMs: d = 15 * 60 * 1e3, signal: l, onUpdate: o } = a, y = Date.now();
   let m = 0;
   for (; Date.now() - y < d; ) {
@@ -131,7 +131,7 @@ const ft = $t({ library: !0, deleteMedia: !0 }), gt = () => Tt(ft), Re = {
   radiusButton: "0.75rem",
   radiusCard: "1rem",
   font: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif"
-}, Dt = {
+}, Ot = {
   bgApp: "#030303",
   bgPanel: "#0a0a0a",
   bgCard: "#111111",
@@ -150,7 +150,7 @@ const ft = $t({ library: !0, deleteMedia: !0 }), gt = () => Tt(ft), Re = {
   radiusButton: "9999px",
   radiusCard: "1rem",
   font: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif"
-}, jt = { lime: Re, cyan: Dt }, Je = {
+}, jt = { lime: Re, cyan: Ot }, Je = {
   bgApp: "--ms-bg-app",
   bgPanel: "--ms-bg-panel",
   bgCard: "--ms-bg-card",
@@ -336,7 +336,7 @@ function Yt(e, t, a) {
     if (!T.current.has(i)) {
       T.current.add(i);
       try {
-        const f = await Ot(e, c, {
+        const f = await Dt(e, c, {
           signal: g.current.signal,
           onUpdate: (k) => I(i, { status: k.status, outputs: k.outputs, error: k.error, cost: k.cost })
         });
@@ -367,7 +367,7 @@ function Yt(e, t, a) {
   z(() => {
     t && !G.current && (G.current = !0, w(!0));
   }, [t, w]);
-  const D = te((i) => {
+  const O = te((i) => {
     const c = Array.from({ length: i.count }, () => ({
       id: Zt(),
       model: i.model,
@@ -402,7 +402,7 @@ function Yt(e, t, a) {
   }, []), h = te(async (i) => {
     i.requestId && (await e.deleteMedia(i.requestId), I(i.id, { outputs: [] }), o((c) => c.map((f) => f.requestId === i.requestId ? { ...f, outputs: [] } : f)));
   }, [e, I]);
-  return { items: V, run: D, setLabel: J, remove: F, deleteMedia: h, loadMore: () => w(!1), hasMore: !!y, loadingMore: p, serverError: x };
+  return { items: V, run: O, setLabel: J, remove: F, deleteMedia: h, loadMore: () => w(!1), hasMore: !!y, loadingMore: p, serverError: x };
 }
 const er = /\.(zip|json|safetensors|txt|csv|pdf|md|html|bin|ckpt|pt|tar|gz|7z|rar|srt|vtt)(\?|#|$)/i;
 function xt(e) {
@@ -444,7 +444,7 @@ const W = ({ children: e, ...t }) => /* @__PURE__ */ r("svg", { width: "20", hei
 ] }), He = ({ up: e, ...t }) => /* @__PURE__ */ r(W, { ...t, children: /* @__PURE__ */ r("path", { d: e ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6" }) }), ir = (e) => /* @__PURE__ */ r(W, { ...e, children: /* @__PURE__ */ r("path", { d: "M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A9.8 9.8 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.3 6.3A17 17 0 0 0 2 12s4 7 10 7a9.7 9.7 0 0 0 4-.9" }) }), sr = (e) => /* @__PURE__ */ s(W, { ...e, children: [
   /* @__PURE__ */ r("path", { d: "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" }),
   /* @__PURE__ */ r("circle", { cx: "12", cy: "12", r: "3" })
-] }), Oe = (e) => /* @__PURE__ */ r(W, { ...e, children: /* @__PURE__ */ r("path", { d: "M12 3v12m0 0-4-4m4 4 4-4M4 21h16" }) }), ve = (e) => /* @__PURE__ */ r(W, { ...e, children: /* @__PURE__ */ r("path", { d: "m5 12 5 5 9-10" }) }), be = (e) => /* @__PURE__ */ r(W, { ...e, children: /* @__PURE__ */ r("path", { d: "M6 6l12 12M18 6 6 18" }) }), wt = (e) => /* @__PURE__ */ r(W, { ...e, children: /* @__PURE__ */ r("path", { d: "M12 15V3m0 0L8 7m4-4 4 4M4 21h16" }) }), lr = (e) => /* @__PURE__ */ s(W, { ...e, children: [
+] }), De = (e) => /* @__PURE__ */ r(W, { ...e, children: /* @__PURE__ */ r("path", { d: "M12 3v12m0 0-4-4m4 4 4-4M4 21h16" }) }), ve = (e) => /* @__PURE__ */ r(W, { ...e, children: /* @__PURE__ */ r("path", { d: "m5 12 5 5 9-10" }) }), be = (e) => /* @__PURE__ */ r(W, { ...e, children: /* @__PURE__ */ r("path", { d: "M6 6l12 12M18 6 6 18" }) }), wt = (e) => /* @__PURE__ */ r(W, { ...e, children: /* @__PURE__ */ r("path", { d: "M12 15V3m0 0L8 7m4-4 4 4M4 21h16" }) }), lr = (e) => /* @__PURE__ */ s(W, { ...e, children: [
   /* @__PURE__ */ r("circle", { cx: "12", cy: "12", r: "9" }),
   /* @__PURE__ */ r("path", { d: "M12 11v5M12 8v.01" })
 ] }), we = (e) => /* @__PURE__ */ r(W, { ...e, className: "ms-spin", children: /* @__PURE__ */ r("path", { d: "M21 12a9 9 0 1 1-6.2-8.55" }) }), cr = (e) => /* @__PURE__ */ r(W, { ...e, children: /* @__PURE__ */ r("path", { d: "M3 6h13M3 12h9M3 18h5M18 8v12m0 0-3-3m3 3 3-3" }) }), dr = (e) => /* @__PURE__ */ r(W, { ...e, children: /* @__PURE__ */ r("path", { d: "M4 6h16M4 12h16M4 18h10" }) }), ur = (e) => /* @__PURE__ */ s(W, { ...e, children: [
@@ -464,7 +464,7 @@ function fr({ url: e, hidden: t, onOpen: a }) {
     /* @__PURE__ */ r(vt, { width: 32, height: 32 }),
     "Open 3D model"
   ] }) : d === "file" ? /* @__PURE__ */ s("a", { href: e, target: "_blank", rel: "noopener noreferrer", className: "flex aspect-video flex-col items-center justify-center gap-2 bg-card-bg p-3 text-center text-xs text-secondary hover:text-primary", children: [
-    /* @__PURE__ */ r(Oe, { width: 28, height: 28 }),
+    /* @__PURE__ */ r(De, { width: 28, height: 28 }),
     /* @__PURE__ */ r("span", { className: "break-all", children: decodeURIComponent(e.split("?")[0].split("/").pop() ?? "file") })
   ] }) : /* @__PURE__ */ r("button", { type: "button", onClick: a, "aria-label": "Open full size", className: "block w-full", children: /* @__PURE__ */ r("img", { src: e, alt: "Generated output", loading: "lazy", style: n, className: "aspect-square w-full bg-black object-contain" }) });
 }
@@ -485,7 +485,7 @@ function gr({ g: e, hidden: t, onLabel: a, onRemove: n, onReuse: d, onRerun: l, 
         /* @__PURE__ */ r("span", { title: e.cost === void 0 ? "Estimated from the current catalog price" : void 0, children: e.cost !== void 0 ? oe(e.cost) : e.status === "completed" && (m == null ? void 0 : m(e.model)) !== void 0 ? `est. ${oe(m(e.model))}` : "" })
       ] }),
       /* @__PURE__ */ s("div", { className: "flex flex-wrap items-center gap-1", children: [
-        e.status === "completed" && p && ($ ? /* @__PURE__ */ r("a", { href: `data:text/plain;charset=utf-8,${encodeURIComponent(p)}`, download: `${e.model}-${e.createdAt}.txt`, "aria-label": "Download as text file", title: "Download as text file", className: `${E} border-line text-secondary hover:text-primary`, children: /* @__PURE__ */ r(Oe, { width: 14, height: 14 }) }) : /* @__PURE__ */ r("a", { href: p, target: "_blank", rel: "noopener noreferrer", download: !0, "aria-label": "Download", title: "Download", className: `${E} border-line text-secondary hover:text-primary`, children: /* @__PURE__ */ r(Oe, { width: 14, height: 14 }) })),
+        e.status === "completed" && p && ($ ? /* @__PURE__ */ r("a", { href: `data:text/plain;charset=utf-8,${encodeURIComponent(p)}`, download: `${e.model}-${e.createdAt}.txt`, "aria-label": "Download as text file", title: "Download as text file", className: `${E} border-line text-secondary hover:text-primary`, children: /* @__PURE__ */ r(De, { width: 14, height: 14 }) }) : /* @__PURE__ */ r("a", { href: p, target: "_blank", rel: "noopener noreferrer", download: !0, "aria-label": "Download", title: "Download", className: `${E} border-line text-secondary hover:text-primary`, children: /* @__PURE__ */ r(De, { width: 14, height: 14 }) })),
         /* @__PURE__ */ r(
           "button",
           {
@@ -615,13 +615,13 @@ function Te(e) {
     n.default !== void 0 && n.default !== null ? t[n.name] = n.default : l && (d === "textarea" || d === "text") && typeof ((a = n.examples) == null ? void 0 : a[0]) == "string" && (t[n.name] = n.examples[0]);
   return t;
 }
-const pe = (e) => `__auto:${e}`, rt = (e) => (e.kind === "number" || e.kind === "select") && !e.required, De = (e) => e == null || e === "" || Array.isArray(e) && e.length === 0;
+const pe = (e) => `__auto:${e}`, rt = (e) => (e.kind === "number" || e.kind === "select") && !e.required, Oe = (e) => e == null || e === "" || Array.isArray(e) && e.length === 0;
 function at(e, t) {
   const a = {};
   for (const { prop: n, kind: d } of e) {
     if (t[pe(n.name)] === !0) continue;
     const l = t[n.name] ?? n.default;
-    if (!De(l))
+    if (!Oe(l))
       if (d === "number") {
         const o = Number(l);
         Number.isFinite(o) && (a[n.name] = o);
@@ -638,14 +638,14 @@ function wr(e, t) {
   for (const { prop: a, kind: n, required: d } of e) {
     if (t[pe(a.name)] === !0) continue;
     const l = t[a.name] ?? a.default, o = a.title || a.name;
-    if (d && De(l)) return `${o} is required`;
+    if (d && Oe(l)) return `${o} is required`;
     if (n === "json" && typeof l == "string" && l)
       try {
         JSON.parse(l);
       } catch {
         return `${o} must be valid JSON`;
       }
-    if (n === "number" && !De(l)) {
+    if (n === "number" && !Oe(l)) {
       const y = Number(l);
       if (!Number.isFinite(y)) return `${o} must be a number`;
       if (a.minValue !== void 0 && y < a.minValue) return `${o} must be at least ${a.minValue}`;
@@ -671,7 +671,7 @@ function $r(e, t, a) {
 }
 const nt = "Auto (let model decide)", Ee = "__auto__";
 function je({ id: e, label: t, options: a, value: n, onChange: d, allowAuto: l, auto: o, onAuto: y, combobox: m }) {
-  const p = Et(), $ = e ?? `ms-dd-${p}`, x = m ?? a.length > kr, [b, _] = N(!1), [A, L] = N(""), [C, E] = N(0), [T, g] = N("down"), v = Q(null), I = Q(null), q = Q(null), w = a.find((c) => n !== void 0 && Se(c.value) === Se(n)), G = Y(() => x ? Sr(a, A) : a, [x, a, A]), D = Y(
+  const p = Et(), $ = e ?? `ms-dd-${p}`, x = m ?? a.length > kr, [b, _] = N(!1), [A, L] = N(""), [C, E] = N(0), [T, g] = N("down"), v = Q(null), I = Q(null), q = Q(null), w = a.find((c) => n !== void 0 && Se(c.value) === Se(n)), G = Y(() => x ? Sr(a, A) : a, [x, a, A]), O = Y(
     () => [...l ? [{ key: Ee, label: nt, value: Ee, isAuto: !0 }] : [], ...G.map((c) => ({ key: Se(c.value), label: c.label, hint: c.hint, value: c.value }))],
     [l, G]
   ), V = o ? Ee : w ? Se(w.value) : void 0, J = () => {
@@ -688,7 +688,7 @@ function je({ id: e, label: t, options: a, value: n, onChange: d, allowAuto: l, 
     g(Ar(B - c.bottom, c.top - u, Ir(a.length + (l ? 1 : 0), x)));
   }, [b]), z(() => {
     if (!b) return;
-    const c = D.findIndex((f) => f.key === V);
+    const c = O.findIndex((f) => f.key === V);
     E(c >= 0 ? c : 0);
   }, [b, A]), z(() => {
     var c, f, k;
@@ -714,7 +714,7 @@ function je({ id: e, label: t, options: a, value: n, onChange: d, allowAuto: l, 
       return;
     }
     if (c.key === "Enter") {
-      c.preventDefault(), D[C] && F(D[C]);
+      c.preventDefault(), O[C] && F(O[C]);
       return;
     }
     if (c.key === "Tab") {
@@ -722,10 +722,10 @@ function je({ id: e, label: t, options: a, value: n, onChange: d, allowAuto: l, 
       return;
     }
     if (c.key === " " && !x) {
-      c.preventDefault(), D[C] && F(D[C]);
+      c.preventDefault(), O[C] && F(O[C]);
       return;
     }
-    ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(c.key) && (c.preventDefault(), E((f) => $r(f, c.key, D.length)));
+    ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(c.key) && (c.preventDefault(), E((f) => $r(f, c.key, O.length)));
   }, i = o ? nt : (w == null ? void 0 : w.label) ?? "Select…";
   return /* @__PURE__ */ s("div", { ref: v, className: "relative w-full", onKeyDown: h, children: [
     /* @__PURE__ */ s(
@@ -757,12 +757,12 @@ function je({ id: e, label: t, options: a, value: n, onChange: d, allowAuto: l, 
           role: "combobox",
           "aria-expanded": "true",
           "aria-controls": `${$}-list`,
-          "aria-activedescendant": D[C] ? `${$}-o${C}` : void 0,
+          "aria-activedescendant": O[C] ? `${$}-o${C}` : void 0,
           className: "mb-1 w-full px-3 py-2 text-sm"
         }
       ),
       /* @__PURE__ */ s("ul", { id: `${$}-list`, ref: I, role: "listbox", "aria-label": t, style: { maxHeight: ze }, className: "overflow-y-auto", children: [
-        D.map((c, f) => {
+        O.map((c, f) => {
           const k = c.key === V;
           return /* @__PURE__ */ s(
             "li",
@@ -785,7 +785,7 @@ function je({ id: e, label: t, options: a, value: n, onChange: d, allowAuto: l, 
             c.key
           );
         }),
-        D.length === 0 && /* @__PURE__ */ r("li", { className: "px-3 py-3 text-center text-xs text-muted", children: "No matches" })
+        O.length === 0 && /* @__PURE__ */ r("li", { className: "px-3 py-3 text-center text-xs text-muted", children: "No matches" })
       ] })
     ] })
   ] });
@@ -795,7 +795,7 @@ function Er({ a: e }) {
   return e.media_type === "image" ? /* @__PURE__ */ r("img", { src: e.url, alt: e.name ?? "Image", loading: "lazy", className: "h-full w-full object-cover" }) : e.media_type === "video" ? /* @__PURE__ */ r("video", { src: e.url, preload: "metadata", muted: !0, className: "h-full w-full object-cover" }) : /* @__PURE__ */ r("div", { className: "flex h-full w-full items-center justify-center text-secondary", children: /* @__PURE__ */ r(Ie, {}) });
 }
 function _r({ client: e, max: t, initialType: a = "image", onInsert: n, onClose: d }) {
-  const [l, o] = N(a), [y, m] = N(""), [p, $] = N(1), [x, b] = N(null), [_, A] = N(null), [L, C] = N(!1), [E, T] = N([]), [g, v] = N(""), [I, q] = N(!1), w = Q(null), G = Q(null), D = te(async () => {
+  const [l, o] = N(a), [y, m] = N(""), [p, $] = N(1), [x, b] = N(null), [_, A] = N(null), [L, C] = N(!1), [E, T] = N([]), [g, v] = N(""), [I, q] = N(!1), w = Q(null), G = Q(null), O = te(async () => {
     C(!0), A(null);
     try {
       b(await e.mediaLibrary({ mediaType: l, search: y, page: p }));
@@ -806,9 +806,9 @@ function _r({ client: e, max: t, initialType: a = "image", onInsert: n, onClose:
     }
   }, [e, l, y, p]);
   z(() => {
-    const i = setTimeout(D, y ? 300 : 0);
+    const i = setTimeout(O, y ? 300 : 0);
     return () => clearTimeout(i);
-  }, [D, y]), z(() => {
+  }, [O, y]), z(() => {
     $(1);
   }, [l, y]), z(() => {
     var f;
@@ -838,7 +838,7 @@ function _r({ client: e, max: t, initialType: a = "image", onInsert: n, onClose:
           const f = await e.upload(c);
           await e.saveToLibrary({ url: f, name: c.name, mime_type: c.type || void 0, size_bytes: c.size, media_type: c.type.startsWith("video") ? "video" : c.type.startsWith("audio") ? "audio" : c.type.startsWith("image") ? "image" : "archive" });
         }
-        await D();
+        await O();
       } catch (c) {
         A(c.message), C(!1);
       }
@@ -853,14 +853,14 @@ function _r({ client: e, max: t, initialType: a = "image", onInsert: n, onClose:
     C(!0), A(null);
     try {
       const f = ((c = i.split("?")[0].split(".").pop()) == null ? void 0 : c.toLowerCase()) ?? "", k = ["mp4", "webm", "mov"].includes(f) ? "video" : ["mp3", "wav", "m4a", "ogg"].includes(f) ? "audio" : ["zip", "rar", "7z"].includes(f) ? "archive" : "image";
-      await e.saveToLibrary({ url: i, name: i.split("/").pop() || "link", media_type: k }), v(""), q(!1), await D();
+      await e.saveToLibrary({ url: i, name: i.split("/").pop() || "link", media_type: k }), v(""), q(!1), await O();
     } catch (f) {
       A(f.message), C(!1);
     }
   }, h = async (i) => {
     if (window.confirm(`Delete "${i.name ?? "this file"}" from your media library? This cannot be undone.`))
       try {
-        await e.deleteFromLibrary(i.id), T((c) => c.filter((f) => f !== i.url)), await D();
+        await e.deleteFromLibrary(i.id), T((c) => c.filter((f) => f !== i.url)), await O();
       } catch (c) {
         A(c.message);
       }
@@ -959,7 +959,7 @@ const kt = (e, t = "") => {
   const a = kt(e, t);
   return a === "video/*" ? "video" : a === "audio/*" ? "audio" : a === "image/*" ? "image" : "all";
 }, Rr = (e) => e.type.startsWith("video") ? "video" : e.type.startsWith("audio") ? "audio" : e.type.startsWith("image") ? "image" : "archive";
-async function Or(e, t) {
+async function Dr(e, t) {
   const a = await Promise.all(t.map((n) => e.upload(n)));
   return t.forEach((n, d) => void e.saveToLibrary({ url: a[d], name: n.name, mime_type: n.type || void 0, size_bytes: n.size, media_type: Rr(n) }).catch(() => {
   })), a;
@@ -969,7 +969,7 @@ function Pe({ client: e, field: t, multiple: a, max: n, current: d, onUrls: l, o
     if (g.length) {
       p(!0);
       try {
-        l(await Or(e, a ? g.slice(0, Math.max(A, 1)) : g.slice(0, 1)));
+        l(await Dr(e, a ? g.slice(0, Math.max(A, 1)) : g.slice(0, 1)));
       } catch (v) {
         o(v.message);
       } finally {
@@ -1023,7 +1023,7 @@ function Pe({ client: e, field: t, multiple: a, max: n, current: d, onUrls: l, o
     }
   );
 }
-function Dr({ field: e, values: t, onChange: a, client: n, onError: d, tagCount: l = 0 }) {
+function Or({ field: e, values: t, onChange: a, client: n, onError: d, tagCount: l = 0 }) {
   const { prop: o, kind: y, required: m } = e, p = t[o.name], $ = (g) => a(o.name, g), x = o.title || o.name, b = `ms-f-${o.name}`, _ = p == null ? "" : String(p), A = Array.isArray(p) ? p : [], L = t[pe(o.name)] === !0, C = Q(null), E = (g) => {
     const v = C.current, I = typeof p == "string" ? p : "", q = (v == null ? void 0 : v.selectionStart) ?? I.length, w = (v == null ? void 0 : v.selectionEnd) ?? q;
     $(I.slice(0, q) + g + " " + I.slice(w)), requestAnimationFrame(() => {
@@ -1236,7 +1236,7 @@ function _e({ label: e, active: t, onClick: a, hue: n, children: d }) {
 }
 function Wr({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: d, usage: l, showGroup: o, scope: y = "default" }) {
   var B;
-  const [m, p] = N(!1), [$, x] = N(""), [b, _] = N("popular"), [A, L] = N(!1), C = Q(null), E = Y(() => Fr(e), [e]), T = Y(() => Hr(e), [e]), g = Jr(e, E), v = T.length >= qr, [I, q] = N(() => it(`muapi-studio:provider:${y}`, ee)), [w, G] = N(() => it(`muapi-studio:category:${y}`, ee)), D = g && (I === me || I === ee || E.some((u) => u.id === I)) ? I : ee, V = v && (w === ee || T.some((u) => u.id === w)) ? w : ee, J = (u) => {
+  const [m, p] = N(!1), [$, x] = N(""), [b, _] = N("popular"), [A, L] = N(!1), C = Q(null), E = Y(() => Fr(e), [e]), T = Y(() => Hr(e), [e]), g = Jr(e, E), v = T.length >= qr, [I, q] = N(() => it(`muapi-studio:provider:${y}`, ee)), [w, G] = N(() => it(`muapi-studio:category:${y}`, ee)), O = g && (I === me || I === ee || E.some((u) => u.id === I)) ? I : ee, V = v && (w === ee || T.some((u) => u.id === w)) ? w : ee, J = (u) => {
     q(u), st(`muapi-studio:provider:${y}`, u);
   }, F = (u) => {
     G(u), st(`muapi-studio:category:${y}`, u);
@@ -1245,26 +1245,26 @@ function Wr({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: 
     m || L(!1);
   }, [m]), z(() => {
     if (!m) return;
-    const u = (O) => {
+    const u = (D) => {
       var ae;
-      (ae = C.current) != null && ae.contains(O.target) || p(!1);
-    }, P = (O) => {
-      O.key === "Escape" && p(!1);
+      (ae = C.current) != null && ae.contains(D.target) || p(!1);
+    }, P = (D) => {
+      D.key === "Escape" && p(!1);
     };
     return document.addEventListener("mousedown", u), document.addEventListener("keydown", P), () => {
       document.removeEventListener("mousedown", u), document.removeEventListener("keydown", P);
     };
   }, [m]);
   const i = Y(() => {
-    const u = $.trim().toLowerCase(), P = zr(e, { category: V, provider: D, favourites: n }, E), O = u ? P.filter((ne) => ne.name.toLowerCase().includes(u) || ne.category.toLowerCase().includes(u)) : P, ae = bt(O, b, { usage: l, favorites: n });
+    const u = $.trim().toLowerCase(), P = zr(e, { category: V, provider: O, favourites: n }, E), D = u ? P.filter((ne) => ne.name.toLowerCase().includes(u) || ne.category.toLowerCase().includes(u)) : P, ae = bt(D, b, { usage: l, favorites: n });
     if (b === "favourites" || b === "most-used") return ae;
     const se = new Set(n);
     return [...ae.filter((ne) => se.has(ne.name)), ...ae.filter((ne) => !se.has(ne.name))];
-  }, [e, $, b, n, l, V, D, E]), [c, f] = N(0);
+  }, [e, $, b, n, l, V, O, E]), [c, f] = N(0);
   z(() => {
     var u, P;
     f(0), (P = (u = h.current) == null ? void 0 : u.scrollTo) == null || P.call(u, { top: 0 });
-  }, [$, b, m, V, D]);
+  }, [$, b, m, V, O]);
   const k = (u) => {
     u.key === "ArrowDown" ? (u.preventDefault(), f((P) => Math.min(P + 1, Math.min(i.length, Ce) - 1))) : u.key === "ArrowUp" ? (u.preventDefault(), f((P) => Math.max(P - 1, 0))) : u.key === "Enter" && i[c] && (u.preventDefault(), a(i[c].name), p(!1));
   };
@@ -1289,9 +1289,9 @@ function Wr({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: 
     ),
     m && /* @__PURE__ */ s("div", { className: "absolute left-0 right-0 top-full z-30 mt-2 flex gap-2 rounded-card border border-line bg-panel-bg p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)]", children: [
       g && /* @__PURE__ */ s("div", { role: "radiogroup", "aria-label": "Provider", className: "flex max-h-[22rem] w-10 shrink-0 flex-col items-center gap-1.5 overflow-y-auto border-r border-line pr-2", children: [
-        /* @__PURE__ */ r(_e, { label: "All providers", active: D === ee, onClick: () => J(ee), children: /* @__PURE__ */ r("span", { className: "text-[10px] font-bold", children: "ALL" }) }),
-        /* @__PURE__ */ r(_e, { label: "Favourites", active: D === me, onClick: () => J(me), children: /* @__PURE__ */ r(Ye, { width: 14, height: 14, filled: D === me }) }),
-        E.map((u) => /* @__PURE__ */ r(_e, { label: `${u.label} (${u.count})`, active: D === u.id, onClick: () => J(u.id), hue: Br(u.label), children: Vr(u.label) }, u.id))
+        /* @__PURE__ */ r(_e, { label: "All providers", active: O === ee, onClick: () => J(ee), children: /* @__PURE__ */ r("span", { className: "text-[10px] font-bold", children: "ALL" }) }),
+        /* @__PURE__ */ r(_e, { label: "Favourites", active: O === me, onClick: () => J(me), children: /* @__PURE__ */ r(Ye, { width: 14, height: 14, filled: O === me }) }),
+        E.map((u) => /* @__PURE__ */ r(_e, { label: `${u.label} (${u.count})`, active: O === u.id, onClick: () => J(u.id), hue: Br(u.label), children: Vr(u.label) }, u.id))
       ] }),
       /* @__PURE__ */ s("div", { className: "min-w-0 flex-1", children: [
         /* @__PURE__ */ s("div", { className: "mb-2 flex gap-2", children: [
@@ -1343,27 +1343,27 @@ function Wr({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: 
           u.id
         )) }),
         g && /* @__PURE__ */ s("div", { className: "mb-1 px-1 text-[10px] font-semibold uppercase tracking-wider text-muted", children: [
-          D === ee ? "All models" : D === me ? "Favourites" : D,
+          O === ee ? "All models" : O === me ? "Favourites" : O,
           " · ",
           i.length
         ] }),
         /* @__PURE__ */ s("ul", { id: "ms-listbox", ref: h, role: "listbox", className: "max-h-72 overflow-y-auto", children: [
           i.slice(0, Ce).map((u, P) => {
-            const O = u.name === t;
+            const D = u.name === t;
             return /* @__PURE__ */ s(
               "li",
               {
                 id: `ms-opt-${P}`,
                 role: "option",
-                "aria-selected": O,
+                "aria-selected": D,
                 onClick: () => {
                   a(u.name), p(!1);
                 },
-                className: `flex cursor-pointer items-center gap-2 rounded-ctl px-3 py-2 ${O ? "bg-primary-soft" : P === c ? "bg-card-bg" : "hover:bg-card-bg"}`,
+                className: `flex cursor-pointer items-center gap-2 rounded-ctl px-3 py-2 ${D ? "bg-primary-soft" : P === c ? "bg-card-bg" : "hover:bg-card-bg"}`,
                 children: [
                   /* @__PURE__ */ s("div", { className: "min-w-0 flex-1", children: [
-                    /* @__PURE__ */ r("div", { className: `truncate text-sm ${O ? "text-primary" : ""}`, children: u.name }),
-                    /* @__PURE__ */ r("div", { className: "text-[10px] text-secondary", children: o ? `${u.group_of} · ${u.category}` : g && D === ee ? `${St(u, E)} · ${u.category}` : u.category })
+                    /* @__PURE__ */ r("div", { className: `truncate text-sm ${D ? "text-primary" : ""}`, children: u.name }),
+                    /* @__PURE__ */ r("div", { className: "text-[10px] text-secondary", children: o ? `${u.group_of} · ${u.category}` : g && O === ee ? `${St(u, E)} · ${u.category}` : u.category })
                   ] }),
                   /* @__PURE__ */ r(
                     "button",
@@ -1410,7 +1410,7 @@ const lt = (e, t) => {
   }
 }, At = 0.25;
 function Xr({ mode: e, models: t, client: a, batch: n, onRun: d, usage: l, reuse: o }) {
-  const y = ge.find((S) => S.id === e), m = Y(() => Vt(t, e), [t, e]), [p, $] = N(), [x, b] = N(null), [_, A] = N(null), [L, C] = N({}), [E, T] = N(null), [g, v] = N(null), [I, q] = N(() => lt("muapi-studio:favorites", [])), [w, G] = N("form"), [D, V] = N(!1), [J, F] = N("{}"), [h, i] = N(null), c = Q(0), f = Q(null);
+  const y = ge.find((S) => S.id === e), m = Y(() => Vt(t, e), [t, e]), [p, $] = N(), [x, b] = N(null), [_, A] = N(null), [L, C] = N({}), [E, T] = N(null), [g, v] = N(null), [I, q] = N(() => lt("muapi-studio:favorites", [])), [w, G] = N("form"), [O, V] = N(!1), [J, F] = N("{}"), [h, i] = N(null), c = Q(0), f = Q(null);
   z(() => {
     var K, re, ce;
     const S = lt(`muapi-studio:model:${e}`, null), U = ((K = m.find((ie) => ie.name === S)) == null ? void 0 : K.name) ?? ((re = m.find((ie) => ie.name === Gt[e])) == null ? void 0 : re.name) ?? ((ce = bt(m, "popular")[0]) == null ? void 0 : ce.name);
@@ -1441,11 +1441,11 @@ function Xr({ mode: e, models: t, client: a, batch: n, onRun: d, usage: l, reuse
     } catch {
       return null;
     }
-  }, [J]), O = w === "json" ? P ?? {} : u, ae = JSON.stringify(O);
+  }, [J]), D = w === "json" ? P ?? {} : u, ae = JSON.stringify(D);
   z(() => {
     if (!x || w === "json" && !P) return;
     const S = ++c.current, U = setTimeout(() => {
-      a.estimate(x.name, O).then((K) => {
+      a.estimate(x.name, D).then((K) => {
         S === c.current && T(K);
       }).catch(() => {
         S === c.current && T(null);
@@ -1472,13 +1472,13 @@ function Xr({ mode: e, models: t, client: a, batch: n, onRun: d, usage: l, reuse
       model: x.name,
       endpointUrl: x.endpoint_url,
       mode: e,
-      payload: O,
+      payload: D,
       count: n,
       kind: Ge(x.category),
-      prompt: S ? String(O.prompt ?? "") : "",
+      prompt: S ? String(D.prompt ?? "") : "",
       unitCost: X == null ? void 0 : X.current
     });
-  }, [x, B, d, e, O, n, X]), Ne = te(async () => {
+  }, [x, B, d, e, D, n, X]), Ne = te(async () => {
     if (!x) return;
     if (w === "json") {
       if (!P) {
@@ -1514,11 +1514,11 @@ function Xr({ mode: e, models: t, client: a, batch: n, onRun: d, usage: l, reuse
       /* @__PURE__ */ s("div", { className: "mb-4 flex items-center justify-between gap-2", children: [
         /* @__PURE__ */ r("h2", { className: "text-lg font-semibold", children: y.title }),
         /* @__PURE__ */ s("div", { className: "relative", children: [
-          /* @__PURE__ */ s("button", { type: "button", "aria-haspopup": "menu", "aria-expanded": D, onClick: () => V((S) => !S), className: "flex items-center gap-1.5 rounded-ctl border border-line bg-card-bg px-3 py-1.5 text-xs", children: [
+          /* @__PURE__ */ s("button", { type: "button", "aria-haspopup": "menu", "aria-expanded": O, onClick: () => V((S) => !S), className: "flex items-center gap-1.5 rounded-ctl border border-line bg-card-bg px-3 py-1.5 text-xs", children: [
             w === "json" ? "JSON" : "Form",
-            /* @__PURE__ */ r(He, { up: D, width: 12, height: 12 })
+            /* @__PURE__ */ r(He, { up: O, width: 12, height: 12 })
           ] }),
-          D && /* @__PURE__ */ r("ul", { role: "menu", className: "absolute right-0 top-full z-30 mt-1 w-28 rounded-card border border-line bg-panel-bg p-1 shadow-[0_20px_50px_rgba(0,0,0,0.8)]", children: ["form", "json"].map((S) => /* @__PURE__ */ r("li", { role: "none", children: /* @__PURE__ */ r("button", { role: "menuitemradio", "aria-checked": w === S, type: "button", onClick: () => ke(S), className: `w-full rounded-md px-3 py-1.5 text-left text-xs ${w === S ? "bg-primary-soft text-primary" : "hover:bg-card-bg"}`, children: S === "json" ? "JSON" : "Form" }) }, S)) })
+          O && /* @__PURE__ */ r("ul", { role: "menu", className: "absolute right-0 top-full z-30 mt-1 w-28 rounded-card border border-line bg-panel-bg p-1 shadow-[0_20px_50px_rgba(0,0,0,0.8)]", children: ["form", "json"].map((S) => /* @__PURE__ */ r("li", { role: "none", children: /* @__PURE__ */ r("button", { role: "menuitemradio", "aria-checked": w === S, type: "button", onClick: () => ke(S), className: `w-full rounded-md px-3 py-1.5 text-left text-xs ${w === S ? "bg-primary-soft text-primary" : "hover:bg-card-bg"}`, children: S === "json" ? "JSON" : "Form" }) }, S)) })
         ] })
       ] }),
       /* @__PURE__ */ r("div", { className: "mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-secondary", children: "Model" }),
@@ -1539,7 +1539,7 @@ function Xr({ mode: e, models: t, client: a, batch: n, onRun: d, usage: l, reuse
         /* @__PURE__ */ r("p", { className: `mt-1.5 text-[11px] ${P ? "text-muted" : "text-danger"}`, children: P ? `Sent as the body of POST /api/v1/${x.endpoint_url}` : "Not valid JSON yet" })
       ] }),
       j && w === "form" && B.map((S) => /* @__PURE__ */ r(
-        Dr,
+        Or,
         {
           field: S,
           values: L,
@@ -2029,12 +2029,20 @@ function ct(e, t) {
 }
 const dt = 5, ia = (e) => {
   let t = 0;
-  for (const a of e) t = (t * 31 + a.charCodeAt(0)) % 360;
+  for (const a of e) t = t * 31 + a.charCodeAt(0) >>> 0;
   return t;
 };
 function sa({ app: e }) {
-  const t = ia(e.slug);
-  return /* @__PURE__ */ r("div", { "aria-hidden": "true", className: "flex aspect-[4/3] md:aspect-[4/3] items-center justify-center text-4xl", style: { background: `linear-gradient(135deg, hsl(${t} 45% 22%), hsl(${(t + 50) % 360} 55% 12%))` }, children: e.emoji });
+  const t = ia(e.slug), a = t % 3 === 0 ? "var(--ms-accent)" : "var(--ms-primary)", n = 115 + t % 5 * 15;
+  return /* @__PURE__ */ r(
+    "div",
+    {
+      "aria-hidden": "true",
+      className: "flex aspect-[4/3] items-center justify-center text-4xl",
+      style: { background: `linear-gradient(${n}deg, color-mix(in srgb, ${a} 24%, var(--ms-bg-card)), var(--ms-bg-card) 75%)` },
+      children: e.emoji
+    }
+  );
 }
 function ut({ app: e, onOpen: t }) {
   return /* @__PURE__ */ s("button", { type: "button", onClick: () => t(e.slug), className: "group flex flex-col overflow-hidden rounded-card border border-line bg-card-bg text-left hover:border-primary focus-visible:border-primary", children: [
@@ -2048,7 +2056,7 @@ function ut({ app: e, onOpen: t }) {
     ] })
   ] });
 }
-const mt = { gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" };
+const mt = "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5";
 function la({ category: e, onCategory: t, onOpen: a }) {
   const [n, d] = N(""), l = n.trim() !== "", o = Y(() => ct(qe, { category: e, q: n }), [e, n]), y = (m) => `whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold ${m ? "border-primary bg-primary text-primary-ink" : "border-line text-secondary hover:text-fg"}`;
   return /* @__PURE__ */ s("section", { "aria-label": "Apps", className: "min-h-0 min-w-0 flex-1 overflow-y-auto bg-app-bg p-4 md:p-8", children: [
@@ -2062,7 +2070,7 @@ function la({ category: e, onCategory: t, onOpen: a }) {
       /* @__PURE__ */ r("button", { role: "tab", "aria-selected": e === "all", onClick: () => t("all"), className: y(e === "all"), children: "All" }),
       $e.map((m) => /* @__PURE__ */ r("button", { role: "tab", "aria-selected": e === m.id, onClick: () => t(m.id), className: y(e === m.id), children: m.label }, m.id))
     ] }),
-    /* @__PURE__ */ r("div", { className: "mx-auto mt-6 max-w-6xl", children: e !== "all" || l ? o.length ? /* @__PURE__ */ r("div", { className: "grid gap-3", style: mt, children: o.map((m) => /* @__PURE__ */ r(ut, { app: m, onOpen: a }, m.slug)) }) : /* @__PURE__ */ s("p", { className: "py-16 text-center text-sm text-secondary", children: [
+    /* @__PURE__ */ r("div", { className: "mx-auto mt-6 max-w-6xl", children: e !== "all" || l ? o.length ? /* @__PURE__ */ r("div", { className: mt, children: o.map((m) => /* @__PURE__ */ r(ut, { app: m, onOpen: a }, m.slug)) }) : /* @__PURE__ */ s("p", { className: "py-16 text-center text-sm text-secondary", children: [
       "No apps match “",
       n,
       "”."
@@ -2080,7 +2088,7 @@ function la({ category: e, onCategory: t, onOpen: a }) {
             ")"
           ] })
         ] }),
-        /* @__PURE__ */ r("div", { className: "grid gap-3", style: mt, children: p.slice(0, dt).map(($) => /* @__PURE__ */ r(ut, { app: $, onOpen: a }, $.slug)) })
+        /* @__PURE__ */ r("div", { className: mt, children: p.slice(0, dt).map(($) => /* @__PURE__ */ r(ut, { app: $, onOpen: a }, $.slug)) })
       ] }, m.id) : null;
     }) })
   ] });
@@ -2234,7 +2242,7 @@ function $a({ app: e, models: t, client: a, batch: n, onBack: d, onRun: l }) {
   }, [g, C, a]);
   const I = C ? Fe(C, $) : null, q = ((J = $e.find((h) => h.id === e.category)) == null ? void 0 : J.label) ?? "", w = Mt(e), G = async () => {
     C && (_(null), await l({ model: L, endpointUrl: C.endpoint_url, mode: "apps", prompt: It(e, o) || e.name, payload: T, count: n, kind: Ge(C.category), unitCost: I == null ? void 0 : I.current }));
-  }, D = async () => {
+  }, O = async () => {
     const h = Aa(e, o);
     if (h) {
       p(h);
@@ -2345,7 +2353,7 @@ function $a({ app: e, models: t, client: a, batch: n, onBack: d, onRun: l }) {
           /* @__PURE__ */ r("button", { type: "button", onClick: () => _(null), className: "rounded-md border border-line px-3 py-1.5 text-secondary", children: "Cancel" })
         ] })
       ] }),
-      /* @__PURE__ */ s("button", { type: "button", disabled: !C, onClick: () => void D(), className: "flex w-full items-center justify-center gap-2 rounded-btn bg-primary px-4 py-3 text-sm font-semibold text-primary-ink shadow-glow hover:bg-primary-hover disabled:opacity-50 disabled:shadow-none", children: [
+      /* @__PURE__ */ s("button", { type: "button", disabled: !C, onClick: () => void O(), className: "flex w-full items-center justify-center gap-2 rounded-btn bg-primary px-4 py-3 text-sm font-semibold text-primary-ink shadow-glow hover:bg-primary-hover disabled:opacity-50 disabled:shadow-none", children: [
         /* @__PURE__ */ r(Ve, { width: 16, height: 16, className: "shrink-0" }),
         Ma(e),
         n > 1 ? ` ×${n}` : "",
@@ -2372,7 +2380,7 @@ function La({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
   const E = Y(() => new Rt(e, d, { apiKey: y || void 0, getHeaders: () => {
     var j;
     return ((j = C.current) == null ? void 0 : j.call(C)) ?? {};
-  }, fetchImpl: x }), [e, d, y, x]), [T, g] = N({ library: !0, deleteMedia: !0 }), v = Y(() => ({ library: T.library && (b == null ? void 0 : b.library) !== !1, deleteMedia: (b == null ? void 0 : b.deleteMedia) !== !1 }), [T, b == null ? void 0 : b.library, b == null ? void 0 : b.deleteMedia]), I = o ?? qt(l), [q, w] = N(() => Ta() ?? t), [G, D] = N(() => {
+  }, fetchImpl: x }), [e, d, y, x]), [T, g] = N({ library: !0, deleteMedia: !0 }), v = Y(() => ({ library: T.library && (b == null ? void 0 : b.library) !== !1, deleteMedia: (b == null ? void 0 : b.deleteMedia) !== !1 }), [T, b == null ? void 0 : b.library, b == null ? void 0 : b.deleteMedia]), I = o ?? qt(l), [q, w] = N(() => Ta() ?? t), [G, O] = N(() => {
     try {
       return na(window.location.search);
     } catch {
@@ -2380,7 +2388,7 @@ function La({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
     }
   }), [V, J] = N(4), [F, h] = N(null), [i, c] = N(null), [f, k] = N(null), B = te(() => {
     E.balance().then(k).catch(() => k(null));
-  }, [E]), [u, P] = N(null), O = Yt(E, F, B), ae = Y(() => Wt(O.items), [O.items]);
+  }, [E]), [u, P] = N(null), D = Yt(E, F, B), ae = Y(() => Wt(D.items), [D.items]);
   z(() => {
     L || (c(null), h(null), E.models().then(h).catch((j) => c(j.message)), B(), (b == null ? void 0 : b.library) !== !1 && E.probe().then(g));
   }, [E, B, L, b == null ? void 0 : b.library]);
@@ -2392,14 +2400,14 @@ function La({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
     } catch {
     }
   }, ne = (j) => {
-    D(j);
+    O(j);
     try {
       window.history.replaceState(null, "", oa(window.location.search, j));
     } catch {
     }
   }, ke = te(async (j) => {
-    await O.run(j);
-  }, [O.run]), X = te((j) => {
+    await D.run(j);
+  }, [D.run]), X = te((j) => {
     var S;
     const Z = F == null ? void 0 : F.find((U) => U.name === j);
     return Z ? ((S = Z.sale) == null ? void 0 : S.from) ?? Z.cost ?? void 0 : void 0;
@@ -2410,8 +2418,8 @@ function La({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
     const Z = F == null ? void 0 : F.find((K) => K.name === j.model);
     if (!Z) return;
     const S = ((U = Z.sale) == null ? void 0 : U.from) ?? Z.cost ?? 0;
-    S > 0.25 && !window.confirm(`Re-run ${j.model} for about $${S.toFixed(2)}?`) || O.run({ model: j.model, endpointUrl: Z.endpoint_url, mode: j.mode, prompt: j.prompt, payload: j.inputs, count: 1, unitCost: S, kind: Ge(Z.category) });
-  }, [F, O.run]);
+    S > 0.25 && !window.confirm(`Re-run ${j.model} for about $${S.toFixed(2)}?`) || D.run({ model: j.model, endpointUrl: Z.endpoint_url, mode: j.mode, prompt: j.prompt, payload: j.inputs, count: 1, unitCost: S, kind: Ge(Z.category) });
+  }, [F, D.run]);
   return /* @__PURE__ */ s("div", { className: `ms-root ${_}`.trim(), style: Ut(l), "data-layout": I, children: [
     a && /* @__PURE__ */ s("header", { className: "flex items-center justify-between border-b border-line bg-panel-bg px-4 py-3", children: [
       /* @__PURE__ */ r("h1", { className: "text-base font-semibold", children: n }),
@@ -2431,10 +2439,10 @@ function La({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
         i
       ] }) : F ? q === "apps" ? /* @__PURE__ */ r(he, { children: G.app && xe(G.app) ? /* @__PURE__ */ s(he, { children: [
         /* @__PURE__ */ r($a, { app: xe(G.app), models: F, client: E, batch: V, onBack: () => ne({ category: G.category, app: null }), onRun: ke }),
-        /* @__PURE__ */ r(et, { mode: "apps", items: O.items, batch: V, onBatch: J, onLabel: O.setLabel, onRemove: O.remove, onReuse: le, onRerun: Ne, onDeleteMedia: O.deleteMedia, onLoadMore: O.loadMore, hasMore: O.hasMore, loadingMore: O.loadingMore, serverError: O.serverError, estimateFor: X })
+        /* @__PURE__ */ r(et, { mode: "apps", items: D.items, batch: V, onBatch: J, onLabel: D.setLabel, onRemove: D.remove, onReuse: le, onRerun: Ne, onDeleteMedia: D.deleteMedia, onLoadMore: D.loadMore, hasMore: D.hasMore, loadingMore: D.loadingMore, serverError: D.serverError, estimateFor: X })
       ] }) : /* @__PURE__ */ r(la, { category: G.category, onCategory: (j) => ne({ category: j, app: null }), onOpen: (j) => ne({ category: xe(j).category, app: j }) }) }) : /* @__PURE__ */ s(he, { children: [
         /* @__PURE__ */ r(Xr, { mode: q, models: F, client: E, batch: V, onRun: ke, usage: ae, reuse: u }),
-        /* @__PURE__ */ r(et, { mode: q, items: O.items, batch: V, onBatch: J, onLabel: O.setLabel, onRemove: O.remove, onReuse: le, onRerun: Ne, onDeleteMedia: O.deleteMedia, onLoadMore: O.loadMore, hasMore: O.hasMore, loadingMore: O.loadingMore, serverError: O.serverError, estimateFor: X })
+        /* @__PURE__ */ r(et, { mode: q, items: D.items, batch: V, onBatch: J, onLabel: D.setLabel, onRemove: D.remove, onReuse: le, onRerun: Ne, onDeleteMedia: D.deleteMedia, onLoadMore: D.loadMore, hasMore: D.hasMore, loadingMore: D.loadingMore, serverError: D.serverError, estimateFor: X })
       ] }) : /* @__PURE__ */ s("div", { className: "flex flex-1 items-center justify-center gap-2 text-secondary", children: [
         /* @__PURE__ */ r(we, {}),
         " Loading studio…"
@@ -2447,11 +2455,11 @@ export {
   Rt as MuapiClient,
   La as MuapiStudio,
   jt as THEMES,
-  Dt as cyanTheme,
+  Ot as cyanTheme,
   qt as defaultLayout,
   Ge as generationKind,
   Re as limeTheme,
-  Ot as pollUntilDone,
+  Dt as pollUntilDone,
   Pt as resolveTheme,
   Ut as themeStyle
 };
