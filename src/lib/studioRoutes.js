@@ -106,7 +106,8 @@ export const STUDIO_ROUTES = {
   leadfinder: { label: 'Lead Finder', category: 'Agents' },
   outreach: { label: 'Video Outreach', category: 'Agents' },
   recorder: { label: 'Recorder', category: 'Agents' },
-  'video-pages': { label: 'Video Pages', category: 'Agents' },
+  // Not an app: pages are made from a video ("Create landing page"); this route is where they are managed (linked from Library).
+  'video-pages': { label: 'My Video Pages', category: 'My Work' },
   'find-my-brand': { label: 'Find My Brand', category: 'Agents' },
   'website-builder': { label: 'Website Builder', category: 'Agents' },
   render: { label: 'Video Render', category: 'Agents' },
@@ -203,7 +204,6 @@ export const NAV_GROUPS = [
     { id: 'workbench', label: 'Workbench' },
     { id: 'viral', label: 'Viral' },
     { id: 'personalizer', label: 'Personalizer' },
-    { id: 'video-pages', label: 'Video Pages' },
     { id: 'website-builder', label: 'Website' },
   ] },
   { title: 'My Work', items: [

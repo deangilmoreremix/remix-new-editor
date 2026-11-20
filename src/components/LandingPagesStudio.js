@@ -8,31 +8,22 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
-import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
 import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizeEditorData, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
 import { AFTER_SUBMIT_OPTIONS } from '../lib/landingPages/afterSubmit.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
 import { sampleSections } from '../lib/landingPages/sampleContent.js';
-import { templateCards } from './landing/TemplateChooser.js';
-import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
-import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
-import { createCustomerPanel } from '../lib/landingPages/customerPanel.js';
-import { applyCustomerToEditor, brandForConfig, customerTokens, toContactFields } from '../lib/landingPages/customerProfile.js';
-import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
 import { ownPages } from '../lib/outreach/landingPage.js';
 import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
 import {
-  listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts, addContacts,
+  listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts,
 } from '../lib/landingPages/client.js';
 
 const INPUT = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50';
 const BTN = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:border-primary/60 hover:text-primary transition-colors disabled:opacity-50';
 const BTN_PRIMARY = 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-black hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50';
 const SAMPLE_TOKENS = { firstname: 'Ann', company: 'Acme' };
-// The customer a page was just made for: the editor previews as them instead of the sample person.
-let editorPreviewTokens = null;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -55,16 +46,6 @@ async function ownerClient() {
   return supabase;
 }
 
-/** Upload helper handed to the ingest layer (videos up to the bucket's 100MB). */
-const upload = (file) => {
-  const isVideo = String(file.type).startsWith('video/');
-  return uploadFileToSupabase(file, {
-    category: isVideo ? 'video' : 'image',
-    maxSize: isVideo ? MAX_VIDEO_BYTES : undefined,
-    userId: getClerkUserId() || undefined,
-  });
-};
-
 async function copy(text, label) {
   try {
     await navigator.clipboard.writeText(text);
@@ -76,7 +57,7 @@ async function copy(text, label) {
 
 export function LandingPagesStudio() {
   const container = el('div', 'w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
-  mountStudioChrome(container, { title: 'Video Pages', currentRoute: 'video-pages' });
+  mountStudioChrome(container, { title: 'My Video Pages', currentRoute: 'library' });
   const scroll = el('div', 'flex-1 overflow-y-auto');
   const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 py-8 flex flex-col gap-6');
   scroll.appendChild(inner);
@@ -105,18 +86,22 @@ export function LandingPagesStudio() {
     const head = el('div', 'flex flex-wrap items-center justify-between gap-3');
     const titleWrap = el('div');
     titleWrap.append(
-      el('div', 'text-[11px] font-extrabold uppercase tracking-[0.14em] text-primary mb-1', 'Video Pages'),
+      el('div', 'text-[11px] font-extrabold uppercase tracking-[0.14em] text-primary mb-1', 'My Video Pages'),
       el('h1', 'text-2xl md:text-3xl font-black', 'Landing pages for your videos'),
       el('p', 'text-sm text-secondary mt-1 max-w-xl', 'Turn any generated or uploaded video or picture into a branded page with a call to action, a lead form and view analytics. Free for everything you create.'),
     );
     const newBtn = el('button', BTN_PRIMARY, '+ New page');
     newBtn.type = 'button';
-    newBtn.addEventListener('click', () => showNew());
+    // Pages are made from a video: the shared picker lets you upload one, pick one you made, or paste a link.
+    newBtn.addEventListener('click', async () => {
+      const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
+      openLandingPagePicker({});
+    });
     head.append(titleWrap, newBtn);
 
     const grid = el('div', 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3');
     if (!state.pages.length) {
-      grid.appendChild(el('div', 'col-span-full rounded-2xl border border-dashed border-white/15 p-10 text-center text-sm text-secondary', 'No pages yet. Pick a video you made, or upload an MP4, to create your first page.'));
+      grid.appendChild(el('div', 'col-span-full rounded-2xl border border-dashed border-white/15 p-10 text-center text-sm text-secondary', 'No pages yet. Open any video in your Library (or finish a generation) and choose Create landing page.'));
     }
     state.pages.forEach((p) => grid.appendChild(pageCard(p)));
     inner.replaceChildren(head, grid);
@@ -150,145 +135,6 @@ export function LandingPagesStudio() {
     body.append(meta, actions);
     card.append(thumb, body);
     return card;
-  }
-
-  // ------------------------------------------------------------------- new
-  async function showNew(preselected = null) {
-    if (!guard()) return;
-    const sel = { video: preselected && preselected.url ? preselected : null, template: 'clean' };
-    const back = el('button', BTN, '← Back');
-    back.type = 'button';
-    const dropPreviews = () => { (sel.previewHandles || []).forEach((h) => h.destroy()); sel.previewHandles = []; };
-    back.addEventListener('click', () => { dropPreviews(); showList(); });
-
-    const title = el('h1', 'text-2xl font-black', 'New video page');
-    const status = el('p', 'text-sm text-secondary min-h-[1.25rem]', sel.video ? `Selected: ${sel.video.title}` : 'Choose a video, then a template.');
-
-    // Upload / drop
-    const drop = el('label', 'flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-white/20 p-6 text-center cursor-pointer hover:border-primary/60 transition-colors');
-    drop.append(el('span', 'text-sm font-bold', 'Upload an MP4'), el('span', 'text-xs text-secondary', `Drop a video here or click to choose (up to ${MAX_VIDEO_BYTES / 1048576}MB)`));
-    const file = el('input', 'sr-only');
-    file.type = 'file';
-    file.accept = 'video/*';
-    drop.appendChild(file);
-    const takeFile = (f) => {
-      const src = fromFile(f, URL.createObjectURL(f));
-      if (!src) { showToast('That is not a video file.', 'warning', 3000); return; }
-      sel.video = src;
-      status.textContent = `Selected: ${src.title}`;
-      markSelected();
-    };
-    file.addEventListener('change', () => file.files?.[0] && takeFile(file.files[0]));
-    drop.addEventListener('dragover', (e) => e.preventDefault());
-    drop.addEventListener('drop', (e) => { e.preventDefault(); e.dataTransfer?.files?.[0] && takeFile(e.dataTransfer.files[0]); });
-
-    // Any hosted video link (e.g. an OpenMontage render served by its proxy, or an MP4 on a CDN)
-    const linkRow = el('div', 'flex flex-col sm:flex-row gap-2');
-    const linkInput = el('input', INPUT);
-    linkInput.type = 'url';
-    linkInput.placeholder = 'Or paste a video or picture link (https://…/video.mp4 or image.png)';
-    linkInput.setAttribute('aria-label', 'Video link');
-    const linkBtn = el('button', BTN, 'Use link');
-    linkBtn.type = 'button';
-    linkBtn.addEventListener('click', () => {
-      const url = linkInput.value.trim();
-      if (!/^https:\/\/\S+$/i.test(url)) { showToast('Paste a full https:// video or picture link.', 'warning', 3000); return; }
-      const name = decodeURIComponent(url.split('?')[0].split('/').pop() || '').replace(/\.[^.]+$/, '') || 'Linked video';
-      sel.video = { key: `link:${url}`, url, posterUrl: null, title: name.slice(0, 80), duration: null, source: { kind: 'link' }, createdAt: null, permanent: false };
-      status.textContent = `Selected: ${sel.video.title}`;
-      markSelected();
-    });
-    linkRow.append(linkInput, linkBtn);
-
-    // Existing videos from every studio
-    const libHead = el('h2', 'text-sm font-extrabold uppercase tracking-wide', 'Or pick a video you already made');
-    const grid = el('div', 'grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
-    grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'Loading your videos…'));
-    const tiles = new Map();
-    const markSelected = () => tiles.forEach((tile, key) => {
-      tile.classList.toggle('ring-2', sel.video?.key === key);
-      tile.classList.toggle('ring-primary', sel.video?.key === key);
-    });
-    (state.sources ? Promise.resolve(state.sources) : loadVideoSources({ pictures: true })).then((list) => {
-      state.sources = list;
-      grid.replaceChildren();
-      if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'Nothing found yet. Make a video or picture in any studio, or upload an MP4 above.'));
-      list.slice(0, 60).forEach((v) => {
-        const tile = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
-        tile.type = 'button';
-        const media = el('div', 'aspect-video bg-black');
-        if (v.posterUrl || v.isPicture) {
-          const img = el('img', 'w-full h-full object-cover');
-          img.src = v.posterUrl || v.url; img.alt = ''; img.loading = 'lazy';
-          media.appendChild(img);
-        } else {
-          const vid = el('video', 'w-full h-full object-cover');
-          vid.muted = true; vid.preload = 'metadata'; vid.src = `${v.url}#t=0.5`;
-          media.appendChild(vid);
-        }
-        const cap = el('div', 'p-2');
-        cap.append(el('div', 'text-xs font-bold truncate', v.title), el('div', 'text-[11px] text-secondary truncate', [v.source.studio || v.source.kind, v.permanent ? '' : 'will be copied'].filter(Boolean).join(' · ')));
-        tile.append(media, cap);
-        tile.addEventListener('click', async () => {
-          if (v.isPicture) {
-            // A picture becomes a page through the design picker (it fills the video slot as a still).
-            const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
-            openLandingPagePicker({ video: { url: v.url, title: v.title, type: 'image', studio: v.source?.studio || '' } });
-            return;
-          }
-          sel.video = v; status.textContent = `Selected: ${v.title}`; markSelected();
-        });
-        tiles.set(v.key, tile);
-        grid.appendChild(tile);
-      });
-    });
-
-    // Template
-    const tplHead = el('h2', 'text-sm font-extrabold uppercase tracking-wide', 'Template');
-    // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    const tplCards = templateCards({ groups: [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.editable)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.editable)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]], selected: sel.template, onPick: (id) => { sel.template = id; } });
-    sel.previewHandles = [tplCards];
-    const tplRow = tplCards.node;
-
-    const cp = createCustomerPanel();
-    void cp.load();
-    const create = el('button', BTN_PRIMARY, 'Create page');
-    create.type = 'button';
-    create.addEventListener('click', async () => {
-      if (!sel.video) { showToast('Choose a video first.', 'warning', 3000); return; }
-      create.disabled = true;
-      try {
-        const chosen = cp.selected();
-        const one = chosen.length === 1 ? chosen[0] : null;
-        const withBrand = !!one && cp.brand();
-        const withImage = !!one && cp.useImage();
-        const client = await ownerClient();
-        let page = await createPageFromVideo(client, sel.video, {
-          template: sel.template,
-          brand: withBrand ? brandForConfig(one) : brandDefaults(),
-          deps: { upload },
-          onStep: (label) => { status.textContent = `${label}…`; },
-        });
-        if ((withBrand || withImage) && page.config?.editor) {
-          const applied = applyCustomerToEditor(page.config.editor, one, { useImage: withImage, brand: withBrand });
-          page = await updatePage(client, page.id, { config: { ...page.config, editor: applied.data } });
-        }
-        const rows = chosen.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
-        if (rows.length) {
-          try { await addContacts(client, page.id, rows); showToast(`${rows.length} personal link${rows.length === 1 ? '' : 's'} made (Personal links tab)`, 'success', 3500); } catch (err) { showToast(`Page saved, but the personal links were not made: ${err.message}`, 'warning', 5000); }
-        }
-        editorPreviewTokens = chosen.length ? customerTokens(chosen[0]) : null;
-        showToast('Page created', 'success', 2000);
-        dropPreviews();
-        showEditor(page);
-      } catch (err) {
-        status.textContent = err.message || 'Could not create the page.';
-        create.disabled = false;
-      }
-    });
-
-    inner.replaceChildren(el('div', 'flex items-center gap-3'), title, status, drop, linkRow, libHead, grid, cp.el, tplHead, tplRow, create);
-    inner.firstChild.appendChild(back);
   }
 
   // ---------------------------------------------------------------- editor
@@ -482,7 +328,7 @@ export function LandingPagesStudio() {
         editorHandle = mountPageEditorFn(host, {
           page: current,
           data,
-          tokens: editorPreviewTokens || SAMPLE_TOKENS,
+          tokens: SAMPLE_TOKENS,
           onPublish: () => saveBtn.click(), // the editor's own Publish button = our Save
           onChange: (d) => {
             const next = sanitizeEditorData(d);
@@ -1039,9 +885,6 @@ export function LandingPagesStudio() {
     inner.replaceChildren(top, shareRow, tabs, body);
   }
 
-  // Arrived from "Create landing page" elsewhere in the app: start with that video selected.
-  const queued = takeQueuedVideo();
-  if (queued) showNew(queued);
-  else showList();
+  showList();
   return container;
 }
