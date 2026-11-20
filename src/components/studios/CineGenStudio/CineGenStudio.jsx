@@ -205,6 +205,19 @@ export function CineGenStudio() {
     unmountLite = mountLite(host, notice);
   };
 
+  // The embedded CineGen signs in with this app's Clerk session: it asks for
+  // a token, and we reply only to that iframe at the CineGen origin.
+  const cinegenOrigin = url ? new URL(url).origin : '';
+  const handleTokenRequest = async (event) => {
+    if (!iframe || event.source !== iframe.contentWindow || event.origin !== cinegenOrigin) return;
+    if (event.data?.type !== 'cinegen:token-request') return;
+    let token = null;
+    try {
+      token = (await window.Clerk?.session?.getToken()) || null;
+    } catch {}
+    iframe?.contentWindow?.postMessage({ type: 'cinegen:token', token }, cinegenOrigin);
+  };
+
   if (!url) {
     showLite('Full CineGen (Director, LLM, Export) is not configured — set VITE_CINEGEN_WEB_URL to the cinegen-web service. Showing the lightweight version.');
   } else {
@@ -214,6 +227,7 @@ export function CineGenStudio() {
         showLite(`Can't reach the CineGen service at ${url}. Showing the lightweight version.`);
         return;
       }
+      window.addEventListener('message', handleTokenRequest);
       iframe = document.createElement('iframe');
       iframe.src = url;
       iframe.title = 'CineGen Studio';
@@ -225,6 +239,7 @@ export function CineGenStudio() {
 
   container.cleanup = () => {
     disposed = true;
+    window.removeEventListener('message', handleTokenRequest);
     unmountLite?.();
     if (iframe) iframe.src = 'about:blank';
   };
