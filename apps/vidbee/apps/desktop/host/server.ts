@@ -6,11 +6,14 @@
 import crypto from 'node:crypto'
 import http from 'node:http'
 import { createReadStream, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { __invoke, __protocolHandlers, exportsDir, hub, ipcMain } from 'electron'
 import log from 'electron-log/main'
 import { realpathSync } from 'node:fs'
 import { settingsManager } from '../src/main/settings'
+import { createTokenCheck } from './access-token.mjs'
+import { isAllowedMedia, mediaRoots } from './media-access.mjs'
 // Upstream's real main process: registers every IPC service, wires download/kernel/transcript events, boots the task queue.
 import '../src/main/index'
 
@@ -25,10 +28,8 @@ if (!isLoopback && !accessToken && process.env.VIDBEE_ALLOW_OPEN !== '1') {
   console.error('Refusing to listen on a non-loopback address without VIDBEE_ACCESS_TOKEN (set it, or set VIDBEE_ALLOW_OPEN=1 behind your own auth).')
   process.exit(1)
 }
-const tokenOk = (req: http.IncomingMessage): boolean => {
-  const given = [String(req.headers.authorization ?? '').replace(/^Bearer\s+/i, ''), /(?:^|;\s*)vidbee_token=([^;]+)/.exec(String(req.headers.cookie ?? ''))?.[1] ?? ''].map((v) => decodeURIComponent(v))
-  return given.some((v) => v.length === accessToken.length && crypto.timingSafeEqual(Buffer.from(v), Buffer.from(accessToken)))
-}
+const checkToken = createTokenCheck(accessToken)
+const tokenOk = (req: http.IncomingMessage): boolean => checkToken(req.headers)
 const imgExtra = (process.env.VIDBEE_CSP_IMG_SRC ?? '').trim()
 const staticDir = process.env.VIDBEE_STATIC_DIR ? path.resolve(process.env.VIDBEE_STATIC_DIR) : ''
 const sender = { id: 1, send: (channel: string, ...args: unknown[]) => hub.emit(channel, args), isDestroyed: () => false }
@@ -114,10 +115,10 @@ const handleExport = (req: http.IncomingMessage, res: http.ServerResponse, id: s
 
 /** Stream a file from the configured download folders — replaces the file:// URLs the desktop renderer used. */
 const serveMedia = (req: http.IncomingMessage, res: http.ServerResponse, rawPath: string): void => {
-  const roots = [settingsManager.get('downloadPath') as string, process.env.VIDBEE_DOWNLOAD_DIR].filter((r): r is string => Boolean(r))
+  const roots = mediaRoots({ downloadPath: settingsManager.get('downloadPath') as string, downloadDir: process.env.VIDBEE_DOWNLOAD_DIR, dataRoot, tmpDir: os.tmpdir() })
   let real = ''
   try { real = realpathSync(path.resolve(rawPath)) } catch { res.writeHead(404); return void res.end('Not found') }
-  const allowed = roots.some((root) => { try { const r = realpathSync(root); return real === r || real.startsWith(r + path.sep) } catch { return false } })
+  const allowed = isAllowedMedia(real, roots)
   if (!allowed || !statSync(real).isFile()) { res.writeHead(403); return void res.end('Forbidden') }
   serveFile(req, res, real)
 }

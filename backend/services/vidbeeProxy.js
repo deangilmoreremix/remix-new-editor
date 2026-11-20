@@ -64,3 +64,19 @@ export function createVidBeeRouters({ auth }) {
   };
   return { session, proxy };
 }
+
+/**
+ * Mount the gate on an Express app in the one order that works:
+ *  1. `/api/vidbee` (credentialed CORS for the session endpoint) BEFORE the global `cors()`. The global handler
+ *     answers every OPTIONS preflight itself with `Access-Control-Allow-Origin: *` and no `Allow-Credentials`,
+ *     which makes a browser on another origin block the cookie-setting POST.
+ *  2. the global CORS handler.
+ *  3. `/vidbee` (the proxy) before the body parsers, so request streams pass through untouched.
+ */
+export function installVidBee(app, { auth, cors: globalCors }) {
+  const { session, proxy } = createVidBeeRouters({ auth });
+  app.use('/api/vidbee', session);
+  app.use(globalCors);
+  app.use('/vidbee', proxy);
+}
+
