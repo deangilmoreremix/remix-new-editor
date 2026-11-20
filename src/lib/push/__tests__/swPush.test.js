@@ -53,6 +53,12 @@ describe('sw.js click routing', () => {
     expect(sw.pickAppWindow([x], 'https://app.test')).toBeNull();
     expect(sw.pickAppWindow([], 'https://app.test')).toBeNull();
   });
+  it('never picks a motion-agent window either', () => {
+    const agent = { url: 'https://app.test/motion-agent/', focused: true, visibilityState: 'visible' };
+    const editor = { url: 'https://app.test/#/timeline', focused: false, visibilityState: 'hidden' };
+    expect(sw.pickAppWindow([agent, editor], 'https://app.test')).toBe(editor);
+    expect(sw.pickAppWindow([agent], 'https://app.test')).toBeNull();
+  });
   it('never picks a workbench window: it has no alerts listener, so the click would do nothing', () => {
     const bench = { url: 'https://app.test/workbench-app/index.html#/x', focused: true, visibilityState: 'visible' };
     const editor = { url: 'https://app.test/#/timeline', focused: false, visibilityState: 'hidden' };

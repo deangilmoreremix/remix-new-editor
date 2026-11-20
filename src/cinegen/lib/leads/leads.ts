@@ -247,6 +247,16 @@ export type ExportRecord = Record<string, string | number>;
  */
 export function exportRecords(rows: LeadRow[], forms: LeadForm[], { escape = true, watch = {} }: { escape?: boolean; watch?: Record<string, WatchInfo> } = {}): ExportRecord[] {  const name = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r))?.label ?? 'Form';
   const safe = escape ? csvSafe : (v: string) => v;
+  // The visitor's own answers are never overwritten. A computed column whose name an answer uses (an editable label such as
+  // "Lead Score" or "Status") gets " (computed)" appended, decided ONCE for the whole export from every row's answers, so all rows put
+  // the computed value in the same column (CSV / Excel merge records by key into shared headers).
+  const answerKeys = new Set(rows.flatMap((r) => Object.keys(r.data)));
+  const columnNames = new Map<string, string>();
+  const column = (key: string): string => {
+    let k = columnNames.get(key);
+    if (k === undefined) { k = key; while (answerKeys.has(k)) k = `${k} (computed)`; columnNames.set(key, k); }
+    return k;
+  };
   return rows.map((r) => {
     const utm = r.source?.utm ?? {};
     const src: ExportRecord = {};
@@ -262,12 +272,9 @@ export function exportRecords(rows: LeadRow[], forms: LeadForm[], { escape = tru
     if (w) { src['Watched %'] = watchPercent(w).replace('%', ''); src.Interest = watchTag(w); }
     if (r.status !== undefined) { src.Status = statusLabel(r.status); if (r.notes) src.Notes = safe(r.notes); if (r.tags?.length) src.Tags = safe(r.tags.join(', ')); }
     const { score, label } = scoreLead(r);
-    // The visitor's own answers come first and are never overwritten: a computed column whose name an answer already uses
-    // (an editable label such as "Lead Score" or "Status") gets " (computed)" appended instead.
     const rec: ExportRecord = { Submitted: r.createdAt, Form: name(r), ...r.data };
-    const put = (key: string, value: string | number) => { let k = key; while (k in rec) k = `${k} (computed)`; rec[k] = value; };
-    Object.entries(src).forEach(([k, v]) => put(k, v));
-    put('Lead Score', score); put('Lead Rating', label);
+    Object.entries(src).forEach(([k, v]) => { rec[column(k)] = v; });
+    rec[column('Lead Score')] = score; rec[column('Lead Rating')] = label;
     return rec;
   });}
 

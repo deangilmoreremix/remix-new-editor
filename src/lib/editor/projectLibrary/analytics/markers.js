@@ -13,7 +13,12 @@ const clean = (s, n = 30) => String(s ?? '').replace(/\s+/g, ' ').trim().slice(0
 const itemsOf = (t) => (Array.isArray(t?.items) ? t.items : Array.isArray(t?.clips) ? t.clips : []);
 // Published text/image overlays and link/call hotspots keep their CTA settings under `clip.addon`, the older shapes at the top level.
 const optionsOf = (c) => (c?.addon && typeof c.addon === 'object' ? { ...c, ...c.addon } : c);
-const hasLink = (c) => { const o = optionsOf(c); return ['linkUrl', 'phoneNumber', 'ctaUrl'].some((k) => typeof o?.[k] === 'string' && o[k].trim()); };
+// Only the field of the ACTIVE link mode counts, like ctaTarget() in addons/ctaLink.js: a phone number left behind after switching to URL mode (the field is hidden) is not a CTA.
+const hasLink = (c) => {
+  const o = optionsOf(c);
+  const keys = o?.linkMode === 'phone' ? ['phoneNumber'] : ['linkUrl', 'ctaUrl'];
+  return keys.some((k) => typeof o?.[k] === 'string' && o[k].trim());
+};
 const r1 = (v) => Math.round(v * 10) / 10;
 
 /** @returns {{id:string, kind:'lead-form'|'list-builder'|'cta', label:string, startMs:number, endMs:number}[]} sorted by start. */

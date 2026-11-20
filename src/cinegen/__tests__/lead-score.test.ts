@@ -101,6 +101,17 @@ describe('export records', () => {
       expect(r2.Status).toBe('x');
       expect(Object.keys(r2).some((k) => k.startsWith('Status ('))).toBe(true);
     }
+    {
+      // two rows, only one has an answer named "Lead Score": BOTH rows put the computed score in the same column
+      const withAnswer = row('d', 'lead-form', { EMAIL: 'b@acme.io', 'Lead Score': 'mine' });
+      const without = row('e', 'lead-form', { EMAIL: 'c@acme.io' });
+      const [a, b] = exportRecords([without, withAnswer], []);
+      expect(a['Lead Score (computed)']).toBe(scoreLead(without).score);
+      expect(b['Lead Score (computed)']).toBe(scoreLead(withAnswer).score);
+      expect(a['Lead Score']).toBeUndefined();               // the "Lead Score" column holds answers only
+      expect(b['Lead Score']).toBe('mine');
+      expect(a['Lead Rating']).toBe(scoreLead(without).label); // no answer is called "Lead Rating": its name is unchanged for everyone
+    }
   });
   it('puts the score, status, notes and tags in the CSV', () => {
     const header = rowsToCsv(rows, []).split('\r\n')[0];

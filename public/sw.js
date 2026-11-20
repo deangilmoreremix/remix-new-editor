@@ -234,10 +234,10 @@ function coldOpenUrl(url) {
   return path + (path.includes('?') ? '&' : '?') + 'alerts=1' + hash;
 }
 
-// Prefer a focused/visible window, otherwise any window of this origin. The workbench (/workbench-app/) is a different
-// app on the same origin with no alerts listener, so it is never chosen (a click would focus it and do nothing).
+// Prefer a focused/visible window, otherwise any window of this origin. The workbench (/workbench-app/) and the motion agent (/motion-agent/)
+// are different apps on the same origin with no alerts listener, so they are never chosen (a click would focus them and do nothing).
 function pickAppWindow(windows, origin) {
-  const own = (windows || []).filter((w) => { try { const u = new URL(w.url); return u.origin === origin && !u.pathname.startsWith('/workbench-app/'); } catch { return false; } });
+  const own = (windows || []).filter((w) => { try { const u = new URL(w.url); return u.origin === origin && !u.pathname.startsWith('/workbench-app/') && !u.pathname.startsWith('/motion-agent/'); } catch { return false; } });
   return own.find((w) => w.focused) || own.find((w) => w.visibilityState === 'visible') || own[0] || null;
 }
 // </push-logic>
