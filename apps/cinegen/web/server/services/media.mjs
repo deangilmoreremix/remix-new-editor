@@ -816,6 +816,32 @@ export function createMediaHandlers(context) {
     return { outputPath: await urlForMediaPath(outputPath) };
   };
 
+  // Trim node: a trimmed copy that keeps audio and is saved into the project's
+  // generated media (desktop `media:trim-video`), unlike extractClip's
+  // video-only temp file for cloud uploads.
+  const trimVideo = async (paramsValue) => {
+    const params = requireRecord(paramsValue, 'Trim parameters');
+    const projectId = await ensureProject(params.projectId);
+    const inputPath = await resolveMediaReference(params.inputPath, 'Trim input');
+    await assertReadableFile(inputPath, 'Trim input');
+    const startSec = Math.max(0, requireFiniteNumber(params.startSec, 'Trim start', { min: 0, max: 24 * 60 * 60 }));
+    const endSec = requireFiniteNumber(params.endSec, 'Trim end', { min: 0, max: 24 * 60 * 60 });
+    const durationSec = Math.max(0.05, endSec - startSec);
+    const outputDir = pathInside(projectMediaDir(projectId), 'generated');
+    await fsp.mkdir(outputDir, { recursive: true });
+    const outputPath = pathInside(outputDir, `trim-${crypto.randomUUID()}.mp4`);
+    const result = await runProcess(`trim-${crypto.randomUUID()}`, ffmpegPath, [
+      '-y', '-ss', `${startSec}`, '-i', inputPath, '-t', `${durationSec}`,
+      '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p',
+      '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', outputPath,
+    ], { timeoutMs: Math.max(120_000, Math.ceil(durationSec * 4_000)) });
+    if (result.code !== 0) {
+      await fsp.rm(outputPath, { force: true }).catch(() => {});
+      return null;
+    }
+    return { outputPath: await urlForMediaPath(outputPath) };
+  };
+
   const findExistingGeneratedAsset = async (directory, assetId) => {
     try {
       const entries = await fsp.readdir(directory, { withFileTypes: true });
@@ -974,6 +1000,7 @@ export function createMediaHandlers(context) {
     extractFrame,
     writeTempImage,
     extractClip,
+    trimVideo,
     downloadRemote,
     persistGeneratedAsset,
   };

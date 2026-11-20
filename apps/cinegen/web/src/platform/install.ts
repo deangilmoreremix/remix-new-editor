@@ -12,7 +12,11 @@ interface WebSyncAPI {
   onBatchProgress: (callback: (data: unknown) => void) => () => void;
 }
 
-export type BrowserElectronAPI = ElectronAPI & { sync: WebSyncAPI };
+// claudeMcp / mcpBridge connect a locally installed Claude Code to the desktop
+// app over a local port; they are desktop-only and the shared UI checks for them.
+export type BrowserElectronAPI = Omit<ElectronAPI, 'claudeMcp' | 'mcpBridge'>
+  & Partial<Pick<ElectronAPI, 'claudeMcp' | 'mcpBridge'>>
+  & { sync: WebSyncAPI };
 
 const browserObjectUrls = new WeakMap<File, string>();
 const RUNPOD_STATUS_RPC_TIMEOUT_MS = 30_000;
@@ -494,6 +498,7 @@ export const browserElectronAPI: BrowserElectronAPI = {
     quickEdit: (params) => rpc('higgsfield', 'quickEdit', params),
     generate: (params) => rpc('higgsfield', 'generate', params),
     generateList: (params) => rpc('higgsfield', 'generateList', params),
+    generateCost: (params) => rpc('higgsfield', 'generateCost', params),
   },
   artlist: {
     accountStatus: () => rpc('artlist', 'accountStatus'),
@@ -508,7 +513,6 @@ export const browserElectronAPI: BrowserElectronAPI = {
     authLogout: () => rpc('topview', 'authLogout'),
     submit: (params) => rpc('topview', 'submit', params),
     query: (params) => rpc('topview', 'query', params),
-    recoverVideo: (params) => rpc('topview', 'recoverVideo', params),
     generate: (params) => rpc('topview', 'generate', params),
     generateImage: (params) => rpc('topview', 'generateImage', params),
     generateAudio: (params) => rpc('topview', 'generateAudio', params),
@@ -579,6 +583,7 @@ export const browserElectronAPI: BrowserElectronAPI = {
     extractFrame: (params) => rpc('media', 'extractFrame', params),
     writeTempImage: (params) => rpc('media', 'writeTempImage', params),
     extractClip: (params) => rpc('media', 'extractClip', params),
+    trimVideo: (params) => rpc('media', 'trimVideo', params),
     downloadRemote: (params) => rpc('media', 'downloadRemote', params),
     persistGeneratedAsset: (params) => rpc('media', 'persistGeneratedAsset', params),
   },

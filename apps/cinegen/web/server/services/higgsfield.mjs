@@ -94,6 +94,7 @@ export const higgsfieldCapabilities = Object.freeze({
   quickEdit: true,
   generate: true,
   generateList: true,
+  generateCost: true,
   browserProgressEvents: false,
   browserCancellation: false,
   serverShutdownCancellation: true,
@@ -1422,6 +1423,32 @@ export function createHiggsfieldService(options = {}) {
     return parseHiggsfieldListJson(stdout);
   };
 
+  // Credit quote shown before generating. Mirrors the desktop
+  // `higgsfield:generate-cost` handler: an unpriceable model (or a server
+  // without the CLI) returns null, which shows no badge and never blocks.
+  const generateCost = async (paramsValue) => {
+    const model = paramsValue && typeof paramsValue === 'object' ? paramsValue.model : undefined;
+    if (typeof model !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]*$/.test(model)) return null;
+    const args = ['generate', 'cost', model];
+    const params = paramsValue.params && typeof paramsValue.params === 'object' ? paramsValue.params : {};
+    for (const [name, value] of Object.entries(params)) {
+      if (!/^[a-z][a-z0-9_-]{0,63}$/i.test(name) || value === undefined || value === null || value === '') continue;
+      if (typeof value === 'string' && value.length <= 2000) args.push(`--${name}`, value);
+      else if (typeof value === 'number' && Number.isFinite(value)) args.push(`--${name}`, String(value));
+      else if (typeof value === 'boolean') args.push(`--${name}`, value ? 'true' : 'false');
+    }
+    try {
+      const stdout = String(await runCli(args, { label: 'Higgsfield cost estimate', timeoutMs: 20_000 })).trim();
+      const start = stdout.lastIndexOf('{');
+      if (start < 0) return null;
+      const parsed = JSON.parse(stdout.slice(start));
+      const credits = parsed.credits ?? parsed.cost;
+      return typeof credits === 'number' && Number.isFinite(credits) ? credits : null;
+    } catch {
+      return null;
+    }
+  };
+
   const quickEdit = async (paramsValue) => {
     const params = validateQuickEditParams(paramsValue);
     let medias = [];
@@ -1548,7 +1575,7 @@ export function createHiggsfieldService(options = {}) {
     return undefined;
   };
 
-  const handlers = { accountStatus, authLogin, authLogout, quickEdit, generate, generateList };
+  const handlers = { accountStatus, authLogin, authLogout, quickEdit, generate, generateList, generateCost };
   const context = {
     capabilities: higgsfieldCapabilities,
     authCommandsEnabled: allowAuthCommands,
