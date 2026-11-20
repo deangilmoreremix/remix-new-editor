@@ -75,6 +75,14 @@ const config = defineConfig(({ command }) => ({
 				target: apiProxyTarget,
 				changeOrigin: true,
 			},
+			"/export": {
+				target: apiProxyTarget,
+				changeOrigin: true,
+			},
+			"/stream": {
+				target: apiProxyTarget,
+				changeOrigin: true,
+			},
 			"/rpc": {
 				target: apiProxyTarget,
 				changeOrigin: true,

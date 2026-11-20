@@ -91,6 +91,10 @@ const stateOf = (
     }
     return 'running'
   }
+  // A re-transcription that failed after the saved record must still surface its error and Retry.
+  if (record && latest?.status === 'failed' && latest.updatedAt > record.updatedAt) {
+    return 'failed'
+  }
   if (record) {
     return record.resultKind === 'no-speech' ? 'no-speech' : 'completed'
   }
