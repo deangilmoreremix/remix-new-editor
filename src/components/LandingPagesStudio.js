@@ -313,6 +313,29 @@ export function LandingPagesStudio() {
       bar.append(el('span', 'font-bold', 'Design'), tplSel, el('span', '', 'Click any text on the page to edit it. Use the left panel to add, remove and reorder sections. Save when you are done.'), sampleNote);
       const host = el('div', 'rounded-2xl border border-white/10 overflow-hidden bg-white');
       host.style.height = '78vh';
+      // Preview as: the sample, nobody (shows the {{token|fallback}} text), or any real contact of this page
+      // (their own name, logo, colour, picture and video, exactly what their personal link shows).
+      let editorTokens = SAMPLE_TOKENS;
+      const asSel = el('select', INPUT);
+      asSel.setAttribute('aria-label', 'Preview as contact');
+      asSel.dataset.previewAs = '';
+      const asTokens = new Map();
+      const asOpt = (v, l) => { const o = el('option', '', l); o.value = v; asSel.appendChild(o); };
+      asOpt('sample', 'Preview as: Ann at Acme (sample)');
+      asOpt('none', 'Preview as: nobody (shows fallbacks)');
+      asSel.addEventListener('change', () => {
+        editorTokens = asSel.value === 'sample' ? SAMPLE_TOKENS : asSel.value === 'none' ? {} : (asTokens.get(asSel.value) || {});
+        if (mountPageEditorFn) mountEditor(current.config.editor);
+      });
+      ownerClient().then((c) => listContacts(c, current.id)).then((rows) => {
+        rows.slice(0, 200).forEach((r) => {
+          const tk = {};
+          PUBLIC_TOKEN_KEYS.forEach((k) => { if (r.fields?.[k]) tk[k] = String(r.fields[k]); });
+          asTokens.set(r.id, tk);
+          asOpt(r.id, `Preview as: ${contactLabel(r)}`);
+        });
+      }).catch(() => { /* no contacts yet, or not signed in: the sample still works */ });
+      bar.append(asSel);
       box.append(bar, host);
       const danger = el('button', 'self-start text-xs text-red-300 hover:underline mt-4', 'Delete this page');
       danger.type = 'button';
@@ -328,7 +351,7 @@ export function LandingPagesStudio() {
         editorHandle = mountPageEditorFn(host, {
           page: current,
           data,
-          tokens: SAMPLE_TOKENS,
+          tokens: editorTokens,
           onPublish: () => saveBtn.click(), // the editor's own Publish button = our Save
           onChange: (d) => {
             const next = sanitizeEditorData(d);

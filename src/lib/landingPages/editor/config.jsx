@@ -4,6 +4,7 @@
  */
 import * as C from './components.jsx';
 import { withImagePickers } from './ImageField.jsx';
+import { withTokenPickers, withTokenUrls, ContactAccent } from './tokenFields.jsx';
 import { FONT_OPTIONS, fontStack } from './fontChoices.js';
 import { ICON_KEYS } from '../siteIcons.js';
 import { EDITABLE_TEMPLATES } from './designs.js';
@@ -53,7 +54,7 @@ export const editorConfig = {
       const fh = fontStack(headingFont); const fb = fontStack(bodyFont);
       if (fh) style['--pk-fh'] = fh;
       if (fb) style['--pk-fb'] = fb;
-      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}><ThanksContext.Provider value={thanks || 'Thanks! Check your inbox.'}><AfterSubmitContext.Provider value={{ afterSubmitAction, afterSubmitUrl, afterSubmitButtonText }}><C.LeadAnchorFallback /><C.PersonalGreeting text={greeting} />{children}</AfterSubmitContext.Provider></ThanksContext.Provider></div>;
+      return <ContactAccent className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}><ThanksContext.Provider value={thanks || 'Thanks! Check your inbox.'}><AfterSubmitContext.Provider value={{ afterSubmitAction, afterSubmitUrl, afterSubmitButtonText }}><C.LeadAnchorFallback /><C.PersonalGreeting text={greeting} />{children}</AfterSubmitContext.Provider></ThanksContext.Provider></ContactAccent>;
     },
   },
   categories: {
@@ -171,3 +172,6 @@ export const editorConfig = {
 
 // Every image-link field also offers "Choose from my library" (images made in any studio).
 withImagePickers(editorConfig.components);
+// Every text and link field gets an "Insert field" menu, and links / pictures accept {{tokens}} (filled per contact).
+withTokenPickers(editorConfig.components);
+withTokenUrls(editorConfig.components);

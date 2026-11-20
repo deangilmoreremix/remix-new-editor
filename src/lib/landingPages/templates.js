@@ -276,10 +276,26 @@ export const FONTS = Object.freeze({
 });
 
 /** Token keys a viewer is allowed to see (must match landing_page_contact_tokens). */
-export const PUBLIC_TOKEN_KEYS = Object.freeze(['firstname', 'lastname', 'company', 'companylogo', 'role', 'city', 'custom1', 'custom2', 'custom3']);
+export const PUBLIC_TOKEN_KEYS = Object.freeze([
+  'firstname', 'lastname', 'company', 'companylogo', 'role', 'city', 'custom1', 'custom2', 'custom3',
+  // Per-person extras: their own website, phone, offer, button link, industry, brand colour, picture and video.
+  'website', 'phone', 'offer', 'cta', 'industry', 'accent', 'image', 'video',
+]);
 
-/** Token keys that carry an image URL: never accepted from the page URL, https only when rendered. */
-export const IMAGE_TOKEN_KEYS = Object.freeze(['companylogo']);
+/** Token keys that carry an image or video URL: never accepted from the page URL, https only when rendered. */
+export const IMAGE_TOKEN_KEYS = Object.freeze(['companylogo', 'image', 'video']);
+
+/** Keys that are only ever a whole URL (inserted as-is into a link or picture; never URL-encoded). */
+const URL_TOKEN_KEYS = new Set(['companylogo', 'image', 'video', 'website', 'cta']);
+
+/** Token keys offered by the editor's "Insert field" menu: [key, label, fallback]. */
+export const TOKEN_CHOICES = Object.freeze([
+  ['firstname', 'First name', 'there'], ['lastname', 'Last name', ''], ['company', 'Company', 'your company'],
+  ['role', 'Role', ''], ['city', 'City', ''], ['industry', 'Industry', ''], ['website', 'Website', ''],
+  ['phone', 'Phone', ''], ['offer', 'Offer', ''], ['cta', 'Button link', ''], ['companylogo', 'Company logo (picture link)', ''],
+  ['image', 'Their picture (link)', ''], ['video', 'Their video (link)', ''], ['accent', 'Brand colour (#hex)', ''],
+  ['custom1', 'Custom 1', ''], ['custom2', 'Custom 2', ''], ['custom3', 'Custom 3', ''],
+]);
 
 export const FORM_FIELD_TYPES = Object.freeze(['text', 'email', 'tel', 'textarea']);
 
@@ -770,6 +786,25 @@ export function fillTokens(text, tokens = {}) {
   });
 }
 
+/**
+ * Fill tokens inside a link or picture address. A whole-URL token (their logo, picture, video, website, button link)
+ * goes in as-is; any other value is URL-encoded so a name with a space or "&" cannot break the address.
+ */
+export function fillUrlTokens(url, tokens = {}) {
+  return String(url ?? '').replace(/\{\{\s*([a-zA-Z0-9_]{1,40})\s*(?:\|([^}]{0,80}))?\}\}/g, (_, key, fallback) => {
+    const v = tokens[key];
+    const val = v != null && String(v).trim() !== '' ? String(v).trim() : (fallback != null ? fallback.trim() : '');
+    return URL_TOKEN_KEYS.has(key) ? val : encodeURIComponent(val);
+  });
+}
+
+/** Token names used anywhere in a page's editable (Puck) data: every text, link and picture field. */
+export function tokensInEditorData(data) {
+  const own = new Set(['sender', 'brand', 'duration']);
+  const blob = JSON.stringify(data ?? {});
+  return [...new Set([...blob.matchAll(/\{\{\s*([a-zA-Z0-9_]{1,40})/g)].map((m) => m[1]))].filter((k) => !own.has(k));
+}
+
 /** Token names used in a config, for the studio's "tokens in this page" hint. */
 export function tokensUsed(config) {
   const c = sanitizeConfig(config);
@@ -780,14 +815,17 @@ export function tokensUsed(config) {
   ].join(' ');
   // sender, brand and duration come from the page itself, not from a contact.
   const own = new Set(['sender', 'brand', 'duration']);
-  return [...new Set([...blob.matchAll(/\{\{\s*([a-zA-Z0-9_]{1,40})/g)].map((m) => m[1]))].filter((k) => !own.has(k));
+  const fromClassic = [...blob.matchAll(/\{\{\s*([a-zA-Z0-9_]{1,40})/g)].map((m) => m[1]);
+  const fromEditor = c.editor ? tokensInEditorData(c.editor) : [];
+  return [...new Set([...fromClassic, ...fromEditor])].filter((k) => !own.has(k));
 }
 
 /** Keep only viewer-visible keys from tokens given in a URL (?firstname=Ann). */
 export function tokensFromQuery(search = '') {
   const params = new URLSearchParams(search);
   const out = {};
-  PUBLIC_TOKEN_KEYS.filter((k) => !IMAGE_TOKEN_KEYS.includes(k)).forEach((k) => {
+  // Anything that becomes a link, picture, video or colour only ever comes from the contact's saved row, never the address bar.
+  PUBLIC_TOKEN_KEYS.filter((k) => !IMAGE_TOKEN_KEYS.includes(k) && !URL_TOKEN_KEYS.has(k) && k !== 'accent').forEach((k) => {
     const v = params.get(k);
     if (v) out[k] = v.slice(0, 80);
   });

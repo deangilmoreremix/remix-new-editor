@@ -274,12 +274,14 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     bar.dataset.pickerVideo = '';
     const pic = el('div', 'shrink-0 overflow-hidden rounded-lg bg-black');
     pic.style.cssText = 'width:96px;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#000;flex-shrink:0';
-    if (src?.posterUrl) { const i = el('img'); i.src = src.posterUrl; i.alt = ''; i.style.cssText = 'width:100%;height:100%;object-fit:cover'; pic.appendChild(i); }
+    const isStill = !!src && (src.source?.kind === 'image' || isPicture({ url: src.url }));
+    if (isStill && !src.posterUrl) { const i = el('img'); i.src = src.url; i.alt = ''; i.style.cssText = 'width:100%;height:100%;object-fit:cover'; pic.appendChild(i); }
+    else if (src?.posterUrl) { const i = el('img'); i.src = src.posterUrl; i.alt = ''; i.style.cssText = 'width:100%;height:100%;object-fit:cover'; pic.appendChild(i); }
     else if (src?.url) { const v = el('video'); v.muted = true; v.preload = 'metadata'; v.src = `${src.url}#t=0.5`; v.style.cssText = 'width:100%;height:100%;object-fit:cover'; pic.appendChild(v); }
     const words = el('div', 'min-w-0 flex-1');
     words.style.cssText = 'min-width:0;flex:1';
-    words.append(el('div', 'text-[11px] text-secondary', 'Video on the page'), el('div', 'text-sm font-bold truncate', src?.title || 'No video yet'));
-    const b = el('button', BTN, src ? 'Change video' : 'Choose a video');
+    words.append(el('div', 'text-[11px] text-secondary', isStill ? 'Picture on the page' : 'Video on the page'), el('div', 'text-sm font-bold truncate', src?.title || 'No video yet'));
+    const b = el('button', BTN, src ? (isStill ? 'Change picture' : 'Change video') : 'Choose a video');
     b.type = 'button';
     b.addEventListener('click', () => { back = returnTo; showVideos(); });
     bar.append(pic, words, b);

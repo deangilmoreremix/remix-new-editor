@@ -48,7 +48,10 @@ export const isPlayableVideo = (u) => !!httpsMedia(u) && !IMAGE_PATH.test(pathOf
  * picture already draws a play button, so the overlay is only added over the user's own pictures.
  */
 export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', bakedPlay = '' }) {
-  const { page, handlers, preview } = usePage();
+  const { page, handlers, preview, tokens } = usePage();
+  // A personal link can carry the contact's own video / picture ({{video}}, {{image}}): they beat the slot and the page's.
+  const contactVideo = isPlayableVideo(tokens?.video) ? httpsMedia(tokens.video) : '';
+  const contactImage = safeImageUrl(tokens?.image) || '';
   const fired = useRef(new Set());
   const ref = useRef(null);
   const [started, setStarted] = useState(false);
@@ -70,9 +73,9 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
   // which "Save as my page" uploads before the page is stored.
   const blobPreview = preview && /^blob:/i.test(String(page?.video_url || '')) ? String(page.video_url) : '';
   const pageVideo = isPlayableVideo(page?.video_url) ? page.video_url : blobPreview;
-  const src = (isPlayableVideo(slotVideo) ? httpsMedia(slotVideo) : '') || pageVideo;
+  const src = contactVideo || (isPlayableVideo(slotVideo) ? httpsMedia(slotVideo) : '') || pageVideo;
   const pageImage = !pageVideo && httpsMedia(page?.video_url) && IMAGE_PATH.test(pathOf(page.video_url)) ? httpsMedia(page.video_url) : '';
-  const userImage = safeImageUrl(slotImage) || pageImage;
+  const userImage = contactImage || safeImageUrl(slotImage) || pageImage;
   const designPoster = safeImageUrl(poster) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(poster) ? poster : '');
   const posterUrl = userImage || safeImageUrl(page?.poster_url) || designPoster;
   const ownPicture = !!(userImage || safeImageUrl(page?.poster_url));
