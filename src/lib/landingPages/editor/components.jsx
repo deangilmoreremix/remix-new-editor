@@ -584,6 +584,67 @@ export function OutreachActions({ senderName, senderTitle, senderPhoto, like = '
 }
 
 /**
+ * Booking calendar: the official Cal.com / Cal.diy embed (the loader snippet from cal.diy packages/embeds/embed-snippet)
+ * shown inline under the video. `host` is where your Cal.diy runs (https, or http://localhost for testing) and `link`
+ * is the booking path on it, e.g. "pro/30min". Buttons can link to "#book" to scroll here.
+ */
+const calHost = (v) => {
+  try {
+    const u = new URL(String(v || '').trim());
+    const local = u.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(u.hostname);
+    return (u.protocol === 'https:' || local) && !u.username && !u.password ? u.origin : '';
+  } catch { return ''; }
+};
+const CAL_LINK = /^[a-z0-9][a-z0-9_./-]{0,120}$/i;
+
+function loadCalEmbed(libUrl) {
+  // Cal's own loader snippet, unchanged apart from formatting.
+  (function (C, A, L) {
+    const p = function (a, ar) { a.q.push(ar); };
+    const d = C.document;
+    C.Cal = C.Cal || function () {
+      const cal = C.Cal; const ar = arguments;
+      if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement('script')).src = A; cal.loaded = true; }
+      if (ar[0] === L) {
+        const api = function () { p(api, arguments); };
+        const namespace = ar[1];
+        api.q = api.q || [];
+        if (typeof namespace === 'string') { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ['initNamespace', namespace]); } else p(cal, ar);
+        return;
+      }
+      p(cal, ar);
+    };
+  })(window, libUrl, 'init');
+}
+
+export function BookingCalendar({ title, text, host, link, height = 680 }) {
+  const t = useTokens();
+  const { preview } = usePage();
+  const ref = useRef(null);
+  const origin = calHost(host);
+  const slug = CAL_LINK.test(String(link || '').trim()) ? String(link).trim() : '';
+  const ready = !!(origin && slug);
+  const h = Math.min(1200, Math.max(400, Number(height) || 680));
+  useEffect(() => {
+    if (!ready || preview || !ref.current || typeof window === 'undefined') return;
+    loadCalEmbed(`${origin}/embed/embed.js`);
+    window.Cal('init', { origin });
+    window.Cal('inline', { elementOrSelector: ref.current, calLink: slug, layout: 'month_view' });
+    window.Cal('ui', { hideEventTypeDetails: false, layout: 'month_view' });
+  }, [ready, preview, origin, slug]);
+  if (!ready && !preview) return null;
+  return (
+    <section className="pk-booking pk-outreach-calendar" id="book">
+      {title ? <AccentText as="h2" className="pk-h2" text={title} /> : null}
+      {text ? <p className="pk-card-text">{t(text)}</p> : null}
+      {ready && !preview
+        ? <div ref={ref} className="pk-booking-embed" style={{ width: '100%', minHeight: h, overflow: 'auto' }} />
+        : <p className="pk-booking-empty">{ready ? 'Your booking calendar shows here on the live page.' : 'Add your Cal.diy address and booking link to show your calendar here.'}</p>}
+    </section>
+  );
+}
+
+/**
  * "#lead" buttons scroll to the hero form. Designs without a hero form keep their form in the contact band
  * (id="contact"), so those buttons fall back to it. Done on click, so no element needs a duplicate id.
  */

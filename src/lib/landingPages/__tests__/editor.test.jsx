@@ -242,3 +242,22 @@ describe('calendar weekday labels', () => {
     expect(heads(card('a, b, c, d, e, f, g, h'))).toEqual(defaults);
   });
 });
+
+describe('booking calendar (Cal.diy embed)', () => {
+  const one = (props, preview = false) => renderToString(<PageContext.Provider value={{ page, tokens: {}, handlers: {}, preview }}><Render config={editorConfig} data={{ root: { props: {} }, content: [{ type: 'BookingCalendar', props: { id: 'b', title: 'Book', ...props } }], zones: {} }} /></PageContext.Provider>);
+  it('renders the #book section when a host and link are set', () => {
+    const out = one({ host: 'https://book.example.com', link: 'pro/30min' });
+    expect(out).toContain('id="book"');
+    expect(out).toContain('pk-booking-embed');
+  });
+  it('renders nothing on the live page without a valid host and link, and a hint in the editor', () => {
+    expect(one({ host: '', link: 'pro/30min' })).not.toContain('id="book"');
+    expect(one({ host: 'javascript:alert(1)', link: 'pro/30min' })).not.toContain('id="book"');
+    expect(one({ host: 'http://evil.example.com', link: 'pro/30min' })).not.toContain('id="book"');
+    expect(one({ host: 'https://book.example.com', link: '../x?y' })).not.toContain('id="book"');
+    expect(one({ host: '', link: '' }, true)).toContain('Add your Cal.diy address');
+  });
+  it('allows http only for localhost testing', () => {
+    expect(one({ host: 'http://localhost:3000', link: 'pro/30min' })).toContain('id="book"');
+  });
+});
