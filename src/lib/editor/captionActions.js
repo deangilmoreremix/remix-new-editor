@@ -31,7 +31,7 @@ export function addCaptionButton(opts = {}) {
   // Older call sites passed a full language name ("English") for the paid service; Whisper takes a code or 'auto'.
   const lang = /^[a-z]{2}$/.test(language) || language === 'auto' ? language : 'auto';
   return openCaptionStudio({
-    videoUrl, language: lang, captions, style, videoLibrary, watchVideos, sampleImage: '/library-previews/sample-in.jpg',
+    videoUrl, language: lang, captions, style, videoLibrary, watchVideos, sampleImage: '/library-previews/sample-in.jpg', lookImage: (key) => `/caption-looks/${key}.webp`,
     accentColor: openaiConfig.getStudioColorScheme(appTheme)?.primary,
     onComplete: typeof onComplete === 'function' ? (url) => onComplete(url) : undefined,
     onApply: typeof onApply === 'function' ? (payload) => onApply(payload) : undefined,

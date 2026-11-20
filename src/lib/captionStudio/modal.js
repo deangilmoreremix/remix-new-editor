@@ -149,6 +149,7 @@ const STYLE_TEXT = `
 .csm-vmeta{font-size:10.5px;color:var(--mute)}
 .csm-vempty{padding:22px 12px;text-align:center;border:1px dashed rgba(255,255,255,.2);border-radius:14px;color:var(--mute)}
 .csm-pic{display:grid;place-items:end center;aspect-ratio:16/8;border-radius:9px;overflow:hidden;margin-bottom:8px;padding-bottom:6%;background-size:cover;background-position:center;background-color:#000}
+.csm-pic-img{display:block;width:100%;height:auto;object-fit:cover;aspect-ratio:16/9;padding:0;background:#000}
 .csm-pic span{display:block;max-width:94%;text-align:center;font-size:12px;line-height:1.1}
 .csm-jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:10px}
 .csm-job{display:flex;flex-direction:column;gap:9px;padding:13px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.025)}
@@ -570,7 +571,9 @@ export class CaptionStudioModal extends ModalShell {
   }
 
   /** The look drawn over a real picture: the picked video's own frame, else the host's sample image. Nothing made-up. */
-  lookPic(p) {
+  lookPic(p, key) {
+    const real = typeof this.opts.lookImage === 'function' ? this.opts.lookImage(key) : '';
+    if (real) return `<img class="csm-pic csm-pic-img" src="${esc(real)}" alt="${esc(p.label)} caption look" loading="lazy" decoding="async" />`;
     const img = this.frame || this.opts.sampleImage;
     if (!img) return '';
     const u = String(img).replace(/["'\\\n()]/g, ''); // goes inside style="…": no quotes or brackets
@@ -653,7 +656,7 @@ export class CaptionStudioModal extends ModalShell {
     const shown = all.filter((x) => this.styleFilter === 'all' || x[2] === this.styleFilter);
     const blurb = { tiktok: 'Short-form hooks', classic: 'Clean subtitles', box: 'Boxed words', karaoke: 'Sing-along wipe', minimal: 'Quiet & simple' };
     const card = ([k, p]) => `<button type="button" class="csm-preset${s.preset === k ? ' on' : ''}" data-act="preset" data-preset="${k}" title="${esc(capiteOf(k)?.description || p.label)}">
-      ${this.lookPic(p)}<b>${esc(p.label)}</b><span>${esc(capiteOf(k)?.bestFor || `Basic • ${blurb[k] || ''}`)}</span><i style="background:linear-gradient(135deg,${esc(toHex(p.color))} 50%,${esc(toHex(p.highlightColor))} 50%)"></i></button>`;
+      ${this.lookPic(p, k)}<b>${esc(p.label)}</b><span>${esc(capiteOf(k)?.bestFor || `Basic • ${blurb[k] || ''}`)}</span><i style="background:linear-gradient(135deg,${esc(toHex(p.color))} 50%,${esc(toHex(p.highlightColor))} 50%)"></i></button>`;
     const info = capiteOf(s.preset);
     return `
       <h3 class="csm-sec-title"><span class="glyph">✺</span>Motion style presets<span class="grow"></span><button type="button" class="csm-mini" data-act="reset-style">↺ Reset to default</button></h3>
