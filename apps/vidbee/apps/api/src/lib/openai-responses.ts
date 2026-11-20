@@ -61,6 +61,8 @@ export interface ResponseResult {
   output: OutputItem[]
   /** Concatenated assistant text. */
   text: string
+  /** Pages the model cited (from the built-in web search tool), de-duplicated by address. */
+  sources: Array<{ title: string; url: string }>
 }
 
 export interface CreateResponseOptions {
@@ -102,6 +104,33 @@ const textOfMessage = (item: OutputItem): string => {
     )
     .join('')
 }
+
+/** Pages cited in the answer: `url_citation` annotations on the output text. */
+export const citedSources = (output: OutputItem[]): Array<{ title: string; url: string }> => {
+  const seen = new Map<string, { title: string; url: string }>()
+  for (const item of output) {
+    if (item.type !== 'message' || !Array.isArray(item.content)) {
+      continue
+    }
+    for (const part of item.content as Array<{ annotations?: unknown }>) {
+      if (!Array.isArray(part?.annotations)) {
+        continue
+      }
+      for (const note of part.annotations as Array<{ type?: string; url?: string; title?: string }>) {
+        if (note?.type === 'url_citation' && typeof note.url === 'string' && /^https?:\/\//i.test(note.url) && !seen.has(note.url)) {
+          seen.set(note.url, { title: (note.title ?? '').trim() || note.url, url: note.url })
+        }
+      }
+    }
+  }
+  return [...seen.values()]
+}
+
+/** "Sources" list in Markdown, or an empty string. */
+export const sourcesMarkdown = (sources: Array<{ title: string; url: string }>): string =>
+  sources.length === 0
+    ? ''
+    : `\n\n**Sources**\n${sources.map((s) => `- [${s.title.replace(/[\[\]]/g, '')}](${s.url})`).join('\n')}`
 
 /** Create a streamed response and wait for it to finish. */
 export const createResponse = async (options: CreateResponseOptions): Promise<ResponseResult> => {
@@ -205,5 +234,5 @@ export const createResponse = async (options: CreateResponseOptions): Promise<Re
       .filter((item) => item.type === 'message')
       .map(textOfMessage)
       .join('') || streamedText
-  return { output, text }
+  return { output, text, sources: citedSources(output) }
 }

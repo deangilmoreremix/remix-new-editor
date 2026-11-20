@@ -175,7 +175,7 @@ export interface WebChat {
 export const chatContract = {
   get: oc.input(type<{ downloadId: string }>()).output(type<WebChat>()),
   /** Adds a user message and runs the model (with tools) in the background. */
-  send: oc.input(type<{ downloadId: string; message: string }>()).output(type<WebChat>()),
+  send: oc.input(type<{ downloadId: string; message: string; webSearch?: boolean }>()).output(type<WebChat>()),
   cancel: oc.input(type<{ downloadId: string }>()).output(type<WebChat>()),
   reset: oc.input(type<{ downloadId: string }>()).output(type<WebChat>())
 }
