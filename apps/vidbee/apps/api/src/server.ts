@@ -15,6 +15,7 @@ import { startEngines, stopEngines } from './lib/engines'
 import { resolveReadableMediaFile } from './lib/managed-files'
 import { getAiRun } from './lib/ai-host'
 import { aiRouter } from './lib/ai-router'
+import { ExportBusyError, exportVideoWithSubtitles } from './lib/video-export-host'
 import { getChat } from './lib/chat-host'
 import { aiChannel, chatChannel, subscribeLive, translateChannel } from './lib/live-events'
 import { listTranslations } from './lib/translate-host'
@@ -394,6 +395,35 @@ export const createApiServer = async () => {
       sseHub.removeClient(response)
     })
   })
+
+  // Video with subtitles: `GET /export/video?downloadId=&mode=soft|burn&language=` (language = a finished translation).
+  fastify.get<{ Querystring: { downloadId?: string; mode?: string; language?: string } }>(
+    '/export/video',
+    async (request, reply) => {
+      const downloadId = request.query.downloadId?.trim()
+      const mode = request.query.mode === 'burn' ? 'burn' : request.query.mode === 'soft' ? 'soft' : null
+      if (!(downloadId && mode)) {
+        return reply.code(400).send({ message: 'Expected downloadId and mode=soft|burn.' })
+      }
+      try {
+        const result = await exportVideoWithSubtitles({
+          downloadId,
+          mode,
+          language: request.query.language ?? ''
+        })
+        const size = (await stat(result.filePath)).size
+        reply.header('content-type', result.mimeType)
+        reply.header('content-length', size)
+        reply.header('content-disposition', `attachment; filename="${result.filename.replaceAll('"', '')}"`)
+        const stream = createReadStream(result.filePath)
+        stream.on('close', result.cleanup)
+        return reply.send(stream)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Export failed.'
+        return reply.code(error instanceof ExportBusyError ? 429 : 400).send({ message })
+      }
+    }
+  )
 
   // Live AI output: `GET /stream?channel=ai&downloadId=&skillId=`, `?channel=chat&downloadId=` or `?channel=translate&downloadId=`.
   // Sends one `snapshot`, then `delta` (text chunks) and `state` (full run/chat) events.

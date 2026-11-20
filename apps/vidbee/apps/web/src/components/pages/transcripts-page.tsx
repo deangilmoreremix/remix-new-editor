@@ -18,6 +18,7 @@ import { transcriptsClient } from "../../lib/orpc-client";
 import { AppShell } from "../layout/app-shell";
 import { AiSummaryPanel } from "./ai-summary-panel";
 import { MediaPlayer, type MediaPlayerHandle } from "./media-player";
+import { VideoExport } from "./video-export";
 import { ChatPanel } from "./chat-panel";
 import { TranslatePanel } from "./translate-panel";
 
@@ -450,6 +451,16 @@ export const TranscriptsPage = () => {
 											{format.toUpperCase()}
 										</Button>
 									))}
+								</div>
+							)}
+
+							{tab === "transcript" && detail.record && detail.sourceFilePath && (
+								<div className="border-b px-3 py-2">
+									<VideoExport
+										downloadId={detail.downloadId}
+										sourceFilePath={detail.sourceFilePath}
+										title={detail.title ?? detail.downloadId}
+									/>
 								</div>
 							)}
 
