@@ -6,25 +6,42 @@
 // 'audio_url'): the previous step's output URL is sent in that field, which is
 // what the muapi endpoints read. (`{{previous}}` still works inside a prompt
 // template, but a URL is not a useful prompt, so no built-in recipe uses it.)
+//
+// Some models start from an image the user supplies (a product photo, a face).
+// Such a recipe declares `reference: { label, hint, required }` and its first
+// step sets `reference: true`; runRecipe then sends `options.referenceImage` as
+// that step's image_url and refuses to start without it. A step can also set
+// `promptKey` when its model reads the text under another name (ai-product-shot
+// takes `scene_description`, not `prompt`).
 
 export const RECIPES = [
   {
     id: 'product-commercial',
     name: 'Product Commercial',
-    description: 'Generate a product image, then animate it into a short commercial.',
+    description: 'Place your product photo in a new scene, then animate it into a short commercial.',
     category: 'commercial',
+    reference: {
+      label: 'Product photo',
+      hint: 'A clear photo of the product. The prompt below describes the scene to place it in.',
+      required: true
+    },
     steps: [
-      { label: 'Generate product image', type: 'image', model: 'ai-product-shot', prompt: '{{prompt}}' },
+      { label: 'Place product in scene', type: 'i2i', model: 'ai-product-shot', prompt: '{{prompt}}', promptKey: 'scene_description', reference: true },
       { label: 'Animate to video', type: 'i2v', model: 'wan-3.0-i2v', prompt: '{{prompt}}', input: 'image_url' }
     ]
   },
   {
     id: 'character-promo',
     name: 'Character Promo',
-    description: 'Create a consistent character and turn it into a promo clip.',
+    description: 'Recreate a character from a reference face, then turn it into a promo clip.',
     category: 'character',
+    reference: {
+      label: 'Face reference',
+      hint: 'A clear photo of the face to keep consistent. The prompt below describes the scene or style.',
+      required: true
+    },
     steps: [
-      { label: 'Generate character', type: 'image', model: 'flux-pulid', prompt: '{{prompt}}' },
+      { label: 'Generate character', type: 'image', model: 'flux-pulid', prompt: '{{prompt}}', reference: true },
       { label: 'Animate character', type: 'i2v', model: 'wan-3.0-i2v', prompt: '{{prompt}}', input: 'image_url' }
     ]
   },
@@ -137,10 +154,18 @@ export async function runRecipe(muapiClient, recipe, options = {}) {
     native_audio,
     character_consistency,
     reference_images,
+    referenceImage = '',
     signal,
     onLog = () => {},
     onStep = () => {},
   } = options;
+
+  // Fail before any paid step runs when the recipe needs a photo and none was given.
+  if (recipe.reference?.required && !referenceImage) {
+    const msg = `${recipe.reference.label} is required for "${recipe.name}".`;
+    onLog(`Error: ${msg}`);
+    throw new Error(msg);
+  }
 
   const client = muapiClient || (await import('./muapi.js')).muapi;
   const base = basePrompt || ' cinematic quality';
@@ -162,6 +187,15 @@ export async function runRecipe(muapiClient, recipe, options = {}) {
         // step's own field here would send the raw "{{prompt}}" text.
         if (key === 'prompt') continue;
         if (key in step) params[key] = step[key];
+      }
+      // Models that read the text under another field name (e.g. scene_description).
+      if (step.promptKey && step.promptKey !== 'prompt') {
+        params[step.promptKey] = prompt;
+        delete params.prompt;
+      }
+      if (step.reference) {
+        if (!referenceImage) throw new Error(`Step "${step.label}" needs a reference image.`);
+        params.image_url = referenceImage;
       }
 
       if (step.input) {

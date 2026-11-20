@@ -402,7 +402,7 @@ export class PromptGalleryModal extends BaseModal {
         </div>
         ${content}
       </div>
-      ${this.showShortcuts ? renderShortcutsOverlay(MODAL_SHORTCUTS({ 'B': 'Browse tab', 'F': 'Favorites tab', 'R': 'Builder tab' })) : ''}
+      ${this.showShortcuts ? renderShortcutsOverlay(MODAL_SHORTCUTS()) : ''}
     `;
   }
 }

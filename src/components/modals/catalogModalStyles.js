@@ -153,6 +153,19 @@ const CATALOG_STYLES = `
   .step--error .step-num { background: rgba(239,68,68,0.2); color: #f87171; }
   .step-meta { margin-left: auto; font: 11px var(--cm-mono); color: var(--cm-text3); }
   .recipe-cost { margin-top: 12px; font-size: 11.5px; color: var(--cm-text2); }
+  .recipe-hint { align-self: center; font-size: 11.5px; color: var(--cm-text2); }
+  .recipe-reference { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; padding: 12px; border-radius: 12px; border: 1px dashed var(--cm-line2); background: var(--cm-input); }
+  .recipe-reference__hint { font-size: 11.5px; color: var(--cm-text2); }
+  .recipe-reference__inputs { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .recipe-reference__inputs input[type="url"] {
+    flex: 1; min-width: 180px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--cm-line2);
+    background: var(--cm-void); color: var(--cm-text); font-size: 12px; font-family: inherit; outline: none;
+  }
+  .recipe-reference__inputs input[type="url"]:focus { border-color: var(--cm-accent); }
+  .recipe-reference__preview { display: flex; align-items: center; gap: 10px; }
+  .recipe-reference__preview img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; border: 1px solid var(--cm-line2); }
+  .recipe-reference__name { flex: 1; min-width: 0; font-size: 12px; color: var(--cm-text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .recipe-reference__error { font-size: 11.5px; color: #f87171; }
   .recipe-log { display: flex; flex-direction: column; gap: 4px; }
   .recipe-log:empty { display: none; }
   .recipe-log .log-time { color: var(--cm-text3); margin-right: 8px; }

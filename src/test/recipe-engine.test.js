@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { RECIPES, getRecipeById, runRecipe } from '../lib/recipeEngine.js';
 
 const fakeClient = (outputs = {}) => ({
+  generateI2I: vi.fn(async () => ({ url: outputs.i2i ?? 'https://cdn/img.png' })),
   generateImage: vi.fn(async () => ({ url: outputs.image ?? 'https://cdn/img.png' })),
   generateI2V: vi.fn(async () => ({ url: outputs.i2v ?? 'https://cdn/clip.mp4' })),
   generateVideo: vi.fn(async () => ({ url: outputs.t2v ?? 'https://cdn/t2v.mp4' })),
@@ -12,7 +13,7 @@ const fakeClient = (outputs = {}) => ({
 describe('runRecipe chaining', () => {
   it('sends the previous output as image_url and keeps the base prompt as the prompt', async () => {
     const client = fakeClient();
-    const url = await runRecipe(client, getRecipeById('product-commercial'), { basePrompt: 'red sneaker' });
+    const url = await runRecipe(client, getRecipeById('product-commercial'), { basePrompt: 'red sneaker', referenceImage: 'https://cdn/shoe.jpg' });
     expect(url).toBe('https://cdn/clip.mp4');
     const params = client.generateI2V.mock.calls[0][0];
     expect(params.image_url).toBe('https://cdn/img.png');
@@ -41,15 +42,15 @@ describe('runRecipe chaining', () => {
     client.generateI2V.mockRejectedValueOnce(new Error('boom'));
     const onStep = vi.fn();
     const onLog = vi.fn();
-    await expect(runRecipe(client, getRecipeById('product-commercial'), { basePrompt: 'x', onStep, onLog })).rejects.toThrow('boom');
+    await expect(runRecipe(client, getRecipeById('product-commercial'), { basePrompt: 'x', referenceImage: 'https://cdn/shoe.jpg', onStep, onLog })).rejects.toThrow('boom');
     expect(onStep.mock.calls.some(c => c[0].status === 'done' && c[0].url === 'https://cdn/img.png')).toBe(true);
     expect(onLog).toHaveBeenCalledWith('Error: boom');
   });
 
   it('stops instead of calling a chained step with nothing to chain from', async () => {
-    const client = fakeClient({ image: '' });
-    client.generateImage.mockResolvedValueOnce({});
-    await expect(runRecipe(client, getRecipeById('product-commercial'), { basePrompt: 'x' })).rejects.toThrow(/needs the previous step/);
+    const client = fakeClient();
+    client.generateI2I.mockResolvedValueOnce({});
+    await expect(runRecipe(client, getRecipeById('product-commercial'), { basePrompt: 'x', referenceImage: 'https://cdn/shoe.jpg' })).rejects.toThrow(/needs the previous step/);
     expect(client.generateI2V).not.toHaveBeenCalled();
   });
 
@@ -62,6 +63,44 @@ describe('runRecipe chaining', () => {
           expect(i).toBeGreaterThan(0);
         }
       });
+    }
+  });
+
+  it('Product Commercial sends the photo as image_url and the text as scene_description (no prompt) to ai-product-shot', async () => {
+    const client = fakeClient();
+    await runRecipe(client, getRecipeById('product-commercial'), { basePrompt: 'on wet asphalt at night', referenceImage: 'https://cdn/shoe.jpg' });
+    const params = client.generateI2I.mock.calls[0][0];
+    expect(params.model).toBe('ai-product-shot');
+    expect(params.image_url).toBe('https://cdn/shoe.jpg');
+    expect(params.scene_description).toBe('on wet asphalt at night');
+    expect(params).not.toHaveProperty('prompt');
+    expect(client.generateImage).not.toHaveBeenCalled();
+    expect(client.generateI2V.mock.calls[0][0].image_url).toBe('https://cdn/img.png');
+  });
+
+  it('Character Promo sends the face reference as image_url to flux-pulid', async () => {
+    const client = fakeClient();
+    await runRecipe(client, getRecipeById('character-promo'), { basePrompt: 'in a neon city', referenceImage: 'https://cdn/face.jpg' });
+    const params = client.generateImage.mock.calls[0][0];
+    expect(params).toMatchObject({ model: 'flux-pulid', image_url: 'https://cdn/face.jpg', prompt: 'in a neon city' });
+    expect(client.generateI2V.mock.calls[0][0].image_url).toBe('https://cdn/img.png');
+  });
+
+  it('refuses to start a recipe that needs a photo without one, before any paid call', async () => {
+    for (const id of ['product-commercial', 'character-promo']) {
+      const client = fakeClient();
+      const onLog = vi.fn();
+      await expect(runRecipe(client, getRecipeById(id), { basePrompt: 'x', onLog })).rejects.toThrow(/is required/);
+      expect(client.generateI2I).not.toHaveBeenCalled();
+      expect(client.generateImage).not.toHaveBeenCalled();
+      expect(onLog).toHaveBeenCalledWith(expect.stringContaining('Error:'));
+    }
+  });
+
+  it('every reference step belongs to a recipe that declares a reference', () => {
+    for (const r of RECIPES) {
+      if (r.steps.some(s => s.reference)) expect(r.reference?.required).toBe(true);
+      if (r.reference) expect(r.steps[0].reference).toBe(true);
     }
   });
 });

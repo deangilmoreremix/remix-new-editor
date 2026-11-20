@@ -33,6 +33,11 @@ export class RecipeModal extends BaseModal {
     this.lastResult = '';
     this.results = [];
     this.stepStatus = [];
+    // Photo for recipes that start from the user's own image (product shot, face).
+    this.referenceUrl = '';
+    this.referenceName = '';
+    this.referenceStatus = '';
+    this.referenceError = '';
     this.history = this._loadHistory();
     this.loading = options.loading || false;
     this.showShortcuts = false;
@@ -107,6 +112,40 @@ export class RecipeModal extends BaseModal {
       };
     });
 
+    const refFile = root.querySelector('[data-reference-file]');
+    if (refFile) {
+      refFile.onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) this._uploadReference(file);
+      };
+    }
+    const refUrl = root.querySelector('[data-reference-url]');
+    if (refUrl) {
+      refUrl.onchange = (e) => this._setReferenceUrl(e.target.value);
+      // Enable Run as soon as a valid link is pasted, without rebuilding the
+      // panel mid-typing (a re-render would drop the click on a button that
+      // only becomes enabled when the field loses focus).
+      refUrl.oninput = (e) => {
+        const v = String(e.target.value || '').trim();
+        const ok = /^https?:\/\//i.test(v);
+        this.referenceUrl = ok ? v : '';
+        this.referenceName = ok ? (v.split('/').pop() || v) : '';
+        this.referenceStatus = ok ? 'ready' : '';
+        this.referenceError = '';
+        const run = root.querySelector('[data-action="run-recipe"]');
+        if (run) run.disabled = this.running || this._needsReference(getRecipeById(this.selectedRecipeId));
+      };
+    }
+    root.querySelectorAll('[data-action="clear-reference"]').forEach(btn => {
+      btn.onclick = () => {
+        this.referenceUrl = '';
+        this.referenceName = '';
+        this.referenceStatus = '';
+        this.referenceError = '';
+        this._refresh();
+      };
+    });
+
     const basePromptInput = root.querySelector('[data-base-prompt]');
     if (basePromptInput) {
       basePromptInput.oninput = (e) => { this._basePrompt = e.target.value; };
@@ -116,6 +155,44 @@ export class RecipeModal extends BaseModal {
     if (shortcutsCloseBtn) {
       shortcutsCloseBtn.onclick = () => { this.showShortcuts = false; this._refresh(); };
     }
+  }
+
+  _setReferenceUrl(value) {
+    const url = String(value || '').trim();
+    if (!url) {
+      this.referenceUrl = '';
+      this.referenceName = '';
+      this.referenceStatus = '';
+      this.referenceError = '';
+    } else if (/^https?:\/\//i.test(url)) {
+      this.referenceUrl = url;
+      this.referenceName = url.split('/').pop() || url;
+      this.referenceStatus = 'ready';
+      this.referenceError = '';
+    } else {
+      this.referenceUrl = '';
+      this.referenceStatus = 'error';
+      this.referenceError = 'Enter a full image link starting with http:// or https://';
+    }
+    this._refresh();
+  }
+
+  async _uploadReference(file) {
+    this.referenceUrl = '';
+    this.referenceName = file.name;
+    this.referenceStatus = 'uploading';
+    this.referenceError = '';
+    this._refresh();
+    try {
+      const url = await muapi.uploadFile(file);
+      if (!url) throw new Error('The upload returned no link.');
+      this.referenceUrl = url;
+      this.referenceStatus = 'ready';
+    } catch (err) {
+      this.referenceStatus = 'error';
+      this.referenceError = `Upload failed: ${err?.message || err}`;
+    }
+    this._refresh();
   }
 
   async _runRecipe(recipeId) {
@@ -137,6 +214,7 @@ export class RecipeModal extends BaseModal {
     try {
       await runRecipe(muapi, recipe, {
         basePrompt: this._basePrompt,
+        referenceImage: this.referenceUrl,
         onLog,
         onStep: ({ index, status, label, url }) => {
           this.stepStatus[index] = status;
@@ -172,6 +250,34 @@ export class RecipeModal extends BaseModal {
       }))
       .filter((h) => h.results.length)
       .slice(0, 3);
+  }
+
+  _needsReference(recipe) {
+    return !!(recipe?.reference?.required && (this.referenceStatus !== 'ready' || !this.referenceUrl));
+  }
+
+  _renderReference(ref) {
+    const st = this.referenceStatus;
+    return `
+      <div class="recipe-reference">
+        <div class="cm-label">${esc(ref.label)}${ref.required ? ' (required)' : ''}</div>
+        <div class="recipe-reference__hint">${esc(ref.hint || '')}</div>
+        ${st === 'ready' && this.referenceUrl ? `
+          <div class="recipe-reference__preview">
+            <img src="${esc(this.referenceUrl)}" alt="" />
+            <span class="recipe-reference__name">${esc(this.referenceName)}</span>
+            <button type="button" class="btn-secondary-modern" data-action="clear-reference">Remove</button>
+          </div>
+        ` : `
+          <div class="recipe-reference__inputs">
+            <label class="btn-secondary-modern recipe-reference__pick">${st === 'uploading' ? 'Uploading...' : 'Upload image'}
+              <input type="file" accept="image/*" data-reference-file hidden ${st === 'uploading' ? 'disabled' : ''} />
+            </label>
+            <input type="url" id="recipe-reference-url" data-reference-url placeholder="or paste an image link" aria-label="Image link" />
+          </div>
+        `}
+        ${this.referenceError ? `<div class="recipe-reference__error" role="alert">${esc(this.referenceError)}</div>` : ''}
+      </div>`;
   }
 
   _refresh() {
@@ -228,11 +334,13 @@ export class RecipeModal extends BaseModal {
                 ${selected.steps.map((s, i) => { const st = this.stepStatus[i] || ''; return `<div class="step ${st ? 'step--' + st : ''}"><span class="step-num">${st === 'done' ? '✓' : st === 'error' ? '!' : i + 1}</span>${esc(s.label)} <span class="step-meta">${esc(s.model)}</span></div>`; }).join('')}
               </div>
               <div class="recipe-cost">Each run makes ${selected.steps.length} paid generation call${selected.steps.length === 1 ? '' : 's'} and uses credits from your MuAPI account.</div>
-              <label class="text-xs text-muted mt-3 block">Base Prompt</label>
+              ${selected.reference ? this._renderReference(selected.reference) : ''}
+              <label class="text-xs text-muted mt-3 block">${selected.reference ? 'Scene prompt' : 'Base Prompt'}</label>
               <textarea class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50" rows="3" data-base-prompt placeholder="Base prompt used across steps...">${esc(this._basePrompt)}</textarea>
             </div>
             <div class="detail-actions">
-              <button type="button" class="btn-primary-modern" data-action="run-recipe" ${this.running ? 'disabled' : ''}>${this.running ? 'Running...' : 'Run Recipe'}</button>
+              <button type="button" class="btn-primary-modern" data-action="run-recipe" ${this.running || this._needsReference(selected) ? 'disabled' : ''}>${this.running ? 'Running...' : 'Run Recipe'}</button>
+              ${this._needsReference(selected) ? `<span class="recipe-hint">Add a ${esc(selected.reference.label.toLowerCase())} to run this recipe.</span>` : ''}
             </div>
             ${this.logs.length ? `<div class="recipe-log">
               ${this.logs.map(l => `<div class="log-line"><span class="log-time">${new Date(l.time).toLocaleTimeString()}</span>${esc(l.text)}</div>`).join('')}
@@ -242,7 +350,7 @@ export class RecipeModal extends BaseModal {
           ` : this.loading ? '<div class="empty-state"><div class="skeleton-card" style="height:120px"></div></div>' : '<div class="empty-state">Pick a recipe on the left to see its steps, then run it with your prompt.</div>'}
         </div>
       </div>
-      ${this.showShortcuts ? renderShortcutsOverlay(MODAL_SHORTCUTS({ '↑↓': 'Navigate recipes', 'Enter': 'Run recipe' })) : ''}
+      ${this.showShortcuts ? renderShortcutsOverlay(MODAL_SHORTCUTS()) : ''}
     `;
   }
 }

@@ -63,6 +63,17 @@ describe('PromptGalleryModal', () => {
   });
 });
 
+describe('PromptGalleryModal shortcuts', () => {
+  it('only lists shortcuts that exist', () => {
+    const modal = new PromptGalleryModal({});
+    modal.open();
+    modal.showShortcuts = true;
+    modal._refresh();
+    expect([...document.querySelectorAll('.shortcut-row kbd')].map(k => k.textContent)).toEqual(['⌘/', '⌘F', 'Esc']);
+    modal.destroy(); document.body.innerHTML = '';
+  });
+});
+
 describe('PromptGalleryModal filters and favorites', () => {
   let modal;
   afterEach(() => { modal?.destroy(); document.body.innerHTML = ''; localStorage.clear(); });
