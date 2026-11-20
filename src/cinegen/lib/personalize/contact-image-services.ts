@@ -63,6 +63,10 @@ export async function makeContactImageVideoReady(profile: Profile, key: string, 
     const stored = await persistPersonalizationAssetVersion({ sourceUrl: result.url, role: asset.role, name: `${asset.name || asset.role} — Video Ready` });
     const fresh = contactStore.getProfile?.(profile.id) as Profile | null;
     if (!fresh) return false; // the contact was deleted while this ran: drop the result instead of bringing the contact back
+    if ((assetForImageToken(fresh, key) as { id?: string } | null)?.id !== asset.id) { // the picture was removed or replaced meanwhile: nothing to save
+      notify(`The picture for ${contactName(profile)} changed while Video Ready ran, so the result was not saved.`, 'error');
+      return false;
+    }
     // only what the cleanup produced is applied, so a crop focus or an approval changed meanwhile survives
     const changed = Object.fromEntries(Object.entries(result as Record<string, unknown>).filter(([k, v]) => v !== (asset as Record<string, unknown>)[k]));
     saveContactAsset(fresh, asset.id, (a) => ({
@@ -99,7 +103,9 @@ export async function makeAllVideoReady(overlays: Array<{ type: string; addon?: 
   let done = 0;
   for (const [p, key] of jobs) {
     host.onProgress?.(done, jobs.length, contactName(p));
-    if (await makeContactImageVideoReady((contactStore.getProfile?.(p.id) as Profile) || p, key, host.notify)) done += 1;
+    const latest = contactStore.getProfile?.(p.id) as Profile | null;
+    if (!latest) continue; // deleted while the batch ran: no paid cleanup for it
+    if (await makeContactImageVideoReady(latest, key, host.notify)) done += 1;
   }
   host.onProgress?.(done, jobs.length, '');
   return { total: jobs.length, done, message: `${done} of ${jobs.length} images are now Video Ready${done < jobs.length ? '. The rest need a look in the image finder (or an OpenAI key in Settings).' : '.'}` };

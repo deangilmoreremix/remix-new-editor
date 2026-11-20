@@ -658,6 +658,8 @@ export function setOverlayPlaying(layer, playing) {
 export function playInAnimation(el, animation) {
   const a = animation || {};
   if (!a.in && !a.idle) return;
+  // replaying on the same element (Play after Pause): a leftover idle class would win over the entrance in the stylesheet
+  el.classList.remove('infinite', ...[a.in, a.idle].filter(Boolean));
   el.classList.add('animated');
   const startIdle = () => {
     if (a.in) el.classList.remove(a.in);
