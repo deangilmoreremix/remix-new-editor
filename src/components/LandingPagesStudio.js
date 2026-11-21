@@ -354,6 +354,7 @@ export function LandingPagesStudio() {
         dirtyTag.textContent = 'Saved';
         publishBtn.textContent = current.published ? 'Unpublish' : 'Publish';
         drawShare();
+        if (current.published) { try { window.dispatchEvent(new CustomEvent('landing:published', { detail: { id: current.id } })); } catch { /* never block a save */ } }
       } catch (err) {
         showToast(err.message || 'Could not save', 'error', 4000);
       } finally {

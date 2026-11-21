@@ -2,6 +2,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { muapi } from '../lib/muapi.js';
 import { createNotificationsBell } from '../lib/notificationsBell.js';
 import { supabase, primeSupabaseIdentity } from '../lib/supabase.js';
+import { createChecklistChip } from './ChecklistChip.js';
 
 // App top bar: logo, credit balance, API key and account.
 // Studio navigation lives only in the left side menu (src/components/Sidebar.js),
@@ -87,6 +88,8 @@ export function Header(navigate) {
   tourBtn.setAttribute('data-tour', 'replay');
   tourBtn.onclick = () => window.dispatchEvent(new CustomEvent('tour:replay', { detail: {} }));
 
+  // "Get started 2/4": the first steps after onboarding (hidden when done or dismissed).
+  rightPart.appendChild(createChecklistChip(navigate).element);
   rightPart.appendChild(tourBtn);
   rightPart.appendChild(bell.element);
   rightPart.appendChild(balanceChip);

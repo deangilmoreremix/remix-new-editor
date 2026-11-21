@@ -182,4 +182,30 @@ test.describe('App-wide onboarding', () => {
     await expect(page.locator('[data-reco-card="image"]')).toHaveCount(0); // not recommended for "talking" either
     await expect(page.locator('[data-reco-card="avatar"]')).toHaveCount(1);
   });
+
+  test('the Get started chip appears after onboarding, counts a saved generation, and can be hidden for good', async ({ page }) => {
+    await page.addInitScript(() => {
+      try { if (!localStorage.getItem('smartvideo-tours-v1:guest')) localStorage.setItem('smartvideo-tours-v1:guest', JSON.stringify({ __disabled__: { version: 1, seenAt: new Date().toISOString() } })); } catch { /* ignore */ }
+    });
+    await open(page);
+    await answerUpToSource(page);
+    await page.click('[data-onb-heard="linkedin"]');
+    await page.click('[data-onb-type="talking"]');
+    await page.click('[data-onb-continue]');
+    await page.click('[data-onb-start]');
+    await page.click('[data-onb-ready-skip]');
+    await page.waitForFunction(() => location.hash === '#/apps', null, { timeout: 30_000 });
+    const chip = page.locator('[data-checklist-chip]');
+    await expect(chip).toContainText('0/4'); // the ?dev placeholder key is not a real key
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('generation:saved', { detail: {} })));
+    await expect(chip).toContainText('1/4');
+    await chip.click();
+    await expect(page.locator('[data-checklist-popover]')).toBeVisible();
+    await expect(page.locator('[data-onboarding], .driver-popover')).toHaveCount(0);
+    await page.click('[data-checklist-hide]');
+    await expect(page.locator('[data-checklist]')).toBeHidden();
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('[data-studio-total]', { timeout: 30_000 });
+    await expect(page.locator('[data-checklist]')).toBeHidden();
+  });
 });
