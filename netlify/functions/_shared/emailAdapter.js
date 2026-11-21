@@ -5,7 +5,7 @@
  *
  * Adapter contract:
  *   { name, configured: boolean,
- *     resolveRecipient(ownerId): Promise<string|null>,
+ *     resolveRecipient(ownerId): Promise<string|null|{ transient: true }>,   // null = no usable address (skip); { transient: true } = could not be looked up now (retry)
  *     send({ to, subject, text, html?, idempotencyKey? }): Promise<{ ok: boolean, error?: string, retryable?: boolean }> }
  *
  * The queue, retry, quiet-hours and dedupe logic below is provider-independent and unit-tested against a fake adapter.
@@ -102,7 +102,18 @@ export async function drainEmailQueue({ adapter, db, now = new Date(), limit = 5
     }
     if (db.claim && !(await db.claim(row.id, now.toISOString(), new Date(now.getTime() + LEASE_MS).toISOString()))) { out.contended += 1; out.outcomes[row.id] = 'contended'; continue; }
     const note = await db.notification(row.notification_id);
+    // The owner may have switched e-mail (or this alert type) off while the row waited, e.g. through quiet hours: use the CURRENT preferences.
+    const p = prefs[row.clerk_user_id];
+    if (note && p && (p.email !== true || (Array.isArray(p.enabled_types) && !p.enabled_types.includes(note.type)) || (note.type === 'daily_digest' && p.digest_frequency === 'off'))) {
+      await db.mark(row.id, { status: 'skipped', last_error: 'pref_off' }); out.skipped += 1; out.outcomes[row.id] = 'skipped'; continue;
+    }
     const to = note ? await adapter.resolveRecipient(row.clerk_user_id).catch(() => null) : null;
+    if (note && to?.transient === true) { // Clerk could not be asked right now: retry like a failed send instead of skipping for good
+      const tries = row.attempts + 1;
+      const last = tries >= MAX_ATTEMPTS;
+      await db.mark(row.id, { attempts: tries, last_error: 'recipient_lookup_failed', ...(last ? { status: 'failed' } : { next_attempt_at: new Date(now.getTime() + backoffMs(tries)).toISOString() }) });
+      out.failed += 1; out.outcomes[row.id] = last ? 'failed' : 'retry'; continue;
+    }
     if (!note || !to) { await db.mark(row.id, { status: 'skipped', last_error: !note ? 'notification_missing' : 'no_recipient' }); out.skipped += 1; out.outcomes[row.id] = 'skipped'; continue; }
     const attempts = row.attempts + 1;
     let res;
