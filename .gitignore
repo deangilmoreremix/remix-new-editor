@@ -214,3 +214,4 @@ apps/warmbly-server/realtime/deps/
 # output of scripts/verify-template-generator-keys.mjs (a real mp3 from your key)
 verify-out/
 .whisper/
+!/public/academy/**/images/*.jpg
