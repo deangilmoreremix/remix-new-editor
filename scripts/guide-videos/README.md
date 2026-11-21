@@ -47,6 +47,33 @@ describe controls, not results. `npm run check:narration` enforces this.
 If a feature's control is picked wrongly, fix it in `tests/e2e/guide-targets/<slug>.json`
 (same format as the screenshot targets), and the guide screenshot gets fixed too.
 
+## Demo flows (what the cursor actually does)
+
+For each feature the recorder finds its control (from `tests/e2e/guide-targets/<slug>.json`), glides the
+cursor to it, rings it, and then **uses it**: uploads a sample file, types a prompt, picks an option or
+clicks. Files come from `scripts/guide-videos/media/` (`sample-image.jpg`, `sample-video.mp4`, `sample-audio.mp3`).
+A placeholder API key is seeded so the key prompt never appears; it is not valid, so nothing can be billed.
+Generate / publish / send / pay / delete controls are never clicked.
+
+Video-only overrides live in `tests/e2e/guide-demos/<slug>.json`, keyed by feature id, merged over the target:
+
+```json
+{
+  "image-to-image-reference-images": {
+    "selector": "xpath=//button[@aria-label=\"Reference media\"]",
+    "click": true,
+    "then": [{ "text": "Pick a file", "upload": true, "file": "image", "hold": 3500 }]
+  },
+  "text-to-image": { "type": "A product shot of a perfume bottle on marble" }
+}
+```
+
+Keys: `selector`/`text` (control), `type` (what to type), `upload: true` + `file: image|video|audio`,
+`click: false` (only show it), `steps` (unrecorded setup clicks), `setup` (localStorage seed), and
+`then`: follow-up actions, each `{selector|text, type?, upload?, file?, wait?, hold?}`.
+`node scripts/guide-videos/dump-controls.mjs <route>` lists a studio's controls. Quick trial of one feature:
+`FORCE=1 GUIDE_VIDEO_DIR=/tmp/trial GUIDES=<slug> FEATURES=<feature-id> npm run capture:videos`.
+
 ## Adding voiceover later
 
 Put one MP3 per line in `scripts/guide-videos/audio/<slug>/` named `intro.mp3`, `<feature-id>.mp3`,

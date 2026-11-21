@@ -155,13 +155,100 @@ class Recorder {
 
 const sha = (s) => crypto.createHash('sha1').update(s).digest('hex').slice(0, 12);
 
+
+// ---- doing the thing, the way a person would ----
+const MEDIA = {
+  image: path.join(process.cwd(), 'scripts/guide-videos/media/sample-image.jpg'),
+  video: path.join(process.cwd(), 'scripts/guide-videos/media/sample-video.mp4'),
+  audio: path.join(process.cwd(), 'scripts/guide-videos/media/sample-audio.mp3'),
+};
+const DEFAULT_PROMPT = 'A golden-hour product shot of a perfume bottle on a marble table, soft window light, shallow depth of field';
+const UPLOADISH = /upload|attach|browse|choose file|drop|paperclip|reference|source (image|video)|add (image|video|media|photo)/i;
+
+function mediaFor(accept, hint) {
+  const a = `${accept || ''} ${hint || ''}`.toLowerCase();
+  if (/audio|mp3|wav|voice|music|sound/.test(a)) return MEDIA.audio;
+  if (/video|mp4|mov|webm/.test(a) && !/image/.test(a)) return MEDIA.video;
+  return MEDIA.image;
+}
+
+async function act(el, target, feature, label) {
+  const info = await el.evaluate((n) => {
+    const tag = n.tagName.toLowerCase();
+    const fileIn = n.matches('input[type=file]') ? n : n.querySelector('input[type=file]');
+    return {
+      tag, type: (n.getAttribute('type') || '').toLowerCase(), editable: n.isContentEditable,
+      accept: fileIn ? fileIn.getAttribute('accept') || '' : null, hasFile: !!fileIn,
+      placeholder: n.getAttribute('placeholder') || '',
+    };
+  }).catch(() => null);
+  if (!info) return;
+  const textual = info.tag === 'textarea' || info.editable || (info.tag === 'input' && !['file', 'checkbox', 'radio', 'range', 'color', 'button', 'submit'].includes(info.type));
+  if (target?.upload || info.hasFile || (!textual && UPLOADISH.test(label))) {
+    const file = MEDIA[target?.file] || mediaFor(info.accept, `${label} ${feature.name}`);
+    try {
+      const [fc] = await Promise.all([page_().waitForEvent('filechooser', { timeout: 2500 }), el.click({ timeout: 3000 })]);
+      await fc.setFiles(file);
+    } catch {
+      // No chooser: some studios keep a hidden input next to the button.
+      const input = page_().locator('input[type=file]').first();
+      if (await input.count()) await input.setInputFiles(file).catch(() => {});
+    }
+    await page_().waitForTimeout(2500);
+    return;
+  }
+  if (textual) {
+    await el.click({ timeout: 3000 }).catch(() => {});
+    await el.type(target?.type || DEFAULT_PROMPT, { delay: 38 }).catch(() => {});
+    await page_().waitForTimeout(600);
+    return;
+  }
+  if (info.tag === 'select') {
+    await el.selectOption({ index: 1 }).catch(() => {});
+    return;
+  }
+  await el.click({ timeout: 3000 }).catch(() => {});
+}
+
+// A follow-up step in a demo: glide to a control, ring it, and use it. Never generates, publishes, sends, pays or deletes.
+const NEVER = /\b(generate|publish|send|pay|buy|purchase|subscribe|deploy|delete|remove all|log ?out|sign ?out)\b/i;
+async function followUp(a, c, id) {
+  const pg = page_();
+  if (a.wait) { await pg.waitForTimeout(a.wait); if (!a.selector && !a.text) return; }
+  const loc = a.selector ? pg.locator(a.selector).filter({ visible: true }).first() : pg.getByText(a.text, { exact: Boolean(a.exact) }).filter({ visible: true }).first();
+  const el = await loc.elementHandle({ timeout: 4000 }).catch(() => null);
+  if (!el) { console.log(`    ! ${id}: follow-up not found: ${a.selector || a.text}`); return; }
+  await el.scrollIntoViewIfNeeded().catch(() => {});
+  const label = (await el.evaluate((n) => [n.innerText, n.getAttribute('aria-label'), n.getAttribute('title')].filter(Boolean).join(' ').trim()).catch(() => '')) || '';
+  const box = await el.boundingBox().catch(() => null);
+  if (box) {
+    await c.ui({ cursor: { x: box.x + Math.min(box.width / 2, 120), y: box.y + box.height / 2 } });
+    await pg.waitForTimeout(700);
+    await c.ui({ ring: box });
+    await pg.waitForTimeout(700);
+  }
+  if (NEVER.test(label) && !a.type) { console.log(`    - ${id}: not clicking "${label.slice(0, 30)}"`); return; }
+  if (box) await c.ui({ click: { x: box.x + Math.min(box.width / 2, 120), y: box.y + box.height / 2 } });
+  await act(el, a, { name: id }, label);
+  await c.ui({ ring: null });
+  await pg.waitForTimeout(a.hold || 1200);
+}
+
+let CURRENT_PAGE;
+const page_ = () => CURRENT_PAGE;
+
 for (const guide of GUIDES) {
   test(`guide video: ${guide.slug}`, async ({ page }) => {
     const narr = loadNarration(guide.slug);
+    CURRENT_PAGE = page;
+    let demos = {};
+    try { demos = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'tests/e2e/guide-demos', `${guide.slug}.json`), 'utf8')); } catch {}
+    // A placeholder key keeps the "set up your API keys" modal from interrupting the tour. It is never valid, so nothing can be billed.
+    await page.addInitScript(() => { try { for (const k of ['muapi_key', 'openai_key']) if (!localStorage.getItem(k)) localStorage.setItem(k, 'tour-placeholder-key'); } catch {} });
     const targets = TARGETS[guide.slug] || {};
     const dir = path.join(OUT, guide.slug);
     const timelineFile = path.join(dir, 'timeline.json');
-    const hash = sha(JSON.stringify([narr, targets, guide.route, process.env.GUIDE_VIDEO_VERSION || '1']));
+    const hash = sha(JSON.stringify([narr, targets, demos, guide.route, process.env.GUIDE_VIDEO_VERSION || '2']));
     if (!process.env.FORCE && fs.existsSync(timelineFile) && JSON.parse(fs.readFileSync(timelineFile, 'utf8')).hash === hash) {
       console.log(`  = ${guide.slug}: up to date (FORCE=1 to re-record)`);
       return;
@@ -215,9 +302,10 @@ for (const guide of GUIDES) {
 
     // ---- one segment per narrated feature ----
     for (const [id, text] of Object.entries(narr.features)) {
+      if (process.env.FEATURES && !process.env.FEATURES.split(',').includes(id)) continue; // quick trials only
       const feature = guide.features.find((f) => f.id === id);
       if (!feature) { warnings.push(`${id}: not in guide`); continue; }
-      const target = targets[id];
+      const target = { ...targets[id], ...demos[id] };
       if (target?.skip) { warnings.push(`${id}: target is skip`); }
       const route = target?.route || guide.route;
       const fresh = Boolean(target?.setup || target?.steps);
@@ -245,7 +333,7 @@ for (const guide of GUIDES) {
           if (!el) { warnings.push(`${id}: no matching control`); await c.ui({ caption: text }); return; }
           const label = (await el.evaluate((n) => [n.innerText, n.getAttribute('aria-label'), n.getAttribute('title')].filter(Boolean).join(' ').trim()).catch(() => '')) || '';
           const isOpener = await el.evaluate((n) => n.getAttribute('role') === 'tab' || n.hasAttribute('aria-haspopup') || n.tagName === 'SUMMARY' || !!n.querySelector('svg polyline, svg path[d*="M6 9"]')).catch(() => false);
-          const willOpen = target?.click === true || (target?.click !== false && isOpener && !DANGEROUS.test(label));
+          const willOpen = target?.click === true || (target?.click !== false && (!DANGEROUS.test(label) || UPLOADISH.test(label) || target?.upload));
           const box = await el.boundingBox().catch(() => null);
           const capTop = await place(box);
           await c.ui({ caption: text, capTop });
@@ -260,7 +348,8 @@ for (const guide of GUIDES) {
           if (!willOpen) return;
           const urlBefore = page.url();
           await c.ui({ click: { x: cx, y: cy } });
-          await el.click({ timeout: 3000 }).catch(() => {});
+          await act(el, target, feature, label);
+          for (const a of target.then || []) await followUp(a, c, id);
           // An API-key prompt can pop up after a click: cut it out of the clip.
           let modal = false;
           for (let i = 0; i < 10 && !modal; i++) { await page.waitForTimeout(150); modal = await apiModalOpen(page); }
