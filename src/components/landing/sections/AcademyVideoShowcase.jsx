@@ -49,6 +49,13 @@ function groupByTrack() {
   return groups;
 }
 
+/** Hide a card whose media is missing (and its whole track block if none remain). */
+function hideUnavailableCard(card) {
+  card.classList.add('hidden');
+  const block = card.closest('[data-academy-track]');
+  if (block && !block.querySelector('article:not(.hidden)')) block.classList.add('hidden');
+}
+
 function createAcademyCard(asset) {
   const card = document.createElement('article');
   card.className =
@@ -80,7 +87,7 @@ function createAcademyCard(asset) {
         ${escapeHtml(asset.category)}
       </span>
       <h3 class="mt-1.5 text-sm font-bold leading-snug text-white">${escapeHtml(asset.title)}</h3>
-      ${asset.description ? `<p class="mt-1 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(asset.description)}</p>` : ''}
+      ${asset.description ? `<p class="mt-1 line-clamp-2 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(asset.description)}</p>` : ''}
     </div>
   `;
 
@@ -90,6 +97,7 @@ function createAcademyCard(asset) {
     ratio: 16 / 9,
     className: 'w-full',
     ariaLabel: `${asset.title} — ${asset.category} ${asset.type}`,
+    onUnavailable: () => hideUnavailableCard(card),
   });
   mediaHost.insertBefore(frame, mediaHost.firstChild);
 
@@ -133,6 +141,7 @@ export function AcademyVideoShowcase() {
 
     const trackBlock = document.createElement('div');
     trackBlock.className = 'mb-16 last:mb-0';
+    trackBlock.dataset.academyTrack = trackSlug;
 
     const heading = document.createElement('div');
     heading.className = 'mb-6';
