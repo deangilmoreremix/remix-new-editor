@@ -1,0 +1,15 @@
+{
+  "slug": "website-builder",
+  "name": "Website Builder",
+  "intro": "Website Builder in SmartVideo lets you describe a website in plain language and have an AI agent write it, preview it live, and publish it. Here's a quick look around.",
+  "features": {
+    "dashboard-and-projects": "The dashboard lists your projects. Use the search box to find one, and the sort menu to switch between recent and starred, so you can reopen earlier sites quickly.",
+    "prompt-box": "This is the prompt box, where every project starts. Describe your website idea, attach files if you like, set the agent thinking level, choose a model, then send.",
+    "model-and-provider-keys": "In Settings, the Providers section is where you set up the AI providers behind the builder. The model you pick in the prompt box comes from the providers you have set up.",
+    "live-preview-and-iteration": "Your site appears as a live preview right in the browser. Keep chatting with the agent to change layout, text, colors and features, and see each change straight away.",
+    "deploy": "The Deploy button opens a dialog and publishes your site to a public address. After it deploys, the same button opens your live site.",
+    "download-code": "You can download your generated code as a ZIP at any time. It's a simple way to keep your own copy or host the site somewhere else.",
+    "publish-to-community": "Publish to Community opens a dialog where you add a short description and share your project in the community gallery for others to see."
+  },
+  "outro": "That's Website Builder. Write a clear first prompt with sections, tone and colors, preview carefully, and publish when it looks right."
+}

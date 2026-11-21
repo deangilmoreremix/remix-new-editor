@@ -1,0 +1,15 @@
+{
+  "slug": "smart-video-viral",
+  "name": "Smart Video Viral",
+  "intro": "Smart Video Viral is a feed of trending AI image and video prompts from X. Browse what's working for other creators, then make your own version.",
+  "features": {
+    "search": "The search box matches prompt titles, text, tags and authors. Press the slash key to jump straight to it and look up a subject like sneaker or rain.",
+    "filters-and-sorting": "Combine the Images and Videos buttons with the Category, Model and Sort lists to narrow a huge feed down to just the prompts you need.",
+    "categories": "Browse by type of content, from product ads and cinematic to food, travel and UGC. You can also click a category pill to filter.",
+    "exclude-chinese-toggle": "This toggle hides Chinese language prompts, which is on by default. Switch it off when you want even more ideas.",
+    "copy-prompt": "Copy Prompt puts the full prompt text on your clipboard, ready to paste into any studio.",
+    "create-this-style": "Create This Style opens a creation studio with the prompt already filled in, so you go from inspiration to your own version in one click.",
+    "source-and-view-full-prompt": "Source opens the original post on X to credit the author, and View Full Prompt lets you read the whole thing when it's long."
+  },
+  "outro": "That's Smart Video Viral. Find a prompt you love, make it your own, and keep checking back because the feed refreshes on its own."
+}

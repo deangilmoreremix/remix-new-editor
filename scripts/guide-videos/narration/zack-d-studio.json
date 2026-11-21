@@ -1,0 +1,12 @@
+{
+  "slug": "zack-d-studio",
+  "name": "Zack D Studio",
+  "intro": "Zack D Studio turns a single question into a short video, with a script, characters, keyframes, clips and a final cut. Here's how the controls are laid out.",
+  "features": {
+    "templates": "Templates load a ready-made starting point, either a script only or a finished project. Loading one is a quick way to start, or to see how a complete project looks.",
+    "pipeline-button": "The pipeline button is your guide. Its label always shows the next step, from writing the script to rendering the final cut, so you never hunt for what comes next.",
+    "approve-script": "Your script appears as editable beat cards. Fix the story first, then approve it, which locks in the plan before anything is made for characters, keyframes or clips.",
+    "burn-captions": "Burn captions adds AI captions to your final video. It asks you to confirm a cost warning first, and it's great for viewers who watch with the sound off."
+  },
+  "outro": "That's Zack D Studio. Edit your script before you approve it, and let the pipeline button walk you through the rest."
+}

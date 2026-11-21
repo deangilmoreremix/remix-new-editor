@@ -1,0 +1,14 @@
+{
+  "slug": "recorder",
+  "name": "Recorder",
+  "intro": "Recorder lets you record your webcam and screen together right in the browser, then turn the takes into a polished video with captions and scenes.",
+  "features": {
+    "record": "Choose a device for each view, then start recording. Webcam and screen are saved as separate files, so the editor can lay them out for you.",
+    "camera-effects": "On the webcam view, the sparkle button offers blur, office, studio and gradient backgrounds, plus touch-up, so you can hide your room and look polished.",
+    "teleprompter": "The teleprompter button shows your script over the camera preview and scrolls it while you record. It's only on your screen, never in the video.",
+    "scenes": "Scenes are the building blocks of your video, like takes, a title, a table of contents and an end card. Reorder them with the arrows.",
+    "captions": "Captions are made in your browser after each take. Click any word in the preview to correct it.",
+    "export": "Export video renders everything into one finished file, with a progress bar and a Stop button if you change your mind."
+  },
+  "outro": "That's Recorder. Record in one sitting, polish in the same place, and walk away with a finished video without a separate editor."
+}

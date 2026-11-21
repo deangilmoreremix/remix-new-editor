@@ -1,0 +1,16 @@
+{
+  "slug": "brand-dna-editor",
+  "name": "Brand DNA Editor",
+  "intro": "The Brand DNA Editor lets you review and correct your saved brand, from its name and voice to its fonts and colors, so every campaign starts from the right details.",
+  "features": {
+    "website-screenshot-and-logo": "At the top you'll see the website screenshot and logo found during analysis. Check at a glance that SmartVideo picked up the right site and the right logo.",
+    "brand-details-fields": "These fields hold your brand name, industry, tagline, value proposition and audience. They feed every campaign concept, so correcting them improves everything you make later.",
+    "tone-of-voice-brand-personality-and-key-messages": "Tone of Voice, Brand Personality and Key Messages are chip lists. Type a word and press Enter to add it, or remove a chip with its cross.",
+    "detected-fonts": "Detected Fonts lists the typefaces found on your website. They appear first in the Asset Editor's font list, so your creatives can match your brand.",
+    "colors": "Under Colors, you edit your Primary and Secondary palettes. Click a swatch to change it, remove one, or add a new swatch with the plus button.",
+    "past-campaigns": "Past campaigns lists the campaigns you've made for this brand, newest first. Click a card to reopen that campaign and keep working on its assets.",
+    "new-campaign-photo-studio-and-animate": "The header shortcuts open Campaign Studio, Photo Studio and Animate Studio for this brand. Save your edits first, because the shortcuts don't do it for you.",
+    "save": "Save stores all your corrections, and the button briefly reads Saved. Nothing is kept until you click it, so make it your last step."
+  },
+  "outro": "Review every field, click Save, and your brand is ready for campaigns and photos."
+}

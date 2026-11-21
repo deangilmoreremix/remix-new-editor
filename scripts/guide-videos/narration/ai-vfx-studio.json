@@ -1,0 +1,15 @@
+{
+  "slug": "ai-vfx-studio",
+  "name": "AI VFX Studio",
+  "intro": "AI VFX Studio turns one still image into a short video with a preset effect, like a camera move, a transformation or an explosion.",
+  "features": {
+    "ai-effects-tab": "The AI Effects tab holds sixty four transformation presets. They're fun, attention-grabbing looks for short-form content, and you click a card to select one.",
+    "motion-controls-tab": "Motion Controls has forty seven camera moves, like orbits, dolly zooms and crash zooms, giving a still shot a professional move without describing it.",
+    "vfx-tab": "The VFX tab has nine dramatic effects, from explosions and tornadoes to levitation and decay. They work best when your image clearly shows the subject.",
+    "image-input-upload-or-url": "Add your image by clicking the dashed box to upload, or paste a link to an image that's already online.",
+    "prompt-box": "The optional prompt box is for naming your subject, like a red sports car, so the effect lands on the right thing. Keep it short.",
+    "aspect-duration-size-quality-dropdowns": "Four dropdowns, Aspect, Duration, Size and Quality, let you match the clip to your platform and balance speed against quality.",
+    "results-grid": "The results grid shows each video with playback controls and a Download link, with your newest result first."
+  },
+  "outro": "That's AI VFX Studio. Pick an effect that suits your subject, test with the defaults, and turn any still photo into a cinematic moment."
+}
