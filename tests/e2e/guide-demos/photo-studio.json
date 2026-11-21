@@ -1,0 +1,26 @@
+{
+  "product-image": {
+    "selector": "button[title=\"Reference media\"]",
+    "click": true,
+    "then": [{ "text": "Pick a file", "upload": true, "file": "image", "hold": 3000 }]
+  },
+  "brand-selector": { "click": true },
+  "direction": { "click": true, "type": "Soft morning light, calm spa mood, fresh green leaves" },
+  "resolution": { "click": true },
+  "photo-style-presets": {
+    "steps": [],
+    "selector": "button:text-is(\"Studio white · 1:1\")",
+    "click": true,
+    "then": [
+      { "selector": "button:text-is(\"Lifestyle natural · 4:5\")", "hold": 600 },
+      { "selector": "button:text-is(\"Gradient modern · 1:1\")", "hold": 1000 }
+    ]
+  },
+  "select-all": {
+    "steps": [],
+    "selector": "[data-photo-category=\"beauty\"] button:text-is(\"Select all\")",
+    "click": true,
+    "hold": 1500
+  },
+  "generation-mode": { "click": true, "then": [{ "wait": 1500 }] }
+}

@@ -1,0 +1,88 @@
+{
+  "template-categories-standard": {
+    "text": "Standard",
+    "exact": true,
+    "click": true,
+    "then": [
+      {
+        "text": "Social Media",
+        "exact": true,
+        "hold": 1800
+      },
+      {
+        "text": "Style Transfer",
+        "exact": true,
+        "hold": 1500
+      }
+    ]
+  },
+  "industry-niche-templates": {
+    "text": "Industry Specific",
+    "exact": true,
+    "click": true,
+    "then": [
+      {
+        "text": "Restaurant & Cafe",
+        "exact": true,
+        "hold": 1800
+      },
+      {
+        "text": "Gym & Fitness",
+        "exact": true,
+        "hold": 1500
+      }
+    ]
+  },
+  "template-studio-model-and-media-sources": {
+    "selector": "xpath=//button[@aria-label=\"Reference media\" or @title=\"Reference media\"]",
+    "click": true,
+    "upload": true,
+    "file": "image",
+    "then": [
+      {
+        "selector": "xpath=//button[@aria-label=\"Upload a source video\" or @title=\"Upload a source video\"]",
+        "upload": true,
+        "file": "video",
+        "hold": 2500
+      }
+    ]
+  },
+  "ai-enhancer": {
+    "selector": "#enhancerToggle",
+    "click": true,
+    "then": [
+      {
+        "selector": "#enhancerToggle",
+        "hold": 1500
+      }
+    ]
+  },
+  "advanced-controls": {
+    "steps": [],
+    "selector": "#advancedToggle",
+    "click": true,
+    "then": [
+      {
+        "selector": "#advancedControls input >> nth=0",
+        "type": "Family-run pizza restaurant",
+        "hold": 1500
+      }
+    ]
+  },
+  "output-tabs": {
+    "selector": "#outputTabs button >> nth=1",
+    "click": true,
+    "then": [
+      {
+        "text": "Voiceover",
+        "exact": true,
+        "hold": 1500
+      },
+      {
+        "text": "Negative Prompt",
+        "exact": true,
+        "hold": 1500
+      }
+    ]
+  }
+}

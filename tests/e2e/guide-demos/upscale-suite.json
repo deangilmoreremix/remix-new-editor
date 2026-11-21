@@ -1,0 +1,11 @@
+{
+  "upload-and-pexels": {
+    "selector": "button[aria-label=\"Reference media\"]",
+    "upload": true, "file": "image", "hold": 3500
+  },
+  "method-picker": {
+    "selector": "xpath=//button[normalize-space(.)=\"AI Upscaler\"]",
+    "click": true,
+    "then": [{ "text": "Topaz Upscale", "hold": 1800 }]
+  }
+}

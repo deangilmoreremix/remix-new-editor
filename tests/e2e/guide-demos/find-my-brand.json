@@ -1,0 +1,35 @@
+{
+  "find-my-brand-button": {
+    "steps": [
+      {
+        "selector": "button[aria-label='Close personalization modal']",
+        "wait": 1500
+      }
+    ],
+    "selector": "button:has-text('FIND MY BRAND')",
+    "click": true,
+    "hold": 2500
+  },
+  "website-url-discovery": {
+    "selector": "#find-my-brand-url",
+    "click": true,
+    "type": "https://www.bluebottlecoffee.com"
+  },
+  "search-for-a-business-instead": {
+    "then": [
+      {
+        "selector": "select#business-niche",
+        "hold": 1000
+      },
+      {
+        "selector": "input#business-location",
+        "type": " Austin, Texas",
+        "hold": 800
+      },
+      {
+        "selector": "button:text-is('10 MI')",
+        "hold": 1200
+      }
+    ]
+  }
+}

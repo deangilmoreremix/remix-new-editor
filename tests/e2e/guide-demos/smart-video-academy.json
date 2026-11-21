@@ -1,0 +1,9 @@
+{
+  "hub-all-tracks": { "selector": "button:has-text(\"Track 1\")", "click": true },
+  "lesson-page-learn-tab": { "then": [{ "text": "Read full lesson", "hold": 2500 }] },
+  "lesson-page-see-tab": { "then": [{ "selector": "button.group.block.w-full >> nth=0", "hold": 2500 }] },
+  "lesson-page-create-tab": { "then": [{ "selector": "xpath=//button[contains(.,'Template') or contains(.,'template')] | //a[contains(.,'emplate')]", "hold": 2000 }] },
+  "progress-tracking": { "route": "academy/track/01-ai-video-ads-ugc/lesson/how-ugc-works", "selector": "button[title=\"Mark as completed\"]", "click": true },
+  "bookmarks": { "route": "academy/track/01-ai-video-ads-ugc/lesson/how-ugc-works", "setup": "", "selector": "button[title=\"Bookmark for later\"]", "click": true },
+  "template-editor": { "then": [{ "selector": "textarea", "type": "A 30 second UGC ad for a reusable water bottle", "hold": 1500 }] }
+}

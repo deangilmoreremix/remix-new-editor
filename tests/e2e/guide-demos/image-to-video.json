@@ -8,10 +8,6 @@
         "selector": "xpath=//button[contains(@class,'gtm-chip') and normalize-space(.)='Product launch']"
       },
       {
-        "selector": "#gtm-industry-select",
-        "hold": 1000
-      },
-      {
         "selector": "xpath=//button[contains(@class,'gtm-chip') and normalize-space(.)='Awareness']"
       }
     ]

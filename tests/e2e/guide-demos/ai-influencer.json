@@ -1,0 +1,32 @@
+{
+  "your-photo-reference-upload": {
+    "selector": "button[aria-label=\"Reference media\"]",
+    "upload": true, "file": "image", "hold": 3500
+  },
+  "visual-attributes-face-body-style-tabs": {
+    "selector": "xpath=//button[normalize-space(.)=\"Face\"]",
+    "click": true,
+    "then": [
+      { "selector": "xpath=//button[normalize-space(.)=\"Asian\"]", "hold": 900 },
+      { "selector": "xpath=//button[normalize-space(.)=\"Body\"]", "hold": 1200 },
+      { "selector": "xpath=//button[normalize-space(.)=\"Style\"]", "hold": 1200 }
+    ]
+  },
+  "shuffle-and-reset": {
+    "selector": "xpath=//button[normalize-space(.)=\"Shuffle\"]",
+    "click": true,
+    "then": [{ "selector": "xpath=//button[normalize-space(.)=\"Reset\"]", "hold": 1500 }]
+  },
+  "style-preset": {
+    "selector": "xpath=//button[normalize-space(.)=\"Quiet luxury\"]",
+    "click": true
+  },
+  "output-format": {
+    "selector": "xpath=//button[normalize-space(.)=\"Story / Reel (9:16)\"]",
+    "click": true,
+    "then": [{ "selector": "xpath=//button[normalize-space(.)=\"YouTube Thumb (16:9)\"]", "hold": 1500 }]
+  },
+  "additional-instructions": {
+    "type": "Wearing a cream linen blazer, standing in a sunlit cafe, warm and confident mood"
+  }
+}

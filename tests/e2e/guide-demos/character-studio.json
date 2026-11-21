@@ -1,0 +1,30 @@
+{
+  "model-selector-flux-pulid-subject-reference": {
+    "selector": "xpath=//button[normalize-space(.)=\"Flux PuLID\"]",
+    "click": true,
+    "then": [{ "text": "Subject Reference", "hold": 1800 }]
+  },
+  "reference-face": {
+    "selector": "button[aria-label=\"Reference media\"]",
+    "upload": true, "file": "image", "hold": 3500
+  },
+  "character-description": {
+    "selector": "#character-prompt-input",
+    "type": "A woman in a red leather jacket walking through a rainy neon-lit street at night, cinematic lighting"
+  },
+  "expression-presets": {
+    "selector": "xpath=//button[contains(normalize-space(.),\"Happy\")]",
+    "click": true,
+    "then": [{ "selector": "xpath=//button[contains(normalize-space(.),\"Surprised\")]", "hold": 1500 }]
+  },
+  "advanced-panel": {
+    "selector": "#char-advanced-btn",
+    "click": true,
+    "hold": 1500
+  },
+  "saved-characters": {
+    "setup": "localStorage.setItem('character_library', JSON.stringify([{id:'c1',name:'Nova',description:'Silver-haired explorer in a futuristic jacket',thumbnail:'/landing-art/05/presenter.webp',imageUrl:'/landing-art/05/presenter.webp'},{id:'c2',name:'Mira',description:'Streetwear creator with bright sneakers',thumbnail:'/landing-art/01/presenter.webp',imageUrl:'/landing-art/01/presenter.webp'}]))",
+    "selector": ".character-item",
+    "click": true
+  }
+}

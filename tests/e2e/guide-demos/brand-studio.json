@@ -1,0 +1,15 @@
+{
+  "analyze-website-to-brand-dna": {
+    "selector": "input[type=\"url\"]",
+    "type": "https://www.lumencoffee.com"
+  },
+  "photo-studio": {
+    "route": "photo-studio",
+    "selector": "button[aria-label=\"Reference media\"]",
+    "upload": true, "file": "image", "hold": 2500,
+    "then": [
+      { "selector": "textarea[placeholder^=\"Describe the look\"]", "type": "Warm, natural morning light on a wooden table", "hold": 1000 },
+      { "selector": "select", "hold": 1000 }
+    ]
+  }
+}

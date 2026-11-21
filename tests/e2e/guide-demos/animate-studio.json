@@ -1,20 +1,33 @@
 {
   "source-upload-image": {
-    "selector": "xpath=//button[normalize-space(.)='Upload image']",
-    "upload": true, "file": "image", "hold": 2500
+    "selector": "xpath=//button[@aria-label=\"Reference media\" or @title=\"Reference media\"]",
+    "click": true,
+    "then": [
+      {
+        "text": "Pick a file",
+        "upload": true,
+        "file": "image",
+        "hold": 3000
+      }
+    ]
   },
   "motion-prompt-and-suggestion-chips": {
-    "selector": "xpath=//textarea[contains(@placeholder,'Describe the motion')]",
-    "type": "Slow cinematic push-in with soft drifting light",
-    "then": [{ "selector": "xpath=//button[starts-with(normalize-space(.),'Zoom into the subject')]", "hold": 2000 }]
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Slow pan across')]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//button[starts-with(normalize-space(.),'Drift camera')]",
+        "hold": 2500
+      }
+    ]
   },
   "duration-and-resolution": {
-    "selector": "xpath=//label[normalize-space(.)='DURATION' or normalize-space(.)='Duration']/following::select[1]",
-    "click": true,
-    "then": [{ "selector": "xpath=//label[normalize-space(.)='RESOLUTION' or normalize-space(.)='Resolution']/following::select[1]" }]
+    "selector": "xpath=//select[option[@value='1080p']]",
+    "click": false
   },
   "model-seedance-lite-default-choose-a-model": {
     "selector": "xpath=//button[starts-with(normalize-space(.),'Seedance Lite')]",
-    "click": true, "hold": 2500
+    "click": true,
+    "hold": 2500
   }
 }

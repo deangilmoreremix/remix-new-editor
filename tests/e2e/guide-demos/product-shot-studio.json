@@ -1,0 +1,29 @@
+{
+  "mode-toggle-product-shot-ad-video": {
+    "selector": "xpath=//button[normalize-space(.)=\"Ad video\"]",
+    "click": true,
+    "then": [{ "selector": "xpath=//button[normalize-space(.)=\"Product shot\"]", "hold": 1500 }]
+  },
+  "model-product-shot-product-photography": {
+    "selector": "xpath=//button[normalize-space(.)=\"Product Shot\"][not(ancestor::*[@data-ad-controls])][2] | xpath=//button[normalize-space(.)=\"Product Shot\"]",
+    "click": true,
+    "then": [{ "text": "Product Photography", "hold": 1800 }]
+  },
+  "product-media-upload": {
+    "selector": "button[aria-label=\"Reference media\"]",
+    "upload": true, "file": "image", "hold": 3500
+  },
+  "scene-preset": {
+    "selector": "xpath=//button[normalize-space(.)=\"Luxury marble surface\"]",
+    "click": true,
+    "then": [{ "selector": "xpath=//button[normalize-space(.)=\"Wooden table cozy\"]", "hold": 1500 }]
+  },
+  "output-format": {
+    "selector": "xpath=//button[normalize-space(.)=\"Social Post (1:1)\"]",
+    "click": true,
+    "then": [{ "selector": "xpath=//button[normalize-space(.)=\"Story (9:16)\"]", "hold": 1500 }]
+  },
+  "ad-video-script-and-image-references": {
+    "type": "Meet the bottle that keeps your drinks ice cold for 24 hours. Grab yours today."
+  }
+}

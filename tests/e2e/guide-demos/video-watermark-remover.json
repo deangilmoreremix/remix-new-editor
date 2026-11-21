@@ -1,0 +1,24 @@
+{
+  "remove-watermarks-free-button": {
+    "click": true
+  },
+  "ai-video-watermark-remover-card": {
+    "click": true
+  },
+  "ai-video-object-remover-and-logo-remover-cards": {
+    "click": true
+  },
+  "removing-a-watermark-in-video-studio": {
+    "selector": "button[title=\"Upload video to remove watermark\"]",
+    "click": true,
+    "upload": true,
+    "file": "video",
+    "setup": "(()=>{localStorage.setItem('muapi_key',btoa('muapi_2024_tour-placeholder-key'));const of=window.fetch;window.fetch=function(u,o){const s=String((u&&u.url)||u);if(o&&o.method==='POST'&&/muapi-proxy|upload/i.test(s))return Promise.resolve(new Response(JSON.stringify({url:'https://example.invalid/sample.mp4'}),{status:200,headers:{'content-type':'application/json'}}));return of.apply(this,arguments)}})()",
+    "reload": false,
+    "then": [
+      {
+        "wait": 2500
+      }
+    ]
+  }
+}
