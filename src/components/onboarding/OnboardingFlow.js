@@ -89,7 +89,8 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
       b.addEventListener('click', back);
       left.appendChild(b);
     }
-    const mid = el('div', 'ob-step', `Step ${a.step} of ${LAST}`);
+    // Step 6 is the studio picker. The key screen that follows Start is not a numbered step.
+    const mid = el('div', 'ob-step', a.step === LAST && part === 'ready' ? 'Almost there' : `Step ${a.step} of ${LAST}`);
     const right = el('div');
     if (a.step !== 4) { // where you work needs an answer, so it has no Skip (as in the design)
       const skip = el('button', 'ob-nav', 'Skip');
@@ -342,7 +343,7 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
     root.classList.add('ob-has-bottom');
   }
 
-  // 6c -- get ready: connect the Muapi key (optional) so the first generation works, then open the studio
+  // After Start (not a numbered step): connect the Muapi key (optional) so the first generation works, then open the studio
   function step6Ready() {
     const studio = getStudio(a.primaryTool);
     titles('Get ready for your first result', studio ? `You are about to open ${studio.name}. One quick thing first, and you can skip it.` : 'One quick thing first, and you can skip it.');

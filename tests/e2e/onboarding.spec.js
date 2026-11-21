@@ -56,6 +56,7 @@ test.describe('App-wide onboarding', () => {
 
     // 6c: get ready. Try a wrong key (rejected, nothing saved), then a good one, then open the studio.
     await expect(page.locator('h1')).toContainText('Get ready for your first result');
+    await expect(page.locator('[data-onboarding]')).not.toContainText('Step 6 of 6'); // the key screen is not a numbered step
     await expect(page.locator('[data-onb-finish]')).toHaveText('Open Lip Sync Studio');
     await page.route('**/functions/v1/muapi-proxy', async (route) => {
       const key = route.request().headers()['x-api-key'];

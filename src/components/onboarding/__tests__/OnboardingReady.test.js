@@ -24,6 +24,8 @@ describe('onboarding step 6c: get ready', () => {
     const onEvent = vi.fn();
     toReady({}, { onEvent });
     expect($('h1').textContent).toBe('Get ready for your first result');
+    expect(document.body.textContent).toContain('Almost there'); // not a numbered step
+    expect(document.body.textContent).not.toMatch(/Step \d of 6/);
     expect($('[data-onb-finish]').textContent).toMatch(/^Open /);
     expect($('[data-onb-key-input]').type).toBe('password');
     expect($('[data-onb-plans]')).not.toBeNull();
