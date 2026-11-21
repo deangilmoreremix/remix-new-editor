@@ -1,11 +1,24 @@
 {
   "upload-and-pexels": {
-    "selector": "button[aria-label=\"Reference media\"]",
-    "upload": true, "file": "image", "hold": 3500
+    "selector": "button[aria-label=\"Reference media\"], button[title=\"Reference media\"]",
+    "then": [
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 2200
+      }
+    ]
   },
   "method-picker": {
     "selector": "xpath=//button[normalize-space(.)=\"AI Upscaler\"]",
     "click": true,
-    "then": [{ "text": "Topaz Upscale", "hold": 1800 }]
+    "then": [
+      {
+        "text": "Topaz Upscale",
+        "hold": 1800
+      }
+    ]
   }
 }

@@ -38,11 +38,6 @@
       }
     ]
   },
-  "voice-and-speed-speech": {
-    "selector": "xpath=//select[option[contains(.,'Qingse')]]",
-    "click": true,
-    "hold": 1500
-  },
   "audio-upload-and-drag-and-drop": {
     "setup": "(() => { Object.keys(localStorage).filter((k) => k.startsWith('hg_audio_studio_persistent')).forEach((k) => localStorage.removeItem(k)); localStorage.setItem('hg_audio_studio_persistent', JSON.stringify({\"selectedModelId\": \"suno-add-vocals\", \"params\": {}})); })()",
     "selector": "xpath=//div[normalize-space(text())='Upload audio track']/ancestor::div[contains(@class,'cursor-pointer')][1]",
@@ -50,5 +45,10 @@
     "upload": true,
     "file": "audio",
     "hold": 3000
+  },
+  "model-specific-controls": {
+    "selector": "xpath=//div[@id='schema-controls']//*[self::select or self::button or self::input][1]",
+    "click": true,
+    "hold": 2500
   }
 }

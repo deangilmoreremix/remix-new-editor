@@ -44,10 +44,10 @@
     "click": true,
     "then": [
       {
-        "text": "Pick a file",
         "upload": true,
         "file": "image",
-        "hold": 3000
+        "hold": 3000,
+        "selector": "xpath=(//*[normalize-space(text())='Pick a file'] | //button[contains(.,'Upload new') or contains(.,'Upload files')])[1]"
       }
     ]
   },

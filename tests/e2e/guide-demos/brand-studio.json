@@ -5,11 +5,24 @@
   },
   "photo-studio": {
     "route": "photo-studio",
-    "selector": "button[aria-label=\"Reference media\"]",
-    "upload": true, "file": "image", "hold": 2500,
+    "selector": "button[aria-label=\"Reference media\"], button[title=\"Reference media\"]",
     "then": [
-      { "selector": "textarea[placeholder^=\"Describe the look\"]", "type": "Warm, natural morning light on a wooden table", "hold": 1000 },
-      { "selector": "select", "hold": 1000 }
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 2200
+      },
+      {
+        "selector": "textarea[placeholder^=\"Describe the look\"]",
+        "type": "Warm, natural morning light on a wooden table",
+        "hold": 1000
+      },
+      {
+        "selector": "select",
+        "hold": 1000
+      }
     ]
   }
 }

@@ -4,23 +4,23 @@
     "click": true,
     "then": [
       {
-        "wait": 2500,
-        "selector": "button:has-text(\"FIND A LOCAL BUSINESS\")",
-        "hold": 900
+        "wait": 4500,
+        "selector": "button:has-text('FIND A LOCAL BUSINESS')",
+        "hold": 600
       },
       {
         "selector": "select#business-niche",
-        "hold": 900
+        "hold": 600
       },
       {
         "selector": "input#business-location",
         "type": " Miami",
-        "hold": 900
+        "hold": 600
       }
     ]
   },
   "find-my-brand-button": {
-    "selector": "button:has-text(\"Paste a business website\")",
+    "selector": "button:has-text('Find My Brand')",
     "click": true,
     "then": [
       {
@@ -34,7 +34,17 @@
   "search-radius": {
     "selector": "button:has-text(\"25 mi\")",
     "click": true,
-    "hold": 1500
+    "hold": 1500,
+    "steps": [
+      {
+        "selector": "#find-my-brand-url",
+        "wait": 1500
+      },
+      {
+        "selector": "button:has-text('FIND A LOCAL BUSINESS')",
+        "wait": 1000
+      }
+    ]
   },
   "saved-leads": {
     "setup": "(async()=>{const J=(o,st)=>new Response(JSON.stringify(o),{status:st||200,headers:{'Content-Type':'application/json'}});const B=[{id:'osm-1',source:'OPENSTREETMAP',name:'Bella Cucina Bistro',category:'Restaurant',address:'1820 Harrison St',city:'Hollywood',region:'FL',phone:'+1 954-555-0142',website:'https://bellacucina.example.com',leadScore:86,ownership:'independent',openingHours:'Mo-Su 11:00-22:00'},{id:'osm-2',source:'OPENSTREETMAP',name:'Sunrise Tacos',category:'Fast food',address:'2104 Hollywood Blvd',city:'Hollywood',region:'FL',phone:'+1 954-555-0178',facebook:'https://facebook.com/sunrisetacos',leadScore:74,ownership:'independent'},{id:'osm-3',source:'OPENSTREETMAP',name:'Harbor Fish House',category:'Seafood restaurant',address:'301 N Ocean Dr',city:'Hollywood',region:'FL',leadScore:61,ownership:'independent'},{id:'osm-4',source:'OPENSTREETMAP',name:'Green Leaf Cafe',category:'Cafe',address:'1946 Tyler St',city:'Hollywood',region:'FL',phone:'+1 954-555-0110',website:'https://greenleafcafe.example.com',leadScore:79,ownership:'independent'}];const L=[['Bella Cucina Bistro','Restaurant','Converted',true],['Green Leaf Cafe','Cafe','Demo Created',false],['Sunrise Tacos','Fast food','Contacted',false],['Harbor Fish House','Seafood restaurant','Qualified',false],['Coastal Smiles Dental','Dentist','Responded',false],['Peak Fitness Studio','Gym','Shortlisted',false],['Lotus Day Spa','Spa','New',false],['Ace Auto Detailing','Car wash','Not Interested',false]].map(([n,c,s,st],i)=>({id:'lead-'+i,stage:s,starred:st,niche:'restaurants-food',location:'Hollywood, FL',business:{id:'b'+i,name:n,category:c,address:(1200+i*37)+' Hollywood Blvd, Hollywood, FL',phone:'+1 954-555-01'+(10+i),website:'https://'+n.toLowerCase().replace(/[^a-z]+/g,'')+'.example.com'}}));const D={ok:true,url:'https://bellacucina.example.com',title:'Bella Cucina Bistro | Italian kitchen in Hollywood, FL',description:'Handmade pasta, wood-fired pizza and a family table since 1998.',logo:'/landing-art/pa-bistro/logo.webp',brandColors:{primary:'#b91c1c',accent:'#f59e0b'},assets:[{url:'/landing-art/pa-bistro/logo.webp',kind:'logo'},{url:'/landing-art/pa-bistro/avatar.webp',kind:'photo'},{url:'/landing-art/pa-bistro/hero.webp',kind:'brand'},{url:'/landing-art/pa-bistro/poster.webp',kind:'product'}]};const of=window.fetch.bind(window);window.fetch=async(u,o)=>{const s=String(u&&u.url||u);if(s.includes('/api/personalization/find-businesses'))return J({businesses:B,query:{niche:'Restaurants / Food',location:'Hollywood, Florida',radiusMiles:10}});if(s.includes('/api/personalization/leads'))return J({leads:L});if(s.includes('/api/personalization/resolve-website'))return J({website:null});if(s.includes('/api/personalization/research-business'))return J({research:{canonicalUrl:D.url,finalUrl:D.url,reachable:true,title:D.title,description:D.description,logoUrl:D.logo,socialLinks:{instagram:'https://instagram.com/bellacucina',facebook:'https://facebook.com/bellacucina'},jsonLd:[],openGraph:{},twitterCard:{},contactInfo:{phones:['+1 954-555-0142'],emails:['hello@bellacucina.example.com'],addresses:[]}}});if(s.includes('/api/personalization/discover-assets'))return J({status:'complete',providerUsed:'WEBSITE',discoveredAssets:D.assets.map((a,i)=>({id:'da'+i,sourceUrl:a.url,previewUrl:a.url,sourceType:'WEBSITE',category:{logo:'logo',photo:'person',brand:'storefront',product:'product'}[a.kind],selected:true,recommended:true,rejected:false,assignedSection:{logo:'logo',photo:'person',brand:'brand',product:'products'}[a.kind],autoAssigned:true,bgOptOut:true}))});if(s.includes('/api/demo/discover'))return J(D);if(s.includes('/api/personalization/')||s.includes('/api/personalizer/'))return J({},404);return of(u,o)};})()",

@@ -3,27 +3,68 @@
     "selector": "textarea",
     "click": true,
     "type": "A 15 second launch teaser for my coffee brand",
-    "then": [{ "selector": "button[aria-label^='Attach image'], button[title^='Attach image']", "upload": true, "file": "image", "hold": 600 }]
+    "then": [
+      {
+        "selector": "button[aria-label^='Attach image'], button[title^='Attach image']",
+        "upload": true,
+        "file": "image",
+        "hold": 600
+      }
+    ]
   },
   "templates-picker": {
     "selector": "button:has-text('Templates')",
     "click": true,
     "then": [
-      { "selector": "input[placeholder='Search recipes...']", "type": "title", "hold": 800 },
-      { "selector": "button.p-4", "hold": 800 }
+      {
+        "selector": "input[placeholder='Search recipes...']",
+        "type": "title",
+        "hold": 800,
+        "wait": 1500
+      },
+      {
+        "selector": "button.p-4",
+        "hold": 800
+      }
+    ],
+    "steps": [
+      {
+        "selector": "textarea",
+        "wait": 1500
+      }
     ]
   },
   "aspect-ratio": {
     "selector": "button[title='Aspect ratio']",
     "click": true,
-    "then": [{ "selector": "button.w-full:text-is('9:16')", "hold": 800 }]
+    "then": [
+      {
+        "selector": "button.w-full:text-is('9:16')",
+        "hold": 800
+      }
+    ]
   },
   "use-my-brand": {
     "selector": "button[title^='Business name']",
     "click": true,
     "then": [
-      { "selector": "#pz-tab-assets", "hold": 600 },
-      { "text": "UPLOAD LOGO", "upload": true, "file": "image", "hold": 600 }
+      {
+        "selector": "#pz-tab-assets",
+        "hold": 600,
+        "wait": 2500
+      },
+      {
+        "text": "UPLOAD LOGO",
+        "upload": true,
+        "file": "image",
+        "hold": 600
+      }
+    ],
+    "steps": [
+      {
+        "selector": "textarea",
+        "wait": 1500
+      }
     ]
   }
 }

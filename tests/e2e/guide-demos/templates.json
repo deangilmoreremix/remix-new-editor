@@ -17,35 +17,21 @@
     ]
   },
   "industry-niche-templates": {
-    "text": "Industry Specific",
-    "exact": true,
+    "selector": "button:text-is(\"Industry Specific\")",
     "click": true,
     "then": [
       {
-        "text": "Restaurant & Cafe",
-        "exact": true,
+        "selector": "button:text-is(\"Restaurant & Cafe\")",
         "hold": 1800
       },
       {
-        "text": "Gym & Fitness",
-        "exact": true,
+        "selector": "button:text-is(\"Gym & Fitness\")",
         "hold": 1500
       }
     ]
   },
   "template-studio-model-and-media-sources": {
-    "selector": "xpath=//button[@aria-label=\"Reference media\" or @title=\"Reference media\"]",
-    "click": true,
-    "upload": true,
-    "file": "image",
-    "then": [
-      {
-        "selector": "xpath=//button[@aria-label=\"Upload a source video\" or @title=\"Upload a source video\"]",
-        "upload": true,
-        "file": "video",
-        "hold": 2500
-      }
-    ]
+    "click": false
   },
   "ai-enhancer": {
     "selector": "#enhancerToggle",

@@ -1,47 +1,159 @@
 {
   "remove-object": {
-    "steps": [{ "selector": "button[aria-label=\"Open Remove Object\"]", "wait": 1800 }],
-    "selector": "button[aria-label=\"Reference media\"]",
-    "upload": true, "file": "image", "hold": 3000
+    "steps": [
+      {
+        "selector": "button[aria-label=\"Open Remove Object\"]",
+        "wait": 1800
+      }
+    ],
+    "selector": "button[aria-label=\"Reference media\"], button[title=\"Reference media\"]",
+    "then": [
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 2200
+      }
+    ]
   },
   "remove-background": {
-    "steps": [{ "selector": "button[aria-label=\"Open Remove Background\"]", "wait": 1800 }],
-    "selector": "button[aria-label=\"Reference media\"]",
-    "upload": true, "file": "image", "hold": 3000
+    "steps": [
+      {
+        "selector": "button[aria-label=\"Open Remove Background\"]",
+        "wait": 1800
+      }
+    ],
+    "selector": "button[aria-label=\"Reference media\"], button[title=\"Reference media\"]",
+    "then": [
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 2200
+      }
+    ]
   },
   "extend-image": {
-    "steps": [{ "selector": "button[aria-label=\"Open Extend Image\"]", "wait": 1800 }],
-    "selector": "button[aria-label=\"Reference media\"]",
-    "upload": true, "file": "image", "hold": 3000
+    "steps": [
+      {
+        "selector": "button[aria-label=\"Open Extend Image\"]",
+        "wait": 1800
+      }
+    ],
+    "selector": "button[aria-label=\"Reference media\"], button[title=\"Reference media\"]",
+    "then": [
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 2200
+      }
+    ]
   },
   "ai-edit": {
-    "steps": [{ "selector": "button[aria-label=\"Open AI Edit\"]", "wait": 1800 }],
-    "selector": "button[aria-label=\"Reference media\"]",
-    "upload": true, "file": "image", "hold": 2000,
+    "steps": [
+      {
+        "selector": "button[aria-label=\"Open AI Edit\"]",
+        "wait": 1800
+      }
+    ],
+    "selector": "button[aria-label=\"Reference media\"], button[title=\"Reference media\"]",
     "then": [
-      { "selector": "textarea[aria-label=\"Edit prompt\"]", "type": "Make it night time with city lights glowing", "hold": 800 },
-      { "selector": "select[aria-label=\"Aspect Ratio\"]", "hold": 1000 }
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 2200
+      },
+      {
+        "selector": "textarea[aria-label=\"Edit prompt\"], textarea[placeholder=\"Edit prompt\"]",
+        "type": "Make it night time with city lights glowing",
+        "hold": 800
+      },
+      {
+        "selector": "select[aria-label=\"Aspect Ratio\"], select[title=\"Aspect Ratio\"]",
+        "hold": 1000
+      }
     ]
   },
   "reframe": {
-    "steps": [{ "selector": "button[aria-label=\"Open Reframe\"]", "wait": 1800 }],
-    "selector": "button[aria-label=\"Reference media\"]",
-    "upload": true, "file": "image", "hold": 2000,
-    "then": [{ "selector": "select", "hold": 1200 }]
+    "steps": [
+      {
+        "selector": "button[aria-label=\"Open Reframe\"]",
+        "wait": 1800
+      }
+    ],
+    "selector": "button[aria-label=\"Reference media\"], button[title=\"Reference media\"]",
+    "then": [
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 2200
+      },
+      {
+        "selector": "select",
+        "hold": 1200
+      }
+    ]
   },
   "change-dress": {
-    "steps": [{ "selector": "button[aria-label=\"Open Change Dress\"]", "wait": 1800 }],
-    "selector": "button[aria-label=\"Reference media\"]",
-    "upload": true, "file": "image", "hold": 2000
+    "steps": [
+      {
+        "selector": "button[aria-label=\"Open Change Dress\"]",
+        "wait": 1800
+      }
+    ],
+    "selector": "button[aria-label=\"Reference media\"], button[title=\"Reference media\"]",
+    "then": [
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 2200
+      }
+    ]
   },
   "add-watermark": {
-    "steps": [{ "selector": "button[aria-label=\"Open Add Watermark\"]", "wait": 1800 }],
-    "selector": "button[aria-label=\"Reference media\"]",
-    "upload": true, "file": "image", "hold": 2000
+    "steps": [
+      {
+        "selector": "button[aria-label=\"Open Add Watermark\"]",
+        "wait": 1800
+      }
+    ],
+    "selector": "button[aria-label=\"Reference media\"], button[title=\"Reference media\"]",
+    "then": [
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 2200
+      }
+    ]
   },
   "photo-effects": {
-    "steps": [{ "selector": "button[aria-label=\"Open Photo Effects\"]", "wait": 1800 }],
-    "selector": "button[aria-label=\"Reference media\"]",
-    "upload": true, "file": "image", "hold": 2000
+    "steps": [
+      {
+        "selector": "button[aria-label=\"Open Photo Effects\"]",
+        "wait": 1800
+      }
+    ],
+    "selector": "button[aria-label=\"Reference media\"], button[title=\"Reference media\"]",
+    "then": [
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 2200
+      }
+    ]
   }
 }

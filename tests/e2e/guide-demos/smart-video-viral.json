@@ -1,0 +1,69 @@
+{
+  "search": {
+    "selector": "#viral-search",
+    "click": true,
+    "type": "product ad"
+  },
+  "filters-and-sorting": {
+    "selector": "button:text-is('Videos')",
+    "click": true,
+    "then": [
+      {
+        "selector": "select#viral-model",
+        "hold": 900
+      },
+      {
+        "selector": "select#viral-sort",
+        "hold": 900
+      }
+    ],
+    "steps": [
+      {
+        "selector": "#viral-search",
+        "wait": 6000
+      }
+    ]
+  },
+  "categories": {
+    "selector": "select#viral-category",
+    "click": true
+  },
+  "exclude-chinese-toggle": {
+    "selector": "#viral-lang-toggle",
+    "click": true,
+    "hold": 1500
+  },
+  "copy-prompt": {
+    "selector": "button[aria-label='Copy prompt to clipboard']",
+    "click": true,
+    "hold": 1500,
+    "steps": [
+      {
+        "selector": "#viral-search",
+        "wait": 6000
+      }
+    ]
+  },
+  "create-this-style": {
+    "selector": "button[aria-label='Create this style in studio']",
+    "click": true,
+    "hold": 2500,
+    "steps": [
+      {
+        "selector": "#viral-search",
+        "wait": 6000
+      }
+    ]
+  },
+  "source-and-view-full-prompt": {
+    "selector": "button:has-text('View Full Prompt')",
+    "click": true,
+    "hold": 2000,
+    "steps": [
+      {
+        "selector": "#viral-search",
+        "wait": 6000
+      }
+    ]
+  }
+}

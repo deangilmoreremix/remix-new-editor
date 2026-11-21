@@ -52,12 +52,9 @@
     ]
   },
   "save-load-and-export": {
-    "selector": "xpath=//input[@aria-label='Project name' or @placeholder='Project name']",
+    "selector": "xpath=//button[normalize-space(.)='Save']",
     "click": true,
     "then": [
-      {
-        "selector": "xpath=//button[normalize-space(.)='Save']"
-      },
       {
         "selector": "xpath=//button[normalize-space(.)='Export ▾']",
         "hold": 2000

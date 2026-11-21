@@ -2,18 +2,41 @@
   "product-image": {
     "selector": "button[title=\"Reference media\"]",
     "click": true,
-    "then": [{ "text": "Pick a file", "upload": true, "file": "image", "hold": 3000 }]
+    "then": [
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 3000
+      }
+    ],
+    "setup": "(()=>{localStorage.setItem('muapi_key',btoa('muapi_2024_tour-placeholder-key'));const of=window.fetch;window.fetch=function(u,o){const s=String((u&&u.url)||u);if(o&&o.method==='POST'&&/muapi-proxy|upload/i.test(s))return Promise.resolve(new Response(JSON.stringify({url:'https://example.invalid/sample.jpg'}),{status:200,headers:{'content-type':'application/json'}}));return of.apply(this,arguments)}})()",
+    "reload": false
   },
-  "brand-selector": { "click": true },
-  "direction": { "click": true, "type": "Soft morning light, calm spa mood, fresh green leaves" },
-  "resolution": { "click": true },
+  "brand-selector": {
+    "click": true
+  },
+  "direction": {
+    "click": true,
+    "type": "Soft morning light, calm spa mood, fresh green leaves"
+  },
+  "resolution": {
+    "click": true
+  },
   "photo-style-presets": {
     "steps": [],
-    "selector": "button:text-is(\"Studio white · 1:1\")",
+    "selector": "button:text-is(\"Studio white \u00b7 1:1\")",
     "click": true,
     "then": [
-      { "selector": "button:text-is(\"Lifestyle natural · 4:5\")", "hold": 600 },
-      { "selector": "button:text-is(\"Gradient modern · 1:1\")", "hold": 1000 }
+      {
+        "selector": "button:text-is(\"Lifestyle natural \u00b7 4:5\")",
+        "hold": 600
+      },
+      {
+        "selector": "button:text-is(\"Gradient modern \u00b7 1:1\")",
+        "hold": 1000
+      }
     ]
   },
   "select-all": {
@@ -22,5 +45,12 @@
     "click": true,
     "hold": 1500
   },
-  "generation-mode": { "click": true, "then": [{ "wait": 1500 }] }
+  "generation-mode": {
+    "click": true,
+    "then": [
+      {
+        "wait": 1500
+      }
+    ]
+  }
 }

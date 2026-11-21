@@ -2,11 +2,24 @@
   "model-selector-flux-pulid-subject-reference": {
     "selector": "xpath=//button[normalize-space(.)=\"Flux PuLID\"]",
     "click": true,
-    "then": [{ "text": "Subject Reference", "hold": 1800 }]
+    "then": [
+      {
+        "text": "Subject Reference",
+        "hold": 1800
+      }
+    ]
   },
   "reference-face": {
-    "selector": "button[aria-label=\"Reference media\"]",
-    "upload": true, "file": "image", "hold": 3500
+    "selector": "button[aria-label=\"Reference media\"], button[title=\"Reference media\"]",
+    "then": [
+      {
+        "text": "Upload",
+        "exact": true,
+        "upload": true,
+        "file": "image",
+        "hold": 2200
+      }
+    ]
   },
   "character-description": {
     "selector": "#character-prompt-input",
@@ -15,7 +28,12 @@
   "expression-presets": {
     "selector": "xpath=//button[contains(normalize-space(.),\"Happy\")]",
     "click": true,
-    "then": [{ "selector": "xpath=//button[contains(normalize-space(.),\"Surprised\")]", "hold": 1500 }]
+    "then": [
+      {
+        "selector": "xpath=//button[contains(normalize-space(.),\"Surprised\")]",
+        "hold": 1500
+      }
+    ]
   },
   "advanced-panel": {
     "selector": "#char-advanced-btn",
