@@ -6,7 +6,9 @@
  *   - prune raw analytics older than 90 days
  *   - queue + send owner e-mails ONLY if an e-mail adapter is configured
  *     (RESEND_API_KEY + ALERT_EMAIL_FROM; without them this step reports `not_configured` and stays in-app).
- *     Alerts are e-mailed right away by push-dispatch; this sweep sends the digests and retries what is left.
+ *     Alerts are e-mailed right away by push-dispatch. This sweep sends the digests, retries what is left, and RECOVERS alerts from the
+ *     last 24 hours that never reached the queue (push-dispatch is a one-shot call from the database trigger; if it failed before
+ *     enqueuing, nothing else would ever e-mail that alert). Already-queued notifications are skipped, so nothing is sent twice.
  * Idempotent: notifications are de-duplicated by key, so a re-run is harmless.
  */
 import { getEmailAdapter, enqueueNotificationEmails, drainEmailQueue, alertsUrl } from './_shared/emailAdapter.js';
@@ -14,6 +16,11 @@ import { emailDb } from './_shared/ownerEmail.js';
 import { rest, supabaseConfig } from './_shared/supabaseRest.js';
 
 export const config = { schedule: '17 6 * * *' };
+
+// Alerts younger than RECOVERY_MIN_AGE_MINUTES are left to the immediate path, so each daily window must reach back one day PLUS that gap: an alert
+// created 5 minutes before today's sweep is skipped today and must still be inside tomorrow's window (24 h 5 min back).
+export const RECOVERY_MIN_AGE_MINUTES = 15;
+export const RECOVERY_LOOKBACK_HOURS = 24 + 1;
 
 export { emailDb };
 
@@ -31,7 +38,7 @@ export async function run({ env = process.env, fetchImpl = fetch, now = new Date
   await step('interest_surges', () => rpc('detect_interest_surges'));
   await step('prune', () => rpc('prune_video_analytics', { p_raw_days: 90 }));
   const db = emailDb(call);
-  await step('email_enqueue', () => enqueueNotificationEmails({ adapter, db, now, types: ['daily_digest'] }));
+  await step('email_enqueue', () => enqueueNotificationEmails({ adapter, db, now, sinceHours: RECOVERY_LOOKBACK_HOURS, minAgeMinutes: RECOVERY_MIN_AGE_MINUTES })); // digests, plus alerts the immediate path missed
   await step('email_drain', async () => { const res = await drainEmailQueue({ adapter, db, now, url: alertsUrl(env) }); delete res.outcomes; return res; });
   return result;
 }

@@ -13,7 +13,7 @@ import { inspectPush, subscribe, unsubscribe, sendTestNotification, vapidKeyFrom
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 export function mountPushCard(host, { getClient, pushEnabled = false, onPushPref, vapidKey = vapidKeyFromEnv(), env = globalThis, onToast, onState } = {}) {
-  let alive = true; let busy = false; let info = null; let note = ''; let pref = !!pushEnabled;
+  let alive = true; let busy = false; let saving = false; let info = null; let note = ''; let pref = !!pushEnabled;
   const card = host.ownerDocument.createElement('section');
   card.className = 'sv-card';
   card.setAttribute('data-push-card', '');
@@ -31,7 +31,7 @@ export function mountPushCard(host, { getClient, pushEnabled = false, onPushPref
       ${usable ? `<div class="sv-toolbar-actions" style="justify-content:flex-start;flex-wrap:wrap;gap:8px;margin:8px 0">
         <button type="button" class="${on ? 'sv-secondary-btn' : 'sv-primary-btn'}" data-push-toggle ${busy ? 'disabled' : ''}>${on ? 'Disable on this device' : 'Enable on this device'}</button>
         ${on ? `<button type="button" class="sv-secondary-btn" data-push-test ${busy ? 'disabled' : ''}>Send test notification</button>` : ''}</div>` : ''}
-      ${info.state === 'hidden' || info.state === 'unsupported' || info.state === 'no-service-worker' ? '' : `<label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="push" ${pref ? 'checked' : ''}/> Send me push notifications</label>`}`;
+      ${info.state === 'hidden' || info.state === 'unsupported' || info.state === 'no-service-worker' ? '' : `<label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="push" ${pref ? 'checked' : ''} ${saving ? 'disabled' : ''}/> Send me push notifications</label>`}`;
     card.querySelector('[data-push-toggle]')?.addEventListener('click', onToggle);
     card.querySelector('[data-push-test]')?.addEventListener('click', onTest);
     card.querySelector('[name=push]')?.addEventListener('change', onPref);
@@ -40,9 +40,12 @@ export function mountPushCard(host, { getClient, pushEnabled = false, onPushPref
 
   const refresh = async () => { try { info = await inspectPush({ vapidKey, env, client: await Promise.resolve().then(() => getClient()).catch(() => null) }); } catch { info = { state: 'unsupported', message: 'Push notifications are not available here.' }; } draw(); };
 
+  // One preference save at a time: while one is pending the checkbox is drawn disabled (a redraw from another click must not
+  // bring it back enabled) and a second request is ignored, so a failure always restores the value from before THIS save.
   async function savePref(value) {
-    const before = pref; pref = value;
-    try { await onPushPref?.(value); } catch (err) { pref = before; note = err?.message || 'Could not save this setting.'; }
+    if (saving) return;
+    const before = pref; pref = value; saving = true;
+    try { await onPushPref?.(value); } catch (err) { pref = before; note = err?.message || 'Could not save this setting.'; } finally { saving = false; }
   }
 
   async function onToggle() {
