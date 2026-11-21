@@ -311,7 +311,7 @@ for (const guide of GUIDES) {
     const targets = TARGETS[guide.slug] || {};
     const dir = path.join(OUT, guide.slug);
     const timelineFile = path.join(dir, 'timeline.json');
-    const hash = sha(JSON.stringify([narr, targets, demos, guide.route, process.env.GUIDE_VIDEO_VERSION || '2']));
+    const hash = sha(JSON.stringify([narr, targets, demos, guide.route, process.env.GUIDE_VIDEO_VERSION || '3']));
     if (!process.env.FORCE && fs.existsSync(timelineFile) && JSON.parse(fs.readFileSync(timelineFile, 'utf8')).hash === hash) {
       console.log(`  = ${guide.slug}: up to date (FORCE=1 to re-record)`);
       return;
