@@ -1,0 +1,48 @@
+{
+  "camera-and-lens-controls": {
+    "steps": [
+      {
+        "selector": "button.flex-col:has-text(\"Static\")",
+        "wait": 1800
+      }
+    ]
+  },
+  "camera-movement": {
+    "steps": [
+      {
+        "text": "Builder",
+        "exact": true
+      }
+    ],
+    "selector": "xpath=//select[@id='builder-movement']/..",
+    "click": false
+  },
+  "film-look": {
+    "steps": [
+      {
+        "text": "Builder",
+        "exact": true
+      }
+    ],
+    "selector": "xpath=//select[@id='builder-look']/..",
+    "click": false
+  },
+  "video-image-switch": {
+    "selector": "xpath=//button[normalize-space(.)='Video']/following-sibling::button[normalize-space(.)='Image']/..",
+    "click": false
+  },
+  "character-lock": {
+    "selector": "xpath=//button[@id='cs-character-lock-btn']/..",
+    "click": false
+  },
+  "result-screen": {
+    "setup": "new Promise((done) => { localStorage.setItem('cinema_history', JSON.stringify([{\"id\": \"g1\", \"url\": \"/media/awesome-seedance/videos/john1.mp4\", \"kind\": \"video\", \"settings\": {\"camera\": \"Modular 8K Digital\", \"lens\": \"Classic Anamorphic\", \"focal\": 35, \"aperture\": \"f/1.4\", \"movement\": \"Dolly In\", \"look\": \"Teal & Orange\", \"aspect_ratio\": \"16:9\", \"resolution\": \"2K\", \"prompt\": \"A lone rider crosses a neon-lit desert highway at dusk\", \"model\": \"seedance-lite\"}, \"timestamp\": 1763000000000}, {\"id\": \"g2\", \"url\": \"/media/awesome-seedance/videos/vicky.mp4\", \"kind\": \"video\", \"settings\": {\"camera\": \"Modular 8K Digital\", \"lens\": \"Classic Anamorphic\", \"focal\": 35, \"aperture\": \"f/1.4\", \"movement\": \"Dolly In\", \"look\": \"Teal & Orange\", \"aspect_ratio\": \"16:9\", \"resolution\": \"2K\", \"prompt\": \"A lone rider crosses a neon-lit desert highway at dusk\", \"model\": \"seedance-lite\"}, \"timestamp\": 1762990000000}])); location.hash = '#/apps'; setTimeout(() => { location.hash = '#/cinema'; let n = 0; const iv = setInterval(() => { const v = [...document.querySelectorAll('video')].find((x) => x.closest('.fixed') && x.src.includes('john1')); if (!v && ++n < 80) return; clearInterval(iv); if (v) v.parentElement.click(); setTimeout(done, 3000); }, 250); }, 1500); })",
+    "reload": false,
+    "selector": "xpath=//button[normalize-space(.)='+ New Shot']/..",
+    "click": false
+  },
+  "reference-attachments-image-video-audio": {
+    "selector": "xpath=(//button[contains(@class,'studio-attachment-btn')])[1]/..",
+    "click": false
+  }
+}

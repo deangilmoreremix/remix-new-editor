@@ -160,6 +160,16 @@ try {
     return;
   }
 
+  // Public studio feature guides (/studios, /studios/<slug>): no app shell,
+  // no sign-in. Prerendered to static HTML at build time for SEO.
+  const guidePath = initialPage.split(/[?#]/)[0].replace(/\/+$/, '');
+  if (guidePath === 'studios' || /^studios\/[a-z0-9-]+$/.test(guidePath)) {
+    const { mountGuidePage } = await import('./components/guides/mountGuidePage.js');
+    mountGuidePage(app, guidePath.slice('studios/'.length));
+    console.log('[App] Studio guide rendered');
+    return;
+  }
+
   // Public interactive video player (/watch/<id>): no app shell, no sign-in.
   if (initialPage.startsWith('watch/')) {
     const { mountWatchPage } = await import('./pages/WatchPage.jsx');
