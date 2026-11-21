@@ -1,0 +1,251 @@
+{
+  "id": "text-to-video",
+  "name": "Text to Video",
+  "route": "#/text-to-video",
+  "description": "Text to Video is an overview page: browse 28 video models and example prompts, then open Video Studio with your pick filled in.",
+  "shortDescription": "Pick a video model or example prompt, then create the clip in Video Studio.",
+  "fullDescription": "Text to Video (#/text-to-video) is a starting page, not a generator. It has four 'Video Generation Reimagined' highlight cards, a 'Ready to Create Videos?' section with 'Get Started Free' and '🎯 GTM Boost', an 'Available Models' grid of 28 featured model cards ('28 featured models out of 115 text-to-video models in Video Studio'), five 'Example Prompts' with 'Try this →', and a 'Start Creating Now' section with 'Start Creating Videos'. There is no prompt box, duration, ratio or Generate button here: everything opens Video Studio (#/video). A model card opens Video Studio with that model selected when Video Studio has a text-to-video model with the same name; an example also puts its prompt into Video Studio's prompt box.",
+  "bestFor": "New users who want to see the video models and start from an example prompt before opening Video Studio.",
+  "whenToUse": [
+    "You want to browse video models (Kling, Sora, Veo, Seedance, Wan, Hailuo, Runway, Pixverse...) by name.",
+    "You want an example video prompt filled into Video Studio.",
+    "You want GTM Boost to write a marketing video prompt."
+  ],
+  "whenToUseAnother": [
+    "Use Video Studio (#/video) directly when you know what to write.",
+    "Use Image to Video (#/image-to-video) or Video Studio with a start frame when you want to animate a picture.",
+    "Use Text to Image (#/text-to-image) for a still image."
+  ],
+  "keyFeatures": [
+    "'Get Started Free' and 'Start Creating Videos' buttons that open Video Studio.",
+    "'Video Generation Reimagined' highlight cards (information only).",
+    "'Available Models' grid of 28 model cards; a click pre-selects the model in Video Studio when the name matches.",
+    "'Example Prompts' with 'Try this →' that fill Video Studio's prompt box.",
+    "'🎯 GTM Boost' prompt helper whose result goes to Video Studio."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Video Generation Reimagined cards",
+      "explanation": "Four information cards: 'Cinematic Quality', '115 Models', 'Multiple Durations' and 'HD & 4K Support'. They are not buttons.",
+      "whyToUse": "Summary of what Video Studio offers.",
+      "inputRequired": "None.",
+      "restrictions": "'115 Models' is the number of text-to-video models in Video Studio; the page grid shows 28 featured ones. Durations and resolutions depend on the model you choose in Video Studio."
+    },
+    {
+      "feature": "Get Started Free",
+      "explanation": "In 'Ready to Create Videos?' ('Start generating amazing videos with 115 AI models'), 'Get Started Free' opens Video Studio (#/video).",
+      "whyToUse": "Fastest way to the video generator.",
+      "inputRequired": "None.",
+      "restrictions": "Nothing is generated on this page."
+    },
+    {
+      "feature": "GTM Boost",
+      "explanation": "The '🎯 GTM Boost' button opens the GTM Boost window ('🎯 GTM Boost · Text to Video'). You write your idea, pick an angle, audience and goal, and click the Boost button to get a conversion-focused prompt. 'Apply' closes the window and opens Video Studio with that prompt already in the prompt box.",
+      "whyToUse": "Turn a rough marketing idea into a ready-to-use prompt before you start.",
+      "inputRequired": "An idea in step 1 (otherwise the window says 'Add your ... idea first.').",
+      "restrictions": "Without an OpenAI key the window shows 'Add your OpenAI key for AI-written results. Until then GTM Boost uses a built-in template.'"
+    },
+    {
+      "feature": "Available Models",
+      "explanation": "A grid of 28 model cards ('28 featured models out of 115 text-to-video models in Video Studio') with name, family badge and description. Clicking a card opens Video Studio and pre-selects that model when Video Studio has a text-to-video model with the same name.",
+      "whyToUse": "Start Video Studio on a specific model.",
+      "inputRequired": "A click on a card.",
+      "restrictions": "No exact match, so Video Studio opens on its default (Seedance Lite): Kling v2.1, Kling v2.5, Kling v2.6, Kling v3.0, Seedance v1.5, Seedance v2.0, Hailuo 02 and Hailuo 2.3. Check the model button in Video Studio."
+    },
+    {
+      "feature": "Example Prompts",
+      "explanation": "Five example cards with a model badge and 'Try this →' (for example 'A drone shot flying over a futuristic city at sunset...' with Kling v2.1). Clicking one opens Video Studio with the prompt in the prompt box and the model selected when it matches.",
+      "whyToUse": "Start from a working video prompt.",
+      "inputRequired": "A click on an example.",
+      "restrictions": "The Kling v2.1 example's model has no exact match, so only its prompt carries over. You still click Generate in Video Studio."
+    },
+    {
+      "feature": "Start Creating Videos",
+      "explanation": "In 'Start Creating Now' ('Pick a model or try an example prompt to begin'), 'Start Creating Videos' opens Video Studio.",
+      "whyToUse": "Open the generator after browsing.",
+      "inputRequired": "None.",
+      "restrictions": "Nothing is generated here."
+    }
+  ],
+  "howToUse": "1. Open Text to Video (#/text-to-video). 2. Click a model card, an example prompt / 'Try this →', or 'Get Started Free' / 'Start Creating Videos'. 3. Video Studio opens; check the model button and prompt. 4. Set ratio, duration and other options and click Generate in Video Studio.",
+  "howToSteps": [
+    "Open #/text-to-video.",
+    "Click a model card, an example, or a start button.",
+    "In Video Studio, check model and prompt.",
+    "Set aspect ratio and duration in Video Studio.",
+    "Click Generate in Video Studio."
+  ],
+  "gettingStarted": [
+    "Click 'Try this →' on the Veo 3 flower timelapse example.",
+    "Review the prompt in Video Studio and click Generate there."
+  ],
+  "inputs": [
+    "Model card choice",
+    "Example prompt choice",
+    "GTM Boost idea"
+  ],
+  "requiredInputs": [
+    "None on this page (it only opens Video Studio)."
+  ],
+  "optionalInputs": [
+    "A model card",
+    "An example prompt",
+    "A GTM Boost idea"
+  ],
+  "inputDetails": [
+    {
+      "name": "Model card",
+      "description": "One of 28 model names passed to Video Studio.",
+      "required": false,
+      "whenToUse": "To start on a specific model.",
+      "restrictions": "No match (Video Studio uses Seedance Lite): Kling v2.1, Kling v2.5, Kling v2.6, Kling v3.0, Seedance v1.5, Seedance v2.0, Hailuo 02 and Hailuo 2.3."
+    },
+    {
+      "name": "Example prompt",
+      "description": "One of five ready prompts placed in Video Studio's prompt box.",
+      "required": false,
+      "whenToUse": "For a starting prompt.",
+      "restrictions": "Edit it in Video Studio before generating."
+    }
+  ],
+  "generationModes": [
+    "None on this page (generation happens in Video Studio)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Launcher",
+      "description": "Every control opens Video Studio, optionally with a model and/or prompt filled in.",
+      "useCase": "Pick a starting point, then generate in Video Studio."
+    }
+  ],
+  "modelCapabilities": "The page lists 28 names: Kling v2.1/v2.5/v2.6/v3.0, Sora, Sora 2, Veo 3, Veo 3.1, Seedance Lite/Pro/v1.5/v2.0, Seedance 2.0 Extend, Wan 2.1/2.2/2.5/2.6, Hunyuan, Hailuo 02/2.3, Runway Gen-3, Pixverse v4.5/v5/v5.5, Vidu v2.0, LTX 2 Pro, OVI and Grok Imagine. 20 of them match a model in Video Studio's text-to-video list (115 models).",
+  "outputs": [
+    "No output on this page; it opens Video Studio, optionally with model and prompt filled in."
+  ],
+  "limitations": [
+    "No prompt box, duration, ratio or Generate button here.",
+    "8 of 28 model cards do not match a Video Studio model.",
+    "Highlight-card claims ('up to 4K', 'seconds to minutes') are general summary text."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Some model cards are not pre-selected",
+      "impact": "Video Studio opens on Seedance Lite.",
+      "workaround": "Pick the model with Video Studio's model button."
+    }
+  ],
+  "troubleshooting": [
+    "Video Studio shows Seedance Lite instead of my Kling card: that card name has no exact match; pick the Kling model in Video Studio's picker."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Wrong model in Video Studio",
+      "steps": [
+        "Open the model picker in Video Studio.",
+        "Search the model name.",
+        "Select it, then Generate."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Clicking a card did not make a video",
+      "whyItHappens": "This page only opens Video Studio.",
+      "howToFix": "Click Generate in Video Studio."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Clip from an example prompt",
+      "steps": [
+        "Open #/text-to-video.",
+        "Click 'Try this →' on the Sora wave example.",
+        "Video Studio opens with the prompt and Sora selected.",
+        "Click Generate."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Exploring video models",
+      "description": "See model names and families, then start Video Studio on one.",
+      "steps": [
+        "Click a model card",
+        "Write a prompt",
+        "Generate in Video Studio"
+      ],
+      "expectedOutput": "Video Studio opened on the chosen model (when the name matches)."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Can I generate directly on this page?",
+      "answer": "No. This page has no prompt box, upload, ratio or Generate button. Every button and card opens Video Studio (#/video), where the actual generation happens."
+    }
+  ],
+  "glossary": {
+    "Prompt": "The text you write to describe the video.",
+    "Model": "The AI engine that makes the clip; each one has its own durations, ratios and options.",
+    "Prefill": "When this page passes a prompt or model to Video Studio so it is already filled in.",
+    "GTM Boost": "A helper window that rewrites your idea as a marketing-focused video prompt."
+  },
+  "tips": [
+    "Use an example prompt as a template.",
+    "Check Video Studio's model button after clicking a model card."
+  ],
+  "bestPractices": [
+    "Treat this page as a menu; set duration and ratio in Video Studio."
+  ],
+  "relatedStudios": [
+    "video",
+    "image-to-video",
+    "video-to-video",
+    "text-to-image",
+    "cinema"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "video",
+      "relationship": "Where Text to Video actually happens",
+      "whenToMove": "When you want to generate.",
+      "why": "Video Studio has the prompt box, model picker, durations and Generate."
+    },
+    {
+      "studio": "image-to-video",
+      "relationship": "Animate a picture",
+      "whenToMove": "When you start from an image.",
+      "why": "It lists image-to-video models and opens Video Studio."
+    },
+    {
+      "studio": "video-to-video",
+      "relationship": "Change an existing video",
+      "whenToMove": "When you already have footage.",
+      "why": "Points you to Video Studio's video-to-video tools."
+    },
+    {
+      "studio": "cinema",
+      "relationship": "Camera-controlled cinematic shots",
+      "whenToMove": "When you want film-style camera and lens control.",
+      "why": "Cinema Studio is built for that."
+    }
+  ],
+  "notConfirmed": [
+    "The 'HD & 4K Support' and 'from seconds to minutes' claims; they are static texts on the page."
+  ],
+  "sourceFiles": [
+    "src/components/TextToVideoPage.js",
+    "src/components/VideoStudio.js",
+    "src/lib/prefillModel.js",
+    "src/lib/models.js",
+    "src/lib/uiIntegration.js",
+    "src/components/modals/GTMPromptModal.jsx",
+    "src/lib/gtmStudioProfiles.js",
+    "src/lib/router.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "verifiedAt": "2026-11-20",
+    "verifiedBy": "Code review (LLM-assisted)",
+    "evidence": "Read TextToVideoPage.js (counts from t2vModels.length = 115; clicks call storePrefillModel(t2vModels, name), which stores the model only if Video Studio has it and otherwise clears the key) and VideoStudio.js prefill handling (prefill_prompt; prefill_model resolved against t2vModels only, default t2vModels[0] = Seedance Lite). Name matching checked by running resolvePrefillModel over the 28 names (20 match)."
+  }
+}

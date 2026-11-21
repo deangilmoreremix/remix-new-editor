@@ -1,0 +1,25 @@
+{
+  "library-media-motion-sound-themes": {
+    "text": "Motion",
+    "click": true
+  },
+  "edit-with-ai-chat": {
+    "text": "AI Chat",
+    "click": true
+  },
+  "timeline": {
+    "selector": "div.panel-wrap > div.timeline"
+  },
+  "export-video": {
+    "text": "Export video"
+  },
+  "edit-in-workbench-hand-off": {
+    "setup": "(async()=>{window.dispatchEvent(new CustomEvent('generation:saved',{detail:{studio:'video',entry:{id:'guide-demo',url:location.origin+'/media/awesome-seedance/videos/vicky.mp4',type:'video',prompt:'Chef plating a dessert in a warm kitchen, slow push-in',studio:'video'}}}));await new Promise(r=>setTimeout(r,800));})()",
+    "reload": false,
+    "selector": "[data-notification='success']",
+    "click": false
+  },
+  "project-tools": {
+    "selector": "div.app > header.topbar"
+  }
+}
