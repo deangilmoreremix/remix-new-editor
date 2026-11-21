@@ -1,6 +1,8 @@
 import { navigate } from '../lib/router.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { i2iModels, t2iModels } from '../lib/models.js';
+import { storePrefillModel } from '../lib/prefillModel.js';
 
 const IMAGE_TO_IMAGE_MODELS = [
   { name: 'Nano Banana Edit', description: 'Edit images with Nano Banana', category: 'Nano' },
@@ -36,7 +38,7 @@ const EXAMPLE_PROMPTS = [
 
 const FEATURES = [
   { icon: '🖼️', title: 'Smart Transformations', description: 'Transform any image with AI-powered style transfer and editing' },
-  { icon: '✨', title: '55+ Models', description: 'Access specialized models for every type of image transformation' },
+  { icon: '✨', title: `${i2iModels.length} Models`, description: 'Access specialized models for every type of image transformation' },
   { icon: '🎭', title: 'Style Transfer', description: 'Apply artistic styles, filters, and effects instantly' },
   { icon: '🔧', title: 'Professional Tools', description: 'Background removal, face swap, skin enhancement & more' },
 ];
@@ -93,7 +95,7 @@ export function ImageToImagePage() {
     <!-- Models Section -->
     <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Available Models</h2>
-      <p class="text-sm text-white/60 mb-6">Choose from ${IMAGE_TO_IMAGE_MODELS.length}+ powerful editing models</p>
+      <p class="text-sm text-white/60 mb-6">${IMAGE_TO_IMAGE_MODELS.length} featured models out of ${i2iModels.length} image-to-image models</p>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         ${IMAGE_TO_IMAGE_MODELS.map(m => `
           <button class="model-card bg-white/[0.03] border border-white/5 rounded-xl p-4 hover:border-primary/20 transition-all duration-300 text-left group" data-model="${m.name}">
@@ -147,7 +149,7 @@ export function ImageToImagePage() {
       import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('image-to-image', (prompt) => {
           try { localStorage.setItem('prefill_prompt', prompt); } catch { /* ignore storage failures */ }
-          navigate('edit');
+          navigate('image'); // Image Studio reads and clears the prompt (image-to-image once you attach a reference)
         });
       }).catch((err) => console.error('[ImageToImagePage] GTM Boost failed:', err));
     };
@@ -156,8 +158,8 @@ export function ImageToImagePage() {
   container.querySelectorAll('.model-card').forEach(card => {
     card.onclick = () => {
       const modelName = card.dataset.model;
-      localStorage.setItem('prefill_model', modelName);
-      navigate('edit');
+      storePrefillModel(t2iModels, modelName);
+      navigate('image');
     };
   });
 
@@ -165,8 +167,8 @@ export function ImageToImagePage() {
     card.onclick = () => {
       const prompt = EXAMPLE_PROMPTS[i];
       localStorage.setItem('prefill_prompt', prompt.prompt);
-      localStorage.setItem('prefill_model', prompt.model);
-      navigate('edit');
+      storePrefillModel(t2iModels, prompt.model);
+      navigate('image');
     };
   });
 
@@ -175,8 +177,8 @@ export function ImageToImagePage() {
       e.stopPropagation();
       const prompt = EXAMPLE_PROMPTS[i];
       localStorage.setItem('prefill_prompt', prompt.prompt);
-      localStorage.setItem('prefill_model', prompt.model);
-      navigate('edit');
+      storePrefillModel(t2iModels, prompt.model);
+      navigate('image');
     };
   });
 

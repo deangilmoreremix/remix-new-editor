@@ -1,0 +1,260 @@
+{
+  "id": "image-to-video",
+  "name": "Image to Video",
+  "route": "#/image-to-video",
+  "description": "Image to Video is an overview page: browse 19 animation models and example motions, then open Video Studio to animate your image.",
+  "shortDescription": "Browse image-animation models and examples, then animate in Video Studio.",
+  "fullDescription": "Image to Video (#/image-to-video) is a starting page, not a generator. It has an 'Animate Any Image' section with 'Animate Your Images' and '🎯 GTM Boost', four highlight cards, an 'Available Models' grid ('19 featured models out of 188 image-to-video models in Video Studio'), five 'Example Animations' with 'Try this →', and a 'Bring Images to Life' section with 'Get Started Free'. There is no image upload or Generate button here: everything opens Video Studio (#/video). An example puts its motion prompt into Video Studio's prompt box. The model you click is not selected in Video Studio (it opens on its text-to-video list, and the page passes no model), and no image is passed, so in Video Studio you add your start image, which switches it to image-to-video, then pick the model.",
+  "bestFor": "Users who want ideas for animating a still image and a quick way into Video Studio.",
+  "whenToUse": [
+    "You want to see image-to-video model families (Kling I2V, Veo3 I2V, Runway I2V, Seedance I2V, Hailuo I2V, Sora 2 I2V...).",
+    "You want an example motion prompt ('smooth camera pan left', 'gentle breathing animation') filled into Video Studio.",
+    "You want GTM Boost to write a marketing video prompt."
+  ],
+  "whenToUseAnother": [
+    "Use Video Studio (#/video) directly: add your image as a start frame there.",
+    "Use Animate Studio (#/animate) for character animation workflows.",
+    "Use Text to Video (#/text-to-video) when you have no image."
+  ],
+  "keyFeatures": [
+    "'Animate Your Images' and 'Get Started Free' buttons that open Video Studio.",
+    "Highlight cards (information only).",
+    "'Available Models' grid of 19 image-to-video models.",
+    "'Example Animations' with 'Try this →' that fill Video Studio's prompt box.",
+    "'🎯 GTM Boost' prompt helper."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Animate Your Images",
+      "explanation": "In 'Animate Any Image', the 'Animate Your Images' button opens Video Studio (#/video).",
+      "whyToUse": "Fastest way to start animating.",
+      "inputRequired": "None here; add your image in Video Studio.",
+      "restrictions": "No upload on this page."
+    },
+    {
+      "feature": "GTM Boost",
+      "explanation": "The '🎯 GTM Boost' button opens the GTM Boost window ('🎯 GTM Boost · Image to Video'). You write your idea, pick an angle, audience and goal, and click the Boost button to get a conversion-focused prompt. 'Apply' closes the window and opens Video Studio with that prompt already in the prompt box.",
+      "whyToUse": "Turn a rough marketing idea into a ready-to-use prompt before you start.",
+      "inputRequired": "An idea in step 1 (otherwise the window says 'Add your ... idea first.').",
+      "restrictions": "Without an OpenAI key the window shows 'Add your OpenAI key for AI-written results. Until then GTM Boost uses a built-in template.'"
+    },
+    {
+      "feature": "Highlight cards",
+      "explanation": "Four information cards: 'Image to Video', '188 Models', 'Motion Effects' and 'Smooth Animation'. They are not buttons.",
+      "whyToUse": "Summary of what animating an image can do.",
+      "inputRequired": "None.",
+      "restrictions": "'188 Models' is the number of image-to-video models in Video Studio; the page grid shows 19 featured ones."
+    },
+    {
+      "feature": "Available Models",
+      "explanation": "A grid of 19 cards ('19 featured models out of 188 image-to-video models in Video Studio'): Kling I2V (and 1.2, 1.5, 1.6, 2.0), Veo3 I2V, Runway I2V, Wan I2V, Midjourney v7 I2V, Hunyuan I2V, Seedance I2V, Pixverse I2V, Vidu Q1/Q2 Reference, Hailuo I2V, Sora 2 I2V, OVI I2V, LTX 2 I2V and Leonardoai Motion 2.0. Clicking a card opens Video Studio.",
+      "whyToUse": "See which animation model families exist.",
+      "inputRequired": "A click on a card.",
+      "restrictions": "No model is passed to Video Studio, so it opens on its default text-to-video model (Seedance Lite). Add your image, then pick the image-to-video model in Video Studio."
+    },
+    {
+      "feature": "Example Animations",
+      "explanation": "Five example cards with a model badge and 'Try this →' (for example 'Animate this image with a smooth camera pan left' with Kling I2V). Clicking one opens Video Studio with that text in the prompt box.",
+      "whyToUse": "Ready-made motion wording.",
+      "inputRequired": "A click on an example.",
+      "restrictions": "The badge model is not selected and no image is attached; add your image in Video Studio before generating."
+    },
+    {
+      "feature": "Get Started Free",
+      "explanation": "In 'Bring Images to Life', 'Get Started Free' opens Video Studio.",
+      "whyToUse": "Open the generator after browsing.",
+      "inputRequired": "None.",
+      "restrictions": "Nothing is generated here."
+    }
+  ],
+  "howToUse": "1. Open Image to Video (#/image-to-video). 2. Click an 'Example Animations' card for a motion prompt, or 'Animate Your Images' / 'Get Started Free'. 3. In Video Studio, add your image as the start frame (the studio switches to image-to-video models). 4. Choose the model, check the prompt and click Generate in Video Studio.",
+  "howToSteps": [
+    "Open #/image-to-video.",
+    "Click an example or 'Animate Your Images'.",
+    "In Video Studio, attach your start image.",
+    "Pick an image-to-video model.",
+    "Click Generate in Video Studio."
+  ],
+  "gettingStarted": [
+    "Click 'Try this →' on 'Create a dynamic zoom out effect'.",
+    "In Video Studio add your picture, check the model, and Generate."
+  ],
+  "inputs": [
+    "Example animation choice",
+    "Model card choice",
+    "GTM Boost idea"
+  ],
+  "requiredInputs": [
+    "None on this page; the image is added in Video Studio."
+  ],
+  "optionalInputs": [
+    "An example animation prompt",
+    "A GTM Boost idea"
+  ],
+  "inputDetails": [
+    {
+      "name": "Example animation",
+      "description": "One of five motion prompts placed in Video Studio's prompt box.",
+      "required": false,
+      "whenToUse": "For motion wording.",
+      "restrictions": "No image or model is carried over."
+    },
+    {
+      "name": "Model card",
+      "description": "One of 19 image-to-video model names.",
+      "required": false,
+      "whenToUse": "To learn the families.",
+      "restrictions": "Not selected in Video Studio."
+    }
+  ],
+  "generationModes": [
+    "None on this page (image-to-video happens in Video Studio)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Launcher",
+      "description": "Every control opens Video Studio; examples also fill the prompt.",
+      "useCase": "Get a motion idea, then animate in Video Studio."
+    }
+  ],
+  "modelCapabilities": "The page lists 19 featured image-to-video names (Kling I2V family, Veo3 I2V, Runway I2V, Wan I2V, Midjourney v7 I2V, Hunyuan I2V, Seedance I2V, Pixverse I2V, Vidu Q1/Q2 Reference, Hailuo I2V, Sora 2 I2V, OVI I2V, LTX 2 I2V, Leonardoai Motion 2.0) out of the 188 image-to-video models in Video Studio; the page does not select any of them.",
+  "outputs": [
+    "No output on this page; it opens Video Studio, optionally with a prompt filled in."
+  ],
+  "limitations": [
+    "No image upload or Generate button here.",
+    "The model you click is not selected in Video Studio.",
+    "No image is passed to Video Studio."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Model not pre-selected",
+      "impact": "Video Studio opens on Seedance Lite (text-to-video).",
+      "workaround": "Attach your image, then choose the model in Video Studio's picker."
+    },
+    {
+      "limitation": "No image passed",
+      "impact": "Generating right away would make a text-to-video clip.",
+      "workaround": "Attach your start image in Video Studio first."
+    }
+  ],
+  "troubleshooting": [
+    "Video Studio opened in text-to-video with Seedance Lite: attach your image first; the studio then switches to image-to-video models."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "My image is not being animated",
+      "steps": [
+        "In Video Studio, attach the image as the start frame.",
+        "Check the model button shows an image-to-video model.",
+        "Generate again."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "The model I clicked is not selected",
+      "whyItHappens": "The page does not pass a model to Video Studio, which opens on its text-to-video list.",
+      "howToFix": "Search for the model in Video Studio's picker after attaching your image."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Animate a product photo",
+      "steps": [
+        "Open #/image-to-video.",
+        "Click 'Try this →' on 'Create a dynamic zoom out effect'.",
+        "In Video Studio attach the product photo.",
+        "Pick an image-to-video model and click Generate."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Bringing stills to life",
+      "description": "Find a motion idea and open Video Studio ready to animate.",
+      "steps": [
+        "Pick an example",
+        "Attach image in Video Studio",
+        "Generate"
+      ],
+      "expectedOutput": "Video Studio with the motion prompt filled in."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Can I generate directly on this page?",
+      "answer": "No. This page has no prompt box, upload, ratio or Generate button. Every button and card opens Video Studio (#/video), where the actual generation happens."
+    },
+    {
+      "question": "Where do I upload my image?",
+      "answer": "In Video Studio, using its image (start frame) button. This page has no upload."
+    }
+  ],
+  "glossary": {
+    "Prompt": "The text you write to describe the video.",
+    "Model": "The AI engine that makes the clip; each one has its own durations, ratios and options.",
+    "Prefill": "When this page passes a prompt or model to Video Studio so it is already filled in.",
+    "GTM Boost": "A helper window that rewrites your idea as a marketing-focused video prompt.",
+    "Image-to-video": "Making a video clip that starts from a still image you supply.",
+    "Start frame": "The image the generated video begins from."
+  },
+  "tips": [
+    "Describe motion and camera movement, not the picture itself; the image already shows the content.",
+    "Always attach the image in Video Studio before generating."
+  ],
+  "bestPractices": [
+    "Use this page for ideas; pick the model in Video Studio after the image is attached."
+  ],
+  "relatedStudios": [
+    "video",
+    "animate",
+    "text-to-video",
+    "image"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "video",
+      "relationship": "Where Image to Video actually happens",
+      "whenToMove": "As soon as you want to animate.",
+      "why": "Video Studio has the start-frame upload, image-to-video models and Generate."
+    },
+    {
+      "studio": "animate",
+      "relationship": "Character animation",
+      "whenToMove": "When you want to animate a character with motion.",
+      "why": "Animate Studio focuses on that."
+    },
+    {
+      "studio": "image",
+      "relationship": "Make the still first",
+      "whenToMove": "When you do not have an image yet.",
+      "why": "Generate one in Image Studio, then animate it."
+    },
+    {
+      "studio": "text-to-video",
+      "relationship": "No image needed",
+      "whenToMove": "When you start from words.",
+      "why": "It lists text-to-video models."
+    }
+  ],
+  "notConfirmed": [
+    "Which of Video Studio's image-to-video models each card corresponds to."
+  ],
+  "sourceFiles": [
+    "src/components/ImageToVideoPage.js",
+    "src/components/VideoStudio.js",
+    "src/lib/prefillModel.js",
+    "src/lib/models.js",
+    "src/lib/uiIntegration.js",
+    "src/components/modals/GTMPromptModal.jsx",
+    "src/lib/gtmStudioProfiles.js",
+    "src/lib/router.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "verifiedAt": "2026-11-20",
+    "verifiedBy": "Code review (LLM-assisted)",
+    "evidence": "Read ImageToVideoPage.js: all buttons navigate to 'video'; model and example clicks call storePrefillModel([], name), which stores no model and clears any old one; counts come from i2vModels.length (188). VideoStudio.js resolves prefill_model against t2vModels only (default t2vModels[0] = Seedance Lite). prefill_prompt is read into Video Studio's prompt box and cleared."
+  }
+}
