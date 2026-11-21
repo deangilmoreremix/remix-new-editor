@@ -40,8 +40,9 @@
     "hold": 2500
   },
   "optional-prompt": {
-    "selector": "xpath=//textarea[@aria-label='Lip sync prompt' or @placeholder='Lip sync prompt']",
+    "selector": "xpath=//textarea",
     "type": "Speaks calmly with a gentle smile and natural head movement",
-    "hold": 1500
+    "hold": 1500,
+    "click": true
   }
 }

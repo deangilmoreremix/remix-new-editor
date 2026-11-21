@@ -22,8 +22,15 @@
     ]
   },
   "duration-and-resolution": {
-    "selector": "xpath=//select[option[@value='1080p']]",
-    "click": false
+    "selector": "xpath=//select[option[@value='12']]",
+    "click": true,
+    "hold": 1200,
+    "then": [
+      {
+        "selector": "xpath=//select[option[@value='1080p']]",
+        "hold": 1500
+      }
+    ]
   },
   "model-seedance-lite-default-choose-a-model": {
     "selector": "xpath=//button[starts-with(normalize-space(.),'Seedance Lite')]",
