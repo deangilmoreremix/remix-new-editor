@@ -122,10 +122,19 @@ clerk_e2e_test.cjs
 debug_signin.cjs
 .playwright-mcp/
 *.jpg
-# the pre-made Animations / Library thumbnails (public/hyperframes/thumbs) are tracked so cards are never blank
-!public/hyperframes/thumbs/*.jpg
+# ...except the real animation / template stills the Template Generator and the Animations library show
+# (made by scripts/generate-template-generator-thumbs.mjs; tests require every offered item to have one)
+!/public/hyperframes/thumbs/*.jpg
+!/public/occ-templates/thumbs/*.jpg
+!/public/overlay-templates/thumbs/*.jpg
+!/public/library-previews/sample-out.jpg
+!/public/library-previews/sample-in.jpg
+# stills for the Full Body Recast "See an example result" row (character image + video posters)
+!public/media/recast-example/*.jpg
 # backdrop of the retired Motion Director StreamResponse card (placeholder; the original image was never committed)
 !public/motion-studio/legacy-textures/agent-stream.jpg
+# real previews of the Video Pages designs (made by scripts/generate-landing-design-previews.mjs; the design pickers show them)
+!/public/landing-previews/*.jpg
 
 # Logs
 logs
@@ -200,3 +209,6 @@ apps/warmbly-server/portal/node_modules/
 apps/warmbly-server/tracking/target/
 apps/warmbly-server/realtime/_build/
 apps/warmbly-server/realtime/deps/
+# output of scripts/verify-template-generator-keys.mjs (a real mp3 from your key)
+verify-out/
+.whisper/

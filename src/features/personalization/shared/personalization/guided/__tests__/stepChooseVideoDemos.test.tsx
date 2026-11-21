@@ -223,7 +223,7 @@ describe('Demos tab — search and filters', () => {
     const source = screen.getByLabelText('Source') as HTMLSelectElement
     const sourceValues = Array.from(source.options).map((option) => option.value)
     expect(sourceValues).toContain('all')
-    // The dead promptfeed / seedance-1 catalogs were removed; these are the collections that exist.
+    // promptfeed and seedance-1 are hidden until their video files are supplied (see EXCLUDED_DEMO_COLLECTIONS).
     for (const collection of ['minimax-h3', 'seedance-25', 'template-library']) {
       expect(sourceValues).toContain(collection)
     }
@@ -303,29 +303,30 @@ describe('Demos tab — pagination', () => {
 })
 
 describe('Demos tab — logo label', () => {
-  it('labels every registry demo No logo or Has logo, and the registry carries both kinds', () => {
-    for (const entry of DEMO_LIBRARY_REGISTRY) expect(['none', 'logo'], entry.id).toContain(entry.branding)
+  it('labels every registry demo No logo / Has logo, with local clips not yet labeled shown as Not reviewed', () => {
+    for (const entry of DEMO_LIBRARY_REGISTRY) expect(['none', 'logo', 'unreviewed'], entry.id).toContain(entry.branding)
     expect(DEMO_LIBRARY_REGISTRY.some((entry) => entry.branding === 'none')).toBe(true)
     expect(DEMO_LIBRARY_REGISTRY.some((entry) => entry.branding === 'logo')).toBe(true)
+    expect(DEMO_LIBRARY_REGISTRY.some((entry) => entry.branding === 'unreviewed')).toBe(true)
   })
 
   it('shows the label on each card and narrows the gallery with the Logo filter', () => {
     const container = renderDemos()
     const badges = () => Array.from(container.querySelectorAll('[data-branding]')).map((node) => node.getAttribute('data-branding'))
     expect(badges().length).toBeGreaterThan(0)
-    expect(badges().every((value) => value === 'none' || value === 'logo')).toBe(true)
+    expect(badges().every((value) => value === 'none' || value === 'logo' || value === 'unreviewed')).toBe(true)
 
     const logoFilter = screen.getByLabelText('Logo') as HTMLSelectElement
-    expect(Array.from(logoFilter.options).map((option) => option.value)).toEqual(['all', 'none', 'logo'])
+    expect(Array.from(logoFilter.options).map((option) => option.value)).toEqual(['all', 'none', 'logo', 'unreviewed'])
+    const count = (value: string) => DEMO_LIBRARY_REGISTRY.filter((entry) => entry.branding === value).length
 
-    fireEvent.change(logoFilter, { target: { value: 'none' } })
-    const clean = DEMO_LIBRARY_REGISTRY.filter((entry) => entry.branding === 'none').length
-    expect(galleryTotal()).toBe(clean)
-    expect(badges().every((value) => value === 'none')).toBe(true)
-
-    fireEvent.change(logoFilter, { target: { value: 'logo' } })
-    expect(galleryTotal()).toBe(DEMO_LIBRARY_REGISTRY.length - clean)
-    expect(badges().every((value) => value === 'logo')).toBe(true)
+    for (const value of ['none', 'logo', 'unreviewed'] as const) {
+      fireEvent.change(logoFilter, { target: { value } })
+      expect(galleryTotal()).toBe(count(value))
+      expect(badges().every((badge) => badge === value)).toBe(true)
+    }
+    // The option labels carry the counts, including the new "Not reviewed" one.
+    expect(Array.from(logoFilter.options).find((option) => option.value === 'unreviewed')?.textContent).toContain(`Not reviewed (${count('unreviewed')})`)
 
     fireEvent.click(screen.getByTestId('demo-clear-filters'))
     expect(galleryTotal()).toBe(ELIGIBLE)

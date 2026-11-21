@@ -97,7 +97,7 @@ describe('loadAnalytics', () => {
     expect(r.status).toBe('ok');
     // every RPC received the real inclusive range for the chosen period
     const rpcs = c.calls.filter((x) => x[0] === 'rpc');
-    expect(rpcs.map((x) => x[1]).sort()).toEqual(['video_analytics_summary', 'video_analytics_timeseries', 'video_cta_performance', 'video_retention_curve', 'video_section_engagement']);
+    expect(rpcs.map((x) => x[1]).sort()).toEqual(['owner_video_audience_breakdown', 'owner_video_revision_comparison', 'video_analytics_summary', 'video_analytics_timeseries', 'video_cta_performance', 'video_retention_curve', 'video_section_engagement']);
     for (const [, , a] of rpcs) expect(a).toMatchObject({ p_video_id: 'abcdefgh12', p_from: '2026-11-05', p_to: '2026-11-11' });
     // notifications are date-filtered too
     const nq = c.calls.find((x) => x[1] === 'owner_notifications')[2];

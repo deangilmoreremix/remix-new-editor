@@ -66,7 +66,25 @@ export interface Clip {
   zoom?: import('../../openchatcut/editor/types').ZoomEffect;
   /** [remix] OpenChatCut captions burned over this clip (words in timeline ms). */
   captions?: import('../../openchatcut/captions/types').CaptionsData;
+  /** [remix] Stage 1: clips with the same groupId are selected / moved / deleted together (lib/editor/stage1/groups.ts) */
+  groupId?: string;
+  /** [remix] Stage 1: compound clip. The clip is one object on the timeline; its content (start times relative to the clip, original
+   *  track ids) is expanded to ordinary clips for playback and export (lib/editor/stage1/compound.ts, flattenCompounds). */
+  compound?: CompoundContent;
+  /** [remix] Fix E: runtime only (set by flattenCompounds, never saved): this picture clip is rendered inside the group render of that compound (see Timeline.groups) */
+  compoundGroup?: string;
+  /** [remix] Stage 4: 6-band parametric EQ (lib/audio/eq.ts). Preview: BiquadFilter chain; export: baked into the audio (lib/audio/eq-bake.ts). */
+  eq?: import('../lib/audio/eq').ClipEq;
+  /** [remix] Stage 11: pitch shift (semitones / cents) + preserve-pitch-on-speed-change (lib/audio/pitch.ts). Preview: AudioWorklet (SoundTouch); export: baked (lib/audio/pitch-bake.ts). */
+  pitch?: import('../lib/audio/pitch').ClipPitch;
+  /** [remix] Stage 2: unified keyframes (position, scale, rotation, opacity, crop, effect params; easing / bezier / spring) + procedural motion modifiers (lib/editor/stage2/anim.ts) */
+  anim?: import('../lib/editor/stage2/anim').ClipAnim;
+  /** [remix] Fix M: set on every piece made by a speed CURVE (lib/editor/stage11/speed-group.ts): the curve, step count and the original source span, so the curve can be
+   *  re-opened and re-applied while the pieces are still contiguous and unchanged. Saved in the stage1_json column (additive; old projects have none). */
+  speedCurve?: import('../lib/editor/stage11/speed-group').ClipSpeedCurve;
 }
+
+export interface CompoundContent { clips: Clip[]; transitions: Transition[] }
 
 /** [remix] One OpenChatCut effect on a clip: id is an FX_EFFECTS key (builtin:fx-…), props = per-effect slider values. */
 export interface ClipFx {
@@ -95,6 +113,8 @@ export interface Transition {
   glType?: string;
   /** plugin transition snapshot, used when the pack is not installed */
   glDef?: import('../../openchatcut/gl/customTransitions').CustomTransitionDef;
+  /** [remix] Stage 6: per-cut overrides of a vendored gl-transitions shader's uniforms (absent = defaults) */
+  glParams?: Record<string, number | boolean | number[]>;
 }
 
 export interface TimelineMarker {
@@ -117,6 +137,13 @@ export interface Timeline {
   /** [remix] project frame ratio (absent = 16:9) and default picture fit (absent = contain); see lib/occ/frame-geometry.ts */
   aspect?: string;
   fit?: 'contain' | 'cover';
+  /** [remix] Stage 4: master volume 0 to 1 (absent = 1). Preview master gain; export multiplies every clip volume. */
+  masterVolume?: number;
+  /** [remix] Fix B2: timeline in / out points in seconds (loop + export range; lib/editor/range/timeline-range.ts) */
+  range?: { in: number | null; out: number | null };
+  /** [remix] Fix E: runtime only (set by flattenCompounds, never saved): the compounds that render as ONE group. Each entry is the compound clip itself
+   *  (its own fx / opacity / blend / transform / anim, startTime, duration), without `compound`; its picture children carry `compoundGroup` = its id. */
+  groups?: Clip[];
 }
 
 /** Effective duration of a clip (what plays on the timeline). */
@@ -142,7 +169,7 @@ export interface EditorLayout {
 export const DEFAULT_EDITOR_LAYOUT: EditorLayout = {
   leftPanelWidth: 240,
   leftPanelMode: 'full',
-  viewerTimelineSplit: 0.42, // [remix] was 0.55: more room so the four default tracks show
+  viewerTimelineSplit: 0.39, // [remix] was 0.55: more room so the four default tracks show (V2 and V1 fit with the Overlays lane)
   sourceTimelineSplit: 0.5,
   sourceViewerVisible: false,
   rightPanelWidth: 280,

@@ -16,6 +16,7 @@ import { CircuitBreaker, withRetry } from './retry'
 import { extractFromHtml, mergeEvidence, normPhone, type PageExtraction } from './extract'
 import { pickContactPages, scoreContactLink, type Anchor } from './contactPages'
 import { crawlSitemaps } from './sitemap'
+import { extractSiteSignals, mergeSiteSignals, type SiteSignals } from './siteSignals'
 import type { BusinessEnrichment, Evidence, SocialNetwork } from './types'
 
 export interface FetchedPage { status: number; body: string; finalUrl: string; contentType?: string; retryAfterMs?: number }
@@ -106,6 +107,7 @@ export async function enrichBusinessWebsite(website: string, deps: EnrichDeps = 
 
   const allowed = (url: string) => { try { const u = new URL(url); return rules.isAllowed(u.pathname + u.search) } catch { return false } }
   const extractions: PageExtraction[] = []
+  const signals: SiteSignals[] = []
   const visited = new Set<string>()
 
   const visit = async (url: string): Promise<{ html: string; anchors: Anchor[]; finalUrl: string } | null> => {
@@ -122,6 +124,7 @@ export async function enrichBusinessWebsite(website: string, deps: EnrichDeps = 
     }
     out.pagesVisited.push(page.finalUrl)
     extractions.push(extractFromHtml(html, page.finalUrl))
+    signals.push(extractSiteSignals(html, page.finalUrl, { isHomepage: visited.size === 1 }))
     const $ = cheerio.load(html)
     const anchors: Anchor[] = $('a[href]').toArray().map((a) => ({ href: $(a).attr('href') ?? '', text: $(a).text().replace(/\s+/g, ' ').trim() }))
     return { html, anchors, finalUrl: page.finalUrl }
@@ -132,7 +135,7 @@ export async function enrichBusinessWebsite(website: string, deps: EnrichDeps = 
   if (!home) {
     if (out.pagesSkipped.some((p) => p.reason === 'robots')) out.notes.push('robots.txt disallows the homepage; no pages were fetched')
     else if (!out.pagesVisited.length) out.notes.push('homepage could not be fetched')
-    return finish(out, extractions)
+    return finish(out, extractions, signals)
   }
 
   // 3) candidate pages: homepage link scoring + sitemap URLs scored by the same rules
@@ -154,10 +157,13 @@ export async function enrichBusinessWebsite(website: string, deps: EnrichDeps = 
     if (visited.size >= maxPages) { out.pagesSkipped.push({ url, reason: 'cap' }); continue }
     await visit(url)
   }
-  return finish(out, extractions)
+  return finish(out, extractions, signals)
 }
 
-function finish(out: BusinessEnrichment, ex: PageExtraction[]): BusinessEnrichment {
+function finish(out: BusinessEnrichment, ex: PageExtraction[], signals: SiteSignals[] = []): BusinessEnrichment {
+  out.enrichedAt = new Date().toISOString()
+  const merged = mergeSiteSignals(signals)
+  if (Object.keys(merged).length) out.siteSignals = merged
   out.emails = mergeEvidence(ex.map((e) => e.emails))
   out.phones = mergeEvidence(ex.map((e) => e.phones), (v) => normPhone(v))
   out.addresses = mergeEvidence(ex.map((e) => e.addresses))

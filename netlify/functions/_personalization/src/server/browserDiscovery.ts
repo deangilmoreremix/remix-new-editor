@@ -2617,3 +2617,250 @@ export async function capturePageScreenshots(
     CAPTURE_CLOSE_MS,
   )
 }
+
+// ---------------------------------------------------------------------------
+// Brand Studio scrape (POST /api/scrape)
+// ---------------------------------------------------------------------------
+
+/** Brand Studio scrape budget. The host cuts a synchronous request off at about 30 s. */
+export const BRAND_SCRAPE_DEADLINE_MS = 24_000
+export const BRAND_SCRAPE_NAVIGATION_TIMEOUT = 14_000
+const BRAND_SCRAPE_IDLE_TIMEOUT = 4_000
+/** Longest the screenshot may take; it is also capped by what is left of the overall deadline. */
+const BRAND_SCRAPE_SHOT_TIMEOUT = 9_000
+const BRAND_SCRAPE_CLOSE_MS = 1_500
+const BRAND_SCRAPE_BLOCKED_RESOURCE_TYPES = ['media'] as const
+
+/** Same shape the open-pomelli `scrapeSite` returns, with the screenshot as base64 PNG. */
+export interface BrandScrapeResult {
+  url: string
+  title: string
+  description: string
+  bodyText: string
+  ogImage: string | null
+  favicon: string | null
+  logoCandidates: string[]
+  fonts: string[]
+  rawColors: string[]
+  screenshot: string | null
+  /** Image URLs found on the page (DOM, computed CSS backgrounds and the Performance API's resource list). */
+  images: string[]
+  /** Video URLs found on the page. */
+  videos: string[]
+  /** True when the site served a block / challenge page instead of its content (text is then left empty). */
+  blocked?: boolean
+}
+
+/**
+ * Port of open-pomelli's `scrapeSite` (src/lib/scraper.ts) behind the same SSRF
+ * guard as discovery and Motion Studio capture: the URL, every redirect hop and
+ * every subresource must pass the gate.
+ */
+export async function scrapeBrandSite(
+  rawUrl: string,
+  options: { guard?: BrandScrapeGuard; deadlineMs?: number } = {},
+): Promise<BrandScrapeResult> {
+  const started = Date.now()
+  const guard = options.guard ?? createSsrfGuard()
+  const baseTarget = await guard.validateNavigationTarget(rawUrl)
+  const deadlineMs = options.deadlineMs ?? BRAND_SCRAPE_DEADLINE_MS
+
+  // Text, fonts and colours are what the brand analysis needs most. Once they are read they are kept here, so a
+  // heavy page whose screenshot (or teardown) runs out the clock still returns them instead of failing outright.
+  let partial: BrandScrapeResult | null = null
+  const left = () => deadlineMs - (Date.now() - started)
+
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const deadline = new Promise<BrandScrapeResult>((resolve, reject) => {
+    timer = setTimeout(() => {
+      if (partial) resolve(partial)
+      else reject(new Error('The page took too long to scrape'))
+    }, deadlineMs)
+  })
+
+  const running = withGuardedContext(
+    {
+      guard,
+      baseTarget,
+      contextOptions: {
+        userAgent: 'Mozilla/5.0 (compatible; SmartVideoBrandStudio/1.0)',
+        viewport: { width: 1440, height: 900 },
+      },
+      blockedResourceTypes: BRAND_SCRAPE_BLOCKED_RESOURCE_TYPES,
+    },
+    async (context) => {
+      const page = await context.newPage()
+      try {
+        // A heavy page may not finish loading in time; what has rendered so far is still worth reading.
+        let navigationTimedOut = false
+        await page
+          .goto(baseTarget.url, {
+            waitUntil: 'domcontentloaded',
+            timeout: Math.min(BRAND_SCRAPE_NAVIGATION_TIMEOUT, Math.max(2_000, left() - 8_000)),
+          })
+          .catch((error: unknown) => {
+            if (error instanceof Error && /Timeout/i.test(error.message) && page.url() && page.url() !== 'about:blank') {
+              navigationTimedOut = true
+              return
+            }
+            throw error
+          })
+        if (!navigationTimedOut) {
+          await page.waitForLoadState('networkidle', { timeout: Math.min(BRAND_SCRAPE_IDLE_TIMEOUT, Math.max(500, left() - 10_000)) }).catch(() => undefined)
+        }
+
+        // Lazy-loaded images/videos only load when scrolled into view: one quick pass down the page and back.
+        if (left() > 12_000) {
+          await page
+            .evaluate(async () => {
+              const step = Math.max(400, Math.floor(window.innerHeight * 0.9))
+              for (let y = 0; y < Math.min(document.body.scrollHeight, step * 6); y += step) {
+                window.scrollTo(0, y)
+                await new Promise((r) => setTimeout(r, 120))
+              }
+              window.scrollTo(0, 0)
+            })
+            .catch(() => undefined)
+        }
+
+        const data = await page.evaluate(() => {
+          const meta = (sel: string) =>
+            (document.querySelector(sel) as HTMLMetaElement | null)?.getAttribute('content') ?? ''
+          const abs = (href: string | null) => {
+            // A bare base64 blob used as a lazy-load placeholder is not an address.
+            if (href && /^(?:R0lGOD|iVBOR|\/9j\/|UklGR|PHN2Z)[A-Za-z0-9+/=]{30,}$/.test(href.trim())) return null
+            if (!href) return null
+            try {
+              const u = new URL(href, location.href)
+              return u.protocol === 'http:' || u.protocol === 'https:' ? u.href : null
+            } catch {
+              return null
+            }
+          }
+          const logos: string[] = []
+          document.querySelectorAll('img').forEach((img) => {
+            const src = img.getAttribute('src') ?? ''
+            const alt = img.getAttribute('alt') ?? ''
+            if (/logo/i.test(src) || /logo/i.test(alt)) {
+              const u = abs(src)
+              if (u) logos.push(u)
+            }
+          })
+          const fonts = new Set<string>()
+          const colors = new Set<string>()
+          Array.from(document.querySelectorAll('body *'))
+            .slice(0, 800)
+            .forEach((el) => {
+              const cs = getComputedStyle(el as Element)
+              cs.fontFamily.split(',').forEach((f) => fonts.add(f.trim().replace(/^['"]|['"]$/g, '')))
+              if (cs.color && cs.color !== 'rgba(0, 0, 0, 0)') colors.add(cs.color)
+              if (cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)') colors.add(cs.backgroundColor)
+            })
+          const favHref = document.querySelector('link[rel~="icon"]')?.getAttribute('href') ?? null
+
+          // Media: the rendered DOM, computed CSS (CSSOM) backgrounds, and what the page actually loaded (Performance API).
+          const images = new Set<string>()
+          const videos = new Set<string>()
+          // Beacons, pixels and analytics calls are requests, not site imagery.
+          const tracking = /(\/batch\/|beacon|pixel[._/-]|\/pixel|tracking|analytics|\/collect\b|\/log\b|doubleclick|googletagmanager|google-analytics|facebook\.com\/tr|\/1x1\b|spacer\.gif|\/ping\b|\/impression)/i
+          const addImage = (u: string | null | undefined) => {
+            const a = u ? abs(u) : null
+            if (a && !tracking.test(a) && images.size < 30) images.add(a)
+          }
+          const addVideo = (u: string | null | undefined) => {
+            const a = u ? abs(u) : null
+            if (a && videos.size < 10) videos.add(a)
+          }
+          const widest = (srcset: string | null) => {
+            let best: { u: string; w: number } | null = null
+            ;(srcset || '').split(',').forEach((p) => {
+              const [u, d] = p.trim().split(/\s+/)
+              const w = d ? parseFloat(d) || 1 : 1
+              if (u && (!best || w >= best.w)) best = { u, w }
+            })
+            return (best as { u: string; w: number } | null)?.u ?? null
+          }
+          document.querySelectorAll('img').forEach((img) => {
+            // Skip tracking pixels and tiny icons.
+            if (img.complete && img.naturalWidth > 0 && img.naturalWidth < 48) return
+            addImage(widest(img.getAttribute('srcset')) || img.currentSrc || img.getAttribute('src'))
+          })
+          document.querySelectorAll('picture source[srcset]').forEach((s) => addImage(widest(s.getAttribute('srcset'))))
+          document.querySelectorAll('video').forEach((v) => {
+            addVideo(v.currentSrc || v.getAttribute('src'))
+            v.querySelectorAll('source').forEach((s) => addVideo(s.getAttribute('src')))
+            addImage(v.getAttribute('poster'))
+          })
+          ;['og:video', 'og:video:url', 'og:video:secure_url'].forEach((p) => addVideo(meta(`meta[property="${p}"]`) || null))
+          addImage(meta('meta[property="og:image"]') || null)
+          Array.from(document.querySelectorAll('body *'))
+            .slice(0, 1200)
+            .forEach((el) => {
+              const bg = getComputedStyle(el as Element).backgroundImage
+              if (bg && bg !== 'none') for (const m of bg.matchAll(/url\(["']?([^"')]+)["']?\)/g)) addImage(m[1])
+            })
+          performance.getEntriesByType('resource').forEach((entry) => {
+            const e = entry as PerformanceResourceTiming
+            if (/\.(mp4|webm|m3u8|mov|m4v)(?:[?#]|$)/i.test(e.name) || e.initiatorType === 'video') addVideo(e.name)
+            else if (e.initiatorType === 'img' && /\.(png|jpe?g|webp|avif|gif)(?:[?#]|$)/i.test(e.name)) addImage(e.name)
+          })
+
+          return {
+            images: Array.from(images),
+            videos: Array.from(videos),
+            title: document.title ?? '',
+            description: meta('meta[name="description"]') || meta('meta[property="og:description"]') || '',
+            bodyText: (document.body?.innerText ?? '').slice(0, 8000),
+            ogImage: abs(meta('meta[property="og:image"]') || null),
+            favicon: abs(favHref),
+            logoCandidates: Array.from(new Set(logos)).slice(0, 5),
+            fonts: Array.from(fonts).filter(Boolean).slice(0, 20),
+            colors: Array.from(colors).slice(0, 40),
+          }
+        })
+
+        const result: BrandScrapeResult = {
+          url: rawUrl,
+          title: data.title,
+          description: data.description,
+          bodyText: data.bodyText,
+          ogImage: data.ogImage,
+          favicon: data.favicon,
+          logoCandidates: data.logoCandidates,
+          fonts: data.fonts,
+          rawColors: data.colors,
+          screenshot: null,
+          images: data.images,
+          videos: data.videos,
+        }
+        partial = result
+
+        // The screenshot is a bonus: a page that will not paint still yields its text, fonts and colours.
+        // Animations are frozen (they are what keeps heavy marketing pages from ever being "stable").
+        const shotBudget = Math.min(BRAND_SCRAPE_SHOT_TIMEOUT, left() - 1_500)
+        if (shotBudget >= 1_000) {
+          try {
+            const png: Buffer = await page.screenshot({ type: 'png', fullPage: false, animations: 'disabled', caret: 'hide', timeout: shotBudget })
+            result.screenshot = png.toString('base64')
+          } catch (error) {
+            console.warn(`[brand-scrape] ${baseTarget.hostname} screenshot failed: ${error instanceof Error ? error.message.split('\n')[0] : String(error)}`)
+          }
+        }
+        return result
+      } finally {
+        void page.close().catch(() => undefined)
+      }
+    },
+    BRAND_SCRAPE_CLOSE_MS,
+  )
+
+  try {
+    return await Promise.race([running, deadline])
+  } finally {
+    if (timer) clearTimeout(timer)
+    // A run that lost the race keeps closing its browser in the background; its rejection is already handled.
+    running.catch(() => undefined)
+  }
+}
+
+type BrandScrapeGuard = BrowserSsrfGuard

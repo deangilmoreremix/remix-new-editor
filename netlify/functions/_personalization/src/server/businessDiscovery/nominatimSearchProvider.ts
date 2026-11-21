@@ -185,6 +185,11 @@ function recordFailure(): void {
   }
 }
 
+/** Public, internals-free health of the Nominatim search circuit on THIS server instance. */
+export function nominatimHealth(now: number = Date.now()): { coolingDown: boolean; consecutiveFailures: number } {
+  return { coolingDown: circuitState.openUntil !== 0 && now < circuitState.openUntil, consecutiveFailures: circuitState.consecutiveFailures }
+}
+
 /**
  * Test-only helper. Resets the provider circuit breaker and the shared
  * request gate so a fresh test starts from a clean state. Not part of the

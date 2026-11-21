@@ -1,0 +1,83 @@
+{
+  "__overview": {
+    "setup": "localStorage.setItem('brand_dna_list', JSON.stringify([{\"id\":\"guide-b1\",\"brandName\":\"Inventiko Skincare\",\"industry\":\"Beauty\",\"logoUrl\":\"/landing-art/01/logo.webp\",\"primaryColors\":[\"#0f5c4f\",\"#d9ff00\"]},{\"id\":\"guide-b2\",\"brandName\":\"Northpeak Outdoors\",\"industry\":\"Outdoor Gear\"}])); localStorage.setItem('brand_last_used_id','guide-b1')"
+  },
+  "product-image": {
+    "selector": "button[title=\"Reference media\"]",
+    "click": true
+  },
+  "brand-selector": {
+    "setup": "localStorage.setItem('brand_dna_list', JSON.stringify([{\"id\":\"guide-b1\",\"brandName\":\"Inventiko Skincare\",\"industry\":\"Beauty\",\"logoUrl\":\"/landing-art/01/logo.webp\",\"primaryColors\":[\"#0f5c4f\",\"#d9ff00\"]},{\"id\":\"guide-b2\",\"brandName\":\"Northpeak Outdoors\",\"industry\":\"Outdoor Gear\"}])); localStorage.setItem('brand_last_used_id','guide-b1')",
+    "selector": "xpath=//select[option[normalize-space()=\"No brand logo\"]]",
+    "click": false
+  },
+  "direction": {
+    "selector": "textarea[placeholder^=\"Describe the look\"]",
+    "click": false
+  },
+  "resolution": {
+    "selector": "xpath=//select[option[@value=\"4k\"]]",
+    "click": false
+  },
+  "generation-mode": {
+    "selector": "button:text-is(\"Brand API\")",
+    "click": true
+  },
+  "advanced-muapi-settings": {
+    "steps": [
+      {
+        "selector": "button:text-is(\"Brand API\")"
+      }
+    ],
+    "selector": "#photo-advanced-muapi"
+  },
+  "photo-style-presets": {
+    "steps": [
+      {
+        "text": "Studio white · 1:1",
+        "exact": true,
+        "wait": 500
+      },
+      {
+        "text": "Lifestyle natural · 4:5",
+        "exact": true,
+        "wait": 500
+      },
+      {
+        "text": "Gradient modern · 1:1",
+        "exact": true,
+        "wait": 500
+      }
+    ],
+    "selector": "[data-photo-category=\"general\"]"
+  },
+  "select-all": {
+    "steps": [
+      {
+        "selector": "[data-photo-category=\"beauty\"] button:text-is(\"Select all\")"
+      }
+    ],
+    "selector": "[data-photo-category=\"beauty\"]"
+  },
+  "generate-product-photos": {
+    "selector": "button:text-is(\"Generate Product Photos\")",
+    "click": false
+  },
+  "result-cards-and-download": {
+    "setup": "(() => { const s = document.getElementById('photo-result'); if (!s) return; s.innerHTML = ''; const card = document.createElement('div'); card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden mb-4'; const img = document.createElement('img'); img.src = '/media/minimax-h3/previews/emerald-bio-serum-product-film.webp'; img.alt = 'Generated product photo'; img.className = 'w-full h-64 md:h-80 object-cover'; card.appendChild(img); const meta = document.createElement('div'); meta.className = 'p-4 flex items-center justify-between'; meta.innerHTML = '<div><div class=\"text-xs font-bold text-white\">Water splash · Beauty</div><div class=\"text-[10px] text-muted uppercase tracking-wider\">1:1 · 2k</div></div><div class=\"flex gap-2\"><a href=\"/media/minimax-h3/previews/emerald-bio-serum-product-film.webp\" download class=\"btn-secondary-modern text-xs\">Download</a><button type=\"button\" data-photo-personalize class=\"btn-secondary-modern text-xs\" aria-haspopup=\"dialog\">Personalize</button><button type=\"button\" data-photo-animate class=\"btn-primary-modern text-xs\">Animate →</button></div>'; card.appendChild(meta); s.appendChild(card); })()",
+    "reload": false,
+    "selector": "#photo-result > div"
+  },
+  "personalize": {
+    "setup": "(() => { const s = document.getElementById('photo-result'); if (!s) return; s.innerHTML = ''; const card = document.createElement('div'); card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden mb-4'; const img = document.createElement('img'); img.src = '/media/minimax-h3/previews/emerald-bio-serum-product-film.webp'; img.alt = 'Generated product photo'; img.className = 'w-full h-64 md:h-80 object-cover'; card.appendChild(img); const meta = document.createElement('div'); meta.className = 'p-4 flex items-center justify-between'; meta.innerHTML = '<div><div class=\"text-xs font-bold text-white\">Water splash · Beauty</div><div class=\"text-[10px] text-muted uppercase tracking-wider\">1:1 · 2k</div></div><div class=\"flex gap-2\"><a href=\"/media/minimax-h3/previews/emerald-bio-serum-product-film.webp\" download class=\"btn-secondary-modern text-xs\">Download</a><button type=\"button\" data-photo-personalize class=\"btn-secondary-modern text-xs\" aria-haspopup=\"dialog\">Personalize</button><button type=\"button\" data-photo-animate class=\"btn-primary-modern text-xs\">Animate →</button></div>'; card.appendChild(meta); s.appendChild(card); })()",
+    "reload": false,
+    "selector": "#photo-result [data-photo-personalize]",
+    "click": false
+  },
+  "animate": {
+    "setup": "(() => { const s = document.getElementById('photo-result'); if (!s) return; s.innerHTML = ''; const card = document.createElement('div'); card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden mb-4'; const img = document.createElement('img'); img.src = '/media/minimax-h3/previews/emerald-bio-serum-product-film.webp'; img.alt = 'Generated product photo'; img.className = 'w-full h-64 md:h-80 object-cover'; card.appendChild(img); const meta = document.createElement('div'); meta.className = 'p-4 flex items-center justify-between'; meta.innerHTML = '<div><div class=\"text-xs font-bold text-white\">Water splash · Beauty</div><div class=\"text-[10px] text-muted uppercase tracking-wider\">1:1 · 2k</div></div><div class=\"flex gap-2\"><a href=\"/media/minimax-h3/previews/emerald-bio-serum-product-film.webp\" download class=\"btn-secondary-modern text-xs\">Download</a><button type=\"button\" data-photo-personalize class=\"btn-secondary-modern text-xs\" aria-haspopup=\"dialog\">Personalize</button><button type=\"button\" data-photo-animate class=\"btn-primary-modern text-xs\">Animate →</button></div>'; card.appendChild(meta); s.appendChild(card); })()",
+    "reload": false,
+    "selector": "#photo-result [data-photo-animate]",
+    "click": false
+  }
+}

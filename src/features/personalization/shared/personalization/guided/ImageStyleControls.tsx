@@ -96,7 +96,7 @@ export function ImageStyleControls({
                   onClick={() => onPreset(id)}
                   style={{
                     textAlign: 'left', padding: '7px 8px', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 700, color: C.text,
-                    background: active ? C.cyanSoft : 'rgba(255,255,255,.03)',
+                    background: active ? 'transparent' : 'rgba(255,255,255,.03)',
                     border: `1px solid ${active ? C.cyanBorder : C.border}`,
                     opacity: suits ? 1 : 0.62,
                   }}

@@ -1,0 +1,19 @@
+# Browser backend for the VidBee desktop app. NOT TESTED in the build sandbox (no Docker there).
+#   VIDBEE_ACCESS_TOKEN=<long random string> docker compose -f apps/desktop/host/docker/docker-compose.yml up --build
+# then open http://localhost:3300/?token=<the same string> once (a cookie remembers it).
+services:
+  vidbee-web:
+    build:
+      context: ../../../..          # apps/vidbee
+      dockerfile: apps/desktop/host/docker/Dockerfile
+    environment:
+      VIDBEE_ACCESS_TOKEN: ${VIDBEE_ACCESS_TOKEN:?set VIDBEE_ACCESS_TOKEN}
+    ports:
+      - "127.0.0.1:3300:3300"         # publish on loopback; put a TLS reverse proxy in front for remote access
+    volumes:
+      - vidbee-data:/data/vidbee
+      - ${VIDBEE_DOWNLOAD_DIR_HOST:-vidbee-downloads}:/data/downloads
+    restart: unless-stopped
+volumes:
+  vidbee-data:
+  vidbee-downloads:

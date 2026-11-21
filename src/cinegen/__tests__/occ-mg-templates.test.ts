@@ -11,6 +11,13 @@ describe('motion-graphics templates on the sandboxed code renderer', () => {
     expect(mgCode(code)).toMatch(/function Animation\(\{ props \}\)/);
     expect(gateTemplate(code).ok).toBe(true);
   });
+  it('wraps the component that takes { item }, not a helper declared before it', () => {
+    const code = 'const withAlpha = (c, a) => c;\nconst Graph = ({ item }) => <div>{item.props.title}</div>;';
+    expect(mgCode(code)).toMatch(/<Graph item=/);
+    expect(mgCode('const Only = ({ item }) => null;')).toMatch(/<Only item=/);
+    expect(mgCode('function Legacy({ item }) { return null; }')).toMatch(/<Legacy item=/);
+    expect(mgCode('const NoItem = () => null;')).toMatch(/<NoItem item=/); // fallback: first declaration
+  });
   it('the gate still rejects hostile template code', () => {
     expect(gateTemplate('const T = ({ item }) => { fetch("https://x"); return null; }').ok).toBe(false);
   });
@@ -33,6 +40,25 @@ describe('overlay-lane items reach the exported composition', () => {
     expect(model.layers.some((l: { type?: string }) => l.type === 'cta-button')).toBe(true);
     expect(model.layers.some((l: { type?: string }) => l.type === 'overlay-text')).toBe(true);
     expect(model.layers.some((l: { type?: string }) => l.type === 'lead-form')).toBe(false);
+  });
+});
+
+describe('every template offered passes the code gate with the code it will run', () => {
+  it('returns the repaired code for repaired templates, so what is offered is what the sandbox accepts', async () => {
+    const fsm = await import('node:fs');
+    const { loadMgTemplates } = await import('@cinegen/lib/occ/mg-templates');
+    const repaired = JSON.parse(fsm.readFileSync('public/occ-templates/repaired.json', 'utf8')) as Record<string, string>;
+    const orig = globalThis.fetch;
+    globalThis.fetch = (async (u: string) => ({ ok: true, json: async () => JSON.parse(fsm.readFileSync(`public${String(u)}`, 'utf8')) })) as never;
+    try {
+      const all = await loadMgTemplates();
+      const usable = all.filter((x) => x.usable);
+      expect(usable.length).toBeGreaterThan(200);
+      for (const t of usable) expect(gateTemplate(t.code).ok, `${t.id}: ${gateTemplate(t.code).why}`).toBe(true);
+      const fixedIds = Object.keys(repaired).filter((id) => all.find((x) => x.id === id)?.usable);
+      expect(fixedIds.length).toBeGreaterThan(0);
+      for (const id of fixedIds) expect(all.find((x) => x.id === id)!.code).toBe(repaired[id]);
+    } finally { globalThis.fetch = orig; }
   });
 });
 

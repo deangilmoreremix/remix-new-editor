@@ -17,6 +17,14 @@ export function srtTimestamp(ms: number): string {
   return `${pad(hh)}:${pad(mm)}:${pad(ss)},${pad(mmm, 3)}`;
 }
 
+/** ms → WebVTT timecode `HH:MM:SS.mmm` (a dot, not SRT's comma). */
+export function vttTimestamp(ms: number): string {
+  return srtTimestamp(ms).replace(',', '.');
+}
+
+/** WebVTT cue text may not contain a raw `&` or `<`. */
+const vttEscape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
 /** Chinese adjacent words are directly connected, including spaces between Western words (same spelling rules as CaptionsLayer rendering).*/
 function pageText(page: CaptionPage): string {
   return joinCaptionWords(page.words);
@@ -33,6 +41,14 @@ export function captionsToSrt(captions: CaptionsData, items: TimelineItem[], fps
   return pages
     .map((page, index) => `${index + 1}\n${srtTimestamp(page.start)} --> ${srtTimestamp(page.end)}\n${pageText(page)}`)
     .join('\n\n') + (pages.length ? '\n' : '');
+}
+
+/** [remix] WebVTT (.vtt): the `WEBVTT` header, then one cue per page with a dot-millisecond timecode. Same pages as the SRT. */
+export function captionsToVtt(captions: CaptionsData, items: TimelineItem[], fps: number): string {
+  const pages = captionPages(captions, items, fps);
+  return `WEBVTT\n\n${pages
+    .map((page, index) => `${index + 1}\n${vttTimestamp(page.start)} --> ${vttTimestamp(page.end)}\n${vttEscape(pageText(page))}`)
+    .join('\n\n')}${pages.length ? '\n' : ''}`;
 }
 
 /** Plain text (.txt): one line per page, no timecode.*/

@@ -9,3 +9,6 @@ Files under `src/cinegen/` are copied from https://github.com/deangilmoreremix/C
   images to OpenAI Images 2.6 — all on the user's own keys. No fal. No Render.
 
 Every other change to a vendored file is marked with a `// [remix]` comment.
+
+`src/cinegen/vendor-soundtouch/` is not CineGen code: it is SoundTouch JS (LGPL-2.1+) copied unmodified from FreeCut. See the README there.
+

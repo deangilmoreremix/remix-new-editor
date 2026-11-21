@@ -46,11 +46,16 @@ describe('brand pages open the brand from the URL (router passes no args)', () =
     ['AssetCanvasEditor', '../components/AssetCanvasEditor.js', '?brandId=b2'],
   ])('%s', async (name, file, query) => {
     seed(); at(query);
+    // The Asset Editor opens a saved asset (?id=<asset>) and takes its brand from the asset's campaign.
+    localStorage.setItem('brand_campaigns', JSON.stringify([{ id: 'c1', brandId: 'b2', concepts: [] }]));
+    localStorage.setItem('brand_assets', JSON.stringify([{ id: 'a1', campaignId: 'c1', platform: 'instagram-feed', headline: 'Hi', body: '', cta: 'Go', imageUrl: '' }]));
+    if (name === 'AssetCanvasEditor') at('?id=a1');
     const mod = await import(file);
     const el = mod[name]();
     expect(el.textContent).not.toContain('Brand not found');
+    expect(el.textContent).not.toContain('Asset not found');
     if (name !== 'AssetCanvasEditor') expect(el.textContent).toContain('Beta Co'); // the Asset Editor doesn't print the brand name
-    else expect(el.textContent).toContain('Canvas Controls');
+    else expect(el.textContent).toContain('Headline');
   });
 
   it('with no id at all it opens the first brand instead of "not found"', async () => {

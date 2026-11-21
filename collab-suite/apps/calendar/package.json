@@ -1,0 +1,2 @@
+{ "name": "@collab/calendar", "version": "0.1.0", "private": true, "main": "src/index.tsx",
+  "scripts": { "dev": "vite --config ../../vite.app.config.ts", "build": "vite build --config ../../vite.app.config.ts" } }

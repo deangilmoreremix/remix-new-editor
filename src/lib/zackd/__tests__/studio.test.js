@@ -23,6 +23,8 @@ vi.mock('../api.js', async (orig) => ({
 vi.mock('../assemble.js', async (orig) => ({ ...(await orig()), runAssembly: vi.fn(async () => ({ blob: new Blob(['x'], { type: 'video/mp4' }), duration: 38.6 })) }));
 let uploadSupabase = vi.fn(async () => ({ url: 'https://store.example.com/f.mp4' }));
 const uploadFile = vi.fn(async () => 'https://muapi.example.com/uploaded-cut.mp4');
+const addCaption = vi.fn();
+vi.mock('../../editor/captionActions.js', () => ({ addCaptionButton: (...a) => addCaption(...a) }));
 vi.mock('../../muapi.js', () => ({ muapi: { uploadFile: (...a) => uploadFile(...a) } }));
 vi.mock('../../studioChrome.js', () => ({ mountStudioChrome: vi.fn(() => ({ topbar: null })) }));
 const createStudioHeader = vi.fn((id, title) => { const d = document.createElement('div'); d.dataset.studioHeader = id; d.textContent = title; return d; });
@@ -152,34 +154,23 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(runAssembly.mock.calls[0][0]).toMatchObject({ mixVoice: true, trimToPlanned: true, narrationUrl: expect.stringContaining('cdn.example.com/tts') });
   });
 
-  it('burns captions on demand: gated on narration, confirms cost, uploads the cut, shows the result and a history entry', async () => {
+  it('captions are free: the cut opens the on-device Caption Studio (no narration, job or upload) and the result is attached', async () => {
     const root = mount();
     await click(root, 'Use as template');
     await step(root, 'Render final cut'); generate(root).click();
-    await until(() => btnText(root, 'Burn captions'), 'captions panel');
-    expect(btnText(root, 'Burn captions').disabled).toBe(true); // no narration yet
-    await click(root, 'Generate narration');
-    await until(() => root.querySelector('audio'), 'narration');
-    // narration made after the render is not in the cut: burning would transcribe the clips' own sound, so re-render first
-    expect(btnText(root, 'Burn captions').disabled).toBe(true);
-    expect(root.textContent).toContain('This cut does not contain the narration');
-    await step(root, 'Render again'); generate(root).click();
-    await until(() => runAssembly.mock.calls.length === 2 && runAssembly.mock.calls[1][0].mixVoice === true, 're-render with narration');
-    await until(() => !btnText(root, 'Burn captions').disabled, 'burn enabled');
-    const lang = root.querySelector('select[aria-label="Caption language"]'); lang.value = 'Spanish (Mexico)'; lang.dispatchEvent(new Event('change'));
-    const th = root.querySelector('select[aria-label="Caption theme"]'); th.value = 'Beast'; th.dispatchEvent(new Event('change'));
-    expect(btnText(root, 'New project').disabled).toBe(false); // idle: reset is available
-    window.confirm.mockReturnValueOnce(false);
-    btnText(root, 'Burn captions').click(); await tick();
-    expect(uploadFile).not.toHaveBeenCalled(); // declined: nothing uploaded or charged
-    btnText(root, 'Burn captions').click();
+    await until(() => btnText(root, 'Free Captions'), 'captions panel');
+    expect(btnText(root, 'Free Captions').disabled).toBe(false); // works without narration: Whisper transcribes the cut's own sound
+    expect(root.textContent).not.toMatch(/\$0\.\d+|Paid/);
+    expect(root.querySelector('select[aria-label="Caption language"]')).toBeNull(); // the studio owns language and look
+    btnText(root, 'Free Captions').click();
+    await until(() => addCaption.mock.calls.length === 1, 'studio opened');
+    const opts = addCaption.mock.calls[0][0];
+    expect(typeof opts.videoUrl).toBe('string');
+    opts.onComplete('blob:http://localhost/captioned');
     await until(() => btnText(root, 'Save captioned to library'), 'captioned result');
-    expect(uploadFile).toHaveBeenCalledTimes(1);
-    expect(calls.find((c) => c.kind === 'captions')).toMatchObject({ videoUrl: 'https://muapi.example.com/uploaded-cut.mp4', language: 'Spanish (Mexico)', theme: 'Beast' });
-    btnText(root, 'Save captioned to library').click(); await tick();
-    expect(saveGeneration).toHaveBeenCalledWith(expect.objectContaining({ studio: 'zackd', type: 'video', url: expect.stringContaining('captions') }));
-    expect(root.querySelectorAll('#zackd-history-sidebar video')).toHaveLength(1);
-    expect(root.querySelector('#zackd-history-sidebar').className).toContain('translate-x-0');
+    expect(btnText(root, 'Edit captions')).toBeTruthy();
+    expect(calls.find((c) => c.kind === 'captions')).toBeUndefined(); // no paid job was submitted
+    expect(uploadFile).not.toHaveBeenCalled(); // and nothing went to MuAPI
   });
 
   it('a failed batch shows one clean, visible error under the prompt bar and keeps Redo available', async () => {
@@ -187,7 +178,8 @@ describe('ZackDStudio (built like the other video studios)', () => {
     typeTopic(root, 'Gum'); await step(root, 'Write script'); generate(root).click();
     await step(root, 'Approve script');
     runJob.mockRejectedValueOnce(new Error('The generation failed. Try again.'));
-    const scrollIntoView = vi.fn(); Element.prototype.scrollIntoView = scrollIntoView;
+    // The shared test setup polyfills scrollIntoView on HTMLElement.prototype, which shadows Element.prototype, so spy there.
+    const scrollIntoView = vi.spyOn(HTMLElement.prototype, 'scrollIntoView').mockImplementation(() => {});
     generate(root).click();
     await until(() => root.querySelector('[role=alert]:not(.hidden)'), 'error');
     const alert = root.querySelector('[role=alert]');
@@ -197,6 +189,7 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(scrollIntoView).toHaveBeenCalled();
     expect(generate(root).textContent).toContain('Generate 1 character sheet'); // the failed sheet is retried from the same button
     expect(root.querySelector('button[aria-label^="Generate character sheet"], button[aria-label^="Redo"], button[aria-label^="Generate"]')).toBeTruthy();
+    scrollIntoView.mockRestore();
   });
 
   it('drops a generated voice-over when the narration text it was made from is edited', async () => {
@@ -360,24 +353,6 @@ describe('ZackDStudio (built like the other video studios)', () => {
     await tick(40);
     expect(JSON.parse(localStorage.getItem('zackd_history_v1')).map((h) => h.url)).toContain('https://cdn.example.com/captioned-other-project.mp4');
     expect(root.querySelectorAll('#zackd-history-sidebar video').length).toBe(1);
-  });
-
-  it('a caption burn whose cut was invalidated meanwhile still puts the paid result in the history', async () => {
-    const root = mount();
-    await click(root, 'Use as template');
-    await step(root, 'Render final cut'); generate(root).click();
-    await until(() => btnText(root, 'Burn captions'), 'captions panel');
-    await click(root, 'Generate narration');
-    await until(() => root.querySelector('audio'), 'narration');
-    await step(root, 'Render again'); generate(root).click();
-    await until(() => !btnText(root, 'Burn captions')?.disabled, 'burn enabled');
-    let finishCaptions;
-    runJob.mockImplementationOnce((b, opts) => new Promise((resolve) => { opts.onRequestId('req_burn'); finishCaptions = () => resolve({ url: 'https://cdn.example.com/captioned-orphan.mp4', model: 'm' }); }));
-    btnText(root, 'Burn captions').click();
-    await until(() => finishCaptions, 'burn submitted');
-    window.dispatchEvent(new CustomEvent('zackd:stored-updated', { detail: { slot: 'clip' } })); // a recovered clip replaces what the cut was built from
-    finishCaptions(); await tick(40);
-    expect(JSON.parse(localStorage.getItem('zackd_history_v1')).map((h) => h.url)).toContain('https://cdn.example.com/captioned-orphan.mp4');
   });
 
   it('a library upload still records its result when a recovered clip clears the cut while it uploads', async () => {

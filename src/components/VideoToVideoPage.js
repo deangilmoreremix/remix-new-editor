@@ -22,54 +22,26 @@ export function VideoToVideoPage() {
   }
   container.appendChild(hero);
 
-  const promptWrapper = document.createElement('div');
-  promptWrapper.className = 'w-full relative z-40 animate-fade-in-up';
-  promptWrapper.style.animationDelay = '0.2s';
-
-  const bar = document.createElement('div');
-  bar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
-
-  const topRow = document.createElement('div');
-  topRow.className = 'flex items-start gap-5 px-2';
-
   const ctaSection = document.createElement('div');
-  ctaSection.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center';
+  ctaSection.className = 'w-full max-w-3xl bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center animate-fade-in-up';
   ctaSection.innerHTML = `
     <h2 class="text-2xl md:text-3xl font-black text-white mb-2">Transform Your Videos</h2>
-    <p class="text-sm text-muted mb-6 max-w-md mx-auto">Start editing your videos with powerful AI tools</p>
+    <p class="text-sm text-muted mb-6 max-w-md mx-auto">Start editing your videos with powerful AI tools. Upload a clip in Video Studio to restyle it, extend it or remove a watermark.</p>
     <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-      <button class="cta-btn btn-primary-modern">Get Started Free</button>
+      <button type="button" class="cta-btn btn-primary-modern">Get Started Free</button>
       <button type="button" class="gtm-boost-btn border border-primary/40 text-primary px-6 py-2.5 rounded-xl font-black text-sm hover:bg-primary/10 active:scale-95 transition-all" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>
     </div>
   `;
+  container.appendChild(ctaSection);
 
-  const videoPickerBtn = document.createElement('button');
-  videoPickerBtn.type = 'button';
-  videoPickerBtn.title = 'Upload video for transformation';
-  videoPickerBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center relative overflow-hidden mt-1.5 bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group';
-
-  const videoIconEl = document.createElement('div');
-  videoIconEl.className = 'flex items-center justify-center w-full h-full';
-  videoIconEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted group-hover:text-primary transition-colors"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
-
-  const gtmBoostBtn = container.querySelector('.gtm-boost-btn');
-  if (gtmBoostBtn) {
-    gtmBoostBtn.addEventListener('click', () => {
-      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-        openGTMPromptModal('video-to-video', (prompt) => {
-          try { localStorage.setItem('prefill_prompt', prompt); } catch { /* ignore storage failures */ }
-          navigate('video');
-        });
-      }).catch((err) => console.error('[VideoToVideoPage] GTM Boost failed:', err));
-    });
-  }
-
-  container.querySelectorAll('.model-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const modelName = card.dataset.model;
-      localStorage.setItem('prefill_model', modelName);
-      navigate('video');
-    });
+  ctaSection.querySelector('.cta-btn').addEventListener('click', () => navigate('video'));
+  ctaSection.querySelector('.gtm-boost-btn').addEventListener('click', () => {
+    import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+      openGTMPromptModal('video-to-video', (prompt) => {
+        try { localStorage.setItem('prefill_prompt', prompt); } catch { /* ignore storage failures */ }
+        navigate('video');
+      });
+    }).catch((err) => console.error('[VideoToVideoPage] GTM Boost failed:', err));
   });
 
   return container;

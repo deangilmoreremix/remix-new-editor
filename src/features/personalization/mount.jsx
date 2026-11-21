@@ -19,32 +19,39 @@ import {
   buildViralPersonalizeSource,
 } from './shared/personalization/demoSources'
 import { installPersonalizationApiAuth } from './lib/apiAuth'
-import { SocialPublishContext } from './components/SocialPublishProvider'
-import { openSocialPublish } from '../../lib/socialPublishHelpers.js'
+import { SocialPublishProvider } from './components/SocialPublishProvider'
+import { useAuthConfig } from './lib/authConfig.ts'
+import { registerCaptionStudio } from './shared/personalization/captions/captionStudioBridge'
+import { openCaptionStudioForPersonalization } from './captionStudioHost.js'
 
 /**
- * OpenHiggsBolt wraps the modal in SocialPublishProvider, so "Publish" opens
- * its social publisher. remix's equivalent is the `social-publish` modal
- * (src/lib/socialPublishHelpers.js), which takes the caption as
- * `description`.
+ * Captions: the personalization editor has no caption editor of its own. It opens the one Caption Studio and draws whatever comes back
+ * (pages + full style) itself, so colours, font and height carry over to the preview and every export.
  */
-const SOCIAL_PUBLISH_VALUE = {
-  openPublish: ({ mediaUrl, mediaType, title, caption } = {}) => {
-    if (!mediaUrl) return
-    openSocialPublish({ mediaUrl, mediaType, title, description: caption || '' })
-  },
-  closePublish: () => {},
-  openSocialPublisher: ({ asset } = {}) => {
-    const url = asset?.url || asset?.mediaUrl
-    if (url) openSocialPublish({ mediaUrl: url, mediaType: asset?.type === 'video' ? 'video' : 'image' })
-  },
-}
+registerCaptionStudio(openCaptionStudioForPersonalization)
 
 /**
  * OpenHiggsBolt's shell listens for `muapi:auth-required` (dispatched by the
  * ported muapi client on a 401/403) and opens Settings with the error. The
  * remix equivalent is the API-keys Settings modal (AuthModal).
  */
+function openSettings() {
+  import('../../components/AuthModal.js')
+    .then(({ AuthModal }) => AuthModal())
+    .catch((err) => console.error('[personalization] could not open Settings:', err))
+}
+
+/** Feeds the publisher the Settings MuAPI key and keeps it current when the key changes. */
+function SocialPublishRoot({ children }) {
+  // useAuthConfig subscribes to the key manager, so a key added, replaced or cleared in Settings (same tab) updates this at once.
+  const { apiKey } = useAuthConfig()
+  return (
+    <SocialPublishProvider apiKey={apiKey || null} onRequestApiKey={openSettings}>
+      {children}
+    </SocialPublishProvider>
+  )
+}
+
 let authListenerInstalled = false
 function installAuthRequiredListener() {
   if (authListenerInstalled || typeof window === 'undefined') return
@@ -214,12 +221,14 @@ function ensureMounted() {
   document.body.appendChild(host)
   root = createRoot(host)
   root.render(
-    <SocialPublishContext.Provider value={SOCIAL_PUBLISH_VALUE}>
+    // The same provider OpenHiggsBolt wraps the modal in: "Publish" opens its multi-step publisher (write, destinations,
+    // thumbnail, review) for YouTube, Instagram, TikTok, Facebook, LinkedIn, Pinterest, Threads and X.
+    <SocialPublishRoot>
       <DemoPersonalizeProvider>
         <Bridge />
         <Slots />
       </DemoPersonalizeProvider>
-    </SocialPublishContext.Provider>,
+    </SocialPublishRoot>,
   )
 }
 

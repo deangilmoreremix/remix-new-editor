@@ -2719,7 +2719,9 @@ export class TemplateInputBuilder {
     const errors = [];
     const safeValues = values || {};
     (this.inputs || []).forEach(input => {
-      if (input.required && !safeValues[input.name]) {
+      const given = safeValues[input.name];
+      // A value that is only whitespace is as empty as no value.
+      if (input.required && (!given || (typeof given === 'string' && !given.trim()))) {
         errors.push({
           field: input.name,
           message: `${input.label || input.name} is required`

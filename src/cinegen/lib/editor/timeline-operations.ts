@@ -5,6 +5,7 @@ import { clipFadeFactor } from '../../../openchatcut/editor/clipFade';
 import { MIN_RATE as OCC_MIN_RATE, MAX_RATE as OCC_MAX_RATE } from '../../../openchatcut/editor/rateStretch';
 import { clipEffectiveDuration, clipEndTime, TRACK_COLORS, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_COLOR } from '@cinegen/types/timeline';
 import { generateId } from '@cinegen/lib/utils/ids';
+import { poseOpacity, sliceAnim } from './stage2/anim';
 import type { Asset } from '@cinegen/types/project';
 
 /* Linked clip helpers */
@@ -236,6 +237,7 @@ export function splitClip(
     ...clip,
     trimEnd: clip.trimEnd + (clip.duration - clip.trimStart - clip.trimEnd - sourceSplitOffset),
     keyframes: clip.keyframes.filter((kf) => kf.time < sourceSplitOffset),
+    ...(clip.anim ? { anim: sliceAnim(clip.anim, 0, rel) } : {}), // [remix] Stage 2
     linkedClipIds: firstLinkedIds.length ? firstLinkedIds : undefined,
   };
 
@@ -247,6 +249,7 @@ export function splitClip(
     keyframes: clip.keyframes
       .filter((kf) => kf.time >= sourceSplitOffset)
       .map((kf) => ({ ...kf, time: kf.time - sourceSplitOffset })),
+    ...(clip.anim ? { anim: sliceAnim(clip.anim, rel, effDur) } : {}), // [remix] Stage 2
     linkedClipIds: secondLinkedIds.length ? secondLinkedIds : undefined,
   };
 
@@ -684,7 +687,7 @@ export function interpolateProperty(
   property: 'opacity' | 'volume',
   clipTime: number,
 ): number {
-  const value = interpolateKeyframes(clip, property, clipTime);
+  const value = property === 'opacity' && clip.anim ? poseOpacity(clip, clipTime) : interpolateKeyframes(clip, property, clipTime); // [remix] Stage 2: unified keys + modifiers
   // [remix] OpenChatCut fade-in/out multiplier (editor/clipFade.ts), seconds as the unit
   if (!clip.fadeIn && !clip.fadeOut) return value;
   return value * clipFadeFactor(clipTime, clipEffectiveDuration(clip), clip.fadeIn ?? 0, clip.fadeOut ?? 0);
@@ -754,6 +757,24 @@ export function moveKeyframe(
   };
 }
 
+/**
+ * [remix] Fix A: the clips a dissolve's overlap moves with clip B: B, every later clip on B's track (so later cuts and transitions keep their
+ * overlap instead of leaving a gap / shrinking), and the linked clips that are in sync with any of them (their audio). Slipped (out of sync)
+ * links are left alone. addTransition shifts this set left by the overlap and removeTransition shifts it back right.
+ */
+function transitionRippleSet(timeline: Timeline, clipB: Clip): Set<string> {
+  const ids = new Set<string>();
+  const onTrack = timeline.clips.filter((c) => c.trackId === clipB.trackId && (c.id === clipB.id || c.startTime >= clipB.startTime - 1e-6));
+  for (const c of onTrack) {
+    ids.add(c.id);
+    for (const id of c.linkedClipIds ?? []) {
+      const o = timeline.clips.find((x) => x.id === id);
+      if (o && Math.abs(o.startTime - c.startTime) < 1e-3) ids.add(o.id);
+    }
+  }
+  return ids;
+}
+
 export function addTransition(timeline: Timeline, transition: Transition): Timeline {
   if (transition.type === 'dissolve' && transition.clipBId) {
     const clipA = timeline.clips.find((c) => c.id === transition.clipAId);
@@ -765,14 +786,13 @@ export function addTransition(timeline: Timeline, transition: Transition): Timel
     if (available <= 0) return timeline;
 
     const clampedDuration = Math.min(transition.duration, available);
-    // Shift clipB left by the transition duration so the clips overlap
+    // Shift clipB left by the transition duration so the clips overlap.
+    // [remix] Stage 8: B's linked clips that are in sync with it (its audio) shift by the same amount; before, the picture moved and the
+    // sound stayed, which put B's audio `duration` seconds late against its picture and left silence/black at the tail of the export.
+    const moved = transitionRippleSet(timeline, clipB);
     return withDuration({
       ...timeline,
-      clips: timeline.clips.map((c) =>
-        c.id === transition.clipBId
-          ? { ...c, startTime: c.startTime - clampedDuration }
-          : c,
-      ),
+      clips: timeline.clips.map((c) => (moved.has(c.id) ? { ...c, startTime: c.startTime - clampedDuration } : c)),
       transitions: [...(timeline.transitions ?? []), { ...transition, duration: clampedDuration }],
     });
   }
@@ -785,10 +805,26 @@ export function addTransition(timeline: Timeline, transition: Transition): Timel
 }
 
 export function removeTransition(timeline: Timeline, transitionId: string): Timeline {
-  return {
-    ...timeline,
-    transitions: (timeline.transitions ?? []).filter((t) => t.id !== transitionId),
-  };
+  const tr = (timeline.transitions ?? []).find((t) => t.id === transitionId);
+  const rest = (timeline.transitions ?? []).filter((t) => t.id !== transitionId);
+  if (tr && tr.type === 'dissolve' && tr.clipBId) {
+    const clipA = timeline.clips.find((c) => c.id === tr.clipAId);
+    const clipB = timeline.clips.find((c) => c.id === tr.clipBId);
+    if (clipA && clipB) {
+      // [remix] Fix A: inverse of addTransition. Shift B (and what moved with it) back right by the overlap that is actually there
+      // (never more than the transition's own length), so add -> remove restores the original positions.
+      const overlap = Math.min(tr.duration, Math.max(0, clipEndTime(clipA) - clipB.startTime));
+      if (overlap > 1e-9) {
+        const moved = transitionRippleSet(timeline, clipB);
+        return withDuration({
+          ...timeline,
+          clips: timeline.clips.map((c) => (moved.has(c.id) ? { ...c, startTime: c.startTime + overlap } : c)),
+          transitions: rest,
+        });
+      }
+    }
+  }
+  return { ...timeline, transitions: rest };
 }
 
 export function updateTransition(
@@ -965,7 +1001,7 @@ export function createSyncedTimeline(
 export function updateClipProperties(
   timeline: Timeline,
   clipId: string,
-  updates: Partial<Pick<Clip, 'speed' | 'fadeIn' | 'fadeOut' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions'>>,
+  updates: Partial<Pick<Clip, 'speed' | 'fadeIn' | 'fadeOut' | 'opacity' | 'volume' | 'flipH' | 'flipV' | 'fadeIn' | 'fadeOut' | 'transform' | 'fx' | 'lut' | 'blendMode' | 'zoom' | 'captions' | 'anim' | 'keyframes'>>,
 ): Timeline {
   const clip = timeline.clips.find((c) => c.id === clipId);
   const linkedIds = new Set(getLinkedIds(clip));
