@@ -132,6 +132,8 @@ debug_signin.cjs
 !public/motion-studio/legacy-textures/agent-stream.jpg
 # real previews of the Video Pages designs (made by scripts/generate-landing-design-previews.mjs; the design pickers show them)
 !/public/landing-previews/*.jpg
+# poster stills for the local demo-library videos (extracted from public/media/promptfeed/videos; the demo library references them)
+!/public/media/promptfeed/previews/*.jpg
 
 # Logs
 logs

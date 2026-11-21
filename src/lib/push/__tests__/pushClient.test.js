@@ -166,6 +166,48 @@ function makeStoreClient({ stored = [], failInsertFor = new Set(), insertCode } 
   };
 }
 
+describe('registration through register_push_subscription (atomic)', () => {
+  const rpcClient = (results) => { const calls = []; const legacy = []; return { calls, legacy, rpc: async (name, args) => { calls.push([name, args]); const r = results.shift(); if (r instanceof Error) throw r; return r ?? { error: null }; }, from: () => { legacy.push('from'); return makeStoreClient().from(); } }; };
+  it('registers with ONE rpc call carrying the subscription and never touches the table directly', async () => {
+    const c = rpcClient([{ error: null }]);
+    await storeSubscription({ client: c, subscription: makeSub(), env: makeEnv() });
+    expect(c.calls).toHaveLength(1);
+    expect(c.calls[0][0]).toBe('register_push_subscription');
+    expect(c.calls[0][1]).toMatchObject({ p_endpoint: 'https://push.example/abc', p_p256dh: 'P', p_auth: 'A' });
+    expect(c.legacy).toEqual([]);
+  });
+  it('an endpoint owned by another account (23505) is thrown with its code, without the delete + insert fallback', async () => {
+    const c = rpcClient([{ error: { code: '23505', message: 'push endpoint is registered to another account' } }]);
+    await expect(storeSubscription({ client: c, subscription: makeSub(), env: makeEnv() })).rejects.toMatchObject({ code: '23505' });
+    expect(c.legacy).toEqual([]);
+  });
+  it('any other database error is thrown as is', async () => {
+    const c = rpcClient([{ error: { code: '28000', message: 'not signed in' } }]);
+    await expect(storeSubscription({ client: c, subscription: makeSub(), env: makeEnv() })).rejects.toMatchObject({ code: '28000', message: 'not signed in' });
+    expect(c.legacy).toEqual([]);
+  });
+  it('a call that throws (network failure) is an error for the caller, never a silent switch to the non-atomic path', async () => {
+    const c = rpcClient([new Error('network down')]);
+    await expect(storeSubscription({ client: c, subscription: makeSub(), env: makeEnv() })).rejects.toThrow(/network down/);
+    expect(c.legacy).toEqual([]);
+  });
+  it('before the migration (function missing: PGRST202 / 42883) it falls back to delete + insert', async () => {
+    for (const first of [{ error: { code: 'PGRST202', message: 'Could not find the function' } }, { error: { code: '42883', message: 'function does not exist' } }]) {
+      const c = rpcClient([first]);
+      c.from = () => makeStoreClient().from();           // a working table
+      const used = []; const base = c.from;
+      c.from = () => { used.push('from'); return base(); };
+      await storeSubscription({ client: c, subscription: makeSub(), env: makeEnv() });
+      expect(used.length).toBeGreaterThan(0);
+    }
+  });
+  it('a client without rpc (older callers) still works through the table', async () => {
+    const client = makeStoreClient();
+    await storeSubscription({ client, subscription: makeSub(), env: makeEnv() });
+    expect(client.rows).toHaveLength(1);
+  });
+});
+
 describe('registration safety', () => {
   it('puts the previous registration back when saving the new one fails', async () => {
     const old = { endpoint: 'https://push.example/abc', p256dh: 'OLD', auth: 'OLDA', user_agent: 'Chrome' };
