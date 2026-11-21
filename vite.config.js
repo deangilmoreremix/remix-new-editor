@@ -889,6 +889,22 @@ function gtmBoostDevPlugin() {
  * file removes a 404 path and matches the production behavior (Netlify
  * serves the same file as a static rewrite).
  */
+// Dev server: client-side routes of the embedded SmartWarmupAI dashboard (built to public/smartwarmupai-app) serve its own index.html,
+// and Help pages (public/smartwarmupai-help/**/index.html) resolve their directory URLs.
+function smartwarmupaiFallbackPlugin() {
+  return {
+    name: 'smartwarmupai-spa-fallback',
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        const url = (req.url || '').split('?')[0];
+        if (url.startsWith('/smartwarmupai-app/') && !/\.[a-z0-9]+$/i.test(url)) req.url = '/smartwarmupai-app/index.html';
+        else if (url.startsWith('/smartwarmupai-help/') && url.endsWith('/')) req.url = `${url}index.html`;
+        next();
+      });
+    },
+  };
+}
+
 function modelCatalogDevPlugin() {
   const CATALOG_PATH = path.join(PROJECT_ROOT, 'public', 'api', 'model-catalog.json');
   return {
@@ -1054,6 +1070,7 @@ export default defineConfig({
         },
     },
     plugins: [
+      smartwarmupaiFallbackPlugin(),
         // [remix] OpenChatCut's dev-only plugin (config/vite.config.ts `serveOrtWasmLoader`): serve the prebuilt onnxruntime loader
         // module from public/models/silero-vad verbatim, since Vite refuses to import JS from /public.
         {
