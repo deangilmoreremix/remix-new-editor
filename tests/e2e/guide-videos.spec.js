@@ -210,6 +210,33 @@ async function act(el, target, feature, label) {
   await el.click({ timeout: 3000 }).catch(() => {});
 }
 
+// The ring should cover the whole feature, not just the matched element: a prompt box is the whole prompt bar.
+// `ring` in a demo/target (a selector) wins; otherwise a lone text field grows to its rounded card (if that is a sensible size).
+async function ringBox(el, target) {
+  const pg = page_();
+  try {
+    if (target?.ring) {
+      const r = await pg.locator(target.ring).filter({ visible: true }).first().boundingBox();
+      if (r) return r;
+    }
+    return await el.evaluate((n) => {
+      const own = n.getBoundingClientRect();
+      const fieldish = ['TEXTAREA', 'INPUT'].includes(n.tagName) || n.isContentEditable;
+      let best = own;
+      if (fieldish) {
+        let p = n.parentElement;
+        for (let i = 0; i < 4 && p && p !== document.body; i++, p = p.parentElement) {
+          const r = p.getBoundingClientRect();
+          const rounded = parseFloat(getComputedStyle(p).borderTopLeftRadius) >= 8;
+          if (r.height > 420 || r.width > innerWidth - 40) break;
+          if (rounded && r.width >= own.width && r.height >= own.height) best = r;
+        }
+      }
+      return { x: best.x, y: best.y, width: best.width, height: best.height };
+    });
+  } catch { return null; }
+}
+
 // A follow-up step in a demo: glide to a control, ring it, and use it. Never generates, publishes, sends, pays or deletes.
 const NEVER = /\b(generate|publish|send|pay|buy|purchase|subscribe|deploy|delete|remove all|log ?out|sign ?out)\b/i;
 async function followUp(a, c, id) {
@@ -224,13 +251,14 @@ async function followUp(a, c, id) {
   if (box) {
     await c.ui({ cursor: { x: box.x + Math.min(box.width / 2, 120), y: box.y + box.height / 2 } });
     await pg.waitForTimeout(700);
-    await c.ui({ ring: box });
+    await c.ui({ ring: (await ringBox(el, a)) || box });
     await pg.waitForTimeout(700);
   }
   if (NEVER.test(label) && !a.type) { console.log(`    - ${id}: not clicking "${label.slice(0, 30)}"`); return; }
   if (box) await c.ui({ click: { x: box.x + Math.min(box.width / 2, 120), y: box.y + box.height / 2 } });
   await act(el, a, { name: id }, label);
-  await c.ui({ ring: null });
+  const rn = await ringBox(el, a);
+  await c.ui({ ring: rn });
   await pg.waitForTimeout(a.hold || 1200);
 }
 
@@ -343,12 +371,15 @@ for (const guide of GUIDES) {
           const cy = box.y + box.height / 2;
           await c.ui({ cursor: { x: cx, y: cy } });
           await page.waitForTimeout(1000);
-          await c.ui({ ring: box });
+          const rbox = (await ringBox(el, target)) || box;
+          await c.ui({ ring: rbox });
           await page.waitForTimeout(1200);
           if (!willOpen) return;
           const urlBefore = page.url();
           await c.ui({ click: { x: cx, y: cy } });
           await act(el, target, feature, label);
+          const rnow = await ringBox(el, target); // the page may have scrolled or the field grown
+          if (rnow) { await c.ui({ ring: rnow }); }
           for (const a of target.then || []) await followUp(a, c, id);
           // An API-key prompt can pop up after a click: cut it out of the clip.
           let modal = false;
@@ -359,7 +390,7 @@ for (const guide of GUIDES) {
             await installOverlay(page);
             await page.waitForTimeout(350);
             await c.resume();
-            await c.ui({ caption: text, capTop, ring: box });
+            await c.ui({ caption: text, capTop, ring: (await ringBox(el, target)) || box });
           }
           if (page.url() !== urlBefore) warnings.push(`${id}: control navigated away`);
           await page.waitForTimeout(1500);
