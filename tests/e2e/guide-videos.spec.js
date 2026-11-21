@@ -296,7 +296,7 @@ for (const guide of GUIDES) {
       return route.fulfill({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify({ url, file_url: url, data: { url }, result: { url } }) });
     });
     // A placeholder key keeps the "set up your API keys" modal from interrupting the tour. It is never valid, so nothing can be billed.
-    await page.addInitScript(() => { try { for (const k of ['muapi_key', 'openai_key']) if (!localStorage.getItem(k)) localStorage.setItem(k, 'tour-placeholder-key'); } catch {} });
+    await page.addInitScript(() => { try { const v = btoa('muapi_2024_tour-placeholder-key'); for (const k of ['muapi_key', 'openai_key', 'pexels_key', 'pixabay_key', 'videodb_key']) if (!localStorage.getItem(k)) localStorage.setItem(k, v); } catch {} }); // the app stores keys obfuscated (apiKeyManager.js), so a raw value reads as no key
     const targets = TARGETS[guide.slug] || {};
     const dir = path.join(OUT, guide.slug);
     const timelineFile = path.join(dir, 'timeline.json');
