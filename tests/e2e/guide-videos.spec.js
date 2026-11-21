@@ -297,6 +297,17 @@ for (const guide of GUIDES) {
     });
     // A placeholder key keeps the "set up your API keys" modal from interrupting the tour. It is never valid, so nothing can be billed.
     await page.addInitScript(() => { try { const v = btoa('muapi_2024_tour-placeholder-key'); for (const k of ['muapi_key', 'openai_key', 'pexels_key', 'pixabay_key', 'videodb_key']) if (!localStorage.getItem(k)) localStorage.setItem(k, v); } catch {} }); // the app stores keys obfuscated (apiKeyManager.js), so a raw value reads as no key
+    // Second layer: if the API-key modal is ever mounted (page or studio iframe), remove it the moment it appears,
+    // so it can never be on screen in a recorded frame. The seeded keys above are the real fix; this is the net.
+    await page.addInitScript(() => {
+      const kill = () => {
+        for (const h of document.querySelectorAll('h2')) {
+          if (/set up your API keys/i.test(h.textContent || '')) { (h.closest('.fixed') || h.closest('[data-auth-modal]') || h.parentElement?.parentElement)?.remove(); console.log('[tour] removed API key modal'); }
+        }
+      };
+      new MutationObserver(kill).observe(document, { childList: true, subtree: true });
+    });
+    page.on('console', (m) => { if (m.text().includes('[tour] removed API key modal')) console.log('    ! API key modal appeared and was removed'); });
     const targets = TARGETS[guide.slug] || {};
     const dir = path.join(OUT, guide.slug);
     const timelineFile = path.join(dir, 'timeline.json');
