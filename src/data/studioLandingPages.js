@@ -1,5 +1,5 @@
-// Studio landing page data — single source of truth for /studios/[slug] pages.
-// Content is also mirrored in docs/seo-studio-landing-pages.md.
+// Legacy studio marketing copy. Only its `seo` keywords are used, by the
+// /studios/<slug> feature guides (src/data/studioGuides.core.js).
 
 export const STUDIO_LANDING_PAGES = {
   image: {

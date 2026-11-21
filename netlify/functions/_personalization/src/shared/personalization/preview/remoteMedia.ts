@@ -15,7 +15,24 @@
 export const REMOTE_MEDIA_PROXY_PATH = '/api/media/remote'
 
 /** Hosts the proxy is allowed to fetch from. Exact hostnames only. */
-export const REMOTE_MEDIA_ALLOWED_HOSTS: readonly string[] = ['cdn.seedance2prompt.com']
+export const REMOTE_MEDIA_ALLOWED_HOSTS: readonly string[] = [
+  'cdn.seedance2prompt.com',
+  // X/Twitter video CDN (most viral demos). It answers 403 to any page Referer that is not x.com, which a browser
+  // always sends, so the renderer's own fetch() cannot read these; the proxy fetches them with the x.com Referer.
+  'video.twimg.com',
+]
+
+/**
+ * Hosts that refuse requests whose Referer is not their own site. The proxy sends the matching Referer so the
+ * bytes can be read; every other host gets none.
+ */
+export const REMOTE_MEDIA_REFERER_BY_HOST: Readonly<Record<string, string>> = {
+  'video.twimg.com': 'https://x.com/',
+}
+
+export function remoteMediaRefererFor(hostname: string): string | undefined {
+  return REMOTE_MEDIA_REFERER_BY_HOST[hostname.toLowerCase()]
+}
 
 export function isProxiableRemoteMediaHost(hostname: string): boolean {
   return REMOTE_MEDIA_ALLOWED_HOSTS.includes(hostname.toLowerCase())
