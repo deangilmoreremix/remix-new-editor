@@ -219,21 +219,25 @@ async function ringBox(el, target) {
       const r = await pg.locator(target.ring).filter({ visible: true }).first().boundingBox();
       if (r) return r;
     }
-    return await el.evaluate((n) => {
-      const own = n.getBoundingClientRect();
+    // boundingBox() is relative to the page even inside an iframe; measure the grown box as an offset from the element.
+    const own = await el.boundingBox();
+    if (!own) return null;
+    const d = await el.evaluate((n) => {
+      const r0 = n.getBoundingClientRect();
       const fieldish = ['TEXTAREA', 'INPUT'].includes(n.tagName) || n.isContentEditable;
-      let best = own;
+      let best = r0;
       if (fieldish) {
         let p = n.parentElement;
         for (let i = 0; i < 4 && p && p !== document.body; i++, p = p.parentElement) {
           const r = p.getBoundingClientRect();
           const rounded = parseFloat(getComputedStyle(p).borderTopLeftRadius) >= 8;
           if (r.height > 420 || r.width > innerWidth - 40) break;
-          if (rounded && r.width >= own.width && r.height >= own.height) best = r;
+          if (rounded && r.width >= r0.width && r.height >= r0.height) best = r;
         }
       }
-      return { x: best.x, y: best.y, width: best.width, height: best.height };
+      return { dx: best.x - r0.x, dy: best.y - r0.y, width: best.width, height: best.height };
     });
+    return { x: own.x + d.dx, y: own.y + d.dy, width: d.width, height: d.height };
   } catch { return null; }
 }
 
