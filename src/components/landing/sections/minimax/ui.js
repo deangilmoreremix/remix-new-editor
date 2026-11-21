@@ -22,12 +22,16 @@ export function injectMinimaxStyles() {
   style.id = 'mmx-styles';
   style.textContent = `
     /* Instant tooltip for the studio letter buttons (T C F V I P). */
+    /* A global button rule sets overflow:hidden, which clipped the tooltip inside the 28px circle. */
+    .mmx-tip { overflow: visible !important; }
     .mmx-tip::after {
       content: attr(data-mmx-tip);
       position: absolute;
       bottom: calc(100% + 8px);
       left: 50%;
       transform: translate(-50%, 4px);
+      top: auto;
+      height: auto;
       width: max-content;
       max-width: 200px;
       padding: 5px 9px;
@@ -51,6 +55,34 @@ export function injectMinimaxStyles() {
     .mmx-tip:focus-visible::after {
       opacity: 1;
       transform: translate(-50%, 0);
+    }
+
+    /* Edge icons anchor their tooltip inward so the card's overflow clip never cuts it. */
+    .mmx-tip:first-child::after { left: 0; transform: translate(0, 4px); }
+    .mmx-tip:first-child:hover::after,
+    .mmx-tip:first-child:focus-visible::after { transform: translate(0, 0); }
+    .mmx-tip:last-child::after { left: auto; right: 0; transform: translate(0, 4px); }
+    .mmx-tip:last-child:hover::after,
+    .mmx-tip:last-child:focus-visible::after { transform: translate(0, 0); }
+
+    /* Caption above the T C F V I P row explaining what the letters are. */
+    [data-mmx-studio-icons],
+    [data-repo-studio-icons],
+    [data-gtm-studio-icons] {
+      flex-wrap: wrap;
+      row-gap: 6px;
+    }
+    [data-mmx-studio-icons]::before,
+    [data-repo-studio-icons]::before,
+    [data-gtm-studio-icons]::before {
+      content: 'Create this video in a studio';
+      flex-basis: 100%;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.38);
     }
 
     .mmx-reveal {
@@ -283,6 +315,22 @@ export function createStyleLink(demo, options = {}) {
  * handler uses goToRoute so it works for both hash-routed studios and
  * the path-routed TemplateStudio (`template/{templateId}`).
  */
+const STUDIO_NAMES = {
+  'cinema-template': 'Cinema Template Studio',
+  cinema: 'Cinema Studio',
+  video: 'Video Studio',
+  image: 'Image Studio',
+  templates: 'Template Studio',
+};
+
+/** Tooltip text: every letter creates this video in a different studio. */
+function studioTip(route, fallback) {
+  if (route === 'personalize') return 'Personalize this demo with your own brand';
+  if (route && route.startsWith('template/')) return 'Create this video in Template Studio';
+  if (STUDIO_NAMES[route]) return `Create this video in ${STUDIO_NAMES[route]}`;
+  return fallback || route;
+}
+
 export function createStudioIcon(demo, options = {}) {
   const { route, params = {}, label, title, loadPrompt } = options;
   const isPersonalize = route === 'personalize';
@@ -293,8 +341,9 @@ export function createStudioIcon(demo, options = {}) {
   button.dataset.mmxRoute = route;
   // Instant CSS tooltip (see .mmx-tip in injectMinimaxStyles); a native
   // `title` would show a second, delayed one on top of it.
-  button.dataset.mmxTip = title || route;
-  button.setAttribute('aria-label', title || route);
+  const tip = studioTip(route, title);
+  button.dataset.mmxTip = tip;
+  button.setAttribute('aria-label', tip);
   if (isPersonalize) button.setAttribute('aria-haspopup', 'dialog');
 
   const base =
