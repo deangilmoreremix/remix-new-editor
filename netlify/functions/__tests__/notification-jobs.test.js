@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
 import { NOOP_ADAPTER, getEmailAdapter, inQuietHours, backoffMs, MAX_ATTEMPTS, enqueueNotificationEmails, drainEmailQueue } from '../_shared/emailAdapter.js';
-import { run } from '../digest-daily.mjs';
+import { run, RECOVERY_LOOKBACK_HOURS, RECOVERY_MIN_AGE_MINUTES } from '../digest-daily.mjs';
 
 const NOW = new Date('2026-11-11T12:00:00Z');
 const fake = (over = {}) => ({ name: 'fake', configured: true, resolveRecipient: vi.fn(async () => 'owner@example.test'), send: vi.fn(async () => ({ ok: true })), ...over });
@@ -77,6 +77,16 @@ describe('enqueue (configured adapter)', () => {
     const r = await enqueueNotificationEmails({ adapter: fake(), db, now: NOW });
     expect(r.queued).toBe(1);
     expect(db.enqueue).toHaveBeenCalledWith([{ notification_id: 'n1', clerk_user_id: 'u1' }]);
+  });
+  it('minAgeMinutes leaves young notifications to the immediate path and picks up older ones that were never queued', async () => {
+    const mk = (id, minutesAgo) => ({ id, clerk_user_id: 'u1', type: 'new_lead', created_at: new Date(NOW.getTime() - minutesAgo * 60_000).toISOString() });
+    const digest = { ...mk('fresh-digest', 1), type: 'daily_digest' };   // built moments ago by the same job: no immediate path, so never held back
+    const db = { recentNotifications: async () => [mk('young', 3), mk('edge', 15), mk('old', 120), { id: 'nodate', clerk_user_id: 'u1', type: 'new_lead' }, digest], preferences: async () => ({ u1: { email: true } }), queuedIds: async () => [], enqueue: vi.fn(async () => {}) };
+    const r = await enqueueNotificationEmails({ adapter: fake(), db, now: NOW, minAgeMinutes: 15 });
+    expect(db.enqueue.mock.calls[0][0].map((x) => x.notification_id)).toEqual(['edge', 'old', 'nodate', 'fresh-digest']);
+    expect(r.queued).toBe(4);
+    const all = { ...db, enqueue: vi.fn(async () => {}) };
+    expect((await enqueueNotificationEmails({ adapter: fake(), db: all, now: NOW })).queued).toBe(5); // no minimum: everything recent, as before
   });
 });
 
@@ -201,12 +211,35 @@ describe('scheduled job', () => {
     expect(r.jobs.prune).toBe(2);
     expect(await run({ env: {}, fetchImpl: mkFetch() })).toEqual({ ok: false, error: 'not_configured' });
   });
+  it('an alert the immediate path missed just before one sweep is recovered by the NEXT daily sweep (the windows overlap by the minimum age)', async () => {
+    const sweep1 = new Date('2026-11-11T06:17:00Z');
+    const sweep2 = new Date('2026-11-12T06:17:00Z');
+    const missed = { id: 'missed', clerk_user_id: 'u1', type: 'new_lead', created_at: new Date(sweep1.getTime() - 5 * 60_000).toISOString() }; // 06:12: too young for sweep 1
+    const queued = new Set();
+    const f = vi.fn(async (url, init) => {
+      const name = url.split('/rest/v1/')[1];
+      let data = [];
+      if (name.startsWith('owner_notifications?select=id,clerk_user_id')) { const since = decodeURIComponent(name.match(/created_at=gte\.([^&]+)/)[1]); data = missed.created_at >= since ? [missed] : []; }   // like the real query: only rows newer than the window start
+      if (name.startsWith('retarget_preferences')) data = [{ clerk_user_id: 'u1', email: true }];
+      if (name.startsWith('notification_email_queue?select=notification_id')) data = [...queued].map((notification_id) => ({ notification_id }));
+      if (name.startsWith('notification_email_queue?on_conflict') && init.method === 'POST') JSON.parse(init.body).forEach((r) => queued.add(r.notification_id));
+      if (name.startsWith('rpc/')) data = 0;
+      return { ok: true, status: 200, text: async () => JSON.stringify(data) };
+    });
+    const first = await run({ env, fetchImpl: f, adapter: fake(), now: sweep1 });
+    expect(first.jobs.email_enqueue.queued).toBe(0);                    // 5 minutes old: left to the immediate path
+    expect(queued.has('missed')).toBe(false);
+    const second = await run({ env, fetchImpl: f, adapter: fake(), now: sweep2 });   // 24 h 5 min old now: still inside the window
+    expect(second.jobs.email_enqueue.queued).toBe(1);
+    expect(queued.has('missed')).toBe(true);
+    expect(RECOVERY_LOOKBACK_HOURS * 60).toBeGreaterThanOrEqual(24 * 60 + RECOVERY_MIN_AGE_MINUTES);
+  });
   it('drains a configured adapter end to end against the REST shape', async () => {
     const calls = [];
     const f = vi.fn(async (url, init) => {
       const name = url.split('/rest/v1/')[1]; calls.push([name, init.method]);
       let data = [];
-      if (name.startsWith('owner_notifications?select=id,clerk_user_id')) data = [{ id: 'n1', clerk_user_id: 'u1', type: 'daily_digest' }, { id: 'n2', clerk_user_id: 'u1', type: 'new_lead' }]; // alerts are e-mailed right away, the daily sweep only queues digests
+      if (name.startsWith('owner_notifications?select=id,clerk_user_id')) data = [{ id: 'n1', clerk_user_id: 'u1', type: 'daily_digest', created_at: new Date(NOW.getTime() - 60_000).toISOString() }, { id: 'n2', clerk_user_id: 'u1', type: 'new_lead', created_at: new Date(NOW.getTime() - 5 * 60_000).toISOString() }, { id: 'n3', clerk_user_id: 'u1', type: 'new_lead', created_at: new Date(NOW.getTime() - 3 * 3600_000).toISOString() }]; // a digest built a minute ago, a 5-minute-old alert (left to the immediate path) and a 3-hour-old alert that was never queued
       if (name.startsWith('retarget_preferences')) data = [{ clerk_user_id: 'u1', email: true, digest_frequency: 'daily' }];
       if (name.startsWith('notification_email_queue?select=*')) data = [{ id: 'q1', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 }];
       if (name.startsWith('notification_email_queue?id=eq.q1') && init.method === 'PATCH') data = [{ id: 'q1' }]; // the lease claim succeeds
@@ -216,7 +249,7 @@ describe('scheduled job', () => {
     });
     const a = fake();
     const r = await run({ env, fetchImpl: f, adapter: a, now: NOW });
-    expect(r.jobs.email_enqueue.queued).toBe(1);
+    expect(r.jobs.email_enqueue.queued).toBe(2); // the digest and the missed older alert, not the 5-minute-old one
     expect(r.jobs.email_drain.sent).toBe(1);
     expect(a.send).toHaveBeenCalledTimes(1);
     expect(calls.some(([n, m]) => n.startsWith('notification_email_queue?id=eq.q1') && m === 'PATCH')).toBe(true);
