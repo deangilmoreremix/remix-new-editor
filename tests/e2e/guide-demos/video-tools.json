@@ -91,13 +91,13 @@
     "click": true,
     "then": [
       {
-        "selector": "xpath=(//button[.//input[@type='file']])[1]",
+        "selector": "xpath=//*[@title='Motion video' or @aria-label='Motion video']",
         "upload": true,
         "file": "video",
         "hold": 2000
       },
       {
-        "selector": "xpath=(//button[.//input[@type='file']])[2]",
+        "selector": "xpath=//*[@title='Character image' or @aria-label='Character image' or @title='Character images' or @aria-label='Character images']",
         "upload": true,
         "file": "image",
         "hold": 2000
@@ -113,13 +113,13 @@
     "click": true,
     "then": [
       {
-        "selector": "xpath=(//button[.//input[@type='file']])[1]",
+        "selector": "xpath=//*[@title='Motion video' or @aria-label='Motion video']",
         "upload": true,
         "file": "video",
         "hold": 2000
       },
       {
-        "selector": "xpath=(//button[.//input[@type='file']])[2]",
+        "selector": "xpath=//*[@title='Character image' or @aria-label='Character image' or @title='Character images' or @aria-label='Character images']",
         "upload": true,
         "file": "image",
         "hold": 2000

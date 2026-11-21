@@ -11,15 +11,8 @@
     ]
   },
   "camera-and-lens-controls": {
-    "selector": "#builder-camera",
-    "click": true,
-    "hold": 1200,
-    "then": [
-      {
-        "selector": "#builder-lens",
-        "hold": 1500
-      }
-    ]
+    "selector": "xpath=//*[normalize-space(text())='CAMERA' or normalize-space(text())='Camera'][ancestor::div[contains(@class,'fixed')]]/..",
+    "click": false
   },
   "camera-movement": {
     "selector": "#builder-movement",
