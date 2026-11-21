@@ -200,6 +200,13 @@ for (const guide of GUIDES) {
     // Caption helper that picks the top or bottom of the screen away from the control.
     const place = async (box) => (box ? box.y + box.height / 2 > VIEW.height * 0.5 : false);
 
+    // Seed demo state (e.g. a sample brand) once, unrecorded; it lives in localStorage, so every segment sees it.
+    const ov = targets.__overview;
+    if (ov?.setup) {
+      await open(page, guide.route);
+      await page.evaluate(ov.setup).catch((e) => console.log(`    overview setup error: ${e.message.split('\n')[0]}`));
+    }
+
     // ---- intro: the studio as it opens ----
     await segment('intro', narr.intro, {
       tag: guide.name,
