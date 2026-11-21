@@ -3,14 +3,29 @@
 // What the onboarding tool picker shows: all 38 studios (src/lib/studioDirectory.js, the same list as the Apps page)
 // with name, one-line description, image and link. Here: the goals, the "video type" -> recommended studios map used
 // to sort the picker, and the helpers around them.
-import { directoryByGroup } from '../studioDirectory.js';
+import { getStudio } from '../studioDirectory.js';
 
-/** The picker's menu: [{ title, items: [{ id, label, name, description, thumb, fallback, icon, group, href }] }].
- *  All 38 studios from the studio directory (src/lib/studioDirectory.js), grouped Discover / Image / Video / Agents / My Work. */
+/**
+ * The picker's groups: what each studio helps you accomplish, in the landing page's six groups (Create, Enhance,
+ * Produce, Localize, Automate, Scale; see src/components/landing/sections/AppsGridSection.jsx). Every one of the 38
+ * studios is in exactly one group (a test guards it). The Apps page and the side menu keep their own grouping.
+ */
+export const PURPOSE_GROUPS = Object.freeze([
+  { title: 'Create', blurb: 'Make new images, videos and characters from an idea.', ids: ['image', 'video', 'cinema', 'cinema-template', 'character', 'influencer', 'commercial', 'brand', 'animate'] },
+  { title: 'Enhance', blurb: 'Improve what you already have: effects, edits, sharper quality.', ids: ['effects', 'ai-vfx', 'edit', 'upscale'] },
+  { title: 'Produce', blurb: 'Plan, cut, voice and render a finished video.', ids: ['storyboard', 'director', 'motion-director', 'timeline', 'render', 'videotools', 'audio', 'recorder'] },
+  { title: 'Localize', blurb: 'Give your video a face and a voice.', ids: ['lipsync', 'avatar'] },
+  { title: 'Automate', blurb: 'Let an AI agent do the work.', ids: ['video-agent', 'zackd', 'viral', 'workbench', 'find-my-brand'] },
+  { title: 'Scale', blurb: 'Reach more people: templates, outreach, pages and your library.', ids: ['explore', 'templates', 'academy', 'library', 'content-library', 'outreach', 'personalizer', 'leadfinder', 'video-pages', 'website-builder'] },
+]);
+
+/** The picker's menu: [{ title, blurb, items: [{ id, label, name, description, thumb, fallback, icon, group, href }] }].
+ *  All 38 studios from the studio directory (src/lib/studioDirectory.js), grouped by what they accomplish. */
 export function buildToolGroups() {
-  return directoryByGroup().map((g) => ({
+  return PURPOSE_GROUPS.map((g) => ({
     title: g.title,
-    items: g.items.map((s) => ({
+    blurb: g.blurb,
+    items: g.ids.map(getStudio).filter(Boolean).map((s) => ({
       id: s.id,
       label: s.name,
       name: s.name,

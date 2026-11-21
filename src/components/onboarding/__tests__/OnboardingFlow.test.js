@@ -36,12 +36,15 @@ describe('app onboarding flow', () => {
     expect($('[data-onb-type="talking"]').getAttribute('aria-pressed')).toBe('true');
     $('[data-onb-continue]').click();
     // 6b: tools grouped like the side menu, recommended first, with images
-    expect($$('[data-onb-group]').map((s) => s.getAttribute('data-onb-group'))).toEqual(['Discover', 'Image', 'Video', 'Agents', 'My Work']);
+    expect($$('[data-onb-group]').map((s) => s.getAttribute('data-onb-group'))).toEqual(['Create', 'Enhance', 'Produce', 'Localize', 'Automate', 'Scale']);
+    expect($$('[data-onb-jump-to]').map((b) => b.getAttribute('data-onb-jump-to'))).toEqual(['Create', 'Enhance', 'Produce', 'Localize', 'Automate', 'Scale']);
+    expect($('[data-onb-group="Create"] .ob-gdesc').textContent).toMatch(/images, videos and characters/);
     expect($$('[data-onb-tool]')).toHaveLength(38);
     expect($$('[data-onb-open]')).toHaveLength(38);
     expect($('[data-onb-open="avatar"]').getAttribute('href')).toBe('#/avatar');
-    const video = $$('[data-onb-group="Video"] [data-onb-tool]').map((c) => c.getAttribute('data-onb-tool'));
-    expect(video.slice(0, 2)).toEqual(['avatar', 'lipsync']);
+    const localize = $$('[data-onb-group="Localize"] [data-onb-tool]').map((c) => c.getAttribute('data-onb-tool'));
+    expect(localize[0]).toBe('avatar'); // recommended for "talking", so first in its group
+    expect(new Set(localize)).toEqual(new Set(['avatar', 'lipsync']));
     expect($('[data-onb-tool="avatar"] img')).not.toBeNull();
     expect($('[data-onb-start]').textContent).toBe('Explore all studios');
     $('[data-onb-tool="lipsync"]').click();
@@ -142,5 +145,16 @@ describe('app onboarding flow', () => {
     expect(() => $('[data-onb-goal="personal"]').click()).not.toThrow();
     expect(document.body.textContent).toContain('Step 2 of 6');
   });
-});
 
+  it('the jump bar scrolls to a group and marks it current', () => {
+    const calls = [];
+    HTMLElement.prototype.scrollIntoView = function scroll() { calls.push(this.getAttribute('data-onb-group')); };
+    mountOnboarding($('#host'), { initial: { step: 6, videoTypes: ['talking'] } });
+    expect($('[data-onb-jump-to="Create"]').getAttribute('aria-current')).toBe('true');
+    $('[data-onb-jump-to="Automate"]').click();
+    expect(calls).toEqual(['Automate']);
+    expect($('[data-onb-jump-to="Automate"]').getAttribute('aria-current')).toBe('true');
+    expect($('[data-onb-jump-to="Create"]').getAttribute('aria-current')).toBeNull();
+    expect($$('[data-onb-tool]')).toHaveLength(38); // the jump bar never hides a studio
+  });
+});

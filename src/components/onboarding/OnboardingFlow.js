@@ -262,7 +262,7 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
 
   // 6b -- all 38 studios, grouped like the side menu; recommended ones first
   function step6Tools() {
-    titles('Choose your studios', 'All 38, grouped like your side menu. Pick the ones you want to start with, or press Open to go straight in.');
+    titles('Choose your studios', 'All 38, grouped by what they help you do. Pick the ones you want to start with, or press Open to go straight in.');
     const rec = recommendedTools(a.videoTypes);
     const cards = new Map();
     const toggle = (id) => {
@@ -276,7 +276,10 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
       const items = [...g.items].sort((x, y) => (rec.includes(y.id) ? 1 : 0) - (rec.includes(x.id) ? 1 : 0) || (rec.indexOf(x.id) - rec.indexOf(y.id)));
       const sec = el('section');
       sec.setAttribute('data-onb-group', g.title);
-      sec.appendChild(el('h2', 'ob-ghead', g.title));
+      sec.id = `onb-group-${g.title.toLowerCase()}`;
+      const head = el('div', 'ob-ghead-row');
+      head.append(el('h2', 'ob-ghead', g.title), el('span', 'ob-gcount', `${items.length} ${items.length === 1 ? 'studio' : 'studios'}`));
+      sec.append(head, el('p', 'ob-gdesc', g.blurb));
       const grid = el('div', 'ob-tools');
       items.forEach((t) => {
         const c = ToolCard(t, {
@@ -292,7 +295,35 @@ export function mountOnboarding(host, { name = '', initial = null, onChange = ()
       sec.appendChild(grid);
       groups.appendChild(sec);
     });
-    content.appendChild(groups);
+    // Jump bar: one button per group (what it accomplishes); the one in view is marked current.
+    const jump = el('nav', 'ob-jump');
+    jump.setAttribute('data-onb-jump', '');
+    jump.setAttribute('aria-label', 'Studio groups');
+    const jumpBtns = new Map();
+    buildToolGroups().forEach((g) => {
+      const b = choice('ob-jump-btn');
+      b.textContent = g.title;
+      b.setAttribute('data-onb-jump-to', g.title);
+      b.addEventListener('click', () => {
+        const target = groups.querySelector(`[data-onb-group="${g.title}"]`);
+        if (target?.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setCurrent(g.title);
+      });
+      jumpBtns.set(g.title, b);
+      jump.appendChild(b);
+    });
+    function setCurrent(title) {
+      jumpBtns.forEach((b, t) => { if (t === title) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+    }
+    setCurrent(buildToolGroups()[0].title);
+    if (typeof IntersectionObserver === 'function') {
+      const io = new IntersectionObserver((entries) => {
+        const seen = entries.filter((e) => e.isIntersecting).sort((x, y) => x.boundingClientRect.top - y.boundingClientRect.top)[0];
+        if (seen) setCurrent(seen.target.getAttribute('data-onb-group'));
+      }, { root, rootMargin: '-20% 0px -65% 0px' });
+      groups.querySelectorAll('[data-onb-group]').forEach((sec) => io.observe(sec));
+    }
+    content.append(jump, groups);
     // Sticky action bar.
     const bar2 = el('div', 'ob-bottom');
     bar2.setAttribute('data-onb-bar', '');

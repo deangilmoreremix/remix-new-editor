@@ -38,9 +38,12 @@ test.describe('App-wide onboarding', () => {
 
     // 6b: grouped like the side menu, recommended first, every card has a picture
     const groups = await page.locator('[data-onb-group]').evaluateAll((n) => n.map((e) => e.getAttribute('data-onb-group')));
-    expect(groups).toEqual(['Discover', 'Image', 'Video', 'Agents', 'My Work']);
-    const firstVideo = await page.locator('[data-onb-group="Video"] [data-onb-tool]').first().getAttribute('data-onb-tool');
-    expect(firstVideo).toBe('avatar');
+    expect(groups).toEqual(['Create', 'Enhance', 'Produce', 'Localize', 'Automate', 'Scale']);
+    const firstLocalize = await page.locator('[data-onb-group="Localize"] [data-onb-tool]').first().getAttribute('data-onb-tool');
+    expect(firstLocalize).toBe('avatar');
+    await page.click('[data-onb-jump-to="Scale"]'); // the jump bar brings a group into view
+    await expect(page.locator('[data-onb-jump-to="Scale"]')).toHaveAttribute('aria-current', 'true');
+    await expect.poll(() => page.locator('[data-onb-group="Scale"]').evaluate((e) => e.getBoundingClientRect().top < window.innerHeight * 0.5)).toBe(true);
     expect(await page.locator('[data-onb-tool]').count()).toBe(38);
     expect(await page.locator('[data-onb-open]').count()).toBe(38);
     await page.locator('[data-onb-tool]').last().scrollIntoViewIfNeeded();

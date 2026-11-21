@@ -108,7 +108,16 @@
 
 /* step 6b: the 38 studios (cards are outlined, never filled; selected = neon border) */
 .ob-groups { width: 100%; max-width: 1080px; display: flex; flex-direction: column; gap: 8px; }
-.ob-ghead { margin: 28px 0 14px; font-size: 12px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--obl-faint); }
+.ob-ghead-row { display: flex; align-items: baseline; gap: 12px; margin: 36px 0 4px; scroll-margin-top: 72px; }
+.ob-ghead { margin: 0; font-size: 22px; line-height: 28px; font-weight: 800; letter-spacing: -0.01em; color: var(--obl-text); }
+.ob-gcount { font-size: 12px; font-weight: 600; color: var(--obl-faint); }
+.ob-gdesc { margin: 0 0 14px; font-size: 14px; line-height: 20px; color: var(--obl-muted); }
+[data-onb-group] { scroll-margin-top: 72px; }
+.ob-jump { position: sticky; top: 0; z-index: 3; width: 100%; max-width: 1080px; display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 4px; background: rgba(5, 5, 5, 0.92); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); scrollbar-width: none; }
+.ob-jump::-webkit-scrollbar { display: none; }
+.ob-jump-btn { flex: none; height: 36px; padding: 0 16px; border-radius: 999px; background: transparent; color: var(--obl-muted); border: 1px solid var(--obl-line); font-size: 13.5px; font-weight: 600; transition: border-color .15s, color .15s; }
+.ob-jump-btn:hover { border-color: var(--obl-line-hover); color: #fff; }
+.ob-jump-btn[aria-current="true"] { color: var(--obl-neon); border-color: var(--obl-neon-line); }
 .ob-tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
 .ob-tool { padding: 8px; border: 1px solid var(--obl-line); border-radius: 20px; background: transparent; display: flex; flex-direction: column; cursor: pointer; text-align: left; color: var(--obl-text); transition: border-color .15s; }
 .ob-tool:hover { border-color: var(--obl-line-hover); }
