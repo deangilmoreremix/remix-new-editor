@@ -30,7 +30,9 @@ describe('knowledge base coverage', () => {
     expect(studioForRoute('motion-director/workbench')).toBe('motion-director');
     expect(studioForRoute('timeline-classic')).toBe('timeline');
     expect(studioForRoute('influencer-page')).toBe('influencer');
-    expect(studioForRoute('brand-dna')).toBe('brand');
+    // A page with its own guide gets it; otherwise the side menu's studio.
+    expect(studioForRoute('brand-dna')).toBe(kbIds.includes('brand-dna') ? 'brand-dna' : 'brand');
+    expect(studioForRoute('brightbean')).toBe(kbIds.includes('smart-video-scheduler') ? 'smart-video-scheduler' : null);
     expect(studioForRoute('settings')).toBeNull();
     expect(studioForRoute('')).toBeNull();
   });

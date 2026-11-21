@@ -686,7 +686,7 @@ export function DirectorPage() {
         chatHistory = [];
         try { localStorage.removeItem(CHAT_STORAGE_KEY); } catch { /* ignore */ }
         chatMessages.innerHTML = '';
-        addMessage(buildInitialGreeting(), {});
+        addMessage('', { greeting: true });
     };
 
     // Delegate clicks on agent suggestion chips inside the chat.
@@ -777,6 +777,15 @@ export function DirectorPage() {
         }
     }
 
+    function greetingHtml() {
+        return `
+                <div class="w-8 h-8 bg-primary/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">AI</div>
+                <div class="bg-white/10 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
+                    <div class="text-sm text-white">${buildInitialGreeting()}</div>
+                </div>
+            `;
+    }
+
     function buildInitialGreeting() {
         return `
             <p class="text-sm text-white">Hello! I'm Director, your AI video assistant with ${DIRECTOR_AGENTS.length} production-ready agents backed by VideoDB and FFmpeg.</p>
@@ -803,6 +812,14 @@ export function DirectorPage() {
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-message flex gap-3';
         const safe = escapeHtml(String(entry.content || ''));
+
+        // The greeting is our own markup: re-render it instead of showing escaped HTML. Older
+        // saved chats stored it as an 'ai' entry with the HTML as content.
+        if (entry.type === 'greeting' || (entry.type === 'ai' && String(entry.content || '').includes("I'm Director, your AI video assistant"))) {
+            msgDiv.innerHTML = greetingHtml();
+            chatMessages.appendChild(msgDiv);
+            return;
+        }
 
         if (entry.type === 'user') {
             msgDiv.innerHTML = `
@@ -848,7 +865,7 @@ export function DirectorPage() {
 
     function restoreChatHistory() {
         if (chatHistory.length === 0) {
-            addMessage(buildInitialGreeting(), {});
+            addMessage('', { greeting: true });
             return;
         }
         chatMessages.innerHTML = '';
@@ -857,18 +874,21 @@ export function DirectorPage() {
     }
 
     // ── Chat helpers ──────────────────────────────────────────────────
-    function addMessage(content, { isUser = false, isAction = false, isError = false, isSuggestions = false, agentIds = [] } = {}) {
+    function addMessage(content, { isUser = false, isAction = false, isError = false, isSuggestions = false, agentIds = [], greeting = false } = {}) {
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-message flex gap-3';
 
         let type;
-        if (isUser) type = 'user';
+        if (greeting) type = 'greeting';
+        else if (isUser) type = 'user';
         else if (isSuggestions) type = 'suggestions';
         else if (isError) type = 'error';
         else if (isAction) type = 'action';
         else type = 'ai';
 
-        if (isUser) {
+        if (greeting) {
+            msgDiv.innerHTML = greetingHtml();
+        } else if (isUser) {
             msgDiv.innerHTML = `
                 <div class="w-8 h-8 bg-primary rounded-full flex-shrink-0 flex items-center justify-center text-black text-xs font-bold">YOU</div>
                 <div class="bg-primary/20 rounded-2xl rounded-tr-sm p-3 max-w-[85%]">
@@ -895,14 +915,14 @@ export function DirectorPage() {
             msgDiv.innerHTML = `
                 <div class="w-8 h-8 bg-green-500/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">✓</div>
                 <div class="bg-green-500/10 border border-green-500/20 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
-                    <div class="text-sm text-white">${content}</div>
+                    <div class="text-sm text-white">${escapeHtml(String(content))}</div>
                 </div>
             `;
         } else {
             msgDiv.innerHTML = `
                 <div class="w-8 h-8 bg-primary/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">AI</div>
                 <div class="bg-white/10 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
-                    <div class="text-sm text-white">${content}</div>
+                    <div class="text-sm text-white">${escapeHtml(String(content))}</div>
                 </div>
             `;
         }
@@ -913,7 +933,7 @@ export function DirectorPage() {
         // Persist a structured record (not raw HTML) to keep restore XSS-safe.
         chatHistory.push({
             type,
-            content: String(content),
+            content: greeting ? '' : String(content),
             agentIds: isSuggestions ? agentIds.slice() : undefined,
             timestamp: Date.now(),
         });

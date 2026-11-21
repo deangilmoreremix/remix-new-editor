@@ -17,7 +17,8 @@ import { rest, supabaseConfig, inList } from './supabaseRest.js';
 export const SUMMARY_TAG = 'quiet-summary';
 export const SUMMARY_TITLE = 'While you were away';
 export const DEFERRED_TTL_MS = 3 * 24 * 3600_000;
-const ROW_LIMIT = 1000;
+export const PAGE_SIZE = 1000;
+export const MAX_PAGES = 10; // at most 10,000 deferred rows are looked at per run; the rest wait for the next run
 const DELETE_CHUNK = 50;
 
 const LABELS = [['New lead', 'new lead', 'new leads'], ['Retarget', 'retarget alert', 'retarget alerts'], ['Video', 'video update', 'video updates']];
@@ -33,6 +34,38 @@ export function summaryCounts(types) {
 export function buildSummaryPayload(counts) {
   const body = LABELS.filter(([c]) => counts[c] > 0).map(([c, one, many]) => `${counts[c]} ${counts[c] === 1 ? one : many}`).join(', ');
   return { title: SUMMARY_TITLE, body, tag: SUMMARY_TAG, type: 'quiet_summary', url: DEEP_LINK };
+}
+
+/**
+ * Every deferred row, oldest first, read page by page BEFORE anything is flushed (so deleting rows cannot shift a later page).
+ * A single page of the oldest rows is not enough: if those belong to owners still in quiet hours (or whose devices keep failing)
+ * they are held again and again and every owner behind them would never be flushed.
+ */
+async function loadDeferredRows(call) {
+  const rows = [];
+  for (let page = 0; page < MAX_PAGES; page += 1) {
+    const batch = await call(`owner_push_deferred?select=id,clerk_user_id,type&order=created_at.asc,id.asc&limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`);
+    if (!Array.isArray(batch)) break;
+    rows.push(...batch);
+    if (batch.length < PAGE_SIZE) return { rows, truncated: false };
+  }
+  // Every allowed page was full: is there anything beyond them? (exact, so `truncated` can be used to watch the backlog)
+  const beyond = await call(`owner_push_deferred?select=id&order=created_at.asc,id.asc&limit=1&offset=${MAX_PAGES * PAGE_SIZE}`);
+  return { rows, truncated: Array.isArray(beyond) && beyond.length > 0 };
+}
+
+/**
+ * Preferences for these owners, read in small chunks: one request for thousands of ids is cut off by the URL length limit, and a
+ * single answer is capped at 1,000 rows, so an owner could silently come back "without preferences" and have its rows dropped.
+ */
+const PREF_CHUNK = 100;
+async function loadPreferences(call, ownerIds) {
+  const prefs = {};
+  for (let i = 0; i < ownerIds.length; i += PREF_CHUNK) {
+    const chunk = await call(`retarget_preferences?select=*&clerk_user_id=${inList(ownerIds.slice(i, i + PREF_CHUNK))}`);
+    for (const p of Array.isArray(chunk) ? chunk : []) prefs[p.clerk_user_id] = p;
+  }
+  return prefs;
 }
 
 async function deleteRows(call, ids) {
@@ -73,12 +106,12 @@ export async function flushQuietSummaries({ env = process.env, fetchImpl = fetch
   try {
     const old = await call(`owner_push_deferred?created_at=lt.${encodeURIComponent(new Date(now.getTime() - DEFERRED_TTL_MS).toISOString())}&select=id`, { method: 'DELETE', prefer: 'return=representation' });
     out.pruned = Array.isArray(old) ? old.length : 0;
-    const rows = await call(`owner_push_deferred?select=id,clerk_user_id,type&order=created_at.asc&limit=${ROW_LIMIT}`);
-    if (!rows?.length) return out;
+    const { rows, truncated } = await loadDeferredRows(call);
+    if (truncated) out.truncated = true;
+    if (!rows.length) return out;
     const byOwner = new Map();
-    for (const r of rows) byOwner.set(r.clerk_user_id, [...(byOwner.get(r.clerk_user_id) || []), r]);
-    const prefRows = await call(`retarget_preferences?select=*&clerk_user_id=${inList([...byOwner.keys()])}`);
-    const prefs = Object.fromEntries((prefRows || []).map((p) => [p.clerk_user_id, p]));
+    for (const r of rows) { if (!byOwner.has(r.clerk_user_id)) byOwner.set(r.clerk_user_id, []); byOwner.get(r.clerk_user_id).push(r); }
+    const prefs = await loadPreferences(call, [...byOwner.keys()]);
     const wpRef = {};
     for (const [owner, ownerRows] of byOwner) {
       out.owners += 1;

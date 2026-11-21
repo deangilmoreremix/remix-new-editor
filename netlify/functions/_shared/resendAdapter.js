@@ -7,26 +7,35 @@ const CLERK_USERS_URL = 'https://api.clerk.com/v1/users/';
 const HTTP_TIMEOUT_MS = 8000;
 const EMAIL_SHAPE = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
 
-async function timedFetch(fetchImpl, url, init, timeoutMs) {
+/** `read(res)` (optional) runs while the deadline is still active, so a response whose body stalls is aborted too. */
+async function timedFetch(fetchImpl, url, init, timeoutMs, read) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  try { return await fetchImpl(url, { ...init, signal: ctrl.signal }); } finally { clearTimeout(timer); }
+  try {
+    const res = await fetchImpl(url, { ...init, signal: ctrl.signal });
+    return read ? await read(res) : res;
+  } finally { clearTimeout(timer); }
 }
 
+/** Returned (instead of null) when the lookup failed for a reason that may pass: the row must be retried, not skipped. */
+export const RECIPIENT_TRANSIENT = Object.freeze({ transient: true });
+
 /**
- * The owner's PRIMARY, VERIFIED e-mail from the Clerk Backend API, or null (no key, unknown user, no primary,
- * unverified, any error). Never takes an address from a request or from a user-editable field.
+ * The owner's PRIMARY, VERIFIED e-mail from the Clerk Backend API; null when there is none (no key, unknown user,
+ * no primary, unverified, a rejected request); RECIPIENT_TRANSIENT when Clerk could not be asked right now
+ * (HTTP 429/5xx, timeout, network error). Never takes an address from a request or from a user-editable field.
  */
 export async function lookupClerkEmail({ ownerId, secret, fetchImpl, timeoutMs = HTTP_TIMEOUT_MS }) {
   if (!secret || typeof ownerId !== 'string' || !/^[\w-]{1,128}$/.test(ownerId)) return null;
   try {
-    const res = await timedFetch(fetchImpl, `${CLERK_USERS_URL}${encodeURIComponent(ownerId)}`, { headers: { Authorization: `Bearer ${secret}` } }, timeoutMs);
-    if (!res.ok) return null;
-    const user = await res.json();
+    const out = await timedFetch(fetchImpl, `${CLERK_USERS_URL}${encodeURIComponent(ownerId)}`, { headers: { Authorization: `Bearer ${secret}` } }, timeoutMs,
+      async (res) => (res.ok ? { user: await res.json() } : { status: res.status }));
+    if (out.status !== undefined) return out.status === 429 || out.status >= 500 ? RECIPIENT_TRANSIENT : null;
+    const user = out.user;
     const primary = (user?.email_addresses || []).find((e) => e?.id && e.id === user?.primary_email_address_id);
     const address = primary?.verification?.status === 'verified' ? String(primary.email_address || '').trim() : '';
     return EMAIL_SHAPE.test(address) ? address : null;
-  } catch { return null; }
+  } catch { return RECIPIENT_TRANSIENT; } // timeout, network error or an unreadable body
 }
 
 export function createResendAdapter({ apiKey, from, clerkSecret, fetchImpl = globalThis.fetch, timeoutMs = HTTP_TIMEOUT_MS }) {

@@ -17,6 +17,9 @@ export const CAMPAIGN_GOALS = [
   { value: 'sales', label: 'Direct Sales', description: 'Drive purchases or sign-ups' },
 ];
 
+/** The display label for a stored goal value ("product-launch" -> "Product Launch"). */
+export const goalLabel = (value) => CAMPAIGN_GOALS.find((g) => g.value === value)?.label || value || '';
+
 const list = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x) : []);
 const dash = (s) => s || '—';
 

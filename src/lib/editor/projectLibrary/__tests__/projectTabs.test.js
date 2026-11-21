@@ -48,7 +48,7 @@ function client(o = {}) {
     const q = { table, f: [] };
     const api = {
       select: () => api, eq: (c, v) => { q.f.push([c, v]); return api; }, is: () => api, or: () => api, order: () => api, limit: () => api, range: (a, b) => { q.range = [a, b]; return api; },
-      upsert: async (row) => { calls.push(['upsert', table, row]); const err = o.upsertError?.(row); if (err) return { error: err }; state.prefs = row; return { error: null }; },
+      upsert: async (row) => { calls.push(['upsert', table, row]); if (o.beforeUpsert) await o.beforeUpsert(row); const err = o.upsertError?.(row); if (err) return { error: err }; state.prefs = row; return { error: null }; },
       insert: (row) => { q.ins = row; return api; },
       single: async () => { const r = { id: 'new-proj', name: q.ins.name, ...q.ins }; state.inserted.push(r); return { data: r, error: null }; },
       maybeSingle: async () => {
@@ -324,6 +324,36 @@ describe('Notifications preferences: per-type push and quiet hours', () => {
     expect(ups).toHaveLength(2);
     expect('push_types' in ups[1][2]).toBe(false);
     expect(panel.querySelector('[data-prefs-msg]').textContent).toMatch(/per-type push choices need a database update/i);
+  });
+  it('after saving, a redraw (Mark as read) shows the SAVED quiet hours and push choices, not the values from the first load', async () => {
+    const unread = [{ id: 'n1', type: 'new_lead', title: 'New lead', summary: 's', interest: null, metrics: {}, read_at: null, created_at: '2026-11-10T10:00:00Z' }];
+    const c = client({ notes: unread, prefs: { ...DEFAULT_PREFERENCES, push: true, enabled_types: ['new_lead', 'milestone'], push_types: null } });
+    const { panel } = mount(notificationsTab, c, usable());
+    await tick(12);
+    change(panel.querySelector('[name=quiet]'), true);
+    panel.querySelector('[name=quiet-start]').value = '21:30';
+    change(row(panel, 'milestone').push, false);
+    await submit(panel);
+    panel.querySelector('[data-read]').click();                        // redraws the whole tab
+    await tick(12);
+    expect(panel.querySelector('[name=quiet]').checked).toBe(true);
+    expect(panel.querySelector('[name=quiet-start]').value).toBe('21:30');
+    expect(row(panel, 'milestone').push.checked).toBe(false);
+    expect(row(panel, 'new_lead').push.checked).toBe(true);
+  });
+  it('the push toggle and the preferences form do not overwrite each other when they save at the same time', async () => {
+    let release; const gate = new Promise((r) => { release = r; }); let n = 0;
+    const c = client({ prefs: { ...DEFAULT_PREFERENCES, push: false }, beforeUpsert: async () => { if (n++ === 0) await gate; } }); // the first write is slow
+    const { panel } = mount(notificationsTab, c, usable());
+    await tick(12);
+    const master = panel.querySelector('[name=push]');
+    master.checked = true; master.dispatchEvent(new Event('change', { bubbles: true }));   // write 1: push on (held back)
+    await tick(2);
+    panel.querySelector('[name=threshold]').value = '77';
+    await submit(panel);                                              // write 2: the form
+    release(); await tick(20);
+    expect(c.state.prefs.push).toBe(true);
+    expect(Number(c.state.prefs.interest_threshold)).toBe(77);
   });
   it('quiet hours: off by default, defaults 22:00-07:00 and the browser zone when enabled, saved as jsonb', async () => {
     const c = client({ prefs: null });
