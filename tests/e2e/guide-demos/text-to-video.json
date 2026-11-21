@@ -1,0 +1,29 @@
+{
+  "gtm-boost": {
+    "selector": "#gtm-base-prompt",
+    "click": true,
+    "type": "A 20s launch teaser for our AI note-taking app",
+    "then": [
+      {
+        "selector": "xpath=//button[contains(@class,'gtm-chip') and normalize-space(.)='Product launch']"
+      },
+      {
+        "selector": "#gtm-industry-select",
+        "hold": 1000
+      },
+      {
+        "selector": "xpath=//button[contains(@class,'gtm-chip') and normalize-space(.)='Leads']"
+      }
+    ]
+  },
+  "example-prompts": {
+    "selector": "xpath=(//button[contains(@class,'try-btn')])[1]",
+    "click": true,
+    "hold": 3000
+  },
+  "available-models": {
+    "selector": ".model-card",
+    "click": true,
+    "hold": 3000
+  }
+}

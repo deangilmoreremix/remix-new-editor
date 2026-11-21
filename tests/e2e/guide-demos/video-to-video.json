@@ -1,0 +1,21 @@
+{
+  "gtm-boost": {
+    "selector": ".gtm-boost-btn",
+    "steps": [],
+    "click": true,
+    "then": [
+      { "selector": "#gtm-base-prompt", "type": "Turn my product demo clip into a punchy launch teaser", "hold": 800 },
+      { "selector": ".gtm-chip:text-is(\"Product launch\")", "hold": 600 },
+      { "selector": ".gtm-chip:text-is(\"Leads\")", "hold": 1200 }
+    ]
+  },
+  "video-to-video-in-video-studio": {
+    "selector": "button[title=\"Upload video to remove watermark\"]",
+    "click": true,
+    "upload": true,
+    "file": "video",
+    "then": [
+      { "selector": "#v-v-prompt-textarea", "type": "Restyle this clip as a warm cinematic sunset look", "hold": 1500 }
+    ]
+  }
+}

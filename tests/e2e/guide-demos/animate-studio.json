@@ -1,0 +1,20 @@
+{
+  "source-upload-image": {
+    "selector": "xpath=//button[normalize-space(.)='Upload image']",
+    "upload": true, "file": "image", "hold": 2500
+  },
+  "motion-prompt-and-suggestion-chips": {
+    "selector": "xpath=//textarea[contains(@placeholder,'Describe the motion')]",
+    "type": "Slow cinematic push-in with soft drifting light",
+    "then": [{ "selector": "xpath=//button[starts-with(normalize-space(.),'Zoom into the subject')]", "hold": 2000 }]
+  },
+  "duration-and-resolution": {
+    "selector": "xpath=//label[normalize-space(.)='DURATION' or normalize-space(.)='Duration']/following::select[1]",
+    "click": true,
+    "then": [{ "selector": "xpath=//label[normalize-space(.)='RESOLUTION' or normalize-space(.)='Resolution']/following::select[1]" }]
+  },
+  "model-seedance-lite-default-choose-a-model": {
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Seedance Lite')]",
+    "click": true, "hold": 2500
+  }
+}
