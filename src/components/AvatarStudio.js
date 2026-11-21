@@ -434,7 +434,8 @@ const triggerBtn = document.createElement('button');
     audioUploadGroup.classList.toggle('hidden', !needsAudio);
 
     // Show/hide prompt
-    const needsPrompt = selectedModel.hasPrompt;
+    // Show the prompt for any model that accepts one (FLUX 3 Avatar has inputs.prompt but no hasPrompt flag).
+    const needsPrompt = selectedModel.hasPrompt === true || Boolean(selectedModel.inputs?.prompt);
     promptGroup.classList.toggle('hidden', !needsPrompt);
 
     // Show/hide native audio toggle based on model
@@ -450,7 +451,7 @@ const triggerBtn = document.createElement('button');
       showToast('Upload a source video or image first', 'error');
       return;
     }
-    if (selectedModel.hasPrompt && (!prompt || !prompt.trim())) {
+    if (selectedModel.hasPrompt === true && (!prompt || !prompt.trim())) {
       showToast('Please enter a prompt for this avatar model.', 'error');
       return;
     }

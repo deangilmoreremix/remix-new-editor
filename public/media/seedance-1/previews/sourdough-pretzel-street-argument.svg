@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="g" gradientTransform="rotate(258 0.5 0.5)">
+      <stop offset="0%" stop-color="#050505"/>
+      <stop offset="55%" stop-color="#0b0b0f"/>
+      <stop offset="100%" stop-color="#101014"/>
+    </linearGradient>
+    <radialGradient id="a" cx="33%" cy="52%" r="45%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="txt" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#g)"/>
+  <rect width="1280" height="720" fill="url(#a)"/>
+  <g opacity="0.9">
+    <rect x="6%" y="78%" width="22%" height="3" rx="1.5" fill="#f59e0b" opacity="0.8"/>
+    <rect x="6%" y="81.5%" width="12%" height="3" rx="1.5" fill="#ef4444" opacity="0.7"/>
+  </g>
+  <text x="6%" y="88%" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="800" fill="url(#txt)">Sourdough Pretzel Street Argument</text>
+  <text x="6%" y="93%" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="600" fill="#a1a1aa" letter-spacing="2">UGC  ·  SMARTVIDEO GO</text>
+</svg>

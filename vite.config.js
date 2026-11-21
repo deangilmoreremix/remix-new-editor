@@ -1293,6 +1293,8 @@ export default defineConfig({
         exclude: [/\.tsx?$/, /node_modules[\\/](kokoro-js|phonemizer)[\\/]/],
         jsx: 'automatic',
         tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
+        // Replaces terser's `drop_debugger` now that the build minifies with esbuild.
+        drop: ['debugger'],
     },
     // Worker bundles are built by a separate pipeline that does not include plugin-react (which strips the types of .ts/.tsx here: the
     // esbuild option above only covers .js/.jsx). Without this, a TypeScript worker such as
@@ -1326,6 +1328,9 @@ export default defineConfig({
             ignored: ['**/.playwright-mcp/**', '**/.kilo/**'],
         },
         proxy: {
+            // Media Hub: vendored VidBee, gated by the Express backend (see backend/services/vidbeeProxy.js).
+            '/vidbee': { target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001', changeOrigin: true },
+            '/api/vidbee': { target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001', changeOrigin: true },
             '/ai-vfx': {
                 target: 'http://localhost:3000',
                 changeOrigin: true,
@@ -1516,19 +1521,15 @@ export default defineConfig({
     },
     build: {
         target: 'esnext',
-        minify: 'terser',
+        // esbuild instead of terser: terser runs last, over every chunk, and was a main cause of the
+        // Netlify build being OOM-killed (exit 137) while rendering chunks.
+        minify: 'esbuild',
     esbuild: {
         jsx: 'automatic',
         loader: 'tsx',
         include: /\.(jsx|tsx|ts)$/,
         tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
     },
-        terserOptions: {
-            compress: {
-                drop_console: false,
-                drop_debugger: true
-            }
-        },
         rollupOptions: {
             // Second HTML entry: the sandboxed Remotion export runner.
             input: {
@@ -1552,7 +1553,7 @@ export default defineConfig({
                 assetFileNames: 'assets/[name]-[hash].[ext]'
             }
         },
-        sourcemap: process.env.NODE_ENV !== 'production',
+        sourcemap: false,
         chunkSizeWarningLimit: 1000,
         // Gzipping every multi-MB chunk just to print sizes pushed the Netlify build past its
         // memory limit (OOM-killed, exit 137, right after "computing gzip size...").

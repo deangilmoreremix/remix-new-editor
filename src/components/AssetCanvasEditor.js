@@ -194,6 +194,9 @@ export function AssetCanvasEditor(params = {}) {
     const el = document.createElement('button');
     el.type = 'button';
     el.dataset.block = kind;
+    // A text block drawn on the canvas, not a button in disguise: keep its own background
+    // (outline-buttons.css otherwise forces every button transparent).
+    el.dataset.keepFill = '';
     el.textContent = b.text;
     el.style.cssText = [
       `font-size:${SIZE_PX[b.size] || SIZE_PX.medium}`,

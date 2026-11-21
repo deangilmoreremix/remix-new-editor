@@ -1,0 +1,36 @@
+{
+  "model-selector": {
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Minimax Speech Turbo')]/../../..",
+    "click": false
+  },
+  "style-music": {
+    "setup": "(() => { Object.keys(localStorage).filter((k) => k.startsWith('hg_audio_studio_persistent')).forEach((k) => localStorage.removeItem(k)); localStorage.setItem('hg_audio_studio_persistent', JSON.stringify({\"selectedModelId\": \"suno-create-music\", \"params\": {}})); })()",
+    "selector": "xpath=//select[option[@value='hip-hop']]/..",
+    "click": false
+  },
+  "model-specific-controls": {
+    "setup": "(() => { Object.keys(localStorage).filter((k) => k.startsWith('hg_audio_studio_persistent')).forEach((k) => localStorage.removeItem(k)); localStorage.setItem('hg_audio_studio_persistent', JSON.stringify({\"selectedModelId\": \"suno-generate-sounds\", \"params\": {}})); })()",
+    "selector": "#schema-controls",
+    "click": false
+  },
+  "audio-upload-and-drag-and-drop": {
+    "setup": "(() => { Object.keys(localStorage).filter((k) => k.startsWith('hg_audio_studio_persistent')).forEach((k) => localStorage.removeItem(k)); localStorage.setItem('hg_audio_studio_persistent', JSON.stringify({\"selectedModelId\": \"suno-add-vocals\", \"params\": {}})); })()",
+    "selector": "xpath=//div[normalize-space(text())='Upload audio track']/ancestor::div[contains(@class,'cursor-pointer')][1]",
+    "click": false
+  },
+  "waveform-player-and-audio-editor": {
+    "setup": "(() => { Object.keys(localStorage).filter((k) => k.startsWith('hg_audio_studio_persistent')).forEach((k) => localStorage.removeItem(k)); localStorage.setItem('hg_audio_studio_persistent', JSON.stringify({\"selectedModelId\": \"suno-create-music\", \"params\": {}, \"internalHistory\": [{\"id\": \"g1\", \"url\": \"/workbench-app/bgmlib/house-vibez.mp3\", \"title\": \"Sunset house groove, warm synths\", \"prompt\": \"Sunset house groove\", \"model\": \"suno-create-music\", \"timestamp\": \"2026-11-18T10:00:00Z\"}, {\"id\": \"g2\", \"url\": \"/workbench-app/bgmlib/bgm-tech-house.mp3\", \"title\": \"Driving tech house for a product reel\", \"prompt\": \"tech house\", \"model\": \"suno-create-music\", \"timestamp\": \"2026-11-18T09:00:00Z\"}, {\"id\": \"g3\", \"url\": \"/media/outreach-sample/hi-there.mp3\", \"title\": \"Hi there! Thanks for stopping by.\", \"prompt\": \"Hi there\", \"model\": \"minimax-speech-2.6-turbo\", \"timestamp\": \"2026-11-18T08:00:00Z\"}, {\"id\": \"g4\", \"url\": \"/workbench-app/bgmlib/tonight-hiphop.mp3\", \"title\": \"Late-night hip hop beat\", \"prompt\": \"hip hop\", \"model\": \"suno-create-music\", \"timestamp\": \"2026-11-18T07:00:00Z\"}], \"activeResultUrl\": \"/workbench-app/bgmlib/house-vibez.mp3\", \"activeResultTitle\": \"Sunset house groove, warm synths\", \"view\": \"result\"})); })()",
+    "selector": "xpath=//div[@id='waveform-container']/..",
+    "click": false
+  },
+  "history-and-job-recovery": {
+    "setup": "(() => { Object.keys(localStorage).filter((k) => k.startsWith('hg_audio_studio_persistent')).forEach((k) => localStorage.removeItem(k)); localStorage.setItem('hg_audio_studio_persistent', JSON.stringify({\"selectedModelId\": \"suno-create-music\", \"params\": {}, \"internalHistory\": [{\"id\": \"g1\", \"url\": \"/workbench-app/bgmlib/house-vibez.mp3\", \"title\": \"Sunset house groove, warm synths\", \"prompt\": \"Sunset house groove\", \"model\": \"suno-create-music\", \"timestamp\": \"2026-11-18T10:00:00Z\"}, {\"id\": \"g2\", \"url\": \"/workbench-app/bgmlib/bgm-tech-house.mp3\", \"title\": \"Driving tech house for a product reel\", \"prompt\": \"tech house\", \"model\": \"suno-create-music\", \"timestamp\": \"2026-11-18T09:00:00Z\"}, {\"id\": \"g3\", \"url\": \"/media/outreach-sample/hi-there.mp3\", \"title\": \"Hi there! Thanks for stopping by.\", \"prompt\": \"Hi there\", \"model\": \"minimax-speech-2.6-turbo\", \"timestamp\": \"2026-11-18T08:00:00Z\"}, {\"id\": \"g4\", \"url\": \"/workbench-app/bgmlib/tonight-hiphop.mp3\", \"title\": \"Late-night hip hop beat\", \"prompt\": \"hip hop\", \"model\": \"suno-create-music\", \"timestamp\": \"2026-11-18T07:00:00Z\"}], \"activeResultUrl\": \"/workbench-app/bgmlib/house-vibez.mp3\", \"activeResultTitle\": \"Sunset house groove, warm synths\", \"view\": \"result\"})); })()",
+    "selector": "xpath=//h4[starts-with(normalize-space(.),'Generation History')]/..",
+    "click": false
+  },
+  "voice-and-speed-speech": {
+    "setup": "(() => { Object.keys(localStorage).filter((k) => k.startsWith('hg_audio_studio_persistent')).forEach((k) => localStorage.removeItem(k)); localStorage.setItem('hg_audio_studio_persistent', JSON.stringify({\"selectedModelId\": \"minimax-speech-2.6-turbo\", \"params\": {}})); })()",
+    "selector": "xpath=//label[normalize-space(.)='Voice']/..",
+    "click": false
+  }
+}
