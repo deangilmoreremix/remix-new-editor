@@ -175,6 +175,8 @@ export const editorConfig = {
 
 // Every section gets its own background / text colour and photo; video slots get viewer options.
 withSectionStyle(editorConfig.components, editorConfig.categories.sections.components);
+// The design-specific sections too (the *Card ones are dropped into a Grid, so they are not sections of their own).
+withSectionStyle(editorConfig.components, Object.keys(EXT_COMPONENTS).filter((n) => !/Card$/.test(n)));
 withViewerOptions(editorConfig.components);
 // Every image-link field also offers "Choose from my library" (images made in any studio).
 withImagePickers(editorConfig.components);
