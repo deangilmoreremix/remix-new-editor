@@ -54,11 +54,6 @@
     "click": true,
     "hold": 1500
   },
-  "properties-panel": {
-    "selector": ".dom-properties-panel input[type=text]",
-    "click": true,
-    "type": " - 20% off today"
-  },
   "personalization-hub": {
     "selector": "input.pzh-input[placeholder='Business name']",
     "click": true,

@@ -31,10 +31,6 @@
         "selector": "input#business-location",
         "type": " Austin, Texas",
         "hold": 800
-      },
-      {
-        "selector": "button:text-is('10 MI')",
-        "hold": 1200
       }
     ],
     "steps": [

@@ -10,7 +10,7 @@
     ]
   },
   "model-product-shot-product-photography": {
-    "selector": "xpath=//button[normalize-space(.)=\"Product Shot\"][not(ancestor::*[@data-ad-controls])][2] | xpath=//button[normalize-space(.)=\"Product Shot\"]",
+    "selector": "xpath=//button[normalize-space(.)=\"Product Shot\"]",
     "click": true,
     "then": [
       {

@@ -26,7 +26,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { TARGETS, DANGEROUS, SKIP_STUDIOS } from './guide-screenshot-targets.js';
-import { apiModalOpen, closeApiModal, open, findControl } from './guide-helpers.js';
+import { BASE, apiModalOpen, closeApiModal, open, findControl } from './guide-helpers.js';
 import { loadGuides, loadNarration, wordCount } from '../../scripts/guide-videos/lib.mjs';
 
 const ROOT = process.cwd();
@@ -271,6 +271,26 @@ for (const guide of GUIDES) {
     CURRENT_PAGE = page;
     let demos = {};
     try { demos = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'tests/e2e/guide-demos', `${guide.slug}.json`), 'utf8')); } catch {}
+
+    // Uploads normally go to MuAPI, which rejects the placeholder key. Answer them locally with the sample file,
+    // so the studio shows the uploaded media exactly as it would after a real upload. Nothing leaves the machine.
+    const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
+    const KINDS = { image: ['sample-image.jpg', 'image/jpeg'], video: ['sample-video.mp4', 'video/mp4'], audio: ['sample-audio.mp3', 'audio/mpeg'] };
+    await page.context().route(/__tour_media\//, (route) => {
+      const kind = /sample-(image|video|audio)/.exec(route.request().url())?.[1] || 'image';
+      return route.fulfill({ status: 200, contentType: KINDS[kind][1], headers: CORS, body: fs.readFileSync(path.join(process.cwd(), 'scripts/guide-videos/media', KINDS[kind][0])) });
+    });
+    await page.context().route(/upload_file|\/functions\/v1\//, (route) => {
+      const req = route.request();
+      if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+      const isUpload = /upload_file/.test(req.url()) || req.headers()['x-endpoint'] === 'upload_file';
+      if (req.method() !== 'POST' || !isUpload) return route.fallback();
+      const head = (req.postDataBuffer() || Buffer.alloc(0)).subarray(0, 600).toString('latin1');
+      const kind = /filename="[^"]*(video|audio)/i.exec(head)?.[1]?.toLowerCase() || (/filename="[^"]*\.(mp4|mov|webm)/i.test(head) ? 'video' : 'image');
+      const file = KINDS[kind][0];
+      const url = `${BASE}/__tour_media/${file}`;
+      return route.fulfill({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify({ url, file_url: url, data: { url }, result: { url } }) });
+    });
     // A placeholder key keeps the "set up your API keys" modal from interrupting the tour. It is never valid, so nothing can be billed.
     await page.addInitScript(() => { try { for (const k of ['muapi_key', 'openai_key']) if (!localStorage.getItem(k)) localStorage.setItem(k, 'tour-placeholder-key'); } catch {} });
     const targets = TARGETS[guide.slug] || {};

@@ -38,12 +38,13 @@
   "start-frame-and-end-frame": {
     "selector": "xpath=//button[starts-with(@aria-label,'Starting image for the video') or starts-with(@title,'Starting image for the video')]",
     "click": true,
+    "upload": true,
+    "file": "image",
+    "hold": 3000,
     "then": [
       {
-        "upload": true,
-        "file": "image",
-        "hold": 3000,
-        "selector": "xpath=(//*[normalize-space(text())='Pick a file'] | //button[contains(.,'Upload new') or contains(.,'Upload files')])[1]"
+        "selector": "xpath=//button[starts-with(@aria-label,'End frame') or starts-with(@title,'End frame')]",
+        "hold": 1500
       }
     ]
   },

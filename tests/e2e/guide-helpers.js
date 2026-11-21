@@ -3,7 +3,7 @@
 // Studio-driving helpers shared by guide-screenshots.spec.js and guide-videos.spec.js:
 // closing the API-key modal, waiting for a studio to render, opening a route and
 // finding the control a guide feature describes.
-const BASE = process.env.GUIDE_BASE_URL || 'http://localhost:3100';
+export const BASE = process.env.GUIDE_BASE_URL || 'http://localhost:3100';
 const MAX_LOAD_MS = Number(process.env.GUIDE_MAX_LOAD_MS || 45000);
 
 const STOP = new Set(['the', 'and', 'with', 'for', 'from', 'your', 'into', 'this', 'that', 'mode', 'modes', 'studio', 'image', 'images', 'video', 'videos', 'button', 'panel', 'option', 'options', 'tool', 'tools', 'feature', 'features', 'menu', 'list', 'card', 'cards', 'view', 'page', 'smart']);

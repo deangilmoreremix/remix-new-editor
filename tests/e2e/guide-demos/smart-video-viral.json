@@ -34,7 +34,7 @@
     "hold": 1500
   },
   "copy-prompt": {
-    "selector": "button[aria-label='Copy prompt to clipboard']",
+    "selector": "button:has-text('Copy Prompt')",
     "click": true,
     "hold": 1500,
     "steps": [
@@ -45,7 +45,7 @@
     ]
   },
   "create-this-style": {
-    "selector": "button[aria-label='Create this style in studio']",
+    "selector": "button:has-text('Create This Style')",
     "click": true,
     "hold": 2500,
     "steps": [
