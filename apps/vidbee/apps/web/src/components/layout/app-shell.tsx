@@ -4,12 +4,15 @@ import {
 	type AppSidebarItem,
 } from "@vidbee/ui/components/ui/app-sidebar";
 import { appSidebarIcons } from "@vidbee/ui/components/ui/app-sidebar-icons";
+import BookFill from "~icons/mingcute/book-2-fill";
+import BookLine from "~icons/mingcute/book-2-line";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 type AppPage =
 	| "about"
 	| "download"
+	| "guide"
 	| "settings"
 	| "subscriptions"
 	| "tools"
@@ -74,6 +77,17 @@ export const AppShell = ({ children, page }: AppShellProps) => {
 			onClick: () => {
 				void navigate({ to: "/settings" });
 			},
+		},
+		{
+			id: "guide",
+			active: page === "guide",
+			icon: { active: BookFill, inactive: BookLine },
+			label: t("webTranscripts.guide.menu", { defaultValue: "Guide" }),
+			onClick: () => {
+				void navigate({ to: "/guide" });
+			},
+			showLabel: false,
+			showTooltip: true,
 		},
 		{
 			id: "about",
