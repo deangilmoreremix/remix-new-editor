@@ -91,7 +91,8 @@ export const STUDIO_ROUTES = {
   effects: { label: 'Effects Studio', category: 'Video' },
   'ai-vfx': { label: 'AI VFX Studio', category: 'Video' },
   animate: { label: 'Animate Studio', category: 'Video' },
-  'media-hub': { label: 'Media Hub', category: 'Video' },
+  'media-hub': { label: 'SmartVidDownloader', category: 'Video' },
+  smartviddownloader: { label: 'SmartVidDownloader', category: 'Video' },
   lipsync: { label: 'Lip Sync Studio', category: 'Video' },
   videotools: { label: 'Video Tools', category: 'Video' },
   avatar: { label: 'Avatar Studio', category: 'Video' },
@@ -191,7 +192,7 @@ export const NAV_GROUPS = [
     { id: 'effects', label: 'Effects' },
     { id: 'ai-vfx', label: 'AI VFX' },
     { id: 'animate', label: 'Animate' },
-    { id: 'media-hub', label: 'Media Hub' },
+    { id: 'media-hub', label: 'SmartVidDownloader' },
     { id: 'lipsync', label: 'Lip Sync' },
     { id: 'videotools', label: 'Video Tools' },
     { id: 'avatar', label: 'Avatar' },
@@ -217,6 +218,7 @@ export const NAV_GROUPS = [
 
 // Routes that are part of a menu entry without being one themselves.
 const NAV_ALIASES = {
+  smartviddownloader: 'media-hub',
   cinegen: 'workbench',
   'video-agent-studio': 'video-agent',
   'zackd-studio': 'zackd',

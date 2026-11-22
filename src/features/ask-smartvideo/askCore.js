@@ -79,6 +79,7 @@ const GUIDE_ALIASES = {
   'timeline-classic': 'timeline', openthorn: 'website-builder',
   brightbean: 'smart-video-scheduler', 'brand-photo-studio': 'photo-studio',
   'video-agent-studio': 'video-agent', 'zackd-studio': 'zackd', 'campaign-page': 'campaign',
+  smartviddownloader: 'media-hub',
 };
 
 /**

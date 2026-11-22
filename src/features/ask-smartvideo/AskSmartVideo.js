@@ -120,13 +120,13 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
     });
     if (f.screenshot) {
       const a = el('a', 'block overflow-hidden rounded-lg border border-white/10');
-      a.href = guideUrl(g, f); a.dataset.askUrl = guideUrl(g, f);
+      if (!g.unlisted) { a.href = guideUrl(g, f); a.dataset.askUrl = guideUrl(g, f); }
       const img = el('img', 'w-full'); img.src = f.screenshot; img.alt = `${f.name} in ${g.name}`; img.loading = 'lazy';
       a.appendChild(img); body.appendChild(a);
     }
     const links = el('div', 'flex flex-wrap gap-1.5 pt-1');
     const link = (label, url, guide) => { const b = el('button', guide ? 'rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] text-primary hover:border-primary' : 'rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white hover:border-primary/50', label); b.type = 'button'; b.dataset.askUrl = url; links.appendChild(b); };
-    link('Feature guide', guideUrl(g, f), true);
+    if (!g.unlisted) link('Feature guide', guideUrl(g, f), true);
     link(`Open ${g.name}`, `#/${g.route}`, false);
     body.appendChild(links);
     d.appendChild(body);
@@ -142,7 +142,7 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
     const head = el('div', 'flex items-center justify-between gap-2');
     head.appendChild(el('div', 'text-[11px] font-semibold uppercase tracking-wide text-muted', `${g.name} guide · ${g.features.length} features`));
     const all = el('button', 'text-[11px] text-primary hover:underline', 'Full guide ↗'); all.type = 'button'; all.dataset.askUrl = guideUrl(g);
-    head.appendChild(all);
+    if (!g.unlisted) head.appendChild(all);
     box.appendChild(head);
     if (g.shortDescription) box.appendChild(el('p', 'pt-1 text-xs text-secondary', g.shortDescription));
     const list = el('div', 'flex flex-col gap-1.5 pt-2');
