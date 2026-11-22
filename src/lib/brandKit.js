@@ -1,0 +1,153 @@
+// src/lib/brandKit.js
+// "Brand Kit": what Find My Brand found about a business (logo, palette, copy, socials, images),
+// saved once as a Brand DNA record (lib/brandStore.js) so every studio that reads brands can use it,
+// plus a one-click "make an ad" that turns the kit into a Video Studio brief.
+//
+// Pure, offline helpers: nothing here fetches. Nothing is invented: a field with no source stays empty.
+
+import { generateId, listBrands, saveBrand } from './brandStore.js';
+import { stageStudioPrefill } from './studioPrefill.js';
+import { navigate } from './router.js';
+
+const HEX = /^#?([0-9a-f]{6})$/i;
+const MAX_IMAGES = 12;
+const DURATIONS = [8, 15, 30];
+
+const str = (v) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : '');
+const hex = (v) => { const m = HEX.exec(str(v)); return m ? `#${m[1].toLowerCase()}` : ''; };
+const uniq = (list) => [...new Set(list.filter(Boolean))];
+const httpUrl = (v) => {
+  try { const u = new URL(str(v)); return u.protocol === 'http:' || u.protocol === 'https:' ? u.href : ''; } catch { return ''; }
+};
+
+export function hostOf(url) {
+  try { return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).hostname.replace(/^www\./, '').toLowerCase(); } catch { return ''; }
+}
+
+/**
+ * Build a Brand DNA record from a Find My Brand result.
+ * @param {{ research?: object, client?: object, assets?: object[] }} input
+ *   research: BusinessResearchResult; client: the modal's client form; assets: DiscoveredAsset[]
+ * @returns {object|null} null when there is nothing usable (no name and no website).
+ */
+export function buildBrandKit({ research = {}, client = {}, assets = [] } = {}) {
+  const url = httpUrl(research.canonicalUrl || research.finalUrl) || httpUrl(client.website);
+  const host = hostOf(url || client.website || '');
+  const brandName = str(client.businessName) || str(research.title).split(/[|\-–—]/)[0].trim() || host;
+  if (!brandName && !host) return null;
+
+  const colors = research.brandColors || client.brandColors || {};
+  const palette = uniq([hex(colors.primary), hex(colors.accent), ...(colors.palette || []).map(hex)]);
+  const primaryColors = palette.slice(0, 2);
+  const secondaryColors = palette.slice(2, 5);
+
+  // Kept images: not rejected, an image we can load, best (selected/recommended, quality) first.
+  const usable = assets
+    .filter((a) => a && !a.rejected && a.category !== 'irrelevant' && httpUrl(a.previewUrl || a.sourceUrl))
+    .sort((a, b) => (Number(b.selected) - Number(a.selected)) || (Number(b.recommended) - Number(a.recommended))
+      || ((b.qualityScore || 0) - (a.qualityScore || 0)));
+  const urlOf = (a) => httpUrl(a.editedDataUrl ? a.sourceUrl : (a.previewUrl || a.sourceUrl));
+  const logoAsset = usable.find((a) => a.category === 'logo');
+  const logoUrl = httpUrl(research.brandingAssets?.logoUrl || research.logoUrl) || (logoAsset ? urlOf(logoAsset) : '');
+  const byCat = (...cats) => usable.filter((a) => cats.includes(a.category)).map(urlOf).filter(Boolean);
+  const productImages = uniq(byCat('product', 'service', 'completed_work')).slice(0, MAX_IMAGES);
+  const peopleImages = uniq(byCat('person', 'team')).slice(0, MAX_IMAGES);
+  const placeImages = uniq(byCat('storefront', 'office', 'branded_vehicle', 'brand')).slice(0, MAX_IMAGES);
+  const siteImages = uniq([...productImages, ...placeImages, ...peopleImages,
+    ...(research.brandingAssets?.imageUrls || []).map(httpUrl)]).slice(0, MAX_IMAGES * 2);
+
+  const description = str(client.brandDescription) || str(research.description) || str(research.openGraph?.['og:description']);
+  const socials = {};
+  for (const k of ['facebook', 'instagram', 'linkedin', 'youtube', 'tiktok', 'x', 'pinterest']) {
+    const v = httpUrl(client[k] || research.socialLinks?.[k]);
+    if (v) socials[k] = v;
+  }
+
+  return {
+    id: '',
+    url: url || (host ? `https://${host}` : ''),
+    brandName,
+    industry: str(client.industry),
+    tagline: str(client.ctaHeadline),
+    valueProposition: description,
+    toneOfVoice: [],
+    brandPersonality: [],
+    targetAudience: '',
+    keyMessages: uniq([str(client.offer), str(client.productService)]),
+    primaryColors,
+    secondaryColors,
+    fonts: [],
+    logoUrl,
+    screenshotUrl: '',
+    siteImages,
+    siteVideos: [],
+    imageryStyle: '',
+    layoutStyle: '',
+    // Extras the ad builder and other studios can read.
+    offer: str(client.offer),
+    productService: str(client.productService),
+    callToAction: str(client.callToAction),
+    location: str(client.location),
+    website: url,
+    contact: { phone: str(client.phone), email: str(client.email) },
+    socials,
+    productImages,
+    peopleImages,
+    placeImages,
+    source: 'find-my-brand',
+  };
+}
+
+/** Save a kit as a Brand DNA record, reusing the record of the same website so re-running updates it. */
+export function saveBrandKit(kit) {
+  if (!kit) return null;
+  const host = hostOf(kit.url);
+  const existing = host ? listBrands().find((b) => hostOf(b.url) === host) : null;
+  const now = new Date().toISOString();
+  const merged = existing
+    ? { ...existing, ...Object.fromEntries(Object.entries(kit).filter(([, v]) => !(v === '' || (Array.isArray(v) && v.length === 0)))), id: existing.id, createdAt: existing.createdAt }
+    : { ...kit, id: generateId(), createdAt: now };
+  return saveBrand(merged);
+}
+
+/**
+ * The ad brief for a kit: a Video Studio prompt built only from what the site said, plus the start image
+ * and aspect ratio. `duration` is 8, 15 or 30 seconds; `aspectRatio` is '9:16' or '16:9'.
+ */
+export function buildBrandAdPlan(brand, { duration = 15, aspectRatio = '9:16', goal = '' } = {}) {
+  if (!brand) return null;
+  const secs = DURATIONS.includes(duration) ? duration : 15;
+  const name = str(brand.brandName) || hostOf(brand.url);
+  const offer = str(brand.offer) || str(brand.keyMessages?.[0]);
+  const what = str(brand.productService) || str(brand.industry);
+  const colors = uniq([...(brand.primaryColors || []), ...(brand.secondaryColors || [])]).slice(0, 4);
+  const hero = brand.productImages?.[0] || brand.placeImages?.[0] || brand.peopleImages?.[0] || brand.siteImages?.[0] || '';
+  const cta = str(brand.callToAction) || (brand.website ? `Visit ${hostOf(brand.website)}` : '');
+
+  const lines = [
+    `A ${secs}-second ${aspectRatio === '9:16' ? 'vertical' : 'widescreen'} promotional video for ${name}${what ? `, ${what}` : ''}${brand.location ? ` in ${str(brand.location)}` : ''}.`,
+    str(brand.valueProposition) && `About the business: ${str(brand.valueProposition)}`,
+    offer && `Key message: ${offer}.`,
+    str(goal) && `Goal: ${str(goal)}.`,
+    colors.length && `Use the brand colors ${colors.join(', ')} for graphics and text.`,
+    brand.logoUrl && 'Show the brand logo clearly in the final shot.',
+    `Open with a strong hook in the first 2 seconds, keep a steady, professional pace, and end on a clear call to action${cta ? `: "${cta}"` : ''}.`,
+    hero && 'Start from the supplied brand image and keep the subject and styling true to it.',
+  ].filter(Boolean);
+
+  return { prompt: lines.join(' '), referenceImageUrl: hero, aspectRatio, duration: secs, brandId: brand.id || '' };
+}
+
+/** Open Video Studio with the brand's ad brief filled in (the user still presses Generate). */
+export function makeBrandAd(brand, options = {}) {
+  const plan = buildBrandAdPlan(brand, options);
+  if (!plan) return null;
+  stageStudioPrefill({
+    route: 'video',
+    prompt: plan.prompt,
+    params: { referenceImageUrl: plan.referenceImageUrl || undefined, aspectRatio: plan.aspectRatio, brandId: plan.brandId },
+    autoGenerate: false,
+  });
+  navigate('video');
+  return plan;
+}

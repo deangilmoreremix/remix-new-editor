@@ -85,6 +85,7 @@ import { makeDiscoveredAssetVideoReady } from './image-editor/batchVideoReady'
 import { isImageEditSupported } from './image-editor/imageEditSupport'
 import { DiscoveredAssetGrid, type DiscoveredAssetDropZone } from './DiscoveredAssetGrid'
 import { ResumeProjectBanner } from './ResumeProjectBanner'
+import { BrandKitPanel } from './BrandKitPanel'
 import { SimpleModeWizard } from './guided/SimpleModeWizard'
 import { OverlayEditor } from './guided/OverlayEditor'
 import { buildPreviewInput } from './guided/buildPreviewInput'
@@ -2799,6 +2800,7 @@ function ConfigurationView(props: any) {
             </button>
           </div>
         )}
+        <BrandKitPanel />
       {/* ── TOP OVERVIEW: Source Demo | Client Profile ────────────── */}
       <section id="pz-overview" style={{ padding: '14px 0', scrollMarginTop: 64, borderBottom: `1px solid ${C.border}` }}>
         {/* Client: "Find business" and "Profile" sections */}
