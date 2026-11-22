@@ -61,7 +61,8 @@ export function MuapiStudioPage() {
           onRequestApiKey: () => {
             if (settingsOpen) return;
             settingsOpen = true;
-            settingsEl = SettingsModal(() => { settingsOpen = false; settingsEl = null; keyVersion += 1; render(); });
+            // The key listener below remounts when the key actually changes, so closing the dialog needs no remount.
+            settingsEl = SettingsModal(() => { settingsOpen = false; settingsEl = null; });
             document.body.appendChild(settingsEl);
           },
           theme: 'lime',
