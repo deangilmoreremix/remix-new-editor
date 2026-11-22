@@ -44,17 +44,52 @@ function Library({ onPick, onClose, kind = 'image' }) {
 
 const aiBtnStyle = { marginTop: 6, marginLeft: 6, padding: '6px 10px', border: '1px solid var(--lp-accent, #d9ff00)', borderRadius: 6, background: 'transparent', color: 'var(--lp-accent, #d9ff00)', fontWeight: 700, cursor: 'pointer', font: 'inherit', fontSize: 12 };
 
+/** The items a studio sent to this page, offered first in every picture / video field. */
+export function TrayRow({ items, current, saving, onUse }) {
+  return (
+    <div data-tray-row style={{ marginTop: 6 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.8, marginBottom: 4 }}>From your studio</div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {items.map((it) => (
+          <button key={it.url} type="button" data-tray-item disabled={!!saving} onClick={() => onUse(it)} title={it.title || ''} aria-label={`Use ${it.title || (it.type === 'video' ? 'this video' : 'this picture')}`}
+            style={{ padding: 0, width: 56, height: 40, overflow: 'hidden', borderRadius: 6, cursor: saving ? 'wait' : 'pointer', background: '#000', border: it.url === current ? '2px solid var(--lp-accent, #d9ff00)' : '1px solid var(--lp-field-border, #cbd5e1)', opacity: saving && saving !== it.url ? 0.5 : 1 }}>
+            {it.type === 'video' && !it.posterUrl
+              ? <video src={`${it.url}#t=0.5`} muted preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : <img src={it.posterUrl || it.url} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+          </button>
+        ))}
+      </div>
+      {saving ? <p data-tray-saving style={{ margin: '4px 0 0', fontSize: 11 }}>Saving to your account…</p> : null}
+    </div>
+  );
+}
+
 export function imageField(label, kind = 'image') {
   return {
     type: 'custom',
     label,
+    slotKind: kind === 'video' ? 'video' : 'image',      // a place on the page that takes a picture / video (see contentTray.js listSlots)
     render: ({ value, onChange, name }) => {
       const [open, setOpen] = useState(false); // eslint-disable-line react-hooks/rules-of-hooks
-      const { page, getStyle } = usePage(); // eslint-disable-line react-hooks/rules-of-hooks
+      const { page, getStyle, getTray } = usePage(); // eslint-disable-line react-hooks/rules-of-hooks
+      const tray = (getTray?.() || []).filter((t) => (kind === 'video' ? t.type === 'video' : t.type === 'image')); // eslint-disable-line react-hooks/rules-of-hooks
+      const [saving, setSaving] = useState(''); // eslint-disable-line react-hooks/rules-of-hooks
+      const [trayError, setTrayError] = useState(''); // eslint-disable-line react-hooks/rules-of-hooks
+      const useItem = async (item) => { // eslint-disable-line react-hooks/rules-of-hooks
+        setTrayError('');
+        try {
+          const { useTrayItem } = await import('../trayUse.js');
+          setSaving(item.url);
+          onChange(await useTrayItem(item));
+        } catch (e) { setTrayError(e?.message || 'Could not use that one.'); }
+        setSaving('');
+      };
       return (
         <div>
           <label style={labelStyle} htmlFor={name}>{label}</label>
           <input id={name} style={inputStyle} value={value || ''} placeholder={kind === 'video' ? 'https://…/video.mp4 or choose from your library' : 'https://… or choose from your library'} onChange={(e) => onChange(e.target.value)} />
+          {tray.length ? <TrayRow items={tray} current={value} saving={saving} onUse={useItem} /> : null}
+          {trayError ? <p data-tray-error style={{ margin: '6px 0 0', fontSize: 12, color: '#f87171' }}>{trayError}</p> : null}
           <button type="button" style={btnStyle} onClick={() => setOpen((o) => !o)}>{open ? 'Hide library' : kind === 'video' ? 'Choose a video I made' : 'Choose from my library'}</button>
           {kind !== 'video' ? <button type="button" data-ai-image style={aiBtnStyle} onClick={() => { import('../aiImageModal.js').then((mod) => mod.openAiImageModal({ label, pageTitle: page?.title || '', brief: readBrief(page), style: getStyle?.() || null, onUse: (url) => onChange(url) })); }}>Create with AI</button> : null}
           {open ? <Library kind={kind} onPick={(u) => { onChange(u); setOpen(false); }} onClose={() => setOpen(false)} /> : null}

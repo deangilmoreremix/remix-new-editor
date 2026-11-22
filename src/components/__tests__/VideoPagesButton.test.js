@@ -19,7 +19,7 @@ describe('Video Pages header button', () => {
   it('with nothing finished this session it loads your newest video or picture from history (no upload)', async () => {
     hist.list = [{ type: 'audio', url: 'https://x.test/a.mp3' }, { type: 'image', url: 'https://x.test/new.png', prompt: 'Newest' }, { type: 'video', url: 'https://x.test/old.mp4' }];
     createVideoPagesButton({ target: new EventTarget() }).click();
-    await vi.waitFor(() => expect(picker.open).toHaveBeenCalledWith({ video: expect.objectContaining({ url: 'https://x.test/new.png', type: 'image' }) }));
+    await vi.waitFor(() => expect(picker.open).toHaveBeenCalledWith({ items: expect.any(Array), video: expect.objectContaining({ url: 'https://x.test/new.png', type: 'image' }) }));
   });
 
   it('pickLatest skips audio and unusable links', () => {
@@ -32,7 +32,7 @@ describe('Video Pages header button', () => {
     const target = new EventTarget();
     const btn = createVideoPagesButton({ target });
     btn.click();
-    await vi.waitFor(() => expect(picker.open).toHaveBeenCalledWith({ video: null }));
+    await vi.waitFor(() => expect(picker.open).toHaveBeenCalledWith({ items: expect.any(Array), video: null }));
   });
 
   it('loads the latest finished video or picture from any studio', async () => {
@@ -42,7 +42,7 @@ describe('Video Pages header button', () => {
     target.dispatchEvent(new CustomEvent(WORKBENCH_GENERATION_EVENT, { detail: { entry: { type: 'audio', url: 'https://x.test/a.mp3' } } }));
     expect(btn.querySelector('[data-latest-dot]').classList.contains('hidden')).toBe(false);
     btn.click();
-    await vi.waitFor(() => expect(picker.open).toHaveBeenCalledWith({ video: expect.objectContaining({ url: 'https://x.test/a.mp4', type: 'video', prompt: 'A fox' }) }));
+    await vi.waitFor(() => expect(picker.open).toHaveBeenCalledWith({ items: expect.any(Array), video: expect.objectContaining({ url: 'https://x.test/a.mp4', type: 'video', prompt: 'A fox' }) }));
   });
 
   it('ignores audio and non-https output', () => {

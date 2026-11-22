@@ -9,14 +9,37 @@ export function canMakeLandingPage(item) {
   return item.type === 'video' || item.type === 'image';
 }
 
-/** Open the picker + editor for one result: { url, type: 'video'|'image', prompt?, studio? }. */
-export async function openLandingPageFor(item, { toast } = {}) {
+/**
+ * The user's most recent pictures and videos (from the generation history), other than `exclude`, to ride along in the
+ * landing page's content tray. Never slows the hand-off down (a slow history is skipped) and never throws.
+ */
+export async function recentItems({ exclude = [], n = 5, load, timeoutMs = 2500 } = {}) {
+  try {
+    const loader = load || (await import('../../lib/generationHistory.js')).loadGenerationHistory;
+    const list = await Promise.race([loader(), new Promise((r) => setTimeout(() => r([]), timeoutMs))]);
+    const skip = new Set(exclude.filter(Boolean));
+    const out = [];
+    for (const h of Array.isArray(list) ? list : []) {
+      const type = h?.type === 'video' ? 'video' : h?.type === 'image' ? 'image' : '';
+      const it = { url: h?.url, type, prompt: h?.prompt || '', studio: h?.studio || '', thumbnail_url: h?.thumbnail_url || '' };
+      if (!type || !canMakeLandingPage(it) || skip.has(it.url)) continue;
+      skip.add(it.url);
+      out.push(it);
+      if (out.length >= n) break;
+    }
+    return out;
+  } catch { return []; }
+}
+
+/** Open the picker + editor for one result: { url, type: 'video'|'image', prompt?, studio? }. Recent results come along as the tray. */
+export async function openLandingPageFor(item, { toast, recent = true } = {}) {
   const { openLandingPagePicker, toPickerVideo } = await import('../../lib/landingPages/pickerModal.js');
   if (!canMakeLandingPage(item) || !toPickerVideo(item)) {
     toast?.('This result has no shareable link yet.');
     return false;
   }
-  openLandingPagePicker({ video: item });
+  const items = recent ? await recentItems({ exclude: [item.url] }) : [];
+  openLandingPagePicker({ video: item, items });
   return true;
 }
 

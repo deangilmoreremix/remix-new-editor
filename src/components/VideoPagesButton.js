@@ -51,7 +51,10 @@ export function createVideoPagesButton({ target = window } = {}) {
       try { const { loadGenerationHistory } = await import('../lib/generationHistory.js'); video = pickLatest(await loadGenerationHistory()); } catch { video = null; }
     }
     const { openLandingPagePicker, toPickerVideo } = await import('../lib/landingPages/pickerModal.js');
-    openLandingPagePicker({ video: video && toPickerVideo(video) ? video : null });
+    const { recentItems } = await import('./studio/landingPageAction.js');
+    const main = video && toPickerVideo(video) ? video : null;
+    // your latest creation fills the viewer; the next five wait in the editor's content tray
+    openLandingPagePicker({ video: main, items: await recentItems({ exclude: [main?.url] }) });
   });
   return btn;
 }

@@ -56,7 +56,7 @@ describe('behaviour', () => {
     btnsIn(root)[0].dispatchEvent(click);
     await flush();
     expect(click.defaultPrevented).toBe(true);
-    expect(picker.open).toHaveBeenCalledWith({ video: expect.objectContaining({ url: 'https://cdn.test/r.png', type: 'image', studio: 'character' }) });
+    await vi.waitFor(() => expect(picker.open).toHaveBeenCalledWith({ items: expect.any(Array), video: expect.objectContaining({ url: 'https://cdn.test/r.png', type: 'image', studio: 'character' }) }));
   });
 
   it('never twice for the same link, even when scanned again', () => {
@@ -82,7 +82,7 @@ describe('behaviour', () => {
     scan(root);
     root.querySelector('a').setAttribute('href', 'https://cdn.test/new.png');
     btnsIn(root)[0].click(); await flush();
-    expect(picker.open).toHaveBeenCalledWith({ video: expect.objectContaining({ url: 'https://cdn.test/new.png' }) });
+    await vi.waitFor(() => expect(picker.open).toHaveBeenCalledWith({ items: expect.any(Array), video: expect.objectContaining({ url: 'https://cdn.test/new.png' }) }));
   });
 });
 

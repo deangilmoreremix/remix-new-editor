@@ -25,13 +25,13 @@ export function mountEditablePage(container, { page, data, tokens = {}, handlers
   return { destroy: () => root.unmount() };
 }
 
-export function mountPageEditor(container, { page, data, tokens = {}, onChange, onPublish }) {
+export function mountPageEditor(container, { page, data, tokens = {}, onChange, onPublish, getTray = () => [] }) {
   const root = createRoot(container);
   // The page's current look (accent, background, text, dark or light), kept up to date as it is edited, for the AI buttons.
   const look = { current: pageStyleHint(data?.root) };
   const track = (d) => { look.current = pageStyleHint(d?.root); onChange?.(d); };
   root.render(
-    <PageContext.Provider value={{ page, tokens, handlers: {}, preview: true, getStyle: () => look.current }}>
+    <PageContext.Provider value={{ page, tokens, handlers: {}, preview: true, getStyle: () => look.current, getTray }}>
       <PageEditor config={editorConfig} data={data} onChange={track} onPublish={onPublish} />
     </PageContext.Provider>,
   );
