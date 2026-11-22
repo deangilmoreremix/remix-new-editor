@@ -43,9 +43,12 @@ export function MuapiStudioPage() {
       if (disposed) return;
 
       root = createRoot(host);
+      let keyVersion = 0;
       const render = () => {
         if (disposed || !root) return;
         root.render(createElement(MuapiStudio, {
+          // Remount after Settings closes so a replaced key rebuilds the client and reloads models.
+          key: keyVersion,
           apiBase: STUDIO_BASE,
           fetchImpl: studioFetch,
           connected: apiKeyManager.hasMuapiKey(),
@@ -53,7 +56,7 @@ export function MuapiStudioPage() {
           onRequestApiKey: () => {
             if (settingsOpen) return;
             settingsOpen = true;
-            document.body.appendChild(SettingsModal(() => { settingsOpen = false; render(); }));
+            document.body.appendChild(SettingsModal(() => { settingsOpen = false; keyVersion += 1; render(); }));
           },
           theme: 'lime',
           layout: 'rail',

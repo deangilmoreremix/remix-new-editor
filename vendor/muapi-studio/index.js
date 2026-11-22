@@ -589,7 +589,7 @@ function Er({ url: e, onClose: t }) {
     /* @__PURE__ */ r("img", { src: e, alt: "Full size output", onClick: (a) => a.stopPropagation(), className: "max-h-full max-w-full object-contain" })
   ] });
 }
-function Tr({ mode: e, items: t, batch: a, onBatch: n, onLabel: s, onRemove: i, onReuse: o, onRerun: b, onDeleteMedia: k, onLoadMore: f, hasMore: A, loadingMore: M, serverError: p, estimateFor: G }) {
+function $r({ mode: e, items: t, batch: a, onBatch: n, onLabel: s, onRemove: i, onReuse: o, onRerun: b, onDeleteMedia: k, onLoadMore: f, hasMore: A, loadingMore: M, serverError: p, estimateFor: G }) {
   const [w, j] = N("All"), [S, R] = N(""), [g, u] = N(!1), [v, C] = N(null), F = Z(() => {
     const I = S.trim().toLowerCase();
     return t.filter((_) => _.mode !== e || w === "Approved" && _.label !== "approved" || w === "Rejected" && _.label !== "rejected" || w === "Unlabeled" && _.label !== null ? !1 : !I || _.prompt.toLowerCase().includes(I) || _.model.toLowerCase().includes(I));
@@ -640,10 +640,10 @@ function Tr({ mode: e, items: t, batch: a, onBatch: n, onLabel: s, onRemove: i, 
     ] })
   ] });
 }
-const $r = /^(prompt|negative_prompt|system_prompt|user_prompt|text|script|lyrics|instruction|instructions|description|input|content|message|query|code|html|markdown)$/i, _r = /(image|video|audio|mask|file|photo|face|voice|reference)(_url|_urls)?$/i;
+const Tr = /^(prompt|negative_prompt|system_prompt|user_prompt|text|script|lyrics|instruction|instructions|description|input|content|message|query|code|html|markdown)$/i, _r = /(image|video|audio|mask|file|photo|face|voice|reference)(_url|_urls)?$/i;
 function Gr(e) {
   var t;
-  return e.type === "boolean" ? "boolean" : e.type === "array" ? ((t = e.items) == null ? void 0 : t.type) === "string" ? "media-list" : "json" : e.enum && e.enum.length ? "select" : ["int", "integer", "number", "float"].includes(e.type ?? "") ? "number" : e.type === "text" ? "textarea" : e.type === "string" || !e.type ? $r.test(e.name) || (e.maxLength ?? 0) > 500 ? "textarea" : e.field === "image" || e.field === "video" || e.field === "audio" || /_url$/.test(e.name) || _r.test(e.name) ? "media" : "text" : "text";
+  return e.type === "boolean" ? "boolean" : e.type === "array" ? ((t = e.items) == null ? void 0 : t.type) === "string" ? "media-list" : "json" : e.enum && e.enum.length ? "select" : ["int", "integer", "number", "float"].includes(e.type ?? "") ? "number" : e.type === "text" ? "textarea" : e.type === "string" || !e.type ? Tr.test(e.name) || (e.maxLength ?? 0) > 500 ? "textarea" : e.field === "image" || e.field === "video" || e.field === "audio" || /_url$/.test(e.name) || _r.test(e.name) ? "media" : "text" : "text";
 }
 function st(e) {
   var o, b;
@@ -1210,7 +1210,7 @@ function aa(e) {
     s === he || i < Wr ? a += i : n.push({ id: s, label: s, count: i });
   return n.sort((s, i) => i.count - s.count || s.label.localeCompare(i.label)), a && n.push({ id: he, label: he, count: a }), n;
 }
-function Tt(e, t) {
+function $t(e, t) {
   const a = Et(e.name);
   return t.some((n) => n.id === a) ? a : he;
 }
@@ -1237,7 +1237,7 @@ const se = "__favourites__", ee = "__all__";
 function sa(e, t, a) {
   return e.filter((n) => {
     var s;
-    return t.category !== ee && n.category !== t.category ? !1 : t.provider === se ? !!((s = t.favourites) != null && s.includes(n.name)) : t.provider === ee || Tt(n, a) === t.provider;
+    return t.category !== ee && n.category !== t.category ? !1 : t.provider === se ? !!((s = t.favourites) != null && s.includes(n.name)) : t.provider === ee || $t(n, a) === t.provider;
   });
 }
 const la = (e, t) => t.filter((a) => a.id !== he).length >= Xr && e.length >= Qr;
@@ -1428,7 +1428,7 @@ function ua({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: 
                     )
                   ] }),
                   /* @__PURE__ */ l("div", { className: "flex items-center justify-between gap-2", children: [
-                    /* @__PURE__ */ r("span", { className: "truncate text-[10px] text-secondary", children: o ? `${m.group_of} · ${m.category}` : u && L === ee ? `${Tt(m, R)} · ${m.category}` : m.category }),
+                    /* @__PURE__ */ r("span", { className: "truncate text-[10px] text-secondary", children: o ? `${m.group_of} · ${m.category}` : u && L === ee ? `${$t(m, R)} · ${m.category}` : m.category }),
                     /* @__PURE__ */ r(da, { model: m })
                   ] })
                 ] })
@@ -1461,7 +1461,7 @@ const ht = (e, t) => {
     localStorage.setItem(e, JSON.stringify(t));
   } catch {
   }
-}, $t = 0.25;
+}, Tt = 0.25;
 function ma({ mode: e, models: t, client: a, batch: n, onRun: s, usage: i, reuse: o, switcher: b }) {
   const k = le.find((h) => h.id === e), f = Z(() => Zt(t, e), [t, e]), [A, M] = N(), [p, G] = N(null), [w, j] = N(null), [S, R] = N({}), [g, u] = N(null), [v, C] = N(null), [F, I] = N(() => ht("muapi-studio:favorites", [])), [_, L] = N("form"), [z, y] = N(!1), [D, X] = N("{}"), [c, d] = N(null), x = K(0), E = K(null);
   V(() => {
@@ -1469,18 +1469,18 @@ function ma({ mode: e, models: t, client: a, batch: n, onRun: s, usage: i, reuse
     const h = (U) => {
       var J;
       (J = E.current) != null && J.contains(U.target) || y(!1);
-    }, $ = (U) => {
+    }, T = (U) => {
       U.key === "Escape" && y(!1);
     };
-    return document.addEventListener("mousedown", h), document.addEventListener("keydown", $), () => {
-      document.removeEventListener("mousedown", h), document.removeEventListener("keydown", $);
+    return document.addEventListener("mousedown", h), document.addEventListener("keydown", T), () => {
+      document.removeEventListener("mousedown", h), document.removeEventListener("keydown", T);
     };
   }, [z]);
   const W = K(null);
   V(() => {
     var U, J, oe;
-    const h = ht(`muapi-studio:model:${e}`, null), $ = ((U = f.find((ie) => ie.name === h)) == null ? void 0 : U.name) ?? ((J = f.find((ie) => ie.name === Xt[e])) == null ? void 0 : J.name) ?? ((oe = Nt(f, "popular")[0]) == null ? void 0 : oe.name);
-    M($);
+    const h = ht(`muapi-studio:model:${e}`, null), T = ((U = f.find((ie) => ie.name === h)) == null ? void 0 : U.name) ?? ((J = f.find((ie) => ie.name === Xt[e])) == null ? void 0 : J.name) ?? ((oe = Nt(f, "popular")[0]) == null ? void 0 : oe.name);
+    M(T);
   }, [e, f]), V(() => {
     o && (W.current = o.inputs, f.some((h) => h.name === o.model) && (M(o.model), De(`muapi-studio:model:${e}`, o.model)), L("form"));
   }, [o == null ? void 0 : o.nonce]);
@@ -1488,14 +1488,14 @@ function ma({ mode: e, models: t, client: a, batch: n, onRun: s, usage: i, reuse
   V(() => {
     if (!A) return;
     let h = !0;
-    return G(null), j(null), u(null), C(null), d(null), a.model(A).then(($) => {
+    return G(null), j(null), u(null), C(null), d(null), a.model(A).then((T) => {
       if (!h) return;
-      const U = st($), J = Ge(U), oe = W.current;
+      const U = st(T), J = Ge(U), oe = W.current;
       if (W.current = null, oe)
         for (const ie of U) oe[ie.prop.name] !== void 0 && (J[ie.prop.name] = oe[ie.prop.name]);
-      G($), R(J);
-    }).catch(($) => {
-      h && j($.message);
+      G(T), R(J);
+    }).catch((T) => {
+      h && j(T.message);
     }), () => {
       h = !1;
     };
@@ -1510,30 +1510,30 @@ function ma({ mode: e, models: t, client: a, batch: n, onRun: s, usage: i, reuse
   }, [D]), ae = _ === "json" ? H ?? {} : B, re = JSON.stringify(ae);
   V(() => {
     if (!p || _ === "json" && !H) return;
-    const h = ++x.current, $ = setTimeout(() => {
+    const h = ++x.current, T = setTimeout(() => {
       a.estimate(p.name, ae).then((U) => {
         h === x.current && u(U);
       }).catch(() => {
         h === x.current && u(null);
       });
     }, 500);
-    return () => clearTimeout($);
+    return () => clearTimeout(T);
   }, [p, re, a]);
   const be = (h) => {
     M(h), De(`muapi-studio:model:${e}`, h);
-  }, Te = (h) => I(($) => {
-    const U = $.includes(h) ? $.filter((J) => J !== h) : [...$, h];
+  }, $e = (h) => I((T) => {
+    const U = T.includes(h) ? T.filter((J) => J !== h) : [...T, h];
     return De("muapi-studio:favorites", U), U;
   }), we = (h) => {
-    y(!1), h !== _ && (h === "json" ? X(JSON.stringify(B, null, 2)) : H && R(($) => {
-      const U = { ...$ };
+    y(!1), h !== _ && (h === "json" ? X(JSON.stringify(B, null, 2)) : H && R((T) => {
+      const U = { ...T };
       for (const J of P) H[J.prop.name] !== void 0 && (U[J.prop.name] = H[J.prop.name]);
       return U;
     }), L(h), C(null));
   }, Q = m ? He(m, g) : null, ce = te(async () => {
     if (!p) return;
     d(null);
-    const h = P.find(($) => $.prop.name === "prompt");
+    const h = P.find((T) => T.prop.name === "prompt");
     await s({
       model: p.name,
       endpointUrl: p.endpoint_url,
@@ -1544,36 +1544,36 @@ function ma({ mode: e, models: t, client: a, batch: n, onRun: s, usage: i, reuse
       prompt: h ? String(ae.prompt ?? "") : "",
       unitCost: Q == null ? void 0 : Q.current
     });
-  }, [p, P, s, e, ae, n, Q]), $e = te(async () => {
+  }, [p, P, s, e, ae, n, Q]), Te = te(async () => {
     if (!p) return;
     if (_ === "json") {
       if (!H) {
         C("The JSON is not valid");
         return;
       }
-      const $ = (p.required_fields ?? []).find((U) => H[U] === void 0 || H[U] === "");
-      if ($) {
-        C(`${$} is required`);
+      const T = (p.required_fields ?? []).find((U) => H[U] === void 0 || H[U] === "");
+      if (T) {
+        C(`${T} is required`);
         return;
       }
     } else {
-      const $ = Lr(P, S);
-      if ($) {
-        C($);
+      const T = Lr(P, S);
+      if (T) {
+        C(T);
         return;
       }
     }
     C(null);
     const h = ((Q == null ? void 0 : Q.current) ?? 0) * n;
-    if (h > $t) {
+    if (h > Tt) {
       d(h);
       return;
     }
     await ce();
   }, [p, _, H, P, S, Q, n, ce]), de = !!p && !w, _e = (() => {
-    var $;
+    var T;
     const h = P.find((U) => U.kind === "media-list");
-    return h ? Math.max((($ = S[h.prop.name]) == null ? void 0 : $.length) ?? 0, 1) : 0;
+    return h ? Math.max(((T = S[h.prop.name]) == null ? void 0 : T.length) ?? 0, 1) : 0;
   })();
   return /* @__PURE__ */ l("section", { "aria-label": k.title, className: "flex max-h-[85dvh] min-h-0 w-full flex-col border-b border-line bg-panel-bg md:max-h-none md:w-[360px] md:shrink-0 md:border-b-0 md:border-r", children: [
     /* @__PURE__ */ l("div", { className: "min-h-0 flex-1 overflow-y-auto p-4", children: [
@@ -1589,7 +1589,7 @@ function ma({ mode: e, models: t, client: a, batch: n, onRun: s, usage: i, reuse
       ] }),
       b,
       /* @__PURE__ */ r("div", { className: "mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-secondary", children: "Model" }),
-      /* @__PURE__ */ r("div", { className: "mb-5", children: /* @__PURE__ */ r(ua, { models: f, value: A, onChange: be, favorites: F, onToggleFavorite: Te, usage: i, showGroup: e === "text" || e === "more", scope: e }) }),
+      /* @__PURE__ */ r("div", { className: "mb-5", children: /* @__PURE__ */ r(ua, { models: f, value: A, onChange: be, favorites: F, onToggleFavorite: $e, usage: i, showGroup: e === "text" || e === "more", scope: e }) }),
       /* @__PURE__ */ r("div", { className: "mb-3 border-t border-line pt-4 text-[11px] font-semibold uppercase tracking-wider text-secondary", children: _ === "json" ? "Request body" : "Parameters" }),
       (m == null ? void 0 : m.description) && /* @__PURE__ */ r("p", { className: "mb-4 line-clamp-3 text-xs text-secondary", children: m.description }),
       !de && !w && A && /* @__PURE__ */ l("div", { className: "flex items-center gap-2 py-6 text-sm text-secondary", children: [
@@ -1613,7 +1613,7 @@ function ma({ mode: e, models: t, client: a, batch: n, onRun: s, usage: i, reuse
           client: a,
           onError: C,
           tagCount: h.prop.name === "prompt" ? _e : 0,
-          onChange: ($, U) => R((J) => ({ ...J, [$]: U }))
+          onChange: (T, U) => R((J) => ({ ...J, [T]: U }))
         },
         h.prop.name
       ))
@@ -1641,7 +1641,7 @@ function ma({ mode: e, models: t, client: a, batch: n, onRun: s, usage: i, reuse
           "button",
           {
             type: "button",
-            onClick: () => void $e(),
+            onClick: () => void Te(),
             disabled: !de,
             className: "flex flex-1 items-center justify-center gap-2 rounded-btn bg-primary px-4 py-3 text-sm font-semibold text-primary-ink shadow-glow hover:bg-primary-hover disabled:opacity-50 disabled:shadow-none",
             children: [
@@ -1752,7 +1752,7 @@ const fa = { angles: ["Source image"], "whats-next": ["Source image"], shots: ["
   "face-swap": {},
   "video-face-swap": {},
   "bg-remover": {}
-}, Ta = {
+}, $a = {
   seedream: "bytedance-seedream-5.0-pro-edit",
   seedance: "seedance-2-image-to-video",
   minimax: "minimax-h3-image-to-video",
@@ -1766,9 +1766,9 @@ function Gt(e) {
   return ((a) => a.map((n, s) => {
     var i;
     return { ...n, label: ((i = fa[e.slug]) == null ? void 0 : i[s]) ?? n.label };
-  }))($a(e));
+  }))(Ta(e));
 }
-function $a(e) {
+function Ta(e) {
   if (e.uploads) return e.uploads;
   switch (e.template) {
     case "face-swap":
@@ -1785,7 +1785,7 @@ function $a(e) {
   }
 }
 function _a(e) {
-  return Ta[e.template];
+  return $a[e.template];
 }
 function gt(e) {
   var n, s, i, o, b, k, f, A, M, p, G;
@@ -1861,7 +1861,7 @@ const Da = [
   { id: "ads", label: "Ads & Products", blurb: "Product videos, posters and ad scenes" },
   { id: "games-characters", label: "Games & Characters", blurb: "Game, toy and 3D character styles" },
   { id: "trending-templates", label: "Trending Templates", blurb: "Viral looks and scenes from one photo" }
-], T = (e, t, a, n, s) => ({ id: e, label: t, hint: a, prompt: n, values: s }), qe = (e, t, a, n = "") => `${e > 0 ? t : a} ${Math.abs(e)}${n}`, q = (e, t, a, n, s, i, o = {}) => ({ slug: e, name: t, emoji: a, category: n, badge: "IMAGE", template: "seedream", blurb: s, prompt: i, ...o }), O = (e, t, a, n, s, i, o = {}) => ({ slug: e, name: t, emoji: a, category: n, badge: "VIDEO", template: "seedance", blurb: s, prompt: i, ...o }), Ce = [
+], $ = (e, t, a, n, s) => ({ id: e, label: t, hint: a, prompt: n, values: s }), qe = (e, t, a, n = "") => `${e > 0 ? t : a} ${Math.abs(e)}${n}`, q = (e, t, a, n, s, i, o = {}) => ({ slug: e, name: t, emoji: a, category: n, badge: "IMAGE", template: "seedream", blurb: s, prompt: i, ...o }), O = (e, t, a, n, s, i, o = {}) => ({ slug: e, name: t, emoji: a, category: n, badge: "VIDEO", template: "seedance", blurb: s, prompt: i, ...o }), Ce = [
   { id: "rotation", label: "Rotation", min: -180, max: 180, step: 5, unit: "°", phrase: (e) => `Orbit the camera ${qe(e, "right", "left", " degrees")} around the subject.` },
   { id: "tilt", label: "Tilt", min: -90, max: 90, step: 5, unit: "°", phrase: (e) => `Tilt the camera ${qe(e, "up", "down", " degrees")}.` },
   { id: "zoom", label: "Zoom", min: -100, max: 100, step: 5, phrase: (e) => e > 0 ? `Move in closer by ${e} percent.` : `Pull back to show ${Math.abs(e)} percent more of the scene.` }
@@ -1888,13 +1888,13 @@ const Da = [
     "Re-shoot one photo from a new camera angle: rotate, tilt and zoom.",
     "Re-render this exact scene from a different camera angle while keeping the subject, lighting and environment consistent and photorealistic.",
     { presetLabel: "Angle preset", sliders: Ce, presets: [
-      T("front", "Front view", "Straight on", void 0, { rotation: 0, tilt: 0, zoom: 0 }),
-      T("right45", "Right 45°", "Three-quarter right", void 0, { rotation: 45 }),
-      T("left45", "Left 45°", "Three-quarter left", void 0, { rotation: -45 }),
-      T("side", "Right profile", "90° side view", void 0, { rotation: 90 }),
-      T("top", "Top-down", "Overhead view", void 0, { tilt: 40 }),
-      T("hero", "Low hero angle", "Looking up", void 0, { tilt: -30 }),
-      T("close", "Close-up", "Tighter crop", void 0, { zoom: 40 })
+      $("front", "Front view", "Straight on", void 0, { rotation: 0, tilt: 0, zoom: 0 }),
+      $("right45", "Right 45°", "Three-quarter right", void 0, { rotation: 45 }),
+      $("left45", "Left 45°", "Three-quarter left", void 0, { rotation: -45 }),
+      $("side", "Right profile", "90° side view", void 0, { rotation: 90 }),
+      $("top", "Top-down", "Overhead view", void 0, { tilt: 40 }),
+      $("hero", "Low hero angle", "Looking up", void 0, { tilt: -30 }),
+      $("close", "Close-up", "Tighter crop", void 0, { zoom: 40 })
     ] }
   ),
   q(
@@ -1913,14 +1913,14 @@ const Da = [
     "Reframe one photo as different cinematic shot types.",
     "Reframe this scene as a professional cinematic shot while keeping the same subject and setting.",
     { presets: [
-      T("wide", "Wide", void 0, "Use a wide establishing shot."),
-      T("medium", "Medium", void 0, "Use a medium shot from the waist up."),
-      T("close", "Close-up", void 0, "Use a close-up on the subject’s face or key detail."),
-      T("xcu", "Extreme close-up", void 0, "Use an extreme close-up on a small detail."),
-      T("ots", "Over-the-shoulder", void 0, "Use an over-the-shoulder shot."),
-      T("low", "Low angle", void 0, "Shoot from a low angle looking up."),
-      T("high", "High angle", void 0, "Shoot from a high angle looking down."),
-      T("dutch", "Dutch angle", void 0, "Tilt the camera for a Dutch angle.")
+      $("wide", "Wide", void 0, "Use a wide establishing shot."),
+      $("medium", "Medium", void 0, "Use a medium shot from the waist up."),
+      $("close", "Close-up", void 0, "Use a close-up on the subject’s face or key detail."),
+      $("xcu", "Extreme close-up", void 0, "Use an extreme close-up on a small detail."),
+      $("ots", "Over-the-shoulder", void 0, "Use an over-the-shoulder shot."),
+      $("low", "Low angle", void 0, "Shoot from a low angle looking up."),
+      $("high", "High angle", void 0, "Shoot from a high angle looking down."),
+      $("dutch", "Dutch angle", void 0, "Tilt the camera for a Dutch angle.")
     ] }
   ),
   q(
@@ -1948,11 +1948,11 @@ const Da = [
     "Animate a smooth cinematic transition out of the image.",
     "Create a smooth, professional cinematic transition starting from this image with fluid motion.",
     { presets: [
-      T("morph", "Morph", void 0, "Use a morph transition."),
-      T("dissolve", "Dissolve", void 0, "Use a slow dissolve."),
-      T("zoom", "Zoom through", void 0, "Zoom through the subject into the next scene."),
-      T("whip", "Whip pan", void 0, "Use a fast whip pan."),
-      T("match", "Match cut", void 0, "Use a match cut on a shared shape or motion.")
+      $("morph", "Morph", void 0, "Use a morph transition."),
+      $("dissolve", "Dissolve", void 0, "Use a slow dissolve."),
+      $("zoom", "Zoom through", void 0, "Zoom through the subject into the next scene."),
+      $("whip", "Whip pan", void 0, "Use a fast whip pan."),
+      $("match", "Match cut", void 0, "Use a match cut on a shared shape or motion.")
     ] }
   ),
   q(
@@ -1971,13 +1971,13 @@ const Da = [
     "Apply a film-style color grade with presets and fine controls.",
     "Apply a professional color grade to this image without changing its content or composition.",
     { sliders: Pa, presets: [
-      T("natural", "Natural", "Clean, true to life", void 0, { saturation: 5, contrast: 5 }),
-      T("cinematic", "Cinematic", "Teal and orange", "Give it a cinematic teal and orange look.", { contrast: 20, saturation: 10, temperature: -5 }),
-      T("split", "Split tone", "Warm highlights, cool shadows", "Use split toning with warm highlights and cool shadows.", { contrast: 10 }),
-      T("softskin", "Soft skin", "Gentle and flattering", "Soften skin tones gently.", { contrast: -10, highlights: -10 }),
-      T("oldlens", "Old lens", "Vintage glass", "Mimic a vintage lens with soft edges and subtle flare.", { saturation: -10, grain: 20 }),
-      T("film16", "16mm film", "Grain and warmth", "Mimic 16mm film stock.", { temperature: 15, grain: 55, contrast: 10 }),
-      T("moody", "Moody", "Dark and desaturated", "Make it dark and moody.", { exposure: -20, saturation: -25, contrast: 25 })
+      $("natural", "Natural", "Clean, true to life", void 0, { saturation: 5, contrast: 5 }),
+      $("cinematic", "Cinematic", "Teal and orange", "Give it a cinematic teal and orange look.", { contrast: 20, saturation: 10, temperature: -5 }),
+      $("split", "Split tone", "Warm highlights, cool shadows", "Use split toning with warm highlights and cool shadows.", { contrast: 10 }),
+      $("softskin", "Soft skin", "Gentle and flattering", "Soften skin tones gently.", { contrast: -10, highlights: -10 }),
+      $("oldlens", "Old lens", "Vintage glass", "Mimic a vintage lens with soft edges and subtle flare.", { saturation: -10, grain: 20 }),
+      $("film16", "16mm film", "Grain and warmth", "Mimic 16mm film stock.", { temperature: 15, grain: 55, contrast: 10 }),
+      $("moody", "Moody", "Dark and desaturated", "Make it dark and moody.", { exposure: -20, saturation: -25, contrast: 25 })
     ] }
   ),
   // ---- Enhance & Style
@@ -1989,12 +1989,12 @@ const Da = [
     "Try outfit styles on your photo while keeping your pose.",
     "Restyle the person in this photo with a new outfit while keeping their face, pose and the background natural.",
     { presets: [
-      T("casual", "Casual", void 0, "Dress them in a relaxed casual outfit."),
-      T("formal", "Formal", void 0, "Dress them in a sharp formal outfit."),
-      T("street", "Streetwear", void 0, "Dress them in streetwear."),
-      T("athletic", "Athletic", void 0, "Dress them in athletic wear."),
-      T("evening", "Evening", void 0, "Dress them in an elegant evening outfit."),
-      T("vintage", "Vintage", void 0, "Dress them in a vintage-style outfit.")
+      $("casual", "Casual", void 0, "Dress them in a relaxed casual outfit."),
+      $("formal", "Formal", void 0, "Dress them in a sharp formal outfit."),
+      $("street", "Streetwear", void 0, "Dress them in streetwear."),
+      $("athletic", "Athletic", void 0, "Dress them in athletic wear."),
+      $("evening", "Evening", void 0, "Dress them in an elegant evening outfit."),
+      $("vintage", "Vintage", void 0, "Dress them in a vintage-style outfit.")
     ] }
   ),
   q(
@@ -2023,12 +2023,12 @@ const Da = [
     "Quick style makeovers that keep your pose.",
     "Give the person a new fashion style while keeping the same pose, face and setting.",
     { presets: [
-      T("boho", "Boho chic", void 0, "Use a boho chic look."),
-      T("minimal", "Minimalist", void 0, "Use a clean minimalist look."),
-      T("punk", "Punk rock", void 0, "Use a punk rock look."),
-      T("preppy", "Preppy", void 0, "Use a preppy look."),
-      T("y2k", "Y2K", void 0, "Use an early-2000s Y2K look."),
-      T("cottage", "Cottagecore", void 0, "Use a cottagecore look.")
+      $("boho", "Boho chic", void 0, "Use a boho chic look."),
+      $("minimal", "Minimalist", void 0, "Use a clean minimalist look."),
+      $("punk", "Punk rock", void 0, "Use a punk rock look."),
+      $("preppy", "Preppy", void 0, "Use a preppy look."),
+      $("y2k", "Y2K", void 0, "Use an early-2000s Y2K look."),
+      $("cottage", "Cottagecore", void 0, "Use a cottagecore look.")
     ] }
   ),
   q(
@@ -2096,10 +2096,10 @@ const Da = [
     "Studio-style professional headshots from a photo.",
     "Create a professional studio headshot of this person: flattering lighting, clean background, natural expression and sharp focus on the face.",
     { consent: !0, presets: [
-      T("corporate", "Corporate", void 0, "Use a classic corporate look."),
-      T("creative", "Creative", void 0, "Use a modern creative look with a colored backdrop."),
-      T("linkedin", "LinkedIn", void 0, "Frame it as a friendly LinkedIn profile photo."),
-      T("exec", "Executive", void 0, "Use an authoritative executive look.")
+      $("corporate", "Corporate", void 0, "Use a classic corporate look."),
+      $("creative", "Creative", void 0, "Use a modern creative look with a colored backdrop."),
+      $("linkedin", "LinkedIn", void 0, "Frame it as a friendly LinkedIn profile photo."),
+      $("exec", "Executive", void 0, "Use an authoritative executive look.")
     ] }
   ),
   // ---- Video Editing
@@ -2180,14 +2180,14 @@ const Da = [
     "See yourself as a hero in different game genres.",
     "Transform the person in this photo into a video game character with a game-style interface overlay, keeping their likeness.",
     { presets: [
-      T("fps", "FPS shooter", void 0, "Use a first-person shooter look."),
-      T("rpg", "RPG fantasy", void 0, "Use a fantasy role-playing game look."),
-      T("racing", "Racing", void 0, "Use a racing game look."),
-      T("fighting", "Fighting", void 0, "Use a fighting game look."),
-      T("horror", "Survival horror", void 0, "Use a survival horror game look."),
-      T("sports", "Sports", void 0, "Use a sports game look."),
-      T("open", "Open world", void 0, "Use an open-world adventure game look."),
-      T("platform", "Platformer", void 0, "Use a colorful platformer look.")
+      $("fps", "FPS shooter", void 0, "Use a first-person shooter look."),
+      $("rpg", "RPG fantasy", void 0, "Use a fantasy role-playing game look."),
+      $("racing", "Racing", void 0, "Use a racing game look."),
+      $("fighting", "Fighting", void 0, "Use a fighting game look."),
+      $("horror", "Survival horror", void 0, "Use a survival horror game look."),
+      $("sports", "Sports", void 0, "Use a sports game look."),
+      $("open", "Open world", void 0, "Use an open-world adventure game look."),
+      $("platform", "Platformer", void 0, "Use a colorful platformer look.")
     ] }
   ),
   q("nano-strike", "Nano Strike", "🔫", "games-characters", "A tactical shooter operator look.", "Transform the person in this photo into a battle-ready tactical shooter character in full gear, keeping their likeness."),
@@ -2203,7 +2203,7 @@ const Da = [
     "games-characters",
     "Retro pixel-art game graphics.",
     "Redraw this photo as retro pixel art game graphics.",
-    { presets: [T("8bit", "8-bit", void 0, "Use a limited 8-bit palette and chunky pixels."), T("16bit", "16-bit", void 0, "Use a richer 16-bit palette."), T("32bit", "32-bit", void 0, "Use a detailed 32-bit style."), T("gb", "Handheld green", void 0, "Use a four-shade green handheld screen palette.")] }
+    { presets: [$("8bit", "8-bit", void 0, "Use a limited 8-bit palette and chunky pixels."), $("16bit", "16-bit", void 0, "Use a richer 16-bit palette."), $("32bit", "32-bit", void 0, "Use a detailed 32-bit style."), $("gb", "Handheld green", void 0, "Use a four-shade green handheld screen palette.")] }
   ),
   q("brick-cube", "Brick Cube", "🧱", "games-characters", "A toy-brick block figure.", "Rebuild the subject of this photo as a toy-brick figure made of interlocking plastic blocks."),
   O("sketch-to-real", "Sketch to Real", "✏️", "games-characters", "Bring a hand-drawn sketch to life as a realistic scene.", "Transform this hand-drawn sketch into a realistic live-action scene, animating it as it comes to life."),
@@ -2235,13 +2235,16 @@ function Ua(e, t, a) {
   const n = new URLSearchParams(e);
   return n.set("tab", t), n.delete("category"), a ? n.set("app", a) : n.delete("app"), `?${n.toString()}`;
 }
-function qa(e, t) {
+function qa(e, t, a) {
+  return `${e.pathname}${Ua(e.search, t, a)}${e.hash}`;
+}
+function Fa(e, t) {
   const a = (t.q ?? "").trim().toLowerCase();
   return e.filter((n) => (!t.category || t.category === "all" || n.category === t.category) && (!a || `${n.name} ${n.blurb}`.toLowerCase().includes(a)));
 }
-const Fa = (e) => Da.filter((t) => Xe(e).some((a) => a.category === t.id));
-function Ba({ mode: e, value: t, onChange: a }) {
-  const [n, s] = N(!1), [i, o] = N(""), [b, k] = N("all"), [f, A] = N(0), M = K(null), p = Z(() => Fa(e), [e]), G = Z(() => qa(Xe(e), { category: b, q: i }), [e, b, i]), w = Ee(t);
+const Ba = (e) => Da.filter((t) => Xe(e).some((a) => a.category === t.id));
+function za({ mode: e, value: t, onChange: a }) {
+  const [n, s] = N(!1), [i, o] = N(""), [b, k] = N("all"), [f, A] = N(0), M = K(null), p = Z(() => Ba(e), [e]), G = Z(() => Fa(Xe(e), { category: b, q: i }), [e, b, i]), w = Ee(t);
   V(() => A(0), [i, b, n]), V(() => {
     if (!n) return;
     const g = (v) => {
@@ -2315,20 +2318,20 @@ function Ba({ mode: e, value: t, onChange: a }) {
     ] })
   ] });
 }
-const za = (e) => e.map((t) => ({ value: t.value, label: t.title, hint: t.hint })), ye = "mb-1.5 flex items-center justify-between text-xs font-medium text-secondary";
-function Ha({ mode: e, slug: t, onApp: a, switcher: n, models: s, client: i, batch: o, onRun: b }) {
+const Ha = (e) => e.map((t) => ({ value: t.value, label: t.title, hint: t.hint })), ye = "mb-1.5 flex items-center justify-between text-xs font-medium text-secondary";
+function Ya({ mode: e, slug: t, onApp: a, switcher: n, models: s, client: i, batch: o, onRun: b }) {
   const k = Ee(t), f = le.find((A) => A.id === e).title;
   return /* @__PURE__ */ l("section", { "aria-label": f, className: "flex max-h-[85dvh] min-h-0 w-full flex-col border-b border-line bg-panel-bg md:max-h-none md:w-[360px] md:shrink-0 md:border-b-0 md:border-r", children: [
     /* @__PURE__ */ l("div", { className: "shrink-0 p-4 pb-0", children: [
       /* @__PURE__ */ r("h2", { className: "mb-4 text-lg font-semibold", children: f }),
       n,
       /* @__PURE__ */ r("div", { className: "mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-secondary", children: "App" }),
-      /* @__PURE__ */ r("div", { className: "relative z-20", children: /* @__PURE__ */ r(Ba, { mode: e, value: t, onChange: a }) })
+      /* @__PURE__ */ r("div", { className: "relative z-20", children: /* @__PURE__ */ r(za, { mode: e, value: t, onChange: a }) })
     ] }),
-    k ? /* @__PURE__ */ r(Ya, { app: k, mode: e, models: s, client: i, batch: o, onRun: b }, k.slug) : /* @__PURE__ */ r("p", { className: "p-4 text-sm text-secondary", children: "Pick an app to turn a photo or video into a finished result in one step." })
+    k ? /* @__PURE__ */ r(Ja, { app: k, mode: e, models: s, client: i, batch: o, onRun: b }, k.slug) : /* @__PURE__ */ r("p", { className: "p-4 text-sm text-secondary", children: "Pick an app to turn a photo or video into a finished result in one step." })
   ] });
 }
-function Ya({ app: e, mode: t, models: a, client: n, batch: s, onRun: i }) {
+function Ja({ app: e, mode: t, models: a, client: n, batch: s, onRun: i }) {
   var z;
   const [o, b] = N(() => gt(e)), [k, f] = N(null), [A, M] = N(null), [p, G] = N(null), w = K(0);
   V(() => {
@@ -2356,14 +2359,14 @@ function Ya({ app: e, mode: t, models: a, client: n, batch: s, onRun: i }) {
     }
     f(null);
     const D = ((C == null ? void 0 : C.current) ?? 0) * s;
-    if (D > $t) {
+    if (D > Tt) {
       G(D);
       return;
     }
     await I();
   }, L = (y, D, X, c) => D && D.length > 0 ? /* @__PURE__ */ l("div", { className: "mb-5", children: [
     /* @__PURE__ */ r("div", { className: ye, children: y }),
-    /* @__PURE__ */ r(Ve, { label: y, options: za(D), value: X, onChange: c })
+    /* @__PURE__ */ r(Ve, { label: y, options: Ha(D), value: X, onChange: c })
   ] }) : null;
   return /* @__PURE__ */ l("div", { className: "flex min-h-0 flex-1 flex-col", children: [
     /* @__PURE__ */ l("div", { className: "min-h-0 flex-1 overflow-y-auto p-4", children: [
@@ -2472,7 +2475,7 @@ function yt({ view: e, onChange: t }) {
     a
   )) });
 }
-function Ja() {
+function Ka() {
   try {
     const e = window.location.search, t = Dt(e);
     if (t.mode) return t.mode;
@@ -2508,7 +2511,7 @@ function xt(e) {
   const t = xe.get(`muapi-studio:app:${e}`);
   return { view: xe.get(`muapi-studio:view:${e}`) === "apps" ? "apps" : "models", app: Ee(t) ? t : null };
 }
-function Xa({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a = !0, title: n = "Studio", teamId: s, theme: i = "lime", layout: o, apiKey: b, onRequestApiKey: k, getHeaders: f, connected: A, fetchImpl: M, features: p, className: G = "", onTabChange: w }) {
+function Qa({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a = !0, title: n = "Studio", teamId: s, theme: i = "lime", layout: o, apiKey: b, onRequestApiKey: k, getHeaders: f, connected: A, fetchImpl: M, features: p, className: G = "", onTabChange: w }) {
   const j = A === !1 || b === "" || b === null, S = K(f);
   S.current = f;
   const [R, g] = N(!1), u = Z(() => new Bt(e, s, { apiKey: b || void 0, getHeaders: () => {
@@ -2516,38 +2519,38 @@ function Xa({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
     return ((h = S.current) == null ? void 0 : h.call(S)) ?? {};
   }, fetchImpl: M, onKeyRejected: () => g(!0) }), [e, s, b, M]);
   V(() => g(!1), [u]);
-  const [v, C] = N({ library: !0, deleteMedia: !0 }), F = Z(() => ({ library: v.library && (p == null ? void 0 : p.library) !== !1, deleteMedia: (p == null ? void 0 : p.deleteMedia) !== !1 }), [v, p == null ? void 0 : p.library, p == null ? void 0 : p.deleteMedia]), I = o ?? Kt(i), [_, L] = N(() => Ja() ?? t), [z, y] = N(4), [D, X] = N(null), [c, d] = N(null), [x, E] = N(null), W = te(() => {
+  const [v, C] = N({ library: !0, deleteMedia: !0 }), F = Z(() => ({ library: v.library && (p == null ? void 0 : p.library) !== !1, deleteMedia: (p == null ? void 0 : p.deleteMedia) !== !1 }), [v, p == null ? void 0 : p.library, p == null ? void 0 : p.deleteMedia]), I = o ?? Kt(i), [_, L] = N(() => Ka() ?? t), [z, y] = N(4), [D, X] = N(null), [c, d] = N(null), [x, E] = N(null), W = te(() => {
     u.balance().then(E).catch(() => E(null));
   }, [u]), [m, P] = N(null), B = cr(u, D, W), H = Z(() => or(B.items), [B.items]);
   V(() => {
     j || (d(null), X(null), u.models().then(X).catch((h) => d(h.message)), W(), (p == null ? void 0 : p.library) !== !1 && u.probe().then(C));
   }, [u, W, j, p == null ? void 0 : p.library]);
-  const [ae, re] = N(() => xt(_)), be = (h, $) => {
+  const [ae, re] = N(() => xt(_)), be = (h, T) => {
     try {
-      window.history.replaceState(null, "", Ua(window.location.search, h, $));
+      window.history.replaceState(null, "", qa(window.location, h, T));
     } catch {
     }
-  }, Te = (h) => {
-    const $ = xt(h);
-    L(h), re($), w == null || w(h), be(h, $.view === "apps" ? $.app : null);
+  }, $e = (h) => {
+    const T = xt(h);
+    L(h), re(T), w == null || w(h), be(h, T.view === "apps" ? T.app : null);
   }, we = (h) => {
-    re(($) => ({ ...$, view: h })), xe.set(`muapi-studio:view:${_}`, h), be(_, h === "apps" ? ae.app : null);
+    re((T) => ({ ...T, view: h })), xe.set(`muapi-studio:view:${_}`, h), be(_, h === "apps" ? ae.app : null);
   }, Q = (h) => {
     re({ view: "apps", app: h }), xe.set(`muapi-studio:app:${_}`, h), xe.set(`muapi-studio:view:${_}`, "apps"), be(_, h);
   }, ce = te(async (h) => {
     await B.run(h);
-  }, [B.run]), $e = te((h) => {
+  }, [B.run]), Te = te((h) => {
     var U;
-    const $ = D == null ? void 0 : D.find((J) => J.name === h);
-    return $ ? ((U = $.sale) == null ? void 0 : U.from) ?? $.cost ?? void 0 : void 0;
+    const T = D == null ? void 0 : D.find((J) => J.name === h);
+    return T ? ((U = T.sale) == null ? void 0 : U.from) ?? T.cost ?? void 0 : void 0;
   }, [D]), de = te((h) => {
-    L(h.mode), re(($) => ({ ...$, view: "models" })), P({ model: h.model, inputs: h.inputs, nonce: Date.now() });
+    L(h.mode), re((T) => ({ ...T, view: "models" })), P({ model: h.model, inputs: h.inputs, nonce: Date.now() });
   }, []), _e = te((h) => {
     var J;
-    const $ = D == null ? void 0 : D.find((oe) => oe.name === h.model);
-    if (!$) return;
-    const U = ((J = $.sale) == null ? void 0 : J.from) ?? $.cost ?? 0;
-    U > 0.25 && !window.confirm(`Re-run ${h.model} for about $${U.toFixed(2)}?`) || B.run({ model: h.model, endpointUrl: $.endpoint_url, mode: h.mode, prompt: h.prompt, payload: h.inputs, count: 1, unitCost: U, kind: ze($.category) });
+    const T = D == null ? void 0 : D.find((oe) => oe.name === h.model);
+    if (!T) return;
+    const U = ((J = T.sale) == null ? void 0 : J.from) ?? T.cost ?? 0;
+    U > 0.25 && !window.confirm(`Re-run ${h.model} for about $${U.toFixed(2)}?`) || B.run({ model: h.model, endpointUrl: T.endpoint_url, mode: h.mode, prompt: h.prompt, payload: h.inputs, count: 1, unitCost: U, kind: ze(T.category) });
   }, [D, B.run]);
   return /* @__PURE__ */ l("div", { className: `ms-root ${G}`.trim(), style: Jt(i), "data-layout": I, "data-btn": Wt(i), children: [
     a && /* @__PURE__ */ l("header", { className: "flex items-center justify-between border-b border-line bg-panel-bg px-4 py-3", children: [
@@ -2567,13 +2570,13 @@ function Xa({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
         k && /* @__PURE__ */ r("button", { type: "button", onClick: k, className: "rounded-btn border border-danger px-3 py-1.5 text-xs font-semibold text-danger hover:bg-card-bg", children: "Update key" })
       ] }),
       /* @__PURE__ */ l("div", { className: `flex min-h-0 flex-1 flex-col ${I === "rail" ? "md:flex-row" : ""}`, children: [
-        /* @__PURE__ */ r(ha, { mode: _, onChange: Te, layout: I, onChangeKey: k }),
+        /* @__PURE__ */ r(ha, { mode: _, onChange: $e, layout: I, onChangeKey: k }),
         /* @__PURE__ */ r("div", { className: "flex min-h-0 min-w-0 flex-1 flex-col md:flex-row", children: c ? /* @__PURE__ */ l("div", { role: "alert", className: "flex-1 p-8 text-danger", children: [
           "Could not load models: ",
           c
         ] }) : D ? /* @__PURE__ */ l(Ie, { children: [
-          ae.view === "apps" && Be(_) ? /* @__PURE__ */ r(Ha, { mode: _, slug: ae.app, onApp: Q, switcher: /* @__PURE__ */ r(yt, { view: "apps", onChange: we }), models: D, client: u, batch: z, onRun: ce }) : /* @__PURE__ */ r(ma, { mode: _, models: D, client: u, batch: z, onRun: ce, usage: H, reuse: m, switcher: Be(_) ? /* @__PURE__ */ r(yt, { view: "models", onChange: we }) : void 0 }),
-          /* @__PURE__ */ r(Tr, { mode: _, items: B.items, batch: z, onBatch: y, onLabel: B.setLabel, onRemove: B.remove, onReuse: de, onRerun: _e, onDeleteMedia: B.deleteMedia, onLoadMore: B.loadMore, hasMore: B.hasMore, loadingMore: B.loadingMore, serverError: B.serverError, estimateFor: $e })
+          ae.view === "apps" && Be(_) ? /* @__PURE__ */ r(Ya, { mode: _, slug: ae.app, onApp: Q, switcher: /* @__PURE__ */ r(yt, { view: "apps", onChange: we }), models: D, client: u, batch: z, onRun: ce }) : /* @__PURE__ */ r(ma, { mode: _, models: D, client: u, batch: z, onRun: ce, usage: H, reuse: m, switcher: Be(_) ? /* @__PURE__ */ r(yt, { view: "models", onChange: we }) : void 0 }),
+          /* @__PURE__ */ r($r, { mode: _, items: B.items, batch: z, onBatch: y, onLabel: B.setLabel, onRemove: B.remove, onReuse: de, onRerun: _e, onDeleteMedia: B.deleteMedia, onLoadMore: B.loadMore, hasMore: B.hasMore, loadingMore: B.loadingMore, serverError: B.serverError, estimateFor: Te })
         ] }) : /* @__PURE__ */ l("div", { className: "flex flex-1 items-center justify-center gap-2 text-secondary", children: [
           /* @__PURE__ */ r(ge, {}),
           " Loading studio…"
@@ -2585,7 +2588,7 @@ function Xa({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
 export {
   me as ApiError,
   Bt as MuapiClient,
-  Xa as MuapiStudio,
+  Qa as MuapiStudio,
   Yt as THEMES,
   Ht as cyanTheme,
   Kt as defaultLayout,
