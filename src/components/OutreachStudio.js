@@ -143,6 +143,7 @@ export function OutreachStudio() {
   // CSV waiting for its columns to be matched, the running generation, and the campaigns list.
   let pendingCsv = null;
   let pendingLeads = null; // { loading, error, leads, picked:Set }
+  let captureTab = null; // "Capture with my browser": the tab we opened, waiting for Start capturing
   // Who opened, watched and clicked, per contact, for the links list: { id, loading, byContact }.
   let linkStats = { id: null, loading: false, byContact: null };
   let abort = null;
@@ -1582,6 +1583,7 @@ export function OutreachStudio() {
     const st = siteStatus(draft, c);
     const then = onMissingOf(draft) === 'error' ? 'Fix or remove before generating.' : 'Their video uses the fallback.';
     const [cls, text] = {
+      uploaded: ['text-emerald-300', '\u2713 Screenshot uploaded'],
       own: ['text-emerald-300', '\u2713 Website ready'],
       error: ['text-orange-300', `${siteErrorFor(draft, c)} ${then}`],
       none: ['text-orange-300', `No website. ${then}`],
@@ -1590,6 +1592,120 @@ export function OutreachStudio() {
     const b = el('div', `text-[11px] ${cls}`, text);
     b.setAttribute('data-outreach-site-status', st);
     return b;
+  }
+
+  // The screenshot behind this prospect's bubble, small (so a wrong capture is easy to spot and replace).
+  function shotPreview(c) {
+    const shot = backgroundShotFor(draft, c);
+    const box = el('div', 'h-9 w-16 shrink-0 overflow-hidden rounded-md border border-white/10 bg-white/[0.03]');
+    box.setAttribute('data-outreach-shot-preview', shot ? 'yes' : 'no');
+    if (shot) { const img = el('img', 'h-full w-full object-cover object-top'); img.src = shot; img.alt = ''; img.loading = 'lazy'; box.appendChild(img); }
+    return box;
+  }
+
+  // Upload screenshot: the user's own picture of this prospect's page (any page, no capture needed).
+  function uploadShotButton(c) {
+    const wrap = el('div', 'mt-1 flex flex-wrap items-center gap-x-3 gap-y-1');
+    const f = el('input'); f.type = 'file'; f.accept = 'image/png,image/jpeg,image/webp'; f.hidden = true;
+    const up = el('button', 'text-[11px] font-semibold text-primary hover:underline disabled:opacity-40', c.backgroundShot ? 'Replace screenshot' : 'Upload screenshot');
+    up.type = 'button';
+    up.setAttribute('data-outreach-upload-shot', c.id);
+    up.disabled = !!busy;
+    up.addEventListener('click', () => f.click());
+    f.addEventListener('change', async () => {
+      const file = f.files?.[0]; f.value = '';
+      if (!file) return;
+      if (!/^image\//.test(file.type) || file.size > 10 * 1024 * 1024) { notice = 'Choose a PNG, JPEG or WebP picture under 10 MB.'; render(); return; }
+      if (!(await gate('screenshots for your prospects'))) return;
+      setBusy(`Uploading the screenshot for ${c.firstName || c.email || 'this prospect'}…`);
+      try {
+        const url = await uploadToStorage(file);
+        draft.contacts = draft.contacts.map((x) => (x.id === c.id ? { ...x, backgroundShot: url } : x));
+        draft.campaign = null; busy = ''; notice = ''; persist();
+      } catch (err) { busy = ''; notice = err.message; }
+      render();
+    });
+    wrap.append(up, f);
+    if (c.backgroundShot) {
+      const clear = el('button', 'text-[11px] text-white/45 hover:text-white', 'Use their link instead');
+      clear.type = 'button';
+      clear.setAttribute('data-outreach-clear-shot', c.id);
+      clear.addEventListener('click', () => { draft.contacts = draft.contacts.map((x) => (x.id === c.id ? { ...x, backgroundShot: '' } : x)); draft.campaign = null; persist(); render(); });
+      wrap.appendChild(clear);
+    }
+    return wrap;
+  }
+
+  // Capture with my browser: pages the user can see signed in (Facebook, Instagram, X…), shot in their own
+  // browser through Chrome's tab sharing (src/lib/outreach/browserCapture.js). LinkedIn is never captured.
+  const browserTodo = () => sitesToCapture(draft).filter((k) => !draft.siteShots[k] && !/linkedin\.com/i.test(k));
+  function renderBrowserCapture() {
+    const box = el('div', 'flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3');
+    box.setAttribute('data-outreach-browser-capture', '');
+    const todo = browserTodo();
+    box.appendChild(el('div', 'text-xs font-semibold text-white/80', 'Capture with my browser'));
+    if (!globalThis.navigator?.mediaDevices?.getDisplayMedia) {
+      box.appendChild(el('p', 'text-[11px] text-white/45', 'Needs Chrome or Edge on a computer. Or upload a screenshot on each prospect.'));
+      return box;
+    }
+    if (!captureTab || captureTab.closed) {
+      captureTab = null;
+      box.appendChild(el('p', 'text-[11px] text-white/45', 'For pages that need you signed in (Facebook, Instagram, X): they\u2019re captured in your own browser, where you\u2019re already signed in. We never see your password. Your own name and photo at the top of the page are cut off. About 6 seconds a page; keep the tab open.'));
+      const open = button(todo.length ? `Capture with my browser (${todo.length})` : 'Nothing left to capture', { small: true });
+      open.setAttribute('data-outreach-browser-open', '');
+      open.disabled = !todo.length || !!busy;
+      open.addEventListener('click', async () => {
+        if (!(await gate('screenshots for your prospects'))) return;
+        try {
+          const { openCaptureTab } = await import('../lib/outreach/browserCapture.js');
+          captureTab = openCaptureTab(); notice = '';
+        } catch (err) { notice = err.message; }
+        render();
+      });
+      box.appendChild(open);
+      return box;
+    }
+    box.appendChild(el('p', 'text-[11px] text-white/70', 'A tab named \u201cSmartVideo capture tab\u201d is open. Click Start capturing, then choose that tab in Chrome\u2019s window and click Share.'));
+    const row = el('div', 'flex flex-wrap gap-2');
+    const start = button(`Start capturing (${todo.length})`, { primary: true, small: true });
+    start.setAttribute('data-outreach-browser-start', '');
+    start.disabled = !!busy || !todo.length;
+    start.addEventListener('click', () => runBrowserCapture(todo));
+    const cancel = button('Cancel', { small: true });
+    cancel.addEventListener('click', () => { try { captureTab?.close(); } catch { /* gone */ } captureTab = null; render(); });
+    row.append(start, cancel);
+    box.appendChild(row);
+    return box;
+  }
+
+  async function runBrowserCapture(urls) {
+    const bc = await import('../lib/outreach/browserCapture.js');
+    let share = null;
+    abort = new AbortController();
+    try {
+      share = await bc.startTabShare(captureTab);
+      const { shots, failed } = await bc.captureInTab({
+        tab: captureTab, share, urls, signal: abort.signal,
+        upload: (blob, i) => uploadToStorage(new File([blob], `prospect-page-${i + 1}.jpg`, { type: 'image/jpeg' })),
+        onShot: (url, imageUrl) => {
+          draft.siteShots = { ...draft.siteShots, [url]: imageUrl };
+          if (draft.siteErrors?.[url]) { const { [url]: _gone, ...rest } = draft.siteErrors; draft.siteErrors = rest; }
+          draft.campaign = null; persist();
+        },
+        onProgress: (i, n, url) => setBusy(i < n ? `Capturing in your browser: ${i + 1} of ${n} (${url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')})\u2026 Keep the capture tab open.` : 'Saving\u2026'),
+      });
+      draft.siteErrors = { ...draft.siteErrors, ...Object.fromEntries(failed.map((k) => [k, SITE_ERROR])) };
+      persist();
+      const n = Object.keys(shots).length;
+      notice = `${n} page${n === 1 ? '' : 's'} captured in your browser.${failed.length ? ` ${failed.length} did not load.` : ''} Check the small pictures: if one shows a login or the wrong page, upload a screenshot for that prospect.`;
+    } catch (err) {
+      notice = err?.name === 'AbortError' ? 'Stopped. Pages captured so far are kept.' : err?.name === 'NotAllowedError' ? 'Tab sharing was cancelled. Click Start capturing and choose the SmartVideo capture tab.' : err.message;
+    } finally {
+      share?.stop();
+      if (!/wasn\u2019t the SmartVideo capture tab|cancelled/.test(notice)) { try { captureTab?.close(); } catch { /* gone */ } captureTab = null; }
+      busy = ''; abort = null;
+      render();
+    }
   }
 
   function renderSiteCheck() {
@@ -1606,7 +1722,14 @@ export function OutreachStudio() {
     const bad = draft.contacts.filter((c) => ['error', 'none'].includes(siteStatus(draft, c))).length;
     box.append(check, el('span', 'text-[11px] text-white/45', bad ? `${bad} without a working website (${onMissingOf(draft) === 'error' ? 'they stop Generate' : 'they get the fallback'}).` : 'Screenshots are taken now and reused when you generate.'));
     const wrap = el('div', 'flex flex-col gap-3 border-t border-white/5 pt-3');
-    wrap.append(box, renderErrorHandling());
+    wrap.append(box);
+    if (busy && abort && /^Capturing in your browser/.test(busy)) {
+      const stop = button('Stop capturing', { small: true });
+      stop.setAttribute('data-outreach-browser-stop', '');
+      stop.addEventListener('click', () => abort?.abort());
+      wrap.append(el('p', 'text-[11px] text-primary', busy), stop);
+    }
+    wrap.append(renderBrowserCapture(), renderErrorHandling());
     return wrap;
   }
 
@@ -1681,13 +1804,14 @@ export function OutreachStudio() {
     const side = card(`Contacts (${draft.contacts.length})`, draft.contacts.length ? 'Contacts without a first name hear the fallback greeting.' : 'No contacts yet.');
     const list = el('div', 'flex flex-col divide-y divide-white/5 max-h-[460px] overflow-y-auto');
     draft.contacts.forEach((c) => {
-      const row = el('div', 'flex items-center gap-3 py-2 text-sm');
+      const row = el('div', `flex ${draft.background.mode === 'website' ? 'items-start' : 'items-center'} gap-3 py-2 text-sm`);
       const who = el('div', 'min-w-0 flex-1');
       who.append(el('div', 'truncate font-semibold', [c.firstName, c.lastName].filter(Boolean).join(' ') || '(no name)'),
         el('div', 'truncate text-xs text-white/50', [c.email, c.company].filter(Boolean).join(' · ')));
       if (draft.background.mode === 'website') who.appendChild(siteBadge(c));
       const rm = button('Remove', { small: true });
       rm.addEventListener('click', () => { draft.contacts = draft.contacts.filter((x) => x.id !== c.id); draft.campaign = null; persist(); render(); });
+      if (draft.background.mode === 'website') { row.appendChild(shotPreview(c)); who.appendChild(uploadShotButton(c)); }
       row.append(who, rm);
       list.appendChild(row);
     });

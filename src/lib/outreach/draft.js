@@ -474,7 +474,7 @@ export function siteKey(raw) {
 
 /** Every website a campaign needs a screenshot of: each contact's site, then the fallback. */
 export function sitesToCapture(draft) {
-  const sites = new Set((draft.contacts || []).map((c) => siteKey(c.website)).filter(Boolean));
+  const sites = new Set((draft.contacts || []).filter((c) => !c.backgroundShot).map((c) => siteKey(c.website)).filter(Boolean));
   const fallback = siteKey(draft.background?.fallbackSite);
   if (fallback) sites.add(fallback);
   return [...sites];
@@ -489,8 +489,9 @@ export const siteErrorFor = (draft, c) => draft.siteErrors?.[siteKey(c?.website)
 export const MISSING_MODES = [['fallback', 'Generate video using fallback data'], ['error', 'Don\u2019t generate: show an error so I can update it']];
 export const onMissingOf = (draft) => (draft.background?.onMissing === 'error' ? 'error' : 'fallback');
 
-/** A contact's website background: 'own' (captured), 'error' (could not be captured), 'none' (no website), 'pending' (not checked yet). */
+/** A contact's website background: 'uploaded' (their own screenshot), 'own' (captured), 'error' (could not be captured), 'none' (no website), 'pending' (not checked yet). */
 export function siteStatus(draft, c) {
+  if (/^https:\/\//i.test(String(c?.backgroundShot || ''))) return 'uploaded';
   const key = siteKey(c?.website);
   if (!key) return 'none';
   if (draft.siteShots?.[key]) return 'own';
@@ -534,7 +535,8 @@ export function addressesToCapture(draft) {
 /** The picture behind this contact's camera bubble, or '' (then the fallback shows). */
 export function backgroundShotFor(draft, c) {
   const mode = draft.background?.mode;
-  if (mode === 'website') return draft.siteShots?.[siteKey(c.website)] || '';
+  // An uploaded screenshot (Prospects → Upload screenshot) wins over the captured one.
+  if (mode === 'website') return (/^https:\/\//i.test(String(c.backgroundShot || '')) ? c.backgroundShot : '') || draft.siteShots?.[siteKey(c.website)] || '';
   if (mode === 'image') return c.backgroundImage || '';
   if (mode === 'map') return draft.mapShots?.[mapKey(c.address)] || '';
   if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails(c, draft.fallbacks), cardSide(draft))] || '';
