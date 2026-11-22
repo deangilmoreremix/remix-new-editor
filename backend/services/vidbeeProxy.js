@@ -51,6 +51,27 @@ export const isSameOriginMutation = (req) => {
   try { return new URL(origin).host.toLowerCase() === host; } catch { return false; }
 };
 
+/** A page load (the iframe itself, not an API call or asset) gets a small page instead of bare text. */
+const wantsPage = (req) => {
+  const dest = req.headers['sec-fetch-dest'];
+  if (dest) return dest === 'iframe' || dest === 'document';
+  return req.method === 'GET' && /text\/html/.test(String(req.headers.accept || ''));
+};
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+/**
+ * Error page shown inside the SmartVidDownloader iframe. "Reconnect" asks the parent app (MediaHubPage) to start a new
+ * session; the message carries no data, so any parent may receive it.
+ */
+export const errorPage = (title, detail, { reconnect = false } = {}) => `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>SmartVidDownloader</title>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0a;color:#e4e4e7;font:15px/1.5 system-ui,sans-serif;text-align:center;padding:24px;box-sizing:border-box}
+h1{font-size:20px;margin:0 0 8px;color:#fff}p{margin:0 0 20px;color:#a1a1aa;max-width:420px}
+button{background:#d9ff00;color:#000;border:0;border-radius:12px;padding:10px 20px;font-weight:800;font-size:14px;cursor:pointer}</style></head>
+<body><main><h1>${esc(title)}</h1><p>${esc(detail)}</p>${reconnect ? `<button type="button" onclick="parent.postMessage({type:'smartviddownloader:reconnect'},'*')">Reconnect</button>` : ''}</main></body></html>`;
+const fail = (req, res, status, text, title, detail, opts) => (wantsPage(req)
+  ? res.status(status).type('html').send(errorPage(title, detail, opts))
+  : res.status(status).type('text').send(text));
+
 export function createVidBeeRouters({ auth }) {
   const session = express.Router();
   // Credentialed CORS for this one endpoint only (the cookie is scoped to /vidbee and is HttpOnly).
@@ -64,7 +85,7 @@ export function createVidBeeRouters({ auth }) {
   });
 
   const proxy = (req, res) => {
-    if (!verify(readCookie(req, COOKIE))) return res.status(401).type('text').send('Open SmartVidDownloader from the app to start a session.');
+    if (!verify(readCookie(req, COOKIE))) return fail(req, res, 401, 'Open SmartVidDownloader from the app to start a session.', 'Your session has ended', 'SmartVidDownloader sessions last 8 hours. Reconnect to keep downloading.', { reconnect: true });
     if (!isSameOriginMutation(req)) return res.status(403).type('text').send('Cross-site request blocked.');
     const t = target();
     const headers = { ...req.headers, host: t.host };
@@ -74,7 +95,7 @@ export function createVidBeeRouters({ auth }) {
       res.writeHead(r.statusCode || 502, r.headers);
       r.pipe(res);
     });
-    up.on('error', () => { if (!res.headersSent) res.status(502).type('text').send('SmartVidDownloader service is not running.'); else res.destroy(); });
+    up.on('error', () => { if (!res.headersSent) fail(req, res, 502, 'SmartVidDownloader service is not running.', 'SmartVidDownloader is not available', 'The download service is not responding right now. Try again in a minute.', { reconnect: true }); else res.destroy(); });
     res.on('close', () => up.destroy());
     req.pipe(up);
   };

@@ -94,9 +94,17 @@ function getFieldLabel(normalizedKey: string, rawKey: string, schema: Record<str
   return label || rawKey;
 }
 
+function getMediaKind(key: string): 'image' | 'video' | 'audio' | null {
+  if (!/(_url|_urls|_list|^images?|^video|^audio)$/.test(key)) return null;
+  if (key.includes('image') || key.includes('frame')) return 'image';
+  if (key.includes('video')) return 'video';
+  if (key.includes('audio')) return 'audio';
+  return null;
+}
+
 function getFieldSection(normalizedKey: string, capabilities: { textInput?: boolean; imageInput?: boolean; videoInput?: boolean; audioInput?: boolean; }): string {
   if (['prompt', 'negative_prompt'].includes(normalizedKey)) return 'prompt';
-  if (['reference_image', 'first_frame', 'last_frame', 'mask', 'image', 'video', 'audio'].includes(normalizedKey)) return 'media';
+  if (['reference_image', 'first_frame', 'last_frame', 'mask', 'image', 'video', 'audio'].includes(normalizedKey) || getMediaKind(normalizedKey)) return 'media';
   if (['duration', 'resolution', 'aspect_ratio', 'fps', 'output_format', 'number_of_outputs', 'quality'].includes(normalizedKey)) return 'settings';
   return 'advanced';
 }
@@ -151,6 +159,13 @@ function inferSmartFieldType(
 
   if (conceptTypeMap[normalizedKey]) {
     return conceptTypeMap[normalizedKey]!;
+  }
+
+  // Media inputs named like image_url / images_list / video_url / audio_url.
+  const mediaKind = getMediaKind(normalizedKey);
+  if (mediaKind && (schema.type === 'string' || schema.type === 'array' || schema.format === 'uri' || !schema.type) && !schema.enum) {
+    if (mediaKind === 'image') return schema.type === 'array' && capabilities.multipleImages ? 'multi-image-upload' : 'image-upload';
+    return mediaKind === 'video' ? 'video-upload' : 'audio-upload';
   }
 
   const rawType = schema.type as string | undefined;

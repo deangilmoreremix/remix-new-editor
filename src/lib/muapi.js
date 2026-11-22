@@ -1232,6 +1232,7 @@ export class MuapiClient {
 
         if (params.model) finalPayload.model = params.model;
         if (params.video_url) finalPayload.video_url = params.video_url;
+        if (params.image_url) finalPayload.image_url = params.image_url;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
         // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.

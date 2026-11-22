@@ -4,7 +4,7 @@
   "route": "#/smart-video-studio",
   "description": "A one-screen AI studio: pick a mode (Image, Video, Audio, Avatar, 3D, AI Tools), pick a model, fill its settings, prompt, and see generations.",
   "shortDescription": "All-in-one studio: choose a mode and model, set options, prompt, generate.",
-  "fullDescription": "SmartVideo Studio (#/smart-video-studio) is built as a single workspace. A header shows the SmartVideo logo, links (Explore, Rankings, Docs, Blog, Discord), your credit balance when available ('Balance: N credits') and a Sign In button. On the left, a mode rail switches between Image, Video, Audio, Avatar, 3D and AI Tools (hover shows the mode and how many models it has). Next to it, the Model picker ('Select a model...') opens a searchable list ('Search models...') where each model shows its name, description, family, cost ('N credits' or 'Dynamic') and badges such as BEST, FAST, BUDGET, AUDIO, 4K and LoRA. Under it, the model's own settings are built from the model's schema, grouped into sections, with Example Prompts, a '✨ Enhance' toggle, an 'Advanced' button for extra settings, a cost estimate ('~N credits') and Reset. The main area lists your generations with filters (All, Images, Video, Audio, Avatar, 3d), 'Search generations...', and per-card Retry, Use as input and Delete. The prompt bar at the bottom ('Enter your prompt here...') and its Generate button (or Enter) send the prompt to the chosen model. The model list comes from the app's model registry service. At the moment #/smart-video-studio does not open: it shows 'Failed to load smart-video-studio: ...' because the page cannot load its stylesheet, and the studio is not yet wired into the app's page loader.",
+  "fullDescription": "SmartVideo Studio (#/smart-video-studio) is built as a single workspace. A header shows the title SmartVideo Studio and your MuAPI credit balance when available ('Balance: N credits'). On the left, a mode rail switches between Image, Video, Audio, Avatar, 3D and AI Tools (hover shows the mode and how many models it has). Next to it, the Model picker ('Select a model...') opens a searchable list ('Search models...') where each model shows its name, description, family, cost ('N credits' or 'Dynamic') and badges such as BEST, FAST, BUDGET, AUDIO, 4K and LoRA. Under it, the model's own settings are built from the model's schema, grouped into sections, with Example Prompts, a '✨ Enhance' toggle, an 'Advanced' button for extra settings, a cost estimate ('~N credits') and Reset. The main area lists your generations with filters (All, Images, Video, Audio, Avatar, 3d), 'Search generations...', and per-card Retry, Use as input and Delete. The prompt bar at the bottom ('Enter your prompt here...') and its Generate button (or Enter) send the prompt to the chosen model. The model list comes from the app's model registry service. At the moment #/smart-video-studio does not open: it shows 'Failed to load smart-video-studio: ...' because the page cannot load its stylesheet, and the studio is not yet wired into the app's page loader.",
   "bestFor": "People who want every kind of AI model (image, video, audio, avatar, 3D and tools) in one screen with each model's full settings.",
   "whenToUse": [
     "You want to switch between image, video, audio, avatar and 3D models without changing pages.",
@@ -196,7 +196,7 @@
     "Generations (image, video or audio) in the list on the page"
   ],
   "limitations": [
-    "The page does not open at the moment ('Failed to load smart-video-studio').",
+    "Generating needs your MuAPI key (Settings); without one, the job card shows 'Add your MuAPI key in Settings to generate.' The 3D and AI Tools modes have no models yet.",
     "Needs the model registry, generate and balance services; without them no models are listed.",
     "Generations are not kept after a reload.",
     "'Use as input' does nothing visible yet.",
@@ -204,9 +204,9 @@
   ],
   "limitationDetails": [
     {
-      "limitation": "Page does not load",
-      "impact": "You cannot use the studio.",
-      "workaround": "Use Image Studio, Video Studio, Audio Studio or Avatar Studio for now."
+      "limitation": "Needs a MuAPI key; 3D and AI Tools are empty",
+      "impact": "The studio uses the same model catalog and MuAPI key as the other studios. 3D and AI Tools show 'No models are available in this category yet'.",
+      "workaround": "Add your MuAPI key in Settings. For 3D or AI tools, use the dedicated studios."
     },
     {
       "limitation": "Generations live only on the page",
@@ -215,7 +215,7 @@
     }
   ],
   "troubleshooting": [
-    "'Failed to load smart-video-studio': the studio cannot open right now; use the separate studios instead.",
+    "'Add your MuAPI key in Settings to generate': add your key in Settings, then generate again.",
     "The model list is empty or shows loading bars: the model registry did not answer.",
     "Generate is greyed out: choose a model and type a prompt in the bottom bar.",
     "The form shows 'Model \"...\" not found.': click Retry, or pick another model."
@@ -264,8 +264,8 @@
   ],
   "faqs": [
     {
-      "question": "Why does the page say 'Failed to load smart-video-studio'?",
-      "answer": "The studio cannot load right now. Use Image Studio, Video Studio, Audio Studio or Avatar Studio instead."
+      "question": "Why did my generation fail with 'Add your MuAPI key'?",
+      "answer": "SmartVideo Studio runs models through your MuAPI key, like the other studios. Add it in Settings and try again."
     },
     {
       "question": "How do I know what a model costs?",
@@ -341,7 +341,7 @@
     }
   ],
   "notConfirmed": [
-    "Whether the model registry (/api/model-registry), generate (/api/generate), estimate and balance (/api/user/balance) services exist in production; none are in this repository.",
+    "Whether a separate model registry (/api/model-registry) and generate service (/api/generate) will exist in production; until then the studio uses the app's built-in model catalog and MuAPI.",
     "Where the header links (Explore, Rankings, Docs, Blog) lead in this app, and what Sign In does (it has no click handler).",
     "How a 3D result is shown: the generation card only previews images, video and audio.",
     "Whether 'Use as input' will load the result into the form (it only logs today)."
@@ -363,6 +363,6 @@
     "status": "code-review",
     "verifiedAt": "2026-11-20",
     "verifiedBy": "Code review (LLM-assisted)",
-    "evidence": "Read SmartVideoStudio.tsx, ModeRail, ModelSelector, DynamicModelForm, GenerationsPanel and svStudio/*. Opening #/smart-video-studio in the dev app shows 'Failed to load smart-video-studio: Failed to fetch dynamically imported module' (the import '../../styles/smartVideoStudio.css' points to a missing src/components/styles/ file; the stylesheet is at src/styles/), and the router appends the React component function instead of a DOM element, so the UI was not seen running."
+    "evidence": "Read SmartVideoStudio.tsx, ModeRail, ModelSelector, DynamicModelForm, GenerationsPanel and svStudio/*. Opened #/smart-video-studio in the dev app: the mode rail lists Image, Video, Audio and Avatar models from the built-in catalog, model forms render, and Generate without a key shows a failed card with the key message."
   }
 }

@@ -49,7 +49,11 @@ export function VideoStudio() {
 
     // --- State ---
     // A model picked on the Text to Video page wins (key is always cleared; unknown names -> default).
-    const defaultModel = resolvePrefillModel(t2vModels, takePrefillModelName()) || t2vModels[0];
+    // The Watermark Remover page sends video-to-video tools (e.g. the watermark remover); open those in v2v mode.
+    const prefillName = takePrefillModelName();
+    const prefillT2V = resolvePrefillModel(t2vModels, prefillName);
+    const prefillV2V = prefillT2V ? null : resolvePrefillModel(v2vModels, prefillName);
+    const defaultModel = prefillT2V || prefillV2V || t2vModels[0];
     let selectedModel = defaultModel.id;
     let selectedModelName = defaultModel.name;
     let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '16:9';
@@ -78,7 +82,7 @@ export function VideoStudio() {
     let uploadedEndImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models
     let refreshVideoCost = () => {};
-    let v2vMode = false;   // true = video-to-video tools mode
+    let v2vMode = !!prefillV2V;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
     // GTM Boost → "Make Thumbnail" saves the image for this studio; keep the
@@ -1675,6 +1679,7 @@ generateBtn.type = 'button';
         resultVideo.src = videoUrl;
         resultVideo.onloadeddata = () => {
             canvas.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+            container.classList.add('studio-result-showing'); // hides the example gallery under the result
             canvas.classList.add('opacity-100', 'translate-y-0', 'scale-100');
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
@@ -1847,6 +1852,7 @@ generateBtn.type = 'button';
 
     const resetToPromptBar = () => {
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+        container.classList.remove('studio-result-showing');
         canvas.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
         canvasControls.classList.add('opacity-0');
         canvasControls.classList.remove('opacity-100');

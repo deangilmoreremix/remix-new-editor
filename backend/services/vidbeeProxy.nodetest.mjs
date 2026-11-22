@@ -81,3 +81,25 @@ describe('vidbee proxy cross-site protection', () => {
     assert.equal(isSameOriginMutation(req('GET', { 'sec-fetch-site': 'cross-site' })), true);
   });
 });
+
+describe('vidbee gate error responses', () => {
+  const auth = (req, res, next) => next();
+  it('shows the iframe a reconnect page when the session cookie is missing or expired', async () => {
+    const app = express();
+    installVidBee(app, { auth, cors: cors() });
+    const page = await request(app, 'GET', '/vidbee/', { 'Sec-Fetch-Dest': 'iframe', Accept: 'text/html' });
+    assert.equal(page.status, 401);
+    assert.match(page.headers['content-type'], /text\/html/);
+    const api = await request(app, 'GET', '/vidbee/api/tasks', { 'Sec-Fetch-Dest': 'empty', Accept: 'application/json' });
+    assert.equal(api.status, 401);
+    assert.match(api.headers['content-type'], /text\/plain/);
+  });
+  it('escapes the page text and only adds the button when asked', async () => {
+    const { errorPage } = await import('./vidbeeProxy.js');
+    const html = errorPage('<x>', 'a & b');
+    assert.match(html, /&lt;x&gt;/);
+    assert.match(html, /a &amp; b/);
+    assert.doesNotMatch(html, /Reconnect<\/button>/);
+    assert.match(errorPage('t', 'd', { reconnect: true }), /smartviddownloader:reconnect/);
+  });
+});

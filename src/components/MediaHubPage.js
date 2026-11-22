@@ -30,25 +30,46 @@ export function MediaHubPage() {
   note.textContent = 'Starting SmartVidDownloader…';
   container.appendChild(note);
 
-  (async () => {
-    const base = backendBase();
+  const base = backendBase();
+  let iframe = null;
+  // Dev only: VITE_VIDBEE_DEV_URL (e.g. http://127.0.0.1:3300/) embeds a local VidBee server directly, skipping the gate.
+  const devUrl = import.meta.env.DEV ? import.meta.env.VITE_VIDBEE_DEV_URL : '';
+  const start = async () => {
     try {
+      if (devUrl) {
+        iframe = document.createElement('iframe');
+        iframe.src = devUrl;
+        iframe.title = 'SmartVidDownloader';
+        iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;';
+        note.replaceWith(iframe);
+        return;
+      }
       const token = await accessToken();
       if (!token) throw new Error('Sign in to use SmartVidDownloader.');
       const res = await fetch(`${base}/api/vidbee/session`, { method: 'POST', credentials: 'include', headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `SmartVidDownloader unavailable (${res.status})`);
+      if (iframe) { iframe.src = `${base}/vidbee/`; return; }
       // Light / Dark / System is switched inside VidBee itself (title-bar button, or Settings → Theme).
-      const iframe = document.createElement('iframe');
+      iframe = document.createElement('iframe');
       iframe.src = `${base}/vidbee/`;
       iframe.title = 'SmartVidDownloader';
       iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;';
       iframe.setAttribute('allow', 'clipboard-write; fullscreen');
       note.replaceWith(iframe);
     } catch (e) {
+      if (iframe) { iframe.replaceWith(note); iframe = null; }
       note.textContent = e.message;
       note.style.color = '#ef4444';
     }
-  })();
+  };
+  start();
+
+  // The gate's error page (expired 8-hour session, service down) has a Reconnect button that posts this message.
+  const onMessage = (e) => {
+    if (iframe && e.source === iframe.contentWindow && e.data?.type === 'smartviddownloader:reconnect') start();
+  };
+  window.addEventListener('message', onMessage);
+  container.cleanup = () => window.removeEventListener('message', onMessage);
 
   return container;
 }

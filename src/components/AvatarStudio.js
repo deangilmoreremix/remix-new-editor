@@ -129,8 +129,10 @@ const triggerBtn = document.createElement('button');
   };
 
   modelWrapper.appendChild(triggerBtn);
-  modelWrapper.appendChild(dropdown);
   container.appendChild(modelWrapper);
+  // On the page container, not the animated wrapper: a transformed parent traps the
+  // dropdown's z-index and the form card painted over it.
+  container.appendChild(dropdown);
 
   // Form card
   const formCard = document.createElement('div');
@@ -342,7 +344,7 @@ const triggerBtn = document.createElement('button');
     dynamicControls = createAdvancedControls({
       model,
       container: dynamicControlsContainer,
-      exclude: new Set(['video_url', 'audio_url', 'prompt']),
+      exclude: new Set(['video_url', 'image_url', 'audio_url', 'prompt']),
     });
   }
   buildDynamicControls();
@@ -426,11 +428,13 @@ const triggerBtn = document.createElement('button');
 
   function updateFormVisibility() {
     // Show/hide video upload
-    const needsVideo = selectedModel.hasVideo;
+    // FLUX 3 Avatar lists its inputs (image_url, video_url, audio_url) but has no hasVideo/hasAudio flags.
+    const inputs = selectedModel.inputs || {};
+    const needsVideo = Boolean(selectedModel.hasVideo || inputs.video_url || inputs.image_url);
     videoUploadGroup.classList.toggle('hidden', !needsVideo);
 
     // Show/hide audio upload
-    const needsAudio = selectedModel.hasAudio;
+    const needsAudio = Boolean(selectedModel.hasAudio || inputs.audio_url);
     audioUploadGroup.classList.toggle('hidden', !needsAudio);
 
     // Show/hide prompt
@@ -447,7 +451,8 @@ const triggerBtn = document.createElement('button');
   // Generate button handler
   genBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
-    if (!uploadedVideoUrl && selectedModel.hasVideo) {
+    const needsSource = Boolean(selectedModel.hasVideo || selectedModel.inputs?.video_url || selectedModel.inputs?.image_url);
+    if (!uploadedVideoUrl && needsSource) {
       showToast('Upload a source video or image first', 'error');
       return;
     }
@@ -474,6 +479,11 @@ const triggerBtn = document.createElement('button');
         signal: avatarAbortController.signal,
       };
 
+      // Models that take a portrait (image_url) get the picked image there, not in video_url.
+      if (selectedModel.inputs?.image_url && uploadedVideoUrl && !/\.(mp4|webm|mov|m4v|m3u8)(\?|$)/i.test(uploadedVideoUrl)) {
+        params.image_url = uploadedVideoUrl;
+        if (!selectedModel.inputs?.video_url) delete params.video_url;
+      }
       if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
       if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);
       if (dynamicControls) {

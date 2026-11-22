@@ -1282,6 +1282,7 @@ generateBtn.type = 'button';
         resultImg.src = imageUrl;
         resultImg.onload = () => {
             canvas.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+            container.classList.add('studio-result-showing'); // hides the example gallery under the result
             canvas.classList.add('opacity-100', 'translate-y-0', 'scale-100');
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
@@ -1413,6 +1414,7 @@ generateBtn.type = 'button';
     newPromptBtn.onclick = () => {
         // Reset to prompt view
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+        container.classList.remove('studio-result-showing');
         canvas.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
         canvasControls.classList.add('opacity-0');
         canvasControls.classList.remove('opacity-100');
@@ -1606,7 +1608,7 @@ generateBtn.type = 'button';
       const showMoreBtn = document.createElement('button');
       showMoreBtn.type = 'button';
       showMoreBtn.textContent = `Show all ${galleryAssets.length} image prompts`;
-      showMoreBtn.className = 'mt-4 mb-8 px-6 py-3 rounded-xl text-sm font-bold bg-white/5 text-secondary hover:bg-white/10 hover:text-primary transition-all border border-white/5 hover:border-primary/30';
+      showMoreBtn.className = 'eg-show-more mt-4 mb-8 px-6 py-3 rounded-xl text-sm font-bold bg-white/5 text-secondary hover:bg-white/10 hover:text-primary transition-all border border-white/5 hover:border-primary/30';
       showMoreBtn.addEventListener('click', () => {
         expanded = !expanded;
         if (expanded) {

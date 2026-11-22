@@ -21,9 +21,11 @@ interface DynamicModelFormProps {
   modelId: string;
   onGenerate: (params: { modelId: string; values: Record<string, unknown>; cost: number }) => void;
   onReset?: () => void;
+  /** Reports the current form values (the studio's bottom prompt bar sends them too). */
+  onValuesChange?: (values: Record<string, unknown>) => void;
 }
 
-export default function DynamicModelForm({ modelId, onGenerate, onReset }: DynamicModelFormProps) {
+export default function DynamicModelForm({ modelId, onGenerate, onReset, onValuesChange }: DynamicModelFormProps) {
   const [schema, setSchema] = useState<NormalizedSchema | null>(null);
   const [capabilities, setCapabilities] = useState<ModelMeta['capabilities'] | null>(null);
   const [values, setValues] = useState<FormState>({});
@@ -106,6 +108,10 @@ export default function DynamicModelForm({ modelId, onGenerate, onReset }: Dynam
     return () => clearTimeout(timer);
   }, [values, modelId, schema]);
 
+  useEffect(() => {
+    onValuesChange?.(values);
+  }, [values, onValuesChange]);
+
   const handleChange = useCallback((key: string, val: unknown) => {
     setValues(prev => ({ ...prev, [key]: val }));
   }, []);
@@ -174,6 +180,11 @@ export default function DynamicModelForm({ modelId, onGenerate, onReset }: Dynam
   const toggleAdvanced = useCallback(() => {
     setShowAdvanced(prev => !prev);
   }, []);
+
+  const requiresPrompt = useMemo(
+    () => !!schema?.fields.some(f => f.normalizedKey === 'prompt' || f.normalizedKey === 'text'),
+    [schema],
+  );
 
   const advancedFieldCount = useMemo(() => {
     return schema?.fields.filter(f => f.advanced).length ?? 0;
@@ -327,13 +338,13 @@ export default function DynamicModelForm({ modelId, onGenerate, onReset }: Dynam
         <button
           type="button"
           onClick={handleGenerate}
-          disabled={generating || !values['prompt'] && !values['text']}
+          disabled={generating || (requiresPrompt && !values['prompt'] && !values['text'])}
           className="dynamic-form-generate-btn"
         >
           {generating ? 'Generating...' : 'Generate'}
         </button>
         <div className="dynamic-form-footer-meta">
-          {costEstimate && (
+          {costEstimate && costEstimate.cost > 0 && (
             <span className="dynamic-form-cost">~{costEstimate.cost.toFixed(4)} credits</span>
           )}
           <button type="button" onClick={handleReset} className="smart-btn-ghost">

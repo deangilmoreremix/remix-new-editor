@@ -1,0 +1,32 @@
+{
+  "_comment": "Applied after the product-name swap. %NAME% = brand name, %HOST% = hosting company, %UPSTREAM% = upstream name (left as is). `keep`: keys whose upstream name is NOT swapped (credit to the upstream author). `en`: English text replacing upstream's. `fromWebKey`: every locale takes its own translation of upstream's web-edition string (already server-side wording). Every other `en` key is removed from the non-English locales, so they fall back to the corrected English instead of a translated wrong claim (\"on this computer\", VidBee Cloud sign-in). Translators can add `de`, `ja`, ... maps here.",
+  "keep": [
+    "about.followAuthorDescription",
+    "about.followAuthorSupport",
+    "about.shareDescription",
+    "about.shareSupport"
+  ],
+  "fromWebKey": {
+    "settings.autoTranscribeAfterDownloadDescription": "web.autoTranscribeAfterDownloadDescription",
+    "settings.maxConcurrentTranscriptionsDescription": "web.maxConcurrentTranscriptionsDescription"
+  },
+  "en": {
+    "app.description": "Download media, transcribe it on %HOST%'s servers, and ask AI",
+    "about.description": "Download media from 1000+ sites, create searchable transcripts, and summarize, translate, or ask questions with the AI provider you choose. Downloads and transcripts run on %HOST%'s servers. Based on the open-source %UPSTREAM% project (MIT License).",
+    "download.ingestEmptyHint": "Paste a link to download, or drop a media file to transcribe it on %HOST%'s servers—then summarize, translate, or ask AI.",
+    "settings.downloadPathDescription": "Where downloads are saved on %HOST%'s servers",
+    "settings.autoTranscribeAfterDownloadDescription": "When a download finishes, start a transcript on %HOST%'s servers. Files with no speech are skipped. Already queued jobs keep running if you turn this off.",
+    "settings.maxConcurrentTranscriptionsDescription": "How many transcripts can run at the same time on %HOST%'s servers. Lowering this does not stop jobs that are already running.",
+    "settings.ai.providerDialogDescription": "API keys are stored on %HOST%'s servers. Preset providers already have a base URL",
+    "settings.mcp.accessNote": "Keep %NAME% running while connected. Only %HOST%'s server itself can connect. Treat the HTTP configuration as a password; rotating the token revokes saved HTTP configurations.",
+    "settings.mcp.capabilities.start_transcription": "Start transcription",
+    "settings.mcp.capabilities.download_and_transcribe": "Download media and create a transcript",
+    "transcript.asrIdle": "If you're not happy with these captions, generate a new transcript on %HOST%'s servers.",
+    "transcript.promptShareTagline": "Download. Transcribe. Ask AI.",
+    "transcript.promptGuide.signInRequired": "No AI provider is set up yet. Add one in Settings → Providers to use Ask AI.",
+    "transcript.promptSolutions.signInRequired.s2": "Add a provider and its API key.",
+    "whatsNew.description": "Download, transcribe, and ask AI—all in one app.",
+    "whatsNew.features.transcript.description": "When a download finishes, %NAME% automatically generates a transcript for the video on %HOST%'s servers.",
+    "agentChat.suggestions.transcribe.prompt": "Help me turn a downloaded video or audio into text in %NAME%. Show my completed downloads, ask which item to transcribe, then start a transcription task."
+  }
+}
