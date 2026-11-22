@@ -30,8 +30,9 @@ export function BrandKitPanel() {
   const plan = buildBrandBrief(shown, target, { duration, aspectRatio: aspect })
   const btn = (primary: boolean) => ({
     minHeight: 34, padding: '0 14px', borderRadius: 10, fontSize: 11, fontWeight: 900,
+    // The app's buttons are outline-only (src/styles/outline-buttons.css): primary = full neon border, no fill.
     border: `1px solid ${primary ? C.cyan : C.cyanBorder}`,
-    background: primary ? C.cyan : 'transparent', color: primary ? '#000' : C.cyan,
+    background: 'transparent', color: C.cyan,
   }) as const
 
   const save = () => { setSaved(saveBrandKit(kit)) }
