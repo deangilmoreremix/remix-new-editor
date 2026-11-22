@@ -32,6 +32,7 @@ export function MuapiStudioPage() {
   let disposed = false;
   let settingsOpen = false; // don't stack a second Settings modal on top of ours
   let settingsEl = null;
+  let stopKeyWatch = null;
 
   (async () => {
     try {
@@ -69,6 +70,16 @@ export function MuapiStudioPage() {
         }));
       };
       render();
+      // Any key change (this page's dialog, or the app-wide Settings) remounts the Studio so the client,
+      // models and per-account history all follow the new key.
+      let renderedScope = scopeOfKey(apiKeyManager.getMuapiKey());
+      stopKeyWatch = apiKeyManager.addListener(() => {
+        const now = scopeOfKey(apiKeyManager.getMuapiKey());
+        if (now === renderedScope) return;
+        renderedScope = now;
+        keyVersion += 1;
+        render();
+      });
     } catch (err) {
       console.error('[muapi-studio] failed to load', err);
       host.innerHTML = '<div class="w-full h-full flex items-center justify-center text-sm text-red-400">Could not load Muapi Studio. Please reload the page.</div>';
@@ -78,6 +89,8 @@ export function MuapiStudioPage() {
   // The router calls cleanup() when navigating away.
   container.cleanup = () => {
     disposed = true;
+    stopKeyWatch?.();
+    stopKeyWatch = null;
     settingsEl?.remove();
     settingsEl = null;
     try { root?.unmount(); } catch { /* already unmounted */ }

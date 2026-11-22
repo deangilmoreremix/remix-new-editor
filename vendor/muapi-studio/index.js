@@ -371,45 +371,45 @@ const yr = () => {
 function xr(e, t, a, n = "") {
   const [i, l] = C(() => Oe(n)), [o, m] = C([]), [k, y] = C(null), [A, N] = C(!1), [b, S] = C(null), I = K(!1), [R, T] = C(() => lt(pe(dt, n), {})), [G, x] = C(() => lt(pe(ut, n), [])), p = K(/* @__PURE__ */ new Set()), f = K(new AbortController()), M = K([]);
   M.current = t ?? [], F(() => br(i, n), [i, n]), F(() => ct(pe(dt, n), R), [R, n]), F(() => ct(pe(ut, n), G), [G, n]), F(() => (f.current = new AbortController(), () => f.current.abort()), []);
-  const O = te((d, v) => l((L) => L.map((c) => c.id === d ? { ...c, ...v } : c)), []), $ = te(async (d, v) => {
-    if (!p.current.has(d)) {
-      p.current.add(d);
+  const O = te((u, v) => l((L) => L.map((c) => c.id === u ? { ...c, ...v } : c)), []), $ = te(async (u, v) => {
+    if (!p.current.has(u)) {
+      p.current.add(u);
       try {
         const L = await it(e, v, {
           signal: f.current.signal,
-          onUpdate: (c) => O(d, { status: c.status, outputs: c.outputs, error: c.error, cost: c.cost })
+          onUpdate: (c) => O(u, { status: c.status, outputs: c.outputs, error: c.error, cost: c.cost })
         });
-        O(d, { status: L.status, outputs: L.outputs, error: L.error, cost: L.cost }), a == null || a();
+        O(u, { status: L.status, outputs: L.outputs, error: L.error, cost: L.cost }), a == null || a();
       } catch (L) {
-        L.name !== "AbortError" && O(d, { status: "failed", error: L.message });
+        L.name !== "AbortError" && O(u, { status: "failed", error: L.message });
       } finally {
-        p.current.delete(d);
+        p.current.delete(u);
       }
     }
-  }, [e, O, a]), j = te(async (d) => {
-    if (!d.requestId || p.current.has(d.id)) return;
-    p.current.add(d.id);
-    const v = (L) => m((c) => c.map((q) => q.id === d.id ? { ...q, status: L.status, outputs: L.outputs, error: L.error, cost: L.cost ?? q.cost } : q));
+  }, [e, O, a]), j = te(async (u) => {
+    if (!u.requestId || p.current.has(u.id)) return;
+    p.current.add(u.id);
+    const v = (L) => m((c) => c.map((q) => q.id === u.id ? { ...q, status: L.status, outputs: L.outputs, error: L.error, cost: L.cost ?? q.cost } : q));
     try {
-      const L = await it(e, d.requestId, { signal: f.current.signal, onUpdate: v });
+      const L = await it(e, u.requestId, { signal: f.current.signal, onUpdate: v });
       v(L), a == null || a();
     } catch {
     } finally {
-      p.current.delete(d.id);
+      p.current.delete(u.id);
     }
   }, [e, a]);
   F(() => {
-    const d = new Set(Oe(n).map((v) => v.requestId));
-    for (const v of o) (v.status === "pending" || v.status === "processing") && v.requestId && !d.has(v.requestId) && j(v);
+    const u = new Set(Oe(n).map((v) => v.requestId));
+    for (const v of o) (v.status === "pending" || v.status === "processing") && v.requestId && !u.has(v.requestId) && j(v);
   }, [o, n, j]), F(() => {
-    for (const d of Oe(n)) (d.status === "pending" || d.status === "processing") && d.requestId && $(d.id, d.requestId);
+    for (const u of Oe(n)) (u.status === "pending" || u.status === "processing") && u.requestId && $(u.id, u.requestId);
   }, []);
-  const E = te(async (d = !1) => {
+  const E = te(async (u = !1) => {
     if (!I.current) {
       N(!0), S(null);
       try {
-        const v = await e.history(d ? void 0 : k ?? void 0), L = v.items.map((c) => mr(c, M.current));
-        m((c) => d ? L : [...c, ...L]), y(v.next_cursor);
+        const v = await e.history(u ? void 0 : k ?? void 0), L = v.items.map((c) => mr(c, M.current));
+        m((c) => u ? L : [...c, ...L]), y(v.next_cursor);
       } catch (v) {
         v instanceof le && [403, 404, 405].includes(v.status) ? (I.current = !0, y(null)) : S(v.message);
       } finally {
@@ -420,42 +420,42 @@ function xr(e, t, a, n = "") {
   F(() => {
     t && !Y.current && (Y.current = !0, E(!0));
   }, [t, E]);
-  const g = te((d) => {
-    const v = Array.from({ length: d.count }, () => ({
+  const g = te((u) => {
+    const v = Array.from({ length: u.count }, () => ({
       id: yr(),
-      model: d.model,
-      mode: d.mode,
-      prompt: d.prompt,
-      inputs: d.payload,
+      model: u.model,
+      mode: u.mode,
+      prompt: u.prompt,
+      inputs: u.payload,
       status: "pending",
       outputs: [],
       createdAt: Date.now(),
       label: null,
-      cost: d.unitCost,
+      cost: u.unitCost,
       source: "local"
     }));
     return l((L) => [...v, ...L]), Promise.all(v.map(async (L) => {
       try {
-        const { requestId: c, cost: q } = await e.submit(d.endpointUrl, d.payload, d.kind);
+        const { requestId: c, cost: q } = await e.submit(u.endpointUrl, u.payload, u.kind);
         O(L.id, { requestId: c, ...q !== void 0 ? { cost: q } : {} }), await $(L.id, c);
       } catch (c) {
         O(L.id, { status: "failed", error: c.message });
       }
     }));
   }, [e, O, $]), B = ee(() => {
-    const d = (v) => ({ ...v, label: v.requestId && R[v.requestId] || v.label });
-    return pr(i.map(d), o.map(d), new Set(G));
-  }, [i, o, R, G]), z = te((d, v) => {
-    d.requestId && T((L) => {
+    const u = (v) => ({ ...v, label: v.requestId && R[v.requestId] || v.label });
+    return pr(i.map(u), o.map(u), new Set(G));
+  }, [i, o, R, G]), z = te((u, v) => {
+    u.requestId && T((L) => {
       const c = { ...L };
-      return v ? c[d.requestId] = v : delete c[d.requestId], c;
-    }), O(d.id, { label: v });
-  }, [O]), h = te((d) => {
-    l((v) => v.filter((L) => L.id !== d.id)), d.requestId && x((v) => [.../* @__PURE__ */ new Set([...v, d.requestId])]);
-  }, []), u = te(async (d) => {
-    d.requestId && (await e.deleteMedia(d.requestId), O(d.id, { outputs: [] }), m((v) => v.map((L) => L.requestId === d.requestId ? { ...L, outputs: [] } : L)));
+      return v ? c[u.requestId] = v : delete c[u.requestId], c;
+    }), O(u.id, { label: v });
+  }, [O]), h = te((u) => {
+    l((v) => v.filter((L) => L.id !== u.id)), u.requestId && x((v) => [.../* @__PURE__ */ new Set([...v, u.requestId])]);
+  }, []), d = te(async (u) => {
+    u.requestId && (await e.deleteMedia(u.requestId), O(u.id, { outputs: [] }), m((v) => v.map((L) => L.requestId === u.requestId ? { ...L, outputs: [] } : L)));
   }, [e, O]);
-  return { items: B, run: g, setLabel: z, remove: h, deleteMedia: u, loadMore: () => E(!1), hasMore: !!k, loadingMore: A, serverError: b };
+  return { items: B, run: g, setLabel: z, remove: h, deleteMedia: d, loadMore: () => E(!1), hasMore: !!k, loadingMore: A, serverError: b };
 }
 const vr = /\.(zip|json|safetensors|txt|csv|pdf|md|html|bin|ckpt|pt|tar|gz|7z|rar|srt|vtt)(\?|#|$)/i;
 function Tt(e) {
@@ -773,61 +773,61 @@ function Qr(e, t, a) {
 }
 const ft = "Auto (let model decide)", Pe = "__auto__";
 function Je({ id: e, label: t, options: a, value: n, onChange: i, allowAuto: l, auto: o, onAuto: m, combobox: k }) {
-  const y = Ht(), A = e ?? `ms-dd-${y}`, N = k ?? a.length > zr, [b, S] = C(!1), [I, R] = C(""), [T, G] = C(0), [x, p] = C("down"), f = K(null), M = K(null), O = K(null), $ = a.find((u) => n !== void 0 && Se(u.value) === Se(n)), j = ee(() => N ? Jr(a, I) : a, [N, a, I]), E = ee(
-    () => [...l ? [{ key: Pe, label: ft, value: Pe, isAuto: !0 }] : [], ...j.map((u) => ({ key: Se(u.value), label: u.label, hint: u.hint, value: u.value }))],
+  const y = Ht(), A = e ?? `ms-dd-${y}`, N = k ?? a.length > zr, [b, S] = C(!1), [I, R] = C(""), [T, G] = C(0), [x, p] = C("down"), f = K(null), M = K(null), O = K(null), $ = a.find((d) => n !== void 0 && Se(d.value) === Se(n)), j = ee(() => N ? Jr(a, I) : a, [N, a, I]), E = ee(
+    () => [...l ? [{ key: Pe, label: ft, value: Pe, isAuto: !0 }] : [], ...j.map((d) => ({ key: Se(d.value), label: d.label, hint: d.hint, value: d.value }))],
     [l, j]
   ), Y = o ? Pe : $ ? Se($.value) : void 0, g = () => {
     S(!1), R("");
-  }, B = (u) => {
-    u.isAuto ? m == null || m() : i(u.value), g();
+  }, B = (d) => {
+    d.isAuto ? m == null || m() : i(d.value), g();
   };
   Jt(() => {
     if (!b || !f.current) return;
-    const u = f.current.getBoundingClientRect();
-    let d = f.current.parentElement;
-    for (; d && !/(auto|scroll)/.test(getComputedStyle(d).overflowY); ) d = d.parentElement;
-    const v = d ? d.getBoundingClientRect() : null, L = Math.min(window.innerHeight, v ? v.bottom : window.innerHeight), c = Math.max(0, v ? v.top : 0);
-    p(Yr(L - u.bottom, u.top - c, Xr(a.length + (l ? 1 : 0), N)));
+    const d = f.current.getBoundingClientRect();
+    let u = f.current.parentElement;
+    for (; u && !/(auto|scroll)/.test(getComputedStyle(u).overflowY); ) u = u.parentElement;
+    const v = u ? u.getBoundingClientRect() : null, L = Math.min(window.innerHeight, v ? v.bottom : window.innerHeight), c = Math.max(0, v ? v.top : 0);
+    p(Yr(L - d.bottom, d.top - c, Xr(a.length + (l ? 1 : 0), N)));
   }, [b]), F(() => {
     if (!b) return;
-    const u = E.findIndex((d) => d.key === Y);
-    G(u >= 0 ? u : 0);
+    const d = E.findIndex((u) => u.key === Y);
+    G(d >= 0 ? d : 0);
   }, [b, I]), F(() => {
-    var u, d, v;
-    b && ((v = (d = (u = M.current) == null ? void 0 : u.querySelector(`[data-i="${T}"]`)) == null ? void 0 : d.scrollIntoView) == null || v.call(d, { block: "nearest" }));
+    var d, u, v;
+    b && ((v = (u = (d = M.current) == null ? void 0 : d.querySelector(`[data-i="${T}"]`)) == null ? void 0 : u.scrollIntoView) == null || v.call(u, { block: "nearest" }));
   }, [T, b]), F(() => {
-    var u;
-    b && N && ((u = O.current) == null || u.focus());
+    var d;
+    b && N && ((d = O.current) == null || d.focus());
   }, [b, N]), F(() => {
     if (!b) return;
-    const u = (d) => {
+    const d = (u) => {
       var v;
-      (v = f.current) != null && v.contains(d.target) || g();
+      (v = f.current) != null && v.contains(u.target) || g();
     };
-    return document.addEventListener("mousedown", u), () => document.removeEventListener("mousedown", u);
+    return document.addEventListener("mousedown", d), () => document.removeEventListener("mousedown", d);
   }, [b]);
-  const z = (u) => {
+  const z = (d) => {
     if (!b) {
-      ["ArrowDown", "ArrowUp", "Enter", " "].includes(u.key) && (u.preventDefault(), S(!0));
+      ["ArrowDown", "ArrowUp", "Enter", " "].includes(d.key) && (d.preventDefault(), S(!0));
       return;
     }
-    if (u.key === "Escape") {
-      u.preventDefault(), u.stopPropagation(), g();
+    if (d.key === "Escape") {
+      d.preventDefault(), d.stopPropagation(), g();
       return;
     }
-    if (u.key === "Enter") {
-      u.preventDefault(), E[T] && B(E[T]);
+    if (d.key === "Enter") {
+      d.preventDefault(), E[T] && B(E[T]);
       return;
     }
-    if (u.key === "Tab") {
+    if (d.key === "Tab") {
       g();
       return;
     }
-    if (u.key === " " && !N) {
-      u.preventDefault(), E[T] && B(E[T]);
+    if (d.key === " " && !N) {
+      d.preventDefault(), E[T] && B(E[T]);
       return;
     }
-    ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(u.key) && (u.preventDefault(), G((d) => Qr(d, u.key, E.length)));
+    ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(d.key) && (d.preventDefault(), G((u) => Qr(u, d.key, E.length)));
   }, h = o ? ft : ($ == null ? void 0 : $.label) ?? "Select…";
   return /* @__PURE__ */ s("div", { ref: f, className: "relative w-full", onKeyDown: z, children: [
     /* @__PURE__ */ s(
@@ -839,7 +839,7 @@ function Je({ id: e, label: t, options: a, value: n, onChange: i, allowAuto: l, 
         "aria-expanded": b,
         "aria-label": `${t}: ${h}`,
         "aria-controls": `${A}-list`,
-        onClick: () => S((u) => !u),
+        onClick: () => S((d) => !d),
         className: `flex w-full items-center justify-between gap-3 rounded-ctl border bg-card-bg px-3 py-3 text-left text-sm ${b ? "border-primary" : "border-line hover:border-muted"} ${o ? "text-secondary" : ""}`,
         children: [
           /* @__PURE__ */ r("span", { className: "truncate", children: h }),
@@ -853,7 +853,7 @@ function Je({ id: e, label: t, options: a, value: n, onChange: i, allowAuto: l, 
         {
           ref: O,
           value: I,
-          onChange: (u) => R(u.target.value),
+          onChange: (d) => R(d.target.value),
           placeholder: `Search ${t.toLowerCase()}…`,
           "aria-label": `Search ${t}`,
           role: "combobox",
@@ -864,27 +864,27 @@ function Je({ id: e, label: t, options: a, value: n, onChange: i, allowAuto: l, 
         }
       ),
       /* @__PURE__ */ s("ul", { id: `${A}-list`, ref: M, role: "listbox", "aria-label": t, style: { maxHeight: nt }, className: "overflow-y-auto", children: [
-        E.map((u, d) => {
-          const v = u.key === Y;
+        E.map((d, u) => {
+          const v = d.key === Y;
           return /* @__PURE__ */ s(
             "li",
             {
-              id: `${A}-o${d}`,
-              "data-i": d,
+              id: `${A}-o${u}`,
+              "data-i": u,
               role: "option",
               "aria-selected": v,
-              onMouseEnter: () => G(d),
-              onClick: () => B(u),
-              className: `flex cursor-pointer items-center justify-between gap-2 ${u.hint ? "min-h-9 py-1.5" : "h-9"} rounded-ctl px-3 text-sm ${v ? "bg-primary text-primary-ink" : d === T ? "bg-card-bg" : ""} ${u.isAuto && !v ? "text-secondary" : ""}`,
+              onMouseEnter: () => G(u),
+              onClick: () => B(d),
+              className: `flex cursor-pointer items-center justify-between gap-2 ${d.hint ? "min-h-9 py-1.5" : "h-9"} rounded-ctl px-3 text-sm ${v ? "bg-primary text-primary-ink" : u === T ? "bg-card-bg" : ""} ${d.isAuto && !v ? "text-secondary" : ""}`,
               children: [
                 /* @__PURE__ */ s("span", { className: "min-w-0", children: [
-                  /* @__PURE__ */ r("span", { className: "block truncate", children: u.label }),
-                  u.hint && /* @__PURE__ */ r("span", { className: `block truncate text-[11px] ${v ? "opacity-70" : "text-muted"}`, children: u.hint })
+                  /* @__PURE__ */ r("span", { className: "block truncate", children: d.label }),
+                  d.hint && /* @__PURE__ */ r("span", { className: `block truncate text-[11px] ${v ? "opacity-70" : "text-muted"}`, children: d.hint })
                 ] }),
                 v && /* @__PURE__ */ r(ke, { width: 14, height: 14 })
               ]
             },
-            u.key
+            d.key
           );
         }),
         E.length === 0 && /* @__PURE__ */ r("li", { className: "px-3 py-3 text-center text-xs text-muted", children: "No matches" })
@@ -913,10 +913,10 @@ function ta({ client: e, max: t, initialType: a = "image", onInsert: n, onClose:
   }, [E, m]), F(() => {
     A(1);
   }, [l, m]), F(() => {
-    var d;
+    var u;
     const h = document.activeElement;
-    (d = $.current) == null || d.focus();
-    const u = (v) => {
+    (u = $.current) == null || u.focus();
+    const d = (v) => {
       if (v.key === "Escape") {
         v.stopPropagation(), i();
         return;
@@ -927,26 +927,26 @@ function ta({ client: e, max: t, initialType: a = "image", onInsert: n, onClose:
       const c = L[0], q = L[L.length - 1];
       v.shiftKey && document.activeElement === c ? (v.preventDefault(), q.focus()) : !v.shiftKey && document.activeElement === q && (v.preventDefault(), c.focus());
     };
-    return document.addEventListener("keydown", u), () => {
+    return document.addEventListener("keydown", d), () => {
       var v;
-      document.removeEventListener("keydown", u), (v = h == null ? void 0 : h.focus) == null || v.call(h);
+      document.removeEventListener("keydown", d), (v = h == null ? void 0 : h.focus) == null || v.call(h);
     };
   }, [i]);
-  const Y = (h) => x((u) => u.includes(h) ? u.filter((d) => d !== h) : t === 1 ? [h] : u.length < t ? [...u, h] : u), g = async (h) => {
+  const Y = (h) => x((d) => d.includes(h) ? d.filter((u) => u !== h) : t === 1 ? [h] : d.length < t ? [...d, h] : d), g = async (h) => {
     if (h.length) {
       T(!0), I(null);
       try {
-        for (const u of h) {
-          const d = await e.upload(u);
-          await e.saveToLibrary({ url: d, name: u.name, mime_type: u.type || void 0, size_bytes: u.size, media_type: u.type.startsWith("video") ? "video" : u.type.startsWith("audio") ? "audio" : u.type.startsWith("image") ? "image" : "archive" });
+        for (const d of h) {
+          const u = await e.upload(d);
+          await e.saveToLibrary({ url: u, name: d.name, mime_type: d.type || void 0, size_bytes: d.size, media_type: d.type.startsWith("video") ? "video" : d.type.startsWith("audio") ? "audio" : d.type.startsWith("image") ? "image" : "archive" });
         }
         await E();
-      } catch (u) {
-        I(u.message), T(!1);
+      } catch (d) {
+        I(d.message), T(!1);
       }
     }
   }, B = async () => {
-    var u;
+    var d;
     const h = p.trim();
     if (!/^https?:\/\//i.test(h)) {
       I("Enter a full http(s) URL");
@@ -954,17 +954,17 @@ function ta({ client: e, max: t, initialType: a = "image", onInsert: n, onClose:
     }
     T(!0), I(null);
     try {
-      const d = ((u = h.split("?")[0].split(".").pop()) == null ? void 0 : u.toLowerCase()) ?? "", v = ["mp4", "webm", "mov"].includes(d) ? "video" : ["mp3", "wav", "m4a", "ogg"].includes(d) ? "audio" : ["zip", "rar", "7z"].includes(d) ? "archive" : "image";
+      const u = ((d = h.split("?")[0].split(".").pop()) == null ? void 0 : d.toLowerCase()) ?? "", v = ["mp4", "webm", "mov"].includes(u) ? "video" : ["mp3", "wav", "m4a", "ogg"].includes(u) ? "audio" : ["zip", "rar", "7z"].includes(u) ? "archive" : "image";
       await e.saveToLibrary({ url: h, name: h.split("/").pop() || "link", media_type: v }), f(""), O(!1), await E();
-    } catch (d) {
-      I(d.message), T(!1);
+    } catch (u) {
+      I(u.message), T(!1);
     }
   }, z = async (h) => {
     if (window.confirm(`Delete "${h.name ?? "this file"}" from your media library? This cannot be undone.`))
       try {
-        await e.deleteFromLibrary(h.id), x((u) => u.filter((d) => d !== h.url)), await E();
-      } catch (u) {
-        I(u.message);
+        await e.deleteFromLibrary(h.id), x((d) => d.filter((u) => u !== h.url)), await E();
+      } catch (d) {
+        I(d.message);
       }
   };
   return /* @__PURE__ */ r("div", { className: "fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4", onMouseDown: (h) => {
@@ -991,8 +991,8 @@ function ta({ client: e, max: t, initialType: a = "image", onInsert: n, onClose:
         ] })
       ] }),
       /* @__PURE__ */ r("input", { ref: j, type: "file", hidden: !0, multiple: !0, onChange: (h) => {
-        const u = Array.from(h.target.files ?? []);
-        h.target.value = "", g(u);
+        const d = Array.from(h.target.files ?? []);
+        h.target.value = "", g(d);
       } }),
       /* @__PURE__ */ s("button", { type: "button", "aria-label": "Upload files", onClick: () => {
         var h;
@@ -1018,10 +1018,10 @@ function ta({ client: e, max: t, initialType: a = "image", onInsert: n, onClose:
         /* @__PURE__ */ r(ge, {}),
         " Loading…"
       ] }) : N != null && N.items.length ? /* @__PURE__ */ r("ul", { className: "grid gap-3", style: { gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))" }, children: N.items.map((h) => {
-        const u = G.includes(h.url);
-        return /* @__PURE__ */ s("li", { className: `group relative overflow-hidden rounded-card border ${u ? "border-primary" : "border-line"} bg-card-bg`, children: [
-          /* @__PURE__ */ r("button", { type: "button", "aria-pressed": u, "aria-label": `${u ? "Deselect" : "Select"} ${h.name ?? "file"}`, onClick: () => Y(h.url), className: "block aspect-square w-full", children: /* @__PURE__ */ r(ea, { a: h }) }),
-          u && /* @__PURE__ */ r("span", { className: "pointer-events-none absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-ink", children: /* @__PURE__ */ r(ke, { width: 12, height: 12 }) }),
+        const d = G.includes(h.url);
+        return /* @__PURE__ */ s("li", { className: `group relative overflow-hidden rounded-card border ${d ? "border-primary" : "border-line"} bg-card-bg`, children: [
+          /* @__PURE__ */ r("button", { type: "button", "aria-pressed": d, "aria-label": `${d ? "Deselect" : "Select"} ${h.name ?? "file"}`, onClick: () => Y(h.url), className: "block aspect-square w-full", children: /* @__PURE__ */ r(ea, { a: h }) }),
+          d && /* @__PURE__ */ r("span", { className: "pointer-events-none absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-ink", children: /* @__PURE__ */ r(ke, { width: 12, height: 12 }) }),
           /* @__PURE__ */ r("button", { type: "button", "aria-label": `Delete ${h.name ?? "file"}`, onClick: () => void z(h), className: "absolute right-1 top-1 hidden h-6 w-6 items-center justify-center rounded-full bg-black/70 text-secondary hover:text-danger group-hover:flex group-focus-within:flex", children: /* @__PURE__ */ r(fe, { width: 12, height: 12 }) }),
           /* @__PURE__ */ r("p", { className: "truncate px-2 py-1.5 text-[11px] text-secondary", title: h.name ?? "", children: h.name })
         ] }, h.id);
@@ -1368,18 +1368,18 @@ function wa({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: 
     if (b === "favourites" || b === "most-used") return V;
     const ie = new Set(n);
     return [...V.filter((W) => ie.has(W.name)), ...V.filter((W) => !ie.has(W.name))];
-  }, [e, A, b, n, l, Y, E, G]), [u, d] = C(0);
+  }, [e, A, b, n, l, Y, E, G]), [d, u] = C(0);
   F(() => {
     var c, q;
-    d(0), (q = (c = z.current) == null ? void 0 : c.scrollTo) == null || q.call(c, { top: 0 });
+    u(0), (q = (c = z.current) == null ? void 0 : c.scrollTo) == null || q.call(c, { top: 0 });
   }, [A, b, k, Y, E]);
   const v = (c) => {
-    c.key === "ArrowDown" ? (c.preventDefault(), d((q) => Math.min(q + 1, Math.min(h.length, Ae) - 1))) : c.key === "ArrowUp" ? (c.preventDefault(), d((q) => Math.max(q - 1, 0))) : c.key === "Enter" && h[u] && (c.preventDefault(), a(h[u].name), y(!1));
+    c.key === "ArrowDown" ? (c.preventDefault(), u((q) => Math.min(q + 1, Math.min(h.length, Ae) - 1))) : c.key === "ArrowUp" ? (c.preventDefault(), u((q) => Math.max(q - 1, 0))) : c.key === "Enter" && h[d] && (c.preventDefault(), a(h[d].name), y(!1));
   };
   return F(() => {
     var c, q;
-    (q = (c = document.getElementById(`ms-opt-${u}`)) == null ? void 0 : c.scrollIntoView) == null || q.call(c, { block: "nearest" });
-  }, [u]), /* @__PURE__ */ s("div", { ref: T, className: "relative", children: [
+    (q = (c = document.getElementById(`ms-opt-${d}`)) == null ? void 0 : c.scrollIntoView) == null || q.call(c, { block: "nearest" });
+  }, [d]), /* @__PURE__ */ s("div", { ref: T, className: "relative", children: [
     /* @__PURE__ */ s(
       "button",
       {
@@ -1417,7 +1417,7 @@ function wa({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: 
         /* @__PURE__ */ s("div", { className: "mb-2 flex gap-2", children: [
           /* @__PURE__ */ s("label", { className: "relative flex-1", children: [
             /* @__PURE__ */ r(at, { width: 14, height: 14, style: { position: "absolute", left: 10, top: 11, color: "var(--ms-muted)" } }),
-            /* @__PURE__ */ r("input", { autoFocus: !0, onKeyDown: v, "aria-controls": "ms-listbox", "aria-activedescendant": `ms-opt-${u}`, value: A, onChange: (c) => N(c.target.value), placeholder: "Search models...", "aria-label": "Search models", className: "w-full py-2 pl-8 pr-2 text-sm" })
+            /* @__PURE__ */ r("input", { autoFocus: !0, onKeyDown: v, "aria-controls": "ms-listbox", "aria-activedescendant": `ms-opt-${d}`, value: A, onChange: (c) => N(c.target.value), placeholder: "Search models...", "aria-label": "Search models", className: "w-full py-2 pl-8 pr-2 text-sm" })
           ] }),
           /* @__PURE__ */ s("div", { className: "relative", children: [
             /* @__PURE__ */ r(
@@ -1470,7 +1470,7 @@ function wa({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: 
                 onClick: () => {
                   a(c.name), y(!1);
                 },
-                className: `flex cursor-pointer items-center gap-2 rounded-ctl px-3 py-2 ${Q ? "bg-primary-soft" : q === u ? "bg-card-bg" : "hover:bg-card-bg"}`,
+                className: `flex cursor-pointer items-center gap-2 rounded-ctl px-3 py-2 ${Q ? "bg-primary-soft" : q === d ? "bg-card-bg" : "hover:bg-card-bg"}`,
                 children: /* @__PURE__ */ s("div", { className: "min-w-0 flex-1", children: [
                   /* @__PURE__ */ s("div", { className: "flex items-center gap-2", children: [
                     /* @__PURE__ */ r("div", { className: `min-w-0 flex-1 truncate text-sm ${Q ? "text-primary" : ""}`, title: c.name, children: c.name }),
@@ -1535,7 +1535,7 @@ function ka(e, t) {
   return a;
 }
 function Na({ mode: e, models: t, client: a, batch: n, onRun: i, usage: l, reuse: o, switcher: m }) {
-  const k = de.find((w) => w.id === e), y = ee(() => lr(t, e), [t, e]), [A, N] = C(), [b, S] = C(null), [I, R] = C(null), [T, G] = C({}), [x, p] = C(null), [f, M] = C(null), [O, $] = C(() => xt("muapi-studio:favorites", [])), [j, E] = C("form"), [Y, g] = C(!1), [B, z] = C("{}"), [h, u] = C(null), d = K(0), v = K(null);
+  const k = de.find((w) => w.id === e), y = ee(() => lr(t, e), [t, e]), [A, N] = C(), [b, S] = C(null), [I, R] = C(null), [T, G] = C({}), [x, p] = C(null), [f, M] = C(null), [O, $] = C(() => xt("muapi-studio:favorites", [])), [j, E] = C("form"), [Y, g] = C(!1), [B, z] = C("{}"), [h, d] = C(null), u = K(0), v = K(null);
   F(() => {
     if (!Y) return;
     const w = (J) => {
@@ -1565,9 +1565,12 @@ function Na({ mode: e, models: t, client: a, batch: n, onRun: i, usage: l, reuse
   }, [o == null ? void 0 : o.nonce]);
   const Q = y.find((w) => w.name === A);
   c.current = b, q.current = j, F(() => {
-    if (!A) return;
+    if (!A) {
+      S(null), G({}), p(null), R(null), M(null), d(null);
+      return;
+    }
     let w = !0;
-    return S(null), R(null), p(null), M(null), u(null), a.model(A).then((P) => {
+    return S(null), R(null), p(null), M(null), d(null), a.model(A).then((P) => {
       if (!w) return;
       const J = De(P), ae = L.current;
       L.current = null;
@@ -1589,11 +1592,11 @@ function Na({ mode: e, models: t, client: a, batch: n, onRun: i, usage: l, reuse
   }, [B]), oe = j === "json" ? W ?? {} : ie, be = JSON.stringify(oe);
   F(() => {
     if (!b || j === "json" && !W) return;
-    const w = ++d.current, P = setTimeout(() => {
+    const w = ++u.current, P = setTimeout(() => {
       a.estimate(b.name, oe).then((J) => {
-        w === d.current && p(J);
+        w === u.current && p(J);
       }).catch(() => {
-        w === d.current && p(null);
+        w === u.current && p(null);
       });
     }, 500);
     return () => clearTimeout(P);
@@ -1607,7 +1610,7 @@ function Na({ mode: e, models: t, client: a, batch: n, onRun: i, usage: l, reuse
     g(!1), w !== j && (w === "json" ? z(JSON.stringify(ie, null, 2)) : W && G(ka(V, W)), E(w), M(null));
   }, Z = Q ? et(Q, x) : null, ye = te(async () => {
     if (!b) return;
-    u(null);
+    d(null);
     const w = V.find((P) => P.prop.name === "prompt");
     await i({
       model: b.name,
@@ -1641,7 +1644,7 @@ function Na({ mode: e, models: t, client: a, batch: n, onRun: i, usage: l, reuse
     M(null);
     const w = ((Z == null ? void 0 : Z.current) ?? 0) * n;
     if (w > Dt) {
-      u(w);
+      d(w);
       return;
     }
     await ye();
@@ -1705,7 +1708,7 @@ function Na({ mode: e, models: t, client: a, batch: n, onRun: i, usage: l, reuse
         ").",
         /* @__PURE__ */ s("div", { className: "mt-2 flex gap-2", children: [
           /* @__PURE__ */ r("button", { type: "button", onClick: () => void ye(), className: "rounded-md bg-primary px-3 py-1.5 font-semibold text-primary-ink", children: "Confirm" }),
-          /* @__PURE__ */ r("button", { type: "button", onClick: () => u(null), className: "rounded-md border border-line px-3 py-1.5 text-secondary", children: "Cancel" })
+          /* @__PURE__ */ r("button", { type: "button", onClick: () => d(null), className: "rounded-md border border-line px-3 py-1.5 text-secondary", children: "Cancel" })
         ] })
       ] }),
       /* @__PURE__ */ s("div", { className: "flex gap-2", children: [
@@ -2594,11 +2597,11 @@ function ln({ scope: e, apiBase: t = "/api/muapi", initialTab: a = "image", show
     return ((U = G.current) == null ? void 0 : U.call(G)) ?? {};
   }, fetchImpl: b, onKeyRejected: () => p(!0) }), [t, l, k, b]);
   F(() => p(!1), [f]);
-  const [M, O] = C({ library: !0, deleteMedia: !0 }), $ = ee(() => ({ library: M.library && (S == null ? void 0 : S.library) !== !1, deleteMedia: (S == null ? void 0 : S.deleteMedia) !== !1 }), [M, S == null ? void 0 : S.library, S == null ? void 0 : S.deleteMedia]), j = m ?? nr(o), [E, Y] = C(() => sn() ?? a), [g, B] = C(4), [z, h] = C(null), [u, d] = C(null), [v, L] = C(null), c = te(() => {
+  const [M, O] = C({ library: !0, deleteMedia: !0 }), $ = ee(() => ({ library: M.library && (S == null ? void 0 : S.library) !== !1, deleteMedia: (S == null ? void 0 : S.deleteMedia) !== !1 }), [M, S == null ? void 0 : S.library, S == null ? void 0 : S.deleteMedia]), j = m ?? nr(o), [E, Y] = C(() => sn() ?? a), [g, B] = C(4), [z, h] = C(null), [d, u] = C(null), [v, L] = C(null), c = te(() => {
     f.balance().then(L).catch(() => L(null));
   }, [f]), [q, Q] = C(null), V = xr(f, z, c, e), ie = ee(() => hr(V.items), [V.items]);
   F(() => {
-    T || (d(null), h(null), f.models().then(h).catch((U) => d(U.message)), c(), (S == null ? void 0 : S.library) !== !1 && f.probe().then(O));
+    T || (u(null), h(null), f.models().then(h).catch((U) => u(U.message)), c(), (S == null ? void 0 : S.library) !== !1 && f.probe().then(O));
   }, [f, c, T, S == null ? void 0 : S.library]);
   const [W, oe] = C(() => St(E)), be = (U, w) => {
     try {
@@ -2646,9 +2649,9 @@ function ln({ scope: e, apiBase: t = "/api/muapi", initialTab: a = "image", show
       ] }),
       /* @__PURE__ */ s("div", { className: `flex min-h-0 flex-1 flex-col ${j === "rail" ? "md:flex-row" : ""}`, children: [
         /* @__PURE__ */ r(Ca, { mode: E, onChange: _e, layout: j, onChangeKey: y }),
-        /* @__PURE__ */ r("div", { className: "flex min-h-0 min-w-0 flex-1 flex-col md:flex-row", children: u ? /* @__PURE__ */ s("div", { role: "alert", className: "flex-1 p-8 text-danger", children: [
+        /* @__PURE__ */ r("div", { className: "flex min-h-0 min-w-0 flex-1 flex-col md:flex-row", children: d ? /* @__PURE__ */ s("div", { role: "alert", className: "flex-1 p-8 text-danger", children: [
           "Could not load models: ",
-          u
+          d
         ] }) : z ? /* @__PURE__ */ s($e, { children: [
           W.view === "apps" && Qe(E) ? /* @__PURE__ */ r(nn, { mode: E, slug: W.app, onApp: Le, switcher: /* @__PURE__ */ r(Nt, { view: "apps", onChange: Ne }), models: z, client: f, batch: g, onRun: Z }) : /* @__PURE__ */ r(Na, { mode: E, models: z, client: f, batch: g, onRun: Z, usage: ie, reuse: q, switcher: Qe(E) ? /* @__PURE__ */ r(Nt, { view: "models", onChange: Ne }) : void 0 }),
           /* @__PURE__ */ r(Vr, { mode: E, items: V.items, batch: g, onBatch: B, onLabel: V.setLabel, onRemove: V.remove, onReuse: Ge, onRerun: ue, onDeleteMedia: V.deleteMedia, onLoadMore: V.loadMore, hasMore: V.hasMore, loadingMore: V.loadingMore, serverError: V.serverError, estimateFor: ye })
