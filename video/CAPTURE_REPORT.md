@@ -1,27 +1,43 @@
-# Capture report (no-key route)
+# Capture report (no-key route, interaction pass)
 
-Method: Playwright, 1920x1080, dark scheme, real running app (vite dev, :3100), nothing mocked.
-Script: `video/capture.cjs`. Not signed in (no Clerk/Supabase config); no provider keys, so nothing was generated.
-The first-run "set up your API keys" popup is suppressed with the app's own `setup_popup_shown` session flag (same as "Skip for now").
-Frames are page-load only (nothing typed, opened or scrolled yet).
+Method: Playwright 1.63 (global), 1920x1080, dark scheme, real running app (vite dev :3100), nothing mocked or generated.
+Scripts: `video/capture.cjs` (survey), `interact1-4.cjs` (interactions + screen recordings). Not signed in: no Clerk/Supabase config.
+First-run "set up your API keys" popup suppressed with the app's own `setup_popup_shown` session flag (same effect as "Skip for now").
+Contact sheet: `video/contact-sheet-2.png`. Frames in `video/captures/<shot>/`; `.webm` recordings where motion matters.
+Routes are plain hash routes (`/#/video`); give lazy studios ~12s to load.
 
-## Usable as a base frame
-01 video-studio, 02 apps-hub (top of grid only; needs scroll for all 33), 05 cinema-studio, 05b director, 06 storyboard (empty form),
-07 edit-tools (real before/after gallery), 07b upscale, 08 character, 08b influencer, 09 avatar, 09b lipsync,
-10 ai-vfx (example gallery), 10b effects, 12 templates (niche grid), 12b commercial, 15b community, 15 library (empty state).
+## Captured (real UI, no errors, no dev overlays)
+| Shot | What exists |
+|---|---|
+| 01 Video Studio | empty + prompt typed (typing recorded), Motion & Style sliders, Advanced options |
+| 02 Apps hub | all sections scrolled (stills + scroll recording) |
+| 03 Model picker | open, scrolling through full list (recorded) |
+| 04 Image Studio | empty, prompt typed, Advanced panel (prompt/aspect/style/negative) |
+| 05 Cinema | Prompt Builder open (camera/lens/aperture/movement); Director UI (empty video pane) |
+| 07 Edit | real before/after gallery (16 tools), Upscale form |
+| 08-10 Character, Influencer, Avatar, Lip Sync, AI-VFX, Effects | studio UIs; AI-VFX and Effects show real example galleries |
+| 11 Timeline | Project Manager + New Project dialog |
+| 12 Templates / Commercial | niche template grid (real thumbnails), Product Shot form |
+| 15 Library, Community | Library is an empty state ("0 items"); Community/Explore is populated |
 
-## Failed / not captured
+## Not captured / unusable
 | Shot | Reason |
 |---|---|
-| 03 model picker | Route shows a spinner; picker never opened. Needs click interaction on Video Studio. |
-| 04 image studio | Blank page (0 chars). Route `image` renders nothing at 6s; needs investigation. |
-| 11 timeline | Stuck on spinner. |
-| 11b render | Blank page (0 chars). |
-| 13 video-agent | Renders almost empty (single placeholder). |
-| 14 chat, 14b assist | Both route to the Apps hub, not chat/assist. Wrong route names. |
-| 15c stock | Routes to Library; `pexels-media` is not the stock page. |
-| 16 agency | "Brand not found" empty state. Needs a brand record (needs sign-in/data). |
-| Hero finished clip; results for shots 4,5,7,8,9,10,12,13 | Require generation (no MuAPI key). Not captured, not faked. |
-| Prompt typing, model scroll, controls panels | Interaction passes not done yet. |
+| Hero finished clip; results for 4,5,7,8,9,10,12,13 | need generation (no MuAPI key). Not faked. |
+| 06 Storyboard 8-step pipeline, script gate, live cost counter | not on this page: it is a plain form. That pipeline is the OpenMontage/Backlot board (`python -m backlot open`), a separate tool; not captured. |
+| 13 Video Agent | studio renders an unbuilt `Motion-agent/index.html` "Coming soon" placeholder (apps/motion-agent not built). |
+| 14 Chat/Assist | `chat`/`assist` routes alias to the Apps hub. The real feature is the floating "Ask SmartVideo" panel; it opens, but shows an "Add your OpenAI key" nag, so not a clean frame. |
+| 15 Stock media | `media-hub`/`pexels-media` route to Library/empty. No stock browser reached. |
+| 16 Agency dashboard | Campaign route shows "Brand not found"; needs brand data + sign-in. |
+| 11 Timeline editor canvas, 11b Render | Timeline stops at the project dialog; Render page loads (forms) but no scenes/captions/audio to film without a project. |
+| Cinema builder lower half | partially framed; needs scroll in a recording. |
 
-Open item: Director "escapeHtml is not defined" not reproduced (page loads, no page errors).
+## Claims conflicts seen in the real app (do not put in videos until confirmed)
+- Video Studio hero says "15+ models"; Image Studio says "20+ models"; Apps hub tags "20+ models".
+- Model picker list has 133 rows (may include group headers/variants); real distinct count unverified.
+- Hub shows 28 app cards (6 image, 11 video, 9 agents, 2 my work), vs 33 apps on the landing page.
+- Landing copy says 200+ models / $297 lifetime; metadata says 20+ models / free and open-source (from your brief).
+
+## Phase 0
+- Thumbnails: already fixed in repo (studios/lipsync.webp, studios/render.webp exist; HERO templates -> pages/templates.webp.png exists). LANDING_THUMBNAIL_AUDIT.md is stale. No commit needed.
+- Director `escapeHtml is not defined`: not reproduced (loads, no page errors). Need repro steps.

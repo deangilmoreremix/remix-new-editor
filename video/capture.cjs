@@ -1,5 +1,5 @@
 // Capture real, un-mocked app screens at 1920x1080 (dark). No API key, no generation.
-const { chromium } = require('../node_modules/playwright');
+const { chromium } = require('/opt/node-tools/node_modules/playwright');
 const fs = require('fs'), path = require('path');
 const SHOTS = [
  ['02-apps-hub','apps'],['03-model-picker','video'],['04-image-studio','image'],['05-cinema-studio','cinema'],
