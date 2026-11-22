@@ -283,7 +283,15 @@ describe('booking pop-up opens from the page buttons', () => {
     await act(async () => { root.render(<PageContext.Provider value={{ page, tokens: {}, handlers: {}, preview: false }}><Render config={editorConfig} data={{ root: { props: {} }, content: [{ type: 'BookingCalendar', props: { id: 'b', mode: 'popup', host: 'https://book.example.com', link: 'pro/30min' } }], zones: {} }} /></PageContext.Provider>); });
     const links = [...box.querySelectorAll('a')];
     const clickAll = () => links.map((a) => { const ev = new MouseEvent('click', { bubbles: true, cancelable: true }); a.dispatchEvent(ev); return ev.defaultPrevented; });
-    expect(calls.some((c) => c[0] === 'preload')).toBe(true);
+    // Nothing is loaded from the booking server until a visitor reaches for a booking button.
+    expect(calls).toHaveLength(0);
+    const hover = (el) => el.dispatchEvent(new MouseEvent('pointerover', { bubbles: true }));
+    hover(links[2]); // "Get My Demo": not a booking button
+    expect(calls.filter((c) => c[0] === 'preload')).toHaveLength(0);
+    hover(links[0]); // "Book a 15-Min Strategy Call"
+    hover(links[1]);
+    expect(calls.filter((c) => c[0] === 'preload')).toHaveLength(1);
+    expect(calls.filter((c) => c[0] === 'init')).toHaveLength(1);
     const prevented = clickAll();
     expect(prevented).toEqual([true, true, false, false, true]);
     const modals = calls.filter((c) => c[0] === 'modal');
@@ -294,6 +302,29 @@ describe('booking pop-up opens from the page buttons', () => {
     expect(clickAll()).toEqual([false, false, false, false, false]);
     expect(calls.filter((c) => c[0] === 'modal')).toHaveLength(0);
     delete window.Cal;
+    box.remove();
+  });
+});
+
+describe('booking defaults for the signed-in person', () => {
+  it('a new Booking calendar section starts with their own Cal.diy address and booking link', async () => {
+    const { mountPageEditor } = await import('../editor/mount.jsx');
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const handle = mountPageEditor(box, { page, data: { root: { props: {} }, content: [], zones: {} }, bookingDefaults: { host: 'https://book.example.com', link: 'u-2abc/30min' } });
+    expect(editorConfig.components.BookingCalendar.defaultProps).toMatchObject({ host: 'https://book.example.com', link: 'u-2abc/30min', mode: 'popup' });
+    handle.destroy();
+    box.remove();
+  });
+  it('leaves the defaults alone when nobody is signed in', async () => {
+    const { mountPageEditor } = await import('../editor/mount.jsx');
+    editorConfig.components.BookingCalendar.defaultProps.host = '';
+    editorConfig.components.BookingCalendar.defaultProps.link = '';
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const handle = mountPageEditor(box, { page, data: { root: { props: {} }, content: [], zones: {} }, bookingDefaults: null });
+    expect(editorConfig.components.BookingCalendar.defaultProps).toMatchObject({ host: '', link: '' });
+    handle.destroy();
     box.remove();
   });
 });

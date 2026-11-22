@@ -23,7 +23,11 @@ export function mountEditablePage(container, { page, data, tokens = {}, handlers
   return { destroy: () => root.unmount() };
 }
 
-export function mountPageEditor(container, { page, data, tokens = {}, onChange, onPublish }) {
+export function mountPageEditor(container, { page, data, tokens = {}, onChange, onPublish, bookingDefaults }) {
+  // A new Booking calendar section starts with this person's own Cal.diy address and booking link.
+  if (bookingDefaults?.host && bookingDefaults?.link) {
+    Object.assign(editorConfig.components.BookingCalendar.defaultProps, { host: bookingDefaults.host, link: bookingDefaults.link });
+  }
   const root = createRoot(container);
   root.render(
     <PageContext.Provider value={{ page, tokens, handlers: {}, preview: true }}>

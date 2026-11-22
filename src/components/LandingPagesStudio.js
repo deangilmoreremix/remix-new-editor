@@ -21,6 +21,7 @@ import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest
 import { createCustomerPanel } from '../lib/landingPages/customerPanel.js';
 import { applyCustomerToEditor, brandForConfig, customerTokens, toContactFields } from '../lib/landingPages/customerProfile.js';
 import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
+import { openScheduling, bookingDefaults } from '../lib/scheduling/cal.js';
 import { ownPages } from '../lib/outreach/landingPage.js';
 import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
 import {
@@ -112,7 +113,24 @@ export function LandingPagesStudio() {
     const newBtn = el('button', BTN_PRIMARY, '+ New page');
     newBtn.type = 'button';
     newBtn.addEventListener('click', () => showNew());
-    head.append(titleWrap, newBtn);
+    // Each person's own booking calendar (Cal.diy), opened already signed in with their app login.
+    const schedBtn = el('button', 'rounded-xl border border-white/15 px-4 py-2 text-sm font-bold hover:bg-white/5 disabled:opacity-60', 'Scheduling');
+    schedBtn.type = 'button';
+    schedBtn.title = 'Set your availability and see your bookings';
+    schedBtn.addEventListener('click', async () => {
+      schedBtn.disabled = true;
+      try {
+        await openScheduling({ onStatus: (msg) => { schedBtn.textContent = msg || 'Scheduling'; } });
+      } catch (err) {
+        showToast(err.message || 'Could not open Scheduling', 'error', 5000);
+      } finally {
+        schedBtn.disabled = false;
+        schedBtn.textContent = 'Scheduling';
+      }
+    });
+    const actions = el('div', 'flex flex-wrap items-center gap-2');
+    actions.append(schedBtn, newBtn);
+    head.append(titleWrap, actions);
 
     const grid = el('div', 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3');
     if (!state.pages.length) {
@@ -483,6 +501,7 @@ export function LandingPagesStudio() {
           page: current,
           data,
           tokens: editorPreviewTokens || SAMPLE_TOKENS,
+          bookingDefaults: bookingDefaults(getClerkUserId()),
           onPublish: () => saveBtn.click(), // the editor's own Publish button = our Save
           onChange: (d) => {
             const next = sanitizeEditorData(d);

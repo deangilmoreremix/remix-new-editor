@@ -632,28 +632,50 @@ export function BookingCalendar({ title, text, host, link, height = 680, mode = 
   const h = Math.min(1200, Math.max(400, Number(height) || 680));
   useEffect(() => {
     if (!ready || preview || typeof window === 'undefined') return undefined;
-    loadCalEmbed(`${origin}/embed/embed.js`);
-    window.Cal('init', { origin });
+    let loaded = false;
+    const ensureCal = () => {
+      if (loaded) return;
+      loaded = true;
+      loadCalEmbed(`${origin}/embed/embed.js`);
+      window.Cal('init', { origin });
+    };
     if (!popup) {
       if (!ref.current) return undefined;
+      ensureCal();
       window.Cal('inline', { elementOrSelector: ref.current, calLink: slug, layout: 'month_view' });
       window.Cal('ui', { hideEventTypeDetails: false, layout: 'month_view' });
       return undefined;
     }
-    // Pop-up: load the booking page in the background so the modal opens instantly, then open it from the page's booking buttons.
-    window.Cal('preload', { calLink: slug, type: 'modal', calOrigin: origin });
-    const open = (e) => {
+    // Pop-up. The booking server sleeps when nobody is using it, so it is not touched on page load: the booking page is
+    // warmed the first time a visitor reaches for a booking button (hover, touch or focus), and opened on click.
+    const bookingLink = (e) => {
       const a = e.target?.closest?.('a');
-      if (!a) return;
+      if (!a) return null;
       const href = String(a.getAttribute('href') || '').trim();
       const isBook = href.toLowerCase() === '#book' || (catchButtons !== 'no' && BOOK_TARGETS.test(href) && BOOK_WORDS.test(a.textContent || ''));
-      if (!isBook) return;
+      return isBook ? a : null;
+    };
+    let warmed = false;
+    const warm = (e) => {
+      if (warmed || !bookingLink(e)) return;
+      warmed = true;
+      ensureCal();
+      window.Cal('preload', { calLink: slug, type: 'modal', calOrigin: origin });
+    };
+    const open = (e) => {
+      if (!bookingLink(e)) return;
       e.preventDefault();
       e.stopPropagation();
+      ensureCal();
       window.Cal('modal', { calLink: slug, calOrigin: origin, config: { layout: 'month_view' } });
     };
+    const warmEvents = ['pointerover', 'touchstart', 'focusin'];
+    warmEvents.forEach((name) => document.addEventListener(name, warm, { capture: true, passive: true }));
     document.addEventListener('click', open, true);
-    return () => document.removeEventListener('click', open, true);
+    return () => {
+      warmEvents.forEach((name) => document.removeEventListener(name, warm, { capture: true }));
+      document.removeEventListener('click', open, true);
+    };
   }, [ready, preview, popup, catchButtons, origin, slug]);
   if (popup) {
     // Nothing is drawn on the page itself; the editor shows a small note so the section can be found and edited.
