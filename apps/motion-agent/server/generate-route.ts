@@ -13,7 +13,7 @@ import { generateObject, streamText } from "ai";
 import { z } from "zod";
 
 // SmartVid: models are configurable per environment (upstream hardcodes "gpt-5.2").
-const DEFAULT_MODEL = process.env.VIDEO_AGENT_MODEL || "gpt-5.2";
+const DEFAULT_MODEL = process.env.VIDEO_AGENT_MODEL || "gpt-6.1-sol";
 const CLASSIFIER_MODEL = process.env.VIDEO_AGENT_CLASSIFIER_MODEL || DEFAULT_MODEL.split(":")[0];
 
 const VALIDATION_PROMPT = `You are a prompt classifier for a motion graphics generation tool.

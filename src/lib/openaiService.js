@@ -3,7 +3,7 @@
  * Integrates with OpenAI API for prompt enhancement and content creation
  */
 
-import { openaiConfig } from './config/openaiConfig.js';
+import { openaiConfig, OPENAI_TEXT_MODEL, MUAPI_TEXT_MODEL } from './config/openaiConfig.js';
 import { apiKeyManager } from './apiKeyManager.js';
 import { muapi } from './muapi.js';
 
@@ -50,9 +50,7 @@ function resolveOpenAISize(value) {
 class OpenAIService {
   constructor() {
     this.config = openaiConfig;
-    this.model = 'gpt-4';
     this.maxTokens = 2000;
-    this.temperature = 0.7;
     this.missingKeyMessage = 'OpenAI API key not configured. Add your OpenAI API key in Settings.';
   }
 
@@ -121,14 +119,14 @@ Please enhance this prompt using the specified GTM methodologies and create a co
       const response = await fetch(MUAPI_PROXY_URL, {
         method: 'POST',
         headers: this._headers(),
+        // The proxy forwards to MuAPI `/api/v1/<endpoint>`, so the endpoint is
+        // the MuAPI TEXT model id (dashed). GPT-6 is a reasoning model: no
+        // temperature, and the MuAPI schema takes only prompt/system_prompt.
         body: JSON.stringify({
-          endpoint: 'text',
+          endpoint: MUAPI_TEXT_MODEL,
           params: this._withOpenAIKey({
             prompt: userPrompt,
             system_prompt: systemPrompt,
-            model: this.config.getImageModel?.() || 'gpt-4.1-mini',
-            temperature: this.temperature,
-            max_tokens: this.maxTokens,
           }),
           generationType: 'text',
           studioType: 'chat'
@@ -958,7 +956,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
 
   /**
    * Generate a single image via the **Responses API** image generation tool.
-   * Unlike the Image API, you pick a *mainline* model (e.g. gpt-5.6) that
+   * Unlike the Image API, you pick a *mainline* model (e.g. gpt-6.1-sol) that
    * supports the tool; the tool selects the underlying GPT Image model. Returns
    * the response id (for multi-turn follow-ups) plus the generated images.
    *
@@ -1008,7 +1006,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     ];
 
     const body = {
-      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      model: model || this.config.getResponsesModel?.() || OPENAI_TEXT_MODEL,
       input: [{ role: 'user', content }],
       tools: [tool],
     };
@@ -1085,7 +1083,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     ];
 
     const body = {
-      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      model: model || this.config.getResponsesModel?.() || OPENAI_TEXT_MODEL,
       input: [{ role: 'user', content }],
       tools: [tool],
     };
@@ -1171,7 +1169,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     ];
 
     const body = {
-      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      model: model || this.config.getResponsesModel?.() || OPENAI_TEXT_MODEL,
       input: [{ role: 'user', content }],
       tools: [tool],
     };
@@ -1243,7 +1241,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     ];
 
     const body = {
-      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      model: model || this.config.getResponsesModel?.() || OPENAI_TEXT_MODEL,
       input: [{ role: 'user', content }],
       tools: [tool],
       stream: true,
@@ -1346,7 +1344,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
    * @param {number} [opts.maxTokens]
    * @returns {Promise<string>} the reply text
    */
-  async generateText({ prompt, system, json = false, maxTokens = 2000, temperature = 0.8, signal } = {}) {
+  async generateText({ prompt, system, json = false, maxTokens = 2000, signal } = {}) {
     if (!this._hasKey()) throw new Error(this.missingKeyMessage);
     const openaiKey = this._getOpenAIKey();
     if (!openaiKey) throw new Error(this.missingKeyMessage);
@@ -1358,13 +1356,14 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
       body: JSON.stringify({
-        model: 'gpt-4.1-mini',
+        // GPT-6 is a reasoning model: no temperature/top_p, and chat/completions
+        // takes max_completion_tokens (reasoning tokens count against it).
+        model: OPENAI_TEXT_MODEL,
         messages: [
           ...(system ? [{ role: 'system', content: system }] : []),
           { role: 'user', content: prompt },
         ],
-        temperature,
-        max_tokens: maxTokens,
+        max_completion_tokens: maxTokens + 4000, // headroom for reasoning tokens
         ...(json ? { response_format: { type: 'json_object' } } : {}),
       }),
       signal: effectiveSignal,

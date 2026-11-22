@@ -1,4 +1,5 @@
-import { muapi } from '../../muapi.js';
+import { muapi, MuapiClient } from '../../muapi.js';
+import { MUAPI_TEXT_MODEL } from '../../config/openaiConfig.js';
 
 export const LLM_MODES = {
   ASK: 'ask',
@@ -202,17 +203,15 @@ Always be helpful and specific in your recommendations.`;
       .replace('{timelineDuration}', context.timelineDuration)
       .replace('{recentClips}', JSON.stringify(context.recentClips, null, 2));
 
-    const response = await muapi.makeRequest('chat', {
-      messages: [
-        { role: 'system', content: formattedPrompt },
-        { role: 'user', content: query }
-      ],
-      model: 'gpt-4o',
-      temperature: 0.7,
-      max_tokens: 2000
+    // MuAPI text endpoint (gpt-6-1-sol): prompt + system_prompt, no sampling
+    // params (GPT-6 is a reasoning model). The old `chat` + gpt-4o pair is not
+    // in the MuAPI catalog.
+    const response = await muapi._runPrediction(MUAPI_TEXT_MODEL, {
+      prompt: query,
+      system_prompt: formattedPrompt,
     });
 
-    return response.choices?.[0]?.message?.content || 'No response received.';
+    return MuapiClient.extractText(response) || 'No response received.';
   }
 
   calculateTimelineDuration() {

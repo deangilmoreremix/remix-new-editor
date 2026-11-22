@@ -33251,6 +33251,28 @@ export const getVideoToolById = (id) => videoToolsModels.find(m => m.id === id);
 // ─── Text-to-Text models (LLM) ─────────────────────────────────
 export const textModels = [
   {
+    "id": "gpt-6-1-sol",
+    "name": "GPT-6.1 Sol",
+    "provider": "openai",
+    "provider_name": "OpenAI",
+    "endpoint": "gpt-6-1-sol",
+    "family": "llm",
+    "type": "chat",
+    "hasPrompt": true,
+    "description": "Default GPT-6 model for chat, planning and vision"
+  },
+  {
+    "id": "gpt-6-luna",
+    "name": "GPT-6 Luna",
+    "provider": "openai",
+    "provider_name": "OpenAI",
+    "endpoint": "gpt-6-luna",
+    "family": "llm",
+    "type": "chat",
+    "hasPrompt": true,
+    "description": "Fast, low-cost GPT-6 for simple text tasks"
+  },
+  {
     "id": "gpt-5-mini",
     "name": "GPT-5 Mini",
     "provider": "openai",

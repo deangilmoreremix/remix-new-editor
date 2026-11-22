@@ -11,7 +11,7 @@ import {
 } from '@cinegen/lib/llm/openai-chat';
 
 describe('OpenAI chat completions helper', () => {
-  it('builds a cheap JSON job for GPT-5.6 Luna', () => {
+  it('builds a cheap JSON job for GPT-6 Luna', () => {
     expect(buildOpenAiChatBody({
       systemPrompt: 'Return JSON.',
       userMessage: '{"scene":1}',
@@ -76,7 +76,7 @@ describe('OpenAI chat completions helper', () => {
         'Content-Type': 'application/json',
       });
       const body = JSON.parse(String(init?.body));
-      expect(body.model).toBe('gpt-5.6-luna');
+      expect(body.model).toBe('gpt-6-luna');
       expect(body.reasoning_effort).toBe('low');
       return new Response(JSON.stringify({
         choices: [{ message: { content: '{"ok":true}' }, finish_reason: 'stop' }],

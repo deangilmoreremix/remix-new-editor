@@ -1613,11 +1613,13 @@ export class MuapiClient {
         return null;
     }
 
-    async text(prompt, model = 'gpt-5-nano', signal) {
+    // MuAPI dashed GPT-6 ids: gpt-6-luna is the cheap text model (no image
+    // input); gpt-6-1-sol accepts `image_url`, so vision defaults to it.
+    async text(prompt, model = 'gpt-6-luna', signal) {
         return MuapiClient.extractText(await this._runPrediction(model, { prompt }, signal));
     }
 
-    async vision(prompt, imageUrl, model = 'gpt-5-nano', signal) {
+    async vision(prompt, imageUrl, model = 'gpt-6-1-sol', signal) {
         return MuapiClient.extractText(await this._runPrediction(model, { prompt, image_url: imageUrl }, signal));
     }
 

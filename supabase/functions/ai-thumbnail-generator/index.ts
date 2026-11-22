@@ -34,8 +34,8 @@ const OPENAI_API_KEY = readEnv("OPENAI_API_KEY");
 const SUPABASE_URL = readEnv("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = readEnv("SUPABASE_SERVICE_ROLE_KEY");
 
-const IMG_GEN_MAINLINE_MODEL = readEnv("IMG_GEN_MAINLINE_MODEL") || "gpt-4.1";
-const MODEL_FALLBACK_CHAIN = [IMG_GEN_MAINLINE_MODEL, "gpt-4.1-mini", "gpt-4o"].filter(
+const IMG_GEN_MAINLINE_MODEL = readEnv("IMG_GEN_MAINLINE_MODEL") || "gpt-6.1-sol";
+const MODEL_FALLBACK_CHAIN = [IMG_GEN_MAINLINE_MODEL, "gpt-6-luna"].filter(
   (m, i, arr) => arr.indexOf(m) === i
 );
 
@@ -1225,7 +1225,7 @@ async function handleRefine(body: RefineRequest) {
   }
 
   // If the caller pinned a Responses model, try that first, then fall back
-  // to the chain (IMG_GEN_MAINLINE_MODEL → gpt-4.1-mini → gpt-4o).
+  // to the chain (IMG_GEN_MAINLINE_MODEL → gpt-6-luna).
   const preferred = body.responsesModel ? [body.responsesModel, ...MODEL_FALLBACK_CHAIN].filter(
     (m, i, arr) => arr.indexOf(m) === i
   ) : MODEL_FALLBACK_CHAIN;

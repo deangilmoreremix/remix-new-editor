@@ -66,8 +66,8 @@ const TRANSCRIPTION_ENGINES: Array<{ value: DefaultTranscriptionEngine; label: s
 const VISION_MODEL_OPTIONS = [
   { value: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
   { value: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
-  { value: 'openai/gpt-4.1-mini', label: 'GPT-4.1 Mini' },
-  { value: 'openai/gpt-4.1', label: 'GPT-4.1' },
+  { value: 'openai/gpt-6-luna', label: 'GPT-6 Luna' },
+  { value: 'openai/gpt-6.1-sol', label: 'GPT-6.1 Sol' },
 ];
 
 function loadSettings(): Settings {
