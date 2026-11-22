@@ -3,7 +3,7 @@ import { createContext as Ot, useContext as jt, useState as N, useRef as K, useE
 function qt(e, t, a = "") {
   return e === 401 ? !0 : e === 403 && /api[ -]?key|invalid key|x-api-key/i.test(typeof (t == null ? void 0 : t.error) == "string" ? t.error : typeof (t == null ? void 0 : t.detail) == "string" ? t.detail : a);
 }
-class ue extends Error {
+class me extends Error {
   constructor(t, a) {
     super(t), this.status = a;
   }
@@ -27,8 +27,8 @@ class Bt {
       n = i ? JSON.parse(i) : null;
     } catch {
     }
-    if (!s.ok && qt(s.status, n, i) && !t.startsWith("/app/") && ((k = (b = this.opts).onKeyRejected) == null || k.call(b)), !s.ok) throw new ue(Ft(n, `${s.status} ${s.statusText}`), s.status);
-    if (n === null && i.trim()) throw new ue("Unexpected non-JSON response from the server", 502);
+    if (!s.ok && qt(s.status, n, i) && !t.startsWith("/app/") && ((k = (b = this.opts).onKeyRejected) == null || k.call(b)), !s.ok) throw new me(Ft(n, `${s.status} ${s.statusText}`), s.status);
+    if (n === null && i.trim()) throw new me("Unexpected non-JSON response from the server", 502);
     return n;
   }
   withTeam(t) {
@@ -57,7 +57,7 @@ class Bt {
       headers: { "content-type": "application/json", ...o ? { "x-ms-kind": o } : {} },
       body: JSON.stringify(a)
     }), i = s.request_id || s.id;
-    if (!i) throw new ue("The API did not return a request id", 502);
+    if (!i) throw new me("The API did not return a request id", 502);
     return { requestId: i, cost: (n = s.cost) == null ? void 0 : n.amount_usd };
   }
   async poll(t) {
@@ -86,7 +86,7 @@ class Bt {
   }
   /** Which optional features the host's proxy supports. A 403/404/405 means the route is not forwarded, so the UI hides it. */
   async probe() {
-    const t = (o) => o instanceof ue && [403, 404, 405].includes(o.status);
+    const t = (o) => o instanceof me && [403, 404, 405].includes(o.status);
     return { library: await this.mediaLibrary({ pageSize: 1 }).then(() => !0).catch((o) => !t(o)), deleteMedia: !0 };
   }
   async balance() {
@@ -97,7 +97,7 @@ class Bt {
     const a = new FormData();
     a.append("file", t);
     const o = await this.request("/api/v1/upload_file", { method: "POST", body: a }), s = o.url || o.file_url || ((i = o.data) == null ? void 0 : i.url);
-    if (!s) throw new ue("Upload returned no URL", 502);
+    if (!s) throw new me("Upload returned no URL", 502);
     return s;
   }
 }
@@ -187,7 +187,7 @@ function Jt(e = "lime") {
 function Kt(e = "lime") {
   return e === "cyan" ? "tabs" : "rail";
 }
-const Wt = (e = "lime") => kt(e).buttonStyle, se = [
+const Wt = (e = "lime") => kt(e).buttonStyle, le = [
   { id: "image", label: "Image", title: "Image Generator", groups: ["image", "photo-pack"] },
   { id: "video", label: "Video", title: "Video Generator", groups: ["video", "video-tools", "video-edit", "ai-effects"] },
   { id: "audio", label: "Audio", title: "Audio Generator", groups: ["music", "audio"] },
@@ -232,9 +232,9 @@ function ze(e) {
       return "tool";
   }
 }
-const Qt = (e) => !!e && se.some((t) => t.id === e);
+const Qt = (e) => !!e && le.some((t) => t.id === e);
 function Zt(e, t) {
-  const a = se.find((o) => o.id === t).groups;
+  const a = le.find((o) => o.id === t).groups;
   return e.filter((o) => a.includes(o.group_of) && o.is_enabled && !o.is_coming_soon);
 }
 const er = [
@@ -262,7 +262,7 @@ const tr = { completed: "completed", succeeded: "completed", failed: "failed", e
 function rr(e, t) {
   var o, s;
   const a = (o = t.find((i) => i.name === e)) == null ? void 0 : o.group_of;
-  return ((s = se.find((i) => a && i.groups.includes(a))) == null ? void 0 : s.id) ?? "ai-tools";
+  return ((s = le.find((i) => a && i.groups.includes(a))) == null ? void 0 : s.id) ?? "ai-tools";
 }
 function ar(e, t, a = {}) {
   var i;
@@ -362,7 +362,7 @@ function cr(e, t, a) {
         const d = await e.history(c ? void 0 : b ?? void 0), x = d.items.map((E) => ar(E, v.current));
         n((E) => c ? x : [...E, ...x]), k(d.next_cursor);
       } catch (d) {
-        d instanceof ue && [403, 404, 405].includes(d.status) ? (G.current = !0, k(null)) : p(d.message);
+        d instanceof me && [403, 404, 405].includes(d.status) ? (G.current = !0, k(null)) : p(d.message);
       } finally {
         A(!1);
       }
@@ -704,7 +704,7 @@ function Or(e, t) {
 function jr(e, t, a = We) {
   return e >= a || e >= t ? "down" : "up";
 }
-const Pr = 40, Vr = 48;
+const Pr = 36, Vr = 48;
 function Ur(e, t) {
   return Math.min(We, Math.max(1, e) * Pr + 8) + (t ? Vr : 0);
 }
@@ -815,7 +815,7 @@ function Ve({ id: e, label: t, options: a, value: o, onChange: s, allowAuto: i, 
               "aria-selected": E,
               onMouseEnter: () => R(x),
               onClick: () => D(d),
-              className: `flex cursor-pointer items-center justify-between gap-2 rounded-ctl px-3 py-2.5 text-sm ${E ? "bg-primary text-primary-ink" : x === S ? "bg-card-bg" : ""} ${d.isAuto && !E ? "text-secondary" : ""}`,
+              className: `flex cursor-pointer items-center justify-between gap-2 h-9 rounded-ctl px-3 text-sm ${E ? "bg-primary text-primary-ink" : x === S ? "bg-card-bg" : ""} ${d.isAuto && !E ? "text-secondary" : ""}`,
               children: [
                 /* @__PURE__ */ l("span", { className: "min-w-0", children: [
                   /* @__PURE__ */ r("span", { className: "block truncate", children: d.label }),
@@ -1232,11 +1232,11 @@ function oa(e) {
   };
   return [...t].map(([o, s]) => ({ id: o, count: s })).sort((o, s) => a(o.id) - a(s.id) || s.count - o.count || o.id.localeCompare(s.id));
 }
-const me = "__favourites__", ee = "__all__";
+const se = "__favourites__", ee = "__all__";
 function na(e, t, a) {
   return e.filter((o) => {
     var s;
-    return t.category !== ee && o.category !== t.category ? !1 : t.provider === me ? !!((s = t.favourites) != null && s.includes(o.name)) : t.provider === ee || Tt(o, a) === t.provider;
+    return t.category !== ee && o.category !== t.category ? !1 : t.provider === se ? !!((s = t.favourites) != null && s.includes(o.name)) : t.provider === ee || Tt(o, a) === t.provider;
   });
 }
 const ia = (e, t) => t.filter((a) => a.id !== he).length >= Xr && e.length >= Qr, Se = 200;
@@ -1278,7 +1278,7 @@ function Re({ label: e, active: t, onClick: a, hue: o, children: s }) {
 }
 function la({ models: e, value: t, onChange: a, favorites: o, onToggleFavorite: s, usage: i, showGroup: n, scope: b = "default" }) {
   var W;
-  const [k, f] = N(!1), [A, M] = N(""), [p, G] = N("popular"), [w, j] = N(!1), S = K(null), R = Z(() => ta(e), [e]), g = Z(() => oa(e), [e]), u = ia(e, R), v = g.length >= Zr, [C, F] = N(() => mt(`muapi-studio:provider:${b}`, ee)), [I, _] = N(() => mt(`muapi-studio:category:${b}`, ee)), L = u && (C === me || C === ee || R.some((m) => m.id === C)) ? C : ee, z = v && (I === ee || g.some((m) => m.id === I)) ? I : ee, y = (m) => {
+  const [k, f] = N(!1), [A, M] = N(""), [p, G] = N("popular"), [w, j] = N(!1), S = K(null), R = Z(() => ta(e), [e]), g = Z(() => oa(e), [e]), u = ia(e, R), v = g.length >= Zr, [C, F] = N(() => mt(`muapi-studio:provider:${b}`, ee)), [I, _] = N(() => mt(`muapi-studio:category:${b}`, ee)), L = u && (C === se || C === ee || R.some((m) => m.id === C)) ? C : ee, z = v && (I === ee || g.some((m) => m.id === I)) ? I : ee, y = (m) => {
     F(m), pt(`muapi-studio:provider:${b}`, m);
   }, D = (m) => {
     _(m), pt(`muapi-studio:category:${b}`, m);
@@ -1332,10 +1332,22 @@ function la({ models: e, value: t, onChange: a, favorites: o, onToggleFavorite: 
     k && /* @__PURE__ */ l("div", { className: "absolute left-0 right-0 top-full z-30 mt-2 flex gap-2 rounded-card border border-line bg-panel-bg p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)]", children: [
       u && /* @__PURE__ */ l("div", { role: "radiogroup", "aria-label": "Provider", className: "flex max-h-[22rem] w-10 shrink-0 flex-col items-center gap-1.5 overflow-y-auto border-r border-line pr-2", children: [
         /* @__PURE__ */ r(Re, { label: "All providers", active: L === ee, onClick: () => y(ee), children: /* @__PURE__ */ r("span", { className: "text-[10px] font-bold", children: "ALL" }) }),
-        /* @__PURE__ */ r(Re, { label: "Favourites", active: L === me, onClick: () => y(me), children: /* @__PURE__ */ r(ot, { width: 14, height: 14, filled: L === me }) }),
+        /* @__PURE__ */ r(Re, { label: "Favourites", active: L === se, onClick: () => y(se), children: /* @__PURE__ */ r(ot, { width: 14, height: 14, filled: L === se }) }),
         R.map((m) => /* @__PURE__ */ r(Re, { label: `${m.label} (${m.count})`, active: L === m.id, onClick: () => y(m.id), hue: aa(m.label), children: ra(m.label) }, m.id))
       ] }),
       /* @__PURE__ */ l("div", { className: "min-w-0 flex-1", children: [
+        v && /* @__PURE__ */ r("div", { role: "tablist", "aria-label": "Model category", className: "mb-2 flex gap-1.5 overflow-x-auto pb-1", children: [{ id: ee, label: "All" }, ...g.map((m) => ({ id: m.id, label: m.id }))].map((m) => /* @__PURE__ */ r(
+          "button",
+          {
+            role: "tab",
+            type: "button",
+            "aria-selected": z === m.id,
+            onClick: () => D(m.id),
+            className: `shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-semibold ${z === m.id ? "border-primary bg-primary text-primary-ink" : "border-line text-secondary hover:text-fg"}`,
+            children: m.label
+          },
+          m.id
+        )) }),
         /* @__PURE__ */ l("div", { className: "mb-2 flex gap-2", children: [
           /* @__PURE__ */ l("label", { className: "relative flex-1", children: [
             /* @__PURE__ */ r(Ke, { width: 14, height: 14, style: { position: "absolute", left: 10, top: 11, color: "var(--ms-muted)" } }),
@@ -1372,27 +1384,18 @@ function la({ models: e, value: t, onChange: a, favorites: o, onToggleFavorite: 
             ) }, m.id)) })
           ] })
         ] }),
-        v && /* @__PURE__ */ r("div", { role: "tablist", "aria-label": "Model category", className: "mb-2 flex gap-1.5 overflow-x-auto pb-1", children: [{ id: ee, label: "All" }, ...g.map((m) => ({ id: m.id, label: m.id }))].map((m) => /* @__PURE__ */ r(
-          "button",
-          {
-            role: "tab",
-            type: "button",
-            "aria-selected": z === m.id,
-            onClick: () => D(m.id),
-            className: `shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-semibold ${z === m.id ? "border-primary bg-primary text-primary-ink" : "border-line text-secondary hover:text-fg"}`,
-            children: m.label
-          },
-          m.id
-        )) }),
-        u && /* @__PURE__ */ l("div", { className: "mb-1 px-1 text-[10px] font-semibold uppercase tracking-wider text-muted", children: [
-          L === ee ? "All models" : L === me ? "Favourites" : L,
-          " · ",
-          c.length
+        (u || v) && /* @__PURE__ */ l("div", { className: "mb-1 flex items-center justify-between gap-2 px-1", children: [
+          /* @__PURE__ */ l("span", { className: "text-[10px] font-semibold uppercase tracking-wider text-muted", children: [
+            L === se ? "Favourites" : "All models",
+            " · ",
+            c.length
+          ] }),
+          u && L !== ee && L !== se && /* @__PURE__ */ r("span", { className: "rounded-full border border-line px-2 py-0.5 text-[10px] font-semibold text-secondary", children: L })
         ] }),
         /* @__PURE__ */ l("ul", { id: "ms-listbox", ref: X, role: "listbox", className: "max-h-72 overflow-y-auto", children: [
           c.slice(0, Se).map((m, P) => {
             const B = m.name === t;
-            return /* @__PURE__ */ l(
+            return /* @__PURE__ */ r(
               "li",
               {
                 id: `ms-opt-${P}`,
@@ -1402,25 +1405,27 @@ function la({ models: e, value: t, onChange: a, favorites: o, onToggleFavorite: 
                   a(m.name), f(!1);
                 },
                 className: `flex cursor-pointer items-center gap-2 rounded-ctl px-3 py-2 ${B ? "bg-primary-soft" : P === d ? "bg-card-bg" : "hover:bg-card-bg"}`,
-                children: [
-                  /* @__PURE__ */ l("div", { className: "min-w-0 flex-1", children: [
-                    /* @__PURE__ */ r("div", { className: `truncate text-sm ${B ? "text-primary" : ""}`, children: m.name }),
-                    /* @__PURE__ */ r("div", { className: "text-[10px] text-secondary", children: n ? `${m.group_of} · ${m.category}` : u && L === ee ? `${Tt(m, R)} · ${m.category}` : m.category })
+                children: /* @__PURE__ */ l("div", { className: "min-w-0 flex-1", children: [
+                  /* @__PURE__ */ l("div", { className: "flex items-center gap-2", children: [
+                    /* @__PURE__ */ r("div", { className: `min-w-0 flex-1 truncate text-sm ${B ? "text-primary" : ""}`, title: m.name, children: m.name }),
+                    /* @__PURE__ */ r(
+                      "button",
+                      {
+                        type: "button",
+                        "aria-label": o.includes(m.name) ? "Remove favorite" : "Add favorite",
+                        onClick: (H) => {
+                          H.stopPropagation(), s(m.name);
+                        },
+                        className: o.includes(m.name) ? "text-primary" : "text-muted hover:text-fg",
+                        children: /* @__PURE__ */ r(ot, { width: 15, height: 15, filled: o.includes(m.name) })
+                      }
+                    )
                   ] }),
-                  /* @__PURE__ */ r(
-                    "button",
-                    {
-                      type: "button",
-                      "aria-label": o.includes(m.name) ? "Remove favorite" : "Add favorite",
-                      onClick: (H) => {
-                        H.stopPropagation(), s(m.name);
-                      },
-                      className: o.includes(m.name) ? "text-primary" : "text-muted hover:text-fg",
-                      children: /* @__PURE__ */ r(ot, { width: 15, height: 15, filled: o.includes(m.name) })
-                    }
-                  ),
-                  /* @__PURE__ */ r(sa, { model: m })
-                ]
+                  /* @__PURE__ */ l("div", { className: "flex items-center justify-between gap-2", children: [
+                    /* @__PURE__ */ r("span", { className: "truncate text-[10px] text-secondary", children: n ? `${m.group_of} · ${m.category}` : u && L === ee ? `${Tt(m, R)} · ${m.category}` : m.category }),
+                    /* @__PURE__ */ r(sa, { model: m })
+                  ] })
+                ] })
               },
               m.name
             );
@@ -1452,7 +1457,7 @@ const ht = (e, t) => {
   }
 }, $t = 0.25;
 function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse: n, switcher: b }) {
-  const k = se.find((h) => h.id === e), f = Z(() => Zt(t, e), [t, e]), [A, M] = N(), [p, G] = N(null), [w, j] = N(null), [S, R] = N({}), [g, u] = N(null), [v, C] = N(null), [F, I] = N(() => ht("muapi-studio:favorites", [])), [_, L] = N("form"), [z, y] = N(!1), [D, X] = N("{}"), [c, d] = N(null), x = K(0), E = K(null);
+  const k = le.find((h) => h.id === e), f = Z(() => Zt(t, e), [t, e]), [A, M] = N(), [p, G] = N(null), [w, j] = N(null), [S, R] = N({}), [g, u] = N(null), [v, C] = N(null), [F, I] = N(() => ht("muapi-studio:favorites", [])), [_, L] = N("form"), [z, y] = N(!1), [D, X] = N("{}"), [c, d] = N(null), x = K(0), E = K(null);
   V(() => {
     if (!z) return;
     const h = (U) => {
@@ -1519,7 +1524,7 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
       for (const J of P) H[J.prop.name] !== void 0 && (U[J.prop.name] = H[J.prop.name]);
       return U;
     }), L(h), C(null));
-  }, Q = m ? He(m, g) : null, le = te(async () => {
+  }, Q = m ? He(m, g) : null, ce = te(async () => {
     if (!p) return;
     d(null);
     const h = P.find(($) => $.prop.name === "prompt");
@@ -1558,8 +1563,8 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
       d(h);
       return;
     }
-    await le();
-  }, [p, _, H, P, S, Q, o, le]), ce = !!p && !w, _e = (() => {
+    await ce();
+  }, [p, _, H, P, S, Q, o, ce]), de = !!p && !w, _e = (() => {
     var $;
     const h = P.find((U) => U.kind === "media-list");
     return h ? Math.max((($ = S[h.prop.name]) == null ? void 0 : $.length) ?? 0, 1) : 0;
@@ -1581,7 +1586,7 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
       /* @__PURE__ */ r("div", { className: "mb-5", children: /* @__PURE__ */ r(la, { models: f, value: A, onChange: be, favorites: F, onToggleFavorite: Te, usage: i, showGroup: e === "text" || e === "more", scope: e }) }),
       /* @__PURE__ */ r("div", { className: "mb-3 border-t border-line pt-4 text-[11px] font-semibold uppercase tracking-wider text-secondary", children: _ === "json" ? "Request body" : "Parameters" }),
       (m == null ? void 0 : m.description) && /* @__PURE__ */ r("p", { className: "mb-4 line-clamp-3 text-xs text-secondary", children: m.description }),
-      !ce && !w && A && /* @__PURE__ */ l("div", { className: "flex items-center gap-2 py-6 text-sm text-secondary", children: [
+      !de && !w && A && /* @__PURE__ */ l("div", { className: "flex items-center gap-2 py-6 text-sm text-secondary", children: [
         /* @__PURE__ */ r(ge, { width: 16, height: 16 }),
         " Loading parameters…"
       ] }),
@@ -1590,11 +1595,11 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
         w
       ] }),
       f.length === 0 && /* @__PURE__ */ r("p", { className: "py-4 text-sm text-secondary", children: "No models available in this mode." }),
-      ce && _ === "json" && /* @__PURE__ */ l("div", { children: [
+      de && _ === "json" && /* @__PURE__ */ l("div", { children: [
         /* @__PURE__ */ r("textarea", { "aria-label": "Request JSON", "aria-invalid": !H, spellCheck: !1, rows: 16, value: D, onChange: (h) => X(h.target.value), className: "w-full resize-y p-3 font-mono text-xs" }),
         /* @__PURE__ */ r("p", { className: `mt-1.5 text-[11px] ${H ? "text-muted" : "text-danger"}`, children: H ? `Sent as the body of POST /api/v1/${p.endpoint_url}` : "Not valid JSON yet" })
       ] }),
-      ce && _ === "form" && P.map((h) => /* @__PURE__ */ r(
+      de && _ === "form" && P.map((h) => /* @__PURE__ */ r(
         Kr,
         {
           field: h,
@@ -1618,7 +1623,7 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
         oe((Q == null ? void 0 : Q.current) ?? 0),
         ").",
         /* @__PURE__ */ l("div", { className: "mt-2 flex gap-2", children: [
-          /* @__PURE__ */ r("button", { type: "button", onClick: () => void le(), className: "rounded-md bg-primary px-3 py-1.5 font-semibold text-primary-ink", children: "Confirm" }),
+          /* @__PURE__ */ r("button", { type: "button", onClick: () => void ce(), className: "rounded-md bg-primary px-3 py-1.5 font-semibold text-primary-ink", children: "Confirm" }),
           /* @__PURE__ */ r("button", { type: "button", onClick: () => d(null), className: "rounded-md border border-line px-3 py-1.5 text-secondary", children: "Cancel" })
         ] })
       ] }),
@@ -1631,7 +1636,7 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
           {
             type: "button",
             onClick: () => void $e(),
-            disabled: !ce,
+            disabled: !de,
             className: "flex flex-1 items-center justify-center gap-2 rounded-btn bg-primary px-4 py-3 text-sm font-semibold text-primary-ink shadow-glow hover:bg-primary-hover disabled:opacity-50 disabled:shadow-none",
             children: [
               /* @__PURE__ */ r(Je, { width: 16, height: 16 }),
@@ -1665,7 +1670,7 @@ const da = {
 };
 function ua({ mode: e, onChange: t, layout: a = "rail", onChangeKey: o }) {
   return a === "tabs" ? /* @__PURE__ */ l("nav", { "aria-label": "Studio modes", className: "flex shrink-0 gap-1 overflow-x-auto border-b border-line bg-panel-bg px-3", children: [
-    se.map((s) => {
+    le.map((s) => {
       const i = s.id === e;
       return /* @__PURE__ */ l(
         "button",
@@ -1686,7 +1691,7 @@ function ua({ mode: e, onChange: t, layout: a = "rail", onChangeKey: o }) {
       "Key"
     ] })
   ] }) : /* @__PURE__ */ l("nav", { "aria-label": "Studio modes", className: "flex shrink-0 gap-1 overflow-x-auto border-b border-line bg-panel-bg p-2 md:w-20 md:flex-col md:overflow-y-auto md:border-b-0 md:border-r", children: [
-    se.map((s) => {
+    le.map((s) => {
       const i = da[s.id], n = s.id === e;
       return /* @__PURE__ */ l(
         "button",
@@ -1750,7 +1755,7 @@ const ma = { angles: ["Source image"], "whats-next": ["Source image"], shots: ["
   "face-swap": "ai-image-face-swap",
   "video-face-swap": "ai-video-face-swap",
   "bg-remover": "video-background-remover"
-}, de = (e, t, a = !1) => ({ id: e, label: t, kind: "image", optional: a });
+}, ue = (e, t, a = !1) => ({ id: e, label: t, kind: "image", optional: a });
 function Gt(e) {
   return ((a) => a.map((o, s) => {
     var i;
@@ -1761,16 +1766,16 @@ function Ma(e) {
   if (e.uploads) return e.uploads;
   switch (e.template) {
     case "face-swap":
-      return [de("base", "Target base image"), de("face", "New face image")];
+      return [ue("base", "Target base image"), ue("face", "New face image")];
     case "video-face-swap":
-      return [de("face", "Face / identity image"), { id: "video", label: "Target video", kind: "video" }];
+      return [ue("face", "Face / identity image"), { id: "video", label: "Target video", kind: "video" }];
     case "bg-remover":
       return [{ id: "video", label: "Source video", kind: "video" }];
     case "minimax":
     case "wan":
-      return [de("start", "Starting frame image"), de("end", "Ending frame image", !0)];
+      return [ue("start", "Starting frame image"), ue("end", "Ending frame image", !0)];
     default:
-      return [de("source", "Source image")];
+      return [ue("source", "Source image")];
   }
 }
 function Ea(e) {
@@ -2306,7 +2311,7 @@ function Ua({ mode: e, value: t, onChange: a }) {
 }
 const qa = (e) => e.map((t) => ({ value: t.value, label: t.title, hint: t.hint })), ye = "mb-1.5 flex items-center justify-between text-xs font-medium text-secondary";
 function Fa({ mode: e, slug: t, onApp: a, switcher: o, models: s, client: i, batch: n, onRun: b }) {
-  const k = Ee(t), f = se.find((A) => A.id === e).title;
+  const k = Ee(t), f = le.find((A) => A.id === e).title;
   return /* @__PURE__ */ l("section", { "aria-label": f, className: "flex max-h-[85dvh] min-h-0 w-full flex-col border-b border-line bg-panel-bg md:max-h-none md:w-[360px] md:shrink-0 md:border-b-0 md:border-r", children: [
     /* @__PURE__ */ l("div", { className: "shrink-0 p-4 pb-0", children: [
       /* @__PURE__ */ r("h2", { className: "mb-4 text-lg font-semibold", children: f }),
@@ -2523,13 +2528,13 @@ function Ja({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
     re(($) => ({ ...$, view: h })), xe.set(`muapi-studio:view:${_}`, h), be(_, h === "apps" ? ae.app : null);
   }, Q = (h) => {
     re({ view: "apps", app: h }), xe.set(`muapi-studio:app:${_}`, h), xe.set(`muapi-studio:view:${_}`, "apps"), be(_, h);
-  }, le = te(async (h) => {
+  }, ce = te(async (h) => {
     await B.run(h);
   }, [B.run]), $e = te((h) => {
     var U;
     const $ = D == null ? void 0 : D.find((J) => J.name === h);
     return $ ? ((U = $.sale) == null ? void 0 : U.from) ?? $.cost ?? void 0 : void 0;
-  }, [D]), ce = te((h) => {
+  }, [D]), de = te((h) => {
     L(h.mode), re(($) => ({ ...$, view: "models" })), P({ model: h.model, inputs: h.inputs, nonce: Date.now() });
   }, []), _e = te((h) => {
     var J;
@@ -2561,8 +2566,8 @@ function Ja({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
           "Could not load models: ",
           c
         ] }) : D ? /* @__PURE__ */ l(Ie, { children: [
-          ae.view === "apps" && Be(_) ? /* @__PURE__ */ r(Fa, { mode: _, slug: ae.app, onApp: Q, switcher: /* @__PURE__ */ r(yt, { view: "apps", onChange: we }), models: D, client: u, batch: z, onRun: le }) : /* @__PURE__ */ r(ca, { mode: _, models: D, client: u, batch: z, onRun: le, usage: H, reuse: m, switcher: Be(_) ? /* @__PURE__ */ r(yt, { view: "models", onChange: we }) : void 0 }),
-          /* @__PURE__ */ r(Tr, { mode: _, items: B.items, batch: z, onBatch: y, onLabel: B.setLabel, onRemove: B.remove, onReuse: ce, onRerun: _e, onDeleteMedia: B.deleteMedia, onLoadMore: B.loadMore, hasMore: B.hasMore, loadingMore: B.loadingMore, serverError: B.serverError, estimateFor: $e })
+          ae.view === "apps" && Be(_) ? /* @__PURE__ */ r(Fa, { mode: _, slug: ae.app, onApp: Q, switcher: /* @__PURE__ */ r(yt, { view: "apps", onChange: we }), models: D, client: u, batch: z, onRun: ce }) : /* @__PURE__ */ r(ca, { mode: _, models: D, client: u, batch: z, onRun: ce, usage: H, reuse: m, switcher: Be(_) ? /* @__PURE__ */ r(yt, { view: "models", onChange: we }) : void 0 }),
+          /* @__PURE__ */ r(Tr, { mode: _, items: B.items, batch: z, onBatch: y, onLabel: B.setLabel, onRemove: B.remove, onReuse: de, onRerun: _e, onDeleteMedia: B.deleteMedia, onLoadMore: B.loadMore, hasMore: B.hasMore, loadingMore: B.loadingMore, serverError: B.serverError, estimateFor: $e })
         ] }) : /* @__PURE__ */ l("div", { className: "flex flex-1 items-center justify-center gap-2 text-secondary", children: [
           /* @__PURE__ */ r(ge, {}),
           " Loading studio…"
@@ -2572,7 +2577,7 @@ function Ja({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
   ] });
 }
 export {
-  ue as ApiError,
+  me as ApiError,
   Bt as MuapiClient,
   Ja as MuapiStudio,
   Yt as THEMES,
