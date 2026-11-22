@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createMuapiStudioFetch, STUDIO_BASE } from '../lib/muapiStudioTransport.js';
 
 const PROXY = 'https://project.supabase.co/functions/v1/muapi-proxy';
@@ -95,19 +95,18 @@ describe('muapiStudioTransport failures', () => {
   });
 
   it('returns 504 when the proxy hangs past the timeout', async () => {
-    const hang = (_u, init) => new Promise((_r, reject) => init.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError'))));
-    const vi_ = await import('vitest');
-    vi_.vi.useFakeTimers();
+    const hang = (_u, init) => new Promise((_r, reject) => init.signal.addEventListener('abort', () => reject(Object.assign(new Error('Aborted'), { name: 'AbortError' }))));
+    vi.useFakeTimers();
     const p = make(hang)(`${STUDIO_BASE}/api/v1/models`);
-    await vi_.vi.advanceTimersByTimeAsync(61000);
+    await vi.advanceTimersByTimeAsync(61000);
     expect((await p).status).toBe(504);
-    vi_.vi.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('rethrows when the caller aborts', async () => {
     const ac = new AbortController();
     ac.abort();
-    const f = make(async () => { throw new DOMException('Aborted', 'AbortError'); });
+    const f = make(async () => { throw Object.assign(new Error('Aborted'), { name: 'AbortError' }); });
     await expect(f(`${STUDIO_BASE}/api/v1/models`, { signal: ac.signal })).rejects.toThrow();
   });
 });
