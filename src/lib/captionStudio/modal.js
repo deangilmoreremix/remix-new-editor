@@ -25,6 +25,7 @@ import {
 } from './model.js';
 import { BASE_FONTS, capiteStyleById } from './styles.js';
 import { loadVideos, addVideo, subscribeNewVideos, captureFrame, announceVideo, filterVideos, studioCounts } from './videos.js';
+import { languageLabel } from './language.js';
 import { saveJob, listJobs, getJob, deleteJob, clearJobs, formatBytes, formatDuration } from './history.js';
 
 const FONTS = [...new Set([...BASE_FONTS, ...Object.values(CAPITE_PRESETS).map((p) => p.fontFamily)])];
@@ -594,7 +595,7 @@ export class CaptionStudioModal extends ModalShell {
     const last = this.captions[this.captions.length - 1];
     const rec = await saveJob({
       id: this.jobId || undefined, title: this.srcName || 'Untitled video', durationSec: this.video?.duration > 0 && Number.isFinite(this.video.duration) ? this.video.duration : last.endMs / 1000,
-      language: this.language, lookName: this.lookName(), processingMs: this.processingMs || 0, fileSize: this.srcBlob?.size || 0,
+      language: languageLabel(this.language, this.captions.map((c) => c.text).join('')), lookName: this.lookName(), processingMs: this.processingMs || 0, fileSize: this.srcBlob?.size || 0,
       sourceUrl: this.srcBlob || /^blob:/.test(this.srcUrl) ? '' : this.srcUrl, captions: this.captions, style: this.style, ...(this.srcBlob ? { video: this.srcBlob } : {}), ...extra,
     });
     this.jobId = rec.id;

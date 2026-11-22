@@ -40,3 +40,16 @@ describe('real pictures of every caption look (scripts/generate-caption-look-pre
     without.close();
   });
 });
+
+import { guessLanguage, languageLabel } from '../language.js';
+describe('the language shown in History when "Detect language" was chosen', () => {
+  it('is read from the words, and says so', () => {
+    expect(guessLanguage('Welcome to the dental office, book your cleaning today and smile with confidence')).toBe('en');
+    expect(guessLanguage('Bienvenidos a la clínica, reserve su limpieza para sonreír con confianza en el día')).toBe('es');
+    expect(guessLanguage('ようこそ歯科医院へ。今日クリーニングを予約してください')).toBe('ja');
+    expect(guessLanguage('hi')).toBe('');
+    expect(languageLabel('es', 'x')).toBe('es');
+    expect(languageLabel('auto', 'Welcome to the dental office, book your cleaning today and smile')).toBe('auto · en');
+    expect(languageLabel('auto', '')).toBe('auto');
+  });
+});
