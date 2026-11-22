@@ -1710,7 +1710,8 @@ export function OutreachStudio() {
 
   function renderSiteCheck() {
     const box = el('div', 'flex flex-wrap items-center gap-2');
-    const todo = sitesToCapture(draft).filter((s) => !draft.siteShots[s]).length;
+    // A LinkedIn link already refused is not checked again (it never can be captured).
+    const todo = sitesToCapture(draft).filter((s) => !draft.siteShots[s] && !(/linkedin\.com/i.test(s) && draft.siteErrors?.[s])).length;
     const check = button(todo ? `Check websites (${todo})` : 'Websites checked', { small: true });
     check.setAttribute('data-outreach-check-sites', '');
     check.disabled = !todo || !!busy;

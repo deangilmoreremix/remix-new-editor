@@ -115,11 +115,11 @@ export function renderProspectTable({ links = [], contacts = [], stats = null, f
     if (l.heard) { const h = el('div', 'truncate text-[11px] text-white/40', `Hears: “${l.heard}”`); h.setAttribute('data-outreach-heard', ''); words.appendChild(h); }
     who.append(av, words);
     const company = el('div', 'truncate text-sm text-white/80', c.company || l.company || '');
-    const site = el('div', 'flex min-w-0 items-center truncate text-sm');
-    if (c.website) { const a = el('a', 'text-primary hover:underline', host(c.website)); a.href = /^https?:\/\//.test(c.website) ? c.website : `https://${c.website}`; a.target = '_blank'; a.rel = 'noopener noreferrer'; site.appendChild(a); }
+    const site = el('div', 'flex min-w-0 flex-col items-start gap-1 text-sm');
+    if (c.website) { const a = el('a', 'max-w-full truncate text-primary hover:underline', host(c.website)); a.href = /^https?:\/\//.test(c.website) ? c.website : `https://${c.website}`; a.target = '_blank'; a.rel = 'noopener noreferrer'; site.appendChild(a); }
     // Sendspark's orange fallback indicator: this prospect's video shows the fallback website.
     if (l.site === 'fallback') {
-      const f = el('span', 'ml-2 inline-flex rounded-full border border-orange-400/40 bg-orange-400/10 px-2 py-0.5 text-[10px] font-bold text-orange-300', 'Fallback');
+      const f = el('span', 'inline-flex rounded-full border border-orange-400/40 bg-orange-400/10 px-2 py-0.5 text-[10px] font-bold text-orange-300', 'Fallback');
       f.title = l.siteError ? 'Their website returned an error, so their video uses your fallback website.' : 'No website, so their video uses your fallback website.';
       f.setAttribute('data-outreach-fallback', l.siteError ? 'error' : 'none');
       site.appendChild(f);
