@@ -8,9 +8,10 @@
  */
 import { verifyClerkToken } from './_shared/clerkAuth.js';
 import { userOpenAIKey, NEED_OPENAI_KEY, openAIKeyError } from './_shared/byok.js';
+import { OPENAI_TEXT_MODEL } from './_shared/openaiModels.js';
 import { search, hasWalkthroughSteps, sanitizeMessages, retrievalQuery, buildSourcesBlock, SYSTEM_PROMPT, NO_ANSWER } from './_shared/askSearch.js';
 
-const MODEL = () => process.env.ASK_SMARTVIDEO_MODEL || 'gpt-4o-mini';
+const MODEL = () => process.env.ASK_SMARTVIDEO_MODEL || OPENAI_TEXT_MODEL;
 const TIMEOUT_MS = 45_000;
 
 // Best-effort limiter. State is per function instance, so the real ceiling is
@@ -84,7 +85,8 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
   const sources = results.map(publicSource);
   const enc = new TextEncoder();
   // A whole walkthrough (many steps with exact button names) needs more room than a short answer.
-  const maxTokens = hasWalkthroughSteps(results) ? 1400 : 700;
+  // Reasoning models count reasoning tokens against this cap, so leave headroom over the visible answer.
+  const maxTokens = hasWalkthroughSteps(results) ? 4000 : 2000;
   let upstreamAbort = null;
 
   const stream = new ReadableStream({
@@ -110,8 +112,7 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
             body: JSON.stringify({
               model: MODEL(),
               stream: true,
-              temperature: 0.2,
-              max_tokens: maxTokens,
+              max_completion_tokens: maxTokens,
               messages: [{ role: 'system', content: `${SYSTEM_PROMPT}\n\nSOURCES:\n${buildSourcesBlock(results)}` }, ...messages],
             }),
           });

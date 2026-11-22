@@ -702,8 +702,8 @@ Categories:
           ],
         },
       ],
-      max_tokens: 100,
-      temperature: 0,
+      // Reasoning model: no temperature; reasoning tokens count against this cap.
+      max_completion_tokens: 1000,
     })
 
     const text = response.choices[0]?.message?.content?.trim() || ''

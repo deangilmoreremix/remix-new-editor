@@ -1,6 +1,16 @@
 // netlify/functions/intelligence-api.js
 import { createClient } from '@supabase/supabase-js';
 import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
+import { OPENAI_FAST_MODEL } from './_shared/openaiModels.js';
+
+// Text of a Responses API result: reasoning items can come before the message, so
+// read every message's output_text parts rather than output[0].
+function responsesText(data) {
+  if (typeof data?.output_text === 'string' && data.output_text) return data.output_text;
+  return (Array.isArray(data?.output) ? data.output : [])
+    .filter((o) => o.type === 'message').flatMap((o) => o.content || [])
+    .filter((c) => c.type === 'output_text').map((c) => c.text).join('');
+}
 
 const supabaseService = createClient(
   process.env.SUPABASE_URL,
@@ -359,7 +369,7 @@ export async function handler(event, context) {
 
       // BYOK: the user's own OpenAI key (X-OpenAI-Key); no platform-key fallback.
       const apiKey = userOpenAIKey(event.headers);
-      const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+      const model = process.env.OPENAI_MODEL || OPENAI_FAST_MODEL;
       if (!apiKey) return { statusCode: 401, headers, body: JSON.stringify({ error: NEED_OPENAI_KEY }) };
 
       // Verify ownership
@@ -403,51 +413,50 @@ export async function handler(event, context) {
           text: {
             format: {
               type: 'json_schema',
-              json_schema: {
-                name: 'ContactIntelligence',
-                strict: true,
-                schema: {
-                  type: 'object',
-                  properties: {
-                    company: {
-                      type: 'object',
-                      properties: {
-                        name: { type: 'string' },
-                        domain: { type: 'string' },
-                        industry: { type: 'string' },
-                        size: { type: 'string' },
-                        summary: { type: 'string' },
-                      },
-                      required: ['name'],
+              name: 'ContactIntelligence',
+              // Not strict: the schema has optional fields, which strict mode rejects.
+              strict: false,
+              schema: {
+                type: 'object',
+                properties: {
+                  company: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      domain: { type: 'string' },
+                      industry: { type: 'string' },
+                      size: { type: 'string' },
+                      summary: { type: 'string' },
                     },
-                    intelligence: {
-                      type: 'object',
-                      properties: {
-                        summary: { type: 'string' },
-                        products: { type: 'array', items: { type: 'string' } },
-                        services: { type: 'array', items: { type: 'string' } },
-                        painPoints: { type: 'array', items: { type: 'string' } },
-                        interests: { type: 'array', items: { type: 'string' } },
-                        buyingSignals: { type: 'array', items: { type: 'string' } },
-                        tone: { type: 'string', enum: ['formal', 'casual', 'technical', 'friendly'] },
-                      },
+                    required: ['name'],
+                  },
+                  intelligence: {
+                    type: 'object',
+                    properties: {
+                      summary: { type: 'string' },
+                      products: { type: 'array', items: { type: 'string' } },
+                      services: { type: 'array', items: { type: 'string' } },
+                      painPoints: { type: 'array', items: { type: 'string' } },
+                      interests: { type: 'array', items: { type: 'string' } },
+                      buyingSignals: { type: 'array', items: { type: 'string' } },
+                      tone: { type: 'string', enum: ['formal', 'casual', 'technical', 'friendly'] },
                     },
-                    brand: {
-                      type: 'object',
-                      properties: {
-                        colors: {
-                          type: 'object',
-                          properties: {
-                            primary: { type: 'string' },
-                            secondary: { type: 'string' },
-                            accent: { type: 'string' },
-                          },
+                  },
+                  brand: {
+                    type: 'object',
+                    properties: {
+                      colors: {
+                        type: 'object',
+                        properties: {
+                          primary: { type: 'string' },
+                          secondary: { type: 'string' },
+                          accent: { type: 'string' },
                         },
                       },
                     },
                   },
-                  required: ['company'],
                 },
+                required: ['company'],
               },
             },
           },
@@ -462,7 +471,7 @@ export async function handler(event, context) {
       }
 
       const openaiData = await openaiRes.json();
-      const textContent = openaiData?.output?.find((o) => o.type === 'message')?.content?.[0]?.text;
+      const textContent = responsesText(openaiData);
       if (!textContent) return { statusCode: 502, headers, body: JSON.stringify({ error: 'OpenAI returned empty content' }) };
 
       let extracted;
@@ -739,7 +748,7 @@ async function runDiscoveryPipeline(contactId, sources, openaiKey = null) {
   // BYOK: only with the user's own OpenAI key (passed from /discover); skipped otherwise.
   if (openaiKey) {
     try {
-      const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+      const model = process.env.OPENAI_MODEL || OPENAI_FAST_MODEL;
       const rawParts = [
         profile.intelligence.summary,
         profile.website.description,
@@ -761,18 +770,17 @@ async function runDiscoveryPipeline(contactId, sources, openaiKey = null) {
           text: {
             format: {
               type: 'json_schema',
-              json_schema: {
-                name: 'ContactIntelligence',
-                strict: true,
-                schema: {
-                  type: 'object',
-                  properties: {
-                    company: { type: 'object', properties: { name: { type: 'string' }, domain: { type: 'string' }, industry: { type: 'string' }, size: { type: 'string' }, summary: { type: 'string' } }, required: ['name'] },
-                    intelligence: { type: 'object', properties: { summary: { type: 'string' }, products: { type: 'array', items: { type: 'string' } }, services: { type: 'array', items: { type: 'string' } }, painPoints: { type: 'array', items: { type: 'string' } }, interests: { type: 'array', items: { type: 'string' } }, buyingSignals: { type: 'array', items: { type: 'string' } }, tone: { type: 'string', enum: ['formal', 'casual', 'technical', 'friendly'] } } },
-                    brand: { type: 'object', properties: { colors: { type: 'object', properties: { primary: { type: 'string' }, secondary: { type: 'string' }, accent: { type: 'string' } } } } },
-                  },
-                  required: ['company'],
+              name: 'ContactIntelligence',
+              // Not strict: the schema has optional fields, which strict mode rejects.
+              strict: false,
+              schema: {
+                type: 'object',
+                properties: {
+                  company: { type: 'object', properties: { name: { type: 'string' }, domain: { type: 'string' }, industry: { type: 'string' }, size: { type: 'string' }, summary: { type: 'string' } }, required: ['name'] },
+                  intelligence: { type: 'object', properties: { summary: { type: 'string' }, products: { type: 'array', items: { type: 'string' } }, services: { type: 'array', items: { type: 'string' } }, painPoints: { type: 'array', items: { type: 'string' } }, interests: { type: 'array', items: { type: 'string' } }, buyingSignals: { type: 'array', items: { type: 'string' } }, tone: { type: 'string', enum: ['formal', 'casual', 'technical', 'friendly'] } } },
+                  brand: { type: 'object', properties: { colors: { type: 'object', properties: { primary: { type: 'string' }, secondary: { type: 'string' }, accent: { type: 'string' } } } } },
                 },
+                required: ['company'],
               },
             },
           },
@@ -781,7 +789,7 @@ async function runDiscoveryPipeline(contactId, sources, openaiKey = null) {
 
       if (openaiRes.ok) {
         const openaiData = await openaiRes.json();
-        const textContent = openaiData?.output?.find((o) => o.type === 'message')?.content?.[0]?.text;
+        const textContent = responsesText(openaiData);
         if (textContent) {
           try {
             const extracted = JSON.parse(textContent);

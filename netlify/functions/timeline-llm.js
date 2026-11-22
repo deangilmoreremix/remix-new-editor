@@ -17,8 +17,9 @@
 
 import { withClerkAuth } from './_shared/clerkAuth.js';
 import { userOpenAIKey, NEED_OPENAI_KEY, BAD_OPENAI_KEY, OPENAI_NO_CREDIT } from './_shared/byok.js';
+import { OPENAI_TEXT_MODEL } from './_shared/openaiModels.js';
 
-const MODEL = process.env.OPENAI_TIMELINE_MODEL || process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
+const MODEL = process.env.OPENAI_TIMELINE_MODEL || process.env.OPENAI_RESPONSES_TEXT_MODEL || OPENAI_TEXT_MODEL;
 const TIMEOUT_MS = 120_000;
 const MAX_BODY = 400_000;
 

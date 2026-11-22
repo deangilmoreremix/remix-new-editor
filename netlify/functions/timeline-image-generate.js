@@ -37,13 +37,15 @@
  */
 
 import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
+import { OPENAI_FAST_MODEL } from './_shared/openaiModels.js';
 const TIMEOUT_MS = 120_000;
 
 // Images 2.6 Flare (fast) is the default; callers may pin another model, and an
 // unpinned request falls back once to `gpt-image-2` if the account lacks 2.6.
 const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.6-flare';
 const FALLBACK_IMAGE_MODEL = 'gpt-image-2';
-const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
+// Prompt refiner (text): the cheap/background model is plenty for a one-paragraph rewrite.
+const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || OPENAI_FAST_MODEL;
 
 /**
  * Models this function is allowed to call directly on the OpenAI Images API.
@@ -293,7 +295,12 @@ export async function handler(event) {
       return jsonResponse(502, { ok: false, error: 'Invalid JSON from OpenAI Responses API' });
     }
     responseId = refineData.id || null;
-    const refined = (refineData.output_text || '').trim();
+    // Raw REST responses may omit `output_text` and put a reasoning item first, so read the message items.
+    const refined = (typeof refineData.output_text === 'string' && refineData.output_text
+      ? refineData.output_text
+      : (Array.isArray(refineData.output) ? refineData.output : []).filter((o) => o.type === 'message')
+        .flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join('')
+    ).trim();
     revisedPrompt = refined || prompt.trim();
 
     // Now call the direct image generation endpoint with the refined prompt

@@ -1226,7 +1226,7 @@ Return an array of matching category names. Return an empty array if none apply.
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateObject, streamText } from "ai";
 import { z } from "zod";
-var DEFAULT_MODEL = process.env.VIDEO_AGENT_MODEL || "gpt-5.2";
+var DEFAULT_MODEL = process.env.VIDEO_AGENT_MODEL || "gpt-6.1-sol";
 var CLASSIFIER_MODEL = process.env.VIDEO_AGENT_CLASSIFIER_MODEL || DEFAULT_MODEL.split(":")[0];
 var VALIDATION_PROMPT = `You are a prompt classifier for a motion graphics generation tool.
 

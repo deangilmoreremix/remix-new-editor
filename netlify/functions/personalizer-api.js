@@ -9,6 +9,7 @@ import {
 } from './_personalizationAssets.js';
 import { findNearbyBusinesses } from './_businessDiscovery.js';
 import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
+import { OPENAI_FAST_MODEL, OPENAI_TEXT_MODEL } from './_shared/openaiModels.js';
 
 const supabaseService = createClient(
   process.env.SUPABASE_URL,
@@ -104,7 +105,7 @@ async function callOpenAI(apiKey, systemPrompt, userPrompt) {
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-      body: JSON.stringify({ model: 'gpt-4.1-mini', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], temperature: 0.7, max_tokens: 2000 }),
+      body: JSON.stringify({ model: OPENAI_TEXT_MODEL, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], max_completion_tokens: 4000 }),
       signal: controller.signal
     });
     if (!res.ok) { const text = await res.text(); throw new Error(`OpenAI API error (${res.status}): ${text}`); }
@@ -200,7 +201,7 @@ async function callOpenAIStructured(apiKey, systemPrompt, userPrompt) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      model: process.env.OPENAI_MODEL || OPENAI_TEXT_MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -209,8 +210,8 @@ async function callOpenAIStructured(apiKey, systemPrompt, userPrompt) {
         type: 'json_schema',
         json_schema: { name: 'ContactIntelligence', strict: false, schema: INTELLIGENCE_SCHEMA },
       },
-      temperature: 0.2,
-      max_tokens: 1200,
+      // Reasoning models: no temperature; reasoning tokens count against this cap.
+      max_completion_tokens: 4000,
     }),
   }, 20000);
 
@@ -352,7 +353,7 @@ function escapeCypherString(str) {
 
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
-const VISION_MODEL = process.env.SMARTVIDEO_VISION_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const VISION_MODEL = process.env.SMARTVIDEO_VISION_MODEL || process.env.OPENAI_MODEL || OPENAI_TEXT_MODEL;
 const MAX_VISION_IMAGES = 8;
 const MAX_IMAGE_REFERENCE_CHARS = 14_000_000;
 const VISION_CATEGORIES = [
@@ -380,7 +381,7 @@ function visionDetail(categoryHint, validation = false) {
 }
 
 function extractResponsesOutputText(payload) {
-  if (typeof payload?.output_text === 'string') return payload.output_text;
+  if (typeof payload?.output_text === 'string' && payload.output_text) return payload.output_text;
   if (!Array.isArray(payload?.output)) return '';
   for (const item of payload.output) {
     if (item?.type !== 'message' || !Array.isArray(item?.content)) continue;
@@ -531,7 +532,7 @@ async function handlePersonalizationImageVision(body, apiKey) {
           schema: personalizationValidationSchema(),
         },
       },
-      max_output_tokens: 1600,
+      max_output_tokens: 4000,
     });
 
     const outputText = extractResponsesOutputText(payload);
@@ -1696,13 +1697,12 @@ Keep it concise. Do not invent information. If unsure, say "Unknown".`;
               'Authorization': `Bearer ${openaiKey}`,
             },
             body: JSON.stringify({
-              model: 'gpt-4.1-mini',
+              model: OPENAI_FAST_MODEL,
               messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: markdownReport },
               ],
-              temperature: 0.7,
-              max_tokens: 1000,
+              max_completion_tokens: 2000,
             }),
           });
           if (!res.ok) {
