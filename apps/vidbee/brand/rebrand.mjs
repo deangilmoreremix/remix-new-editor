@@ -46,13 +46,41 @@ const PATCHES = [
   // VidBee Cloud / GitHub sign-in: the hosted embed has no cloud account (host/better-auth-electron-stub.mjs).
   { file: '/renderer/src/components/settings/SettingsSectionNav.tsx', find: "  { icon: UserRound, labelKey: 'settings.account.tab', value: 'account' },\n", replace: '' },
   { file: '/renderer/src/components/settings/SettingsSectionNav.tsx', find: "values: ['account', 'general']", replace: "values: ['general']" },
-  { file: '/renderer/src/router.tsx', find: "const tab = search.tab === 'mcp' ? 'advanced' : search.tab", replace: "const tab = search.tab === 'mcp' ? 'advanced' : search.tab === 'account' ? 'general' : search.tab" },
+  { file: '/renderer/src/router.tsx', find: "const tab = search.tab === 'mcp' ? 'advanced' : search.tab", replace: "const tab = search.tab === 'mcp' ? 'advanced' : search.tab === 'account' || search.tab === 'providers' ? 'general' : search.tab" },
   { file: '/renderer/src/pages/Settings.tsx', find: '<AccountPanel />', replace: '{null}' },
   { file: '/renderer/src/pages/Settings.tsx', find: /<CloudTranscriptionSettings\b[\s\S]*?\/>/, replace: '{null}' },
   { file: '/renderer/src/components/settings/AiProvidersPanel.tsx', find: /<div className="space-y-2">(\s*<h3[^>]*>\s*\{t\('settings\.ai\.vidbeeCloudSection'\)\})/, replace: '<div className="space-y-2" hidden>$1' },
   { file: '/renderer/src/components/transcript/TranscriptPromptGuidance.tsx', find: /<p>\s*\{t\('settings\.ai\.vidbeeCloudDescription'\)\} \{t\('settings\.ai\.vidbeeCloudPrivacy'\)\}\s*<\/p>/, replace: '' },
   { file: '/renderer/src/components/transcript/TranscriptPromptGuidance.tsx', find: /\{isCloudSignIn \? (\(\s*<Button\s+disabled=\{authWorking\})/, replace: '{false ? $1' },
-  { file: '/main/lib/agent-composer.ts', find: `[{ value: 'cloud', label: '${NAME} Cloud' }]`, replace: "[{ value: 'cloud', label: 'No AI provider (add one in Settings)' }]" },
+  { file: '/main/lib/agent-composer.ts', find: `[{ value: 'cloud', label: '${NAME} Cloud' }]`, replace: "(snapshot.providers.length ? [] : [{ value: 'cloud', label: 'AI is not configured on this server' }])" },
+  // SmartVid runs every AI feature on its own OpenAI key (SMARTVID_OPENAI_API_KEY on the VidBee server), so users
+  // never pick a provider or paste a key: the Providers settings page is gone and the store reports one managed provider.
+  { file: '/renderer/src/components/settings/SettingsSectionNav.tsx', find: "  { icon: KeyRound, labelKey: 'settings.providersTab', value: 'providers' },\n", replace: '' },
+  { file: '/renderer/src/components/settings/SettingsSectionNav.tsx', find: "values: ['providers', 'prompts', 'transcribe']", replace: "values: ['prompts', 'transcribe']" },
+  { file: '/renderer/src/components/transcript/TranscriptPromptGuidance.tsx', find: '{showProviderSettings ? (', replace: '{false ? (' },
+  { file: '/main/lib/ai-store.ts', find: '\nclass AiStore {', replace: `
+/** SmartVid: the one OpenAI provider backed by the server's key, or null when no key is configured (local dev). */
+const smartvidManagedProvider = (): StoredProvider | null => {
+  const key = (process.env.SMARTVID_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '').trim()
+  if (!key) return null
+  const modelId = (process.env.SMARTVID_OPENAI_MODEL || 'gpt-5.4-mini').trim()
+  return {
+    id: 'smartvid-openai',
+    presetId: 'openai',
+    name: 'OpenAI (SmartVid)',
+    baseUrl: 'https://api.openai.com/v1',
+    modelId,
+    // A value without the sealed/plain prefixes is returned as-is by openAiSecret.
+    apiKeySealed: key,
+    createdAt: 0,
+    updatedAt: 0
+  } as StoredProvider
+}
+
+class AiStore {` },
+  { file: '/main/lib/ai-store.ts', find: /(\n    const activeProviderId = this\.store\.get\('activeProviderId'\)\n    return \{)/, replace: `
+    const managed = smartvidManagedProvider()
+    if (managed) return { activeProviderId: managed.id, providers: [managed], prompts }$1` },
   // Logo text under the sidebar icon is 80px wide: let the long name wrap.
   { file: '/renderer/src/components/ui/sidebar.tsx', find: `appName="${NAME}"`, replace: `appName={${JSON.stringify(brand.sidebarName ?? NAME)}}` },
   // Files saved before the rebrand carry upstream's "via VidBee" suffix: keep finding them.

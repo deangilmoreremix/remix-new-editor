@@ -68,18 +68,6 @@
       }
     ]
   },
-  "ai-providers": {
-    "steps": [
-      {
-        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> [aria-label=\"Preferences\"]",
-        "wait": 2500
-      },
-      {
-        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> text=/^Providers$/",
-        "wait": 2500
-      }
-    ]
-  },
   "chat-and-agent": {
     "steps": [
       {
@@ -98,5 +86,13 @@
   },
   "supported-sites": {
     "skip": true
+  },
+  "built-in-ai-openai": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> [aria-label=\"Chat\"]",
+        "wait": 2500
+      }
+    ]
   }
 }

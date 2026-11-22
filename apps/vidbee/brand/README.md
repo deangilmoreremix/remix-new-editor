@@ -27,7 +27,14 @@ built with `apps/vidbee` as its context.
   and the About page's "follow the developer"/"share" texts still name VidBee, because they promote the upstream author.
 - **Cloud / GitHub sign-in hidden** (no cloud account in the hosted embed): the Settings → Account tab (and `?tab=account`
   links), the cloud transcription block, the "VidBee Cloud" provider card, the "Sign in with GitHub" button in Ask AI guidance.
-  The composer's cloud placeholder reads "No AI provider (add one in Settings)".
+  The composer's cloud placeholder is removed (it reads "AI is not configured on this server" only when no key is set).
+- **AI runs on SmartVid's OpenAI key**: set `SMARTVID_OPENAI_API_KEY` (falls back to `OPENAI_API_KEY`) on the VidBee
+  server, and optionally `SMARTVID_OPENAI_MODEL` (default `gpt-5.4-mini`). The AI store then reports a single
+  "OpenAI (SmartVid)" provider, always in use; providers users saved earlier are ignored, and the key never reaches the
+  browser. The Settings → Providers page and the "Open provider settings" button are removed (`?tab=providers` opens
+  General), and AI error help says to try again or contact support. With no key set the app still runs, AI features
+  just report that AI is not set up. The VidBee server is separate from Netlify: Netlify's `OPENAI_API_KEY` does not
+  reach it, so set the key where the VidBee container runs.
 - **Wording**: strings saying downloads/transcripts run "on this computer"/"locally" now say they run on SmartVid's servers
   (`locale-overrides.json` → `en`). Non-English locales use their own server-side wording where upstream ships one
   (`fromWebKey`) and otherwise fall back to the corrected English text; add `"de": { … }` maps to translate.

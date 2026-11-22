@@ -4,7 +4,7 @@
   "route": "#/media-hub",
   "description": "SmartVidDownloader saves video, audio and subtitles from 1000+ sites by link, follows channels and feeds, and makes transcripts you can export or ask AI about.",
   "shortDescription": "Download videos and audio from links, then transcribe them and ask AI about them.",
-  "fullDescription": "SmartVidDownloader (side menu, Video group; addresses #/media-hub and #/smartviddownloader) opens a full download and transcript app inside the page. It is built on the open-source VidBee app, so the embedded app's own screens (its title bar, messages, the 'Made with VidBee' footer and some settings) still say VidBee: that is the same tool. Paste one or more links to download video, audio or subtitles from YouTube, TikTok, Instagram, X, Vimeo, Twitch, SoundCloud and many other sites (it uses yt-dlp), pick the format and quality, download whole playlists, and follow channels or RSS feeds so new uploads are downloaded for you. Every download can be turned into a transcript with speaker labels, which you can search, edit, translate and export as text, Markdown, SRT subtitles or a video with captions. With your own AI provider key you can run AI skills on a transcript (overview, bullet points, FAQ, mind map, translate, article and more) or chat with an agent that can download, convert, clip and transcribe for you. The app's sidebar has Home (downloads and history), Chat, Subscribe (subscriptions), Tools, Preferences (Settings) and About. Important: SmartVidDownloader runs on the SmartVidDownloader server, not on your computer. Downloads, transcripts and speech models are stored on that server; Open File opens a file in a new browser tab and exports arrive as browser downloads. Where the embedded app says 'on this computer', it means the server. Everyone who is allowed in shares one SmartVidDownloader: the same download history, subscriptions, settings and AI provider keys. You must be signed in and your account must be on the allowlist.",
+  "fullDescription": "SmartVidDownloader (side menu, Video group; addresses #/media-hub and #/smartviddownloader) opens a full download and transcript app inside the page. It is built on the open-source VidBee app; its screens say SmartVidDownloader. Paste one or more links to download video, audio or subtitles from YouTube, TikTok, Instagram, X, Vimeo, Twitch, SoundCloud and many other sites (it uses yt-dlp), pick the format and quality, download whole playlists, and follow channels or RSS feeds so new uploads are downloaded for you. Every download can be turned into a transcript with speaker labels, which you can search, edit, translate and export as text, Markdown, SRT subtitles or a video with captions. With the built-in AI (OpenAI, provided by SmartVid; nothing to set up) you can run AI skills on a transcript (overview, bullet points, FAQ, mind map, translate, article and more) or chat with an agent that can download, convert, clip and transcribe for you. The app's sidebar has Home (downloads and history), Chat, Subscribe (subscriptions), Tools, Preferences (Settings) and About. Important: SmartVidDownloader runs on the SmartVidDownloader server, not on your computer. Downloads, transcripts and speech models are stored on that server; Open File opens a file in a new browser tab and exports arrive as browser downloads. Everyone who is allowed in shares one SmartVidDownloader: the same download history, subscriptions and settings. You must be signed in and your account must be on the allowlist.",
   "bestFor": "Creators and teams who need to save source videos or audio from the web, keep up with channels, and get searchable transcripts, subtitles or AI summaries of what they downloaded.",
   "whenToUse": [
     "You have a video link and want the video or just the audio as a file.",
@@ -35,7 +35,7 @@
     "Search, edit and translate a transcript; bilingual view; built-in player",
     "Export as .txt, .md or .srt, or a video with soft or burned-in subtitles",
     "AI skills: Overview, Bullet Points, Generate FAQ, Create a mindmap, Translate, Rewrite as an article and more; custom skills",
-    "Your own AI provider (OpenAI, Google, OpenRouter, Groq, Mistral, Ollama, LMStudio, xAI and others)",
+    "Built-in AI powered by OpenAI, with no API key or setup",
     "Chat with an agent that can download, convert, clip and transcribe, with your approval",
     "Settings for theme, language, downloads, metadata, transcription models, proxy and MCP",
     "Supported Sites list"
@@ -123,7 +123,7 @@
       "explanation": "The transcript page plays the video next to the text and highlights the line being spoken. Use 'Search transcript' to find words and jump to them. Hover a line to 'Edit', 'Insert before', 'Insert after' or 'Delete' it, or 'Add line'. 'Bilingual transcript' shows a second subtitle track, and 'Translate in a new chat…' asks the AI to translate. 'Copy transcript' copies all the text. The player has play speed, back and forward 15 seconds, subtitles on or off and full screen.",
       "whyToUse": "Fix mistakes and find the moments you need.",
       "inputRequired": "A transcript.",
-      "restrictions": "Deleting captions is permanent ('This permanently removes N captions from the transcript.'). Translation needs an AI provider."
+      "restrictions": "Deleting captions is permanent ('This permanently removes N captions from the transcript.'). Translation uses the built-in AI."
     },
     {
       "feature": "Export",
@@ -136,26 +136,26 @@
       "feature": "AI skills",
       "explanation": "In the transcript sidebar run a skill on the transcript: Overview, Bullet Points, Improve Grammar & Punctuation, Generate FAQ, Extract Statistics, Paraphrase Content, Create a mindmap, Translate, Rewrite as an article, Video FAQ or Troubleshoot a task ('All skills' lists them). Results can be copied, run again, or saved with 'Export as PDF' or 'Export as Markdown'. In Settings → Skills you can search skills, 'Add skill', 'Upload a skill', 'Import skill from GitHub', 'Create custom copy', and choose 'Show in transcript sidebar' or 'Auto-run'.",
       "whyToUse": "Turn a long video into notes, FAQs, a mind map, an article or another language.",
-      "inputRequired": "A finished transcript and an AI provider set up in Settings → Providers.",
-      "restrictions": "Without a provider it says 'Set up an AI provider in Settings to run this skill.' Each run uses your provider's credits. Uploaded skills must be a SKILL.md or ZIP up to 10 MB."
+      "inputRequired": "A finished transcript.",
+      "restrictions": "Skills run on SmartVid's OpenAI access. Uploaded skills must be a SKILL.md or ZIP up to 10 MB."
     },
     {
-      "feature": "AI providers",
-      "explanation": "In Settings → Providers choose a service (for example OpenAI, Google, OpenRouter, Groq, Mistral, Together, xAI, Ollama or LMStudio, or a custom one), enter its API key, Base URL if needed and Models, click 'Test connection', save, then click 'Use'. The provider in use is marked 'In use'.",
-      "whyToUse": "AI skills and Chat run on the AI service and key you choose.",
-      "inputRequired": "An API key and model ID from an AI service.",
-      "restrictions": "The key is saved in the shared SmartVidDownloader, so everyone using it uses the same provider and key. Transcript text is sent to the provider only when you run an AI action."
+      "feature": "Built-in AI (OpenAI)",
+      "explanation": "AI skills, Chat and the agent run on OpenAI through SmartVid's own account (GPT-5.4 mini by default). There is no Providers page and nothing to set up: the model shows at the bottom of Chat.",
+      "whyToUse": "Use AI on your downloads and transcripts without signing up for an AI service or pasting a key.",
+      "inputRequired": "None.",
+      "restrictions": "Transcript text and chat messages are sent to OpenAI when you run an AI action. If the AI service fails, the card says so and offers Try again."
     },
     {
       "feature": "Chat and agent",
       "explanation": "Click 'Chat' in the app's sidebar and type in 'Ask anything…', or start from a suggestion: Download a video, Extract audio, Compress a video, Convert a format, Transcribe a download or Create a subscription. On a transcript, ask follow-ups in 'Ask a follow-up about this video…'. The agent can create downloads and conversions, read and search transcripts, capture frames, make clips and write articles. When it needs permission it asks with Allow, Allow and remember or Deny. 'Attach images' adds up to 10 PNG, JPEG or WebP images. 'Stop agent' stops a run. Past chats are under History.",
       "whyToUse": "Describe what you want in plain words instead of finding each setting.",
-      "inputRequired": "An AI provider; a model with tool calling works best.",
-      "restrictions": "Uses your AI provider's credits. 'Agent permissions' in Settings sets Full access, Manual approval or Automatic review; Manual approval is the safest on a shared server."
+      "inputRequired": "None; the built-in AI supports the agent's tools.",
+      "restrictions": "'Agent permissions' in Settings sets Full access, Manual approval or Automatic review; Manual approval is the safest on a shared server."
     },
     {
       "feature": "Settings",
-      "explanation": "Open Preferences (the gear in the app's sidebar). General: Theme (Light, Dark or System; also a switch in the title bar), Language, 'Maximum number of active downloads', 'Download notifications', One-Click Download defaults. Metadata: 'Embed chapters', 'Embed metadata', 'Embed subtitles', 'Embed thumbnail', 'Filename style', subtitle languages. Cookies. Providers and Skills (see above). Transcription: speech models and 'Transcribe after download'. Advanced: Proxy, 'Use configuration file' (for yt-dlp), and 'Enable MCP access' for outside AI agents.",
+      "explanation": "Open Preferences (the gear in the app's sidebar). General: Theme (Light, Dark or System; also a switch in the title bar), Language, 'Maximum number of active downloads', 'Download notifications', One-Click Download defaults. Metadata: 'Embed chapters', 'Embed metadata', 'Embed subtitles', 'Embed thumbnail', 'Filename style', subtitle languages. Cookies. Skills (see AI skills). Transcription: speech models and 'Transcribe after download'. Advanced: Proxy, 'Use configuration file' (for yt-dlp), and 'Enable MCP access' for outside AI agents.",
       "whyToUse": "Set how files are named and tagged, and how downloads and transcripts behave.",
       "inputRequired": "None.",
       "restrictions": "Settings are shared by everyone using SmartVidDownloader; a change affects all users. The Account tab and VidBee Cloud options come from the original desktop app; cloud sign-in is not part of SmartVidDownloader."
@@ -168,7 +168,7 @@
       "restrictions": "Sites change often; a listed site can still fail for a given video, and some need cookies."
     }
   ],
-  "howToUse": "1. Sign in and click SmartVidDownloader in the side menu (Video group); wait for the app to appear. 2. On Home click 'Add URL' and paste a link. 3. Click 'Fetch', choose 'Download Video' or 'Download Audio' and a format, then 'Start Download'. 4. Watch it in the queue; when it finishes click 'Open File' or open its transcript. 5. Click 'Transcribe' to get the text with speaker labels, then 'Export' for .txt, .md, .srt or a captioned video. 6. Optional: add an AI provider in Settings → Providers to run AI skills or Chat. Note: the embedded app still calls itself VidBee, and files are stored on the server.",
+  "howToUse": "1. Sign in and click SmartVidDownloader in the side menu (Video group); wait for the app to appear. 2. On Home click 'Add URL' and paste a link. 3. Click 'Fetch', choose 'Download Video' or 'Download Audio' and a format, then 'Start Download'. 4. Watch it in the queue; when it finishes click 'Open File' or open its transcript. 5. Click 'Transcribe' to get the text with speaker labels, then 'Export' for .txt, .md, .srt or a captioned video. 6. Optional: run AI skills or ask in Chat (AI is built in). Note: the embedded app still calls itself VidBee, and files are stored on the server.",
   "howToSteps": [
     "Sign in and open SmartVidDownloader from the side menu.",
     "Click 'Add URL' and paste one link (or turn on One-Click Download for several).",
@@ -176,14 +176,14 @@
     "Follow progress in the queue; use Retry Download or Troubleshoot if it fails.",
     "Open the finished item and click 'Transcribe'.",
     "Search or edit the transcript, then 'Export' what you need.",
-    "Optionally set up an AI provider and run an AI skill or ask in Chat."
+    "Optionally run an AI skill on a transcript or ask in Chat."
   ],
   "gettingStarted": [
     "Start with one public YouTube link and the default format.",
     "Turn on 'Transcribe after download' if you want text for everything you download.",
     "The first transcript takes longer because the server downloads the speech model.",
     "Set up a cookies file only when a download says it needs a signed-in session.",
-    "Add an AI provider before trying AI skills or Chat."
+    "AI skills and Chat work straight away; there is no AI provider or key to set up."
   ],
   "inputs": [
     "Video, playlist or channel link",
@@ -193,13 +193,12 @@
     "Feed URL for subscriptions",
     "Audio or video file to transcribe",
     "Cookies file",
-    "AI provider API key and model",
+    "Nothing for AI: it runs on SmartVid's OpenAI account",
     "Chat message"
   ],
   "requiredInputs": [
     "A signed-in, allowlisted account",
-    "A link (downloads) or a media file (transcripts)",
-    "An AI provider key (AI skills and Chat only)"
+    "A link (downloads) or a media file (transcripts)"
   ],
   "optionalInputs": [
     "Format, quality and container",
@@ -238,13 +237,6 @@
       "required": false,
       "whenToUse": "Only for videos that need a signed-in account.",
       "restrictions": "Shared with everyone using the app; expires over time."
-    },
-    {
-      "name": "AI provider key",
-      "description": "API key, model and (for custom services) Base URL of an AI service.",
-      "required": false,
-      "whenToUse": "AI skills, translation and Chat.",
-      "restrictions": "Shared with everyone using the app; uses that provider's credits."
     }
   ],
   "generationModes": [
@@ -293,7 +285,7 @@
       "useCase": "Doing several steps by asking in plain words."
     }
   ],
-  "modelCapabilities": "Downloads use yt-dlp with ffmpeg. Transcripts use speech models that run on the server: Whisper (Tiny, Base, Small, Medium, Turbo), SenseVoice, Parakeet TDT, FireRedASR, Qwen3-ASR and others, downloaded the first time they are used. AI skills and Chat use whichever AI provider and model you set up with your own key (OpenAI, Google, OpenRouter, Groq, Mistral, Ollama, LMStudio, xAI and other presets, or a custom OpenAI-compatible service).",
+  "modelCapabilities": "Downloads use yt-dlp with ffmpeg. Transcripts use speech models that run on the server: Whisper (Tiny, Base, Small, Medium, Turbo), SenseVoice, Parakeet TDT, FireRedASR, Qwen3-ASR and others, downloaded the first time they are used. AI skills and Chat run on OpenAI (GPT-5.4 mini by default) through SmartVid's own account; users do not choose a provider or enter a key.",
   "outputs": [
     "Video and audio files (stored on the server; open in a browser tab)",
     "Subtitle files",
@@ -332,7 +324,7 @@
     {
       "limitation": "No VidBee Cloud",
       "impact": "Cloud sign-in, credits and paid cloud transcription in the embedded app do not apply.",
-      "workaround": "Use local transcription and your own AI provider."
+      "workaround": "Transcription runs on the server and AI uses SmartVid's built-in OpenAI access."
     },
     {
       "limitation": "Cookies file only",
@@ -348,7 +340,7 @@
     "'SmartVidDownloader unavailable (<code>)': the server could not start a session; try again later.",
     "'This download needs a signed-in session. Set up cookies, then retry.': add a cookies file in Settings → Cookies.",
     "'Turn on One-Click Download to add multiple links at once': turn it on or paste one link.",
-    "'Set up an AI provider in Settings to run this skill.': add and Use a provider in Settings → Providers."
+    "'AI is not set up on this server yet': the server has no OpenAI key configured; contact SmartVid support."
   ],
   "troubleshootingSteps": [
     {
@@ -356,7 +348,7 @@
       "steps": [
         "Click 'Retry Download'.",
         "Open 'View logs' to read the error.",
-        "Click 'Troubleshoot' to have the agent explain it (needs an AI provider).",
+        "Click 'Troubleshoot' to have the agent explain it.",
         "If it mentions sign-in, set up a cookies file and retry."
       ]
     },
@@ -421,7 +413,7 @@
       "title": "Turn a talk into an article",
       "steps": [
         "Download and transcribe the talk.",
-        "Set up an AI provider.",
+        "Open the transcript sidebar (AI is already set up).",
         "Run 'Rewrite as an article' and 'Export as Markdown'."
       ]
     }
@@ -477,7 +469,7 @@
     },
     {
       "question": "Does transcription cost anything?",
-      "answer": "Transcription uses speech models on the server. AI skills and Chat use your own AI provider's credits."
+      "answer": "Transcription uses speech models on the server. AI skills and Chat run on SmartVid's OpenAI account; you don't need your own key."
     },
     {
       "question": "Can I download several videos at once?",
@@ -506,7 +498,7 @@
   "bestPractices": [
     "Only download content you have the right to use.",
     "Remove items without deleting files unless everyone agrees the file is no longer needed.",
-    "Keep AI provider keys and cookies files limited to accounts your team may share.",
+    "Keep cookies files limited to accounts your team may share.",
     "Check speaker labels before exporting subtitles."
   ],
   "relatedStudios": [
