@@ -132,6 +132,14 @@
         "thumbnail": "/guides/lip-sync-studio/overview.webp"
       },
       {
+        "slug": "smartviddownloader",
+        "name": "SmartVidDownloader",
+        "route": "media-hub",
+        "shortDescription": "Download videos and audio from links, then transcribe them and ask AI about them.",
+        "features": 18,
+        "thumbnail": "/thumbnails/pages/placeholder.webp"
+      },
+      {
         "slug": "storyboard-studio",
         "name": "Storyboard Studio",
         "route": "storyboard",

@@ -28,7 +28,8 @@ const CATEGORY_OVERRIDES = {
 
 // Knowledge files that get no public guide page (the in-app assistant still uses them).
 // smart-video-studio: the page does not open yet (missing stylesheet path, React mount, /api/model-registry).
-export const UNLISTED_GUIDES = new Set(['smart-video-studio']);
+// smartwarmupai: assistant only until its public name is cleared (see apps/smartwarmupai-brand/README.md).
+export const UNLISTED_GUIDES = new Set(['smart-video-studio', 'smartwarmupai']);
 
 // Slugs that should not just be the slugified studio name.
 const SLUG_OVERRIDES = {
@@ -115,8 +116,8 @@ function uniqueIds(names) {
  * @param {Record<string, {overview?: string, features?: Record<string,string>}>} shots
  *        captured screenshots keyed by slug (src/data/guideScreenshots.json)
  */
-export function buildGuides(kbByRoute, shots = {}) {
-  const routes = Object.keys(kbByRoute).filter((r) => !r.startsWith('_') && !UNLISTED_GUIDES.has(r)).sort();
+export function buildGuides(kbByRoute, shots = {}, { includeUnlisted = false } = {}) {
+  const routes = Object.keys(kbByRoute).filter((r) => !r.startsWith('_') && (includeUnlisted || !UNLISTED_GUIDES.has(r))).sort();
   const slugOf = {};
   for (const route of routes) slugOf[route] = SLUG_OVERRIDES[route] || slugify(kbByRoute[route].name || route);
 
@@ -154,6 +155,8 @@ export function buildGuides(kbByRoute, shots = {}) {
     return {
       slug,
       route,
+      // No public /studios page: the assistant shows it without guide links.
+      unlisted: UNLISTED_GUIDES.has(route),
       name,
       category: CATEGORY_OVERRIDES[route] || meta.category || 'Agents',
       shortDescription: kb.shortDescription || '',
