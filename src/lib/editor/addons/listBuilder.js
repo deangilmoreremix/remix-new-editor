@@ -30,8 +30,8 @@ import {
   POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, isTargetDesign,
 } from './pointerDesigns.js';
 import { leadFieldTokens, ESP_PROVIDERS, espName, espListLabel } from './leadClient.js';
-import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS } from './addonOverlay.js';
-import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, designThumb, applyOptinDesign } from './optinDesigns.js';
+import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS, buildOptinForm, backdropStyle } from './addonOverlay.js';
+import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, applyOptinDesign } from './optinDesigns.js';
 
 export const LIST_BUILDER_KINDS = {
   'list-builder': 'List Builder',
@@ -348,11 +348,33 @@ const TEXT_FIELDS = (personalizer) => [
   { key: 'popupDescriptionText', label: 'Pointer bubble: description', type: 'text', showIf: (o) => o.pointerEnabled },
 ];
 
-const designThumbFor = (design) => designThumb(design);
+// Picker tile: a real, scaled-down render of the design with its own wording and three boxes (cached: it never changes).
+const thumbCache = new Map();
+export function liveDesignThumb(design) {
+  if (typeof document === 'undefined') return '';
+  if (thumbCache.has(design.id)) return thumbCache.get(design.id);
+  const base = defaultOptin('list-builder');
+  const cfg = { ...base, ...applyOptinDesign(base, design), enabled: true, pointerEnabled: false, privacyDisclaimer: '' };
+  const form = buildOptinForm(cfg);
+  form.querySelectorAll('[data-step]').forEach((n) => { if (n.dataset.step !== '0') n.hidden = true; }); // first step of a stepped design
+  const wrap = document.createElement('div');
+  wrap.className = 'addon-overlay addon-overlay--optin';
+  wrap.style.background = backdropStyle(cfg, { preview: true });
+  wrap.appendChild(form);
+  const stage = document.createElement('div');
+  stage.className = 'addon-overlay-layer optin-mini';
+  stage.setAttribute('inert', '');
+  stage.setAttribute('aria-hidden', 'true');
+  stage.style.setProperty('--ovl-w', '640px');
+  stage.appendChild(wrap);
+  const html = `<span class="optin-mini-frame">${stage.outerHTML}</span>`;
+  thumbCache.set(design.id, html);
+  return html;
+}
 
 // 30 one-click designs, then every look option they set (all stay editable).
 const DESIGN_FIELDS = [
-  { key: 'designPreset', label: 'Design (one click sets colours, card, layout and steps — then tweak anything)', type: 'designPicker', designs: OPTIN_DESIGNS, categories: OPTIN_DESIGN_CATEGORIES, thumb: designThumbFor, applyDesign: applyOptinDesign },
+  { key: 'designPreset', label: 'Design (one click sets colours, card, layout and steps — then tweak anything)', type: 'designPicker', designs: OPTIN_DESIGNS, categories: OPTIN_DESIGN_CATEGORIES, thumb: liveDesignThumb, livePreview: true, applyDesign: applyOptinDesign },
   { key: 'brandName', label: 'Brand name next to the logo mark (empty = none)', type: 'text' },
   { key: 'brandIcon', label: 'Show the logo mark beside the brand name', type: 'toggle', showIf: (o) => !!o.brandName },
   { key: 'badgeIcon', label: 'Badge icon above the title', type: 'select', options: BADGE_ICONS },

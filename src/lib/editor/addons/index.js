@@ -31,5 +31,5 @@ export { BLEND_CATEGORIES, BLEND_ITEMS, blendItemToAddon, getBlendItem, blendThu
 export { END_SCREENS, CONNECT_FORMS, TEMPLATE_LIBRARIES, getTemplate, templateToPreset, templateStart, templatePreviewProject, unknownTemplateTypes } from './templateLibrary.js';
 export { openTemplateWindow } from './templateWindow.js';
 export { POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, getPointerDesign, isTargetDesign } from './pointerDesigns.js';
-export { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_BASE, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, applyOptinDesign, starterFields, getOptinDesign, safeDesignId, designThumb } from './optinDesigns.js';
+export { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_BASE, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, applyOptinDesign, starterFields, getOptinDesign, safeDesignId } from './optinDesigns.js';
 export { pickVariant, applyVariant, hasVariantB, variantFor } from './abTest.js';

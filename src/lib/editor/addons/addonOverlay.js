@@ -14,7 +14,7 @@
 
 import { pointerSvg, getPointerDesign, safeColor, HINT_STYLES } from './pointerDesigns.js';
 import { turnstileSiteKey, mountTurnstile } from '../publish/turnstile.js';
-import { safeDesignId } from './optinDesigns.js';
+import { safeDesignId, DESIGN_LAYOUT_IDS } from './optinDesigns.js';
 
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -326,6 +326,24 @@ export function resolveFieldLayout(count, wanted = 'auto') {
   return 'stacked';
 }
 
+/**
+ * Make the form's content fit its card: scale the text down (never below 50%) until nothing scrolls.
+ * Every size on the form is a % of the form's own font size, so one number scales all of it.
+ * Returns the scale used (1 = untouched); also left in form.dataset.fit.
+ */
+export function fitOptinForm(form) {
+  const box = form?.querySelector?.('.form-scrollable');
+  if (!box) return 1;
+  form.style.fontSize = '';
+  let scale = 1;
+  while (box.scrollHeight > box.clientHeight + 1 && scale > 0.5) {
+    scale = Math.round((scale - 0.05) * 100) / 100;
+    form.style.fontSize = `${scale * 100}%`;
+  }
+  form.dataset.fit = String(scale);
+  return scale;
+}
+
 /** Font stack with a fallback, so text stays readable while (or if) the web font loads. */
 const MONO_FONTS = /mono|code|courier/i;
 const SERIF_FONTS = /playfair|cinzel|bevan|serif/i;
@@ -357,7 +375,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   if (config.decorEnabled === false) form.dataset.decor = 'off';
   const designId = safeDesignId(config.designPreset);
   if (designId) form.dataset.design = designId;
-  const designLayout = ['split', 'side-card', 'sheet', 'chat'].includes(config.designLayout) ? config.designLayout : 'center';
+  const designLayout = DESIGN_LAYOUT_IDS.includes(config.designLayout) ? config.designLayout : 'center';
   form.dataset.dlayout = designLayout;
 
   const inner = document.createElement('div');
@@ -980,6 +998,7 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
   let step = 0;
   const submitBtn = form.querySelector('button[type="submit"]');
   const finalLabel = submitBtn?.textContent;
+  const fit = () => { if (wrap.isConnected) fitOptinForm(form); };
   const paintStep = () => {
     form.querySelectorAll('[data-step]').forEach((n) => { n.hidden = Number(n.dataset.step) !== step; });
     form.querySelectorAll('.optin-steps span').forEach((d, n) => d.classList.toggle('on', n === step));
@@ -988,6 +1007,7 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
     if (back) back.hidden = step === 0;
     if (submitBtn) submitBtn.textContent = step < stepsTotal - 1 ? (config.nextText || 'Next') : finalLabel;
     form.querySelector('[data-step]:not([hidden]) input, [data-step]:not([hidden]) select, [data-step]:not([hidden]) textarea')?.focus?.({ preventScroll: true });
+    fit();
   };
   const stepControls = (n) => Array.from(form.querySelectorAll(`[data-step="${n}"]`)).flatMap((node) => (node.matches('input,select,textarea') ? [node] : [...node.querySelectorAll('input,select,textarea')]));
   if (stepsTotal > 1) {
@@ -1030,6 +1050,12 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
     }
   });
   layer.appendChild(wrap);
+  // Whatever the video's size or the design, the content fits its card: fit now, and again when the video is resized.
+  requestAnimationFrame?.(fit);
+  if (typeof ResizeObserver !== 'undefined') {
+    const watch = new ResizeObserver(() => { if (!wrap.isConnected) { watch.disconnect(); return; } fit(); });
+    watch.observe(layer);
+  }
   if (onEditText && preview) attachTextEditing(wrap, onEditText);
   // Click-demo pointers need layout: place them on the Play button now.
   if (hint) {

@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
 import {
-  OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_BASE, getOptinDesign, safeDesignId, designThumb,
+  OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_BASE, getOptinDesign, safeDesignId,
   defaultOptin, buildOptinForm, listBuilderFields, renderAddonEditor, leadFormToOptin, applyOptinToLeadForm,
 } from '../index.js';
 
 const KINDS = ['list-builder', 'personalizer', 'lead-generator'];
+
+import { liveDesignThumb } from '../listBuilder.js';
 
 describe('30 opt-in designs', () => {
   it('ships 30 uniquely named designs, each in a known category', () => {
@@ -85,8 +87,23 @@ describe('30 opt-in designs', () => {
     expect(buildOptinForm({ ...defaultOptin(), ...getOptinDesign('neon-spotlight').patch }).style.background).toBe('');
   });
 
-  it('thumbnails render for every design', () => {
-    OPTIN_DESIGNS.forEach((d) => expect(designThumb(d)).toContain('optin-thumb'));
+  it('every picker tile is a real render of its own design (not a sketch), inert, and carries no live form controls a tile click could trigger', () => {
+    OPTIN_DESIGNS.forEach((d) => {
+      const html = liveDesignThumb(d);
+      const host = document.createElement('div');
+      host.innerHTML = html;
+      expect(host.querySelector(`form.retarget-form[data-design="${d.id}"]`), d.id).not.toBeNull();
+      expect(host.querySelector('.optin-mini').hasAttribute('inert')).toBe(true);
+      expect(host.querySelector('.retarget-caption').textContent.length).toBeGreaterThan(3);
+    });
+  });
+
+  it('the designs use a spread of different layouts, not one skeleton', () => {
+    const layouts = new Set(OPTIN_DESIGNS.map((d) => d.patch.designLayout));
+    expect(layouts.size).toBeGreaterThanOrEqual(10);
+    const perLayout = {};
+    OPTIN_DESIGNS.forEach((d) => { perLayout[d.patch.designLayout] = (perLayout[d.patch.designLayout] || 0) + 1; });
+    expect(Math.max(...Object.values(perLayout))).toBeLessThanOrEqual(14);
   });
 });
 

@@ -150,10 +150,10 @@ const COPY = {
 };
 
 // id, label, category, patch
-// The board is drawn with big type: captions ~1.6x and box/button text 88% of the form size (all still sliders).
+// The board is drawn with big type: captions ~1.35x and box/button text 72% of the form size (the form also shrinks itself if its content would not fit) (all still sliders).
 const d = (id, label, category, patch) => ({
   id, label, category,
-  patch: { ...DESIGN_BASE, designPreset: id, fontSize: 88, ...patch, captionFontSize: Math.min(200, Math.round((patch.captionFontSize ?? 76) * 1.6)), ...(EXTRA[id] || {}) },
+  patch: { ...DESIGN_BASE, designPreset: id, fontSize: 72, ...patch, captionFontSize: Math.min(200, Math.round((patch.captionFontSize ?? 76) * 1.35)), ...(EXTRA[id] || {}) },
   copy: { caption: 'Get Your Personalized Video', btnText: 'Play Video', ...(COPY[id] || {}) },
 });
 
@@ -231,14 +231,14 @@ export const OPTIN_DESIGNS = [
 
   // ---------------------------------------------------------- glass & neon
   d('aurora-glass', 'Aurora Glass', 'glass', {
-    fontFamily: 'Poppins', backgroundColor: '#140a3a', backgroundColor2: '#07102e', innerWidth: 62, innerHeight: 90,
+    designLayout: 'side-card', fontFamily: 'Poppins', backgroundColor: '#140a3a', backgroundColor2: '#07102e', innerWidth: 46, innerHeight: 88,
     innerColor: '#5b5bd6', innerOpacity: 24, cardRadius: 28, cardBorderColor: '#a78bfa', cardBorderWidth: 2, cardGlow: '#8b5cf6', cardBlur: 10,
     captionFontSize: 72, fieldWidth: 80, ...darkInputs, inputBackground: '#0b1030', inputOpacity: 55, inputBorderColor: '#4cc9f0', inputBorderRadius: 10,
     buttonBackground: '#4f8cff', buttonBackground2: '#a855f7', buttonBorderRadius: 30, btnBottomBorder: 'none',
     subtitle: 'Enter your details below and click play',
   }),
   d('holographic-card', 'Holographic Card', 'glass', {
-    fontFamily: 'Poppins', backgroundColor: '#08122b', backgroundColor2: '#1a0b3f', innerWidth: 64, innerHeight: 86,
+    designLayout: 'card-left', fontFamily: 'Poppins', backgroundColor: '#08122b', backgroundColor2: '#1a0b3f', innerWidth: 46, innerHeight: 88,
     innerColor: '#0b1230', innerOpacity: 88, cardRadius: 26, cardBorderColor: '#7ee7ff', cardBorderWidth: 2, cardGlow: '#22d3ee', cardBlur: 10,
     captionFontSize: 74, fieldWidth: 80, ...darkInputs, inputBorderColor: '#7ee7ff',
     buttonBackground: '#22d3ee', buttonBackground2: '#a855f7', buttonBorderRadius: 22, btnBottomBorder: 'none',
@@ -262,19 +262,21 @@ export const OPTIN_DESIGNS = [
 
   // ---------------------------------------------------------- light & soft
   d('editorial-minimalist', 'Editorial Minimalist', 'light', {
-    fontFamily: 'Playfair Display', fontColor: '#111111', backgroundColor: '#ffffff', backgroundColor2: '#f3f4f6', bgAngle: 180, innerWidth: 60, innerHeight: 90,
+    designLayout: 'drawer-left', fontFamily: 'Playfair Display', fontColor: '#111111', backgroundColor: '', backdropColor: '#000000', backdropOpacity: 40,
+    innerWidth: 44, innerHeight: 100, innerColor: '#ffffff', innerOpacity: 100,
     captionAlignment: 'left', captionFontSize: 84, fieldLayout: 'stacked', fieldWidth: 100, fieldAlign: 'left',
     inputBackground: '#ffffff', inputBorderColor: '#111111', inputFontColor: '#111111', inputBorderRadius: 2, placeholderColor: '#555555',
     buttonBackground: '#111111', buttonFontColor: '#ffffff', buttonHoverColor: '#333333', buttonBorderRadius: 2, btnBottomBorder: 'none',
     subtitle: 'Fill in your details to start watching',
   }),
   d('floating-pill-inputs', 'Floating Pill Inputs', 'light', {
-    fontFamily: 'Poppins', backgroundColor: '#1b1155', backgroundColor2: '#3b1f8f', innerWidth: 64, innerHeight: 90,
+    designLayout: 'corner', fontFamily: 'Poppins', backgroundColor: '', backdropColor: '#05030f', backdropOpacity: 25, innerWidth: 42, innerHeight: 72,
+    innerColor: '#2a1b7a', innerOpacity: 94, cardRadius: 24, cardGlow: '#7c3aed',
     captionFontSize: 72, fieldLayout: 'stacked', fieldWidth: 78, inputBackground: '#ffffff', inputOpacity: 88, inputFontColor: '#2a2160', inputBorderColor: 'transparent', inputBorderRadius: 30, placeholderColor: '#6b5fb0', inputIcons: true,
     buttonBackground: '#a855f7', buttonBackground2: '#7c3aed', buttonBorderRadius: 30, btnBottomBorder: 'none',
   }),
   d('soft-pastel-frost', 'Soft Pastel Frost', 'light', {
-    fontFamily: 'Poppins', fontColor: '#3b2a73', backgroundColor: '#c9d6ff', backgroundColor2: '#f8c8e8', innerWidth: 64, innerHeight: 90,
+    designLayout: 'card-left', fontFamily: 'Poppins', fontColor: '#3b2a73', backgroundColor: '#c9d6ff', backgroundColor2: '#f8c8e8', innerWidth: 46, innerHeight: 88,
     innerColor: '#ffffff', innerOpacity: 55, cardRadius: 22, cardBorderColor: '#ffffff', cardBorderWidth: 2, cardBlur: 14,
     captionFontSize: 72, fieldWidth: 82, inputBackground: '#ffffff', inputOpacity: 80, inputBorderColor: '#e0d7ff', inputFontColor: '#3b2a73', inputBorderRadius: 10, placeholderColor: '#8b7bb8', inputIcons: true,
     buttonBackground: '#ec4899', buttonBackground2: '#a855f7', buttonBorderRadius: 24, btnBottomBorder: 'none',
@@ -321,7 +323,8 @@ export const OPTIN_DESIGNS = [
     subtitle: 'Enter your details and click play',
   }),
   d('blueprint-grid', 'Blueprint Grid', 'bold', {
-    fontFamily: 'Share Tech Mono', backgroundColor: '#0a2a6b', backgroundColor2: '#06174a', bgAngle: 160, innerWidth: 72, innerHeight: 92,
+    designLayout: 'drawer-right', fontFamily: 'Share Tech Mono', backgroundColor: '', backdropColor: '#031a4a', backdropOpacity: 35, innerWidth: 44, innerHeight: 100,
+    innerColor: '#0a2a6b', innerOpacity: 94, cardBorderWidth: 1, cardBorderColor: '#93c5fd',
     captionFontSize: 72, fieldLayout: 'stacked', fieldWidth: 84,
     inputBackground: '#0a2a6b', inputOpacity: 60, inputFontColor: '#e0f0ff', inputBorderColor: '#93c5fd', inputBorderRadius: 0, placeholderColor: '#9ec5f0', inputIcons: true,
     buttonBackground: '#1d6bff', buttonHoverColor: '#1557d6', buttonBorderRadius: 2, btnBottomBorder: '#93c5fd',
@@ -332,7 +335,8 @@ export const OPTIN_DESIGNS = [
     buttonBackground: '#facc15', buttonFontColor: '#000000', buttonHoverColor: '#eab308', buttonBorderRadius: 20, btnBottomBorder: 'none',
   }),
   d('horizontal-ribbon', 'Horizontal Ribbon', 'bold', {
-    fontFamily: 'Poppins', backgroundColor: '#2a0b5e', backgroundColor2: '#7c2d8a', bgAngle: 150, innerWidth: 86, innerHeight: 80,
+    designLayout: 'banner', fontFamily: 'Poppins', backgroundColor: '', backdropColor: '#12031f', backdropOpacity: 45, innerWidth: 94, innerHeight: 58,
+    innerColor: '#3b0f7a', innerOpacity: 92, cardRadius: 16,
     captionFontSize: 74, fieldLayout: 'cols', fieldWidth: 100,
     inputBackground: '#ffffff', inputOpacity: 92, inputBorderColor: 'transparent', inputFontColor: '#2a2160', inputBorderRadius: 8, placeholderColor: '#6b5fb0', inputIcons: true,
     buttonBackground: '#ec4899', buttonHoverColor: '#db2777', buttonBorderRadius: 4, btnBottomBorder: 'none',
@@ -353,8 +357,8 @@ export const OPTIN_DESIGNS = [
 
   // ---------------------------------------------------------------- premium
   d('luxe-platinum', 'Luxe Platinum', 'premium', {
-    fontFamily: 'Playfair Display', fontColor: '#1f2937', backgroundColor: '#e5e7eb', backgroundColor2: '#9ca3af', bgAngle: 135, innerWidth: 62, innerHeight: 90,
-    innerColor: '#ffffff', innerOpacity: 70, cardRadius: 24, cardBorderColor: '#ffffff', cardBorderWidth: 2, cardBlur: 6,
+    designLayout: 'drawer-right', fontFamily: 'Playfair Display', fontColor: '#1f2937', backgroundColor: '#e5e7eb', backgroundColor2: '#9ca3af', bgAngle: 135, innerWidth: 46, innerHeight: 100,
+    innerColor: '#ffffff', innerOpacity: 78, cardRadius: 0, cardBorderColor: '#ffffff', cardBorderWidth: 2, cardBlur: 6,
     captionFontSize: 76, fieldWidth: 82, inputBackground: '#ffffff', inputBorderColor: '#d1d5db', inputFontColor: '#1f2937', inputBorderRadius: 4, placeholderColor: '#6b7280', inputIcons: true,
     buttonBackground: '#c9a24a', buttonBackground2: '#e7d08a', buttonFontColor: '#3b2a05', buttonHoverColor: '#b58f3b', buttonBorderRadius: 4, btnBottomBorder: 'none',
   }),
@@ -371,23 +375,15 @@ export const DESIGN_LAYOUTS = [
   ['center', 'Centered'],
   ['split', 'Split (title left, form right)'],
   ['side-card', 'Card on the right'],
+  ['card-left', 'Card on the left'],
+  ['drawer-right', 'Panel down the right side'],
+  ['drawer-left', 'Panel down the left side'],
   ['sheet', 'Bottom sheet'],
-  ['chat', 'Chat (one question at a time)'],
+  ['corner', 'Small pop-up in the corner'],
+  ['banner', 'Wide banner across the middle'],
+  ['chat', 'Chat (a question before each box)'],
 ];
-
-/** Mini preview for the design picker: background, card and button drawn from the preset's own colours. */
-export function designThumb(design) {
-  const p = design.patch;
-  const bg = p.backgroundColor ? (p.backgroundColor2 ? `linear-gradient(${p.bgAngle}deg,${p.backgroundColor},${p.backgroundColor2})` : p.backgroundColor) : (p.backdropColor || '#111');
-  const card = p.innerOpacity > 0 || p.cardBorderWidth ? `background:${p.innerOpacity > 0 ? p.innerColor : 'transparent'};border:1px solid ${p.cardBorderColor || 'transparent'};` : '';
-  const btn = p.buttonBackground2 ? `linear-gradient(90deg,${p.buttonBackground},${p.buttonBackground2})` : p.buttonBackground;
-  const split = p.designLayout === 'split';
-  const caption = `<i style="display:block;height:4px;width:${split ? 34 : 60}%;background:${p.captionColor || p.fontColor};opacity:.9;border-radius:2px;margin:0 ${split ? 'auto 0 0' : 'auto'}"></i>`;
-  const field = `<i style="display:block;height:5px;background:${p.inputBackground};opacity:${Math.max(0.25, p.inputOpacity / 100)};border-radius:${Math.min(4, p.inputBorderRadius)}px;margin:2px 0"></i>`;
-  const form = `<div style="flex:1">${field}${field}<i style="display:block;height:6px;background:${btn};border-radius:${Math.min(4, p.buttonBorderRadius)}px;margin-top:3px"></i></div>`;
-  return `<span class="optin-thumb" aria-hidden="true" style="display:block;width:100%;aspect-ratio:16/10;border-radius:5px;overflow:hidden;background:${bg};padding:10% 12%;box-sizing:border-box"><span style="display:flex;gap:6%;align-items:center;height:100%;${card}border-radius:${Math.min(6, (p.cardRadius || 2))}px;padding:6%;box-sizing:border-box">${split ? `<span style="flex:.8">${caption}</span>${form}` : `<span style="flex:1">${caption}<span style="display:block;margin-top:5px">${field}${field}<i style="display:block;height:6px;background:${btn};border-radius:${Math.min(4, p.buttonBorderRadius)}px;margin-top:3px"></i></span></span>`}</span></span>`;
-}
-
+export const DESIGN_LAYOUT_IDS = DESIGN_LAYOUTS.map(([id]) => id);
 
 // ------------------------------------------------------------- picking a design
 

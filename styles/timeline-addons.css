@@ -1651,3 +1651,21 @@
 .addon-overlay-layer .retarget-form .optin-stats { flex-wrap: nowrap; }
 .addon-overlay-layer .retarget-form .optin-stats span { font-size: 54%; white-space: nowrap; }
 .addon-overlay-layer .retarget-form .optin-stats span + span { padding-left: .6em; }
+
+/* ---- more layouts: a panel down a side, a card on the left, a corner pop-up, a wide banner ---- */
+.addon-overlay-layer .retarget-form[data-dlayout="drawer-right"] .form-inner { margin: 0 0 0 auto !important; height: 100% !important; border-radius: 0 !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="drawer-left"] .form-inner { margin: 0 auto 0 0 !important; height: 100% !important; border-radius: 0 !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="card-left"] .form-inner { margin: auto auto auto 4% !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="corner"] .form-inner { margin: auto 3% 4% auto !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="banner"] .form-inner { margin: auto !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="drawer-left"] .retarget-caption,
+.addon-overlay-layer .retarget-form[data-dlayout="drawer-right"] .retarget-caption { margin-bottom: .6em; }
+/* the editorial rule runs down the panel's inner edge */
+.addon-overlay-layer .retarget-form[data-design="editorial-minimalist"] .form-inner::before { left: auto; right: 0; top: 0; bottom: 0; width: 3px; }
+
+/* picker tile = a real scaled-down render of the design */
+.addon-designs--live { grid-template-columns: 1fr; gap: 8px; }
+.addon-designs--live .addon-design { padding: 6px; align-items: stretch; }
+.optin-mini-frame { display: block; position: relative; width: 230px; max-width: 100%; height: 129px; margin: 0 auto; overflow: hidden; border-radius: 6px; background: linear-gradient(120deg, #1c2b46, #7a4a2b 60%, #162036); }
+.optin-mini-frame .optin-mini { position: absolute; inset: auto; left: 0; top: 0; width: 640px; height: 360px; zoom: .36; pointer-events: none; }
+.addon-designs--live .addon-design > span:last-child { text-align: center; font-weight: 600; }

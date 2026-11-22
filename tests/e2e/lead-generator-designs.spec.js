@@ -97,10 +97,21 @@ test('the Lead Generator panel has a Design tab with all 30 designs', async () =
   await expect(page.locator('.addon-panel [data-design-pick]')).toHaveCount(30);
 });
 
+test('the picker shows each design as a real preview of itself', async () => {
+  await panelTab(page, 'Design').click();
+  await expect(page.locator('.addon-panel .addon-design .optin-mini')).toHaveCount(30);
+  const ids = await page.locator('.addon-panel .addon-design').evaluateAll((els) => els.map((t) => [t.dataset.designPick, t.querySelector('form')?.dataset.design]));
+  ids.forEach(([tile, shown]) => expect(shown).toBe(tile));
+  // distinct pictures: no two tiles have the same background + card + button styling and layout
+  const looks = await page.locator('.addon-panel .addon-design .optin-mini form').evaluateAll((forms) => forms.map((f) => [f.dataset.dlayout, f.style.background, f.querySelector('.form-inner').style.cssText, f.querySelector('button').style.background].join('~')));
+  expect(new Set(looks).size).toBe(30);
+});
+
 test('every one of the 30 designs can be picked and is drawn on the video', async () => {
   const ids = await page.locator('.addon-panel [data-design-pick]').evaluateAll((els) => els.map((e) => e.dataset.designPick));
   expect(ids).toHaveLength(30);
   if (SHOTS) fs.mkdirSync(SHOTS, { recursive: true });
+  const seen = [];
   for (const [i, id] of ids.entries()) {
     await pickDesign(id);
     // the picked tile is marked, and the form on the video has the design's caption, boxes and button
@@ -108,8 +119,25 @@ test('every one of the 30 designs can be picked and is drawn on the video', asyn
     await expect(form(page).locator('.retarget-caption')).not.toBeEmpty();
     await expect(form(page).locator('button[type="submit"]')).toBeVisible();
     expect(await form(page).locator('input, select, textarea').count()).toBeGreaterThanOrEqual(3);
+    // it FITS: the Play button is fully inside the design's card and the card inside the video, with the text scaled by at most 40%
+    await expect.poll(async () => Number(await form(page).getAttribute('data-fit') || 0)).toBeGreaterThan(0);
+    const m = await page.evaluate((viewer) => {
+      const f = document.querySelector(`${viewer} form.retarget-form`);
+      const r = (el) => { const b = el.getBoundingClientRect(); return { x: b.x, y: b.y, w: b.width, h: b.height, r: b.right, b: b.bottom }; };
+      const stage = r(f.parentElement); const card = r(f.querySelector('.form-inner'));
+      return { stage, card, btn: r(f.querySelector('button[type="submit"]')), fit: Number(f.dataset.fit), layout: f.dataset.dlayout, boxes: f.querySelector('.input-wrapper-container')?.dataset.layout };
+    }, VIEWER);
+    expect(m.btn.b, `${id}: Play button is cut off`).toBeLessThanOrEqual(m.card.b + 2);
+    expect(m.btn.y, `${id}: Play button is above its card`).toBeGreaterThanOrEqual(m.card.y - 2);
+    expect(m.card.r, `${id}: card is outside the video`).toBeLessThanOrEqual(m.stage.r + 2);
+    expect(m.fit, `${id}: text had to shrink to ${m.fit}`).toBeGreaterThanOrEqual(0.6);
+    seen.push({ id, sig: [m.layout, m.boxes, Math.round((m.card.x - m.stage.x) / m.stage.w * 8), Math.round(m.card.w / m.stage.w * 8), Math.round(m.card.h / m.stage.h * 8)].join('|'), fit: m.fit });
     if (SHOTS) await form(page).locator('xpath=..').screenshot({ path: path.join(SHOTS, `${String(i + 1).padStart(2, '0')}-${id}.png`) });
   }
+  // They really look different: layout, box arrangement and where / how big the card is vary across the 30.
+  const signatures = new Set(seen.map((x) => x.sig));
+  console.log(`distinct layout signatures: ${signatures.size} / 30; text scale used: ${seen.map((x) => `${x.id}=${x.fit}`).join(' ')}`);
+  expect(signatures.size).toBeGreaterThanOrEqual(18);
   expect(pageErrors).toEqual([]);
 });
 
