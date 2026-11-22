@@ -245,19 +245,55 @@ describe('calendar weekday labels', () => {
 
 describe('booking calendar (Cal.diy embed)', () => {
   const one = (props, preview = false) => renderToString(<PageContext.Provider value={{ page, tokens: {}, handlers: {}, preview }}><Render config={editorConfig} data={{ root: { props: {} }, content: [{ type: 'BookingCalendar', props: { id: 'b', title: 'Book', ...props } }], zones: {} }} /></PageContext.Provider>);
-  it('renders the #book section when a host and link are set', () => {
-    const out = one({ host: 'https://book.example.com', link: 'pro/30min' });
+  it('inline: renders the #book section when a host and link are set', () => {
+    const out = one({ mode: 'inline', host: 'https://book.example.com', link: 'pro/30min' });
     expect(out).toContain('id="book"');
     expect(out).toContain('pk-booking-embed');
   });
   it('renders nothing on the live page without a valid host and link, and a hint in the editor', () => {
-    expect(one({ host: '', link: 'pro/30min' })).not.toContain('id="book"');
-    expect(one({ host: 'javascript:alert(1)', link: 'pro/30min' })).not.toContain('id="book"');
-    expect(one({ host: 'http://evil.example.com', link: 'pro/30min' })).not.toContain('id="book"');
-    expect(one({ host: 'https://book.example.com', link: '../x?y' })).not.toContain('id="book"');
-    expect(one({ host: '', link: '' }, true)).toContain('Add your Cal.diy address');
+    for (const mode of ['inline', 'popup']) {
+      expect(one({ mode, host: '', link: 'pro/30min' })).not.toContain('id="book"');
+      expect(one({ mode, host: 'javascript:alert(1)', link: 'pro/30min' })).not.toContain('id="book"');
+      expect(one({ mode, host: 'http://evil.example.com', link: 'pro/30min' })).not.toContain('id="book"');
+      expect(one({ mode, host: 'https://book.example.com', link: '../x?y' })).not.toContain('id="book"');
+    }
+    expect(one({ mode: 'inline', host: '', link: '' }, true)).toContain('Add your Cal.diy address');
+    expect(one({ mode: 'popup', host: '', link: '' }, true)).toContain('Booking pop-up');
   });
   it('allows http only for localhost testing', () => {
-    expect(one({ host: 'http://localhost:3000', link: 'pro/30min' })).toContain('id="book"');
+    expect(one({ mode: 'inline', host: 'http://localhost:3000', link: 'pro/30min' })).toContain('id="book"');
+  });
+  it('popup (the default) draws nothing on the live page', () => {
+    expect(one({ host: 'https://book.example.com', link: 'pro/30min' })).not.toContain('pk-booking');
+  });
+});
+
+describe('booking pop-up opens from the page buttons', () => {
+  it('opens the Cal modal for #book links and "Book ..." buttons that link to the form, and for nothing else', async () => {
+    const { createRoot } = await import('react-dom/client');
+    const { act } = await import('react');
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+    const calls = [];
+    window.Cal = (...a) => calls.push(a);
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const mk = (href, text) => `<a class="pk-btn" href="${href}">${text}</a>`;
+    box.innerHTML = `<div id="host"></div>${mk('#lead', 'Book a 15-Min Strategy Call')}${mk('#book', 'Pick a time')}${mk('#lead', 'Get My Demo')}${mk('https://x.example.com', 'Book now')}${mk('#lead', 'Schedule a Live Demo')}`;
+    const root = createRoot(box.querySelector('#host'));
+    await act(async () => { root.render(<PageContext.Provider value={{ page, tokens: {}, handlers: {}, preview: false }}><Render config={editorConfig} data={{ root: { props: {} }, content: [{ type: 'BookingCalendar', props: { id: 'b', mode: 'popup', host: 'https://book.example.com', link: 'pro/30min' } }], zones: {} }} /></PageContext.Provider>); });
+    const links = [...box.querySelectorAll('a')];
+    const clickAll = () => links.map((a) => { const ev = new MouseEvent('click', { bubbles: true, cancelable: true }); a.dispatchEvent(ev); return ev.defaultPrevented; });
+    expect(calls.some((c) => c[0] === 'preload')).toBe(true);
+    const prevented = clickAll();
+    expect(prevented).toEqual([true, true, false, false, true]);
+    const modals = calls.filter((c) => c[0] === 'modal');
+    expect(modals).toHaveLength(3);
+    expect(modals[0][1]).toMatchObject({ calLink: 'pro/30min', calOrigin: 'https://book.example.com' });
+    await act(async () => { root.unmount(); });
+    calls.length = 0;
+    expect(clickAll()).toEqual([false, false, false, false, false]);
+    expect(calls.filter((c) => c[0] === 'modal')).toHaveLength(0);
+    delete window.Cal;
+    box.remove();
   });
 });

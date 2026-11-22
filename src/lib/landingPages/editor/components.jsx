@@ -617,21 +617,49 @@ function loadCalEmbed(libUrl) {
   })(window, libUrl, 'init');
 }
 
-export function BookingCalendar({ title, text, host, link, height = 680 }) {
+// Buttons that mean "book a time": the design's own "Book a ... Call" / "Schedule a ..." buttons (they link to the form).
+const BOOK_WORDS = /\b(book|booking|schedule)\b/i;
+const BOOK_TARGETS = /^#(book|lead|contact)$/i;
+
+export function BookingCalendar({ title, text, host, link, height = 680, mode = 'popup', catchButtons = 'yes' }) {
   const t = useTokens();
   const { preview } = usePage();
   const ref = useRef(null);
   const origin = calHost(host);
   const slug = CAL_LINK.test(String(link || '').trim()) ? String(link).trim() : '';
   const ready = !!(origin && slug);
+  const popup = mode !== 'inline';
   const h = Math.min(1200, Math.max(400, Number(height) || 680));
   useEffect(() => {
-    if (!ready || preview || !ref.current || typeof window === 'undefined') return;
+    if (!ready || preview || typeof window === 'undefined') return undefined;
     loadCalEmbed(`${origin}/embed/embed.js`);
     window.Cal('init', { origin });
-    window.Cal('inline', { elementOrSelector: ref.current, calLink: slug, layout: 'month_view' });
-    window.Cal('ui', { hideEventTypeDetails: false, layout: 'month_view' });
-  }, [ready, preview, origin, slug]);
+    if (!popup) {
+      if (!ref.current) return undefined;
+      window.Cal('inline', { elementOrSelector: ref.current, calLink: slug, layout: 'month_view' });
+      window.Cal('ui', { hideEventTypeDetails: false, layout: 'month_view' });
+      return undefined;
+    }
+    // Pop-up: load the booking page in the background so the modal opens instantly, then open it from the page's booking buttons.
+    window.Cal('preload', { calLink: slug, type: 'modal', calOrigin: origin });
+    const open = (e) => {
+      const a = e.target?.closest?.('a');
+      if (!a) return;
+      const href = String(a.getAttribute('href') || '').trim();
+      const isBook = href.toLowerCase() === '#book' || (catchButtons !== 'no' && BOOK_TARGETS.test(href) && BOOK_WORDS.test(a.textContent || ''));
+      if (!isBook) return;
+      e.preventDefault();
+      e.stopPropagation();
+      window.Cal('modal', { calLink: slug, calOrigin: origin, config: { layout: 'month_view' } });
+    };
+    document.addEventListener('click', open, true);
+    return () => document.removeEventListener('click', open, true);
+  }, [ready, preview, popup, catchButtons, origin, slug]);
+  if (popup) {
+    // Nothing is drawn on the page itself; the editor shows a small note so the section can be found and edited.
+    if (!preview) return null;
+    return <section className="pk-booking pk-booking--popup" id="book"><p className="pk-booking-empty">{ready ? 'Booking pop-up: opens from your "Book ..." buttons on the live page.' : 'Booking pop-up: add your Cal.diy address and booking link.'}</p></section>;
+  }
   if (!ready && !preview) return null;
   return (
     <section className="pk-booking pk-outreach-calendar" id="book">

@@ -130,9 +130,17 @@ export const editorConfig = {
     CtaBar: { label: 'Bottom button bar', fields: { text: T('Text beside the button (empty = button only)'), label: T('Button text'), url: T('Link (https, mailto:, tel: or #lead)'), icon: iconField, icons: { type: 'array', label: 'Social icons (button-only bar)', arrayFields: { icon: iconField, url: T('Link (https)') }, getItemSummary: (i) => i.icon || 'Icon', defaultItemProps: { icon: 'facebook', url: '' } } }, defaultProps: { text: '', label: 'Book a Free Consultation', url: '#lead', icon: 'calendar', icons: [] }, render: (p) => <C.CtaBar {...p} /> },
     Footer: { label: 'Footer', fields: { text: T('Footer text'), links: linkArray('Footer links') }, defaultProps: { text: 'Sent by {{sender|us}} · {{brand|your brand}}', links: [] }, render: (p) => <C.Footer {...p} /> },
     BookingCalendar: {
-      label: 'Booking calendar (Cal.diy)',
-      fields: { title: T('Heading (wrap words in [[double brackets]] to highlight)'), text: T('Text under the heading'), host: T('Your Cal.diy address (https://...)'), link: T('Booking link on it (e.g. pro/30min)'), height: { type: 'number', label: 'Height in pixels (400-1200)' } },
-      defaultProps: { title: 'Pick a [[time]] that works for you', text: '', host: '', link: '', height: 680 },
+      label: 'Booking calendar (Cal.diy pop-up or inline)',
+      fields: {
+        mode: { type: 'radio', label: 'Show as', options: [{ label: 'Pop-up from the booking buttons', value: 'popup' }, { label: 'Calendar on the page', value: 'inline' }] },
+        host: T('Your Cal.diy address (https://...)'),
+        link: T('Booking link on it (e.g. pro/30min)'),
+        catchButtons: { type: 'radio', label: 'Pop-up opens from buttons named "Book..." / "Schedule..."', options: [{ label: 'Yes', value: 'yes' }, { label: 'Only links to #book', value: 'no' }] },
+        title: T('Heading (inline only; wrap words in [[double brackets]] to highlight)'),
+        text: T('Text under the heading (inline only)'),
+        height: { type: 'number', label: 'Height in pixels, inline only (400-1200)' },
+      },
+      defaultProps: { mode: 'popup', host: '', link: '', catchButtons: 'yes', title: 'Pick a [[time]] that works for you', text: '', height: 680 },
       render: (p) => <C.BookingCalendar {...p} />,
     },
     OutreachActions: {
