@@ -85,3 +85,29 @@ describe('muapiStudioTransport', () => {
     expect(calls[1].init.headers).toEqual({ 'x-api-key': 'user-key' });
   });
 });
+
+describe('muapiStudioTransport failures', () => {
+  const make = (fetchImpl) => createMuapiStudioFetch({ proxyUrl: PROXY, getKey: () => 'k', fetchImpl });
+
+  it('returns 502 when the network fails', async () => {
+    const res = await make(async () => { throw new TypeError('Failed to fetch'); })(`${STUDIO_BASE}/api/v1/models`);
+    expect(res.status).toBe(502);
+  });
+
+  it('returns 504 when the proxy hangs past the timeout', async () => {
+    const hang = (_u, init) => new Promise((_r, reject) => init.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError'))));
+    const vi_ = await import('vitest');
+    vi_.vi.useFakeTimers();
+    const p = make(hang)(`${STUDIO_BASE}/api/v1/models`);
+    await vi_.vi.advanceTimersByTimeAsync(61000);
+    expect((await p).status).toBe(504);
+    vi_.vi.useRealTimers();
+  });
+
+  it('rethrows when the caller aborts', async () => {
+    const ac = new AbortController();
+    ac.abort();
+    const f = make(async () => { throw new DOMException('Aborted', 'AbortError'); });
+    await expect(f(`${STUDIO_BASE}/api/v1/models`, { signal: ac.signal })).rejects.toThrow();
+  });
+});

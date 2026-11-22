@@ -20,6 +20,7 @@ import { SUPABASE_PROXY_BODY_LIMIT_BYTES } from './editor/uploadLimits.js';
 export const STUDIO_BASE = '/__muapi-studio';
 
 const DIRECT_UPLOAD_URL = 'https://api.muapi.ai/api/v1/upload_file';
+const PROXY_TIMEOUT_MS = 60000;
 
 // The proxy only uses generationType to pick GET (poll/list) or POST (everything else).
 const KIND_TO_GENERATION_TYPE = {
@@ -89,11 +90,24 @@ export function createMuapiStudioFetch({
       try { params = init.body ? JSON.parse(String(init.body)) : {}; } catch { return jsonResponse(400, { error: 'Invalid JSON body' }); }
     }
 
-    return fetchImpl(proxyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': key },
-      body: JSON.stringify({ endpoint, params, generationType, studioType: 'muapi-studio', ...(apiMethod ? { apiMethod } : {}) }),
-      signal: init.signal,
-    });
+    // Bound the wait and turn network failures into a response the Studio can show.
+    const timeout = new AbortController();
+    const timer = setTimeout(() => timeout.abort(), PROXY_TIMEOUT_MS);
+    const signal = init.signal && typeof AbortSignal.any === 'function' ? AbortSignal.any([init.signal, timeout.signal]) : (init.signal || timeout.signal);
+    try {
+      return await fetchImpl(proxyUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': key },
+        body: JSON.stringify({ endpoint, params, generationType, studioType: 'muapi-studio', ...(apiMethod ? { apiMethod } : {}) }),
+        signal,
+      });
+    } catch (err) {
+      if (init.signal?.aborted) throw err; // caller cancelled: keep the abort semantics
+      return timeout.signal.aborted
+        ? jsonResponse(504, { error: 'The MuAPI proxy timed out. Try again.' })
+        : jsonResponse(502, { error: 'Could not reach the MuAPI proxy. Check your connection.' });
+    } finally {
+      clearTimeout(timer);
+    }
   };
 }

@@ -31,6 +31,7 @@ export function MuapiStudioPage() {
   let root = null;
   let disposed = false;
   let settingsOpen = false; // don't stack a second Settings modal on top of ours
+  let settingsEl = null;
 
   (async () => {
     try {
@@ -38,8 +39,9 @@ export function MuapiStudioPage() {
         import('react'),
         import('react-dom/client'),
         import('muapi-studio'),
-        import('muapi-studio/style.css'),
       ]);
+      // Styles are cosmetic: a failed CSS fetch must not stop the Studio from mounting.
+      await import('muapi-studio/style.css').catch((e) => console.warn('[muapi-studio] stylesheet failed to load', e));
       if (disposed) return;
 
       root = createRoot(host);
@@ -56,7 +58,8 @@ export function MuapiStudioPage() {
           onRequestApiKey: () => {
             if (settingsOpen) return;
             settingsOpen = true;
-            document.body.appendChild(SettingsModal(() => { settingsOpen = false; keyVersion += 1; render(); }));
+            settingsEl = SettingsModal(() => { settingsOpen = false; settingsEl = null; keyVersion += 1; render(); });
+            document.body.appendChild(settingsEl);
           },
           theme: 'lime',
           layout: 'rail',
@@ -73,6 +76,8 @@ export function MuapiStudioPage() {
   // The router calls cleanup() when navigating away.
   container.cleanup = () => {
     disposed = true;
+    settingsEl?.remove();
+    settingsEl = null;
     try { root?.unmount(); } catch { /* already unmounted */ }
     root = null;
   };
