@@ -1,0 +1,47 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      SMARTVID_API_HOST: 0.0.0.0
+      SMARTVID_API_PORT: ${SMARTVID_API_PORT:-3100}
+      SMARTVID_DOWNLOAD_DIR: /data/downloads
+      SMARTVID_DATA_DIR: /data/smartvid
+      SMARTVID_HISTORY_STORE_PATH: /data/smartvid/smartvid.db
+    ports:
+      - "${SMARTVID_API_PORT:-3100}:${SMARTVID_API_PORT:-3100}"
+    volumes:
+      # Set SMARTVID_DOWNLOAD_DIR_HOST=/path/on/your/NAS to use a bind mount.
+      - ${SMARTVID_DOWNLOAD_DIR_HOST:-smartvid-downloads}:/data/downloads
+      - smartvid-data:/data/smartvid
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:${SMARTVID_API_PORT:-3100}/health > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      SMARTVID_API_URL_INTERNAL: http://api:${SMARTVID_API_PORT:-3100}
+      SMARTVID_WEB_HOST: 0.0.0.0
+      SMARTVID_WEB_PORT: 3000
+      # Self-hosting behind a reverse proxy? Allow your domain through Vite's
+      # host check (GitHub issue #404): set "*" to allow any host, or a
+      # comma-separated list like "smartvid.example.com".
+      SMARTVID_ALLOWED_HOSTS: ${SMARTVID_ALLOWED_HOSTS:-}
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${SMARTVID_WEB_PORT:-3000}:3000"
+    restart: unless-stopped
+
+volumes:
+  smartvid-downloads:
+  smartvid-data:

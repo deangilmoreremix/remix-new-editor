@@ -34,7 +34,7 @@ const ROUTE_MAP = {
   'Photo Studio': 'photo-studio',
   'Brand Photo Studio': 'brand-photo-studio',
   'Animate': 'animate',
-  'Media Hub': 'media-hub',
+  'Smartvid Downloader': 'media-hub',
 };
 
 export function getRouteForItem(item) {

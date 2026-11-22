@@ -1,0 +1,19 @@
+# Browser backend for the Smartvid Downloader desktop app. NOT TESTED in the build sandbox (no Docker there).
+#   SMARTVID_ACCESS_TOKEN=<long random string> docker compose -f apps/desktop/host/docker/docker-compose.yml up --build
+# then open http://localhost:3300/?token=<the same string> once (a cookie remembers it).
+services:
+  smartvid-web:
+    build:
+      context: ../../../..          # apps/smartvid
+      dockerfile: apps/desktop/host/docker/Dockerfile
+    environment:
+      SMARTVID_ACCESS_TOKEN: ${SMARTVID_ACCESS_TOKEN:?set SMARTVID_ACCESS_TOKEN}
+    ports:
+      - "127.0.0.1:3300:3300"         # publish on loopback; put a TLS reverse proxy in front for remote access
+    volumes:
+      - smartvid-data:/data/smartvid
+      - ${SMARTVID_DOWNLOAD_DIR_HOST:-smartvid-downloads}:/data/downloads
+    restart: unless-stopped
+volumes:
+  smartvid-data:
+  smartvid-downloads:

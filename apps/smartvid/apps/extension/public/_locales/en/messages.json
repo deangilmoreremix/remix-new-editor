@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Smartvid Downloader Video Downloader"
+  },
+  "extensionDescription": {
+    "message": "Download videos from over 1,000 websites with Smartvid Downloader."
+  },
+  "downloadWithSmartvid": {
+    "message": "Download with Smartvid Downloader"
+  },
+  "hideButton": {
+    "message": "Hide"
+  }
+}
