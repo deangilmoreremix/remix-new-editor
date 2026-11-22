@@ -128,10 +128,10 @@ test('every one of the 30 designs can be picked and is drawn on the video', asyn
       const stage = r(f.parentElement); const card = r(f.querySelector('.form-inner'));
       return { stage, card, btn: r(f.querySelector('button[type="submit"]')), fit: Number(f.dataset.fit), layout: f.dataset.dlayout, boxes: f.querySelector('.input-wrapper-container')?.dataset.layout };
     }, VIEWER);
-    expect(m.btn.b, `${id}: Play button is cut off`).toBeLessThanOrEqual(m.card.b + 2);
-    expect(m.btn.y, `${id}: Play button is above its card`).toBeGreaterThanOrEqual(m.card.y - 2);
-    expect(m.card.r, `${id}: card is outside the video`).toBeLessThanOrEqual(m.stage.r + 2);
-    expect(m.fit, `${id}: text had to shrink to ${m.fit}`).toBeGreaterThanOrEqual(0.6);
+    expect.soft(m.btn.b, `${id}: Play button is cut off`).toBeLessThanOrEqual(m.card.b + 2);
+    expect.soft(m.btn.y, `${id}: Play button is above its card`).toBeGreaterThanOrEqual(m.card.y - 2);
+    expect.soft(m.card.r, `${id}: card is outside the video`).toBeLessThanOrEqual(m.stage.r + 2);
+    expect.soft(m.fit, `${id}: text had to shrink to ${m.fit}`).toBeGreaterThanOrEqual(0.6);
     seen.push({ id, sig: [m.layout, m.boxes, Math.round((m.card.x - m.stage.x) / m.stage.w * 8), Math.round(m.card.w / m.stage.w * 8), Math.round(m.card.h / m.stage.h * 8)].join('|'), fit: m.fit });
     if (SHOTS) await form(page).locator('xpath=..').screenshot({ path: path.join(SHOTS, `${String(i + 1).padStart(2, '0')}-${id}.png`) });
   }
