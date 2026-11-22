@@ -34,7 +34,7 @@ function setupChatWebSocket(server) {
                 'x-api-key': msg.apiKey || '',
               },
               body: JSON.stringify({
-                endpoint: msg.model || 'gpt-5-mini',
+                endpoint: msg.model || 'gpt-6-1-sol',
                 params: {
                   prompt: msg.content,
                   system_prompt: msg.systemPrompt,

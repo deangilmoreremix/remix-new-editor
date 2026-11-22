@@ -277,7 +277,7 @@ describe('endpoint', () => {
   it('does not give a long answer budget to a non-walkthrough question', async () => {
     const fetchImpl = vi.fn(async () => sseBody(['data: [DONE]\n\n']));
     await (await handle(req({ messages: [{ role: 'user', content: 'which video model is best' }] }), { verify: verifyOk, fetchImpl })).text();
-    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).max_tokens).toBe(700);
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).max_completion_tokens).toBe(2000);
   });
   it('does not show the HTTP status number to the user', async () => {
     const r = await handle(req({ messages: [{ role: 'user', content: 'how do I remove the background' }] }), { verify: verifyOk, fetchImpl: async () => new Response('{}', { status: 503 }) });
@@ -291,8 +291,8 @@ describe('endpoint', () => {
       await (await handle(req({ messages: [{ role: 'user', content: q }] }), { verify: verifyOk, fetchImpl })).text();
       return JSON.parse(fetchImpl.mock.calls[0][1].body);
     };
-    expect((await bodyFor('walk me through making a talking video from a photo')).max_tokens).toBeGreaterThanOrEqual(1200);
-    expect((await bodyFor('how do I remove the background')).max_tokens).toBe(700);
+    expect((await bodyFor('walk me through making a talking video from a photo')).max_completion_tokens).toBeGreaterThanOrEqual(4000);
+    expect((await bodyFor('how do I remove the background')).max_completion_tokens).toBe(2000);
   });
   it('rate limits per user', () => {
     const now = Date.now();
