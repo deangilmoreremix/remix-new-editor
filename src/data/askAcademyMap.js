@@ -242,3 +242,5 @@ const SAME_LESSONS_AS = {
 };
 for (const [page, studio] of Object.entries(SAME_LESSONS_AS)) STUDIO_ACADEMY[page] = STUDIO_ACADEMY[studio];
 STUDIO_ACADEMY['smart-video-scheduler'] = { tracks: [], lessons: [] };
+STUDIO_ACADEMY['media-hub'] = STUDIO_ACADEMY.video;
+STUDIO_ACADEMY.smartwarmupai = { tracks: [], lessons: [] };

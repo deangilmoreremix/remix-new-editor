@@ -3,6 +3,8 @@
 // the studio guides in src/data/askKb (v1 registry removed).
 
 export const STUDIO_INTENTS = {
+  'media-hub': ['download a video from a link', 'save just the audio from a video as mp3', 'download a whole youtube playlist', 'automatically download new videos from a channel', 'get a transcript of a video with who said what', 'make subtitles (srt) for a downloaded video'],
+  'smartwarmupai': ['warm up my email inbox', 'connect my Gmail or Outlook mailbox for cold email', 'send a cold email sequence with follow-ups', 'see all my prospect replies in one inbox', 'check if my emails are landing in spam', 'automate what happens when a prospect books a meeting'],
   'asset-edit': ['edit the text on my campaign image', 'move the headline on my ad', 'change font on my campaign asset', 'replace the background image of my asset', 'make a clean background without text', 'save changes to my campaign creative'],
   'brand-dna': ['edit my brand details', 'change my brand colors', 'fix my brand tone of voice', 'update my brand logo', 'add key messages for my brand', 'my brand info is wrong after analysis'],
   campaign: ['plan a marketing campaign', 'make social posts for my brand', 'generate ad creatives for instagram and linkedin', 'campaign ideas for a product launch', 'create on-brand assets for several platforms', 'where are my past campaigns'],
