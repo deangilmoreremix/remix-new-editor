@@ -815,7 +815,7 @@ function Ve({ id: e, label: t, options: a, value: o, onChange: s, allowAuto: i, 
               "aria-selected": E,
               onMouseEnter: () => R(x),
               onClick: () => D(d),
-              className: `flex cursor-pointer items-center justify-between gap-2 h-9 rounded-ctl px-3 text-sm ${E ? "bg-primary text-primary-ink" : x === S ? "bg-card-bg" : ""} ${d.isAuto && !E ? "text-secondary" : ""}`,
+              className: `flex cursor-pointer items-center justify-between gap-2 ${d.hint ? "min-h-9 py-1.5" : "h-9"} rounded-ctl px-3 text-sm ${E ? "bg-primary text-primary-ink" : x === S ? "bg-card-bg" : ""} ${d.isAuto && !E ? "text-secondary" : ""}`,
               children: [
                 /* @__PURE__ */ l("span", { className: "min-w-0", children: [
                   /* @__PURE__ */ r("span", { className: "block truncate", children: d.label }),
