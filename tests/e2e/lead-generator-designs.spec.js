@@ -201,8 +201,13 @@ test('every control on every tab can be edited, and every edit is saved on the o
 
   // read back from the saved overlay
   await reselectOverlay();
+  // The testimonial controls only exist in the Split layout (the loop above also edited the layout itself): show it again to read them.
+  expect(edited.find((e) => e.key === 'designLayout')).toBeTruthy();
+  await panelTab(page, 'Design').click();
+  expect(await control('designLayout').inputValue()).toBe(edited.find((e) => e.key === 'designLayout').value); // the layout edit was saved
+  await control('designLayout').selectOption('split');
   const lost = [];
-  for (const e of edited) {
+  for (const e of edited.filter((x) => x.key !== 'designLayout')) {
     await panelTab(page, e.tab).click();
     const el = control(e.key);
     if (!(await el.count())) { lost.push(`${e.tab}/${e.key}: control is gone`); continue; }
@@ -262,6 +267,7 @@ test('text on the video can be edited in place and shows in the panel', async ()
   await form(page).locator('.optin-brand span').click();
   await page.locator('.optin-text-edit').fill('Brand typed here');
   await page.locator('.optin-text-edit').press('Enter');
+  await panelTab(page, 'Design').click();
   await expect(control('brandName')).toHaveValue('Brand typed here');
   expect(pageErrors).toEqual([]);
 });
