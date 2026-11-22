@@ -1,0 +1,16 @@
+{
+  "pipeline-button": {
+    "steps": [
+      {
+        "text": "Use as template",
+        "wait": 2500
+      }
+    ],
+    "selector": "button[data-step]",
+    "click": false
+  },
+  "burn-captions": {
+    "setup": "import('/src/lib/editor/captionActions.js').then(m=>{m.addCaptionButton({videoUrl:'/zackd/templates/swallow-gum/demo.mp4',appTheme:'zackd'});return new Promise(r=>setTimeout(r,3000))})",
+    "reload": false
+  }
+}

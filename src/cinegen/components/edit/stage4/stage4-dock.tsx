@@ -21,9 +21,9 @@ export function Stage4Dock(p: Stage4Props) {
   const [tab, setTab] = useState<'audio' | 'scenes' | 'health' | 'ai'>('audio');
   const commit = useCallback((t: Timeline) => p.dispatch({ type: 'SET_TIMELINE', timelineId: p.timeline.id, timeline: t }), [p]);
   return (
-    <div data-testid="stage4-dock" style={{ position: 'fixed', right: 12, bottom: 6, zIndex: 41, color: '#eee', fontSize: 11 }}>
+    <div data-testid="stage4-dock" style={{ position: 'relative', flex: '0 0 auto', zIndex: 41, color: '#eee', fontSize: 11 }}>
       {open && (
-        <div role="dialog" aria-label="Media tools" style={{ position: 'absolute', right: 0, bottom: 30, width: 440, maxHeight: '72vh', overflow: 'auto', background: 'rgba(20,20,24,0.97)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 8, padding: 10 }}>
+        <div role="dialog" aria-label="Media tools" style={{ position: 'fixed', right: 12, bottom: 40, zIndex: 60, width: 440, maxWidth: 'calc(100vw - 24px)', maxHeight: 'calc(100vh - 180px)', overflow: 'auto', background: 'rgba(20,20,24,0.97)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 8, padding: 10 }}>
           <div style={S.row}>
             {(['audio', 'scenes', 'health', 'ai'] as const).map((t) => <button key={t} data-testid={`s4-tab-${t}`} style={tab === t ? S.btnOn : S.btn} onClick={() => setTab(t)}>{t === 'audio' ? 'Audio' : t === 'scenes' ? 'Scenes' : t === 'ai' ? 'Local AI' : 'Media health'}</button>)}
             <span style={{ flex: 1 }} /><button style={S.btn} aria-label="Close media tools" onClick={() => setOpen(false)}>×</button>

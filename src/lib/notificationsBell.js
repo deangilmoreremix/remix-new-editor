@@ -11,7 +11,7 @@
  */
 export const OPEN_FLAG = 'remix_open_projects';
 
-export function createNotificationsBell({ getClient, isSignedIn = () => !!globalThis.window?.Clerk?.user, navigate, intervalMs = 180000, doc = globalThis.document, getRealtime = null, realtimeCheckMs = 300000, toastMs = 6000, getCurrentUserId = null, identityCheckMs = 3000 }) {
+export function createNotificationsBell({ getClient, isSignedIn = () => !!globalThis.window?.Clerk?.user, navigate, intervalMs = 180000, doc = globalThis.document, getRealtime = null, realtimeCheckMs = 300000, toastMs = 6000, getCurrentUserId = null, identityCheckMs = 3000, reconnectCooldownMs = 30000 }) {
   const btn = doc.createElement('button');
   btn.type = 'button';
   btn.className = 'hidden relative p-2 text-secondary hover:text-white transition-colors';
@@ -24,6 +24,9 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   btn.appendChild(badge);
 
   let count = 0; let last = 0; let alive = true; let timer = null;
+  let lastReconnect = 0; // when the identity timer last tried to open a missing channel
+  let lastReconnectFor = null; // the owner that attempt was for: a different owner is never held back by the cooldown
+  let refreshSeq = 0; // generation counter: a refresh answer is discarded if a newer refresh or an owner change started meanwhile
   const draw = () => {
     btn.classList.toggle('hidden', !isSignedIn());
     badge.classList.toggle('hidden', count <= 0);
@@ -34,9 +37,11 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
     if (!alive || !isSignedIn()) { count = 0; draw(); return count; }
     if (!force && Date.now() - last < 30000) return count;
     last = Date.now();
+    const seq = ++refreshSeq;
     try {
       const client = await getClient();
       const { data, error } = await client.rpc('owner_unread_notifications');
+      if (seq !== refreshSeq) return count;               // superseded by a newer refresh or an owner change: never overwrite the newer number
       count = error ? count : Math.max(0, Number(data) || 0);
     } catch { /* keep the previous count; the bell is informational */ }
     draw();
@@ -83,9 +88,10 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   const ownerChanged = (mine) => {
     try { return typeof getCurrentUserId === 'function' && (getCurrentUserId() || '') !== mine.userId; } catch { return false; } // a throwing host callback never breaks the bell
   };
+  const currentOwner = () => { try { return getCurrentUserId() || ''; } catch { return null; } }; // null = unknown (the host callback threw): never mistaken for an owner change
   // Removes the channel AND the previous owner's unread number, so a stale badge is never shown to someone else.
   // (guardedInsert reconnects for whoever is signed in now; the identity timer only watches a channel that still exists.)
-  const dropChannel = () => { count = 0; draw(); return stopRealtime(); };
+  const dropChannel = () => { ++refreshSeq; last = 0; lastReconnect = 0; lastReconnectFor = null; count = 0; draw(); return stopRealtime(); };
   async function guardedInsert(payload, mine) {
     if (!alive || rt !== mine) return;
     if (!isSignedIn() || ownerChanged(mine)) { dropChannel().then(() => ensureRealtime()); return; }               // signed out or another account: drop the channel now
@@ -129,7 +135,16 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   const rtTimer = getRealtime ? setInterval(ensureRealtime, realtimeCheckMs) : null;
   // A sign-out or account switch removes the channel within seconds, even when no alert arrives to trigger the check.
   const identityTimer = getRealtime && typeof getCurrentUserId === 'function'
-    ? setInterval(() => { const cur = rt; if (cur && (!isSignedIn() || ownerChanged(cur))) { dropChannel().then(() => ensureRealtime()); } }, identityCheckMs)
+    ? setInterval(() => {
+      const cur = rt;
+      if (cur) { if (!isSignedIn() || ownerChanged(cur)) dropChannel().then(() => ensureRealtime()); }
+      else if (isSignedIn() && !rtBusy) {                 // signed in but no channel (e.g. after a sign-out and a different sign-in): reconnect, but a failing setup is retried at most once per cooldown
+        // Only an attempt that can actually start is recorded (while a setup is pending ensureRealtime() does nothing, and the next tick must still be free to try).
+        const who = currentOwner();
+        const ownerSwitched = who !== null && lastReconnectFor !== null && who !== lastReconnectFor; // both known and different
+        if (ownerSwitched || Date.now() - lastReconnect >= reconnectCooldownMs) { lastReconnect = Date.now(); lastReconnectFor = who; ensureRealtime(); }
+      }
+    }, identityCheckMs)
     : null;
   refresh(true); ensureRealtime();
   // Clerk usually finishes loading after the header is created: re-check a few times so a signed-in owner sees the bell soon.

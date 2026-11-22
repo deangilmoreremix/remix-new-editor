@@ -1,0 +1,263 @@
+{
+  "id": "video-watermark",
+  "name": "Video Watermark Remover",
+  "route": "#/video-watermark",
+  "description": "An intro page for removing watermarks from videos. Its buttons open Video Studio, where you upload the video and remove the watermark.",
+  "shortDescription": "Intro page that sends you to Video Studio to remove video watermarks.",
+  "fullDescription": "Video Watermark Remover (#/video-watermark, 'Watermark Remover' in the app menu) is an information page titled 'Video Watermark Remover - Remove watermarks, logos, and unwanted elements from your videos with AI'. It has a 'Remove Watermarks Free' button, a 'Powerful Removal Tools' section (Smart Removal, Precise Editing, Fast Processing, Professional Results), a 'How It Works' section (01 Upload Video, 02 AI Processing, 03 Download), an 'Available Tools' section with three cards (AI Video Watermark Remover, AI Video Object Remover, AI Video Logo Remover) and a closing 'Clean Your Videos Today' box with 'Get Started Free'. Nothing is uploaded or processed on this page: every button and card opens Video Studio (#/video). The removal itself happens there: click the video button left of the prompt (tooltip 'Upload video to remove watermark'), choose a video, and the studio switches to the 'AI Video Watermark Remover' model, greys out the prompt with 'Video ready — click Generate to remove watermark', and Generate makes the clean video. Video Studio also lists 'Seedance 2 Video Watermark Remover Pro'. There is no separate object-remover or logo-remover model behind those two cards; they open Video Studio like the others.",
+  "bestFor": "Anyone who wants to remove a watermark, logo, caption or overlaid text from a video they have the right to edit.",
+  "whenToUse": [
+    "You want to know how video watermark removal works in the app.",
+    "You want a quick way into Video Studio's watermark remover."
+  ],
+  "whenToUseAnother": [
+    "Use Video Studio (#/video) directly if you already know the steps.",
+    "Use Edit Studio (#/edit) to remove a watermark or object from a still image.",
+    "Use Video Tools (#/videotools) for other video clean-up and conversion tools."
+  ],
+  "keyFeatures": [
+    "'Remove Watermarks Free' and 'Get Started Free' buttons open Video Studio",
+    "'Powerful Removal Tools' and 'How It Works' overview sections",
+    "Available Tools cards: AI Video Watermark Remover, AI Video Object Remover, AI Video Logo Remover",
+    "The actual removal in Video Studio: upload a video and Generate with the AI Video Watermark Remover model"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Remove Watermarks Free button",
+      "explanation": "The main button under the title. It opens Video Studio (#/video), where the removal happens.",
+      "whyToUse": "Fastest way to start.",
+      "inputRequired": "None on this page.",
+      "restrictions": "Nothing is uploaded or processed on this page itself."
+    },
+    {
+      "feature": "Powerful Removal Tools section",
+      "explanation": "Four short cards describing the tool: Smart Removal, Precise Editing, Fast Processing and Professional Results.",
+      "whyToUse": "A quick summary of what the remover is for.",
+      "inputRequired": "None.",
+      "restrictions": "Information only; the cards are not clickable."
+    },
+    {
+      "feature": "How It Works steps",
+      "explanation": "Three steps: 01 Upload Video, 02 AI Processing, 03 Download.",
+      "whyToUse": "To understand the process before you start.",
+      "inputRequired": "None.",
+      "restrictions": "Information only."
+    },
+    {
+      "feature": "AI Video Watermark Remover card",
+      "explanation": "In 'Available Tools', the card tagged 'Watermark'. Clicking it opens Video Studio.",
+      "whyToUse": "Opens the studio where the AI Video Watermark Remover model is used.",
+      "inputRequired": "None on this page.",
+      "restrictions": "The card does not pre-select the model; the model is chosen automatically when you upload a video in Video Studio."
+    },
+    {
+      "feature": "AI Video Object Remover and Logo Remover cards",
+      "explanation": "Two more cards tagged 'Removal': 'Remove unwanted objects from videos' and 'Remove logos and branding from videos'. Both open Video Studio.",
+      "whyToUse": "To start removing logos or unwanted elements.",
+      "inputRequired": "None on this page.",
+      "restrictions": "There is no separate object or logo remover model; Video Studio uses the AI Video Watermark Remover, whose description covers 'watermarks, logos, captions, and unwanted text'."
+    },
+    {
+      "feature": "Get Started Free button",
+      "explanation": "In the closing 'Clean Your Videos Today' box. Opens Video Studio.",
+      "whyToUse": "Same as Remove Watermarks Free, at the bottom of the page.",
+      "inputRequired": "None.",
+      "restrictions": "None on this page."
+    },
+    {
+      "feature": "Removing a watermark in Video Studio",
+      "explanation": "In Video Studio, click the video button left of the prompt (tooltip 'Upload video to remove watermark') and choose a video. The model switches to 'AI Video Watermark Remover', the prompt is disabled with 'Video ready — click Generate to remove watermark', and the button turns green with a tick. Click Generate.",
+      "whyToUse": "This is where the watermark is actually removed.",
+      "inputRequired": "A video file and an API key. Without a key the sign-in / API key window opens first.",
+      "restrictions": "No prompt is used. Click the video button again to clear the video and return to text-to-video. Uploading needs credits: the message 'Please sign in and add api credits.' appears if not."
+    }
+  ],
+  "howToUse": "1. Open Video Watermark Remover (#/video-watermark). 2. Click 'Remove Watermarks Free' (or any tool card) to open Video Studio. 3. In Video Studio click the video button left of the prompt ('Upload video to remove watermark') and choose your video. 4. Check the model reads 'AI Video Watermark Remover' and the prompt says 'Video ready — click Generate to remove watermark'. 5. Click Generate and download the result.",
+  "howToSteps": [
+    "Open #/video-watermark.",
+    "Click Remove Watermarks Free.",
+    "In Video Studio, upload your video with the video button.",
+    "Click Generate.",
+    "Download the clean video."
+  ],
+  "gettingStarted": [
+    "Start with a short clip so you can check the result quickly.",
+    "Only remove watermarks from videos you own or have permission to edit."
+  ],
+  "inputs": [
+    "Video file (in Video Studio)"
+  ],
+  "requiredInputs": [
+    "Video file (in Video Studio)"
+  ],
+  "optionalInputs": [],
+  "inputDetails": [
+    {
+      "name": "Video file",
+      "description": "The video with the watermark, chosen with the video button in Video Studio.",
+      "required": true,
+      "whenToUse": "Always, for removal.",
+      "restrictions": "Uploaded to MuAPI with your API key; a failed upload shows 'Video upload failed: <reason>'."
+    }
+  ],
+  "generationModes": [
+    "Watermark removal (video-to-video)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Watermark removal",
+      "description": "Video Studio's video-to-video mode with the AI Video Watermark Remover model; no prompt.",
+      "useCase": "Clean watermarks, logos, captions and overlaid text from a clip."
+    }
+  ],
+  "modelCapabilities": "Removal runs in Video Studio. Uploading a video selects 'AI Video Watermark Remover' (MuAPI, no prompt): 'Remove watermarks, logos, captions, and unwanted text from videos.' Video Studio's video-to-video list also includes 'Seedance 2 Video Watermark Remover Pro' (ByteDance): 'uses the SD 2 AI model to remove watermarks, logos, and overlaid text from videos with high accuracy.'",
+  "outputs": [
+    "A cleaned video in Video Studio (made there, not on this page)"
+  ],
+  "limitations": [
+    "This page is information only; uploading and removal happen in Video Studio.",
+    "The tool cards do not pre-select a model.",
+    "There are no separate object-remover or logo-remover models.",
+    "Needs an API key and credits."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "No upload on this page",
+      "impact": "You must continue in Video Studio.",
+      "workaround": "Click any button or card; it opens Video Studio."
+    },
+    {
+      "limitation": "Cards do not choose the model",
+      "impact": "Video Studio opens on its normal text-to-video model.",
+      "workaround": "Upload a video with the video button; the watermark remover is selected for you."
+    }
+  ],
+  "troubleshooting": [
+    "Video Studio still shows a text-to-video model: you have not uploaded a video yet. Use the video button left of the prompt.",
+    "'Please sign in and add api credits.': sign in and add credits, then upload again.",
+    "'Video upload failed: ...': check the file and your connection and try again."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "The prompt box is greyed out",
+      "steps": [
+        "This is expected after uploading a video for watermark removal.",
+        "Click Generate.",
+        "To type a prompt again, click the video button to clear the video."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "I clicked AI Video Logo Remover but see a different model",
+      "whyItHappens": "The cards only open Video Studio; they do not set the model.",
+      "howToFix": "Upload your video with the video button; AI Video Watermark Remover is selected automatically and also removes logos."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Remove a watermark from a clip",
+      "steps": [
+        "Open #/video-watermark.",
+        "Click Remove Watermarks Free.",
+        "In Video Studio click the video button and choose the clip.",
+        "Click Generate.",
+        "Download the result."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Clean up your own footage",
+      "description": "Remove a watermark or logo from a clip you have rights to.",
+      "steps": [
+        "Open Video Studio from this page",
+        "Upload the clip",
+        "Generate"
+      ],
+      "expectedOutput": "The same clip with the watermark removed."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Where do I upload my video?",
+      "answer": "Not on this page. Click Remove Watermarks Free to open Video Studio, then use the video button left of the prompt ('Upload video to remove watermark')."
+    },
+    {
+      "question": "Do I need to write a prompt?",
+      "answer": "No. After the upload the prompt is disabled and reads 'Video ready — click Generate to remove watermark'."
+    },
+    {
+      "question": "Can it remove logos and captions too?",
+      "answer": "The AI Video Watermark Remover model is described as removing 'watermarks, logos, captions, and unwanted text from videos'."
+    },
+    {
+      "question": "Is it really free?",
+      "answer": "The buttons say 'Free', but the removal runs on your MuAPI key and the upload needs credits. The exact cost is not stated on this page."
+    }
+  ],
+  "glossary": {
+    "Watermark": "A logo or text laid over a video, often to show who owns it.",
+    "Video-to-video": "Making a new video from a video you upload."
+  },
+  "tips": [
+    "Use short clips first to check the result.",
+    "Clear the uploaded video (click the video button again) to go back to normal video generation."
+  ],
+  "bestPractices": [
+    "Only remove watermarks from footage you own or are licensed to edit.",
+    "Keep the original file until you have checked the result."
+  ],
+  "relatedStudios": [
+    "video",
+    "videotools",
+    "edit",
+    "upscale"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "video",
+      "relationship": "Where removal happens",
+      "whenToMove": "Always, to actually remove a watermark.",
+      "why": "It has the upload button and the watermark remover models."
+    },
+    {
+      "studio": "videotools",
+      "relationship": "Other video tools",
+      "whenToMove": "For other video clean-up and conversions.",
+      "why": "Groups video utilities in one place."
+    },
+    {
+      "studio": "edit",
+      "relationship": "Still images",
+      "whenToMove": "When the watermark is on a photo, not a video.",
+      "why": "Has image tools such as Remove Object."
+    },
+    {
+      "studio": "upscale",
+      "relationship": "Quality",
+      "whenToMove": "When the cleaned video needs more resolution.",
+      "why": "Increases resolution and sharpness."
+    }
+  ],
+  "notConfirmed": [
+    "The credit cost of watermark removal.",
+    "Maximum video length or file size for the Video Studio upload (this path uses uploadMediaFile; no limit is shown on the page).",
+    "Whether the 'prefill_model' value the tool cards save is meant to pre-select a model: nothing in the app reads it.",
+    "How well object removal works, since the cards for it use the same watermark remover."
+  ],
+  "sourceFiles": [
+    "src/components/VideoWatermarkPage.js",
+    "src/components/VideoStudio.js",
+    "src/lib/models.js",
+    "src/lib/modelDescriptions.js",
+    "src/lib/router.js",
+    "src/lib/studioRoutes.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "verifiedAt": "2026-11-20",
+    "verifiedBy": "Code review (LLM-assisted)",
+    "evidence": "Read VideoWatermarkPage.js (all buttons navigate to 'video'; cards store prefill_model, which no code reads), VideoStudio.js's video upload path (switches to v2vModels[0] = AI Video Watermark Remover) and the v2v model list in models.js. Loaded the page in the dev app."
+  }
+}

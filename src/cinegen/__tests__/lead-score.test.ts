@@ -90,6 +90,41 @@ describe('export records', () => {
   });
   it('leaves values as typed for Excel (cells are typed text there)', () => {
     expect(exportRecords(rows, [], { escape: false })[0].Notes).toBe('=HYPERLINK("x")');
+    {
+      // an answer whose label equals a computed column keeps its value; the computed value goes to "<name> (computed)"
+      const clash = row('c', 'lead-form', { EMAIL: 'a@acme.io', 'Lead Score': 'my own answer', 'Lead Rating': 'mine', Status: 'x' }, { status: 'won' as never });
+      const [r2] = exportRecords([clash], []);
+      expect(r2['Lead Score']).toBe('my own answer');
+      expect(r2['Lead Rating']).toBe('mine');
+      expect(r2['Lead Score (computed)']).toBe(scoreLead(clash).score);
+      expect(r2['Lead Rating (computed)']).toBe(scoreLead(clash).label);
+      expect(r2.Status).toBe('x');
+      expect(Object.keys(r2).some((k) => k.startsWith('Status ('))).toBe(true);
+    }
+    {
+      // two rows, only one has an answer named "Lead Score": BOTH rows put the computed score in the same column
+      const withAnswer = row('d', 'lead-form', { EMAIL: 'b@acme.io', 'Lead Score': 'mine' });
+      const without = row('e', 'lead-form', { EMAIL: 'c@acme.io' });
+      const [a, b] = exportRecords([without, withAnswer], []);
+      expect(a['Lead Score (computed)']).toBe(scoreLead(without).score);
+      expect(b['Lead Score (computed)']).toBe(scoreLead(withAnswer).score);
+      expect(a['Lead Score']).toBeUndefined();               // the "Lead Score" column holds answers only
+      expect(b['Lead Score']).toBe('mine');
+      expect(a['Lead Rating']).toBe(scoreLead(without).label); // no answer is called "Lead Rating": its name is unchanged for everyone
+    }
+    {
+      // answers called "Submitted" / "Form" in only one row: the generated timestamp and form name use the same columns in every row
+      const mine = row('f', 'lead-form', { EMAIL: 'd@acme.io', Form: 'my form answer', Submitted: 'my date answer' });
+      const plain = row('g', 'lead-form', { EMAIL: 'e@acme.io' });
+      const [p, m] = exportRecords([plain, mine], [{ key: 'lead-form:c1', label: 'Contact form' } as never]);
+      expect(m.Form).toBe('my form answer');
+      expect(m.Submitted).toBe('my date answer');
+      expect(m['Form (computed)']).toBe(p['Form (computed)']);          // the generated form name is in the same column for both rows
+      expect(m['Submitted (computed)']).toBe(mine.createdAt);
+      expect(p.Form).toBeUndefined();                                    // the "Form" column holds answers only
+      expect(p.Submitted).toBeUndefined();
+      expect(p['Submitted (computed)']).toBe(plain.createdAt);
+    }
   });
   it('puts the score, status, notes and tags in the CSV', () => {
     const header = rowsToCsv(rows, []).split('\r\n')[0];

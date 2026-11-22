@@ -194,16 +194,69 @@ describe('overlay settings form', () => {
     const d = getAddon('overlay-text');
     renderAddonEditor(box, { fields: d.fields, options: d.defaults(), onChange, services, onFieldChange: d.onFieldChange });
     expect([...box.querySelectorAll('[data-addon-tab]')].map((b) => b.textContent)).toEqual(['Basic', 'Advanced']);
-    const ta = box.querySelector('textarea[data-key="text"]');
-    ta.setSelectionRange(0, 0);
+    // upstream-style editing box: tokens are chips, the stored text stays a plain {{token}} string
+    expect(box.querySelector('textarea[data-key="text"]')).toBeNull();
+    const rich = box.querySelector('.addon-rich[data-key="text"]');
+    expect(rich.textContent).toBe('Enter Text Here');
     const insert = box.querySelector('.addon-token-insert');
     insert.value = 'firstName';
-    insert.dispatchEvent(new Event('change', { bubbles: true }));
-    expect(onChange.mock.calls.at(-1)[0].text).toBe('{{firstName}}Enter Text Here');
+    insert.dispatchEvent(new Event('change', { bubbles: true })); // no saved cursor: the chip goes at the end
+    expect(onChange.mock.calls.at(-1)[0].text).toBe('Enter Text Here{{firstName}}');
+    expect(rich.querySelector('.personalized-token').dataset.token).toBe('{{firstName}}');
+    rich.innerHTML = 'Hi <span class="personalized-token" contenteditable="false" data-token="{{lastName}}">lastName</span>';
+    rich.dispatchEvent(new Event('input', { bubbles: true })); // typing
+    expect(onChange.mock.calls.at(-1)[0].text).toBe('Hi {{lastName}}');
+    expect(box.querySelectorAll('.addon-position-grid img').length).toBe(6); // upstream position icons
+    // Convert to Smart Speech: only when the host can open it, and it hands over the current text
+    expect(box.querySelector('[data-field-action="speech"]')).toBeNull();
+    const onAction = vi.fn();
+    const box2 = document.createElement('div');
+    document.body.appendChild(box2);
+    renderAddonEditor(box2, { fields: d.fields, options: { ...d.defaults(), text: 'Hello {{firstName}}' }, onChange: vi.fn(), services: { ...services, fieldAction: onAction }, onFieldChange: d.onFieldChange });
+    box2.querySelector('[data-field-action="speech"]').click();
+    expect(onAction).toHaveBeenCalledWith('speech', expect.objectContaining({ text: 'Hello {{firstName}}' }), expect.anything());
+    const box3 = document.createElement('div');
+    renderAddonEditor(box3, { fields: d.fields, options: { ...d.defaults(), text: '  ' }, onChange: vi.fn(), services: { ...services, fieldAction: onAction }, onFieldChange: d.onFieldChange });
+    expect(box3.querySelector('[data-field-action="speech"]')).toBeNull(); // nothing to speak
     box.querySelector('[data-position-value="right"]').click();
     expect(onChange.mock.calls.at(-1)[0].geometry.left).toBe(75);
     box.querySelector('[data-addon-tab="Advanced"]').click();
     expect(box.querySelector('select.addon-font-select').value).toBe('Anton');
+  });
+
+  it('Smart Text Advanced tab: B / I, alignment icons, colour presets and hex, switch + colour rows', () => {
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const onChange = vi.fn();
+    const d = getAddon('overlay-text');
+    renderAddonEditor(box, { fields: d.fields, options: d.defaults(), onChange, services, onFieldChange: d.onFieldChange });
+    box.querySelector('[data-addon-tab="Advanced"]').click();
+    // size slider is there but greyed out while Scale To Fit is on
+    expect(box.querySelector('input[data-key="fontSize"]').disabled).toBe(true);
+    box.querySelector('input[data-key="fontDecorations.responsive"]').click();
+    expect(onChange.mock.calls.at(-1)[0].fontDecorations.responsive).toBe(false);
+    expect(box.querySelector('input[data-key="fontSize"]').disabled).toBe(false);
+    box.querySelector('[data-toggle-btn="fontDecorations.bold"]').click();
+    expect(onChange.mock.calls.at(-1)[0].fontDecorations.bold).toBe(true);
+    expect(box.querySelector('[data-toggle-btn="fontDecorations.bold"]').getAttribute('aria-pressed')).toBe('true');
+    box.querySelector('[data-position-key="alignment"][data-position-value="right"]').click();
+    expect(onChange.mock.calls.at(-1)[0].alignment).toBe('right');
+    box.querySelector('[data-swatch-value="#FF3B30"]').click();
+    expect(onChange.mock.calls.at(-1)[0].fontColor).toBe('#FF3B30');
+    const hex = box.querySelector('.addon-hex');
+    hex.value = '0af';
+    hex.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(onChange.mock.calls.at(-1)[0].fontColor).toBe('#00AAFF');
+    hex.value = 'nope';
+    hex.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(onChange.mock.calls.at(-1)[0].fontColor).toBe('#00AAFF'); // not a colour: unchanged
+    // shadow / stroke / background: colour is disabled until the switch is on
+    const shadowColor = () => box.querySelector('input[type="color"][data-key="shadowColor"]');
+    expect(shadowColor().disabled).toBe(true);
+    box.querySelector('input[data-key="shadow"]').click();
+    expect(onChange.mock.calls.at(-1)[0].shadow).toBe(true);
+    expect(shadowColor().disabled).toBe(false);
+    expect(box.querySelector('.addon-font-preview')).not.toBeNull();
   });
 
   it('Stickers picker sets src/kind/name; animated tab takes a Lottie URL', () => {
@@ -218,6 +271,55 @@ describe('overlay settings form', () => {
     box.querySelector('.addon-lottie-url').value = 'https://x.test/party.json';
     box.querySelector('[data-lottie-use]').click();
     expect(onChange.mock.calls.at(-1)[0]).toMatchObject({ src: 'https://x.test/party.json', kind: 'lottie', name: 'party' });
+  });
+
+  it('Smart Text style presets set the whole look at once; Typing / Blur In / Flicker / Blink are offered', () => {
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const onChange = vi.fn();
+    const d = getAddon('overlay-text');
+    renderAddonEditor(box, { fields: d.fields, options: d.defaults(), onChange, services, onFieldChange: d.onFieldChange });
+    box.querySelector('[data-addon-tab="Advanced"]').click();
+    expect(box.querySelectorAll('.addon-style-tile').length).toBe(10);
+    box.querySelector('[data-style-preset="typewriter"]').click();
+    expect(onChange).toHaveBeenCalledTimes(1); // one edit, not one per setting
+    expect(onChange.mock.calls.at(-1)[0]).toMatchObject({ fontFamily: 'Special Elite', background: true, backgroundColor: '#222222', animation: { in: 'typing' } });
+    box.querySelector('[data-style-preset="retro"]').click();
+    const retro = onChange.mock.calls.at(-1)[0];
+    expect(retro).toMatchObject({ fontFamily: 'Luckiest Guy', fontColor: '#FFCC00', stroke: true, strokeColor: '#FF3B30', shadow: true });
+    expect(retro.animation.in).toBe('typing'); // a look without an animation keeps the one already set
+    box.querySelector('[data-addon-tab="Basic"]').click();
+    box.querySelector('[data-anim-open="animation.in"]').click();
+    const names = [...box.querySelectorAll('.addon-anim-tile')].map((t) => t.dataset.animValue);
+    expect(names).toEqual(expect.arrayContaining(['typing', 'blurIn', 'bounceIn']));
+    box.querySelector('[data-anim-open="animation.idle"]').click();
+    expect([...box.querySelectorAll('.addon-anim-tile')].map((t) => t.dataset.animValue)).toEqual(expect.arrayContaining(['flicker', 'blink', 'pulse']));
+  });
+
+  it('Animation picker: browse effects as tiles, pick one, pick None', () => {
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const onChange = vi.fn();
+    const d = getAddon('overlay-text');
+    renderAddonEditor(box, { fields: d.fields, options: d.defaults(), onChange, services, onFieldChange: d.onFieldChange });
+    expect(box.querySelector('.addon-anim-grid')).toBeNull();
+    box.querySelector('[data-anim-open="animation.in"]').click();
+    const tiles = [...box.querySelectorAll('.addon-anim-grid .addon-anim-tile')];
+    expect(tiles.length).toBeGreaterThan(20); // None + every In effect
+    expect(tiles[0].dataset.animValue).toBe('');
+    box.querySelector('[data-anim-pick="animation.in"][data-anim-value="bounceIn"]').click();
+    expect(onChange.mock.calls.at(-1)[0].animation.in).toBe('bounceIn');
+    expect(box.querySelector('.addon-anim-grid')).toBeNull(); // closes after a pick
+    expect(box.querySelector('select[data-key="animation.in"]').value).toBe('bounceIn');
+    box.querySelector('[data-anim-open="animation.in"]').click();
+    expect(box.querySelector('.addon-anim-tile.is-on').dataset.animValue).toBe('bounceIn');
+    box.querySelector('[data-anim-pick="animation.in"][data-anim-value=""]').click();
+    expect(onChange.mock.calls.at(-1)[0].animation.in).toBeNull();
+    // hovering a tile plays the effect on its sample
+    box.querySelector('[data-anim-open="animation.out"]').click();
+    const tile = box.querySelector('.addon-anim-tile[data-anim-value="fadeOut"]');
+    tile.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    expect(tile.querySelector('.addon-anim-sample').classList.contains('fadeOut')).toBe(true);
   });
 
   it('Image picker lists media library images and animations accept None', () => {

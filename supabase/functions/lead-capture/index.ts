@@ -27,7 +27,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
-  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, verifyTurnstile, parseExtraDomains, emailKeyOf, emailDomain, domainAcceptsMail, isGuestOwner, needsHumanCheck, isDuplicateError, isMissingColumnError, type DnsResolver, declaredEmailKeys, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, autoReplyReplyTo, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
+  isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, verifyTurnstile, parseExtraDomains, emailKeyOf, emailDomain, domainAcceptsMail, isGuestOwner, needsHumanCheck, insertLeadRow, type DnsResolver, declaredEmailKeys, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, autoReplyReplyTo, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
   isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, hostOf, deriveSigningSecret,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, deliverWebhook, type Delivery, type DeliverDeps, type HttpCall, type Json,
 } from "./logic.ts";
@@ -353,7 +353,8 @@ Deno.serve(async (req: Request) => {
     const attribution = attributionOf(sanitizeSource(body.source));
     let insertError: { code?: string } | null = null;
     if (!deliverOnly) {
-      const r = await admin.from("video_leads").insert({
+      // The same repeat-sign-up rule as the published-video path: the same email on the same page is stored (and delivered) once.
+      const r = await insertLeadRow((row) => admin.from("video_leads").insert(row), {
         clerk_user_id: pageRow.clerk_user_id,
         project_id: pageId,
         clip_id: pageClip,
@@ -367,7 +368,8 @@ Deno.serve(async (req: Request) => {
           contactId,
         },
         preview: false,
-      });
+      }, emailKeyOf(leadData));
+      if (r.duplicate) return json(req, { ok: true, stored: true, duplicate: true });
       insertError = r.error;
       if (insertError) console.warn("[lead-capture] landing page insert failed:", insertError.code);
     }
@@ -441,9 +443,8 @@ Deno.serve(async (req: Request) => {
       preview: false,
     };
     // email_key + its unique index (migration 20261118130000) make a repeat sign-up (same email, same form) a no-op.
-    let { error: insertError } = await admin.from("video_leads").insert(emailKey ? { ...row, email_key: emailKey } : row);
-    if (isMissingColumnError(insertError)) ({ error: insertError } = await admin.from("video_leads").insert(row)); // migration not applied yet
-    if (isDuplicateError(insertError)) return json(req, { ok: true, stored: true, duplicate: true });
+    const { error: insertError, duplicate } = await insertLeadRow((r) => admin.from("video_leads").insert(r), row, emailKey);
+    if (duplicate) return json(req, { ok: true, stored: true, duplicate: true });
     if (insertError) console.warn("[lead-capture] published insert failed:", insertError.code);
     const callNotify = leadKind === "call-attempt"
       ? String((config.callNotifyAddress ?? (config.addon as Json | undefined)?.callNotifyAddress) || "").trim()

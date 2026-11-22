@@ -1,0 +1,15 @@
+{
+  "three-dot-tools-menu": {
+    "steps": [
+      {
+        "selector": "button[aria-label=\"More enhancement tools\"]"
+      }
+    ],
+    "selector": ".overflow-menu.is-open .overflow-menu__panel"
+  },
+  "result-card": {
+    "setup": "new Promise((done) => { let n = 0; const t = setInterval(() => { const el = document.querySelector('div.w-full.mt-6[role=\"status\"]'); if (!el && ++n < 80) return; clearInterval(t); if (el) { el.classList.remove('hidden'); el.innerHTML = '<div class=\"bg-card-bg/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up\"><img src=\"/landing-art/05/presenter.webp\" class=\"w-full rounded-xl mb-3\"><div class=\"flex gap-3\"><a href=\"#\" class=\"flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all\">Download</a><button class=\"flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn\">Generate Again</button><button type=\"button\" class=\"publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all\">Publish to Social</button></div></div>'; } done(); }, 250); })",
+    "reload": false,
+    "selector": "div.w-full.mt-6[role=\"status\"] > div"
+  }
+}

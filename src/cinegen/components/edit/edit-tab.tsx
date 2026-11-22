@@ -94,7 +94,7 @@ function loadPersistedEditView(projectId: string): PersistedEditView {
       return {
         pxPerSecond: 50,
         snapEnabled: true,
-        trackHeight: 110, // [remix] CineGen screenshot rows (~110px); the clone ships 80
+        trackHeight: 80, // same as CineGen upstream (110 pushed V2 out of the video section)
         timelineViews: {},
       };
     }
@@ -102,14 +102,14 @@ function loadPersistedEditView(projectId: string): PersistedEditView {
     return {
       pxPerSecond: Number.isFinite(parsed.pxPerSecond) ? Number(parsed.pxPerSecond) : 50,
       snapEnabled: typeof parsed.snapEnabled === 'boolean' ? parsed.snapEnabled : true,
-      trackHeight: Number.isFinite(parsed.trackHeight) ? Number(parsed.trackHeight) : 110,
+      trackHeight: Number.isFinite(parsed.trackHeight) && Number(parsed.trackHeight) !== 110 ? Number(parsed.trackHeight) : 80, // a saved 110 is the old remix default: use 80
       timelineViews: parsed.timelineViews ?? {},
     };
   } catch {
     return {
       pxPerSecond: 50,
       snapEnabled: true,
-      trackHeight: 110, // [remix] CineGen screenshot rows (~110px); the clone ships 80
+      trackHeight: 80, // same as CineGen upstream (110 pushed V2 out of the video section)
       timelineViews: {},
     };
   }
@@ -505,6 +505,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     updatePersistedTimelineView(timeline.id, { vaSplit: Math.max(0.15, Math.min(0.85, vaSplit)) });
   }, [timeline.id, updatePersistedTimelineView]);
 
+  useEffect(() => { void import('@cinegen/lib/occ/user-fonts').then((m) => m.loadUserFonts()).catch(() => undefined); }, []); // [remix] fonts imported earlier (captions, Smart Text) are registered when the editor opens
   // Spacebar / Arrow keys / Tool shortcuts
   useEffect(() => {
     const FRAME_DURATION = 1 / 24;
@@ -1155,8 +1156,6 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         className="edit-tab__left-resize"
       />
 
-      {stage1.bar}
-      <Stage4Dock engine={engine} timeline={timeline} dispatch={dispatch} assets={state.assets} selectedClipIds={selectedClipIds} currentTime={currentTime} seek={seek} isPlaying={isPlaying} proxyMode={proxyMode} setProxyMode={setProxyMode} />
       {/* Viewers */}
       <div className="edit-tab__viewers">
         {layout.sourceViewerVisible && (
@@ -1245,6 +1244,9 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
             onSnapToggle={() => setSnapEnabled((s) => !s)}
             onAddMarker={handleAddMarker}
           />
+
+          {/* [remix] Clip tools + Media tools: their own row under the tabs, not floating over the tracks */}
+          <div data-testid="edit-tools-row" style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '0 0 auto', minWidth: 0, padding: '1px 6px' }}>{stage1.bar}<Stage4Dock engine={engine} timeline={timeline} dispatch={dispatch} assets={state.assets} selectedClipIds={selectedClipIds} currentTime={currentTime} seek={seek} isPlaying={isPlaying} proxyMode={proxyMode} setProxyMode={setProxyMode} /></div>
 
           {/* Timeline editor -- scrollable track area with integrated ruler */}
           <TimelineEditor

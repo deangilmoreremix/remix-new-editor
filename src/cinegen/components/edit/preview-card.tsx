@@ -73,7 +73,7 @@ export function useInView(ref: React.RefObject<Element | null>): boolean {
 }
 
 /** Steps `currentTime` through the overlay's duration while `playing`, otherwise holds the representative frame. */
-export function LiveStage({ preview, playing }: { preview: Extract<CardPreview, { kind: 'overlay' }>; playing: boolean }) {
+export function LiveStage({ preview, playing, profile = null, profileVersion = 0 }: { preview: Extract<CardPreview, { kind: 'overlay' }>; playing: boolean; /** [remix] the contact whose details the picture shows (the Overlays lane); the Add window's cards stay generic */ profile?: Record<string, unknown> | null; profileVersion?: number }) {
   const overlays = useMemo(() => preview.build(), [preview]);
   const frame = preview.frame ?? { width: 1280, height: 720 };
   const dur = Math.max(0.5, preview.duration);
@@ -91,7 +91,7 @@ export function LiveStage({ preview, playing }: { preview: Extract<CardPreview, 
   return (
     <div data-preview-stage inert style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
       <div style={{ position: 'relative', height: '100%', aspectRatio: `${frame.width} / ${frame.height}`, maxWidth: '100%', overflow: 'hidden' }}>
-        <OverlayLayer overlays={overlays} currentTime={t} isPlaying={false} previewPlaying={playing} onPause={noop} frame={frame} />
+        <OverlayLayer overlays={overlays} profile={profile} profileVersion={profileVersion} currentTime={t} isPlaying={false} previewPlaying={playing} onPause={noop} frame={frame} />
       </div>
     </div>
   );

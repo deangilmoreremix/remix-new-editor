@@ -401,6 +401,26 @@ input[type='range']::-moz-range-track {
   color: inherit;
 }
 
+/* [remix] The header's Retarget button: always visible and labelled, in the lime accent so it is easy to spot. */
+.top-nav__retarget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px 0 8px;
+  border: 1px solid rgba(217, 255, 0, 0.45);
+  border-radius: 6px;
+  background: rgba(217, 255, 0, 0.06);
+  color: var(--accent, #d9ff00);
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+  -webkit-app-region: no-drag;
+}
+.top-nav__retarget-label { font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: inherit; }
+.top-nav__retarget:hover { background: var(--accent-dim); color: var(--accent-hover); border-color: var(--accent); }
+.top-nav__retarget:focus-visible { outline: 2px solid rgba(217, 255, 0, 0.65); outline-offset: 2px; -webkit-app-region: no-drag; }
+
 .top-nav__skills:hover {
   background: var(--accent-dim);
   color: var(--accent-hover);
@@ -20971,6 +20991,8 @@ input[type='range']::-moz-range-track {
     padding: 0;
   }
   .top-nav__skills-label { display: none; }
+  .top-nav__retarget-label { display: none; }
+  .top-nav__retarget { width: 40px; height: 40px; padding: 0; }
   .top-nav__actions { gap: 1px; }
 
   .top-nav__tabs {

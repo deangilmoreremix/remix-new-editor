@@ -1,0 +1,25 @@
+{
+  "video-generation-reimagined-cards": {
+    "selector": "xpath=//h2[normalize-space(.)=\"Video Generation Reimagined\"]/.."
+  },
+  "get-started-free": {
+    "selector": ".cta-btn"
+  },
+  "gtm-boost": {
+    "steps": [
+      {
+        "selector": ".gtm-boost-btn",
+        "wait": 2000
+      }
+    ]
+  },
+  "available-models": {
+    "selector": ".model-card"
+  },
+  "example-prompts": {
+    "selector": "xpath=//h2[normalize-space(.)=\"Example Prompts\"]/.."
+  },
+  "start-creating-videos": {
+    "selector": ".start-btn"
+  }
+}
