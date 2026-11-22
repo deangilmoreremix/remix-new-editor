@@ -1,0 +1,597 @@
+{
+  "id": "media-hub",
+  "name": "SmartVidDownloader",
+  "route": "#/media-hub",
+  "description": "SmartVidDownloader saves video, audio and subtitles from 1000+ sites by link, follows channels and feeds, and makes transcripts you can export or ask AI about.",
+  "shortDescription": "Download videos and audio from links, then transcribe them and ask AI about them.",
+  "fullDescription": "SmartVidDownloader (side menu, Video group; addresses #/media-hub and #/smartviddownloader) opens a full download and transcript app inside the page. It is built on the open-source VidBee app, so the embedded app's own screens (its title bar, messages, the 'Made with VidBee' footer and some settings) still say VidBee: that is the same tool. Paste one or more links to download video, audio or subtitles from YouTube, TikTok, Instagram, X, Vimeo, Twitch, SoundCloud and many other sites (it uses yt-dlp), pick the format and quality, download whole playlists, and follow channels or RSS feeds so new uploads are downloaded for you. Every download can be turned into a transcript with speaker labels, which you can search, edit, translate and export as text, Markdown, SRT subtitles or a video with captions. With your own AI provider key you can run AI skills on a transcript (overview, bullet points, FAQ, mind map, translate, article and more) or chat with an agent that can download, convert, clip and transcribe for you. The app's sidebar has Home (downloads and history), Chat, Subscribe (subscriptions), Tools, Preferences (Settings) and About. Important: SmartVidDownloader runs on the SmartVidDownloader server, not on your computer. Downloads, transcripts and speech models are stored on that server; Open File opens a file in a new browser tab and exports arrive as browser downloads. Where the embedded app says 'on this computer', it means the server. Everyone who is allowed in shares one SmartVidDownloader: the same download history, subscriptions, settings and AI provider keys. You must be signed in and your account must be on the allowlist.",
+  "bestFor": "Creators and teams who need to save source videos or audio from the web, keep up with channels, and get searchable transcripts, subtitles or AI summaries of what they downloaded.",
+  "whenToUse": [
+    "You have a video link and want the video or just the audio as a file.",
+    "You want a whole playlist or channel, or only part of it.",
+    "You want new uploads from a channel or RSS feed downloaded automatically.",
+    "You want a transcript with who said what, or SRT subtitles for a video.",
+    "You want an AI summary, FAQ, mind map or translation of a video's transcript.",
+    "You want to burn captions into a downloaded video."
+  ],
+  "whenToUseAnother": [
+    "Use Video Tools (#/videotools) to upscale, translate or otherwise transform a video with AI.",
+    "Use the Timeline Editor (#/timeline) to cut and edit a downloaded clip into a finished video.",
+    "Use Library (#/library) to keep and reuse the media you work with in the rest of the app.",
+    "Use Video Studio (#/video) to generate new video with AI instead of downloading one.",
+    "Use Recorder (#/recorder) to record your own screen or camera."
+  ],
+  "keyFeatures": [
+    "Download by link: one or many URLs, video or audio",
+    "Format and quality choice, frame rate, time range, subtitles and save folder",
+    "One-Click Download with preset quality (Best ≤4K to Worst ≤360p) and container",
+    "Download Playlist with preview and a selected range",
+    "Download queue with pause, resume, retry, logs and Troubleshoot",
+    "Download history with filters, Select, Remove Selected and Open File",
+    "Cookies file for videos that need a signed-in account",
+    "Subscriptions to channels and RSS feeds with auto download and keyword filters",
+    "Transcripts made by speech models on the server, also for uploaded audio or video files",
+    "Speaker labels with Adjust speakers",
+    "Search, edit and translate a transcript; bilingual view; built-in player",
+    "Export as .txt, .md or .srt, or a video with soft or burned-in subtitles",
+    "AI skills: Overview, Bullet Points, Generate FAQ, Create a mindmap, Translate, Rewrite as an article and more; custom skills",
+    "Your own AI provider (OpenAI, Google, OpenRouter, Groq, Mistral, Ollama, LMStudio, xAI and others)",
+    "Chat with an agent that can download, convert, clip and transcribe, with your approval",
+    "Settings for theme, language, downloads, metadata, transcription models, proxy and MCP",
+    "Supported Sites list"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Opening SmartVidDownloader",
+      "explanation": "Click SmartVidDownloader in the side menu. The page shows 'Starting SmartVidDownloader…' while it checks your sign-in and opens a session, then the app appears inside the page. If you are not signed in it shows 'Sign in to use SmartVidDownloader.' If your account is not on the allowlist it shows 'SmartVidDownloader is not enabled for your account. Ask an admin to give you access.'. Other failures show 'SmartVidDownloader unavailable (<code>)'.",
+      "whyToUse": "Everything else in SmartVidDownloader happens inside this embedded app.",
+      "inputRequired": "A signed-in account that an admin has added to the allowlist.",
+      "restrictions": "The session lasts 8 hours. After that, or if you open the app's address directly, it shows 'Open SmartVidDownloader from the app to start a session.': open SmartVidDownloader from the side menu again. 'SmartVidDownloader service is not running.' means the download service on the server is down; ask an admin."
+    },
+    {
+      "feature": "Download by link",
+      "explanation": "On Home click 'Add URL' (or press Ctrl + V) and paste a link into 'Paste URLs here, one per line'. Click 'Fetch' to read the video's details ('Fetching video info...'), choose 'Download Video' or 'Download Audio', then 'Start Download'. You can also drop a link onto the page ('Drop to download').",
+      "whyToUse": "Save a video or its audio from the web as a file you can use.",
+      "inputRequired": "A video link from a supported site.",
+      "restrictions": "Several links at once need One-Click Download turned on ('Turn on One-Click Download to add multiple links at once'). Some videos need a signed-in session; see Cookies. Files are saved on the server."
+    },
+    {
+      "feature": "Formats and quality",
+      "explanation": "After Fetch, the Download dialog ('Choose a format and save location') lists the available formats: 'Select Video Format' or 'Select Audio Format', with quality, size, codec and 'Frame Rate'. 'Advanced Options' adds a Time range (Start and End, for example 00:00 to 10:00; empty means the whole video), 'Download subtitles if available' and the save folder ('Use automatic folder' or a custom one).",
+      "whyToUse": "Get the exact resolution, file type or part of the video you need.",
+      "inputRequired": "A fetched link.",
+      "restrictions": "Only formats the site offers are listed. If the chosen one cannot be delivered, the app falls back to the best available ('Selected format unavailable')."
+    },
+    {
+      "feature": "One-Click Download",
+      "explanation": "Turn on One-Click Download (in the Download dialog or Settings) to download straight away with your defaults, without the format step ('Download Now'). In Settings pick the 'Default download type', 'Preferred quality' (Auto, Best (≤4K), Good (≤1080p), Normal (≤720p), Bad (≤480p), Worst (≤360p)) and 'Container' (Auto (MP4/MKV), MP4, MKV, WebM, Original (yt-dlp default)).",
+      "whyToUse": "Faster when you download often, and needed to paste several links at once.",
+      "inputRequired": "One or more links.",
+      "restrictions": "Quality is an upper limit; you get the best the site offers up to it."
+    },
+    {
+      "feature": "Download Playlist",
+      "explanation": "In the Download dialog open 'More ways to add' and choose the playlist option, paste a playlist or channel link, preview its videos ('Found N videos in playlist'), tick the ones you want or set a Range (Start and End), then 'Download Selected'. The playlist then shows as one group in the queue ('N / M completed').",
+      "whyToUse": "Download all or part of a playlist or channel in one go.",
+      "inputRequired": "A playlist or channel link.",
+      "restrictions": "You must preview first ('Preview the playlist before downloading.'). Large playlists take time and server space."
+    },
+    {
+      "feature": "Download queue",
+      "explanation": "Home lists every download with its progress, speed and status, with filters such as All, Active and Completed. Each item can Pause, Resume, Cancel or 'Retry Download'. 'Show details' gives the file details and 'View logs' the live and saved logs, including the yt-dlp command. 'Troubleshoot' opens the agent to explain a failed download.",
+      "whyToUse": "Watch and control what is downloading, and find out why something failed.",
+      "inputRequired": "At least one download.",
+      "restrictions": "How many run at once is set by 'Maximum number of active downloads' in Settings."
+    },
+    {
+      "feature": "Download history",
+      "explanation": "Finished, failed and cancelled downloads stay in the list. Click 'Select' to pick items, then 'Remove Selected'; the confirmation says files stay on disk unless you tick 'Also delete files'. Right-click or 'More actions' gives 'Open File' (opens in a new browser tab), 'Copy URL', 'Add to playlist' (the built-in player's playlist) and transcript actions. Filter by 'Creation source' (manual, subscription or AI-created).",
+      "whyToUse": "Find, reopen and tidy what you downloaded.",
+      "inputRequired": "Past downloads.",
+      "restrictions": "The history is shared by everyone who uses SmartVidDownloader. 'Also delete files' and 'Delete File' remove the file from the server permanently, for everyone."
+    },
+    {
+      "feature": "Cookies for sign-in-only videos",
+      "explanation": "Some videos (private, age-restricted or members-only) need a signed-in session. The app then says 'This download needs a signed-in session. Set up cookies, then retry.' Open Settings → Cookies ('Set up cookies'), export a cookies.txt file from your browser (for example with the Get cookies.txt LOCALLY extension) and click 'Choose cookies file'. The app checks it and shows its status.",
+      "whyToUse": "Raises the success rate for videos that need an account.",
+      "inputRequired": "A Netscape cookies.txt export from a browser where you are signed in.",
+      "restrictions": "Because SmartVidDownloader runs on a server, it cannot read cookies from the browser on your computer; use a cookies file. The file is shared with everyone using the app, and cookies expire, so redo it when downloads start failing. Only use accounts you are allowed to use."
+    },
+    {
+      "feature": "Subscriptions",
+      "explanation": "Click 'Subscribe' in the app's sidebar, then 'Add subscription' and paste a channel or feed link into 'Feed URL'; the app detects the feed ('Detected … feed'). Optional: 'Keyword filter (comma separated)', 'Auto tags', 'Custom directory', 'Custom filename template', 'Auto download' and 'Download only the latest video'. Each subscription shows its latest uploads with 'Add to download queue', its status and 'Last checked'; 'Refresh' checks now. Download type, preferred quality and container can be set per subscription.",
+      "whyToUse": "New videos from channels you follow are downloaded without you pasting links.",
+      "inputRequired": "A channel, website or RSS feed link.",
+      "restrictions": "For sites without a feed, the app suggests making one with RSSHub. Subscriptions are shared by everyone using the app and fill the server's storage."
+    },
+    {
+      "feature": "Transcripts",
+      "explanation": "Open a download and click 'Transcribe', or turn on 'Transcribe after download' in Settings so every finished download gets one. To transcribe your own file click 'Add audio or video' or drop a file ('Drop to transcribe'). While it runs you see steps such as 'Preparing audio', 'Detecting speech' and 'Identifying speakers'. If the video has captions you can switch between 'Video captions' and 'AI transcript'. 'Change model' re-transcribes with a better model.",
+      "whyToUse": "Get searchable text of everything said in a video.",
+      "inputRequired": "A download or an audio or video file with speech.",
+      "restrictions": "Transcription runs on the SmartVidDownloader server, which first downloads the speech model ('Preparing transcript models…'). Files with no audio cannot be transcribed ('This file has no audio track…'). 'Maximum number of active transcripts' limits how many run at once."
+    },
+    {
+      "feature": "Speaker labels",
+      "explanation": "Transcripts mark who is speaking. The 'Speakers (N)' list shows each speaker's share of talking time; click one to jump to them. If voices are mixed up use 'Adjust speakers', choose Auto (detect), 1 speaker or a number of speakers, and click 'Update speakers'; the words stay the same and only the labels change. You can also rename or change the speaker of a line while editing.",
+      "whyToUse": "See who said what in interviews, podcasts and meetings.",
+      "inputRequired": "A finished transcript.",
+      "restrictions": "Labels are automatic and can be wrong when voices are similar or overlap."
+    },
+    {
+      "feature": "Read, search and edit a transcript",
+      "explanation": "The transcript page plays the video next to the text and highlights the line being spoken. Use 'Search transcript' to find words and jump to them. Hover a line to 'Edit', 'Insert before', 'Insert after' or 'Delete' it, or 'Add line'. 'Bilingual transcript' shows a second subtitle track, and 'Translate in a new chat…' asks the AI to translate. 'Copy transcript' copies all the text. The player has play speed, back and forward 15 seconds, subtitles on or off and full screen.",
+      "whyToUse": "Fix mistakes and find the moments you need.",
+      "inputRequired": "A transcript.",
+      "restrictions": "Deleting captions is permanent ('This permanently removes N captions from the transcript.'). Translation needs an AI provider."
+    },
+    {
+      "feature": "Export",
+      "explanation": "On a transcript click 'Export'. Pick a Style: Transcript, Subtitles, Segments, Whisper or Video + Subs; a Format: .txt, .md or .srt; and Options such as Grouping (None, Words, Sentences) and 'Show Timestamp'. The Export Preview shows the result; Copy it or save it. Video + Subs makes a video with captions: Soft adds a subtitle track viewers can turn off, Hard burns them into the picture (re-encoded).",
+      "whyToUse": "Get subtitles for editing or posting, a text file, or a captioned video.",
+      "inputRequired": "A transcript; the source video for Video + Subs.",
+      "restrictions": "Video + Subs needs the original video ('The source video is missing…') and is not available for audio-only files. Saved files arrive as a browser download."
+    },
+    {
+      "feature": "AI skills",
+      "explanation": "In the transcript sidebar run a skill on the transcript: Overview, Bullet Points, Improve Grammar & Punctuation, Generate FAQ, Extract Statistics, Paraphrase Content, Create a mindmap, Translate, Rewrite as an article, Video FAQ or Troubleshoot a task ('All skills' lists them). Results can be copied, run again, or saved with 'Export as PDF' or 'Export as Markdown'. In Settings → Skills you can search skills, 'Add skill', 'Upload a skill', 'Import skill from GitHub', 'Create custom copy', and choose 'Show in transcript sidebar' or 'Auto-run'.",
+      "whyToUse": "Turn a long video into notes, FAQs, a mind map, an article or another language.",
+      "inputRequired": "A finished transcript and an AI provider set up in Settings → Providers.",
+      "restrictions": "Without a provider it says 'Set up an AI provider in Settings to run this skill.' Each run uses your provider's credits. Uploaded skills must be a SKILL.md or ZIP up to 10 MB."
+    },
+    {
+      "feature": "AI providers",
+      "explanation": "In Settings → Providers choose a service (for example OpenAI, Google, OpenRouter, Groq, Mistral, Together, xAI, Ollama or LMStudio, or a custom one), enter its API key, Base URL if needed and Models, click 'Test connection', save, then click 'Use'. The provider in use is marked 'In use'.",
+      "whyToUse": "AI skills and Chat run on the AI service and key you choose.",
+      "inputRequired": "An API key and model ID from an AI service.",
+      "restrictions": "The key is saved in the shared SmartVidDownloader, so everyone using it uses the same provider and key. Transcript text is sent to the provider only when you run an AI action."
+    },
+    {
+      "feature": "Chat and agent",
+      "explanation": "Click 'Chat' in the app's sidebar and type in 'Ask anything…', or start from a suggestion: Download a video, Extract audio, Compress a video, Convert a format, Transcribe a download or Create a subscription. On a transcript, ask follow-ups in 'Ask a follow-up about this video…'. The agent can create downloads and conversions, read and search transcripts, capture frames, make clips and write articles. When it needs permission it asks with Allow, Allow and remember or Deny. 'Attach images' adds up to 10 PNG, JPEG or WebP images. 'Stop agent' stops a run. Past chats are under History.",
+      "whyToUse": "Describe what you want in plain words instead of finding each setting.",
+      "inputRequired": "An AI provider; a model with tool calling works best.",
+      "restrictions": "Uses your AI provider's credits. 'Agent permissions' in Settings sets Full access, Manual approval or Automatic review; Manual approval is the safest on a shared server."
+    },
+    {
+      "feature": "Settings",
+      "explanation": "Open Preferences (the gear in the app's sidebar). General: Theme (Light, Dark or System; also a switch in the title bar), Language, 'Maximum number of active downloads', 'Download notifications', One-Click Download defaults. Metadata: 'Embed chapters', 'Embed metadata', 'Embed subtitles', 'Embed thumbnail', 'Filename style', subtitle languages. Cookies. Providers and Skills (see above). Transcription: speech models and 'Transcribe after download'. Advanced: Proxy, 'Use configuration file' (for yt-dlp), and 'Enable MCP access' for outside AI agents.",
+      "whyToUse": "Set how files are named and tagged, and how downloads and transcripts behave.",
+      "inputRequired": "None.",
+      "restrictions": "Settings are shared by everyone using SmartVidDownloader; a change affects all users. The Account tab and VidBee Cloud options come from the original desktop app; cloud sign-in is not part of SmartVidDownloader."
+    },
+    {
+      "feature": "Supported Sites",
+      "explanation": "Open Supported Sites (linked from the Download dialog) to see the main platforms: YouTube, YouTube Music, TikTok, Instagram, Facebook, X (Twitter), Vimeo, Twitch, Kick, Reddit, Dailymotion, LinkedIn, Pinterest, Tumblr, SoundCloud, Bandcamp, Mixcloud and Niconico. 'Open full supported sites list' shows yt-dlp's complete list.",
+      "whyToUse": "Check whether a site is likely to work before you paste a link.",
+      "inputRequired": "None.",
+      "restrictions": "Sites change often; a listed site can still fail for a given video, and some need cookies."
+    }
+  ],
+  "howToUse": "1. Sign in and click SmartVidDownloader in the side menu (Video group); wait for the app to appear. 2. On Home click 'Add URL' and paste a link. 3. Click 'Fetch', choose 'Download Video' or 'Download Audio' and a format, then 'Start Download'. 4. Watch it in the queue; when it finishes click 'Open File' or open its transcript. 5. Click 'Transcribe' to get the text with speaker labels, then 'Export' for .txt, .md, .srt or a captioned video. 6. Optional: add an AI provider in Settings → Providers to run AI skills or Chat. Note: the embedded app still calls itself VidBee, and files are stored on the server.",
+  "howToSteps": [
+    "Sign in and open SmartVidDownloader from the side menu.",
+    "Click 'Add URL' and paste one link (or turn on One-Click Download for several).",
+    "Click 'Fetch', pick video or audio and a format, then 'Start Download'.",
+    "Follow progress in the queue; use Retry Download or Troubleshoot if it fails.",
+    "Open the finished item and click 'Transcribe'.",
+    "Search or edit the transcript, then 'Export' what you need.",
+    "Optionally set up an AI provider and run an AI skill or ask in Chat."
+  ],
+  "gettingStarted": [
+    "Start with one public YouTube link and the default format.",
+    "Turn on 'Transcribe after download' if you want text for everything you download.",
+    "The first transcript takes longer because the server downloads the speech model.",
+    "Set up a cookies file only when a download says it needs a signed-in session.",
+    "Add an AI provider before trying AI skills or Chat."
+  ],
+  "inputs": [
+    "Video, playlist or channel link",
+    "Format and quality",
+    "Time range",
+    "Save folder",
+    "Feed URL for subscriptions",
+    "Audio or video file to transcribe",
+    "Cookies file",
+    "AI provider API key and model",
+    "Chat message"
+  ],
+  "requiredInputs": [
+    "A signed-in, allowlisted account",
+    "A link (downloads) or a media file (transcripts)",
+    "An AI provider key (AI skills and Chat only)"
+  ],
+  "optionalInputs": [
+    "Format, quality and container",
+    "Time range and subtitles",
+    "Custom folder and filename template",
+    "Keyword filter and auto tags for subscriptions",
+    "Cookies file",
+    "Speaker count",
+    "Images attached to a chat message"
+  ],
+  "inputDetails": [
+    {
+      "name": "Link",
+      "description": "A video, playlist or channel address from a supported site.",
+      "required": true,
+      "whenToUse": "Every download.",
+      "restrictions": "One per line; several at once need One-Click Download."
+    },
+    {
+      "name": "Feed URL",
+      "description": "A channel, website or RSS feed link for a subscription.",
+      "required": true,
+      "whenToUse": "Adding a subscription.",
+      "restrictions": "Sites without a feed may need an RSSHub feed."
+    },
+    {
+      "name": "Audio or video file",
+      "description": "Your own file to transcribe ('Add audio or video' or drop it).",
+      "required": false,
+      "whenToUse": "Transcribing something you did not download here.",
+      "restrictions": "It is uploaded to the server and must have an audio track."
+    },
+    {
+      "name": "Cookies file",
+      "description": "A Netscape cookies.txt export from a browser where you are signed in.",
+      "required": false,
+      "whenToUse": "Only for videos that need a signed-in account.",
+      "restrictions": "Shared with everyone using the app; expires over time."
+    },
+    {
+      "name": "AI provider key",
+      "description": "API key, model and (for custom services) Base URL of an AI service.",
+      "required": false,
+      "whenToUse": "AI skills, translation and Chat.",
+      "restrictions": "Shared with everyone using the app; uses that provider's credits."
+    }
+  ],
+  "generationModes": [
+    "Video download",
+    "Audio download",
+    "Playlist download",
+    "Subscription",
+    "Transcript",
+    "AI skill",
+    "Agent chat"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Video download",
+      "description": "Saves the video in the chosen format and quality.",
+      "useCase": "Source footage for editing."
+    },
+    {
+      "mode": "Audio download",
+      "description": "Saves only the sound, in the chosen audio format.",
+      "useCase": "Podcasts, music or voice tracks."
+    },
+    {
+      "mode": "Playlist download",
+      "description": "Downloads all or a selected range of a playlist or channel.",
+      "useCase": "A whole series at once."
+    },
+    {
+      "mode": "Subscription",
+      "description": "Checks a channel or feed and queues new uploads, automatically if Auto download is on.",
+      "useCase": "Keeping up with a channel."
+    },
+    {
+      "mode": "Transcript",
+      "description": "Turns speech into text with speaker labels on the server.",
+      "useCase": "Searching, subtitles and AI."
+    },
+    {
+      "mode": "AI skill",
+      "description": "Runs a saved prompt (summary, FAQ, mind map, translation…) on a transcript.",
+      "useCase": "Notes and repurposed content."
+    },
+    {
+      "mode": "Agent chat",
+      "description": "An AI agent that can create downloads, conversions, clips and transcripts for you, asking permission when needed.",
+      "useCase": "Doing several steps by asking in plain words."
+    }
+  ],
+  "modelCapabilities": "Downloads use yt-dlp with ffmpeg. Transcripts use speech models that run on the server: Whisper (Tiny, Base, Small, Medium, Turbo), SenseVoice, Parakeet TDT, FireRedASR, Qwen3-ASR and others, downloaded the first time they are used. AI skills and Chat use whichever AI provider and model you set up with your own key (OpenAI, Google, OpenRouter, Groq, Mistral, Ollama, LMStudio, xAI and other presets, or a custom OpenAI-compatible service).",
+  "outputs": [
+    "Video and audio files (stored on the server; open in a browser tab)",
+    "Subtitle files",
+    "Transcripts with speaker labels",
+    "Exported .txt, .md and .srt files",
+    "Videos with soft or burned-in subtitles",
+    "AI skill results, exportable as PDF or Markdown",
+    "Chat conversations and files the agent creates"
+  ],
+  "limitations": [
+    "Everyone allowed in shares one SmartVidDownloader: the same history, subscriptions, settings, cookies file and AI keys.",
+    "Files are stored on the server, not your computer; deleting a file deletes it for everyone, permanently.",
+    "Only a cookies file works; the server cannot read your browser's cookies.",
+    "Several links at once need One-Click Download.",
+    "VidBee Cloud (sign-in, cloud credits, cloud transcription) is not part of SmartVidDownloader.",
+    "Share image buttons from the original desktop app are not supported here.",
+    "The first transcript downloads a speech model and is slower.",
+    "The session lasts 8 hours."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Shared instance",
+      "impact": "Other users see your downloads and can change settings or AI keys.",
+      "workaround": "Agree with your team on settings and keys; do not add personal keys or cookies you do not want shared."
+    },
+    {
+      "limitation": "Server storage",
+      "impact": "Files are not on your computer until you save them.",
+      "workaround": "Use 'Open File' and save it from the browser tab, or export."
+    },
+    {
+      "limitation": "Permanent delete",
+      "impact": "'Also delete files' and 'Delete File' remove files for everyone, with no recycle bin.",
+      "workaround": "Use Remove without 'Also delete files' to only hide an item from the list."
+    },
+    {
+      "limitation": "No VidBee Cloud",
+      "impact": "Cloud sign-in, credits and paid cloud transcription in the embedded app do not apply.",
+      "workaround": "Use local transcription and your own AI provider."
+    },
+    {
+      "limitation": "Cookies file only",
+      "impact": "'Use Chrome'/'Read from browser' options cannot reach your own browser.",
+      "workaround": "Export a cookies.txt and choose it in Settings → Cookies."
+    }
+  ],
+  "troubleshooting": [
+    "'Sign in to use SmartVidDownloader.': sign in, then open the page again.",
+    "'SmartVidDownloader is not enabled for your account. Ask an admin to give you access.': your account is not on the allowlist; ask an admin.",
+    "'Open SmartVidDownloader from the app to start a session.': the 8-hour session ended or you opened the app address directly; open SmartVidDownloader from the side menu again.",
+    "'SmartVidDownloader service is not running.': the download service on the server is down; ask an admin.",
+    "'SmartVidDownloader unavailable (<code>)': the server could not start a session; try again later.",
+    "'This download needs a signed-in session. Set up cookies, then retry.': add a cookies file in Settings → Cookies.",
+    "'Turn on One-Click Download to add multiple links at once': turn it on or paste one link.",
+    "'Set up an AI provider in Settings to run this skill.': add and Use a provider in Settings → Providers."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "A download failed",
+      "steps": [
+        "Click 'Retry Download'.",
+        "Open 'View logs' to read the error.",
+        "Click 'Troubleshoot' to have the agent explain it (needs an AI provider).",
+        "If it mentions sign-in, set up a cookies file and retry."
+      ]
+    },
+    {
+      "issue": "The page only shows a red message",
+      "steps": [
+        "Make sure you are signed in.",
+        "Reopen SmartVidDownloader from the side menu.",
+        "If it says your account is not enabled, ask an admin to add you."
+      ]
+    },
+    {
+      "issue": "Transcript is wrong or speakers are mixed up",
+      "steps": [
+        "Click 'Adjust speakers' and set the number of speakers, then 'Update speakers'.",
+        "Use 'Change model' to transcribe again with a better model.",
+        "Edit individual lines."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Fetch says 'Failed to fetch video information'",
+      "whyItHappens": "The link is wrong, the site is not supported, or the video needs a signed-in session.",
+      "howToFix": "Check the link, see Supported Sites, or add a cookies file."
+    },
+    {
+      "problem": "I picked a quality but got a lower one",
+      "whyItHappens": "The site did not deliver that format, so the app used the best available.",
+      "howToFix": "Try another format, or refresh your cookies file."
+    },
+    {
+      "problem": "I cannot find the downloaded file on my computer",
+      "whyItHappens": "Files are saved on the SmartVidDownloader server.",
+      "howToFix": "Click 'Open File' and save it from the browser tab."
+    },
+    {
+      "problem": "Export 'Video + Subs' is not available",
+      "whyItHappens": "The source video is missing or the file is audio only.",
+      "howToFix": "Download the video again, or export a text or .srt file."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Subtitles for a downloaded interview",
+      "steps": [
+        "Add URL and download the video.",
+        "Click 'Transcribe' and wait.",
+        "Fix speaker labels with 'Adjust speakers'.",
+        "Export as Subtitles in .srt, or as Video + Subs with Hard captions."
+      ]
+    },
+    {
+      "title": "Follow a channel",
+      "steps": [
+        "Click 'Subscribe', then 'Add subscription'.",
+        "Paste the channel link, tick 'Auto download' and 'Download only the latest video'.",
+        "Save; new uploads are queued automatically."
+      ]
+    },
+    {
+      "title": "Turn a talk into an article",
+      "steps": [
+        "Download and transcribe the talk.",
+        "Set up an AI provider.",
+        "Run 'Rewrite as an article' and 'Export as Markdown'."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Source footage for editing",
+      "description": "Download clips to edit in the Timeline Editor.",
+      "steps": [
+        "Download the video.",
+        "Open File and save it.",
+        "Upload it to the Timeline Editor."
+      ],
+      "expectedOutput": "A video file ready to edit."
+    },
+    {
+      "title": "Podcast notes",
+      "description": "Get a transcript and summary of an episode.",
+      "steps": [
+        "Download the audio.",
+        "Transcribe it.",
+        "Run Overview or Bullet Points."
+      ],
+      "expectedOutput": "Searchable transcript and notes."
+    },
+    {
+      "title": "Translate a video",
+      "description": "Read a foreign-language video in your language.",
+      "steps": [
+        "Transcribe the video.",
+        "Use 'Translate in a new chat…'.",
+        "Turn on 'Bilingual transcript'."
+      ],
+      "expectedOutput": "Original and translated subtitles side by side."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Why does the app inside the page say VidBee?",
+      "answer": "SmartVidDownloader is built on the open-source VidBee app, and its own screens still show that name. It is the same tool."
+    },
+    {
+      "question": "Where are my downloads saved?",
+      "answer": "On the SmartVidDownloader server. Click 'Open File' to open one in a new browser tab and save it from there."
+    },
+    {
+      "question": "Can other people see my downloads?",
+      "answer": "Yes. Everyone allowed into SmartVidDownloader shares one app, with the same history, subscriptions, settings and AI keys."
+    },
+    {
+      "question": "Why can't I open SmartVidDownloader?",
+      "answer": "You must be signed in and an admin must add your account to the allowlist."
+    },
+    {
+      "question": "Does transcription cost anything?",
+      "answer": "Transcription uses speech models on the server. AI skills and Chat use your own AI provider's credits."
+    },
+    {
+      "question": "Can I download several videos at once?",
+      "answer": "Yes: turn on One-Click Download and paste one link per line, or use Download Playlist."
+    }
+  ],
+  "glossary": {
+    "VidBee": "The open-source app SmartVidDownloader is built on; its name still shows inside the app.",
+    "yt-dlp": "The open-source download engine behind SmartVidDownloader.",
+    "One-Click Download": "Download with your default settings, skipping the format step.",
+    "Subscription": "A followed channel or feed whose new uploads are queued for you.",
+    "RSS feed": "A web address that lists a site's newest posts or videos.",
+    "Cookies file": "A cookies.txt export that lets downloads use your signed-in session.",
+    "Speaker labels": "Marks showing which speaker said each line.",
+    "Soft / Hard subtitles": "Soft is a track viewers can turn off; Hard is burned into the picture.",
+    "AI skill": "A saved AI prompt you run on a transcript.",
+    "MCP": "A way for outside AI agents to control the app."
+  },
+  "tips": [
+    "Fetch first to see which formats a video really has.",
+    "Use a Time range to save only the part you need.",
+    "Turn on 'Download only the latest video' when subscribing to big channels.",
+    "Use Manual approval for the agent on a shared server.",
+    "Save important files from the browser; the server is shared."
+  ],
+  "bestPractices": [
+    "Only download content you have the right to use.",
+    "Remove items without deleting files unless everyone agrees the file is no longer needed.",
+    "Keep AI provider keys and cookies files limited to accounts your team may share.",
+    "Check speaker labels before exporting subtitles."
+  ],
+  "relatedStudios": [
+    "videotools",
+    "timeline",
+    "library",
+    "video",
+    "edit",
+    "recorder"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "timeline",
+      "relationship": "Edits the clips you download here into a finished video.",
+      "whenToMove": "After downloading source footage.",
+      "why": "SmartVidDownloader does not cut or arrange clips on a timeline."
+    },
+    {
+      "studio": "videotools",
+      "relationship": "Upscales, translates and transforms videos with AI.",
+      "whenToMove": "When a downloaded video needs AI changes.",
+      "why": "It has the AI video tools."
+    },
+    {
+      "studio": "library",
+      "relationship": "Keeps media for use across the app.",
+      "whenToMove": "When you want a downloaded file in your library.",
+      "why": "Files in SmartVidDownloader stay on its own server."
+    },
+    {
+      "studio": "video",
+      "relationship": "Generates new video with AI.",
+      "whenToMove": "When there is nothing to download and you need new footage.",
+      "why": "SmartVidDownloader only saves existing video."
+    },
+    {
+      "studio": "edit",
+      "relationship": "Edits still images.",
+      "whenToMove": "To edit a frame or thumbnail.",
+      "why": "SmartVidDownloader works with video, audio and text."
+    },
+    {
+      "studio": "recorder",
+      "relationship": "Records your screen or camera.",
+      "whenToMove": "When you need your own recording.",
+      "why": "SmartVidDownloader downloads and transcribes, it does not record."
+    }
+  ],
+  "notConfirmed": [
+    "How many sites really work from the server's network (the app says 1000+; yt-dlp's list changes often).",
+    "Whether the 'Read from browser' cookie options or the VidBee browser extension do anything in SmartVidDownloader (the server cannot reach your browser).",
+    "What the Account tab and 'Continue with GitHub' show or do, since VidBee Cloud sign-in is removed.",
+    "Whether the MCP configuration can be used by agents outside the server.",
+    "Which speech models fit the server's memory and how long transcripts take.",
+    "How the Share image buttons behave (that feature is not ported to the web version).",
+    "Whether 'Open Download Folder' and the sidebar Tools page (an external VidBee site) are useful here.",
+    "Download and transcript limits or storage quotas on the server.",
+    "The app was reviewed in code only; it was not run and no screenshots were taken."
+  ],
+  "sourceFiles": [
+    "src/components/MediaHubPage.js",
+    "backend/services/vidbeeProxy.js",
+    "src/lib/router.js",
+    "src/lib/studioRoutes.js",
+    "vite.config.js",
+    "apps/vidbee/UPSTREAM.md",
+    "apps/vidbee/apps/desktop/host/server.ts",
+    "apps/vidbee/apps/desktop/host/electron-stub.mjs",
+    "apps/vidbee/apps/desktop/host/web-shim.js",
+    "apps/vidbee/apps/desktop/src/renderer/src/router.tsx",
+    "apps/vidbee/apps/desktop/src/renderer/src/app-layout.tsx",
+    "apps/vidbee/apps/desktop/src/renderer/src/components/ui/sidebar.tsx",
+    "apps/vidbee/apps/desktop/src/renderer/src/components/download/DownloadDialog.tsx",
+    "apps/vidbee/apps/desktop/src/renderer/src/components/download/UnifiedDownloadHistory.tsx",
+    "apps/vidbee/apps/desktop/src/renderer/src/components/settings/SettingsSectionNav.tsx",
+    "apps/vidbee/apps/desktop/src/renderer/src/pages/Subscriptions.tsx",
+    "apps/vidbee/apps/desktop/src/renderer/src/pages/Transcript.tsx",
+    "apps/vidbee/apps/desktop/src/renderer/src/pages/Chat.tsx",
+    "apps/vidbee/packages/i18n/src/locales/en.json",
+    "apps/vidbee/skills/"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Written from the SmartVidDownloader shell, the access gate, the VidBee host layer and the desktop renderer's English strings. The app was not run (sign-in gate and uninstalled VidBee build); no screenshots.",
+    "verifiedAt": "2026-11-22",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}
