@@ -63,7 +63,7 @@ const PATCHES = [
 const smartvidManagedProvider = (): StoredProvider | null => {
   const key = (process.env.SMARTVID_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '').trim()
   if (!key) return null
-  const modelId = (process.env.SMARTVID_OPENAI_MODEL || 'gpt-5.4-mini').trim()
+  const modelId = (process.env.SMARTVID_OPENAI_MODEL || 'gpt-6.1-sol').trim()
   return {
     id: 'smartvid-openai',
     presetId: 'openai',

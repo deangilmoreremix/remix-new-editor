@@ -141,7 +141,7 @@
     },
     {
       "feature": "Built-in AI (OpenAI)",
-      "explanation": "AI skills, Chat and the agent run on OpenAI through SmartVid's own account (GPT-5.4 mini by default). There is no Providers page and nothing to set up: the model shows at the bottom of Chat.",
+      "explanation": "AI skills, Chat and the agent run on OpenAI through SmartVid's own account (GPT-6.1 Sol by default). There is no Providers page and nothing to set up: the model shows at the bottom of Chat.",
       "whyToUse": "Use AI on your downloads and transcripts without signing up for an AI service or pasting a key.",
       "inputRequired": "None.",
       "restrictions": "Transcript text and chat messages are sent to OpenAI when you run an AI action. If the AI service fails, the card says so and offers Try again."
@@ -285,7 +285,7 @@
       "useCase": "Doing several steps by asking in plain words."
     }
   ],
-  "modelCapabilities": "Downloads use yt-dlp with ffmpeg. Transcripts use speech models that run on the server: Whisper (Tiny, Base, Small, Medium, Turbo), SenseVoice, Parakeet TDT, FireRedASR, Qwen3-ASR and others, downloaded the first time they are used. AI skills and Chat run on OpenAI (GPT-5.4 mini by default) through SmartVid's own account; users do not choose a provider or enter a key.",
+  "modelCapabilities": "Downloads use yt-dlp with ffmpeg. Transcripts use speech models that run on the server: Whisper (Tiny, Base, Small, Medium, Turbo), SenseVoice, Parakeet TDT, FireRedASR, Qwen3-ASR and others, downloaded the first time they are used. AI skills and Chat run on OpenAI (GPT-6.1 Sol by default) through SmartVid's own account; users do not choose a provider or enter a key.",
   "outputs": [
     "Video and audio files (stored on the server; open in a browser tab)",
     "Subtitle files",
