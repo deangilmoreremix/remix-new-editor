@@ -12,7 +12,7 @@ vi.mock('../lib/loading.js', () => ({ showToast: vi.fn() }));
 vi.mock('../lib/security.js', () => ({ escapeHtml: (s) => s }));
 vi.mock('../lib/clerkEntitlements.js', () => ({ requireEntitlement: vi.fn() }));
 
-import { runAgentById, DIRECTOR_AGENTS, inferAgentId, KEYWORD_TO_AGENT } from '../components/DirectorPage.js';
+import { runAgentById, DIRECTOR_AGENTS, inferAgentId, KEYWORD_TO_AGENT, agentNeedsVideo } from '../components/DirectorPage.js';
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -117,5 +117,16 @@ describe('inferAgentId (chat command → agent)', () => {
 
     test('every agent id has keywords, so every agent can be reached by typing', () => {
         for (const a of DIRECTOR_AGENTS) expect(KEYWORD_TO_AGENT[a.id]?.length, a.id).toBeGreaterThan(0);
+    });
+});
+
+describe('agentNeedsVideo', () => {
+    test('video agents need a video; text and collection agents do not', () => {
+        for (const id of ['summarizer', 'clipper', 'subtitler', 'dubbing', 'color', 'speed']) expect(agentNeedsVideo(id)).toBe(true);
+        for (const id of ['text_to_movie', 'voice_cloning', 'compiler', 'kids_storyteller']) expect(agentNeedsVideo(id)).toBe(false);
+    });
+    test('every id in the no-video set is a real agent', () => {
+        const ids = new Set(DIRECTOR_AGENTS.map((a) => a.id));
+        for (const id of ['compiler', 'meme', 'slack_agent', 'dynamic_ads']) expect(ids.has(id)).toBe(true);
     });
 });

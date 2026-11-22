@@ -327,6 +327,14 @@ export function inferAgentId(text) {
     return best ? best.agentId : null;
 }
 
+// Agents that work from text, a collection or a URL pair and so run without a loaded video; every other agent needs one.
+export const AGENTS_WITHOUT_VIDEO = new Set([
+    'compiler', 'compilation', 'montage', 'comparison', 'voice_cloning', 'audio_overlays', 'ai_voiceovers', 'voiceover',
+    'text_to_movie', 'storyboarding', 'story', 'faceless_video_creator', 'ai_ad_films', 'kids_storyteller', 'dynamic_ads',
+    'intro_outro', 'brand_elements', 'meme', 'slack_agent', 'tiktok_lyric_video', 'output_formatting', 'sales_assistant',
+]);
+export const agentNeedsVideo = (agentId) => !AGENTS_WITHOUT_VIDEO.has(agentId);
+
 /**
  * Run a Director agent by id. Dispatches to the right backend based on the
  * agent's `tool` mapping. Returns a structured result suitable for the chat UI.
@@ -1361,6 +1369,13 @@ export function DirectorPage() {
 
         const agent = DIRECTOR_AGENTS.find(a => a.id === agentId);
         if (!agent) return;
+
+        // Typed commands used to start the job with no video and fail later with a backend error; say so up front.
+        if (agentNeedsVideo(agentId) && !videoUrl && !videoId) {
+            addMessage(`${agent.name} works on a video. Open Director with a video URL (from the Render studio) first.`, { isError: true });
+            showToast('No video loaded', 'warning');
+            return;
+        }
 
         // ── Prompt for extra input (e.g. voice-cloning text, comparison URLs) ─
         // Some agents need fields beyond the main command. Show an inline form
