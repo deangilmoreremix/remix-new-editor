@@ -34,7 +34,8 @@ import setupChatWebSocket from './websocket/chat.js';
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-const videoAgentLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
+const videoAgentLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, // Job polling (GET /job/:id, every 1.5s from the Director page) must not count against the 10/min submit limit.
+  skip: (req) => process.env.NODE_ENV === 'test' || (req.method === 'GET' && req.path.startsWith('/job/')), standardHeaders: true, legacyHeaders: false });
 const agentActionsLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
 const videodbProxyLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 const pexelsSearchLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
