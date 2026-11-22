@@ -74,6 +74,16 @@ Keys: `selector`/`text` (control), `type` (what to type), `upload: true` + `file
 `node scripts/guide-videos/dump-controls.mjs <route>` lists a studio's controls. Quick trial of one feature:
 `FORCE=1 GUIDE_VIDEO_DIR=/tmp/trial GUIDES=<slug> FEATURES=<feature-id> npm run capture:videos`.
 
+## Video Pages (needs a fake backend)
+
+Video Pages shows "needs the Supabase connection" without one. Record it against a second dev server that points at a
+fake Supabase address; the recorder answers that address with one sample page (nothing real is read or written):
+
+```bash
+VITE_SUPABASE_URL=http://127.0.0.1:54399 VITE_SUPABASE_ANON_KEY=fake npx vite --port 3101 &
+GUIDE_BASE_URL=http://localhost:3101 GUIDES=video-pages FORCE=1 npm run capture:videos
+```
+
 ## Adding voiceover later
 
 Put one MP3 per line in `scripts/guide-videos/audio/<slug>/` named `intro.mp3`, `<feature-id>.mp3`,

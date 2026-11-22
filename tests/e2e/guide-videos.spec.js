@@ -297,6 +297,18 @@ for (const guide of GUIDES) {
       const url = `${BASE}/__tour_media/${file}`;
       return route.fulfill({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify({ url, file_url: url, data: { url }, result: { url } }) });
     });
+    // Video Pages needs Supabase and a signed-in user. Run it against a dev server started with a fake
+    //   VITE_SUPABASE_URL=http://127.0.0.1:54399 (see the README), and answer its data calls with one sample page here.
+    //   Nothing real is read or written.
+    if (guide.slug === 'video-pages') {
+      await page.addInitScript(() => { window.Clerk = { user: { id: 'user_tour_demo' }, session: { getToken: async () => 'tour.fake.token' } }; });
+      await page.context().route('http://127.0.0.1:54399/**', (route) => {
+        if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+        const now = new Date().toISOString();
+        const sample = { id: 'tour-page-1', title: 'Spring launch demo', video_url: `${BASE}/__tour_media/sample-video.mp4`, poster_url: `${BASE}/__tour_media/sample-image.jpg`, duration: 12, source: 'upload', config: {}, published: false, view_count: 0, created_at: now, updated_at: now };
+        return route.fulfill({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify(/\/landing_pages/.test(route.request().url()) ? [sample] : []) });
+      });
+    }
     // A placeholder key keeps the "set up your API keys" modal from interrupting the tour. It is never valid, so nothing can be billed.
     await page.addInitScript(() => { try { const v = btoa('muapi_2024_tour-placeholder-key'); for (const k of ['muapi_key', 'openai_key', 'pexels_key', 'pixabay_key', 'videodb_key']) if (!localStorage.getItem(k)) localStorage.setItem(k, v); } catch {} }); // the app stores keys obfuscated (apiKeyManager.js), so a raw value reads as no key
     // Second layer: if the API-key modal is ever mounted (page or studio iframe), remove it the moment it appears,
