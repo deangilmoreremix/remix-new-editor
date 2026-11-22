@@ -369,30 +369,30 @@ const kr = () => {
   }
 }, pt = "muapi-studio:labels:v1", ht = "muapi-studio:hidden:v1";
 function Nr(e, t, r, n = "") {
-  const [i, l] = A(() => Pe(n)), [o, h] = A([]), [w, x] = A(null), [I, k] = A(!1), [b, N] = A(null), M = z(!1), [O, E] = A(() => ut(ve(pt, n), {})), [R, f] = A(() => ut(ve(ht, n), [])), p = z(/* @__PURE__ */ new Set()), v = z(new AbortController()), $ = z([]);
-  $.current = t ?? [], U(() => wr(i, n), [i, n]), U(() => mt(ve(pt, n), O), [O, n]), U(() => mt(ve(ht, n), R), [R, n]), U(() => (v.current = new AbortController(), () => v.current.abort()), []);
-  const _ = ae((u, y) => l((G) => G.map((c) => c.id === u ? { ...c, ...y } : c)), []), C = ae(async (u, y) => {
+  const [i, l] = A(() => Pe(n)), [o, h] = A([]), [w, x] = A(null), [I, k] = A(!1), [b, N] = A(null), M = z(!1), [O, E] = A(() => ut(ve(pt, n), {})), [R, f] = A(() => ut(ve(ht, n), [])), p = z(/* @__PURE__ */ new Set()), v = z(new AbortController()), G = z([]);
+  G.current = t ?? [], U(() => wr(i, n), [i, n]), U(() => mt(ve(pt, n), O), [O, n]), U(() => mt(ve(ht, n), R), [R, n]), U(() => (v.current = new AbortController(), () => v.current.abort()), []);
+  const $ = ae((u, y) => l((L) => L.map((c) => c.id === u ? { ...c, ...y } : c)), []), C = ae(async (u, y) => {
     if (!p.current.has(u)) {
       p.current.add(u);
       try {
-        const G = await ct(e, y, {
+        const L = await ct(e, y, {
           signal: v.current.signal,
-          onUpdate: (c) => _(u, { status: c.status, outputs: c.outputs, error: c.error, cost: c.cost })
+          onUpdate: (c) => $(u, { status: c.status, outputs: c.outputs, error: c.error, cost: c.cost })
         });
-        _(u, { status: G.status, outputs: G.outputs, error: G.error, cost: G.cost }), r == null || r();
-      } catch (G) {
-        G.name !== "AbortError" && _(u, { status: "failed", error: G.message });
+        $(u, { status: L.status, outputs: L.outputs, error: L.error, cost: L.cost }), r == null || r();
+      } catch (L) {
+        L.name !== "AbortError" && $(u, { status: "failed", error: L.message });
       } finally {
         p.current.delete(u);
       }
     }
-  }, [e, _, r]), D = ae(async (u) => {
+  }, [e, $, r]), D = ae(async (u) => {
     if (!u.requestId || p.current.has(u.id)) return;
     p.current.add(u.id);
-    const y = (G) => h((c) => c.map((V) => V.id === u.id ? { ...V, status: G.status, outputs: G.outputs, error: G.error, cost: G.cost ?? V.cost } : V));
+    const y = (L) => h((c) => c.map((V) => V.id === u.id ? { ...V, status: L.status, outputs: L.outputs, error: L.error, cost: L.cost ?? V.cost } : V));
     try {
-      const G = await ct(e, u.requestId, { signal: v.current.signal, onUpdate: y });
-      y(G), r == null || r();
+      const L = await ct(e, u.requestId, { signal: v.current.signal, onUpdate: y });
+      y(L), r == null || r();
     } catch {
     } finally {
       p.current.delete(u.id);
@@ -404,12 +404,12 @@ function Nr(e, t, r, n = "") {
   }, [o, n, D]), U(() => {
     for (const u of Pe(n)) (u.status === "pending" || u.status === "processing") && u.requestId && C(u.id, u.requestId);
   }, []);
-  const L = ae(async (u = !1) => {
+  const _ = ae(async (u = !1) => {
     if (!M.current) {
       k(!0), N(null);
       try {
-        const y = await e.history(u ? void 0 : w ?? void 0), G = y.items.map((c) => gr(c, $.current));
-        h((c) => u ? G : [...c, ...G]), x(y.next_cursor);
+        const y = await e.history(u ? void 0 : w ?? void 0), L = y.items.map((c) => gr(c, G.current));
+        h((c) => u ? L : [...c, ...L]), x(y.next_cursor);
       } catch (y) {
         y instanceof fe && [403, 404, 405].includes(y.status) ? (M.current = !0, x(null)) : N(y.message);
       } finally {
@@ -418,8 +418,8 @@ function Nr(e, t, r, n = "") {
     }
   }, [e, w]), J = z(!1);
   U(() => {
-    t && !J.current && (J.current = !0, L(!0));
-  }, [t, L]);
+    t && !J.current && (J.current = !0, _(!0));
+  }, [t, _]);
   const q = ae((u) => {
     const y = Array.from({ length: u.count }, () => ({
       id: kr(),
@@ -434,28 +434,28 @@ function Nr(e, t, r, n = "") {
       cost: u.unitCost,
       source: "local"
     }));
-    return l((G) => [...y, ...G]), Promise.all(y.map(async (G) => {
+    return l((L) => [...y, ...L]), Promise.all(y.map(async (L) => {
       try {
         const { requestId: c, cost: V } = await e.submit(u.endpointUrl, u.payload, u.kind);
-        _(G.id, { requestId: c, ...V !== void 0 ? { cost: V } : {} }), await C(G.id, c);
+        $(L.id, { requestId: c, ...V !== void 0 ? { cost: V } : {} }), await C(L.id, c);
       } catch (c) {
-        _(G.id, { status: "failed", error: c.message });
+        $(L.id, { status: "failed", error: c.message });
       }
     }));
-  }, [e, _, C]), Q = ee(() => {
+  }, [e, $, C]), Q = ee(() => {
     const u = (y) => ({ ...y, label: y.requestId && O[y.requestId] || y.label });
     return br(i.map(u), o.map(u), new Set(R));
   }, [i, o, O, R]), g = ae((u, y) => {
-    u.requestId && E((G) => {
-      const c = { ...G };
+    u.requestId && E((L) => {
+      const c = { ...L };
       return y ? c[u.requestId] = y : delete c[u.requestId], c;
-    }), _(u.id, { label: y });
-  }, [_]), m = ae((u) => {
-    l((y) => y.filter((G) => G.id !== u.id)), u.requestId && f((y) => [.../* @__PURE__ */ new Set([...y, u.requestId])]);
+    }), $(u.id, { label: y });
+  }, [$]), m = ae((u) => {
+    l((y) => y.filter((L) => L.id !== u.id)), u.requestId && f((y) => [.../* @__PURE__ */ new Set([...y, u.requestId])]);
   }, []), d = ae(async (u) => {
-    u.requestId && (await e.deleteMedia(u.requestId), _(u.id, { outputs: [] }), h((y) => y.map((G) => G.requestId === u.requestId ? { ...G, outputs: [] } : G)));
-  }, [e, _]);
-  return { items: Q, run: q, setLabel: g, remove: m, deleteMedia: d, loadMore: () => L(!1), hasMore: !!w, loadingMore: I, serverError: b };
+    u.requestId && (await e.deleteMedia(u.requestId), $(u.id, { outputs: [] }), h((y) => y.map((L) => L.requestId === u.requestId ? { ...L, outputs: [] } : L)));
+  }, [e, $]);
+  return { items: Q, run: q, setLabel: g, remove: m, deleteMedia: d, loadMore: () => _(!1), hasMore: !!w, loadingMore: I, serverError: b };
 }
 const Sr = /\.(zip|json|safetensors|txt|csv|pdf|md|html|bin|ckpt|pt|tar|gz|7z|rar|srt|vtt)(\?|#|$)/i;
 function Rt(e) {
@@ -560,7 +560,7 @@ function Ur({ url: e, hidden: t, onOpen: r }) {
   ] }) : /* @__PURE__ */ a("button", { type: "button", onClick: r, "aria-label": "Open full size", className: "block w-full", children: /* @__PURE__ */ a("img", { src: e, alt: "Generated output", loading: "lazy", style: n, className: "aspect-square w-full bg-black object-contain" }) });
 }
 function qr({ g: e, hidden: t, onLabel: r, onRemove: n, onReuse: i, onRerun: l, onDeleteMedia: o, onOpen: h, estimateFor: w }) {
-  const [x, I] = A(0), k = e.outputs.length, b = Math.min(x, Math.max(k - 1, 0)), N = e.outputs[b], M = !!N && Rt(N) === "text", [O, E] = A(!1), [R, f] = A(null), p = $t(), v = "flex h-7 items-center justify-center whitespace-nowrap rounded-md border border-line px-2 text-[11px] text-secondary hover:text-primary", $ = "flex h-7 w-7 items-center justify-center rounded-md border";
+  const [x, I] = A(0), k = e.outputs.length, b = Math.min(x, Math.max(k - 1, 0)), N = e.outputs[b], M = !!N && Rt(N) === "text", [O, E] = A(!1), [R, f] = A(null), p = $t(), v = "flex h-7 items-center justify-center whitespace-nowrap rounded-md border border-line px-2 text-[11px] text-secondary hover:text-primary", G = "flex h-7 w-7 items-center justify-center rounded-md border";
   return /* @__PURE__ */ s("article", { className: "overflow-hidden rounded-card border border-line bg-card-bg", children: [
     e.status === "completed" && N ? /* @__PURE__ */ s("div", { className: "relative", children: [
       /* @__PURE__ */ a(Ur, { url: N, hidden: t, onOpen: () => h(N) }),
@@ -587,7 +587,7 @@ function qr({ g: e, hidden: t, onLabel: r, onRemove: n, onReuse: i, onRerun: l, 
         /* @__PURE__ */ a("span", { title: e.cost === void 0 ? "Estimated from the current catalog price" : void 0, children: e.cost !== void 0 ? se(e.cost) : e.status === "completed" && (w == null ? void 0 : w(e.model)) !== void 0 ? `est. ${se(w(e.model))}` : "" })
       ] }),
       /* @__PURE__ */ s("div", { className: "flex flex-wrap items-center gap-1", children: [
-        e.status === "completed" && N && (M ? /* @__PURE__ */ a("a", { href: `data:text/plain;charset=utf-8,${encodeURIComponent(N)}`, download: `${e.model}-${e.createdAt}.txt`, "aria-label": "Download as text file", title: "Download as text file", className: `${$} border-line text-secondary hover:text-primary`, children: /* @__PURE__ */ a(He, { width: 14, height: 14 }) }) : /* @__PURE__ */ a("a", { href: N, target: "_blank", rel: "noopener noreferrer", download: !0, "aria-label": "Download", title: "Download", className: `${$} border-line text-secondary hover:text-primary`, children: /* @__PURE__ */ a(He, { width: 14, height: 14 }) })),
+        e.status === "completed" && N && (M ? /* @__PURE__ */ a("a", { href: `data:text/plain;charset=utf-8,${encodeURIComponent(N)}`, download: `${e.model}-${e.createdAt}.txt`, "aria-label": "Download as text file", title: "Download as text file", className: `${G} border-line text-secondary hover:text-primary`, children: /* @__PURE__ */ a(He, { width: 14, height: 14 }) }) : /* @__PURE__ */ a("a", { href: N, target: "_blank", rel: "noopener noreferrer", download: !0, "aria-label": "Download", title: "Download", className: `${G} border-line text-secondary hover:text-primary`, children: /* @__PURE__ */ a(He, { width: 14, height: 14 }) })),
         /* @__PURE__ */ a(
           "button",
           {
@@ -596,7 +596,7 @@ function qr({ g: e, hidden: t, onLabel: r, onRemove: n, onReuse: i, onRerun: l, 
             "aria-label": "Approve",
             title: "Approve",
             onClick: () => r(e, e.label === "approved" ? null : "approved"),
-            className: `${$} ${e.label === "approved" ? "border-primary bg-primary-soft text-primary" : "border-line text-secondary hover:text-primary"}`,
+            className: `${G} ${e.label === "approved" ? "border-primary bg-primary-soft text-primary" : "border-line text-secondary hover:text-primary"}`,
             children: /* @__PURE__ */ a(Ie, { width: 14, height: 14 })
           }
         ),
@@ -608,15 +608,15 @@ function qr({ g: e, hidden: t, onLabel: r, onRemove: n, onReuse: i, onRerun: l, 
             "aria-label": "Reject",
             title: "Reject",
             onClick: () => r(e, e.label === "rejected" ? null : "rejected"),
-            className: `${$} ${e.label === "rejected" ? "border-danger text-danger" : "border-line text-secondary hover:text-danger"}`,
+            className: `${G} ${e.label === "rejected" ? "border-danger text-danger" : "border-line text-secondary hover:text-danger"}`,
             children: /* @__PURE__ */ a(ke, { width: 14, height: 14 })
           }
         ),
         /* @__PURE__ */ a("button", { type: "button", onClick: () => i(e), title: "Load this model and settings back into the form", className: v, children: "Reuse" }),
         /* @__PURE__ */ a("button", { type: "button", onClick: () => l(e), title: "Generate again with the same settings", className: v, children: "Re-run" }),
         e.status === "completed" && N && /* @__PURE__ */ a("button", { type: "button", onClick: () => {
-          var _;
-          (_ = navigator.clipboard) == null || _.writeText(N).then(() => {
+          var $;
+          ($ = navigator.clipboard) == null || $.writeText(N).then(() => {
             E(!0), setTimeout(() => E(!1), 1500);
           });
         }, className: v, children: O ? "Copied" : M ? "Copy text" : "Copy link" })
@@ -632,7 +632,7 @@ function qr({ g: e, hidden: t, onLabel: r, onRemove: n, onReuse: i, onRerun: l, 
         ] }),
         /* @__PURE__ */ s("span", { className: "flex shrink-0 gap-3", children: [
           p.deleteMedia && e.requestId && e.status === "completed" && N && /* @__PURE__ */ a("button", { type: "button", title: "Delete the generated files from muapi", onClick: () => {
-            window.confirm("Delete the generated files from muapi? This cannot be undone.") && (f(null), o(e).catch((_) => f(_.message || "Could not delete")));
+            window.confirm("Delete the generated files from muapi? This cannot be undone.") && (f(null), o(e).catch(($) => f($.message || "Could not delete")));
           }, className: "hover:text-danger", children: "Delete" }),
           /* @__PURE__ */ a("button", { type: "button", onClick: () => n(e), className: "hover:text-danger", title: "Hide from this view", children: "Hide" })
         ] })
@@ -650,7 +650,7 @@ function Fr({ url: e, onClose: t }) {
   ] });
 }
 function Br({ mode: e, items: t, batch: r, onBatch: n, onLabel: i, onRemove: l, onReuse: o, onRerun: h, onDeleteMedia: w, onLoadMore: x, hasMore: I, loadingMore: k, serverError: b, estimateFor: N }) {
-  const [M, O] = A("All"), [E, R] = A(""), [f, p] = A(!1), [v, $] = A(null), _ = ee(() => {
+  const [M, O] = A("All"), [E, R] = A(""), [f, p] = A(!1), [v, G] = A(null), $ = ee(() => {
     const C = E.trim().toLowerCase();
     return t.filter((D) => D.mode !== e || M === "Approved" && D.label !== "approved" || M === "Rejected" && D.label !== "rejected" || M === "Unlabeled" && D.label !== null ? !1 : !C || D.prompt.toLowerCase().includes(C) || D.model.toLowerCase().includes(C));
   }, [t, e, M, E]);
@@ -686,17 +686,17 @@ function Br({ mode: e, items: t, batch: r, onBatch: n, onLabel: i, onRemove: l, 
       /* @__PURE__ */ a("button", { type: "button", "aria-pressed": f, "aria-label": f ? "Show previews" : "Hide previews", title: f ? "Show previews" : "Hide previews", onClick: () => p((C) => !C), className: f ? "text-primary" : "text-secondary hover:text-fg", children: f ? /* @__PURE__ */ a($r, { width: 18, height: 18 }) : /* @__PURE__ */ a(_r, { width: 18, height: 18 }) })
     ] }),
     /* @__PURE__ */ s("div", { className: "min-h-0 flex-1 overflow-y-auto p-4", children: [
-      _.length === 0 ? /* @__PURE__ */ s("div", { className: "flex h-full min-h-[240px] flex-col items-center justify-center text-center", children: [
+      $.length === 0 ? /* @__PURE__ */ s("div", { className: "flex h-full min-h-[240px] flex-col items-center justify-center text-center", children: [
         /* @__PURE__ */ a("div", { className: "mb-4 flex h-20 w-20 items-center justify-center rounded-2xl border border-line bg-card-bg text-secondary", children: /* @__PURE__ */ a(nt, { width: 36, height: 36 }) }),
         /* @__PURE__ */ a("p", { className: "font-semibold", children: t.some((C) => C.mode === e) ? "No matching generations" : "No generations yet" }),
         /* @__PURE__ */ a("p", { className: "mt-1 max-w-xs text-sm text-secondary", children: t.some((C) => C.mode === e) ? "Try a different filter or search." : "Select a model, configure parameters, and click Generate to create your first AI output." })
-      ] }) : /* @__PURE__ */ a("div", { className: "grid gap-3", style: { gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))" }, children: _.map((C) => /* @__PURE__ */ a(qr, { g: C, hidden: f, onLabel: i, onRemove: l, onReuse: o, onRerun: h, onDeleteMedia: w, onOpen: $, estimateFor: N }, C.id)) }),
+      ] }) : /* @__PURE__ */ a("div", { className: "grid gap-3", style: { gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))" }, children: $.map((C) => /* @__PURE__ */ a(qr, { g: C, hidden: f, onLabel: i, onRemove: l, onReuse: o, onRerun: h, onDeleteMedia: w, onOpen: G, estimateFor: N }, C.id)) }),
       b && /* @__PURE__ */ s("p", { role: "alert", className: "mt-3 text-center text-xs text-danger", children: [
         "Could not load your muapi history: ",
         b
       ] }),
       I && /* @__PURE__ */ a("div", { className: "mt-4 text-center", children: /* @__PURE__ */ a("button", { type: "button", disabled: k, onClick: x, className: "rounded-full border border-line px-5 py-2 text-xs font-semibold text-secondary hover:text-primary disabled:opacity-50", children: k ? "Loading…" : "Load more history" }) }),
-      v && /* @__PURE__ */ a(Fr, { url: v, onClose: () => $(null) })
+      v && /* @__PURE__ */ a(Fr, { url: v, onClose: () => G(null) })
     ] })
   ] });
 }
@@ -773,7 +773,7 @@ function ra(e, t, r) {
 }
 const yt = "Auto (let model decide)", qe = "__auto__";
 function We({ id: e, label: t, options: r, value: n, onChange: i, allowAuto: l, auto: o, onAuto: h, combobox: w }) {
-  const x = Wt(), I = e ?? `ms-dd-${x}`, k = w ?? r.length > Kr, [b, N] = A(!1), [M, O] = A(""), [E, R] = A(0), [f, p] = A("down"), v = z(null), $ = z(null), _ = z(null), C = r.find((d) => n !== void 0 && Ee(d.value) === Ee(n)), D = ee(() => k ? Xr(r, M) : r, [k, r, M]), L = ee(
+  const x = Wt(), I = e ?? `ms-dd-${x}`, k = w ?? r.length > Kr, [b, N] = A(!1), [M, O] = A(""), [E, R] = A(0), [f, p] = A("down"), v = z(null), G = z(null), $ = z(null), C = r.find((d) => n !== void 0 && Ee(d.value) === Ee(n)), D = ee(() => k ? Xr(r, M) : r, [k, r, M]), _ = ee(
     () => [...l ? [{ key: qe, label: yt, value: qe, isAuto: !0 }] : [], ...D.map((d) => ({ key: Ee(d.value), label: d.label, hint: d.hint, value: d.value }))],
     [l, D]
   ), J = o ? qe : C ? Ee(C.value) : void 0, q = () => {
@@ -786,18 +786,18 @@ function We({ id: e, label: t, options: r, value: n, onChange: i, allowAuto: l, 
     const d = v.current.getBoundingClientRect();
     let u = v.current.parentElement;
     for (; u && !/(auto|scroll)/.test(getComputedStyle(u).overflowY); ) u = u.parentElement;
-    const y = u ? u.getBoundingClientRect() : null, G = Math.min(window.innerHeight, y ? y.bottom : window.innerHeight), c = Math.max(0, y ? y.top : 0);
-    p(Qr(G - d.bottom, d.top - c, ta(r.length + (l ? 1 : 0), k)));
+    const y = u ? u.getBoundingClientRect() : null, L = Math.min(window.innerHeight, y ? y.bottom : window.innerHeight), c = Math.max(0, y ? y.top : 0);
+    p(Qr(L - d.bottom, d.top - c, ta(r.length + (l ? 1 : 0), k)));
   }, [b]), U(() => {
     if (!b) return;
-    const d = L.findIndex((u) => u.key === J);
+    const d = _.findIndex((u) => u.key === J);
     R(d >= 0 ? d : 0);
   }, [b, M]), U(() => {
     var d, u, y;
-    b && ((y = (u = (d = $.current) == null ? void 0 : d.querySelector(`[data-i="${E}"]`)) == null ? void 0 : u.scrollIntoView) == null || y.call(u, { block: "nearest" }));
+    b && ((y = (u = (d = G.current) == null ? void 0 : d.querySelector(`[data-i="${E}"]`)) == null ? void 0 : u.scrollIntoView) == null || y.call(u, { block: "nearest" }));
   }, [E, b]), U(() => {
     var d;
-    b && k && ((d = _.current) == null || d.focus());
+    b && k && ((d = $.current) == null || d.focus());
   }, [b, k]), U(() => {
     if (!b) return;
     const d = (u) => {
@@ -816,7 +816,7 @@ function We({ id: e, label: t, options: r, value: n, onChange: i, allowAuto: l, 
       return;
     }
     if (d.key === "Enter") {
-      d.preventDefault(), L[E] && Q(L[E]);
+      d.preventDefault(), _[E] && Q(_[E]);
       return;
     }
     if (d.key === "Tab") {
@@ -824,10 +824,10 @@ function We({ id: e, label: t, options: r, value: n, onChange: i, allowAuto: l, 
       return;
     }
     if (d.key === " " && !k) {
-      d.preventDefault(), L[E] && Q(L[E]);
+      d.preventDefault(), _[E] && Q(_[E]);
       return;
     }
-    ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(d.key) && (d.preventDefault(), R((u) => ra(u, d.key, L.length)));
+    ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(d.key) && (d.preventDefault(), R((u) => ra(u, d.key, _.length)));
   }, m = o ? yt : (C == null ? void 0 : C.label) ?? "Select…";
   return /* @__PURE__ */ s("div", { ref: v, className: "relative w-full", onKeyDown: g, children: [
     /* @__PURE__ */ s(
@@ -851,7 +851,7 @@ function We({ id: e, label: t, options: r, value: n, onChange: i, allowAuto: l, 
       k && /* @__PURE__ */ a(
         "input",
         {
-          ref: _,
+          ref: $,
           value: M,
           onChange: (d) => O(d.target.value),
           placeholder: `Search ${t.toLowerCase()}…`,
@@ -859,12 +859,12 @@ function We({ id: e, label: t, options: r, value: n, onChange: i, allowAuto: l, 
           role: "combobox",
           "aria-expanded": "true",
           "aria-controls": `${I}-list`,
-          "aria-activedescendant": L[E] ? `${I}-o${E}` : void 0,
+          "aria-activedescendant": _[E] ? `${I}-o${E}` : void 0,
           className: "mb-1 w-full px-3 py-2 text-sm"
         }
       ),
-      /* @__PURE__ */ s("ul", { id: `${I}-list`, ref: $, role: "listbox", "aria-label": t, style: { maxHeight: it }, className: "overflow-y-auto", children: [
-        L.map((d, u) => {
+      /* @__PURE__ */ s("ul", { id: `${I}-list`, ref: G, role: "listbox", "aria-label": t, style: { maxHeight: it }, className: "overflow-y-auto", children: [
+        _.map((d, u) => {
           const y = d.key === J;
           return /* @__PURE__ */ s(
             "li",
@@ -887,7 +887,7 @@ function We({ id: e, label: t, options: r, value: n, onChange: i, allowAuto: l, 
             d.key
           );
         }),
-        L.length === 0 && /* @__PURE__ */ a("li", { className: "px-3 py-3 text-center text-xs text-muted", children: "No matches" })
+        _.length === 0 && /* @__PURE__ */ a("li", { className: "px-3 py-3 text-center text-xs text-muted", children: "No matches" })
       ] })
     ] })
   ] });
@@ -897,7 +897,7 @@ function na({ a: e }) {
   return e.media_type === "image" ? /* @__PURE__ */ a("img", { src: e.url, alt: e.name ?? "Image", loading: "lazy", className: "h-full w-full object-cover" }) : e.media_type === "video" ? /* @__PURE__ */ a("video", { src: e.url, preload: "metadata", muted: !0, className: "h-full w-full object-cover" }) : /* @__PURE__ */ a("div", { className: "flex h-full w-full items-center justify-center text-secondary", children: /* @__PURE__ */ a(Le, {}) });
 }
 function oa({ client: e, max: t, initialType: r = "image", onInsert: n, onClose: i }) {
-  const [l, o] = A(r), [h, w] = A(""), [x, I] = A(1), [k, b] = A(null), [N, M] = A(null), [O, E] = A(!1), [R, f] = A([]), [p, v] = A(""), [$, _] = A(!1), C = z(null), D = z(null), L = ae(async () => {
+  const [l, o] = A(r), [h, w] = A(""), [x, I] = A(1), [k, b] = A(null), [N, M] = A(null), [O, E] = A(!1), [R, f] = A([]), [p, v] = A(""), [G, $] = A(!1), C = z(null), D = z(null), _ = ae(async () => {
     E(!0), M(null);
     try {
       b(await e.mediaLibrary({ mediaType: l, search: h, page: x }));
@@ -908,9 +908,9 @@ function oa({ client: e, max: t, initialType: r = "image", onInsert: n, onClose:
     }
   }, [e, l, h, x]);
   U(() => {
-    const m = setTimeout(L, h ? 300 : 0);
+    const m = setTimeout(_, h ? 300 : 0);
     return () => clearTimeout(m);
-  }, [L, h]), U(() => {
+  }, [_, h]), U(() => {
     I(1);
   }, [l, h]), U(() => {
     var u;
@@ -922,9 +922,9 @@ function oa({ client: e, max: t, initialType: r = "image", onInsert: n, onClose:
         return;
       }
       if (y.key !== "Tab" || !C.current) return;
-      const G = [...C.current.querySelectorAll('button:not([disabled]), input, [tabindex="0"]')];
-      if (!G.length) return;
-      const c = G[0], V = G[G.length - 1];
+      const L = [...C.current.querySelectorAll('button:not([disabled]), input, [tabindex="0"]')];
+      if (!L.length) return;
+      const c = L[0], V = L[L.length - 1];
       y.shiftKey && document.activeElement === c ? (y.preventDefault(), V.focus()) : !y.shiftKey && document.activeElement === V && (y.preventDefault(), c.focus());
     };
     return document.addEventListener("keydown", d), () => {
@@ -940,7 +940,7 @@ function oa({ client: e, max: t, initialType: r = "image", onInsert: n, onClose:
           const u = await e.upload(d);
           await e.saveToLibrary({ url: u, name: d.name, mime_type: d.type || void 0, size_bytes: d.size, media_type: d.type.startsWith("video") ? "video" : d.type.startsWith("audio") ? "audio" : d.type.startsWith("image") ? "image" : "archive" });
         }
-        await L();
+        await _();
       } catch (d) {
         M(d.message), E(!1);
       }
@@ -955,14 +955,14 @@ function oa({ client: e, max: t, initialType: r = "image", onInsert: n, onClose:
     E(!0), M(null);
     try {
       const u = ((d = m.split("?")[0].split(".").pop()) == null ? void 0 : d.toLowerCase()) ?? "", y = ["mp4", "webm", "mov"].includes(u) ? "video" : ["mp3", "wav", "m4a", "ogg"].includes(u) ? "audio" : ["zip", "rar", "7z"].includes(u) ? "archive" : "image";
-      await e.saveToLibrary({ url: m, name: m.split("/").pop() || "link", media_type: y }), v(""), _(!1), await L();
+      await e.saveToLibrary({ url: m, name: m.split("/").pop() || "link", media_type: y }), v(""), $(!1), await _();
     } catch (u) {
       M(u.message), E(!1);
     }
   }, g = async (m) => {
     if (window.confirm(`Delete "${m.name ?? "this file"}" from your media library? This cannot be undone.`))
       try {
-        await e.deleteFromLibrary(m.id), f((d) => d.filter((u) => u !== m.url)), await L();
+        await e.deleteFromLibrary(m.id), f((d) => d.filter((u) => u !== m.url)), await _();
       } catch (d) {
         M(d.message);
       }
@@ -1006,9 +1006,9 @@ function oa({ client: e, max: t, initialType: r = "image", onInsert: n, onClose:
     /* @__PURE__ */ s("div", { className: "flex flex-wrap items-center gap-3 border-b border-line p-3", children: [
       /* @__PURE__ */ a("div", { role: "tablist", "aria-label": "Media type", className: "flex rounded-full border border-line bg-card-bg p-0.5", children: aa.map((m) => /* @__PURE__ */ a("button", { role: "tab", "aria-selected": l === m.id, onClick: () => o(m.id), className: `rounded-full px-3 py-1.5 text-xs font-semibold ${l === m.id ? "bg-primary text-primary-ink" : "text-secondary hover:text-fg"}`, children: m.label }, m.id)) }),
       /* @__PURE__ */ a("input", { value: h, onChange: (m) => w(m.target.value), placeholder: "Search files...", "aria-label": "Search files", className: "min-w-[160px] flex-1 rounded-full px-4 py-2 text-xs" }),
-      /* @__PURE__ */ a("button", { type: "button", "aria-label": "Add by URL", title: "Add by URL", "aria-expanded": $, onClick: () => _((m) => !m), className: "flex h-9 w-9 items-center justify-center rounded-full border border-line text-secondary hover:text-primary", children: "+" })
+      /* @__PURE__ */ a("button", { type: "button", "aria-label": "Add by URL", title: "Add by URL", "aria-expanded": G, onClick: () => $((m) => !m), className: "flex h-9 w-9 items-center justify-center rounded-full border border-line text-secondary hover:text-primary", children: "+" })
     ] }),
-    $ && /* @__PURE__ */ s("div", { className: "flex gap-2 border-b border-line p-3", children: [
+    G && /* @__PURE__ */ s("div", { className: "flex gap-2 border-b border-line p-3", children: [
       /* @__PURE__ */ a("input", { value: p, onChange: (m) => v(m.target.value), onKeyDown: (m) => m.key === "Enter" && void Q(), placeholder: "https://example.com/file.png", "aria-label": "File URL", className: "flex-1 px-3 py-2 text-sm" }),
       /* @__PURE__ */ a("button", { type: "button", onClick: () => void Q(), className: "rounded-lg bg-primary px-4 text-xs font-semibold text-primary-ink", children: "Add" })
     ] }),
@@ -1128,9 +1128,9 @@ function Xe({ client: e, field: t, multiple: r, max: n, current: i, onUrls: l, o
 }
 function ca({ field: e, values: t, onChange: r, client: n, onError: i, tagCount: l = 0 }) {
   const { prop: o, kind: h, required: w } = e, x = t[o.name], I = (p) => r(o.name, p), k = o.title || o.name, b = `ms-f-${o.name}`, N = x == null ? "" : String(x), M = Array.isArray(x) ? x : [], O = t[ge(o.name)] === !0, E = z(null), R = (p) => {
-    const v = E.current, $ = typeof x == "string" ? x : "", _ = (v == null ? void 0 : v.selectionStart) ?? $.length, C = (v == null ? void 0 : v.selectionEnd) ?? _;
-    I($.slice(0, _) + p + " " + $.slice(C)), requestAnimationFrame(() => {
-      v == null || v.focus(), v == null || v.setSelectionRange(_ + p.length + 1, _ + p.length + 1);
+    const v = E.current, G = typeof x == "string" ? x : "", $ = (v == null ? void 0 : v.selectionStart) ?? G.length, C = (v == null ? void 0 : v.selectionEnd) ?? $;
+    I(G.slice(0, $) + p + " " + G.slice(C)), requestAnimationFrame(() => {
+      v == null || v.focus(), v == null || v.setSelectionRange($ + p.length + 1, $ + p.length + 1);
     });
   };
   let f;
@@ -1184,10 +1184,10 @@ function ca({ field: e, values: t, onChange: r, client: n, onError: i, tagCount:
   else if (h === "media-list") {
     const p = o.maxItems ?? 8;
     f = /* @__PURE__ */ s("div", { className: "space-y-2", children: [
-      M.map((v, $) => /* @__PURE__ */ s("div", { className: "flex gap-2", children: [
-        /* @__PURE__ */ a("input", { "aria-label": `${k} ${$ + 1}`, value: v, onChange: (_) => I(M.map((C, D) => D === $ ? _.target.value : C)), className: "min-w-0 flex-1 px-3 py-2 text-sm" }),
-        /* @__PURE__ */ a("button", { type: "button", "aria-label": `Remove ${k} ${$ + 1}`, onClick: () => I(M.filter((_, C) => C !== $)), className: "flex h-9 w-9 shrink-0 items-center justify-center rounded-ctl border border-line text-secondary hover:text-danger", children: /* @__PURE__ */ a(ke, { width: 14, height: 14 }) })
-      ] }, $)),
+      M.map((v, G) => /* @__PURE__ */ s("div", { className: "flex gap-2", children: [
+        /* @__PURE__ */ a("input", { "aria-label": `${k} ${G + 1}`, value: v, onChange: ($) => I(M.map((C, D) => D === G ? $.target.value : C)), className: "min-w-0 flex-1 px-3 py-2 text-sm" }),
+        /* @__PURE__ */ a("button", { type: "button", "aria-label": `Remove ${k} ${G + 1}`, onClick: () => I(M.filter(($, C) => C !== G)), className: "flex h-9 w-9 shrink-0 items-center justify-center rounded-ctl border border-line text-secondary hover:text-danger", children: /* @__PURE__ */ a(ke, { width: 14, height: 14 }) })
+      ] }, G)),
       /* @__PURE__ */ a(Xe, { client: n, field: e, multiple: !0, max: p, current: M, onUrls: (v) => I([...M, ...v].slice(0, p)), onError: i })
     ] });
   } else
@@ -1343,9 +1343,9 @@ function Fe({ label: e, active: t, onClick: r, hue: n, children: i }) {
   );
 }
 function Ca({ models: e, value: t, onChange: r, favorites: n, onToggleFavorite: i, usage: l, showGroup: o, scope: h = "default" }) {
-  var G;
-  const [w, x] = A(!1), [I, k] = A(""), [b, N] = A("popular"), [M, O] = A(!1), E = z(null), R = ee(() => ba(e), [e]), f = ee(() => Na(e), [e]), p = ka(e, R), v = f.length >= pa, [$, _] = A(() => vt(`muapi-studio:provider:${h}`, oe)), [C, D] = A(() => vt(`muapi-studio:category:${h}`, oe)), L = p && ($ === he || $ === oe || R.some((c) => c.id === $)) ? $ : oe, J = v && (C === oe || f.some((c) => c.id === C)) ? C : oe, q = (c) => {
-    _(c), wt(`muapi-studio:provider:${h}`, c);
+  var L;
+  const [w, x] = A(!1), [I, k] = A(""), [b, N] = A("popular"), [M, O] = A(!1), E = z(null), R = ee(() => ba(e), [e]), f = ee(() => Na(e), [e]), p = ka(e, R), v = f.length >= pa, [G, $] = A(() => vt(`muapi-studio:provider:${h}`, oe)), [C, D] = A(() => vt(`muapi-studio:category:${h}`, oe)), _ = p && (G === he || G === oe || R.some((c) => c.id === G)) ? G : oe, J = v && (C === oe || f.some((c) => c.id === C)) ? C : oe, q = (c) => {
+    $(c), wt(`muapi-studio:provider:${h}`, c);
   }, Q = (c) => {
     D(c), wt(`muapi-studio:category:${h}`, c);
   }, g = z(null);
@@ -1364,15 +1364,15 @@ function Ca({ models: e, value: t, onChange: r, favorites: n, onToggleFavorite: 
     };
   }, [w]);
   const m = ee(() => {
-    const c = I.trim().toLowerCase(), V = wa(e, { category: J, provider: L, favourites: n }, R), ie = c ? V.filter((W) => W.name.toLowerCase().includes(c) || W.category.toLowerCase().includes(c)) : V, H = Lt(ie, b, { usage: l, favorites: n });
+    const c = I.trim().toLowerCase(), V = wa(e, { category: J, provider: _, favourites: n }, R), ie = c ? V.filter((W) => W.name.toLowerCase().includes(c) || W.category.toLowerCase().includes(c)) : V, H = Lt(ie, b, { usage: l, favorites: n });
     if (b === "favourites" || b === "most-used") return H;
     const te = new Set(n);
     return [...H.filter((W) => te.has(W.name)), ...H.filter((W) => !te.has(W.name))];
-  }, [e, I, b, n, l, J, L, R]), [d, u] = A(0);
+  }, [e, I, b, n, l, J, _, R]), [d, u] = A(0);
   U(() => {
     var c, V;
     u(0), (V = (c = g.current) == null ? void 0 : c.scrollTo) == null || V.call(c, { top: 0 });
-  }, [I, b, w, J, L]);
+  }, [I, b, w, J, _]);
   const y = (c) => {
     c.key === "ArrowDown" ? (c.preventDefault(), u((V) => Math.min(V + 1, Math.min(m.length, $e) - 1))) : c.key === "ArrowUp" ? (c.preventDefault(), u((V) => Math.max(V - 1, 0))) : c.key === "Enter" && m[d] && (c.preventDefault(), r(m[d].name), x(!1));
   };
@@ -1389,7 +1389,7 @@ function Ca({ models: e, value: t, onChange: r, favorites: n, onToggleFavorite: 
         "aria-expanded": w,
         className: "flex w-full items-center gap-2 rounded-ctl border border-line bg-card-bg px-3 py-3 text-left hover:border-muted",
         children: [
-          /* @__PURE__ */ a("span", { className: "flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary", children: (G = (t ?? "?")[0]) == null ? void 0 : G.toUpperCase() }),
+          /* @__PURE__ */ a("span", { className: "flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary", children: (L = (t ?? "?")[0]) == null ? void 0 : L.toUpperCase() }),
           /* @__PURE__ */ a("span", { className: "min-w-0 flex-1 truncate", children: t ?? "Select a model" }),
           /* @__PURE__ */ a(Re, { up: w, width: 16, height: 16 })
         ]
@@ -1397,9 +1397,9 @@ function Ca({ models: e, value: t, onChange: r, favorites: n, onToggleFavorite: 
     ),
     w && /* @__PURE__ */ s("div", { className: "absolute left-0 right-0 top-full z-30 mt-2 flex gap-2 rounded-card border border-line bg-panel-bg p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)]", children: [
       p && /* @__PURE__ */ s("div", { role: "radiogroup", "aria-label": "Provider", className: "flex max-h-[22rem] w-10 shrink-0 flex-col items-center gap-1.5 overflow-y-auto border-r border-line pr-2", children: [
-        /* @__PURE__ */ a(Fe, { label: "All providers", active: L === oe, onClick: () => q(oe), children: /* @__PURE__ */ a("span", { className: "text-[10px] font-bold", children: "ALL" }) }),
-        /* @__PURE__ */ a(Fe, { label: "Favourites", active: L === he, onClick: () => q(he), children: /* @__PURE__ */ a(ft, { width: 14, height: 14, filled: L === he }) }),
-        R.map((c) => /* @__PURE__ */ a(Fe, { label: `${c.label} (${c.count})`, active: L === c.id, onClick: () => q(c.id), hue: xa(c.label), children: ya(c.label) }, c.id))
+        /* @__PURE__ */ a(Fe, { label: "All providers", active: _ === oe, onClick: () => q(oe), children: /* @__PURE__ */ a("span", { className: "text-[10px] font-bold", children: "ALL" }) }),
+        /* @__PURE__ */ a(Fe, { label: "Favourites", active: _ === he, onClick: () => q(he), children: /* @__PURE__ */ a(ft, { width: 14, height: 14, filled: _ === he }) }),
+        R.map((c) => /* @__PURE__ */ a(Fe, { label: `${c.label} (${c.count})`, active: _ === c.id, onClick: () => q(c.id), hue: xa(c.label), children: ya(c.label) }, c.id))
       ] }),
       /* @__PURE__ */ s("div", { className: "min-w-0 flex-1", children: [
         v && /* @__PURE__ */ a("div", { role: "tablist", "aria-label": "Model category", className: "mb-2 flex gap-1.5 overflow-x-auto pb-1", children: [{ id: oe, label: "All" }, ...f.map((c) => ({ id: c.id, label: c.id }))].map((c) => /* @__PURE__ */ a(
@@ -1452,11 +1452,11 @@ function Ca({ models: e, value: t, onChange: r, favorites: n, onToggleFavorite: 
         ] }),
         (p || v) && /* @__PURE__ */ s("div", { className: "mb-1 flex items-center justify-between gap-2 px-1", children: [
           /* @__PURE__ */ s("span", { className: "text-[10px] font-semibold uppercase tracking-wider text-muted", children: [
-            L === he ? "Favourites" : "All models",
+            _ === he ? "Favourites" : "All models",
             " · ",
             m.length
           ] }),
-          p && L !== oe && L !== he && /* @__PURE__ */ a("span", { className: "rounded-full border border-line px-2 py-0.5 text-[10px] font-semibold text-secondary", children: L })
+          p && _ !== oe && _ !== he && /* @__PURE__ */ a("span", { className: "rounded-full border border-line px-2 py-0.5 text-[10px] font-semibold text-secondary", children: _ })
         ] }),
         /* @__PURE__ */ s("ul", { id: "ms-listbox", ref: g, role: "listbox", className: "max-h-72 overflow-y-auto", children: [
           m.slice(0, $e).map((c, V) => {
@@ -1488,7 +1488,7 @@ function Ca({ models: e, value: t, onChange: r, favorites: n, onToggleFavorite: 
                     )
                   ] }),
                   /* @__PURE__ */ s("div", { className: "flex items-center justify-between gap-2", children: [
-                    /* @__PURE__ */ a("span", { className: "truncate text-[10px] text-secondary", children: o ? `${c.group_of} · ${c.category}` : p && L === oe ? `${Vt(c, R)} · ${c.category}` : c.category }),
+                    /* @__PURE__ */ a("span", { className: "truncate text-[10px] text-secondary", children: o ? `${c.group_of} · ${c.category}` : p && _ === oe ? `${Vt(c, R)} · ${c.category}` : c.category }),
                     /* @__PURE__ */ a(Sa, { model: c })
                   ] })
                 ] })
@@ -1535,7 +1535,7 @@ function Aa(e, t) {
   return r;
 }
 function Ia({ mode: e, models: t, client: r, batch: n, onRun: i, usage: l, reuse: o, switcher: h }) {
-  const w = ye.find((S) => S.id === e), x = ee(() => mr(t, e), [t, e]), [I, k] = A(), [b, N] = A(null), [M, O] = A(null), [E, R] = A({}), [f, p] = A(null), [v, $] = A(null), [_, C] = A(() => kt("muapi-studio:favorites", [])), [D, L] = A("form"), [J, q] = A(!1), [Q, g] = A("{}"), [m, d] = A(null), u = z(0), y = z(null), G = z(void 0), c = z(null);
+  const w = ye.find((S) => S.id === e), x = ee(() => mr(t, e), [t, e]), [I, k] = A(), [b, N] = A(null), [M, O] = A(null), [E, R] = A({}), [f, p] = A(null), [v, G] = A(null), [$, C] = A(() => kt("muapi-studio:favorites", [])), [D, _] = A("form"), [J, q] = A(!1), [Q, g] = A("{}"), [m, d] = A(null), u = z(0), y = z(null), L = z(void 0), c = z(null);
   U(() => {
     if (!J) return;
     const S = (K) => {
@@ -1551,26 +1551,26 @@ function Ia({ mode: e, models: t, client: r, batch: n, onRun: i, usage: l, reuse
   const V = z(null), ie = z(null), H = z("form");
   U(() => {
     var K, re, me;
-    const S = kt(`muapi-studio:model:${e}`, null), F = ((K = x.find((ue) => ue.name === S)) == null ? void 0 : K.name) ?? ((re = x.find((ue) => ue.name === dr[e])) == null ? void 0 : re.name) ?? ((me = Lt(x, "popular")[0]) == null ? void 0 : me.name);
+    const S = kt(`muapi-studio:model:${e}`, null), F = ((K = x.find((de) => de.name === S)) == null ? void 0 : K.name) ?? ((re = x.find((de) => de.name === dr[e])) == null ? void 0 : re.name) ?? ((me = Lt(x, "popular")[0]) == null ? void 0 : me.name);
     k(F);
   }, [e, x]), U(() => {
     if (!o) return;
     V.current = o.inputs;
     const S = ie.current;
     if (S && S.name === o.model) {
-      V.current = null, R(Qe(Ve(S), o.inputs)), L("form");
+      V.current = null, R(Qe(Ve(S), o.inputs)), _("form");
       return;
     }
-    x.some((F) => F.name === o.model) ? (k(o.model), Be(`muapi-studio:model:${e}`, o.model)) : V.current = null, L("form");
+    x.some((F) => F.name === o.model) ? (k(o.model), Be(`muapi-studio:model:${e}`, o.model)) : V.current = null, _("form");
   }, [o == null ? void 0 : o.nonce]);
   const te = x.find((S) => S.name === I);
   ie.current = b, H.current = D, U(() => {
     if (!I) {
-      N(null), R({}), p(null), O(null), $(null), d(null);
+      N(null), R({}), p(null), O(null), G(null), d(null);
       return;
     }
     let S = !0;
-    return N(null), O(null), p(null), $(null), d(null), r.model(I).then((F) => {
+    return N(null), O(null), p(null), G(null), d(null), r.model(I).then((F) => {
       if (!S) return;
       const K = Ve(F), re = V.current;
       V.current = null;
@@ -1589,29 +1589,29 @@ function Ia({ mode: e, models: t, client: r, batch: n, onRun: i, usage: l, reuse
     } catch {
       return null;
     }
-  }, [Q]), le = D === "json" ? ne ?? {} : pe, ce = JSON.stringify(le);
+  }, [Q]), le = D === "json" ? ne ?? {} : pe, ue = JSON.stringify(le);
   U(() => {
     if (!b || D === "json" && !ne) return;
     const S = ++u.current;
     y.current = null;
     const F = setTimeout(() => {
       r.estimate(b.name, le).then((K) => {
-        S === u.current && (p(K), y.current = ce);
+        S === u.current && (p(K), y.current = ue);
       }).catch(() => {
-        S === u.current && (p(null), y.current = ce);
+        S === u.current && p(null);
       });
     }, 500);
     return () => clearTimeout(F);
-  }, [b, ce, r]), U(() => {
+  }, [b, ue, r]), U(() => {
     d(null);
-  }, [n, ce, D]);
+  }, [n, ue, D]);
   const De = (S) => {
     k(S), Be(`muapi-studio:model:${e}`, S);
   }, Me = (S) => C((F) => {
     const K = F.includes(S) ? F.filter((re) => re !== S) : [...F, S];
     return Be("muapi-studio:favorites", K), K;
   }), je = (S) => {
-    q(!1), S !== D && (S === "json" ? g(JSON.stringify(pe, null, 2)) : ne && R(Aa(W, ne)), L(S), $(null));
+    q(!1), S !== D && (S === "json" ? g(JSON.stringify(pe, null, 2)) : ne && R(Aa(W, ne)), _(S), G(null));
   }, Z = te ? be(te, f) : null, Se = ae(async () => {
     if (!b) return;
     d(null);
@@ -1624,44 +1624,44 @@ function Ia({ mode: e, models: t, client: r, batch: n, onRun: i, usage: l, reuse
       count: n,
       kind: rt(b.category),
       prompt: S ? String(le.prompt ?? "") : "",
-      unitCost: G.current ?? (Z == null ? void 0 : Z.current)
+      unitCost: L.current ?? (Z == null ? void 0 : Z.current)
     });
   }, [b, W, i, e, le, n, Z]), P = ae(async () => {
     var re, me;
     if (!b) return;
     if (D === "json") {
       if (!ne) {
-        $("The JSON is not valid");
+        G("The JSON is not valid");
         return;
       }
-      const ue = (b.required_fields ?? []).find((lt) => ne[lt] === void 0 || ne[lt] === "");
-      if (ue) {
-        $(`${ue} is required`);
+      const de = (b.required_fields ?? []).find((lt) => ne[lt] === void 0 || ne[lt] === "");
+      if (de) {
+        G(`${de} is required`);
         return;
       }
     } else {
-      const ue = Yr(W, E);
-      if (ue) {
-        $(ue);
+      const de = Yr(W, E);
+      if (de) {
+        G(de);
         return;
       }
     }
-    $(null);
+    G(null);
     let S = (Z == null ? void 0 : Z.current) ?? 0, F = !0;
-    if (y.current !== ce)
+    if (y.current !== ue)
       try {
         S = te ? ((re = be(te, await r.estimate(b.name, le))) == null ? void 0 : re.current) ?? S : S;
       } catch {
         F = !1, S = te ? ((me = be(te, null)) == null ? void 0 : me.current) ?? S : S;
       }
-    G.current = S;
+    L.current = S;
     const K = S * n;
     if (K > Ut || !F) {
       d(K);
       return;
     }
     await Se();
-  }, [b, D, ne, W, E, Z, n, Se, ce, te, r, le]), Y = !!b && !M, de = (() => {
+  }, [b, D, ne, W, E, Z, n, Se, ue, te, r, le]), Y = !!b && !M, ce = (() => {
     var F;
     const S = W.find((K) => K.kind === "media-list");
     return S ? Math.max(((F = E[S.prop.name]) == null ? void 0 : F.length) ?? 0, 1) : 0;
@@ -1680,7 +1680,7 @@ function Ia({ mode: e, models: t, client: r, batch: n, onRun: i, usage: l, reuse
       ] }),
       h,
       /* @__PURE__ */ a("div", { className: "mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-secondary", children: "Model" }),
-      /* @__PURE__ */ a("div", { className: "mb-5", children: /* @__PURE__ */ a(Ca, { models: x, value: I, onChange: De, favorites: _, onToggleFavorite: Me, usage: l, showGroup: e === "text" || e === "more", scope: e }) }),
+      /* @__PURE__ */ a("div", { className: "mb-5", children: /* @__PURE__ */ a(Ca, { models: x, value: I, onChange: De, favorites: $, onToggleFavorite: Me, usage: l, showGroup: e === "text" || e === "more", scope: e }) }),
       /* @__PURE__ */ a("div", { className: "mb-3 border-t border-line pt-4 text-[11px] font-semibold uppercase tracking-wider text-secondary", children: D === "json" ? "Request body" : "Parameters" }),
       (te == null ? void 0 : te.description) && /* @__PURE__ */ a("p", { className: "mb-4 line-clamp-3 text-xs text-secondary", children: te.description }),
       !Y && !M && I && /* @__PURE__ */ s("div", { className: "flex items-center gap-2 py-6 text-sm text-secondary", children: [
@@ -1702,8 +1702,8 @@ function Ia({ mode: e, models: t, client: r, batch: n, onRun: i, usage: l, reuse
           field: S,
           values: E,
           client: r,
-          onError: $,
-          tagCount: S.prop.name === "prompt" ? de : 0,
+          onError: G,
+          tagCount: S.prop.name === "prompt" ? ce : 0,
           onChange: (F, K) => R((re) => ({ ...re, [F]: K }))
         },
         S.prop.name
@@ -2339,8 +2339,8 @@ function sn({ mode: e, value: t, onChange: r }) {
   U(() => I(0), [l, h, n]), U(() => {
     if (!n) return;
     const f = (v) => {
-      var $;
-      ($ = k.current) != null && $.contains(v.target) || i(!1);
+      var G;
+      (G = k.current) != null && G.contains(v.target) || i(!1);
     }, p = (v) => {
       v.key === "Escape" && i(!1);
     };
@@ -2428,26 +2428,26 @@ function dn({ app: e, mode: t, models: r, client: n, batch: i, onRun: l }) {
   U(() => {
     h(Ct(e)), x(null), k(null), N(null);
   }, [e]);
-  const R = Ja(e), f = r.find((g) => g.name === R), p = qt[e.template], v = ee(() => Ka(e, o), [e, o]), $ = JSON.stringify(v), _ = (g) => h((m) => ({ ...m, ...g }));
+  const R = Ja(e), f = r.find((g) => g.name === R), p = qt[e.template], v = ee(() => Ka(e, o), [e, o]), G = JSON.stringify(v), $ = (g) => h((m) => ({ ...m, ...g }));
   U(() => {
     if (!f) return;
     const g = ++M.current;
     O.current = null;
     const m = setTimeout(() => {
       n.estimate(R, v).then((d) => {
-        g === M.current && (k(d), O.current = $);
+        g === M.current && (k(d), O.current = G);
       }).catch(() => {
-        g === M.current && (k(null), O.current = $);
+        g === M.current && k(null);
       });
     }, 500);
     return () => clearTimeout(m);
-  }, [$, f, n]), U(() => {
+  }, [G, f, n]), U(() => {
     N(null);
-  }, [i, $]);
-  const C = f ? be(f, I) : null, D = Ft(e), L = async () => {
+  }, [i, G]);
+  const C = f ? be(f, I) : null, D = Ft(e), _ = async () => {
     f && (N(null), await l({ model: R, endpointUrl: f.endpoint_url, mode: t, prompt: Bt(e, o) || e.name, payload: v, count: i, kind: rt(f.category), unitCost: E.current ?? (C == null ? void 0 : C.current) }));
   }, J = async () => {
-    var y, G;
+    var y, L;
     const g = Ya(e, o);
     if (g) {
       x(g);
@@ -2455,11 +2455,11 @@ function dn({ app: e, mode: t, models: r, client: n, batch: i, onRun: l }) {
     }
     x(null);
     let m = (C == null ? void 0 : C.current) ?? 0, d = !0;
-    if (f && O.current !== $)
+    if (f && O.current !== G)
       try {
         m = ((y = be(f, await n.estimate(R, v))) == null ? void 0 : y.current) ?? m;
       } catch {
-        d = !1, m = ((G = be(f, null)) == null ? void 0 : G.current) ?? m;
+        d = !1, m = ((L = be(f, null)) == null ? void 0 : L.current) ?? m;
       }
     E.current = m;
     const u = m * i;
@@ -2467,7 +2467,7 @@ function dn({ app: e, mode: t, models: r, client: n, batch: i, onRun: l }) {
       N(u);
       return;
     }
-    await L();
+    await _();
   }, q = (g, m, d, u) => m && m.length > 0 ? /* @__PURE__ */ s("div", { className: "mb-5", children: [
     /* @__PURE__ */ a("div", { className: Ce, children: g }),
     /* @__PURE__ */ a(We, { label: g, options: ln(m), value: d, onChange: u })
@@ -2494,7 +2494,7 @@ function dn({ app: e, mode: t, models: r, client: n, batch: i, onRun: l }) {
             max: 1,
             current: o.uploads[g.id] ? [o.uploads[g.id]] : [],
             field: { prop: { name: `${g.kind}_${g.id}`, title: g.label, field: g.kind }, kind: "media", required: !g.optional },
-            onUrls: (m) => _({ uploads: { ...o.uploads, [g.id]: m[0] ?? "" } }),
+            onUrls: (m) => $({ uploads: { ...o.uploads, [g.id]: m[0] ?? "" } }),
             onError: x
           }
         )
@@ -2512,7 +2512,7 @@ function dn({ app: e, mode: t, models: r, client: n, batch: i, onRun: l }) {
             g.unit ?? ""
           ] })
         ] }),
-        /* @__PURE__ */ a("input", { id: `ms-sl-${g.id}`, type: "range", min: g.min, max: g.max, step: g.step, value: o.sliders[g.id] ?? 0, className: "w-full", onChange: (m) => _({ sliders: { ...o.sliders, [g.id]: Number(m.target.value) } }) })
+        /* @__PURE__ */ a("input", { id: `ms-sl-${g.id}`, type: "range", min: g.min, max: g.max, step: g.step, value: o.sliders[g.id] ?? 0, className: "w-full", onChange: (m) => $({ sliders: { ...o.sliders, [g.id]: Number(m.target.value) } }) })
       ] }, g.id)),
       e.sliders && /* @__PURE__ */ a("button", { type: "button", onClick: () => h(At(e, o, "")), className: "mb-5 rounded-md border border-line px-3 py-1.5 text-[11px] text-secondary hover:text-primary", children: "Reset All" }),
       e.template !== "skin" && e.template !== "face-swap" && e.template !== "video-face-swap" && e.template !== "bg-remover" && /* @__PURE__ */ s("div", { className: "mb-5", children: [
@@ -2520,20 +2520,20 @@ function dn({ app: e, mode: t, models: r, client: n, batch: i, onRun: l }) {
           "Prompt refinement ",
           /* @__PURE__ */ a("span", { className: "text-muted", children: "(optional)" })
         ] }),
-        /* @__PURE__ */ a("textarea", { "aria-label": "Prompt refinement", rows: 3, value: o.refinement, onChange: (g) => _({ refinement: g.target.value }), placeholder: "e.g. cinematic lighting, detailed background…", className: "w-full resize-y p-3 text-sm" })
+        /* @__PURE__ */ a("textarea", { "aria-label": "Prompt refinement", rows: 3, value: o.refinement, onChange: (g) => $({ refinement: g.target.value }), placeholder: "e.g. cinematic lighting, detailed background…", className: "w-full resize-y p-3 text-sm" })
       ] }),
-      q("Aspect Ratio", p.aspect, o.aspect, (g) => _({ aspect: g })),
-      q(e.template === "seedream" ? "Output Resolution" : "Resolution", p.resolution, o.resolution, (g) => _({ resolution: g })),
-      q("Quality Level", p.quality, o.quality, (g) => _({ quality: String(g) })),
-      q("Duration", p.duration, o.duration, (g) => _({ duration: Number(g) })),
-      (e.template === "face-swap" || e.template === "video-face-swap") && q("Target Face Index", Ua, o.targetIndex, (g) => _({ targetIndex: Number(g) })),
-      e.template === "video-face-swap" && q("Target Gender Filter", qa, o.gender, (g) => _({ gender: String(g) })),
+      q("Aspect Ratio", p.aspect, o.aspect, (g) => $({ aspect: g })),
+      q(e.template === "seedream" ? "Output Resolution" : "Resolution", p.resolution, o.resolution, (g) => $({ resolution: g })),
+      q("Quality Level", p.quality, o.quality, (g) => $({ quality: String(g) })),
+      q("Duration", p.duration, o.duration, (g) => $({ duration: Number(g) })),
+      (e.template === "face-swap" || e.template === "video-face-swap") && q("Target Face Index", Ua, o.targetIndex, (g) => $({ targetIndex: Number(g) })),
+      e.template === "video-face-swap" && q("Target Gender Filter", qa, o.gender, (g) => $({ gender: String(g) })),
       e.template === "bg-remover" && /* @__PURE__ */ s(Ge, { children: [
-        q("Background Color", Fa, o.background, (g) => _({ background: String(g) })),
-        q("Output Container & Codec", Ba, o.container, (g) => _({ container: String(g) })),
+        q("Background Color", Fa, o.background, (g) => $({ background: String(g) })),
+        q("Output Container & Codec", Ba, o.container, (g) => $({ container: String(g) })),
         /* @__PURE__ */ s("div", { className: "mb-5 flex items-center justify-between", children: [
           /* @__PURE__ */ a("span", { className: "text-xs font-medium text-secondary", children: "Audio Track" }),
-          /* @__PURE__ */ a("button", { type: "button", role: "switch", "aria-label": "Audio track", "aria-checked": o.keepAudio, onClick: () => _({ keepAudio: !o.keepAudio }), className: `flex h-6 w-11 items-center rounded-full border px-0.5 ${o.keepAudio ? "justify-end border-primary bg-primary-soft" : "justify-start border-line bg-card-bg"}`, children: /* @__PURE__ */ a("span", { className: `h-5 w-5 rounded-full ${o.keepAudio ? "bg-primary" : "bg-muted"}` }) })
+          /* @__PURE__ */ a("button", { type: "button", role: "switch", "aria-label": "Audio track", "aria-checked": o.keepAudio, onClick: () => $({ keepAudio: !o.keepAudio }), className: `flex h-6 w-11 items-center rounded-full border px-0.5 ${o.keepAudio ? "justify-end border-primary bg-primary-soft" : "justify-start border-line bg-card-bg"}`, children: /* @__PURE__ */ a("span", { className: `h-5 w-5 rounded-full ${o.keepAudio ? "bg-primary" : "bg-muted"}` }) })
         ] })
       ] })
     ] }),
@@ -2548,7 +2548,7 @@ function dn({ app: e, mode: t, models: r, client: n, batch: i, onRun: l }) {
         se((C == null ? void 0 : C.current) ?? 0),
         ").",
         /* @__PURE__ */ s("div", { className: "mt-2 flex gap-2", children: [
-          /* @__PURE__ */ a("button", { type: "button", onClick: () => void L(), className: "rounded-md bg-primary px-3 py-1.5 font-semibold text-primary-ink", children: "Confirm" }),
+          /* @__PURE__ */ a("button", { type: "button", onClick: () => void _(), className: "rounded-md bg-primary px-3 py-1.5 font-semibold text-primary-ink", children: "Confirm" }),
           /* @__PURE__ */ a("button", { type: "button", onClick: () => N(null), className: "rounded-md border border-line px-3 py-1.5 text-secondary", children: "Cancel" })
         ] })
       ] }),
@@ -2623,13 +2623,13 @@ function mn({ scope: e, apiBase: t = "/api/muapi", initialTab: r = "image", show
     return ((P = R.current) == null ? void 0 : P.call(R)) ?? {};
   }, fetchImpl: b, onKeyRejected: () => p(!0) }), [t, l, w, b]);
   U(() => p(!1), [v]);
-  const [$, _] = A({ library: !0, deleteMedia: !0 }), C = ee(() => ({ library: $.library && (N == null ? void 0 : N.library) !== !1, deleteMedia: (N == null ? void 0 : N.deleteMedia) !== !1 }), [$, N == null ? void 0 : N.library, N == null ? void 0 : N.deleteMedia]), D = h ?? lr(o), [L, J] = A(() => un() ?? r), [q, Q] = A(4), [g, m] = A(null), [d, u] = A(null), [y, G] = A(null), c = ae(() => {
-    v.balance().then(G).catch(() => G(null));
+  const [G, $] = A({ library: !0, deleteMedia: !0 }), C = ee(() => ({ library: G.library && (N == null ? void 0 : N.library) !== !1, deleteMedia: (N == null ? void 0 : N.deleteMedia) !== !1 }), [G, N == null ? void 0 : N.library, N == null ? void 0 : N.deleteMedia]), D = h ?? lr(o), [_, J] = A(() => un() ?? r), [q, Q] = A(4), [g, m] = A(null), [d, u] = A(null), [y, L] = A(null), c = ae(() => {
+    v.balance().then(L).catch(() => L(null));
   }, [v]), [V, ie] = A(null), H = Nr(v, g, c, e), te = ee(() => yr(H.items), [H.items]);
   U(() => {
-    E || (u(null), m(null), v.models().then(m).catch((P) => u(P.message)), c(), (N == null ? void 0 : N.library) !== !1 && v.probe().then(_));
+    E || (u(null), m(null), v.models().then(m).catch((P) => u(P.message)), c(), (N == null ? void 0 : N.library) !== !1 && v.probe().then($));
   }, [v, c, E, N == null ? void 0 : N.library]);
-  const [W, pe] = A(() => Mt(L)), ne = (P, Y) => {
+  const [W, pe] = A(() => Mt(_)), ne = (P, Y) => {
     try {
       window.history.replaceState(null, "", an(window.location, P, Y));
     } catch {
@@ -2637,29 +2637,29 @@ function mn({ scope: e, apiBase: t = "/api/muapi", initialTab: r = "image", show
   }, le = (P) => {
     const Y = Mt(P);
     J(P), pe(Y), O == null || O(P), ne(P, Y.view === "apps" ? Y.app : null);
-  }, ce = (P) => {
-    pe((Y) => ({ ...Y, view: P })), Ae.set(`muapi-studio:view:${L}`, P), ne(L, P === "apps" ? W.app : null);
+  }, ue = (P) => {
+    pe((Y) => ({ ...Y, view: P })), Ae.set(`muapi-studio:view:${_}`, P), ne(_, P === "apps" ? W.app : null);
   }, De = (P) => {
-    pe({ view: "apps", app: P }), Ae.set(`muapi-studio:app:${L}`, P), Ae.set(`muapi-studio:view:${L}`, "apps"), ne(L, P);
+    pe({ view: "apps", app: P }), Ae.set(`muapi-studio:app:${_}`, P), Ae.set(`muapi-studio:view:${_}`, "apps"), ne(_, P);
   }, Me = ae(async (P) => {
     await H.run(P);
   }, [H.run]), je = ae((P) => {
-    var de;
+    var ce;
     const Y = g == null ? void 0 : g.find((S) => S.name === P);
-    return Y ? ((de = Y.sale) == null ? void 0 : de.from) ?? Y.cost ?? void 0 : void 0;
+    return Y ? ((ce = Y.sale) == null ? void 0 : ce.from) ?? Y.cost ?? void 0 : void 0;
   }, [g]), Z = ae((P) => {
     J(P.mode), pe((Y) => ({ ...Y, view: "models" })), ie({ model: P.model, inputs: P.inputs, nonce: Date.now() });
   }, []), Se = ae(async (P) => {
     var K;
     const Y = g == null ? void 0 : g.find((re) => re.name === P.model);
     if (!Y) return;
-    let de = ((K = Y.sale) == null ? void 0 : K.from) ?? Y.cost ?? 0, S = !1;
+    let ce = ((K = Y.sale) == null ? void 0 : K.from) ?? Y.cost ?? 0, S = !1;
     try {
-      de = (await v.estimate(P.model, P.inputs)).cost, S = !0;
+      ce = (await v.estimate(P.model, P.inputs)).cost, S = !0;
     } catch {
     }
     const F = S ? "" : " (the exact price could not be checked)";
-    (de > 0.25 || !S) && !window.confirm(`Re-run ${P.model} for about $${de.toFixed(2)}?${F}`) || H.run({ model: P.model, endpointUrl: Y.endpoint_url, mode: P.mode, prompt: P.prompt, payload: P.inputs, count: 1, unitCost: de, kind: rt(Y.category) });
+    (ce > 0.25 || !S) && !window.confirm(`Re-run ${P.model} for about $${ce.toFixed(2)}?${F}`) || H.run({ model: P.model, endpointUrl: Y.endpoint_url, mode: P.mode, prompt: P.prompt, payload: P.inputs, count: 1, unitCost: ce, kind: rt(Y.category) });
   }, [g, H.run, v]);
   return /* @__PURE__ */ s("div", { className: `ms-root ${M}`.trim(), style: sr(o), "data-layout": D, "data-btn": cr(o), children: [
     n && /* @__PURE__ */ s("header", { className: "flex items-center justify-between border-b border-line bg-panel-bg px-4 py-3", children: [
@@ -2679,13 +2679,13 @@ function mn({ scope: e, apiBase: t = "/api/muapi", initialTab: r = "image", show
         x && /* @__PURE__ */ a("button", { type: "button", onClick: x, className: "rounded-btn border border-danger px-3 py-1.5 text-xs font-semibold text-danger hover:bg-card-bg", children: "Update key" })
       ] }),
       /* @__PURE__ */ s("div", { className: `flex min-h-0 flex-1 flex-col ${D === "rail" ? "md:flex-row" : ""}`, children: [
-        /* @__PURE__ */ a(Ea, { mode: L, onChange: le, layout: D, onChangeKey: x }),
+        /* @__PURE__ */ a(Ea, { mode: _, onChange: le, layout: D, onChangeKey: x }),
         /* @__PURE__ */ a("div", { className: "flex min-h-0 min-w-0 flex-1 flex-col md:flex-row", children: d ? /* @__PURE__ */ s("div", { role: "alert", className: "flex-1 p-8 text-danger", children: [
           "Could not load models: ",
           d
         ] }) : g ? /* @__PURE__ */ s(Ge, { children: [
-          W.view === "apps" && tt(L) ? /* @__PURE__ */ a(cn, { mode: L, slug: W.app, onApp: De, switcher: /* @__PURE__ */ a(It, { view: "apps", onChange: ce }), models: g, client: v, batch: q, onRun: Me }) : /* @__PURE__ */ a(Ia, { mode: L, models: g, client: v, batch: q, onRun: Me, usage: te, reuse: V, switcher: tt(L) ? /* @__PURE__ */ a(It, { view: "models", onChange: ce }) : void 0 }),
-          /* @__PURE__ */ a(Br, { mode: L, items: H.items, batch: q, onBatch: Q, onLabel: H.setLabel, onRemove: H.remove, onReuse: Z, onRerun: Se, onDeleteMedia: H.deleteMedia, onLoadMore: H.loadMore, hasMore: H.hasMore, loadingMore: H.loadingMore, serverError: H.serverError, estimateFor: je })
+          W.view === "apps" && tt(_) ? /* @__PURE__ */ a(cn, { mode: _, slug: W.app, onApp: De, switcher: /* @__PURE__ */ a(It, { view: "apps", onChange: ue }), models: g, client: v, batch: q, onRun: Me }) : /* @__PURE__ */ a(Ia, { mode: _, models: g, client: v, batch: q, onRun: Me, usage: te, reuse: V, switcher: tt(_) ? /* @__PURE__ */ a(It, { view: "models", onChange: ue }) : void 0 }),
+          /* @__PURE__ */ a(Br, { mode: _, items: H.items, batch: q, onBatch: Q, onLabel: H.setLabel, onRemove: H.remove, onReuse: Z, onRerun: Se, onDeleteMedia: H.deleteMedia, onLoadMore: H.loadMore, hasMore: H.hasMore, loadingMore: H.loadingMore, serverError: H.serverError, estimateFor: je })
         ] }) : /* @__PURE__ */ s("div", { className: "flex flex-1 items-center justify-center gap-2 text-secondary", children: [
           /* @__PURE__ */ a(Ne, {}),
           " Loading studio…"
