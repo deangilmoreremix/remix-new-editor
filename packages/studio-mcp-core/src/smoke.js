@@ -25,6 +25,7 @@ export function sampleInputs(entry, samples = {}) {
     const required = !!def.required || (name === 'prompt' && entry.hasPrompt !== false);
     const isDuration = name === 'duration' || name === 'duration_seconds';
     if (!required && !isDuration) continue;
+    if (name === 'request_id') return { skip: 'needs the id of an earlier job' };
     if (name === 'prompt' || /^(text|script)$/.test(name)) { inputs[name] = SAMPLE_PROMPT; continue; }
     if (isDuration) {
       const opts = def.enum ? def.enum.map(Number).filter(Number.isFinite) : [];
@@ -49,7 +50,7 @@ export function sampleInputs(entry, samples = {}) {
 /** Candidate models per kind: those whose required inputs we can satisfy, fewest requirements first, capped at n. */
 export function candidatesFor(entries, kind, { samples, n = 8 } = {}) {
   return entries
-    .filter((e) => e.kind === kind && !e.fixedRoute)
+    .filter((e) => e.kind === kind)
     .map((e) => ({ e, s: sampleInputs(e, samples) }))
     .filter((c) => !c.s.skip)
     .sort((a, b) => Object.values(a.e.inputs || {}).filter((d) => d.required).length - Object.values(b.e.inputs || {}).filter((d) => d.required).length || a.e.key.localeCompare(b.e.key))
@@ -182,7 +183,7 @@ export async function pollVerbProbe({ gatewayUrl, key, requestId, fetchImpl = fe
 }
 
 /** Offline stand-in for the gateway: balance, estimate, generate, result, upload and studio routes. */
-export function createFakeGateway({ costs = {}, failEndpoints = [], studios = ['zackd', 'agent-audio', 'brand-scrape', 'cinegen'] } = {}) {
+export function createFakeGateway({ costs = {}, failEndpoints = [], studios = ['zackd', 'agent-audio', 'brand-scrape', 'cinegen', 'demo'] } = {}) {
   const calls = [];
   const fetchImpl = async (url, init = {}) => {
     const path = String(url).replace(/^https?:\/\/[^/]+/, '').replace(/^\/api\/mcp-gateway/, '');
@@ -196,7 +197,10 @@ export function createFakeGateway({ costs = {}, failEndpoints = [], studios = ['
     if (path.startsWith('/result/')) return reply(200, { status: 'completed', outputs: ['https://cdn.example.com/out.png'], text: 'ok' }, { 'x-poll-method': 'GET' });
     if (path === '/upload') return reply(400, { error: { message: 'Provide a public https URL.' } });
     if (path.startsWith('/studio/')) return !studios.includes(path.slice('/studio/'.length)) ? reply(404, { error: { message: 'Unknown studio.' } }) : reply(200, { ok: true, status: 'done', url: 'https://cdn.example.com/s.png', requestId: 'studio_req' });
-    if (path === '/raw') return reply(400, { error: { message: 'That request is not available through MCP.' } });
+    if (path === '/raw') {
+      const ok = (body.method === 'GET' && /^\/(workflow\/get-|agents\/)/.test(body.path)) || (body.method === 'POST' && /^\/agents\/by-slug\/[\w-]+\/chat$/.test(body.path));
+      return ok ? reply(200, { is_complete: true, messages: [], workflows: [], agents: [] }) : reply(400, { error: { message: 'That request is not available through MCP.' } });
+    }
     return reply(404, { error: { message: 'Unknown route.' } });
   };
   return { fetchImpl, calls };
