@@ -1,0 +1,540 @@
+diff --git a/apps/web/app/(use-page-wrapper)/auth/sso/page.tsx b/apps/web/app/(use-page-wrapper)/auth/sso/page.tsx
+new file mode 100644
+index 00000000..c6ca6e75
+--- /dev/null
++++ b/apps/web/app/(use-page-wrapper)/auth/sso/page.tsx
+@@ -0,0 +1,17 @@
++import { _generateMetadata } from "app/_utils";
++
++import SsoView from "~/auth/sso-view";
++
++export const generateMetadata = async () => {
++  return await _generateMetadata(
++    () => "Signing you in",
++    () => "Signing you in to scheduling",
++    undefined,
++    undefined,
++    "/auth/sso"
++  );
++};
++
++const Page = () => <SsoView />;
++
++export default Page;
+diff --git a/apps/web/modules/auth/sso-view.tsx b/apps/web/modules/auth/sso-view.tsx
+new file mode 100644
+index 00000000..9b843ab4
+--- /dev/null
++++ b/apps/web/modules/auth/sso-view.tsx
+@@ -0,0 +1,58 @@
++"use client";
++
++import { safeNextPath } from "@calcom/features/auth/lib/ssoNextPath";
++import { getSession, signIn } from "next-auth/react";
++import { useEffect, useRef, useState } from "react";
++
++// The host app opens `/auth/sso#token=<session token>&next=/availability`. The token sits in the URL fragment so it is
++// never sent to a server or written to a log, and it is removed from the address bar before anything else happens.
++export default function SsoView() {
++  const [failed, setFailed] = useState(false);
++  const started = useRef(false);
++
++  useEffect(() => {
++    // React runs effects twice in development; two sign-ins at once invalidate each other's CSRF token.
++    if (started.current) return;
++    started.current = true;
++    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
++    const token = params.get("token") ?? "";
++    const next = safeNextPath(params.get("next"));
++    window.history.replaceState(null, "", window.location.pathname);
++    if (!token) {
++      setFailed(true);
++      return;
++    }
++    const run = async () => {
++      // Cal.diy's own page code also asks NextAuth for a CSRF token while the page loads. When the two requests overlap,
++      // one overwrites the other's cookie and NextAuth answers "ok" with a soft failure, so a soft failure is retried.
++      // A real refusal (bad or expired token) carries an error and is not retried.
++      for (let attempt = 0; attempt < 3; attempt++) {
++        const res = await signIn("sso-bridge", { token, redirect: false });
++        if (res?.error) break;
++        const session = res?.ok ? await getSession() : null;
++        if (session?.user) {
++          window.location.replace(next);
++          return;
++        }
++        await new Promise((resolve) => setTimeout(resolve, 500));
++      }
++      setFailed(true);
++    };
++    run().catch(() => setFailed(true));
++  }, []);
++
++  return (
++    <div className="flex min-h-screen items-center justify-center p-6 text-center">
++      {failed ? (
++        <div>
++          <h1 className="text-xl font-semibold">We couldn't sign you in</h1>
++          <p className="mt-2 text-sm text-gray-600">
++            Go back to the app and open Scheduling again. If it keeps happening, sign out and back in to the app.
++          </p>
++        </div>
++      ) : (
++        <p className="text-sm text-gray-600">Signing you in…</p>
++      )}
++    </div>
++  );
++}
+diff --git a/packages/features/auth/lib/next-auth-options.ts b/packages/features/auth/lib/next-auth-options.ts
+index 296e6455..4b642095 100644
+--- a/packages/features/auth/lib/next-auth-options.ts
++++ b/packages/features/auth/lib/next-auth-options.ts
+@@ -54,6 +54,13 @@ import { dub } from "./dub";
+ import { ErrorCode } from "./ErrorCode";
+ import CalComAdapter from "./next-auth-custom-adapter";
+ import { verifyPassword } from "./verifyPassword";
++import {
++  SSO_BRIDGE_PROVIDER_ID,
++  SsoBridgeError,
++  findOrCreateSsoUser,
++  getSsoBridgeConfig,
++  verifySsoToken,
++} from "./ssoBridge";
+ 
+ type UserWithProfiles = NonNullable<
+   Awaited<ReturnType<UserRepository["findByEmailAndIncludeProfilesAndPassword"]>>
+@@ -301,6 +308,39 @@ export const CalComCredentialsProvider = CredentialsProvider({
+ });
+ 
+ const providers: Provider[] = [CalComCredentialsProvider];
++
++// SSO BRIDGE (local patch, see ssoBridge.ts): sign in with the host app's own session token, no password.
++const ssoBridgeConfig = getSsoBridgeConfig();
++if (ssoBridgeConfig) {
++  providers.push(
++    CredentialsProvider({
++      id: SSO_BRIDGE_PROVIDER_ID,
++      name: "SSO bridge",
++      type: "credentials",
++      credentials: { token: { label: "Token", type: "text" } },
++      async authorize(credentials) {
++        try {
++          const identity = await verifySsoToken(credentials?.token ?? "", ssoBridgeConfig);
++          await checkRateLimitAndThrowError({ identifier: `sso-bridge:${identity.sub}` });
++          const userRepo = new UserRepository(prisma);
++          const created = await findOrCreateSsoUser(identity, prisma, userRepo);
++          const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({ email: created.email });
++          if (!user || user.locked || user.role !== UserPermissionRole.USER) {
++            throw new Error(SsoBridgeError.NotAllowed);
++          }
++          return AdapterUserPresenter.fromCalUser(user, user.role, checkIfUserBelongsToActiveTeam(user));
++        } catch (error) {
++          log.warn("sso-bridge sign-in refused", { reason: error instanceof Error ? error.message : "unknown" });
++          throw new Error(
++            error instanceof Error && Object.values(SsoBridgeError).includes(error.message as never)
++              ? error.message
++              : SsoBridgeError.InvalidToken
++          );
++        }
++      },
++    })
++  );
++}
+ type SamlIdpUser = {
+   id: number;
+   userId: number;
+diff --git a/packages/features/auth/lib/ssoBridge.test.ts b/packages/features/auth/lib/ssoBridge.test.ts
+new file mode 100644
+index 00000000..affb1d99
+--- /dev/null
++++ b/packages/features/auth/lib/ssoBridge.test.ts
+@@ -0,0 +1,196 @@
++// @vitest-environment node
++import { SignJWT, exportJWK, generateKeyPair, createLocalJWKSet } from "jose";
++import { beforeAll, describe, expect, it, vi } from "vitest";
++
++import {
++  SsoBridgeError,
++  findOrCreateSsoUser,
++  getSsoBridgeConfig,
++  safeNextPath,
++  ssoUsernameFor,
++  verifySsoToken,
++} from "./ssoBridge";
++
++const ISSUER = "https://clerk.example.com";
++const ORIGIN = "https://app.example.com";
++const config = { jwksUrl: `${ISSUER}/.well-known/jwks.json`, issuer: ISSUER, allowedOrigins: [ORIGIN] };
++
++let signKey: CryptoKey;
++let otherKey: CryptoKey;
++let getKey: ReturnType<typeof createLocalJWKSet>;
++
++type Claims = Record<string, unknown>;
++const mint = (claims: Claims = {}, opts: { key?: CryptoKey; iss?: string; exp?: string | number } = {}) =>
++  new SignJWT({ azp: ORIGIN, email: "Ann@Example.com", name: "Ann Lee", ...claims })
++    .setProtectedHeader({ alg: "RS256", kid: "k1" })
++    .setIssuer(opts.iss ?? ISSUER)
++    .setSubject((claims.sub as string) ?? "user_2abcDEF123")
++    .setIssuedAt()
++    .setExpirationTime(opts.exp ?? "60s")
++    .sign(opts.key ?? signKey);
++
++beforeAll(async () => {
++  const a = await generateKeyPair("RS256");
++  const b = await generateKeyPair("RS256");
++  signKey = a.privateKey;
++  otherKey = b.privateKey;
++  getKey = createLocalJWKSet({ keys: [{ ...(await exportJWK(a.publicKey)), kid: "k1", alg: "RS256", use: "sig" }] });
++});
++
++describe("getSsoBridgeConfig", () => {
++  const env = {
++    SSO_BRIDGE_JWKS_URL: config.jwksUrl,
++    SSO_BRIDGE_ISSUER: ISSUER,
++    SSO_BRIDGE_ALLOWED_ORIGINS: `${ORIGIN}, https://www.example.com`,
++  };
++  it("is off unless everything is set", () => {
++    expect(getSsoBridgeConfig({})).toBeNull();
++    expect(getSsoBridgeConfig({ ...env, SSO_BRIDGE_ISSUER: "" })).toBeNull();
++    expect(getSsoBridgeConfig({ ...env, SSO_BRIDGE_ALLOWED_ORIGINS: " , " })).toBeNull();
++  });
++  it("only reads keys over https (http only for localhost)", () => {
++    expect(getSsoBridgeConfig({ ...env, SSO_BRIDGE_JWKS_URL: "http://evil.example.com/jwks" })).toBeNull();
++    expect(getSsoBridgeConfig({ ...env, SSO_BRIDGE_JWKS_URL: "http://localhost:4000/jwks" })).not.toBeNull();
++  });
++  it("splits the allowed origins", () => {
++    expect(getSsoBridgeConfig(env)?.allowedOrigins).toEqual([ORIGIN, "https://www.example.com"]);
++  });
++});
++
++describe("verifySsoToken", () => {
++  it("accepts a valid token and normalises the identity", async () => {
++    await expect(verifySsoToken(await mint(), config, getKey)).resolves.toEqual({
++      sub: "user_2abcDEF123",
++      email: "ann@example.com",
++      name: "Ann Lee",
++    });
++  });
++  it("falls back to the email's local part when there is no name", async () => {
++    const id = await verifySsoToken(await mint({ name: undefined }), config, getKey);
++    expect(id.name).toBe("ann");
++  });
++  it("refuses a token signed by a different key", async () => {
++    await expect(verifySsoToken(await mint({}, { key: otherKey }), config, getKey)).rejects.toThrow(
++      SsoBridgeError.InvalidToken
++    );
++  });
++  it("refuses an expired token", async () => {
++    await expect(verifySsoToken(await mint({}, { exp: Math.floor(Date.now() / 1000) - 120 }), config, getKey)).rejects.toThrow(
++      SsoBridgeError.InvalidToken
++    );
++  });
++  it("refuses the wrong issuer", async () => {
++    await expect(verifySsoToken(await mint({}, { iss: "https://evil.example.com" }), config, getKey)).rejects.toThrow(
++      SsoBridgeError.InvalidToken
++    );
++  });
++  it("refuses a token minted for a different origin (azp)", async () => {
++    await expect(verifySsoToken(await mint({ azp: "https://other.example.com" }), config, getKey)).rejects.toThrow(
++      SsoBridgeError.InvalidToken
++    );
++    await expect(verifySsoToken(await mint({ azp: undefined }), config, getKey)).rejects.toThrow(
++      SsoBridgeError.InvalidToken
++    );
++  });
++  it("refuses a token without a usable email", async () => {
++    await expect(verifySsoToken(await mint({ email: undefined }), config, getKey)).rejects.toThrow(
++      SsoBridgeError.InvalidToken
++    );
++    await expect(verifySsoToken(await mint({ email: "not-an-email" }), config, getKey)).rejects.toThrow(
++      SsoBridgeError.InvalidToken
++    );
++  });
++  it("refuses an unsigned (alg=none) token and junk", async () => {
++    const none = `${Buffer.from('{"alg":"none"}').toString("base64url")}.${Buffer.from(
++      JSON.stringify({ iss: ISSUER, azp: ORIGIN, sub: "user_1", email: "a@b.co" })
++    ).toString("base64url")}.`;
++    await expect(verifySsoToken(none, config, getKey)).rejects.toThrow(SsoBridgeError.InvalidToken);
++    await expect(verifySsoToken("", config, getKey)).rejects.toThrow(SsoBridgeError.InvalidToken);
++    await expect(verifySsoToken("x".repeat(9000), config, getKey)).rejects.toThrow(SsoBridgeError.InvalidToken);
++  });
++});
++
++describe("ssoUsernameFor", () => {
++  it("is deterministic and slug-safe", () => {
++    expect(ssoUsernameFor("user_2abcDEF123")).toBe("u-2abcdef123");
++    expect(ssoUsernameFor("user_2abcDEF123")).toBe(ssoUsernameFor("user_2abcDEF123"));
++    expect(ssoUsernameFor("user_2ab-cd_EF!@#")).toBe("u-2abcdef");
++  });
++  it("caps the length and refuses an empty id", () => {
++    expect(ssoUsernameFor(`user_${"a".repeat(60)}`)).toHaveLength(2 + 20);
++    expect(() => ssoUsernameFor("user_!!!")).toThrow(SsoBridgeError.InvalidToken);
++  });
++});
++
++describe("safeNextPath", () => {
++  it("keeps paths inside Cal.diy", () => {
++    expect(safeNextPath("/availability")).toBe("/availability");
++    expect(safeNextPath("/event-types?x=1#y")).toBe("/event-types?x=1#y");
++  });
++  it("replaces anything that could leave the site", () => {
++    for (const bad of ["https://evil.com", "//evil.com", "/\\evil.com", "javascript:alert(1)", "evil", "", null, undefined, 5]) {
++      expect(safeNextPath(bad)).toBe("/event-types");
++    }
++  });
++});
++
++describe("findOrCreateSsoUser", () => {
++  const identity = { sub: "user_2abcDEF123", email: "ann@example.com", name: "Ann Lee" };
++  const makePrisma = (over: { bySub?: unknown; emailTaken?: unknown; usernameTaken?: unknown } = {}) => {
++    const findFirst = vi.fn(async ({ where }: { where: Record<string, unknown> }) => {
++      if (where.metadata) return over.bySub ?? null;
++      if (where.email) return over.emailTaken ?? null;
++      if (where.username) return over.usernameTaken ?? null;
++      return null;
++    });
++    const eventTypeCreate = vi.fn(async () => ({ id: 1 }));
++    return { prisma: { user: { findFirst }, eventType: { create: eventTypeCreate } } as never, findFirst, eventTypeCreate };
++  };
++  const repo = () => ({ create: vi.fn(async (d: { email: string }) => ({ id: 7, email: d.email })) });
++
++  it("returns the existing account matched by the host-app id, creating nothing", async () => {
++    const { prisma, eventTypeCreate } = makePrisma({ bySub: { id: 3, email: "old@example.com", locked: false, role: "USER" } });
++    const r = repo();
++    await expect(findOrCreateSsoUser(identity, prisma, r)).resolves.toEqual({ id: 3, email: "old@example.com" });
++    expect(r.create).not.toHaveBeenCalled();
++    expect(eventTypeCreate).not.toHaveBeenCalled();
++  });
++  it("refuses locked accounts and non-USER roles", async () => {
++    await expect(
++      findOrCreateSsoUser(identity, makePrisma({ bySub: { id: 3, email: "a@b.co", locked: true, role: "USER" } }).prisma, repo())
++    ).rejects.toThrow(SsoBridgeError.AccountLocked);
++    await expect(
++      findOrCreateSsoUser(identity, makePrisma({ bySub: { id: 3, email: "a@b.co", locked: false, role: "ADMIN" } }).prisma, repo())
++    ).rejects.toThrow(SsoBridgeError.NotAllowed);
++  });
++  it("never takes over an existing account that has the same email", async () => {
++    const r = repo();
++    await expect(findOrCreateSsoUser(identity, makePrisma({ emailTaken: { id: 1 } }).prisma, r)).rejects.toThrow(
++      SsoBridgeError.EmailInUse
++    );
++    expect(r.create).not.toHaveBeenCalled();
++  });
++  it("refuses a taken username", async () => {
++    await expect(findOrCreateSsoUser(identity, makePrisma({ usernameTaken: { id: 1 } }).prisma, repo())).rejects.toThrow(
++      SsoBridgeError.UsernameTaken
++    );
++  });
++  it("creates a password-less account and a ready 30min event type for a new person", async () => {
++    const { prisma, eventTypeCreate } = makePrisma();
++    const r = repo();
++    await expect(findOrCreateSsoUser(identity, prisma, r)).resolves.toEqual({ id: 7, email: "ann@example.com" });
++    const arg = r.create.mock.calls[0][0] as Record<string, unknown>;
++    expect(arg).toMatchObject({
++      username: "u-2abcdef123",
++      email: "ann@example.com",
++      name: "Ann Lee",
++      completedOnboarding: true,
++      metadata: { ssoSub: "user_2abcDEF123" },
++      locked: false,
++    });
++    expect(arg.hashedPassword).toBeUndefined();
++    expect(eventTypeCreate).toHaveBeenCalledWith({
++      data: expect.objectContaining({ slug: "30min", length: 30, userId: 7 }),
++    });
++  });
++});
+diff --git a/packages/features/auth/lib/ssoBridge.ts b/packages/features/auth/lib/ssoBridge.ts
+new file mode 100644
+index 00000000..ae229c7f
+--- /dev/null
++++ b/packages/features/auth/lib/ssoBridge.ts
+@@ -0,0 +1,171 @@
++/**
++ * SSO BRIDGE (local patch on top of upstream cal.diy; see apps/cal-diy/UPSTREAM.md and SSO_BRIDGE.patch).
++ *
++ * Lets a host app that already signs its users in (SmartVideo, with Clerk) open Cal.diy with no second login.
++ * The host app sends the user's own Clerk session token; Cal.diy verifies it against the host's PUBLIC keys (JWKS),
++ * so there is no shared secret to copy between systems. The first time a person arrives, a Cal.diy account is created
++ * for them (own availability, own event types, own booking link). Nobody ever types a password.
++ *
++ * Off unless all of SSO_BRIDGE_JWKS_URL, SSO_BRIDGE_ISSUER and SSO_BRIDGE_ALLOWED_ORIGINS are set.
++ */
++import type { PrismaClient } from "@calcom/prisma";
++import { CreationSource, IdentityProvider } from "@calcom/prisma/enums";
++import { createRemoteJWKSet, jwtVerify } from "jose";
++import type { JWTVerifyGetKey } from "jose";
++
++export const SSO_BRIDGE_PROVIDER_ID = "sso-bridge";
++
++export type SsoBridgeConfig = {
++  jwksUrl: string;
++  issuer: string;
++  /** Allowed `azp` values: the origins of the host app that may mint tokens (Clerk puts the page origin in `azp`). */
++  allowedOrigins: string[];
++};
++
++export type SsoIdentity = { sub: string; email: string; name: string };
++
++/** Every failure surfaces as one of these; the login page shows a generic message and the details stay in the log. */
++export const SsoBridgeError = {
++  NotConfigured: "sso-not-configured",
++  InvalidToken: "sso-invalid-token",
++  EmailInUse: "sso-email-in-use",
++  UsernameTaken: "sso-username-taken",
++  AccountLocked: "sso-account-locked",
++  NotAllowed: "sso-not-allowed",
++} as const;
++
++export function getSsoBridgeConfig(env: Record<string, string | undefined> = process.env): SsoBridgeConfig | null {
++  const jwksUrl = env.SSO_BRIDGE_JWKS_URL?.trim();
++  const issuer = env.SSO_BRIDGE_ISSUER?.trim();
++  const allowedOrigins = (env.SSO_BRIDGE_ALLOWED_ORIGINS ?? "")
++    .split(",")
++    .map((s) => s.trim())
++    .filter(Boolean);
++  if (!jwksUrl || !issuer || allowedOrigins.length === 0) return null;
++  // Keys are fetched over https only (http only for a local test server).
++  if (!/^https:\/\//i.test(jwksUrl) && !/^http:\/\/(localhost|127\.0\.0\.1)(:|\/)/i.test(jwksUrl)) return null;
++  return { jwksUrl, issuer, allowedOrigins };
++}
++
++const keySets = new Map<string, JWTVerifyGetKey>();
++function remoteKeys(url: string): JWTVerifyGetKey {
++  let keys = keySets.get(url);
++  if (!keys) {
++    keys = createRemoteJWKSet(new URL(url), { cooldownDuration: 30_000, cacheMaxAge: 10 * 60_000 });
++    keySets.set(url, keys);
++  }
++  return keys;
++}
++
++const clean = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
++
++/**
++ * Verifies a host-app session token and returns who it is for. Checks: RS256 signature against the host's JWKS,
++ * issuer, expiry / not-before (Clerk session tokens live about a minute), that `azp` is one of our allowed origins
++ * (so a token minted for some other app is refused), and that it carries a subject and an email.
++ */
++export async function verifySsoToken(
++  token: string,
++  config: SsoBridgeConfig,
++  getKey: JWTVerifyGetKey = remoteKeys(config.jwksUrl)
++): Promise<SsoIdentity> {
++  if (typeof token !== "string" || token.length < 20 || token.length > 8000) throw new Error(SsoBridgeError.InvalidToken);
++  let payload: Record<string, unknown>;
++  try {
++    const res = await jwtVerify(token, getKey, {
++      issuer: config.issuer,
++      algorithms: ["RS256"],
++      clockTolerance: 5,
++    });
++    payload = res.payload as Record<string, unknown>;
++  } catch {
++    throw new Error(SsoBridgeError.InvalidToken);
++  }
++  const azp = clean(payload.azp, 300);
++  if (!azp || !config.allowedOrigins.includes(azp)) throw new Error(SsoBridgeError.InvalidToken);
++  const sub = clean(payload.sub, 100);
++  const email = clean(payload.email ?? payload.primary_email_address, 320).toLowerCase();
++  if (!sub || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error(SsoBridgeError.InvalidToken);
++  const name = clean(payload.name ?? payload.full_name, 100) || email.split("@")[0];
++  return { sub, email, name };
++}
++
++/**
++ * The Cal.diy username (and so the booking-link prefix) for a host-app user id. Deterministic, so the host app can
++ * build a person's booking link (`<username>/30min`) without asking Cal.diy. Clerk ids look like `user_2abc...`.
++ */
++export function ssoUsernameFor(sub: string): string {
++  const core = sub.replace(/^user_/i, "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20);
++  if (!core) throw new Error(SsoBridgeError.InvalidToken);
++  return `u-${core}`;
++}
++
++type UserRepo = {
++  create: (data: {
++    username: string;
++    email: string;
++    organizationId: number | null;
++    creationSource: CreationSource;
++    identityProvider: IdentityProvider;
++    locked: boolean;
++    [k: string]: unknown;
++  }) => Promise<{ id: number; email: string }>;
++};
++
++/**
++ * Finds the Cal.diy user for this host-app user, creating one the first time. People are matched by the host-app
++ * user id stored on their Cal.diy account, never by email alone, so a token can never take over an account that
++ * already existed (for example the admin). A matching email on an account we did not create is refused.
++ */
++export async function findOrCreateSsoUser(
++  identity: SsoIdentity,
++  prisma: PrismaClient,
++  userRepo: UserRepo
++): Promise<{ id: number; email: string }> {
++  const bySub = await prisma.user.findFirst({
++    where: { metadata: { path: ["ssoSub"], equals: identity.sub } },
++    select: { id: true, email: true, locked: true, role: true },
++  });
++  if (bySub) {
++    if (bySub.locked) throw new Error(SsoBridgeError.AccountLocked);
++    if (bySub.role !== "USER") throw new Error(SsoBridgeError.NotAllowed);
++    return { id: bySub.id, email: bySub.email };
++  }
++
++  const username = ssoUsernameFor(identity.sub);
++  const [emailTaken, usernameTaken] = await Promise.all([
++    prisma.user.findFirst({ where: { email: identity.email }, select: { id: true } }),
++    prisma.user.findFirst({ where: { username }, select: { id: true } }),
++  ]);
++  if (emailTaken) throw new Error(SsoBridgeError.EmailInUse);
++  if (usernameTaken) throw new Error(SsoBridgeError.UsernameTaken);
++
++  // No password is set: the account can only be entered through the bridge. Default weekly availability is created by
++  // the repository, as for any new account.
++  const user = await userRepo.create({
++    username,
++    email: identity.email,
++    name: identity.name,
++    emailVerified: new Date(),
++    completedOnboarding: true,
++    metadata: { ssoSub: identity.sub },
++    organizationId: null,
++    creationSource: CreationSource.WEBAPP,
++    identityProvider: IdentityProvider.CAL,
++    locked: false,
++  });
++
++  // A ready-to-use booking link from the first visit: `<username>/30min`.
++  await prisma.eventType.create({
++    data: {
++      title: "30 min meeting",
++      slug: "30min",
++      length: 30,
++      userId: user.id,
++      users: { connect: [{ id: user.id }] },
++    },
++  });
++  return { id: user.id, email: user.email };
++}
++
++export { safeNextPath } from "./ssoNextPath";
+diff --git a/packages/features/auth/lib/ssoNextPath.ts b/packages/features/auth/lib/ssoNextPath.ts
+new file mode 100644
+index 00000000..2c42e6fc
+--- /dev/null
++++ b/packages/features/auth/lib/ssoNextPath.ts
+@@ -0,0 +1,10 @@
++/**
++ * A path inside Cal.diy to land on after an SSO sign-in. Anything else (another site, a protocol-relative URL,
++ * backslashes) becomes the default, so the bridge page can never be used as an open redirect.
++ * Kept free of server imports so the browser page can use it too.
++ */
++export function safeNextPath(next: unknown, fallback = "/event-types"): string {
++  const s = typeof next === "string" ? next.trim() : "";
++  const ok = /^\/(?!\/)[A-Za-z0-9\-._~!$&'()*+,;=:@%/?#]*$/.test(s) && !s.includes("\\");
++  return ok ? s : fallback;
++}

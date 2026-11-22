@@ -54,6 +54,13 @@ import { dub } from "./dub";
 import { ErrorCode } from "./ErrorCode";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
+import {
+  SSO_BRIDGE_PROVIDER_ID,
+  SsoBridgeError,
+  findOrCreateSsoUser,
+  getSsoBridgeConfig,
+  verifySsoToken,
+} from "./ssoBridge";
 
 type UserWithProfiles = NonNullable<
   Awaited<ReturnType<UserRepository["findByEmailAndIncludeProfilesAndPassword"]>>
@@ -301,6 +308,39 @@ export const CalComCredentialsProvider = CredentialsProvider({
 });
 
 const providers: Provider[] = [CalComCredentialsProvider];
+
+// SSO BRIDGE (local patch, see ssoBridge.ts): sign in with the host app's own session token, no password.
+const ssoBridgeConfig = getSsoBridgeConfig();
+if (ssoBridgeConfig) {
+  providers.push(
+    CredentialsProvider({
+      id: SSO_BRIDGE_PROVIDER_ID,
+      name: "SSO bridge",
+      type: "credentials",
+      credentials: { token: { label: "Token", type: "text" } },
+      async authorize(credentials) {
+        try {
+          const identity = await verifySsoToken(credentials?.token ?? "", ssoBridgeConfig);
+          await checkRateLimitAndThrowError({ identifier: `sso-bridge:${identity.sub}` });
+          const userRepo = new UserRepository(prisma);
+          const created = await findOrCreateSsoUser(identity, prisma, userRepo);
+          const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({ email: created.email });
+          if (!user || user.locked || user.role !== UserPermissionRole.USER) {
+            throw new Error(SsoBridgeError.NotAllowed);
+          }
+          return AdapterUserPresenter.fromCalUser(user, user.role, checkIfUserBelongsToActiveTeam(user));
+        } catch (error) {
+          log.warn("sso-bridge sign-in refused", { reason: error instanceof Error ? error.message : "unknown" });
+          throw new Error(
+            error instanceof Error && Object.values(SsoBridgeError).includes(error.message as never)
+              ? error.message
+              : SsoBridgeError.InvalidToken
+          );
+        }
+      },
+    })
+  );
+}
 type SamlIdpUser = {
   id: number;
   userId: number;
