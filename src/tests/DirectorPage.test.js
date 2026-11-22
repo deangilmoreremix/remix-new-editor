@@ -12,7 +12,7 @@ vi.mock('../lib/loading.js', () => ({ showToast: vi.fn() }));
 vi.mock('../lib/security.js', () => ({ escapeHtml: (s) => s }));
 vi.mock('../lib/clerkEntitlements.js', () => ({ requireEntitlement: vi.fn() }));
 
-import { runAgentById, DIRECTOR_AGENTS } from '../components/DirectorPage.js';
+import { runAgentById, DIRECTOR_AGENTS, inferAgentId, KEYWORD_TO_AGENT } from '../components/DirectorPage.js';
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -86,5 +86,36 @@ describe('runAgentById', () => {
         expect(result).toBeDefined();
         expect(result.action).toBe('speed');
         expect(result.source).toBe('ffmpeg');
+    });
+});
+
+describe('inferAgentId (chat command → agent)', () => {
+    test.each([
+        ['make a trailer narration', 'trailer_narration'],
+        ['add an ai voiceover', 'ai_voiceovers'],
+        ['auto highlight reel', 'auto_highlights'],
+        ['run the subtitle agent', 'subtitle_agent'],
+        ['keyword search for pricing', 'keyword_search'],
+        ['visual search for a red car', 'visual_search'],
+        ['kids story about a fox', 'kids_storyteller'],
+        ['tiktok lyric video', 'tiktok_lyric_video'],
+        ['year in frames recap', 'year_in_frames'],
+        ['summarize this video', 'summarizer'],
+        ['color correct', 'color'],
+    ])('"%s" runs %s', (text, agentId) => {
+        expect(inferAgentId(text)).toBe(agentId);
+    });
+
+    test.each(['credit roll please', 'introduce my channel', 'what happens next'])('"%s" matches no agent (keywords must be whole words)', (text) => {
+        expect(inferAgentId(text)).toBeNull();
+    });
+
+    test('every quick-action phrase resolves to its own agent', () => {
+        const map = { 'summarize this video': 'summarizer', 'extract the best highlights': 'highlighter', 'detect all scenes': 'scenes', 'add subtitles': 'subtitler', 'dub to Spanish': 'dubbing', 'add B-roll': 'broll', 'add voiceover': 'voiceover', 'create shorts for social media': 'social', 'color correct': 'color', stabilize: 'stabilize' };
+        for (const [phrase, id] of Object.entries(map)) expect(inferAgentId(phrase)).toBe(id);
+    });
+
+    test('every agent id has keywords, so every agent can be reached by typing', () => {
+        for (const a of DIRECTOR_AGENTS) expect(KEYWORD_TO_AGENT[a.id]?.length, a.id).toBeGreaterThan(0);
     });
 });
