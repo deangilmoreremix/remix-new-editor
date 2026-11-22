@@ -92,7 +92,6 @@ export const STUDIO_ROUTES = {
   'ai-vfx': { label: 'AI VFX Studio', category: 'Video' },
   animate: { label: 'Animate Studio', category: 'Video' },
   'media-hub': { label: 'SmartVidDownloader', category: 'Video' },
-  smartviddownloader: { label: 'SmartVidDownloader', category: 'Video' },
   lipsync: { label: 'Lip Sync Studio', category: 'Video' },
   videotools: { label: 'Video Tools', category: 'Video' },
   avatar: { label: 'Avatar Studio', category: 'Video' },
