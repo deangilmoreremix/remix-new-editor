@@ -95,6 +95,8 @@ const pageLoaders = {
   // Video landing pages (public pages live at /p/<slug>, mounted from main.js).
   'video-pages': () => import('../components/LandingPagesStudio.js').then(m => m.LandingPagesStudio()),
   'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
+  // Onboarding funnel for admins: no menu or Apps entry; the server decides who may see it (ADMIN_CLERK_USER_IDS).
+  'admin/onboarding': () => import('../components/AdminOnboardingPage.js').then(m => m.AdminOnboardingPage()),
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
   storyboard: () => import('../components/StoryboardStudio.js').then(m => m.StoryboardStudio()),

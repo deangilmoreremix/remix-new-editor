@@ -208,4 +208,15 @@ test.describe('App-wide onboarding', () => {
     await page.waitForSelector('[data-studio-total]', { timeout: 30_000 });
     await expect(page.locator('[data-checklist]')).toBeHidden();
   });
+
+  test('the admin funnel page is closed without a session and asks the server nothing', async ({ page }) => {
+    await page.addInitScript(() => {
+      try { if (!localStorage.getItem('smartvideo-tours-v1:guest')) localStorage.setItem('smartvideo-tours-v1:guest', JSON.stringify({ __disabled__: { version: 1, seenAt: new Date().toISOString() } })); } catch { /* ignore */ }
+    });
+    let hits = 0;
+    await page.route('**/api/admin/onboarding-funnel**', (r) => { hits += 1; r.fulfill({ status: 403, body: '{}' }); });
+    await page.goto('/?dev#/admin/onboarding', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-admin-onboarding]')).toHaveText('This page is not available.', { timeout: 30_000 });
+    expect(hits).toBe(0);
+  });
 });

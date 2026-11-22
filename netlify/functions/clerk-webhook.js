@@ -59,13 +59,13 @@ function verifySvix(body, headers) {
   // whsec_... is a base64-encoded raw key.
   const key = Buffer.from(WEBHOOK_SECRET.replace(/^whsec_/, ''), 'base64');
   const signedContent = `${id}.${timestamp}.${body}`;
+  // Svix signs "<id>.<timestamp>.<body>" with HMAC-SHA256 and sends base64 in a space-separated list of "v1,<signature>"
+  // entries (several while a secret is being rotated); any match is accepted.
   const expected = crypto
     .createHmac('sha256', key)
     .update(signedContent)
-    .digest('hex');
-
-  // Signatures are comma-separated "v1,<hex>" entries; any match is accepted.
-  const provided = signatures.split(',').map((s) => s.trim().replace(/^v1,/, ''));
+    .digest('base64');
+  const provided = signatures.split(' ').map((entry) => entry.trim()).filter(Boolean).map((entry) => (entry.includes(',') ? entry.slice(entry.indexOf(',') + 1) : entry));
   const valid = provided.some((sig) => {
     if (sig.length !== expected.length) return false;
     return crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
@@ -112,6 +112,23 @@ async function syncUser(eventType, data) {
   );
 
   if (error) console.error('[clerk-webhook] upsert failed:', error.message);
+
+  // A new account is the first step of the onboarding funnel ("signed up but never reached the onboarding").
+  if (eventType === 'user.created') await recordSignup(supabase, data);
+}
+
+// Records the server-side 'signup' funnel event. Best effort: a database without the onboarding migration, or any other
+// failure, is logged and never changes the webhook's answer.
+export async function recordSignup(supabase, data) {
+  try {
+    if (!data?.id) return false;
+    const { error } = await supabase.rpc('record_onboarding_signup', { p_clerk_user_id: String(data.id) });
+    if (error) { console.error('[clerk-webhook] signup event failed:', error.message); return false; }
+    return true;
+  } catch (err) {
+    console.error('[clerk-webhook] signup event error:', err?.message);
+    return false;
+  }
 }
 
 export const handler = async (event) => {
