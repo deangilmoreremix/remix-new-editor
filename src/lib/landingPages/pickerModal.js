@@ -17,6 +17,7 @@ import { TEMPLATES, defaultConfig, sanitizeEditorData, getTemplate } from './tem
 import { sampleSections } from './sampleContent.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from './ingest.js';
 import { updatePage, pageUrl, addContacts, personalUrl } from './client.js';
+import { createAiRewritePanel } from './aiRewritePanel.js';
 import { exportLinksCsv } from './csv.js';
 import { loadCustomers } from './customerSources.js';
 import { createCustomerPanel } from './customerPanel.js';
@@ -417,20 +418,32 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     }
     const host = el('div', 'flex-1 min-h-0 m-3 md:m-4 rounded-2xl border border-white/10 overflow-hidden rx-editor');
     host.dataset.editorHost = '';
-    body.replaceChildren(...[hint, noteEl, host].filter(Boolean));
-    try {
-      const mount = deps.mountPageEditor || (await import('./editor/mount.jsx')).mountPageEditor;
-      if (view !== 'edit' || !overlay.isConnected) return;
-      editor = mount(host, {
-        page: { id: 'preview', title: src?.title || '', video_url: src?.url || '', poster_url: src?.posterUrl || null },
-        data,
-        tokens: previewTokens,
-        onPublish: () => saveBtn.click(),
-        onChange: (d) => { const n = sanitizeEditorData(d); if (n) data = n; },
-      });
-    } catch (err) {
-      msg.textContent = err?.message || 'Could not load the editor';
+    // Write the whole page with AI from a few words about the business (the words only; you review every change).
+    const aiPanel = createAiRewritePanel({
+      getData: () => data,
+      setData: (d) => { data = d; startEditor(); },
+      context: `${src?.title || ''} (${chosen?.name || ''})`,
+      pageId: 'preview',
+    });
+    aiPanel.style.margin = '0 16px';
+    body.replaceChildren(...[hint, noteEl, aiPanel, host].filter(Boolean));
+    async function startEditor() {
+      try {
+        const mount = deps.mountPageEditor || (await import('./editor/mount.jsx')).mountPageEditor;
+        if (view !== 'edit' || !overlay.isConnected) return;
+        destroyEditor();
+        editor = mount(host, {
+          page: { id: 'preview', title: src?.title || '', video_url: src?.url || '', poster_url: src?.posterUrl || null },
+          data,
+          tokens: previewTokens,
+          onPublish: () => saveBtn.click(),
+          onChange: (d) => { const n = sanitizeEditorData(d); if (n) data = n; },
+        });
+      } catch (err) {
+        msg.textContent = err?.message || 'Could not load the editor';
+      }
     }
+    await startEditor();
     saveBtn.addEventListener('click', async () => {
       if (onEdit) {
         if (busy) return;

@@ -4,6 +4,8 @@
  * value through its own safe-image check when it renders.
  */
 import { useState } from 'react';
+import { usePage } from './context.js';
+import { readBrief } from './tokenFields.jsx';
 
 const labelStyle = { display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 };
 const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg, #fff)', color: 'var(--lp-field-text, inherit)', font: 'inherit' };
@@ -40,17 +42,21 @@ function Library({ onPick, onClose, kind = 'image' }) {
   );
 }
 
+const aiBtnStyle = { marginTop: 6, marginLeft: 6, padding: '6px 10px', border: '1px solid var(--lp-accent, #d9ff00)', borderRadius: 6, background: 'transparent', color: 'var(--lp-accent, #d9ff00)', fontWeight: 700, cursor: 'pointer', font: 'inherit', fontSize: 12 };
+
 export function imageField(label, kind = 'image') {
   return {
     type: 'custom',
     label,
     render: ({ value, onChange, name }) => {
       const [open, setOpen] = useState(false); // eslint-disable-line react-hooks/rules-of-hooks
+      const { page } = usePage(); // eslint-disable-line react-hooks/rules-of-hooks
       return (
         <div>
           <label style={labelStyle} htmlFor={name}>{label}</label>
           <input id={name} style={inputStyle} value={value || ''} placeholder={kind === 'video' ? 'https://…/video.mp4 or choose from your library' : 'https://… or choose from your library'} onChange={(e) => onChange(e.target.value)} />
           <button type="button" style={btnStyle} onClick={() => setOpen((o) => !o)}>{open ? 'Hide library' : kind === 'video' ? 'Choose a video I made' : 'Choose from my library'}</button>
+          {kind !== 'video' ? <button type="button" data-ai-image style={aiBtnStyle} onClick={() => { import('../aiImageModal.js').then((mod) => mod.openAiImageModal({ label, pageTitle: page?.title || '', brief: readBrief(page), onUse: (url) => onChange(url) })); }}>Create with AI</button> : null}
           {open ? <Library kind={kind} onPick={(u) => { onChange(u); setOpen(false); }} onClose={() => setOpen(false)} /> : null}
         </div>
       );

@@ -32,7 +32,47 @@ Rules:
 - Follow the user's instruction for tone, audience and business. Names, quotes and numbers are placeholders: invent plausible, clearly generic ones that fit the business, never real people or companies.
 - Write in the language of the page unless told otherwise.`;
 
+export const MAX_OPTIONS = 3;
+const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+
+const WRITE_INSTRUCTIONS = `You write the text of ONE field on a landing page. You receive the field's name, its kind, a maximum length, the text currently in it (may be empty), the page and business context, and an instruction.
+Rules:
+- Return exactly the requested number of options, with ids o1, o2, ... in order. Each option is a different take on the same field; none is a copy of the current text.
+- Fit the field: a button is a short action label, a headline is a punchy line, a quote is one believable sentence, a name is a plain name. Stay under the maximum length.
+- If the current text contains {{token|fallback}} placeholders or [[highlight]] markers, keep them exactly as written in every option. You may use {{firstname|there}} or {{company|your team}} only when it fits naturally.
+- Do not add HTML, markdown, emoji, links or contact details.
+- Names, quotes and numbers are placeholders: invent plausible, clearly generic ones that fit the business; never claim real customers, awards or statistics.
+- Follow the user's instruction for tone, audience and business. Write in the language of the page unless told otherwise.`;
+
+/** One field, several options. The current text may be empty (that is the point). */
+export function buildWriteRequest(input) {
+  const label = String(input?.label || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+  if (!label) return { error: 'Say which field to write.' };
+  const n = clamp(Math.round(Number(input?.n)) || MAX_OPTIONS, 1, MAX_OPTIONS);
+  const maxChars = clamp(Math.round(Number(input?.maxChars)) || 160, 20, MAX_TEXT);
+  const current = String(input?.current ?? '');
+  if (current.length > MAX_TEXT) return { error: 'The current text is too long.' };
+  const field = { name: label, kind: String(input?.role || 'text').slice(0, 20), maxChars, current, options: n };
+  const instruction = String(input?.instruction || '').slice(0, 600);
+  const ctx = String(input?.context || '').slice(0, 400);
+  const user = `${ctx ? `Page: ${ctx}\n` : ''}Instruction: ${instruction || 'Write clear, engaging copy.'}\n\nFIELD (JSON):\n${JSON.stringify(field)}`;
+  const ids = Array.from({ length: n }, (_, i) => `o${i + 1}`);
+  return {
+    body: { model: MODEL, instructions: WRITE_INSTRUCTIONS, input: [{ role: 'user', content: user }], text: { format: { type: 'json_schema', name: 'landing_write', schema: SCHEMA, strict: true } }, store: false },
+    ids,
+    maxChars,
+    write: true,
+  };
+}
+
+/** An option is usable when it is plain text that fits the field. */
+export function usableOption(text, maxChars) {
+  const t = typeof text === 'string' ? text.trim() : '';
+  return !!t && t.length <= Math.round(maxChars * 1.3) && !/[<>]/.test(t) && !/:\/\/|www\./i.test(t);
+}
+
 export function buildRequest(input) {
+  if (input?.mode === 'write') return buildWriteRequest(input);
   const items = Array.isArray(input?.items) ? input.items : null;
   if (!items || !items.length) return { error: 'No text to rewrite.' };
   if (items.length > MAX_ITEMS) return { error: `Send at most ${MAX_ITEMS} texts at a time.` };
@@ -74,7 +114,8 @@ export async function handle(body, { key, fetchImpl = fetch } = {}) {
     if (!out || !Array.isArray(out.items)) return fail(502, 'bad_output', 'The AI returned an unreadable answer. Try again.');
     // Only ids we sent come back; anything else is dropped.
     const allowed = new Set(req.ids);
-    const items = out.items.filter((i) => i && allowed.has(i.id) && typeof i.text === 'string').map((i) => ({ id: i.id, text: i.text }));
+    let items = out.items.filter((i) => i && allowed.has(i.id) && typeof i.text === 'string').map((i) => ({ id: i.id, text: i.text }));
+    if (req.write) items = items.filter((i) => usableOption(i.text, req.maxChars)).map((i) => ({ id: i.id, text: i.text.trim() }));
     return json(200, { ok: true, items, model: data.model || MODEL });
   } catch (e) {
     return fail(e?.name === 'AbortError' ? 504 : 502, 'provider_error', e?.name === 'AbortError' ? 'The AI took too long.' : 'The AI service is unreachable.');

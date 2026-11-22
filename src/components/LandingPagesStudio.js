@@ -15,7 +15,7 @@ import { AFTER_SUBMIT_OPTIONS } from '../lib/landingPages/afterSubmit.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
 import { sampleSections } from '../lib/landingPages/sampleContent.js';
 import { ownPages } from '../lib/outreach/landingPage.js';
-import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
+import { createAiRewritePanel } from '../lib/landingPages/aiRewritePanel.js';
 import {
   listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts,
 } from '../lib/landingPages/client.js';
@@ -220,79 +220,8 @@ export function LandingPagesStudio() {
 
     // ---- design tab
     // AI rewrite: words only. Sections, layout, links, images and form fields are never sent or changed.
-    function aiRewritePanel(getData, setData) {
-      const wrap = el('details', 'rounded-xl border border-white/10 bg-white/5 text-xs text-secondary');
-      const sum = el('summary', 'cursor-pointer select-none px-3 py-2 font-bold text-primary', 'Rewrite with AI');
-      const body = el('div', 'flex flex-col gap-2 p-3');
-      const row = el('div', 'flex flex-wrap items-end gap-2');
-      const scope = el('select', INPUT);
-      const fillScope = () => {
-        scope.replaceChildren();
-        const all = el('option', '', 'Whole page'); all.value = ''; scope.appendChild(all);
-        sectionList(getData()).forEach((sec) => { if (!sec.count) return; const o = el('option', '', `${sec.index + 1}. ${sec.label} (${sec.count} texts)`); o.value = String(sec.index); scope.appendChild(o); });
-      };
-      fillScope();
-      wrap.addEventListener('toggle', fillScope);
-      const instr = el('input', `${INPUT} flex-1 min-w-[16rem]`);
-      instr.placeholder = 'What should change? e.g. friendlier, for dentists in Texas, shorter';
-      instr.maxLength = 300;
-      const run = el('button', 'rounded-lg bg-primary px-3 py-2 font-bold text-black', 'Rewrite');
-      run.type = 'button';
-      const undo = el('button', 'rounded-lg border border-white/20 px-3 py-2 font-bold hidden', 'Undo last rewrite');
-      undo.type = 'button';
-      row.append(scope, instr, run, undo);
-      const out = el('div', 'flex flex-col gap-2');
-      body.append(el('p', '', 'Rewrites the words only (headlines, buttons, text, names, quotes, numbers). Sections, layout, links, images and form fields stay exactly as they are. You review every change before it is applied. Uses your own OpenAI key.'), row, out);
-      wrap.append(sum, body);
-      let before = null;
-      const preview = (changes, skipped, scopeIdx) => {
-        out.replaceChildren();
-        if (!changes.length) { out.appendChild(el('p', 'text-amber-300', 'The AI returned nothing usable. Try a different instruction.')); return; }
-        const list = el('div', 'flex max-h-72 flex-col gap-1 overflow-y-auto rounded-lg border border-white/10 p-2');
-        const boxes = [];
-        changes.forEach((c) => {
-          const line = el('label', 'flex cursor-pointer items-start gap-2 rounded p-1 hover:bg-white/5');
-          const cb = el('input'); cb.type = 'checkbox'; cb.checked = true; boxes.push([cb, c]);
-          const t = el('div', 'min-w-0');
-          t.append(el('div', 'text-secondary/70 line-through break-words', c.text), el('div', 'text-primary break-words', c.after));
-          line.append(cb, t); list.appendChild(line);
-        });
-        const acts = el('div', 'flex flex-wrap items-center gap-2');
-        const apply = el('button', 'rounded-lg bg-primary px-3 py-2 font-bold text-black', `Apply ${changes.length} change${changes.length === 1 ? '' : 's'}`);
-        apply.type = 'button';
-        const cancel = el('button', 'rounded-lg border border-white/20 px-3 py-2 font-bold', 'Discard');
-        cancel.type = 'button';
-        cancel.addEventListener('click', () => out.replaceChildren());
-        apply.addEventListener('click', () => {
-          const chosen = boxes.filter(([cb]) => cb.checked).map(([, c]) => c);
-          if (!chosen.length) { out.replaceChildren(); return; }
-          before = JSON.parse(JSON.stringify(getData()));
-          setData(applyChanges(getData(), chosen));
-          out.replaceChildren(el('p', 'text-emerald-300', `Applied ${chosen.length} change${chosen.length === 1 ? '' : 's'}. Save to publish them.`));
-          undo.classList.remove('hidden');
-          fillScope();
-        });
-        acts.append(apply, cancel);
-        if (skipped) acts.appendChild(el('span', 'text-secondary/70', `${skipped} text${skipped === 1 ? '' : 's'} kept as they were (the AI broke a {{token}} or marker).`));
-        out.append(list, acts);
-      };
-      run.addEventListener('click', async () => {
-        const idx = scope.value === '' ? null : Number(scope.value);
-        run.disabled = true; run.textContent = 'Rewriting…'; out.replaceChildren();
-        try {
-          const r = await proposeRewrite(getData(), { section: idx, instruction: instr.value.trim(), context: `${titleInput.value || ''} (${current.config.template || ''})` });
-          preview(r.changes, r.skipped, idx);
-        } catch (err) {
-          out.replaceChildren(el('p', 'text-red-300', err.message || 'The AI rewrite failed.'));
-        } finally { run.disabled = false; run.textContent = 'Rewrite'; }
-      });
-      undo.addEventListener('click', () => {
-        if (!before) return;
-        setData(before); before = null; undo.classList.add('hidden'); fillScope();
-        out.replaceChildren(el('p', 'text-secondary', 'Restored the text from before the rewrite.'));
-      });
-      return wrap;
-    }
+    // AI writing for the whole page: shared with the picker (src/lib/landingPages/aiRewritePanel.js).
+    const aiRewritePanel = (getData, setData) => createAiRewritePanel({ getData, setData, context: `${titleInput.value || ''} (${current.config.template || ''})`, pageId: current.id });
 
     function editorDesignTab() {
       const box = el('div', 'flex flex-col gap-3');

@@ -148,3 +148,59 @@ export function applyChanges(editorData, changes) {
   }
   return next;
 }
+
+// ---------------------------------------------------------------------------------------------
+// One field at a time ("Write with AI" next to a text box). The field may be empty.
+// ---------------------------------------------------------------------------------------------
+
+/** The kind of text a field holds, from its label in the editor ("Button text", "Headline", "Quote"...). */
+export function roleForLabel(label = '') {
+  const l = String(label);
+  if (/quote|testimonial/i.test(l)) return 'quote';
+  if (/button|call to action|cta|link text/i.test(l)) return 'button';
+  if (/small label|eyebrow|badge|chip|^label\b/i.test(l)) return 'label';
+  if (/head(line|ing)|title/i.test(l)) return 'headline';
+  if (/^name\b|your name|person/i.test(l)) return 'name';
+  if (/label|small|eyebrow|badge|chip/i.test(l)) return 'label';
+  if (/number|value|stat/i.test(l)) return 'stat';
+  return 'text';
+}
+
+const ROLE_MAX = { headline: 90, button: 30, label: 40, name: 40, stat: 12, quote: 220, text: 260 };
+
+/** A sensible maximum for a field: by kind, never tighter than what the field holds now. */
+export function maxCharsFor(role, current = '', multiline = false) {
+  const base = ROLE_MAX[role] || ROLE_MAX.text;
+  return Math.min(MAX_TEXT, Math.max(multiline ? Math.max(base, 320) : base, Math.round(String(current).length * 1.3)));
+}
+
+/**
+ * Up to `n` options for one field. Empty `current` is fine. Each option is kept only if it keeps the
+ * field's {{tokens}} / [[markers]] (when it has any), has no markup or links, and fits the length.
+ * Throws a readable Error when the key is missing or the service says no.
+ */
+export async function generateFieldCopy({ label, current = '', multiline = false, instruction = '', context = '', n = 3, fetchImpl = fetch, headers, signal } = {}) {
+  const keyHeaders = headers || openaiKeyHeader();
+  if (!keyHeaders['X-OpenAI-Key']) throw new Error('This uses your own OpenAI key. Add it in Settings → API keys (OpenAI API Key).');
+  const role = roleForLabel(label);
+  const maxChars = maxCharsFor(role, current, multiline);
+  const res = await fetchImpl(REWRITE_ENDPOINT, {
+    method: 'POST',
+    signal,
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()), ...keyHeaders },
+    body: JSON.stringify({ input: { mode: 'write', label, role, current, maxChars, instruction, context, n } }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.ok) throw new Error(data?.error?.message || `The AI writer is unavailable (HTTP ${res.status}).`);
+  const seen = new Set();
+  const out = [];
+  for (const it of data.items || []) {
+    const text = typeof it?.text === 'string' ? it.text.trim() : '';
+    if (!text || seen.has(text) || text === String(current).trim()) continue;
+    if (text.length > Math.round(maxChars * 1.3) || /[<>]/.test(text) || /https?:\/\/|www\./i.test(text)) continue;
+    if (String(current).trim() && (markers(text) !== markers(current))) continue;   // keep the field's own placeholders and highlight marks
+    seen.add(text);
+    out.push(text);
+  }
+  return out;
+}

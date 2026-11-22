@@ -5,9 +5,10 @@
  *                                 component renders (in the editor preview and on the public page, extensions included)
  *   ContactAccent                 the page root: a contact's own brand colour ({{accent}}) replaces the page accent
  */
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { fillTokens, fillUrlTokens, safeImageUrl, TOKEN_CHOICES } from '../templates.js';
 import { usePage, ViewerContext } from './context.js';
+import { generateFieldCopy } from '../rewrite.js';
 
 const labelStyle = { display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 };
 const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg, #fff)', color: 'var(--lp-field-text, inherit)', font: 'inherit' };
@@ -23,6 +24,54 @@ export function insertToken(value, token, start, end) {
 
 /** Pure: the text a menu choice inserts, e.g. {{firstname|there}}. */
 export const tokenText = ([key, , fallback]) => `{{${key}${fallback ? `|${fallback}` : ''}}}`;
+
+const aiBtn = { marginTop: 6, marginLeft: 6, padding: '5px 10px', border: '1px solid var(--lp-accent, #d9ff00)', borderRadius: 6, background: 'transparent', color: 'var(--lp-accent, #d9ff00)', font: 'inherit', fontSize: 12, fontWeight: 700, cursor: 'pointer' };
+const aiPanel = { marginTop: 8, padding: 10, border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 8, background: 'var(--lp-field-bg-alt, #f8fafc)', color: 'var(--lp-field-text, inherit)', display: 'grid', gap: 8 };
+const aiOption = { textAlign: 'left', padding: '8px 10px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg, #fff)', color: 'var(--lp-field-text, inherit)', font: 'inherit', fontSize: 13, cursor: 'pointer' };
+
+const briefKey = (page) => `lp_ai_brief:${page?.id || 'draft'}`;
+export const readBrief = (page) => { try { return sessionStorage.getItem(briefKey(page)) || ''; } catch { return ''; } };
+export const saveBrief = (page, v) => { try { sessionStorage.setItem(briefKey(page), String(v || '').slice(0, 300)); } catch { /* ignore */ } };
+
+/** "Write with AI" under one text field: describe what you want (or not), get up to three options, click one. */
+export function AiWriter({ label, value, multiline, onApply, writer = generateFieldCopy }) {
+  const { page } = usePage();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [options, setOptions] = useState([]);
+  const [error, setError] = useState('');
+  const [instruction, setInstruction] = useState('');
+  const [brief, setBrief] = useState(() => readBrief(page));
+  const [undo, setUndo] = useState(null);
+  const run = async () => {
+    setBusy(true); setError(''); setOptions([]);
+    saveBrief(page, brief);
+    try {
+      const context = [page?.title, brief].filter(Boolean).join(' — ');
+      const list = await writer({ label, current: value || '', multiline, instruction, context, n: 3 });
+      if (!list.length) setError('The AI did not return anything usable. Try again, or say a little more.');
+      setOptions(list);
+    } catch (e) { setError(e?.message || 'The AI writer is unavailable.'); }
+    setBusy(false);
+  };
+  return (
+    <>
+      <button type="button" data-ai-write style={aiBtn} onClick={() => setOpen((o) => !o)} aria-expanded={open}>{open ? 'Close AI' : 'Write with AI'}</button>
+      {undo !== null ? <button type="button" data-ai-undo style={{ ...aiBtn, borderColor: 'var(--lp-field-border, #cbd5e1)', color: 'inherit' }} onClick={() => { onApply(undo); setUndo(null); }}>Undo</button> : null}
+      {open ? (
+        <div style={aiPanel} data-ai-panel>
+          <input aria-label="About this business" data-ai-brief style={{ padding: '7px 9px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg, #fff)', color: 'inherit', font: 'inherit', fontSize: 13 }} placeholder="About this business (remembered), e.g. family plumber in Reno" value={brief} onChange={(e) => setBrief(e.target.value)} />
+          <input aria-label="What should it say" data-ai-instruction style={{ padding: '7px 9px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg, #fff)', color: 'inherit', font: 'inherit', fontSize: 13 }} placeholder={value ? 'How should it change? (optional)' : 'What should it say? (optional)'} value={instruction} onChange={(e) => setInstruction(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !busy) { e.preventDefault(); run(); } }} />
+          <button type="button" data-ai-generate disabled={busy} style={{ ...aiBtn, margin: 0, justifySelf: 'start' }} onClick={run}>{busy ? 'Writing…' : options.length ? 'Write more' : 'Write it'}</button>
+          {error ? <p role="alert" data-ai-error style={{ margin: 0, fontSize: 12, color: '#f87171' }}>{error}</p> : null}
+          {options.map((o) => (
+            <button key={o} type="button" data-ai-option style={aiOption} onClick={() => { setUndo(value || ''); onApply(o); setOptions([]); setOpen(false); }}>{o}</button>
+          ))}
+        </div>
+      ) : null}
+    </>
+  );
+}
 
 /** A text or long-text field with an "Insert field" menu next to it. */
 export function tokenField(orig) {
@@ -51,6 +100,7 @@ export function tokenField(orig) {
             <option value="">Insert field…</option>
             {TOKEN_CHOICES.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
+          <AiWriter label={orig.label} value={value} multiline={multi} onApply={onChange} />
         </div>
       );
     },
