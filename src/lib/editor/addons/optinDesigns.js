@@ -198,7 +198,7 @@ export const OPTIN_DESIGNS = [
     fieldLayout: 'stacked',
   }),
   d('vip-access', 'VIP Access', 'premium', {
-    fontFamily: 'Cinzel', fontColor: '#f5e7b8', captionColor: '#e8c872', captionFontSize: 125, backgroundColor: '#0b0905', backgroundColor2: '#1b1409', bgAngle: 160,
+    fontFamily: 'Cinzel', fontColor: '#f5e7b8', captionColor: '#e8c872', captionFontSize: 96, backgroundColor: '#0b0905', backgroundColor2: '#1b1409', bgAngle: 160,
     innerWidth: 84, innerHeight: 88, cardRadius: 6, cardBorderColor: '#c9a24a', cardBorderWidth: 2, cardGlow: '#c9a24a',
     inputBackground: '#000000', inputOpacity: 55, inputFontColor: '#f5e7b8', inputBorderColor: '#8a6d2b', inputBorderRadius: 3, placeholderColor: '#b79a52', inputIcons: true,
     fieldLayout: 'grid', fieldWidth: 80,
