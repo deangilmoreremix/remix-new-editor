@@ -1,5 +1,14 @@
 import { guideHrefFor } from '../guideLinks.js';
+import { videoSlot, mountLandingVideos } from '../common/landingVideo.js';
 // Six Creative Engines Section - Animated with parallax and hover effects
+
+const ENGINE_CLIPS = {
+  create: ['c01-hero-prompt', 'Typing a prompt in Video Studio'],
+  enhance: ['c11-vfx-effects', 'AI VFX and Effects studios'],
+  produce: ['c06-director', 'The Director studio'],
+  localize: ['c10-lip-sync', 'Lip Sync Studio'],
+  scale: ['c12-templates', 'The template library']
+};
 
 export function SixEnginesSection() {
   const engines = [
@@ -116,6 +125,7 @@ export function SixEnginesSection() {
             
             <!-- Content -->
             <div class="relative z-10">
+              ${ENGINE_CLIPS[engine.id] ? videoSlot(ENGINE_CLIPS[engine.id][0], ENGINE_CLIPS[engine.id][1], { className: 'aspect-video rounded-lg border border-white/10 mb-4' }) : ''}
               <div class="w-16 h-16 bg-gradient-to-br ${engine.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
                 <span class="text-3xl">${engine.icon}</span>
               </div>
@@ -269,5 +279,6 @@ export function SixEnginesSection() {
     });
   }, 100);
 
+  mountLandingVideos(section);
   return section;
 }
