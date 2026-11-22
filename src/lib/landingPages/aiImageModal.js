@@ -6,6 +6,7 @@
 // you pick to storage so the page gets a permanent https link (pages only accept https pictures).
 import { generateImage } from '../editor/aiImageService.js';
 import { DEFAULT_IMAGE_MODEL, DETAIL_IMAGE_MODEL } from '../editor/ai/openaiImages.js';
+import { describeStyle } from './editor/styleHint.js';
 
 /** The two Images 2.6 engines, labelled like the personalization image editor. */
 export const ENGINES = Object.freeze({
@@ -16,23 +17,42 @@ export const SHAPES = Object.freeze([['16:9', 'Wide'], ['1:1', 'Square'], ['9:16
 
 /** The shape a picture field usually wants: faces and logos are square, the rest wide. */
 export function shapeForLabel(label = '') {
-  const l = String(label);
-  if (/avatar|face|portrait|logo|icon|mark|person|headshot/i.test(l)) return '1:1';
-  if (/tall|story|phone|vertical/i.test(l)) return '9:16';
-  return '16:9';
+  if (/tall|story|phone|vertical/i.test(String(label))) return '9:16';
+  return shapeForKind(kindOfField(label));
 }
 
-/** A starting prompt from the field's name, the page title and the remembered business line. The user edits it. */
-export function promptForField({ label = '', pageTitle = '', brief = '' } = {}) {
+/** What kind of picture a field takes: decides the guidance, the shape and whether it should have a transparent background. */
+export function kindOfField(label = '') {
   const l = String(label);
+  if (/avatar|face|portrait|headshot|testimonial|person/i.test(l)) return 'face';
+  if (/logo|mark|icon|brand/i.test(l)) return 'logo';
+  if (/poster|placeholder|video|viewer/i.test(l)) return 'poster';
+  if (/background|banner|section/i.test(l)) return 'background';
+  if (/chart|dashboard|laptop|screen/i.test(l)) return 'screen';
+  return 'photo';
+}
+
+const GUIDE = {
+  face: 'Friendly, natural head-and-shoulders portrait of a smiling customer, face centred (it is shown in a small circle), soft daylight, plain softly blurred background',
+  logo: 'A simple, bold logo mark centred with generous empty space around it, flat design, no words, on a plain solid background',
+  poster: 'Cinematic still frame that makes people want to press play, subject off-centre so the centre stays clear for a play button',
+  background: 'Wide, soft, uncluttered background photo with low contrast and calm areas, so text placed on top stays easy to read',
+  screen: 'Clean, modern product-style visual with simple shapes, no tiny unreadable text',
+  photo: 'Professional, high-quality photo with a clear subject',
+};
+
+/** The shape a kind wants. */
+export const shapeForKind = (kind) => (kind === 'face' || kind === 'logo' ? '1:1' : '16:9');
+
+/**
+ * A starting prompt from the field, the page title, the remembered business line and the page's look
+ * (palette and dark/light, from editor/styleHint.js) so the picture suits the design. The user edits it.
+ */
+export function promptForField({ label = '', pageTitle = '', brief = '', style = null } = {}) {
+  const kind = kindOfField(label);
   const about = [pageTitle, brief].map((v) => String(v || '').trim()).filter(Boolean).join(' — ');
-  let base;
-  if (/avatar|face|portrait|headshot|testimonial/i.test(l)) base = 'Friendly, natural portrait photo of a smiling customer, soft daylight';
-  else if (/logo|mark|icon/i.test(l)) base = 'Simple, clean logo mark on a plain background';
-  else if (/poster|placeholder|video|viewer/i.test(l)) base = 'Cinematic still frame that makes people want to press play';
-  else if (/background|banner|photo/i.test(l)) base = 'Wide, uncluttered photo with room for text on one side';
-  else base = 'Professional, high-quality image';
-  return `${base}${about ? ` for: ${about}` : ''}. No text, letters or watermarks in the image.`;
+  const look = style ? `Match this page: ${describeStyle(style)}.` : '';
+  return `${GUIDE[kind]}${about ? ` for: ${about}` : ''}. ${look} No text, letters or watermarks in the image.`.replace(/\s+/g, ' ').replace(' .', '.');
 }
 
 /** Binary file from a data URL (what the generator returns). Null when it is not one. */
@@ -67,9 +87,9 @@ export async function persistImage(asset, { upload, save } = {}) {
  * Make pictures. Returns { assets, note }. `note` says so when the account has no 2.6 access yet and the
  * service fell back to GPT Image 2. Throws an Error with a readable message on failure.
  */
-export async function makeImages({ prompt, shape = '16:9', engine = 'draft', n = 2 }, { generate = generateImage } = {}) {
+export async function makeImages({ prompt, shape = '16:9', engine = 'draft', n = 2, transparent = false }, { generate = generateImage } = {}) {
   const wanted = (ENGINES[engine] || ENGINES.draft).model;
-  const res = await generate({ prompt, aspectRatio: shape, n, model: wanted === DEFAULT_IMAGE_MODEL ? undefined : wanted });
+  const res = await generate({ prompt, aspectRatio: shape, n, model: wanted === DEFAULT_IMAGE_MODEL ? undefined : wanted, ...(transparent ? { background: 'transparent' } : {}) });
   if (!res?.ok) throw new Error(res?.error || 'Image generation failed.');
   const assets = (res.assets || []).filter((a) => a?.url);
   if (!assets.length) throw new Error('No picture came back. Try again with a different description.');
@@ -100,7 +120,7 @@ const el = (tag, style, text) => { const n = document.createElement(tag); if (st
  * The modal. `onUse(url, { prompt, model })` receives the permanent https link of the picture the user picked.
  * `deps` lets tests replace the network and storage.
  */
-export function openAiImageModal({ label = 'Picture', pageTitle = '', brief = '', onUse, onClose, deps = {} } = {}) {
+export function openAiImageModal({ label = 'Picture', pageTitle = '', brief = '', style = null, onUse, onClose, deps = {} } = {}) {
   const generate = deps.generate;
   let upload = deps.upload;
   let save = deps.save;
@@ -135,7 +155,7 @@ export function openAiImageModal({ label = 'Picture', pageTitle = '', brief = ''
   prompt.rows = 4;
   prompt.dataset.aiPrompt = '';
   prompt.setAttribute('aria-label', 'Describe the picture');
-  prompt.value = promptForField({ label, pageTitle, brief });
+  prompt.value = promptForField({ label, pageTitle, brief, style });
 
   const row = el('div', 'display:flex;flex-wrap:wrap;gap:10px;align-items:center');
   const engineSel = el('select', css.input + ';width:auto'); engineSel.dataset.aiEngine = ''; engineSel.setAttribute('aria-label', 'Engine');
@@ -168,7 +188,7 @@ export function openAiImageModal({ label = 'Picture', pageTitle = '', brief = ''
     if (!text) { status.textContent = 'Describe the picture first.'; return; }
     go.disabled = true; grid.replaceChildren(); status.style.color = '#a1a1aa'; status.textContent = 'Creating… this takes a few seconds.';
     try {
-      const { assets, note } = await makeImages({ prompt: text, shape: shapeSel.value, engine: engineSel.value, n: 2 }, { generate });
+      const { assets, note } = await makeImages({ prompt: text, shape: shapeSel.value, engine: engineSel.value, n: 2, transparent: kindOfField(label) === 'logo' }, { generate });
       status.textContent = note || 'Pick the one you like.';
       assets.forEach((a) => {
         const card = el('div', 'display:grid;gap:6px');

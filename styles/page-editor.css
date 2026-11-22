@@ -204,3 +204,10 @@
 
 .pk-video-caption { margin: 8px 0 0; font-size: 13px; color: var(--pk-muted); text-align: center; }
 .pk-sec { display: block; }
+
+/* Pictures always fit their box, whatever shape they are (AI-made, uploaded or from the library):
+   faces and photos fill it (cropped from the centre); logos, marks and artwork sit inside it whole.
+   Loaded before the designs, so a design that sets its own object-fit still wins. */
+.pk-avatar, .pk-strip-photo, .pk-px-avatar, .pk-px-case-photo, .pk-lq-card img, .ent-quote img, .mn-av, .ps-quote img, .ps-card-img, .rs-ava, .dh-avatar { object-fit: cover; object-position: center; }
+.pk-brand img, .ld-logo-mark, .pk-footer-logo, .pk-px-logo, .pk-px-logo-img, .pk-px-case-logo, .rl-brand img, .rs-tile img, .dh-features img,
+.ps-step-ico, img.lc-ico, .mn-logos img, .mn-feats img, .mn-side-brand img, .mn-chart, .rs-laptop, .dh-cta-art, .pk-neon-book img, .pk-neon-giftico, .pk-showcase-art img { object-fit: contain; object-position: center; }

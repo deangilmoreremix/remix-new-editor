@@ -40,6 +40,13 @@ Rules:
 - Return exactly the requested number of options, with ids o1, o2, ... in order. Each option is a different take on the same field; none is a copy of the current text.
 - Fit the field: a button is a short action label, a headline is a punchy line, a quote is one believable sentence, a name is a plain name. Stay under the maximum length.
 - If the current text contains {{token|fallback}} placeholders or [[highlight]] markers, keep them exactly as written in every option. You may use {{firstname|there}} or {{company|your team}} only when it fits naturally.
+- The field description says how the text must look. Follow it exactly:
+  - "casing": "upper" = write in ALL CAPS; "title" = Title Case; "sentence" = normal sentence case.
+  - "highlight": true = wrap one or two key words in [[double brackets]] (the design shows them in its accent colour); false = never use [[ ]].
+  - "list": a comma separated list; if a count is given, exactly that many items, no empty items.
+  - "lines": that many lines separated by line breaks.
+  - "numeric": only a short number or statistic such as 3.4x, 128,349 or 98%, nothing else.
+- End the way the current text ends: headlines, buttons and labels have no full stop unless the current text does.
 - Do not add HTML, markdown, emoji, links or contact details.
 - Names, quotes and numbers are placeholders: invent plausible, clearly generic ones that fit the business; never claim real customers, awards or statistics.
 - Follow the user's instruction for tone, audience and business. Write in the language of the page unless told otherwise.`;
@@ -52,7 +59,16 @@ export function buildWriteRequest(input) {
   const maxChars = clamp(Math.round(Number(input?.maxChars)) || 160, 20, MAX_TEXT);
   const current = String(input?.current ?? '');
   if (current.length > MAX_TEXT) return { error: 'The current text is too long.' };
-  const field = { name: label, kind: String(input?.role || 'text').slice(0, 20), maxChars, current, options: n };
+  const fmt = input?.format && typeof input.format === 'object' ? input.format : {};
+  const casing = ['upper', 'title', 'sentence'].includes(input?.casing) ? input.casing : undefined;
+  const field = {
+    name: label, kind: String(input?.role || 'text').slice(0, 20), maxChars, current, options: n,
+    ...(casing ? { casing } : {}),
+    highlight: fmt.highlight === true,
+    ...(fmt.list ? { list: Number(fmt.list.count) > 0 ? { items: Math.min(20, Math.round(Number(fmt.list.count))) } : {} } : {}),
+    ...(fmt.lines ? { lines: Number(fmt.lines.count) > 0 ? Math.min(12, Math.round(Number(fmt.lines.count))) : 'several' } : {}),
+    ...(fmt.numeric ? { numeric: true } : {}),
+  };
   const instruction = String(input?.instruction || '').slice(0, 600);
   const ctx = String(input?.context || '').slice(0, 400);
   const user = `${ctx ? `Page: ${ctx}\n` : ''}Instruction: ${instruction || 'Write clear, engaging copy.'}\n\nFIELD (JSON):\n${JSON.stringify(field)}`;

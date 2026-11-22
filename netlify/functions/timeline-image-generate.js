@@ -200,6 +200,8 @@ export async function handler(event) {
     n = 1,
     model,
   } = body;
+  // Logos and cut-outs can ask for a transparent background. Only these two values are ever forwarded.
+  const bg = body.background === 'transparent' || body.background === 'opaque' ? body.background : null;
 
   // Reference images (edit / consistency). Public https only — never data: or
   // internal URLs — and at most 8.
@@ -304,6 +306,7 @@ export async function handler(event) {
       n: Math.min(Math.max(n, 1), 4),
     };
     if (quality && quality !== 'auto') directBody.quality = quality;
+    if (bg) { directBody.background = bg; if (bg === 'transparent') directBody.output_format = 'png'; }
 
     try {
       lastCall = { fn: callImagesApi, body: directBody };
@@ -321,6 +324,7 @@ export async function handler(event) {
       n: Math.min(Math.max(n, 1), 4),
     };
     if (quality && quality !== 'auto') directBody.quality = quality;
+    if (bg) { directBody.background = bg; if (bg === 'transparent') directBody.output_format = 'png'; }
 
     try {
       lastCall = { fn: callImagesApi, body: directBody };
@@ -328,6 +332,16 @@ export async function handler(event) {
     } catch (e) {
       const msg = e?.name === 'AbortError' ? 'OpenAI Images API timed out' : `Network error: ${e.message}`;
       return jsonResponse(502, { ok: false, error: msg });
+    }
+  }
+
+  // A model that refuses a transparent background: try once more without it (the picture is still made).
+  if (!imageRes.ok && bg && imageRes.status === 400 && lastCall) {
+    let m = '';
+    try { m = (await imageRes.clone().text()).toLowerCase(); } catch { /* ignore */ }
+    if (/background|transparent|output_format/.test(m)) {
+      delete lastCall.body.background; delete lastCall.body.output_format;
+      try { imageRes = await lastCall.fn(apiKey, lastCall.body); } catch (e) { return jsonResponse(502, { ok: false, error: e?.name === 'AbortError' ? 'OpenAI Images API timed out' : `Network error: ${e.message}` }); }
     }
   }
 

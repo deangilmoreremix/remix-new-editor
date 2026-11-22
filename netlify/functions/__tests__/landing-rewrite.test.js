@@ -62,6 +62,19 @@ describe('landing-rewrite', () => {
       expect((await handle({ input: { mode: 'write', label: 'x' } }, { fetchImpl: vi.fn() })).statusCode).toBe(401);
       expect((await handle({ input: { mode: 'write', label: 'x' } }, { key: KEY, fetchImpl: async () => new Response('{}', { status: 429 }) })).statusCode).toBe(429);
     });
+    it('tells the model how the field must look (casing, highlight, list, rows, numbers)', () => {
+      const r = buildWriteRequest({ mode: 'write', label: 'Headline', current: 'GROW FAST', casing: 'upper', format: { highlight: true, list: { count: 7 }, lines: { count: 2 }, numeric: true } });
+      const field = JSON.parse(r.body.input[0].content.split('FIELD (JSON):\n')[1]);
+      expect(field).toMatchObject({ casing: 'upper', highlight: true, list: { items: 7 }, lines: 2, numeric: true });
+      expect(r.body.instructions).toMatch(/ALL CAPS/);
+      expect(r.body.instructions).toMatch(/double brackets/);
+    });
+    it('ignores a made-up casing or format and defaults to no highlight', () => {
+      const r = buildWriteRequest({ mode: 'write', label: 'Headline', casing: 'shout', format: 'nope' });
+      const field = JSON.parse(r.body.input[0].content.split('FIELD (JSON):\n')[1]);
+      expect(field.casing).toBeUndefined();
+      expect(field.highlight).toBe(false);
+    });
     it('usableOption rejects empty, too long, markup and links', () => {
       expect(usableOption('Book now', 20)).toBe(true);
       for (const bad of ['', '   ', 'x'.repeat(40), '<script>', 'visit www.x.com', 'http://x.test']) expect(usableOption(bad, 20), bad).toBe(false);

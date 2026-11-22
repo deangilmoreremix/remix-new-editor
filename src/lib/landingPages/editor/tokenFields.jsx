@@ -8,7 +8,7 @@
 import { useRef, useState } from 'react';
 import { fillTokens, fillUrlTokens, safeImageUrl, TOKEN_CHOICES } from '../templates.js';
 import { usePage, ViewerContext } from './context.js';
-import { generateFieldCopy } from '../rewrite.js';
+import { generateFieldCopy, isCopyField } from '../rewrite.js';
 
 const labelStyle = { display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 };
 const inputStyle = { width: '100%', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg, #fff)', color: 'var(--lp-field-text, inherit)', font: 'inherit' };
@@ -43,14 +43,16 @@ export function AiWriter({ label, value, multiline, onApply, writer = generateFi
   const [instruction, setInstruction] = useState('');
   const [brief, setBrief] = useState(() => readBrief(page));
   const [undo, setUndo] = useState(null);
+  const [note, setNote] = useState('');
   const run = async () => {
-    setBusy(true); setError(''); setOptions([]);
+    setBusy(true); setError(''); setNote(''); setOptions([]);
     saveBrief(page, brief);
     try {
       const context = [page?.title, brief].filter(Boolean).join(' — ');
       const list = await writer({ label, current: value || '', multiline, instruction, context, n: 3 });
       if (!list.length) setError('The AI did not return anything usable. Try again, or say a little more.');
       setOptions(list);
+      if (list.adjusted) setNote('Adjusted to fit this field (capitals, ending or highlight marks).');
     } catch (e) { setError(e?.message || 'The AI writer is unavailable.'); }
     setBusy(false);
   };
@@ -63,6 +65,7 @@ export function AiWriter({ label, value, multiline, onApply, writer = generateFi
           <input aria-label="About this business" data-ai-brief style={{ padding: '7px 9px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg, #fff)', color: 'inherit', font: 'inherit', fontSize: 13 }} placeholder="About this business (remembered), e.g. family plumber in Reno" value={brief} onChange={(e) => setBrief(e.target.value)} />
           <input aria-label="What should it say" data-ai-instruction style={{ padding: '7px 9px', border: '1px solid var(--lp-field-border, #cbd5e1)', borderRadius: 6, background: 'var(--lp-field-bg, #fff)', color: 'inherit', font: 'inherit', fontSize: 13 }} placeholder={value ? 'How should it change? (optional)' : 'What should it say? (optional)'} value={instruction} onChange={(e) => setInstruction(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !busy) { e.preventDefault(); run(); } }} />
           <button type="button" data-ai-generate disabled={busy} style={{ ...aiBtn, margin: 0, justifySelf: 'start' }} onClick={run}>{busy ? 'Writing…' : options.length ? 'Write more' : 'Write it'}</button>
+          {note ? <p data-ai-note style={{ margin: 0, fontSize: 12, color: 'var(--lp-accent, #d9ff00)' }}>{note}</p> : null}
           {error ? <p role="alert" data-ai-error style={{ margin: 0, fontSize: 12, color: '#f87171' }}>{error}</p> : null}
           {options.map((o) => (
             <button key={o} type="button" data-ai-option style={aiOption} onClick={() => { setUndo(value || ''); onApply(o); setOptions([]); setOpen(false); }}>{o}</button>
@@ -100,7 +103,7 @@ export function tokenField(orig) {
             <option value="">Insert field…</option>
             {TOKEN_CHOICES.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
-          <AiWriter label={orig.label} value={value} multiline={multi} onApply={onChange} />
+          {isCopyField(orig.label) ? <AiWriter label={orig.label} value={value} multiline={multi} onApply={onChange} /> : null}
         </div>
       );
     },
