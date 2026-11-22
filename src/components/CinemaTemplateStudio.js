@@ -52,6 +52,7 @@ import { createTemplateVideoTools } from '../lib/templateVideoTools.js';
 import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend, snapshotGenerationParams, snapshotFormInputs } from '../lib/templateResultTools.js';
 import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 /**
  * Resolve the `W:H` aspect ratio for a generation request.
@@ -3242,6 +3243,10 @@ const firstChild = storyboardRoot.firstElementChild;
       if (target) openSocialPublish({ mediaUrl: target, mediaType });
     };
     actions.appendChild(publishBtn);
+    // Create landing page: same look as this row's Download button
+    const landingBtn = createLandingPageButton({ like: downloadBtn });
+    landingBtn.onclick = () => { const url = generationResult || resultMedia.src || ''; if (url) void openLandingPageFor({ url, type: mediaType, studio: 'cinema-template' }); };
+    actions.appendChild(landingBtn);
 
     preview.appendChild(resultMedia);
     // Frame scrubber (Video Studio).

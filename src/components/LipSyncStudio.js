@@ -976,7 +976,7 @@ export function LipSyncStudio() {
     publishBtn.textContent = 'Publish to Social';
 
     canvasControls.appendChild(publishBtn);
-    const landingBtn = createLandingPageButton();
+    const landingBtn = createLandingPageButton({ like: downloadBtn });
     canvasControls.appendChild(landingBtn);
 
     canvas.appendChild(videoContainer);

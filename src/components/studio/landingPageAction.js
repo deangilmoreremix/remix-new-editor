@@ -20,13 +20,18 @@ export async function openLandingPageFor(item, { toast } = {}) {
   return true;
 }
 
-/** A button for a studio's result row. Set `btn.onclick` where the result is shown, or pass `getItem`. */
-export function createLandingPageButton({ getItem, className } = {}) {
+/**
+ * A button for a studio's result row. Pass `like` (the studio's own Download button or link) and the new button copies its
+ * classes, so it has the same shape, size and hover as everything else in that studio. Without it, a neutral default.
+ * Set `btn.onclick` where the result is shown, or pass `getItem` (read when it is clicked).
+ */
+export function createLandingPageButton({ getItem, className, like } = {}) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.dataset.action = 'create-landing-page';
-  btn.className = className || 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 text-white';
+  btn.className = (like && like.className) || className || 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 text-white';
   btn.textContent = 'Create landing page';
+  btn.title = 'Put this on a landing page';
   if (getItem) btn.onclick = () => { void openLandingPageFor(getItem()); };
   return btn;
 }
