@@ -24,7 +24,7 @@
     "Templates: one tap loads an upstream template; loading one never calls a paid API.",
     "Redo on any character sheet, keyframe or clip, and a message when part of a batch fails.",
     "Final cut assembled in the browser; Download MP4 and Download captions (.srt).",
-    "Free Captions: transcribe the final cut on your device with Whisper, fix any words, pick a look and render the captions into the video (no credits, nothing uploaded).",
+    "Free Captions: transcribe the final cut on your device with Whisper, fix any words, pick a look and render the captions into the video (no credits; transcribed and rendered in your browser).",
     "History sidebar and a New project button."
   ],
   "featureExplanations": [
@@ -50,7 +50,7 @@
       "feature": "Burn captions",
       "explanation": "Under the final cut, 'Captions on your device' has a 'Free Captions' button ('Edit captions' once you have made them). It opens the Caption Studio window, which transcribes the video in your browser with Whisper, lets you fix words and pick a look, then renders the captions into the video. The captioned video can be opened, downloaded or saved with 'Save captioned to library'. 'Download captions (.srt)' gives a separate caption file.",
       "whyToUse": "Silent autoplay on social platforms.",
-      "inputRequired": "A rendered final cut. Free: no credits, and nothing is uploaded.",
+      "inputRequired": "A rendered final cut. Free: no credits. Transcription and rendering happen in your browser; 'Save captioned to library' uploads the captioned video to your library.",
       "restrictions": "Transcription and rendering run in your browser, so long videos depend on your device."
     }
   ],
