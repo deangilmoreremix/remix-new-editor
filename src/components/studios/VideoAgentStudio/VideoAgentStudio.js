@@ -13,6 +13,7 @@ import { createEditorBanner } from '../../../lib/thumbnails.js';
 import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 import { saveGeneration } from '../../../lib/generationHistory.js';
 import { uploadFileToSupabase } from '../../../lib/uploadService.js';
+import { consumeStudioPrefill } from '../../../lib/studioPrefill.js';
 
 // Explicit index.html: the dev server's SPA fallback would otherwise serve the main app.
 export const MOTION_AGENT_APP_PATH = '/motion-agent/index.html';
@@ -62,7 +63,11 @@ export function VideoAgentStudio() {
   container.appendChild(body);
 
   const iframe = document.createElement('iframe');
-  iframe.src = MOTION_AGENT_APP_PATH;
+  // A brief staged by another studio (e.g. a Brand Kit's "Make with Video Agent") opens the agent's generate page.
+  const stagedBrief = consumeStudioPrefill('video-agent');
+  iframe.src = stagedBrief?.prompt
+    ? `${MOTION_AGENT_APP_PATH}#/generate?${new URLSearchParams({ prompt: stagedBrief.prompt })}`
+    : MOTION_AGENT_APP_PATH;
   iframe.title = 'SmartVid Video Agent';
   iframe.className = 'absolute inset-0 w-full h-full border-0 bg-black';
   iframe.setAttribute('allow', 'clipboard-read; clipboard-write; fullscreen');

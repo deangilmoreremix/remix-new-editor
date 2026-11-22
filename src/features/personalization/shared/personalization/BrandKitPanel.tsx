@@ -5,7 +5,7 @@
  */
 import { useMemo, useState } from 'react'
 import { useDemoPersonalize } from './DemoPersonalizeProvider'
-import { buildBrandKit, saveBrandKit, makeBrandAd, buildBrandAdPlan } from '../../../../lib/brandKit.js'
+import { buildBrandKit, saveBrandKit, makeBrandProject, buildBrandBrief, scanAndSaveBrandKit, BRAND_TARGETS } from '../../../../lib/brandKit.js'
 import { C } from './guided/tokens'
 
 type Aspect = '9:16' | '16:9'
@@ -16,6 +16,8 @@ export function BrandKitPanel() {
   const [saved, setSaved] = useState<any>(null)
   const [duration, setDuration] = useState(15)
   const [aspect, setAspect] = useState<Aspect>('9:16')
+  const [target, setTarget] = useState<string>('video')
+  const [scan, setScan] = useState<{ status: 'idle' | 'scanning' | 'done' | 'error'; message?: string }>({ status: 'idle' })
 
   const kit = useMemo(
     () => buildBrandKit({ research: research || {}, client: clientForm || {}, assets: discoveredAssets || [] }),
@@ -24,7 +26,8 @@ export function BrandKitPanel() {
   if (!kit || (!research && (discoveredAssets || []).length === 0)) return null
 
   const images = (kit.siteImages || []).length
-  const plan = buildBrandAdPlan(saved || kit, { duration, aspectRatio: aspect })
+  const shown = saved || kit
+  const plan = buildBrandBrief(shown, target, { duration, aspectRatio: aspect })
   const btn = (primary: boolean) => ({
     minHeight: 34, padding: '0 14px', borderRadius: 10, fontSize: 11, fontWeight: 900,
     border: `1px solid ${primary ? C.cyan : C.cyanBorder}`,
@@ -32,12 +35,26 @@ export function BrandKitPanel() {
   }) as const
 
   const save = () => { setSaved(saveBrandKit(kit)) }
+  const deepScan = async () => {
+    setScan({ status: 'scanning' })
+    try {
+      const brand = await scanAndSaveBrandKit(kit)
+      setSaved(brand)
+      const n = (brand.scannedPages || []).length
+      setScan({ status: 'done', message: `Read ${n} page${n === 1 ? '' : 's'}` })
+    } catch (e: any) {
+      setScan({ status: 'error', message: e?.message || 'Could not scan that website' })
+    }
+  }
   const makeAd = () => {
     const brand = saved || saveBrandKit(kit)
     setSaved(brand)
-    makeBrandAd(brand, { duration, aspectRatio: aspect })
+    makeBrandProject(brand, target, { duration, aspectRatio: aspect })
     closePersonalize?.()
   }
+  const fonts: string[] = shown.fonts || []
+  const tone: string[] = shown.toneOfVoice || []
+  const offerings: string[] = shown.offerings || []
 
   return (
     <div
@@ -64,10 +81,32 @@ export function BrandKitPanel() {
       {kit.valueProposition && (
         <p style={{ margin: '0 0 10px', color: C.muted, fontSize: 11, lineHeight: 1.5 }}>{kit.valueProposition.slice(0, 220)}</p>
       )}
+      {(fonts.length > 0 || tone.length > 0 || offerings.length > 0) && (
+        <div data-testid="pz-brand-kit-profile" style={{ margin: '0 0 10px', color: C.muted, fontSize: 11, lineHeight: 1.6 }}>
+          {fonts.length > 0 && <div><strong style={{ color: C.text }}>Fonts:</strong> {fonts.slice(0, 3).join(', ')}</div>}
+          {tone.length > 0 && <div><strong style={{ color: C.text }}>Tone:</strong> {tone.join(', ')} <em>(inferred from the site's wording)</em></div>}
+          {offerings.length > 0 && <div><strong style={{ color: C.text }}>Offers:</strong> {offerings.slice(0, 5).join(', ')}</div>}
+        </div>
+      )}
+      <div className="flex items-center flex-wrap" style={{ gap: 8, marginBottom: 8 }}>
+        <button type="button" onClick={deepScan} disabled={scan.status === 'scanning'} style={btn(false)} data-testid="pz-brand-kit-scan"
+          title="Reads this site's About, Products/Services and Reviews pages for fonts, tone, offers and testimonials">
+          {scan.status === 'scanning' ? 'Scanning pages…' : scan.status === 'done' ? '✓ Scanned — scan again' : 'Scan more pages'}
+        </button>
+        {scan.message && <span role="status" style={{ fontSize: 11, color: scan.status === 'error' ? '#ff8a8a' : C.muted }}>{scan.message}</span>}
+      </div>
       <div className="flex items-center flex-wrap" style={{ gap: 8 }}>
         <button type="button" onClick={save} style={btn(false)} data-testid="pz-brand-kit-save">
           {saved ? '✓ Saved to Brand Studio' : 'Save Brand Kit'}
         </button>
+        <select
+          aria-label="Make with"
+          value={target}
+          onChange={(e) => setTarget(e.target.value)}
+          style={{ ...btn(false), background: 'transparent' }}
+        >
+          {Object.entries(BRAND_TARGETS).map(([id, t]: [string, any]) => <option key={id} value={id} style={{ color: '#000' }}>{t.label}</option>)}
+        </select>
         <select
           aria-label="Ad length"
           value={duration}
@@ -86,7 +125,7 @@ export function BrandKitPanel() {
           <option value="16:9" style={{ color: '#000' }}>Widescreen 16:9</option>
         </select>
         <button type="button" onClick={makeAd} style={btn(true)} data-testid="pz-brand-kit-make-ad" title={plan?.prompt}>
-          {`Make a ${duration}s ad →`}
+          {target === 'video' ? `Make a ${duration}s ad →` : `Open in ${(BRAND_TARGETS as any)[target].label} →`}
         </button>
       </div>
     </div>

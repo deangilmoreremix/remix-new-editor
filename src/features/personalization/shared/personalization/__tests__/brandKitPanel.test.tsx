@@ -30,6 +30,30 @@ describe('BrandKitPanel', () => {
     state.businessResearch = { status: 'done', result: { canonicalUrl: 'https://acme.com', brandColors: { primary: '#112233' }, logoUrl: 'https://acme.com/l.png' } }
   })
 
+  it('scans more pages, shows fonts and tone, and opens the chosen studio', async () => {
+    const profile = { fonts: ['Poppins'], toneOfVoice: ['friendly'], offerings: ['Drain cleaning'], testimonials: [], images: [], pages: [{ url: 'https://acme.com/about', kind: 'about' }], inferred: ['toneOfVoice'] }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true, profile }) }))
+    render(<BrandKitPanel />)
+    fireEvent.click(screen.getByTestId('pz-brand-kit-scan'))
+    expect(await screen.findByText('Read 1 page')).toBeTruthy()
+    expect(screen.getByTestId('pz-brand-kit-profile').textContent).toContain('Poppins')
+    expect(screen.getByTestId('pz-brand-kit-profile').textContent).toContain('inferred')
+    fireEvent.change(screen.getByLabelText('Make with'), { target: { value: 'storyboard' } })
+    fireEvent.click(screen.getByTestId('pz-brand-kit-make-ad'))
+    expect(navigate).toHaveBeenCalledWith('storyboard')
+    expect(consumeStudioPrefill('storyboard').prompt).toContain('5 scenes')
+    vi.unstubAllGlobals()
+  })
+
+  it('shows a scan error without losing the kit', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, json: async () => ({ ok: false, error: 'Could not read that website' }) }))
+    render(<BrandKitPanel />)
+    fireEvent.click(screen.getByTestId('pz-brand-kit-scan'))
+    expect(await screen.findByText('Could not read that website')).toBeTruthy()
+    expect(screen.getByTestId('pz-brand-kit-make-ad')).toBeTruthy()
+    vi.unstubAllGlobals()
+  })
+
   it('saves the kit on request, and Make an ad opens Video Studio with the brief', () => {
     render(<BrandKitPanel />)
     fireEvent.click(screen.getByTestId('pz-brand-kit-save'))
