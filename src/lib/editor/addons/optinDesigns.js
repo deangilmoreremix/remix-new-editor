@@ -206,9 +206,9 @@ export const OPTIN_DESIGNS = [
     eyebrow: 'EXCLUSIVE PRIVATE PREVIEW',
   }),
   d('qualifying-quiz', 'Qualifying Quiz', 'layouts', {
-    designLayout: 'split', fontFamily: 'Inter', fontSize: 68, backgroundColor: '#150e33', backgroundColor2: '#2a1b66', innerWidth: 90, innerHeight: 88,
+    designLayout: 'split', fontFamily: 'Inter', fontSize: 56, backgroundColor: '#150e33', backgroundColor2: '#2a1b66', innerWidth: 94, innerHeight: 94,
     innerColor: '#8b5cf6', innerOpacity: 12, cardRadius: 16, cardBorderColor: '#4c3f8f', cardBorderWidth: 1,
-    captionAlignment: 'left', captionFontSize: 74, fieldWidth: 100,
+    captionAlignment: 'left', captionFontSize: 62, fieldWidth: 100,
     inputBackground: '#ffffff', inputBorderColor: '#ddd6fe', inputFontColor: '#1f2937', inputBorderRadius: 5, placeholderColor: '#6b7280',
     buttonBackground: '#6d4cff', buttonHoverColor: '#5b3fe0', buttonBorderRadius: 6, btnBottomBorder: 'none',
     eyebrow: 'QUALIFYING QUIZ', subtitle: 'Answer a quick question and share your details to get a personalized video experience.',
@@ -244,8 +244,8 @@ export const OPTIN_DESIGNS = [
     buttonBackground: '#22d3ee', buttonBackground2: '#a855f7', buttonBorderRadius: 22, btnBottomBorder: 'none',
   }),
   d('gradient-mesh', 'Gradient Mesh', 'glass', {
-    fontFamily: 'Poppins', backgroundColor: '#4c1d95', backgroundColor2: '#7c3aed', bgAngle: 150, innerWidth: 70, innerHeight: 90,
-    captionFontSize: 78, fieldWidth: 86, inputBackground: '#ffffff', inputOpacity: 94, inputBorderColor: 'transparent', inputFontColor: '#3b0764', inputBorderRadius: 8, placeholderColor: '#6b4b9a', inputIcons: true,
+    designLayout: 'hero', fontFamily: 'Poppins', backgroundColor: '#4c1d95', backgroundColor2: '#7c3aed', bgAngle: 150, innerWidth: 92, innerHeight: 66,
+    captionFontSize: 120, fieldLayout: 'row', fieldWidth: 100, inputBackground: '#ffffff', inputOpacity: 94, inputBorderColor: 'transparent', inputFontColor: '#3b0764', inputBorderRadius: 8, placeholderColor: '#6b4b9a', inputIcons: true,
     buttonBackground: '#ffffff', buttonFontColor: '#6d28d9', buttonHoverColor: '#f3e8ff', buttonBorderRadius: 24, btnBottomBorder: 'none',
   }),
   d('cosmic-portal', 'Cosmic Portal', 'glass', {
@@ -289,7 +289,7 @@ export const OPTIN_DESIGNS = [
     multiStep: true, stepSize: 1,
   }),
   d('accordion-form', 'Accordion Form', 'light', {
-    fontFamily: 'Inter', backgroundColor: '#0b1030', backgroundColor2: '#1b1460', bgAngle: 170, innerWidth: 80, innerHeight: 94,
+    fontFamily: 'Inter', backgroundColor: '#0b1030', backgroundColor2: '#1b1460', bgAngle: 170, innerWidth: 52, innerHeight: 96,
     captionFontSize: 72, fieldLayout: 'stacked', fieldWidth: 92, fieldGap: 8,
     inputBackground: '#ffffff', inputBorderColor: '#c7d2fe', inputFontColor: '#1e1b4b', inputBorderRadius: 8, placeholderColor: '#4b5563', inputIcons: true,
     buttonBackground: '#a855f7', buttonBackground2: '#6d28d9', buttonBorderRadius: 24, btnBottomBorder: 'none',
@@ -303,7 +303,7 @@ export const OPTIN_DESIGNS = [
 
   // ---------------------------------------------------------- bold & retro
   d('retro-terminal', 'Retro Terminal', 'bold', {
-    fontFamily: 'Share Tech Mono', fontColor: '#39ff14', backgroundColor: '#000000', innerWidth: 80, innerHeight: 90,
+    fontFamily: 'Share Tech Mono', fontColor: '#39ff14', backgroundColor: '#000000', innerWidth: 58, innerHeight: 80,
     cardRadius: 4, cardBorderColor: '#22c55e', cardBorderWidth: 2, cardGlow: '#22c55e', captionAlignment: 'left', captionFontSize: 76, fieldLayout: 'stacked', fieldWidth: 100,
     inputBackground: '#000000', inputBorderColor: '#22c55e', inputFontColor: '#39ff14', inputBorderRadius: 2, placeholderColor: '#2f9e44', inputIcons: true,
     buttonBackground: '#22ff44', buttonFontColor: '#001a06', buttonHoverColor: '#16d338', buttonBorderRadius: 2, btnBottomBorder: 'none',
@@ -316,7 +316,7 @@ export const OPTIN_DESIGNS = [
     buttonBackground: '#8b5cf6', buttonBackground2: '#a855f7', buttonBorderRadius: 8, btnBottomBorder: 'none',
   }),
   d('spotlight-theater', 'Spotlight Theater', 'bold', {
-    fontFamily: 'Montserrat', backgroundColor: '#2a0508', backgroundColor2: '#0b0203', bgAngle: 180, innerWidth: 56, innerHeight: 92,
+    fontFamily: 'Montserrat', backgroundColor: '#2a0508', backgroundColor2: '#0b0203', bgAngle: 180, innerWidth: 70, innerHeight: 84,
     captionFontSize: 72, fieldLayout: 'stacked', fieldWidth: 90,
     inputBackground: '#ffffff', inputOpacity: 10, inputBorderColor: '#8a8a8a', inputFontColor: '#f5f5f5', inputBorderRadius: 6, placeholderColor: '#bbbbbb', inputIcons: true,
     buttonBackground: '#dc2626', buttonHoverColor: '#b91c1c', buttonBorderRadius: 6, btnBottomBorder: 'none',
@@ -330,8 +330,8 @@ export const OPTIN_DESIGNS = [
     buttonBackground: '#1d6bff', buttonHoverColor: '#1557d6', buttonBorderRadius: 2, btnBottomBorder: '#93c5fd',
   }),
   d('high-contrast-monochrome', 'High Contrast Mono', 'bold', {
-    fontFamily: 'Montserrat', backgroundColor: '#0a0a0a', innerWidth: 64, innerHeight: 90, captionAlignment: 'left', captionFontSize: 80,
-    fieldLayout: 'stacked', fieldWidth: 100, inputBackground: '#ffffff', inputBorderColor: '#ffffff', inputFontColor: '#000000', inputBorderRadius: 6, inputIcons: true,
+    designLayout: 'scrim-left', fontFamily: 'Montserrat', backgroundColor: '', backdropColor: '#000000', backdropOpacity: 15, innerWidth: 58, innerHeight: 100, captionAlignment: 'left', captionFontSize: 84,
+    fieldLayout: 'stacked', fieldWidth: 88, fieldAlign: 'left', inputBackground: '#ffffff', inputBorderColor: '#ffffff', inputFontColor: '#000000', inputBorderRadius: 6, inputIcons: true,
     buttonBackground: '#facc15', buttonFontColor: '#000000', buttonHoverColor: '#eab308', buttonBorderRadius: 20, btnBottomBorder: 'none',
   }),
   d('horizontal-ribbon', 'Horizontal Ribbon', 'bold', {
@@ -381,6 +381,8 @@ export const DESIGN_LAYOUTS = [
   ['sheet', 'Bottom sheet'],
   ['corner', 'Small pop-up in the corner'],
   ['banner', 'Wide banner across the middle'],
+  ['hero', 'Big title, all boxes in one row, no card'],
+  ['scrim-left', 'Left-aligned over a dark fade'],
   ['chat', 'Chat (a question before each box)'],
 ];
 export const DESIGN_LAYOUT_IDS = DESIGN_LAYOUTS.map(([id]) => id);

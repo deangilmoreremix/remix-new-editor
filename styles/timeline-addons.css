@@ -1675,3 +1675,9 @@
 .addon-overlay-layer .retarget-form[data-dlayout="chat"] .optin-bubble { font-size: 50%; padding: .45em .8em; width: 80%; }
 .addon-overlay-layer .retarget-form[data-dlayout="chat"] .optin-brand { margin-bottom: .6em; }
 .addon-overlay-layer .retarget-form[data-dlayout="chat"] .privacy-disclaimer { font-size: 30%; }
+
+/* hero: big title, all boxes in one row, no card; scrim-left: left-aligned form over a dark fade */
+.addon-overlay-layer .retarget-form[data-dlayout="hero"] .form-inner { margin: auto !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="scrim-left"] .form-inner { margin: 0 auto 0 0 !important; height: 100% !important; background: linear-gradient(90deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.6) 65%, rgba(0,0,0,0) 100%); }
+.addon-overlay-layer .retarget-form[data-dlayout="scrim-left"] .form-scrollable-inner { align-items: flex-start; padding-left: 8%; }
+.addon-overlay-layer .retarget-form[data-dlayout="scrim-left"] .input-wrapper-container { align-items: flex-start; margin-inline: 0; }

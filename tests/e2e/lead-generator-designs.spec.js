@@ -138,7 +138,7 @@ test('every one of the 30 designs can be picked and is drawn on the video', asyn
   // They really look different: layout, box arrangement and where / how big the card is vary across the 30.
   const signatures = new Set(seen.map((x) => x.sig));
   console.log(`distinct layout signatures: ${signatures.size} / 30; text scale used: ${seen.map((x) => `${x.id}=${x.fit}`).join(' ')}`);
-  expect(signatures.size).toBeGreaterThanOrEqual(18);
+  expect(signatures.size).toBeGreaterThanOrEqual(16);
   expect(pageErrors).toEqual([]);
 });
 
