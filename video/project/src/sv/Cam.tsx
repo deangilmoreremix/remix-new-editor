@@ -21,7 +21,12 @@ export const Cam: React.FC<{
   const cx = interpolate(f, fr, keys.map((k) => k.cx), { easing: ease, extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const cy = interpolate(f, fr, keys.map((k) => k.cy), { easing: ease, extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const z = interpolate(f, fr, keys.map((k) => k.z), { easing: ease, extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const tf = `translate(${bx.w / 2 - cx * z}px, ${bx.h / 2 - cy * z}px) scale(${z})`;
+  // never leave the capture (no black edges)
+  const hx = bx.w / (2 * z);
+  const hy = bx.h / (2 * z);
+  const cxc = Math.min(Math.max(cx, hx), 1920 - hx);
+  const cyc = Math.min(Math.max(cy, hy), 1080 - hy);
+  const tf = `translate(${bx.w / 2 - cxc * z}px, ${bx.h / 2 - cyc * z}px) scale(${z})`;
   const media = video ? (
     <OffthreadVideo src={staticFile(src)} startFrom={Math.round(videoStartS * 30)} muted style={{ width: 1920, height: 1080 }} />
   ) : (

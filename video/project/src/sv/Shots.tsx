@@ -20,7 +20,8 @@ export const shot = (beats: number, src: string, keys: Key[], title?: string, in
     </>
   ),
 });
-const still = (beats: number, n: string, from: [number, number, number], to: [number, number, number], title?: string, inB = 1) => shot(beats, S(n), push(beats, from, to), title, inB);
+const still = (beats: number, n: string, from: [number, number, number], to: [number, number, number], title?: string, inB = 1) =>
+  shot(beats, S(n), push(beats, from, [70 + 960 / to[2], to[1], to[2]]), title, inB);
 export const lockup = (beats: number, scale = 1): Shot => ({ beats, el: <Lockup scale={scale} /> });
 
 /** 9:16 shot: sharp 1:1 window onto the capture at native scale, caption on top. */
@@ -53,7 +54,7 @@ export const heroA = (): Shot[] => [
 ];
 
 export const reelB = (): Shot[] => [
-  still(6, 'image-typed', [960, 540, 1], [1150, 430, 1.3], 'Images, tuned.'),
+  still(6, 'image-typed', [960, 540, 1], [960, 430, 1.08], 'Images, tuned.'),
   still(6, 'image-advanced', [960, 540, 1], [960, 700, 1.15]),
   still(4, 'cinema-top', [960, 540, 1], [960, 520, 1.1], 'Real camera. Real lenses.'),
   still(10, 'cinema-builder', [960, 540, 1], [960, 640, 1.2]),
@@ -76,7 +77,7 @@ export const CLIPS: { id: string; shots: () => Shot[] }[] = [
   { id: 'C01-hero-prompt', shots: () => [typing(14, 'Describe it.')] },
   { id: 'C02-apps-hub', shots: () => [still(8, 'hub-0', [960, 540, 1], [960, 570, 1.08]), still(8, 'hub-1', [960, 540, 1], [960, 600, 1.1])] },
   { id: 'C03-model-picker', shots: () => [picker(16, 'Pick your model.')] },
-  { id: 'C04-image-studio', shots: () => [still(8, 'image-typed', [960, 540, 1], [1150, 430, 1.3], 'Images, tuned.'), still(8, 'image-advanced', [960, 540, 1], [960, 700, 1.15])] },
+  { id: 'C04-image-studio', shots: () => [still(8, 'image-typed', [960, 540, 1], [960, 430, 1.08], 'Images, tuned.'), still(8, 'image-advanced', [960, 540, 1], [960, 700, 1.15])] },
   { id: 'C05-cinema-studio', shots: () => [still(4, 'cinema-top', [960, 540, 1], [960, 520, 1.1], 'Real camera. Real lenses.'), still(12, 'cinema-builder', [960, 540, 1], [960, 640, 1.2])] },
   { id: 'C06-director', shots: () => [still(16, 'director-0', [960, 540, 1], [960, 600, 1.2], 'Direct the scene.')] },
   { id: 'C07-edit-tools', shots: () => [still(8, 'edit-0', [960, 540, 1], [700, 760, 1.35], 'Before. After.'), still(8, 'edit-1', [960, 540, 1], [1200, 700, 1.25])] },
@@ -88,10 +89,10 @@ export const CLIPS: { id: string; shots: () => Shot[] }[] = [
 ];
 
 export const socialD = (): Shot[] => [
-  vshot(10, 'c/typing.mp4', [{ b: 0, cx: 1180, cy: 540, z: 1 }, { b: 10, cx: 1180, cy: 540, z: 1 }], 'Describe it.', { video: true }),
+  vshot(10, 'c/typing.mp4', [{ b: 0, cx: 1270, cy: 540, z: 1 }, { b: 10, cx: 1270, cy: 540, z: 1 }], 'Describe it.', { video: true }),
   vshot(12, S('edit-0'), [{ b: 0, cx: 640, cy: 760, z: 1 }, { b: 6, cx: 640, cy: 760, z: 1 }, { b: 12, cx: 1300, cy: 760, z: 1 }], 'Before. After.'),
-  vstill(5, 'avatar-0', [960, 640, 1], [960, 700, 1], 'Faces that talk.'),
-  vstill(5, 'lipsync-0', [960, 640, 1], [960, 700, 1], 'Faces that talk.'),
+  vstill(5, 'avatar-0', [1100, 540, 1], [1160, 540, 1], 'Faces that talk.'),
+  vstill(5, 'lipsync-0', [1100, 540, 1], [1160, 540, 1], 'Faces that talk.'),
   vstill(4, 'templates-0', [960, 700, 1], [960, 760, 1], 'Start from a template.'),
   lockup(5, 0.8),
 ];

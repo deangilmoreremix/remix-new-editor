@@ -7,7 +7,7 @@ export const totalFrames = (shots: Shot[]) => bf(totalBeats(shots));
 
 const Flash: React.FC = () => {
   const f = useCurrentFrame();
-  const o = interpolate(f, [0, 2, 8], [0, 0.22, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const o = interpolate(f, [0, 2, 8], [0, 0.11, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   return <AbsoluteFill style={{ background: C.accent, opacity: o, mixBlendMode: 'screen', pointerEvents: 'none' }} />;
 };
 
