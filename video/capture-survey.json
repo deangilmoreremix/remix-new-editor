@@ -1,0 +1,210 @@
+[
+ {
+  "name": "02-apps-hub",
+  "route": "apps",
+  "len": 2589,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "03-model-picker",
+  "route": "video",
+  "len": 353,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "04-image-studio",
+  "route": "image",
+  "len": 0,
+  "errs": [],
+  "modal": false,
+  "snippet": ""
+ },
+ {
+  "name": "05-cinema-studio",
+  "route": "cinema",
+  "len": 6109,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "05b-director",
+  "route": "director",
+  "len": 3664,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "06-storyboard",
+  "route": "storyboard",
+  "len": 754,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "07-edit-tools",
+  "route": "edit",
+  "len": 1411,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "07b-upscale",
+  "route": "upscale",
+  "len": 1008,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "08-character",
+  "route": "character",
+  "len": 4968,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "08b-influencer",
+  "route": "influencer",
+  "len": 8363,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "09-avatar",
+  "route": "avatar",
+  "len": 5943,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "09b-lipsync",
+  "route": "lipsync",
+  "len": 610,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "10-ai-vfx",
+  "route": "ai-vfx",
+  "len": 1407,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "10b-effects",
+  "route": "effects",
+  "len": 1789,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "11-timeline",
+  "route": "timeline",
+  "len": 353,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "11b-render",
+  "route": "render",
+  "len": 0,
+  "errs": [],
+  "modal": false,
+  "snippet": ""
+ },
+ {
+  "name": "12-templates",
+  "route": "templates",
+  "len": 27598,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "12b-commercial",
+  "route": "commercial",
+  "len": 1464,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "13-video-agent",
+  "route": "video-agent",
+  "len": 433,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "14-chat",
+  "route": "chat",
+  "len": 2589,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "14b-assist",
+  "route": "assist",
+  "len": 2589,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "15-library",
+  "route": "library",
+  "len": 575,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "15b-community",
+  "route": "community",
+  "len": 2803,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "15c-stock",
+  "route": "pexels-media",
+  "len": 575,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "01-video-studio",
+  "route": "video",
+  "len": 6361,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ },
+ {
+  "name": "16-agency",
+  "route": "campaign",
+  "len": 449,
+  "errs": [],
+  "modal": false,
+  "snippet": "APPS EXPLORE TEMPLATES ACADEMY IMAGE IMAGE EDIT UPSCALE CHARACTER PRODUCT SHOT BRAND VIDEO VIDEO CINEMA CINEMA TEMPLATES STORYBOARD EFFECTS "
+ }
+]
