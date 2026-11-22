@@ -1318,13 +1318,6 @@ function Workload({ preview: p, spacingSeconds }: { preview: PlacementBatchPrevi
                 Every copy counts against its mailbox&apos;s daily limit, and a mailbox with less left today sends fewer. A copy
                 not seen within 2 hours counts as never arrived.
             </p>
-            {!p.metered ? (
-                <p>Not counted toward your monthly tests.</p>
-            ) : p.paid_tests === 0 && freeLeft != null ? (
-                <p>
-                    Uses {n(p.tests)} of the {plural(freeLeft, "free test")} left this month.
-                </p>
-            ) : null}
         </div>
     );
 }

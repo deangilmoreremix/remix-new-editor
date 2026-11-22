@@ -33,7 +33,7 @@ import {
     StatusChip,
     TrackingBadge,
 } from "@/components/app/placement/tests/PlacementParts";
-import { ORIGIN_LABEL, fmtDate, fmtRate, rateTone, usageLabel } from "@/components/app/placement/tests/placementTests";
+import { ORIGIN_LABEL, fmtDate, fmtRate, rateTone } from "@/components/app/placement/tests/placementTests";
 import { cn } from "@/lib/utils";
 import { fmtUsdCost } from "@/lib/money";
 
@@ -87,15 +87,7 @@ export default function PlacementPage() {
         <Page>
             <PageTopbar
                 eyebrow="Placement tests"
-                subtitle={overview.data ? usageLabel(overview.data) : undefined}
             >
-                {exhausted && (
-                    <span className="hidden md:inline text-[11px] text-slate-400">
-                        {usage.price_per_test_usd > 0
-                            ? `More tests cost ${fmtUsdCost(usage.price_per_test_usd)} each. Your own seed inboxes are always free.`
-                            : "Your own seed inboxes are never counted."}
-                    </span>
-                )}
                 <TopbarAction
                     icon={<Layers3Icon className="w-3.5 h-3.5" />}
                     onClick={() => openBatch()}

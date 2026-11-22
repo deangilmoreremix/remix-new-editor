@@ -422,12 +422,6 @@ function DialogBody({ onClose, prefill }: { onClose: () => void; prefill?: NewPl
                             <b className="font-medium text-slate-900">{sender.email}</b>, one every ~{spacing} seconds, counted
                             against its daily limit, and fewer when the mailbox has less than that left today. Sending takes {sendTime}; a copy
                             not seen within 2 hours counts as never arrived. Seeds on the sender&apos;s own domain are skipped.
-                            {draft.panel === "instance" && freeLeft != null && cost.paid === 0 && (
-                                <>
-                                    {" "}
-                                    Uses {testsNeeded === 1 ? "one" : "two"} of the {freeLeft} free test{freeLeft === 1 ? "" : "s"} left this month.
-                                </>
-                            )}
                         </div>
                     )}
                 </div>
