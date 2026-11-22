@@ -58,6 +58,12 @@ describe('Brand Kit modal', () => {
     expect(q('brand-kit-modal')).toBeNull();
   });
 
+  it('opens only one at a time', () => {
+    close = openBrandKitModal();
+    openBrandKitModal();
+    expect(document.querySelectorAll('[data-testid="brand-kit-modal"]')).toHaveLength(1);
+  });
+
   it('does not look anything up until asked, then shows what was found (and ignores unsafe image urls)', async () => {
     close = openBrandKitModal({ url: 'bluebird-bakery.com' });
     await flush();
@@ -118,9 +124,25 @@ describe('discovery mapping', () => {
 });
 
 describe('the personalization modal is untouched', () => {
-  it('does not mention the Brand Kit anywhere under features/personalization or the Find My Brand page', () => {
-    const files = ['features/personalization/shared/personalization/PersonalizationModal.tsx', 'components/FindMyBrandPage.js'];
-    for (const f of files) expect(fs.readFileSync(`src/${f}`, 'utf8'), f).not.toMatch(/brandKit|BrandKit/);
+  it('does not mention the Brand Kit anywhere in the personalization feature', () => {
+    const modal = 'src/features/personalization/shared/personalization/PersonalizationModal.tsx';
+    expect(fs.readFileSync(modal, 'utf8')).not.toMatch(/brandKit|BrandKit/);
     expect(fs.existsSync('src/features/personalization/shared/personalization/BrandKitPanel.tsx')).toBe(false);
+  });
+});
+
+describe('Find My Brand page', () => {
+  it('opens the Brand Kit modal, on arrival and from its button, not the personalization modal', async () => {
+    const { FindMyBrandPage } = await import('../../FindMyBrandPage.js');
+    const page = FindMyBrandPage();
+    document.body.appendChild(page);
+    for (let i = 0; i < 20 && !q('brand-kit-modal'); i++) await new Promise((r) => setTimeout(r, 10));
+    expect(q('brand-kit-modal')).not.toBeNull();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(q('brand-kit-modal')).toBeNull();
+    q('free-discovery-open')?.click?.() ?? page.querySelector('button').click();
+    for (let i = 0; i < 20 && !q('brand-kit-modal'); i++) await new Promise((r) => setTimeout(r, 10));
+    expect(q('brand-kit-modal')).not.toBeNull();
+    expect(fs.readFileSync('src/components/FindMyBrandPage.js', 'utf8')).not.toContain('features/personalization');
   });
 });

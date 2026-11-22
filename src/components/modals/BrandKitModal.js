@@ -30,6 +30,9 @@ const isHttp = (u) => { try { const p = new URL(u).protocol; return p === 'http:
  */
 export function openBrandKitModal({ url = '' } = {}) {
   if (typeof document === 'undefined') return () => {};
+  // One at a time: the Find My Brand page opens it on arrival, and its button must not stack a second copy.
+  const already = document.querySelector('[data-testid="brand-kit-modal"]');
+  if (already) return () => already.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
   const opener = document.activeElement;
 
   const state = {
