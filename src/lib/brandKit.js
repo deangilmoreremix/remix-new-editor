@@ -257,3 +257,57 @@ export async function scanAndSaveBrandKit(kit, fetchImpl) {
   if (!saved) throw new Error('Nothing to save yet');
   return saveBrand(await enrichBrandKit(saved, fetchImpl));
 }
+
+const DEMO_KIND_TO_CATEGORY = { logo: 'logo', product: 'product', photo: 'person', brand: 'brand' };
+
+/**
+ * Pure: turn the free `/api/demo/discover` response into the research and asset lists `buildBrandKit` reads.
+ * Returns null when the response is not the expected shape.
+ */
+export function kitInputFromDiscovery(data) {
+  if (!data || data.ok !== true || !Array.isArray(data.assets)) return null;
+  const research = {
+    canonicalUrl: str(data.url),
+    title: str(data.title),
+    description: str(data.description),
+    logoUrl: httpUrl(data.logo),
+    brandColors: data.brandColors && typeof data.brandColors === 'object' ? data.brandColors : {},
+  };
+  const assets = data.assets
+    .filter((a) => a && httpUrl(a.url))
+    .map((a, i) => ({
+      id: `found-${i}`,
+      previewUrl: httpUrl(a.url),
+      sourceUrl: httpUrl(a.url),
+      category: DEMO_KIND_TO_CATEGORY[a.kind] || 'brand',
+      selected: true,
+      recommended: true,
+      rejected: false,
+    }));
+  return { research, assets };
+}
+
+/** Find a business's brand on its website (the free discovery endpoint). Throws a readable Error on failure. */
+export async function discoverBrand(websiteUrl, fetchImpl = (typeof fetch === 'function' ? fetch : null)) {
+  const url = str(websiteUrl);
+  if (!url) throw new Error('Enter a business website');
+  if (!fetchImpl) throw new Error('Not available here');
+  let res;
+  try {
+    res = await fetchImpl('/api/demo/discover', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ websiteUrl: url }),
+      credentials: 'same-origin',
+    });
+  } catch {
+    throw new Error('Website research failed. Please try again.');
+  }
+  const data = await res.json().catch(() => null);
+  if (res.status === 429) throw new Error('Too many lookups right now. Please try again in a minute.');
+  if (!res.ok) throw new Error(str(data?.error) || `Website research failed (HTTP ${res.status}).`);
+  const input = kitInputFromDiscovery(data);
+  if (!input) throw new Error('Website research returned an unexpected response.');
+  if (input.assets.length === 0 && !input.research.title) throw new Error('Nothing was found on that website. Try another URL.');
+  return input;
+}

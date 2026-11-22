@@ -19,7 +19,7 @@ export function FindMyBrandPage() {
   container.appendChild(el('span', 'text-[11px] font-extrabold uppercase tracking-[0.14em] text-primary mb-3.5', 'SmartVideo — Free Discovery'));
   container.appendChild(el('h1', 'm-0 mb-3.5 text-[clamp(28px,5vw,46px)] leading-[1.1] font-black', 'Find My Brand'));
   container.appendChild(el('p', 'm-0 mb-6 max-w-[560px] text-[15px] leading-relaxed text-secondary',
-    'Paste a business website and SmartVideo reads the page it already has — the logo, photos, products and branding found on it, ready to review. Nothing is generated or charged, and nothing is saved unless you choose to save your Brand Kit.'));
+    'Paste a business website and SmartVideo reads the page it already has — the logo, photos, products and branding found on it, ready to review. Nothing is generated, nothing is charged, and nothing is saved.'));
 
   const button = el('button', 'min-h-12 px-6 rounded-xl border border-primary bg-primary text-black text-[13px] font-extrabold uppercase tracking-[0.06em] hover:shadow-glow transition-shadow', '✦ Find My Brand');
   button.type = 'button';
