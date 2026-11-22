@@ -45,6 +45,9 @@ beam deploy --dockerfile Dockerfile.beam --name vidbee --port 3000 \
 ## 2. Check it
 Open the deployed URL: the pages load. Then, in this order: add a download, transcribe it, run an AI prompt, export a video. Anything that fails shows in `beam logs vidbee`.
 
+## Colours (one deployment, three looks)
+The page picks its palette from the address: `?brand=remix` (neon green, this repo's palette), `?brand=higgs` (cyan, the OpenHiggsBolt palette), or nothing for upstream VidBee's own amber. The choice is remembered in the browser. Light and dark follow *Settings, Theme* (System, Light or Dark). Each app embeds the URL with its own `brand`.
+
 ## 3. Connect the app
 On the app backend set `VIDBEE_WEB_URL` to the Beam URL and `VIDBEE_ALLOWED_USERS` to the people allowed in. The web edition has no login of its own: keep the Beam URL private or behind this gate.
 
