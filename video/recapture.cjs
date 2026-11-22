@@ -5,7 +5,7 @@ const OUT=path.join(__dirname,'clean'); fs.mkdirSync(OUT,{recursive:true});
 const HIDE=()=>{
   const re=/\d+\+|\b\d+\s+(?:\w+\s+){0,2}(?:models?|tools?|methods?|examples?|apps?|features?|templates?|styles?|presets?|items?|voices?|languages?|cameras?|effects?|studios?)\b/i;
   const run=()=>{ document.querySelectorAll('*').forEach(e=>{ if(e.childElementCount===0){ const t=(e.textContent||'').trim(); if(t.length<200&&(re.test(t)||/^\d{1,3}$/.test(t)&&parseFloat(getComputedStyle(e).fontSize)<=13)) e.style.visibility='hidden'; } }); };
-  const strip=()=>{ document.querySelectorAll('*').forEach(e=>{ if(e.childElementCount===0){ const t=e.textContent||''; if(/\s*[·•]\s*\d+\s*$/.test(t)) e.textContent=t.replace(/\s*[·•]\s*\d+\s*$/,''); } }); };
+  const strip=()=>{ document.querySelectorAll('*').forEach(e=>{ if(e.childElementCount===0){ const t=e.textContent||''; if(/(\s*[·•]\s*\d+|\s*\(\d+\))\s*$/.test(t)) e.textContent=t.replace(/(\s*[·•]\s*\d+|\s*\(\d+\))\s*$/,''); } }); };
   const run2=()=>{run();strip();};
   setInterval(run2,300); new MutationObserver(run2).observe(document,{subtree:true,childList:true,characterData:true});
 };
@@ -18,7 +18,13 @@ const log={};
   await ctx.addInitScript(()=>{try{sessionStorage.setItem('setup_popup_shown','1')}catch{}}); await ctx.addInitScript(HIDE);
   const p=await ctx.newPage(); const T0=Date.now(); const mark=(k)=>{log[name]=log[name]||{}; log[name][k]=(Date.now()-T0)/1000;};
   await p.goto('http://127.0.0.1:3100/#/'+route,{waitUntil:'domcontentloaded',timeout:60000}); await p.waitForTimeout(12000);
-  const shot=async(f)=>{ await p.waitForTimeout(450); const v=await p.evaluate(()=>{const re=/\d+\+|\b\d+\s+(?:\w+\s+){0,2}(?:models?|tools?|methods?|examples?|apps?|features?|templates?|styles?|presets?|items?|voices?|languages?|cameras?|effects?|studios?)\b/i;return [...document.querySelectorAll('*')].filter(e=>e.childElementCount===0&&getComputedStyle(e).visibility!=='hidden'&&re.test((e.textContent||'').trim())&&e.getBoundingClientRect().width>0).map(e=>e.textContent.trim().slice(0,60))}); if(v.length) console.log('  VIOLATION',f,JSON.stringify(v.slice(0,4))); await p.screenshot({path:path.join(OUT,f+'.png')}); };
+  const shot=async(f)=>{ await p.waitForTimeout(450);
+    const v=await p.evaluate(()=>{
+      const re=/\d+\+|\(\d+\)\s*$|[·•]\s*\d+\s*$|\b\d+\s+(?:\w+\s+){0,2}(?:models?|tools?|methods?|examples?|apps?|features?|templates?|styles?|presets?|items?|voices?|languages?|cameras?|effects?|studios?)\b/i;
+      return [...document.querySelectorAll('*')].filter(e=>e.childElementCount===0&&getComputedStyle(e).visibility!=='hidden'&&e.getBoundingClientRect().width>0&&re.test((e.textContent||'').trim())).map(e=>e.textContent.trim().slice(0,60));
+    });
+    if(v.length) console.log('  VIOLATION',f,JSON.stringify(v.slice(0,4)));
+    await p.screenshot({path:path.join(OUT,f+'.png')}); };
   try{ await fn(p,shot,mark); console.log(name,'ok'); }catch(e){ console.log(name,'FAILED',String(e).slice(0,150)); }
   await ctx.close();
  }

@@ -55,7 +55,7 @@ export const heroA = (): Shot[] => [
 export const reelB = (): Shot[] => [
   still(6, 'image-typed', [960, 540, 1], [1150, 430, 1.3], 'Images, tuned.'),
   still(6, 'image-advanced', [960, 540, 1], [960, 700, 1.15]),
-  still(4, 'cinema-top', [960, 540, 1], [1000, 470, 1.25], 'Real camera. Real lenses.'),
+  still(4, 'cinema-top', [960, 540, 1], [960, 520, 1.1], 'Real camera. Real lenses.'),
   still(10, 'cinema-builder', [960, 540, 1], [960, 640, 1.2]),
   still(8, 'director-0', [960, 540, 1], [960, 600, 1.2], 'Direct the scene.'),
   still(8, 'edit-0', [960, 540, 1], [700, 760, 1.35], 'Before. After.'),
@@ -77,7 +77,7 @@ export const CLIPS: { id: string; shots: () => Shot[] }[] = [
   { id: 'C02-apps-hub', shots: () => [still(8, 'hub-0', [960, 540, 1], [960, 570, 1.08]), still(8, 'hub-1', [960, 540, 1], [960, 600, 1.1])] },
   { id: 'C03-model-picker', shots: () => [picker(16, 'Pick your model.')] },
   { id: 'C04-image-studio', shots: () => [still(8, 'image-typed', [960, 540, 1], [1150, 430, 1.3], 'Images, tuned.'), still(8, 'image-advanced', [960, 540, 1], [960, 700, 1.15])] },
-  { id: 'C05-cinema-studio', shots: () => [still(4, 'cinema-top', [960, 540, 1], [1000, 470, 1.25], 'Real camera. Real lenses.'), still(12, 'cinema-builder', [960, 540, 1], [960, 640, 1.2])] },
+  { id: 'C05-cinema-studio', shots: () => [still(4, 'cinema-top', [960, 540, 1], [960, 520, 1.1], 'Real camera. Real lenses.'), still(12, 'cinema-builder', [960, 540, 1], [960, 640, 1.2])] },
   { id: 'C06-director', shots: () => [still(16, 'director-0', [960, 540, 1], [960, 600, 1.2], 'Direct the scene.')] },
   { id: 'C07-edit-tools', shots: () => [still(8, 'edit-0', [960, 540, 1], [700, 760, 1.35], 'Before. After.'), still(8, 'edit-1', [960, 540, 1], [1200, 700, 1.25])] },
   { id: 'C08-character', shots: () => [still(8, 'character-0', [960, 540, 1], [960, 600, 1.15], 'Characters.'), still(8, 'character-1', [960, 540, 1], [960, 640, 1.12])] },
