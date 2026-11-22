@@ -195,7 +195,7 @@ export const OPTIN_DESIGNS = [
     designLayout: 'chat', fontFamily: 'Inter', fontSize: 64, backgroundColor: '#0d0a1f', backgroundColor2: '#241659', innerWidth: 46, innerHeight: 96,
     captionAlignment: 'left', captionFontSize: 38, fieldWidth: 100, ...darkInputs, inputBorderColor: '#6d65e6',
     buttonBackground: '#6d4cff', buttonBackground2: '#8b5cf6', buttonBorderRadius: 8, btnBottomBorder: 'none',
-    fieldLayout: 'stacked', fieldWidth: 100,
+    fieldLayout: 'stacked',
   }),
   d('vip-access', 'VIP Access', 'premium', {
     fontFamily: 'Cinzel', fontColor: '#f5e7b8', captionColor: '#e8c872', captionFontSize: 125, backgroundColor: '#0b0905', backgroundColor2: '#1b1409', bgAngle: 160,
