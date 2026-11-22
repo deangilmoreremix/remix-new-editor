@@ -35,7 +35,7 @@ export function MuapiStudioPage() {
 
   (async () => {
     try {
-      const [{ createElement }, { createRoot }, { MuapiStudio }] = await Promise.all([
+      const [{ createElement }, { createRoot }, { MuapiStudio, scopeOfKey }] = await Promise.all([
         import('react'),
         import('react-dom/client'),
         import('muapi-studio'),
@@ -54,6 +54,8 @@ export function MuapiStudioPage() {
           apiBase: STUDIO_BASE,
           fetchImpl: studioFetch,
           connected: apiKeyManager.hasMuapiKey(),
+          // Per-account storage: another key never shows this account's saved generations.
+          accountId: scopeOfKey(apiKeyManager.getMuapiKey()),
           // Re-render after Settings closes so a newly saved key takes effect without a reload.
           onRequestApiKey: () => {
             if (settingsOpen) return;
