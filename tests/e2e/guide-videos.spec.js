@@ -105,6 +105,8 @@ async function ui(page, patch) {
       const r = $('.ring');
       if (p.ring) {
         Object.assign(r.style, { left: `${p.ring.x - 6}px`, top: `${p.ring.y - 6}px`, width: `${p.ring.width + 12}px`, height: `${p.ring.height + 12}px`, opacity: 1 });
+        // Once the control is clicked its menu/panel is open: no dark backdrop, or the panel itself would be dimmed.
+        r.style.boxShadow = p.lit ? '0 0 24px rgba(217,255,0,.75), inset 0 0 0 1px rgba(0,0,0,.6)' : '';
       } else r.style.opacity = 0;
     }
     if ('cursor' in p) {
@@ -262,7 +264,7 @@ async function followUp(a, c, id) {
   if (box) await c.ui({ click: { x: box.x + Math.min(box.width / 2, 120), y: box.y + box.height / 2 } });
   await act(el, a, { name: id }, label);
   const rn = await ringBox(el, a);
-  await c.ui({ ring: rn });
+  await c.ui({ ring: rn, lit: true });
   await pg.waitForTimeout(a.hold || 1200);
 }
 
@@ -311,7 +313,7 @@ for (const guide of GUIDES) {
     const targets = TARGETS[guide.slug] || {};
     const dir = path.join(OUT, guide.slug);
     const timelineFile = path.join(dir, 'timeline.json');
-    const hash = sha(JSON.stringify([narr, targets, demos, guide.route, process.env.GUIDE_VIDEO_VERSION || '3']));
+    const hash = sha(JSON.stringify([narr, targets, demos, guide.route, process.env.GUIDE_VIDEO_VERSION || '4']));
     if (!process.env.FORCE && fs.existsSync(timelineFile) && JSON.parse(fs.readFileSync(timelineFile, 'utf8')).hash === hash) {
       console.log(`  = ${guide.slug}: up to date (FORCE=1 to re-record)`);
       return;
@@ -414,7 +416,7 @@ for (const guide of GUIDES) {
           await c.ui({ click: { x: cx, y: cy } });
           await act(el, target, feature, label);
           const rnow = await ringBox(el, target); // the page may have scrolled or the field grown
-          if (rnow) { await c.ui({ ring: rnow }); }
+          if (rnow) { await c.ui({ ring: rnow, lit: true }); }
           for (const a of target.then || []) await followUp(a, c, id);
           // An API-key prompt can pop up after a click: cut it out of the clip.
           let modal = false;
@@ -425,7 +427,7 @@ for (const guide of GUIDES) {
             await installOverlay(page);
             await page.waitForTimeout(350);
             await c.resume();
-            await c.ui({ caption: text, capTop, ring: (await ringBox(el, target)) || box });
+            await c.ui({ caption: text, capTop, ring: (await ringBox(el, target)) || box, lit: true });
           }
           if (page.url() !== urlBefore) warnings.push(`${id}: control navigated away`);
           await page.waitForTimeout(1500);
