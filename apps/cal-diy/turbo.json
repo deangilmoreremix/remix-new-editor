@@ -2,6 +2,9 @@
   "$schema": "https://turborepo.org/schema.json",
   "globalDependencies": ["yarn.lock"],
   "globalEnv": [
+    "SSO_BRIDGE_ALLOWED_ORIGINS",
+    "SSO_BRIDGE_ISSUER",
+    "SSO_BRIDGE_JWKS_URL",
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
     "AWAITING_PAYMENT_EMAIL_DELAY_MINUTES",

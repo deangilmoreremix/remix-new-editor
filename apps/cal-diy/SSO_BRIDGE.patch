@@ -1,6 +1,6 @@
 diff --git a/apps/web/app/(use-page-wrapper)/auth/sso/page.tsx b/apps/web/app/(use-page-wrapper)/auth/sso/page.tsx
 new file mode 100644
-index 00000000..c6ca6e75
+index 0000000..c6ca6e7
 --- /dev/null
 +++ b/apps/web/app/(use-page-wrapper)/auth/sso/page.tsx
 @@ -0,0 +1,17 @@
@@ -23,7 +23,7 @@ index 00000000..c6ca6e75
 +export default Page;
 diff --git a/apps/web/modules/auth/sso-view.tsx b/apps/web/modules/auth/sso-view.tsx
 new file mode 100644
-index 00000000..9b843ab4
+index 0000000..9b843ab
 --- /dev/null
 +++ b/apps/web/modules/auth/sso-view.tsx
 @@ -0,0 +1,58 @@
@@ -86,7 +86,7 @@ index 00000000..9b843ab4
 +  );
 +}
 diff --git a/packages/features/auth/lib/next-auth-options.ts b/packages/features/auth/lib/next-auth-options.ts
-index 296e6455..4b642095 100644
+index 296e645..4b64209 100644
 --- a/packages/features/auth/lib/next-auth-options.ts
 +++ b/packages/features/auth/lib/next-auth-options.ts
 @@ -54,6 +54,13 @@ import { dub } from "./dub";
@@ -145,7 +145,7 @@ index 296e6455..4b642095 100644
    userId: number;
 diff --git a/packages/features/auth/lib/ssoBridge.test.ts b/packages/features/auth/lib/ssoBridge.test.ts
 new file mode 100644
-index 00000000..affb1d99
+index 0000000..affb1d9
 --- /dev/null
 +++ b/packages/features/auth/lib/ssoBridge.test.ts
 @@ -0,0 +1,196 @@
@@ -347,7 +347,7 @@ index 00000000..affb1d99
 +});
 diff --git a/packages/features/auth/lib/ssoBridge.ts b/packages/features/auth/lib/ssoBridge.ts
 new file mode 100644
-index 00000000..ae229c7f
+index 0000000..ae229c7
 --- /dev/null
 +++ b/packages/features/auth/lib/ssoBridge.ts
 @@ -0,0 +1,171 @@
@@ -524,7 +524,7 @@ index 00000000..ae229c7f
 +export { safeNextPath } from "./ssoNextPath";
 diff --git a/packages/features/auth/lib/ssoNextPath.ts b/packages/features/auth/lib/ssoNextPath.ts
 new file mode 100644
-index 00000000..2c42e6fc
+index 0000000..2c42e6f
 --- /dev/null
 +++ b/packages/features/auth/lib/ssoNextPath.ts
 @@ -0,0 +1,10 @@
@@ -538,3 +538,17 @@ index 00000000..2c42e6fc
 +  const ok = /^\/(?!\/)[A-Za-z0-9\-._~!$&'()*+,;=:@%/?#]*$/.test(s) && !s.includes("\\");
 +  return ok ? s : fallback;
 +}
+diff --git a/turbo.json b/turbo.json
+index 8b40d67..fc334a4 100644
+--- a/turbo.json
++++ b/turbo.json
+@@ -2,6 +2,9 @@
+   "$schema": "https://turborepo.org/schema.json",
+   "globalDependencies": ["yarn.lock"],
+   "globalEnv": [
++    "SSO_BRIDGE_ALLOWED_ORIGINS",
++    "SSO_BRIDGE_ISSUER",
++    "SSO_BRIDGE_JWKS_URL",
+     "ALLOWED_HOSTNAMES",
+     "ANALYZE",
+     "AWAITING_PAYMENT_EMAIL_DELAY_MINUTES",
