@@ -1,0 +1,118 @@
+@import "tailwindcss";
+@import "@vidbee/ui/theme.css";
+@import "tw-animate-css";
+@import "@vidbee/ui/base.css";
+@import "streamdown/styles.css";
+@import "katex/dist/katex.min.css";
+@import "@vidbee/ui/agent-response.css";
+@import "./view-transitions.css";
+/* [host patch] host palette, imported last so it wins over upstream tokens */
+@import "./host-theme.css";
+
+/* Streamdown core + plugin utilities live in package JS, not this app tree. */
+@source "../../../../node_modules/streamdown/dist/*.js";
+@source "../../../../node_modules/@streamdown/code/dist/*.js";
+@source "../../../../node_modules/@streamdown/math/dist/*.js";
+@source "../../../../node_modules/@streamdown/cjk/dist/*.js";
+
+/* Fluid surface/shadow/hover tokens and @theme mappings live in
+   @vidbee/ui/base.css. Switch still pins --accent to Fluid's track gray. */
+:root {
+  --font-sans:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: ui-serif, Georgia, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+  --accent: #e5e5e5;
+  --accent-foreground: #171717;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
+  --font-inter: var(--font-sans);
+}
+
+.dark {
+  --font-sans:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: ui-serif, Georgia, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+  --accent: #525252;
+  --accent-foreground: #f5f5f5;
+}
+
+/* Scale the in-app markdown as a whole so code, tables, and headings stay in proportion. */
+.transcript-prompt-share-scale {
+  width: 100%;
+  zoom: 1.4;
+}
+
+/* Share posters are a static fill. Drop Streamdown's nested table card and wrap cells. */
+.transcript-prompt-share-scale [data-streamdown="table-wrapper"] {
+  margin-block: 0.75rem 0;
+  border-width: 0;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.transcript-prompt-share-scale
+  [data-streamdown="table-wrapper"]
+  > :first-child:not(:has(> table)) {
+  display: none;
+}
+
+.transcript-prompt-share-scale [data-streamdown="table-header"] {
+  background-color: rgb(0 0 0 / 0.18);
+}
+
+.transcript-prompt-share-scale
+  :is([data-streamdown="table-header-cell"], [data-streamdown="table-cell"]) {
+  white-space: normal;
+}
+
+/* A saved poster cannot scroll horizontally; wrap long code without hiding its ending. */
+.transcript-prompt-share-scale pre,
+.transcript-prompt-share-scale pre code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Offscreen posters must lay out code before measuring pagination boundaries. */
+.transcript-prompt-share-scale [data-streamdown="code-block"] {
+  content-visibility: visible !important;
+}
+
+/* Posters fit the entire diagram to the content width without an interactive viewport. */
+.transcript-prompt-share-scale [data-streamdown="mermaid-block"] {
+  padding: 0;
+}
+
+.transcript-prompt-share-scale
+  [data-streamdown="mermaid-block"]
+  > div:first-child {
+  display: none;
+}
+
+.transcript-prompt-share-scale [data-streamdown="mermaid"] > div {
+  min-height: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.transcript-prompt-share-scale
+  [data-streamdown="mermaid"]
+  [role="application"] {
+  transform: none !important;
+  will-change: auto;
+}
+
+.transcript-prompt-share-scale [data-streamdown="mermaid"] [role="img"] > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}

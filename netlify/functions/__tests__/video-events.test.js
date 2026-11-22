@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
-import { handle, handler, normalizeEvent, deviceClass, MAX_BODY, EVENT_TYPES } from '../video-events.js';
+import { handle, handler, normalizeEvent, deviceClass, countryFromHeaders, MAX_BODY, EVENT_TYPES } from '../video-events.js';
 
 const env = { SUPABASE_URL: 'https://db.test', SUPABASE_SERVICE_ROLE_KEY: 'service-secret' };
 const base = { video: 'abcdefgh12', session: 'sess_0123456789abcdef', events: [{ type: 'page_open', seq: 0 }] };
@@ -109,5 +109,46 @@ describe('video-events: trust boundary', () => {
     expect(deviceClass('Mozilla/5.0 (iPad)')).toBe('tablet');
     expect(deviceClass('Mozilla/5.0 (Linux; Android 14) Mobile')).toBe('mobile');
     expect(deviceClass('Mozilla/5.0 (X11; Linux x86_64)')).toBe('desktop');
+  });
+});
+
+describe('video-events: country capture', () => {
+  const geo = (o) => Buffer.from(JSON.stringify(o)).toString('base64');
+  it('reads only country.code from x-nf-geo, falls back to x-country, and validates', () => {
+    expect(countryFromHeaders({ 'x-nf-geo': geo({ country: { code: 'de', name: 'Germany' }, city: 'Berlin' }) })).toBe('DE');
+    expect(countryFromHeaders({ 'X-NF-Geo': geo({ country: { code: 'US' } }) })).toBe('US');
+    expect(countryFromHeaders({ 'x-country': 'fr' })).toBe('FR');
+    expect(countryFromHeaders({ 'x-nf-geo': '%%%not-base64-json', 'x-country': 'GB' })).toBe('GB');
+    expect(countryFromHeaders({ 'x-nf-geo': geo({ country: { code: 'USA' } }) })).toBeNull();
+    expect(countryFromHeaders({ 'x-country': 'X1' })).toBeNull();
+    expect(countryFromHeaders({ 'x-country': 'XX' })).toBeNull();
+    expect(countryFromHeaders({})).toBeNull();
+    expect(countryFromHeaders(undefined)).toBeNull();
+  });
+
+  it('passes p_country to ingest only when present and never anything else from geo', async () => {
+    const f = fakeFetch();
+    await handle(base, { fetchImpl: f, env, country: 'CA' });
+    const ingest = f.calls.find((c) => c.name === 'ingest_video_events');
+    expect(ingest.args.p_country).toBe('CA');
+    expect(JSON.stringify(ingest.args)).not.toMatch(/city|ip/i);
+    const g = fakeFetch();
+    await handle(base, { fetchImpl: g, env, country: 'canada' });
+    expect(g.calls.find((c) => c.name === 'ingest_video_events').args).not.toHaveProperty('p_country');
+  });
+
+  it('retries without p_country when the database does not have the new signature yet', async () => {
+    const calls = [];
+    const fetchImpl = vi.fn(async (url, init) => {
+      const name = url.split('/rpc/')[1];
+      const args = JSON.parse(init.body);
+      calls.push({ name, args });
+      if (name === 'rate_limit_check') return { ok: true, json: async () => ({ allowed: true }) };
+      if ('p_country' in args) return { ok: false, status: 404, json: async () => ({}) };
+      return { ok: true, json: async () => ({ ok: true, accepted: 1, duplicates: 0 }) };
+    });
+    const res = await handle(base, { fetchImpl, env, country: 'US' });
+    expect(res.statusCode).toBe(200);
+    expect(calls.filter((c) => c.name === 'ingest_video_events')).toHaveLength(2);
   });
 });

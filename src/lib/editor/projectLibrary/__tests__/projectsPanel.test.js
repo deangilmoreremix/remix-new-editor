@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderProjectsPanel, fmtDuration, DETAIL_TABS } from '../projectsPanel.js';
+import { renderProjectsPanel, fmtDuration, DETAIL_TABS, heatStripHtml, heatPlaceholderHtml, wantsHeat, canHaveHeat } from '../projectsPanel.js';
+import { resetRetentionLoader } from '../analytics/retentionLoader.js';
 
 const rows = [
   { id: 'a', name: 'Roofing promo', created_at: '2026-01-01T00:00:00Z', updated_at: '2026-02-01T00:00:00Z', duration_s: 65, aspect_ratio: '16:9', render: { status: 'complete' }, tags: [] },
@@ -176,5 +177,193 @@ describe('projects panel', () => {
     await tick(); await tick();
     expect(host.querySelectorAll('.pz-chip').length).toBe(0);
     expect(host.querySelector('[data-id="a"] .prj-status').classList.contains('is-published')).toBe(true);
+  });
+
+  describe('heatmap strip on cards', () => {
+    beforeEach(() => resetRetentionLoader());
+    const batchRows = (id) => Array.from({ length: 100 }, (_, b) => ({ video_id: id, bucket: b, viewers: 10 - Math.round(b / 20), base: 10 }));
+    const curve = [0, 25, 50, 75, 100].map((p, i) => ({ positionPercent: p, retentionPercent: [100, 80, 60, 40, 20][i] }));
+    const withPlays = (extra = {}) => ({
+      ...deps,
+      getStats: async () => ({ a: { plays: 12 } }),
+      getRetention: vi.fn(async () => curve),
+      ...extra,
+    });
+
+    it('draws 34 bars with an accessible summary under a played, published card', async () => {
+      const d = withPlays();
+      renderProjectsPanel(host, d);
+      await tick(); await tick(); await tick();
+      const strip = host.querySelector('[data-id="a"] .prj-heat');
+      expect(strip).toBeTruthy();
+      expect(strip.querySelectorAll('span')).toHaveLength(34);
+      expect(strip.getAttribute('role')).toBe('img');
+      expect(strip.getAttribute('aria-label')).toBe('Audience retention across the video: starts at 100%, ends at 20%');
+      expect(d.getRetention).toHaveBeenCalledWith('abc12345');
+    });
+
+    it('shows a placeholder (no bars) for completed videos without viewers, and asks for nothing', async () => {
+      const d = withPlays({ getStats: async () => ({ a: { plays: 0 }, b: { plays: 9 } }) });
+      renderProjectsPanel(host, d);
+      await tick(); await tick(); await tick();
+      // a: completed, published, 0 plays -> placeholder; b: not rendered and not published -> nothing at all
+      expect(host.querySelector('.prj-heat:not(.prj-heat-empty)')).toBeNull();
+      const a = host.querySelector('[data-id="a"]');
+      expect(a.querySelector('.prj-heat-empty')).toBeTruthy();
+      expect(a.querySelector('.prj-heat-note').textContent).toBe('No viewer data yet. Share your video to see where viewers stay.');
+      expect(host.querySelector('[data-id="b"] .prj-heat-slot')).toBeNull();
+      expect(d.getRetention).not.toHaveBeenCalled();                // nothing worth asking for
+    });
+
+    it('completed but unpublished videos say how to get viewer data', async () => {
+      renderProjectsPanel(host, withPlays({ getPublished: async () => ({}), getStats: async () => null }));
+      await tick(); await tick(); await tick();
+      const a = host.querySelector('[data-id="a"]');
+      expect(a.querySelector('.prj-heat-note').textContent).toBe('Publish and share this video to see where viewers stay.');
+      expect(a.querySelector('.prj-heat').getAttribute('aria-label')).toBe('Publish and share this video to see where viewers stay.');
+      expect(host.querySelector('[data-id="b"] .prj-heat-slot')).toBeNull();   // not completed
+    });
+
+    it('a played video shows a loading strip, then its real bars', async () => {
+      let release;
+      const gate = new Promise((r) => { release = r; });
+      renderProjectsPanel(host, withPlays({ getRetention: vi.fn(async () => { await gate; return curve; }) }));
+      await tick(); await tick(); await tick();
+      const loading = host.querySelector('[data-id="a"] .prj-heat');
+      expect(loading.classList.contains('prj-heat-empty')).toBe(true);
+      expect(host.querySelector('[data-id="a"] .prj-heat-note')).toBeNull();   // no note while loading
+      release();
+      await tick(); await tick(); await tick();
+      const strip = host.querySelector('[data-id="a"] .prj-heat');
+      expect(strip.classList.contains('prj-heat-empty')).toBe(false);
+      expect(strip.querySelectorAll('span')).toHaveLength(34);
+    });
+
+    it('by default asks the database for ALL curves in one request (30-day range) through the injected client', async () => {
+      const rpc = vi.fn(async () => ({ data: batchRows('abc12345'), error: null }));
+      renderProjectsPanel(host, { ...deps, getStats: async () => ({ a: { plays: 12 } }), getClient: async () => ({ ...clientFor(rows), rpc }) });
+      await tick(); await tick(); await tick();
+      expect(rpc).toHaveBeenCalledTimes(1);
+      const [name, args] = rpc.mock.calls[0];
+      expect(name).toBe('video_retention_curves');
+      expect(args.p_video_ids).toEqual(['abc12345']);
+      expect(args.p_from).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(args.p_to).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(host.querySelector('[data-id="a"] .prj-heat:not(.prj-heat-empty)')).toBeTruthy();
+    });
+
+    it('many videos still cost a single request, and each card gets its own curve', async () => {
+      const many = Array.from({ length: 9 }, (_, i) => ({ id: `p${i}`, name: `P${i}`, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-02T00:00:00Z', render: {}, tags: [] }));
+      const rpc = vi.fn(async (_n, args) => ({ data: args.p_video_ids.flatMap(batchRows), error: null }));
+      renderProjectsPanel(host, {
+        ...deps,
+        getClient: async () => ({ ...clientFor(many), rpc }),
+        getPublished: async (ids) => Object.fromEntries(ids.map((id) => [id, { id: `v-${id}`, published: true }])),
+        getStats: async (ids) => Object.fromEntries(ids.map((id) => [id, { plays: 3 }])),
+      });
+      for (let i = 0; i < 8; i++) await tick();
+      expect(rpc).toHaveBeenCalledTimes(1);
+      expect(rpc.mock.calls[0][1].p_video_ids).toHaveLength(9);
+      expect(host.querySelectorAll('.prj-heat:not(.prj-heat-empty)')).toHaveLength(9);
+    });
+
+    it('falls back to one request per video when the batch function does not exist yet', async () => {
+      const rpc = vi.fn(async (name, args) => (name === 'video_retention_curves'
+        ? { data: null, error: { code: '42883', message: 'function does not exist' } }
+        : { data: batchRows(args.p_video_id), error: null }));
+      renderProjectsPanel(host, { ...deps, getStats: async () => ({ a: { plays: 12 } }), getClient: async () => ({ ...clientFor(rows), rpc }) });
+      for (let i = 0; i < 5; i++) await tick();
+      expect(rpc.mock.calls.map(([n]) => n)).toEqual(['video_retention_curves', 'video_retention_curve']);
+      expect(host.querySelector('[data-id="a"] .prj-heat:not(.prj-heat-empty)')).toBeTruthy();
+    });
+
+    it('a failing database call (or a client without rpc) says the data is unavailable, never bars', async () => {
+      const rpc = vi.fn(async () => ({ data: null, error: { message: 'denied' } }));
+      renderProjectsPanel(host, { ...deps, getStats: async () => ({ a: { plays: 12 } }), getClient: async () => ({ ...clientFor(rows), rpc }) });
+      await tick(); await tick(); await tick();
+      expect(host.querySelector('.prj-heat:not(.prj-heat-empty)')).toBeNull();
+      expect(host.querySelector('[data-id="a"] .prj-heat-note').textContent).toBe('Viewer data is not available right now.');
+      const other = document.createElement('div'); document.body.appendChild(other);
+      renderProjectsPanel(other, { ...deps, getStats: async () => ({ a: { plays: 12 } }) });   // test client has no rpc
+      await tick(); await tick(); await tick();
+      expect(other.querySelector('.prj-heat:not(.prj-heat-empty)')).toBeNull();
+      expect(other.querySelectorAll('.prj-card')).toHaveLength(2);
+    });
+
+    it('never draws bars when the request fails or returns nothing', async () => {
+      for (const getRetention of [vi.fn(async () => { throw new Error('boom'); }), vi.fn(async () => []), vi.fn(async () => null)]) {
+        const h = document.createElement('div'); document.body.appendChild(h);
+        renderProjectsPanel(h, withPlays({ getRetention }));
+        await tick(); await tick(); await tick();
+        expect(h.querySelector('.prj-heat:not(.prj-heat-empty)')).toBeNull();
+        expect(h.querySelector('[data-id="a"] .prj-heat-note').textContent).toBe('Viewer data is not available right now.');
+        expect(h.querySelector('[data-id="a"] .prj-line').textContent).toContain('12 plays');
+        expect(h.querySelectorAll('.prj-card')).toHaveLength(2);
+      }
+    });
+
+    it('asks for at most four curves at a time', async () => {
+      const many = Array.from({ length: 9 }, (_, i) => ({ id: `p${i}`, name: `P${i}`, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-02T00:00:00Z', render: {}, tags: [] }));
+      let running = 0; let peak = 0;
+      const getRetention = vi.fn(async () => { running++; peak = Math.max(peak, running); await tick(); running--; return curve; });
+      renderProjectsPanel(host, {
+        ...deps,
+        getClient: async () => clientFor(many),
+        getPublished: async (ids) => Object.fromEntries(ids.map((id) => [id, { id: `v-${id}`, published: true }])),
+        getStats: async (ids) => Object.fromEntries(ids.map((id) => [id, { plays: 3 }])),
+        getRetention,
+      });
+      for (let i = 0; i < 12; i++) await tick();
+      expect(getRetention).toHaveBeenCalledTimes(9);
+      expect(peak).toBeLessThanOrEqual(4);
+      expect(host.querySelectorAll('.prj-heat')).toHaveLength(9);
+    });
+
+    it('a refresh that drops plays to zero replaces cached bars with the placeholder', async () => {
+      let plays = 12;
+      const d = withPlays({ getStats: async () => ({ a: { plays } }) });
+      const panel = renderProjectsPanel(host, d);
+      await tick(); await tick(); await tick();
+      expect(host.querySelector('[data-id="a"] .prj-heat:not(.prj-heat-empty)')).toBeTruthy();
+      plays = 0;
+      await panel.refresh();
+      await tick(); await tick(); await tick();
+      const a = host.querySelector('[data-id="a"]');
+      expect(a.querySelector('.prj-heat:not(.prj-heat-empty)')).toBeNull();
+      expect(a.querySelector('.prj-heat-note').textContent).toContain('No viewer data yet');
+    });
+
+    it('keeps strips when the view or search changes', async () => {
+      renderProjectsPanel(host, withPlays());
+      await tick(); await tick(); await tick();
+      host.querySelector('[data-view="list"]').click();
+      expect(host.querySelector('[data-id="a"] .prj-heat')).toBeTruthy();
+    });
+
+    it('decides which cards get the area and which can have data', () => {
+      const base = { renderStatus: 'not_rendered', published: false, publishedId: null, plays: null };
+      expect(wantsHeat({ ...base })).toBe(false);
+      expect(wantsHeat({ ...base, renderStatus: 'complete' })).toBe(true);
+      expect(wantsHeat({ ...base, published: true, publishedId: 'v', plays: 5 })).toBe(true);   // viewer data even if not rendered
+      expect(canHaveHeat({ ...base, renderStatus: 'complete' })).toBe(false);
+      expect(canHaveHeat({ ...base, published: true, publishedId: 'v', plays: 0 })).toBe(false);
+      expect(canHaveHeat({ ...base, published: true, publishedId: 'v', plays: 5 })).toBe(true);
+    });
+
+    it('placeholder html is 34 muted slices with an escaped, accessible note', () => {
+      const html = heatPlaceholderHtml('unwatched');
+      expect((html.match(/<span><\/span>/g) || [])).toHaveLength(34);
+      expect(html).toContain('prj-heat-empty');
+      expect(html).toContain('No viewer data yet. Share your video');
+      expect(heatPlaceholderHtml('loading')).not.toContain('prj-heat-note');
+    });
+
+    it('builds nothing from an empty curve and escapes nothing unsafe', () => {
+      expect(heatStripHtml([])).toBe('');
+      expect(heatStripHtml(null)).toBe('');
+      const html = heatStripHtml([{ positionPercent: 0, retentionPercent: '<b>' }, { positionPercent: 100, retentionPercent: 50 }]);
+      expect(html).not.toContain('<b>');
+      expect(html).toContain('height:7%');
+    });
   });
 });

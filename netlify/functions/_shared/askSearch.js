@@ -159,7 +159,11 @@ export function search(query, { studioId = null, limit = 6, index = getIndex(), 
   // A walkthrough is only useful whole. When one wins, give the model ALL of it in order
   // (overview, every step, checkpoints and troubleshooting), then a few other sources.
   const lead = out.find((r) => r.chunk.kind === 'journey');
-  if (lead && (walk || out[0].chunk.kind === 'journey')) {
+  // For a question that is not a walkthrough request, a walkthrough only takes over when it clearly
+  // leads (by 10%); a near-tie with a studio, model or app answer keeps the mixed sources.
+  const bestOther = out.find((r) => r.chunk.kind !== 'journey');
+  const clearLead = out[0].chunk.kind === 'journey' && (!bestOther || out[0].score >= bestOther.score * 1.1);
+  if (lead && (walk || clearLead)) {
     const jid = lead.chunk.id.split(':')[1];
     const part = journeyPart;
     const rank = (d) => {

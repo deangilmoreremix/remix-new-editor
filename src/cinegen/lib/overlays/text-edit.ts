@@ -1,12 +1,19 @@
 // [remix] Click-to-edit text on the form (viewer): turns "this option key now has this text" into the overlay update.
 // List Builder keeps its config object; the Lead Generator keeps the flat clip the old editor saved (through the shared adapter).
 import type { OverlayClip } from '@cinegen/types/workspace';
+import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
 // @ts-expect-error plain JS settings helpers
 import { setPath } from '../../../lib/editor/addons/addonEditor.js';
 // @ts-expect-error plain JS opt-in form config helpers
 import { leadFormToOptin, applyOptinToLeadForm, normalizeListBuilder } from '../../../lib/editor/addons/listBuilder.js';
 
 export function textEditUpdates(overlay: OverlayClip, key: string, value: string): Partial<OverlayClip> {
+  // Smart Text and the other add-ons keep their options under `addon` (edited on the video by double-click)
+  if (isRegistryOverlay(overlay.type)) {
+    const addon = JSON.parse(JSON.stringify((overlay.addon as object) ?? {})) as Record<string, unknown>;
+    setPath(addon, key, value);
+    return { addon };
+  }
   if (overlay.type === 'list-builder') {
     const config = normalizeListBuilder(JSON.parse(JSON.stringify(overlay.config ?? {}))) as Record<string, unknown>;
     setPath(config, key, value);

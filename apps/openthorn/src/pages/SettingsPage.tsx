@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { usePageTitle } from '../lib/usePageTitle'
 import styles from './SettingsPage.module.css'
 import BrandLogo from '../components/BrandLogo/BrandLogo'
 import { T, RPC } from '../lib/tables'
+import { getCloudflareStatus, connectCloudflare, disconnectCloudflare, type CloudflareStatus } from '../lib/cloudflare-connection'
 
-type Tab = 'account' | 'providers' | 'knowledge' | 'danger'
+type Tab = 'account' | 'providers' | 'hosting' | 'knowledge' | 'danger'
 
 const MAX_INSTRUCTIONS = 2000
 
@@ -29,6 +30,10 @@ const navItems: { id: Tab; label: string; danger?: boolean; icon: React.ReactNod
     icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>,
   },
   {
+    id: 'hosting', label: 'Hosting',
+    icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>,
+  },
+  {
     id: 'knowledge', label: 'Knowledge',
     icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
   },
@@ -44,7 +49,54 @@ export default function SettingsPage() {
   })
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = useState<Tab>('account')
+
+  const [searchParams] = useSearchParams()
+  const requestedTab = searchParams.get('tab')
+  const [tab, setTab] = useState<Tab>(
+    navItems.some((n) => n.id === requestedTab) ? (requestedTab as Tab) : 'account',
+  )
+
+  const [cf, setCf] = useState<CloudflareStatus | null>(null)
+  const [cfLoadError, setCfLoadError] = useState('')
+  const [cfAccountId, setCfAccountId] = useState('')
+  const [cfToken, setCfToken] = useState('')
+  const [cfBusy, setCfBusy] = useState(false)
+  const [cfError, setCfError] = useState('')
+
+  useEffect(() => {
+    if (tab !== 'hosting' || !user) return
+    let cancelled = false
+    getCloudflareStatus()
+      .then((status) => { if (!cancelled) { setCf(status); setCfLoadError('') } })
+      .catch((err) => { if (!cancelled) setCfLoadError(err instanceof Error ? err.message : 'Could not load hosting status.') })
+    return () => { cancelled = true }
+  }, [tab, user])
+
+  async function handleCfConnect() {
+    setCfBusy(true)
+    setCfError('')
+    try {
+      setCf(await connectCloudflare(cfAccountId, cfToken))
+      setCfToken('')
+      setCfAccountId('')
+    } catch (err) {
+      setCfError(err instanceof Error ? err.message : 'Could not connect Cloudflare.')
+    } finally {
+      setCfBusy(false)
+    }
+  }
+
+  async function handleCfDisconnect() {
+    setCfBusy(true)
+    setCfError('')
+    try {
+      setCf(await disconnectCloudflare())
+    } catch (err) {
+      setCfError(err instanceof Error ? err.message : 'Could not disconnect Cloudflare.')
+    } finally {
+      setCfBusy(false)
+    }
+  }
 
   // Email
 
@@ -215,6 +267,61 @@ export default function SettingsPage() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Hosting */}
+        {tab === 'hosting' && (
+          <div className={styles.panel}>
+            <header className={styles.panelHeader}>
+              <h1 className={styles.panelTitle}>Hosting</h1>
+              <p className={styles.panelSubtitle}>Publish your sites to your own Cloudflare account</p>
+            </header>
+            <div className={styles.block}>
+              <h2 className={styles.blockTitle}>Cloudflare Pages</h2>
+              {cfLoadError && <p className={styles.fieldError}>{cfLoadError}</p>}
+              {!cf && !cfLoadError && <p className={styles.blockDesc}>Loading…</p>}
+              {cf && !cf.configured && (
+                <p className={styles.blockDesc}>Publishing isn&apos;t set up on this site yet. Please check back soon.</p>
+              )}
+              {cf?.configured && cf.connected && (
+                <>
+                  <div className={styles.successBanner}>
+                    <span>Connected · token ending <strong>{cf.tokenLast4}</strong> · account <strong>{cf.accountId}</strong></span>
+                  </div>
+                  <p className={styles.blockDesc}>Deploy publishes to this account. Your token is stored encrypted and is never shown again.</p>
+                  {cfError && <p className={styles.fieldError}>{cfError}</p>}
+                  <button className={styles.providerCardBtn} type="button" onClick={handleCfDisconnect} disabled={cfBusy}>
+                    {cfBusy ? 'Working…' : 'Disconnect Cloudflare'}
+                  </button>
+                </>
+              )}
+              {cf?.configured && !cf.connected && (
+                <>
+                  <p className={styles.blockDesc}>
+                    Sites you build are published to your own free Cloudflare account, so you own them.
+                  </p>
+                  <ol className={styles.blockDesc}>
+                    <li>Sign in at dash.cloudflare.com (a free account works).</li>
+                    <li>Copy your <strong>Account ID</strong> from the right-hand side of the dashboard home page.</li>
+                    <li>Go to My Profile → API Tokens → Create Token → Create Custom Token, add the permission <strong>Account → Cloudflare Pages → Edit</strong>, and create it.</li>
+                    <li>Paste both below.</li>
+                  </ol>
+                  <div className={styles.field}>
+                    <label className={styles.label} htmlFor="cf-account-id">Account ID</label>
+                    <input id="cf-account-id" className={styles.input} value={cfAccountId} onChange={(e) => setCfAccountId(e.target.value)} placeholder="32 characters" autoComplete="off" spellCheck={false} />
+                  </div>
+                  <div className={styles.field}>
+                    <label className={styles.label} htmlFor="cf-token">API token</label>
+                    <input id="cf-token" className={styles.input} type="password" value={cfToken} onChange={(e) => setCfToken(e.target.value)} placeholder="Paste your token" autoComplete="off" />
+                  </div>
+                  {cfError && <p className={styles.fieldError}>{cfError}</p>}
+                  <button className={styles.submitBtn} type="button" onClick={handleCfConnect} disabled={cfBusy || !cfAccountId.trim() || !cfToken.trim()}>
+                    {cfBusy ? 'Checking with Cloudflare…' : 'Connect Cloudflare'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}

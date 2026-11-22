@@ -35,10 +35,33 @@ export interface RecommendInput {
   available: Partial<Record<RemotionDesignMediaRole, boolean>>
   /** Designs the aspect ratio rules out, already filtered by the caller's support check. */
   isSupported?: (design: RemotionDesignTemplate) => boolean
+  /** Project facts that tune the ranking (all optional). */
+  context?: RecommendContext
   limit?: number
 }
 
-export interface DesignRecommendation { design: RemotionDesignTemplate; score: number; reason: string }
+/** What is known about the project, used to rank designs beyond the goal. All optional; absent = no opinion. */
+export interface RecommendContext {
+  /** Length of the longest text the design will show (headline / business name), in characters. */
+  textLength?: number
+  /** A logo is assigned. */
+  hasLogo?: boolean
+  /** Number of product/service pictures assigned. */
+  imageCount?: number
+}
+
+/** Text longer than this wants a design built for a line of copy, not a one-word sting. */
+export const LONG_TEXT_CHARS = 40
+/** Text at or under this is a name or a tagline: bold, short-copy designs suit it. */
+export const SHORT_TEXT_CHARS = 18
+
+export interface DesignRecommendation {
+  design: RemotionDesignTemplate
+  score: number
+  /** One line: the goal, then each reason this design suits THIS project ("why this one"). */
+  reason: string
+  reasons: string[]
+}
 
 export function recommendDesigns(input: RecommendInput): DesignRecommendation[] {
   const { designs, aspectRatio, goal, available, limit = 6 } = input
@@ -57,9 +80,47 @@ export function recommendDesigns(input: RecommendInput): DesignRecommendation[] 
     if (design.category === 'full-scene' && goal !== 'stand-out') score -= 30
     // using the customer's own pictures/logo is a plus
     if ((design.media ?? []).some((m) => available[m.role])) score += 5
-    scored.push({ design, score, reason: goalDef.label })
+    const reasons: string[] = [goalDef.label]
+    const ctx = input.context
+    if (ctx) {
+      const wordy = design.category === 'animated-headline' || design.category === 'lower-third'
+      if (typeof ctx.textLength === 'number') {
+        if (ctx.textLength > LONG_TEXT_CHARS) {
+          if (wordy) { score += 8; reasons.push('has room for longer text') }
+          else if (design.category === 'logo-reveal' || design.category === 'transition') score -= 8
+        } else if (ctx.textLength > 0 && ctx.textLength <= SHORT_TEXT_CHARS && (design.category === 'logo-reveal' || design.category === 'promo-cta')) {
+          score += 4; reasons.push('suits a short name or line')
+        }
+      }
+      const media = design.media ?? []
+      if (ctx.hasLogo && media.some((m) => m.role === 'logo')) { score += 6; reasons.push('shows your logo') }
+      const pictureRoles = media.filter((m) => m.role === 'product' || m.role === 'service').length
+      if ((ctx.imageCount ?? 0) >= 2 && pictureRoles >= 2) { score += 6; reasons.push('shows your pictures') }
+    }
+    scored.push({ design, score, reason: reasons.join(' · '), reasons })
   }
   // deterministic: score desc, then name, then id
   scored.sort((a, b) => b.score - a.score || a.design.name.localeCompare(b.design.name) || a.design.id.localeCompare(b.design.id))
   return scored.slice(0, limit)
+}
+
+export interface GoalSuggestion { goal: DesignGoalId; reason: string }
+
+/**
+ * Which goal to preselect, and why. Uses only what is really known: an offer the customer entered,
+ * a booking link the business's own site publishes, product pictures the customer assigned.
+ * With none of those it falls back to "introduce" with no claim.
+ */
+export function suggestGoal(input: {
+  hasOffer: boolean
+  hasProductImages: boolean
+  booking?: { sourceUrl: string; provider?: string } | null
+}): GoalSuggestion {
+  if (input.hasOffer) return { goal: 'promote-offer', reason: 'You added an offer, so a clear call to action fits.' }
+  if (input.booking) {
+    const via = input.booking.provider ? ` (${input.booking.provider})` : ''
+    return { goal: 'promote-offer', reason: `Their website has online booking${via}, so a "book now" call to action fits.` }
+  }
+  if (input.hasProductImages) return { goal: 'show-product', reason: 'You have product pictures to show.' }
+  return { goal: 'introduce', reason: 'A good first video: who you are and what you do.' }
 }

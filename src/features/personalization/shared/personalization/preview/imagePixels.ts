@@ -58,3 +58,53 @@ export function analyzeImagePixels(data: ArrayLike<number>, width: number, heigh
   }
   return { transparentCorners, alreadyFramed, hasTransparency: transparentFraction > 0.02, transparentFraction }
 }
+
+export interface ContentBox {
+  /** All four are fractions of the full image (0..1). */
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+/**
+ * Bounding box of the visible (non-transparent) pixels, grown by a small margin, or null when trimming is not
+ * worthwhile or not safe: no transparency to trim, nothing visible, content spanning nearly the whole image
+ * (< `minRemoved` of the area would be removed), or content so small it is probably noise.
+ * Pure: takes RGBA bytes. It never looks at colour, only alpha.
+ */
+export function transparentContentBox(
+  data: ArrayLike<number>,
+  width: number,
+  height: number,
+  opts: { alphaThreshold?: number; marginPct?: number; minRemoved?: number; minContent?: number } = {},
+): ContentBox | null {
+  const alphaThreshold = opts.alphaThreshold ?? 12
+  const marginPct = opts.marginPct ?? 0.04
+  const minRemoved = opts.minRemoved ?? 0.1
+  const minContent = opts.minContent ?? 0.08
+  if (!(width > 2) || !(height > 2) || data.length < width * height * 4) return null
+  let minX = width, minY = height, maxX = -1, maxY = -1
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4 + 3] > alphaThreshold) {
+        if (x < minX) minX = x
+        if (x > maxX) maxX = x
+        if (y < minY) minY = y
+        if (y > maxY) maxY = y
+      }
+    }
+  }
+  if (maxX < 0) return null // fully transparent
+  const cw = maxX - minX + 1
+  const ch = maxY - minY + 1
+  if (cw / width < minContent || ch / height < minContent) return null // probably a speck of noise
+  const mx = Math.round(Math.max(cw, ch) * marginPct)
+  const x0 = Math.max(0, minX - mx)
+  const y0 = Math.max(0, minY - mx)
+  const x1 = Math.min(width, maxX + 1 + mx)
+  const y1 = Math.min(height, maxY + 1 + mx)
+  const area = ((x1 - x0) * (y1 - y0)) / (width * height)
+  if (1 - area < minRemoved) return null
+  return { x: x0 / width, y: y0 / height, w: (x1 - x0) / width, h: (y1 - y0) / height }
+}

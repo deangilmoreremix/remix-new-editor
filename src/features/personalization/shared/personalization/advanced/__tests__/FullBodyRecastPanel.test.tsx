@@ -17,7 +17,7 @@ beforeAll(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
 })
 
-vi.mock('next/navigation', () => ({
+vi.mock('@ohb/lib/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -447,6 +447,16 @@ describe('Full Body Recast tab', () => {
     const result = container.querySelector('[data-testid="pz-recast-example-result"]') as HTMLVideoElement
     expect(result.getAttribute('src')).toBe('/media/recast-example/recast-result.mp4')
     expect(within(example).getByAltText('Example character').getAttribute('src')).toBe('/media/recast-example/character.jpg')
+  })
+
+  it('shows the whole clip and photo instead of cropping them to the panel', async () => {
+    const container = await openRecastTab()
+    const example = container.querySelector('[data-testid="pz-recast-example"]') as HTMLDetailsElement
+    const media = [
+      ...Array.from(example.querySelectorAll('video, img')),
+    ] as HTMLElement[]
+    expect(media.length).toBeGreaterThanOrEqual(3)
+    for (const el of media) expect(el.style.objectFit).toBe('contain')
   })
 
   it('rejects a clip that is not MP4/MOV without uploading', async () => {

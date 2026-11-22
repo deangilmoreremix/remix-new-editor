@@ -66,8 +66,10 @@ export { dedupHex };
 // Production scraper — calls the backend /api/scrape endpoint.
 // Falls back to a minimal stub if the backend is unreachable.
 export async function scrapeSite(url) {
-  const backendBase = (import.meta.env?.VITE_BACKEND_URL || '').replace(/\/$/, '');
-  const scrapeUrl = backendBase ? `${backendBase}/api/scrape` : '/api/scrape';
+  // /api/scrape is served by this site's own Netlify function. VITE_BACKEND_URL points at the Render
+  // backend, which has no such route, so it is not used here; set VITE_SCRAPE_URL to host it elsewhere.
+  const scrapeBase = (import.meta.env?.VITE_SCRAPE_URL || '').replace(/\/$/, '');
+  const scrapeUrl = scrapeBase ? `${scrapeBase}/api/scrape` : '/api/scrape';
 
   try {
     const res = await fetch(scrapeUrl, {
@@ -97,6 +99,9 @@ export async function scrapeSite(url) {
       fonts: d.fonts || [],
       rawColors: d.rawColors || [],
       screenshot: d.screenshot || null,
+      images: Array.isArray(d.images) ? d.images : [],
+      videos: Array.isArray(d.videos) ? d.videos : [],
+      blocked: d.blocked === true,
     };
   } catch (e) {
     console.warn('[brandAnalyzer] scrape failed, falling back to minimal:', e.message);
@@ -111,6 +116,9 @@ export async function scrapeSite(url) {
       fonts: [],
       rawColors: [],
       screenshot: null,
+      images: [],
+      videos: [],
+      blocked: false,
     };
   }
 }
@@ -175,6 +183,9 @@ export async function analyzeBrand(url) {
     fonts: site.fonts,
     logoUrl,
     screenshotUrl,
+    // Media found on the site, kept so Photo Studio / Animate can offer it as source material.
+    siteImages: site.images || [],
+    siteVideos: site.videos || [],
     imageryStyle: asString(vision.imagery_style) || asString(text.imagery_style),
     layoutStyle: asString(vision.layout_style) || asString(text.layout_style),
     createdAt: new Date().toISOString(),

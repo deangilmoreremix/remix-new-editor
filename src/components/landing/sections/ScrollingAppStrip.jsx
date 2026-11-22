@@ -1,3 +1,4 @@
+import { guideHrefFor } from '../guideLinks.js';
 // Scrolling App Strip - 34 apps + 60+ features
 // Re-adds the original larger two-row app-strip plus a third row
 // of smaller feature chips sourced from landing page feature data.
@@ -160,8 +161,13 @@ export function ScrollingAppStrip() {
   const featureStrip = ALL_FEATURES;
   const featureStripClone = ALL_FEATURES;
 
-  const appChip = (app, ariaHidden) => `
-    <div
+  // Chips for studios with a feature guide are links to it; the duplicate (aria-hidden)
+  // copy used for the seamless scroll is kept out of the tab order.
+  const appChip = (app, ariaHidden) => {
+    const href = guideHrefFor(app.name);
+    const tag = href ? 'a' : 'div';
+    return `
+    <${tag} ${href ? `href="${href}" title="${app.name} feature guide"${ariaHidden ? ' tabindex="-1"' : ''}` : ''}
       class="app-chip flex items-center gap-3 px-4 py-2 bg-white/[0.07] border border-white/15 rounded-full whitespace-nowrap cursor-pointer transition-all duration-300 group shadow-lg shadow-black/20"
       data-app="${app.name}"
       ${ariaHidden ? 'aria-hidden="true"' : ''}
@@ -169,8 +175,9 @@ export function ScrollingAppStrip() {
       <span class="w-2 h-2 rounded-full shadow-lg" style="background-color: ${DOT_COLORS[app.color] || app.color}"></span>
       <span class="text-sm font-semibold text-white">${app.name}</span>
       <span class="text-sm opacity-70 group-hover:opacity-100 transition-opacity duration-200">${app.icon}</span>
-    </div>
+    </${tag}>
   `;
+  };
 
   const featureChip = (feature, index, ariaHidden) => {
     const colorIndex = index % 6;
@@ -278,12 +285,6 @@ export function ScrollingAppStrip() {
 
   // Add click interactions
   setTimeout(() => {
-    section.querySelectorAll('.app-chip').forEach((chip) => {
-      chip.addEventListener('click', () => {
-        const appName = chip.dataset.app;
-        console.log(`Clicked on ${appName}`);
-      });
-    });
     section.querySelectorAll('.feature-chip').forEach((chip) => {
       chip.addEventListener('click', () => {
         const featureName = chip.querySelector('span')?.textContent?.trim();

@@ -13,6 +13,7 @@
  */
 
 import { pointerSvg, getPointerDesign, safeColor, HINT_STYLES } from './pointerDesigns.js';
+import { turnstileSiteKey, mountTurnstile } from '../publish/turnstile.js';
 
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -28,6 +29,85 @@ export function ensureOverlayLayer(frame) {
     frame.appendChild(layer);
   }
   return layer;
+}
+
+/** http(s) links only (a thank-you button or redirect must never run javascript: / data: URLs). */
+export function safeWebUrl(url) {
+  const value = String(url || '').trim();
+  if (!value) return null;
+  // Any other scheme (ftp://, javascript:, data:, tel:, ...) is refused, never "fixed" by prefixing https://.
+  if (!/^https?:\/\//i.test(value) && (/^[a-z][a-z0-9+.-]*:\/\//i.test(value) || /^(javascript|data|vbscript|file|blob|tel|mailto|sms):/i.test(value))) return null;
+  try {
+    const u = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+    return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : null;
+  } catch {
+    return null;
+  }
+}
+
+export const AFTER_SUBMIT_ACTIONS = [
+  ['continue', 'Keep watching (nothing extra)'],
+  ['button', 'Show a thank-you button'],
+  ['redirect', 'Send the viewer to a page'],
+];
+const THANKS_BUTTON_MS = 8000;
+const REDIRECT_DELAY_MS = 1500;
+
+/**
+ * What the viewer sees after submitting a form: nothing extra (default), a small thank-you card with a
+ * link button, or a redirect to another page. Shared by the editor preview and the published player.
+ *
+ * Redirects only happen when `allowRedirect` is true, which only the published player sets, so the editor
+ * (even during live playback) shows "viewers go to <host>" instead of navigating away from your work.
+ * Returns the card element, or null when there is nothing to show.
+ */
+export function showThanks(layer, config, { allowRedirect = false, isActive = () => true, navigate = (url) => globalThis.location?.assign(url), schedule = setTimeout } = {}) {
+  const action = config?.afterSubmitAction;
+  if (action !== 'button' && action !== 'redirect') return null;
+  // The owner (the published player) says whether it still exists: a submission that finishes after the
+  // viewer left must not show a card or schedule a redirect.
+  if (!isActive()) return null;
+  const url = safeWebUrl(config.afterSubmitUrl);
+  if (!url) return null; // a missing or unsafe link falls back to the default behavior
+  clearOverlay(layer, 'thanks');
+  const card = document.createElement('div');
+  card.className = 'addon-overlay addon-overlay--thanks';
+  card.dataset.overlay = 'thanks';
+  card.setAttribute('role', 'status');
+  const msg = document.createElement('p');
+  msg.className = 'addon-thanks__msg';
+  msg.textContent = String(config.successMessage || 'Thanks!');
+  card.appendChild(msg);
+  if (action === 'button') {
+    const a = document.createElement('a');
+    a.className = 'addon-thanks__btn';
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = String(config.afterSubmitButtonText || 'Continue');
+    card.appendChild(a);
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'addon-thanks__close';
+    close.setAttribute('aria-label', 'Close');
+    close.textContent = '\u2715';
+    close.addEventListener('click', () => card.remove());
+    card.appendChild(close);
+    schedule(() => card.remove(), THANKS_BUTTON_MS);
+  } else if (allowRedirect) {
+    // If the page's player is destroyed during the delay (the viewer navigated away), its layer is
+    // removed from the document: don't then replace whatever page they moved on to.
+    const attached = layer.isConnected;
+    schedule(() => { if (!isActive() || (attached && !layer.isConnected)) return; navigate(url); }, REDIRECT_DELAY_MS);
+  } else {
+    const note = document.createElement('p');
+    note.className = 'addon-thanks__note';
+    note.textContent = `Preview: viewers are sent to ${new URL(url).hostname}`;
+    card.appendChild(note);
+    schedule(() => card.remove(), THANKS_BUTTON_MS);
+  }
+  layer.appendChild(card);
+  return card;
 }
 
 export function clearOverlay(layer, name) {
@@ -66,6 +146,10 @@ export function formBackground(config) {
   return `radial-gradient(circle, ${hexToRgba(c, 0.07)} 10%, ${hexToRgba(c, 0.8)} 90%, ${hexToRgba(c, 1)} 100%)`;
 }
 
+const PHONE_PATTERN = '[0-9+\\(\\)\\-. ]{7,30}'; // valid under both the u and v regex flags browsers use for pattern=
+/** The choices of a dropdown field: "Small, Medium, Large" -> [...], at most 20, trimmed, no blanks or duplicates. */
+export const selectChoices = (raw) => [...new Set(String(raw ?? '').split(',').map((o) => o.trim()).filter(Boolean))].slice(0, 20);
+
 function buildInput(declaration, prefill, config = {}) {
   let input;
   switch (declaration.type) {
@@ -94,8 +178,43 @@ function buildInput(declaration, prefill, config = {}) {
     case 'phone':
       input = document.createElement('input');
       input.type = 'tel';
-      input.setAttribute('maxlength', '80');
+      input.setAttribute('maxlength', '30');
+      input.setAttribute('pattern', PHONE_PATTERN);
+      input.title = 'Enter a phone number (digits, spaces, + ( ) - .)';
       break;
+    case 'url':
+      input = document.createElement('input');
+      input.type = 'url';
+      input.setAttribute('maxlength', '300');
+      input.setAttribute('inputmode', 'url');
+      break;
+    case 'select': {
+      input = document.createElement('select');
+      const hint = declaration.placeholder != null && declaration.placeholder !== '' ? String(declaration.placeholder) : String(declaration.label || 'Choose');
+      const first = document.createElement('option');
+      first.value = ''; first.textContent = hint; first.disabled = true; first.selected = true;
+      input.appendChild(first);
+      selectChoices(declaration.options).forEach((choice) => {
+        const o = document.createElement('option');
+        o.value = choice; o.textContent = choice;
+        input.appendChild(o);
+      });
+      break;
+    }
+    case 'checkbox': {
+      // A tick box with its label; the answer is "Yes" when ticked (an unticked box sends nothing).
+      const token = declaration.token || String(declaration.label || '').toUpperCase();
+      const wrap = document.createElement('label');
+      wrap.className = 'optin-check';
+      const box = document.createElement('input');
+      box.type = 'checkbox'; box.name = token; box.value = 'Yes';
+      if (declaration.required) box.required = true;
+      if (prefill?.[token]) box.checked = true;
+      const text = document.createElement('span');
+      text.textContent = declaration.label || token;
+      wrap.append(box, text);
+      return wrap;
+    }
     default:
       input = document.createElement('input');
       input.type = 'text';
@@ -198,16 +317,22 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   const inputWrapper = document.createElement('div');
   inputWrapper.className = 'input-wrapper';
   const elements = (config.elements || []).slice(0, 5);
+  // Multi-step: the boxes are shown `stepSize` at a time (Next / Back, progress dots); everything is still sent once at the end.
+  const stepSize = config.multiStep ? Math.max(1, Math.min(3, Number(config.stepSize) || 1)) : 0;
+  const stepCount = stepSize ? Math.ceil(elements.length / stepSize) : 1;
   elements.forEach((d, i) => {
     const input = buildInput(d, prefill, config);
-    input.dataset.editKey = `elements.${i}.placeholder`;
+    input.dataset.editKey = d.type === 'checkbox' ? `elements.${i}.label` : `elements.${i}.placeholder`;
+    if (stepCount > 1) input.dataset.step = String(Math.floor(i / stepSize));
     inputWrapper.appendChild(input);
   });
+  if (stepCount > 1) { form.dataset.steps = String(stepCount); form.noValidate = true; } // each step is checked as you go
 
   const buttonsInner = document.createElement('div');
   buttonsInner.className = 'buttons-inner';
   const submitButton = document.createElement('button');
   submitButton.type = 'submit';
+  submitButton.setAttribute('data-keep-fill', ''); // the creator chooses this button's colour; the app-wide outline-only rule must not strip it
   submitButton.textContent = config.btnText ?? 'Play';
   submitButton.dataset.editKey = 'btnText';
   Object.assign(submitButton.style, {
@@ -222,12 +347,22 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   form.style.setProperty('--optin-btn-hover', config.buttonHoverColor || config.buttonBackground || '#eb5054');
   form.style.setProperty('--optin-placeholder', config.placeholderColor || '#6b7280');
   buttonsInner.appendChild(submitButton);
+  if (stepCount > 1) {
+    const back = document.createElement('button');
+    back.type = 'button'; back.className = 'optin-back'; back.textContent = 'Back'; back.hidden = true;
+    buttonsInner.insertBefore(back, submitButton);
+    const dots = document.createElement('div');
+    dots.className = 'optin-steps'; dots.setAttribute('aria-hidden', 'true');
+    for (let n = 0; n < stepCount; n += 1) { const d = document.createElement('span'); d.className = n === 0 ? 'on' : ''; dots.appendChild(d); }
+    buttonsInner.appendChild(dots);
+  }
 
   const wrapperContainer = document.createElement('div');
   wrapperContainer.className = 'input-wrapper-container';
-  const layout = resolveFieldLayout(elements.length, config.fieldLayout);
+  const visibleBoxes = stepCount > 1 ? Math.min(stepSize, elements.length) : elements.length; // one step's worth at a time
+  const layout = resolveFieldLayout(visibleBoxes, config.fieldLayout);
   wrapperContainer.dataset.layout = layout;
-  wrapperContainer.dataset.count = String(elements.length);
+  wrapperContainer.dataset.count = String(visibleBoxes);
   wrapperContainer.dataset.align = config.fieldAlign === 'left' ? 'left' : 'center';
   // fieldWidth = % of the form the boxes (and Play) take; fieldGap in tenths of an em
   const w = Math.max(30, Math.min(100, Number(config.fieldWidth) || 70));
@@ -239,6 +374,20 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   wrapperContainer.appendChild(inputWrapper);
   wrapperContainer.appendChild(buttonsInner);
   scrollInner.appendChild(wrapperContainer);
+
+  // Consent checkbox (owner setting): must be ticked; the wording is stored with the lead as the CONSENT answer.
+  if (config.requireConsent && config.consentText) {
+    const consent = document.createElement('label');
+    consent.className = 'optin-consent';
+    const box = document.createElement('input');
+    box.type = 'checkbox'; box.name = 'CONSENT'; box.value = String(config.consentText).slice(0, 300); box.required = true;
+    const words = document.createElement('span');
+    words.textContent = config.consentText;
+    words.dataset.editKey = 'consentText';
+    consent.append(box, words);
+    if (stepCount > 1) consent.dataset.step = String(stepCount - 1);
+    scrollInner.appendChild(consent);
+  }
 
   if (config.privacyDisclaimer && !config.isPersonalizer) {
     const disclaimer = document.createElement('div');
@@ -557,7 +706,7 @@ export function attachTextEditing(wrap, onEditText) {
  * (default 5, as upstream; 0 = stays until clicked) or on click.
  * Options: prefill, preview (editor: see-through backdrop).
  */
-export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, prefill = {}, preview = false, name = 'list-builder' } = {}) {
+export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, prefill = {}, preview = false, name = 'list-builder', allowRedirect = false, isActive = () => true, ctaId = name === 'list-builder' ? 'list-builder' : '' } = {}) {
   clearOverlay(layer, name);
   const wrap = document.createElement('div');
   wrap.className = 'addon-overlay addon-overlay--optin';
@@ -568,6 +717,25 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
   wrap.style.background = backdropStyle(config, { preview });
   const compact = (layer.clientWidth || 1000) < 480;
   const form = buildOptinForm(config, { prefill, compact });
+  if (ctaId && !preview) form.dataset.ctaId = String(ctaId); // lets the heatmap count how many viewers saw THIS form
+  // Bot traps: a hidden field people never see or fill, and how long the form was open. They go to onSubmit as `signals`
+  // (not as answers): the server drops submissions that fill the trap or finish faster than a person can.
+  const trap = document.createElement('input');
+  trap.type = 'text'; trap.dataset.trap = ''; trap.tabIndex = -1; trap.autocomplete = 'off'; trap.setAttribute('aria-hidden', 'true');
+  trap.style.cssText = 'position:absolute;left:-9999px;top:auto;width:1px;height:1px;opacity:0;pointer-events:none';
+  form.appendChild(trap);
+  // Optional Cloudflare Turnstile (only on published videos, and only when VITE_TURNSTILE_SITE_KEY is set).
+  const siteKey = preview ? '' : turnstileSiteKey();
+  let captcha = null;
+  if (siteKey) {
+    const box = document.createElement('div');
+    box.className = 'addon-optin__captcha';
+    const statusEl = form.querySelector('.addon-optin__status');
+    if (statusEl) statusEl.before(box); else form.appendChild(box);
+    captcha = mountTurnstile(box, siteKey);
+  }
+  const openedAt = Date.now();
+  const prefilled = Object.values(prefill || {}).some((v) => String(v || '').trim());
   wrap.appendChild(form);
 
   const hint = buildArrowHint(config);
@@ -591,26 +759,56 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
     onSkip?.();
   });
 
+  // ---- multi-step: show one group of boxes at a time
+  const stepsTotal = Number(form.dataset.steps || 0);
+  let step = 0;
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const finalLabel = submitBtn?.textContent;
+  const paintStep = () => {
+    form.querySelectorAll('[data-step]').forEach((n) => { n.hidden = Number(n.dataset.step) !== step; });
+    form.querySelectorAll('.optin-steps span').forEach((d, n) => d.classList.toggle('on', n === step));
+    const back = form.querySelector('.optin-back');
+    if (back) back.hidden = step === 0;
+    if (submitBtn) submitBtn.textContent = step < stepsTotal - 1 ? (config.nextText || 'Next') : finalLabel;
+    form.querySelector('[data-step]:not([hidden]) input, [data-step]:not([hidden]) select, [data-step]:not([hidden]) textarea')?.focus?.({ preventScroll: true });
+  };
+  const stepControls = (n) => Array.from(form.querySelectorAll(`[data-step="${n}"]`)).flatMap((node) => (node.matches('input,select,textarea') ? [node] : [...node.querySelectorAll('input,select,textarea')]));
+  if (stepsTotal > 1) {
+    paintStep();
+    form.querySelector('.optin-back')?.addEventListener('click', () => { if (step > 0) { step -= 1; form.querySelector('.addon-optin__status').textContent = ''; paintStep(); } });
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const status = form.querySelector('.addon-optin__status');
+    if (stepsTotal > 1) {
+      const bad = stepControls(step).find((el) => !el.checkValidity());
+      if (bad) { status.textContent = 'Please complete this step.'; bad.reportValidity?.(); return; }
+      if (step < stepsTotal - 1) { step += 1; status.textContent = ''; paintStep(); return; }
+      const anyBad = Array.from(form.elements).find((el) => el.willValidate && !el.checkValidity());
+      if (anyBad) { step = Number(anyBad.closest('[data-step]')?.dataset.step ?? step); paintStep(); status.textContent = 'Please complete all fields.'; return; }
+    }
     // Whitespace-only answers don't count for required fields.
-    const blank = Array.from(form.elements).find((el) => el.required && !String(el.value || '').trim());
+    const blank = Array.from(form.elements).find((el) => el.required && (el.type === 'checkbox' ? !el.checked : !String(el.value || '').trim()));
     if (blank) {
       status.textContent = 'Please complete all fields.';
       blank.focus?.({ preventScroll: true });
       return;
     }
+    if (captcha?.isReady() && !captcha.token()) { status.textContent = 'Please complete the verification.'; return; }
     const data = Object.fromEntries(new FormData(form).entries());
+    const signals = { hp: trap.value, ...(prefilled ? {} : { ms: Date.now() - openedAt }), ...(captcha?.token() ? { turnstile: captcha.token() } : {}) }; // prefilled answers can be sent at once
     const btn = form.querySelector('button[type="submit"]');
     btn.disabled = true;
     try {
-      const message = await onSubmit?.(data);
+      const message = await onSubmit?.(data, signals);
       status.textContent = message || '';
       clearTimeout(hintTimer);
       wrap.remove();
+      try { showThanks(layer, config, { allowRedirect, isActive }); } catch { /* the thank-you card is cosmetic; the lead is already saved */ }
     } catch (err) {
       btn.disabled = false;
+      captcha?.reset(); // a Turnstile token is single-use
       status.textContent = err?.message || 'Something went wrong — try again.';
     }
   });

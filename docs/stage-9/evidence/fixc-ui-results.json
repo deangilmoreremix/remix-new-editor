@@ -1,0 +1,241 @@
+{
+ "results": [
+  {
+   "ok": true,
+   "m": "baseline: the preview shows the clip (centre and corner are not black)"
+  },
+  {
+   "ok": true,
+   "m": "Path Mask opens with an \"Edit path on preview\" control"
+  },
+  {
+   "ok": true,
+   "m": "default ellipse mask: centre visible, corners masked out in the preview"
+  },
+  {
+   "ok": true,
+   "m": "preview overlay shows 4 anchor handles of the default path"
+  },
+  {
+   "ok": true,
+   "m": "before the drag the pixel right of the ellipse tip is masked"
+  },
+  {
+   "ok": true,
+   "m": "dragging an anchor on the preview widens the mask (pixel right of the old edge becomes visible)"
+  },
+  {
+   "ok": true,
+   "m": "Clear removes all points (mask off with < 3 points: picture is full again)"
+  },
+  {
+   "ok": true,
+   "m": "with fewer than 3 points the picture is not masked"
+  },
+  {
+   "ok": true,
+   "m": "Clear while editing switches the pen tool on"
+  },
+  {
+   "ok": true,
+   "m": "pen tool: five clicks on the preview create five anchors (got 5)"
+  },
+  {
+   "ok": true,
+   "m": "pentagon mask: inside visible, outside black"
+  },
+  {
+   "ok": true,
+   "m": "pen: a click-drag adds a 6th point (with bezier handles)"
+  },
+  {
+   "ok": true,
+   "m": "the selected (new) anchor shows its in / out handles"
+  },
+  {
+   "ok": true,
+   "m": "Delete point removes the selected anchor"
+  },
+  {
+   "ok": true,
+   "m": "Invert flips the mask (inside is now only the overlay tint, outside shows the picture)"
+  },
+  {
+   "ok": true,
+   "m": "animated mask point: at 4 s the top tip has moved away (pixel above the old tip is masked)"
+  },
+  {
+   "ok": true,
+   "m": "animated mask point: at 1 s the top tip is back (pixel above it is visible)"
+  },
+  {
+   "ok": true,
+   "m": "inspector offers \"Clear point keys\" while points are animated"
+  },
+  {
+   "ok": true,
+   "m": "corner pin: four draggable corner handles on the preview"
+  },
+  {
+   "ok": true,
+   "m": "identity pin leaves the picture as it was"
+  },
+  {
+   "ok": true,
+   "m": "dragging the top-left corner inwards cuts the corner (black), the rest stays"
+  },
+  {
+   "ok": true,
+   "m": "dragging the bottom-right corner cuts that corner too"
+  },
+  {
+   "ok": true,
+   "m": "corner pin corners are keyframeable: at 4 s the top-right corner has moved in (pixel near the old corner is black)"
+  },
+  {
+   "ok": true,
+   "m": "corner pin corners are keyframeable: at 1 s the corner is back (pixel near it is visible)"
+  },
+  {
+   "ok": true,
+   "m": "picture without effects before the curves test"
+  },
+  {
+   "ok": true,
+   "m": "Curves shows the draggable curve editor"
+  },
+  {
+   "ok": true,
+   "m": "the five old sliders are no longer listed"
+  },
+  {
+   "ok": true,
+   "m": "default curve = identity (mean colour unchanged)"
+  },
+  {
+   "ok": true,
+   "m": "clicking the plot adds a point"
+  },
+  {
+   "ok": true,
+   "m": "raising the black point lifts the blacks (preview gets brighter)"
+  },
+  {
+   "ok": true,
+   "m": "master curve: black point 0 -> 0.4 brightens the preview (green mean 146.8 -> 177.9)"
+  },
+  {
+   "ok": true,
+   "m": "red curve lowered to zero"
+  },
+  {
+   "ok": true,
+   "m": "the red channel curve lowers only red (R 172.7 -> 0.0, G 177.9 -> 177.9)"
+  },
+  {
+   "ok": true,
+   "m": "double-clicking a point removes it"
+  },
+  {
+   "ok": true,
+   "m": "Night Vision lists a colour picker for its phosphor tint"
+  },
+  {
+   "ok": true,
+   "m": "night vision is green by default"
+  },
+  {
+   "ok": true,
+   "m": "night vision tint recoloured"
+  },
+  {
+   "ok": true,
+   "m": "changing the tint colour recolours the preview (default green dominant, #ff2020 red dominant)"
+  },
+  {
+   "ok": true,
+   "m": "Gradient Map offers colour swatches for its three stops"
+  },
+  {
+   "ok": true,
+   "m": "picking a stop colour writes the HSV sliders (mid hue 330 -> 140, expected ~138)"
+  },
+  {
+   "ok": true,
+   "m": "saved project: the three effects are in Clip.fx in order"
+  },
+  {
+   "ok": true,
+   "m": "saved project: mask path (4 vertices), corner values and curve_r arrays are stored in the clip"
+  },
+  {
+   "ok": true,
+   "m": "saved project: animated mask anchors are stored in Clip.anim (stage1_json)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: exported file is h264 (h264) 1920x1080"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: the saved project holds animated mask anchors in Clip.anim (8 keyed properties)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: t=1.0s: 100.0% of the pixels that should show the (mask + pin) region are visible"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: t=1.0s: 100.0% of the pixels outside the masked / pinned region are black"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: t=1.0s: curve killed the red channel inside the region (mean R 0.2)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: t=1.0s: green inside correlates with the source frame mapped through the inverse corner-pin homography (Pearson r 0.995)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: t=1.0s: horizontal extent of the visible region (0.334, 0.649) matches the expected (0.335, 0.648)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: t=4.4s: 100.0% of the pixels that should show the (mask + pin) region are visible"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: t=4.4s: 100.0% of the pixels outside the masked / pinned region are black"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: t=4.4s: curve killed the red channel inside the region (mean R 0.4)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: t=4.4s: green inside correlates with the source frame mapped through the inverse corner-pin homography (Pearson r 0.993)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: t=4.4s: horizontal extent of the visible region (0.334, 0.534) matches the expected (0.335, 0.533)"
+  },
+  {
+   "ok": true,
+   "m": "EXPORT: the animated mask anchors move the right edge between the two exported frames (0.649 -> 0.534)"
+  },
+  {
+   "ok": true,
+   "m": "after reload the stored clip row (fx_json + stage1_json) is byte-identical"
+  },
+  {
+   "ok": true,
+   "m": "reloaded project: the path mask opens with its 4 anchors and its animated points"
+  },
+  {
+   "ok": true,
+   "m": "no page errors during the UI run []"
+  }
+ ],
+ "failed": 0
+}

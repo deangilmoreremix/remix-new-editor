@@ -1,12 +1,13 @@
 import './style.css';
 import './components/modals/modal-styles.css';
+import './styles/outline-buttons.css';
 
 // Popcorn.JS — initialize as early as possible (ESM init replicating
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
 // real error surfaces in the dev-tools console if any step fails.
 import { initPopcorn } from './lib/popcornInit.js';
-const IS_WATCH_PAGE = /^\/(watch|v)\//.test(window.location.pathname) || /^#\/(watch|v)\//.test(window.location.hash);
-// The public video player (/watch/<id>) doesn't use Popcorn.
+const IS_WATCH_PAGE = /^\/(watch|v|p)\//.test(window.location.pathname) || /^#\/(watch|v|p)\//.test(window.location.hash);
+// The public video player (/watch/<id>, /v/<business>/<slug>) and landing pages (/p/<slug>) don't use Popcorn.
 (IS_WATCH_PAGE ? Promise.resolve(null) : initPopcorn()).then(() => {
   if (IS_WATCH_PAGE) return;
   console.log('[popcorn]', typeof window.Popcorn, Object.keys(window.Popcorn.registryByName || {}).length);
@@ -89,6 +90,11 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
+// Notification clicks from the service worker (Web Push): open the owner's alerts like the header bell does.
+import { installPushMessageListener, consumeAlertsMarker } from './lib/push/openAlerts.js';
+installPushMessageListener();
+consumeAlertsMarker();
+
 // Visibility change handler - pause/resume operations when tab is hidden
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -135,6 +141,10 @@ try {
     if (hashPage) initialPage = hashPage;
   }
 
+  // A business's own domain (netlify/edge-functions/custom-domain.js): videos.acme.com/intro opens /v/acme/intro.
+  const customRoute = document.querySelector('meta[name="sv-route"]')?.getAttribute('content');
+  if (customRoute && /^v\/[a-z0-9-]+\/[a-z0-9-]+$/.test(customRoute)) initialPage = customRoute;
+
   // Handle studio query param
   const studioParam = new URLSearchParams(window.location.search).get('studio');
   if (studioParam) {
@@ -150,11 +160,29 @@ try {
     return;
   }
 
+  // Public studio feature guides (/studios, /studios/<slug>): no app shell,
+  // no sign-in. Prerendered to static HTML at build time for SEO.
+  const guidePath = initialPage.split(/[?#]/)[0].replace(/\/+$/, '');
+  if (guidePath === 'studios' || /^studios\/[a-z0-9-]+$/.test(guidePath)) {
+    const { mountGuidePage } = await import('./components/guides/mountGuidePage.js');
+    mountGuidePage(app, guidePath.slice('studios/'.length));
+    console.log('[App] Studio guide rendered');
+    return;
+  }
+
   // Public interactive video player (/watch/<id>): no app shell, no sign-in.
   if (initialPage.startsWith('watch/')) {
     const { mountWatchPage } = await import('./pages/WatchPage.jsx');
     await mountWatchPage(app, decodeURIComponent(initialPage.slice('watch/'.length).split(/[/?#]/)[0]));
     console.log('[App] Watch page rendered');
+    return;
+  }
+
+  // Public video landing page (/p/<slug>): no app shell, no sign-in.
+  if (initialPage.startsWith('p/')) {
+    const { mountVideoPage } = await import('./pages/VideoPage.jsx');
+    await mountVideoPage(app, decodeURIComponent(initialPage.slice('p/'.length).split(/[/?#]/)[0]));
+    console.log('[App] Video landing page rendered');
     return;
   }
 

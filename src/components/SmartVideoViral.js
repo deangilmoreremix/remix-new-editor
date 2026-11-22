@@ -450,7 +450,7 @@ export function SmartVideoViral() {
     <div class="flex flex-col sm:flex-row gap-3 items-stretch py-3">
       <div class="relative flex-1">
         <input id="viral-search" type="text" placeholder="Search prompts, tags, or authors… (press /)"
-          class="w-full bg-[#111]/90 border border-zinc-700/80 rounded-xl px-4 py-2.5 pl-10 text-sm text-zinc-200 placeholder-zinc-400 focus:border-primary focus:outline-none transition-all" />
+          class="w-full bg-card-bg/90 border border-zinc-700/80 rounded-xl px-4 py-2.5 pl-10 text-sm text-zinc-200 placeholder-zinc-400 focus:border-primary focus:outline-none transition-all" />
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="7"/><line x1="15" y1="15" x2="19" y2="19"/></svg>
       </div>
       <div class="flex gap-1 bg-white/5 border border-zinc-700/80 rounded-xl p-1" id="viral-media-filter">
@@ -458,13 +458,13 @@ export function SmartVideoViral() {
         <button data-mt="image" class="media-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-zinc-200 hover:text-white">Images</button>
         <button data-mt="video" class="media-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-zinc-200 hover:text-white">Videos</button>
       </div>
-      <select id="viral-category" class="bg-[#111]/90 border border-zinc-700/80 rounded-xl px-3 py-2 text-sm text-zinc-200 focus:border-primary focus:outline-none appearance-none min-w-[140px]">
+      <select id="viral-category" class="bg-card-bg/90 border border-zinc-700/80 rounded-xl px-3 py-2 text-sm text-zinc-200 focus:border-primary focus:outline-none appearance-none min-w-[140px]">
         <option value="all">All Categories</option>
       </select>
-      <select id="viral-model" class="bg-[#111]/90 border border-zinc-700/80 rounded-xl px-3 py-2 text-sm text-zinc-200 focus:border-primary focus:outline-none appearance-none min-w-[120px]">
+      <select id="viral-model" class="bg-card-bg/90 border border-zinc-700/80 rounded-xl px-3 py-2 text-sm text-zinc-200 focus:border-primary focus:outline-none appearance-none min-w-[120px]">
         <option value="all">All Models</option>
       </select>
-      <select id="viral-sort" class="bg-[#111]/90 border border-zinc-700/80 rounded-xl px-3 py-2 text-sm text-zinc-200 focus:border-primary focus:outline-none min-w-[120px]">
+      <select id="viral-sort" class="bg-card-bg/90 border border-zinc-700/80 rounded-xl px-3 py-2 text-sm text-zinc-200 focus:border-primary focus:outline-none min-w-[120px]">
         <option value="fresh">Newest First</option>
         <option value="engagement">Most Popular</option>
         <option value="likes">Most Likes</option>
@@ -581,7 +581,7 @@ export function SmartVideoViral() {
     const isVideo = item.mediaType === 'video';
     return `
       <div class="viral-rail-item w-64 flex-shrink-0" role="listitem">
-         <div class="smart-card group bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all cursor-pointer" data-rail-item-id="${item.imglumeId}">
+         <div class="smart-card group bg-card-bg/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden transition-all cursor-pointer" data-rail-item-id="${item.imglumeId}">
           <div class="relative aspect-[3/2] overflow-hidden bg-black/30">
             ${thumb ? `<img src="${escapeHtml(thumb)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="" loading="lazy"/>` : fallbackPlaceholder()}
             ${isVideo ? `<span class="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-400/20 text-purple-300">Video</span>` : ''}
@@ -606,7 +606,7 @@ export function SmartVideoViral() {
     const color = PROVIDER_COLORS[model] || 'bg-white/5 text-zinc-400';
     return `
       <div class="viral-rail-item w-28 flex-shrink-0 text-center">
-        <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-3 hover:border-primary/30 transition-all">
+        <div class="bg-card-bg/80 border border-white/10 rounded-2xl p-3 hover:border-primary/30 transition-all">
           <span class="inline-flex items-center justify-center w-10 h-10 rounded-full ${color} text-xs font-black mx-auto mb-2">${escapeHtml(model.slice(0, 2).toUpperCase())}</span>
           <p class="text-[10px] text-zinc-400 font-bold truncate">${escapeHtml(model)}</p>
           <p class="text-[10px] text-zinc-500">${count} prompts</p>
@@ -1154,19 +1154,19 @@ export function SmartVideoViral() {
         </div>
         <div>
           <label class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1 block">Category</label>
-          <select id="sheet-category" class="w-full bg-[#111]/90 border border-zinc-700/80 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:border-primary focus:outline-none">
+          <select id="sheet-category" class="w-full bg-card-bg/90 border border-zinc-700/80 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:border-primary focus:outline-none">
             <option value="all">All Categories</option>
           </select>
         </div>
         <div>
           <label class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1 block">Model</label>
-          <select id="sheet-model" class="w-full bg-[#111]/90 border border-zinc-700/80 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:border-primary focus:outline-none">
+          <select id="sheet-model" class="w-full bg-card-bg/90 border border-zinc-700/80 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:border-primary focus:outline-none">
             <option value="all">All Models</option>
           </select>
         </div>
         <div>
           <label class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1 block">Sort</label>
-          <select id="sheet-sort" class="w-full bg-[#111]/90 border border-zinc-700/80 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:border-primary focus:outline-none">
+          <select id="sheet-sort" class="w-full bg-card-bg/90 border border-zinc-700/80 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:border-primary focus:outline-none">
             <option value="fresh">Newest First</option>
             <option value="engagement">Most Popular</option>
             <option value="likes">Most Likes</option>

@@ -1,16 +1,13 @@
-// Projects, publishing and first-party analytics: real-browser checks for a deployed environment.
+// First-party analytics (hosted player, needs a public video URL) and the CineGen Publish tab (runs against the local dev server).
 //
 //   E2E_BASE_URL=https://<deploy-preview> \
 //   E2E_PUBLIC_VIDEO_URL=https://<deploy-preview>/v/<business>/<slug>     (a published public video; no sign-in)
-//   E2E_AUTH_STATE=path/to/playwright-storage-state.json                  (a signed-in editor session; optional)
 //   npx playwright test tests/e2e/projects-analytics.spec.js
 //
-// Player tests need only the public URL. Projects UI tests need a signed-in storage state and are skipped without one.
-// (The local Postgres harness in tests/browser-harness/projects-analytics covers the same flows with a SQL bridge.)
+// The Publish tab tests run against the local dev server (npm run dev) and need no sign-in.
 import { test, expect } from '@playwright/test';
 
 const PUBLIC_URL = process.env.E2E_PUBLIC_VIDEO_URL;
-const AUTH_STATE = process.env.E2E_AUTH_STATE;
 
 test.describe('hosted player analytics (public)', () => {
   test.skip(!PUBLIC_URL, 'set E2E_PUBLIC_VIDEO_URL to a published public video');
@@ -48,51 +45,63 @@ test.describe('hosted player analytics (public)', () => {
   });
 });
 
-test.describe('Projects (signed in)', () => {
-  test.skip(!AUTH_STATE, 'set E2E_AUTH_STATE to a signed-in Playwright storage state');
-  test.use({ storageState: AUTH_STATE });
-
-  test.beforeEach(async ({ page }) => {
+// The Publish tab of the CineGen editor (#/timeline). It needs no sign-in to open: the pages that need an account or a provider key
+// show a plain reason instead of failing, and that is what these checks pin. Real posting / MailerLite / Kit sends are NOT driven here.
+test.describe('CineGen Publish tab', () => {
+  async function openPublish(page) {
     await page.addInitScript(() => { try { sessionStorage.setItem('setup_popup_shown', '1'); } catch { /* ignore */ } });
-    await page.goto('/#/timeline-classic', { waitUntil: 'domcontentloaded' });
-    await page.locator('.floating-rail').waitFor({ timeout: 30000 });
-    await page.locator('.floating-rail').getByRole('button', { name: /Projects/ }).first().click();
-    await expect(page.locator('#projectsPanel')).toBeVisible();
+    await page.goto('/#/timeline', { waitUntil: 'domcontentloaded' });
+    const skip = page.getByRole('button', { name: 'Skip for now' });
+    await skip.waitFor({ timeout: 8000 }).then(() => skip.click()).catch(() => {});
+    await page.evaluate(() => document.querySelectorAll('div.fixed.inset-0').forEach((e) => { if (/API keys/.test(e.innerText)) e.remove(); })).catch(() => {});
+    const newProject = page.locator('.pm-bottombar__btn', { hasText: 'New Project' });
+    const reachable = await newProject.waitFor({ timeout: 60000 }).then(() => true).catch(() => false);
+    test.skip(!reachable, 'Project Manager is not reachable in this environment');
+    await newProject.click();
+    await page.getByPlaceholder('Project name...').fill(`E2E ${Date.now()}`);
+    await page.getByRole('button', { name: 'Create', exact: true }).click();
+    await page.locator('.top-nav__tab', { hasText: /^\s*Publish\s*$/i }).click();
+    await expect(page.getByTestId('publish-tab')).toBeVisible({ timeout: 20000 });
+  }
+  const sub = (page, name) => page.getByTestId('publish-tab').getByRole('tab', { name }).or(page.getByTestId('publish-tab').getByRole('button', { name })).first();
+
+  test('the old Leads tab is now "Publish" with Share & Leads, Social, Contacts and Email', async ({ page }) => {
+    await openPublish(page);
+    for (const name of [/Share & Leads/, /Social/, /Contacts/, /Email/]) await expect(sub(page, name)).toBeVisible();
   });
 
-  test('lists projects with real figures or "—" (never placeholder numbers)', async ({ page }) => {
-    await expect(page.locator('.prj-title, .prj-empty').first()).toBeVisible();
-    const text = await page.locator('#projectsPanel').innerText();
-    expect(text).not.toMatch(/12\.8K|1,245|\b86 leads\b/); // numbers from the design concept must never appear as data
+  test('Contacts: importing a CSV lists good rows, skips bad and duplicate ones, and exports', async ({ page }) => {
+    await openPublish(page);
+    await sub(page, /Contacts/).click();
+    const csv = 'email,name\nann@example.com,Ann\nnot-an-email,Bad\nANN@example.com,Ann again\nbo@example.com,Bo\n';
+    await page.getByTestId('contacts-file').setInputFiles({ name: 'c.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) });
+    await expect(page.getByTestId('contact-row')).toHaveCount(2, { timeout: 10000 });
+    await expect(page.getByTestId('contacts-note')).toContainText(/skipped|duplicate|invalid/i);
+    await expect(page.getByTestId('contacts-export')).toBeEnabled();
+    await page.reload({ waitUntil: 'domcontentloaded' }); // imported contacts live in this browser
   });
 
-  test('create, rename, duplicate and delete a project', async ({ page }) => {
-    const name = `E2E ${Date.now()}`;
-    page.once('dialog', (d) => d.accept(name));
-    await page.locator('.prj-new').click();
-    await expect(page.locator('.prj-card', { hasText: name })).toHaveCount(1, { timeout: 15000 });
-    await page.locator('.prj-card', { hasText: name }).getByRole('button', { name: /duplicate/i }).click();
-    await expect(page.locator('.prj-card', { hasText: `${name} (copy)` }).or(page.locator('.prj-card', { hasText: /copy/i }))).not.toHaveCount(0, { timeout: 15000 });
-    page.on('dialog', (d) => d.accept());
-    for (const label of [`${name} (copy)`, name]) {
-      const card = page.locator('.prj-card', { hasText: label }).first();
-      if (await card.count()) await card.getByRole('button', { name: /delete/i }).click();
-    }
+  test('Email: without a MailerLite token Send stays blocked and says why', async ({ page }) => {
+    await openPublish(page);
+    await sub(page, /Email/).click();
+    await expect(page.getByTestId('publish-email')).toBeVisible();
+    await expect(page.getByTestId('email-send')).toBeDisabled();
+    await expect(page.getByTestId('email-blocker')).not.toBeEmpty();
   });
 
-  test('analytics tab opens and shows loading, data or an honest empty state', async ({ page }) => {
-    const card = page.locator('.prj-card').first();
-    test.skip((await card.count()) === 0, 'no projects in this account');
-    await card.click();
-    await page.locator('.prj-tabs').getByRole('tab', { name: 'Analytics' }).click();
-    await expect(page.locator('#projectsPanel')).toContainText(/Video plays|not published|No video|Publish/i, { timeout: 20000 });
+  test('Social: opens, and shows a sign-in or no-video note instead of an empty page', async ({ page }) => {
+    await openPublish(page);
+    await sub(page, /Social/).click();
+    await expect(page.getByTestId('publish-tab')).toContainText(/Social|Your exports|Media pool|Template videos|Sign in|Render/i);
   });
 
-  test('notifications tab lists alerts and can mark them read', async ({ page }) => {
-    const card = page.locator('.prj-card').first();
-    test.skip((await card.count()) === 0, 'no projects in this account');
-    await card.click();
-    await page.locator('.prj-tabs').getByRole('tab', { name: 'Notifications' }).click();
-    await expect(page.locator('#projectsPanel')).toContainText(/email delivery requires configuration|No alerts|alert/i, { timeout: 15000 });
+  test('the Publish tab is lime and the sub-tab choice is remembered', async ({ page }) => {
+    await openPublish(page);
+    await sub(page, /Contacts/).click();
+    const accent = await page.getByTestId('publish-tab').evaluate((el) => getComputedStyle(el).getPropertyValue('--accent').trim());
+    expect(accent.toLowerCase()).toBe('#d9ff00');
+    expect(await page.evaluate(() => localStorage.getItem('cinegen_publish_sub'))).toBe('contacts');
+    const under = await page.locator('.top-nav__tab--publish').evaluate((el) => getComputedStyle(el).borderBottomColor);
+    expect(under).toMatch(/^rgba?\(217, 255, 0/); // lime (a later rule may add a little transparency)
   });
 });

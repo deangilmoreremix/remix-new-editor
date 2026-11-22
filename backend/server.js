@@ -21,6 +21,7 @@ import pixabayProxyService from './services/pixabayProxyService.js';
 import giphyProxyService from './services/giphyProxyService.js';
 import templateService from './services/templateService.js';
 import openmontageProxy from './services/openmontageProxy.js';
+import { installVidBee } from './services/vidbeeProxy.js';
 import { auth, optionalAuth } from './middleware/auth.js';
 import chatRouter from './routes/chat.js';
 import setupChatWebSocket from './websocket/chat.js';
@@ -30,7 +31,9 @@ import setupChatWebSocket from './websocket/chat.js';
   app.set('trust proxy', 1);
  
  // Middleware
- app.use(cors());
+ // Media Hub (vendored upstream VidBee): installVidBee mounts the credentialed session route, then the global cors(), then the proxy
+// (before the body parsers, so request streams pass through untouched). The order matters; see backend/services/vidbeeProxy.js.
+installVidBee(app, { auth, cors: cors() });
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 

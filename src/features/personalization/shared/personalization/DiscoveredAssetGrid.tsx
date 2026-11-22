@@ -188,7 +188,7 @@ export function DiscoveredAssetThumb({
           type="button"
           onClick={(e) => { e.stopPropagation(); onEdit?.() }}
           className="absolute right-1 top-6 z-20 rounded-md px-1.5 py-1 text-[7px] font-black uppercase"
-          style={{ background: 'rgba(217,255,0,.92)', color: '#000000' }}
+          style={{ background: 'rgba(0,0,0,.72)', border: `1px solid ${C.cyan}`, color: C.cyan }}
           aria-label="Edit discovered image"
         >
           {EDIT_WITH_AI}
@@ -441,7 +441,7 @@ export function DiscoveredAssetLightbox({
           {asset.selected ? 'Selected ✓' : 'Select'}
         </button>
         {canEdit && (
-          <button type="button" onClick={() => { onClose(); onEdit?.(asset) }} style={{ ...actionStyle, background: C.cyan, color: '#000000', borderColor: C.cyan }}>
+          <button type="button" onClick={() => { onClose(); onEdit?.(asset) }} style={{ ...actionStyle, background: 'transparent', color: C.cyan, borderColor: C.cyan }}>
             {EDIT_WITH_AI}
           </button>
         )}
@@ -592,7 +592,7 @@ export function BackgroundRemovalBar({ assets, cutout }: { assets: DiscoveredAss
             locally and are not uploaded. On mobile data this may use a lot of your plan.
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button type="button" onClick={cutout.grantConsent} style={{ ...barButton, background: C.cyan, color: '#000000', borderColor: C.cyan }}>
+            <button type="button" onClick={cutout.grantConsent} style={{ ...barButton, background: 'transparent', color: C.cyan, borderColor: C.cyan }}>
               Download &amp; remove
             </button>
             <button type="button" onClick={cutout.declineConsent} style={barButton}>Not now</button>
@@ -639,11 +639,11 @@ export function DiscoveredAssetGrid({
   onDragEnd?: (e: DragEvent) => void
   /** Drop targets rendered under the grid; used where the page has none of its own. */
   dropZones?: DiscoveredAssetDropZone[]
-  onDropToSection?: (id: string, section: AssignedSection) => void
   /** On-device background removal (auto queue + manual controls). Omitted = feature off. */
   cutout?: AutoCutoutControls
   /** Save one asset to the project's assets from the viewer. */
   onSaveToAssets?: (id: string) => void | Promise<unknown>
+  onDropToSection?: (id: string, section: AssignedSection) => void
   /** Show at most this many per category, with "Show more" (omitted: show all). */
   pageSize?: number
 }) {

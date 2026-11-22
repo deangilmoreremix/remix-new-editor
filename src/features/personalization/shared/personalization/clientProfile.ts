@@ -58,6 +58,7 @@ export function createClient(partial: Partial<ClientProfile>): ClientProfile {
     phone: partial.phone || '',
     website: partial.website || '',
     brandDescription: partial.brandDescription || '',
+    ...(partial.brandColors && (partial.brandColors.primary || partial.brandColors.accent) ? { brandColors: { ...partial.brandColors } } : {}),
     createdAt: now,
     updatedAt: now,
   }

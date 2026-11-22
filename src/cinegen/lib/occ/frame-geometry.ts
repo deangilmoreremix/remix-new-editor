@@ -4,7 +4,8 @@
 // fit / position / crop / fill from here, so a clip is framed the same way in both.
 import { renderedVisualFrameRect, type VisualFrameRect } from '../../../openchatcut/editor/visualFrameGeometry';
 import { backgroundFillAppearance } from '../../../openchatcut/editor/backgroundFill';
-import { clipTransformCss, clipTransformClipPath, fillCss, type ClipTransform } from './transform';
+import { fillCss, type ClipTransform } from './transform';
+import { clipPoseCss, type ClipAnim } from '../editor/stage2/anim';
 
 export type Fit = 'contain' | 'cover';
 /** Timelines saved before fit existed (no `Timeline.fit`) keep the Cover framing they always exported — preview and export both use it. */
@@ -41,7 +42,7 @@ export interface ResolvedGeometry {
 }
 
 export function resolveGeometry(
-  clip: { transform?: ClipTransform | null },
+  clip: { transform?: ClipTransform | null; anim?: ClipAnim | null },
   project: { fit?: Fit } | null | undefined,
   tSeconds: number,
   frame: { width: number; height: number },
@@ -52,8 +53,7 @@ export function resolveGeometry(
   const css = fillCss(tr, frame.width, frame.height);
   return {
     fit,
-    transform: clipTransformCss(tr, tSeconds),
-    clipPath: clipTransformClipPath(tr),
+    ...(({ transform, clipPath }) => ({ transform, clipPath }))(clipPoseCss({ transform: tr, anim: clip.anim }, tSeconds)), // [remix] Stage 2: keys + modifiers
     rect: renderedVisualFrameRect(frame, source, fit),
     fill: css && tr?.fill !== undefined ? { ...css, blurPx: backgroundFillAppearance(frame.width, frame.height, tr.fill).blurPx } : undefined,
   };

@@ -3,6 +3,7 @@
  * plugins. Each descriptor documents the upstream file it replaces.
  */
 import { registerAddon } from './registry.js';
+import { CTA_LINK_FIELDS, CTA_LINK_DEFAULTS } from './ctaLink.js';
 
 // Toolbar labels, icons and sections match upstream
 // lib/generators/toolbarItemsGenerator.js: "Video Controls" (Skip, Pause,
@@ -103,7 +104,19 @@ export const LEAD_FORM = registerAddon({
     webhookUrl: '',
     emailNotificationEnabled: false,
     notificationEmail: '',
+    notificationEmail2: '',
+    notificationEmail3: '',
     fbPixelId: '',
+    gaMeasurementId: '',
+    tiktokPixelId: '',
+    gtmId: '',
+    espProvider: '',
+    espListId: '',
+    blockDisposableEmails: false,
+    successMessage: 'Thanks!',
+    afterSubmitAction: 'continue',
+    afterSubmitUrl: '',
+    afterSubmitButtonText: '',
     style: {
       fontFamily: 'Raleway',
       backgroundColor: '#000000',
@@ -142,8 +155,42 @@ export const CTA_BUTTON = registerAddon({
   defaults: () => ({ phoneNumber: '', linkUrl: '', buttonText: 'Call Now', animation: 'pulse', fontFamily: 'Montserrat', textColor: '#ffffff', lottieSrc: '', callNotifyAddress: '', style: { buttonColor: '#eb5054' } }),
 });
 
+// Hotspot: an invisible clickable area over the video for a stretch of time.
+// It does nothing in the editor or in an MP4 (nothing to click); on the
+// published player a viewer's click opens a link, starts a call or jumps to
+// another point in the video, and is recorded as an `overlay_click` event.
+const hotspotOnly = (field, when) => ({ ...field, showIf: (o) => when(o) && (field.showIf ? field.showIf(o) : true) });
+export const HOTSPOT = registerAddon({
+  type: 'addon-hotspot',
+  label: 'Hotspot',
+  icon: '🎯',
+  iconSrc: ICON('call-to-action'),
+  section: 'Video Controls',
+  description: 'A clickable area on the video for viewers: open a link, call a number, or jump to another point. Works on the published link, not in a downloaded MP4.',
+  defaultDuration: 5,
+  timing: ['start', 'end'],
+  positioned: true,
+  editorOverlay: true, // drawn as a movable box in the editor (see overlayRender.js buildPlaceholder)
+  defaults: () => ({
+    label: '',
+    action: 'link',
+    ...CTA_LINK_DEFAULTS,
+    seekTime: 0,
+    highlight: false,
+    geometry: { left: 35, top: 35, width: 30, height: 30 },
+  }),
+  fields: [
+    { key: 'label', label: 'Label (shown in analytics)', type: 'text', placeholder: 'e.g. Book a demo' },
+    { key: 'action', label: 'When clicked', type: 'select', options: [['link', 'Open a link or call a number'], ['seek', 'Jump to a point in the video']] },
+    ...CTA_LINK_FIELDS().map((f) => hotspotOnly(f, (o) => o.action !== 'seek')),
+    { key: 'seekTime', label: 'Jump to (seconds)', type: 'range', min: 0, max: 600, step: 1, showIf: (o) => o.action === 'seek' },
+    { key: 'highlight', label: 'Show an outline on the video', type: 'toggle' },
+  ],
+  summary: (o) => (o.label ? `Hotspot: ${o.label}` : o.action === 'seek' ? `Hotspot: jump to ${Number(o.seekTime) || 0}s` : 'Hotspot'),
+});
+
 // Upstream order within each toolbar section.
-export const INTERACTIVE_ADDONS = [SKIP, PAUSE, LOOP, LEAD_FORM, CTA_BUTTON];
+export const INTERACTIVE_ADDONS = [SKIP, PAUSE, LOOP, HOTSPOT, LEAD_FORM, CTA_BUTTON];
 
 /** Project-level forms (not clips), shown in the Lead Generation section. */
 export const PROJECT_FORMS = [

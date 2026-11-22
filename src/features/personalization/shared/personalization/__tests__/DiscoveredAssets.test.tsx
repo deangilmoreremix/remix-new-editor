@@ -1249,6 +1249,54 @@ describe('Discovered Assets Integration', () => {
     expect(ctx().businessSearchMode).toBe('results')
   })
 
+  it('selecting a business fills EMPTY email/social fields from its website, never a typed or OSM value, and drops a stale answer', async () => {
+    await renderProvider()
+    await openSource()
+    const enrichment = (site: string) => ({
+      website: site, emails: [{ value: 'hi@acme.example', sourceUrl: `${site}/contact`, confidence: 0.95, method: 'mailto' }],
+      phones: [{ value: '(813) 555-0199', sourceUrl: site, confidence: 0.9, method: 'tel' }], addresses: [], contactNames: [],
+      socials: { instagram: { value: 'https://instagram.com/acme', sourceUrl: site, confidence: 0.85, method: 'footer-link' } },
+      pagesVisited: [site], pagesSkipped: [], robots: { checked: true, status: 'allow-all' }, jsRendered: false, notes: [],
+    })
+    let release: () => void = () => {}
+    const gate = new Promise<void>((r) => { release = r })
+    const baseFetch = (globalThis as any).fetch
+    const calls: string[] = []
+    ;(globalThis as any).fetch = vi.fn(async (url: string, options?: any) => {
+      if (typeof url === 'string' && url.includes('/api/personalization/enrich-business')) {
+        const body = JSON.parse(options.body); calls.push(body.businesses[0].id)
+        if (body.businesses[0].id === 'slow') await gate
+        return { ok: true, status: 200, json: async () => ({ results: [{ id: body.businesses[0].id, ok: true, enrichment: enrichment(body.businesses[0].website) }] }) } as any
+      }
+      return baseFetch(url, options)
+    })
+    const ctx = () => (window as any).__personalizationCtx
+
+    // OSM phone already present → it must win over the website's phone.
+    await act(async () => { ctx().selectBusiness({ id: 'b1', name: 'Acme', phone: '727-555-0000', website: 'https://acme.example' }) })
+    await vi.waitFor(() => expect(ctx().clientForm.email).toBe('hi@acme.example'))
+    expect(ctx().clientForm.phone).toBe('727-555-0000')
+    expect(ctx().clientForm.instagram).toBe('https://instagram.com/acme')
+    expect(ctx().contactSources.email.sourceUrl).toBe('https://acme.example/contact')
+
+    // A different business clears what was auto-filled for the previous one.
+    await act(async () => { ctx().selectBusiness({ id: 'b2', name: 'Other', website: '' }) })
+    expect(ctx().clientForm.email || '').toBe('')
+    expect(ctx().clientForm.instagram || '').toBe('')
+
+    // A slow answer that arrives after the user moved on is dropped.
+    await act(async () => { ctx().selectBusiness({ id: 'slow', name: 'Slow', website: 'https://slow.example' }) })
+    await act(async () => { ctx().selectBusiness({ id: 'b3', name: 'Third', website: '' }) })
+    await act(async () => { release(); await Promise.resolve() })
+    expect(ctx().clientForm.email || '').toBe('')
+
+    // The user can remove a found value.
+    await act(async () => { ctx().selectBusiness({ id: 'b1', name: 'Acme', website: 'https://acme.example' }) })
+    await vi.waitFor(() => expect(ctx().clientForm.email).toBe('hi@acme.example'))
+    await act(async () => { ctx().clearContactValue('email') })
+    expect(ctx().clientForm.email).toBe('')
+  })
+
   it('closing the project clears the business selection and search for the next one', async () => {
     await renderProvider()
     await openSource()
