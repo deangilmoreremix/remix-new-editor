@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { defaultDraft, loadDraft, siteStatus, backgroundProblems, onMissingOf, campaignLinks, SITE_ERROR } from '../draft.js';
+import { defaultDraft, loadDraft, siteStatus, backgroundProblems, onMissingOf, campaignLinks, SITE_ERROR, RESTRICTED_ERROR, siteKey, siteErrorFor, guessMapping } from '../draft.js';
 
 const draft = (onMissing) => ({
   ...defaultDraft(),
@@ -40,5 +40,23 @@ describe('website background error handling', () => {
     const d = loadDraft(storage);
     expect(d.siteErrors).toEqual({ 'https://broken.example/': SITE_ERROR });
     expect(d.background.onMissing).toBe('error');
+  });
+  it('keys social links by their profile page, like the server', () => {
+    expect(siteKey('youtube.com/@NASA/videos')).toBe('https://www.youtube.com/@NASA');
+    expect(siteKey('https://www.tiktok.com/@nasa?lang=en')).toBe('https://www.tiktok.com/@nasa');
+    expect(siteKey('facebook.com/AcmePizza/about')).toBe('https://www.facebook.com/AcmePizza');
+    expect(siteKey('https://twitter.com/acme/status/1')).toBe('https://x.com/acme');
+    expect(siteKey('youtube.com')).toBeNull();
+    expect(siteKey('acme.com/pricing')).toBe('https://acme.com/');
+    expect(siteKey('https://www.linkedin.com/in/jane/')).toBe('https://www.linkedin.com/in/jane');
+  });
+  it('shows the server message for a login wall', () => {
+    const d = { ...draft(), siteErrors: { 'https://www.facebook.com/AcmePizza': RESTRICTED_ERROR } };
+    expect(siteErrorFor(d, { website: 'https://facebook.com/AcmePizza' })).toBe(RESTRICTED_ERROR);
+    expect(siteErrorFor(d, { website: 'https://broken.example' })).toBe(SITE_ERROR);
+  });
+  it('maps social page columns to the website field', () => {
+    expect(guessMapping(['Name', 'YouTube']).website).toBe('YouTube');
+    expect(guessMapping(['Name', 'Social URL']).website).toBe('Social URL');
   });
 });

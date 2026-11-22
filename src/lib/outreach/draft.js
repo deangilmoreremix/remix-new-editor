@@ -296,7 +296,7 @@ export const CONTACT_FIELDS = [
   ['email', 'Email'],
   ['company', 'Company'],
   ['jobTitle', 'Job title'],
-  ['website', 'Website'],
+  ['website', 'Website or social page'],
   ['address', 'Address'],
   ['backgroundImage', 'Background image'],
   ['linkedin', 'LinkedIn URL'],
@@ -309,7 +309,7 @@ const HEADER_ALIASES = {
   email: ['email', 'emailaddress', 'mail', 'workemail'],
   company: ['company', 'companyname', 'organization', 'organisation', 'business', 'account'],
   jobTitle: ['jobtitle', 'title', 'role', 'position', 'job'],
-  website: ['website', 'url', 'site', 'domain', 'companywebsite', 'web'],
+  website: ['website', 'url', 'site', 'domain', 'companywebsite', 'web', 'websiteorsocialpage', 'social', 'socialurl', 'socialpage', 'youtube', 'tiktok', 'facebook', 'instagram'],
   address: ['address', 'streetaddress', 'location', 'fulladdress', 'officeaddress'],
   backgroundImage: ['backgroundimage', 'background', 'backgroundurl', 'bgimage', 'image', 'imageurl'],
   linkedin: ['linkedin', 'linkedinurl', 'linkedinprofile', 'linkedinprofileurl', 'personlinkedinurl', 'profileurl'],
@@ -430,13 +430,42 @@ export function mergeContacts(existing, incoming) {
 
 export const CSV_TEMPLATE = 'First Name,Last Name,Email,Company,Job Title,Website,Address,Background Image,LinkedIn URL\r\nMike,Markovic,mike@example.com,Acme,Head of Sales,acme.com,"1 Market St, San Francisco, CA",,https://www.linkedin.com/in/example\r\n';
 
-/** A website's home page, the key its screenshot is stored under (same rule as /api/outreach/site-shot). */
+// Social pages a background can show: their public profile page (same rule as /api/outreach/site-shot normalizeSite).
+const SOCIAL_HOSTS = {
+  'youtube.com': 'www.youtube.com', 'm.youtube.com': 'www.youtube.com',
+  'tiktok.com': 'www.tiktok.com', 'm.tiktok.com': 'www.tiktok.com',
+  'facebook.com': 'www.facebook.com', 'm.facebook.com': 'www.facebook.com', 'fb.com': 'www.facebook.com',
+  'instagram.com': 'www.instagram.com',
+  'x.com': 'x.com', 'twitter.com': 'x.com', 'mobile.twitter.com': 'x.com',
+};
+const bareHost = (h) => h.toLowerCase().replace(/\.$/, '').replace(/^www\./, '');
+function socialProfile(host, u) {
+  const parts = u.pathname.split('/').filter(Boolean).map((p) => p.replace(/[^A-Za-z0-9@._%-]/g, '')).filter(Boolean);
+  if (!parts.length) return '';
+  let keep;
+  if (host === 'www.youtube.com') keep = ['channel', 'c', 'user'].includes(parts[0]) ? parts.slice(0, 2) : parts[0].startsWith('@') ? parts.slice(0, 1) : [];
+  else if (host === 'www.tiktok.com') keep = parts[0].startsWith('@') ? parts.slice(0, 1) : [];
+  else if (host === 'www.facebook.com') {
+    if (parts[0] === 'profile.php') { const id = (u.searchParams.get('id') || '').replace(/\D/g, ''); return id ? `https://${host}/profile.php?id=${id}` : ''; }
+    keep = parts[0] === 'people' ? parts.slice(0, 3) : parts.slice(0, parts[0] === 'p' ? 2 : 1);
+  } else keep = parts.slice(0, 1);
+  return keep.length && keep.length >= (['channel', 'c', 'user', 'p'].includes(keep[0]) ? 2 : 1) ? `https://${host}/${keep.join('/')}` : '';
+}
+
+/**
+ * The key a background screenshot is stored under: a website's home page, or a social profile's own page
+ * (YouTube, TikTok, Facebook, Instagram, X). A LinkedIn link keeps its address so the server can say it
+ * can't be captured. Null when it isn't a web address.
+ */
 export function siteKey(raw) {
   const value = String(raw || '').trim();
   if (!value) return null;
   try {
     const u = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
     if ((u.protocol !== 'https:' && u.protocol !== 'http:') || !u.hostname.includes('.')) return null;
+    const social = SOCIAL_HOSTS[bareHost(u.hostname)];
+    if (social) return socialProfile(social, u) || null;
+    if (bareHost(u.hostname) === 'linkedin.com') return `https://www.linkedin.com${u.pathname.replace(/\/+$/, '') || '/'}`;
     return `${u.protocol}//${u.hostname.toLowerCase()}${u.port ? `:${u.port}` : ''}/`;
   } catch {
     return null;
@@ -454,6 +483,9 @@ export function sitesToCapture(draft) {
 // Error handling (Sendspark's dynamic-background settings): when a prospect has no website, or theirs can't be
 // captured, either make their video over the fallback website, or make nothing and show an error to fix first.
 export const SITE_ERROR = 'URL returned an error. Please use a different URL.';
+export const RESTRICTED_ERROR = 'Page is content restricted. Please try a different page.';
+/** The message for a website that could not be captured (the server's own, for a login wall or LinkedIn). */
+export const siteErrorFor = (draft, c) => draft.siteErrors?.[siteKey(c?.website)] || SITE_ERROR;
 export const MISSING_MODES = [['fallback', 'Generate video using fallback data'], ['error', 'Don\u2019t generate: show an error so I can update it']];
 export const onMissingOf = (draft) => (draft.background?.onMissing === 'error' ? 'error' : 'fallback');
 

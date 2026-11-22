@@ -11,6 +11,8 @@ export const maxDuration = 60
 
 /**
  * POST /api/outreach/site-shot  { url, refresh? }  →  { url, imageUrl, logoUrl, cached }
+ *   url: a website (its home page is captured) or a social profile link (YouTube, TikTok, Facebook,
+ *   Instagram, X: that profile page). A login wall or block → 422 CONTENT_RESTRICTED. LinkedIn → 400.
  *
  * Video Outreach studio: a screenshot of a prospect's website, shown behind the presenter's camera
  * bubble on that contact's page. One light capture of the site's home page (no extra routes, no
@@ -20,7 +22,35 @@ export const maxDuration = 60
  * to it for the email thumbnails' logo overlay; logoUrl is null when the site shows none.
  */
 
-/** The site's home page (scheme + host), which is what a background shows. Null when not a web address. */
+// Social pages a background can show (their public profile page). Keep in step with siteKey in src/lib/outreach/draft.js.
+const SOCIAL_HOSTS: Record<string, string> = {
+  'youtube.com': 'www.youtube.com', 'm.youtube.com': 'www.youtube.com',
+  'tiktok.com': 'www.tiktok.com', 'm.tiktok.com': 'www.tiktok.com',
+  'facebook.com': 'www.facebook.com', 'm.facebook.com': 'www.facebook.com', 'fb.com': 'www.facebook.com',
+  'instagram.com': 'www.instagram.com',
+  'x.com': 'x.com', 'twitter.com': 'x.com', 'mobile.twitter.com': 'x.com',
+}
+const bareHost = (h: string) => h.toLowerCase().replace(/\.$/, '').replace(/^www\./, '')
+export const isLinkedIn = (raw: string) => /(^|\/\/|\.)linkedin\.com(\/|$|:)/i.test(String(raw || '').trim()) || /^linkedin\.com/i.test(String(raw || '').trim())
+
+/** A social profile's own page: https://<host>/<profile path>, or '' when the link has no profile in it. */
+function socialProfile(host: string, u: URL): string {
+  const parts = u.pathname.split('/').filter(Boolean).map((p) => p.replace(/[^A-Za-z0-9@._%-]/g, '')).filter(Boolean)
+  if (!parts.length) return ''
+  let keep: string[]
+  if (host === 'www.youtube.com') keep = ['channel', 'c', 'user'].includes(parts[0]) ? parts.slice(0, 2) : parts[0].startsWith('@') ? parts.slice(0, 1) : []
+  else if (host === 'www.tiktok.com') keep = parts[0].startsWith('@') ? parts.slice(0, 1) : []
+  else if (host === 'www.facebook.com') {
+    if (parts[0] === 'profile.php') { const id = (u.searchParams.get('id') || '').replace(/\D/g, ''); return id ? `https://${host}/profile.php?id=${id}` : '' }
+    keep = parts[0] === 'people' ? parts.slice(0, 3) : parts.slice(0, parts[0] === 'p' ? 2 : 1)
+  } else keep = parts.slice(0, 1)
+  return keep.length && keep.length >= (['channel', 'c', 'user', 'p'].includes(keep[0]) ? 2 : 1) ? `https://${host}/${keep.join('/')}` : ''
+}
+
+/**
+ * What a background shows: a website's home page (scheme + host), or a social profile's own page
+ * (YouTube, TikTok, Facebook, Instagram, X). Null when not a usable web address. LinkedIn is not captured.
+ */
 export function normalizeSite(raw: string): string | null {
   const value = String(raw || '').trim()
   if (!value || value.length > 2048) return null
@@ -28,11 +58,27 @@ export function normalizeSite(raw: string): string | null {
     const u = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`)
     if (u.protocol !== 'https:' && u.protocol !== 'http:') return null
     if (!u.hostname.includes('.')) return null
+    const social = SOCIAL_HOSTS[bareHost(u.hostname)] || SOCIAL_HOSTS[u.hostname.toLowerCase()]
+    if (social) return socialProfile(social, u) || null
+    if (bareHost(u.hostname) === 'linkedin.com') return null
     return `${u.protocol}//${u.hostname.toLowerCase()}${u.port ? `:${u.port}` : ''}/`
   } catch {
     return null
   }
 }
+
+/** A capture that landed on a login page or was blocked (most social networks, for logged-out visitors). */
+export function isRestricted(capture: { url?: string; status?: number }): boolean {
+  if ([401, 403, 429].includes(Number(capture.status))) return true
+  try {
+    const path = new URL(String(capture.url || '')).pathname.toLowerCase()
+    return /^\/(login|accounts\/login|signin|sign_in|checkpoint|i\/flow\/login|login\.php)(\/|$|\.)/.test(path)
+  } catch {
+    return false
+  }
+}
+export const isSocialPage = (site: string) => { try { return Object.values(SOCIAL_HOSTS).includes(new URL(site).hostname) } catch { return false } }
+export const RESTRICTED_ERROR = 'Page is content restricted. Please try a different page.'
 
 /** Where a user's screenshot of a site is stored: the same site always lands on the same path. */
 export function shotPath(userId: string, site: string): string {
@@ -44,7 +90,7 @@ export function shotPath(userId: string, site: string): string {
 export const SITE_SHOT_OPTIONS = { maxRoutes: 0, maxCrops: 0, deep: false, firstShotMs: 15_000, budgetMs: 20_000, hardMs: 24_000 } as const
 
 export interface SiteShotDeps {
-  capture: (url: string, options: typeof SITE_SHOT_OPTIONS) => Promise<{ page: Buffer | null; logo?: Buffer | null }>
+  capture: (url: string, options: typeof SITE_SHOT_OPTIONS) => Promise<{ page: Buffer | null; logo?: Buffer | null; url?: string; status?: number }>
   storage: CaptureStorage
 }
 
@@ -53,18 +99,21 @@ export type SiteShotResult =
   | { ok: false; status: number; code: string; error: string }
 
 export async function siteShot(userId: string, rawUrl: string, refresh: boolean, deps: SiteShotDeps): Promise<SiteShotResult> {
+  if (isLinkedIn(rawUrl)) return { ok: false, status: 400, code: 'LINKEDIN_NOT_SUPPORTED', error: 'LinkedIn pages can\u2019t be captured. Use the Profile card background instead.' }
   const site = normalizeSite(rawUrl)
   if (!site) return { ok: false, status: 400, code: 'BAD_REQUEST', error: 'A website address is required' }
   const path = shotPath(userId, site)
   const publicUrl = () => deps.storage.getPublicUrl(path).data?.publicUrl || null
 
-  let capture: { page: Buffer | null; logo?: Buffer | null }
+  let capture: { page: Buffer | null; logo?: Buffer | null; url?: string; status?: number }
   try {
     capture = await deps.capture(site, SITE_SHOT_OPTIONS)
   } catch (err) {
     if (err instanceof BrowserSsrfError) return { ok: false, status: 400, code: 'URL_REJECTED', error: 'That address cannot be captured. Use a public website.' }
     return { ok: false, status: 502, code: 'CAPTURE_FAILED', error: 'The website could not be captured' }
   }
+  // A login page or a block is not their page: no screenshot of a login form.
+  if (capture && isRestricted(capture)) return { ok: false, status: 422, code: 'CONTENT_RESTRICTED', error: RESTRICTED_ERROR }
   if (!capture?.page) return { ok: false, status: 502, code: 'CAPTURE_FAILED', error: 'The website could not be captured' }
 
   const { error } = await deps.storage.upload(path, capture.page, { contentType: 'image/jpeg', upsert: refresh })
@@ -74,7 +123,8 @@ export async function siteShot(userId: string, rawUrl: string, refresh: boolean,
   if (!imageUrl) return { ok: false, status: 502, code: 'STORAGE_FAILED', error: 'The screenshot could not be saved' }
   // The logo is a bonus: a failure to store it never fails the screenshot.
   let logoUrl: string | null = null
-  if (capture.logo?.length) {
+  // A social page's logo is the network's (YouTube, TikTok…), not the prospect's: none is kept.
+  if (capture.logo?.length && !isSocialPage(site)) {
     const logoPath = path.replace(/\.jpg$/, '-logo.png')
     const saved = await deps.storage.upload(logoPath, capture.logo, { contentType: 'image/png', upsert: refresh }).catch(() => ({ error: new Error('upload failed') }))
     if (!saved.error || /exist|duplicate/i.test(saved.error.message)) logoUrl = deps.storage.getPublicUrl(logoPath).data?.publicUrl || null

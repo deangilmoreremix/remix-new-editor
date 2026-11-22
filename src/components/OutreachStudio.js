@@ -22,7 +22,7 @@ import {
   loadDraft, saveDraft, stepErrors, fillTemplate, speakRequest, tokensIn,
   parseCsv, guessMapping, contactsFromRows, contactsFromLeads, makeContact, mergeContacts, contactProfile, contactValues,
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
-  SITE_ERROR, MISSING_MODES, onMissingOf, siteStatus, backgroundProblems,
+  SITE_ERROR, siteErrorFor, MISSING_MODES, onMissingOf, siteStatus, backgroundProblems,
   usesBackground, fallbackShotFor, backgroundShotFor, contactProfileFor, addressesToCapture, mapKey,
   saveToLibrary, listLibrary, libraryDraft, newDynamicVideo, cleanPage, DYNAMIC_KINDS,
   BUBBLE_CORNERS, bubbleOf, cardSide,
@@ -1326,7 +1326,10 @@ export function OutreachStudio() {
     }
     bg.appendChild(bgModes);
     if (draft.background.mode === 'website') {
-      bg.appendChild(el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a screenshot of each contact\u2019s website (from the Website column). Screenshots are taken when you generate the campaign. Record in Camera mode for this.'));
+      bg.appendChild(el('p', 'text-xs text-secondary', 'Your camera appears in a round bubble over a screenshot of each contact\u2019s website or social page (the Website or social page column). Screenshots are taken when you generate the campaign. Record in Camera mode for this.'));
+      const social = el('p', 'text-[11px] text-white/45', 'Social pages: YouTube channels and TikTok profiles work. Facebook, Instagram and X usually show a login page to visitors, so those prospects get the error below. LinkedIn isn\u2019t captured: use Profile card.');
+      social.setAttribute('data-bg-social-note', '');
+      bg.appendChild(social);
       const fallback = textInput(draft.background.fallbackSite, 'yourcompany.com');
       fallback.addEventListener('input', () => { draft.background = { ...draft.background, fallbackSite: fallback.value.trim() }; draft.campaign = null; persist(); });
       fallback.addEventListener('change', () => render());
@@ -1580,7 +1583,7 @@ export function OutreachStudio() {
     const then = onMissingOf(draft) === 'error' ? 'Fix or remove before generating.' : 'Their video uses the fallback.';
     const [cls, text] = {
       own: ['text-emerald-300', '\u2713 Website ready'],
-      error: ['text-orange-300', `${SITE_ERROR} ${then}`],
+      error: ['text-orange-300', `${siteErrorFor(draft, c)} ${then}`],
       none: ['text-orange-300', `No website. ${then}`],
       pending: ['text-white/40', 'Website not checked yet'],
     }[st];
@@ -1725,7 +1728,7 @@ export function OutreachStudio() {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: todo[i] }), signal: abort?.signal,
         });
         const body = await res.json().catch(() => ({}));
-        if (!res.ok || !body.imageUrl) throw new Error(body.error || `HTTP ${res.status}`);
+        if (!res.ok || !body.imageUrl) throw Object.assign(new Error(body.error || `HTTP ${res.status}`), { code: body.code });
         draft.siteShots = { ...draft.siteShots, [todo[i]]: body.imageUrl };
         if (draft.siteErrors?.[todo[i]]) { const { [todo[i]]: _gone, ...rest } = draft.siteErrors; draft.siteErrors = rest; }
         if (body.logoUrl) draft.siteLogos = { ...draft.siteLogos, [todo[i]]: body.logoUrl };
@@ -1733,7 +1736,8 @@ export function OutreachStudio() {
       } catch (err) {
         if (err?.name === 'AbortError') throw err;
         failed.push(todo[i]);
-        draft.siteErrors = { ...draft.siteErrors, [todo[i]]: SITE_ERROR };
+        // A login wall (most social networks) and LinkedIn get the server's own message; anything else Sendspark's.
+        draft.siteErrors = { ...draft.siteErrors, [todo[i]]: ['CONTENT_RESTRICTED', 'LINKEDIN_NOT_SUPPORTED'].includes(err?.code) ? err.message : SITE_ERROR };
         persist();
       }
     }
