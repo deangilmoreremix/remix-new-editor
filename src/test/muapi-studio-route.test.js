@@ -31,4 +31,17 @@ describe('Studio registration', () => {
     expect(fs.existsSync('vendor/muapi-studio/index.js')).toBe(true);
     expect(fs.existsSync('vendor/muapi-studio/style.css')).toBe(true);
   });
+
+  it('the vendored Studio renders outline buttons natively (lime theme), with no fill in its outline rules', () => {
+    const css = fs.readFileSync('vendor/muapi-studio/style.css', 'utf-8');
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => /data-btn=["']?outline/.test(m[1]));
+    expect(rules.length).toBeGreaterThan(3);
+    for (const [, sel, body] of rules) {
+      for (const d of body.split(';')) {
+        const v = /^\s*background(?:-color)?\s*:\s*(.+)$/i.exec(d)?.[1].trim().replace(/\s*!important/, '');
+        if (v) expect(/^(transparent|none)$/i.test(v), `${sel.trim().slice(0, 60)} sets background: ${v}`).toBe(true);
+      }
+    }
+    expect(fs.readFileSync('vendor/muapi-studio/index.js', 'utf-8')).toMatch(/buttonStyle:\s*["']outline["']/);
+  });
 });
