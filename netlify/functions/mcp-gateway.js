@@ -37,6 +37,7 @@ export const STUDIOS = {
 };
 const BRAND = 'SmartVid';
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+const MAX_BODY_CHARS = 1_000_000; // JSON requests are prompts and URLs; files go through /upload by URL
 
 const json = (statusCode, body) => ({ statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify(body) });
 const fail = (statusCode, message) => json(statusCode, { error: { message } });
@@ -104,6 +105,7 @@ export function createHandler({ store = () => createSupabaseStore(), studios = S
   const method = event.httpMethod;
   let input = {};
   if (method === 'POST') {
+    if (String(event.body || '').length > MAX_BODY_CHARS) return fail(413, 'Request body is too large.');
     try { input = event.body ? JSON.parse(event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString() : event.body) : {}; }
     catch { return fail(400, 'Request body must be JSON.'); }
   }
@@ -127,10 +129,13 @@ export function createHandler({ store = () => createSupabaseStore(), studios = S
     if (resultMatch && method === 'GET') {
       const path = `/predictions/${resultMatch[1]}/result`;
       let { res, data } = await upstream(path, { key });
+      let verb = 'GET';
       // Some deployments only accept POST for status; fall back once.
-      if (res.status === 404 || res.status === 405) ({ res, data } = await upstream(path, { method: 'POST', body: {}, key }));
+      if (res.status === 404 || res.status === 405) { ({ res, data } = await upstream(path, { method: 'POST', body: {}, key })); verb = 'POST'; }
       if (!res.ok && !data?.detail?.status) return upstreamError(res, data);
-      return json(200, data?.detail?.status ? { status: data.detail.status, error: data.detail.error } : data);
+      const out = json(200, data?.detail?.status ? { status: data.detail.status, error: data.detail.error } : data);
+      out.headers['X-Poll-Method'] = res.ok ? verb : `${verb} (failed)`; // lets the smoke run settle which verb the upstream status route accepts
+      return out;
     }
 
     if (route === '/balance' && method === 'GET') {

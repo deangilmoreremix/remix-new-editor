@@ -107,3 +107,26 @@ describe('mcp-gateway with MCP keys', () => {
     expect(JSON.parse(r.body).error.message).toBe('Unknown action');
   });
 });
+
+
+describe('mcp-gateway hardening', () => {
+  const h = createHandler({ env: { MCP_ALLOW_BYOK: '1' } });
+  const KEYV = 'mu_test_key_0123456789abcdef';
+  it('refuses oversized JSON bodies before parsing', async () => {
+    vi.stubGlobal('fetch', vi.fn());
+    const r = await h({ httpMethod: 'POST', path: '/api/mcp-gateway/generate', headers: { authorization: `Bearer ${KEYV}` }, body: JSON.stringify({ endpoint: 'x', payload: { p: 'a'.repeat(1_100_000) } }) });
+    expect(r.statusCode).toBe(413);
+    expect(fetch).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+  it('reports which verb the upstream status route accepted', async () => {
+    const reply2 = (status, body) => ({ ok: status < 400, status, statusText: 'x', text: async () => JSON.stringify(body) });
+    vi.stubGlobal('fetch', vi.fn(async () => reply2(200, { status: 'completed', outputs: [] })));
+    const get = await h({ httpMethod: 'GET', path: '/api/mcp-gateway/result/abc123', headers: { authorization: `Bearer ${KEYV}` } });
+    expect(get.headers['X-Poll-Method']).toBe('GET');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(reply2(405, {})).mockResolvedValueOnce(reply2(200, { status: 'completed', outputs: [] })));
+    const post = await h({ httpMethod: 'GET', path: '/api/mcp-gateway/result/abc123', headers: { authorization: `Bearer ${KEYV}` } });
+    expect(post.headers['X-Poll-Method']).toBe('POST');
+    vi.unstubAllGlobals();
+  });
+});

@@ -33,6 +33,9 @@ Jobs and account: `_get_result`, `_upload_file`, `_account_balance`.
 
 Flow: `search_models` → `get_model` (exact fields) → a generation tool with `{ model, inputs }`. Media inputs are public https URLs; `upload_file` re-hosts a URL. Long jobs return a `request_id` for `get_result`.
 
+## Deploying and checking it live
+`mcp/DEPLOY.md` is the checklist (migration, `MCP_KEY_SECRET`, preview, key, smoke run). `npm run mcp:smoke` runs one cheapest call per model kind and per custom tool, refuses to spend without `--confirm-spend <max> --yes`, and `npm run mcp:coverage` turns the results into the Live column of `mcp/COVERAGE.md`.
+
 ## Which studios are covered
 `mcp/studios.json` classifies every studio in the app: the tools that serve it, or the reason it is not exposed. A test (`tests/mcp/studio-coverage.test.js`) fails when a studio is added to the app without being classified.
 
