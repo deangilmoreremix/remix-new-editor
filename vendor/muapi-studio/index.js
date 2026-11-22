@@ -9,27 +9,27 @@ class me extends Error {
   }
 }
 function Ft(e, t) {
-  var o;
+  var n;
   const a = e == null ? void 0 : e.detail;
-  return ((o = a == null ? void 0 : a.error) == null ? void 0 : o.message) || (typeof a == "string" ? a : "") || (typeof (e == null ? void 0 : e.error) == "string" ? e.error : "") || (e == null ? void 0 : e.message) || t;
+  return ((n = a == null ? void 0 : a.error) == null ? void 0 : n.message) || (typeof a == "string" ? a : "") || (typeof (e == null ? void 0 : e.error) == "string" ? e.error : "") || (e == null ? void 0 : e.message) || t;
 }
 class Bt {
-  constructor(t = "/api/muapi", a, o = {}) {
-    this.base = t, this.teamId = a, this.opts = o;
+  constructor(t = "/api/muapi", a, n = {}) {
+    this.base = t, this.teamId = a, this.opts = n;
   }
   async request(t, a = {}) {
     var b, k;
-    const o = new Headers(a.headers);
-    if (this.opts.apiKey && o.set("x-api-key", this.opts.apiKey), this.opts.getHeaders) for (const [f, A] of Object.entries(await this.opts.getHeaders())) o.set(f, A);
-    const s = await (this.opts.fetchImpl ?? fetch)(this.base.replace(/\/$/, "") + this.withTeam(t), { ...a, headers: o }), i = await s.text();
-    let n = null;
+    const n = new Headers(a.headers);
+    if (this.opts.apiKey && n.set("x-api-key", this.opts.apiKey), this.opts.getHeaders) for (const [f, A] of Object.entries(await this.opts.getHeaders())) n.set(f, A);
+    const s = await (this.opts.fetchImpl ?? fetch)(this.base.replace(/\/$/, "") + this.withTeam(t), { ...a, headers: n }), i = await s.text();
+    let o = null;
     try {
-      n = i ? JSON.parse(i) : null;
+      o = i ? JSON.parse(i) : null;
     } catch {
     }
-    if (!s.ok && qt(s.status, n, i) && !t.startsWith("/app/") && ((k = (b = this.opts).onKeyRejected) == null || k.call(b)), !s.ok) throw new me(Ft(n, `${s.status} ${s.statusText}`), s.status);
-    if (n === null && i.trim()) throw new me("Unexpected non-JSON response from the server", 502);
-    return n;
+    if (!s.ok && qt(s.status, o, i) && !t.startsWith("/app/") && ((k = (b = this.opts).onKeyRejected) == null || k.call(b)), !s.ok) throw new me(Ft(o, `${s.status} ${s.statusText}`), s.status);
+    if (o === null && i.trim()) throw new me("Unexpected non-JSON response from the server", 502);
+    return o;
   }
   withTeam(t) {
     return this.teamId ? t + (t.includes("?") ? "&" : "?") + "team_id=" + encodeURIComponent(this.teamId) : t;
@@ -50,25 +50,25 @@ class Bt {
     });
   }
   /** Submit with the model's `endpoint_url` (the catalog's `endpoint` field can be wrong). */
-  async submit(t, a, o) {
-    var n;
+  async submit(t, a, n) {
+    var o;
     const s = await this.request(`/api/v1/${t}`, {
       method: "POST",
-      headers: { "content-type": "application/json", ...o ? { "x-ms-kind": o } : {} },
+      headers: { "content-type": "application/json", ...n ? { "x-ms-kind": n } : {} },
       body: JSON.stringify(a)
     }), i = s.request_id || s.id;
     if (!i) throw new me("The API did not return a request id", 502);
-    return { requestId: i, cost: (n = s.cost) == null ? void 0 : n.amount_usd };
+    return { requestId: i, cost: (o = s.cost) == null ? void 0 : o.amount_usd };
   }
   async poll(t) {
-    var n;
-    const a = await this.request(`/api/v1/predictions/${encodeURIComponent(t)}/result`), o = String(a.status || "").toLowerCase(), s = ["completed", "succeeded"].includes(o) ? "completed" : ["failed", "error", "cancelled", "canceled"].includes(o) ? "failed" : o === "pending" ? "pending" : "processing", i = Array.isArray(a.outputs) ? a.outputs : a.url ? [a.url] : [];
-    return { status: s, outputs: i, error: a.error || void 0, cost: (n = a.cost) == null ? void 0 : n.amount_usd };
+    var o;
+    const a = await this.request(`/api/v1/predictions/${encodeURIComponent(t)}/result`), n = String(a.status || "").toLowerCase(), s = ["completed", "succeeded"].includes(n) ? "completed" : ["failed", "error", "cancelled", "canceled"].includes(n) ? "failed" : n === "pending" ? "pending" : "processing", i = Array.isArray(a.outputs) ? a.outputs : a.url ? [a.url] : [];
+    return { status: s, outputs: i, error: a.error || void 0, cost: (o = a.cost) == null ? void 0 : o.amount_usd };
   }
   /** muapi's server-side generation history (works with an API key), newest first. */
   history(t, a = 30) {
-    const o = new URLSearchParams({ limit: String(a) });
-    return t && o.set("cursor", t), this.request(`/api/v1/history?${o}`);
+    const n = new URLSearchParams({ limit: String(a) });
+    return t && n.set("cursor", t), this.request(`/api/v1/history?${n}`);
   }
   mediaLibrary(t = {}) {
     const a = new URLSearchParams({ page: String(t.page ?? 1), page_size: String(t.pageSize ?? 24) });
@@ -86,8 +86,8 @@ class Bt {
   }
   /** Which optional features the host's proxy supports. A 403/404/405 means the route is not forwarded, so the UI hides it. */
   async probe() {
-    const t = (o) => o instanceof me && [403, 404, 405].includes(o.status);
-    return { library: await this.mediaLibrary({ pageSize: 1 }).then(() => !0).catch((o) => !t(o)), deleteMedia: !0 };
+    const t = (n) => n instanceof me && [403, 404, 405].includes(n.status);
+    return { library: await this.mediaLibrary({ pageSize: 1 }).then(() => !0).catch((n) => !t(n)), deleteMedia: !0 };
   }
   async balance() {
     return this.request("/api/v1/account/balance");
@@ -96,23 +96,23 @@ class Bt {
     var i;
     const a = new FormData();
     a.append("file", t);
-    const o = await this.request("/api/v1/upload_file", { method: "POST", body: a }), s = o.url || o.file_url || ((i = o.data) == null ? void 0 : i.url);
+    const n = await this.request("/api/v1/upload_file", { method: "POST", body: a }), s = n.url || n.file_url || ((i = n.data) == null ? void 0 : i.url);
     if (!s) throw new me("Upload returned no URL", 502);
     return s;
   }
 }
 async function zt(e, t, a = {}) {
-  const { intervalMs: o = 2e3, timeoutMs: s = 15 * 60 * 1e3, signal: i, onUpdate: n } = a, b = Date.now();
+  const { intervalMs: n = 2e3, timeoutMs: s = 15 * 60 * 1e3, signal: i, onUpdate: o } = a, b = Date.now();
   let k = 0;
   for (; Date.now() - b < s; ) {
     if (i != null && i.aborted) throw new DOMException("Aborted", "AbortError");
     try {
       const f = await e.poll(t);
-      if (k = 0, n == null || n(f), f.status === "completed" || f.status === "failed") return f;
+      if (k = 0, o == null || o(f), f.status === "completed" || f.status === "failed") return f;
     } catch (f) {
       if (++k >= 5) throw f;
     }
-    await new Promise((f) => setTimeout(f, o));
+    await new Promise((f) => setTimeout(f, n));
   }
   return { status: "failed", outputs: [], error: "Timed out waiting for the result" };
 }
@@ -181,7 +181,7 @@ function kt(e = "lime") {
 }
 function Jt(e = "lime") {
   const t = kt(e), a = {};
-  for (const o of Object.keys(Qe)) a[Qe[o]] = t[o];
+  for (const n of Object.keys(Qe)) a[Qe[n]] = t[n];
   return a;
 }
 function Kt(e = "lime") {
@@ -234,8 +234,8 @@ function ze(e) {
 }
 const Qt = (e) => !!e && le.some((t) => t.id === e);
 function Zt(e, t) {
-  const a = le.find((o) => o.id === t).groups;
-  return e.filter((o) => a.includes(o.group_of) && o.is_enabled && !o.is_coming_soon);
+  const a = le.find((n) => n.id === t).groups;
+  return e.filter((n) => a.includes(n.group_of) && n.is_enabled && !n.is_coming_soon);
 }
 const er = [
   { id: "popular", label: "Popular" },
@@ -246,27 +246,27 @@ const er = [
   { id: "favourites", label: "Favourites" }
 ];
 function Nt(e, t, a = {}) {
-  const o = (i) => {
-    var n;
-    return ((n = i.sale) == null ? void 0 : n.from) ?? i.cost ?? 1 / 0;
+  const n = (i) => {
+    var o;
+    return ((o = i.sale) == null ? void 0 : o.from) ?? i.cost ?? 1 / 0;
   }, s = [...e];
-  return t === "a-z" ? s.sort((i, n) => i.name.localeCompare(n.name)) : t === "price-asc" ? s.sort((i, n) => o(i) - o(n)) : t === "price-desc" ? s.sort((i, n) => o(n) - o(i)) : t === "most-used" ? s.filter((i) => {
-    var n;
-    return (((n = a.usage) == null ? void 0 : n[i.name]) ?? 0) > 0;
-  }).sort((i, n) => (a.usage[n.name] ?? 0) - (a.usage[i.name] ?? 0)) : t === "favourites" ? s.filter((i) => {
-    var n;
-    return (n = a.favorites) == null ? void 0 : n.includes(i.name);
-  }) : s.sort((i, n) => +!!n.sale - +!!i.sale);
+  return t === "a-z" ? s.sort((i, o) => i.name.localeCompare(o.name)) : t === "price-asc" ? s.sort((i, o) => n(i) - n(o)) : t === "price-desc" ? s.sort((i, o) => n(o) - n(i)) : t === "most-used" ? s.filter((i) => {
+    var o;
+    return (((o = a.usage) == null ? void 0 : o[i.name]) ?? 0) > 0;
+  }).sort((i, o) => (a.usage[o.name] ?? 0) - (a.usage[i.name] ?? 0)) : t === "favourites" ? s.filter((i) => {
+    var o;
+    return (o = a.favorites) == null ? void 0 : o.includes(i.name);
+  }) : s.sort((i, o) => +!!o.sale - +!!i.sale);
 }
 const tr = { completed: "completed", succeeded: "completed", failed: "failed", error: "failed", pending: "pending", processing: "processing" };
 function rr(e, t) {
-  var o, s;
-  const a = (o = t.find((i) => i.name === e)) == null ? void 0 : o.group_of;
+  var n, s;
+  const a = (n = t.find((i) => i.name === e)) == null ? void 0 : n.group_of;
   return ((s = le.find((i) => a && i.groups.includes(a))) == null ? void 0 : s.id) ?? "ai-tools";
 }
 function ar(e, t, a = {}) {
   var i;
-  const o = e.output ?? {}, s = o.inputs ?? {};
+  const n = e.output ?? {}, s = n.inputs ?? {};
   return {
     id: "srv-" + e.request_id,
     requestId: e.request_id,
@@ -275,28 +275,28 @@ function ar(e, t, a = {}) {
     prompt: typeof s.prompt == "string" ? s.prompt : "",
     inputs: s,
     status: tr[String(e.status).toLowerCase()] ?? "processing",
-    outputs: Array.isArray(o.outputs) ? o.outputs : [],
-    error: o.error || void 0,
-    cost: (i = o.cost) == null ? void 0 : i.amount_usd,
+    outputs: Array.isArray(n.outputs) ? n.outputs : [],
+    error: n.error || void 0,
+    cost: (i = n.cost) == null ? void 0 : i.amount_usd,
     createdAt: Date.parse(e.created_at) || 0,
     label: a[e.request_id] ?? null,
     source: "server"
   };
 }
-function or(e, t, a = /* @__PURE__ */ new Set()) {
-  const o = new Set(e.map((i) => i.requestId).filter(Boolean));
-  return [...e, ...t.filter((i) => !i.requestId || !o.has(i.requestId))].filter((i) => !(i.requestId && a.has(i.requestId))).sort((i, n) => n.createdAt - i.createdAt);
+function nr(e, t, a = /* @__PURE__ */ new Set()) {
+  const n = new Set(e.map((i) => i.requestId).filter(Boolean));
+  return [...e, ...t.filter((i) => !i.requestId || !n.has(i.requestId))].filter((i) => !(i.requestId && a.has(i.requestId))).sort((i, o) => o.createdAt - i.createdAt);
 }
-function nr(e) {
+function or(e) {
   const t = {};
   for (const a of e) t[a.model] = (t[a.model] ?? 0) + 1;
   return t;
 }
-function oe(e) {
-  var o;
+function ne(e) {
+  var n;
   if (e > 0 && e < 1e-4) return "$" + e.toFixed(6).replace(/0+$/, "");
   let t = e.toFixed(4).replace(/0+$/, "");
-  return (((o = t.split(".")[1]) == null ? void 0 : o.length) ?? 0) < 2 && (t = e.toFixed(2)), "$" + t;
+  return (((n = t.split(".")[1]) == null ? void 0 : n.length) ?? 0) < 2 && (t = e.toFixed(2)), "$" + t;
 }
 function He(e, t) {
   var a;
@@ -334,8 +334,8 @@ const lr = () => {
   }
 }, rt = "muapi-studio:labels:v1", at = "muapi-studio:hidden:v1";
 function cr(e, t, a) {
-  const [o, s] = N(() => Ze()), [i, n] = N([]), [b, k] = N(null), [f, A] = N(!1), [M, p] = N(null), G = K(!1), [w, j] = N(() => et(rt, {})), [S, R] = N(() => et(at, [])), g = K(/* @__PURE__ */ new Set()), u = K(new AbortController()), v = K([]);
-  v.current = t ?? [], V(() => sr(o), [o]), V(() => tt(rt, w), [w]), V(() => tt(at, S), [S]), V(() => (u.current = new AbortController(), () => u.current.abort()), []);
+  const [n, s] = N(() => Ze()), [i, o] = N([]), [b, k] = N(null), [f, A] = N(!1), [M, p] = N(null), G = K(!1), [w, j] = N(() => et(rt, {})), [S, R] = N(() => et(at, [])), g = K(/* @__PURE__ */ new Set()), u = K(new AbortController()), v = K([]);
+  v.current = t ?? [], V(() => sr(n), [n]), V(() => tt(rt, w), [w]), V(() => tt(at, S), [S]), V(() => (u.current = new AbortController(), () => u.current.abort()), []);
   const C = te((c, d) => s((x) => x.map((E) => E.id === c ? { ...E, ...d } : E)), []), F = te(async (c, d) => {
     if (!g.current.has(c)) {
       g.current.add(c);
@@ -360,7 +360,7 @@ function cr(e, t, a) {
       A(!0), p(null);
       try {
         const d = await e.history(c ? void 0 : b ?? void 0), x = d.items.map((E) => ar(E, v.current));
-        n((E) => c ? x : [...E, ...x]), k(d.next_cursor);
+        o((E) => c ? x : [...E, ...x]), k(d.next_cursor);
       } catch (d) {
         d instanceof me && [403, 404, 405].includes(d.status) ? (G.current = !0, k(null)) : p(d.message);
       } finally {
@@ -395,8 +395,8 @@ function cr(e, t, a) {
     }));
   }, [e, C, F]), z = Z(() => {
     const c = (d) => ({ ...d, label: d.requestId && w[d.requestId] || d.label });
-    return or(o.map(c), i.map(c), new Set(S));
-  }, [o, i, w, S]), y = te((c, d) => {
+    return nr(n.map(c), i.map(c), new Set(S));
+  }, [n, i, w, S]), y = te((c, d) => {
     c.requestId && j((x) => {
       const E = { ...x };
       return d ? E[c.requestId] = d : delete E[c.requestId], E;
@@ -404,7 +404,7 @@ function cr(e, t, a) {
   }, [C]), D = te((c) => {
     s((d) => d.filter((x) => x.id !== c.id)), c.requestId && R((d) => [.../* @__PURE__ */ new Set([...d, c.requestId])]);
   }, []), X = te(async (c) => {
-    c.requestId && (await e.deleteMedia(c.requestId), C(c.id, { outputs: [] }), n((d) => d.map((x) => x.requestId === c.requestId ? { ...x, outputs: [] } : x)));
+    c.requestId && (await e.deleteMedia(c.requestId), C(c.id, { outputs: [] }), o((d) => d.map((x) => x.requestId === c.requestId ? { ...x, outputs: [] } : x)));
   }, [e, C]);
   return { items: z, run: L, setLabel: y, remove: D, deleteMedia: X, loadMore: () => I(!1), hasMore: !!b, loadingMore: f, serverError: M };
 }
@@ -442,7 +442,7 @@ const mr = (e) => /\.(glb|gltf)(\?|#|$)/i.test(e), Y = ({ children: e, ...t }) =
 ] }), gr = (e) => /* @__PURE__ */ l(Y, { ...e, children: [
   /* @__PURE__ */ r("path", { d: "m14.7 6.3 3 3-8.4 8.4H6.3v-3z" }),
   /* @__PURE__ */ r("path", { d: "m13 8 3 3M17 3l4 4M3 21l3-3" })
-] }), Je = (e) => /* @__PURE__ */ r(Y, { ...e, children: /* @__PURE__ */ r("path", { d: "m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z" }) }), ot = ({ filled: e, ...t }) => /* @__PURE__ */ r(Y, { ...t, fill: e ? "currentColor" : "none", children: /* @__PURE__ */ r("path", { d: "M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.7A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z" }) }), Ke = (e) => /* @__PURE__ */ l(Y, { ...e, children: [
+] }), Je = (e) => /* @__PURE__ */ r(Y, { ...e, children: /* @__PURE__ */ r("path", { d: "m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z" }) }), nt = ({ filled: e, ...t }) => /* @__PURE__ */ r(Y, { ...t, fill: e ? "currentColor" : "none", children: /* @__PURE__ */ r("path", { d: "M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.7A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z" }) }), Ke = (e) => /* @__PURE__ */ l(Y, { ...e, children: [
   /* @__PURE__ */ r("circle", { cx: "11", cy: "11", r: "7" }),
   /* @__PURE__ */ r("path", { d: "m20 20-3.5-3.5" })
 ] }), Me = ({ up: e, ...t }) => /* @__PURE__ */ r(Y, { ...t, children: /* @__PURE__ */ r("path", { d: e ? "m6 15 6-6 6 6" : "m6 9 6 6 6-6" }) }), br = (e) => /* @__PURE__ */ r(Y, { ...e, children: /* @__PURE__ */ r("path", { d: "M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A9.8 9.8 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.3 6.3A17 17 0 0 0 2 12s4 7 10 7a9.7 9.7 0 0 0 4-.9" }) }), yr = (e) => /* @__PURE__ */ l(Y, { ...e, children: [
@@ -456,7 +456,7 @@ const mr = (e) => /\.(glb|gltf)(\?|#|$)/i.test(e), Y = ({ children: e, ...t }) =
   /* @__PURE__ */ r("rect", { x: "14", y: "3", width: "7", height: "7", rx: "1.5" }),
   /* @__PURE__ */ r("rect", { x: "3", y: "14", width: "7", height: "7", rx: "1.5" }),
   /* @__PURE__ */ r("rect", { x: "14", y: "14", width: "7", height: "7", rx: "1.5" })
-] }), nt = (e) => /* @__PURE__ */ l(Y, { ...e, children: [
+] }), ot = (e) => /* @__PURE__ */ l(Y, { ...e, children: [
   /* @__PURE__ */ r("circle", { cx: "8", cy: "15", r: "4" }),
   /* @__PURE__ */ r("path", { d: "m11 12 9-9m-3 3 3 3m-6-0 2 2" })
 ] });
@@ -471,18 +471,18 @@ const Nr = () => it ?? (it = import("./model-viewer-DsEvqbXJ.js").catch((e) => {
   throw it = null, e;
 }));
 function Sr({ url: e, hidden: t = !1 }) {
-  const [a, o] = N("loading"), s = K(null);
+  const [a, n] = N("loading"), s = K(null);
   return V(() => {
     let i = !0;
-    return o("loading"), Nr().catch(() => i && o("failed")), () => {
+    return n("loading"), Nr().catch(() => i && n("failed")), () => {
       i = !1;
     };
   }, [e]), V(() => {
     const i = s.current;
     if (!i) return;
-    const n = () => o("ready"), b = () => o("failed");
-    return i.addEventListener("load", n), i.addEventListener("error", b), () => {
-      i.removeEventListener("load", n), i.removeEventListener("error", b);
+    const o = () => n("ready"), b = () => n("failed");
+    return i.addEventListener("load", o), i.addEventListener("error", b), () => {
+      i.removeEventListener("load", o), i.removeEventListener("error", b);
     };
   }), a === "failed" ? /* @__PURE__ */ r(It, { url: e }) : /* @__PURE__ */ l("div", { className: "relative aspect-video w-full bg-card-bg", style: t ? { filter: "blur(18px)" } : void 0, children: [
     Pt("model-viewer", {
@@ -504,13 +504,13 @@ function Sr({ url: e, hidden: t = !1 }) {
 }
 const Cr = ["All", "Approved", "Rejected", "Unlabeled"], Ar = [1, 2, 4, 6, 8];
 function Ir({ url: e, hidden: t, onOpen: a }) {
-  const o = t ? { filter: "blur(18px)" } : void 0, s = Ct(e);
-  return s === "text" ? /* @__PURE__ */ r("pre", { tabIndex: 0, "aria-label": "Generated text", style: o, className: "max-h-72 min-h-[120px] overflow-auto whitespace-pre-wrap break-words bg-black p-3 font-mono text-xs text-fg", children: ur(e) }) : s === "video" ? /* @__PURE__ */ r("video", { src: e, controls: !0, preload: "metadata", style: o, className: "aspect-video w-full bg-black object-contain" }) : s === "audio" ? /* @__PURE__ */ r("div", { className: "flex aspect-video items-center bg-card-bg p-3", children: /* @__PURE__ */ r("audio", { src: e, controls: !0, className: "w-full" }) }) : s === "3d" ? mr(e) ? /* @__PURE__ */ r(Sr, { url: e, hidden: t }) : /* @__PURE__ */ r(It, { url: e }) : s === "file" ? /* @__PURE__ */ l("a", { href: e, target: "_blank", rel: "noopener noreferrer", className: "flex aspect-video flex-col items-center justify-center gap-2 bg-card-bg p-3 text-center text-xs text-secondary hover:text-primary", children: [
+  const n = t ? { filter: "blur(18px)" } : void 0, s = Ct(e);
+  return s === "text" ? /* @__PURE__ */ r("pre", { tabIndex: 0, "aria-label": "Generated text", style: n, className: "max-h-72 min-h-[120px] overflow-auto whitespace-pre-wrap break-words bg-black p-3 font-mono text-xs text-fg", children: ur(e) }) : s === "video" ? /* @__PURE__ */ r("video", { src: e, controls: !0, preload: "metadata", style: n, className: "aspect-video w-full bg-black object-contain" }) : s === "audio" ? /* @__PURE__ */ r("div", { className: "flex aspect-video items-center bg-card-bg p-3", children: /* @__PURE__ */ r("audio", { src: e, controls: !0, className: "w-full" }) }) : s === "3d" ? mr(e) ? /* @__PURE__ */ r(Sr, { url: e, hidden: t }) : /* @__PURE__ */ r(It, { url: e }) : s === "file" ? /* @__PURE__ */ l("a", { href: e, target: "_blank", rel: "noopener noreferrer", className: "flex aspect-video flex-col items-center justify-center gap-2 bg-card-bg p-3 text-center text-xs text-secondary hover:text-primary", children: [
     /* @__PURE__ */ r(je, { width: 28, height: 28 }),
     /* @__PURE__ */ r("span", { className: "break-all", children: decodeURIComponent(e.split("?")[0].split("/").pop() ?? "file") })
-  ] }) : /* @__PURE__ */ r("button", { type: "button", onClick: a, "aria-label": "Open full size", className: "block w-full", children: /* @__PURE__ */ r("img", { src: e, alt: "Generated output", loading: "lazy", style: o, className: "aspect-square w-full bg-black object-contain" }) });
+  ] }) : /* @__PURE__ */ r("button", { type: "button", onClick: a, "aria-label": "Open full size", className: "block w-full", children: /* @__PURE__ */ r("img", { src: e, alt: "Generated output", loading: "lazy", style: n, className: "aspect-square w-full bg-black object-contain" }) });
 }
-function Mr({ g: e, hidden: t, onLabel: a, onRemove: o, onReuse: s, onRerun: i, onDeleteMedia: n, onOpen: b, estimateFor: k }) {
+function Mr({ g: e, hidden: t, onLabel: a, onRemove: n, onReuse: s, onRerun: i, onDeleteMedia: o, onOpen: b, estimateFor: k }) {
   const f = e.outputs[0], A = !!f && Ct(f) === "text", [M, p] = N(!1), [G, w] = N(null), j = wt(), S = "flex h-7 items-center justify-center whitespace-nowrap rounded-md border border-line px-2 text-[11px] text-secondary hover:text-primary", R = "flex h-7 w-7 items-center justify-center rounded-md border";
   return /* @__PURE__ */ l("article", { className: "overflow-hidden rounded-card border border-line bg-card-bg", children: [
     e.status === "completed" && f ? /* @__PURE__ */ r(Ir, { url: f, hidden: t, onOpen: () => b(f) }) : e.status === "failed" ? /* @__PURE__ */ l("div", { role: "alert", className: "flex aspect-video flex-col items-center justify-center gap-1 p-4 text-center text-xs text-danger", children: [
@@ -524,7 +524,7 @@ function Mr({ g: e, hidden: t, onLabel: a, onRemove: o, onReuse: s, onRerun: i, 
       /* @__PURE__ */ r("p", { className: "line-clamp-2 text-xs text-fg", title: e.prompt, children: e.prompt || e.model }),
       /* @__PURE__ */ l("p", { className: "flex items-center justify-between text-[11px] text-muted", children: [
         /* @__PURE__ */ r("span", { className: "truncate", children: e.model }),
-        /* @__PURE__ */ r("span", { title: e.cost === void 0 ? "Estimated from the current catalog price" : void 0, children: e.cost !== void 0 ? oe(e.cost) : e.status === "completed" && (k == null ? void 0 : k(e.model)) !== void 0 ? `est. ${oe(k(e.model))}` : "" })
+        /* @__PURE__ */ r("span", { title: e.cost === void 0 ? "Estimated from the current catalog price" : void 0, children: e.cost !== void 0 ? ne(e.cost) : e.status === "completed" && (k == null ? void 0 : k(e.model)) !== void 0 ? `est. ${ne(k(e.model))}` : "" })
       ] }),
       /* @__PURE__ */ l("div", { className: "flex flex-wrap items-center gap-1", children: [
         e.status === "completed" && f && (A ? /* @__PURE__ */ r("a", { href: `data:text/plain;charset=utf-8,${encodeURIComponent(f)}`, download: `${e.model}-${e.createdAt}.txt`, "aria-label": "Download as text file", title: "Download as text file", className: `${R} border-line text-secondary hover:text-primary`, children: /* @__PURE__ */ r(je, { width: 14, height: 14 }) }) : /* @__PURE__ */ r("a", { href: f, target: "_blank", rel: "noopener noreferrer", download: !0, "aria-label": "Download", title: "Download", className: `${R} border-line text-secondary hover:text-primary`, children: /* @__PURE__ */ r(je, { width: 14, height: 14 }) })),
@@ -572,9 +572,9 @@ function Mr({ g: e, hidden: t, onLabel: a, onRemove: o, onReuse: s, onRerun: i, 
         ] }),
         /* @__PURE__ */ l("span", { className: "flex shrink-0 gap-3", children: [
           j.deleteMedia && e.requestId && e.status === "completed" && f && /* @__PURE__ */ r("button", { type: "button", title: "Delete the generated files from muapi", onClick: () => {
-            window.confirm("Delete the generated files from muapi? This cannot be undone.") && (w(null), n(e).catch((g) => w(g.message || "Could not delete")));
+            window.confirm("Delete the generated files from muapi? This cannot be undone.") && (w(null), o(e).catch((g) => w(g.message || "Could not delete")));
           }, className: "hover:text-danger", children: "Delete" }),
-          /* @__PURE__ */ r("button", { type: "button", onClick: () => o(e), className: "hover:text-danger", title: "Hide from this view", children: "Hide" })
+          /* @__PURE__ */ r("button", { type: "button", onClick: () => n(e), className: "hover:text-danger", title: "Hide from this view", children: "Hide" })
         ] })
       ] })
     ] })
@@ -582,14 +582,14 @@ function Mr({ g: e, hidden: t, onLabel: a, onRemove: o, onReuse: s, onRerun: i, 
 }
 function Er({ url: e, onClose: t }) {
   return V(() => {
-    const a = (o) => o.key === "Escape" && t();
+    const a = (n) => n.key === "Escape" && t();
     return document.addEventListener("keydown", a), () => document.removeEventListener("keydown", a);
   }, [t]), /* @__PURE__ */ l("div", { role: "dialog", "aria-modal": "true", "aria-label": "Full size preview", onClick: t, className: "fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4", children: [
     /* @__PURE__ */ r("button", { type: "button", "aria-label": "Close preview", onClick: t, className: "absolute right-4 top-4 text-fg", children: /* @__PURE__ */ r(fe, { width: 24, height: 24 }) }),
     /* @__PURE__ */ r("img", { src: e, alt: "Full size output", onClick: (a) => a.stopPropagation(), className: "max-h-full max-w-full object-contain" })
   ] });
 }
-function Tr({ mode: e, items: t, batch: a, onBatch: o, onLabel: s, onRemove: i, onReuse: n, onRerun: b, onDeleteMedia: k, onLoadMore: f, hasMore: A, loadingMore: M, serverError: p, estimateFor: G }) {
+function Tr({ mode: e, items: t, batch: a, onBatch: n, onLabel: s, onRemove: i, onReuse: o, onRerun: b, onDeleteMedia: k, onLoadMore: f, hasMore: A, loadingMore: M, serverError: p, estimateFor: G }) {
   const [w, j] = N("All"), [S, R] = N(""), [g, u] = N(!1), [v, C] = N(null), F = Z(() => {
     const I = S.trim().toLowerCase();
     return t.filter((_) => _.mode !== e || w === "Approved" && _.label !== "approved" || w === "Rejected" && _.label !== "rejected" || w === "Unlabeled" && _.label !== null ? !1 : !I || _.prompt.toLowerCase().includes(I) || _.model.toLowerCase().includes(I));
@@ -617,7 +617,7 @@ function Tr({ mode: e, items: t, batch: a, onBatch: o, onLabel: s, onRemove: i, 
         {
           role: "radio",
           "aria-checked": a === I,
-          onClick: () => o(I),
+          onClick: () => n(I),
           className: `h-7 w-7 rounded-full text-xs font-semibold ${a === I ? "bg-primary text-primary-ink" : "text-secondary hover:text-fg"}`,
           children: I
         },
@@ -630,7 +630,7 @@ function Tr({ mode: e, items: t, batch: a, onBatch: o, onLabel: s, onRemove: i, 
         /* @__PURE__ */ r("div", { className: "mb-4 flex h-20 w-20 items-center justify-center rounded-2xl border border-line bg-card-bg text-secondary", children: /* @__PURE__ */ r(Je, { width: 36, height: 36 }) }),
         /* @__PURE__ */ r("p", { className: "font-semibold", children: t.some((I) => I.mode === e) ? "No matching generations" : "No generations yet" }),
         /* @__PURE__ */ r("p", { className: "mt-1 max-w-xs text-sm text-secondary", children: t.some((I) => I.mode === e) ? "Try a different filter or search." : "Select a model, configure parameters, and click Generate to create your first AI output." })
-      ] }) : /* @__PURE__ */ r("div", { className: "grid gap-3", style: { gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))" }, children: F.map((I) => /* @__PURE__ */ r(Mr, { g: I, hidden: g, onLabel: s, onRemove: i, onReuse: n, onRerun: b, onDeleteMedia: k, onOpen: C, estimateFor: G }, I.id)) }),
+      ] }) : /* @__PURE__ */ r("div", { className: "grid gap-3", style: { gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))" }, children: F.map((I) => /* @__PURE__ */ r(Mr, { g: I, hidden: g, onLabel: s, onRemove: i, onReuse: o, onRerun: b, onDeleteMedia: k, onOpen: C, estimateFor: G }, I.id)) }),
       p && /* @__PURE__ */ l("p", { role: "alert", className: "mt-3 text-center text-xs text-danger", children: [
         "Could not load your muapi history: ",
         p
@@ -646,52 +646,52 @@ function Gr(e) {
   return e.type === "boolean" ? "boolean" : e.type === "array" ? ((t = e.items) == null ? void 0 : t.type) === "string" ? "media-list" : "json" : e.enum && e.enum.length ? "select" : ["int", "integer", "number", "float"].includes(e.type ?? "") ? "number" : e.type === "text" ? "textarea" : e.type === "string" || !e.type ? $r.test(e.name) || (e.maxLength ?? 0) > 500 ? "textarea" : e.field === "image" || e.field === "video" || e.field === "audio" || /_url$/.test(e.name) || _r.test(e.name) ? "media" : "text" : "text";
 }
 function st(e) {
-  var n, b;
-  const t = (b = (n = e.input_schema) == null ? void 0 : n.schemas) == null ? void 0 : b.input_data, a = (t == null ? void 0 : t.properties) ?? {}, o = (t == null ? void 0 : t["x-order-properties"]) ?? e.input_fields ?? Object.keys(a), s = [...o.filter((k) => a[k]), ...Object.keys(a).filter((k) => !o.includes(k))], i = new Set(e.required_fields ?? []);
+  var o, b;
+  const t = (b = (o = e.input_schema) == null ? void 0 : o.schemas) == null ? void 0 : b.input_data, a = (t == null ? void 0 : t.properties) ?? {}, n = (t == null ? void 0 : t["x-order-properties"]) ?? e.input_fields ?? Object.keys(a), s = [...n.filter((k) => a[k]), ...Object.keys(a).filter((k) => !n.includes(k))], i = new Set(e.required_fields ?? []);
   return s.map((k) => ({ prop: { ...a[k], name: k }, kind: Gr({ ...a[k], name: k }), required: i.has(k) }));
 }
 function Ge(e) {
   var a;
   const t = {};
-  for (const { prop: o, kind: s, required: i } of e)
-    o.default !== void 0 && o.default !== null ? t[o.name] = o.default : i && (s === "textarea" || s === "text") && typeof ((a = o.examples) == null ? void 0 : a[0]) == "string" && (t[o.name] = o.examples[0]);
+  for (const { prop: n, kind: s, required: i } of e)
+    n.default !== void 0 && n.default !== null ? t[n.name] = n.default : i && (s === "textarea" || s === "text") && typeof ((a = n.examples) == null ? void 0 : a[0]) == "string" && (t[n.name] = n.examples[0]);
   return t;
 }
 const pe = (e) => `__auto:${e}`, lt = (e) => (e.kind === "number" || e.kind === "select") && !e.required, Pe = (e) => e == null || e === "" || Array.isArray(e) && e.length === 0;
 function ct(e, t) {
   const a = {};
-  for (const { prop: o, kind: s } of e) {
-    if (t[pe(o.name)] === !0) continue;
-    const i = t[o.name] ?? o.default;
+  for (const { prop: n, kind: s } of e) {
+    if (t[pe(n.name)] === !0) continue;
+    const i = t[n.name] ?? n.default;
     if (!Pe(i))
       if (s === "number") {
-        const n = Number(i);
-        Number.isFinite(n) && (a[o.name] = n);
+        const o = Number(i);
+        Number.isFinite(o) && (a[n.name] = o);
       } else if (s === "json" && typeof i == "string")
         try {
-          a[o.name] = JSON.parse(i);
+          a[n.name] = JSON.parse(i);
         } catch {
         }
-      else a[o.name] = i;
+      else a[n.name] = i;
   }
   return a;
 }
 function Lr(e, t) {
-  for (const { prop: a, kind: o, required: s } of e) {
+  for (const { prop: a, kind: n, required: s } of e) {
     if (t[pe(a.name)] === !0) continue;
-    const i = t[a.name] ?? a.default, n = a.title || a.name;
-    if (s && Pe(i)) return `${n} is required`;
-    if (o === "json" && typeof i == "string" && i)
+    const i = t[a.name] ?? a.default, o = a.title || a.name;
+    if (s && Pe(i)) return `${o} is required`;
+    if (n === "json" && typeof i == "string" && i)
       try {
         JSON.parse(i);
       } catch {
-        return `${n} must be valid JSON`;
+        return `${o} must be valid JSON`;
       }
-    if (o === "number" && !Pe(i)) {
+    if (n === "number" && !Pe(i)) {
       const b = Number(i);
-      if (!Number.isFinite(b)) return `${n} must be a number`;
-      if (a.minValue !== void 0 && b < a.minValue) return `${n} must be at least ${a.minValue}`;
-      if (a.maxValue !== void 0 && b > a.maxValue) return `${n} must be at most ${a.maxValue}`;
+      if (!Number.isFinite(b)) return `${o} must be a number`;
+      if (a.minValue !== void 0 && b < a.minValue) return `${o} must be at least ${a.minValue}`;
+      if (a.maxValue !== void 0 && b > a.maxValue) return `${o} must be at most ${a.maxValue}`;
     }
   }
   return null;
@@ -699,7 +699,7 @@ function Lr(e, t) {
 const Rr = 12, We = 240, ke = (e) => `${typeof e}:${e}`, Dr = (e) => e.map((t) => ({ value: t, label: String(t) }));
 function Or(e, t) {
   const a = t.trim().toLowerCase();
-  return a ? e.filter((o) => o.label.toLowerCase().includes(a)) : e;
+  return a ? e.filter((n) => n.label.toLowerCase().includes(a)) : e;
 }
 function jr(e, t, a = We) {
   return e >= a || e >= t ? "down" : "up";
@@ -712,11 +712,11 @@ function qr(e, t, a) {
   return a <= 0 ? -1 : t === "ArrowDown" ? Math.min(e + 1, a - 1) : t === "ArrowUp" ? Math.max(e - 1, 0) : t === "Home" ? 0 : t === "End" ? a - 1 : t === "PageDown" ? Math.min(e + 5, a - 1) : t === "PageUp" ? Math.max(e - 5, 0) : e;
 }
 const dt = "Auto (let model decide)", Le = "__auto__";
-function Ve({ id: e, label: t, options: a, value: o, onChange: s, allowAuto: i, auto: n, onAuto: b, combobox: k }) {
-  const f = Vt(), A = e ?? `ms-dd-${f}`, M = k ?? a.length > Rr, [p, G] = N(!1), [w, j] = N(""), [S, R] = N(0), [g, u] = N("down"), v = K(null), C = K(null), F = K(null), I = a.find((d) => o !== void 0 && ke(d.value) === ke(o)), _ = Z(() => M ? Or(a, w) : a, [M, a, w]), L = Z(
+function Ve({ id: e, label: t, options: a, value: n, onChange: s, allowAuto: i, auto: o, onAuto: b, combobox: k }) {
+  const f = Vt(), A = e ?? `ms-dd-${f}`, M = k ?? a.length > Rr, [p, G] = N(!1), [w, j] = N(""), [S, R] = N(0), [g, u] = N("down"), v = K(null), C = K(null), F = K(null), I = a.find((d) => n !== void 0 && ke(d.value) === ke(n)), _ = Z(() => M ? Or(a, w) : a, [M, a, w]), L = Z(
     () => [...i ? [{ key: Le, label: dt, value: Le, isAuto: !0 }] : [], ..._.map((d) => ({ key: ke(d.value), label: d.label, hint: d.hint, value: d.value }))],
     [i, _]
-  ), z = n ? Le : I ? ke(I.value) : void 0, y = () => {
+  ), z = o ? Le : I ? ke(I.value) : void 0, y = () => {
     G(!1), j("");
   }, D = (d) => {
     d.isAuto ? b == null || b() : s(d.value), y();
@@ -768,7 +768,7 @@ function Ve({ id: e, label: t, options: a, value: o, onChange: s, allowAuto: i, 
       return;
     }
     ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(d.key) && (d.preventDefault(), R((x) => qr(x, d.key, L.length)));
-  }, c = n ? dt : (I == null ? void 0 : I.label) ?? "Select…";
+  }, c = o ? dt : (I == null ? void 0 : I.label) ?? "Select…";
   return /* @__PURE__ */ l("div", { ref: v, className: "relative w-full", onKeyDown: X, children: [
     /* @__PURE__ */ l(
       "button",
@@ -780,7 +780,7 @@ function Ve({ id: e, label: t, options: a, value: o, onChange: s, allowAuto: i, 
         "aria-label": `${t}: ${c}`,
         "aria-controls": `${A}-list`,
         onClick: () => G((d) => !d),
-        className: `flex w-full items-center justify-between gap-3 rounded-ctl border bg-card-bg px-3 py-3 text-left text-sm ${p ? "border-primary" : "border-line hover:border-muted"} ${n ? "text-secondary" : ""}`,
+        className: `flex w-full items-center justify-between gap-3 rounded-ctl border bg-card-bg px-3 py-3 text-left text-sm ${p ? "border-primary" : "border-line hover:border-muted"} ${o ? "text-secondary" : ""}`,
         children: [
           /* @__PURE__ */ r("span", { className: "truncate", children: c }),
           /* @__PURE__ */ r(Me, { up: p, width: 16, height: 16 })
@@ -836,8 +836,8 @@ const Fr = [{ id: "all", label: "All" }, { id: "image", label: "Images" }, { id:
 function Br({ a: e }) {
   return e.media_type === "image" ? /* @__PURE__ */ r("img", { src: e.url, alt: e.name ?? "Image", loading: "lazy", className: "h-full w-full object-cover" }) : e.media_type === "video" ? /* @__PURE__ */ r("video", { src: e.url, preload: "metadata", muted: !0, className: "h-full w-full object-cover" }) : /* @__PURE__ */ r("div", { className: "flex h-full w-full items-center justify-center text-secondary", children: /* @__PURE__ */ r(Ae, {}) });
 }
-function zr({ client: e, max: t, initialType: a = "image", onInsert: o, onClose: s }) {
-  const [i, n] = N(a), [b, k] = N(""), [f, A] = N(1), [M, p] = N(null), [G, w] = N(null), [j, S] = N(!1), [R, g] = N([]), [u, v] = N(""), [C, F] = N(!1), I = K(null), _ = K(null), L = te(async () => {
+function zr({ client: e, max: t, initialType: a = "image", onInsert: n, onClose: s }) {
+  const [i, o] = N(a), [b, k] = N(""), [f, A] = N(1), [M, p] = N(null), [G, w] = N(null), [j, S] = N(!1), [R, g] = N([]), [u, v] = N(""), [C, F] = N(!1), I = K(null), _ = K(null), L = te(async () => {
     S(!0), w(null);
     try {
       p(await e.mediaLibrary({ mediaType: i, search: b, page: f }));
@@ -913,9 +913,10 @@ function zr({ client: e, max: t, initialType: a = "image", onInsert: o, onClose:
     /* @__PURE__ */ l("header", { className: "flex items-center gap-3 border-b border-line p-4", children: [
       /* @__PURE__ */ r("div", { className: "flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft text-primary", children: /* @__PURE__ */ r(Ae, {}) }),
       /* @__PURE__ */ l("div", { className: "min-w-0 flex-1", children: [
-        /* @__PURE__ */ l("h2", { className: "flex items-center gap-2 whitespace-nowrap text-base font-semibold", children: [
-          "Media Library ",
-          /* @__PURE__ */ l("span", { className: "shrink-0 whitespace-nowrap rounded-full bg-card-bg px-2 py-0.5 text-[11px] font-normal text-secondary", children: [
+        /* @__PURE__ */ l("h2", { className: "flex items-center gap-2 text-base font-semibold", children: [
+          /* @__PURE__ */ r("span", { className: "truncate", children: "Media Library" }),
+          " ",
+          /* @__PURE__ */ l("span", { className: "hidden shrink-0 whitespace-nowrap rounded-full bg-card-bg px-2 py-0.5 text-[11px] font-normal text-secondary min-[420px]:inline", children: [
             (M == null ? void 0 : M.total) ?? 0,
             " ",
             (M == null ? void 0 : M.total) === 1 ? "item" : "items"
@@ -933,17 +934,17 @@ function zr({ client: e, max: t, initialType: a = "image", onInsert: o, onClose:
         const d = Array.from(c.target.files ?? []);
         c.target.value = "", y(d);
       } }),
-      /* @__PURE__ */ l("button", { type: "button", onClick: () => {
+      /* @__PURE__ */ l("button", { type: "button", "aria-label": "Upload files", onClick: () => {
         var c;
         return (c = _.current) == null ? void 0 : c.click();
-      }, className: "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-ink hover:bg-primary-hover", children: [
+      }, className: "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-primary px-3 py-2 text-xs font-semibold text-primary-ink hover:bg-primary-hover sm:px-4", children: [
         /* @__PURE__ */ r(At, { width: 14, height: 14 }),
-        "Upload Files"
+        /* @__PURE__ */ r("span", { className: "hidden sm:inline", children: "Upload Files" })
       ] }),
       /* @__PURE__ */ r("button", { type: "button", "aria-label": "Close", onClick: s, className: "text-secondary hover:text-fg", children: /* @__PURE__ */ r(fe, {}) })
     ] }),
     /* @__PURE__ */ l("div", { className: "flex flex-wrap items-center gap-3 border-b border-line p-3", children: [
-      /* @__PURE__ */ r("div", { role: "tablist", "aria-label": "Media type", className: "flex rounded-full border border-line bg-card-bg p-0.5", children: Fr.map((c) => /* @__PURE__ */ r("button", { role: "tab", "aria-selected": i === c.id, onClick: () => n(c.id), className: `rounded-full px-3 py-1.5 text-xs font-semibold ${i === c.id ? "bg-primary text-primary-ink" : "text-secondary hover:text-fg"}`, children: c.label }, c.id)) }),
+      /* @__PURE__ */ r("div", { role: "tablist", "aria-label": "Media type", className: "flex rounded-full border border-line bg-card-bg p-0.5", children: Fr.map((c) => /* @__PURE__ */ r("button", { role: "tab", "aria-selected": i === c.id, onClick: () => o(c.id), className: `rounded-full px-3 py-1.5 text-xs font-semibold ${i === c.id ? "bg-primary text-primary-ink" : "text-secondary hover:text-fg"}`, children: c.label }, c.id)) }),
       /* @__PURE__ */ r("input", { value: b, onChange: (c) => k(c.target.value), placeholder: "Search files...", "aria-label": "Search files", className: "min-w-[160px] flex-1 rounded-full px-4 py-2 text-xs" }),
       /* @__PURE__ */ r("button", { type: "button", "aria-label": "Add by URL", title: "Add by URL", "aria-expanded": C, onClick: () => F((c) => !c), className: "flex h-9 w-9 items-center justify-center rounded-full border border-line text-secondary hover:text-primary", children: "+" })
     ] }),
@@ -986,7 +987,7 @@ function zr({ client: e, max: t, initialType: a = "image", onInsert: o, onClose:
         " selected"
       ] }),
       /* @__PURE__ */ l("button", { type: "button", disabled: !R.length, onClick: () => {
-        o(R), s();
+        n(R), s();
       }, className: "flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-ink disabled:opacity-40", children: [
         /* @__PURE__ */ r(ve, { width: 14, height: 14 }),
         "Insert Selected"
@@ -1002,18 +1003,18 @@ const Mt = (e, t = "") => {
   return a === "video/*" ? "video" : a === "audio/*" ? "audio" : a === "image/*" ? "image" : "all";
 }, Yr = (e) => e.type.startsWith("video") ? "video" : e.type.startsWith("audio") ? "audio" : e.type.startsWith("image") ? "image" : "archive";
 async function Jr(e, t) {
-  const a = await Promise.all(t.map((o) => e.upload(o)));
-  return t.forEach((o, s) => void e.saveToLibrary({ url: a[s], name: o.name, mime_type: o.type || void 0, size_bytes: o.size, media_type: Yr(o) }).catch(() => {
+  const a = await Promise.all(t.map((n) => e.upload(n)));
+  return t.forEach((n, s) => void e.saveToLibrary({ url: a[s], name: n.name, mime_type: n.type || void 0, size_bytes: n.size, media_type: Yr(n) }).catch(() => {
   })), a;
 }
-function Ue({ client: e, field: t, multiple: a, max: o, current: s, onUrls: i, onError: n }) {
-  const b = K(null), [k, f] = N(!1), [A, M] = N(!1), [p, G] = N(!1), w = o - s.length, j = wt(), S = async (u) => {
+function Ue({ client: e, field: t, multiple: a, max: n, current: s, onUrls: i, onError: o }) {
+  const b = K(null), [k, f] = N(!1), [A, M] = N(!1), [p, G] = N(!1), w = n - s.length, j = wt(), S = async (u) => {
     if (u.length) {
       f(!0);
       try {
         i(await Jr(e, a ? u.slice(0, Math.max(w, 1)) : u.slice(0, 1)));
       } catch (v) {
-        n(v.message);
+        o(v.message);
       } finally {
         f(!1);
       }
@@ -1065,8 +1066,8 @@ function Ue({ client: e, field: t, multiple: a, max: o, current: s, onUrls: i, o
     }
   );
 }
-function Kr({ field: e, values: t, onChange: a, client: o, onError: s, tagCount: i = 0 }) {
-  const { prop: n, kind: b, required: k } = e, f = t[n.name], A = (u) => a(n.name, u), M = n.title || n.name, p = `ms-f-${n.name}`, G = f == null ? "" : String(f), w = Array.isArray(f) ? f : [], j = t[pe(n.name)] === !0, S = K(null), R = (u) => {
+function Kr({ field: e, values: t, onChange: a, client: n, onError: s, tagCount: i = 0 }) {
+  const { prop: o, kind: b, required: k } = e, f = t[o.name], A = (u) => a(o.name, u), M = o.title || o.name, p = `ms-f-${o.name}`, G = f == null ? "" : String(f), w = Array.isArray(f) ? f : [], j = t[pe(o.name)] === !0, S = K(null), R = (u) => {
     const v = S.current, C = typeof f == "string" ? f : "", F = (v == null ? void 0 : v.selectionStart) ?? C.length, I = (v == null ? void 0 : v.selectionEnd) ?? F;
     A(C.slice(0, F) + u + " " + C.slice(I)), requestAnimationFrame(() => {
       v == null || v.focus(), v == null || v.setSelectionRange(F + u.length + 1, F + u.length + 1);
@@ -1076,13 +1077,13 @@ function Kr({ field: e, values: t, onChange: a, client: o, onError: s, tagCount:
   if (b === "textarea" || b === "json")
     g = /* @__PURE__ */ l(Ie, { children: [
       /* @__PURE__ */ r("textarea", { ref: S, id: p, rows: b === "json" ? 4 : 5, value: typeof f == "string" ? f : f ? JSON.stringify(f, null, 2) : "", onChange: (u) => A(u.target.value), className: `w-full resize-y p-3 text-sm ${b === "json" ? "font-mono text-xs" : ""}` }),
-      n.name === "prompt" && i > 0 && /* @__PURE__ */ l("div", { className: "mt-1.5 flex flex-wrap items-center gap-1.5", "aria-label": "Reference image tags", children: [
+      o.name === "prompt" && i > 0 && /* @__PURE__ */ l("div", { className: "mt-1.5 flex flex-wrap items-center gap-1.5", "aria-label": "Reference image tags", children: [
         /* @__PURE__ */ r("span", { className: "text-[11px] text-muted", children: "Reference:" }),
         Array.from({ length: Math.min(i, 9) }, (u, v) => `@image${v + 1}`).map((u) => /* @__PURE__ */ r("button", { type: "button", onClick: () => R(u), className: "rounded-md border border-line px-2 py-0.5 text-[11px] text-primary hover:bg-primary-soft", children: u }, u))
       ] })
     ] });
   else if (b === "select") {
-    const u = n.enum ?? [];
+    const u = o.enum ?? [];
     g = /* @__PURE__ */ r(
       Ve,
       {
@@ -1091,11 +1092,11 @@ function Kr({ field: e, values: t, onChange: a, client: o, onError: s, tagCount:
         options: Dr(u),
         value: f,
         onChange: (v) => {
-          A(v), a(pe(n.name), !1);
+          A(v), a(pe(o.name), !1);
         },
         allowAuto: lt(e),
         auto: j,
-        onAuto: () => a(pe(n.name), !0)
+        onAuto: () => a(pe(o.name), !0)
       }
     );
   } else if (b === "boolean") {
@@ -1113,21 +1114,21 @@ function Kr({ field: e, values: t, onChange: a, client: o, onError: s, tagCount:
       }
     );
   } else if (b === "number") {
-    const u = n.minValue !== void 0 && n.maxValue !== void 0;
+    const u = o.minValue !== void 0 && o.maxValue !== void 0;
     g = /* @__PURE__ */ l("div", { className: `flex items-center gap-3 ${j ? "opacity-40" : ""}`, children: [
-      u && /* @__PURE__ */ r("input", { type: "range", disabled: j, "aria-label": `${M} slider`, min: n.minValue, max: n.maxValue, step: n.step ?? (n.type === "number" ? 0.01 : 1), value: G === "" ? n.minValue : Number(G), onChange: (v) => A(Number(v.target.value)), className: "min-w-0 flex-1" }),
-      /* @__PURE__ */ r("input", { id: p, type: "number", disabled: j, min: n.minValue, max: n.maxValue, step: n.step ?? (n.type === "number" ? "any" : 1), value: G, onChange: (v) => A(v.target.value === "" ? "" : Number(v.target.value)), className: `px-3 py-2 text-sm ${u ? "w-24" : "w-full"}` })
+      u && /* @__PURE__ */ r("input", { type: "range", disabled: j, "aria-label": `${M} slider`, min: o.minValue, max: o.maxValue, step: o.step ?? (o.type === "number" ? 0.01 : 1), value: G === "" ? o.minValue : Number(G), onChange: (v) => A(Number(v.target.value)), className: "min-w-0 flex-1" }),
+      /* @__PURE__ */ r("input", { id: p, type: "number", disabled: j, min: o.minValue, max: o.maxValue, step: o.step ?? (o.type === "number" ? "any" : 1), value: G, onChange: (v) => A(v.target.value === "" ? "" : Number(v.target.value)), className: `px-3 py-2 text-sm ${u ? "w-24" : "w-full"}` })
     ] });
   } else if (b === "media")
-    g = /* @__PURE__ */ r(Ue, { client: o, field: e, multiple: !1, max: 1, current: G ? [G] : [], onUrls: (u) => A(u[0]), onError: s });
+    g = /* @__PURE__ */ r(Ue, { client: n, field: e, multiple: !1, max: 1, current: G ? [G] : [], onUrls: (u) => A(u[0]), onError: s });
   else if (b === "media-list") {
-    const u = n.maxItems ?? 8;
+    const u = o.maxItems ?? 8;
     g = /* @__PURE__ */ l("div", { className: "space-y-2", children: [
       w.map((v, C) => /* @__PURE__ */ l("div", { className: "flex gap-2", children: [
         /* @__PURE__ */ r("input", { "aria-label": `${M} ${C + 1}`, value: v, onChange: (F) => A(w.map((I, _) => _ === C ? F.target.value : I)), className: "min-w-0 flex-1 px-3 py-2 text-sm" }),
         /* @__PURE__ */ r("button", { type: "button", "aria-label": `Remove ${M} ${C + 1}`, onClick: () => A(w.filter((F, I) => I !== C)), className: "flex h-9 w-9 shrink-0 items-center justify-center rounded-ctl border border-line text-secondary hover:text-danger", children: /* @__PURE__ */ r(fe, { width: 14, height: 14 }) })
       ] }, C)),
-      /* @__PURE__ */ r(Ue, { client: o, field: e, multiple: !0, max: u, current: w, onUrls: (v) => A([...w, ...v].slice(0, u)), onError: s })
+      /* @__PURE__ */ r(Ue, { client: n, field: e, multiple: !0, max: u, current: w, onUrls: (v) => A([...w, ...v].slice(0, u)), onError: s })
     ] });
   } else
     g = /* @__PURE__ */ r("input", { id: p, value: G, onChange: (u) => A(u.target.value), className: "w-full px-3 py-3 text-sm" });
@@ -1135,12 +1136,12 @@ function Kr({ field: e, values: t, onChange: a, client: o, onError: s, tagCount:
     /* @__PURE__ */ l("div", { className: "mb-1.5 flex items-center justify-between gap-2", children: [
       /* @__PURE__ */ l("label", { htmlFor: p, className: "flex items-center gap-1.5 text-xs font-medium text-secondary", children: [
         M,
-        n.description && /* @__PURE__ */ r("span", { title: n.description, className: "text-muted", children: /* @__PURE__ */ r(xr, { width: 13, height: 13 }) })
+        o.description && /* @__PURE__ */ r("span", { title: o.description, className: "text-muted", children: /* @__PURE__ */ r(xr, { width: 13, height: 13 }) })
       ] }),
       lt(e) && b === "number" ? /* @__PURE__ */ l("label", { className: "flex items-center gap-1.5 text-[11px] text-secondary", children: [
-        /* @__PURE__ */ r("input", { type: "checkbox", checked: j, onChange: (u) => a(pe(n.name), u.target.checked), style: { width: 14, height: 14, padding: 0, accentColor: "var(--ms-primary)" } }),
+        /* @__PURE__ */ r("input", { type: "checkbox", checked: j, onChange: (u) => a(pe(o.name), u.target.checked), style: { width: 14, height: 14, padding: 0, accentColor: "var(--ms-primary)" } }),
         " Auto (let model decide)"
-      ] }) : /* @__PURE__ */ r("span", { className: "text-[11px] text-primary", children: b === "media-list" ? `${w.length}/${n.maxItems ?? 8} items${k ? " · required" : ""}` : k ? "* required" : "" })
+      ] }) : /* @__PURE__ */ r("span", { className: "text-[11px] text-primary", children: b === "media-list" ? `${w.length}/${o.maxItems ?? 8} items${k ? " · required" : ""}` : k ? "* required" : "" })
     ] }),
     g
   ] });
@@ -1192,60 +1193,65 @@ const Ne = {
   infinitetalk: "InfiniteTalk",
   sync: "Sync",
   happy: "HappyHorse"
-}, he = "Other", Wr = 3, Xr = 2, Qr = 20, Zr = 2, ea = (e) => e.charAt(0).toUpperCase() + e.slice(1);
+}, he = "Other", Wr = 3, Xr = 2, Qr = 20, Zr = 2, ea = 4, ta = 40, ra = (e) => e.charAt(0).toUpperCase() + e.slice(1);
 function Et(e) {
   const t = e.toLowerCase().split(/[-_.\s]/)[0] ?? "", a = t.replace(/\d+[a-z]?$/, "") || t;
-  return Ne[t] ? Ne[t] : Ne[a] ? Ne[a] : a.startsWith("tripo") ? "Tripo" : a === "ai" || a === "" || a.length < 2 ? he : ea(a);
+  return Ne[t] ? Ne[t] : Ne[a] ? Ne[a] : a.startsWith("tripo") ? "Tripo" : a === "ai" || a === "" || a.length < 2 ? he : ra(a);
 }
-function ta(e) {
+function aa(e) {
   const t = /* @__PURE__ */ new Map();
   for (const s of e) {
     const i = Et(s.name);
     t.set(i, (t.get(i) ?? 0) + 1);
   }
   let a = 0;
-  const o = [];
+  const n = [];
   for (const [s, i] of t)
-    s === he || i < Wr ? a += i : o.push({ id: s, label: s, count: i });
-  return o.sort((s, i) => i.count - s.count || s.label.localeCompare(i.label)), a && o.push({ id: he, label: he, count: a }), o;
+    s === he || i < Wr ? a += i : n.push({ id: s, label: s, count: i });
+  return n.sort((s, i) => i.count - s.count || s.label.localeCompare(i.label)), a && n.push({ id: he, label: he, count: a }), n;
 }
 function Tt(e, t) {
   const a = Et(e.name);
-  return t.some((o) => o.id === a) ? a : he;
+  return t.some((n) => n.id === a) ? a : he;
 }
-function ra(e) {
+function na(e) {
   const t = e.split(/[\s.]+/).filter(Boolean);
   return (t.length > 1 ? t[0][0] + t[1][0] : e.slice(0, 2)).toUpperCase();
 }
-function aa(e) {
+function oa(e) {
   let t = 7;
   for (const a of e) t = (t * 33 + a.charCodeAt(0)) % 360;
   return t;
 }
 const ut = ["Text to Video", "Image to Video", "Video to Video", "Text to Image", "Image to Image", "Text to Audio", "Audio to Video"];
-function oa(e) {
+function ia(e) {
   const t = /* @__PURE__ */ new Map();
-  for (const o of e) t.set(o.category, (t.get(o.category) ?? 0) + 1);
-  const a = (o) => {
-    const s = ut.indexOf(o);
+  for (const n of e) t.set(n.category, (t.get(n.category) ?? 0) + 1);
+  const a = (n) => {
+    const s = ut.indexOf(n);
     return s < 0 ? ut.length : s;
   };
-  return [...t].map(([o, s]) => ({ id: o, count: s })).sort((o, s) => a(o.id) - a(s.id) || s.count - o.count || o.id.localeCompare(s.id));
+  return [...t].map(([n, s]) => ({ id: n, count: s })).sort((n, s) => a(n.id) - a(s.id) || s.count - n.count || n.id.localeCompare(s.id));
 }
 const se = "__favourites__", ee = "__all__";
-function na(e, t, a) {
-  return e.filter((o) => {
+function sa(e, t, a) {
+  return e.filter((n) => {
     var s;
-    return t.category !== ee && o.category !== t.category ? !1 : t.provider === se ? !!((s = t.favourites) != null && s.includes(o.name)) : t.provider === ee || Tt(o, a) === t.provider;
+    return t.category !== ee && n.category !== t.category ? !1 : t.provider === se ? !!((s = t.favourites) != null && s.includes(n.name)) : t.provider === ee || Tt(n, a) === t.provider;
   });
 }
-const ia = (e, t) => t.filter((a) => a.id !== he).length >= Xr && e.length >= Qr, Se = 200;
-function sa({ model: e }) {
+const la = (e, t) => t.filter((a) => a.id !== he).length >= Xr && e.length >= Qr;
+function ca(e) {
+  const t = ia(e);
+  return e.length >= ta ? t.filter((a) => a.count >= ea) : t;
+}
+const Se = 200;
+function da({ model: e }) {
   const t = He(e);
   return t ? /* @__PURE__ */ l("span", { className: "flex shrink-0 items-center gap-1 text-[11px] font-semibold text-primary", children: [
-    t.original !== null && /* @__PURE__ */ r("s", { className: "font-normal text-muted", children: oe(t.original) }),
+    t.original !== null && /* @__PURE__ */ r("s", { className: "font-normal text-muted", children: ne(t.original) }),
     t.from && t.original !== null ? "from " : "",
-    oe(t.current)
+    ne(t.current)
   ] }) : null;
 }
 const mt = (e, t) => {
@@ -1260,7 +1266,7 @@ const mt = (e, t) => {
   } catch {
   }
 };
-function Re({ label: e, active: t, onClick: a, hue: o, children: s }) {
+function Re({ label: e, active: t, onClick: a, hue: n, children: s }) {
   return /* @__PURE__ */ r(
     "button",
     {
@@ -1270,15 +1276,15 @@ function Re({ label: e, active: t, onClick: a, hue: o, children: s }) {
       "aria-label": e,
       title: e,
       onClick: a,
-      style: o !== void 0 && !t ? { boxShadow: `inset 0 0 0 1.5px hsl(${o} 60% 55% / 0.55)` } : void 0,
+      style: n !== void 0 && !t ? { boxShadow: `inset 0 0 0 1.5px hsl(${n} 60% 55% / 0.55)` } : void 0,
       className: `flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${t ? "bg-primary text-primary-ink" : "bg-card-bg text-secondary hover:text-fg"}`,
       children: s
     }
   );
 }
-function la({ models: e, value: t, onChange: a, favorites: o, onToggleFavorite: s, usage: i, showGroup: n, scope: b = "default" }) {
+function ua({ models: e, value: t, onChange: a, favorites: n, onToggleFavorite: s, usage: i, showGroup: o, scope: b = "default" }) {
   var W;
-  const [k, f] = N(!1), [A, M] = N(""), [p, G] = N("popular"), [w, j] = N(!1), S = K(null), R = Z(() => ta(e), [e]), g = Z(() => oa(e), [e]), u = ia(e, R), v = g.length >= Zr, [C, F] = N(() => mt(`muapi-studio:provider:${b}`, ee)), [I, _] = N(() => mt(`muapi-studio:category:${b}`, ee)), L = u && (C === se || C === ee || R.some((m) => m.id === C)) ? C : ee, z = v && (I === ee || g.some((m) => m.id === I)) ? I : ee, y = (m) => {
+  const [k, f] = N(!1), [A, M] = N(""), [p, G] = N("popular"), [w, j] = N(!1), S = K(null), R = Z(() => aa(e), [e]), g = Z(() => ca(e), [e]), u = la(e, R), v = g.length >= Zr, [C, F] = N(() => mt(`muapi-studio:provider:${b}`, ee)), [I, _] = N(() => mt(`muapi-studio:category:${b}`, ee)), L = u && (C === se || C === ee || R.some((m) => m.id === C)) ? C : ee, z = v && (I === ee || g.some((m) => m.id === I)) ? I : ee, y = (m) => {
     F(m), pt(`muapi-studio:provider:${b}`, m);
   }, D = (m) => {
     _(m), pt(`muapi-studio:category:${b}`, m);
@@ -1298,11 +1304,11 @@ function la({ models: e, value: t, onChange: a, favorites: o, onToggleFavorite: 
     };
   }, [k]);
   const c = Z(() => {
-    const m = A.trim().toLowerCase(), P = na(e, { category: z, provider: L, favourites: o }, R), B = m ? P.filter((re) => re.name.toLowerCase().includes(m) || re.category.toLowerCase().includes(m)) : P, H = Nt(B, p, { usage: i, favorites: o });
+    const m = A.trim().toLowerCase(), P = sa(e, { category: z, provider: L, favourites: n }, R), B = m ? P.filter((re) => re.name.toLowerCase().includes(m) || re.category.toLowerCase().includes(m)) : P, H = Nt(B, p, { usage: i, favorites: n });
     if (p === "favourites" || p === "most-used") return H;
-    const ae = new Set(o);
+    const ae = new Set(n);
     return [...H.filter((re) => ae.has(re.name)), ...H.filter((re) => !ae.has(re.name))];
-  }, [e, A, p, o, i, z, L, R]), [d, x] = N(0);
+  }, [e, A, p, n, i, z, L, R]), [d, x] = N(0);
   V(() => {
     var m, P;
     x(0), (P = (m = X.current) == null ? void 0 : m.scrollTo) == null || P.call(m, { top: 0 });
@@ -1332,8 +1338,8 @@ function la({ models: e, value: t, onChange: a, favorites: o, onToggleFavorite: 
     k && /* @__PURE__ */ l("div", { className: "absolute left-0 right-0 top-full z-30 mt-2 flex gap-2 rounded-card border border-line bg-panel-bg p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)]", children: [
       u && /* @__PURE__ */ l("div", { role: "radiogroup", "aria-label": "Provider", className: "flex max-h-[22rem] w-10 shrink-0 flex-col items-center gap-1.5 overflow-y-auto border-r border-line pr-2", children: [
         /* @__PURE__ */ r(Re, { label: "All providers", active: L === ee, onClick: () => y(ee), children: /* @__PURE__ */ r("span", { className: "text-[10px] font-bold", children: "ALL" }) }),
-        /* @__PURE__ */ r(Re, { label: "Favourites", active: L === se, onClick: () => y(se), children: /* @__PURE__ */ r(ot, { width: 14, height: 14, filled: L === se }) }),
-        R.map((m) => /* @__PURE__ */ r(Re, { label: `${m.label} (${m.count})`, active: L === m.id, onClick: () => y(m.id), hue: aa(m.label), children: ra(m.label) }, m.id))
+        /* @__PURE__ */ r(Re, { label: "Favourites", active: L === se, onClick: () => y(se), children: /* @__PURE__ */ r(nt, { width: 14, height: 14, filled: L === se }) }),
+        R.map((m) => /* @__PURE__ */ r(Re, { label: `${m.label} (${m.count})`, active: L === m.id, onClick: () => y(m.id), hue: oa(m.label), children: na(m.label) }, m.id))
       ] }),
       /* @__PURE__ */ l("div", { className: "min-w-0 flex-1", children: [
         v && /* @__PURE__ */ r("div", { role: "tablist", "aria-label": "Model category", className: "mb-2 flex gap-1.5 overflow-x-auto pb-1", children: [{ id: ee, label: "All" }, ...g.map((m) => ({ id: m.id, label: m.id }))].map((m) => /* @__PURE__ */ r(
@@ -1412,18 +1418,18 @@ function la({ models: e, value: t, onChange: a, favorites: o, onToggleFavorite: 
                       "button",
                       {
                         type: "button",
-                        "aria-label": o.includes(m.name) ? "Remove favorite" : "Add favorite",
+                        "aria-label": n.includes(m.name) ? "Remove favorite" : "Add favorite",
                         onClick: (H) => {
                           H.stopPropagation(), s(m.name);
                         },
-                        className: o.includes(m.name) ? "text-primary" : "text-muted hover:text-fg",
-                        children: /* @__PURE__ */ r(ot, { width: 15, height: 15, filled: o.includes(m.name) })
+                        className: n.includes(m.name) ? "text-primary" : "text-muted hover:text-fg",
+                        children: /* @__PURE__ */ r(nt, { width: 15, height: 15, filled: n.includes(m.name) })
                       }
                     )
                   ] }),
                   /* @__PURE__ */ l("div", { className: "flex items-center justify-between gap-2", children: [
-                    /* @__PURE__ */ r("span", { className: "truncate text-[10px] text-secondary", children: n ? `${m.group_of} · ${m.category}` : u && L === ee ? `${Tt(m, R)} · ${m.category}` : m.category }),
-                    /* @__PURE__ */ r(sa, { model: m })
+                    /* @__PURE__ */ r("span", { className: "truncate text-[10px] text-secondary", children: o ? `${m.group_of} · ${m.category}` : u && L === ee ? `${Tt(m, R)} · ${m.category}` : m.category }),
+                    /* @__PURE__ */ r(da, { model: m })
                   ] })
                 ] })
               },
@@ -1456,7 +1462,7 @@ const ht = (e, t) => {
   } catch {
   }
 }, $t = 0.25;
-function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse: n, switcher: b }) {
+function ma({ mode: e, models: t, client: a, batch: n, onRun: s, usage: i, reuse: o, switcher: b }) {
   const k = le.find((h) => h.id === e), f = Z(() => Zt(t, e), [t, e]), [A, M] = N(), [p, G] = N(null), [w, j] = N(null), [S, R] = N({}), [g, u] = N(null), [v, C] = N(null), [F, I] = N(() => ht("muapi-studio:favorites", [])), [_, L] = N("form"), [z, y] = N(!1), [D, X] = N("{}"), [c, d] = N(null), x = K(0), E = K(null);
   V(() => {
     if (!z) return;
@@ -1472,21 +1478,21 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
   }, [z]);
   const W = K(null);
   V(() => {
-    var U, J, ne;
-    const h = ht(`muapi-studio:model:${e}`, null), $ = ((U = f.find((ie) => ie.name === h)) == null ? void 0 : U.name) ?? ((J = f.find((ie) => ie.name === Xt[e])) == null ? void 0 : J.name) ?? ((ne = Nt(f, "popular")[0]) == null ? void 0 : ne.name);
+    var U, J, oe;
+    const h = ht(`muapi-studio:model:${e}`, null), $ = ((U = f.find((ie) => ie.name === h)) == null ? void 0 : U.name) ?? ((J = f.find((ie) => ie.name === Xt[e])) == null ? void 0 : J.name) ?? ((oe = Nt(f, "popular")[0]) == null ? void 0 : oe.name);
     M($);
   }, [e, f]), V(() => {
-    n && (W.current = n.inputs, f.some((h) => h.name === n.model) && (M(n.model), De(`muapi-studio:model:${e}`, n.model)), L("form"));
-  }, [n == null ? void 0 : n.nonce]);
+    o && (W.current = o.inputs, f.some((h) => h.name === o.model) && (M(o.model), De(`muapi-studio:model:${e}`, o.model)), L("form"));
+  }, [o == null ? void 0 : o.nonce]);
   const m = f.find((h) => h.name === A);
   V(() => {
     if (!A) return;
     let h = !0;
     return G(null), j(null), u(null), C(null), d(null), a.model(A).then(($) => {
       if (!h) return;
-      const U = st($), J = Ge(U), ne = W.current;
-      if (W.current = null, ne)
-        for (const ie of U) ne[ie.prop.name] !== void 0 && (J[ie.prop.name] = ne[ie.prop.name]);
+      const U = st($), J = Ge(U), oe = W.current;
+      if (W.current = null, oe)
+        for (const ie of U) oe[ie.prop.name] !== void 0 && (J[ie.prop.name] = oe[ie.prop.name]);
       G($), R(J);
     }).catch(($) => {
       h && j($.message);
@@ -1533,12 +1539,12 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
       endpointUrl: p.endpoint_url,
       mode: e,
       payload: ae,
-      count: o,
+      count: n,
       kind: ze(p.category),
       prompt: h ? String(ae.prompt ?? "") : "",
       unitCost: Q == null ? void 0 : Q.current
     });
-  }, [p, P, s, e, ae, o, Q]), $e = te(async () => {
+  }, [p, P, s, e, ae, n, Q]), $e = te(async () => {
     if (!p) return;
     if (_ === "json") {
       if (!H) {
@@ -1558,13 +1564,13 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
       }
     }
     C(null);
-    const h = ((Q == null ? void 0 : Q.current) ?? 0) * o;
+    const h = ((Q == null ? void 0 : Q.current) ?? 0) * n;
     if (h > $t) {
       d(h);
       return;
     }
     await ce();
-  }, [p, _, H, P, S, Q, o, ce]), de = !!p && !w, _e = (() => {
+  }, [p, _, H, P, S, Q, n, ce]), de = !!p && !w, _e = (() => {
     var $;
     const h = P.find((U) => U.kind === "media-list");
     return h ? Math.max((($ = S[h.prop.name]) == null ? void 0 : $.length) ?? 0, 1) : 0;
@@ -1583,7 +1589,7 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
       ] }),
       b,
       /* @__PURE__ */ r("div", { className: "mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-secondary", children: "Model" }),
-      /* @__PURE__ */ r("div", { className: "mb-5", children: /* @__PURE__ */ r(la, { models: f, value: A, onChange: be, favorites: F, onToggleFavorite: Te, usage: i, showGroup: e === "text" || e === "more", scope: e }) }),
+      /* @__PURE__ */ r("div", { className: "mb-5", children: /* @__PURE__ */ r(ua, { models: f, value: A, onChange: be, favorites: F, onToggleFavorite: Te, usage: i, showGroup: e === "text" || e === "more", scope: e }) }),
       /* @__PURE__ */ r("div", { className: "mb-3 border-t border-line pt-4 text-[11px] font-semibold uppercase tracking-wider text-secondary", children: _ === "json" ? "Request body" : "Parameters" }),
       (m == null ? void 0 : m.description) && /* @__PURE__ */ r("p", { className: "mb-4 line-clamp-3 text-xs text-secondary", children: m.description }),
       !de && !w && A && /* @__PURE__ */ l("div", { className: "flex items-center gap-2 py-6 text-sm text-secondary", children: [
@@ -1616,11 +1622,11 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
       v && /* @__PURE__ */ r("p", { role: "alert", className: "mb-2 text-xs text-danger", children: v }),
       c !== null && /* @__PURE__ */ l("div", { role: "alertdialog", "aria-label": "Confirm spend", className: "mb-2 rounded-ctl border border-primary bg-primary-soft p-3 text-xs", children: [
         "This will spend about ",
-        /* @__PURE__ */ r("b", { className: "text-primary", children: oe(c) }),
+        /* @__PURE__ */ r("b", { className: "text-primary", children: ne(c) }),
         " (",
-        o,
+        n,
         " × ",
-        oe((Q == null ? void 0 : Q.current) ?? 0),
+        ne((Q == null ? void 0 : Q.current) ?? 0),
         ").",
         /* @__PURE__ */ l("div", { className: "mt-2 flex gap-2", children: [
           /* @__PURE__ */ r("button", { type: "button", onClick: () => void ce(), className: "rounded-md bg-primary px-3 py-1.5 font-semibold text-primary-ink", children: "Confirm" }),
@@ -1641,14 +1647,14 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
             children: [
               /* @__PURE__ */ r(Je, { width: 16, height: 16 }),
               "Generate",
-              o > 1 ? ` ×${o}` : "",
+              n > 1 ? ` ×${n}` : "",
               Q && /* @__PURE__ */ l("span", { className: "font-normal", children: [
                 "(",
                 Q.original !== null ? /* @__PURE__ */ l(Ie, { children: [
-                  /* @__PURE__ */ r("s", { className: "opacity-60", children: oe(Q.original * o) }),
+                  /* @__PURE__ */ r("s", { className: "opacity-60", children: ne(Q.original * n) }),
                   " "
                 ] }) : null,
-                oe(Q.current * o),
+                ne(Q.current * n),
                 ")"
               ] })
             ]
@@ -1658,7 +1664,7 @@ function ca({ mode: e, models: t, client: a, batch: o, onRun: s, usage: i, reuse
     ] })
   ] });
 }
-const da = {
+const pa = {
   image: Ae,
   video: pr,
   audio: hr,
@@ -1668,7 +1674,7 @@ const da = {
   text: wr,
   more: kr
 };
-function ua({ mode: e, onChange: t, layout: a = "rail", onChangeKey: o }) {
+function ha({ mode: e, onChange: t, layout: a = "rail", onChangeKey: n }) {
   return a === "tabs" ? /* @__PURE__ */ l("nav", { "aria-label": "Studio modes", className: "flex shrink-0 gap-1 overflow-x-auto border-b border-line bg-panel-bg px-3", children: [
     le.map((s) => {
       const i = s.id === e;
@@ -1686,19 +1692,19 @@ function ua({ mode: e, onChange: t, layout: a = "rail", onChangeKey: o }) {
         s.id
       );
     }),
-    o && /* @__PURE__ */ l("button", { type: "button", onClick: o, title: "Change your MuAPI key", className: "ml-auto flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 text-xs font-semibold text-secondary hover:text-fg", children: [
-      /* @__PURE__ */ r(nt, { width: 14, height: 14 }),
+    n && /* @__PURE__ */ l("button", { type: "button", onClick: n, title: "Change your MuAPI key", className: "ml-auto flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 text-xs font-semibold text-secondary hover:text-fg", children: [
+      /* @__PURE__ */ r(ot, { width: 14, height: 14 }),
       "Key"
     ] })
   ] }) : /* @__PURE__ */ l("nav", { "aria-label": "Studio modes", className: "flex shrink-0 gap-1 overflow-x-auto border-b border-line bg-panel-bg p-2 md:w-20 md:flex-col md:overflow-y-auto md:border-b-0 md:border-r", children: [
     le.map((s) => {
-      const i = da[s.id], n = s.id === e;
+      const i = pa[s.id], o = s.id === e;
       return /* @__PURE__ */ l(
         "button",
         {
           onClick: () => t(s.id),
-          "aria-current": n ? "page" : void 0,
-          className: `flex min-w-[64px] flex-col items-center gap-1 rounded-ctl border px-2 py-3 text-[10px] font-semibold uppercase tracking-wide ${n ? "border-primary bg-primary-soft text-primary" : "border-transparent text-muted hover:text-fg"}`,
+          "aria-current": o ? "page" : void 0,
+          className: `flex min-w-[64px] flex-col items-center gap-1 rounded-ctl border px-2 py-3 text-[10px] font-semibold uppercase tracking-wide ${o ? "border-primary bg-primary-soft text-primary" : "border-transparent text-muted hover:text-fg"}`,
           children: [
             /* @__PURE__ */ r(i, {}),
             s.label
@@ -1707,30 +1713,30 @@ function ua({ mode: e, onChange: t, layout: a = "rail", onChangeKey: o }) {
         s.id
       );
     }),
-    o && /* @__PURE__ */ l("button", { type: "button", onClick: o, title: "Change your MuAPI key", className: "flex min-w-[64px] flex-col items-center gap-1 rounded-ctl border border-transparent px-2 py-3 text-[10px] font-semibold uppercase tracking-wide text-muted hover:text-fg md:mt-auto", children: [
-      /* @__PURE__ */ r(nt, {}),
+    n && /* @__PURE__ */ l("button", { type: "button", onClick: n, title: "Change your MuAPI key", className: "flex min-w-[64px] flex-col items-center gap-1 rounded-ctl border border-transparent px-2 py-3 text-[10px] font-semibold uppercase tracking-wide text-muted hover:text-fg md:mt-auto", children: [
+      /* @__PURE__ */ r(ot, {}),
       "Key"
     ] })
   ] });
 }
-const ma = { angles: ["Source image"], "whats-next": ["Source image"], shots: ["Source image"], zooms: ["Source image"], "behind-the-scenes": ["Source image"], transitions: ["End frame"], "expand-image": ["Source image"], "color-grading": ["Source image"], "ai-stylist": ["Your photo"], relight: ["Source image"], "skin-enhancer": ["Portrait photo"], "outfit-swap": ["Outfit reference"], "style-snap": ["Your photo"], "outfit-vending": ["Your outfit photo"], "glitter-sticker": ["Portrait photo"], "outfit-shot": ["Clothing image"], recast: ["Character Persona Image", "Ending Frame Image"], "character-swap": ["Target scene"], "face-swap": ["Target Base Image", "New Face Image"], "commercial-faces": ["Your selfie"], "video-face-swap": ["Face / Identity Image", "Target Video"], "headshot-generator": ["Your selfie"], clipcut: ["Starting Frame Image", "Ending Frame Image"], "urban-cuts": ["Starting Frame Image", "Ending Frame Image"], "sticker-matchcut": ["Starting Frame Image", "Ending Frame Image"], breakdown: ["Source image"], "japanese-show": ["Your photo"], "video-bg-remover": ["Source Video"], "click-to-ad": ["Source Image"], "asmr-add-on": ["Source Image"], "asmr-classic": ["Source Image"], poster: ["Source Image"], "bullet-time-scene": ["Source Image"], chameleon: ["Source Image"], "asmr-host": ["Source Image"], packshot: ["Source Image"], "macro-scene": ["Source Image"], "magic-button": ["Source Image"], "truck-ad": ["Source Image"], "giant-product": ["Source Image"], "bullet-time-white": ["Source Image"], "kick-ad": ["Source Image"], "billboard-ad": ["Source Image"], "graffiti-ad": ["Source Image"], "bullet-time-splash": ["Source Image"], "fridge-ad": ["Source Image"], "volcano-ad": ["Source Image"], "macroshot-product": ["Source Image"], "game-dump": ["Your photo"], "nano-strike": ["Your photo"], "nano-theft": ["Your photo"], simlife: ["Your photo"], plushies: ["Your photo"], "3d-render": ["Source image"], "3d-figure": ["Your photo"], "pixel-game": ["Your photo"], "brick-cube": ["Your photo"], "sketch-to-real": ["Your sketch"], "j-magazine": ["Your photo"], "roller-coaster": ["Your photo"], "60s-cafe": ["Your photo"], "victory-card": ["Your photo"], "sand-worm": ["Your photo"], skibidi: ["Your photo"], "j-poster": ["Your photo"], mascot: ["Your photo"], "storm-creature": ["Your photo"], "burning-sunset": ["Your photo"], "on-fire": ["Your photo"], "comic-book": ["Your photo"], "cloud-surf": ["Your photo"], mukbang: ["Your photo"], "melting-doodle": ["Your photo"], "giallo-horror": ["Your photo"], renaissance: ["Your photo"], "rap-god": ["Your photo"] }, ft = { angles: "Generate Camera Angle", "whats-next": "Generate What's Next", shots: "Generate Shots", zooms: "Generate Zooms", "behind-the-scenes": "Generate Behind the Scenes Video", transitions: "Generate Transitions Video", "expand-image": "Generate Expand Image", "color-grading": "Generate Color Grading", "ai-stylist": "Generate AI Stylist", relight: "Generate Relight", "skin-enhancer": "Generate Skin Enhancer", "outfit-swap": "Generate Outfit Swap", "style-snap": "Generate Style Snap", "outfit-vending": "Generate Outfit Vending", "glitter-sticker": "Generate Glitter Sticker", "outfit-shot": "Generate Outfit Shot Video", recast: "Generate Recast Video", "character-swap": "Generate Character Swap", "face-swap": "Generate Face Swap", "commercial-faces": "Generate Commercial Faces", "video-face-swap": "Generate Video Face Swap Video", "headshot-generator": "Generate Headshot Generator", clipcut: "Generate ClipCut Video", "urban-cuts": "Generate Urban Cuts Video", "sticker-matchcut": "Generate Sticker Match Cut Video", breakdown: "Generate Breakdown", "japanese-show": "Generate Japanese Show", "video-bg-remover": "Generate Video Background Remover Video", "click-to-ad": "Generate Click to Ad Video", "asmr-add-on": "Generate ASMR Add-On Video", "asmr-classic": "Generate ASMR Classic Video", poster: "Generate Poster", "bullet-time-scene": "Generate Bullet Time Scene Video", chameleon: "Generate Chameleon Video", "asmr-host": "Generate ASMR Host Video", packshot: "Generate Packshot Video", "macro-scene": "Generate Macro Scene Video", "magic-button": "Generate Magic Button Video", "truck-ad": "Generate Truck Ad Video", "giant-product": "Generate Giant Product Video", "bullet-time-white": "Generate Bullet Time White Video", "kick-ad": "Generate Kick Ad Video", "billboard-ad": "Generate Billboard Ad Video", "graffiti-ad": "Generate Graffiti Ad", "bullet-time-splash": "Generate Bullet Time Splash Video", "fridge-ad": "Generate Fridge Ad Video", "volcano-ad": "Generate Volcano Ad Video", "macroshot-product": "Generate Macroshot Product", "game-dump": "Generate Game Dump", "nano-strike": "Generate Nano Strike", "nano-theft": "Generate Nano Theft", simlife: "Generate Simlife", plushies: "Generate Plushies", "3d-render": "Generate 3D Render", "3d-figure": "Generate 3D Figure", "pixel-game": "Generate Pixel Game", "brick-cube": "Generate Brick Cube", "sketch-to-real": "Generate Sketch to Real Video", "j-magazine": "Generate J-Magazine Video", "roller-coaster": "Generate Roller Coaster Video", "60s-cafe": "Generate 60s Cafe Video", "victory-card": "Generate Victory Card Video", "sand-worm": "Generate Sand Worm Video", skibidi: "Generate Skibidi Video", "j-poster": "Generate J-Poster Video", mascot: "Generate Mascot Video", "storm-creature": "Generate Storm Creature Video", "burning-sunset": "Generate Burning Sunset Video", "on-fire": "Generate On Fire Video", "comic-book": "Generate Comic Book Video", "cloud-surf": "Generate Cloud Surf Video", mukbang: "Generate Mukbang Video", "melting-doodle": "Generate Melting Doodle Video", "giallo-horror": "Generate Giallo Horror Video", renaissance: "Generate Renaissance Video", "rap-god": "Generate Rap God Video" }, pa = [
+const fa = { angles: ["Source image"], "whats-next": ["Source image"], shots: ["Source image"], zooms: ["Source image"], "behind-the-scenes": ["Source image"], transitions: ["End frame"], "expand-image": ["Source image"], "color-grading": ["Source image"], "ai-stylist": ["Your photo"], relight: ["Source image"], "skin-enhancer": ["Portrait photo"], "outfit-swap": ["Outfit reference"], "style-snap": ["Your photo"], "outfit-vending": ["Your outfit photo"], "glitter-sticker": ["Portrait photo"], "outfit-shot": ["Clothing image"], recast: ["Character Persona Image", "Ending Frame Image"], "character-swap": ["Target scene"], "face-swap": ["Target Base Image", "New Face Image"], "commercial-faces": ["Your selfie"], "video-face-swap": ["Face / Identity Image", "Target Video"], "headshot-generator": ["Your selfie"], clipcut: ["Starting Frame Image", "Ending Frame Image"], "urban-cuts": ["Starting Frame Image", "Ending Frame Image"], "sticker-matchcut": ["Starting Frame Image", "Ending Frame Image"], breakdown: ["Source image"], "japanese-show": ["Your photo"], "video-bg-remover": ["Source Video"], "click-to-ad": ["Source Image"], "asmr-add-on": ["Source Image"], "asmr-classic": ["Source Image"], poster: ["Source Image"], "bullet-time-scene": ["Source Image"], chameleon: ["Source Image"], "asmr-host": ["Source Image"], packshot: ["Source Image"], "macro-scene": ["Source Image"], "magic-button": ["Source Image"], "truck-ad": ["Source Image"], "giant-product": ["Source Image"], "bullet-time-white": ["Source Image"], "kick-ad": ["Source Image"], "billboard-ad": ["Source Image"], "graffiti-ad": ["Source Image"], "bullet-time-splash": ["Source Image"], "fridge-ad": ["Source Image"], "volcano-ad": ["Source Image"], "macroshot-product": ["Source Image"], "game-dump": ["Your photo"], "nano-strike": ["Your photo"], "nano-theft": ["Your photo"], simlife: ["Your photo"], plushies: ["Your photo"], "3d-render": ["Source image"], "3d-figure": ["Your photo"], "pixel-game": ["Your photo"], "brick-cube": ["Your photo"], "sketch-to-real": ["Your sketch"], "j-magazine": ["Your photo"], "roller-coaster": ["Your photo"], "60s-cafe": ["Your photo"], "victory-card": ["Your photo"], "sand-worm": ["Your photo"], skibidi: ["Your photo"], "j-poster": ["Your photo"], mascot: ["Your photo"], "storm-creature": ["Your photo"], "burning-sunset": ["Your photo"], "on-fire": ["Your photo"], "comic-book": ["Your photo"], "cloud-surf": ["Your photo"], mukbang: ["Your photo"], "melting-doodle": ["Your photo"], "giallo-horror": ["Your photo"], renaissance: ["Your photo"], "rap-god": ["Your photo"] }, ft = { angles: "Generate Camera Angle", "whats-next": "Generate What's Next", shots: "Generate Shots", zooms: "Generate Zooms", "behind-the-scenes": "Generate Behind the Scenes Video", transitions: "Generate Transitions Video", "expand-image": "Generate Expand Image", "color-grading": "Generate Color Grading", "ai-stylist": "Generate AI Stylist", relight: "Generate Relight", "skin-enhancer": "Generate Skin Enhancer", "outfit-swap": "Generate Outfit Swap", "style-snap": "Generate Style Snap", "outfit-vending": "Generate Outfit Vending", "glitter-sticker": "Generate Glitter Sticker", "outfit-shot": "Generate Outfit Shot Video", recast: "Generate Recast Video", "character-swap": "Generate Character Swap", "face-swap": "Generate Face Swap", "commercial-faces": "Generate Commercial Faces", "video-face-swap": "Generate Video Face Swap Video", "headshot-generator": "Generate Headshot Generator", clipcut: "Generate ClipCut Video", "urban-cuts": "Generate Urban Cuts Video", "sticker-matchcut": "Generate Sticker Match Cut Video", breakdown: "Generate Breakdown", "japanese-show": "Generate Japanese Show", "video-bg-remover": "Generate Video Background Remover Video", "click-to-ad": "Generate Click to Ad Video", "asmr-add-on": "Generate ASMR Add-On Video", "asmr-classic": "Generate ASMR Classic Video", poster: "Generate Poster", "bullet-time-scene": "Generate Bullet Time Scene Video", chameleon: "Generate Chameleon Video", "asmr-host": "Generate ASMR Host Video", packshot: "Generate Packshot Video", "macro-scene": "Generate Macro Scene Video", "magic-button": "Generate Magic Button Video", "truck-ad": "Generate Truck Ad Video", "giant-product": "Generate Giant Product Video", "bullet-time-white": "Generate Bullet Time White Video", "kick-ad": "Generate Kick Ad Video", "billboard-ad": "Generate Billboard Ad Video", "graffiti-ad": "Generate Graffiti Ad", "bullet-time-splash": "Generate Bullet Time Splash Video", "fridge-ad": "Generate Fridge Ad Video", "volcano-ad": "Generate Volcano Ad Video", "macroshot-product": "Generate Macroshot Product", "game-dump": "Generate Game Dump", "nano-strike": "Generate Nano Strike", "nano-theft": "Generate Nano Theft", simlife: "Generate Simlife", plushies: "Generate Plushies", "3d-render": "Generate 3D Render", "3d-figure": "Generate 3D Figure", "pixel-game": "Generate Pixel Game", "brick-cube": "Generate Brick Cube", "sketch-to-real": "Generate Sketch to Real Video", "j-magazine": "Generate J-Magazine Video", "roller-coaster": "Generate Roller Coaster Video", "60s-cafe": "Generate 60s Cafe Video", "victory-card": "Generate Victory Card Video", "sand-worm": "Generate Sand Worm Video", skibidi: "Generate Skibidi Video", "j-poster": "Generate J-Poster Video", mascot: "Generate Mascot Video", "storm-creature": "Generate Storm Creature Video", "burning-sunset": "Generate Burning Sunset Video", "on-fire": "Generate On Fire Video", "comic-book": "Generate Comic Book Video", "cloud-surf": "Generate Cloud Surf Video", mukbang: "Generate Mukbang Video", "melting-doodle": "Generate Melting Doodle Video", "giallo-horror": "Generate Giallo Horror Video", renaissance: "Generate Renaissance Video", "rap-god": "Generate Rap God Video" }, ga = [
   { value: "1:1", title: "1:1 Square", hint: "Feed posts and avatars" },
   { value: "16:9", title: "16:9 Landscape", hint: "Desktop and video" },
   { value: "9:16", title: "9:16 Portrait", hint: "Stories and shorts" },
   { value: "4:3", title: "4:3 Classic", hint: "Standard displays" },
   { value: "3:4", title: "3:4 Portrait", hint: "Social portraits" },
   { value: "2:3", title: "2:3 Photo", hint: "Portrait photos" }
-], ha = [
+], ba = [
   { value: "1K", title: "1K Standard HD", hint: "Fast and lowest cost" },
   { value: "2K", title: "2K Ultra HD", hint: "More detail, higher cost" }
-], fa = [
+], ya = [
   { value: "16:9", title: "16:9 Widescreen", hint: "Standard landscape video" },
   { value: "9:16", title: "9:16 Vertical", hint: "Stories, reels and shorts" },
   { value: "1:1", title: "1:1 Square", hint: "Feed video" },
   { value: "4:3", title: "4:3 Classic", hint: "Standard displays" },
   { value: "3:4", title: "3:4 Portrait", hint: "Social portraits" },
   { value: "21:9", title: "21:9 Cinematic", hint: "Ultra-wide" }
-], ga = [4, 5, 6, 8, 10, 12, 15].map((e) => ({ value: e, title: `${e} seconds`, hint: e <= 5 ? "Short clip" : e <= 8 ? "Standard clip" : "Extended clip" })), ba = [{ value: "768p", title: "768p", hint: "Faster" }, { value: "2k", title: "2K Ultra HD", hint: "Highest detail" }], ya = [5, 6, 7, 8, 9, 10].map((e) => ({ value: e, title: `${e} seconds` })), xa = [{ value: "16:9", title: "16:9 Widescreen", hint: "Desktop and video" }, { value: "9:16", title: "9:16 Vertical", hint: "Stories and shorts" }], va = [{ value: "480p", title: "480p Standard", hint: "Fast and light" }, { value: "720p", title: "720p HD", hint: "High definition" }], wa = [{ value: "medium", title: "Medium quality", hint: "Balanced quality and speed" }, { value: "high", title: "High quality", hint: "Best fidelity" }], ka = [{ value: 5, title: "5 seconds" }, { value: 8, title: "8 seconds", hint: "Costs double" }], Na = [0, 1, 2, 3].map((e) => ({ value: e, title: `Face ${e}`, hint: e === 0 ? "Primary (largest) face" : `Face number ${e} found in the scene` })), Sa = [{ value: "All", title: "All faces" }, { value: "Female", title: "Female faces" }, { value: "Male", title: "Male faces" }], Ca = ["Transparent", "Black", "White", "Gray", "Green", "Red"].map((e) => ({ value: e, title: e === "Transparent" ? "Transparent (alpha)" : e === "Green" ? "Green screen" : e })), Aa = [
+], xa = [4, 5, 6, 8, 10, 12, 15].map((e) => ({ value: e, title: `${e} seconds`, hint: e <= 5 ? "Short clip" : e <= 8 ? "Standard clip" : "Extended clip" })), va = [{ value: "768p", title: "768p", hint: "Faster" }, { value: "2k", title: "2K Ultra HD", hint: "Highest detail" }], wa = [5, 6, 7, 8, 9, 10].map((e) => ({ value: e, title: `${e} seconds` })), ka = [{ value: "16:9", title: "16:9 Widescreen", hint: "Desktop and video" }, { value: "9:16", title: "9:16 Vertical", hint: "Stories and shorts" }], Na = [{ value: "480p", title: "480p Standard", hint: "Fast and light" }, { value: "720p", title: "720p HD", hint: "High definition" }], Sa = [{ value: "medium", title: "Medium quality", hint: "Balanced quality and speed" }, { value: "high", title: "High quality", hint: "Best fidelity" }], Ca = [{ value: 5, title: "5 seconds" }, { value: 8, title: "8 seconds", hint: "Costs double" }], Aa = [0, 1, 2, 3].map((e) => ({ value: e, title: `Face ${e}`, hint: e === 0 ? "Primary (largest) face" : `Face number ${e} found in the scene` })), Ia = [{ value: "All", title: "All faces" }, { value: "Female", title: "Female faces" }, { value: "Male", title: "Male faces" }], Ma = ["Transparent", "Black", "White", "Gray", "Green", "Red"].map((e) => ({ value: e, title: e === "Transparent" ? "Transparent (alpha)" : e === "Green" ? "Green screen" : e })), Ea = [
   { value: "webm_vp9", title: "WebM (VP9 + alpha)", hint: "Best for transparent cutouts" },
   { value: "mp4_h264", title: "MP4 (H.264)", hint: "Plays everywhere" },
   { value: "mp4_h265", title: "MP4 (H.265)", hint: "Smaller files" },
@@ -1738,15 +1744,15 @@ const ma = { angles: ["Source image"], "whats-next": ["Source image"], shots: ["
   { value: "mov_proresks", title: "MOV (ProRes)", hint: "Editing format" },
   { value: "mkv_h264", title: "MKV (H.264)" }
 ], _t = {
-  seedream: { aspect: pa, resolution: ha },
-  seedance: { aspect: fa, duration: ga },
-  minimax: { resolution: ba, duration: ya },
-  wan: { aspect: xa, resolution: va, quality: wa, duration: ka },
+  seedream: { aspect: ga, resolution: ba },
+  seedance: { aspect: ya, duration: xa },
+  minimax: { resolution: va, duration: wa },
+  wan: { aspect: ka, resolution: Na, quality: Sa, duration: Ca },
   skin: {},
   "face-swap": {},
   "video-face-swap": {},
   "bg-remover": {}
-}, Ia = {
+}, Ta = {
   seedream: "bytedance-seedream-5.0-pro-edit",
   seedance: "seedance-2-image-to-video",
   minimax: "minimax-h3-image-to-video",
@@ -1757,12 +1763,12 @@ const ma = { angles: ["Source image"], "whats-next": ["Source image"], shots: ["
   "bg-remover": "video-background-remover"
 }, ue = (e, t, a = !1) => ({ id: e, label: t, kind: "image", optional: a });
 function Gt(e) {
-  return ((a) => a.map((o, s) => {
+  return ((a) => a.map((n, s) => {
     var i;
-    return { ...o, label: ((i = ma[e.slug]) == null ? void 0 : i[s]) ?? o.label };
-  }))(Ma(e));
+    return { ...n, label: ((i = fa[e.slug]) == null ? void 0 : i[s]) ?? n.label };
+  }))($a(e));
 }
-function Ma(e) {
+function $a(e) {
   if (e.uploads) return e.uploads;
   switch (e.template) {
     case "face-swap":
@@ -1778,20 +1784,20 @@ function Ma(e) {
       return [ue("source", "Source image")];
   }
 }
-function Ea(e) {
-  return Ia[e.template];
+function _a(e) {
+  return Ta[e.template];
 }
 function gt(e) {
-  var o, s, i, n, b, k, f, A, M, p, G;
+  var n, s, i, o, b, k, f, A, M, p, G;
   const t = _t[e.template], a = {};
   for (const w of e.sliders ?? []) a[w.id] = 0;
   return {
     uploads: {},
     refinement: "",
-    preset: ((o = e.presets) != null && o[0], ""),
+    preset: ((n = e.presets) != null && n[0], ""),
     sliders: a,
     aspect: (i = (s = t.aspect) == null ? void 0 : s[0]) == null ? void 0 : i.value,
-    resolution: (b = (n = t.resolution) == null ? void 0 : n[0]) == null ? void 0 : b.value,
+    resolution: (b = (o = t.resolution) == null ? void 0 : o[0]) == null ? void 0 : b.value,
     duration: ((f = (k = t.duration) == null ? void 0 : k.find((w) => w.value === 5)) == null ? void 0 : f.value) ?? ((M = (A = t.duration) == null ? void 0 : A[0]) == null ? void 0 : M.value),
     quality: (G = (p = t.quality) == null ? void 0 : p[0]) == null ? void 0 : G.value,
     targetIndex: 0,
@@ -1803,12 +1809,12 @@ function gt(e) {
 }
 function Lt(e, t) {
   var s;
-  const a = [e.prompt], o = (s = e.presets) == null ? void 0 : s.find((i) => i.id === t.preset);
-  o != null && o.prompt && a.push(o.prompt);
+  const a = [e.prompt], n = (s = e.presets) == null ? void 0 : s.find((i) => i.id === t.preset);
+  n != null && n.prompt && a.push(n.prompt);
   for (const i of e.sliders ?? []) {
-    const n = t.sliders[i.id] ?? 0;
-    if (n !== 0) {
-      const b = i.phrase(n);
+    const o = t.sliders[i.id] ?? 0;
+    if (o !== 0) {
+      const b = i.phrase(o);
       b && a.push(b);
     }
   }
@@ -1816,38 +1822,38 @@ function Lt(e, t) {
 }
 function bt(e, t, a) {
   var i;
-  const o = (i = e.presets) == null ? void 0 : i.find((n) => n.id === a), s = { ...Object.fromEntries((e.sliders ?? []).map((n) => [n.id, 0])), ...(o == null ? void 0 : o.values) ?? {} };
+  const n = (i = e.presets) == null ? void 0 : i.find((o) => o.id === a), s = { ...Object.fromEntries((e.sliders ?? []).map((o) => [o.id, 0])), ...(n == null ? void 0 : n.values) ?? {} };
   return { ...t, preset: a, sliders: s };
 }
-function Ta(e, t) {
+function Ga(e, t) {
   for (const a of Gt(e)) if (!a.optional && !t.uploads[a.id]) return `${a.label} is required`;
   return null;
 }
-function $a(e, t) {
-  const a = Lt(e, t), o = t.uploads;
+function La(e, t) {
+  const a = Lt(e, t), n = t.uploads;
   switch (e.template) {
     case "seedream":
-      return { prompt: a, images_list: [o.source], aspect_ratio: t.aspect, resolution: t.resolution };
+      return { prompt: a, images_list: [n.source], aspect_ratio: t.aspect, resolution: t.resolution };
     case "seedance":
-      return { prompt: a, images_list: [o.source], aspect_ratio: t.aspect, duration: Number(t.duration) };
+      return { prompt: a, images_list: [n.source], aspect_ratio: t.aspect, duration: Number(t.duration) };
     case "minimax":
-      return { prompt: a, image_url: o.start, ...o.end ? { last_image_url: o.end } : {}, resolution: t.resolution, duration: Number(t.duration) };
+      return { prompt: a, image_url: n.start, ...n.end ? { last_image_url: n.end } : {}, resolution: t.resolution, duration: Number(t.duration) };
     case "wan":
-      return { prompt: a, image_url: o.start, ...o.end ? { last_image: o.end } : {}, aspect_ratio: t.aspect, resolution: t.resolution, quality: t.quality, duration: Number(t.duration) };
+      return { prompt: a, image_url: n.start, ...n.end ? { last_image: n.end } : {}, aspect_ratio: t.aspect, resolution: t.resolution, quality: t.quality, duration: Number(t.duration) };
     case "skin":
-      return { image_url: o.source };
+      return { image_url: n.source };
     case "face-swap":
-      return { image_url: o.base, swap_url: o.face, target_index: t.targetIndex };
+      return { image_url: n.base, swap_url: n.face, target_index: t.targetIndex };
     case "video-face-swap":
-      return { image_url: o.face, video_url: o.video, target_gender: t.gender, target_index: t.targetIndex };
+      return { image_url: n.face, video_url: n.video, target_gender: t.gender, target_index: t.targetIndex };
     case "bg-remover":
-      return { video_url: o.video, background_color: t.background, output_container_and_codec: t.container, preserve_audio: t.keepAudio };
+      return { video_url: n.video, background_color: t.background, output_container_and_codec: t.container, preserve_audio: t.keepAudio };
   }
 }
-function _a(e) {
+function Ra(e) {
   return ft[e.slug] ? ft[e.slug] : e.template === "face-swap" || e.template === "video-face-swap" ? `Generate ${e.name}` : `Generate ${e.name}${e.badge === "VIDEO" && !/video/i.test(e.name) ? " video" : ""}`;
 }
-const Ga = [
+const Da = [
   { id: "professional", label: "Professional", blurb: "Camera moves, framing, transitions and grading" },
   { id: "enhance-style", label: "Enhance & Style", blurb: "Outfits, lighting and portrait touch-ups" },
   { id: "face-identity", label: "Face & Identity", blurb: "Face and character swaps, headshots" },
@@ -1855,16 +1861,16 @@ const Ga = [
   { id: "ads", label: "Ads & Products", blurb: "Product videos, posters and ad scenes" },
   { id: "games-characters", label: "Games & Characters", blurb: "Game, toy and 3D character styles" },
   { id: "trending-templates", label: "Trending Templates", blurb: "Viral looks and scenes from one photo" }
-], T = (e, t, a, o, s) => ({ id: e, label: t, hint: a, prompt: o, values: s }), qe = (e, t, a, o = "") => `${e > 0 ? t : a} ${Math.abs(e)}${o}`, q = (e, t, a, o, s, i, n = {}) => ({ slug: e, name: t, emoji: a, category: o, badge: "IMAGE", template: "seedream", blurb: s, prompt: i, ...n }), O = (e, t, a, o, s, i, n = {}) => ({ slug: e, name: t, emoji: a, category: o, badge: "VIDEO", template: "seedance", blurb: s, prompt: i, ...n }), Ce = [
+], T = (e, t, a, n, s) => ({ id: e, label: t, hint: a, prompt: n, values: s }), qe = (e, t, a, n = "") => `${e > 0 ? t : a} ${Math.abs(e)}${n}`, q = (e, t, a, n, s, i, o = {}) => ({ slug: e, name: t, emoji: a, category: n, badge: "IMAGE", template: "seedream", blurb: s, prompt: i, ...o }), O = (e, t, a, n, s, i, o = {}) => ({ slug: e, name: t, emoji: a, category: n, badge: "VIDEO", template: "seedance", blurb: s, prompt: i, ...o }), Ce = [
   { id: "rotation", label: "Rotation", min: -180, max: 180, step: 5, unit: "°", phrase: (e) => `Orbit the camera ${qe(e, "right", "left", " degrees")} around the subject.` },
   { id: "tilt", label: "Tilt", min: -90, max: 90, step: 5, unit: "°", phrase: (e) => `Tilt the camera ${qe(e, "up", "down", " degrees")}.` },
   { id: "zoom", label: "Zoom", min: -100, max: 100, step: 5, phrase: (e) => e > 0 ? `Move in closer by ${e} percent.` : `Pull back to show ${Math.abs(e)} percent more of the scene.` }
-], La = [Ce[2], { ...Ce[1], id: "vertical", label: "Vertical angle" }, Ce[0]].map((e) => ({ ...e, id: e.id })), Ra = [
+], Oa = [Ce[2], { ...Ce[1], id: "vertical", label: "Vertical angle" }, Ce[0]].map((e) => ({ ...e, id: e.id })), ja = [
   { id: "direction", label: "Light direction", min: -180, max: 180, step: 15, unit: "°", phrase: (e) => `Place the main light source ${qe(e, "clockwise", "counter-clockwise", " degrees")} from the front of the subject.` },
   { id: "temperature", label: "Color temperature", min: -100, max: 100, step: 5, phrase: (e) => e > 0 ? `Make the light warmer (${e} percent).` : `Make the light cooler (${Math.abs(e)} percent).` },
   { id: "brightness", label: "Brightness", min: -100, max: 100, step: 5, phrase: (e) => e > 0 ? `Brighten the image by ${e} percent.` : `Darken the image by ${Math.abs(e)} percent.` },
   { id: "contrast", label: "Contrast", min: -100, max: 100, step: 5, phrase: (e) => e > 0 ? `Raise contrast by ${e} percent.` : `Lower contrast by ${Math.abs(e)} percent.` }
-], Da = [
+], Pa = [
   { id: "temperature", label: "Temperature", min: -100, max: 100, step: 5, phrase: (e) => e > 0 ? `Warm the color temperature (${e}).` : `Cool the color temperature (${Math.abs(e)}).` },
   { id: "contrast", label: "Contrast", min: -100, max: 100, step: 5, phrase: (e) => e > 0 ? `Increase contrast (${e}).` : `Decrease contrast (${Math.abs(e)}).` },
   { id: "saturation", label: "Saturation", min: -100, max: 100, step: 5, phrase: (e) => e > 0 ? `Boost saturation (${e}).` : `Reduce saturation (${Math.abs(e)}).` },
@@ -1872,7 +1878,7 @@ const Ga = [
   { id: "exposure", label: "Exposure", min: -100, max: 100, step: 5, phrase: (e) => e > 0 ? `Raise exposure (${e}).` : `Lower exposure (${Math.abs(e)}).` },
   { id: "sharpness", label: "Sharpness", min: 0, max: 100, step: 5, phrase: (e) => `Sharpen fine detail (${e}).` },
   { id: "grain", label: "Film grain", min: 0, max: 100, step: 5, phrase: (e) => `Add film grain (${e}).` }
-], Oa = "Keep the result tasteful and suitable for general audiences.", Rt = [
+], Va = "Keep the result tasteful and suitable for general audiences.", Rt = [
   // ---- Professional
   q(
     "angles",
@@ -1924,7 +1930,7 @@ const Ga = [
     "professional",
     "Zoom variations from macro close-up to wide angle.",
     "Re-render this image with a different zoom level and perspective, keeping the subject and style consistent.",
-    { sliders: La.map((e) => e.id === "vertical" ? { ...e, label: "Vertical angle" } : e) }
+    { sliders: Oa.map((e) => e.id === "vertical" ? { ...e, label: "Vertical angle" } : e) }
   ),
   O(
     "behind-the-scenes",
@@ -1964,7 +1970,7 @@ const Ga = [
     "professional",
     "Apply a film-style color grade with presets and fine controls.",
     "Apply a professional color grade to this image without changing its content or composition.",
-    { sliders: Da, presets: [
+    { sliders: Pa, presets: [
       T("natural", "Natural", "Clean, true to life", void 0, { saturation: 5, contrast: 5 }),
       T("cinematic", "Cinematic", "Teal and orange", "Give it a cinematic teal and orange look.", { contrast: 20, saturation: 10, temperature: -5 }),
       T("split", "Split tone", "Warm highlights, cool shadows", "Use split toning with warm highlights and cool shadows.", { contrast: 10 }),
@@ -1998,7 +2004,7 @@ const Ga = [
     "enhance-style",
     "Change the direction, warmth and brightness of the light.",
     "Relight this photo as described, keeping the subject, composition and details unchanged.",
-    { sliders: Ra }
+    { sliders: ja }
   ),
   { slug: "skin-enhancer", name: "Skin Enhancer", emoji: "✨", category: "enhance-style", badge: "IMAGE", template: "skin", blurb: "Smooth blur and noise from portraits while keeping natural skin texture.", prompt: "" },
   q(
@@ -2202,7 +2208,7 @@ const Ga = [
   q("brick-cube", "Brick Cube", "🧱", "games-characters", "A toy-brick block figure.", "Rebuild the subject of this photo as a toy-brick figure made of interlocking plastic blocks."),
   O("sketch-to-real", "Sketch to Real", "✏️", "games-characters", "Bring a hand-drawn sketch to life as a realistic scene.", "Transform this hand-drawn sketch into a realistic live-action scene, animating it as it comes to life."),
   // ---- Trending Templates
-  O("j-magazine", "J Magazine", "📰", "trending-templates", "Your photo on a Japanese-style magazine cover.", `Place this person on the cover of a Japanese-style fashion magazine with layered text and a lively page-turn animation. ${Oa}`),
+  O("j-magazine", "J Magazine", "📰", "trending-templates", "Your photo on a Japanese-style magazine cover.", `Place this person on the cover of a Japanese-style fashion magazine with layered text and a lively page-turn animation. ${Va}`),
   O("roller-coaster", "Roller Coaster", "🎢", "trending-templates", "A thrilling roller-coaster ride.", "Put the person from this photo on a roller coaster ride with wind, speed and a dramatic camera."),
   O("60s-cafe", "60s Cafe", "☕", "trending-templates", "A vintage 1960s cafe scene.", "Place the person from this photo in a vintage 1960s cafe with retro decor, warm film tones and gentle motion."),
   O("victory-card", "Victory Card", "🃏", "trending-templates", "A winning playing-card moment.", "Turn this photo into a winning playing card, with the person triumphant as the card flips and glows."),
@@ -2222,22 +2228,22 @@ const Ga = [
   O("rap-god", "Rap God", "🎤", "trending-templates", "A rap-video style clip.", "Turn this photo into a stylish rap music video clip with the person performing, with dynamic lighting and camera moves.")
 ], Ee = (e) => Rt.find((t) => t.slug === e), Fe = (e) => e.badge === "VIDEO" ? "video" : "image", Xe = (e) => Rt.filter((t) => Fe(t) === e), Be = (e) => Xe(e).length > 0;
 function Dt(e) {
-  const t = new URLSearchParams(e), a = t.get("tab"), o = Ee(t.get("app"));
-  return a === "apps" ? { mode: o ? Fe(o) : "image", app: (o == null ? void 0 : o.slug) ?? null } : o && a === Fe(o) ? { mode: a, app: o.slug } : { mode: null, app: null };
+  const t = new URLSearchParams(e), a = t.get("tab"), n = Ee(t.get("app"));
+  return a === "apps" ? { mode: n ? Fe(n) : "image", app: (n == null ? void 0 : n.slug) ?? null } : n && a === Fe(n) ? { mode: a, app: n.slug } : { mode: null, app: null };
 }
-function ja(e, t, a) {
-  const o = new URLSearchParams(e);
-  return o.set("tab", t), o.delete("category"), a ? o.set("app", a) : o.delete("app"), `?${o.toString()}`;
+function Ua(e, t, a) {
+  const n = new URLSearchParams(e);
+  return n.set("tab", t), n.delete("category"), a ? n.set("app", a) : n.delete("app"), `?${n.toString()}`;
 }
-function Pa(e, t) {
+function qa(e, t) {
   const a = (t.q ?? "").trim().toLowerCase();
-  return e.filter((o) => (!t.category || t.category === "all" || o.category === t.category) && (!a || `${o.name} ${o.blurb}`.toLowerCase().includes(a)));
+  return e.filter((n) => (!t.category || t.category === "all" || n.category === t.category) && (!a || `${n.name} ${n.blurb}`.toLowerCase().includes(a)));
 }
-const Va = (e) => Ga.filter((t) => Xe(e).some((a) => a.category === t.id));
-function Ua({ mode: e, value: t, onChange: a }) {
-  const [o, s] = N(!1), [i, n] = N(""), [b, k] = N("all"), [f, A] = N(0), M = K(null), p = Z(() => Va(e), [e]), G = Z(() => Pa(Xe(e), { category: b, q: i }), [e, b, i]), w = Ee(t);
-  V(() => A(0), [i, b, o]), V(() => {
-    if (!o) return;
+const Fa = (e) => Da.filter((t) => Xe(e).some((a) => a.category === t.id));
+function Ba({ mode: e, value: t, onChange: a }) {
+  const [n, s] = N(!1), [i, o] = N(""), [b, k] = N("all"), [f, A] = N(0), M = K(null), p = Z(() => Fa(e), [e]), G = Z(() => qa(Xe(e), { category: b, q: i }), [e, b, i]), w = Ee(t);
+  V(() => A(0), [i, b, n]), V(() => {
+    if (!n) return;
     const g = (v) => {
       var C;
       (C = M.current) != null && C.contains(v.target) || s(!1);
@@ -2247,12 +2253,12 @@ function Ua({ mode: e, value: t, onChange: a }) {
     return document.addEventListener("mousedown", g), document.addEventListener("keydown", u), () => {
       document.removeEventListener("mousedown", g), document.removeEventListener("keydown", u);
     };
-  }, [o]), V(() => {
+  }, [n]), V(() => {
     var g, u;
     (u = (g = document.getElementById(`ms-app-${f}`)) == null ? void 0 : g.scrollIntoView) == null || u.call(g, { block: "nearest" });
   }, [f]);
   const j = (g) => {
-    a(g), s(!1), n("");
+    a(g), s(!1), o("");
   }, S = (g) => {
     g.key === "ArrowDown" ? (g.preventDefault(), A((u) => Math.min(u + 1, G.length - 1))) : g.key === "ArrowUp" ? (g.preventDefault(), A((u) => Math.max(u - 1, 0))) : g.key === "Enter" && G[f] && (g.preventDefault(), j(G[f].slug));
   }, R = (g) => `shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-semibold ${g ? "border-primary bg-primary text-primary-ink" : "border-line text-secondary hover:text-fg"}`;
@@ -2262,20 +2268,20 @@ function Ua({ mode: e, value: t, onChange: a }) {
       {
         type: "button",
         "aria-haspopup": "listbox",
-        "aria-expanded": o,
+        "aria-expanded": n,
         onClick: () => s((g) => !g),
         className: "flex w-full items-center gap-2 rounded-ctl border border-line bg-card-bg px-3 py-3 text-left hover:border-muted",
         children: [
           /* @__PURE__ */ r("span", { "aria-hidden": "true", className: "flex h-6 w-6 shrink-0 items-center justify-center text-base", children: (w == null ? void 0 : w.emoji) ?? "✨" }),
           /* @__PURE__ */ r("span", { className: "min-w-0 flex-1 truncate", children: (w == null ? void 0 : w.name) ?? "Choose an app" }),
-          /* @__PURE__ */ r(Me, { up: o, width: 16, height: 16 })
+          /* @__PURE__ */ r(Me, { up: n, width: 16, height: 16 })
         ]
       }
     ),
-    o && /* @__PURE__ */ l("div", { className: "absolute left-0 right-0 top-full z-30 mt-2 rounded-card border border-line bg-panel-bg p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)]", children: [
+    n && /* @__PURE__ */ l("div", { className: "absolute left-0 right-0 top-full z-30 mt-2 rounded-card border border-line bg-panel-bg p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)]", children: [
       /* @__PURE__ */ l("label", { className: "relative mb-2 block", children: [
         /* @__PURE__ */ r(Ke, { width: 14, height: 14, style: { position: "absolute", left: 10, top: 11, color: "var(--ms-muted)" } }),
-        /* @__PURE__ */ r("input", { autoFocus: !0, onKeyDown: S, value: i, onChange: (g) => n(g.target.value), placeholder: "Search apps...", "aria-label": "Search apps", "aria-controls": "ms-app-list", className: "w-full py-2 pl-8 pr-2 text-sm" })
+        /* @__PURE__ */ r("input", { autoFocus: !0, onKeyDown: S, value: i, onChange: (g) => o(g.target.value), placeholder: "Search apps...", "aria-label": "Search apps", "aria-controls": "ms-app-list", className: "w-full py-2 pl-8 pr-2 text-sm" })
       ] }),
       /* @__PURE__ */ l("div", { role: "tablist", "aria-label": "App category", className: "mb-2 flex gap-1.5 overflow-x-auto pb-1", children: [
         /* @__PURE__ */ r("button", { role: "tab", type: "button", "aria-selected": b === "all", onClick: () => k("all"), className: R(b === "all"), children: "All" }),
@@ -2309,41 +2315,41 @@ function Ua({ mode: e, value: t, onChange: a }) {
     ] })
   ] });
 }
-const qa = (e) => e.map((t) => ({ value: t.value, label: t.title, hint: t.hint })), ye = "mb-1.5 flex items-center justify-between text-xs font-medium text-secondary";
-function Fa({ mode: e, slug: t, onApp: a, switcher: o, models: s, client: i, batch: n, onRun: b }) {
+const za = (e) => e.map((t) => ({ value: t.value, label: t.title, hint: t.hint })), ye = "mb-1.5 flex items-center justify-between text-xs font-medium text-secondary";
+function Ha({ mode: e, slug: t, onApp: a, switcher: n, models: s, client: i, batch: o, onRun: b }) {
   const k = Ee(t), f = le.find((A) => A.id === e).title;
   return /* @__PURE__ */ l("section", { "aria-label": f, className: "flex max-h-[85dvh] min-h-0 w-full flex-col border-b border-line bg-panel-bg md:max-h-none md:w-[360px] md:shrink-0 md:border-b-0 md:border-r", children: [
     /* @__PURE__ */ l("div", { className: "shrink-0 p-4 pb-0", children: [
       /* @__PURE__ */ r("h2", { className: "mb-4 text-lg font-semibold", children: f }),
-      o,
+      n,
       /* @__PURE__ */ r("div", { className: "mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-secondary", children: "App" }),
-      /* @__PURE__ */ r("div", { className: "relative z-20", children: /* @__PURE__ */ r(Ua, { mode: e, value: t, onChange: a }) })
+      /* @__PURE__ */ r("div", { className: "relative z-20", children: /* @__PURE__ */ r(Ba, { mode: e, value: t, onChange: a }) })
     ] }),
-    k ? /* @__PURE__ */ r(Ba, { app: k, mode: e, models: s, client: i, batch: n, onRun: b }, k.slug) : /* @__PURE__ */ r("p", { className: "p-4 text-sm text-secondary", children: "Pick an app to turn a photo or video into a finished result in one step." })
+    k ? /* @__PURE__ */ r(Ya, { app: k, mode: e, models: s, client: i, batch: o, onRun: b }, k.slug) : /* @__PURE__ */ r("p", { className: "p-4 text-sm text-secondary", children: "Pick an app to turn a photo or video into a finished result in one step." })
   ] });
 }
-function Ba({ app: e, mode: t, models: a, client: o, batch: s, onRun: i }) {
+function Ya({ app: e, mode: t, models: a, client: n, batch: s, onRun: i }) {
   var z;
-  const [n, b] = N(() => gt(e)), [k, f] = N(null), [A, M] = N(null), [p, G] = N(null), w = K(0);
+  const [o, b] = N(() => gt(e)), [k, f] = N(null), [A, M] = N(null), [p, G] = N(null), w = K(0);
   V(() => {
     b(gt(e)), f(null), M(null), G(null);
   }, [e]);
-  const j = Ea(e), S = a.find((y) => y.name === j), R = _t[e.template], g = Z(() => $a(e, n), [e, n]), u = JSON.stringify(g), v = (y) => b((D) => ({ ...D, ...y }));
+  const j = _a(e), S = a.find((y) => y.name === j), R = _t[e.template], g = Z(() => La(e, o), [e, o]), u = JSON.stringify(g), v = (y) => b((D) => ({ ...D, ...y }));
   V(() => {
     if (!S) return;
     const y = ++w.current, D = setTimeout(() => {
-      o.estimate(j, g).then((X) => {
+      n.estimate(j, g).then((X) => {
         y === w.current && M(X);
       }).catch(() => {
         y === w.current && M(null);
       });
     }, 500);
     return () => clearTimeout(D);
-  }, [u, S, o]);
+  }, [u, S, n]);
   const C = S ? He(S, A) : null, F = Gt(e), I = async () => {
-    S && (G(null), await i({ model: j, endpointUrl: S.endpoint_url, mode: t, prompt: Lt(e, n) || e.name, payload: g, count: s, kind: ze(S.category), unitCost: C == null ? void 0 : C.current }));
+    S && (G(null), await i({ model: j, endpointUrl: S.endpoint_url, mode: t, prompt: Lt(e, o) || e.name, payload: g, count: s, kind: ze(S.category), unitCost: C == null ? void 0 : C.current }));
   }, _ = async () => {
-    const y = Ta(e, n);
+    const y = Ga(e, o);
     if (y) {
       f(y);
       return;
@@ -2357,7 +2363,7 @@ function Ba({ app: e, mode: t, models: a, client: o, batch: s, onRun: i }) {
     await I();
   }, L = (y, D, X, c) => D && D.length > 0 ? /* @__PURE__ */ l("div", { className: "mb-5", children: [
     /* @__PURE__ */ r("div", { className: ye, children: y }),
-    /* @__PURE__ */ r(Ve, { label: y, options: qa(D), value: X, onChange: c })
+    /* @__PURE__ */ r(Ve, { label: y, options: za(D), value: X, onChange: c })
   ] }) : null;
   return /* @__PURE__ */ l("div", { className: "flex min-h-0 flex-1 flex-col", children: [
     /* @__PURE__ */ l("div", { className: "min-h-0 flex-1 overflow-y-auto p-4", children: [
@@ -2376,51 +2382,51 @@ function Ba({ app: e, mode: t, models: a, client: o, batch: s, onRun: i }) {
         /* @__PURE__ */ r(
           Ue,
           {
-            client: o,
+            client: n,
             multiple: !1,
             max: 1,
-            current: n.uploads[y.id] ? [n.uploads[y.id]] : [],
+            current: o.uploads[y.id] ? [o.uploads[y.id]] : [],
             field: { prop: { name: `${y.kind}_${y.id}`, title: y.label, field: y.kind }, kind: "media", required: !y.optional },
-            onUrls: (D) => v({ uploads: { ...n.uploads, [y.id]: D[0] ?? "" } }),
+            onUrls: (D) => v({ uploads: { ...o.uploads, [y.id]: D[0] ?? "" } }),
             onError: f
           }
         )
       ] }, y.id)),
       e.presets && /* @__PURE__ */ l("div", { className: "mb-5", children: [
         /* @__PURE__ */ r("div", { className: ye, children: e.presetLabel ?? "Presets" }),
-        /* @__PURE__ */ r(Ve, { label: e.presetLabel ?? "Presets", options: [{ value: "", label: "Custom" }, ...e.presets.map((y) => ({ value: y.id, label: y.label, hint: y.hint }))], value: n.preset, onChange: (y) => b(bt(e, n, String(y))) })
+        /* @__PURE__ */ r(Ve, { label: e.presetLabel ?? "Presets", options: [{ value: "", label: "Custom" }, ...e.presets.map((y) => ({ value: y.id, label: y.label, hint: y.hint }))], value: o.preset, onChange: (y) => b(bt(e, o, String(y))) })
       ] }),
       e.sliders && /* @__PURE__ */ r("div", { className: "mb-3 text-[11px] font-semibold uppercase tracking-wider text-secondary", children: e.slug === "angles" ? "3D camera angles" : "Adjustments & controls" }),
       (z = e.sliders) == null ? void 0 : z.map((y) => /* @__PURE__ */ l("div", { className: "mb-4", children: [
         /* @__PURE__ */ l("div", { className: ye, children: [
           /* @__PURE__ */ r("label", { htmlFor: `ms-sl-${y.id}`, children: y.label }),
           /* @__PURE__ */ l("span", { className: "tabular-nums text-primary", children: [
-            n.sliders[y.id] ?? 0,
+            o.sliders[y.id] ?? 0,
             y.unit ?? ""
           ] })
         ] }),
-        /* @__PURE__ */ r("input", { id: `ms-sl-${y.id}`, type: "range", min: y.min, max: y.max, step: y.step, value: n.sliders[y.id] ?? 0, className: "w-full", onChange: (D) => v({ sliders: { ...n.sliders, [y.id]: Number(D.target.value) } }) })
+        /* @__PURE__ */ r("input", { id: `ms-sl-${y.id}`, type: "range", min: y.min, max: y.max, step: y.step, value: o.sliders[y.id] ?? 0, className: "w-full", onChange: (D) => v({ sliders: { ...o.sliders, [y.id]: Number(D.target.value) } }) })
       ] }, y.id)),
-      e.sliders && /* @__PURE__ */ r("button", { type: "button", onClick: () => b(bt(e, n, "")), className: "mb-5 rounded-md border border-line px-3 py-1.5 text-[11px] text-secondary hover:text-primary", children: "Reset All" }),
+      e.sliders && /* @__PURE__ */ r("button", { type: "button", onClick: () => b(bt(e, o, "")), className: "mb-5 rounded-md border border-line px-3 py-1.5 text-[11px] text-secondary hover:text-primary", children: "Reset All" }),
       e.template !== "skin" && e.template !== "face-swap" && e.template !== "video-face-swap" && e.template !== "bg-remover" && /* @__PURE__ */ l("div", { className: "mb-5", children: [
         /* @__PURE__ */ l("div", { className: ye, children: [
           "Prompt refinement ",
           /* @__PURE__ */ r("span", { className: "text-muted", children: "(optional)" })
         ] }),
-        /* @__PURE__ */ r("textarea", { "aria-label": "Prompt refinement", rows: 3, value: n.refinement, onChange: (y) => v({ refinement: y.target.value }), placeholder: "e.g. cinematic lighting, detailed background…", className: "w-full resize-y p-3 text-sm" })
+        /* @__PURE__ */ r("textarea", { "aria-label": "Prompt refinement", rows: 3, value: o.refinement, onChange: (y) => v({ refinement: y.target.value }), placeholder: "e.g. cinematic lighting, detailed background…", className: "w-full resize-y p-3 text-sm" })
       ] }),
-      L("Aspect Ratio", R.aspect, n.aspect, (y) => v({ aspect: y })),
-      L(e.template === "seedream" ? "Output Resolution" : "Resolution", R.resolution, n.resolution, (y) => v({ resolution: y })),
-      L("Quality Level", R.quality, n.quality, (y) => v({ quality: String(y) })),
-      L("Duration", R.duration, n.duration, (y) => v({ duration: Number(y) })),
-      (e.template === "face-swap" || e.template === "video-face-swap") && L("Target Face Index", Na, n.targetIndex, (y) => v({ targetIndex: Number(y) })),
-      e.template === "video-face-swap" && L("Target Gender Filter", Sa, n.gender, (y) => v({ gender: String(y) })),
+      L("Aspect Ratio", R.aspect, o.aspect, (y) => v({ aspect: y })),
+      L(e.template === "seedream" ? "Output Resolution" : "Resolution", R.resolution, o.resolution, (y) => v({ resolution: y })),
+      L("Quality Level", R.quality, o.quality, (y) => v({ quality: String(y) })),
+      L("Duration", R.duration, o.duration, (y) => v({ duration: Number(y) })),
+      (e.template === "face-swap" || e.template === "video-face-swap") && L("Target Face Index", Aa, o.targetIndex, (y) => v({ targetIndex: Number(y) })),
+      e.template === "video-face-swap" && L("Target Gender Filter", Ia, o.gender, (y) => v({ gender: String(y) })),
       e.template === "bg-remover" && /* @__PURE__ */ l(Ie, { children: [
-        L("Background Color", Ca, n.background, (y) => v({ background: String(y) })),
-        L("Output Container & Codec", Aa, n.container, (y) => v({ container: String(y) })),
+        L("Background Color", Ma, o.background, (y) => v({ background: String(y) })),
+        L("Output Container & Codec", Ea, o.container, (y) => v({ container: String(y) })),
         /* @__PURE__ */ l("div", { className: "mb-5 flex items-center justify-between", children: [
           /* @__PURE__ */ r("span", { className: "text-xs font-medium text-secondary", children: "Audio Track" }),
-          /* @__PURE__ */ r("button", { type: "button", role: "switch", "aria-label": "Audio track", "aria-checked": n.keepAudio, onClick: () => v({ keepAudio: !n.keepAudio }), className: `flex h-6 w-11 items-center rounded-full border px-0.5 ${n.keepAudio ? "justify-end border-primary bg-primary-soft" : "justify-start border-line bg-card-bg"}`, children: /* @__PURE__ */ r("span", { className: `h-5 w-5 rounded-full ${n.keepAudio ? "bg-primary" : "bg-muted"}` }) })
+          /* @__PURE__ */ r("button", { type: "button", role: "switch", "aria-label": "Audio track", "aria-checked": o.keepAudio, onClick: () => v({ keepAudio: !o.keepAudio }), className: `flex h-6 w-11 items-center rounded-full border px-0.5 ${o.keepAudio ? "justify-end border-primary bg-primary-soft" : "justify-start border-line bg-card-bg"}`, children: /* @__PURE__ */ r("span", { className: `h-5 w-5 rounded-full ${o.keepAudio ? "bg-primary" : "bg-muted"}` }) })
         ] })
       ] })
     ] }),
@@ -2428,11 +2434,11 @@ function Ba({ app: e, mode: t, models: a, client: o, batch: s, onRun: i }) {
       k && /* @__PURE__ */ r("p", { role: "alert", className: "mb-2 text-xs text-danger", children: k }),
       p !== null && /* @__PURE__ */ l("div", { role: "alertdialog", "aria-label": "Confirm spend", className: "mb-2 rounded-ctl border border-primary bg-primary-soft p-3 text-xs", children: [
         "This will spend about ",
-        /* @__PURE__ */ r("b", { className: "text-primary", children: oe(p) }),
+        /* @__PURE__ */ r("b", { className: "text-primary", children: ne(p) }),
         " (",
         s,
         " × ",
-        oe((C == null ? void 0 : C.current) ?? 0),
+        ne((C == null ? void 0 : C.current) ?? 0),
         ").",
         /* @__PURE__ */ l("div", { className: "mt-2 flex gap-2", children: [
           /* @__PURE__ */ r("button", { type: "button", onClick: () => void I(), className: "rounded-md bg-primary px-3 py-1.5 font-semibold text-primary-ink", children: "Confirm" }),
@@ -2441,11 +2447,11 @@ function Ba({ app: e, mode: t, models: a, client: o, batch: s, onRun: i }) {
       ] }),
       /* @__PURE__ */ l("button", { type: "button", disabled: !S, onClick: () => void _(), className: "flex w-full items-center justify-center gap-2 rounded-btn bg-primary px-4 py-3 text-sm font-semibold text-primary-ink shadow-glow hover:bg-primary-hover disabled:opacity-50 disabled:shadow-none", children: [
         /* @__PURE__ */ r(Je, { width: 16, height: 16, className: "shrink-0" }),
-        _a(e),
+        Ra(e),
         s > 1 ? ` ×${s}` : "",
         C && C.current > 0 && /* @__PURE__ */ l("span", { className: "font-normal", children: [
           "(",
-          oe(C.current * s),
+          ne(C.current * s),
           ")"
         ] })
       ] })
@@ -2466,7 +2472,7 @@ function yt({ view: e, onChange: t }) {
     a
   )) });
 }
-function za() {
+function Ja() {
   try {
     const e = window.location.search, t = Dt(e);
     if (t.mode) return t.mode;
@@ -2502,7 +2508,7 @@ function xt(e) {
   const t = xe.get(`muapi-studio:app:${e}`);
   return { view: xe.get(`muapi-studio:view:${e}`) === "apps" ? "apps" : "models", app: Ee(t) ? t : null };
 }
-function Ja({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a = !0, title: o = "Studio", teamId: s, theme: i = "lime", layout: n, apiKey: b, onRequestApiKey: k, getHeaders: f, connected: A, fetchImpl: M, features: p, className: G = "", onTabChange: w }) {
+function Xa({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a = !0, title: n = "Studio", teamId: s, theme: i = "lime", layout: o, apiKey: b, onRequestApiKey: k, getHeaders: f, connected: A, fetchImpl: M, features: p, className: G = "", onTabChange: w }) {
   const j = A === !1 || b === "" || b === null, S = K(f);
   S.current = f;
   const [R, g] = N(!1), u = Z(() => new Bt(e, s, { apiKey: b || void 0, getHeaders: () => {
@@ -2510,15 +2516,15 @@ function Ja({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
     return ((h = S.current) == null ? void 0 : h.call(S)) ?? {};
   }, fetchImpl: M, onKeyRejected: () => g(!0) }), [e, s, b, M]);
   V(() => g(!1), [u]);
-  const [v, C] = N({ library: !0, deleteMedia: !0 }), F = Z(() => ({ library: v.library && (p == null ? void 0 : p.library) !== !1, deleteMedia: (p == null ? void 0 : p.deleteMedia) !== !1 }), [v, p == null ? void 0 : p.library, p == null ? void 0 : p.deleteMedia]), I = n ?? Kt(i), [_, L] = N(() => za() ?? t), [z, y] = N(4), [D, X] = N(null), [c, d] = N(null), [x, E] = N(null), W = te(() => {
+  const [v, C] = N({ library: !0, deleteMedia: !0 }), F = Z(() => ({ library: v.library && (p == null ? void 0 : p.library) !== !1, deleteMedia: (p == null ? void 0 : p.deleteMedia) !== !1 }), [v, p == null ? void 0 : p.library, p == null ? void 0 : p.deleteMedia]), I = o ?? Kt(i), [_, L] = N(() => Ja() ?? t), [z, y] = N(4), [D, X] = N(null), [c, d] = N(null), [x, E] = N(null), W = te(() => {
     u.balance().then(E).catch(() => E(null));
-  }, [u]), [m, P] = N(null), B = cr(u, D, W), H = Z(() => nr(B.items), [B.items]);
+  }, [u]), [m, P] = N(null), B = cr(u, D, W), H = Z(() => or(B.items), [B.items]);
   V(() => {
     j || (d(null), X(null), u.models().then(X).catch((h) => d(h.message)), W(), (p == null ? void 0 : p.library) !== !1 && u.probe().then(C));
   }, [u, W, j, p == null ? void 0 : p.library]);
   const [ae, re] = N(() => xt(_)), be = (h, $) => {
     try {
-      window.history.replaceState(null, "", ja(window.location.search, h, $));
+      window.history.replaceState(null, "", Ua(window.location.search, h, $));
     } catch {
     }
   }, Te = (h) => {
@@ -2538,17 +2544,17 @@ function Ja({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
     L(h.mode), re(($) => ({ ...$, view: "models" })), P({ model: h.model, inputs: h.inputs, nonce: Date.now() });
   }, []), _e = te((h) => {
     var J;
-    const $ = D == null ? void 0 : D.find((ne) => ne.name === h.model);
+    const $ = D == null ? void 0 : D.find((oe) => oe.name === h.model);
     if (!$) return;
     const U = ((J = $.sale) == null ? void 0 : J.from) ?? $.cost ?? 0;
     U > 0.25 && !window.confirm(`Re-run ${h.model} for about $${U.toFixed(2)}?`) || B.run({ model: h.model, endpointUrl: $.endpoint_url, mode: h.mode, prompt: h.prompt, payload: h.inputs, count: 1, unitCost: U, kind: ze($.category) });
   }, [D, B.run]);
   return /* @__PURE__ */ l("div", { className: `ms-root ${G}`.trim(), style: Jt(i), "data-layout": I, "data-btn": Wt(i), children: [
     a && /* @__PURE__ */ l("header", { className: "flex items-center justify-between border-b border-line bg-panel-bg px-4 py-3", children: [
-      /* @__PURE__ */ r("h1", { className: "text-base font-semibold", children: o }),
+      /* @__PURE__ */ r("h1", { className: "text-base font-semibold", children: n }),
       x && /* @__PURE__ */ l("span", { className: "rounded-full border border-line bg-card-bg px-3 py-1 text-xs text-secondary", title: "Account balance", children: [
         "Balance ",
-        /* @__PURE__ */ r("b", { className: "text-primary", children: oe(x.balance) })
+        /* @__PURE__ */ r("b", { className: "text-primary", children: ne(x.balance) })
       ] })
     ] }),
     j ? /* @__PURE__ */ l("div", { className: "flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center", children: [
@@ -2561,12 +2567,12 @@ function Ja({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
         k && /* @__PURE__ */ r("button", { type: "button", onClick: k, className: "rounded-btn border border-danger px-3 py-1.5 text-xs font-semibold text-danger hover:bg-card-bg", children: "Update key" })
       ] }),
       /* @__PURE__ */ l("div", { className: `flex min-h-0 flex-1 flex-col ${I === "rail" ? "md:flex-row" : ""}`, children: [
-        /* @__PURE__ */ r(ua, { mode: _, onChange: Te, layout: I, onChangeKey: k }),
+        /* @__PURE__ */ r(ha, { mode: _, onChange: Te, layout: I, onChangeKey: k }),
         /* @__PURE__ */ r("div", { className: "flex min-h-0 min-w-0 flex-1 flex-col md:flex-row", children: c ? /* @__PURE__ */ l("div", { role: "alert", className: "flex-1 p-8 text-danger", children: [
           "Could not load models: ",
           c
         ] }) : D ? /* @__PURE__ */ l(Ie, { children: [
-          ae.view === "apps" && Be(_) ? /* @__PURE__ */ r(Fa, { mode: _, slug: ae.app, onApp: Q, switcher: /* @__PURE__ */ r(yt, { view: "apps", onChange: we }), models: D, client: u, batch: z, onRun: ce }) : /* @__PURE__ */ r(ca, { mode: _, models: D, client: u, batch: z, onRun: ce, usage: H, reuse: m, switcher: Be(_) ? /* @__PURE__ */ r(yt, { view: "models", onChange: we }) : void 0 }),
+          ae.view === "apps" && Be(_) ? /* @__PURE__ */ r(Ha, { mode: _, slug: ae.app, onApp: Q, switcher: /* @__PURE__ */ r(yt, { view: "apps", onChange: we }), models: D, client: u, batch: z, onRun: ce }) : /* @__PURE__ */ r(ma, { mode: _, models: D, client: u, batch: z, onRun: ce, usage: H, reuse: m, switcher: Be(_) ? /* @__PURE__ */ r(yt, { view: "models", onChange: we }) : void 0 }),
           /* @__PURE__ */ r(Tr, { mode: _, items: B.items, batch: z, onBatch: y, onLabel: B.setLabel, onRemove: B.remove, onReuse: de, onRerun: _e, onDeleteMedia: B.deleteMedia, onLoadMore: B.loadMore, hasMore: B.hasMore, loadingMore: B.loadingMore, serverError: B.serverError, estimateFor: $e })
         ] }) : /* @__PURE__ */ l("div", { className: "flex flex-1 items-center justify-center gap-2 text-secondary", children: [
           /* @__PURE__ */ r(ge, {}),
@@ -2579,7 +2585,7 @@ function Ja({ apiBase: e = "/api/muapi", initialTab: t = "image", showHeader: a 
 export {
   me as ApiError,
   Bt as MuapiClient,
-  Ja as MuapiStudio,
+  Xa as MuapiStudio,
   Yt as THEMES,
   Ht as cyanTheme,
   Kt as defaultLayout,
