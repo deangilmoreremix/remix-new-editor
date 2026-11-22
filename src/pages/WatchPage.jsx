@@ -8,8 +8,8 @@
  */
 import '../../styles/timeline-addons.css';
 import '../../styles/watch.css';
-import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery } from '../lib/editor/publish/publishClient.js';
-import { createAnalytics } from '../lib/editor/publish/analyticsClient.js';
+import { fetchPublishedVideo, canonicalUrl, submitViewerLead, profileFromQuery, fetchRecipientValues } from '../lib/editor/publish/publishClient.js';
+import { createAnalytics, consentMode } from '../lib/editor/publish/analyticsClient.js';
 import { projectSections, ctaLabels, isPricingLabel } from '../lib/editor/publish/sections.js';
 import { fetchPersonalVoice, usesAiVoice } from '../lib/editor/publish/personalVoice.js';
 import { createInteractivePlayer } from '../lib/editor/publish/interactivePlayer.js';
@@ -101,7 +101,14 @@ export async function mountWatchPage(container, ref, deps = {}) {
   let codePreview = null;
   let scrubbing = false;
   // Per-contact analytics (personal links carry ?c=<contactId>).
-  const viewerProfile = profileFromQuery();
+  let viewerProfile = profileFromQuery();
+  // Email campaign links can carry only ?c=<recipient id>: the sender's uploaded details (first name, company, ...) are
+  // looked up here so they never sit in the URL. Values in the link win; any failure just plays the video's defaults.
+  // Same consent rules as analytics: with Do-Not-Track / Global Privacy Control / consent=off nothing is sent, so no lookup either.
+  if (viewerProfile?.id && !Object.keys(viewerProfile.variables || {}).length && consentMode() !== 'off') {
+    const values = await (deps.fetchRecipient || fetchRecipientValues)(video.id, viewerProfile.id);
+    if (values) viewerProfile = { ...viewerProfile, variables: { ...values, ...(viewerProfile.variables || {}) } };
+  }
   // First-party analytics (netlify/functions/video-events.js): batched, idempotent,
   // consent-aware. Playback milestones / watch time come from onChange below.
   const analytics = deps.analytics || createAnalytics({

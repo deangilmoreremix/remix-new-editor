@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
-  makeSlug, preparePublishProject, uploadLocalMedia, localSources, publishVideo, fetchPublishedVideo, submitViewerLead, profileFromQuery, embedCode, watchUrl,
+  makeSlug, parseRecipientsCsv, saveRecipients, countRecipients, fetchRecipientValues, preparePublishProject, uploadLocalMedia, localSources, publishVideo, fetchPublishedVideo, submitViewerLead, profileFromQuery, embedCode, watchUrl,
 } from '../publishClient.js';
 import { createInteractivePlayer, stripUnresolvedTokens, profileWithAnswers } from '../interactivePlayer.js';
 import { showLeadForm, ctaElement, linkBoxElement, personalize } from '../viewerOverlays.js';
@@ -394,6 +394,200 @@ describe('remembering the published link for the Email tab', () => {
     sel.value = 'mailjet';
     sel.dispatchEvent(new Event('change', { bubbles: true }));
     expect(box.textContent).toContain('Not checked against MailJet');
+  });
+});
+
+describe('recipient details for email campaign links', () => {
+  it('parses a pasted list: id column, canonical detail names, no contact data or images', () => {
+    const r = parseRecipientsCsv('id,First Name,Company,Email,Phone,logoUrl\nabc123,Ann,"Acme, Inc.",ann@x.test,555,https://x/logo.png\ndef456,Bob,Globex,b@x.test,,\n');
+    expect(r.error).toBe('');
+    expect(r.columns).toEqual(['firstName', 'company']);
+    expect(r.skippedColumns).toEqual(['Email', 'Phone', 'logoUrl']);
+    expect(r.rows).toEqual([
+      { id: 'abc123', details: { firstName: 'Ann', company: 'Acme, Inc.' } },
+      { id: 'def456', details: { firstName: 'Bob', company: 'Globex' } },
+    ]);
+  });
+  it('handles tabs from a spreadsheet, quotes, CRLF and a BOM; counts bad rows and duplicates', () => {
+    const r = parseRecipientsCsv('\uFEFFid\tfirstName\r\nok1\tAnn "the" Great\r\nok1\tDup\r\nbad id!\tZed\r\nonlyid\t\r\n');
+    expect(r.rows).toEqual([{ id: 'ok1', details: { firstName: 'Ann "the" Great' } }]);
+    expect(r.duplicates).toBe(1);
+    expect(r.invalid).toBe(2);
+  });
+  it('explains what is wrong instead of failing silently', () => {
+    expect(parseRecipientsCsv('').error).toMatch(/Paste a list/);
+    expect(parseRecipientsCsv('id,firstName').error).toMatch(/header row/);
+    expect(parseRecipientsCsv('id,Email\na1,x@y.z').error).toMatch(/No usable detail columns/);
+    expect(parseRecipientsCsv('id,firstName\nbad id!,Ann').error).toMatch(/No valid rows/);
+    expect(parseRecipientsCsv('x'.repeat(2 * 1024 * 1024 + 1)).error).toMatch(/too large/);
+  });
+  it('caps long values and the number of rows', () => {
+    expect(parseRecipientsCsv(`id,firstName\na1,${'x'.repeat(500)}`).rows[0].details.firstName).toHaveLength(200);
+    const many = `id,firstName\n${Array.from({ length: 20005 }, (_, i) => `r${i},N`).join('\n')}`;
+    const r = parseRecipientsCsv(many);
+    expect(r.rows).toHaveLength(20000);
+    expect(r.truncated).toBe(true);
+  });
+
+  it('saves in batches of 1000 and can replace the list first; counts', async () => {
+    const calls = [];
+    const client = {
+      rpc: vi.fn(async (name, args) => { calls.push([name, args.p_rows?.length]); return { data: args.p_rows ? args.p_rows.length : null, error: null }; }),
+      from: () => ({ select: () => ({ eq: async () => ({ count: 42, error: null }) }) }),
+    };
+    const rows = Array.from({ length: 2500 }, (_, i) => ({ id: `r${i}`, details: { firstName: 'N' } }));
+    expect(await saveRecipients(client, 'abcdefgh12', rows, { replace: true })).toBe(2500);
+    expect(calls).toEqual([['clear_video_recipients', undefined], ['save_video_recipients', 1000], ['save_video_recipients', 1000], ['save_video_recipients', 500]]);
+    expect(await countRecipients(client, 'abcdefgh12')).toBe(42);
+    await expect(saveRecipients({ rpc: async () => ({ data: null, error: { message: 'too_many_rows' } }) }, 'abcdefgh12', rows.slice(0, 1))).rejects.toBeTruthy();
+  });
+
+  it('the viewer lookup returns safe values only and never throws', async () => {
+    const ok = (body, status = 200) => vi.fn(async () => ({ ok: status < 400, status, json: async () => body }));
+    const cfg = (fetchImpl) => ({ url: 'https://db.test', key: 'anon', fetchImpl });
+    const f = ok({ firstName: 'Ann', 'bad key': 'x', n: 5, company: 'x'.repeat(500), empty: '' });
+    const v = await fetchRecipientValues('abcdefgh12', 'abc123', cfg(f));
+    expect(v.firstName).toBe('Ann');
+    expect(Object.keys(v).sort()).toEqual(['company', 'firstName']);
+    expect(v.company).toHaveLength(200);
+    expect(f).toHaveBeenCalledWith('https://db.test/rest/v1/rpc/video_recipient_values', expect.objectContaining({ method: 'POST', body: JSON.stringify({ p_video_id: 'abcdefgh12', p_recipient_id: 'abc123' }) }));
+    expect(await fetchRecipientValues('abcdefgh12', 'abc123', cfg(ok(null)))).toBeNull();
+    expect(await fetchRecipientValues('abcdefgh12', 'abc123', cfg(ok({}, 500)))).toBeNull();
+    expect(await fetchRecipientValues('abcdefgh12', 'abc123', cfg(vi.fn(async () => { throw new Error('network'); })))).toBeNull();
+    expect(await fetchRecipientValues('short', 'abc123', cfg(ok({ a: 'b' })))).toBeNull();
+    expect(await fetchRecipientValues('abcdefgh12', 'a b', cfg(ok({ a: 'b' })))).toBeNull();
+    expect(await fetchRecipientValues('abcdefgh12', 'abc123', { url: '', key: '' })).toBeNull();
+  });
+
+  it('gives up after the timeout so a slow lookup never blocks the video', async () => {
+    const slow = vi.fn((_u, init) => new Promise((_res, rej) => { init.signal.addEventListener('abort', () => rej(new Error('aborted'))); }));
+    const t0 = Date.now();
+    expect(await fetchRecipientValues('abcdefgh12', 'abc123', { url: 'https://db.test', key: 'k', fetchImpl: slow, timeoutMs: 30 })).toBeNull();
+    expect(Date.now() - t0).toBeLessThan(1000);
+  });
+});
+
+describe('watch page recipient lookup (?c=<recipient id>)', () => {
+  const withText = () => {
+    const p = project();
+    p.tracks.push({ id: 'greet', type: 'text', items: [clipAt(0, 5, { id: 'g1', type: 'text', heading: 'Hello {{d firstName "there"}}' })] });
+    return p;
+  };
+  const run = async (search, fetchRecipient) => {
+    history.pushState({}, '', `/watch/abcdefgh12${search}`);
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const { e, create } = fakeEngine();
+    const analytics = { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() };
+    const player = await mountWatchPage(box, 'abcdefgh12', {
+      fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: withText() }), createEngine: create, analytics, onLead: vi.fn(), fetchRecipient,
+    });
+    const model = JSON.stringify(e.model);
+    player.destroy();
+    history.pushState({}, '', '/');
+    return model;
+  };
+
+  it('fills the details from the recipient id when the link has no values', async () => {
+    const fetchRecipient = vi.fn(async () => ({ firstName: 'Ann' }));
+    const model = await run('?c=abc123', fetchRecipient);
+    expect(fetchRecipient).toHaveBeenCalledWith('abcdefgh12', 'abc123');
+    expect(model).toContain('Hello Ann');
+  });
+  it('values in the link win and no lookup is made', async () => {
+    const fetchRecipient = vi.fn(async () => ({ firstName: 'Zed' }));
+    const model = await run('?c=abc123&firstName=Bea', fetchRecipient);
+    expect(fetchRecipient).not.toHaveBeenCalled();
+    expect(model).toContain('Hello Bea');
+  });
+  it('an unknown recipient, a failed lookup or an unreplaced id tag just plays the default', async () => {
+    expect(await run('?c=nobody', vi.fn(async () => null))).toContain('Hello there');
+    expect(await run('?c=abc123', vi.fn(async () => null))).toContain('Hello there');
+    const unreplaced = vi.fn(async () => ({ firstName: 'Ann' }));
+    expect(await run('?c=*|UNIQID|*', unreplaced)).toContain('Hello there');
+    expect(unreplaced).not.toHaveBeenCalled();
+  });
+  it('with Do-Not-Track or consent=off the lookup is not made (the recipient sees the defaults)', async () => {
+    const fetchRecipient = vi.fn(async () => ({ firstName: 'Ann' }));
+    Object.defineProperty(navigator, 'doNotTrack', { value: '1', configurable: true });
+    expect(await run('?c=abc123', fetchRecipient)).toContain('Hello there');
+    Object.defineProperty(navigator, 'doNotTrack', { value: '0', configurable: true });
+    expect(await run('?c=abc123&consent=off', fetchRecipient)).toContain('Hello there');
+    expect(fetchRecipient).not.toHaveBeenCalled();
+    expect(await run('?c=abc123', fetchRecipient)).toContain('Hello Ann');
+  });
+  it('no recipient id means no lookup at all', async () => {
+    const fetchRecipient = vi.fn();
+    await run('', fetchRecipient);
+    expect(fetchRecipient).not.toHaveBeenCalled();
+  });
+});
+
+describe('share panel: keep names out of the link', () => {
+  const mount = async (extra = {}) => {
+    const box = document.createElement('div');
+    const copy = vi.fn(async () => {});
+    renderSharePanel(box, {
+      getInfo: async () => ({ id: 'abcdefgh12', title: 'Promo', published: true, view_count: 0 }),
+      countLeads: async () => 0, copy, setPublished: vi.fn(), defaultTitle: 'Promo', mergeTokens: () => ['firstName', 'company'],
+      parseRecipients: (t) => parseRecipientsCsv(t), countRecipients: vi.fn(async () => 3),
+      saveRecipients: vi.fn(async (t, o) => ({ ...parseRecipientsCsv(t), saved: parseRecipientsCsv(t).rows.length, replace: o.replace })),
+      ...extra,
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    return box;
+  };
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+
+  it('shows the saved count and, with the toggle on, drops every personal value from the link', async () => {
+    const box = await mount();
+    expect(box.textContent).toContain('(3 saved)');
+    expect(box.querySelector('[data-share-mergelink]').value).toContain('firstName=');
+    const t = box.querySelector('[data-share-lookup]');
+    t.checked = true;
+    t.dispatchEvent(new Event('change', { bubbles: true }));
+    const link = box.querySelector('[data-share-mergelink]').value;
+    expect(link).toMatch(/\?c=\*\|UNIQID\|\*$/);
+    expect(link).not.toContain('firstName');
+  });
+  it('asks for a recipient id tag when there is none (Klaviyo has none by default)', async () => {
+    const box = await mount();
+    const sel = box.querySelector('[data-share-provider]');
+    sel.value = 'klaviyo';
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    const t = box.querySelector('[data-share-lookup]');
+    t.checked = true;
+    t.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(box.textContent).toContain('Add a recipient id tag above first');
+  });
+  it('saves the pasted list and reports what was skipped', async () => {
+    const box = await mount();
+    const ta = box.querySelector('[data-share-recipients]');
+    ta.value = 'id,firstName,Email\na1,Ann,a@x.test\nbad id!,Bo,b@x.test';
+    ta.dispatchEvent(new Event('change', { bubbles: true }));
+    box.querySelector('[data-share-saverecipients]').click();
+    await tick(); await tick();
+    expect(box.querySelector('[role=status]').textContent).toMatch(/Saved 1 recipient\./);
+    expect(box.querySelector('[role=status]').textContent).toMatch(/Not uploaded.*Email/);
+    expect(box.querySelector('[role=status]').textContent).toMatch(/1 row skipped/);
+  });
+  it('shows a parse problem without calling save, and a save failure as a message', async () => {
+    const saveRecipients = vi.fn(async () => { throw new Error('not_found'); });
+    const box = await mount({ saveRecipients });
+    box.querySelector('[data-share-saverecipients]').click();
+    await tick();
+    expect(box.querySelector('[role=status]').textContent).toMatch(/Paste a list/);
+    expect(saveRecipients).not.toHaveBeenCalled();
+    const ta = box.querySelector('[data-share-recipients]');
+    ta.value = 'id,firstName\na1,Ann';
+    ta.dispatchEvent(new Event('change', { bubbles: true }));
+    box.querySelector('[data-share-saverecipients]').click();
+    await tick(); await tick();
+    expect(box.querySelector('[role=status]').textContent).toContain('not_found');
+  });
+  it('the section is absent when the editor does not provide saveRecipients', async () => {
+    const box = await mount({ saveRecipients: undefined });
+    expect(box.querySelector('[data-share-lookup]')).toBeNull();
   });
 });
 

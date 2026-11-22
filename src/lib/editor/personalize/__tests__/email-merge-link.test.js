@@ -101,5 +101,13 @@ describe('campaign options: privacy, recipient id, UTM, preview, snippet, fallba
     expect(tokensWithoutDefault('')).toEqual([]);
     expect(tokensWithoutDefault('{{firstName}} {{logoUrl}}')).toEqual(['firstName']); // images have their own fallback image
   });
+
+  it('valuesInLink:false carries only the recipient id (no personal values, no warnings about them)', () => {
+    const mc = emailProviderByKey('mailchimp');
+    const r = mergeTagLink(BASE, ['firstName', 'company', 'logoUrl'], mc, { recipientId: recipientIdTagFor(mc), valuesInLink: false, utmCampaign: 'x' });
+    expect(r.link).toBe(`${BASE}?c=*|UNIQID|*&utm_source=email&utm_medium=email&utm_campaign=x`);
+    expect(r.unmapped).toEqual([]);
+    expect(r.skipped).toEqual([]);
+  });
 });
 

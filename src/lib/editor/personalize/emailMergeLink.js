@@ -79,9 +79,11 @@ export function isUnreplacedMergeTag(value) {
  *   recipientId  tag for a unique recipient id, sent as ?c= so views can be told apart per recipient
  *                ('' / undefined = none; pass recipientIdTagFor(provider) for the provider's own)
  *   utmCampaign  adds utm_source=email&utm_medium=email&utm_campaign=<value>
+ *   valuesInLink false = carry NO personal values, only the recipient id (the player looks the details up from the id;
+ *                see saveRecipients / fetchRecipientValues). Needs a recipientId.
  * Tags are appended raw on purpose: encoding them (%2A%7C…) would stop the provider recognising and replacing them.
  */
-export function mergeTagLink(baseUrl, tokens = [], provider, { preload = true, recipientId = '', utmCampaign = '', includePrivate = false } = {}) {
+export function mergeTagLink(baseUrl, tokens = [], provider, { preload = true, recipientId = '', utmCampaign = '', includePrivate = false, valuesInLink = true } = {}) {
   const prov = typeof provider === 'string' ? emailProviderByKey(provider) : provider;
   if (!prov) throw new Error('Unknown email provider');
   const url = new URL(baseUrl);
@@ -90,7 +92,7 @@ export function mergeTagLink(baseUrl, tokens = [], provider, { preload = true, r
   const skipped = [];
   const excluded = [];
   const seen = new Set();
-  for (const raw of tokens) {
+  for (const raw of valuesInLink ? tokens : []) {
     const key = canonicalTokenKey(raw) || String(raw);
     if (!key || seen.has(key)) continue;
     seen.add(key);

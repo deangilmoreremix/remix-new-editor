@@ -17,6 +17,8 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
  *   copy(text)     → Promise
  *   personalLinks(link) → [{ name, email, company, link }]   one link per contact
  *   mergeTokens()  → string[]   tokens the video uses; enables the one-link email merge-tag section
+ *   parseRecipients(text) → { error? }, saveRecipients(text, { replace }) → { saved, skippedColumns, invalid, duplicates, truncated },
+ *   countRecipients() → number   enable "Keep names out of the link" (recipient details looked up from the id)
  *   downloadCsv(rows)
  *   fetchStats()   → Promise<[{ contactId, views, plays, completes, ctaClicks, leads, lastSeen }]>
  *   contactLabel(id) → display name for a contact id
@@ -125,7 +127,7 @@ export function renderSharePanel(container, opts) {
     if (!tokens.length) return '<p class="addon-field__hint">Email merge tags: use {{tokens}} like {{firstName}} in your text to get one link your email provider can personalize for every recipient.</p>';
     const prov = emailProviderByKey(ui.provider) || EMAIL_PROVIDERS[0];
     const idTag = ui.recipientId ?? recipientIdTagFor(prov);
-    const { link: mlink, unmapped, skipped, excluded } = mergeTagLink(link, tokens, prov, { preload: ui.preload !== false, recipientId: idTag, utmCampaign: ui.utm || '', includePrivate: !!ui.includePrivate });
+    const { link: mlink, unmapped, skipped, excluded } = mergeTagLink(link, tokens, prov, { preload: ui.preload !== false, recipientId: idTag, utmCampaign: ui.utm || '', includePrivate: !!ui.includePrivate, valuesInLink: !(ui.lookup && opts.saveRecipients) });
     ui.mergeLink = mlink;
     ui.mergeSnippet = emailSnippet({ link: mlink, posterUrl: ui.poster || '' });
     return `<div class="share-merge pz-ui">
@@ -136,6 +138,18 @@ export function renderSharePanel(container, opts) {
       <label class="cap-row"><span>Recipient id tag</span><input type="text" data-share-recipientid value="${esc(idTag)}" placeholder="${esc(recipientIdTagFor(prov) || 'e.g. a unique-id tag from your provider')}"/></label>
       <label class="cap-row"><span>Campaign name (UTM)</span><input type="text" data-share-utm value="${esc(ui.utm || '')}" placeholder="optional"/></label>
       <label class="cap-row"><span>Put email/phone in the link</span><input type="checkbox" data-share-private ${ui.includePrivate ? 'checked' : ''}/></label>
+      ${opts.saveRecipients ? `<div class="share-recipients">
+        <label class="cap-row"><span>Keep names out of the link</span><input type="checkbox" data-share-lookup ${ui.lookup ? 'checked' : ''}/></label>
+        <p class="addon-field__hint">${ui.lookup
+          ? (idTag ? 'The link carries only the recipient id. Upload your list below so each id shows that person\'s details.' : '<span class="pz-warning">Add a recipient id tag above first: the link needs it to find each person.</span>')
+          : 'Upload your list once and the email link carries just an id instead of names.'}</p>
+        <label class="addon-field"><span>Recipient details${ui.recipientCount != null ? ` (${Number(ui.recipientCount)} saved)` : ''}</span>
+          <textarea rows="4" data-share-recipients placeholder="id,firstName,company&#10;abc123,Ann,Acme&#10;def456,Bob,Globex">${esc(ui.recipientsText || '')}</textarea></label>
+        <div class="cap-actions"><button type="button" class="mini-btn" data-share-saverecipients ${ui.busy ? 'disabled' : ''}>Save recipient details</button>
+          <label class="cap-row"><span>Replace the saved list</span><input type="checkbox" data-share-replace ${ui.replaceRecipients ? 'checked' : ''}/></label></div>
+        ${ui.recipientMsg ? `<p class="addon-field__hint" role="status">${esc(ui.recipientMsg)}</p>` : ''}
+        <p class="addon-field__hint">First column = the id your provider fills in; the other columns = detail names. Email, phone and image columns are never uploaded. Anyone with a recipient id can see that person's saved details, so use ids your provider makes hard to guess.</p>
+      </div>` : ''}
       <span class="share-copy"><textarea readonly rows="3" data-share-mergelink aria-label="Merge-tag link">${esc(mlink)}</textarea><button type="button" class="mini-btn" data-share-mergecopy>${ui.copied === 'merge' ? 'Copied ✓' : 'Copy'}</button></span>
       <p class="addon-field__hint">Paste this link into your ${esc(prov.label)} campaign; each recipient gets a video with their own details.</p>
       ${prov.unverified ? `<p class="pz-warning">Not checked against ${esc(prov.label)}'s own docs. Send yourself a test email and click the link to confirm the details fill in.</p>` : ''}
@@ -184,6 +198,7 @@ export function renderSharePanel(container, opts) {
     try {
       ui.info = await opts.getInfo?.();
       ui.leads = ui.info?.published ? await opts.countLeads?.().catch(() => null) : null;
+      ui.recipientCount = ui.info?.published && opts.countRecipients ? await opts.countRecipients().catch(() => null) : null;
     } catch (err) {
       ui.error = err?.message || '';
     }
@@ -240,6 +255,26 @@ export function renderSharePanel(container, opts) {
       try { await opts.copy(row.link); ui.copied = `p${d.sharePersonal}`; } catch { ui.copied = ''; }
       draw();
       setTimeout(() => { ui.copied = ''; draw(); }, 1800);
+    } else if (d.shareSaverecipients !== undefined) {
+      const text = container.querySelector('[data-share-recipients]')?.value || ui.recipientsText || '';
+      ui.recipientsText = text;
+      const parsed = opts.parseRecipients ? opts.parseRecipients(text) : null;
+      if (parsed?.error) { ui.recipientMsg = parsed.error; draw(); return; }
+      ui.busy = true; ui.recipientMsg = ''; draw();
+      try {
+        const res = await opts.saveRecipients(text, { replace: !!ui.replaceRecipients });
+        const parts = [`Saved ${res.saved} recipient${res.saved === 1 ? '' : 's'}.`];
+        if (res.skippedColumns?.length) parts.push(`Not uploaded (contact data or images): ${res.skippedColumns.join(', ')}.`);
+        if (res.invalid) parts.push(`${res.invalid} row${res.invalid === 1 ? '' : 's'} skipped (bad id or no details).`);
+        if (res.duplicates) parts.push(`${res.duplicates} duplicate id${res.duplicates === 1 ? '' : 's'} ignored.`);
+        if (res.truncated) parts.push('Only the first 20,000 rows were used.');
+        ui.recipientMsg = parts.join(' ');
+        ui.recipientCount = await opts.countRecipients?.().catch(() => null);
+      } catch (err) {
+        ui.recipientMsg = err?.message || 'Could not save the recipient details';
+      }
+      ui.busy = false;
+      draw();
     } else if (d.shareSnippetcopy !== undefined) {
       try { await opts.copy(ui.mergeSnippet || ''); ui.copied = 'snippet'; } catch { ui.copied = ''; }
       draw();
@@ -260,6 +295,9 @@ export function renderSharePanel(container, opts) {
     if (e.target.matches('[data-share-provider]')) { ui.provider = e.target.value; ui.recipientId = undefined; draw(); return; }
     if (e.target.matches('[data-share-preload]')) { ui.preload = e.target.checked; draw(); return; }
     if (e.target.matches('[data-share-private]')) { ui.includePrivate = e.target.checked; draw(); return; }
+    if (e.target.matches('[data-share-lookup]')) { ui.lookup = e.target.checked; draw(); return; }
+    if (e.target.matches('[data-share-replace]')) { ui.replaceRecipients = e.target.checked; return; }
+    if (e.target.matches('[data-share-recipients]')) { ui.recipientsText = e.target.value; return; }
     if (e.target.matches('[data-share-recipientid]')) { ui.recipientId = e.target.value.trim(); draw(); return; }
     if (e.target.matches('[data-share-utm]')) { ui.utm = e.target.value.trim(); draw(); return; }
     if (e.target.matches('[data-share-poster]')) { ui.poster = e.target.value.trim(); draw(); return; }

@@ -71,8 +71,9 @@ describe('watch page records first-party analytics', () => {
     const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, onLead: vi.fn() });
     player.destroy();
     window.dispatchEvent(new Event('pagehide'));
-    await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalled());
-    const [url, init] = fetchSpy.mock.calls[0];
+    await vi.waitFor(() => expect(fetchSpy.mock.calls.some(([u]) => u === '/api/video-events')).toBe(true));
+    // (a ?c=<recipient id> link also asks the server for that recipient's saved details first, so find the analytics call by URL)
+    const [url, init] = fetchSpy.mock.calls.find(([u]) => u === '/api/video-events');
     expect(url).toBe('/api/video-events');
     const body = JSON.parse(init.body);
     expect(body).toMatchObject({ video: 'abcdefgh12', contact: 'c_acme' });

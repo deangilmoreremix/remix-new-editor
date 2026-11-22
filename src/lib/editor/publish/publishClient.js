@@ -10,6 +10,7 @@
 
 import { isUnreplacedMergeTag } from '../personalize/emailMergeLink.js';
 import { isImageTokenKey, shareableImageValue } from '../../personalization/imageReadiness.js';
+import { canonicalTokenKey } from '../../../components/personalize/tokenSchema.js';
 
 export const PROJECT_VERSION = 1;
 export const SLUG_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
@@ -269,6 +270,131 @@ export async function fetchPublishedVideo(ref, { url, key, fetchImpl = fetch } =
   if (!res.ok) throw new Error(`Could not load the video (HTTP ${res.status})`);
   const data = await res.json();
   return data && typeof data === 'object' ? data : null;
+}
+
+// ------------------------------------------------------------------ recipient details (email campaigns)
+// The sender uploads a list (recipient id as their provider emits it + first name, company, ...), the email link then
+// carries only ?c=<recipient id> and the player looks the details up (video_recipient_values), so names stay out of the URL.
+
+export const RECIPIENT_MAX_ROWS = 20000;
+export const RECIPIENT_MAX_CHARS = 2 * 1024 * 1024;
+const RECIPIENT_ID_RE = /^[A-Za-z0-9_-]{1,80}$/;
+// Never uploaded: they would be readable through the public lookup. (The database drops them too.)
+const RECIPIENT_PRIVATE_RE = /(mail|phone|tel|mobile|fax|address|ssn|passw|token|secret|card)/i;
+
+/** Minimal RFC-4180 reader: quoted cells, "" escapes, CRLF/LF, commas or tabs (pasted from a spreadsheet). */
+function csvRows(text) {
+  const src = String(text || '').replace(/^﻿/, '');
+  const delim = (src.split('\n', 1)[0].match(/\t/g) || []).length > (src.split('\n', 1)[0].match(/,/g) || []).length ? '\t' : ',';
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let quoted = false;
+  for (let i = 0; i < src.length; i += 1) {
+    const c = src[i];
+    if (quoted) {
+      if (c === '"' && src[i + 1] === '"') { cell += '"'; i += 1; } else if (c === '"') quoted = false; else cell += c;
+    } else if (c === '"' && cell === '') quoted = true; // quotes only open at the start of a cell
+    else if (c === delim) { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && src[i + 1] === '\n') i += 1;
+      row.push(cell); cell = '';
+      if (row.some((x) => x.trim() !== '')) rows.push(row);
+      row = [];
+    } else cell += c;
+  }
+  row.push(cell);
+  if (row.some((x) => x.trim() !== '')) rows.push(row);
+  return rows;
+}
+
+/**
+ * Parse pasted/uploaded recipient data. First column = recipient id (exactly what the provider's id tag fills in);
+ * the other columns are token names (first name, firstName, company, ...). Returns
+ * { rows: [{ id, details }], columns: [canonical token], skippedColumns: [header], invalid: n, duplicates: n, truncated }.
+ */
+export function parseRecipientsCsv(text) {
+  const out = { rows: [], columns: [], skippedColumns: [], invalid: 0, duplicates: 0, truncated: false, error: '' };
+  const raw = String(text || '');
+  if (!raw.trim()) { out.error = 'Paste a list: the first column is the recipient id, the others are details like firstName.'; return out; }
+  if (raw.length > RECIPIENT_MAX_CHARS) { out.error = 'That list is too large (over 2 MB). Split it into smaller files.'; return out; }
+  const all = csvRows(raw);
+  if (all.length < 2) { out.error = 'Add a header row (recipient id, then the detail names) and at least one recipient.'; return out; }
+  const header = all[0].map((h) => h.trim());
+  const cols = header.slice(1).map((h) => {
+    if (!h) return null;
+    const key = canonicalTokenKey(h) || h.replace(/[^A-Za-z0-9]+(.)?/g, (_, ch) => (ch ? ch.toUpperCase() : '')).replace(/^[^A-Za-z]+/, '');
+    if (!key || RECIPIENT_PRIVATE_RE.test(key) || RECIPIENT_PRIVATE_RE.test(h) || isImageTokenKey(key)) { out.skippedColumns.push(h); return null; }
+    return key;
+  });
+  out.columns = [...new Set(cols.filter(Boolean))];
+  if (!out.columns.length) { out.error = 'No usable detail columns. Email, phone and image columns are not uploaded.'; return out; }
+  const seen = new Set();
+  for (const r of all.slice(1)) {
+    if (out.rows.length >= RECIPIENT_MAX_ROWS) { out.truncated = true; break; }
+    const id = String(r[0] ?? '').trim();
+    if (!RECIPIENT_ID_RE.test(id)) { out.invalid += 1; continue; }
+    if (seen.has(id)) { out.duplicates += 1; continue; }
+    const details = {};
+    cols.forEach((key, i) => {
+      const v = String(r[i + 1] ?? '').trim().slice(0, 200);
+      if (key && v) details[key] = v;
+    });
+    if (!Object.keys(details).length) { out.invalid += 1; continue; }
+    seen.add(id);
+    out.rows.push({ id, details });
+  }
+  if (!out.rows.length) out.error = 'No valid rows. Recipient ids may use letters, numbers, _ and - (up to 80 characters).';
+  return out;
+}
+
+/** Owner: save recipients for one of their videos (batches of 1000; replace=true swaps the whole list). Resolves to how many were saved. */
+export async function saveRecipients(client, videoId, rows, { replace = false } = {}) {
+  if (replace) {
+    const { error } = await client.rpc('clear_video_recipients', { p_video_id: videoId });
+    fail(error, 'Could not replace the recipient list');
+  }
+  let saved = 0;
+  for (let i = 0; i < rows.length; i += 1000) {
+    const { data, error } = await client.rpc('save_video_recipients', { p_video_id: videoId, p_rows: rows.slice(i, i + 1000), p_replace: false });
+    fail(error, 'Could not save the recipients');
+    saved += Number(data) || 0;
+  }
+  return saved;
+}
+
+/** Owner: how many recipients a video has. */
+export async function countRecipients(client, videoId) {
+  const { count, error } = await client.from('video_recipients').select('recipient_id', { count: 'exact', head: true }).eq('video_id', videoId);
+  fail(error, 'Could not count the recipients');
+  return count || 0;
+}
+
+/**
+ * Viewer: the details of one recipient of a published video (name-like values only), or null. Never throws and gives up
+ * after timeoutMs, so a slow or missing lookup never blocks the video (it just plays with its default values).
+ */
+export async function fetchRecipientValues(videoId, recipientId, { url, key, fetchImpl = fetch, timeoutMs = 2500 } = env()) {
+  if (!url || !key || !/^[A-Za-z0-9_-]{8,32}$/.test(String(videoId)) || !RECIPIENT_ID_RE.test(String(recipientId))) return null;
+  try {
+    const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctl ? setTimeout(() => ctl.abort(), timeoutMs) : null;
+    const res = await fetchImpl(`${url}/rest/v1/rpc/video_recipient_values`, {
+      method: 'POST',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ p_video_id: videoId, p_recipient_id: recipientId }),
+      ...(ctl ? { signal: ctl.signal } : {}),
+    });
+    if (timer) clearTimeout(timer);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+    const out = {};
+    for (const [k, v] of Object.entries(data)) if (typeof v === 'string' && v && /^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(k)) out[k] = v.slice(0, 200);
+    return Object.keys(out).length ? out : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Owner: totals per contact for one of their videos. */
