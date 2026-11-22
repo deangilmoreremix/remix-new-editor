@@ -38,7 +38,8 @@ describe('30 opt-in designs', () => {
       expect(form.querySelector('button[type="submit"]')).not.toBeNull();
       expect(form.querySelector('.skip-button')).not.toBeNull();
       expect(form.querySelector('.optin-consent input').required).toBe(true);
-      expect(form.querySelectorAll('.input-wrapper > *').length).toBe(cfg.elements.length);
+      // one form field per configured box, however the design lays them out (chat bubbles and the quiz list are not extra fields)
+      expect(new Set([...form.elements].filter((e) => e.name && e.name !== 'CONSENT').map((e) => e.name)).size).toBe(cfg.elements.length);
     });
   });
 
@@ -122,5 +123,113 @@ describe('Lead Generator clip keeps the design', () => {
     expect(back.buttonBackground2).toBe(design.buttonBackground2);
     expect(back.heading ?? back.caption).toBeDefined();
     expect(clip.heading).toBe(clip.heading);
+  });
+});
+
+// ---------------------------------------------------------------- everything on a design is editable
+import { applyOptinDesign, starterFields } from '../index.js';
+
+/** A config with every conditional setting switched on, so every field the panel can show is listed. */
+const everythingOn = (kind) => ({
+  ...defaultOptin(kind), brandName: 'B', backgroundColor2: '#000000', cardBorderWidth: 2, multiStep: true, designLayout: 'chat', enableSkipButton: true,
+  requireConsent: true, pointerEnabled: true, abTest: true, webhookEnabled: true,
+});
+
+describe('every part of a design is editable', () => {
+  it.each(KINDS)('%s: every look option a design sets has a control in the settings panel', (kind) => {
+    const keys = new Set([
+      ...listBuilderFields(everythingOn(kind)).filter((f) => !f.showIf || f.showIf(everythingOn(kind))).map((f) => f.key),
+      ...listBuilderFields({ ...everythingOn(kind), designLayout: 'split' }).map((f) => f.key),
+    ]);
+    // `elements` (the box list) and the multi-step toggles live on the Fields tab; the rest are all on Text / Design / Styles.
+    Object.keys(DESIGN_BASE).forEach((k) => expect(keys.has(k), `no settings control for "${k}"`).toBe(true));
+  });
+
+  it('every text a design shows can be clicked and edited in place, and that key is a real setting', () => {
+    const keys = new Set(listBuilderFields(everythingOn('list-builder')).map((f) => f.key));
+    const selectors = ['.optin-brand span', '.optin-eyebrow', '.optin-subtitle', '.retarget-caption', '.optin-paneltitle', '.optin-panelhint', '.optin-stepper', '.optin-proof blockquote', '.optin-proof cite', '.optin-rating span'];
+    OPTIN_DESIGNS.forEach((d) => {
+      const base = defaultOptin('list-builder');
+      const form = buildOptinForm({ ...base, ...applyOptinDesign(base, d), requireConsent: false });
+      selectors.forEach((sel) => form.querySelectorAll(sel).forEach((el) => {
+        const key = el.dataset.editKey;
+        expect(key, `${d.id}: ${sel} is not click-editable`).toBeTruthy();
+        expect(keys.has(key.replace(/^elements\.\d+\..*/, 'elements')), `${d.id}: ${key} has no setting`).toBe(true);
+      }));
+    });
+  });
+
+  it('the decoration can be switched off and recoloured', () => {
+    const f = buildOptinForm({ ...defaultOptin(), ...getOptinDesign('blueprint-grid').patch, decorEnabled: false, designAccent: '#ff00aa' });
+    expect(f.dataset.decor).toBe('off');
+    expect(f.style.getPropertyValue('--od-accent')).toBe('#ff00aa');
+  });
+});
+
+describe('picking a design shows the full design, without overwriting the creator\'s own work', () => {
+  it('a fresh form gets the design wording and the three starter boxes', () => {
+    const base = defaultOptin('list-builder');
+    const out = applyOptinDesign(base, getOptinDesign('vip-access'));
+    expect(out.caption).toBe('VIP ACCESS');
+    expect(out.btnText).toBe('WATCH NOW');
+    expect(out.elements.map((e) => e.label)).toEqual(['Email', 'First Name', 'Last Name']);
+    expect(out.badgeIcon).toBe('crown');
+  });
+
+  it('keeps a customised caption, button text and box list', () => {
+    const mine = { ...defaultOptin('lead-generator'), caption: 'Get my free guide', btnText: 'Send it', elements: [{ id: 0, label: 'Company', type: 'singleline', token: 'COMPANY' }] };
+    const out = applyOptinDesign(mine, getOptinDesign('glass-split'));
+    expect(out.caption).toBeUndefined();
+    expect(out.btnText).toBeUndefined();
+    expect(out.elements).toBeUndefined();
+    // ...but switching between two designs still swaps the design wording
+    const first = { ...defaultOptin(), ...applyOptinDesign(defaultOptin(), getOptinDesign('vip-access')) };
+    expect(applyOptinDesign(first, getOptinDesign('glass-split')).caption).toBe('Glass Split Demo');
+  });
+
+  it('required follows the form kind', () => {
+    expect(starterFields(false).every((e) => e.required === false)).toBe(true);
+    expect(applyOptinDesign(defaultOptin('lead-generator'), getOptinDesign('aurora-glass')).elements.every((e) => !e.required)).toBe(true);
+  });
+
+  it('Qualifying Quiz adds a real Dropdown question shown as a list of choices; the answer is sent under the field name', () => {
+    const base = defaultOptin('list-builder');
+    const cfg = { ...base, ...applyOptinDesign(base, getOptinDesign('qualifying-quiz')) };
+    const form = buildOptinForm(cfg);
+    const radios = form.querySelectorAll('.optin-side .optin-choice input[type="radio"]');
+    expect(radios).toHaveLength(4);
+    radios[1].checked = true;
+    expect(Object.fromEntries(new FormData(form).entries())[cfg.elements[0].token]).toBe('Increase customer engagement');
+    expect(form.querySelector('.optin-paneltitle').textContent).toBe('Your Details');
+    // switching the style back gives the normal dropdown
+    expect(buildOptinForm({ ...cfg, choiceStyle: 'dropdown' }).querySelector('select')).not.toBeNull();
+  });
+
+  it('Conversational Setup shows a question bubble before every box; the questions are editable', () => {
+    const base = defaultOptin('list-builder');
+    const cfg = { ...base, ...applyOptinDesign(base, getOptinDesign('conversational-setup')) };
+    const bubbles = [...buildOptinForm(cfg).querySelectorAll('.optin-bubble')].map((b) => b.textContent);
+    expect(bubbles).toEqual(["What's your email?", "Great! What's your first name?", "And what's your last name?"]);
+    const edited = [...buildOptinForm({ ...cfg, stepQuestions: 'A\nB\nC' }).querySelectorAll('.optin-bubble')].map((b) => b.textContent);
+    expect(edited).toEqual(['A', 'B', 'C']);
+  });
+
+  it('labelled stepper follows the real step, and button icons are options', () => {
+    const base = defaultOptin('list-builder');
+    const cfg = { ...base, ...applyOptinDesign(base, getOptinDesign('progress-milestones')) };
+    const form = buildOptinForm(cfg);
+    expect([...form.querySelectorAll('.optin-stepper [data-n]')].map((n) => n.textContent)).toEqual(['1Details', '2Confirm', '3Watch']);
+    expect(form.classList.contains('has-stepper')).toBe(true);
+    expect(buildOptinForm({ ...cfg, btnIcon: 'play' }).querySelector('button[type="submit"]').dataset.icon).toBe('play');
+    expect(buildOptinForm({ ...cfg, btnIcon: 'none' }).querySelector('button[type="submit"]').dataset.icon).toBeUndefined();
+  });
+
+  it('"row" puts all boxes and Play on one line and "cols" puts the boxes side by side', () => {
+    const base = defaultOptin('list-builder');
+    const row = buildOptinForm({ ...base, elements: starterFields(true), fieldLayout: 'row' });
+    expect(row.querySelector('.input-wrapper-container').dataset.layout).toBe('inline');
+    const cols = buildOptinForm({ ...base, elements: starterFields(true), fieldLayout: 'cols' });
+    expect(cols.querySelector('.input-wrapper-container').dataset.layout).toBe('cols');
+    expect(cols.querySelector('.input-wrapper-container').style.getPropertyValue('--cols')).toBe('3');
   });
 });

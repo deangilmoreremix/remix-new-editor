@@ -568,7 +568,8 @@ export function renderAddonEditor(container, {
         const field = drawnFields.find((f) => f.key === btn.dataset.pickKey);
         const design = (field?.designs || []).find((x) => x.id === btn.dataset.designPick);
         if (design?.patch) {
-          Object.entries(design.patch).forEach(([k, v]) => setPath(current, k, v));
+          const patch = field?.applyDesign ? field.applyDesign(current, design) : design.patch;
+          Object.entries(patch).forEach(([k, v]) => setPath(current, k, v));
           emit(true, btn.dataset.pickKey);
         } else setAndEmit(btn.dataset.pickKey, btn.dataset.designPick);
         return;

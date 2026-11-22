@@ -168,6 +168,20 @@ function inputIcon(type, color) {
   return `url("data:image/svg+xml;utf8,${svg.replace(/"/g, "'").replace(/</g, '%3C').replace(/>/g, '%3E')}")`;
 }
 
+const BADGE_SVG = {
+  crown: '<path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" fill="currentColor"/>',
+  ticket: '<path d="M3 8a2 2 0 0 0 0 8v2h18v-2a2 2 0 0 1 0-8V6H3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 9l1.1 2.2 2.4.3-1.8 1.7.5 2.4-2.2-1.2-2.2 1.2.5-2.4-1.8-1.7 2.4-.3z" fill="currentColor"/>',
+  star: '<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z" fill="currentColor"/>',
+  play: '<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 8l6 4-6 4z" fill="currentColor"/>',
+  lock: '<rect x="5" y="11" width="14" height="9" rx="2" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2"/>',
+  sparkle: '<path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" fill="currentColor"/>',
+};
+const svgEl = (inner) => {
+  const wrap = document.createElement('span');
+  wrap.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${inner}</svg>`; // fixed markup from the tables above, never user text
+  return wrap.firstChild;
+};
+
 const PHONE_PATTERN = '[0-9+\\(\\)\\-. ]{7,30}'; // valid under both the u and v regex flags browsers use for pattern=
 /** The choices of a dropdown field: "Small, Medium, Large" -> [...], at most 20, trimmed, no blanks or duplicates. */
 export const selectChoices = (raw) => [...new Set(String(raw ?? '').split(',').map((o) => o.trim()).filter(Boolean))].slice(0, 20);
@@ -211,6 +225,28 @@ function buildInput(declaration, prefill, config = {}) {
       input.setAttribute('inputmode', 'url');
       break;
     case 'select': {
+      if (config.choiceStyle === 'list') {
+        // Quiz look: the same Dropdown field, shown as a list of choices (one answer, sent under the same name).
+        const token = declaration.token || String(declaration.label || '').toUpperCase();
+        const group = document.createElement('fieldset');
+        group.className = 'optin-choice';
+        const legend = document.createElement('legend');
+        legend.textContent = declaration.label || token;
+        legend.dataset.editKey = 'elements.__i.label';
+        group.appendChild(legend);
+        selectChoices(declaration.options).forEach((choice, n) => {
+          const row = document.createElement('label');
+          const radio = document.createElement('input');
+          radio.type = 'radio'; radio.name = token; radio.value = choice;
+          if (declaration.required && n === 0) radio.required = true;
+          if (prefill?.[token] === choice) radio.checked = true;
+          const text = document.createElement('span');
+          text.textContent = choice;
+          row.append(radio, text);
+          group.appendChild(row);
+        });
+        return group;
+      }
       input = document.createElement('select');
       const hint = declaration.placeholder != null && declaration.placeholder !== '' ? String(declaration.placeholder) : String(declaration.label || 'Choose');
       const first = document.createElement('option');
@@ -276,10 +312,14 @@ export const FIELD_LAYOUTS = [
   ['stacked', 'Stacked (one column)'],
   ['grid', 'Two columns'],
   ['inline', 'Inline (boxes and Play on one row)'],
+  ['row', 'One row (up to 4 boxes and Play side by side)'],
+  ['cols', 'Columns (up to 4 boxes side by side, Play below)'],
 ];
 
 export function resolveFieldLayout(count, wanted = 'auto') {
   if (wanted === 'stacked' || wanted === 'grid') return count < 2 ? 'stacked' : wanted;
+  if (wanted === 'row') return 'inline';
+  if (wanted === 'cols') return count < 2 ? 'stacked' : count > 4 ? 'stacked' : 'cols';
   if (wanted === 'inline') return count <= 2 ? 'inline' : 'stacked';
   if (count <= 1) return 'inline';
   if (count === 4) return 'grid';
@@ -313,6 +353,8 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   form.className = `popcorn retarget-form addon-optin ${config.transition && config.transition !== 'popcorn-none' ? config.transition : ''}`.trim();
   form.setAttribute('action', '#');
   form.noValidate = false;
+  if (config.designAccent) form.style.setProperty('--od-accent', cssColor(config.designAccent, ''));
+  if (config.decorEnabled === false) form.dataset.decor = 'off';
   const designId = safeDesignId(config.designPreset);
   if (designId) form.dataset.design = designId;
   const designLayout = ['split', 'side-card', 'sheet', 'chat'].includes(config.designLayout) ? config.designLayout : 'center';
@@ -346,6 +388,23 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
     scrollInner.appendChild(logo);
   }
 
+  if (config.brandName) {
+    const brand = document.createElement('div');
+    brand.className = 'optin-brand';
+    if (config.brandIcon !== false) brand.appendChild(svgEl('<path d="M6 4l13 8-13 8z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>'));
+    const name = document.createElement('span');
+    name.textContent = config.brandName;
+    name.dataset.editKey = 'brandName';
+    brand.appendChild(name);
+    scrollInner.appendChild(brand);
+  }
+  if (BADGE_SVG[config.badgeIcon]) {
+    const badge = document.createElement('div');
+    badge.className = 'optin-badge';
+    badge.dataset.badge = config.badgeIcon;
+    badge.appendChild(svgEl(BADGE_SVG[config.badgeIcon]));
+    scrollInner.appendChild(badge);
+  }
   if (config.eyebrow) {
     const eyebrow = document.createElement('div');
     eyebrow.className = 'optin-eyebrow';
@@ -379,6 +438,14 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   if (config.sideQuote || config.sideStats) {
     const proof = document.createElement('div');
     proof.className = 'optin-proof';
+    if (config.sideRating) {
+      const rating = document.createElement('div');
+      rating.className = 'optin-rating';
+      const stars = document.createElement('b'); stars.textContent = '\u2605\u2605\u2605\u2605\u2605';
+      const num = document.createElement('span'); num.textContent = config.sideRating; num.dataset.editKey = 'sideRating';
+      rating.append(stars, num);
+      proof.appendChild(rating);
+    }
     if (config.sideQuote) {
       const q = document.createElement('blockquote');
       q.textContent = config.sideQuote;
@@ -411,7 +478,16 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   const stepCount = stepSize ? Math.ceil(elements.length / stepSize) : 1;
   elements.forEach((d, i) => {
     const input = buildInput(d, prefill, config);
-    input.dataset.editKey = d.type === 'checkbox' ? `elements.${i}.label` : `elements.${i}.placeholder`;
+    if (designLayout === 'chat') {
+      const questions = String(config.stepQuestions || '').split('\n').map((x) => x.trim());
+      const bubble = document.createElement('div');
+      bubble.className = 'optin-bubble';
+      bubble.textContent = questions[i] || `What's your ${String(d.label || 'answer').trim().toLowerCase()}?`;
+      if (stepCount > 1) bubble.dataset.step = String(Math.floor(i / stepSize));
+      inputWrapper.appendChild(bubble);
+    }
+    if (input.classList.contains('optin-choice')) input.querySelector('legend').dataset.editKey = `elements.${i}.label`;
+    else input.dataset.editKey = d.type === 'checkbox' ? `elements.${i}.label` : `elements.${i}.placeholder`;
     if (stepCount > 1) input.dataset.step = String(Math.floor(i / stepSize));
     inputWrapper.appendChild(input);
   });
@@ -436,6 +512,8 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   form.style.setProperty('--optin-btn-bg', config.buttonBackground || '#eb5054');
   form.style.setProperty('--optin-btn-hover', config.buttonHoverColor || config.buttonBackground || '#eb5054');
   form.style.setProperty('--optin-placeholder', config.placeholderColor || '#6b7280');
+  form.style.setProperty('--optin-in-radius', `${Number(config.inputBorderRadius ?? 5)}px`);
+  if (config.btnIcon === 'play' || config.btnIcon === 'arrow') submitButton.dataset.icon = config.btnIcon;
   buttonsInner.appendChild(submitButton);
   if (stepCount > 1) {
     const back = document.createElement('button');
@@ -453,6 +531,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   const layout = resolveFieldLayout(visibleBoxes, config.fieldLayout);
   wrapperContainer.dataset.layout = layout;
   wrapperContainer.dataset.count = String(visibleBoxes);
+  wrapperContainer.style.setProperty('--cols', String(Math.max(1, Math.min(4, visibleBoxes))));
   wrapperContainer.dataset.align = config.fieldAlign === 'left' ? 'left' : 'center';
   // fieldWidth = % of the form the boxes (and Play) take; fieldGap in tenths of an em
   const w = Math.max(30, Math.min(100, Number(config.fieldWidth) || 70));
@@ -463,6 +542,38 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   if (config.buttonWidth === 'auto') wrapperContainer.dataset.button = 'auto';
   wrapperContainer.appendChild(inputWrapper);
   wrapperContainer.appendChild(buttonsInner);
+  // Heading over the boxes ("Your Details" + a hint), the labelled stepper and the chat-style question bubbles.
+  if (config.panelTitle) {
+    const t = document.createElement('div');
+    t.className = 'optin-paneltitle';
+    t.textContent = config.panelTitle;
+    t.dataset.editKey = 'panelTitle';
+    scrollInner.appendChild(t);
+  }
+  if (config.panelHint) {
+    const t = document.createElement('div');
+    t.className = 'optin-panelhint';
+    t.textContent = config.panelHint;
+    t.dataset.editKey = 'panelHint';
+    scrollInner.appendChild(t);
+  }
+  const stepLabels = String(config.stepLabels || '').split(',').map((x) => x.trim()).filter(Boolean);
+  if (stepCount > 1 && stepLabels.length) {
+    form.classList.add('has-stepper');
+    const stepper = document.createElement('div');
+    stepper.className = 'optin-stepper';
+    stepper.dataset.editKey = 'stepLabels';
+    for (let n = 0; n < stepCount; n += 1) {
+      const item = document.createElement('span');
+      item.dataset.n = String(n);
+      if (n === 0) item.className = 'on';
+      const dot = document.createElement('i');
+      dot.textContent = String(n + 1);
+      item.append(dot, document.createTextNode(stepLabels[n] || `Step ${n + 1}`));
+      stepper.appendChild(item);
+    }
+    scrollInner.appendChild(stepper);
+  }
   scrollInner.appendChild(wrapperContainer);
 
   // Consent checkbox (owner setting): must be ticked; the wording is stored with the lead as the CONSENT answer.
@@ -510,8 +621,11 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
     const main = document.createElement('div');
     main.className = 'optin-main';
     Array.from(scrollInner.children).forEach((el) => {
-      (el.matches(proofOnly ? '.optin-proof' : '.brand-logo, .optin-eyebrow, .retarget-caption, .optin-subtitle, .optin-proof') ? side : main).appendChild(el);
+      (el.matches(proofOnly ? '.optin-proof' : '.brand-logo, .optin-brand, .optin-badge, .optin-eyebrow, .retarget-caption, .optin-subtitle, .optin-proof') ? side : main).appendChild(el);
     });
+    // Quiz look: the question + its choices sit under the title, on the left.
+    const choice = main.querySelector('.optin-choice');
+    if (choice) side.appendChild(choice);
     scrollInner.append(side, main);
   }
   scrollable.appendChild(scrollInner);
@@ -869,6 +983,7 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
   const paintStep = () => {
     form.querySelectorAll('[data-step]').forEach((n) => { n.hidden = Number(n.dataset.step) !== step; });
     form.querySelectorAll('.optin-steps span').forEach((d, n) => d.classList.toggle('on', n === step));
+    form.querySelectorAll('.optin-stepper [data-n]').forEach((d) => { const n = Number(d.dataset.n); d.classList.toggle('on', n === step); d.classList.toggle('done', n < step); });
     const back = form.querySelector('.optin-back');
     if (back) back.hidden = step === 0;
     if (submitBtn) submitBtn.textContent = step < stepsTotal - 1 ? (config.nextText || 'Next') : finalLabel;

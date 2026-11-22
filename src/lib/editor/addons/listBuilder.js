@@ -31,7 +31,7 @@ import {
 } from './pointerDesigns.js';
 import { leadFieldTokens, ESP_PROVIDERS, espName, espListLabel } from './leadClient.js';
 import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS } from './addonOverlay.js';
-import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, designThumb } from './optinDesigns.js';
+import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, designThumb, applyOptinDesign } from './optinDesigns.js';
 
 export const LIST_BUILDER_KINDS = {
   'list-builder': 'List Builder',
@@ -243,6 +243,18 @@ export function defaultOptin(kind = 'list-builder') {
     sideQuote: '',
     sideAuthor: '',
     sideStats: '',
+    sideRating: '',
+    brandName: '',
+    brandIcon: true,
+    badgeIcon: 'none',
+    btnIcon: 'none',
+    stepLabels: '',
+    stepQuestions: '',
+    choiceStyle: 'dropdown',
+    panelTitle: '',
+    panelHint: '',
+    designAccent: '',
+    decorEnabled: true,
   };
 }
 
@@ -320,10 +332,15 @@ const TEXT_FIELDS = (personalizer) => [
   { key: 'privacyDisclaimer', label: 'Privacy text', type: 'textarea', showIf: () => !personalizer },
   { key: 'privacyPolicyCaption', label: 'Privacy policy link text', type: 'text' },
   { key: 'privacyPolicyLink', label: 'Privacy policy link (URL)', type: 'url' },
+  { key: 'panelTitle', label: 'Heading over the boxes (e.g. "Your Details")', type: 'text' },
+  { key: 'panelHint', label: 'Hint under that heading', type: 'text' },
+  { key: 'stepLabels', label: 'Step names, comma separated (e.g. Details, Confirm, Watch) — needs "Split the boxes into steps"', type: 'text' },
+  { key: 'stepQuestions', label: 'Chat layout: one question per line, one per box (empty = "What\'s your …?")', type: 'textarea', rows: 3, showIf: (o) => o.designLayout === 'chat' },
   { key: 'eyebrow', label: 'Small label above the caption (design extra, optional)', type: 'text' },
   { key: 'subtitle', label: 'Sub-title under the caption (design extra, optional)', type: 'textarea', rows: 2 },
   { key: 'sideQuote', label: 'Testimonial quote (Social proof design)', type: 'textarea', rows: 2, showIf: (o) => o.designLayout === 'split' },
   { key: 'sideAuthor', label: 'Testimonial author', type: 'text', showIf: (o) => o.designLayout === 'split' },
+  { key: 'sideRating', label: 'Star rating line (e.g. 4.9/5 (2,847 reviews))', type: 'text', showIf: (o) => o.designLayout === 'split' },
   { key: 'sideStats', label: 'Stats, separated by ; ("50,000+ Creators; 5M+ Videos")', type: 'text', showIf: (o) => o.designLayout === 'split' },
   { key: 'popupHeaderText', label: 'Pointer bubble: title', type: 'text', showIf: (o) => o.pointerEnabled },
   { key: 'popupFillOutText', label: 'Pointer bubble: "Fill out your" line', type: 'text', showIf: (o) => o.pointerEnabled },
@@ -335,7 +352,14 @@ const designThumbFor = (design) => designThumb(design);
 
 // 30 one-click designs, then every look option they set (all stay editable).
 const DESIGN_FIELDS = [
-  { key: 'designPreset', label: 'Design (one click sets colours, card, layout and steps — then tweak anything)', type: 'designPicker', designs: OPTIN_DESIGNS, categories: OPTIN_DESIGN_CATEGORIES, thumb: designThumbFor },
+  { key: 'designPreset', label: 'Design (one click sets colours, card, layout and steps — then tweak anything)', type: 'designPicker', designs: OPTIN_DESIGNS, categories: OPTIN_DESIGN_CATEGORIES, thumb: designThumbFor, applyDesign: applyOptinDesign },
+  { key: 'brandName', label: 'Brand name next to the logo mark (empty = none)', type: 'text' },
+  { key: 'brandIcon', label: 'Show the logo mark beside the brand name', type: 'toggle', showIf: (o) => !!o.brandName },
+  { key: 'badgeIcon', label: 'Badge icon above the title', type: 'select', options: BADGE_ICONS },
+  { key: 'btnIcon', label: 'Icon on the Play button', type: 'select', options: BUTTON_ICONS },
+  { key: 'choiceStyle', label: 'Dropdown fields look like', type: 'select', options: [['dropdown', 'A dropdown'], ['list', 'A list of choices (quiz)']] },
+  { key: 'designAccent', label: 'Decoration color (lines, frames, glow accents; empty = the design\'s own)', type: 'color' },
+  { key: 'decorEnabled', label: 'Show the design\'s decoration (glow, grid, frames, stripes)', type: 'toggle' },
   { key: 'designLayout', label: 'Layout', type: 'select', options: DESIGN_LAYOUTS },
   { key: 'backgroundColor2', label: 'Background gradient: second color (empty = solid)', type: 'color' },
   { key: 'bgAngle', label: 'Background gradient angle', type: 'range', min: 0, max: 360, showIf: (o) => !!o.backgroundColor2 },
