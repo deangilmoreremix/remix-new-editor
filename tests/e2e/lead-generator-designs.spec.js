@@ -108,6 +108,7 @@ test('the picker shows each design as a real preview of itself', async () => {
 });
 
 test('every one of the 30 designs can be picked and is drawn on the video', async () => {
+  await panelTab(page, 'Design').click();
   const ids = await page.locator('.addon-panel [data-design-pick]').evaluateAll((els) => els.map((e) => e.dataset.designPick));
   expect(ids).toHaveLength(30);
   if (SHOTS) fs.mkdirSync(SHOTS, { recursive: true });
