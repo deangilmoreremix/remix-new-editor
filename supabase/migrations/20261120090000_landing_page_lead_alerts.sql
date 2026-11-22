@@ -65,12 +65,10 @@ end;
 $$;
 revoke all on function public._on_landing_page_lead() from public, anon, authenticated;
 
-drop trigger if exists landing_page_leads_alert on public.landing_page_leads;
-create trigger landing_page_leads_alert
+create or replace trigger landing_page_leads_alert
   after insert on public.landing_page_leads
   for each row execute function public._on_landing_page_lead();
 
-drop trigger if exists video_leads_landing_alert on public.video_leads;
-create trigger video_leads_landing_alert
+create or replace trigger video_leads_landing_alert
   after insert on public.video_leads
   for each row execute function public._on_landing_page_lead();
