@@ -22,6 +22,7 @@ import type {
   WebAiSkill
 } from '@vidbee/transcription/web-contract'
 import { apiDataDir, trimEnv } from './api-paths'
+import { byokEnabled } from './byok'
 import { getDatabaseConnection } from './database'
 import {
   aiSettingsFile,
@@ -68,7 +69,8 @@ export const getAiSettings = (): WebAiSettings => {
     apiKeyHint: current.apiKey ? current.apiKey.slice(-4) : null,
     keyFromEnv: current.keyFromEnv,
     model: current.model,
-    locked: settingsLocked()
+    locked: settingsLocked(),
+    byok: byokEnabled()
   }
 }
 
@@ -80,6 +82,9 @@ export const setAiSettings = (input: {
 }): WebAiSettings => {
   if (settingsLocked()) {
     throw new Error('AI settings are managed by the server and cannot be changed here.')
+  }
+  if (byokEnabled()) {
+    throw new Error('Your OpenAI key is kept in your browser, not on the server.')
   }
   const stored = readStored()
   const before = getOpenAiConfig()
@@ -650,6 +655,7 @@ const executeRun = (spec: RunSpec): WebAiRun => {
   void (async () => {
     try {
       const result = await createResponse({
+        config: { apiKey: settings.apiKey as string, baseUrl: settings.baseUrl, model: settings.model },
         body: {
           instructions: spec.instructions,
           input: spec.transcript,
@@ -767,8 +773,10 @@ export const testConnection = async (input: {
   const saved = getOpenAiConfig()
   // When the server owner locked the settings, only the server's own configuration is tested: nothing typed by the caller is used.
   const locked = settingsLocked()
+  // Bring your own key: the visitor's typed key and model are theirs to try, but the address stays the server's.
+  const byok = byokEnabled()
   const typedKey = locked ? '' : input.apiKey?.trim() || ''
-  const baseUrl = ((locked ? '' : input.baseUrl?.trim()) || saved.baseUrl).replace(/\/+$/, '')
+  const baseUrl = ((locked || byok ? '' : input.baseUrl?.trim()) || saved.baseUrl).replace(/\/+$/, '')
   const model = (locked ? '' : input.model?.trim()) || saved.model
   // The server's key (saved or from the environment) is only ever sent to the address it is configured for.
   if (!typedKey && normalizeBase(baseUrl) !== normalizeBase(saved.baseUrl)) {

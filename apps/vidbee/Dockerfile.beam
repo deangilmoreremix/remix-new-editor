@@ -66,7 +66,8 @@ ENV VIDBEE_DATA_DIR=/data/vidbee
 ENV VIDBEE_MIGRATIONS_DIR=/app/api/resources/drizzle
 ENV VIDBEE_PERSIST_QUEUE=1
 ENV VIDBEE_SKILLS_DIR=/app/api/skills
-ENV VIDBEE_AI_LOCK_SETTINGS=1
+# Bring your own key: every visitor uses their own OpenAI key (kept in their browser, sent per request, never stored here).
+ENV VIDBEE_AI_MODE=byok
 ENV VIDBEE_API_URL_INTERNAL=http://127.0.0.1:3100
 ENV VIDBEE_WEB_HOST=0.0.0.0
 ENV VIDBEE_WEB_PORT=3000

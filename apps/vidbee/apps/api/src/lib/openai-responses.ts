@@ -5,6 +5,7 @@
  * format: it streams server-sent events, forwards text deltas, and returns the
  * response's output items so callers can replay them (tool calls, reasoning) next turn.
  */
+import { byokEnabled, clientAi } from './byok'
 import fs from 'node:fs'
 import path from 'node:path'
 import { apiDataDir, trimEnv } from './api-paths'
@@ -29,6 +30,16 @@ export const readStoredAiSettings = (): StoredAiSettings => {
 }
 
 export const getOpenAiConfig = () => {
+  if (byokEnabled()) {
+    // Bring your own key: only the visitor's own key counts, and the address is the server's, never the visitor's.
+    const mine = clientAi()
+    return {
+      apiKey: mine.apiKey,
+      keyFromEnv: false,
+      baseUrl: (trimEnv('OPENAI_BASE_URL') || DEFAULT_BASE_URL).replace(/\/+$/, ''),
+      model: mine.model || trimEnv('VIDBEE_OPENAI_MODEL') || DEFAULT_MODEL
+    }
+  }
   const stored = readStoredAiSettings()
   const envKey = trimEnv('OPENAI_API_KEY')
   const storedKey = stored.apiKey?.trim() || undefined

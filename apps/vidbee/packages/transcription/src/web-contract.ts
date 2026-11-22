@@ -76,6 +76,8 @@ export interface WebAiSettings {
   model: string
   /** True when the server owner has disabled changing these settings from the browser. */
   locked: boolean
+  /** True when each visitor brings their own key: it lives in their browser and is sent with each request. */
+  byok?: boolean
 }
 
 export interface WebAiSkill {

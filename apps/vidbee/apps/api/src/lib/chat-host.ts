@@ -246,7 +246,8 @@ export const sendChat = (downloadId: string, message: string, webSearch = false)
   if (live.get(downloadId)?.status === 'running') {
     throw new Error('The assistant is still answering.')
   }
-  requireOpenAiConfig()
+  // Captured now: the visitor's own key (bring-your-own-key mode) belongs to this request, not to the background job.
+  const config = requireOpenAiConfig()
   const controller = new AbortController()
   const state = { status: 'running' as WebChatStatus, partial: '', error: null as string | null, controller }
   live.set(downloadId, state)
@@ -269,6 +270,7 @@ export const sendChat = (downloadId: string, message: string, webSearch = false)
       for (let round = 0; round < MAX_ROUNDS; round++) {
         state.partial = ''
         const result = await createResponse({
+          config,
           body: {
             instructions: `${INSTRUCTIONS}\nThe user is viewing download id: ${downloadId}.${
               webSearch

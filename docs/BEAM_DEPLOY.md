@@ -25,19 +25,19 @@ beam whoami
 Run from the `apps/vidbee` folder. First store your OpenAI key as a Beam secret (replace `sk-...` with your key; you can also add it in the dashboard under Settings, Secrets):
 
 ```bash
-beam secret create OPENAI_API_KEY sk-...
+# Not needed: this is a bring-your-own-key app. Visitors enter their own OpenAI key in the app.
 ```
 
 ```bash
 beam deploy --dockerfile Dockerfile.beam --name vidbee --port 3000 \
-  --cpu 2 --memory 4Gi \
-  --disk vidbee-data:/data:50Gi \
-  --min-replicas 1 --max-replicas 1 \
-  --secrets OPENAI_API_KEY
+  --cpu 1 --memory 2Gi \
+  --disk vidbee-data:/data:20Gi \
+  --scale-to-zero --min-replicas 0 --max-replicas 1 \
+  --keep-warm-seconds 300
 ```
 
 - `--disk … :/data` keeps downloads (`/data/downloads`) and the database and settings (`/data/vidbee`) across restarts. Beam allows one container per writable disk, which is what VidBee needs.
-- `--min-replicas 1 --max-replicas 1`: exactly one always-on instance. Do not let it scale to zero or to two copies (SQLite, the task queue and live AI runs are in-process).
+- **Cost: it only runs while people use it.** `--scale-to-zero --min-replicas 0` lets it stop 5 minutes (`--keep-warm-seconds 300`) after the last request, so you pay only for active time. Never use `--always-on` or `--min-replicas 1` unless you want it billed 24/7. `--max-replicas 1`: never two copies at once (SQLite, the task queue and live AI runs are in-process). The first visit after idle takes a few seconds longer while it starts. Check `beam container list` is empty when nobody is using it.
 - **The URL:** `beam deploy` prints the deployed URL when it finishes (Beam's docs say "open the URL printed by the command"). It is not known in advance. `beam deployment list` shows your deployments.
 - `beam logs vidbee` shows startup. A healthy start ends with the web server listening on 3000.
 - Add `authorized=True` (Python `Service.from_dockerfile(..., authorized=True)`) if you do not want the URL public; then the app backend must send Beam's token.

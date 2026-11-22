@@ -1,6 +1,7 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import type { ContractRouterClient } from "@orpc/contract";
+import { openAiHeaders } from "./byok-key";
 import type { downloaderContract } from "@vidbee/downloader-core";
 import type { subscriptionContract } from "@vidbee/subscriptions-core/contract";
 import type {
@@ -53,6 +54,7 @@ export const aiClient: ContractRouterClient<typeof aiContract> =
 	createORPCClient(
 		new RPCLink({
 			url: `${rpcUrl}/ai`,
+			headers: () => openAiHeaders(),
 		}),
 	);
 
@@ -60,6 +62,7 @@ export const chatClient: ContractRouterClient<typeof chatContract> =
 	createORPCClient(
 		new RPCLink({
 			url: `${rpcUrl}/chat`,
+			headers: () => openAiHeaders(),
 		}),
 	);
 
@@ -67,5 +70,6 @@ export const translateClient: ContractRouterClient<typeof translateContract> =
 	createORPCClient(
 		new RPCLink({
 			url: `${rpcUrl}/translate`,
+			headers: () => openAiHeaders(),
 		}),
 	);
