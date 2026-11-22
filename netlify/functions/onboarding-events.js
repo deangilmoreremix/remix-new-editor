@@ -25,7 +25,7 @@ export const MAX_BODY = 8192;
 export const MAX_EVENTS = 25;
 const ID = /^[A-Za-z0-9_-]{16,64}$/;
 const HOST = /^[A-Za-z0-9.-]{1,120}$/;
-const CHOICE = /^[a-z0-9][a-z0-9_.:-]{0,39}$/; // a choice id such as "ai-video", "2-5", "outreach"
+const CHOICE = /^[a-z0-9][a-z0-9_.:+-]{0,39}$/; // a choice id such as "ai-video", "2-5", "100+", "outreach"
 const FIELDS = new Set(['goal', 'team', 'volume', 'company', 'website', 'jobTitle', 'heard', 'videoTypes', 'tools', 'primary']);
 // Answers that are free text are only counted ("was it filled in"), never sent.
 const FREE_TEXT_FIELDS = new Set(['company', 'website', 'jobTitle']);

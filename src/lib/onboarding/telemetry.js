@@ -11,7 +11,7 @@ const ANON_KEY = 'smartvideo-anon-id';
 const SESSION_KEY = 'smartvideo-onb-session';
 const MAX_BATCH = 25;
 const MAX_QUEUE = 200;
-const ID_VALUE = /^[a-z0-9][a-z0-9_.:-]{0,39}$/;
+const ID_VALUE = /^[a-z0-9][a-z0-9_.:+-]{0,39}$/; // choice ids such as "ai-video", "2-5", "100+"
 
 const randomId = (len = 24) => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
