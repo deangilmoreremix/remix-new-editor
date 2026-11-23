@@ -23,51 +23,45 @@ import { getGtmStudioProfile, GTM_STUDIO_SCHEMA, normalizeGtmResult } from './gt
 
 const RESPONSES_URL = 'https://api.openai.com/v1/responses';
 
-// Default model for the cinematic prompt (cheapest, fast, good for structured drafts).
-const DEFAULT_MODEL = 'gpt-4.1-mini';
+// Default model for the cinematic prompt (GPT-6 default: fast, strong structured output).
+const DEFAULT_MODEL = 'gpt-6.1-sol';
 
 /**
  * Curated, text-capable model catalog for the GTM Boost model chooser.
- * Descriptions are the EXACT wording published by OpenAI on the model catalog
- * (https://developers.openai.com/api/docs/models/all) so the dropdown matches
- * OpenAI's own positioning. Only text-capable, Responses-API models are listed.
+ * GPT-6 first; a couple of older models stay selectable. Only text-capable,
+ * Responses-API models are listed. A saved selection that is no longer listed
+ * falls back to DEFAULT_MODEL via resolveGtmModel().
  */
 export const GTM_MODEL_OPTIONS = [
   {
-    id: 'gpt-4.1-mini',
-    label: 'GPT-4.1 mini',
-    description: 'Smaller, faster version of GPT-4.1',
+    id: 'gpt-6.1-sol',
+    label: 'GPT-6.1 Sol',
+    description: 'Default GPT-6 model for professional work',
+    tier: 'Recommended',
+  },
+  {
+    id: 'gpt-6-luna',
+    label: 'GPT-6 Luna',
+    description: 'Fastest, lowest-cost GPT-6 model',
     tier: 'Fast & affordable',
   },
   {
-    id: 'gpt-4.1',
-    label: 'GPT-4.1',
-    description: 'Smartest non-reasoning model',
-    tier: 'Higher quality',
-  },
-  {
-    id: 'gpt-5.4-mini',
-    label: 'GPT-5.4 mini',
-    description: 'Our strongest mini model yet for coding, computer use, and subagents',
-    tier: 'Strong mini',
-  },
-  {
-    id: 'gpt-5.4',
-    label: 'GPT-5.4',
-    description: 'A more affordable model for coding and professional work.',
-    tier: 'Balanced',
-  },
-  {
-    id: 'gpt-5.6-terra',
-    label: 'GPT-5.6 Terra',
-    description: 'GPT-5.6 model that balances intelligence and cost',
-    tier: 'Frontier (value)',
+    id: 'gpt-6-astra',
+    label: 'GPT-6 Astra',
+    description: 'Most capable GPT-6 model for complex work',
+    tier: 'Flagship',
   },
   {
     id: 'gpt-5.6-sol',
     label: 'GPT-5.6 Sol',
     description: 'Frontier model for complex professional work',
-    tier: 'Flagship',
+    tier: 'Previous generation',
+  },
+  {
+    id: 'gpt-4.1-mini',
+    label: 'GPT-4.1 mini',
+    description: 'Smaller, faster version of GPT-4.1',
+    tier: 'Legacy (non-reasoning)',
   },
 ];
 
@@ -236,16 +230,16 @@ export function buildGTMInput(params) {
   return `GTM CONTEXT:\n${ctx.join('\n')}\n\nBASE PROMPT:\n${basePrompt}${skillContext}`;
 }
 
-/** GPT-5-family / o-series reasoning models reject `temperature`. */
+/** GPT-5 / GPT-6 family and o-series reasoning models reject `temperature`. */
 function isReasoningModel(model) {
-  return /^(gpt-5|o\d)/i.test(String(model || ''));
+  return /^(gpt-5|gpt-6|o\d)/i.test(String(model || ''));
 }
 
 /**
  * Build a Responses API request body. Notes on what was wrong before:
  *  - `include: ['input_tokens','output_tokens']` is not a valid include value
  *    (the API 400s); usage is always returned on the response.
- *  - `temperature` is rejected by reasoning models (every gpt-5.x option).
+ *  - `temperature` is rejected by reasoning models (every gpt-5.x / gpt-6.x option).
  * Both made every AI call fail and silently fall back to the offline template.
  */
 function buildRequestBody({ model, appTheme, outputType, input, previousResponseId, stream = false }) {

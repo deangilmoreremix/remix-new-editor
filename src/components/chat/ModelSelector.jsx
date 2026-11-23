@@ -1,8 +1,11 @@
 import React from 'react';
 
+// MuAPI text endpoints (dashed GPT-6 ids, see src/lib/muapi/liveModels.json).
 const MODELS = [
+  { id: 'gpt-6-1-sol', name: 'GPT-6 1 Sol' },
+  { id: 'gpt-6-luna', name: 'GPT-6 Luna' },
+  { id: 'gpt-6-astra', name: 'GPT-6 Astra' },
   { id: 'gpt-5-mini', name: 'GPT-5 Mini' },
-  { id: 'gpt-5', name: 'GPT-5' },
   { id: 'claude-4-sonnet', name: 'Claude 4 Sonnet' },
 ];
 
@@ -10,7 +13,7 @@ export default function ModelSelector({ selectedModelId, onSelect }) {
   return (
     <div className="chat-model-selector">
       <select
-        value={selectedModelId || 'gpt-5-mini'}
+        value={selectedModelId || 'gpt-6-1-sol'}
         onChange={(e) => onSelect(e.target.value)}
         style={{
           background: '#161a21',

@@ -26,6 +26,7 @@ import { addClipToTrack } from '../../../lib/editor/timeline-operations.js';
 import { clipEffectiveDuration } from '/src/types/timeline.js';
 import { generateId, timestamp } from '../../../lib/workspace/workspace-context.jsx';
 import { WorkflowNodeData } from '/src/types/workflow.js';
+import { isOpenAIReasoningModel } from '../../../lib/config/openaiConfig.js';
 import { Asset } from '/src/types/project.js';
 
 const STORYBOARD_SYSTEM_PROMPT = `You are a cinematic storyboard director. Given a reference image and a scene description, break the scene into a sequence of cinematic shots that tell the story visually.
@@ -67,7 +68,10 @@ const LLM_OPTIONS = [
   { value: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
   { value: 'anthropic/claude-sonnet-4.6', label: 'Claude Sonnet 4.6' },
   { value: 'anthropic/claude-opus-4.6', label: 'Claude Opus 4.6' },
-  { value: 'openai/gpt-4.1', label: 'GPT-4.1' },
+  // No GPT-6 OpenRouter id exists in the catalogs; GPT-6 routes to the MuAPI
+  // text endpoint `gpt-6-1-sol` (muapi.generateText resolves the endpoint
+  // from src/lib/models.js textModels).
+  { value: 'gpt-6-1-sol', label: 'GPT-6.1 Sol' },
   { value: 'meta-llama/llama-4-maverick', label: 'Llama 4 Maverick' },
 ];
 
@@ -87,7 +91,10 @@ function StoryboarderNodeInner({ id, data, selected }) {
   const mode = (data.config?.mode) ?? 'image';
   const selectedModel = (data.config?.selectedModel) ?? 'nano-banana-2';
   const selectedVideoModel = (data.config?.selectedVideoModel) ?? 'kling-3-image';
-  const selectedLlm = (data.config?.selectedLlm) ?? 'google/gemini-2.5-flash';
+  const savedLlm = (data.config?.selectedLlm) ?? 'google/gemini-2.5-flash';
+  // Saved nodes may still hold the retired 'openai/gpt-4.1' option.
+  const selectedLlm = savedLlm === 'openai/gpt-4.1' ? 'gpt-6-1-sol' : savedLlm;
+  const isGpt6Llm = isOpenAIReasoningModel(selectedLlm);
   const shotCount = (data.config?.shotCount) ?? 9;
   const rawShots = (data.config?.shots) ?? [];
   const shots = Array.from({ length: shotCount }, (_, i) =>
@@ -271,7 +278,8 @@ function StoryboarderNodeInner({ id, data, selected }) {
         endpoint: 'openrouter/router',
         prompt: planPrompt,
         system_prompt: STORYBOARD_SYSTEM_PROMPT,
-        temperature: 0.8,
+        // GPT-6 is a reasoning model: no sampling temperature.
+        ...(isGpt6Llm ? {} : { temperature: 0.8 }),
         max_tokens: 2048,
       }) ?? { data: {}, output: '', text: '' };
 
@@ -309,7 +317,7 @@ function StoryboarderNodeInner({ id, data, selected }) {
       console.error('Storyboarder planning failed:', err);
       setPlanningStatus('idle');
     }
-  }, [id, shotCount, selectedModel, selectedLlm, generateImage, updateNodeData, getEdges, getNode]);
+  }, [id, shotCount, selectedModel, selectedLlm, isGpt6Llm, generateImage, updateNodeData, getEdges, getNode]);
 
   const clearAll = useCallback(() => {
     updateNodeData(id, { config: { ...data.config, shots: [] } });

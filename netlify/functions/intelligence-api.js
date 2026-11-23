@@ -1,6 +1,39 @@
 // netlify/functions/intelligence-api.js
 import { createClient } from '@supabase/supabase-js';
 import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
+import { OPENAI_FAST_MODEL } from './_shared/openaiModels.js';
+
+// Text of a Responses API result: reasoning items can come before the message, so
+// read every message's output_text parts rather than output[0].
+function responsesText(data) {
+  if (typeof data?.output_text === 'string' && data.output_text) return data.output_text;
+  return (Array.isArray(data?.output) ? data.output : [])
+    .filter((o) => o.type === 'message').flatMap((o) => o.content || [])
+    .filter((c) => c.type === 'output_text').map((c) => c.text).join('');
+}
+
+// The enrichment schema is not strict, so the model can return any shape: keep only fields of the right type
+// (strings, arrays of strings, a known tone) before they reach the profile. Missing fields stay missing.
+const TONES = ['formal', 'casual', 'technical', 'friendly'];
+const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const pickFields = (src, fields) => {
+  const out = {};
+  if (!isObj(src)) return out;
+  for (const [key, ok] of Object.entries(fields)) if (key in src && ok(src[key])) out[key] = src[key];
+  return out;
+};
+const str = (v) => typeof v === 'string';
+const strList = (v) => Array.isArray(v) && v.every(str);
+export function sanitizeEnrichment(extracted) {
+  return {
+    company: pickFields(extracted?.company, { name: str, domain: str, industry: str, size: str, summary: str }),
+    intelligence: pickFields(extracted?.intelligence, {
+      summary: str, products: strList, services: strList, painPoints: strList, interests: strList, buyingSignals: strList,
+      tone: (v) => TONES.includes(v),
+    }),
+    brandColors: pickFields(isObj(extracted?.brand) ? extracted.brand.colors : null, { primary: str, secondary: str, accent: str }),
+  };
+}
 
 const supabaseService = createClient(
   process.env.SUPABASE_URL,
@@ -359,7 +392,7 @@ export async function handler(event, context) {
 
       // BYOK: the user's own OpenAI key (X-OpenAI-Key); no platform-key fallback.
       const apiKey = userOpenAIKey(event.headers);
-      const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+      const model = process.env.OPENAI_MODEL || OPENAI_FAST_MODEL;
       if (!apiKey) return { statusCode: 401, headers, body: JSON.stringify({ error: NEED_OPENAI_KEY }) };
 
       // Verify ownership
@@ -403,51 +436,50 @@ export async function handler(event, context) {
           text: {
             format: {
               type: 'json_schema',
-              json_schema: {
-                name: 'ContactIntelligence',
-                strict: true,
-                schema: {
-                  type: 'object',
-                  properties: {
-                    company: {
-                      type: 'object',
-                      properties: {
-                        name: { type: 'string' },
-                        domain: { type: 'string' },
-                        industry: { type: 'string' },
-                        size: { type: 'string' },
-                        summary: { type: 'string' },
-                      },
-                      required: ['name'],
+              name: 'ContactIntelligence',
+              // Not strict: the schema has optional fields, which strict mode rejects.
+              strict: false,
+              schema: {
+                type: 'object',
+                properties: {
+                  company: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      domain: { type: 'string' },
+                      industry: { type: 'string' },
+                      size: { type: 'string' },
+                      summary: { type: 'string' },
                     },
-                    intelligence: {
-                      type: 'object',
-                      properties: {
-                        summary: { type: 'string' },
-                        products: { type: 'array', items: { type: 'string' } },
-                        services: { type: 'array', items: { type: 'string' } },
-                        painPoints: { type: 'array', items: { type: 'string' } },
-                        interests: { type: 'array', items: { type: 'string' } },
-                        buyingSignals: { type: 'array', items: { type: 'string' } },
-                        tone: { type: 'string', enum: ['formal', 'casual', 'technical', 'friendly'] },
-                      },
+                    required: ['name'],
+                  },
+                  intelligence: {
+                    type: 'object',
+                    properties: {
+                      summary: { type: 'string' },
+                      products: { type: 'array', items: { type: 'string' } },
+                      services: { type: 'array', items: { type: 'string' } },
+                      painPoints: { type: 'array', items: { type: 'string' } },
+                      interests: { type: 'array', items: { type: 'string' } },
+                      buyingSignals: { type: 'array', items: { type: 'string' } },
+                      tone: { type: 'string', enum: ['formal', 'casual', 'technical', 'friendly'] },
                     },
-                    brand: {
-                      type: 'object',
-                      properties: {
-                        colors: {
-                          type: 'object',
-                          properties: {
-                            primary: { type: 'string' },
-                            secondary: { type: 'string' },
-                            accent: { type: 'string' },
-                          },
+                  },
+                  brand: {
+                    type: 'object',
+                    properties: {
+                      colors: {
+                        type: 'object',
+                        properties: {
+                          primary: { type: 'string' },
+                          secondary: { type: 'string' },
+                          accent: { type: 'string' },
                         },
                       },
                     },
                   },
-                  required: ['company'],
                 },
+                required: ['company'],
               },
             },
           },
@@ -462,18 +494,19 @@ export async function handler(event, context) {
       }
 
       const openaiData = await openaiRes.json();
-      const textContent = openaiData?.output?.find((o) => o.type === 'message')?.content?.[0]?.text;
+      const textContent = responsesText(openaiData);
       if (!textContent) return { statusCode: 502, headers, body: JSON.stringify({ error: 'OpenAI returned empty content' }) };
 
       let extracted;
       try { extracted = JSON.parse(textContent); } catch { return { statusCode: 502, headers, body: JSON.stringify({ error: 'OpenAI returned invalid JSON' }) }; }
 
-      // Merge extracted fields into the profile
-      profile.company = { ...(profile.company || {}), ...(extracted.company || {}) };
-      profile.intelligence = { ...(profile.intelligence || {}), ...(extracted.intelligence || {}) };
-      if (extracted.brand?.colors) {
+      // Merge the type-checked extracted fields into the profile
+      const clean = sanitizeEnrichment(extracted);
+      profile.company = { ...(profile.company || {}), ...clean.company };
+      profile.intelligence = { ...(profile.intelligence || {}), ...clean.intelligence };
+      if (Object.keys(clean.brandColors).length) {
         profile.brand = profile.brand || {};
-        profile.brand.colors = { ...(profile.brand.colors || {}), ...extracted.brand.colors };
+        profile.brand.colors = { ...(profile.brand.colors || {}), ...clean.brandColors };
       }
       profile.updatedAt = new Date().toISOString();
 
@@ -739,7 +772,7 @@ async function runDiscoveryPipeline(contactId, sources, openaiKey = null) {
   // BYOK: only with the user's own OpenAI key (passed from /discover); skipped otherwise.
   if (openaiKey) {
     try {
-      const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+      const model = process.env.OPENAI_MODEL || OPENAI_FAST_MODEL;
       const rawParts = [
         profile.intelligence.summary,
         profile.website.description,
@@ -761,18 +794,17 @@ async function runDiscoveryPipeline(contactId, sources, openaiKey = null) {
           text: {
             format: {
               type: 'json_schema',
-              json_schema: {
-                name: 'ContactIntelligence',
-                strict: true,
-                schema: {
-                  type: 'object',
-                  properties: {
-                    company: { type: 'object', properties: { name: { type: 'string' }, domain: { type: 'string' }, industry: { type: 'string' }, size: { type: 'string' }, summary: { type: 'string' } }, required: ['name'] },
-                    intelligence: { type: 'object', properties: { summary: { type: 'string' }, products: { type: 'array', items: { type: 'string' } }, services: { type: 'array', items: { type: 'string' } }, painPoints: { type: 'array', items: { type: 'string' } }, interests: { type: 'array', items: { type: 'string' } }, buyingSignals: { type: 'array', items: { type: 'string' } }, tone: { type: 'string', enum: ['formal', 'casual', 'technical', 'friendly'] } } },
-                    brand: { type: 'object', properties: { colors: { type: 'object', properties: { primary: { type: 'string' }, secondary: { type: 'string' }, accent: { type: 'string' } } } } },
-                  },
-                  required: ['company'],
+              name: 'ContactIntelligence',
+              // Not strict: the schema has optional fields, which strict mode rejects.
+              strict: false,
+              schema: {
+                type: 'object',
+                properties: {
+                  company: { type: 'object', properties: { name: { type: 'string' }, domain: { type: 'string' }, industry: { type: 'string' }, size: { type: 'string' }, summary: { type: 'string' } }, required: ['name'] },
+                  intelligence: { type: 'object', properties: { summary: { type: 'string' }, products: { type: 'array', items: { type: 'string' } }, services: { type: 'array', items: { type: 'string' } }, painPoints: { type: 'array', items: { type: 'string' } }, interests: { type: 'array', items: { type: 'string' } }, buyingSignals: { type: 'array', items: { type: 'string' } }, tone: { type: 'string', enum: ['formal', 'casual', 'technical', 'friendly'] } } },
+                  brand: { type: 'object', properties: { colors: { type: 'object', properties: { primary: { type: 'string' }, secondary: { type: 'string' }, accent: { type: 'string' } } } } },
                 },
+                required: ['company'],
               },
             },
           },
@@ -781,15 +813,15 @@ async function runDiscoveryPipeline(contactId, sources, openaiKey = null) {
 
       if (openaiRes.ok) {
         const openaiData = await openaiRes.json();
-        const textContent = openaiData?.output?.find((o) => o.type === 'message')?.content?.[0]?.text;
+        const textContent = responsesText(openaiData);
         if (textContent) {
           try {
-            const extracted = JSON.parse(textContent);
-            profile.company = { ...(profile.company || {}), ...(extracted.company || {}) };
-            profile.intelligence = { ...(profile.intelligence || {}), ...(extracted.intelligence || {}) };
-            if (extracted.brand?.colors) {
+            const clean = sanitizeEnrichment(JSON.parse(textContent));
+            profile.company = { ...(profile.company || {}), ...clean.company };
+            profile.intelligence = { ...(profile.intelligence || {}), ...clean.intelligence };
+            if (Object.keys(clean.brandColors).length) {
               profile.brand = profile.brand || {};
-              profile.brand.colors = { ...(profile.brand.colors || {}), ...extracted.brand.colors };
+              profile.brand.colors = { ...(profile.brand.colors || {}), ...clean.brandColors };
             }
             // Update variables with new structured fields
             if (profile.company.industry) variables.industry = profile.company.industry;

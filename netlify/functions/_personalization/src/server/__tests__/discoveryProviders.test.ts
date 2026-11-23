@@ -19,9 +19,9 @@ import { getBusinessAssetClassificationModel } from '../discoveryClassificationC
 // ---------------------------------------------------------------------------
 
 describe('getBusinessAssetClassificationModel', () => {
-  it('defaults to gpt-4o-mini when env is unset', () => {
+  it('defaults to gpt-6-luna when env is unset', () => {
     const result = getBusinessAssetClassificationModel()
-    expect(result).toBe('gpt-4o-mini')
+    expect(result).toBe('gpt-6-luna')
   })
 })
 
