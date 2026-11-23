@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { InputError } from './catalog.js';
 import { sanitizeText, extractOutputs, extractText } from './sanitize.js';
+import { NEEDS_CONFIRM, confirmMessage } from './governor.js';
 
 /** Generation tools, one per capability. Registered only when the brand's catalog has models of that kind. */
 export const GENERATION_TOOLS = [
@@ -106,19 +107,25 @@ export function createBrandedServer({ brand, catalog, client }) {
   // ---- brand-defined tools: { name, description, input (zod shape), build(args) -> { endpoint, payload }, timeoutMs }
   // The brand supplies the request builder (so it can reuse the app's own payload code); the core submits and waits.
   for (const tool of brand.customTools || []) {
+    const risk = tool.risk || 'write';
+    const gated = NEEDS_CONFIRM.has(risk);
+    const baseShape = tool.run ? tool.input : { ...tool.input, wait: z.boolean().optional().describe('Wait for the result (default true). If false, or on timeout, returns a request_id for get_result.') };
     server.registerTool(p(tool.name), {
       title: `${brand.name}: ${tool.name.replace(/_/g, ' ')}`,
-      description: tool.description,
-      inputSchema: tool.run ? tool.input : { ...tool.input, wait: z.boolean().optional().describe('Wait for the result (default true). If false, or on timeout, returns a request_id for get_result.') },
-    }, guard(async ({ wait = true, ...args }) => {
+      description: gated ? `${tool.description} [${risk === 'publish' ? 'Publishes or sends' : 'Deletes or overwrites'}: requires confirm: true.]` : tool.description,
+      inputSchema: gated ? { ...baseShape, confirm: z.boolean().optional().describe('Must be true to go ahead. Without it nothing is done and you are told what would happen.') } : baseShape,
+      annotations: { readOnlyHint: risk === 'read', destructiveHint: risk === 'destructive' },
+    }, guard(async ({ wait = true, confirm, ...args }) => {
+      if (gated && confirm !== true) return json({ status: 'confirmation_required', message: confirmMessage(tool.name.replace(/_/g, ' '), risk) });
+      const c = client.scoped ? client.scoped({ confirm, tool: tool.name }) : client;
       // `run` tools drive a studio function themselves (several calls, own status protocol).
-      if (tool.run) return json(await tool.run({ ...args, wait }, client));
+      if (tool.run) return json(await tool.run({ ...args, wait }, c));
       const { endpoint, payload } = tool.build(args);
-      const submitted = await client.submit(endpoint, payload);
+      const submitted = await c.submit(endpoint, payload);
       const id = submitted.request_id || submitted.id;
       if (!id) return json({ status: 'completed', outputs: submitted.outputs || [] });
       if (!wait) return json({ status: 'processing', request_id: id });
-      return json(await client.wait(id, { timeoutMs: tool.timeoutMs || 600_000 }));
+      return json(await c.wait(id, { timeoutMs: tool.timeoutMs || 600_000 }));
     }));
   }
 

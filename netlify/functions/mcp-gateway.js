@@ -12,6 +12,8 @@
 // bearer token. The generation backend is never named in a response.
 
 import { createSupabaseStore, resolveMcpKey, isMcpKey } from './_shared/mcpKeys.js';
+import { createGovernor, createSupabaseGovernorStore } from '../../packages/studio-mcp-core/src/governor.js';
+import { createClient } from '@supabase/supabase-js';
 import { handle as zackdHandle } from './zackd.js';
 import { handle as agentAudioHandle } from './agent-audio.js';
 import { handle as cinegenHandle } from './cinegen.js';
@@ -98,7 +100,25 @@ function upstreamError(res, data) {
   return fail(res.status >= 500 ? 502 : res.status, brandText(typeof detail === 'string' ? detail : JSON.stringify(detail)));
 }
 
-export function createHandler({ store = () => createSupabaseStore(), studios = STUDIOS, env = process.env } = {}) {
+/**
+ * What kind of thing a request does. Decided here from the route and the body, never from anything the caller says about itself.
+ * Unknown studio actions default to 'write'; add an entry when a studio gains something that deletes or publishes.
+ */
+export function classifyRequest(route, method, input = {}) {
+  if (route === '/balance' || route.startsWith('/result/') || route === '/estimate' || route.startsWith('/bridge/sessions') || route.startsWith('/bridge/result')) return { risk: 'read', label: route.split('/')[1] };
+  if (route === '/generate' || route === '/upload') return { risk: 'write', label: route.slice(1) };
+  const studio = /^\/studio\/([a-z0-9-]{1,40})$/.exec(route)?.[1];
+  if (studio === 'personalization') {
+    const m = String(input?.method || 'GET').toUpperCase();
+    return { risk: m === 'DELETE' ? 'destructive' : m === 'GET' ? 'read' : 'write', label: `personalization ${m}` };
+  }
+  if (route === '/raw') return { risk: 'write', label: 'raw' };
+  if (studio) return { risk: 'write', label: studio };
+  if (route === '/bridge/call') return { risk: ['read', 'write', 'destructive', 'publish'].includes(input?.risk) ? input.risk : 'write', label: `bridge ${String(input?.tool || '').slice(0, 40)}` };
+  return { risk: 'write', label: route.slice(1, 40) };
+}
+
+export function createHandler({ store = () => createSupabaseStore(), studios = STUDIOS, env = process.env, governor = defaultGovernor(env) } = {}) {
   return async function gateway(event) {
   let who;
   try { who = await authenticate(event, { store, env }); } catch (err) {
@@ -117,6 +137,16 @@ export function createHandler({ store = () => createSupabaseStore(), studios = S
     catch { return fail(400, 'Request body must be JSON.'); }
   }
 
+  // Safeguards: confirm for destructive/publish, a daily cap, and an audit row for every call.
+  const cls = classifyRequest(route, method, input);
+  if (governor) {
+    const gate = await governor.check({ keyId: who.id, risk: cls.risk, confirm: input?.confirm === true, label: cls.label });
+    if (!gate.ok) return json(gate.status, { error: { message: gate.message, code: gate.code } });
+  } else if ((cls.risk === 'destructive' || cls.risk === 'publish') && input?.confirm !== true) {
+    return json(409, { error: { message: `This would ${cls.risk === 'publish' ? 'publish or send' : 'delete or overwrite'} something. Nothing was done. Call again with confirm: true.`, code: 'confirm_required' } });
+  }
+  const started = Date.now();
+  const run = async () => {
   try {
     if (route === '/generate' && method === 'POST') {
       if (!validEndpoint(input.endpoint)) return fail(400, 'Invalid endpoint.');
@@ -181,6 +211,18 @@ export function createHandler({ store = () => createSupabaseStore(), studios = S
     return fail(502, `${BRAND} gateway error: ${brandText(err?.message)}`);
   }
   };
+  const out = await run();
+  if (governor) await governor.record({ keyId: who.id, userId: who.userId, tool: cls.label, risk: cls.risk, ok: (out?.statusCode || 200) < 400, ms: Date.now() - started });
+  return out;
+  };
+}
+
+function defaultGovernor(env) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  try {
+    const admin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
+    return createGovernor({ store: createSupabaseGovernorStore(admin), caps: { destructive: Number(env.MCP_CAP_DESTRUCTIVE) || 50, publish: Number(env.MCP_CAP_PUBLISH) || 20 } });
+  } catch { return null; }
 }
 
 export const handler = createHandler();

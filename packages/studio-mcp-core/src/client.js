@@ -50,7 +50,7 @@ export function createGatewayClient({ gatewayUrl, apiKey, brandName, fetchImpl =
     return sanitizeDeep(data, brandName);
   }
 
-  return {
+  const api = {
     brandName,
     submit: (endpoint, payload) => call('/generate', { method: 'POST', body: { endpoint, payload } }),
     result: (id) => call(`/result/${encodeURIComponent(id)}`),
@@ -89,4 +89,21 @@ export function createGatewayClient({ gatewayUrl, apiKey, brandName, fetchImpl =
       }
     },
   };
+
+  /**
+   * A view of this client for one tool call: studio / raw / bridge requests carry `confirm` (the caller's explicit yes for
+   * destructive and publish actions) and the tool's name (for the audit log label only; the gateway decides the risk itself).
+   */
+  api.scoped = ({ confirm, tool } = {}) => {
+    const hdr = tool ? { 'X-MCP-Tool': String(tool).slice(0, 80) } : {};
+    const withConfirm = (b) => (confirm === true ? { ...(b || {}), confirm: true } : b);
+    return {
+      ...api,
+      studio: (name, b) => call(`/studio/${encodeURIComponent(name)}`, { method: 'POST', body: withConfirm(b), headers: hdr }),
+      raw: (method, path, b) => call('/raw', { method: 'POST', body: withConfirm({ method, path, body: b }), headers: hdr }),
+      bridge: (route, b, { method = 'POST' } = {}) => call(`/bridge/${route}`, { method, body: method === 'GET' ? undefined : withConfirm(b), headers: hdr }),
+    };
+  };
+  api.bridge = (route, b, { method = 'POST' } = {}) => call(`/bridge/${route}`, { method, body: method === 'GET' ? undefined : b });
+  return api;
 }

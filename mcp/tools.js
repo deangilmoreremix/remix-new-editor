@@ -91,6 +91,7 @@ customTools.push(
   },
   {
     name: 'zackd_status',
+    risk: 'read',
     description: 'Zack D studio: check a media job started with zackd_submit.',
     input: { request_id: z.string().min(4).max(128) },
     run: (a, client) => zackdWait(client, a.request_id, 0),
@@ -160,6 +161,7 @@ async function discoverWait(client, jobId, timeoutMs) {
 customTools.push(
   {
     name: 'leads_list',
+    risk: 'read',
     description: 'List your saved Lead Finder leads (business, pipeline stage, notes, starred).',
     input: {},
     run: (a, client) => pz(client, 'GET', '/leads'),
@@ -178,6 +180,7 @@ customTools.push(
   },
   {
     name: 'leads_delete',
+    risk: 'destructive',
     description: 'Delete a saved lead.',
     input: { lead_id: ID80 },
     run: (a, client) => pz(client, 'DELETE', `/leads/${a.lead_id}`),
@@ -221,6 +224,7 @@ customTools.push(
   },
   {
     name: 'brand_assets_status',
+    risk: 'read',
     description: 'Check a brand discovery job started with brand_assets_discover.',
     input: { job_id: ID80 },
     run: (a, client) => discoverWait(client, a.job_id, 0),

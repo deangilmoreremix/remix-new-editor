@@ -6,13 +6,15 @@
 // Set MCP_REQUIRE_ENTITLEMENT=1 to additionally require the paid feature (as the app UI does).
 import { withClerkAuth } from './_shared/clerkAuth.js';
 import { createSupabaseStore, createMcpKey } from './_shared/mcpKeys.js';
+import { createSupabaseGovernorStore } from '../../packages/studio-mcp-core/src/governor.js';
+import { createClient } from '@supabase/supabase-js';
 import { userMuapiKey, userOpenAIKey } from './_shared/byok.js';
 import { claimsHaveFeature } from './website-builder-session.js';
 
 const json = (statusCode, body) => ({ statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify(body) });
 const fail = (statusCode, code, message) => json(statusCode, { ok: false, error: { code, message } });
 
-export function createHandler({ store, env = process.env } = {}) {
+export function createHandler({ store, env = process.env, audit } = {}) {
   return async (event) => {
     if (event.httpMethod !== 'POST') return fail(405, 'method_not_allowed', 'Use POST');
     if ((event.body || '').length > 4_000) return fail(413, 'too_large', 'Request too large');
@@ -27,6 +29,11 @@ export function createHandler({ store, env = process.env } = {}) {
       if (body.action === 'list') {
         const keys = (await s.listForUser(userId)).map(({ id, label, key_prefix, created_at, last_used_at }) => ({ id, label, prefix: key_prefix, created_at, last_used_at }));
         return json(200, { ok: true, keys });
+      }
+      if (body.action === 'audit') {
+        // The last 50 things this user's MCP keys did: tool, risk, outcome, time. Nothing about arguments or content.
+        const src = audit || createSupabaseGovernorStore(createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } }));
+        return json(200, { ok: true, events: await src.recent(userId, 50) });
       }
       if (body.action === 'revoke') {
         if (!/^[0-9a-f-]{36}$/i.test(String(body.id || ''))) return fail(400, 'bad_request', 'Invalid id');
