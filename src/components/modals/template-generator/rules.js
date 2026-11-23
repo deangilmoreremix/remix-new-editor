@@ -5,47 +5,58 @@
  * Pure functions, no DOM: the modal calls these so the rules are testable and
  * identical to the original's behaviour.
  *
- *   Steps: Niche → Script → Template → Media → Overlays → Voice → Personalization → Preview → Add to Timeline
- *   - up to 5 clips (videos or images);
- *   - Media needs ≥1 clip; Overlays (transitions) need ≥2; Preview/Add need clips and a script;
- *   - with fewer than 2 clips, Next on Media skips Overlays;
- *   - Voice and Personalization are optional;
+ *   Steps: Video → Script → Overlay → Preview
+ *   - up to 5 videos;
+ *   - Script needs ≥1 video; Overlay needs ≥2 videos and a script; Preview needs both;
+ *   - with fewer than 2 videos, Next on Script skips Overlay and goes to Preview;
  *   - Next is disabled until the current step's requirement is met.
  */
 
-export const STEPS = {
-  NICHE: 0, SCRIPT: 1, TEMPLATE: 2, VIDEO: 3, OVERLAY: 4, VOICE: 5, PERSONALIZE: 6, PREVIEW: 7, ADD: 8,
-};
-export const STEP_LABELS = ['Niche', 'Script', 'Template', 'Media', 'Overlays', 'Voice', 'Personalization', 'Preview', 'Add to Timeline'];
+import { resolveTextStyle } from './textStyles.js';
+import { audioPlan } from './audioPlan.js';
+import { evenWords } from './captions.js';
+import { captionStyleFor } from '../../../openchatcut/captions/styles';
+
+export const STEPS = { VIDEO: 0, SCRIPT: 1, OVERLAY: 2, PREVIEW: 3 };
+export const STEP_LABELS = ['Video', 'Script', 'Overlay', 'Preview'];
 export const MAX_VIDEOS = 5;
+/** Animations / motion graphics / end screens are overlays on top of the footage: they have their own limit and do not use the clip slots. */
+export const MAX_ANIMATIONS = 6;
 
 export const MESSAGES = {
-  needNiche: 'Please choose a niche first',
-  needVideo: 'Please select at least one video or image',
-  needTwoVideos: 'To use transitions, you need to select two or more clips',
-  needScript: 'Please write a script or pick a template',
-  maxVideos: 'Select only 5 clips at a maximum. If you want to add more, you can do so later in the timeline.',
+  needVideo: 'Please select at least one video',
+  needTwoVideos: 'To use overlays, you need to select two or more videos',
+  needScript: 'Please select a niche script',
+  maxVideos: 'Select only 5 videos at a maximum. If you want to add more, you can do so later in the timeline.',
+  maxAnimations: 'Pick up to 6 animations. You can add more later from the timeline.',
 };
 
-/** True when the user has chosen a template or written their own script. */
+/** True when the user has chosen or written a script (a niche script card or their own text). */
 export const hasScript = (s) => !!(s.selectedScript || (s.script?.text || '').trim());
 
 /**
- * Warning to show when moving to `target` isn't allowed yet, or null.
- * Tabs can always go backwards; going forwards needs what the earlier steps collect.
+ * Same checks as the original's setActiveTab: returns the warning to show,
+ * or null when moving to `target` is allowed.
  */
 export function guardStep(s, target) {
   const videos = s.selectedVideos.length;
-  if (target >= STEPS.SCRIPT && !s.niche) return MESSAGES.needNiche;
-  if (target >= STEPS.VIDEO + 1 && !videos) return MESSAGES.needVideo;
-  if (target === STEPS.OVERLAY && videos < 2) return MESSAGES.needTwoVideos;
-  if (target >= STEPS.PREVIEW && !hasScript(s)) return MESSAGES.needScript;
-  return null;
+  switch (target) {
+    case STEPS.SCRIPT:
+      return videos ? null : MESSAGES.needVideo;
+    case STEPS.OVERLAY:
+      if (videos < 2) return MESSAGES.needTwoVideos;
+      return hasScript(s) ? null : MESSAGES.needScript;
+    case STEPS.PREVIEW:
+      if (!videos) return MESSAGES.needVideo;
+      return hasScript(s) ? null : MESSAGES.needScript;
+    default:
+      return null;
+  }
 }
 
-/** Where Next goes from `step` (skips Overlays when there's only one clip). */
+/** Where the Next button goes from `step` (skips Overlay when there's only one video). */
 export function nextStepIndex(s, step) {
-  if (step === STEPS.VIDEO && s.selectedVideos.length < 2) return STEPS.VOICE;
+  if (step === STEPS.SCRIPT && s.selectedVideos.length < 2) return STEPS.PREVIEW;
   return step + 1;
 }
 
@@ -53,18 +64,13 @@ export function nextStepIndex(s, step) {
 export function nextDisabled(s, step, busy = false) {
   if (busy) return true;
   switch (step) {
-    case STEPS.NICHE: return !s.niche;
-    case STEPS.SCRIPT: return false; // optional: a template can supply the script instead
-    case STEPS.TEMPLATE: return !hasScript(s);
-    case STEPS.VIDEO:
-    case STEPS.OVERLAY: return !s.selectedVideos.length;
-    case STEPS.VOICE:
-    case STEPS.PERSONALIZE: return false; // optional steps
+    case STEPS.VIDEO: return !s.selectedVideos.length;
+    case STEPS.SCRIPT: return !hasScript(s);
     default: return !s.selectedVideos.length || !hasScript(s);
   }
 }
 
-export const nextLabel = (step) => (step === STEPS.ADD ? 'Add to Timeline' : 'Next');
+export const nextLabel = (step) => (step === STEPS.PREVIEW ? 'Add to Timeline' : 'Next');
 
 /**
  * Toggle a video in/out of the selection (max 5). Mutates `s.selectedVideos`.
@@ -81,19 +87,83 @@ export function toggleVideo(s, item) {
   return { ok: true, selected: true };
 }
 
+/** The small, savable reference kept for a picked animation (the full overlay is resolved when it is added). */
+export const animationRef = (it) => ({
+  id: it.id, source: it.source, title: it.title, badge: it.badge || 'ANIMATION', category: it.category || '',
+  duration: Number(it.duration) > 0 ? Number(it.duration) : 4, placeAt: it.placeAt || 'spread', thumb: it.poster || it.thumb || '',
+  ...(it.needsPhone ? { needsPhone: true, call: it.call ? { ...it.call } : { phone: '', country: '1', buttonText: '' } } : {}),
+});
+
+/** A Connect form (click-to-call) needs the business's own phone number before it can be added. */
+export const COUNTRY_CODES = [['1', 'US / Canada +1'], ['44', 'UK +44'], ['61', 'Australia +61'], ['91', 'India +91'], ['49', 'Germany +49'], ['33', 'France +33'], ['34', 'Spain +34'], ['52', 'Mexico +52'], ['55', 'Brazil +55']];
+export const phoneDigits = (v) => String(v || '').replace(/\D/g, '');
+export const phoneValid = (v) => { const n = phoneDigits(v).length; return n >= 6 && n <= 15; };
+/** Connect forms in the selection that still have no usable number. */
+export const callMissing = (s) => (s.selectedAnimations || []).filter((a) => a.needsPhone && !phoneValid(a.call?.phone));
+
+/**
+ * Toggle an animation / motion graphic / end screen in the overlay tray (max MAX_ANIMATIONS).
+ * @returns {{ok: boolean, selected: boolean, message?: string}}
+ */
+export function toggleAnimation(s, item) {
+  const i = s.selectedAnimations.findIndex((a) => a.id === item.id);
+  if (i >= 0) { s.selectedAnimations.splice(i, 1); return { ok: true, selected: false }; }
+  if (s.selectedAnimations.length >= MAX_ANIMATIONS) return { ok: false, selected: false, message: MESSAGES.maxAnimations };
+  s.selectedAnimations.push(animationRef(item));
+  return { ok: true, selected: true };
+}
+
 export function createWizardState() {
   return {
     started: false,
-    step: STEPS.NICHE,
-    niche: null,                 // chosen industry (filters templates, guides the AI script)
+    step: STEPS.VIDEO,
     selectedVideos: [],          // up to MAX_VIDEOS stock/upload/remote/AI items
-    selectedScript: null,        // the chosen niche template (its scenes + sample script)
+    selectedAnimations: [],      // up to MAX_ANIMATIONS overlay refs: animations, motion graphics, end screens
+    selectedScript: null,        // a niche script card (a niche template)
     script: { text: '', tone: 'conversational', audience: 'general', cta: '' },
+    details: { business_name: '', city: '', offer: '', about: '' },   // the user's own details: fill the {placeholders} and guide the AI
+    autoText: '',                // the last script text WE filled in (so edits by the user are never overwritten)
+    autoCta: '',
     selectedTransition: null,    // { type, duration } from the editor's transitions library
     // Text elements the timeline can create today (applyTemplate makes media + text/caption clips).
-    elements: { captions: true, title: '', lowerThird: '', cta: '' },
-    voice: { enabled: false, provider: 'openai', voice: 'alloy', text: '', instructions: '' },
+    elements: { captions: true, title: '', lowerThird: '', lowerThirdStyle: '', cta: '', styles: {} },   // styles: the user's changes to each text's look (see textStyles.js)
+    // word-timed captions (captions.js): `style` = a caption look id from the editor's list (Capite's 27 among them); '' = the plain script text above
+    captions: { style: '', motion: '', engine: 'whisper-webgpu', model: '', language: 'auto', words: null, wordsFor: '', source: '', auto: false },   // words: [{text,start,end}] ms once transcribed
+    voice: { enabled: false, provider: 'openai', engine: 'openai', voice: 'marin', speed: 1, text: '', instructions: '', generatedAsset: null },   // generatedAsset: { url, duration, name } once the voiceover has been made
+    music: { id: '', duck: true },                      // a bundled track (music.js); trimmed to the cut
+    mix: { footage: 1, voice: 1, music: 0.3 },          // volumes 0..1
     personalization: { enabled: false, contactId: null, tokens: {} },
+  };
+}
+
+/** Break a long caption into short ones (about two lines each), preferring sentence ends. */
+export function splitCaption(text, max = 70) {
+  const out = [];
+  let cur = '';
+  for (const w of String(text || '').split(/\s+/).filter(Boolean)) {
+    const next = cur ? `${cur} ${w}` : w;
+    if (cur && next.length > max) { out.push(cur); cur = w; }
+    else cur = next;
+    if (/[.!?]$/.test(cur) && cur.length >= 28) { out.push(cur); cur = ''; }
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+
+/** "Jane Doe | Owner" (or two lines) → the name and title of a lower third. */
+export function splitLowerThird(value) {
+  const [name = '', ...rest] = String(value || '').split(/\s*(?:\||\n|·)\s*/);
+  return { name: name.trim(), title: rest.join(' ').trim() };
+}
+
+/** A lower third with a chosen style becomes a real animated lower-third overlay; with no style it stays a plain text clip. */
+function lowerThirdClip(elements, startTime, duration) {
+  const text = String(elements.lowerThird || '').trim();
+  if (!text || !elements.lowerThirdStyle) return null;
+  const { name, title } = splitLowerThird(text);
+  return {
+    kind: 'overlay', type: 'lower-third', trackName: 'Lower Third', name: 'Lower third', text, startTime, duration,
+    lowerThird: { template: elements.lowerThirdStyle, name, title },
   };
 }
 
@@ -132,7 +202,9 @@ export function sceneNames(s) {
 
 /** Split script text into one caption line per scene (kept simple: sentences/lines, grouped to fit). */
 export function scriptLines(text, sceneCount) {
-  const parts = String(text || '').split(/\n+|(?<=[.!?])\s+/).map((t) => t.trim()).filter(Boolean);
+  // A script written one line per scene (the written niche scripts, AI scene lines) keeps its lines; otherwise split into sentences.
+  const byLine = String(text || '').split(/\n+/).map((t) => t.trim()).filter(Boolean);
+  const parts = byLine.length > 1 ? byLine : String(text || '').split(/(?<=[.!?])\s+/).map((t) => t.trim()).filter(Boolean);
   if (!parts.length || sceneCount < 1) return [];
   if (parts.length <= sceneCount) return parts;
   const per = Math.ceil(parts.length / sceneCount);
@@ -142,11 +214,27 @@ export function scriptLines(text, sceneCount) {
 }
 
 /**
+ * The styled, word-timed caption track for the cut, or null when the plain script captions apply.
+ * `{ template, motionPreset, pacing, words:[{text,start,end}] (ms from the start of the cut), source: 'transcript' | 'script' }`
+ */
+export function captionTrackFor(s, total) {
+  const c = s.captions || {};
+  if (!s.elements?.captions || !c.style) return null;
+  const style = captionStyleFor(c.style);
+  if (style.id !== c.style) return null;   // an id this build does not know → plain captions
+  const limit = Math.max(0.5, total) * 1000;
+  const heard = Array.isArray(c.words) && c.words.length ? c.words : null;
+  const words = (heard || evenWords(s.script?.text, total)).filter((w) => w.start < limit).map((w) => ({ ...w, end: Math.min(w.end, limit) }));
+  if (!words.length) return null;
+  return { template: style.id, motionPreset: c.motion || style.motion || 'pop', pacing: 'phrase', words, source: heard ? 'transcript' : 'script' };
+}
+
+/**
  * Wizard state → the `state` shape of buildCompositionFromState():
  * videos become the per-scene media; the script becomes captions timed per scene;
  * the picked transition is applied between consecutive clips; elements/voice carry over.
  */
-export function toBuilderState(s) {
+export function toBuilderState(s, payloads = {}) {
   const names = sceneNames(s);
   const mediaByScene = names.map((sceneName, i) => {
     const item = s.selectedVideos[i];
@@ -160,12 +248,21 @@ export function toBuilderState(s) {
   const lines = scriptLines(s.script.text, filled.length);
   let cursor = 0;
   const captions = [];
+  const captionStyle = resolveTextStyle(s.elements, 'caption');
   filled.forEach((m, i) => {
     const duration = m.media.duration;
     if (lines[i]) {
-      captions.push({
-        kind: 'caption', type: 'caption', trackName: 'Script', name: `Script ${i + 1}`,
-        text: lines[i], startTime: cursor, duration,
+      // a long line is shown as a few short captions in turn (readable size), each for its share of the scene
+      const parts = splitCaption(lines[i]);
+      const weight = parts.reduce((n, p) => n + p.length, 0) || 1;
+      let at = cursor;
+      parts.forEach((part, k) => {
+        const d = k === parts.length - 1 ? cursor + duration - at : Math.round((duration * part.length / weight) * 100) / 100;
+        captions.push({
+          kind: 'caption', type: 'caption', trackName: 'Script', name: parts.length > 1 ? `Script ${i + 1}.${k + 1}` : `Script ${i + 1}`,
+          text: part, startTime: at, duration: d, role: 'caption', sceneIndex: i, textStyle: captionStyle,
+        });
+        at += d;
       });
     }
     cursor += duration;
@@ -177,25 +274,62 @@ export function toBuilderState(s) {
 
   // Text elements. Captions come from the script; the rest are plain text clips.
   const total = Math.max(cursor, 3);
-  const text = (name, trackName, value, startTime, duration) => value.trim() && ({
-    kind: 'text', type: 'text', trackName, name, text: value.trim(), startTime, duration: Math.min(duration, total),
+  const text = (name, trackName, value, startTime, duration, role) => value.trim() && ({
+    kind: 'text', type: 'text', trackName, name, text: value.trim(), startTime, duration: Math.min(duration, total), role, textStyle: resolveTextStyle(s.elements, role),
   });
   const elements = [
-    text('Title', 'Title', s.elements.title, 0, 3),
-    text('Lower third', 'Lower Third', s.elements.lowerThird, Math.min(1, total - 1), 4),
-    text('Call to action', 'CTA', s.elements.cta || s.script.cta, Math.max(total - 4, 0), 4),
+    text('Title', 'Title', s.elements.title, 0, 3, 'title'),
+    lowerThirdClip(s.elements, Math.min(1, total - 1), Math.min(4, total)) || text('Lower third', 'Lower Third', s.elements.lowerThird, Math.min(1, total - 1), 4, 'lowerThird'),
+    text('Call to action', 'CTA', s.elements.cta || s.script.cta, Math.max(total - 4, 0), 4, 'cta'),
   ].filter(Boolean);
-  const captionClips = s.elements.captions ? captions : [];
+  // A chosen caption look makes ONE word-timed caption track (transcribed words, else the script spread over the cut) instead of per-scene text clips.
+  const captionTrack = captionTrackFor(s, total);
+  const captionClips = s.elements.captions && !captionTrack ? captions : [];
+
+  // Animations: each lasts its own length (capped to the video). End screens sit at the end; the rest are
+  // spread evenly from the start so they don't pile on top of each other.
+  const anims = s.selectedAnimations || [];
+  const spread = anims.filter((a) => a.placeAt !== 'end');
+  const animations = anims.map((a) => {
+    const duration = Math.min(Math.max(a.duration || 4, 1), total);
+    const k = spread.indexOf(a);
+    const start = a.placeAt === 'end' ? Math.max(total - duration, 0) : Math.min(Math.round(((k * total) / Math.max(spread.length, 1)) * 10) / 10, Math.max(total - duration, 0));
+    return {
+      kind: 'animation', type: 'animation', trackName: 'Animations', name: a.title, startTime: start, duration,
+      animation: payloads[a.id] || { ref: { id: a.id, source: a.source } },
+    };
+  });
+
+  const plan = audioPlan(s, cursor);
 
   return {
-    niche: s.niche || s.selectedScript?.niche || null,
+    niche: s.selectedScript?.niche || null,
     script: { text: s.script.text, tone: s.script.tone, audience: s.script.audience, cta: s.script.cta },
     template: null,
     media: [],
     mediaByScene,
     transitions,
-    overlays: [...captionClips, ...elements],
-    voice: { ...s.voice, text: s.voice.text || s.script.text },
+    captionTrack,
+    overlays: [...captionClips, ...elements, ...animations],
+    voice: { ...s.voice, text: s.voice.text || s.script.text, volume: plan.voice?.volume ?? 1 },
+    music: plan.music,
+    footageVolume: plan.footageVolume,
     personalization: s.personalization,
   };
+}
+
+/**
+ * The text that shows on the video, for the live preview: [{ id, role, text, start, duration, style, sceneIndex?, lowerThird? }].
+ * The same clips the timeline will get (so what the preview shows is what lands), minus footage and animations.
+ */
+export function previewTexts(s) {
+  const out = [];
+  toBuilderState(s).overlays.forEach((o, i) => {
+    if (o.type === 'caption' || o.type === 'text') {
+      out.push({ id: `${o.role}-${i}`, role: o.role, text: o.text, start: o.startTime || 0, duration: o.duration, style: o.textStyle, sceneIndex: o.sceneIndex });
+    } else if (o.type === 'lower-third') {
+      out.push({ id: 'lowerThird-0', role: 'lowerThird', text: o.text, start: o.startTime || 0, duration: o.duration, lowerThird: o.lowerThird, style: resolveTextStyle(s.elements, 'lowerThird') });
+    }
+  });
+  return out;
 }

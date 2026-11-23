@@ -7,6 +7,8 @@
  */
 
 import { normalizeCaptions } from '../captions/captionStyle'
+import { normalizeTextStyles } from './textStyles'
+import { normalizeAudioTracks, normalizeVideoVolume } from './audioMix'
 import { normalizeKeyframes } from './keyframes'
 import { normalizeLayerEffects, normalizeLook } from './effects'
 import { normalizeCutout } from './cutout/cutoutSettings'
@@ -1149,6 +1151,12 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
    }
 
    out.audio = normalizePreviewAudio(raw.audio) ?? null
+  const audioTracks = normalizeAudioTracks(raw.audioTracks)
+  if (audioTracks) out.audioTracks = audioTracks
+  const videoVolume = normalizeVideoVolume(raw.videoVolume)
+  if (videoVolume !== undefined) out.videoVolume = videoVolume
+  if (raw.videoMuted === true) out.videoMuted = true
+  if (typeof raw.audioSolo === 'string' && raw.audioSolo) out.audioSolo = raw.audioSolo
 
    // The applied Remotion design. Absent in projects saved before the design
    // registry existed, so it falls back to null instead of throwing.
@@ -1157,13 +1165,14 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
   if (zones) out.protectedZones = zones
   const look = normalizeLook(raw.look)
   if (look) out.look = look
+  const captions = normalizeCaptions(raw.captions)
+  if (captions) out.captions = captions
+  const textStyles = normalizeTextStyles(raw.textStyles)
+  if (textStyles) out.textStyles = textStyles
   const cutout = normalizeCutout(raw.cutout)
   if (cutout) out.cutout = cutout
   const hints = normalizeImageHints(raw.imageHints)
   if (hints) out.imageHints = hints
-  const captions = normalizeCaptions(raw.captions)
-  if (captions) out.captions = captions
-
    return out
   } catch {
     return createDefaultPreviewSettings()

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Captions as CaptionsIcon, Copy, Crosshair, Download, Trash2 } from 'lucide-react'
 import { captionsToAss } from '../captions/captionAss'
 import { clockLabel, cuesToSrt, cuesToText, cuesToVtt } from '../captions/captionCues'
+import { studioToCues } from '../captions/studioCaptions'
 import { LANGUAGES } from '../captions/scripts'
 import { transcriptText, type Casing } from '../captions/textTools'
 import { CAPTION_FONTS, CAPTION_FONT_CATEGORIES, CAPTION_WEIGHTS, captionFontStack, type CaptionWeight } from '../captions/capiteFonts'
@@ -17,6 +18,8 @@ import { useLiveState } from '../preview/liveBridge'
 import { captionAvoid, clearOf, coveredNow } from './captionAvoid'
 import type { PreviewInputProps } from '../preview/types'
 import { LocalAINotice } from './LocalAINotice'
+import { SavedStylesBar } from './SavedStylesBar'
+import { applyCaptionStyle, captureCaptionStyle } from '../preview/textStyles'
 import { C, chipStyle, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from './tokens'
 
 function saveText(text: string, fileName: string, mime: string) {
@@ -36,7 +39,7 @@ const smallButton = { ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padd
  */
 export function CaptionsPanel({ videoUrl, disabled, brand }: { videoUrl: string | null; disabled?: boolean; /** The business's own words, to find the text layers the captions could cover. */ brand?: PreviewInputProps['brand'] }): React.JSX.Element | null {
   const c = useCaptions(videoUrl)
-  const { previewSettings } = useDemoPersonalize()
+  const { previewSettings, updatePreviewComposition } = useDemoPersonalize()
   const [copied, setCopied] = useState<'copied' | 'failed' | null>(null)
   const [confirmRedo, setConfirmRedo] = useState(false)
   const [find, setFind] = useState('')
@@ -67,7 +70,10 @@ export function CaptionsPanel({ videoUrl, disabled, brand }: { videoUrl: string 
   const covered = avoid ? coveredNow(avoid) : 0
   const clear = avoid && covered > 0 ? clearOf(avoid) : null
   const busy = c.ai.phase !== 'idle'
-  const cues = c.captions?.cues ?? []
+  const studio = c.captions?.studio
+  // With the Caption Studio available, captions are made and edited in that one window; this panel only opens it and shows the result.
+  const hosted = c.studioAvailable
+  const cues = studio ? studioToCues(studio) : c.captions?.cues ?? []
   const copy = async () => {
     try { await navigator.clipboard.writeText(cuesToText(cues)); setCopied('copied') } catch { setCopied('failed') }
   }
@@ -81,6 +87,19 @@ export function CaptionsPanel({ videoUrl, disabled, brand }: { videoUrl: string 
   return (
     <div data-testid="captions-panel" style={{ marginTop: 12 }}>
       <div style={{ ...labelStyle, marginBottom: 6 }}>Captions</div>
+      {hosted ? (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <button
+            type="button" data-testid="captions-open-studio" disabled={disabled}
+            onClick={c.openStudio}
+            style={{ ...secondaryButtonStyle, minHeight: 30, fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 6, opacity: disabled ? 0.5 : 1 }}
+          >
+            <CaptionsIcon size={12} /> {c.captions ? 'Edit in Caption Studio' : 'Open Caption Studio'}
+          </button>
+          <span style={{ ...hintStyle, margin: 0 }}>Free, on this device. Transcribe, edit, restyle and recolour in one window.</span>
+        </div>
+      ) : (
+        <>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <button
           type="button" data-testid="captions-generate" disabled={disabled || busy}
@@ -106,6 +125,8 @@ export function CaptionsPanel({ videoUrl, disabled, brand }: { videoUrl: string 
         </div>
       )}
       <LocalAINotice ai={c.ai} doing="turns the video’s own speech into caption text" />
+        </>
+      )}
       {c.note && <p data-testid="captions-note" style={{ ...hintStyle, margin: '6px 0 0' }}>{c.note}</p>}
 
       {c.captions && (
@@ -114,6 +135,12 @@ export function CaptionsPanel({ videoUrl, disabled, brand }: { videoUrl: string 
             <input type="checkbox" data-testid="captions-enabled" checked={c.captions.enabled} onChange={(e) => c.setEnabled(e.target.checked)} />
             Show captions in the video
           </label>
+          {hosted ? (
+            <p data-testid="captions-summary" style={{ ...hintStyle, margin: 0 }}>
+              {cues.length} lines{studio ? ' · drawn as designed in the Caption Studio (colours, motion and height included)' : ' · open the Caption Studio to restyle or fix these'}.
+            </p>
+          ) : (
+            <>
           <div role="group" aria-label="Caption style" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ ...hintStyle, margin: 0 }}>Look:</span>
             {CAPTION_STYLES.map((s) => (
@@ -138,6 +165,7 @@ export function CaptionsPanel({ videoUrl, disabled, brand }: { videoUrl: string 
           </label>
           {capiteStyleById(c.captions!.style) && <p data-testid="captions-capite-hint" style={{ ...hintStyle, margin: 0 }}>{capiteStyleById(c.captions!.style)!.description}. Its font is included, so it looks the same in the preview and the video.</p>}
 
+          {!studio && (
           <div data-testid="captions-customize" style={{ display: 'grid', gap: 6 }}>
             <div style={{ ...labelStyle, margin: 0 }}>Make it yours</div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 12, color: C.text }}>
@@ -196,6 +224,17 @@ export function CaptionsPanel({ videoUrl, disabled, brand }: { videoUrl: string 
               <button type="button" data-testid="captions-offset-reset" disabled={!chosen?.offsetY} onClick={() => c.setCustom({ offsetY: undefined })} style={smallButton}>Reset</button>
             </label>
           </div>
+          )}
+
+          <SavedStylesBar
+            kind="captions"
+            idPrefix="captions"
+            styles={previewSettings.textStyles ?? []}
+            onStylesChange={(next) => updatePreviewComposition({ textStyles: next.length ? next : undefined })}
+            capture={() => captureCaptionStyle(c.captions!)}
+            onApply={(st) => { if (st.kind === 'captions') { const look = applyCaptionStyle(st.style); c.setStyle(look.style); c.setPosition(look.position) } }}
+            defaultName="Caption style"
+          />
 
           <p data-testid="captions-look-hint" style={{ ...hintStyle, margin: 0 }}>Bold stands out most; Bar is the safest on very busy footage; Clean is the plainest.</p>
 
@@ -244,6 +283,9 @@ export function CaptionsPanel({ videoUrl, disabled, brand }: { videoUrl: string 
             ))}
           </ol>
           <p style={{ ...hintStyle, margin: 0 }}>Written automatically, so read it through and fix any mistakes. Clear a line to delete it.</p>
+
+            </>
+          )}
 
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <button type="button" data-testid="captions-srt" onClick={() => saveText(cuesToSrt(cues), 'captions.srt', 'application/x-subrip')} style={smallButton}><Download size={11} /> Download .srt</button>

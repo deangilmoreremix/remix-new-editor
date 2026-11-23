@@ -1,3 +1,4 @@
+import { EmptyStart } from './empty-start';
 import { TimelineOverview } from './timeline-overview';
 import type { Timeline } from '@cinegen/types/timeline';
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -7,6 +8,8 @@ import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import type { PlaybackProxyMode } from '@cinegen/lib/editor/playback-engine';
 import type { OverlayClip } from '@cinegen/types/workspace';
 import { OverlayLayer } from './overlay-layer';
+import { PreviewAsPicker } from './preview-as-picker';
+import { usePreviewContact } from '@cinegen/lib/personalize/preview-contact';
 import { resolveFit, aspectRatio, frameFor } from '@cinegen/lib/occ/frame-geometry';
 import { GlGroupLayer } from './gl-group-layer';
 import { GlClipLayer } from './gl-clip-layer';
@@ -86,6 +89,7 @@ export function TimelineViewer({
   inspectorVisible,
   onToggleInspector,
 }: TimelineViewerProps) {
+  const previewContact = usePreviewContact(); // [remix] the contact whose details the overlays show
   const scrubRef = useRef<HTMLDivElement>(null);
   const scrubDragging = useRef(false);
 
@@ -186,6 +190,7 @@ export function TimelineViewer({
     >
       <div className="timeline-viewer__header">
         <span className="timeline-viewer__title">Timeline Viewer</span>
+        <PreviewAsPicker contact={previewContact} />
         <button
           className={`timeline-viewer__source-toggle ${sourceViewerVisible ? 'timeline-viewer__source-toggle--active' : ''}`}
           onClick={onToggleSourceViewer}
@@ -239,8 +244,9 @@ export function TimelineViewer({
         {glTransition?.outClip && glTransition.inClip
           ? [glTransition.outClip, glTransition.inClip].map((c) => <CaptionsPreviewLayer key={c.id} captions={c.captions ?? null} currentTime={currentTime} aspect={aspectRatio(timeline?.aspect)} />)
           : <CaptionsPreviewLayer captions={activeClip?.captions ?? null} currentTime={currentTime} aspect={aspectRatio(timeline?.aspect)} />}
-        <OverlayLayer overlays={overlays} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onResume={onPlayPause} onEditText={onOverlayText} onGeometry={onOverlayGeometry} frame={frameFor(timeline?.aspect)} />
+        <OverlayLayer overlays={overlays} profile={previewContact.profile} profileVersion={previewContact.version} currentTime={currentTime} isPlaying={isPlaying} onPause={onPlayPause} onResume={onPlayPause} onEditText={onOverlayText} onGeometry={onOverlayGeometry} frame={frameFor(timeline?.aspect)} />
         </div>
+        {timeline && timeline.clips.length === 0 && !overlays?.length && <EmptyStart />}{/* [remix] blank project: three ways to start */}
       </div>
       {timeline && onOpenTimeline && <TimelineOverview timeline={timeline} assets={assets} duration={duration} currentTime={currentTime} onOpen={onOpenTimeline} />}
       <div className="viewer-scrubber" ref={scrubRef} onMouseDown={handleScrubDown}>

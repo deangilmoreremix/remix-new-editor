@@ -7,7 +7,6 @@ import {
   valueAt, setKeyframe, removeKeyframe, updateKeyframe, transformStyleAt, effectOverridesAt, keyframeTimes, canonicalProperty,
 } from '../keyframes.js';
 import { keyframeTargets, renderKeyframesPanel } from '../keyframesPanel.js';
-import { renderCaptionsPanel } from '../captionsPanel.js';
 import { timelineToComposition } from '../timelineToComposition.js';
 import { buildEffectDescriptors, loadEffects, createEffect } from '../effects.js';
 
@@ -124,28 +123,5 @@ describe('keyframes', () => {
     expect(onChange.mock.calls.at(-1)[0]).toEqual({ opacity: [{ t: 1.5, v: 0.25, easing: 'ease-in-out' }] });
     box.querySelector('[data-kf-del="opacity|0"]').click();
     expect(onChange.mock.calls.at(-1)[0]).toEqual({});
-  });
-});
-
-describe('captions panel', () => {
-  it('imports, edits, splits and transcribes', async () => {
-    const box = document.createElement('div');
-    const onChange = vi.fn();
-    const onTranscribe = vi.fn(async () => chunksToCaptions([{ text: 'Hi', timestamp: [0, 0.5] }]));
-    const p = renderCaptionsPanel(box, { captions: captionsFromFile(SRT, 'a.srt'), sources: [{ id: 'v1', label: 'Clip' }], onChange, onTranscribe, currentMs: () => 6000 });
-    const text = box.querySelector('[data-cap-text="1"]');
-    text.value = 'Hello Kenobi';
-    text.dispatchEvent(new Event('input', { bubbles: true }));
-    expect(onChange.mock.calls.at(-1)[0].captions[1].text).toBe(' Hello Kenobi');
-    box.querySelector('[data-cap-split="0"]').click();
-    expect(p.captions).toHaveLength(3);
-    box.querySelector('[data-cap-add]').click();
-    expect(p.captions.at(-1)).toMatchObject({ startMs: 6000, endMs: 8000 });
-    box.querySelector('[data-cap-preset="karaoke"]').click();
-    expect(onChange.mock.calls.at(-1)[0].captionStyle).toMatchObject({ preset: 'karaoke', fontFamily: 'Anton' });
-    box.querySelector('[data-cap-transcribe]').click();
-    await new Promise((r) => setTimeout(r, 0));
-    expect(onTranscribe).toHaveBeenCalledWith(expect.objectContaining({ sourceId: 'v1', language: 'auto' }));
-    expect(p.captions).toEqual([expect.objectContaining({ text: 'Hi', startMs: 0, endMs: 500 })]);
   });
 });

@@ -20,7 +20,6 @@ import { runAssembly, buildSrt, DEFAULT_TRANSITION_SEC } from '../../../lib/zack
 import { TEMPLATES, TEMPLATE_ATTRIBUTION, templateToProject } from '../../../lib/zackd/templates.js';
 import {
   SEED_TOPICS, LOOKS, DEFAULT_LOOK, TTS_VOICES, DEFAULT_VOICE, DEFAULT_TTS_SPEED, UPSTREAM_VOICE, DEFAULT_EXTRAS,
-  CAPTION_LANGUAGES, CAPTION_THEMES, DEFAULT_CAPTION_LANGUAGE, DEFAULT_CAPTION_THEME,
   characterSheetPrompt, keyframePrompt, clipPrompt, narrationText, allShots, totalDuration,
 } from '../../../../netlify/functions/_shared/zackdPrompts.js';
 
@@ -32,7 +31,7 @@ const CONCURRENCY = 3;
 const newPid = () => `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 const blank = () => ({
   pid: newPid(), topic: '', map: null, approved: false, look: DEFAULT_LOOK, sheets: {}, shots: {}, voice: DEFAULT_VOICE,
-  narration: null, music: null, captionLang: DEFAULT_CAPTION_LANGUAGE, captionTheme: DEFAULT_CAPTION_THEME, ...DEFAULT_EXTRAS,
+  narration: null, music: null, ...DEFAULT_EXTRAS,
 });
 
 function load() {
@@ -52,7 +51,6 @@ const CARD = 'relative group rounded-lg overflow-hidden border border-white/10 b
 const OVERLAY_BTN = 'p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-primary hover:text-black border border-white/10 transition-all';
 const SECTION_LABEL = 'text-[10px] font-bold text-secondary uppercase tracking-widest';
 const FIELD = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/45 transition-colors';
-const SELECT = 'bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/45 transition-colors min-w-[150px]';
 const CONTROL_BTN = 'flex items-center gap-1.5 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all border border-white/5 group whitespace-nowrap';
 const CANVAS_BTN = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white disabled:opacity-50 disabled:cursor-not-allowed';
 const GENERATE_BTN = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg';
@@ -106,7 +104,7 @@ export function ZackDStudio() {
 
   const promptWrapper = el('div', 'w-full relative z-40 animate-fade-in-up');
   promptWrapper.style.animationDelay = '0.2s';
-  const bar = el('div', 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl');
+  const bar = el('div', 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl');
 
   const topRow = el('div', 'flex items-start gap-5 px-2');
   const textarea = el('textarea', 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar');
@@ -359,7 +357,7 @@ export function ZackDStudio() {
           // the generated voice-over speaks the old text: drop it, and a cut that mixed it in, so it has to be regenerated
           if (s.narration) {
             s.narration = null; narrStale = true;
-            if (final?.mixed) { if (final.objectUrl) URL.revokeObjectURL(final.objectUrl); final = null; }
+            if (final?.mixed) { releaseCut(final); final = null; }
           }
           save();
         };
@@ -444,29 +442,21 @@ export function ZackDStudio() {
     fresh.onclick = () => { if (window.confirm('Start a new project? The current one will be cleared from this browser.')) { newProject(); } };
     controls.append(dl, srt, lib, fresh);
     wrap.appendChild(controls);
-    wrap.appendChild(el('p', 'text-xs text-white/40', 'The .srt is a free, separate caption file. To burn animated captions into the video, use the option below.'));
+    wrap.appendChild(el('p', 'text-xs text-white/40', 'The .srt is a free, separate caption file. For animated captions in the video, use the free option below.'));
 
-    // Opt-in burned-in captions (MuAPI AI Captions / Vadoo)
+    // Captions: the one free Caption Studio window (on-device Whisper, edit, look, render). No credits, nothing uploaded.
     const cap = el('div', `${CARD} p-4 gap-3 w-full max-w-3xl`);
-    cap.appendChild(el('div', 'text-sm font-bold text-white', 'Burn captions into the video'));
-    cap.appendChild(el('div', 'text-xs text-white/50', 'Animated, word-by-word captions in a viral style. Paid: about $0.20 minimum ($0.005 per second), and it takes 2-3 minutes. Needs narration.'));
+    cap.appendChild(el('div', 'text-sm font-bold text-white', 'Captions on your device'));
+    cap.appendChild(el('div', 'text-xs text-white/50', 'Free: transcribed and rendered in your browser with Whisper. No credits, nothing is uploaded. Pick a look, fix any words, then render the captions into the video.'));
     const row = el('div', 'flex gap-2 items-center flex-wrap');
-    const lang = el('select', SELECT); lang.setAttribute('aria-label', 'Caption language');
-    CAPTION_LANGUAGES.forEach((l) => { const o = el('option', '', l); o.value = l; o.selected = l === s.captionLang; lang.appendChild(o); });
-    lang.onchange = () => { s.captionLang = lang.value; save(); };
-    const theme = el('select', SELECT); theme.setAttribute('aria-label', 'Caption theme');
-    CAPTION_THEMES.forEach((t) => { const o = el('option', '', t.label); o.value = t.value; o.selected = t.value === s.captionTheme; theme.appendChild(o); });
-    theme.onchange = () => { s.captionTheme = theme.value; save(); };
-    const burn = el('button', CANVAS_BTN, final.captioned ? 'Burn again' : 'Burn captions'); burn.type = 'button';
-    burn.disabled = busy || !s.narration || !final.hasNarration; burn.onclick = burnCaptions;
-    row.append(lang, theme, burn); cap.appendChild(row);
-    if (!s.narration) cap.appendChild(el('div', 'text-xs text-white/40', 'Generate narration first: captions are transcribed from the spoken audio.'));
-    else if (!final.hasNarration) cap.appendChild(el('div', 'text-xs text-white/40', 'This cut does not contain the narration. Turn on "Mix in the narration and music" in Advanced and render again, then burn captions.'));
+    const openCaps = el('button', CANVAS_BTN, final.captioned ? 'Edit captions' : 'Free Captions'); openCaps.type = 'button';
+    openCaps.disabled = busy; openCaps.onclick = openFreeCaptions;
+    row.append(openCaps); cap.appendChild(row);
     if (final.captioned) {
       const cv = el('video', 'max-h-[60vh] rounded-2xl bg-black border border-white/10'); cv.src = final.captioned.url; cv.controls = true; cv.loop = true; cv.playsInline = true; cv.style.aspectRatio = '9 / 16';
       cap.appendChild(cv);
       const r2 = el('div', 'flex gap-2 flex-wrap');
-      const open = el('a', CANVAS_BTN, 'Open / download captioned video'); open.href = final.captioned.url; open.target = '_blank'; open.rel = 'noopener noreferrer';
+      const open = el('a', CANVAS_BTN, 'Open / download captioned video'); open.href = final.captioned.url; open.target = '_blank'; open.rel = 'noopener noreferrer'; open.download = 'zackd-captioned';
       const save2 = el('button', CANVAS_BTN, final.captioned.saved ? 'Saved to library' : 'Save captioned to library'); save2.type = 'button';
       save2.disabled = busy || final.captioned.saved; save2.onclick = saveCaptionedToLibrary;
       r2.append(open, save2); cap.appendChild(r2);
@@ -579,7 +569,7 @@ export function ZackDStudio() {
   function invalidateCuts(slot) {
     if (assembling && (slot === 'clip' || slot === 'keyframe' || slot === 'narration' || slot === 'music')) renderStale = true;
     if (final && (slot === 'clip' || slot === 'keyframe' || ((slot === 'narration' || slot === 'music') && final.mixed))) {
-      if (final.objectUrl) URL.revokeObjectURL(final.objectUrl);
+      releaseCut(final);
       final = null;
     }
   }
@@ -718,7 +708,7 @@ export function ZackDStudio() {
       if (renderStale) {
         fail(new Error('A clip or the narration changed while this was rendering, so the cut is out of date. Render it again.'));
       } else {
-        if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);
+        releaseCut(final);
         final = { objectUrl: URL.createObjectURL(blob), blob, duration, durations, saved: false, hasNarration: !!(mixVoice && narrationUrl), mixed: mixVoice }; // captions are transcribed from the cut's audio
         showToast('Final cut ready', 'success', 2500);
       }
@@ -741,42 +731,46 @@ export function ZackDStudio() {
     busy = false; paint();
   }
 
-  // Opt-in, paid: upload the rendered cut to MuAPI, then burn animated captions in with ai-captions (Vadoo).
-  async function burnCaptions() {
-    if (!final?.blob || busy) return;
-    if (!s.narration) { fail(new Error('Captions are generated from the spoken audio. Add narration first.')); return; }
-    if (!final.hasNarration) { fail(new Error('This cut does not include the narration. Mix it in (Advanced) and render again before burning captions.')); return; }
-    if (!window.confirm('Burn captions into the video with MuAPI AI Captions? About $0.20 minimum ($0.005 per second), and it takes a few minutes.')) return;
-    busy = true; hideInlineError(container);
-    progress = createProgressBar(0, 'w-full max-w-2xl');
-    cancelCtl = createAbortAwareGenerateButton(generateBtn); cancelCtl.showCancel(); abort.current = cancelCtl.controller;
-    paint();
-    const setLabel = (t) => { const l = progress?.querySelector('.progress-label'); if (l) l.textContent = t; };
-    setLabel('Uploading the video…');
-    const cut = final; // the cut this burn belongs to
-    // recorded like the other paid jobs, so a reload while it runs can still recover the result (into the history)
-    const tracker = createPendingJobTracker('zackd', { slot: 'captions', id: 'captions', pid: s.pid }, { maxAttempts: 300, interval: 4000 });
-    let keepJob = false;
-    try {
-      const { muapi } = await import('../../../lib/muapi.js');
-      const file = new File([final.blob], 'zackd-cut.mp4', { type: 'video/mp4' });
-      const videoUrl = await muapi.uploadFile(file, { signal: abort.current.signal });
-      setLabel('Burning captions (2-3 minutes)…');
-      const r = await runJob({ kind: 'captions', videoUrl, language: s.captionLang, theme: s.captionTheme }, { signal: abort.current.signal, onRequestId: tracker.onRequestId });
-      cut.captioned = { url: r.url, saved: false };
-      if (final !== cut || disposed) { addHistory(r.url, s.topic); showToast('Captions ready. The cut changed meanwhile, so the captioned video is in the history.', 'info', 4000); } // its cut is no longer shown: keep the paid result reachable
-      else showToast('Captions ready', 'success', 2500);
-    } catch (e) { fail(e); keepJob = stoppedWaiting(e); }
-    tracker.finish({ keep: keepJob });
-    cancelCtl.reset(); cancelCtl = null; abort.current = new AbortController();
-    busy = false; progress = null; paint();
+  /** Frees the cut's video and its captioned render (both are blob: URLs that would otherwise live as long as the page). */
+  function releaseCut(cut) {
+    if (cut?.objectUrl) URL.revokeObjectURL(cut.objectUrl);
+    if (cut?.captioned?.url) URL.revokeObjectURL(cut.captioned.url);
   }
 
-  function saveCaptionedToLibrary() {
+  // Free: open the Caption Studio on the rendered cut. It transcribes the cut's own sound on this device (so narration is not required),
+  // lets the person edit and restyle, and hands back a captioned video as a blob: URL.
+  async function openFreeCaptions() {
+    if (!final?.objectUrl || busy) return;
+    const cut = final; // the cut these captions belong to
+    try {
+      const { addCaptionButton } = await import('../../../lib/editor/captionActions.js');
+      addCaptionButton({
+        videoUrl: cut.objectUrl,
+        appTheme: 'zackd',
+        onComplete: (url) => {
+          if (disposed || final !== cut) { showToast('The cut changed while you were captioning, so the captioned video was not attached. Download it from the Caption Studio next time.', 'info', 5000); return; }
+          if (cut.captioned?.url) URL.revokeObjectURL(cut.captioned.url); // the earlier captioned render
+          cut.captioned = { url, saved: false };
+          showToast('Captions ready', 'success', 2500); paint();
+        },
+        onError: (e) => fail(e),
+      });
+    } catch (e) { fail(e); }
+  }
+
+  // The captioned video is a blob: URL from the studio, so saving uploads its bytes (same path as the plain cut).
+  async function saveCaptionedToLibrary() {
     const c = final?.captioned;
-    if (!c || c.saved) return;
-    saveGeneration({ studio: 'zackd', type: 'video', url: c.url, prompt: s.topic });
-    c.saved = true; addHistory(c.url, s.topic); showToast('Saved to your library', 'success', 2500); paint();
+    if (!c || c.saved || busy) return;
+    busy = true; paint();
+    try {
+      const blob = await (await fetch(c.url)).blob();
+      const file = new File([blob], `zackd-captioned.${/webm/.test(blob.type) ? 'webm' : 'mp4'}`, { type: blob.type || 'video/mp4' });
+      const { url } = await uploadFileToSupabase(file, { category: 'video' });
+      saveGeneration({ studio: 'zackd', type: 'video', url, prompt: s.topic });
+      c.saved = true; addHistory(url, s.topic); showToast('Saved to your library', 'success', 2500);
+    } catch (e) { fail(new Error(`Couldn't save to library (${e?.message || 'upload failed'}). You can still download it.`)); }
+    busy = false; paint();
   }
 
   function download(blob, name) {
@@ -818,7 +812,7 @@ export function ZackDStudio() {
     window.removeEventListener('zackd:stored-updated', onStoredUpdated);
     abort.current.abort();
     closeDropdown();
-    if (final?.objectUrl) URL.revokeObjectURL(final.objectUrl);
+    releaseCut(final);
   };
   return container;
 }

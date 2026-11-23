@@ -14,6 +14,8 @@
  */
 import { applyMultiCam, multiCamActive } from '../multiCam.js';
 import { getAddon, addonOptions } from '../addons/registry.js';
+// [hyperframes] HyperFrames/RemotionUI animation overlays (from the CineGen timeline) become the same layer the editor preview and MP4 export render
+import { hyperframesOverlayLayer } from '../../../cinegen/lib/hyperframes/overlay';
 import { resolveOverlayText, safeImageUrl, sanitizeWrapperStyles } from '../addons/overlayRender.js';
 import { voiceSrcFor } from '../personalize/perContact.js';
 import { personalizedImageLook } from '../../personalization/imageStyle.js';
@@ -22,6 +24,7 @@ import { buildLowerThirdLottie } from '../addons/lowerThirds.js';
 import { mapVideoTransition } from './transitionMap.js';
 import { defaultCaptionStyle } from './captions.js';
 import { buildCtaLottie } from '../addons/ctaLottie.js';
+import { resolveStudioDesignOptions } from '../addons/studioDesignAddon.js';
 
 function ctaOptions(clip, profile) {
   const style = clip.style || {};
@@ -89,6 +92,9 @@ function overlayLayer(clip, opts, profile, base) {
     case 'overlay-sticker':
     case 'overlay-transition':
       o.resolvedSrc = safeImageUrl(o.src);
+      break;
+    case 'overlay-studio-design':
+      Object.assign(o, resolveStudioDesignOptions(o, profile));
       break;
     case 'overlay-background':
       o.resolvedStyles = sanitizeWrapperStyles(o.styles);
@@ -163,6 +169,11 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
         ...(clip.fadeIn > 0 ? { fadeIn: clip.fadeIn } : {}),
         ...(clip.fadeOut > 0 ? { fadeOut: clip.fadeOut } : {}),
       };
+      // Published/shared playback: the animation must not be silently dropped.
+      if (clip.type === 'hyperframes') {
+        layers.push(hyperframesOverlayLayer({ ...clip, start, end }, fps));
+        return;
+      }
       const addon = getAddon(clip.type);
 
       // [remix] Fix E: a compound rendered as ONE group: its own look (fx, opacity, blend, transform, crop, fades, zoom, flip) applies to the offscreen
@@ -223,7 +234,13 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
         return;
       }
       if (clip.type === 'image' && src) {
-        const layer = { ...base, kind: 'image', src, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
+        // A personalized image clip ({{websiteShotUrl}}, {{logoUrl}}, …): this contact's image, else
+        // the clip's fallback (Video Outreach website backgrounds). Same rule as personalized overlays.
+        const personal = /\{\{/.test(src);
+        const resolved = personal ? safeImageUrl(resolveOverlayText(src, profile)) : src;
+        const imageSrc = personal ? ((resolved && !/\{\{/.test(resolved) ? resolved : null) || safeImageUrl(clip.fallbackSrc)) : src;
+        if (!imageSrc) return;
+        const layer = { ...base, kind: 'image', src: imageSrc, ...flip, fit: clip.transform?.fit || clip.fit || 'cover', ...(clip.scroll ? { scroll: true } : {}), ...(clip.cursor ? { cursor: true } : {}), ...(clip.compoundGroup ? { compoundGroup: String(clip.compoundGroup) } : {}) };
         layers.push(layer);
         if (isVideoTrack(track) && !secondCam(track)) media.push(layer);
         return;

@@ -1,6 +1,7 @@
 
 
 import { resolveFit, DEFAULT_ASPECT } from '@cinegen/lib/occ/frame-geometry';
+import { exportClipsOf, exportTotalDuration, exportOverlaysOf, exportTransitionsOf } from '@cinegen/lib/occ/export-args';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
 import { ExportSettings, type ExportExtras } from './export-settings';
@@ -12,10 +13,14 @@ import { flattenCompounds } from '@cinegen/lib/editor/stage1'; // [remix] Stage 
 import { exportClipsFromTimeline, exportTracksFromTimeline, exportTransitionsFromTimeline } from '@cinegen/lib/editor/export-mapping';
 import { applyExportRange, applyRangeToOverlays, resolveTimelineRange } from '@cinegen/lib/editor/range/timeline-range'; // [remix] Fix B2: export range
 import { exportBlockers, describeBlockers } from '@cinegen/lib/export-blockers';
+import { PersonalizedOutput } from './personalized-output';
 
 export function ExportTab() {
   const { state, dispatch } = useWorkspace();
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const announced = useRef<Set<string>>(new Set());
+  // [remix] set by ExportSettings: renders with the options chosen there (optionally one video per contact)
+  const renderRef = useRef<((contactIds?: string[]) => void) | null>(null);
 
   const activeTimeline = getActiveTimeline(state);
   const exportRange = useMemo(() => resolveTimelineRange(activeTimeline.range, activeTimeline.duration), [activeTimeline.range, activeTimeline.duration]); // [remix] Fix B2
@@ -44,6 +49,8 @@ export function ExportTab() {
         totalDuration,
         // [remix] OpenChatCut export bitrate + render check
         videoBitrate: extras?.videoBitrate, qa: extras?.qa, aspect: extras?.aspect, container: extras?.container, // [remix] Stage 11
+        // [remix] Personalized output: one video per contact, named after the timeline
+        title: activeTimeline.name, ...(extras?.contactIds?.length ? { contactIds: extras.contactIds } : {}),
         // [remix] OpenChatCut motion-graphics templates on the overlay lane are rendered into the export
         // [remix] visual overlays (text, stickers, call buttons, End Screens, Connect Forms…) are drawn into the render; interactive forms stay player-only
         overlays: applyRangeToOverlays(state.overlays ?? [], exportRange).filter((o) => o.type !== 'mg-template' && o.type !== 'hyperframes'),
@@ -57,7 +64,7 @@ export function ExportTab() {
     } catch (error) {
       console.error('Failed to start render:', error);
     }
-  }, [dispatch, exportClips, totalDuration, exportTimeline, state.overlays, exportRange]);
+  }, [dispatch, exportClips, totalDuration, exportTimeline, state.overlays, exportRange, activeTimeline.name]);
 
   useEffect(() => {
     if (!activeJob) {
@@ -80,8 +87,17 @@ export function ExportTab() {
             completedAt: updated.completedAt,
             qa: updated.qa,
             qaStatus: updated.qaStatus,
+            done: updated.done,
+            total: updated.total,
+            label: updated.label,
+            failures: updated.failures,
           },
         });
+        // a finished export is a video the user made: list it in Caption Studio's "Your videos" (a blob: file, so for this visit only)
+        if (updated.status === 'complete' && updated.outputUrl && !announced.current.has(activeJob.id)) {
+          announced.current.add(activeJob.id);
+          void import('../../../lib/captionStudio/videos.js').then((m) => m.announceVideo({ url: updated.outputUrl, title: 'Timeline export', studio: 'cinegen' })).catch(() => {});
+        }
       } catch {
         /* polling failures are non-fatal */
       }
@@ -100,7 +116,14 @@ export function ExportTab() {
           Render your timeline as an MP4 video
         </p>
 
-        <ExportSettings hasClips={hasClips} blockedReason={blockedReason} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} fit={resolveFit(undefined, activeTimeline)} onFit={(fit) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, fit } })} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
+        <div className="export-tab__cols" data-testid="export-columns">
+          <div className="export-tab__col" data-testid="export-col-settings">
+            <h3 className="export-tab__col-title">Render options</h3>
+            <ExportSettings renderRef={renderRef} hasClips={hasClips} blockedReason={blockedReason} onRender={handleRender} aspect={activeTimeline.aspect ?? DEFAULT_ASPECT} fit={resolveFit(undefined, activeTimeline)} onFit={(fit) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, fit } })} onAspect={(aspect) => dispatch({ type: 'SET_TIMELINE', timelineId: activeTimeline.id, timeline: { ...activeTimeline, aspect } })} />
+          </div>
+          <div className="export-tab__col" data-testid="export-col-output">
+            <h3 className="export-tab__col-title">Output</h3>
+            <PersonalizedOutput renderRef={renderRef} busy={!!activeJob} hasClips={hasClips} />
         {/* [remix] OpenChatCut FCPXML export (Final Cut Pro / Premiere / DaVinci Resolve) */}
         <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
           <button type="button" disabled={!hasClips} data-testid="export-fcpxml" onClick={() => {
@@ -112,10 +135,13 @@ export function ExportTab() {
           <span style={{ fontSize: 11, opacity: 0.65 }}>For Final Cut Pro, Premiere and DaVinci Resolve. Relink the media after import.</span>
         </div>
 
-        {/* [remix] interactive sharing moved to the Leads tab */}
+        {/* [remix] sharing, social posting and leads live in the Publish tab (tab id `leads`) */}
         <p className="export-tab__hint" style={{ marginTop: 16 }}>
-          Publish an interactive version (forms, buttons) and collect leads in the <button type="button" className="mini-btn" data-testid="export-to-leads" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Leads</button> tab. A plain MP4 can't hold a form, so add a QR end card there to send MP4 viewers to your published link.
+          Publish an interactive version (forms, buttons), post to social networks and collect leads in the <button type="button" className="mini-btn" data-testid="export-to-leads" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Publish</button> tab. A plain MP4 can't hold a form, so add a QR end card there to send MP4 viewers to your published link.
         </p>
+
+          </div>
+        </div>
 
         {latestJob && (
           <div className="export-tab__progress">

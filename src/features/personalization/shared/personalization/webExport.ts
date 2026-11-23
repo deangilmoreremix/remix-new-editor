@@ -410,12 +410,24 @@ export async function exportPersonalizedVideo(
     return {
       ok: false,
       reason: 'render-failed',
-      error: error instanceof Error ? error.message : 'The in-browser render failed.',
+      error: friendlyRenderError(error),
     }
   } finally {
     if (signal) signal.removeEventListener('abort', forwardAbort)
     if (activeController === controller) activeController = null
   }
+}
+
+/**
+ * A browser that cannot fetch the source video reports only "Failed to fetch" (Chrome), "Load failed" (Safari) or
+ * "NetworkError…" (Firefox). Say what that means for the customer instead of printing the bare browser string.
+ */
+export function friendlyRenderError(error: unknown): string {
+  const message = error instanceof Error ? error.message : ''
+  if (/^(failed to fetch|load failed|networkerror)/i.test(message.trim())) {
+    return "We couldn't read this video in your browser. Try a different demo or upload your own."
+  }
+  return message || 'The in-browser render failed.'
 }
 
 /** Hand the finished file to the user as a direct download. */

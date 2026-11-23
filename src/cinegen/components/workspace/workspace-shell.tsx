@@ -18,6 +18,7 @@ import { createDefaultTimeline } from '@cinegen/lib/editor/timeline-operations';
 import { migrateSequenceToTimelines } from '@cinegen/lib/editor/timeline-migration';
 import { migrateLoadedTimelines, PROJECT_SCHEMA_VERSION } from '@cinegen/lib/editor/project-migrations'; // [remix] Fix E: versioned load migrations
 import { TopTabs, type LlmCopilotNavStatus } from './top-tabs';
+import { requestRetarget } from '@cinegen/lib/leads/open-retarget';
 import { WorkspaceLoadingState } from './workspace-loading-state';
 import { useCloudAuthRecovery } from './use-cloud-auth-recovery';
 import { ElementsTab } from '@cinegen/components/elements/elements-tab';
@@ -33,7 +34,7 @@ import {
   resolveExistingLocalPath,
 } from '@cinegen/lib/media/asset-local-storage';
 import { ExportTab } from '@cinegen/components/export/export-tab';
-import { LeadsTab } from '@cinegen/components/leads/leads-tab';
+import { PublishTab } from '@cinegen/components/publish/publish-tab'; // [remix] the Leads tab, now with Social (and later Contacts and Email) next to Share & Leads
 import { AnalyticsTab } from '@cinegen/components/analytics/analytics-tab'; // [remix]
 import { SettingsPage } from '@cinegen/components/settings/settings-page';
 import { AppToastHost, type AppToast } from '@cinegen/components/ui/app-toast';
@@ -75,6 +76,7 @@ import {
   getMaxConcurrentVisionJobs,
 } from '@cinegen/lib/utils/api-key';
 import { markWorkspaceSavePending } from './workspace-persistence';
+import { historyReducer } from './workspace-history';
 import { useMcpBridge } from './use-mcp-bridge';
 import { useCrashRecovery, recoverySliceFromState } from './use-crash-recovery'; // [remix] Stage 11 (+ Fix N: full slice)
 import { HelpTooltipLayer } from '@cinegen/components/ui/help-tooltip-layer'; // [remix] hover help for every control
@@ -191,95 +193,6 @@ function findTimelineMomentForAssetSource(params: {
    ------------------------------------------------------------------ */
 
 const initialState = createInitialWorkspaceState();
-const MAX_HISTORY = 50;
-const UNDOABLE_ACTIONS: WorkspaceAction['type'][] = [
-  'SET_NODES', 'SET_EDGES', 'UPDATE_NODE_CONFIG', 'APPLY_ELEMENT_MENTION',
-  'ADD_SPACE', 'RENAME_SPACE', 'REMOVE_SPACE', 'CLOSE_SPACE', 'OPEN_SPACE', 'SET_ACTIVE_SPACE',
-  'ADD_ASSET', 'UPDATE_ASSET', 'REMOVE_ASSET', 'REMOVE_ASSETS',
-  'ADD_FOLDER', 'UPDATE_FOLDER', 'REMOVE_FOLDER',
-  'SET_TIMELINE', 'ADD_TIMELINE', 'REMOVE_TIMELINE', 'CLOSE_TIMELINE', 'OPEN_TIMELINE',
-  'ADD_ELEMENT', 'UPDATE_ELEMENT', 'REMOVE_ELEMENT', 'REMOVE_ELEMENTS',
-  'MOVE_ELEMENTS', 'ADD_ELEMENT_FOLDER', 'UPDATE_ELEMENT_FOLDER', 'REMOVE_ELEMENT_FOLDER',
-  'SET_DIRECTOR',
-  'ADD_SET', 'UPDATE_SET', 'REMOVE_SET',
-  'ADD_OVERLAY', 'REMOVE_OVERLAY', // [remix] adding / removing an overlay can be undone (moving one is not pushed per pixel)
-];
-
-interface HistoryState {
-  current: WorkspaceState;
-  past: WorkspaceState[];
-  future: WorkspaceState[];
-  /** Timestamp of last undoable push — used to debounce rapid SET_NODES (drag) */
-  lastPushTime: number;
-  lastPushType: WorkspaceAction['type'] | null;
-}
-
-const DRAG_DEBOUNCE_MS = 300;
-
-function historyReducer(history: HistoryState, action: WorkspaceAction): HistoryState {
-  if (action.type === 'HYDRATE' || action.type === 'SYNC_CLOUD_PROJECT') {
-    return { current: workspaceReducer(history.current, action), past: [], future: [], lastPushTime: 0, lastPushType: null };
-  }
-  if (action.type === 'UNDO') {
-    if (history.past.length === 0) return history;
-    const prev = history.past[history.past.length - 1];
-    return {
-      past: history.past.slice(0, -1),
-      current: {
-        ...prev,
-        activeTab: history.current.activeTab,
-        runningNodeIds: history.current.runningNodeIds,
-        currentRun: history.current.currentRun,
-      },
-      future: [history.current, ...history.future].slice(0, MAX_HISTORY),
-      lastPushTime: history.lastPushTime,
-      lastPushType: history.lastPushType,
-    };
-  }
-
-  if (action.type === 'REDO') {
-    if (history.future.length === 0) return history;
-    const next = history.future[0];
-    return {
-      past: [...history.past, history.current].slice(-MAX_HISTORY),
-      current: {
-        ...next,
-        activeTab: history.current.activeTab,
-        runningNodeIds: history.current.runningNodeIds,
-        currentRun: history.current.currentRun,
-      },
-      future: history.future.slice(1),
-      lastPushTime: history.lastPushTime,
-      lastPushType: history.lastPushType,
-    };
-  }
-
-  const next = workspaceReducer(history.current, action);
-
-  if (UNDOABLE_ACTIONS.includes(action.type)) {
-    const now = Date.now();
-    // Debounce rapid dispatches during drag operations (node dragging, clip move/trim/roll)
-    const isDrag =
-      (action.type === 'SET_NODES' && history.lastPushType === 'SET_NODES' && now - history.lastPushTime < DRAG_DEBOUNCE_MS) ||
-      (action.type === 'SET_TIMELINE' && history.lastPushType === 'SET_TIMELINE' && now - history.lastPushTime < DRAG_DEBOUNCE_MS);
-
-    if (isDrag) {
-      // Replace the current state without pushing to undo stack
-      return { ...history, current: next };
-    }
-
-    return {
-      past: [...history.past, history.current].slice(-MAX_HISTORY),
-      current: next,
-      future: [],
-      lastPushTime: now,
-      lastPushType: action.type,
-    };
-  }
-
-  return { ...history, current: next };
-}
-
 /* ------------------------------------------------------------------
    Context
    ------------------------------------------------------------------ */
@@ -420,6 +333,12 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
       setLlmCopilotStatus((current) => ({ ...current, hasUnreadResponse: false }));
     }
     wrappedDispatch({ type: 'SET_TAB', tab });
+  }, [wrappedDispatch]);
+
+  // [remix] The header's Retarget button: Analytics > Retarget for the video that is open.
+  const handleOpenRetarget = useCallback(() => {
+    requestRetarget(); // before the tab switch: a tab that mounts afterwards reads the request on mount
+    wrappedDispatch({ type: 'SET_TAB', tab: 'analytics' });
   }, [wrappedDispatch]);
 
   // [remix] The header bell (alerts) opens this project's Analytics tab, which shows the alerts.
@@ -1508,6 +1427,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
         }}
         voiceDirectorOpen={voiceDirectorOpen}
         onToggleVoiceDirector={toggleVoiceDirector}
+        onOpenRetarget={handleOpenRetarget}
       />
       <main className="workspace-content" aria-busy={!hydrationComplete}>
         {hydrationError ? (
@@ -1545,7 +1465,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
               />
             </div>
             {state.activeTab === 'export' && <ExportTab />}
-            {state.activeTab === 'leads' && <LeadsTab />}
+            {state.activeTab === 'leads' && <PublishTab />}
             {state.activeTab === 'analytics' && <AnalyticsTab />} {/* [remix] */}
             {state.activeTab === 'settings' && (
               <SettingsPage

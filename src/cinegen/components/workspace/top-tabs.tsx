@@ -15,7 +15,7 @@ export const PROJECT_TABS: { id: ProjectTab; label: string }[] = [
   { id: 'edit', label: 'Edit' },
   { id: 'llm', label: 'LLM' },
   { id: 'export', label: 'Export' },
-  { id: 'leads', label: 'Leads' }, // [remix] publish an interactive version + collect the leads from its forms
+  { id: 'leads', label: 'Publish' }, // [remix] share, post to social networks, contacts and email; the interactive video and its leads are under Share & Leads (the id stays `leads` so saved state keeps working)
   { id: 'analytics', label: 'Analytics' }, // [remix] plays, watch time, clicks, audience, Retarget and alerts for the published video
 ];
 
@@ -26,7 +26,7 @@ const PAGE_PRESENTATION = {
   edit: { icon: MixerHorizontalIcon, detail: 'Shape the story' },
   llm: { icon: ChatBubbleIcon, detail: 'Your AI workspace' },
   export: { icon: UploadIcon, detail: 'Finish & deliver' },
-  leads: { icon: EnvelopeClosedIcon, detail: 'Publish & collect leads' },
+  leads: { icon: EnvelopeClosedIcon, detail: 'Share, social & leads' },
   analytics: { icon: BarChartIcon, detail: 'Plays, audience & alerts' },
   settings: { icon: GearIcon, detail: 'Preferences & connections' },
 };
@@ -43,6 +43,8 @@ interface TopTabsProps {
   onToggleAssistant?: () => void;
   voiceDirectorOpen?: boolean;
   onToggleVoiceDirector?: () => void;
+  /** [remix] Opens Analytics > Retarget for the video that is open (shown on every tab when provided). */
+  onOpenRetarget?: () => void;
 }
 
 export function TopTabs({
@@ -57,9 +59,28 @@ export function TopTabs({
   onToggleAssistant,
   voiceDirectorOpen = false,
   onToggleVoiceDirector,
+  onOpenRetarget,
 }: TopTabsProps) {
   const isSettingsActive = activeTab === 'settings';
   const [pageMenuOpen, setPageMenuOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+  // [remix] The tabs are pinned between the title and the action buttons, so they need to know how wide those two groups are right now
+  // (the LLM tab adds Skills, signed-in builds may add more): measured, so nothing can ever sit under another button.
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav || !onOpenRetarget || typeof ResizeObserver === 'undefined') return undefined;
+    const left = nav.querySelector('.top-nav__left');
+    const actions = nav.querySelector('.top-nav__actions');
+    const apply = () => {
+      nav.style.setProperty('--top-nav-left-w', `${Math.ceil(left?.getBoundingClientRect().width ?? 0)}px`);
+      nav.style.setProperty('--top-nav-actions-w', `${Math.ceil(actions?.getBoundingClientRect().width ?? 0)}px`);
+    };
+    const observer = new ResizeObserver(apply);
+    if (left) observer.observe(left);
+    if (actions) observer.observe(actions);
+    apply();
+    return () => observer.disconnect();
+  }, [onOpenRetarget]);
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const pageButtonRef = useRef<HTMLButtonElement>(null);
   const pageLabel = PROJECT_TABS.find(tab => tab.id === activeTab)?.label ?? 'Settings';
@@ -74,7 +95,7 @@ export function TopTabs({
   }, [pageMenuOpen]);
 
   return (
-    <nav className="top-nav" data-native-platform={window.electronAPI?.platform}>
+    <nav ref={navRef} className={`top-nav${onOpenRetarget ? ' top-nav--retarget' : ''}`} data-native-platform={window.electronAPI?.platform}>
       <div className="top-nav__left">
         <span className="top-nav__wordmark">TIMELINE STUDIO EDITOR</span> {/* [remix] product name */}
         {onBackToHome && (
@@ -121,7 +142,7 @@ export function TopTabs({
           return (
             <button
               key={id}
-              className={`top-nav__tab${id === activeTab ? ' top-nav__tab--active' : ''}${showReady ? ' top-nav__tab--unread' : ''}`}
+              className={`top-nav__tab${id === activeTab ? ' top-nav__tab--active' : ''}${id === 'leads' && id === activeTab ? ' top-nav__tab--publish' : ''}${showReady ? ' top-nav__tab--unread' : ''}`}
               onClick={() => onTabChange(id)}
             >
               <span className="top-nav__tab-label">{label}</span>
@@ -145,6 +166,21 @@ export function TopTabs({
       </div>
 
       <div className="top-nav__actions">
+        {onOpenRetarget && (
+          <button
+            className="top-nav__retarget"
+            onClick={onOpenRetarget}
+            title="Retarget"
+            aria-label="Open Retarget"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <circle cx="12" cy="12" r="4.5" />
+              <circle cx="12" cy="12" r="0.8" fill="currentColor" />
+            </svg>
+            <span className="top-nav__retarget-label">Retarget</span>
+          </button>
+        )}
         <button
           className={`top-nav__settings${isSettingsActive ? ' top-nav__settings--active' : ''}`}
           onClick={() => onTabChange(isSettingsActive ? 'create' : 'settings')}

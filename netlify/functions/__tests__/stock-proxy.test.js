@@ -80,10 +80,10 @@ describe('Netlify stock proxies', () => {
     expect(url.searchParams.get('key')).toBe('pk');
   });
 
-  it('Pixabay: 503 tells the user to add a key in Settings', async () => {
+  it('Pixabay: 503 tells the admin to set PIXABAY_API_KEY', async () => {
     delete process.env.PIXABAY_API_KEY;
     const res = await pixabay(ev('/api/pixabay/videos/popular', {}));
     expect(res.statusCode).toBe(503);
-    expect(JSON.parse(res.body).error.message).toContain('Settings');
+    expect(JSON.parse(res.body).error.message).toContain('PIXABAY_API_KEY');
   });
 });

@@ -281,11 +281,22 @@ const PAGE_HEADERS = SITE_PAGE_HEADERS
 
 const IMAGE_HEADERS = SITE_IMAGE_HEADERS
 
+/** Largest page body that is downloaded: axios aborts the stream beyond it, so a huge response is never buffered. */
+export const MAX_PAGE_BYTES = 5 * 1024 * 1024
+
 /**
  * Fetches a page, following only redirects whose destination passes the full
  * validation. Exported so the SSRF regression tests can drive it directly.
  */
 export async function fetchPage(url: string, deadlineAt?: number): Promise<string | null> {
+  return (await fetchPageWithFinalUrl(url, deadlineAt))?.html ?? null
+}
+
+/** Like `fetchPage`, but also returns the URL the HTML came from (after redirects) so relative links resolve correctly. */
+export async function fetchPageWithFinalUrl(
+  url: string,
+  deadlineAt?: number,
+): Promise<{ html: string; finalUrl: string } | null> {
   const timeout = remainingBudgetMs(deadlineAt)
   if (timeout <= 0) {
     console.log(`[fetchPage] ${url} -> skipped (deadline reached)`)
@@ -293,15 +304,20 @@ export async function fetchPage(url: string, deadlineAt?: number): Promise<strin
   }
 
   try {
+    let finalUrl = url
     const response = await requestWithValidatedRedirects(
       url,
-      (target, config) =>
-        axios.get(target, {
+      (target, config) => {
+        finalUrl = target // the last hop requested is the page that answered
+        return axios.get(target, {
           ...config,
           responseType: 'arraybuffer',
           headers: { ...PAGE_HEADERS },
+          maxContentLength: MAX_PAGE_BYTES,
+          maxBodyLength: MAX_PAGE_BYTES,
           validateStatus: (s: number) => s >= 200 && s < 400,
-        }),
+        })
+      },
       REDIRECT_LIMIT,
       timeout,
       deadlineAt,
@@ -312,7 +328,7 @@ export async function fetchPage(url: string, deadlineAt?: number): Promise<strin
       return null
     }
     const buffer = Buffer.from(response.data as ArrayBuffer)
-    return buffer.toString('utf-8')
+    return { html: buffer.toString('utf-8'), finalUrl }
   } catch (err) {
     const reason = err instanceof NetworkSafetyError ? err.reason : null
     if (reason === 'deadline_reached') {

@@ -7,6 +7,7 @@
  * inline opacity/transform values for a given frame.
  */
 
+const TYPING_STEPS = 20;
 const ANIM_FRAMES = 24; // ~0.8 s at 30 fps, matching .animated duration
 
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
@@ -33,11 +34,13 @@ function fromOffset(name, big) {
  */
 export function entrancePose(name, p) {
   const t = clamp01(p);
-  const pose = { opacity: 1, tx: 0, ty: 0, scale: 1, rotate: 0, rotateX: 0, rotateY: 0, skewX: 0 };
+  const pose = { opacity: 1, tx: 0, ty: 0, scale: 1, rotate: 0, rotateX: 0, rotateY: 0, skewX: 0, blur: 0, clipRight: 0 };
   if (!name) return pose;
   const e = easeOut(t);
   const big = /Big/.test(name);
-  if (/^fadeIn/.test(name)) {
+  if (name === 'typing') Object.assign(pose, { clipRight: 100 * (1 - Math.floor(t * TYPING_STEPS) / TYPING_STEPS) }); // revealed left to right in steps, like the editor's CSS
+  else if (name === 'blurIn') Object.assign(pose, { opacity: e, blur: 14 * (1 - e) });
+  else if (/^fadeIn/.test(name)) {
     const [x, y] = fromOffset(name, big);
     Object.assign(pose, { opacity: e, tx: x * (1 - e), ty: y * (1 - e) });
   } else if (/^slideIn/.test(name)) {
@@ -85,6 +88,8 @@ export function idlePose(name, f, fps = 30) {
   const s = f / fps;
   const w = (period) => Math.sin((s / period) * Math.PI * 2);
   switch (name) {
+    case 'flicker': { const m = s % 2; pose.opacity = (m > 0.16 && m < 0.2) || (m > 0.84 && m < 0.92) || (m > 1.4 && m < 1.44) ? 0.3 : 1; break; }
+    case 'blink': pose.opacity = (s % 1) < 0.5 ? 1 : 0.15; break;
     case 'pulse': pose.scale = 1 + 0.05 * (0.5 + 0.5 * w(1)); break;
     case 'bounce': pose.ty = -12 * Math.abs(w(1)); break;
     case 'flash': pose.opacity = 0.5 + 0.5 * Math.cos((s / 1) * Math.PI * 4); break;
@@ -129,5 +134,10 @@ export function animationStyle({ animation, transition } = {}, frame, durationIn
   if (pose.rotateY) parts.push(`perspective(800px) rotateY(${pose.rotateY}deg)`);
   if (pose.skewX) parts.push(`skewX(${pose.skewX}deg)`);
   if (pose.scale * panZoom !== 1) parts.push(`scale(${pose.scale * panZoom})`);
-  return { opacity: pose.opacity, transform: parts.join(' ') || undefined };
+  return {
+    opacity: pose.opacity,
+    transform: parts.join(' ') || undefined,
+    ...(pose.blur ? { filter: `blur(${pose.blur}px)` } : {}),
+    ...(pose.clipRight ? { clipPath: `inset(0 ${pose.clipRight}% 0 0)` } : {}),
+  };
 }

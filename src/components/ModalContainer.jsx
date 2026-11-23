@@ -72,10 +72,27 @@ const HEADER_TITLE_STYLE = {
   fontWeight: 700,
 };
 
-const SingleModal = observer(({ config, modalStore }) => {
-  const { id, renderer: Renderer, className, maxWidth, header } = config;
+// `frame: 'app'` (opt-in per modal) draws the window the way the "Personalize this demo" window is drawn: a #0a0a0a shell with a #27272a
+// border and 22px corners over a dark lime-tinted backdrop. The modal then draws its own header and close button. Every other modal keeps
+// the default frame below.
+const APP_FRAME_BACKDROP = { position: 'absolute', inset: 0, background: 'radial-gradient(circle at top, rgba(217,255,0,.07), transparent 30%), rgba(10,10,10,.92)' };
 
-  const contentStyle = {
+const SingleModal = observer(({ config, modalStore }) => {
+  const { id, renderer: Renderer, className, maxWidth, header, frame } = config;
+  const appFrame = frame === 'app';
+
+  const contentStyle = appFrame ? {
+    position: 'relative',
+    zIndex: 1,
+    width: '100%',
+    maxWidth: resolveMaxWidth(maxWidth),
+    maxHeight: '90vh',
+    overflow: 'auto',
+    borderRadius: 22,
+    border: '1px solid #27272a',
+    background: '#0a0a0a',
+    boxShadow: '0 30px 90px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.025)',
+  } : {
     position: 'relative',
     zIndex: 1,
     width: '100%',
@@ -107,16 +124,18 @@ const SingleModal = observer(({ config, modalStore }) => {
 
   return (
     <div style={OVERLAY_STYLE} data-modal-id={id}>
-      <div style={BACKDROP_STYLE} onClick={handleClose} />
-      <div style={contentStyle} className={className}>
-        <button
-          type="button"
-          aria-label="Close"
-          style={CLOSE_BUTTON_STYLE}
-          onClick={handleClose}
-        >
-          &times;
-        </button>
+      <div style={appFrame ? APP_FRAME_BACKDROP : BACKDROP_STYLE} onClick={handleClose} />
+      <div style={contentStyle} className={className} {...(appFrame ? { role: 'dialog', 'aria-modal': 'true' } : {})}>
+        {!appFrame && (
+          <button
+            type="button"
+            aria-label="Close"
+            style={CLOSE_BUTTON_STYLE}
+            onClick={handleClose}
+          >
+            &times;
+          </button>
+        )}
         {header && header.title ? <h2 style={HEADER_TITLE_STYLE}>{header.title}</h2> : null}
         <React.Suspense fallback={<div style={{ padding: 32, color: '#fff' }}>Loading…</div>}>
           <Renderer handleClose={handleClose} closeModal={handleClose} options={modalStore.options} />

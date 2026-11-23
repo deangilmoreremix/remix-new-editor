@@ -49,7 +49,7 @@ const hue = (s) => [...String(s)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 
  */
 export function openSmartSpeechModal(services = {}, { mount = document.body } = {}) {
   const storage = services.storage ?? globalThis.localStorage;
-  const d = { provider: 'minimax', voice: PROVIDER_SETTINGS.minimax.defaultVoice, speed: 1, pitch: 0, instructions: '', text: '', fallback: '' };
+  const d = { provider: 'minimax', voice: PROVIDER_SETTINGS.minimax.defaultVoice, speed: 1, pitch: 0, instructions: '', text: String(services.initialText ?? ''), fallback: '' }; // initialText: "Convert to Smart Speech" from a Smart Text
   const ui = { tab: 'create', libTab: 'voice', busy: false, errors: [], tokenMenu: false, caret: null,
     view: 'form', selected: null, progress: null, controller: null };
   let last = null; // { key, url, duration }

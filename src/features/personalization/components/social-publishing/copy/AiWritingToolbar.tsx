@@ -94,7 +94,7 @@ export function AiWritingToolbar({ onAction, loading, disabled }: AiWritingToolb
         {toneOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setToneOpen(false)} />
-            <div className="absolute z-20 mt-1 w-40 rounded-lg border border-white/10 bg-[#111] py-1 shadow-xl">
+            <div className="absolute z-20 mt-1 w-40 rounded-lg border border-white/10 bg-card-bg py-1 shadow-xl">
               {toneOptions.map((opt) => (
                 <button
                   key={opt.value}
@@ -124,7 +124,7 @@ export function AiWritingToolbar({ onAction, loading, disabled }: AiWritingToolb
         {toneOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setToneOpen(false)} />
-            <div className="absolute z-20 mt-1 w-40 rounded-lg border border-white/10 bg-[#111] py-1 shadow-xl">
+            <div className="absolute z-20 mt-1 w-40 rounded-lg border border-white/10 bg-card-bg py-1 shadow-xl">
               {toneOptions.map((opt) => (
                 <button
                   key={opt.value}
@@ -154,7 +154,7 @@ export function AiWritingToolbar({ onAction, loading, disabled }: AiWritingToolb
         {lengthOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setLengthOpen(false)} />
-            <div className="absolute z-20 mt-1 w-40 rounded-lg border border-white/10 bg-[#111] py-1 shadow-xl">
+            <div className="absolute z-20 mt-1 w-40 rounded-lg border border-white/10 bg-card-bg py-1 shadow-xl">
               {lengthOptions.map((opt) => (
                 <button
                   key={opt.value}
@@ -184,7 +184,7 @@ export function AiWritingToolbar({ onAction, loading, disabled }: AiWritingToolb
         {platformOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setPlatformOpen(false)} />
-            <div className="absolute z-20 mt-1 w-40 rounded-lg border border-white/10 bg-[#111] py-1 shadow-xl">
+            <div className="absolute z-20 mt-1 w-40 rounded-lg border border-white/10 bg-card-bg py-1 shadow-xl">
               {platformOptions.map((opt) => (
                 <button
                   key={opt.value}

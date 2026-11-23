@@ -22,6 +22,9 @@
  *     the same owner as the video, and otherwise silently records nothing. Failures never affect ingest.
  *   - privacy: the random viewer id is hashed with a server salt before it is
  *     stored; IP addresses are used only to derive a hashed rate-limit key
+ *   - country: only a two-letter ISO code from the CDN geo header (x-nf-geo, else x-country) is stored on the session.
+ *     No IP, city or region is ever read into the payload. Collection consent is enforced by the player (it sends nothing
+ *     when DNT/GPC/consent=off), so, like device and referrer, country is stored for every request that reaches this function.
  *
  * The service-role key stays on the server (SUPABASE_SERVICE_ROLE_KEY).
  */
@@ -135,6 +138,24 @@ export function normalizeEvent(e) {
   return out;
 }
 
+/**
+ * Two-letter ISO country code from the request headers, or null. Netlify sends `x-nf-geo` as base64 JSON
+ * ({ country: { code: 'US' }, city, ... }); only country.code is read. `x-country` is accepted as a fallback.
+ */
+export function countryFromHeaders(h = {}) {
+  const lower = {};
+  for (const k of Object.keys(h || {})) lower[k.toLowerCase()] = h[k];
+  const ok = (v) => (typeof v === 'string' && /^[A-Za-z]{2}$/.test(v.trim()) && v.trim().toUpperCase() !== 'XX' ? v.trim().toUpperCase() : null);
+  const geo = lower['x-nf-geo'];
+  if (typeof geo === 'string' && geo) {
+    try {
+      const code = ok(JSON.parse(Buffer.from(geo, 'base64').toString('utf8'))?.country?.code);
+      if (code) return code;
+    } catch { /* malformed header: fall through to the fallback */ }
+  }
+  return ok(lower['x-country']);
+}
+
 export function deviceClass(ua = '') {
   if (/ipad|tablet/i.test(ua)) return 'tablet';
   if (/mobi|android|iphone|ipod/i.test(ua)) return 'mobile';
@@ -171,7 +192,7 @@ async function limited(cfg, fetchImpl, checks) {
   }
 }
 
-export async function handle(body, { ip = 'unknown', ua = '', fetchImpl = fetch, env = process.env } = {}) {
+export async function handle(body, { ip = 'unknown', ua = '', country = null, fetchImpl = fetch, env = process.env } = {}) {
   const cfg = config(env);
   if (!cfg) return fail(503, 'not_configured', 'Analytics is not configured');
   if (!body || typeof body !== 'object') return fail(400, 'bad_request', 'Body must be a JSON object');
@@ -199,7 +220,7 @@ export async function handle(body, { ip = 'unknown', ua = '', fetchImpl = fetch,
   let result;
   try {
     // Always runs (even for a heat-only batch): it resolves the video and creates the session row the heat events hang off.
-    result = await rpc(cfg, fetchImpl, 'ingest_video_events', {
+    const ingestArgs = {
       p_video_id: body.video,
       p_session_key: body.session,
       p_viewer_hash: viewer,
@@ -207,7 +228,16 @@ export async function handle(body, { ip = 'unknown', ua = '', fetchImpl = fetch,
       p_device: deviceClass(ua),
       p_referrer: referrer,
       p_events: legacy,
-    });
+    };
+    const cc = typeof country === 'string' && /^[A-Z]{2}$/.test(country) ? country : null;
+    try {
+      result = await rpc(cfg, fetchImpl, 'ingest_video_events', cc ? { ...ingestArgs, p_country: cc } : ingestArgs);
+    } catch (err) {
+      // Deploy-order safety: before the country migration is applied PostgREST has no 8-argument function (404), so retry without it.
+      if (!cc || err?.status !== 404) throw err;
+      console.warn('[video-events] country capture unavailable (migration not applied?):', err?.message);
+      result = await rpc(cfg, fetchImpl, 'ingest_video_events', ingestArgs);
+    }
     if (result?.ok && recipient) {
       // Best effort and silent: an old database without the function, a bad token, or another owner's campaign all end up
       // as "not attributed"; none of it is reported to the client or fails the batch.
@@ -255,5 +285,5 @@ export async function handler(event) {
   try { body = JSON.parse(raw || '{}'); } catch { return fail(400, 'bad_request', 'Body must be JSON'); }
   const h = event.headers || {};
   const ip = h['x-nf-client-connection-ip'] || h['x-forwarded-for']?.split(',')[0]?.trim() || 'unknown';
-  return handle(body, { ip, ua: h['user-agent'] || '' });
+  return handle(body, { ip, ua: h['user-agent'] || '', country: countryFromHeaders(h) });
 }

@@ -13,10 +13,13 @@
  * composites every overlay active at the playhead above the video.
  */
 import { registerAddon } from './registry.js';
-import { OVERLAY_FONTS, BLEND_MODES, OVERLAY_ANIMATIONS, VIDEO_TRANSITIONS } from './overlayData.js';
+import { BLEND_MODES, OVERLAY_ANIMATIONS, VIDEO_TRANSITIONS } from './overlayData.js';
 import { TRANSITION_CATEGORIES } from './stockMedia.js';
 import { mapVideoTransition, presentationLabel } from '../remotion/transitionMap.js';
 import { CTA_LINK_FIELDS, CTA_LINK_DEFAULTS } from './ctaLink.js';
+import { TEXT_ANIMATIONS } from './textEffects.js';
+import { overlayFontOptions } from './fontLibrary.js';
+import { TEXT_STYLE_PRESETS } from './textStylePresets.js';
 
 /**
  * Video Transitions picker: Remotion's own transitions first (they look the
@@ -51,7 +54,8 @@ export const IMAGE_TRANSITIONS = [
   ['popcorn-fade-in-up', 'Fade In Up'],
 ];
 
-const fontOptions = OVERLAY_FONTS.map((f) => [f, f]);
+// the shared font list (upstream's + the captions' Google families + fonts the user imported); a function so a newly imported font shows at once
+const fontOptions = (services) => overlayFontOptions(services?.userFonts?.() ?? [], services?.extraFonts ?? [], services?.systemFonts?.() ?? []);
 
 const PAD = 3;
 /** Upstream Basic tab position math (left/center/right × top/middle/bottom). */
@@ -86,6 +90,9 @@ const BASE = {
   timing: ['start', 'end'],
 };
 
+// quick colours for text (the hex box takes any other)
+const TEXT_SWATCHES = ['#FFFFFF', '#000000', '#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#00C7BE', '#007AFF', '#AF52DE', '#FF2D95'];
+
 export const SMART_TEXT = registerAddon({
   ...BASE,
   type: 'overlay-text',
@@ -118,24 +125,24 @@ export const SMART_TEXT = registerAddon({
     animation: { in: null, idle: null, out: null },
   }),
   fields: [
-    { key: 'text', label: 'Text', type: 'tokens', tab: 'Basic' },
+    { key: 'text', label: 'Text', type: 'tokens', chips: true, tab: 'Basic' },
+    { key: 'speech', label: 'Convert to Smart Speech', type: 'action', action: 'speech', hostOnly: true, tab: 'Basic', showIf: (o) => !!String(o.text || '').trim() },
     { key: 'position', label: 'Text Position', type: 'position', tab: 'Basic' },
     ...LINK_FIELDS('Basic'),
     { key: 'rotation', label: 'Rotation', type: 'range', min: -180, max: 180, tab: 'Basic' },
-    ANIMATION_FIELD('Basic'),
-    { key: 'fontFamily', label: 'Font', type: 'font', options: fontOptions, tab: 'Advanced' },
+    { ...ANIMATION_FIELD('Basic'), animations: TEXT_ANIMATIONS }, // + Typing, Blur In, Flicker, Blink
+    { key: 'style', label: 'Style presets', type: 'stylePresets', presets: TEXT_STYLE_PRESETS, tab: 'Advanced' },
+    { key: 'fontFamily', label: 'Font', type: 'font', options: fontOptions, preview: true, tab: 'Advanced' },
+    // upstream Advanced tab: size slider (greyed out while Scale To Fit is on), bold / italic buttons, alignment icons, colours
+    { key: 'fontSize', label: 'Font Size', type: 'range', min: 1, max: 40, tab: 'Advanced', disabledIf: (o) => !!o.fontDecorations?.responsive },
     { key: 'fontDecorations.responsive', label: 'Scale To Fit', type: 'toggle', tab: 'Advanced' },
-    { key: 'fontSize', label: 'Font Size', type: 'range', min: 1, max: 40, tab: 'Advanced', showIf: (o) => !o.fontDecorations?.responsive },
-    { key: 'fontDecorations.bold', label: 'Bold', type: 'toggle', tab: 'Advanced' },
-    { key: 'fontDecorations.italics', label: 'Italic', type: 'toggle', tab: 'Advanced' },
-    { key: 'alignment', label: 'Alignment', type: 'select', options: [['left', 'Left'], ['center', 'Center'], ['right', 'Right']], tab: 'Advanced' },
-    { key: 'fontColor', label: 'Font color', type: 'color', tab: 'Advanced' },
-    { key: 'shadow', label: 'Shadow', type: 'toggle', tab: 'Advanced' },
-    { key: 'shadowColor', label: 'Shadow color', type: 'color', tab: 'Advanced', showIf: (o) => o.shadow },
-    { key: 'stroke', label: 'Stroke', type: 'toggle', tab: 'Advanced' },
-    { key: 'strokeColor', label: 'Stroke color', type: 'color', tab: 'Advanced', showIf: (o) => o.stroke },
-    { key: 'background', label: 'Background', type: 'toggle', tab: 'Advanced' },
-    { key: 'backgroundColor', label: 'Background color', type: 'color', tab: 'Advanced', showIf: (o) => o.background },
+    { key: 'fontDecorations.bold', label: 'B', title: 'Bold', style: 'font-weight:700', type: 'toggleBtn', tab: 'Advanced' },
+    { key: 'fontDecorations.italics', label: 'I', title: 'Italic', style: 'font-style:italic', type: 'toggleBtn', tab: 'Advanced' },
+    { key: 'alignment', label: 'Alignment', type: 'align', tab: 'Advanced' },
+    { key: 'fontColor', label: 'Font color', type: 'color', swatches: TEXT_SWATCHES, tab: 'Advanced' },
+    { key: 'shadow', label: 'Shadow', type: 'toggleColor', colorKey: 'shadowColor', tab: 'Advanced' },
+    { key: 'stroke', label: 'Stroke', type: 'toggleColor', colorKey: 'strokeColor', tab: 'Advanced' },
+    { key: 'background', label: 'Background', type: 'toggleColor', colorKey: 'backgroundColor', tab: 'Advanced' },
     ...LOOK_FIELDS('Advanced'),
   ],
   // Upstream "Text Position" icon groups: place the box with 3% padding.

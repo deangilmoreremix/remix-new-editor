@@ -1,6 +1,6 @@
 // [remix] Host-only timeline behaviour (desktop-file drop, Library drag and drop, Alt-drag rate stretch, Smart Speech, Template Generator,
 // Personalization hub) kept out of timeline-editor.tsx so that file stays close to the vendored CineGen copy (see timeline-parity.test.ts).
-import { useCallback, type MutableRefObject, type RefObject } from 'react';
+import { useCallback, useEffect, type MutableRefObject, type RefObject } from 'react';
 import type { Timeline } from '@cinegen/types/timeline';
 import { clipEffectiveDuration, clipEndTime } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
@@ -8,7 +8,7 @@ import { generateId } from '@cinegen/lib/utils/ids';
 import { addClipToTrack, addTrack } from '@cinegen/lib/editor/timeline-operations';
 import { decodeLibraryDrag, hasLibraryDrag, LIBRARY_DND, type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 import { applyComposition, type Composition } from '@cinegen/lib/occ/template-composition';
-import { openSmartSpeech } from '@cinegen/lib/occ/smart-speech';
+import { openSmartSpeech, OPEN_SPEECH_EVENT } from '@cinegen/lib/occ/smart-speech';
 
 type Dispatch = (action: any) => void; // the workspace reducer's dispatch (actions are checked at the call sites' reducer)
 
@@ -90,7 +90,7 @@ export function useHostTimelineActions(d: HostActionDeps) {
   }, [setTimeline, timelineRef]);
 
   // Smart Speech (classic editor's modal): generated audio -> asset + audio clip at the playhead, settings kept on the clip
-  const handleOpenSpeech = useCallback(() => {
+  const handleOpenSpeech = useCallback((text?: unknown) => { // also used as a click handler, so the argument may be an event
     openSmartSpeech({
       clips: () => timelineRef.current.clips,
       add: ({ url, duration, tts, name }) => {
@@ -106,27 +106,37 @@ export function useHostTimelineActions(d: HostActionDeps) {
         const added = next.clips.find((c) => c.assetId === asset.id);
         setTimeline({ ...next, clips: next.clips.map((c) => (c === added ? { ...c, tts } : c)) });
       },
-    });
+    }, typeof text === 'string' ? text : '');
   }, [dispatch, setTimeline, timelineRef, currentTime]);
+
+  // A Smart Text's "Convert to Smart Speech" button asks for the window with its text
+  useEffect(() => {
+    const on = (e: Event) => handleOpenSpeech((e as CustomEvent<{ text?: string }>).detail?.text);
+    window.addEventListener(OPEN_SPEECH_EVENT, on);
+    return () => window.removeEventListener(OPEN_SPEECH_EVENT, on);
+  }, [handleOpenSpeech]);
 
   // Template Generator (classic editor's wizard): its composition is placed on this timeline in one undo step
   const handleOpenGenerator = useCallback(async () => {
-    const { TemplateGeneratorModal } = await import('../../../components/modals/TemplateGeneratorModal.jsx');
+    const [{ TemplateGeneratorModal }, { generatorHostOptions }] = await Promise.all([
+      import('../../../components/modals/TemplateGeneratorModal.jsx'),
+      import('@cinegen/lib/occ/template-generator-host'),
+    ]);
     const modal = new TemplateGeneratorModal({
+      ...generatorHostOptions(assets), // [remix] this editor's libraries, GL transitions, project media ("My media") and video export
       onConfirm: (result: { composition?: Composition }) => {
         if (!result?.composition) return;
-        const applied = applyComposition(timelineRef.current, result.composition);
-        applied.assets.forEach((asset) => dispatch({ type: 'ADD_ASSET', asset }));
-        applied.overlays.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
-        setTimeline(applied.timeline);
+        // [remix] starts at the playhead and is ONE undo step (a BATCH), so a single Undo removes everything the generator added
+        const applied = applyComposition(timelineRef.current, result.composition, currentTime);
+        dispatch({ type: 'BATCH', actions: [
+          ...applied.assets.map((asset) => ({ type: 'ADD_ASSET' as const, asset })),
+          ...applied.overlays.map((overlay) => ({ type: 'ADD_OVERLAY' as const, overlay })),
+          { type: 'SET_TIMELINE' as const, timelineId: timelineRef.current.id, timeline: applied.timeline },
+        ] });
       },
     });
-    // "My Media" in the wizard lists the project's own clips and images (as it listed the classic editor's media)
-    (modal as unknown as { data: { media: unknown[] } }).data.media = assets
-      .filter((x) => x.type === 'video' || x.type === 'image')
-      .map((x) => ({ id: x.id, assetId: x.id, type: x.type, name: x.name, url: x.url, duration: x.duration, thumbnail: x.thumbnailUrl ?? x.url, width: x.width, height: x.height }));
     modal.open();
-  }, [dispatch, setTimeline, timelineRef, assets]);
+  }, [dispatch, setTimeline, timelineRef, assets, currentTime]);
 
   // Personalization hub (contacts, tokens, per-contact generation) — the classic editor's own window
   const handleOpenPersonalization = useCallback(async () => {

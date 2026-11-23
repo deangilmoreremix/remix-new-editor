@@ -90,12 +90,15 @@
    2. Reset / Base Styles
    -------------------------------------------------------------------------- */
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* [remix] In Tailwind's `base` layer: an unlayered `* { margin: 0; padding: 0 }` beats every Tailwind utility (p-5, mt-3, ...) in the rest of the app once this stylesheet loads */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 html,
@@ -114,44 +117,49 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* [remix] Element-level rules that would otherwise beat Tailwind utilities app-wide (see the reset above) live in `base` too: CineGen's own class styles still win over them */
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 /* --------------------------------------------------------------------------
    3. Form Elements
    -------------------------------------------------------------------------- */
 
-input,
-textarea,
-select {
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: 13px;
-  padding: 8px 12px;
-  transition: border-color var(--transition-fast);
-}
+@layer base {
+  input,
+  textarea,
+  select {
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    font-size: 13px;
+    padding: 8px 12px;
+    transition: border-color var(--transition-fast);
+  }
 
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: var(--accent);
-  outline: none;
-}
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--accent);
+    outline: none;
+  }
 
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-tertiary);
-}
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-tertiary);
+  }
 
-button {
-  all: unset;
-  cursor: pointer;
-  font-family: var(--font-display);
+  button {
+    all: unset;
+    cursor: pointer;
+    font-family: var(--font-display);
+  }
 }
 
 /* Range inputs */
@@ -400,6 +408,26 @@ input[type='range']::-moz-range-track {
   letter-spacing: 0.02em;
   color: inherit;
 }
+
+/* [remix] The header's Retarget button: always visible and labelled, in the lime accent so it is easy to spot. */
+.top-nav__retarget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px 0 8px;
+  border: 1px solid rgba(217, 255, 0, 0.45);
+  border-radius: 6px;
+  background: rgba(217, 255, 0, 0.06);
+  color: var(--accent, #d9ff00);
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+  -webkit-app-region: no-drag;
+}
+.top-nav__retarget-label { font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: inherit; }
+.top-nav__retarget:hover { background: var(--accent-dim); color: var(--accent-hover); border-color: var(--accent); }
+.top-nav__retarget:focus-visible { outline: 2px solid rgba(217, 255, 0, 0.65); outline-offset: 2px; -webkit-app-region: no-drag; }
 
 .top-nav__skills:hover {
   background: var(--accent-dim);
@@ -10540,10 +10568,22 @@ input[type='range']::-moz-range-track {
 
 .export-tab__panel {
   width: 100%;
-  max-width: 560px;
+  max-width: 1120px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+/* Two columns so every render option is visible at once; one column on narrow windows. */
+.export-tab__cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+.export-tab__col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.export-tab__col-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin: 0; }
+@media (max-width: 900px) {
+  .export-tab__cols { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 }
 
 .export-tab__title {
@@ -10600,8 +10640,11 @@ input[type='range']::-moz-range-track {
   font-family: var(--font-display);
   padding: 8px 12px;
   font-size: 14px;
-  width: 120px;
+  width: auto;
+  min-width: 160px;
+  max-width: 100%;
 }
+.export-settings__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
 .export-settings__render-btn {
   background: var(--accent);
@@ -20956,6 +20999,8 @@ input[type='range']::-moz-range-track {
     padding: 0;
   }
   .top-nav__skills-label { display: none; }
+  .top-nav__retarget-label { display: none; }
+  .top-nav__retarget { width: 40px; height: 40px; padding: 0; }
   .top-nav__actions { gap: 1px; }
 
   .top-nav__tabs {

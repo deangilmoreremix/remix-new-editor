@@ -8,6 +8,7 @@
  * Clerk `sub`); public reads go straight to the REST API with the anon key.
  */
 
+import { cleanTranscript } from '../../outreach/transcript.js';
 import { isImageTokenKey, shareableImageValue } from '../../personalization/imageReadiness.js';
 
 export const PROJECT_VERSION = 1;
@@ -56,12 +57,17 @@ export function canonicalUrl(video, origin = globalThis.location?.origin || '') 
   return watchUrl(video.id, origin);
 }
 
+/** The link on the business's own domain, or null until a domain is set. Live only once it is verified (customDomainVerified). */
+export const customDomainUrl = (video) => (video?.customDomain && video?.slug ? `https://${video.customDomain}/${encodeURIComponent(video.slug)}` : null);
+
 const SLUG_ERRORS = {
   slug_taken: 'That name is already taken. Try another.',
   invalid_slug: 'That name is not allowed. Use 3-48 lowercase letters, numbers and hyphens.',
   business_required: 'Choose a business name first.',
   not_found: 'Publish the video first.',
   not_authenticated: 'Sign in to change your link.',
+  domain_taken: 'That domain is already used by another business.',
+  invalid_domain: 'Enter a domain like videos.yourbusiness.com (no https:// or path).',
 };
 const slugFail = (error) => {
   if (!error) return;
@@ -108,6 +114,16 @@ function clean(value) {
  * The JSON snapshot that gets published.
  * @throws when local (unsaved) media is still referenced
  */
+/** Chapters as plain data: up to 20, sorted, a time and a short title each. */
+export function cleanChapters(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((c) => c && Number.isFinite(Number(c.startMs)) && typeof c.title === 'string' && c.title.trim())
+    .slice(0, 20)
+    .map((c) => ({ startMs: Math.max(0, Math.round(Number(c.startMs))), title: c.title.trim().slice(0, 80) }))
+    .sort((a, b) => a.startMs - b.startMs);
+}
+
 export function preparePublishProject(state, { title } = {}) {
   const tracks = (state?.tracks || []).map((t) => ({
     id: t.id, name: t.name, type: t.type, muted: !!t.muted, solo: !!t.solo,
@@ -124,13 +140,42 @@ export function preparePublishProject(state, { title } = {}) {
     version: PROJECT_VERSION,
     title: String(title || state?.projectTitle || 'Untitled video').slice(0, 200),
     timelineSeconds: Number(state?.timelineSeconds) || 60,
+    // The frame's shape ("W:H"), when it isn't 16:9 (a square or vertical Video Outreach recording).
+    ...(/^\d{1,4}:\d{1,4}$/.test(String(state?.aspect || '')) && state.aspect !== '16:9' ? { aspect: state.aspect } : {}),
     tracks,
     listBuilder: state?.listBuilder ? clean(state.listBuilder) : null,
     multiCam: state?.multiCam ? clean(state.multiCam) : null,
     // The owner's mapping of sections to products/services (Projects > Retarget): lets the
     // server score viewer interest from observed behaviour. Absent when not mapped.
     ...(Array.isArray(state?.interestMap) && state.interestMap.length ? { interestMap: clean(state.interestMap.slice(0, 20)) } : {}),
+    // Video Outreach campaigns (src/lib/outreach/draft.js): the landing text shown around the
+    // player on /watch/<id>, and a marker so the studio can list its campaigns.
+    ...(state?.kind === 'outreach' ? { kind: 'outreach' } : {}),
+    ...(state?.campaign ? { campaign: { name: str(state.campaign.name, 120), contacts: Math.max(0, Math.min(100000, Number(state.campaign.contacts) || 0)) } } : {}),
+    ...(state?.landing ? { landing: cleanLanding(state.landing) } : {}),
+    // Its transcript (src/lib/outreach/transcript.js), shown under the video on the watch page.
+    ...(cleanTranscript(state?.transcript) ? { transcript: cleanTranscript(state.transcript) } : {}),
+    // Its chapters (Video Outreach editor), listed under the video: [{ startMs, title }].
+    ...(cleanChapters(state?.chapters).length > 1 ? { chapters: cleanChapters(state.chapters) } : {}),
   };
+}
+
+const str = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
+
+/** Landing text for a published video: plain strings, capped, and an https-only booking link. */
+export function cleanLanding(landing = {}) {
+  const fallbacks = {};
+  Object.entries(landing.fallbacks || {}).slice(0, 12).forEach(([k, v]) => {
+    if (/^[A-Za-z0-9_]{1,40}$/.test(k)) fallbacks[k] = str(v, 60);
+  });
+  let cta = null;
+  if (landing.cta && typeof landing.cta === 'object') {
+    let url = null;
+    try { const u = new URL(String(landing.cta.url)); if (u.protocol === 'https:') url = u.toString(); } catch { url = null; }
+    const label = str(landing.cta.label, 60);
+    if (url && label) cta = { label, url, ...(landing.cta.embed === true ? { embed: true } : {}) };
+  }
+  return { header: str(landing.header, 200), message: String(landing.message ?? '').trim().slice(0, 1000), fallbacks, cta };
 }
 
 /**
@@ -192,14 +237,14 @@ export async function getMyVideo(client, id) {
   const { data, error } = await client.from('published_videos').select('id, title, published, view_count, updated_at, slug, privacy, revision').eq('id', id).maybeSingle();
   fail(error, 'Could not load the video');
   if (!data) return data;
-  const { business } = await getMyBusiness(client).catch(() => ({ business: null }));
-  return { ...data, business };
+  const { business, customDomain, customDomainVerified } = await getMyBusiness(client).catch(() => ({ business: null, customDomain: null, customDomainVerified: false }));
+  return { ...data, business, customDomain, customDomainVerified };
 }
 
 export async function getMyBusiness(client) {
-  const { data, error } = await client.from('video_owner_profiles').select('business_slug, display_name').maybeSingle();
+  const { data, error } = await client.from('video_owner_profiles').select('business_slug, display_name, custom_domain, custom_domain_verified').maybeSingle();
   fail(error, 'Could not load your business name');
-  return { business: data?.business_slug || null, displayName: data?.display_name || null };
+  return { business: data?.business_slug || null, displayName: data?.display_name || null, customDomain: data?.custom_domain || null, customDomainVerified: !!data?.custom_domain_verified };
 }
 
 export async function claimBusinessSlug(client, slug, displayName = null) {
@@ -212,6 +257,21 @@ export async function setVideoSlug(client, id, slug) {
   const { data, error } = await client.rpc('set_video_slug', { p_video_id: id, p_slug: slug });
   slugFail(error);
   return data;
+}
+
+/** Hostname for a business's own video domain, or null when it is not a plain domain. */
+export function normalizeDomain(raw) {
+  const d = String(raw ?? '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  return /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/.test(d) && !/(^|\.)(smartvid\.app|netlify\.app|netlify\.com|localhost)$/.test(d) ? d : null;
+}
+
+/** Set (or clear with an empty value) the business's own domain. Resolves to the saved hostname or null. */
+export async function setCustomDomain(client, domain) {
+  const d = String(domain ?? '').trim() ? normalizeDomain(domain) : null;
+  if (String(domain ?? '').trim() && !d) throw new Error(SLUG_ERRORS.invalid_domain);
+  const { data, error } = await client.rpc('set_custom_domain', { p_domain: d });
+  slugFail(error);
+  return data || null;
 }
 
 export async function setVideoPrivacy(client, id, privacy) {
@@ -260,6 +320,37 @@ export async function fetchPublishedVideo(ref, { url, key, fetchImpl = fetch } =
   return data && typeof data === 'object' ? data : null;
 }
 
+export const PERSONAL_LINK_RE = /^[A-Za-z0-9_-]{16,32}$/;
+
+/** Link id from the page address (?p=<id>), or null. */
+export function personalLinkIdFromQuery(search = globalThis.location?.search || '') {
+  const id = new URLSearchParams(search).get('p');
+  return id && PERSONAL_LINK_RE.test(id) ? id : null;
+}
+
+/** Address of a stored personal link: the video's own link plus ?p=<id>. */
+export function personalizedUrl(video, linkId, origin = globalThis.location?.origin || '') {
+  return `${canonicalUrl(video, origin)}?p=${encodeURIComponent(linkId)}`;
+}
+
+/**
+ * The values stored behind a personal link (?p=<id>) through get_personalization().
+ * Resolves to { videoId, contactId, variables }, or null when the link is unknown,
+ * revoked, or its video is not published.
+ */
+export async function fetchPersonalization(id, { url, key, fetchImpl = fetch } = env()) {
+  if (!PERSONAL_LINK_RE.test(String(id || ''))) return null;
+  if (!url || !key) throw new Error('Video service is not configured');
+  const res = await fetchImpl(`${url}/rest/v1/rpc/get_personalization`, {
+    method: 'POST',
+    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ p_id: id }),
+  });
+  if (!res.ok) throw new Error(`Could not load this personal link (HTTP ${res.status})`);
+  const data = await res.json();
+  return data && typeof data === 'object' ? data : null;
+}
+
 /** Owner: totals per contact for one of their videos. */
 export async function fetchVideoStats(client, id) {
   const { data, error } = await client.rpc('video_events_by_contact', { video_id: id });
@@ -276,7 +367,7 @@ export async function fetchVideoStats(client, id) {
 }
 
 /** Submit a viewer's lead for a published video (stored for its owner). */
-export async function submitViewerLead({ publishedId, clipId, kind, data, attribution = {}, signals = null }, { url, key, fetchImpl = fetch } = env()) {
+export async function submitViewerLead({ publishedId, clipId, kind, data, attribution = {}, signals = null, variant = '', session = null }, { url, key, fetchImpl = fetch } = env()) {
   if (!url || !key) return { stored: false, error: 'Lead service is not configured' };
   try {
     const res = await fetchImpl(`${url}/functions/v1/lead-capture`, {
@@ -284,17 +375,20 @@ export async function submitViewerLead({ publishedId, clipId, kind, data, attrib
       headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         publishedId, clipId: clipId != null ? String(clipId) : null, kind, data,
+        ...(signals && typeof signals.turnstile === 'string' && signals.turnstile ? { 'cf-turnstile-response': signals.turnstile.slice(0, 2048) } : {}),
         ...(signals && typeof signals === 'object' ? { signals: { hp: String(signals.hp ?? ''), ...(Number.isFinite(Number(signals.ms)) && signals.ms !== undefined ? { ms: Number(signals.ms) } : {}) } } : {}),
         source: {
           page: globalThis.location?.href || null,
           userAgent: globalThis.navigator?.userAgent || null,
           ...(attribution.utm ? { utm: attribution.utm } : {}),
           ...(attribution.referrer ? { referrer: attribution.referrer } : {}),
+          ...(variant === 'A' || variant === 'B' ? { variant } : {}),
+          ...(typeof session === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(session) ? { session } : {}),
         },
       }),
     });
     const body = await res.json().catch(() => ({}));
-    return res.ok && body.ok ? { stored: !!body.stored, error: null } : { stored: false, error: body.error || `HTTP ${res.status}`, fix: res.status === 400 && body.error ? String(body.error) : null }; // `fix`: a short message the viewer can act on
+    return res.ok && body.ok ? { stored: !!body.stored, ...(body.duplicate ? { duplicate: true } : {}), error: null } : { stored: false, error: body.error || `HTTP ${res.status}`, fix: res.status === 400 && body.error ? String(body.error) : null }; // `fix`: a short message the viewer can act on
   } catch (err) {
     return { stored: false, error: err?.message || String(err) };
   }
@@ -302,7 +396,20 @@ export async function submitViewerLead({ publishedId, clipId, kind, data, attrib
 
 /** Personalization from the link: ?firstname=Ann&company=Acme → token profile. */
 export function profileFromQuery(search = globalThis.location?.search || '') {
-  const params = new URLSearchParams(search);
+  return profileFromParams(new URLSearchParams(search));
+}
+
+/** The same profile from stored link values (get_personalization): { contactId, variables } → token profile. */
+export function profileFromLink(link) {
+  const params = new URLSearchParams();
+  Object.entries(link?.variables && typeof link.variables === 'object' ? link.variables : {}).forEach(([k, v]) => {
+    if (typeof v === 'string' || typeof v === 'number') params.set(k, String(v));
+  });
+  if (link?.contactId) params.set('c', String(link.contactId));
+  return profileFromParams(params, { maxText: 500 });
+}
+
+function profileFromParams(params, { maxText = 200 } = {}) {
   const variables = {};
   // Per-image style carried by personal links: `<token>__f=x,y` (crop focus)
   // and `<token>__l=0.9` (brightness), restored below as saved assets.
@@ -313,7 +420,7 @@ export function profileFromQuery(search = globalThis.location?.search || '') {
     (style[m[1]] ||= {})[m[2]] = v;
   });
   params.forEach((v, k) => {
-    if (['embed', 'autoplay', 't', 'c', 'src'].includes(k) || k.length > 40) return;
+    if (['embed', 'autoplay', 't', 'c', 'p', 'src'].includes(k) || k.length > 40) return;
     if (/__(f|l)$/.test(k) && isImageTokenKey(k.replace(/__(f|l)$/, ''))) return;
     // Image URLs from personal links ({{logoUrl}}, …) are kept whole — a cut
     // URL is a broken image — but only http(s) ones of sane length.
@@ -322,7 +429,7 @@ export function profileFromQuery(search = globalThis.location?.search || '') {
       if (href) variables[k] = href;
       return;
     }
-    variables[k] = String(v).slice(0, 200);
+    variables[k] = String(v).slice(0, maxText);
   });
   // Personal links (?c=<contactId>) pick that contact's Smart Speech voice line.
   const id = params.get('c');

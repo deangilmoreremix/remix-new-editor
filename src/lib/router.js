@@ -3,6 +3,7 @@ const ROUTE_MAP = {
   'Image': 'image',
   'Video': 'video',
   'Storyboard': 'storyboard',
+  'Studio': 'muapi-studio',
   'Edit': 'edit',
   'Character': 'character',
   'Commercial': 'commercial',
@@ -26,6 +27,7 @@ const ROUTE_MAP = {
   'Video Agent': 'video-agent',
   'Video Agent Studio': 'video-agent-studio',
   'Zack D Studio': 'zackd',
+  'SmartWarmupAI': 'smartwarmupai',
   'AI VFX': 'ai-vfx',
   'Brand Studio': 'brand',
   'Brand DNA': 'brand-dna',
@@ -34,6 +36,8 @@ const ROUTE_MAP = {
   'Photo Studio': 'photo-studio',
   'Brand Photo Studio': 'brand-photo-studio',
   'Animate': 'animate',
+  'Media Hub': 'media-hub',
+  'SmartVidDownloader': 'media-hub',
 };
 
 export function getRouteForItem(item) {
@@ -85,6 +89,8 @@ const pageLoaders = {
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
   leadfinder: () => import('../components/LeadFinderStudio.js').then(m => m.LeadFinderStudio()),
+  outreach: () => import('../components/OutreachStudio.js').then(m => m.OutreachStudio()),
+  recorder: () => import('../components/RecorderStudioPage.js').then(m => m.RecorderStudioPage()),
   'find-my-brand': () => import('../components/FindMyBrandPage.js').then(m => m.FindMyBrandPage()),
   // Motion Director (ported from OpenHiggsBolt): the chat and its Motion Workbench editor.
   'motion-director': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
@@ -96,6 +102,7 @@ const pageLoaders = {
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
   storyboard: () => import('../components/StoryboardStudio.js').then(m => m.StoryboardStudio()),
+  'muapi-studio': () => import('../components/MuapiStudioPage.js').then(m => m.MuapiStudioPage()),
   'text-to-image': () => import('../components/TextToImagePage.js').then(m => m.TextToImagePage()),
   'image-to-image': () => import('../components/ImageToImagePage.js').then(m => m.ImageToImagePage()),
   'text-to-video': () => import('../components/TextToVideoPage.js').then(m => m.TextToVideoPage()),
@@ -117,15 +124,21 @@ const pageLoaders = {
   'zackd-studio': () => import('../components/studios/ZackDStudio/ZackDStudio.js').then(m => m.ZackDStudio()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   workbench: () => import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio()),
+  // SmartWarmupAI studio: email warmup, outreach, inbox, CRM and automations (apps/warmbly-web, rebranded at build time).
+  smartwarmupai: () => import('../components/studios/SmartWarmupAIStudio/SmartWarmupAIStudio.js').then(m => m.SmartWarmupAIStudio()),
+  // Deep links into the studio: #/smartwarmupai/<view> and #/smartwarmupai/help[/<docs path>].
+  ...Object.fromEntries(['dashboard', 'campaigns', 'inbox', 'contacts', 'pipeline', 'mailboxes', 'deliverability', 'automations', 'integrations', 'settings', 'help']
+    .map(v => [`smartwarmupai/${v}`, () => import('../components/studios/SmartWarmupAIStudio/SmartWarmupAIStudio.js').then(m => m.SmartWarmupAIStudio())])),
   // CineGen Studio was replaced by the Workbench; keep old links working.
   cinegen: () => {
     try { window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/workbench`); } catch { /* ignore */ }
     return import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio());
   },
   // The Timeline Editor is CineGen's workspace (vendored in src/cinegen, our colours + features). The unmodified clone can still be shown
-  // in an iframe via components/CineGenFramePage.js (VITE_CINEGEN_URL); the previous editor stays at #/timeline-classic.
+  // in an iframe via components/CineGenFramePage.js (VITE_CINEGEN_URL); #/timeline-classic now redirects here.
   timeline: () => import('../cinegen/mount.tsx').then(m => m.CineGenEditorPage()),
-  'timeline-classic': () => import('../components/TimelineEditorPage.jsx').then(m => m.TimelineEditorPage()),
+  // Old links/bookmarks to the previous editor open the new one (the classic page is no longer reachable from the app).
+  'timeline-classic': () => import('../cinegen/mount.tsx').then(m => m.CineGenEditorPage()),
   'ai-vfx': () => import('../components/AIVFXPage.js').then(m => m.AIVFXPage()),
   viral: () => import('../components/SmartVideoViral.js').then(m => m.SmartVideoViral()),
   'timeline-iframe-warning': () => Promise.resolve(document.createElement('div')),
@@ -137,6 +150,9 @@ const pageLoaders = {
   'photo-studio': () => import('../components/PhotoStudioPage.js').then(m => m.PhotoStudioPage()),
   'brand-photo-studio': () => import('../components/PhotoStudioPage.js').then(m => m.PhotoStudioPage()),
   animate: () => import('../components/AnimatePage.js').then(m => m.AnimatePage()),
+  'media-hub': () => import('../components/MediaHubPage.js').then(m => m.MediaHubPage()),
+  // SmartVidDownloader (the vendored VidBee app): same page under its product name.
+  smartviddownloader: () => import('../components/MediaHubPage.js').then(m => m.MediaHubPage()),
   // Academy: the page parses its own #/academy/track/<track>[/lesson|template/<id>] hash.
   academy: () => import('../components/academy/AcademyPage.jsx').then(m => m.AcademyPage()),
 };

@@ -46,14 +46,14 @@ function makeProfile(overrides = {}) {
       industry: 'Computing',
       summary: 'Builds programmable engines.',
     },
-    brand: { colors: { primary: '#d9ff00', secondary: '#111111' } },
+    brand: { colors: { primary: '#d9ff00', secondary: '#111111', accent: '#ff5a00' } },
     social: {
       github: 'https://github.com/ada',
       linkedin: 'https://linkedin.com/in/ada',
       twitter: 'https://x.com/ada',
       website: 'https://analytical.dev',
     },
-    website: { url: 'https://analytical.dev', title: 'Analytical Engines' },
+    website: { url: 'https://analytical.dev', title: 'Analytical Engines', screenshotUrl: 'https://cdn.example/site.jpg' },
     assets: { avatar: ['https://img.example/ada.png'], logos: ['https://img.example/logo.svg'] },
     intelligence: {
       summary: 'Pioneer of general-purpose computing.',

@@ -7,6 +7,7 @@ import { CUSTOM_BACKGROUND_OPACITY, resolveWeight, textTransformOf } from '../ca
 import { displayScale, scriptFor, withScriptFonts } from '../captions/scripts'
 import { activeCueAt, activeWordIndex, captionLayout } from '../captions/captionStyle'
 import { endCardFrames } from './endCard'
+import { StudioCaptionLine } from './StudioCaptionLine'
 import { fontStackById } from './presets'
 import type { PersonalizationPreviewSettings, PreviewCaptions } from './types'
 
@@ -53,6 +54,8 @@ const CaptionsLayerLine: React.FC<LayerProps> = ({ captions, videoUrl, settings,
   const fps = settings.fps > 0 ? settings.fps : 30
   if (settings.showEndCard && frame >= endCardFrames(settings.durationInFrames).start) return null
   const ms = (frame / fps) * 1000
+  // Captions designed in the Caption Studio: drawn from its own pages and full style, so colours, font and height carry over.
+  if (captions.studio) return <StudioCaptionLine studio={captions.studio} ms={ms} width={width} height={height} fallbackStack={fontStackById(undefined)} zIndex={CAPTIONS_Z_INDEX} />
   const cue = activeCueAt(captions.cues, ms)
   if (!cue) return null
 

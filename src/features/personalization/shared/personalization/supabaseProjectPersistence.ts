@@ -47,6 +47,10 @@ export function stripSessionScopedUrls(state: PersonalizationProjectState): Pers
              isBlobUrl(state.previewSettings.audio.url)
                ? null
                : state.previewSettings.audio,
+           // Tracks still uploading (a local blob: URL) cannot be restored after a reload, so they are not saved.
+           ...(Array.isArray(state.previewSettings.audioTracks)
+             ? { audioTracks: state.previewSettings.audioTracks.filter((t) => typeof t?.url === 'string' && !isBlobUrl(t.url) && !/^data:/i.test(t.url)) }
+             : {}),
            // A background picked from this computer only exists in this session; swap it for a color.
            ...(state.previewSettings.cutout ? { cutout: cutoutForSave(state.previewSettings.cutout) } : {}),
          }

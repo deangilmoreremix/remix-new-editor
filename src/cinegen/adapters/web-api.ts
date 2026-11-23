@@ -39,7 +39,7 @@ function toSegments(words: Array<{ text: string; start: number; end: number }>) 
   return segments;
 }
 
-type ExportJobState = { id: string; status: 'queued' | 'rendering' | 'complete' | 'failed'; progress: number; preset: string; fps: number; outputUrl?: string; fileSize?: number; error?: string; warnings?: string[]; qaStatus?: string; qa?: unknown; createdAt: string; completedAt?: string };
+type ExportJobState = { done?: number; total?: number; label?: string; failures?: string[]; id: string; status: 'queued' | 'rendering' | 'complete' | 'failed'; progress: number; preset: string; fps: number; outputUrl?: string; fileSize?: number; error?: string; warnings?: string[]; qaStatus?: string; qa?: unknown; createdAt: string; completedAt?: string };
 const exportJobs = new Map<string, ExportJobState>();
 
 const batchListeners = new Set<(e: unknown) => void>();
@@ -112,7 +112,7 @@ export function registerWebApi() {
   registerElectronApi('export', {
     // Renders in the browser with the editor's Remotion web renderer (WebCodecs) — no FFmpeg, no server.
     start: async (p: unknown) => {
-      const a = p as { container?: string; preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; tracks?: ExportTrackInfo[]; clips: Array<{ id?: string; name?: string; trackId?: string; opacity?: number; flipH?: boolean; flipV?: boolean; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; glType?: string; glDef?: unknown; glParams?: Record<string, number | boolean | number[]>; clipAId: string; clipBId?: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
+      const a = p as { container?: string; preset: 'draft' | 'standard' | 'high'; fps: 24 | 30 | 60; tracks?: ExportTrackInfo[]; clips: Array<{ id?: string; name?: string; trackId?: string; opacity?: number; flipH?: boolean; flipV?: boolean; inputPath: string; startTime: number; duration: number; trimStart: number; speed: number; volume: number; type: string; trackKind?: string; blendMode?: string; transform?: unknown; fit?: 'contain' | 'cover'; fadeIn?: number; fadeOut?: number; kf?: Array<{ time: number; property: string; value: number }>; zoom?: unknown; captions?: unknown; fx?: Array<{ id: string; props: Record<string, number | number[]>; enabled?: boolean }>; lut?: { id: string; intensity: number } }>; totalDuration: number; contactIds?: string[]; title?: string; aspect?: string; videoBitrate?: number; qa?: boolean; transitions?: Array<{ type?: 'dissolve' | 'fadeToBlack' | 'fadeFromBlack'; duration?: number; glType?: string; glDef?: unknown; glParams?: Record<string, number | boolean | number[]>; clipAId: string; clipBId?: string }>; overlays?: Array<Record<string, unknown> & { id: string; type: string; start: number; end: number }>; hfOverlays?: Array<Record<string, unknown>>; mgOverlays?: Array<{ id: string; name: string; start: number; end: number; code: string; props: Record<string, unknown> }> };
       const quality = a.preset === 'draft' ? '720p' : a.preset === 'high' ? '4k' : '1080p';
       const job: ExportJobState = { id: `export-${Date.now().toString(36)}`, status: 'rendering', progress: 0, preset: a.preset, fps: a.fps, createdAt: new Date().toISOString() };
       exportJobs.set(job.id, job);
@@ -122,10 +122,12 @@ export function registerWebApi() {
             import('../../lib/editor/remotion/timelineToComposition.js'),
             import('../../lib/editor/remotion/exportClient.js'),
           ]);
+          // [remix] The composition for the whole timeline, optionally filled in for one contact (Personalized output).
+          const buildModel = async (profile?: unknown) => {
           // [remix] track mute/solo/volume/visibility, clip opacity/flip/volume and plain dissolve/fades (see lib/editor/export-mapping.ts)
           const { state, warnings } = await buildExportStateWithAudio({ clips: a.clips as never, tracks: a.tracks, transitions: a.transitions, overlays: a.overlays, totalDuration: a.totalDuration, masterVolume: (a as { masterVolume?: number }).masterVolume }, exportItem as never);
           if (warnings.length) job.warnings = warnings;
-          const model = timelineToComposition(state, { fps: a.fps, quality, aspect: a.aspect });
+          const model = timelineToComposition(state, { fps: a.fps, quality, aspect: a.aspect, ...(profile ? { profile } : {}) });
           // [remix] a generic export has no contact profile: unfilled {{tokens}} are removed from text, as the published player does
           (model as { layers: unknown[] }).layers = stripUnresolvedTokens((model as { layers: unknown[] }).layers) as unknown[];
           // [remix] OpenChatCut motion-graphics templates → code layers on top (the sandboxed renderer runs them; the code gate still applies)
@@ -144,9 +146,44 @@ export function registerWebApi() {
           (model as { occCaptions?: unknown[] }).occCaptions = a.clips.flatMap((c) => (c.captions ? [c.captions] : []));
           for (const c of a.clips) { const cap = c.captions as { template?: string; styleOverride?: { fontFamily?: string } } | undefined; const tpl = cap?.template; const fam = cap?.styleOverride?.fontFamily || (tpl && (CAPTION_STYLE_BY_ID as Record<string, { fontFamily?: string } | undefined>)[tpl]?.fontFamily); if (fam) { const m = model as { fonts?: string[] }; m.fonts = [...new Set([...(m.fonts ?? []), fam])]; } }
           // [remix] imported caption fonts travel with the render
-          (model as { userFonts?: unknown[] }).userFonts = userFontsFor(a.clips.map((c) => (c.captions as { styleOverride?: { fontFamily?: string } } | undefined)?.styleOverride?.fontFamily));
+          (model as { userFonts?: unknown[] }).userFonts = userFontsFor([
+            ...a.clips.map((c) => (c.captions as { styleOverride?: { fontFamily?: string } } | undefined)?.styleOverride?.fontFamily),
+            ...((a.overlays ?? []) as Array<{ addon?: { fontFamily?: string } }>).map((o) => o.addon?.fontFamily), // Smart Text / Text Mask / lower thirds can use an imported font too
+          ]);
           // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips
           (model as { glTransitions?: unknown[] }).glTransitions = attachGlSideLooks(buildGlTransitionLayers(a.transitions, a.clips as never, a.fps), a.clips as never, (model as { layers: never[] }).layers, glSideLayerFrom as never); // [remix] Fix A: each side keeps its clip's own transform / keys / effects / opacity
+          return model;
+          };
+          // [remix] One video per contact: each person's details fill the text and images; one failing render must not lose the rest.
+          const wanted = new Set((a.contactIds ?? []).map(String));
+          if (wanted.size) {
+            const [store, per] = await Promise.all([import('../../lib/contactStore.js'), import('../../lib/editor/personalize/perContact.js')]);
+            const contacts = (per.listContactProfiles(store) as Array<{ id: unknown }>).filter((p) => wanted.has(String(p.id)));
+            if (!contacts.length) throw new Error('Pick at least one contact');
+            job.total = contacts.length; job.done = 0; job.failures = [];
+            const used = new Set<string>();
+            const title = String(a.title || 'timeline').replace(/[^a-z0-9 _-]+/gi, '').trim() || 'timeline';
+            for (let i = 0; i < contacts.length; i += 1) {
+              const who = String(per.contactName(contacts[i]));
+              job.label = `Video ${i + 1} of ${contacts.length} \u00b7 ${who}`;
+              try {
+                const part = await exportModel(await buildModel(contacts[i]), { container: 'mp4', quality, ...(a.videoBitrate ? { videoBitrate: a.videoBitrate } : {}), onProgress: (pr: number) => { job.progress = Math.round(((i + pr) / contacts.length) * 100); } });
+                let base = `${title} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || String(contacts[i].id)}`;
+                if (used.has(base.toLowerCase())) base = `${base} (${String(contacts[i].id).slice(0, 8)})`;
+                used.add(base.toLowerCase());
+                downloadBlob(part, `${base}.mp4`);
+                job.done = (job.done ?? 0) + 1;
+                job.fileSize = (job.fileSize ?? 0) + part.size;
+              } catch (err) { (job.failures ??= []).push(`${who}: ${err instanceof Error ? err.message : String(err)}`); }
+            }
+            job.label = undefined;
+            job.progress = 100;
+            if (!job.done) throw new Error(job.failures[0] || 'No video could be made');
+            job.status = 'complete';
+            job.completedAt = new Date().toISOString();
+            return;
+          }
+          const model = await buildModel();
           const ctn = containerInfo(a.container); // [remix] Stage 11: mkv / mov / webm video and wav / mp3 / aac / flac / ogg audio-only
           const blob = await exportModel(model, { container: ctn.id, quality, ...(a.videoBitrate ? { videoBitrate: a.videoBitrate } : {}), onProgress: (pr: number) => { job.progress = Math.round(pr * 100); } });
           job.outputUrl = URL.createObjectURL(blob);

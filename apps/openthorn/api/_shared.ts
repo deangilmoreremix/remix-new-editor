@@ -44,9 +44,37 @@ export async function verifyUser(authorization: string | undefined): Promise<Aut
     if (!res.ok) return null
     const data = (await res.json()) as { id?: string; email?: string }
     if (!data?.id) return null
+    // A builder suspension must stop sessions that already exist, not only new
+    // sign-ins (which website-builder-session refuses). Fails closed.
+    if (await isBuilderSuspended(data.id)) return null
     return { id: data.id, email: data.email }
   } catch {
     return null
+  }
+}
+
+/**
+ * True when the user's wb_profiles row is suspended. Needs the service role key
+ * (the profile's `suspended` flag is not readable by the user's own token for
+ * this purpose). Without a service role key (local dev) there is nothing to
+ * check against, so access is allowed; with one, a failed lookup counts as
+ * suspended so an outage can never lift a suspension.
+ */
+async function isBuilderSuspended(userId: string): Promise<boolean> {
+  const env = supabaseEnv()
+  const key = serviceRoleKey()
+  if (!env || !key) return false
+  if (!isValidUserId(userId)) return true
+  try {
+    const res = await fetch(
+      `${env.url}/rest/v1/${TBL.profiles}?id=eq.${userId}&select=suspended&limit=1`,
+      { headers: { ...serviceHeaders(key), Accept: 'application/json' } },
+    )
+    if (!res.ok) return true
+    const rows = (await res.json()) as Array<{ suspended?: boolean }>
+    return Boolean(rows?.[0]?.suspended)
+  } catch {
+    return true
   }
 }
 
@@ -246,11 +274,10 @@ interface CFResult<T> {
   errors: Array<{ message: string }>
 }
 
-function cfEnv(): { accountId: string; token: string } {
-  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID
-  const token = process.env.CLOUDFLARE_API_TOKEN
-  if (!accountId || !token) throw new Error('Missing CLOUDFLARE_ACCOUNT_ID or CLOUDFLARE_API_TOKEN')
-  return { accountId, token }
+/** A user's own Cloudflare account. Never read from the environment. */
+export interface CloudflareCreds {
+  accountId: string
+  token: string
 }
 
 async function cfFetch<T>(token: string, path: string, options: RequestInit): Promise<T> {
@@ -440,8 +467,11 @@ export interface DeployInput {
   title?: string | null
 }
 
-export async function runCloudflareDeploy(input: DeployInput): Promise<{ url: string; siteId: string }> {
-  const { accountId, token } = cfEnv()
+export async function runCloudflareDeploy(
+  input: DeployInput,
+  creds: CloudflareCreds,
+): Promise<{ url: string; siteId: string }> {
+  const { accountId, token } = creds
 
   // Reuse the project (and its existing subdomain) on subsequent deploys.
   if (input.existingSiteId) {
@@ -504,8 +534,9 @@ export async function isAdminUser(userId: string): Promise<boolean> {
  *
  * The builder shares SmartVideo's Supabase project, so the auth account is the
  * person's SmartVideo login. It must never be banned from here; the flag lives on
- * wb_profiles, and the sign-in function (website-builder-session) refuses a
- * suspended profile.
+ * wb_profiles. The sign-in function (website-builder-session) refuses a
+ * suspended profile, verifyUser() rejects its existing sessions, and the
+ * wb_is_suspended() RLS policies block direct database access.
  */
 export async function adminSetUserSuspended(userId: string, suspended: boolean): Promise<void> {
   const env = supabaseEnv()
@@ -577,4 +608,111 @@ export async function adminDeleteUser(userId: string): Promise<void> {
     })
     if (!res.ok) throw new Error(`Delete error ${res.status} on ${table}`)
   }
+}
+
+// ---------------------------------------------------------------------------
+// Per-user Cloudflare credentials (service role only)
+//
+// Each person publishes to THEIR OWN Cloudflare account. The API token is
+// encrypted with the per-user key (encryptForUser) and stored in
+// wb_cloudflare_credentials, a table the browser cannot read. Only the last four
+// characters are kept in clear for display.
+// ---------------------------------------------------------------------------
+
+const CF_ACCOUNT_ID_RE = /^[a-f0-9]{32}$/i
+
+export function normalizeCloudflareInput(accountId: unknown, token: unknown): CloudflareCreds | null {
+  const id = typeof accountId === 'string' ? accountId.trim() : ''
+  const tok = typeof token === 'string' ? token.trim() : ''
+  if (!CF_ACCOUNT_ID_RE.test(id)) return null
+  if (tok.length < 20 || tok.length > 300 || /\s/.test(tok)) return null
+  return { accountId: id.toLowerCase(), token: tok }
+}
+
+/** Throws a plain-language Error when Cloudflare does not accept the credentials. */
+export async function validateCloudflareCredentials(creds: CloudflareCreds): Promise<void> {
+  let res: Response
+  try {
+    res = await fetch(`${CF_API}/accounts/${creds.accountId}/pages/projects?per_page=1`, {
+      headers: { Authorization: `Bearer ${creds.token}` },
+    })
+  } catch {
+    throw new Error('Could not reach Cloudflare. Try again in a moment.')
+  }
+  if (res.ok) return
+  if (res.status === 401 || res.status === 403) {
+    throw new Error(
+      'Cloudflare rejected this token. Create it with the permission Account → Cloudflare Pages → Edit, for the account whose ID you entered.',
+    )
+  }
+  throw new Error('Cloudflare did not accept this Account ID. Copy it again from the Cloudflare dashboard.')
+}
+
+export interface CloudflareStatus {
+  connected: boolean
+  accountId: string | null
+  tokenLast4: string | null
+}
+
+export async function getCloudflareStatus(userId: string): Promise<CloudflareStatus> {
+  const env = supabaseEnv()
+  const key = serviceRoleKey()
+  const none = { connected: false, accountId: null, tokenLast4: null }
+  if (!env || !key || !isValidUserId(userId)) return none
+  const res = await fetch(
+    `${env.url}/rest/v1/${TBL.cloudflare_credentials}?user_id=eq.${userId}&select=account_id,token_last4&limit=1`,
+    { headers: { ...serviceHeaders(key), Accept: 'application/json' } },
+  )
+  if (!res.ok) throw new Error(`Credentials lookup error ${res.status}`)
+  const rows = (await res.json()) as Array<{ account_id?: string; token_last4?: string }>
+  const row = rows?.[0]
+  if (!row?.account_id) return none
+  return { connected: true, accountId: row.account_id, tokenLast4: row.token_last4 ?? null }
+}
+
+/** The caller's decrypted credentials, or null when none are saved. */
+export async function getCloudflareCredentials(userId: string): Promise<CloudflareCreds | null> {
+  const env = supabaseEnv()
+  const key = serviceRoleKey()
+  if (!env || !key || !isValidUserId(userId)) return null
+  const res = await fetch(
+    `${env.url}/rest/v1/${TBL.cloudflare_credentials}?user_id=eq.${userId}&select=account_id,token_enc&limit=1`,
+    { headers: { ...serviceHeaders(key), Accept: 'application/json' } },
+  )
+  if (!res.ok) throw new Error(`Credentials lookup error ${res.status}`)
+  const rows = (await res.json()) as Array<{ account_id?: string; token_enc?: string }>
+  const row = rows?.[0]
+  if (!row?.account_id || !row.token_enc) return null
+  return { accountId: row.account_id, token: decryptForUser(row.token_enc, userId) }
+}
+
+export async function saveCloudflareCredentials(userId: string, creds: CloudflareCreds): Promise<void> {
+  const env = supabaseEnv()
+  const key = serviceRoleKey()
+  if (!env || !key) throw new Error('Service role not configured')
+  if (!isValidUserId(userId)) throw new Error('Invalid user id')
+  const res = await fetch(`${env.url}/rest/v1/${TBL.cloudflare_credentials}?on_conflict=user_id`, {
+    method: 'POST',
+    headers: { ...serviceHeaders(key), Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({
+      user_id: userId,
+      account_id: creds.accountId,
+      token_enc: encryptForUser(creds.token, userId),
+      token_last4: creds.token.slice(-4),
+      updated_at: new Date().toISOString(),
+    }),
+  })
+  if (!res.ok) throw new Error(`Credentials save error ${res.status}`)
+}
+
+export async function deleteCloudflareCredentials(userId: string): Promise<void> {
+  const env = supabaseEnv()
+  const key = serviceRoleKey()
+  if (!env || !key) throw new Error('Service role not configured')
+  if (!isValidUserId(userId)) throw new Error('Invalid user id')
+  const res = await fetch(`${env.url}/rest/v1/${TBL.cloudflare_credentials}?user_id=eq.${userId}`, {
+    method: 'DELETE',
+    headers: { ...serviceHeaders(key), Prefer: 'return=minimal' },
+  })
+  if (!res.ok) throw new Error(`Credentials delete error ${res.status}`)
 }

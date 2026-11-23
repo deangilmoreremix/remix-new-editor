@@ -73,8 +73,19 @@ export function clientToProfile(client, library = null) {
     contact: clean({ name: text(client.name) || text(client.businessName), firstName, lastName, company: text(client.businessName), location: text(client.location), phone: text(client.phone) }),
     company: clean({ name: text(client.businessName), industry: text(client.industry), summary: text(client.brandDescription) }),
     social: clean({ website: text(client.website) }),
+    ...(brandColorsOf(client) ? { brand: { colors: brandColorsOf(client) } } : {}),
     personalization: { business, ...(assetsFromLibrary(library) ? { assets: assetsFromLibrary(library) } : {}) },
   };
+}
+
+const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
+/** The client's brand colors that are valid hex ({ primary?, accent? }), or null. */
+function brandColorsOf(client) {
+  const c = client?.brandColors;
+  if (!c || typeof c !== 'object') return null;
+  const out = {};
+  ['primary', 'accent'].forEach((k) => { if (typeof c[k] === 'string' && HEX.test(c[k].trim())) out[k] = c[k].trim().toLowerCase(); });
+  return out.primary || out.accent ? out : null;
 }
 
 /** A saved Lead Finder lead ({ id, business, stage, niche, location }) → a profile patch. */

@@ -12,7 +12,8 @@ export function captionAvoid(
   brand: PreviewInputProps['brand'] | undefined,
 ): CaptionAvoid | null {
   const c = settings.captions
-  if (!c || !c.enabled || c.cues.length === 0) return null
+  // Captions designed in the Caption Studio carry their own style and height: nothing here to estimate or move.
+  if (!c || !c.enabled || c.cues.length === 0 || c.studio) return null
   const w = settings.width || 1920, h = settings.height || 1080, fps = settings.fps > 0 ? settings.fps : 30
   const longest = c.cues.reduce((a, x) => (x.text.length > a.text.length ? x : a), c.cues[0])
   const layout = captionLayout(c.style, c.position, w, h)

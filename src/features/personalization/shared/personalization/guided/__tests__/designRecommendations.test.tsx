@@ -4,7 +4,7 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { listRemotionDesignTemplates } from '../../templates'
 
-vi.mock('../PersonalizationTemplateBrowser', () => ({ PersonalizationTemplateBrowser: () => <div data-testid="full-browser" /> }))
+vi.mock('../PersonalizationTemplateBrowser', () => ({ PersonalizationTemplateBrowser: (props: { showError?: boolean }) => <div data-testid="full-browser" data-show-error={String(props.showError)} /> }))
 import { DesignRecommendations } from '../DesignRecommendations'
 
 beforeAll(() => { (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true })
@@ -49,6 +49,11 @@ describe('DesignRecommendations', () => {
     act(() => { q(m2.el, 'design-how-replace')!.click() })
     act(() => { (m2.el.querySelector(`[data-testid="design-rec-${id}"]`) as HTMLElement).click() })
     expect(m2.onSelectDesign).toHaveBeenCalledWith(null)
+  })
+  it('the library does not print its own copy of the refusal message (the panel prints it once)', () => {
+    const { el } = mount()
+    act(() => { q(el, 'design-browse-all')!.click() })
+    expect(q(el, 'full-browser')!.getAttribute('data-show-error')).toBe('false')
   })
   it('the full searchable library is one click away', () => {
     const { el } = mount()
