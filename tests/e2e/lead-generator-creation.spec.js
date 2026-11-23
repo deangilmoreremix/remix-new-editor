@@ -25,6 +25,10 @@ test.beforeAll(async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 1700, height: 1000 }, deviceScaleFactor: 1 });
   page = await context.newPage();
   page.on('pageerror', (e) => pageErrors.push(e.message.slice(0, 300)));
+  if (process.env.LG_DEBUG) {
+    page.on('framenavigated', (f) => { if (f === page.mainFrame()) console.log(`[nav] ${f.url()}`); });
+    page.on('console', (m) => { if (/vite|reload|optimiz/i.test(m.text())) console.log(`[console] ${m.text().slice(0, 200)}`); });
+  }
   await page.goto('/#/timeline', { waitUntil: 'domcontentloaded' });
   await page.getByText('Skip for now').click({ timeout: 150_000 });
   await page.getByRole('button', { name: 'New Project' }).first().click();
