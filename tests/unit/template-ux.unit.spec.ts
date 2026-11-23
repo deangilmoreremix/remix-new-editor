@@ -144,8 +144,8 @@ describe('templateUx favorites, recents and share links', () => {
 
   it('builds a link that points at the template', () => {
     const loc = { origin: 'https://smartvid.app', pathname: '/' } as any;
-    expect(buildShareUrl('t1', inputs, {}, loc)).toBe('https://smartvid.app/#/template/t1');
+    expect(buildShareUrl('t1', inputs, {}, loc)).toBe('https://smartvid.app/template/t1');
     const url = buildShareUrl('t1', inputs, { prompt: 'hi' }, loc);
-    expect(url).toMatch(/^https:\/\/smartvid\.app\/\?fill=[\w-]+#\/template\/t1$/);
+    expect(url).toMatch(/^https:\/\/smartvid\.app\/template\/t1\?fill=[\w-]+$/);
   });
 });

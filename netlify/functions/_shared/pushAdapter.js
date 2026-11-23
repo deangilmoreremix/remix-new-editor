@@ -15,7 +15,7 @@ import { CATEGORY_BY_TYPE } from './alertTypes.js';
 export { CATEGORY_BY_TYPE };
 export const MAX_FAILURES = 5;
 export const NO_PUSH_TYPES = Object.freeze(['daily_digest']);
-export const DEEP_LINK = '/#/timeline';
+export const DEEP_LINK = '/timeline';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_PAYLOAD_BYTES = 3000;
 

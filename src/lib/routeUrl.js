@@ -68,3 +68,42 @@ export function onRouteChange(fn) {
   events.forEach((e) => window.addEventListener(e, fn));
   return () => events.forEach((e) => window.removeEventListener(e, fn));
 }
+
+/**
+ * Opens a page from code that has no router handle (studios, helpers). Uses the app's router
+ * when the shell is mounted, otherwise a normal page load of the clean URL.
+ */
+export function goTo(page, params = {}) {
+  if (typeof window === 'undefined') return;
+  if (typeof window.navigate === 'function' && document.getElementById('content-area')) {
+    window.navigate(page, params);
+    return;
+  }
+  window.location.assign(buildUrl(page, params));
+}
+
+/**
+ * Makes plain links behave like in-app navigation: `/image`, `/#/image`, `#/image` and
+ * `/?template=7#/image` all open the page through the router instead of reloading the app.
+ * Leaves alone modified clicks, new-tab links, downloads, other origins, in-page `#anchors`
+ * and anything that is not an app page (public player, guides, sub-app mounts, files).
+ * `navigate` and `isKnownPage` are passed in so this file stays dependency-free.
+ */
+export function installLinkInterceptor({ navigate, isKnownPage, doc = document }) {
+  const onClick = (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target?.closest?.('a[href]');
+    if (!a || (a.target && a.target !== '_self') || a.hasAttribute('download')) return;
+    let url;
+    try { url = new URL(a.href, window.location.href); } catch { return; }
+    if (url.origin !== window.location.origin) return;
+    const sameDoc = url.pathname === window.location.pathname && url.search === window.location.search;
+    if (sameDoc && !url.hash.startsWith('#/')) return; // '#', '#features': an in-page anchor
+    const { page, params } = parseLocation(url);
+    if (page === 'landing' || !isKnownPage(page)) return;
+    e.preventDefault();
+    navigate(page, params);
+  };
+  doc.addEventListener('click', onClick);
+  return () => doc.removeEventListener('click', onClick);
+}

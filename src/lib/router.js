@@ -1,3 +1,5 @@
+import { buildUrl } from './routeUrl.js';
+
 const ROUTE_MAP = {
   'Explore': 'explore',
   'Image': 'image',
@@ -131,7 +133,7 @@ const pageLoaders = {
     .map(v => [`smartwarmupai/${v}`, () => import('../components/studios/SmartWarmupAIStudio/SmartWarmupAIStudio.js').then(m => m.SmartWarmupAIStudio())])),
   // CineGen Studio was replaced by the Workbench; keep old links working.
   cinegen: () => {
-    try { window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/workbench`); } catch { /* ignore */ }
+    try { window.history.replaceState(null, '', `/workbench${window.location.search}`); } catch { /* ignore */ }
     return import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio());
   },
   // The Timeline Editor is CineGen's workspace (vendored in src/cinegen, our colours + features). The unmodified clone can still be shown
@@ -211,8 +213,7 @@ export async function navigate(page, params = {}, opts = {}) {
   currentPage = page;
 
   // Update URL with params so components can read them via URLSearchParams
-  const searchParams = new URLSearchParams(params).toString();
-  const newUrl = searchParams ? `/?${searchParams}#/${page}` : `/#/${page}`;
+  const newUrl = buildUrl(page, params);
   const mode = opts.history || 'push';
   if (mode === 'push') window.history.pushState({}, '', newUrl);
   else if (mode === 'replace') window.history.replaceState({}, '', newUrl);

@@ -125,7 +125,7 @@ export function ImageStudio() {
             // TemplateStudio instead of rendering a blank ImageStudio.
             const imageModelIds = new Set([...t2iModels, ...i2iModels].map(m => m.id));
             if (tpl.model && !imageModelIds.has(tpl.model)) {
-              window.location.assign(`/?template=${encodeURIComponent(templateParam)}#/template/${encodeURIComponent(templateParam)}`);
+              window.location.assign(`/template/${encodeURIComponent(templateParam)}?template=${encodeURIComponent(templateParam)}`);
               return;
             }
             if (tpl.model) selectedModel = tpl.model;

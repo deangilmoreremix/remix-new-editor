@@ -184,7 +184,7 @@ self.addEventListener('message', (event) => {
 // the tested code and the shipped code cannot drift apart. Keep them free of
 // `self`/`event` access: only the handlers underneath touch the worker globals.
 // <push-logic>
-const PUSH_DEFAULT_URL = '/#/timeline';
+const PUSH_DEFAULT_URL = '/timeline'; // notifications sent before the clean-URL move carry '/#/timeline'; the app still opens those
 const PUSH_ICON = '/favicon.webp';
 
 // Tolerates empty, non-JSON and non-object payloads; every field is optional.
