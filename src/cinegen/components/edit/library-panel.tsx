@@ -165,7 +165,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
     const kindLabel = OVERLAY_KINDS.find((o) => o.kind === kind)?.label ?? kind;
     const e = fixed().get(`design:${kind}:${d.id}`);
     const mid = `design:${kind}:${d.id}`;
-    return <LibraryCard key={mid} testId={`library-design-${kind}-${d.id}`} favorite={memory.isFavorite(mid)} onToggleFavorite={() => memory.toggleFavorite(mid)} title={`${kindLabel}: ${d.label}`} sub={`${d.categoryLabel} · ${d.layout}`} badge={`${kindLabel} design`} preview={e?.preview}
+    return <LibraryCard key={mid} testId={`library-design-${kind}-${d.id}`} favorite={memory.isFavorite(mid)} onToggleFavorite={() => memory.toggleFavorite(mid)} title={`${kindLabel}: ${d.label}`} sub={`${d.categoryLabel} · ${d.layout}`} preview={e?.preview}
       onOpen={() => openModal('overlays', `${kindLabel}: ${d.label}`)} onAdd={() => { memory.remember(mid); void run(() => actions.onAddOverlay(kind, undefined, d.id)); }} />;
   };
   const templateCard = (x: ReturnType<typeof overlayTemplates>[number]) => {
