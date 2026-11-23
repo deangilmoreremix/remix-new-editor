@@ -183,7 +183,7 @@ export async function pollVerbProbe({ gatewayUrl, key, requestId, fetchImpl = fe
 }
 
 /** Offline stand-in for the gateway: balance, estimate, generate, result, upload and studio routes. */
-export function createFakeGateway({ costs = {}, failEndpoints = [], studios = ['zackd', 'agent-audio', 'brand-scrape', 'cinegen', 'personalization', 'design-agent', 'go-ai-viral', 'brand', 'campaigns', 'thumbnail', 'demo'] } = {}) {
+export function createFakeGateway({ costs = {}, failEndpoints = [], studios = ['zackd', 'agent-audio', 'brand-scrape', 'cinegen', 'personalization', 'design-agent', 'go-ai-viral', 'brand', 'campaigns', 'thumbnail', 'demo', 'pages', 'social', 'assets', 'photo-studio'] } = {}) {
   const calls = [];
   const fetchImpl = async (url, init = {}) => {
     const path = String(url).replace(/^https?:\/\/[^/]+/, '').replace(/^\/api\/mcp-gateway/, '');
@@ -196,9 +196,12 @@ export function createFakeGateway({ costs = {}, failEndpoints = [], studios = ['
     if (path === '/generate') return String(init.body).length > 1_000_000 ? reply(413, { error: { message: 'too large' } }) : /\.\./.test(body.endpoint) ? reply(400, { error: { message: 'Invalid endpoint.' } }) : failEndpoints.includes(body.endpoint.replace(/^\//, '')) ? reply(502, { error: { message: 'provider said no' } }) : reply(200, { request_id: 'req_' + calls.length });
     if (path.startsWith('/result/')) return reply(200, { status: 'completed', outputs: ['https://cdn.example.com/out.png'], text: 'ok' }, { 'x-poll-method': 'GET' });
     if (path === '/upload') return reply(400, { error: { message: 'Provide a public https URL.' } });
+    // Like the real gateway: deleting or publishing needs an explicit confirm.
+    const gated = (path === '/raw' && body.method === 'DELETE') || (path === '/studio/pages' && body.action === 'publish') || (path === '/studio/social' && body.action === 'publish');
+    if (gated && body.confirm !== true) return reply(409, { error: { message: 'Needs confirm: true.', code: 'confirm_required' } });
     if (path.startsWith('/studio/')) return !studios.includes(path.slice('/studio/'.length)) ? reply(404, { error: { message: 'Unknown studio.' } }) : reply(200, { ok: true, status: 'done', url: 'https://cdn.example.com/s.png', requestId: 'studio_req' });
     if (path === '/raw') {
-      const ok = (body.method === 'GET' && /^\/(workflow\/get-|agents\/)/.test(body.path)) || (body.method === 'POST' && /^\/agents\/by-slug\/[\w-]+\/chat$/.test(body.path));
+      const ok = (body.method === 'GET' && /^\/(workflow\/get-|agents\/|api\/v1\/history)/.test(body.path)) || (body.method === 'POST' && /^\/agents\/by-slug\/[\w-]+\/chat$/.test(body.path));
       return ok ? reply(200, { is_complete: true, messages: [], workflows: [], agents: [] }) : reply(400, { error: { message: 'That request is not available through MCP.' } });
     }
     return reply(404, { error: { message: 'Unknown route.' } });
