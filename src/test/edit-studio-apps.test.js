@@ -247,3 +247,41 @@ describe('Built-in tools are unchanged', () => {
     expect(muapi.generateI2V).not.toHaveBeenCalled();
   });
 });
+
+describe('3D camera control', () => {
+  test('Angles and Zooms have it above their sliders; other apps and tools do not', () => {
+    for (const slug of ['app-angles', 'app-zooms']) {
+      const el = mount(slug);
+      const widget = el.querySelector('[data-camera-widget]');
+      expect(widget, slug).toBeTruthy();
+      expect(widget.compareDocumentPosition(el.querySelector('[data-control-key="adj_rotation"]')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+    for (const slug of ['app-mukbang', 'app-color-grading', 'remove-background']) expect(mount(slug).querySelector('[data-camera-widget]'), slug).toBeNull();
+  });
+
+  test('a preset moves the card, and dragging the control moves the sliders and goes back to Custom', () => {
+    const el = mount('app-angles');
+    el.querySelector('[data-preset="Right Side Profile (+90°)"]').click();
+    expect(el.querySelector('[data-camera-card]').style.transform).toContain('rotateY(-90deg)');
+    const stage = el.querySelector('[data-camera-stage]');
+    stage.getBoundingClientRect = () => ({ width: 270, height: 135 });
+    const ptr = (type, x, y) => Object.assign(new MouseEvent(type, { clientX: x, clientY: y, bubbles: true }), { pointerId: 1 });
+    stage.dispatchEvent(ptr('pointerdown', 100, 100));
+    stage.dispatchEvent(ptr('pointermove', 100, 100 - 27)); // 27px up of 135 = +27 tilt
+    expect(el.querySelector('[data-control-key="adj_tilt"]').value).toBe('27');
+    expect(el.querySelector('input[data-control-key="style_preset"]').value).toBe('Custom');
+  });
+
+  test('shows the source photo, and the values reach the prompt', async () => {
+    const el = mount('app-angles');
+    pickers[SOURCE].opts.onSelect({ url: 'https://x/car.png', assetId: null });
+    expect(el.querySelector('[data-camera-widget] img').getAttribute('src')).toBe('https://x/car.png');
+    el.querySelector('[data-camera-stage]').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+    applyBtn(el).click();
+    await vi.waitFor(() => expect(muapi.generateI2I).toHaveBeenCalledTimes(1));
+    expect(muapi.generateI2I.mock.calls[0][0].prompt).toContain('camera rotated 5 degrees');
+    pickers[SOURCE].opts.onClear();
+    expect(el.querySelector('[data-camera-widget] img').hasAttribute('src')).toBe(false);
+  });
+});
+

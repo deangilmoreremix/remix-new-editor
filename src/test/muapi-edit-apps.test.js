@@ -104,4 +104,13 @@ describe('muapi apps for the Edit Studio', () => {
     expect(audio.optionLabel(true)).toBe('Keep the audio');
     expect(audio.optionLabel(false)).toBe('Remove the audio');
   });
+
+  it('adds the 3D camera control only to apps that have rotation, tilt and zoom sliders', () => {
+    const withCamera = EDIT_APPS.filter((a) => a.controls.some((c) => c.type === 'camera3d')).map((a) => a.appId).sort();
+    expect(withCamera).toEqual(['angles', 'zooms']);
+    const angles = app('angles').controls.map((c) => c.type);
+    expect(angles.indexOf('camera3d')).toBeGreaterThan(angles.indexOf('preset'));
+    expect(angles.indexOf('camera3d')).toBeLessThan(angles.indexOf('range'));
+  });
 });
+

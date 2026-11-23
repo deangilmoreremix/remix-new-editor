@@ -13,6 +13,7 @@ import {
 import { showToast } from '../lib/loading.js';
 import { createMediaRemoveButton } from '../lib/studioHelpers.js';
 import { createMaskPainter } from './edit/maskPainter.js';
+import { createCameraAngleControl } from './edit/cameraAngleControl.js';
 import {
   EDIT_APPS, getEditAppBySlug, getEditAppGroups, buildAppPrompt, splitAppControlValues, validateAppInputs, formatAppCost,
 } from '../lib/muapiEditApps.js';
@@ -308,6 +309,7 @@ export function EditStudio() {
   let source = null;     // { url, assetId }
   let extras = [];       // more reference images: [{ url, assetId }]
   let activeModelId = null;
+  let cameraWidget = null; // set while an app with the 3D camera control is open
   let secondary = null;  // { url, assetId }
   let resultUrl = null;
   let inFlight = false;
@@ -560,7 +562,9 @@ export function EditStudio() {
     onSelect: ({ url, assetId }) => setSource(url ? { url, assetId: assetId || null } : null),
     onClear: () => setSource(null),
     onFilePreview: (file) => {
-      showBefore(URL.createObjectURL(file));
+      const preview = URL.createObjectURL(file);
+      showBefore(preview);
+      if (cameraWidget) cameraWidget.setImage(preview);
       sourceHint.textContent = `Uploading ${file.name}…`;
     },
   });
@@ -948,10 +952,12 @@ export function EditStudio() {
     source = next;
     formError.classList.add('hidden');
     if (next?.url) {
+      if (cameraWidget) cameraWidget.setImage(next.kind === 'video' ? null : next.url);
       sourceHint.textContent = next.kind === 'video' ? 'Video ready' : 'Image ready';
       sourceClear.classList.remove('hidden');
       if (next.kind === 'video') showVideoSource(next.url); else showBefore(next.url);
     } else {
+      if (cameraWidget) cameraWidget.setImage(null);
       sourceHint.textContent = sourcePrompt();
       sourceClear.classList.add('hidden');
       showEmpty();
@@ -1078,6 +1084,7 @@ export function EditStudio() {
 
   // ── Opening / closing tools ────────────────────────────────────────────
   function renderControls(tool, modelId = tool.id) {
+    cameraWidget = null;
     controlsContainer.innerHTML = '';
     const handWritten = modelId === tool.id ? (tool.controls || []) : [];
     const controls = [...handWritten, ...getSchemaControls(tool, modelId)];
@@ -1117,6 +1124,7 @@ export function EditStudio() {
   }
 
   function renderAppControls(tool) {
+    cameraWidget = null;
     controlsContainer.innerHTML = '';
     tool.controls.forEach(ctrl => {
       const control = ctrl.type === 'preset' ? { ...ctrl, onSelect: (label) => { applyPresetValues(tool, label); refreshAppCost(); } } : ctrl;
@@ -1124,6 +1132,7 @@ export function EditStudio() {
       if (factory) controlsContainer.appendChild(factory(control));
     });
     controlsContainer.querySelectorAll('input[type="range"]').forEach(range => range.addEventListener('input', markPresetCustom));
+    if (cameraWidget) { cameraWidget.bind(controlsContainer); cameraWidget.setImage(source?.kind === 'video' ? null : source?.url || null); }
     settingsPanel.classList.toggle('hidden', tool.controls.length === 0);
     settingsLabel.textContent = tool.controls.some(c => c.type === 'range') ? 'Adjustments & controls' : 'Settings';
   }
@@ -1542,6 +1551,7 @@ export function EditStudio() {
     range.step = control.step || 1;
     range.value = control.default;
     range.dataset.controlKey = control.key;
+    range.dataset.default = String(control.default);
     range.setAttribute('aria-label', control.label);
     range.className = 'flex-1 accent-[#22d3ee]';
     const valueSpan = document.createElement('span');
@@ -1663,7 +1673,14 @@ export function EditStudio() {
     return wrapper;
   }
 
+  // The 3D camera control (Angles / Zooms). It is bound to the sliders after they are rendered.
+  function createCameraControl(control) {
+    cameraWidget = createCameraAngleControl({ label: control.label });
+    return cameraWidget.element;
+  }
+
   const CONTROL_FACTORIES = {
+    camera3d: createCameraControl,
     preset: createPresetControl,
     range: createRangeControl,
     select: createSelectControl,

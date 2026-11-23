@@ -69,6 +69,12 @@ export function buildEditApp(app, data = prompts) {
     });
   }
 
+  // Apps that move a virtual camera (rotation + tilt + zoom) also get the 3D camera control.
+  const sliderKeys = new Set(s.sliders.map((x) => x.key));
+  if (['rotation', 'tilt', 'zoom'].every((k) => sliderKeys.has(k))) {
+    controls.push({ type: 'camera3d', key: 'camera3d', label: '3D camera' });
+  }
+
   for (const sl of s.sliders) {
     controls.push({
       type: 'range',
