@@ -20,10 +20,10 @@ function fakeEngine() {
 }
 
 /** A Lead Generator clip as the editor saves it after the design is picked in the panel. */
-function savedClip(design) {
+function savedClip(design, scheme = '') {
   const clip = { id: 'lf', type: 'lead-form', heading: 'Please enter your details to find out more', ctaText: 'Play', fields: [{ id: 'email', type: 'email', label: 'Email' }], style: {} };
   const base = leadFormToOptin(clip);
-  applyOptinToLeadForm(clip, { ...base, ...applyOptinDesign(base, design) });
+  applyOptinToLeadForm(clip, { ...base, ...applyOptinDesign(base, design, scheme) });
   return JSON.parse(JSON.stringify(clip)); // saved and published: plain JSON
 }
 
@@ -69,5 +69,37 @@ describe('published video: Lead Generator designs', () => {
     expect(player.playing).toBe(true); // released
     expect(frame.querySelector('.addon-overlay--optin')).toBeNull();
     player.destroy();
+  });
+});
+
+describe('published video: a design in a colour scheme', () => {
+  it.each(['amber', 'cyan', 'pink'])('%s: the recoloured design is what the viewer sees (and it still sends the lead)', async (scheme) => {
+    for (const id of ['aurora-glass', 'vip-access', 'editorial-minimalist', 'cosmic-portal']) {
+      document.body.innerHTML = '';
+      const frame = document.createElement('div');
+      document.body.appendChild(frame);
+      const { e, create } = fakeEngine();
+      const design = OPTIN_DESIGNS.find((d) => d.id === id);
+      const clip = savedClip(design, scheme);
+      const own = savedClip(design);
+      expect(leadFormToOptin(clip).colorScheme, id).toBe(scheme);
+      const project = { version: 1, title: 'Demo', timelineSeconds: T, listBuilder: null, tracks: [{ id: 'v', type: 'video', items: [clipAt(0, 20, { id: 'vid', type: 'video', src: 'https://cdn/x.mp4' })] }, { id: 't', type: 'text', items: [clipAt(5, 6, clip)] }] };
+      const onLead = vi.fn(async () => ({ stored: true }));
+      const player = createInteractivePlayer({ project, stage: frame, frame, createEngine: create, onLead });
+      player.play();
+      e.advance(5.5);
+      const form = frame.querySelector('.addon-overlay--optin form');
+      expect(form.dataset.design).toBe(id);
+      // the Play button wears the scheme's colour, not the design's own
+      const own1 = leadFormToOptin(own).buttonBackground;
+      const now = leadFormToOptin(clip).buttonBackground;
+      expect(now, id).not.toBe(own1);
+      expect(form.querySelector('button[type="submit"]').style.background, id).toContain('rgb');
+      form.querySelectorAll('input:not([type="radio"]):not([data-trap])').forEach((el) => { el.value = el.type === 'email' ? 'ann@example.com' : 'Ann'; });
+      form.dispatchEvent(new Event('submit', { cancelable: true }));
+      await new Promise((r) => setTimeout(r, 0));
+      expect(onLead, id).toHaveBeenCalledTimes(1);
+      player.destroy();
+    }
   });
 });
