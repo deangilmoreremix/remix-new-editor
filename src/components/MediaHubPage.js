@@ -19,6 +19,13 @@ async function accessToken() {
   }
 }
 
+// The frame learns our origin from ?parent= so its reconnect message is sent only to us, never to '*'.
+const frameUrl = (url) => {
+  const u = new URL(url, window.location.href);
+  u.searchParams.set('parent', window.location.origin);
+  return u.toString();
+};
+
 export function MediaHubPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col overflow-hidden bg-app-bg';
@@ -61,9 +68,9 @@ export function MediaHubPage() {
   const run = async () => {
     try {
       if (devUrl) {
-        if (iframe) { iframe.src = devUrl; return; }
+        if (iframe) { iframe.src = frameUrl(devUrl); return; }
         iframe = document.createElement('iframe');
-        iframe.src = devUrl;
+        iframe.src = frameUrl(devUrl);
         iframe.title = 'SmartVidDownloader';
         iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;';
         note.replaceWith(iframe);
@@ -77,10 +84,10 @@ export function MediaHubPage() {
       if (!token) throw new Error('Sign in to use SmartVidDownloader.');
       const res = await fetch(`${base}/api/vidbee/session`, { method: 'POST', credentials: 'include', headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `SmartVidDownloader unavailable (${res.status})`);
-      if (iframe) { iframe.src = `${base}/vidbee/`; return; }
+      if (iframe) { iframe.src = frameUrl(`${base}/vidbee/`); return; }
       // Light / Dark / System is switched inside VidBee itself (title-bar button, or Settings → Theme).
       iframe = document.createElement('iframe');
-      iframe.src = `${base}/vidbee/`;
+      iframe.src = frameUrl(`${base}/vidbee/`);
       iframe.title = 'SmartVidDownloader';
       iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;';
       iframe.setAttribute('allow', 'clipboard-write; fullscreen');

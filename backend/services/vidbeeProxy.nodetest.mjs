@@ -137,6 +137,21 @@ describe('vidbee gate error responses', () => {
     assert.match(html, /&lt;x&gt;/);
     assert.match(html, /a &amp; b/);
     assert.doesNotMatch(html, /Reconnect<\/button>/);
-    assert.match(errorPage('t', 'd', { reconnect: true }), /smartviddownloader:reconnect/);
+    // The reconnect message goes only to the embedding app's origin; without one there is no button.
+    const withOrigin = errorPage('t', 'd', { reconnect: true, parentOrigin: 'https://smartvid.app' });
+    assert.match(withOrigin, /smartviddownloader:reconnect/);
+    assert.match(withOrigin, /data-origin="https:\/\/smartvid\.app"/);
+    assert.doesNotMatch(withOrigin, /'\*'/);
+    assert.doesNotMatch(errorPage('t', 'd', { reconnect: true }), /Reconnect<\/button>/);
+  });
+  it('accepts only a plain http(s) origin as ?parent=', async () => {
+    const { parentOriginOf } = await import('./vidbeeProxy.js');
+    const q = (parent) => ({ query: { parent } });
+    assert.equal(parentOriginOf(q('https://smartvid.app')), 'https://smartvid.app');
+    assert.equal(parentOriginOf(q('http://localhost:3100')), 'http://localhost:3100');
+    assert.equal(parentOriginOf(q('https://smartvid.app/path')), null);
+    assert.equal(parentOriginOf(q('javascript:alert(1)')), null);
+    assert.equal(parentOriginOf(q('*')), null);
+    assert.equal(parentOriginOf({ query: {} }), null);
   });
 });

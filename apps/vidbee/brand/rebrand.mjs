@@ -121,11 +121,22 @@ class AiStore {` },
 {
   const smartvidFetch = window.fetch.bind(window)
   let smartvidReconnectAsked = false
+  // The embedding app passes its origin as ?parent= (kept for the session, since the hash router keeps the query).
+  const smartvidParent = (() => {
+    try {
+      const raw = new URLSearchParams(window.location.search).get('parent')
+      const origin = raw ? new URL(raw).origin : null
+      if (origin && origin === raw) sessionStorage.setItem('smartvid-parent', origin)
+      return sessionStorage.getItem('smartvid-parent')
+    } catch {
+      return null
+    }
+  })()
   window.fetch = async (...args: Parameters<typeof fetch>) => {
     const res = await smartvidFetch(...args)
     if (!smartvidReconnectAsked && (res.status === 401 || res.status === 502) && res.headers.get('x-smartvid-reconnect') === '1') {
       smartvidReconnectAsked = true
-      if (window.parent !== window) window.parent.postMessage({ type: 'smartviddownloader:reconnect' }, '*')
+      if (window.parent !== window && smartvidParent) window.parent.postMessage({ type: 'smartviddownloader:reconnect' }, smartvidParent)
       else window.location.reload()
     }
     return res
