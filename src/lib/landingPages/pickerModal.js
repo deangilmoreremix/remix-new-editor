@@ -202,6 +202,13 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     }
     head.appendChild(el('h2', 'text-sm font-black uppercase tracking-widest', title));
     head.appendChild(el('div', 'flex-1'));
+    if (view === 'grid' && !onEdit) {
+      const mine = el('button', BTN, 'My pages');
+      mine.type = 'button';
+      mine.dataset.myPages = '';
+      mine.addEventListener('click', async () => { const { openMyVideoPages } = await import('../../components/modals/MyVideoPagesModal.js'); openMyVideoPages({ zIndex: zIndex + 100 }); });
+      head.appendChild(mine);
+    }
     extras.forEach((x) => head.appendChild(x));
     const x = el('button', BTN, '✕');
     x.type = 'button';
@@ -604,7 +611,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     open.type = 'button';
     open.addEventListener('click', async () => {
       close();
-      try { const { navigate } = await import('../router.js'); navigate('video-pages'); } catch { showToast('Open Video Pages from the menu.', 'info', 3000); }
+      try { const { openMyVideoPages } = await import('../../components/modals/MyVideoPagesModal.js'); openMyVideoPages(); } catch { showToast('Open My Video Pages from the Library.', 'info', 3000); }
     });
     const done = el('button', doneLabel ? BTN_PRIMARY : BTN, doneLabel || 'Done');
     done.type = 'button';

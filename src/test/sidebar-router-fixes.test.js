@@ -38,7 +38,7 @@ describe('Sidebar fixes', () => {
 
   it('should redirect retired routes instead of loading them', async () => {
     const mod = await import('../lib/router.js');
-    expect(Object.keys(mod.RETIRED_ROUTES).sort()).toEqual(['assist', 'chat', 'community', 'pexels-media', 'training']);
+    expect(Object.keys(mod.RETIRED_ROUTES).sort()).toEqual(['assist', 'chat', 'community', 'pexels-media', 'training', 'video-pages']);
   });
 
   it('should map brand sub-routes to brand for active state', async () => {

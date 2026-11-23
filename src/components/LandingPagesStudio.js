@@ -55,9 +55,10 @@ async function copy(text, label) {
   }
 }
 
-export function LandingPagesStudio() {
-  const container = el('div', 'w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
-  mountStudioChrome(container, { title: 'My Video Pages', currentRoute: 'library' });
+/** My saved pages (list, edit, publish, share, analytics). It lives in a modal (components/modals/MyVideoPagesModal.js), not on a page of its own. */
+export function LandingPagesStudio({ embedded = false } = {}) {
+  const container = el('div', `w-full h-full flex flex-col overflow-hidden text-white ${embedded ? 'bg-panel-bg' : 'bg-app-bg'}`);
+  if (!embedded) mountStudioChrome(container, { title: 'My Video Pages', currentRoute: 'library' });
   const scroll = el('div', 'flex-1 overflow-y-auto');
   const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 py-8 flex flex-col gap-6');
   scroll.appendChild(inner);
@@ -95,7 +96,7 @@ export function LandingPagesStudio() {
     // Pages are made from a video: the shared picker lets you upload one, pick one you made, or paste a link.
     newBtn.addEventListener('click', async () => {
       const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
-      openLandingPagePicker({});
+      openLandingPagePicker({ zIndex: 2100 });
     });
     head.append(titleWrap, newBtn);
 
