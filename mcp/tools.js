@@ -236,3 +236,33 @@ customTools.push(
     run: (a, client) => pz(client, 'POST', '/demo/discover', { body: { websiteUrl: a.website_url } }),
   },
 );
+
+// ── Video Pages (the app's landing-page data layer, run as the key's owner) ─────────────────────────
+const PAGE_ID = z.string().regex(/^[A-Za-z0-9_-]{8,32}$/).describe('Page id from video_pages_list');
+const pg = (client, body) => client.studio('pages', body);
+customTools.push(
+  { name: 'video_pages_templates', description: 'List the Video Page templates.', input: {}, run: (a, client) => pg(client, { action: 'templates' }) },
+  { name: 'video_pages_list', description: 'List your Video Pages with their public links.', input: {}, run: (a, client) => pg(client, { action: 'list' }) },
+  { name: 'video_pages_get', description: 'One Video Page with its link and embed code.', input: { id: PAGE_ID }, run: (a, client) => pg(client, { action: 'get', id: a.id }) },
+  {
+    name: 'video_pages_create',
+    description: 'Create a draft Video Page around a video (https link). It is not public until video_pages_publish.',
+    input: { title: z.string().max(200).optional(), video_url: url('Video'), poster_url: z.string().url().optional(), duration: z.number().optional(), template: z.string().optional().describe('Template id from video_pages_templates'), config: z.record(z.string(), z.unknown()).optional().describe('Page settings (sanitized by the app)') },
+    run: (a, client) => pg(client, { action: 'create', ...a }),
+  },
+  { name: 'video_pages_update', description: 'Change a page title, poster or settings.', input: { id: PAGE_ID, title: z.string().max(200).optional(), poster_url: z.string().url().optional(), config: z.record(z.string(), z.unknown()).optional() }, run: (a, client) => pg(client, { action: 'update', ...a }) },
+  { name: 'video_pages_publish', risk: 'publish', description: 'Make a Video Page public at its link.', input: { id: PAGE_ID }, run: (a, client) => pg(client, { action: 'publish', id: a.id }) },
+  { name: 'video_pages_unpublish', description: 'Take a Video Page offline (it stays saved).', input: { id: PAGE_ID }, run: (a, client) => pg(client, { action: 'unpublish', id: a.id }) },
+  { name: 'video_pages_delete', risk: 'destructive', description: 'Delete a Video Page and its stats.', input: { id: PAGE_ID }, run: (a, client) => pg(client, { action: 'delete', id: a.id }) },
+  { name: 'video_pages_stats', description: 'Views, plays, completions, clicks and leads for a page, plus per-contact activity.', input: { id: PAGE_ID }, run: (a, client) => pg(client, { action: 'stats', id: a.id }) },
+  { name: 'video_pages_contacts', description: 'Recipients of personalized links for a page.', input: { id: PAGE_ID }, run: (a, client) => pg(client, { action: 'contacts', id: a.id }) },
+  { name: 'video_pages_add_contacts', description: 'Add recipients (up to 500 per call) for personalized links. Each contact is an object like { firstname, company, city }.', input: { id: PAGE_ID, contacts: z.array(z.record(z.string(), z.string())).min(1).max(500) }, run: (a, client) => pg(client, { action: 'add_contacts', id: a.id, contacts: a.contacts }) },
+  { name: 'video_pages_remove_contact', risk: 'destructive', description: 'Remove a recipient.', input: { contact_id: z.string().min(6).max(40) }, run: (a, client) => pg(client, { action: 'remove_contact', contact_id: a.contact_id }) },
+);
+
+customTools.push({
+  name: 'usage_info',
+  description: 'Your SmartVid account at a glance: generation credit balance.',
+  input: {},
+  run: async (a, client) => ({ balance: await client.balance() }),
+});

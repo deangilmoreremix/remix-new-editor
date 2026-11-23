@@ -18,6 +18,7 @@ import { createClient } from '@supabase/supabase-js';
 import { handle as zackdHandle } from './zackd.js';
 import { handle as agentAudioHandle } from './agent-audio.js';
 import { handle as cinegenHandle } from './cinegen.js';
+import { createPagesStudio, PAGE_ACTIONS } from './_shared/mcpPages.js';
 
 const UPSTREAM = 'https://api.muapi.ai/api/v1';
 
@@ -27,6 +28,8 @@ export const STUDIOS = {
   zackd: (body, who) => zackdHandle(body, who.userId, { keys: who.keys }),
   'agent-audio': (body, who) => agentAudioHandle(body, who.userId, { keys: who.keys }),
   cinegen: (body, who) => cinegenHandle(body, who.userId, { key: who.keys.muapi }),
+  // Video Pages: the app's own landing-page data layer, run with the key owner's identity (row-level security applies).
+  pages: createPagesStudio(),
   // Lead Finder and website discovery: the app's own personalization route handlers, run as the key's owner.
   // The user id is injected by the gateway from the verified MCP key, never taken from the request.
   personalization: async (body, who) => {
@@ -112,6 +115,10 @@ export function classifyRequest(route, method, input = {}) {
   if (studio === 'personalization') {
     const m = String(input?.method || 'GET').toUpperCase();
     return { risk: m === 'DELETE' ? 'destructive' : m === 'GET' ? 'read' : 'write', label: `personalization ${m}` };
+  }
+  if (studio === 'pages') {
+    const a = String(input?.action || '');
+    return { risk: Object.hasOwn(PAGE_ACTIONS, a) ? PAGE_ACTIONS[a] : 'write', label: `pages ${a.slice(0, 20)}` };
   }
   if (route === '/raw') return { risk: 'write', label: 'raw' };
   if (studio) return { risk: 'write', label: studio };
