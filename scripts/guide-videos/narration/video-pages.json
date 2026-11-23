@@ -1,7 +1,7 @@
 {
   "slug": "video-pages",
   "name": "Video Pages",
-  "intro": "Video Pages turns a video into a branded landing page with a call to action, a lead form and analytics, ready to share with a link.",
+  "intro": "Video Pages turns a video into a branded landing page with a call to action, a lead form and analytics. My Video Pages, reached from Library, is where you manage them.",
   "features": {
     "page-design": "Start with page design. Choose a template, and the preview shows how your video and sections will look.",
     "customer-personalisation": "Attach a customer, and tokens in your page text are replaced with that customer's details, so you can send one page per prospect.",

@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 
 const ROOT = process.env.GUIDE_VIDEO_DIR || 'node_modules/.cache/guide-videos';
 const BASE = process.env.TOUR_VIDEO_BASE || 'https://bzxohkrxcwodllketcpz.supabase.co/storage/v1/object/public/tour-videos/studios';
-const SKIP = new Set(['website-builder']); // its tour is only a shell until the page can be recorded
+const SKIP = new Set([]); // every studio with a tour.mp4 is listed (website-builder and smartviddownloader are caption-only tours)
 const studios = {};
 for (const slug of fs.readdirSync(ROOT).sort()) {
   const mp4 = path.join(ROOT, slug, 'tour.mp4');

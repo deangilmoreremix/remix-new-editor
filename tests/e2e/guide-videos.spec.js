@@ -44,7 +44,10 @@ function lineSeconds(slug, key, text) {
   return Math.max(4.5, wordCount(text) / 2.5 + 1.2);
 }
 
-const GUIDES = loadGuides().filter((g) => (only.length ? only.includes(g.slug) : !SKIP_STUDIOS.includes(g.slug)) && loadNarration(g.slug));
+// Studios whose page cannot run on the capture machine (an external service or a backend access gate). Their tour
+// is caption-only: each narrated line is shown on a branded slide in the same overlay, timing and pipeline as the live tours.
+const CAPTION_ONLY = new Set(['website-builder', 'smartviddownloader']);
+const GUIDES = loadGuides().filter((g) => (only.length ? only.includes(g.slug) : (!SKIP_STUDIOS.includes(g.slug) || CAPTION_ONLY.has(g.slug))) && loadNarration(g.slug));
 
 test.use({
   viewport: VIEW,
@@ -119,6 +122,21 @@ async function ui(page, patch) {
       rip.classList.remove('go'); void rip.offsetWidth; rip.classList.add('go');
     }
   }, patch);
+}
+
+// A branded backdrop for caption-only tours (the studio's page cannot run on the capture machine).
+async function showSlide(page, { kicker, title, sub }) {
+  const esc = (x) => String(x || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  await page.goto('about:blank');
+  await page.setContent(`<!doctype html><html><head><style>
+    html,body{margin:0;height:100%;background:#0a0a0c;color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden}
+    .bg{position:fixed;inset:0;background:radial-gradient(900px 520px at 78% 18%,rgba(217,255,0,.10),transparent 70%),radial-gradient(700px 480px at 12% 90%,rgba(217,255,0,.06),transparent 70%)}
+    .grid{position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse at 50% 40%,#000 25%,transparent 75%)}
+    .box{position:fixed;left:0;right:0;top:30%;padding:0 140px}
+    .k{font-size:22px;font-weight:700;letter-spacing:.16em;color:#d9ff00;text-transform:uppercase}
+    h1{margin:18px 0 0;font-size:84px;line-height:1.05;font-weight:800;letter-spacing:-.02em;max-width:1100px}
+    p{margin:22px 0 0;font-size:30px;line-height:1.4;color:#a1a1aa;max-width:980px}
+  </style></head><body><div class="bg"></div><div class="grid"></div><div class="box"><div class="k">${esc(kicker)}</div><h1>${esc(title)}</h1>${sub ? `<p>${esc(sub)}</p>` : ''}</div></body></html>`);
 }
 
 // ---- recording -------------------------------------------------------------------------------
@@ -325,7 +343,7 @@ for (const guide of GUIDES) {
     const targets = TARGETS[guide.slug] || {};
     const dir = path.join(OUT, guide.slug);
     const timelineFile = path.join(dir, 'timeline.json');
-    const hash = sha(JSON.stringify([narr, targets, demos, guide.route, process.env.GUIDE_VIDEO_VERSION || '4']));
+    const hash = sha(JSON.stringify([narr, targets, demos, guide.route, CAPTION_ONLY.has(guide.slug) ? 'slides-1' : '', process.env.GUIDE_VIDEO_VERSION || '4']));
     if (!process.env.FORCE && fs.existsSync(timelineFile) && JSON.parse(fs.readFileSync(timelineFile, 'utf8')).hash === hash) {
       console.log(`  = ${guide.slug}: up to date (FORCE=1 to re-record)`);
       return;
@@ -338,8 +356,9 @@ for (const guide of GUIDES) {
 
     // One narrated segment: ready the page (unrecorded), then record `body` with the caption up.
     // `body(extend)` returns once the visuals are done; the rest of the line's time is held.
-    async function segment(key, text, { route = guide.route, prepare, body, tag } = {}) {
-      await open(page, route);
+    async function segment(key, text, { route = guide.route, prepare, body, tag, slide } = {}) {
+      if (CAPTION_ONLY.has(guide.slug)) await showSlide(page, slide || { kicker: guide.name, title: guide.name });
+      else await open(page, route);
       if (prepare) await prepare();
       await installOverlay(page);
       const need = lineSeconds(guide.slug, key, text);
@@ -374,6 +393,7 @@ for (const guide of GUIDES) {
     // ---- intro: the studio as it opens ----
     await segment('intro', narr.intro, {
       tag: guide.name,
+      slide: { kicker: 'SmartVideo studio tour', title: guide.name, sub: guide.shortDescription },
       body: async (c) => { await c.ui({ caption: narr.intro, capTop: false }); },
     });
 
@@ -382,6 +402,15 @@ for (const guide of GUIDES) {
       if (process.env.FEATURES && !process.env.FEATURES.split(',').includes(id)) continue; // quick trials only
       const feature = guide.features.find((f) => f.id === id);
       if (!feature) { warnings.push(`${id}: not in guide`); continue; }
+      if (CAPTION_ONLY.has(guide.slug)) {
+        const n = Object.keys(narr.features).indexOf(id) + 1;
+        await segment(id, text, {
+          tag: guide.name,
+          slide: { kicker: `Feature ${n} of ${Object.keys(narr.features).length}`, title: feature.name },
+          body: async (c) => { await c.ui({ caption: text, capTop: false }); },
+        });
+        continue;
+      }
       const target = { ...targets[id], ...demos[id] };
       if (target?.skip) { warnings.push(`${id}: target is skip`); }
       const route = target?.route || guide.route;
@@ -450,6 +479,7 @@ for (const guide of GUIDES) {
     // ---- outro: back on the studio's first view ----
     await segment('outro', narr.outro, {
       tag: guide.name,
+      slide: { kicker: 'SmartVideo studio tour', title: `That's ${guide.name}` },
       body: async (c) => { await c.ui({ caption: narr.outro, capTop: false }); },
     });
 

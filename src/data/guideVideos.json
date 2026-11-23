@@ -100,6 +100,9 @@
     "smart-video-viral": {
       "seconds": 109
     },
+    "smartviddownloader": {
+      "seconds": 151
+    },
     "storyboard-studio": {
       "seconds": 129
     },
@@ -125,7 +128,7 @@
       "seconds": 127
     },
     "video-pages": {
-      "seconds": 53
+      "seconds": 54
     },
     "video-render": {
       "seconds": 132
@@ -142,11 +145,14 @@
     "video-watermark-remover": {
       "seconds": 94
     },
+    "website-builder": {
+      "seconds": 112
+    },
     "workbench": {
       "seconds": 140
     },
     "zack-d-studio": {
-      "seconds": 81
+      "seconds": 82
     }
   }
 }
