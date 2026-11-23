@@ -14,6 +14,9 @@ import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 import { WORKBENCH_APP_PATH, consumeWorkbenchHandoff, isWorkbenchEligible, toWorkbenchAsset } from '../../../lib/workbench.js';
 import { loadGenerationHistory, saveGeneration } from '../../../lib/generationHistory.js';
 import { uploadFileToSupabase } from '../../../lib/uploadService.js';
+import { createIframeRpc } from '../../../lib/mcpBridge/iframeRpc.js';
+import { setBridgeTools } from '../../../lib/mcpBridge/index.js';
+import { createWorkbenchTools } from '../../../lib/mcpBridge/adapters/workbench.js';
 
 // BYOK: the user's own OpenAI key (API key modal) is re-sent on this timer and when the
 // window regains focus, so a key added or changed in Settings reaches the editor quickly.
@@ -215,7 +218,12 @@ export function WorkbenchStudio() {
     };
   };
 
+  // MCP tab control (off until the user switches it on in the page).
+  const rpc = createIframeRpc({ getFrame: () => iframe });
+  setBridgeTools('workbench', createWorkbenchTools({ rpc, importAssets: (assets, mode, name) => sendAssets(assets, mode, name) }));
+
   container.cleanup = () => {
+    try { setBridgeTools('workbench', []); rpc.dispose(); } catch { /* ignore */ }
     disposed = true;
     clearInterval(tokenTimer);
     window.removeEventListener('message', onMessage);

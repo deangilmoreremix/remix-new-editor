@@ -234,6 +234,9 @@ try {
     mountHeaderAuth(headerAuthSlot);
   }
 
+  // MCP tab control for app-wide tools (page navigation, brand store, render queue). Offered, never active until the user switches it on.
+  import('./lib/mcpBridge/appTools.js').then((m) => m.registerAppBridgeTools()).catch((e) => console.warn('[MCP] bridge tools unavailable:', e));
+
   initRouter(contentArea, (page) => {
     headerEl.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
     sidebar.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));

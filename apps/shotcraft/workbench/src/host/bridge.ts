@@ -9,7 +9,9 @@ import { appendAssets, isHostAsset, projectFromAssets, type HostAsset } from "./
  *    { type: "sv:auth", token, openaiKey }            Clerk token + the user's own OpenAI key (BYOK)
  *    { type: "sv:import-assets", assets, mode, name } open AI assets ("new" | "append")
  *    { type: "sv:uploaded", id, url } / { type: "sv:upload-failed", id, error }
+ *    { type: "sv:call", id, op, args }                MCP tab control: op = get_project | run_ops | undo | redo
  *  workbench → parent
+ *    { type: "sv:call-result", id, ok, result?, error? }
  *    { type: "sv:ready" }
  *    { type: "sv:exported", blob, name }              finished MP4 to save to the library
  *    { type: "sv:upload", id, file, kind }            user's own file to upload to storage
@@ -69,6 +71,25 @@ const importAssets = async (raw: HostAsset[], mode: unknown, name: unknown) => {
   s.setProject(mode === "append" ? appendAssets(s.project, assets) : projectFromAssets(assets, title));
 };
 
+/** MCP tab control. Only these ops exist; run_ops goes through the same validator (applyOps) the AI chat uses, so media URLs the project does not already hold are refused. */
+const runCall = async (op: unknown, args: Record<string, unknown>) => {
+  const { applyOps, compactProject } = await import("../ai/ops");
+  const { CARDS } = await import("../cards/registry");
+  const s = useStore.getState();
+  switch (op) {
+    case "get_project":
+      return { project: compactProject(s.project), selectedClipId: s.selectedClipId };
+    case "run_ops": {
+      const res = applyOps(s.project, Array.isArray(args.ops) ? (args.ops as never[]) : [], CARDS);
+      if (res.applied > 0) useStore.getState().setProject(res.project);
+      return { applied: res.applied, errors: res.errors.slice(0, 20) };
+    }
+    case "undo": s.undo(); return { ok: true };
+    case "redo": s.redo(); return { ok: true };
+    default: throw new Error("Unknown call.");
+  }
+};
+
 let started = false;
 export const initHostBridge = () => {
   if (started || typeof window === "undefined") return;
@@ -99,6 +120,11 @@ export const initHostBridge = () => {
           });
         }
       });
+    } else if (d.type === "sv:call" && typeof d.id === "string") {
+      const id = d.id;
+      runCall(d.op, d.args && typeof d.args === "object" ? (d.args as Record<string, unknown>) : {})
+        .then((result) => post({ type: "sv:call-result", id, ok: true, result }))
+        .catch((err) => post({ type: "sv:call-result", id, ok: false, error: String(err?.message || err).slice(0, 300) }));
     } else if (d.type === "sv:import-assets" && Array.isArray(d.assets)) {
       const assets = d.assets.filter(isHostAsset);
       if (assets.length) importAssets(assets, d.mode, d.name);

@@ -4,6 +4,12 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 import { MemoryRouter, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { applyLocaleToDocument, localeTitle, useLocale } from './i18n';
 import { applySession } from './lib/sessionAdapter';
+import { interpretAgentCommand } from './lib/agentCommands';
+import { applyAgentOps } from './lib/agentApply';
+import { CARDS } from './cards/registry';
+import { requestExport } from './ExportButton';
+import { setBridgeTools } from '../../../../lib/mcpBridge/index.js';
+import { createMotionDirectorTools } from '../../../../lib/mcpBridge/adapters/motionDirector.js';
 import { useStore } from './store';
 import './styles.css';
 
@@ -125,6 +131,12 @@ const MotionStudioSession = () => {
 
 export default function MotionStudio() {
   const locale = useLocale((s) => s.locale);
+
+  // MCP tab control: offered while the studio is open, switched on by the user in the page.
+  useEffect(() => {
+    setBridgeTools('motion_director', createMotionDirectorTools({ getState: () => useStore.getState(), interpretAgentCommand, applyAgentOps, cards: CARDS, requestExport }));
+    return () => setBridgeTools('motion_director', []);
+  }, []);
 
   useEffect(() => {
     const desired = localeTitle(locale);

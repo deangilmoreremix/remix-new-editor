@@ -49,6 +49,7 @@
     "mcp:catalog": "node scripts/build-mcp-catalog.mjs",
     "mcp:start": "node mcp/index.js",
     "test:mcp": "vitest run tests/mcp",
+    "mcp:bridge-manifest": "node scripts/build-mcp-bridge-manifest.mjs",
     "mcp:coverage": "node scripts/build-mcp-coverage.mjs",
     "mcp:smoke": "node scripts/mcp-smoke.mjs"
   },
