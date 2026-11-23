@@ -289,6 +289,15 @@ export const STUDIO_HELP = {
   'add your generations': h('Add your generations', 'Bring your generations into the Workbench.'),
   'topic': h('Topic', 'What the video is about.'),
   'paste url': h('Paste a link', 'Paste a web address and press Enter to add it.'),
+  // Find My Brand and Motion Director labels. INFERRED entries are worded from the label and its section hint, not from a handler.
+  'find business': h('Find business', 'Look up a business online to fill in the brand.'), // INFERRED
+  'your assets': h('Your assets', 'The logo, people and products you uploaded.'), // INFERRED
+  'found on website': h('Found on website', 'Images and logos found on the business website.'), // INFERRED
+  'business content': h('Business content', 'Images and videos about the business.'), // INFERRED
+  'overlays': h('Overlays', 'Graphics and text placed over the video.'), // INFERRED
+  'output & engine': h('Output & engine', 'Choose the output and the engine that makes the video.'), // from the tab hint "Prompt, output, engine"
+  'templates': h('Templates', 'Pick the shot cards your film is built from.'),
+  'brand kit': h('Brand Kit', 'Use your business name, colors, logos and images in the film.'),
   'try this': h('Try this', 'Open the studio with this prompt filled in.'),
   'social resize': h('Social Resize', 'Reframe for feed, story, reel and ad formats.'),
   'remix scene': h('Remix Scene', 'Export a remixed version with a brightness and contrast boost.', 'It uses the selected preset.'),

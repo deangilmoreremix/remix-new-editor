@@ -238,3 +238,21 @@ describe('plain titles vs ancestor copy', () => {
     expect(findHelp(document.querySelector('span'))?.entry).toEqual({ name: 'Inner' });
   });
 });
+
+describe('Find My Brand and Motion Director labels', () => {
+  it.each([
+    ['Find business', 'Find business'], ['Your assets', 'Your assets'], ['Found on website', 'Found on website'],
+    ['Business content', 'Business content'], ['Overlays', 'Overlays'], ['Output & engine', 'Output & engine'],
+    ['Templates', 'Templates'], ['Brand Kit', 'Brand Kit'],
+  ])('%s has copy', (label, name) => {
+    expect(resolveStudioHelp(label)?.name).toBe(name);
+  });
+  it('wizard navigation names its destination', () => {
+    expect(resolveStudioHelp('← Profile')?.summary).toBe('Go back to Profile.');
+    expect(resolveStudioHelp('Next: Overlays →')?.summary).toBe('Continue to Overlays.');
+  });
+  it('render-time copy wins over the button text', () => {
+    document.body.innerHTML = '<button data-help-name="Face photo" data-help-text="Opens the file picker to upload an image.">FACE</button>';
+    expect(findHelp(document.querySelector('button'))?.entry).toEqual({ name: 'Face photo', summary: 'Opens the file picker to upload an image.' });
+  });
+});
