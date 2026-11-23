@@ -15,3 +15,16 @@ export function takePrefillModelName() {
     return v;
   } catch { return null; }
 }
+
+/**
+ * Store a clicked model for the destination studio, only if that studio can select it
+ * (models = the list the studio resolves against). Otherwise clear any old value, so an
+ * unknown or stale name never carries over to a later visit.
+ */
+export function storePrefillModel(models, name) {
+  try {
+    const m = resolvePrefillModel(models || [], name);
+    if (m) localStorage.setItem('prefill_model', m.name || m.id);
+    else localStorage.removeItem('prefill_model');
+  } catch { /* storage unavailable */ }
+}

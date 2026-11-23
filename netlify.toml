@@ -62,6 +62,10 @@
   node_bundler = "esbuild"
   external_node_modules = ["@sparticuz/chromium", "playwright-core", "playwright"]
 
+# Brand Kit deep scan (POST /api/brand-kit): plain SSRF-validated fetches of the site's own pages; no browser.
+[functions."brand-kit"]
+  node_bundler = "esbuild"
+
 [functions."motion-studio-capture-background"]
   node_bundler = "esbuild"
   external_node_modules = ["@sparticuz/chromium", "playwright-core", "playwright"]

@@ -1,7 +1,6 @@
 import { useRef, useState, useCallback, useEffect, useLayoutEffect } from 'react';
 import type { Asset } from '@cinegen/types/project';
 import type { Clip, ToolType } from '@cinegen/types/timeline';
-import { clipEffectiveDuration } from '@cinegen/types/timeline';
 import { formatTimecode } from './time-ruler';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { useNativeVideoSurface } from './use-native-video-surface';
@@ -82,15 +81,17 @@ export function SourceViewer({
     fitAspectRatio: surfaceAspectRatio,
   });
 
-  const effectiveDuration = clip ? clipEffectiveDuration(clip) : (asset?.duration ?? 0);
+  const effectiveDuration = clip ? Math.max(0, clip.duration - clip.trimStart - clip.trimEnd) : (asset?.duration ?? 0); // [remix] the viewer plays the file at rate 1, so a clip's range is its source span, not the speed-scaled timeline length
 
   void onClose;
 
-  useEffect(() => { onSourceTime?.(sourceTime); }, [sourceTime, onSourceTime]); // [remix] Stage 1
+  const trimOffset = clip ? clip.trimStart : 0; // [remix] Stage 1: marks use the file's own time, so a timeline clip adds its trim offset
+  useEffect(() => { onSourceTime?.(trimOffset + sourceTime); }, [sourceTime, onSourceTime, trimOffset]);
 
   useEffect(() => {
     setSourceTime(0);
     setIsPlaying(false);
+    if (videoRef.current) videoRef.current.currentTime = clip ? clip.trimStart : 0; // [remix] open on the clip's first frame, the same time the marks assume
   }, [clip?.id, asset?.id]);
 
   useEffect(() => {
@@ -335,6 +336,7 @@ export function SourceViewer({
                     className="source-viewer__video"
                     src={toFileUrl(asset.fileRef || asset.url)}
                     onTimeUpdate={handleTimeUpdate}
+                    onLoadedMetadata={() => { if (videoRef.current && trimOffset) videoRef.current.currentTime = trimOffset; }}
                     onEnded={() => setIsPlaying(false)}
                   />
                 )
@@ -383,7 +385,7 @@ export function SourceViewer({
               {formatTimecode(effectiveDuration)}
             </span>
           </div>
-          {marksUi && !clip && asset && <SourceMarkBar ui={marksUi} sourceTime={sourceTime} duration={effectiveDuration} />}
+          {marksUi && asset && <SourceMarkBar ui={marksUi} sourceTime={trimOffset + sourceTime} duration={asset.duration ?? trimOffset + effectiveDuration} />}
         </>
       )}
     </div>

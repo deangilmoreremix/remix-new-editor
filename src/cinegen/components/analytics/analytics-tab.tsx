@@ -11,6 +11,8 @@ import { SampleAnalytics } from './sample-analytics';
 import { DemoVideos, DemoRestore, useDemosHidden } from './demo-videos';
 import { captureRowThumbnail } from '@cinegen/lib/leads/thumbnail';
 import { ensureProjectRow, linkVideoToProject, linkedProjectId, rowName } from '@cinegen/lib/leads/project-link';
+import { openCinegenFollowup } from '@cinegen/lib/leads/followup-project';
+import { OPEN_RETARGET_EVENT } from '@cinegen/lib/leads/open-retarget';
 // @ts-expect-error plain JS
 import { audienceTab, retargetTab, notificationsTab } from '../../../lib/editor/projectLibrary/projectTabs.js';
 // @ts-expect-error plain JS
@@ -42,7 +44,7 @@ export function AnalyticsTab() {
 
   // The header bell opens the alerts for the project that is open.
   useEffect(() => {
-    try { if (sessionStorage.getItem(OPEN_FLAG)) { sessionStorage.removeItem(OPEN_FLAG); setView('notifications'); } } catch { /* storage unavailable */ }
+    try { const flag = sessionStorage.getItem(OPEN_FLAG); if (flag) { sessionStorage.removeItem(OPEN_FLAG); setView(flag === 'retarget' ? 'retarget' : 'notifications'); } } catch { /* storage unavailable */ }
   }, []);
 
   // Bell clicked while this tab is already open: the shell only re-selects this tab, so switch the sub-view here too.
@@ -50,6 +52,13 @@ export function AnalyticsTab() {
     const open = () => { try { sessionStorage.removeItem(OPEN_FLAG); } catch { /* ignore */ } setOpts({}); setView('notifications'); };
     window.addEventListener('remix:open-projects', open);
     return () => window.removeEventListener('remix:open-projects', open);
+  }, []);
+
+  // The header's Retarget button, clicked while this tab is already open (when it was not, the flag above carries 'retarget').
+  useEffect(() => {
+    const open = () => { try { sessionStorage.removeItem(OPEN_FLAG); } catch { /* ignore */ } setOpts({}); setView('retarget'); };
+    window.addEventListener(OPEN_RETARGET_EVENT, open);
+    return () => window.removeEventListener(OPEN_RETARGET_EVENT, open);
   }, []);
 
   // Make sure the published video is tied to this project (older publications were not).
@@ -92,6 +101,7 @@ export function AnalyticsTab() {
       navigate: (page: string) => import('../../../lib/router.js').then((m) => m.navigate(page)),
       onToast: (msg: string) => setToast(msg),
       onUnreadChanged: () => window.dispatchEvent(new Event('remix:notifications-changed')),
+      openFollowup: openCinegenFollowup, // Create follow-up builds a CineGen project and opens it (the classic editor keeps the Personalizer handoff)
     };
     let stop: (() => void) | null = null; let cancelled = false;
     if (view === 'analytics') {

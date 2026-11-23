@@ -13,7 +13,7 @@ export function buildPublishState(tl: Timeline, assets: Asset[], overlays: Overl
   const item = (c: Clip, i: number, audioOnly: boolean) => {
     const a = byId.get(c.assetId); const src = a?.fileRef || a?.url;
     if (!a || !src) return null;
-    return { id: `c${i}`, type: audioOnly || a.type === 'audio' ? 'audio' : a.type === 'image' ? 'image' : 'video', src, start: c.startTime, end: c.startTime + clipEffectiveDuration(c), trimIn: c.trimStart, playbackRate: c.speed || 1, volume: c.volume ?? 1 };
+    return { id: `c${i}`, name: c.name || undefined, type: audioOnly || a.type === 'audio' ? 'audio' : a.type === 'image' ? 'image' : 'video', src, start: c.startTime, end: c.startTime + clipEffectiveDuration(c), trimIn: c.trimStart, playbackRate: c.speed || 1, volume: c.volume ?? 1 };
   };
   const video = tl.clips.filter((c) => kind(c) === 'video').map((c, i) => item(c, i, false)).filter(Boolean);
   const audio = tl.clips.filter((c) => kind(c) === 'audio').map((c, i) => item(c, 1000 + i, true)).filter(Boolean);

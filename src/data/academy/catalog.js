@@ -2268,45 +2268,45 @@ export const ACADEMY_ASSETS = [
     "title": "Gripmount Ad2 Problem First",
     "type": "video",
     "category": "01-ai-video-ads-ugc",
-    "src": "/academy/01-ai-video-ads-ugc/gifs/gripmount-ad2-problem-first.gif",
-    "thumbnail": "/academy/01-ai-video-ads-ugc/gifs/gripmount-ad2-problem-first.gif",
+    "src": "/academy/01-ai-video-ads-ugc/posters/gripmount-ad2-problem-first.webp",
+    "thumbnail": "/academy/01-ai-video-ads-ugc/posters/gripmount-ad2-problem-first.webp",
     "lesson": "building-an-ad-batch",
     "description": "Gripmount Ad2 Problem First",
     "tags": [
       "01-ai-video-ads-ugc"
     ],
     "videoSrc": "/academy/01-ai-video-ads-ugc/videos/gripmount-ad2-problem-first.mp4",
-    "gifSrc": "/academy/01-ai-video-ads-ugc/gifs/gripmount-ad2-problem-first.gif"
+    "gifSrc": "/academy/01-ai-video-ads-ugc/posters/gripmount-ad2-problem-first.webp"
   },
   {
     "id": "gripmount-ad3-pov",
     "title": "Gripmount Ad3 Pov",
     "type": "video",
     "category": "01-ai-video-ads-ugc",
-    "src": "/academy/01-ai-video-ads-ugc/gifs/gripmount-ad3-pov.gif",
-    "thumbnail": "/academy/01-ai-video-ads-ugc/gifs/gripmount-ad3-pov.gif",
+    "src": "/academy/01-ai-video-ads-ugc/posters/gripmount-ad3-pov.webp",
+    "thumbnail": "/academy/01-ai-video-ads-ugc/posters/gripmount-ad3-pov.webp",
     "lesson": "building-an-ad-batch",
     "description": "Gripmount Ad3 Pov",
     "tags": [
       "01-ai-video-ads-ugc"
     ],
     "videoSrc": "/academy/01-ai-video-ads-ugc/videos/gripmount-ad3-pov.mp4",
-    "gifSrc": "/academy/01-ai-video-ads-ugc/gifs/gripmount-ad3-pov.gif"
+    "gifSrc": "/academy/01-ai-video-ads-ugc/posters/gripmount-ad3-pov.webp"
   },
   {
     "id": "gripmount-hook-clip",
     "title": "Gripmount Hook Clip",
     "type": "video",
     "category": "01-ai-video-ads-ugc",
-    "src": "/academy/01-ai-video-ads-ugc/gifs/gripmount-hook-clip.gif",
-    "thumbnail": "/academy/01-ai-video-ads-ugc/gifs/gripmount-hook-clip.gif",
+    "src": "/academy/01-ai-video-ads-ugc/posters/gripmount-hook-clip.webp",
+    "thumbnail": "/academy/01-ai-video-ads-ugc/posters/gripmount-hook-clip.webp",
     "lesson": "how-ugc-works",
     "description": "Gripmount Hook Clip",
     "tags": [
       "01-ai-video-ads-ugc"
     ],
     "videoSrc": "/academy/01-ai-video-ads-ugc/videos/gripmount-hook-clip.mp4",
-    "gifSrc": "/academy/01-ai-video-ads-ugc/gifs/gripmount-hook-clip.gif"
+    "gifSrc": "/academy/01-ai-video-ads-ugc/posters/gripmount-hook-clip.webp"
   },
   {
     "id": "02-ai-filmmaking::astronaut-anchor",
@@ -2326,45 +2326,45 @@ export const ACADEMY_ASSETS = [
     "title": "Astronaut Clip",
     "type": "video",
     "category": "02-ai-filmmaking",
-    "src": "/academy/02-ai-filmmaking/gifs/astronaut-clip.gif",
-    "thumbnail": "/academy/02-ai-filmmaking/gifs/astronaut-clip.gif",
+    "src": "/academy/02-ai-filmmaking/posters/astronaut-clip.webp",
+    "thumbnail": "/academy/02-ai-filmmaking/posters/astronaut-clip.webp",
     "lesson": "02-ai-filmmaking::03-camera-movement",
     "description": "Astronaut Clip",
     "tags": [
       "02-ai-filmmaking"
     ],
     "videoSrc": "/academy/02-ai-filmmaking/videos/astronaut-clip.mp4",
-    "gifSrc": "/academy/02-ai-filmmaking/gifs/astronaut-clip.gif"
+    "gifSrc": "/academy/02-ai-filmmaking/posters/astronaut-clip.webp"
   },
   {
     "id": "02-ai-filmmaking::astronaut-intro-clip",
     "title": "Astronaut Intro Clip",
     "type": "video",
     "category": "02-ai-filmmaking",
-    "src": "/academy/02-ai-filmmaking/gifs/astronaut-intro-clip.gif",
-    "thumbnail": "/academy/02-ai-filmmaking/gifs/astronaut-intro-clip.gif",
+    "src": "/academy/02-ai-filmmaking/posters/astronaut-intro-clip.webp",
+    "thumbnail": "/academy/02-ai-filmmaking/posters/astronaut-intro-clip.webp",
     "lesson": "02-ai-filmmaking::01-screenplay-and-story",
     "description": "Astronaut Intro Clip",
     "tags": [
       "02-ai-filmmaking"
     ],
     "videoSrc": "/academy/02-ai-filmmaking/videos/astronaut-intro-clip.mp4",
-    "gifSrc": "/academy/02-ai-filmmaking/gifs/astronaut-intro-clip.gif"
+    "gifSrc": "/academy/02-ai-filmmaking/posters/astronaut-intro-clip.webp"
   },
   {
     "id": "02-ai-filmmaking::storyboard-anim-clip",
     "title": "Storyboard Anim Clip",
     "type": "video",
     "category": "02-ai-filmmaking",
-    "src": "/academy/02-ai-filmmaking/gifs/storyboard-anim-clip.gif",
-    "thumbnail": "/academy/02-ai-filmmaking/gifs/storyboard-anim-clip.gif",
+    "src": "/academy/02-ai-filmmaking/posters/storyboard-anim-clip.webp",
+    "thumbnail": "/academy/02-ai-filmmaking/posters/storyboard-anim-clip.webp",
     "lesson": "02-ai-filmmaking::02-storyboarding-and-shots",
     "description": "Storyboard Anim Clip",
     "tags": [
       "02-ai-filmmaking"
     ],
     "videoSrc": "/academy/02-ai-filmmaking/videos/storyboard-anim-clip.mp4",
-    "gifSrc": "/academy/02-ai-filmmaking/gifs/storyboard-anim-clip.gif"
+    "gifSrc": "/academy/02-ai-filmmaking/posters/storyboard-anim-clip.webp"
   },
   {
     "id": "02-ai-filmmaking::storyboard-shot1-wide",
@@ -2436,15 +2436,15 @@ export const ACADEMY_ASSETS = [
     "title": "Faceless Clip",
     "type": "video",
     "category": "03-faceless-ai-channels",
-    "src": "/academy/03-faceless-ai-channels/gifs/faceless-clip.gif",
-    "thumbnail": "/academy/03-faceless-ai-channels/gifs/faceless-clip.gif",
+    "src": "/academy/03-faceless-ai-channels/posters/faceless-clip.webp",
+    "thumbnail": "/academy/03-faceless-ai-channels/posters/faceless-clip.webp",
     "lesson": "03-faceless-ai-channels::02-narration-and-pacing",
     "description": "Faceless Clip",
     "tags": [
       "03-faceless-ai-channels"
     ],
     "videoSrc": "/academy/03-faceless-ai-channels/videos/faceless-clip.mp4",
-    "gifSrc": "/academy/03-faceless-ai-channels/gifs/faceless-clip.gif"
+    "gifSrc": "/academy/03-faceless-ai-channels/posters/faceless-clip.webp"
   },
   {
     "id": "03-faceless-ai-channels::faceless-finance-niche",
@@ -2477,15 +2477,15 @@ export const ACADEMY_ASSETS = [
     "title": "Faceless Niche Intro",
     "type": "video",
     "category": "03-faceless-ai-channels",
-    "src": "/academy/03-faceless-ai-channels/gifs/faceless-niche-intro.gif",
-    "thumbnail": "/academy/03-faceless-ai-channels/gifs/faceless-niche-intro.gif",
+    "src": "/academy/03-faceless-ai-channels/posters/faceless-niche-intro.webp",
+    "thumbnail": "/academy/03-faceless-ai-channels/posters/faceless-niche-intro.webp",
     "lesson": "03-faceless-ai-channels::01-niche-and-script",
     "description": "Faceless Niche Intro",
     "tags": [
       "03-faceless-ai-channels"
     ],
     "videoSrc": "/academy/03-faceless-ai-channels/videos/faceless-niche-intro.mp4",
-    "gifSrc": "/academy/03-faceless-ai-channels/gifs/faceless-niche-intro.gif"
+    "gifSrc": "/academy/03-faceless-ai-channels/posters/faceless-niche-intro.webp"
   },
   {
     "id": "03-faceless-ai-channels::faceless-workstation",
@@ -2518,15 +2518,15 @@ export const ACADEMY_ASSETS = [
     "title": "Agency Pitch Clip",
     "type": "video",
     "category": "04-ai-content-factories",
-    "src": "/academy/04-ai-content-factories/gifs/agency-pitch-clip.gif",
-    "thumbnail": "/academy/04-ai-content-factories/gifs/agency-pitch-clip.gif",
+    "src": "/academy/04-ai-content-factories/posters/agency-pitch-clip.webp",
+    "thumbnail": "/academy/04-ai-content-factories/posters/agency-pitch-clip.webp",
     "lesson": "04-ai-content-factories::06-selling-content-services",
     "description": "Agency Pitch Clip",
     "tags": [
       "04-ai-content-factories"
     ],
     "videoSrc": "/academy/04-ai-content-factories/videos/agency-pitch-clip.mp4",
-    "gifSrc": "/academy/04-ai-content-factories/gifs/agency-pitch-clip.gif"
+    "gifSrc": "/academy/04-ai-content-factories/posters/agency-pitch-clip.webp"
   },
   {
     "id": "04-ai-content-factories::batch-production-suite",
@@ -2546,15 +2546,15 @@ export const ACADEMY_ASSETS = [
     "title": "Batch Suite Clip",
     "type": "video",
     "category": "04-ai-content-factories",
-    "src": "/academy/04-ai-content-factories/gifs/batch-suite-clip.gif",
-    "thumbnail": "/academy/04-ai-content-factories/gifs/batch-suite-clip.gif",
+    "src": "/academy/04-ai-content-factories/posters/batch-suite-clip.webp",
+    "thumbnail": "/academy/04-ai-content-factories/posters/batch-suite-clip.webp",
     "lesson": "04-ai-content-factories::05-batching-and-scheduling",
     "description": "Batch Suite Clip",
     "tags": [
       "04-ai-content-factories"
     ],
     "videoSrc": "/academy/04-ai-content-factories/videos/batch-suite-clip.mp4",
-    "gifSrc": "/academy/04-ai-content-factories/gifs/batch-suite-clip.gif"
+    "gifSrc": "/academy/04-ai-content-factories/posters/batch-suite-clip.webp"
   },
   {
     "id": "04-ai-content-factories::content-factory-studio",
@@ -2574,15 +2574,15 @@ export const ACADEMY_ASSETS = [
     "title": "Fitness Reel Clip",
     "type": "video",
     "category": "04-ai-content-factories",
-    "src": "/academy/04-ai-content-factories/gifs/fitness-reel-clip.gif",
-    "thumbnail": "/academy/04-ai-content-factories/gifs/fitness-reel-clip.gif",
+    "src": "/academy/04-ai-content-factories/posters/fitness-reel-clip.webp",
+    "thumbnail": "/academy/04-ai-content-factories/posters/fitness-reel-clip.webp",
     "lesson": "04-ai-content-factories::02-tiktok-reels-factory",
     "description": "Fitness Reel Clip",
     "tags": [
       "04-ai-content-factories"
     ],
     "videoSrc": "/academy/04-ai-content-factories/videos/fitness-reel-clip.mp4",
-    "gifSrc": "/academy/04-ai-content-factories/gifs/fitness-reel-clip.gif"
+    "gifSrc": "/academy/04-ai-content-factories/posters/fitness-reel-clip.webp"
   },
   {
     "id": "04-ai-content-factories::fitness-reel-preview",
@@ -2615,15 +2615,15 @@ export const ACADEMY_ASSETS = [
     "title": "Focus Loop Clip",
     "type": "video",
     "category": "04-ai-content-factories",
-    "src": "/academy/04-ai-content-factories/gifs/focus-loop-clip.gif",
-    "thumbnail": "/academy/04-ai-content-factories/gifs/focus-loop-clip.gif",
+    "src": "/academy/04-ai-content-factories/posters/focus-loop-clip.webp",
+    "thumbnail": "/academy/04-ai-content-factories/posters/focus-loop-clip.webp",
     "lesson": "04-ai-content-factories::03-youtube-shorts-factory",
     "description": "Focus Loop Clip",
     "tags": [
       "04-ai-content-factories"
     ],
     "videoSrc": "/academy/04-ai-content-factories/videos/focus-loop-clip.mp4",
-    "gifSrc": "/academy/04-ai-content-factories/gifs/focus-loop-clip.gif"
+    "gifSrc": "/academy/04-ai-content-factories/posters/focus-loop-clip.webp"
   },
   {
     "id": "04-ai-content-factories::get-rich-automated-thumbnail",
@@ -2643,30 +2643,30 @@ export const ACADEMY_ASSETS = [
     "title": "Thumbnail Motion Clip",
     "type": "video",
     "category": "04-ai-content-factories",
-    "src": "/academy/04-ai-content-factories/gifs/thumbnail-motion-clip.gif",
-    "thumbnail": "/academy/04-ai-content-factories/gifs/thumbnail-motion-clip.gif",
+    "src": "/academy/04-ai-content-factories/posters/thumbnail-motion-clip.webp",
+    "thumbnail": "/academy/04-ai-content-factories/posters/thumbnail-motion-clip.webp",
     "lesson": "04-ai-content-factories::04-thumbnail-design",
     "description": "Thumbnail Motion Clip",
     "tags": [
       "04-ai-content-factories"
     ],
     "videoSrc": "/academy/04-ai-content-factories/videos/thumbnail-motion-clip.mp4",
-    "gifSrc": "/academy/04-ai-content-factories/gifs/thumbnail-motion-clip.gif"
+    "gifSrc": "/academy/04-ai-content-factories/posters/thumbnail-motion-clip.webp"
   },
   {
     "id": "05-ai-avatars-and-influencers::avatar-agency-suite-clip",
     "title": "Avatar Agency Suite Clip",
     "type": "video",
     "category": "05-ai-avatars-and-influencers",
-    "src": "/academy/05-ai-avatars-and-influencers/gifs/avatar-agency-suite-clip.gif",
-    "thumbnail": "/academy/05-ai-avatars-and-influencers/gifs/avatar-agency-suite-clip.gif",
+    "src": "/academy/05-ai-avatars-and-influencers/posters/avatar-agency-suite-clip.webp",
+    "thumbnail": "/academy/05-ai-avatars-and-influencers/posters/avatar-agency-suite-clip.webp",
     "lesson": "05-ai-avatars-and-influencers::05-agency-economics",
     "description": "Avatar Agency Suite Clip",
     "tags": [
       "05-ai-avatars-and-influencers"
     ],
     "videoSrc": "/academy/05-ai-avatars-and-influencers/videos/avatar-agency-suite-clip.mp4",
-    "gifSrc": "/academy/05-ai-avatars-and-influencers/gifs/avatar-agency-suite-clip.gif"
+    "gifSrc": "/academy/05-ai-avatars-and-influencers/posters/avatar-agency-suite-clip.webp"
   },
   {
     "id": "05-ai-avatars-and-influencers::avatar-agency-suite",
@@ -2712,30 +2712,30 @@ export const ACADEMY_ASSETS = [
     "title": "Avatar Sponsor Clip",
     "type": "video",
     "category": "05-ai-avatars-and-influencers",
-    "src": "/academy/05-ai-avatars-and-influencers/gifs/avatar-sponsor-clip.gif",
-    "thumbnail": "/academy/05-ai-avatars-and-influencers/gifs/avatar-sponsor-clip.gif",
+    "src": "/academy/05-ai-avatars-and-influencers/posters/avatar-sponsor-clip.webp",
+    "thumbnail": "/academy/05-ai-avatars-and-influencers/posters/avatar-sponsor-clip.webp",
     "lesson": "05-ai-avatars-and-influencers::04-monetization-tiers",
     "description": "Avatar Sponsor Clip",
     "tags": [
       "05-ai-avatars-and-influencers"
     ],
     "videoSrc": "/academy/05-ai-avatars-and-influencers/videos/avatar-sponsor-clip.mp4",
-    "gifSrc": "/academy/05-ai-avatars-and-influencers/gifs/avatar-sponsor-clip.gif"
+    "gifSrc": "/academy/05-ai-avatars-and-influencers/posters/avatar-sponsor-clip.webp"
   },
   {
     "id": "05-ai-avatars-and-influencers::avatar-studio-clip",
     "title": "Avatar Studio Clip",
     "type": "video",
     "category": "05-ai-avatars-and-influencers",
-    "src": "/academy/05-ai-avatars-and-influencers/gifs/avatar-studio-clip.gif",
-    "thumbnail": "/academy/05-ai-avatars-and-influencers/gifs/avatar-studio-clip.gif",
+    "src": "/academy/05-ai-avatars-and-influencers/posters/avatar-studio-clip.webp",
+    "thumbnail": "/academy/05-ai-avatars-and-influencers/posters/avatar-studio-clip.webp",
     "lesson": "05-ai-avatars-and-influencers::03-voice-cloning-dialogue",
     "description": "Avatar Studio Clip",
     "tags": [
       "05-ai-avatars-and-influencers"
     ],
     "videoSrc": "/academy/05-ai-avatars-and-influencers/videos/avatar-studio-clip.mp4",
-    "gifSrc": "/academy/05-ai-avatars-and-influencers/gifs/avatar-studio-clip.gif"
+    "gifSrc": "/academy/05-ai-avatars-and-influencers/posters/avatar-studio-clip.webp"
   },
   {
     "id": "05-ai-avatars-and-influencers::emma-cafe-consistent",
@@ -2755,15 +2755,15 @@ export const ACADEMY_ASSETS = [
     "title": "Emma Cafe Motion",
     "type": "video",
     "category": "05-ai-avatars-and-influencers",
-    "src": "/academy/05-ai-avatars-and-influencers/gifs/emma-cafe-motion.gif",
-    "thumbnail": "/academy/05-ai-avatars-and-influencers/gifs/emma-cafe-motion.gif",
+    "src": "/academy/05-ai-avatars-and-influencers/posters/emma-cafe-motion.webp",
+    "thumbnail": "/academy/05-ai-avatars-and-influencers/posters/emma-cafe-motion.webp",
     "lesson": "05-ai-avatars-and-influencers::01-consistent-character",
     "description": "Emma Cafe Motion",
     "tags": [
       "05-ai-avatars-and-influencers"
     ],
     "videoSrc": "/academy/05-ai-avatars-and-influencers/videos/emma-cafe-motion.mp4",
-    "gifSrc": "/academy/05-ai-avatars-and-influencers/gifs/emma-cafe-motion.gif"
+    "gifSrc": "/academy/05-ai-avatars-and-influencers/posters/emma-cafe-motion.webp"
   },
   {
     "id": "05-ai-avatars-and-influencers::emma-cafe-raw",
@@ -2782,15 +2782,15 @@ export const ACADEMY_ASSETS = [
     "title": "Emma Clip",
     "type": "video",
     "category": "05-ai-avatars-and-influencers",
-    "src": "/academy/05-ai-avatars-and-influencers/gifs/emma-clip.gif",
-    "thumbnail": "/academy/05-ai-avatars-and-influencers/gifs/emma-clip.gif",
+    "src": "/academy/05-ai-avatars-and-influencers/posters/emma-clip.webp",
+    "thumbnail": "/academy/05-ai-avatars-and-influencers/posters/emma-clip.webp",
     "lesson": "05-ai-avatars-and-influencers::02-character-content-pipeline",
     "description": "Emma Clip",
     "tags": [
       "05-ai-avatars-and-influencers"
     ],
     "videoSrc": "/academy/05-ai-avatars-and-influencers/videos/emma-clip.mp4",
-    "gifSrc": "/academy/05-ai-avatars-and-influencers/gifs/emma-clip.gif"
+    "gifSrc": "/academy/05-ai-avatars-and-influencers/posters/emma-clip.webp"
   },
   {
     "id": "05-ai-avatars-and-influencers::emma-master",
@@ -2810,15 +2810,15 @@ export const ACADEMY_ASSETS = [
     "title": "Ai Music Workstation Clip",
     "type": "video",
     "category": "06-ai-audio-and-music",
-    "src": "/academy/06-ai-audio-and-music/gifs/ai-music-workstation-clip.gif",
-    "thumbnail": "/academy/06-ai-audio-and-music/gifs/ai-music-workstation-clip.gif",
+    "src": "/academy/06-ai-audio-and-music/posters/ai-music-workstation-clip.webp",
+    "thumbnail": "/academy/06-ai-audio-and-music/posters/ai-music-workstation-clip.webp",
     "lesson": "06-ai-audio-and-music::04-music-sfx-generation",
     "description": "Ai Music Workstation Clip",
     "tags": [
       "06-ai-audio-and-music"
     ],
     "videoSrc": "/academy/06-ai-audio-and-music/videos/ai-music-workstation-clip.mp4",
-    "gifSrc": "/academy/06-ai-audio-and-music/gifs/ai-music-workstation-clip.gif"
+    "gifSrc": "/academy/06-ai-audio-and-music/posters/ai-music-workstation-clip.webp"
   },
   {
     "id": "06-ai-audio-and-music::ai-music-workstation",
@@ -2838,15 +2838,15 @@ export const ACADEMY_ASSETS = [
     "title": "Dubbing Studio Clip",
     "type": "video",
     "category": "06-ai-audio-and-music",
-    "src": "/academy/06-ai-audio-and-music/gifs/dubbing-studio-clip.gif",
-    "thumbnail": "/academy/06-ai-audio-and-music/gifs/dubbing-studio-clip.gif",
+    "src": "/academy/06-ai-audio-and-music/posters/dubbing-studio-clip.webp",
+    "thumbnail": "/academy/06-ai-audio-and-music/posters/dubbing-studio-clip.webp",
     "lesson": "06-ai-audio-and-music::02-dubbing-translation",
     "description": "Dubbing Studio Clip",
     "tags": [
       "06-ai-audio-and-music"
     ],
     "videoSrc": "/academy/06-ai-audio-and-music/videos/dubbing-studio-clip.mp4",
-    "gifSrc": "/academy/06-ai-audio-and-music/gifs/dubbing-studio-clip.gif"
+    "gifSrc": "/academy/06-ai-audio-and-music/posters/dubbing-studio-clip.webp"
   },
   {
     "id": "06-ai-audio-and-music::dubbing-studio",
@@ -2879,30 +2879,30 @@ export const ACADEMY_ASSETS = [
     "title": "Podcast Console Clip",
     "type": "video",
     "category": "06-ai-audio-and-music",
-    "src": "/academy/06-ai-audio-and-music/gifs/podcast-console-clip.gif",
-    "thumbnail": "/academy/06-ai-audio-and-music/gifs/podcast-console-clip.gif",
+    "src": "/academy/06-ai-audio-and-music/posters/podcast-console-clip.webp",
+    "thumbnail": "/academy/06-ai-audio-and-music/posters/podcast-console-clip.webp",
     "lesson": "06-ai-audio-and-music::03-podcast-production",
     "description": "Podcast Console Clip",
     "tags": [
       "06-ai-audio-and-music"
     ],
     "videoSrc": "/academy/06-ai-audio-and-music/videos/podcast-console-clip.mp4",
-    "gifSrc": "/academy/06-ai-audio-and-music/gifs/podcast-console-clip.gif"
+    "gifSrc": "/academy/06-ai-audio-and-music/posters/podcast-console-clip.webp"
   },
   {
     "id": "06-ai-audio-and-music::singing-vocal-studio-clip",
     "title": "Singing Vocal Studio Clip",
     "type": "video",
     "category": "06-ai-audio-and-music",
-    "src": "/academy/06-ai-audio-and-music/gifs/singing-vocal-studio-clip.gif",
-    "thumbnail": "/academy/06-ai-audio-and-music/gifs/singing-vocal-studio-clip.gif",
+    "src": "/academy/06-ai-audio-and-music/posters/singing-vocal-studio-clip.webp",
+    "thumbnail": "/academy/06-ai-audio-and-music/posters/singing-vocal-studio-clip.webp",
     "lesson": "06-ai-audio-and-music::05-singing-vocal-synthesis",
     "description": "Singing Vocal Studio Clip",
     "tags": [
       "06-ai-audio-and-music"
     ],
     "videoSrc": "/academy/06-ai-audio-and-music/videos/singing-vocal-studio-clip.mp4",
-    "gifSrc": "/academy/06-ai-audio-and-music/gifs/singing-vocal-studio-clip.gif"
+    "gifSrc": "/academy/06-ai-audio-and-music/posters/singing-vocal-studio-clip.webp"
   },
   {
     "id": "06-ai-audio-and-music::singing-vocal-studio",
@@ -2922,15 +2922,15 @@ export const ACADEMY_ASSETS = [
     "title": "Voice Studio Clip",
     "type": "video",
     "category": "06-ai-audio-and-music",
-    "src": "/academy/06-ai-audio-and-music/gifs/voice-studio-clip.gif",
-    "thumbnail": "/academy/06-ai-audio-and-music/gifs/voice-studio-clip.gif",
+    "src": "/academy/06-ai-audio-and-music/posters/voice-studio-clip.webp",
+    "thumbnail": "/academy/06-ai-audio-and-music/posters/voice-studio-clip.webp",
     "lesson": "06-ai-audio-and-music::01-voice-cloning-tts",
     "description": "Voice Studio Clip",
     "tags": [
       "06-ai-audio-and-music"
     ],
     "videoSrc": "/academy/06-ai-audio-and-music/videos/voice-studio-clip.mp4",
-    "gifSrc": "/academy/06-ai-audio-and-music/gifs/voice-studio-clip.gif"
+    "gifSrc": "/academy/06-ai-audio-and-music/posters/voice-studio-clip.webp"
   },
   {
     "id": "06-ai-audio-and-music::voice-studio-setup",
@@ -2976,15 +2976,15 @@ export const ACADEMY_ASSETS = [
     "title": "Batch Skincare Grid Clip",
     "type": "video",
     "category": "07-ai-product-photography",
-    "src": "/academy/07-ai-product-photography/gifs/batch-skincare-grid-clip.gif",
-    "thumbnail": "/academy/07-ai-product-photography/gifs/batch-skincare-grid-clip.gif",
+    "src": "/academy/07-ai-product-photography/posters/batch-skincare-grid-clip.webp",
+    "thumbnail": "/academy/07-ai-product-photography/posters/batch-skincare-grid-clip.webp",
     "lesson": "07-ai-product-photography::04-batch-workflows",
     "description": "Batch Skincare Grid Clip",
     "tags": [
       "07-ai-product-photography"
     ],
     "videoSrc": "/academy/07-ai-product-photography/videos/batch-skincare-grid-clip.mp4",
-    "gifSrc": "/academy/07-ai-product-photography/gifs/batch-skincare-grid-clip.gif"
+    "gifSrc": "/academy/07-ai-product-photography/posters/batch-skincare-grid-clip.webp"
   },
   {
     "id": "07-ai-product-photography::batch-skincare-grid",
@@ -3017,15 +3017,15 @@ export const ACADEMY_ASSETS = [
     "title": "Coffee Motion",
     "type": "video",
     "category": "07-ai-product-photography",
-    "src": "/academy/07-ai-product-photography/gifs/coffee-motion.gif",
-    "thumbnail": "/academy/07-ai-product-photography/gifs/coffee-motion.gif",
+    "src": "/academy/07-ai-product-photography/posters/coffee-motion.webp",
+    "thumbnail": "/academy/07-ai-product-photography/posters/coffee-motion.webp",
     "lesson": "07-ai-product-photography::02-conversion-case-studies",
     "description": "Coffee Motion",
     "tags": [
       "07-ai-product-photography"
     ],
     "videoSrc": "/academy/07-ai-product-photography/videos/coffee-motion.mp4",
-    "gifSrc": "/academy/07-ai-product-photography/gifs/coffee-motion.gif"
+    "gifSrc": "/academy/07-ai-product-photography/posters/coffee-motion.webp"
   },
   {
     "id": "07-ai-product-photography::perfume-before-after",
@@ -3058,30 +3058,30 @@ export const ACADEMY_ASSETS = [
     "title": "Perfume Motion",
     "type": "video",
     "category": "07-ai-product-photography",
-    "src": "/academy/07-ai-product-photography/gifs/perfume-motion.gif",
-    "thumbnail": "/academy/07-ai-product-photography/gifs/perfume-motion.gif",
+    "src": "/academy/07-ai-product-photography/posters/perfume-motion.webp",
+    "thumbnail": "/academy/07-ai-product-photography/posters/perfume-motion.webp",
     "lesson": "07-ai-product-photography::01-product-photography",
     "description": "Perfume Motion",
     "tags": [
       "07-ai-product-photography"
     ],
     "videoSrc": "/academy/07-ai-product-photography/videos/perfume-motion.mp4",
-    "gifSrc": "/academy/07-ai-product-photography/gifs/perfume-motion.gif"
+    "gifSrc": "/academy/07-ai-product-photography/posters/perfume-motion.webp"
   },
   {
     "id": "07-ai-product-photography::product-agency-studio-clip",
     "title": "Product Agency Studio Clip",
     "type": "video",
     "category": "07-ai-product-photography",
-    "src": "/academy/07-ai-product-photography/gifs/product-agency-studio-clip.gif",
-    "thumbnail": "/academy/07-ai-product-photography/gifs/product-agency-studio-clip.gif",
+    "src": "/academy/07-ai-product-photography/posters/product-agency-studio-clip.webp",
+    "thumbnail": "/academy/07-ai-product-photography/posters/product-agency-studio-clip.webp",
     "lesson": "07-ai-product-photography::03-productized-service",
     "description": "Product Agency Studio Clip",
     "tags": [
       "07-ai-product-photography"
     ],
     "videoSrc": "/academy/07-ai-product-photography/videos/product-agency-studio-clip.mp4",
-    "gifSrc": "/academy/07-ai-product-photography/gifs/product-agency-studio-clip.gif"
+    "gifSrc": "/academy/07-ai-product-photography/posters/product-agency-studio-clip.webp"
   },
   {
     "id": "07-ai-product-photography::product-agency-studio",
@@ -3101,15 +3101,15 @@ export const ACADEMY_ASSETS = [
     "title": "Denim Model Clip",
     "type": "video",
     "category": "08-ai-fashion-and-virtual-tryon",
-    "src": "/academy/08-ai-fashion-and-virtual-tryon/gifs/denim-model-clip.gif",
-    "thumbnail": "/academy/08-ai-fashion-and-virtual-tryon/gifs/denim-model-clip.gif",
+    "src": "/academy/08-ai-fashion-and-virtual-tryon/posters/denim-model-clip.webp",
+    "thumbnail": "/academy/08-ai-fashion-and-virtual-tryon/posters/denim-model-clip.webp",
     "lesson": "08-ai-fashion-and-virtual-tryon::04-conversion-cases",
     "description": "Denim Model Clip",
     "tags": [
       "08-ai-fashion-and-virtual-tryon"
     ],
     "videoSrc": "/academy/08-ai-fashion-and-virtual-tryon/videos/denim-model-clip.mp4",
-    "gifSrc": "/academy/08-ai-fashion-and-virtual-tryon/gifs/denim-model-clip.gif"
+    "gifSrc": "/academy/08-ai-fashion-and-virtual-tryon/posters/denim-model-clip.webp"
   },
   {
     "id": "08-ai-fashion-and-virtual-tryon::denim-model-measurements",
@@ -3129,15 +3129,15 @@ export const ACADEMY_ASSETS = [
     "title": "Fashion Lookbook Loop",
     "type": "video",
     "category": "08-ai-fashion-and-virtual-tryon",
-    "src": "/academy/08-ai-fashion-and-virtual-tryon/gifs/fashion-lookbook-loop.gif",
-    "thumbnail": "/academy/08-ai-fashion-and-virtual-tryon/gifs/fashion-lookbook-loop.gif",
+    "src": "/academy/08-ai-fashion-and-virtual-tryon/posters/fashion-lookbook-loop.webp",
+    "thumbnail": "/academy/08-ai-fashion-and-virtual-tryon/posters/fashion-lookbook-loop.webp",
     "lesson": "08-ai-fashion-and-virtual-tryon::02-studio-lookbooks",
     "description": "Fashion Lookbook Loop",
     "tags": [
       "08-ai-fashion-and-virtual-tryon"
     ],
     "videoSrc": "/academy/08-ai-fashion-and-virtual-tryon/videos/fashion-lookbook-loop.mp4",
-    "gifSrc": "/academy/08-ai-fashion-and-virtual-tryon/gifs/fashion-lookbook-loop.gif"
+    "gifSrc": "/academy/08-ai-fashion-and-virtual-tryon/posters/fashion-lookbook-loop.webp"
   },
   {
     "id": "08-ai-fashion-and-virtual-tryon::fashion-lookbook-model",
@@ -3157,15 +3157,15 @@ export const ACADEMY_ASSETS = [
     "title": "Linen Shirt Motion",
     "type": "video",
     "category": "08-ai-fashion-and-virtual-tryon",
-    "src": "/academy/08-ai-fashion-and-virtual-tryon/gifs/linen-shirt-motion.gif",
-    "thumbnail": "/academy/08-ai-fashion-and-virtual-tryon/gifs/linen-shirt-motion.gif",
+    "src": "/academy/08-ai-fashion-and-virtual-tryon/posters/linen-shirt-motion.webp",
+    "thumbnail": "/academy/08-ai-fashion-and-virtual-tryon/posters/linen-shirt-motion.webp",
     "lesson": "08-ai-fashion-and-virtual-tryon::01-garment-tryon",
     "description": "Linen Shirt Motion",
     "tags": [
       "08-ai-fashion-and-virtual-tryon"
     ],
     "videoSrc": "/academy/08-ai-fashion-and-virtual-tryon/videos/linen-shirt-motion.mp4",
-    "gifSrc": "/academy/08-ai-fashion-and-virtual-tryon/gifs/linen-shirt-motion.gif"
+    "gifSrc": "/academy/08-ai-fashion-and-virtual-tryon/posters/linen-shirt-motion.webp"
   },
   {
     "id": "08-ai-fashion-and-virtual-tryon::linen-shirt-vto",
@@ -3198,30 +3198,30 @@ export const ACADEMY_ASSETS = [
     "title": "Mannequin Grid Clip",
     "type": "video",
     "category": "08-ai-fashion-and-virtual-tryon",
-    "src": "/academy/08-ai-fashion-and-virtual-tryon/gifs/mannequin-grid-clip.gif",
-    "thumbnail": "/academy/08-ai-fashion-and-virtual-tryon/gifs/mannequin-grid-clip.gif",
+    "src": "/academy/08-ai-fashion-and-virtual-tryon/posters/mannequin-grid-clip.webp",
+    "thumbnail": "/academy/08-ai-fashion-and-virtual-tryon/posters/mannequin-grid-clip.webp",
     "lesson": "08-ai-fashion-and-virtual-tryon::03-sizing-layout-consistency",
     "description": "Mannequin Grid Clip",
     "tags": [
       "08-ai-fashion-and-virtual-tryon"
     ],
     "videoSrc": "/academy/08-ai-fashion-and-virtual-tryon/videos/mannequin-grid-clip.mp4",
-    "gifSrc": "/academy/08-ai-fashion-and-virtual-tryon/gifs/mannequin-grid-clip.gif"
+    "gifSrc": "/academy/08-ai-fashion-and-virtual-tryon/posters/mannequin-grid-clip.webp"
   },
   {
     "id": "09-ai-real-estate-staging::bedroom-staging-motion",
     "title": "Bedroom Staging Motion",
     "type": "video",
     "category": "09-ai-real-estate-staging",
-    "src": "/academy/09-ai-real-estate-staging/gifs/bedroom-staging-motion.gif",
-    "thumbnail": "/academy/09-ai-real-estate-staging/gifs/bedroom-staging-motion.gif",
+    "src": "/academy/09-ai-real-estate-staging/posters/bedroom-staging-motion.webp",
+    "thumbnail": "/academy/09-ai-real-estate-staging/posters/bedroom-staging-motion.webp",
     "lesson": "09-ai-real-estate-staging::02-pricing-against-traditional-staging",
     "description": "Bedroom Staging Motion",
     "tags": [
       "09-ai-real-estate-staging"
     ],
     "videoSrc": "/academy/09-ai-real-estate-staging/videos/bedroom-staging-motion.mp4",
-    "gifSrc": "/academy/09-ai-real-estate-staging/gifs/bedroom-staging-motion.gif"
+    "gifSrc": "/academy/09-ai-real-estate-staging/posters/bedroom-staging-motion.webp"
   },
   {
     "id": "09-ai-real-estate-staging::empty-to-staged-before-after",
@@ -3241,15 +3241,15 @@ export const ACADEMY_ASSETS = [
     "title": "Living Room Staging Motion",
     "type": "video",
     "category": "09-ai-real-estate-staging",
-    "src": "/academy/09-ai-real-estate-staging/gifs/living-room-staging-motion.gif",
-    "thumbnail": "/academy/09-ai-real-estate-staging/gifs/living-room-staging-motion.gif",
+    "src": "/academy/09-ai-real-estate-staging/posters/living-room-staging-motion.webp",
+    "thumbnail": "/academy/09-ai-real-estate-staging/posters/living-room-staging-motion.webp",
     "lesson": "09-ai-real-estate-staging::01-empty-room-to-staged-room",
     "description": "Living Room Staging Motion",
     "tags": [
       "09-ai-real-estate-staging"
     ],
     "videoSrc": "/academy/09-ai-real-estate-staging/videos/living-room-staging-motion.mp4",
-    "gifSrc": "/academy/09-ai-real-estate-staging/gifs/living-room-staging-motion.gif"
+    "gifSrc": "/academy/09-ai-real-estate-staging/posters/living-room-staging-motion.webp"
   },
   {
     "id": "09-ai-real-estate-staging::staged-bedroom-luxury",
@@ -3295,14 +3295,14 @@ export const ACADEMY_ASSETS = [
     "title": "Creative Studio Headshot Motion",
     "type": "video",
     "category": "10-ai-headshots-and-portraits",
-    "src": "/academy/10-ai-headshots-and-portraits/gifs/creative-studio-headshot-motion.gif",
-    "thumbnail": "/academy/10-ai-headshots-and-portraits/gifs/creative-studio-headshot-motion.gif",
+    "src": "/academy/10-ai-headshots-and-portraits/posters/creative-studio-headshot-motion.webp",
+    "thumbnail": "/academy/10-ai-headshots-and-portraits/posters/creative-studio-headshot-motion.webp",
     "description": "Creative Studio Headshot Motion",
     "tags": [
       "10-ai-headshots-and-portraits"
     ],
     "videoSrc": "/academy/10-ai-headshots-and-portraits/videos/creative-studio-headshot-motion.mp4",
-    "gifSrc": "/academy/10-ai-headshots-and-portraits/gifs/creative-studio-headshot-motion.gif"
+    "gifSrc": "/academy/10-ai-headshots-and-portraits/posters/creative-studio-headshot-motion.webp"
   },
   {
     "id": "10-ai-headshots-and-portraits::creative-studio-headshot",
@@ -3322,15 +3322,15 @@ export const ACADEMY_ASSETS = [
     "title": "Headshot Lighting Motion",
     "type": "video",
     "category": "10-ai-headshots-and-portraits",
-    "src": "/academy/10-ai-headshots-and-portraits/gifs/headshot-lighting-motion.gif",
-    "thumbnail": "/academy/10-ai-headshots-and-portraits/gifs/headshot-lighting-motion.gif",
+    "src": "/academy/10-ai-headshots-and-portraits/posters/headshot-lighting-motion.webp",
+    "thumbnail": "/academy/10-ai-headshots-and-portraits/posters/headshot-lighting-motion.webp",
     "lesson": "10-ai-headshots-and-portraits::01-consistent-headshot-generation",
     "description": "Headshot Lighting Motion",
     "tags": [
       "10-ai-headshots-and-portraits"
     ],
     "videoSrc": "/academy/10-ai-headshots-and-portraits/videos/headshot-lighting-motion.mp4",
-    "gifSrc": "/academy/10-ai-headshots-and-portraits/gifs/headshot-lighting-motion.gif"
+    "gifSrc": "/academy/10-ai-headshots-and-portraits/posters/headshot-lighting-motion.webp"
   },
   {
     "id": "10-ai-headshots-and-portraits::headshot-transformation-before-after",
@@ -3350,14 +3350,14 @@ export const ACADEMY_ASSETS = [
     "title": "Headshot Transformation Motion",
     "type": "video",
     "category": "10-ai-headshots-and-portraits",
-    "src": "/academy/10-ai-headshots-and-portraits/gifs/headshot-transformation-motion.gif",
-    "thumbnail": "/academy/10-ai-headshots-and-portraits/gifs/headshot-transformation-motion.gif",
+    "src": "/academy/10-ai-headshots-and-portraits/posters/headshot-transformation-motion.webp",
+    "thumbnail": "/academy/10-ai-headshots-and-portraits/posters/headshot-transformation-motion.webp",
     "description": "Headshot Transformation Motion",
     "tags": [
       "10-ai-headshots-and-portraits"
     ],
     "videoSrc": "/academy/10-ai-headshots-and-portraits/videos/headshot-transformation-motion.mp4",
-    "gifSrc": "/academy/10-ai-headshots-and-portraits/gifs/headshot-transformation-motion.gif"
+    "gifSrc": "/academy/10-ai-headshots-and-portraits/posters/headshot-transformation-motion.webp"
   },
   {
     "id": "11-ai-print-on-demand-and-merch::cyberpunk-cat-merch-tshirt",
@@ -3377,15 +3377,15 @@ export const ACADEMY_ASSETS = [
     "title": "Merch Design Motion",
     "type": "video",
     "category": "11-ai-print-on-demand-and-merch",
-    "src": "/academy/11-ai-print-on-demand-and-merch/gifs/merch-design-motion.gif",
-    "thumbnail": "/academy/11-ai-print-on-demand-and-merch/gifs/merch-design-motion.gif",
+    "src": "/academy/11-ai-print-on-demand-and-merch/posters/merch-design-motion.webp",
+    "thumbnail": "/academy/11-ai-print-on-demand-and-merch/posters/merch-design-motion.webp",
     "lesson": "11-ai-print-on-demand-and-merch::01-designing-sellable-ai-art-for-merch",
     "description": "Merch Design Motion",
     "tags": [
       "11-ai-print-on-demand-and-merch"
     ],
     "videoSrc": "/academy/11-ai-print-on-demand-and-merch/videos/merch-design-motion.mp4",
-    "gifSrc": "/academy/11-ai-print-on-demand-and-merch/gifs/merch-design-motion.gif"
+    "gifSrc": "/academy/11-ai-print-on-demand-and-merch/posters/merch-design-motion.webp"
   },
   {
     "id": "11-ai-print-on-demand-and-merch::merch-design-vector-art",
@@ -3405,14 +3405,14 @@ export const ACADEMY_ASSETS = [
     "title": "Merch Design Vector Motion",
     "type": "video",
     "category": "11-ai-print-on-demand-and-merch",
-    "src": "/academy/11-ai-print-on-demand-and-merch/gifs/merch-design-vector-motion.gif",
-    "thumbnail": "/academy/11-ai-print-on-demand-and-merch/gifs/merch-design-vector-motion.gif",
+    "src": "/academy/11-ai-print-on-demand-and-merch/posters/merch-design-vector-motion.webp",
+    "thumbnail": "/academy/11-ai-print-on-demand-and-merch/posters/merch-design-vector-motion.webp",
     "description": "Merch Design Vector Motion",
     "tags": [
       "11-ai-print-on-demand-and-merch"
     ],
     "videoSrc": "/academy/11-ai-print-on-demand-and-merch/videos/merch-design-vector-motion.mp4",
-    "gifSrc": "/academy/11-ai-print-on-demand-and-merch/gifs/merch-design-vector-motion.gif"
+    "gifSrc": "/academy/11-ai-print-on-demand-and-merch/posters/merch-design-vector-motion.webp"
   },
   {
     "id": "11-ai-print-on-demand-and-merch::vintage-botanical-mug-mockup",
@@ -3432,14 +3432,14 @@ export const ACADEMY_ASSETS = [
     "title": "Vintage Botanical Mug Motion",
     "type": "video",
     "category": "11-ai-print-on-demand-and-merch",
-    "src": "/academy/11-ai-print-on-demand-and-merch/gifs/vintage-botanical-mug-motion.gif",
-    "thumbnail": "/academy/11-ai-print-on-demand-and-merch/gifs/vintage-botanical-mug-motion.gif",
+    "src": "/academy/11-ai-print-on-demand-and-merch/posters/vintage-botanical-mug-motion.webp",
+    "thumbnail": "/academy/11-ai-print-on-demand-and-merch/posters/vintage-botanical-mug-motion.webp",
     "description": "Vintage Botanical Mug Motion",
     "tags": [
       "11-ai-print-on-demand-and-merch"
     ],
     "videoSrc": "/academy/11-ai-print-on-demand-and-merch/videos/vintage-botanical-mug-motion.mp4",
-    "gifSrc": "/academy/11-ai-print-on-demand-and-merch/gifs/vintage-botanical-mug-motion.gif"
+    "gifSrc": "/academy/11-ai-print-on-demand-and-merch/posters/vintage-botanical-mug-motion.webp"
   },
   {
     "id": "12-ai-stock-content-and-licensing::corporate-handshake-stock",
@@ -3459,14 +3459,14 @@ export const ACADEMY_ASSETS = [
     "title": "Future Technology Stock Motion",
     "type": "video",
     "category": "12-ai-stock-content-and-licensing",
-    "src": "/academy/12-ai-stock-content-and-licensing/gifs/future-technology-stock-motion.gif",
-    "thumbnail": "/academy/12-ai-stock-content-and-licensing/gifs/future-technology-stock-motion.gif",
+    "src": "/academy/12-ai-stock-content-and-licensing/posters/future-technology-stock-motion.webp",
+    "thumbnail": "/academy/12-ai-stock-content-and-licensing/posters/future-technology-stock-motion.webp",
     "description": "Future Technology Stock Motion",
     "tags": [
       "12-ai-stock-content-and-licensing"
     ],
     "videoSrc": "/academy/12-ai-stock-content-and-licensing/videos/future-technology-stock-motion.mp4",
-    "gifSrc": "/academy/12-ai-stock-content-and-licensing/gifs/future-technology-stock-motion.gif"
+    "gifSrc": "/academy/12-ai-stock-content-and-licensing/posters/future-technology-stock-motion.webp"
   },
   {
     "id": "12-ai-stock-content-and-licensing::future-technology-stock",
@@ -3486,29 +3486,29 @@ export const ACADEMY_ASSETS = [
     "title": "Stock Catalog Motion",
     "type": "video",
     "category": "12-ai-stock-content-and-licensing",
-    "src": "/academy/12-ai-stock-content-and-licensing/gifs/stock-catalog-motion.gif",
-    "thumbnail": "/academy/12-ai-stock-content-and-licensing/gifs/stock-catalog-motion.gif",
+    "src": "/academy/12-ai-stock-content-and-licensing/posters/stock-catalog-motion.webp",
+    "thumbnail": "/academy/12-ai-stock-content-and-licensing/posters/stock-catalog-motion.webp",
     "lesson": "12-ai-stock-content-and-licensing::01-what-actually-sells-on-stock-marketplaces",
     "description": "Stock Catalog Motion",
     "tags": [
       "12-ai-stock-content-and-licensing"
     ],
     "videoSrc": "/academy/12-ai-stock-content-and-licensing/videos/stock-catalog-motion.mp4",
-    "gifSrc": "/academy/12-ai-stock-content-and-licensing/gifs/stock-catalog-motion.gif"
+    "gifSrc": "/academy/12-ai-stock-content-and-licensing/posters/stock-catalog-motion.webp"
   },
   {
     "id": "13-ai-tools-mastery::camera-motion-matrix-motion",
     "title": "Camera Motion Matrix Motion",
     "type": "video",
     "category": "13-ai-tools-mastery",
-    "src": "/academy/13-ai-tools-mastery/gifs/camera-motion-matrix-motion.gif",
-    "thumbnail": "/academy/13-ai-tools-mastery/gifs/camera-motion-matrix-motion.gif",
+    "src": "/academy/13-ai-tools-mastery/posters/camera-motion-matrix-motion.webp",
+    "thumbnail": "/academy/13-ai-tools-mastery/posters/camera-motion-matrix-motion.webp",
     "description": "Camera Motion Matrix Motion",
     "tags": [
       "13-ai-tools-mastery"
     ],
     "videoSrc": "/academy/13-ai-tools-mastery/videos/camera-motion-matrix-motion.mp4",
-    "gifSrc": "/academy/13-ai-tools-mastery/gifs/camera-motion-matrix-motion.gif"
+    "gifSrc": "/academy/13-ai-tools-mastery/posters/camera-motion-matrix-motion.webp"
   },
   {
     "id": "13-ai-tools-mastery::camera-motion-matrix",
@@ -3541,15 +3541,15 @@ export const ACADEMY_ASSETS = [
     "title": "Tools Workflow Motion",
     "type": "video",
     "category": "13-ai-tools-mastery",
-    "src": "/academy/13-ai-tools-mastery/gifs/tools-workflow-motion.gif",
-    "thumbnail": "/academy/13-ai-tools-mastery/gifs/tools-workflow-motion.gif",
+    "src": "/academy/13-ai-tools-mastery/posters/tools-workflow-motion.webp",
+    "thumbnail": "/academy/13-ai-tools-mastery/posters/tools-workflow-motion.webp",
     "lesson": "13-ai-tools-mastery::01-image-models-which-one-for-which-use-case",
     "description": "Tools Workflow Motion",
     "tags": [
       "13-ai-tools-mastery"
     ],
     "videoSrc": "/academy/13-ai-tools-mastery/videos/tools-workflow-motion.mp4",
-    "gifSrc": "/academy/13-ai-tools-mastery/gifs/tools-workflow-motion.gif"
+    "gifSrc": "/academy/13-ai-tools-mastery/posters/tools-workflow-motion.webp"
   },
   {
     "id": "14-ai-freelancing-and-agency-business::agency-pricing-deck-mockup",
@@ -3569,15 +3569,15 @@ export const ACADEMY_ASSETS = [
     "title": "Agency Pricing Deck Motion",
     "type": "video",
     "category": "14-ai-freelancing-and-agency-business",
-    "src": "/academy/14-ai-freelancing-and-agency-business/gifs/agency-pricing-deck-motion.gif",
-    "thumbnail": "/academy/14-ai-freelancing-and-agency-business/gifs/agency-pricing-deck-motion.gif",
+    "src": "/academy/14-ai-freelancing-and-agency-business/posters/agency-pricing-deck-motion.webp",
+    "thumbnail": "/academy/14-ai-freelancing-and-agency-business/posters/agency-pricing-deck-motion.webp",
     "lesson": "14-ai-freelancing-and-agency-business::01-pricing-your-services",
     "description": "Agency Pricing Deck Motion",
     "tags": [
       "14-ai-freelancing-and-agency-business"
     ],
     "videoSrc": "/academy/14-ai-freelancing-and-agency-business/videos/agency-pricing-deck-motion.mp4",
-    "gifSrc": "/academy/14-ai-freelancing-and-agency-business/gifs/agency-pricing-deck-motion.gif"
+    "gifSrc": "/academy/14-ai-freelancing-and-agency-business/posters/agency-pricing-deck-motion.webp"
   },
   {
     "id": "14-ai-freelancing-and-agency-business::client-dashboard-metrics",
@@ -3597,15 +3597,15 @@ export const ACADEMY_ASSETS = [
     "title": "Client Dashboard Motion",
     "type": "video",
     "category": "14-ai-freelancing-and-agency-business",
-    "src": "/academy/14-ai-freelancing-and-agency-business/gifs/client-dashboard-motion.gif",
-    "thumbnail": "/academy/14-ai-freelancing-and-agency-business/gifs/client-dashboard-motion.gif",
+    "src": "/academy/14-ai-freelancing-and-agency-business/posters/client-dashboard-motion.webp",
+    "thumbnail": "/academy/14-ai-freelancing-and-agency-business/posters/client-dashboard-motion.webp",
     "lesson": "14-ai-freelancing-and-agency-business::02-contracts-and-scope-basics",
     "description": "Client Dashboard Motion",
     "tags": [
       "14-ai-freelancing-and-agency-business"
     ],
     "videoSrc": "/academy/14-ai-freelancing-and-agency-business/videos/client-dashboard-motion.mp4",
-    "gifSrc": "/academy/14-ai-freelancing-and-agency-business/gifs/client-dashboard-motion.gif"
+    "gifSrc": "/academy/14-ai-freelancing-and-agency-business/posters/client-dashboard-motion.webp"
   },
   {
     "id": "15-ai-agents-and-vibe-coding::micro-tool-app-interface",
@@ -3624,28 +3624,28 @@ export const ACADEMY_ASSETS = [
     "title": "Micro Tool App Motion",
     "type": "video",
     "category": "15-ai-agents-and-vibe-coding",
-    "src": "/academy/15-ai-agents-and-vibe-coding/gifs/micro-tool-app-motion.gif",
-    "thumbnail": "/academy/15-ai-agents-and-vibe-coding/gifs/micro-tool-app-motion.gif",
+    "src": "/academy/15-ai-agents-and-vibe-coding/posters/micro-tool-app-motion.webp",
+    "thumbnail": "/academy/15-ai-agents-and-vibe-coding/posters/micro-tool-app-motion.webp",
     "description": "Micro Tool App Motion",
     "tags": [
       "15-ai-agents-and-vibe-coding"
     ],
     "videoSrc": "/academy/15-ai-agents-and-vibe-coding/videos/micro-tool-app-motion.mp4",
-    "gifSrc": "/academy/15-ai-agents-and-vibe-coding/gifs/micro-tool-app-motion.gif"
+    "gifSrc": "/academy/15-ai-agents-and-vibe-coding/posters/micro-tool-app-motion.webp"
   },
   {
     "id": "15-ai-agents-and-vibe-coding::vibe-coding-workspace-motion",
     "title": "Vibe Coding Workspace Motion",
     "type": "video",
     "category": "15-ai-agents-and-vibe-coding",
-    "src": "/academy/15-ai-agents-and-vibe-coding/gifs/vibe-coding-workspace-motion.gif",
-    "thumbnail": "/academy/15-ai-agents-and-vibe-coding/gifs/vibe-coding-workspace-motion.gif",
+    "src": "/academy/15-ai-agents-and-vibe-coding/posters/vibe-coding-workspace-motion.webp",
+    "thumbnail": "/academy/15-ai-agents-and-vibe-coding/posters/vibe-coding-workspace-motion.webp",
     "description": "Vibe Coding Workspace Motion",
     "tags": [
       "15-ai-agents-and-vibe-coding"
     ],
     "videoSrc": "/academy/15-ai-agents-and-vibe-coding/videos/vibe-coding-workspace-motion.mp4",
-    "gifSrc": "/academy/15-ai-agents-and-vibe-coding/gifs/vibe-coding-workspace-motion.gif"
+    "gifSrc": "/academy/15-ai-agents-and-vibe-coding/posters/vibe-coding-workspace-motion.webp"
   },
   {
     "id": "15-ai-agents-and-vibe-coding::vibe-coding-workspace",

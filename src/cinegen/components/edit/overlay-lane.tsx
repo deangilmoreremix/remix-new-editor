@@ -173,11 +173,11 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
   );
 }
 
-/** A small still of an overlay that ships no thumbnail (lead form, list builder, call-to-action, text, stickers, end screens...), drawn
- *  with the same live renderer as the Add window's cards. Only drawn while on screen, and from a shared pool, so a long lane stays cheap. */
 /** The live stage is drawn at a normal card size and scaled down to fit the block: drawn directly into the small box it was cropped to a corner of the form. */
 const STILL_W = 480;
 const STILL_H = 270;
+/** A small still of an overlay that ships no thumbnail (lead form, list builder, call-to-action, text, stickers, end screens...), drawn
+ *  with the same live renderer as the Add window's cards. Only drawn while on screen, and from a shared pool, so a long lane stays cheap. */
 function OverlayStill({ clip, profile = null, version = 0 }: { clip: OverlayClip; profile?: ContactProfile | null; version?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const visible = useInView(ref);

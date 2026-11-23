@@ -11,9 +11,11 @@ import { createFollowupProject } from '../projectStore.js';
 import { createPersonalizerHandoff, savePersonalizerHandoff } from '../../../personalizerHandoff.js';
 import { getTimelineFollowupAsset } from '../../../personalizerAdapters.js';
 
-export async function launchFollowup({ client, original, followup, navigate, videoUrl = null }) {
+export async function launchFollowup({ client, original, followup, navigate, videoUrl = null, openFollowup = null }) {
   if (!original?.id) throw new Error('Select a project first');
   if (!followup?.interest) throw new Error('Choose a recommendation first');
+  // [remix] The CineGen editor builds the follow-up as its own project and opens it (no Personalizer handoff); the classic flow below is unchanged.
+  if (typeof openFollowup === 'function') return openFollowup({ client, original, followup, videoUrl });
   const project = await createFollowupProject(client, original.id, followup);
   const handoff = createPersonalizerHandoff({
     studioId: 'timeline',
