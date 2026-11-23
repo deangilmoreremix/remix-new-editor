@@ -2582,7 +2582,7 @@ export function OutreachStudio() {
       // Recent activity on this campaign (the same alerts the bell counts).
       if (draft.campaign?.id) {
         const act = await db.from('owner_notifications').select('id, title, created_at, read_at').eq('video_id', draft.campaign.id)
-          .in('type', ['prospect_watched', 'prospect_clicked']).order('created_at', { ascending: false }).limit(10);
+          .eq('type', 'followup_opportunity').like('dedupe_key', 'outreach:%').order('created_at', { ascending: false }).limit(10);
         alerts.activity = act.error ? [] : act.data || [];
       }
       const { data, error } = await db.from('outreach_alert_settings').select('enabled, on_watch, on_click, email, slack_webhook').maybeSingle();

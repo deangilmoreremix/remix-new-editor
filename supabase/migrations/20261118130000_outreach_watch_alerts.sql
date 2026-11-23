@@ -43,13 +43,6 @@ create policy "Owners manage their alert settings"
   with check ((select auth.jwt() ->> 'sub') = clerk_user_id);
 grant select, insert, update, delete on public.outreach_alert_settings to anon, authenticated;
 
--- 3) Two new notification types for the bell.
-alter table public.owner_notifications drop constraint if exists owner_notifications_type_check;
-alter table public.owner_notifications add constraint owner_notifications_type_check check (type in (
-  'new_lead', 'high_interest', 'pricing_cta', 'contact_cta', 'returning_engagement',
-  'milestone', 'interest_surge', 'followup_opportunity', 'daily_digest',
-  'prospect_watched', 'prospect_clicked'));
-
 -- 4) Email / Slack deliveries waiting to be sent (by the outreach-alerts function). Service role only.
 create table if not exists public.outreach_alert_queue (
   id bigint generated always as identity primary key,
@@ -147,38 +140,4 @@ begin
     $cron$select net.http_post(url := 'https://bzxohkrxcwodllketcpz.supabase.co/functions/v1/outreach-alerts', body := '{}'::jsonb, headers := '{"Content-Type": "application/json"}'::jsonb) where exists (select 1 from public.outreach_alert_queue where status = 'pending')$cron$);
 end $$;
 
--- 6) Per-prospect totals now include how far they got (0-1) and how long they watched (seconds).
-drop function if exists public.video_events_by_contact(text);
-create function public.video_events_by_contact(video_id text)
-returns table (contact_id text, views bigint, plays bigint, completes bigint, cta_clicks bigint, leads bigint, last_seen timestamptz, max_progress numeric, watch_seconds numeric)
-language sql
-stable
-security invoker
-set search_path = ''
-as $$
-  select x.contact_id, sum(x.views)::bigint, sum(x.plays)::bigint, sum(x.completes)::bigint,
-         sum(x.cta_clicks)::bigint, sum(x.leads)::bigint, max(x.last_seen),
-         max(x.max_progress) * 100, sum(x.watch_seconds)
-    from (
-      select e.contact_id,
-             count(*) filter (where e.kind = 'view') as views, count(*) filter (where e.kind = 'play') as plays,
-             count(*) filter (where e.kind = 'complete') as completes, count(*) filter (where e.kind = 'cta_click') as cta_clicks,
-             count(*) filter (where e.kind = 'lead') as leads, max(e.created_at) as last_seen,
-             0::numeric as max_progress, 0::numeric as watch_seconds
-        from public.published_video_events e where e.video_id = video_events_by_contact.video_id group by e.contact_id
-      union all
-      select s.contact_id,
-             count(*) filter (where ev.type = 'page_open'), count(*) filter (where ev.type = 'play'),
-             count(*) filter (where ev.type = 'complete'), count(*) filter (where ev.type in ('cta_click', 'call_click')),
-             count(*) filter (where ev.type = 'lead_submit'), max(ev.created_at), 0::numeric, 0::numeric
-        from public.video_view_sessions s join public.video_events ev on ev.session_id = s.id
-       where s.video_id = video_events_by_contact.video_id group by s.contact_id
-      union all
-      select s.contact_id, 0, 0, 0, 0, 0, max(s.last_event_at), max(s.max_progress), sum(s.watch_seconds)
-        from public.video_view_sessions s
-       where s.video_id = video_events_by_contact.video_id group by s.contact_id
-    ) x
-   group by x.contact_id order by max(x.last_seen) desc nulls last;
-$$;
-revoke all on function public.video_events_by_contact(text) from public;
-grant execute on function public.video_events_by_contact(text) to anon, authenticated;
+-- The bell alert type and the new per-prospect totals are in 20261123000000_outreach_alerts_followup.sql.
