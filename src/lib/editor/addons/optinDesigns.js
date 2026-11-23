@@ -161,8 +161,8 @@ const d = (id, label, category, patch) => ({
 export const OPTIN_DESIGNS = [
   // ---------------------------------------------------------------- layouts
   d('classic-overlay', 'Classic Overlay', 'layouts', {
-    backgroundColor: '#1a1033', backgroundColor2: '#0b0618', bgAngle: 160, innerWidth: 80, fieldLayout: 'grid', fieldWidth: 80,
-    inputIcons: true, inputBackground: '#ffffff', inputOpacity: 10, inputFontColor: '#eceaff', inputBorderColor: '#4b4a73', placeholderColor: '#b7b3ea',
+    backgroundColor: '#1d1f26', backgroundColor2: '#09090c', bgAngle: 160, innerWidth: 80, fieldLayout: 'grid', fieldWidth: 80,
+    inputIcons: true, inputBackground: '#ffffff', inputOpacity: 8, inputFontColor: '#f1f2f6', inputBorderColor: '#4a4d59', placeholderColor: '#b3b6c4',
     buttonBackground: '#e11d48', buttonHoverColor: '#be123c', btnBottomBorder: 'none',
   }),
   d('glass-split', 'Glass Split', 'layouts', {
@@ -173,16 +173,16 @@ export const OPTIN_DESIGNS = [
     subtitle: 'See how SmartVideo AI turns a single video into a personalized experience for every viewer.',
   }),
   d('neon-spotlight', 'Neon Spotlight', 'layouts', {
-    designLayout: 'side-card', fontFamily: 'Inter', backgroundColor: '', backdropColor: '#05030f', backdropOpacity: 62,
-    innerWidth: 48, innerHeight: 95, innerColor: '#0e0a24', innerOpacity: 82, cardRadius: 16, cardBorderColor: '#8b5cf6', cardBorderWidth: 1, cardGlow: '#7c3aed', cardBlur: 8,
-    captionAlignment: 'left', captionFontSize: 62, fieldWidth: 100, ...darkInputs,
-    buttonBackground: '#6d4cff', buttonBackground2: '#4f46e5', buttonBorderRadius: 6, btnBottomBorder: 'none',
+    designLayout: 'side-card', fontFamily: 'Inter', backgroundColor: '', backdropColor: '#020a12', backdropOpacity: 62,
+    innerWidth: 48, innerHeight: 95, innerColor: '#04131f', innerOpacity: 86, cardRadius: 4, cardBorderColor: '#22d3ee', cardBorderWidth: 1, cardGlow: '#06b6d4', cardBlur: 8,
+    captionAlignment: 'left', captionFontSize: 62, fieldWidth: 100, ...darkInputs, inputBorderColor: '#0e7490', inputFontColor: '#e6fbff', placeholderColor: '#8fd8e8', inputBorderRadius: 3,
+    buttonBackground: '#06b6d4', buttonBackground2: '#2563eb', buttonFontColor: '#02131c', buttonBorderRadius: 3, btnBottomBorder: 'none',
   }),
   d('cinematic-bottom-sheet', 'Cinematic Bottom Sheet', 'layouts', {
-    designLayout: 'sheet', fontFamily: 'Inter', backgroundColor: '', backdropColor: '#050510', backdropOpacity: 45,
-    innerWidth: 96, innerHeight: 58, innerColor: '#0f1022', innerOpacity: 90, cardRadius: 18, cardBorderColor: '#33365e', cardBorderWidth: 1, cardBlur: 10,
-    captionFontSize: 64, fieldLayout: 'row', fieldWidth: 96, ...darkInputs,
-    buttonBackground: '#a855f7', buttonBackground2: '#7c3aed', buttonBorderRadius: 8, btnBottomBorder: 'none',
+    designLayout: 'sheet', fontFamily: 'Inter', backgroundColor: '', backdropColor: '#050510', backdropOpacity: 45, fontColor: '#16162e',
+    innerWidth: 96, innerHeight: 58, innerColor: '#ffffff', innerOpacity: 97, cardRadius: 18, cardBorderColor: '#e5e7ff', cardBorderWidth: 1, cardBlur: 10,
+    captionFontSize: 64, fieldLayout: 'row', fieldWidth: 96, inputBackground: '#f3f4fb', inputFontColor: '#16162e', inputBorderColor: '#d9dcf2', inputBorderRadius: 8, placeholderColor: '#6a6f94', inputIcons: true,
+    buttonBackground: '#7c3aed', buttonBackground2: '#4f46e5', buttonBorderRadius: 8, btnBottomBorder: 'none',
     subtitle: 'Fill out your details below and click play to experience the magic of AI personalization.',
   }),
   d('two-step-wizard', 'Two-Step Wizard', 'layouts', {
@@ -193,9 +193,11 @@ export const OPTIN_DESIGNS = [
     multiStep: true, stepSize: 2, subtitle: 'Just 2 quick steps to get your custom video experience',
   }),
   d('conversational-setup', 'Conversational Setup', 'layouts', {
-    designLayout: 'chat', fontFamily: 'Inter', fontSize: 66, backgroundColor: '#0d0a1f', backgroundColor2: '#241659', innerWidth: 70, innerHeight: 96,
-    captionAlignment: 'left', captionFontSize: 34, fieldWidth: 100, ...darkInputs, inputBorderColor: '#6d65e6',
-    buttonBackground: '#6d4cff', buttonBackground2: '#8b5cf6', buttonBorderRadius: 8, btnBottomBorder: 'none',
+    designLayout: 'chat', fontFamily: 'Inter', fontSize: 66, fontColor: '#1f2340', backgroundColor: '', backdropColor: '#0b0b18', backdropOpacity: 25, innerWidth: 64, innerHeight: 96,
+    innerColor: '#ffffff', innerOpacity: 98, cardRadius: 18, cardBorderColor: '#e2e5ff', cardBorderWidth: 1, cardGlow: '#6d4cff',
+    captionAlignment: 'left', captionFontSize: 34, fieldWidth: 100,
+    inputBackground: '#f4f5ff', inputFontColor: '#1f2340', inputBorderColor: '#d5d9ff', inputBorderRadius: 10, placeholderColor: '#7a80a8', inputIcons: true,
+    buttonBackground: '#6d4cff', buttonBackground2: '#8b5cf6', buttonBorderRadius: 10, btnBottomBorder: 'none',
     fieldLayout: 'stacked',
   }),
   d('vip-access', 'VIP Access', 'premium', {
@@ -224,18 +226,18 @@ export const OPTIN_DESIGNS = [
     sideAuthor: 'Verified Customer', sideRating: '4.9/5 (2,847 reviews)', sideStats: '50,000+ Creators; 5M+ Videos Created; 98% Satisfaction',
   }),
   d('neon-floating-card', 'Neon Floating Card', 'glass', {
-    fontFamily: 'Poppins', backgroundColor: '#05040f', backgroundColor2: '#1a0a3a', bgAngle: 160, innerWidth: 54, innerHeight: 80,
-    innerColor: '#0b0720', innerOpacity: 60, cardRadius: 34, cardBorderColor: '#ff2bd6', cardBorderWidth: 3, cardGlow: '#ff2bd6',
-    captionFontSize: 80, fieldLayout: 'grid', fieldWidth: 86, ...darkInputs, inputBorderColor: '#c026d3',
+    fontFamily: 'Poppins', backgroundColor: '#05040f', backgroundColor2: '#1a0a3a', bgAngle: 160, innerWidth: 44, innerHeight: 94,
+    innerColor: '#0b0720', innerOpacity: 60, cardRadius: 40, cardBorderColor: '#ff2bd6', cardBorderWidth: 3, cardGlow: '#ff2bd6',
+    captionFontSize: 80, fieldLayout: 'stacked', fieldWidth: 86, ...darkInputs, inputBorderColor: '#c026d3',
     buttonBackground: '#ff2d95', buttonBackground2: '#ff3d6e', buttonBorderRadius: 30, btnBottomBorder: 'none',
   }),
 
   // ---------------------------------------------------------- glass & neon
   d('aurora-glass', 'Aurora Glass', 'glass', {
-    designLayout: 'side-card', fontFamily: 'Poppins', backgroundColor: '#140a3a', backgroundColor2: '#07102e', innerWidth: 54, innerHeight: 95,
-    innerColor: '#5b5bd6', innerOpacity: 24, cardRadius: 28, cardBorderColor: '#a78bfa', cardBorderWidth: 2, cardGlow: '#8b5cf6', cardBlur: 10,
-    captionFontSize: 72, fieldWidth: 80, ...darkInputs, inputBackground: '#0b1030', inputOpacity: 55, inputBorderColor: '#4cc9f0', inputBorderRadius: 10,
-    buttonBackground: '#4f8cff', buttonBackground2: '#a855f7', buttonBorderRadius: 30, btnBottomBorder: 'none',
+    designLayout: 'side-card', fontFamily: 'Poppins', backgroundColor: '#031a1f', backgroundColor2: '#06302f', innerWidth: 54, innerHeight: 95,
+    innerColor: '#14b8a6', innerOpacity: 16, cardRadius: 28, cardBorderColor: '#5eead4', cardBorderWidth: 2, cardGlow: '#2dd4bf', cardBlur: 10,
+    captionFontSize: 72, fieldWidth: 80, ...darkInputs, inputBackground: '#03201f', inputOpacity: 60, inputFontColor: '#e6fff9', inputBorderColor: '#5eead4', placeholderColor: '#9fe7d8', inputBorderRadius: 10,
+    buttonBackground: '#10b981', buttonBackground2: '#06b6d4', buttonFontColor: '#02221c', buttonBorderRadius: 30, btnBottomBorder: 'none',
     subtitle: 'Enter your details below and click play',
   }),
   d('holographic-card', 'Holographic Card', 'glass', {
@@ -250,15 +252,15 @@ export const OPTIN_DESIGNS = [
     buttonBackground: '#ffffff', buttonFontColor: '#6d28d9', buttonHoverColor: '#f3e8ff', buttonBorderRadius: 24, btnBottomBorder: 'none',
   }),
   d('cosmic-portal', 'Cosmic Portal', 'glass', {
-    fontFamily: 'Poppins', backgroundColor: '#06031a', backgroundColor2: '#2a0f5e', bgAngle: 180, innerWidth: 78, innerHeight: 92,
-    innerColor: '#1a0b4a', innerOpacity: 55, cardRadius: 200, cardBorderColor: '#c084fc', cardBorderWidth: 3, cardGlow: '#a855f7',
-    captionFontSize: 66, buttonWidth: 'auto', fieldWidth: 74, ...darkInputs, inputBorderColor: '#a78bfa',
-    buttonBackground: '#4c1d95', buttonBackground2: '#6d28d9', buttonBorderRadius: 30, btnBottomBorder: '#c084fc',
+    fontFamily: 'Poppins', backgroundColor: '#12031a', backgroundColor2: '#4a0a3d', bgAngle: 180, innerWidth: 78, innerHeight: 92,
+    innerColor: '#3b0a33', innerOpacity: 55, cardRadius: 200, cardBorderColor: '#f0abfc', cardBorderWidth: 3, cardGlow: '#d946ef',
+    captionFontSize: 66, buttonWidth: 'auto', fieldWidth: 74, ...darkInputs, inputBorderColor: '#f0abfc', placeholderColor: '#f3c9fb',
+    buttonBackground: '#a21caf', buttonBackground2: '#db2777', buttonBorderRadius: 30, btnBottomBorder: '#f0abfc',
   }),
   d('geometric-frames', 'Geometric Frames', 'glass', {
-    fontFamily: 'Rajdhani', backgroundColor: '#041f2b', backgroundColor2: '#06384a', innerWidth: 76, innerHeight: 94,
-    captionFontSize: 70, fieldLayout: 'grid', fieldWidth: 82, inputBackground: '#06384a', inputOpacity: 80, inputFontColor: '#d9faff', inputBorderColor: '#22d3ee', inputBorderRadius: 3, placeholderColor: '#7cc8d6', inputIcons: true,
-    buttonBackground: '#22e5c4', buttonFontColor: '#03242b', buttonHoverColor: '#14c9aa', buttonBorderRadius: 22, btnBottomBorder: 'none',
+    fontFamily: 'Rajdhani', designAccent: '#fbbf24', backgroundColor: '#1a0f02', backgroundColor2: '#3a2006', innerWidth: 76, innerHeight: 94,
+    captionFontSize: 70, fieldLayout: 'grid', fieldWidth: 82, inputBackground: '#3a2006', inputOpacity: 80, inputFontColor: '#ffe9b8', inputBorderColor: '#f59e0b', inputBorderRadius: 3, placeholderColor: '#d9ad63', inputIcons: true,
+    buttonBackground: '#f59e0b', buttonFontColor: '#2a1500', buttonHoverColor: '#d98206', buttonBorderRadius: 22, btnBottomBorder: 'none',
   }),
 
   // ---------------------------------------------------------- light & soft
@@ -277,15 +279,15 @@ export const OPTIN_DESIGNS = [
     buttonBackground: '#a855f7', buttonBackground2: '#7c3aed', buttonBorderRadius: 30, btnBottomBorder: 'none',
   }),
   d('soft-pastel-frost', 'Soft Pastel Frost', 'light', {
-    designLayout: 'card-left', fontFamily: 'Poppins', fontColor: '#3b2a73', backgroundColor: '#c9d6ff', backgroundColor2: '#f8c8e8', innerWidth: 46, innerHeight: 88,
-    innerColor: '#ffffff', innerOpacity: 55, cardRadius: 22, cardBorderColor: '#ffffff', cardBorderWidth: 2, cardBlur: 14,
-    captionFontSize: 72, buttonWidth: 'auto', fieldWidth: 82, inputBackground: '#ffffff', inputOpacity: 80, inputBorderColor: '#e0d7ff', inputFontColor: '#3b2a73', inputBorderRadius: 10, placeholderColor: '#8b7bb8', inputIcons: true,
-    buttonBackground: '#ec4899', buttonBackground2: '#a855f7', buttonBorderRadius: 24, btnBottomBorder: 'none',
+    designLayout: 'card-left', fontFamily: 'Poppins', fontColor: '#3a1550', backgroundColor: '#fde68a', backgroundColor2: '#fb7185', bgAngle: 160, innerWidth: 46, innerHeight: 88,
+    innerColor: '#ffffff', innerOpacity: 38, cardRadius: 30, cardBorderColor: '#ffffff', cardBorderWidth: 2, cardBlur: 16,
+    captionFontSize: 72, buttonWidth: 'auto', fieldWidth: 86, inputBackground: '#ffffff', inputOpacity: 85, inputBorderColor: 'transparent', inputFontColor: '#3a1550', inputBorderRadius: 30, placeholderColor: '#9a5b86', inputIcons: true,
+    buttonBackground: '#1f1147', buttonFontColor: '#ffffff', buttonHoverColor: '#32207a', buttonBorderRadius: 30, btnBottomBorder: 'none',
   }),
   d('progress-milestones', 'Progress Milestones', 'light', {
-    fontFamily: 'Inter', fontColor: '#2a1f5c', backgroundColor: '#c4b5fd', backgroundColor2: '#7c3aed', innerWidth: 64, innerHeight: 86,
-    innerColor: '#ffffff', innerOpacity: 92, cardRadius: 18, cardBorderColor: '#ede9fe', cardBorderWidth: 1,
-    captionFontSize: 74, fieldWidth: 86, inputBackground: '#f5f3ff', inputBorderColor: '#ddd6fe', inputFontColor: '#1f2937', inputBorderRadius: 8, placeholderColor: '#6b7280', inputIcons: true,
+    designLayout: 'split', fontFamily: 'Inter', fontColor: '#2a1f5c', backgroundColor: '#c4b5fd', backgroundColor2: '#7c3aed', innerWidth: 90, innerHeight: 84,
+    innerColor: '#ffffff', innerOpacity: 94, cardRadius: 18, cardBorderColor: '#ede9fe', cardBorderWidth: 1,
+    captionAlignment: 'left', captionFontSize: 66, fieldWidth: 100, inputBackground: '#f5f3ff', inputBorderColor: '#ddd6fe', inputFontColor: '#1f2937', inputBorderRadius: 8, placeholderColor: '#6b7280', inputIcons: true,
     buttonBackground: '#6d4cff', buttonHoverColor: '#5b3fe0', buttonBorderRadius: 8, btnBottomBorder: 'none',
     multiStep: true, stepSize: 1,
   }),
@@ -304,8 +306,8 @@ export const OPTIN_DESIGNS = [
 
   // ---------------------------------------------------------- bold & retro
   d('retro-terminal', 'Retro Terminal', 'bold', {
-    fontFamily: 'Share Tech Mono', fontColor: '#39ff14', backgroundColor: '#000000', innerWidth: 58, innerHeight: 80,
-    cardRadius: 4, cardBorderColor: '#22c55e', cardBorderWidth: 2, cardGlow: '#22c55e', captionAlignment: 'left', captionFontSize: 76, fieldLayout: 'stacked', fieldWidth: 100,
+    designLayout: 'banner', fontFamily: 'Share Tech Mono', fontColor: '#39ff14', backgroundColor: '#000000', innerWidth: 92, innerHeight: 74,
+    cardRadius: 4, cardBorderColor: '#22c55e', cardBorderWidth: 2, cardGlow: '#22c55e', captionAlignment: 'left', captionFontSize: 76, fieldLayout: 'cols', fieldWidth: 100,
     inputBackground: '#000000', inputBorderColor: '#22c55e', inputFontColor: '#39ff14', inputBorderRadius: 2, placeholderColor: '#2f9e44', inputIcons: true,
     buttonBackground: '#22ff44', buttonFontColor: '#001a06', buttonHoverColor: '#16d338', buttonBorderRadius: 2, btnBottomBorder: 'none',
   }),
@@ -336,8 +338,8 @@ export const OPTIN_DESIGNS = [
     buttonBackground: '#facc15', buttonFontColor: '#000000', buttonHoverColor: '#eab308', buttonBorderRadius: 20, btnBottomBorder: 'none',
   }),
   d('horizontal-ribbon', 'Horizontal Ribbon', 'bold', {
-    designLayout: 'banner', fontFamily: 'Poppins', backgroundColor: '', backdropColor: '#12031f', backdropOpacity: 45, innerWidth: 94, innerHeight: 58,
-    innerColor: '#3b0f7a', innerOpacity: 92, cardRadius: 16,
+    designLayout: 'sheet', fontFamily: 'Poppins', backgroundColor: '', backdropColor: '#12031f', backdropOpacity: 30, innerWidth: 100, innerHeight: 56,
+    innerColor: '#a21caf', innerOpacity: 96, cardRadius: 0,
     captionFontSize: 74, fieldLayout: 'cols', fieldWidth: 100,
     inputBackground: '#ffffff', inputOpacity: 92, inputBorderColor: 'transparent', inputFontColor: '#2a2160', inputBorderRadius: 8, placeholderColor: '#6b5fb0', inputIcons: true,
     buttonBackground: '#ec4899', buttonHoverColor: '#db2777', buttonBorderRadius: 4, btnBottomBorder: 'none',

@@ -675,7 +675,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
     const main = document.createElement('div');
     main.className = 'optin-main';
     Array.from(scrollInner.children).forEach((el) => {
-      (el.matches(proofOnly ? '.optin-proof' : '.brand-logo, .optin-brand, .optin-badge, .optin-eyebrow, .retarget-caption, .optin-subtitle, .optin-proof') ? side : main).appendChild(el);
+      (el.matches(proofOnly ? '.optin-proof' : '.brand-logo, .optin-brand, .optin-badge, .optin-eyebrow, .retarget-caption, .optin-subtitle, .optin-proof, .optin-stepper') ? side : main).appendChild(el);
     });
     // Quiz look: the question + its choices sit under the title, on the left.
     const choice = main.querySelector('.optin-choice');

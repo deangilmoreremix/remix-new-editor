@@ -31,7 +31,7 @@ import {
 } from './pointerDesigns.js';
 import { leadFieldTokens, ESP_PROVIDERS, espName, espListLabel } from './leadClient.js';
 import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS, buildOptinForm, backdropStyle } from './addonOverlay.js';
-import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, applyOptinDesign } from './optinDesigns.js';
+import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, DESIGN_BASE, applyOptinDesign } from './optinDesigns.js';
 
 export const LIST_BUILDER_KINDS = {
   'list-builder': 'List Builder',
@@ -484,7 +484,10 @@ export function listBuilderWebhookConfig(config) {
  * own field set and colours), keeping the enabled flag.
  */
 export function switchListBuilderKind(config, kind) {
-  return { ...defaultListBuilder(kind), enabled: !!config?.enabled };
+  const next = { ...defaultListBuilder(kind), enabled: !!config?.enabled };
+  // A picked design is the form's look, not the kind's wording: it stays (the kind's own caption, boxes and privacy text still switch).
+  if (config?.designPreset) Object.keys(DESIGN_BASE).forEach((k) => { if (k in config) next[k] = config[k]; });
+  return next;
 }
 
 // ------------------------------------------------- Lead Generator clip adapter
