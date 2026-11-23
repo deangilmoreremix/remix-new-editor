@@ -49,8 +49,17 @@ beam deploy --dockerfile Dockerfile.beam --name smartvid-downloader --port 3000 
 ## Colours (one deployment, three looks)
 The page picks its palette from the address: `?brand=remix` (neon green, this repo's palette), `?brand=higgs` (cyan, the OpenHiggsBolt palette), or nothing for upstream VidBee's own amber. The choice is remembered in the browser. Light and dark follow *Settings, Theme* (System, Light or Dark). Each app embeds the URL with its own `brand`.
 
-## 3. Connect the app
-On the app backend set `SMARTVID_WEB_URL` to the Beam URL and `SMARTVID_ALLOWED_USERS` to the people allowed in. The web edition has no login of its own: keep the Beam URL private or behind this gate.
+## 3. Connect the apps (side menu)
+The app is built to live under `/smartvid/` and is reached through each host app's login gate (remix-new-editor: the Express backend; OpenHiggsBolt: the Next.js route with Clerk).
+
+1. **Pick a shared secret** (a long random string, for example `openssl rand -hex 32`) and give the **same value** to all three places:
+   - the Beam deploy: add `--env SMARTVID_GATE_TOKEN=<secret>` to the deploy command above (or use a Beam secret);
+   - remix-new-editor's backend environment: `SMARTVID_GATE_TOKEN`;
+   - OpenHiggsBolt's environment: `SMARTVID_GATE_TOKEN`.
+   With it set, the Beam URL answers only requests that carry the secret, so nobody can use it directly.
+2. **On each app's backend** also set `SMARTVID_WEB_URL` to the Beam URL (just the address, for example `https://<id>-3000.app.beam.cloud`) and `SMARTVID_ALLOWED_USERS` to the people allowed in (user ids or emails, comma separated).
+3. **After every Beam deploy the URL changes.** Update `SMARTVID_WEB_URL` on both apps.
+4. Each app opens the page with its own palette (`?brand=remix` or `?brand=higgs`), light or dark.
 
 ## What was and was not checked
 - **Checked on Beam:** the image builds (Debian, because the speech library only ships glibc builds), the deploy succeeds, a real video download from Dailymotion completes, server-side speech recognition transcribes a speech clip correctly, the page loads, the AI settings endpoint reports a visitor's key (and only the last four characters), the Guide and About pages load, and the container shuts itself down after about 5 minutes idle.

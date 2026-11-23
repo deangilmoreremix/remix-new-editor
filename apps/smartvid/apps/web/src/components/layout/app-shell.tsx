@@ -109,7 +109,7 @@ export const AppShell = ({ children, page }: AppShellProps) => {
 				bottomItems={bottomItems}
 				items={items}
 				logoAlt="Smartvid Downloader"
-				logoSrc="/app-icon.png"
+				logoSrc={`${import.meta.env.BASE_URL}app-icon.png`}
 			/>
 
 			<main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">

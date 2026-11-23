@@ -15,10 +15,12 @@ const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 const normalizedApiUrl = configuredApiUrl
 	? configuredApiUrl.replace(/\/+$/, "")
 	: "";
+// The page may be mounted under a sub-path (SMARTVID_BASE_PATH); the API is reached through the same prefix.
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 const defaultOrigin =
 	typeof window === "undefined"
 		? process.env.SMARTVID_API_URL_INTERNAL?.trim() || "http://api:3100"
-		: window.location.origin;
+		: `${window.location.origin}${basePath}`;
 export const apiUrl = normalizedApiUrl || defaultOrigin;
 
 export const eventsUrl = `${apiUrl}/events`;

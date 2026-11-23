@@ -28,6 +28,15 @@ function resolveAllowedHosts(): true | string[] | undefined {
 		.filter(Boolean);
 }
 
+/**
+ * Where the app is mounted. Set SMARTVID_BASE_PATH=/smartvid when it is served behind another app's sub-path
+ * (the host app proxies /smartvid/* to it); leave it unset to serve from the site root.
+ */
+const normalizeBasePath = (raw: string | undefined): string => {
+	const trimmed = (raw ?? "").trim().replace(/^\/+|\/+$/g, "");
+	return trimmed ? `/${trimmed}/` : "/";
+};
+
 const reactSsrDeps = [
 	"react",
 	"react-dom",
@@ -37,6 +46,7 @@ const reactSsrDeps = [
 ];
 
 const config = defineConfig(({ command }) => ({
+	base: normalizeBasePath(process.env.SMARTVID_BASE_PATH),
 	define: {
 		__APP_VERSION__: JSON.stringify(packageJson.version),
 	},

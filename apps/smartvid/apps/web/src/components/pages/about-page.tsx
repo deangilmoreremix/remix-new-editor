@@ -312,7 +312,7 @@ export const AboutPage = () => {
 									<img
 										alt="Smartvid Downloader"
 										className="h-18 w-18 rounded-2xl"
-										src="/app-icon.png"
+										src={`${import.meta.env.BASE_URL}app-icon.png`}
 									/>
 									<div className="flex-1 space-y-2">
 										<div className="flex items-center justify-between gap-4">

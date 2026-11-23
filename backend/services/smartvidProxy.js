@@ -11,6 +11,7 @@
 /* global URL */
 import crypto from 'node:crypto';
 import http from 'node:http';
+import https from 'node:https';
 import cors from 'cors';
 import express from 'express';
 
@@ -67,10 +68,14 @@ export function createSmartvidRouters({ auth }) {
     if (!verify(readCookie(req, COOKIE))) return res.status(401).type('text').send('Open Smartvid Downloader from the app to start a session.');
     if (!isSameOriginMutation(req)) return res.status(403).type('text').send('Cross-site request blocked.');
     const t = target();
+    const secure = t.protocol === 'https:';
     const headers = { ...req.headers, host: t.host };
     delete headers.cookie; // never forward host-app credentials upstream
     delete headers.authorization;
-    const up = http.request({ hostname: t.hostname, port: t.port, method: req.method, path: req.originalUrl, headers }, (r) => {
+    delete headers['x-smartvid-gate'];
+    // Shared secret: the web edition refuses requests that do not come through this gate.
+    if (process.env.SMARTVID_GATE_TOKEN) headers['x-smartvid-gate'] = process.env.SMARTVID_GATE_TOKEN;
+    const up = (secure ? https : http).request({ hostname: t.hostname, port: t.port || (secure ? 443 : 80), method: req.method, path: req.originalUrl, headers }, (r) => {
       res.writeHead(r.statusCode || 502, r.headers);
       r.pipe(res);
     });

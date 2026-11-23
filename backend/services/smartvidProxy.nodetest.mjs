@@ -81,3 +81,37 @@ describe('smartvid proxy cross-site protection', () => {
     assert.equal(isSameOriginMutation(req('GET', { 'sec-fetch-site': 'cross-site' })), true);
   });
 });
+
+describe('smartvid proxy upstream secret', () => {
+  it('sends the shared secret upstream, drops a visitor-supplied one, and keeps blocking users without a session', async () => {
+    const seen = [];
+    const upstream = http.createServer((req, res) => { seen.push(req.headers); res.end('ok'); });
+    await new Promise((resolve) => upstream.listen(0, '127.0.0.1', resolve));
+    process.env.SMARTVID_WEB_URL = `http://127.0.0.1:${upstream.address().port}`;
+    process.env.SMARTVID_GATE_TOKEN = 'gate-secret-xyz';
+    try {
+      const app = express();
+      installSmartvid(app, { auth: (req, _res, next) => { req.user = { id: 'u1' }; next(); }, cors: cors() });
+      const get = (path, headers) => new Promise((resolve, reject) => {
+        const server = http.createServer(app).listen(0, '127.0.0.1', () => {
+          http.request({ host: '127.0.0.1', port: server.address().port, method: path === '/api/smartvid/session' ? 'POST' : 'GET', path, headers }, (res) => {
+            res.resume(); res.on('end', () => server.close(() => resolve(res)));
+          }).on('error', reject).end();
+        });
+      });
+      const noSession = await get('/smartvid/', {});
+      assert.equal(noSession.statusCode, 401);
+      assert.equal(seen.length, 0);
+      const session = await get('/api/smartvid/session', {});
+      const cookie = String(session.headers['set-cookie']).split(';')[0];
+      const ok = await get('/smartvid/transcripts', { cookie, 'x-smartvid-gate': 'attacker-value' });
+      assert.equal(ok.statusCode, 200);
+      assert.equal(seen[0]['x-smartvid-gate'], 'gate-secret-xyz');
+      assert.equal(seen[0].cookie, undefined);
+    } finally {
+      upstream.close();
+      delete process.env.SMARTVID_GATE_TOKEN;
+      delete process.env.SMARTVID_WEB_URL;
+    }
+  });
+});

@@ -39,7 +39,7 @@ export function MediaHubPage() {
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Smartvid Downloader unavailable (${res.status})`);
       // Light / Dark / System is switched inside Smartvid Downloader itself (title-bar button, or Settings → Theme).
       const iframe = document.createElement('iframe');
-      iframe.src = `${base}/smartvid/`;
+      iframe.src = `${base}/smartvid/?brand=remix`;
       iframe.title = 'Smartvid Downloader';
       iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;';
       iframe.setAttribute('allow', 'clipboard-write; fullscreen');
