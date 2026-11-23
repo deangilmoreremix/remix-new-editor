@@ -386,6 +386,8 @@ export function createScope(host) {
   const winOverrides = {
     document: docProxy,
     Image: function (w, h) { const i = new Image(w, h); i.crossOrigin = 'anonymous'; return i; },
+    // a block script may load its own files by a relative URL (e.g. three.js GLTFLoader: "models/x.glb"): resolve it against the block's folder, not the sandbox page
+    fetch: (input, init) => window.fetch(typeof input === 'string' ? rebaseUrl(input, store.__base || HF_BASE) : input, init),
     // `hf-seek` is HyperFrames' protocol for content that is not a GSAP timeline (WebGPU/WebGL shader backgrounds, three.js): the listener renders the given time. Kept per instance, never on the shared window.
     addEventListener: (t, cb, o) => { if (t === 'load') return fire(cb); if (t === 'hf-seek') { (store.__hfSeek ||= []).push(cb); return undefined; } window.addEventListener(t, cb, o); cleanups.push(() => window.removeEventListener(t, cb, o)); },
     removeEventListener: (t, cb, o) => window.removeEventListener(t, cb, o),
@@ -539,7 +541,7 @@ export function BlockClip({ name, width, height, overrides, expectedSha256, proj
         rebaseElementUrls(el, base);
         const root = el.querySelector('[data-composition-id]');
         const id = root?.getAttribute('data-composition-id');
-        const scope = createScope(el); state.current.scope = scope;
+        const scope = createScope(el); scope.store.__base = base; state.current.scope = scope;
         const gsapLib = resolveGsap();
         if (!gsapLib) { report('mount', name, `bundled gsap is unusable (import resolved to ${describeGsap(gsap)}; no .timeline function) and no window.gsap fallback exists`); return; }
         scope.store.gsap = gsapLib;

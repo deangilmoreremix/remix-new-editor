@@ -57,7 +57,7 @@
   "no editable field with a measured visible effect": 1,
   "export throughput 4.6 fps < 8.0": 1
  },
- "enabledCount": 120,
+ "enabledCount": 137,
  "items": {
   "ai-answer-rank": {
    "type": "block",
@@ -803,7 +803,7 @@
   "chromatic-radial-split": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -814,17 +814,14 @@
     "ssimMin": 0.987,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 12.3,
-     "bytes": 199681
-    }
+     "fps": 8.2
+    },
+    "prodSsimMin": 0.979,
+    "nonBlank": 0.3767,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "chrome-orb": {
    "type": "block",
@@ -869,7 +866,7 @@
   "cinematic-zoom": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -880,18 +877,14 @@
     "ssimMin": 0.99,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 5.6,
-     "bytes": 238749
-    }
+     "fps": 4.5
+    },
+    "prodSsimMin": 0.978,
+    "nonBlank": 0.3792,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "export throughput 5.6 fps < 8.0",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "claude-exchange": {
    "type": "block",
@@ -918,7 +911,7 @@
   "code-3d-extrude": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -929,18 +922,14 @@
     "ssimMin": 1.0,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 16.3,
-     "bytes": 825642
-    }
+     "fps": 6.7
+    },
+    "prodSsimMin": 1.0,
+    "nonBlank": 0.0702,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "three.js",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "code-diff": {
    "type": "block",
@@ -1011,7 +1000,7 @@
   "code-particle-assemble": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "worst-sample SSIM 0.909 against native; held back",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1062,7 +1051,7 @@
   "code-shader-dissolve": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1073,18 +1062,14 @@
     "ssimMin": 0.999,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 13.6,
-     "bytes": 496996
-    }
+     "fps": 7.5
+    },
+    "prodSsimMin": 0.999,
+    "nonBlank": 0.0603,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "three.js",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "code-slice-hero": {
    "type": "block",
@@ -1210,7 +1195,7 @@
   "cosmic-orb": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "renders and matches native (SSIM 0.997); real 1080p export 2.9 fps is just under the 3 fps minimum",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1228,15 +1213,13 @@
    },
    "enabled": false,
    "enabledBlockedBy": [
-    "WebGL",
-    "export throughput 2.9 fps < 8.0",
-    "not yet rendered through the production adapter path"
+    "export too slow (2.9 fps)"
    ]
   },
   "cross-warp-morph": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1247,17 +1230,14 @@
     "ssimMin": 0.986,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 10.1,
-     "bytes": 209781
-    }
+     "fps": 7
+    },
+    "prodSsimMin": 0.98,
+    "nonBlank": 0.381,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "cuboid-carousel": {
    "type": "block",
@@ -1301,7 +1281,7 @@
   "domain-warp-dissolve": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1312,17 +1292,14 @@
     "ssimMin": 0.982,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 9.1,
-     "bytes": 515541
-    }
+     "fps": 6.3
+    },
+    "prodSsimMin": 0.975,
+    "nonBlank": 0.4578,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "editorial-flash-overlay": {
    "type": "block",
@@ -1401,7 +1378,7 @@
   "flash-through-white": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1412,17 +1389,14 @@
     "ssimMin": 0.955,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 13.9,
-     "bytes": 202258
-    }
+     "fps": 4.3
+    },
+    "prodSsimMin": 0.973,
+    "nonBlank": 0.3869,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "flowchart": {
    "type": "block",
@@ -1559,7 +1533,7 @@
   "gallery-tunnel": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1570,18 +1544,14 @@
     "ssimMin": 0.992,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 11.1,
-     "bytes": 808288
-    }
+     "fps": 5.3
+    },
+    "prodSsimMin": 1.0,
+    "nonBlank": 0.3093,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "three.js",
-    "sub-composition",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "glass-hero": {
    "type": "block",
@@ -1620,7 +1590,7 @@
   "glitch": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1631,17 +1601,14 @@
     "ssimMin": 0.993,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 13.1,
-     "bytes": 378425
-    }
+     "fps": 4.7
+    },
+    "prodSsimMin": 0.987,
+    "nonBlank": 0.375,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "godrays": {
    "type": "block",
@@ -1720,7 +1687,7 @@
   "halftone-field": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1731,16 +1698,14 @@
     "ssimMin": 0.993,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 10.3,
-     "bytes": 1245072
-    }
+     "fps": 4.8
+    },
+    "prodSsimMin": 1.0,
+    "nonBlank": 0.2435,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "heatmap": {
    "type": "block",
@@ -3036,7 +3001,7 @@
   "rack-focus": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3047,17 +3012,14 @@
     "ssimMin": 0.998,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 7.8,
-     "bytes": 412189
-    }
+     "fps": 4.6
+    },
+    "prodSsimMin": 1.0,
+    "nonBlank": 0.8908,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "export throughput 7.8 fps < 8.0",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "reddit-post": {
    "type": "block",
@@ -3086,7 +3048,7 @@
   "ridged-burn": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3097,22 +3059,19 @@
     "ssimMin": 0.973,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 12.2,
-     "bytes": 591022
-    }
+     "fps": 4.1
+    },
+    "prodSsimMin": 0.979,
+    "nonBlank": 0.6176,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "ripple-waves": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3123,17 +3082,14 @@
     "ssimMin": 0.99,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 14.8,
-     "bytes": 338628
-    }
+     "fps": 4.1
+    },
+    "prodSsimMin": 0.984,
+    "nonBlank": 0.3819,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "ripples": {
    "type": "block",
@@ -3331,7 +3287,7 @@
   "spiral-galaxy": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3342,17 +3298,14 @@
     "ssimMin": 0.972,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 12.4,
-     "bytes": 811463
-    }
+     "fps": 4.7
+    },
+    "prodSsimMin": 0.996,
+    "nonBlank": 0.1509,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "three.js",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "split-flap-board": {
    "type": "block",
@@ -3492,7 +3445,7 @@
   "swirl-vortex": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3503,22 +3456,19 @@
     "ssimMin": 0.982,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 12.9,
-     "bytes": 236681
-    }
+     "fps": 4.4
+    },
+    "prodSsimMin": 0.984,
+    "nonBlank": 0.3785,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "thermal-distortion": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3529,17 +3479,14 @@
     "ssimMin": 0.991,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 10.4,
-     "bytes": 220820
-    }
+     "fps": 3.9
+    },
+    "prodSsimMin": 0.986,
+    "nonBlank": 0.375,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "thin-film": {
    "type": "block",
@@ -4087,7 +4034,7 @@
   "vfx-iphone-device": {
    "type": "block",
    "status": "unsupported",
-   "reason": "no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline vfx-iphone-device: no __timelines entry",
+   "reason": "needs the experimental Chrome html-in-canvas API (drawElementImage); the native HyperFrames render is blank too. Its model files now load, but the page never draws",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -4099,7 +4046,9 @@
     "export": null
    },
    "enabled": false,
-   "enabledBlockedBy": []
+   "enabledBlockedBy": [
+    "html-in-canvas feature"
+   ]
   },
   "vfx-liquid-background": {
    "type": "block",
@@ -4321,7 +4270,7 @@
   "whip-pan": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -4332,17 +4281,14 @@
     "ssimMin": 0.984,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 10.4,
-     "bytes": 205540
-    }
+     "fps": 6.5
+    },
+    "prodSsimMin": 0.979,
+    "nonBlank": 0.382,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "WebGL",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "wireframe-portal-title": {
    "type": "block",
