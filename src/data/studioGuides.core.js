@@ -115,7 +115,7 @@ function uniqueIds(names) {
  * @param {Record<string, {overview?: string, features?: Record<string,string>}>} shots
  *        captured screenshots keyed by slug (src/data/guideScreenshots.json)
  */
-export function buildGuides(kbByRoute, shots = {}) {
+export function buildGuides(kbByRoute, shots = {}, videos = null) {
   const routes = Object.keys(kbByRoute).filter((r) => !r.startsWith('_') && !UNLISTED_GUIDES.has(r)).sort();
   const slugOf = {};
   for (const route of routes) slugOf[route] = SLUG_OVERRIDES[route] || slugify(kbByRoute[route].name || route);
@@ -151,10 +151,13 @@ export function buildGuides(kbByRoute, shots = {}) {
       ...features.slice(0, 6).map((f) => `${f.name} AI`),
     ].filter(Boolean);
 
+    const tourInfo = videos?.studios?.[slug];
     return {
       slug,
       route,
       name,
+      // The studio's tour video, when one is uploaded (src/data/guideVideos.json).
+      tour: tourInfo ? { video: `${videos.base}/${slug}/tour.mp4`, captions: `${videos.base}/${slug}/captions.vtt`, poster: `${videos.base}/${slug}/poster.webp`, seconds: tourInfo.seconds } : null,
       category: CATEGORY_OVERRIDES[route] || meta.category || 'Agents',
       shortDescription: kb.shortDescription || '',
       description: kb.description || '',
