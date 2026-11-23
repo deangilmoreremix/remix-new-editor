@@ -1,7 +1,6 @@
 import { useRef, useState, useCallback, useEffect, useLayoutEffect } from 'react';
 import type { Asset } from '@cinegen/types/project';
 import type { Clip, ToolType } from '@cinegen/types/timeline';
-import { clipEffectiveDuration } from '@cinegen/types/timeline';
 import { formatTimecode } from './time-ruler';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
 import { useNativeVideoSurface } from './use-native-video-surface';
@@ -82,7 +81,7 @@ export function SourceViewer({
     fitAspectRatio: surfaceAspectRatio,
   });
 
-  const effectiveDuration = clip ? clipEffectiveDuration(clip) : (asset?.duration ?? 0);
+  const effectiveDuration = clip ? Math.max(0, clip.duration - clip.trimStart - clip.trimEnd) : (asset?.duration ?? 0); // [remix] the viewer plays the file at rate 1, so a clip's range is its source span, not the speed-scaled timeline length
 
   void onClose;
 
@@ -92,6 +91,7 @@ export function SourceViewer({
   useEffect(() => {
     setSourceTime(0);
     setIsPlaying(false);
+    if (videoRef.current) videoRef.current.currentTime = clip ? clip.trimStart : 0; // [remix] open on the clip's first frame, the same time the marks assume
   }, [clip?.id, asset?.id]);
 
   useEffect(() => {
@@ -336,6 +336,7 @@ export function SourceViewer({
                     className="source-viewer__video"
                     src={toFileUrl(asset.fileRef || asset.url)}
                     onTimeUpdate={handleTimeUpdate}
+                    onLoadedMetadata={() => { if (videoRef.current && trimOffset) videoRef.current.currentTime = trimOffset; }}
                     onEnded={() => setIsPlaying(false)}
                   />
                 )
