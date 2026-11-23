@@ -120,7 +120,7 @@ test('the List Builder has the same Design tab: all designs, every control edita
 });
 
 test('Add to timeline: a card per design for both kinds, found by search, created through the same logic', async () => {
-  await page.getByRole('button', { name: 'EDIT', exact: true }).click();
+  // the editor is already on the EDIT tab (the previous test left a List Builder open there)
   await page.getByRole('button', { name: 'Add to timeline', exact: true }).click();
   await expect(dialog(page)).toBeVisible();
   const search = dialog(page).getByRole('textbox', { name: 'Search', exact: true });
