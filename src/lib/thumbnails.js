@@ -722,7 +722,7 @@ export function createStudioHeader(studioId, title, subtitle = '', className = '
     pic.appendChild(img);
     // Fade the picture's left edge to transparent so it dissolves into the blurred backdrop
     // (a solid dark overlay showed as a hard edge against the lighter backdrop). md+ only.
-    if (typeof matchMedia === 'function' && matchMedia('(min-width: 768px)').matches) {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 768px)').matches) {
       const fade = 'linear-gradient(to right, transparent 0, #000 140px)';
       pic.style.webkitMaskImage = fade;
       pic.style.maskImage = fade;
