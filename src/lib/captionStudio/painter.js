@@ -7,6 +7,7 @@
 import { captionPages, pageAt } from './model.js';
 import { capiteStyleById } from './styles.js';
 import { layoutCaptionFrame } from './layout.js';
+import { fontStack, resolveWeight, embeddedFont, loadEmbeddedFont } from './fonts/captionFonts.js';
 
 /** Which Capite motion a style uses ('highlight' | 'scale' | 'pop' | 'bounce' | 'glow' | 'box' | 'karaoke'). */
 export function captionAnimation(style = {}) {
@@ -25,7 +26,7 @@ const SCRIPT_FONTS = [
 /** The fallback families a piece of text needs (for example ['Noto Sans JP'] for Japanese). */
 export const scriptFontsFor = (text = '') => SCRIPT_FONTS.filter(([re]) => re.test(text)).map(([, f]) => f);
 const FALLBACKS = ['Noto Sans', ...SCRIPT_FONTS.map(([, f]) => `"${f}"`), 'Arial', 'sans-serif'];
-export const captionFont = (style, px) => `${style.italic ? 'italic ' : ''}${style.bold ? 800 : 500} ${px}px "${style.fontFamily || 'Inter'}", ${FALLBACKS.join(', ')}`;
+export const captionFont = (style, px) => `${style.italic ? 'italic ' : ''}${resolveWeight(style)} ${px}px ${fontStack(style.fontFamily || 'Inter', FALLBACKS.join(', '))}`;
 
 export { layoutWords, layoutCaptionFrame, activePageAt } from './layout.js';
 
@@ -117,13 +118,14 @@ export async function ensureCaptionFont(style = {}, text = '') {
   if (typeof document === 'undefined' || !document.fonts) return;
   const family = style.fontFamily || 'Inter';
   const scripts = scriptFontsFor(text);
-  const key = `${family}|${style.bold ? 1 : 0}|${style.italic ? 1 : 0}|${scripts.join(',')}`;
+  const key = `${family}|${resolveWeight(style)}|${style.italic ? 1 : 0}|${scripts.join(',')}`;
   if (loaded.has(key)) return;
   try {
-    if (!document.fonts.check(`16px "${family}"`)) addFontLink(family, ':ital,wght@0,500;0,800;1,500;1,800');
-    scripts.forEach((f) => { if (!document.fonts.check(`16px "${f}"`)) addFontLink(f, ':wght@500;800'); });
+    const own = embeddedFont(family); // embedded: no request; anything else comes from Google Fonts
+    if (!own && !document.fonts.check(`16px "${family}"`)) addFontLink(family, ':ital,wght@0,300;0,400;0,500;0,700;0,800;1,300;1,400;1,500;1,700;1,800');
+    scripts.forEach((f) => { if (!document.fonts.check(`16px "${f}"`)) addFontLink(f, ':wght@300;400;500;700;800'); });
     await Promise.race([
-      Promise.all([document.fonts.load(captionFont(style, 32), text || undefined), ...scripts.map((f) => document.fonts.load(`800 32px "${f}"`, text))]),
+      Promise.all([own ? loadEmbeddedFont(family, { weight: resolveWeight(style), italic: !!style.italic, text }) : document.fonts.load(captionFont(style, 32), text || undefined), ...scripts.map((f) => document.fonts.load(`800 32px "${f}"`, text))]),
       new Promise((r) => setTimeout(r, 5000)),
     ]);
   } catch { /* fall back to the system font */ }
