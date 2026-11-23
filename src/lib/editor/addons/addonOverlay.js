@@ -1092,8 +1092,8 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
   sizeFromLayer();
   // Whatever the video's size or the design, the content fits its card: fit now, and again when the video is resized.
   requestAnimationFrame?.(() => { sizeFromLayer(); fit(); });
-  if (typeof ResizeObserver !== 'undefined') {
-    const watch = new ResizeObserver(() => { if (!wrap.isConnected) { watch.disconnect(); return; } sizeFromLayer(); fit(); });
+  if (typeof window.ResizeObserver !== 'undefined') {
+    const watch = new window.ResizeObserver(() => { if (!wrap.isConnected) { watch.disconnect(); return; } sizeFromLayer(); fit(); });
     watch.observe(layer);
   }
   if (onEditText && preview) attachTextEditing(wrap, onEditText);
