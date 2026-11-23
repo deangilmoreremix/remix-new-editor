@@ -9,7 +9,13 @@
     "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Apps\")",
     "click": true,
     "hold": 3500,
-    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")",
+    "then": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "hold": 2000
+      }
+    ]
   },
   "model-picker": {
     "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"nano-banana-pro-edit\")",
