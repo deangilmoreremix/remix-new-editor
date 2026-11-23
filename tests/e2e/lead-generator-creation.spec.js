@@ -138,7 +138,14 @@ test('Add to timeline: a card per design for both kinds, found by search, create
   await page.getByTestId('design-lead-form-ticket-invitation').click();
   await expect(dialog(page)).toHaveCount(0);
   await expect(lane(page)).toHaveCount(before + 1);
-  await expect(page.locator(`${VIEWER} form.retarget-form[data-design="ticket-invitation"]`)).toBeVisible();
+  // it is selected and open, placed after the List Builder gate (the existing rule: a new overlay never lands on the gate's marker)
+  await expect(page.locator('.addon-panel')).toBeVisible();
+  await expect(page.getByText('LEAD GENERATOR OVERLAY', { exact: false }).first()).toBeVisible();
+  await expect(page.getByLabel('Start (s)')).toHaveValue('3');
+  await panelTab(page, 'Text').click();
+  await expect(control(page, 'caption')).toHaveValue('Your Personalized Video Awaits'); // the design's own wording
+  await panelTab(page, 'Design').click();
+  await expect(page.locator('.addon-panel [data-design-pick="ticket-invitation"]')).toHaveClass(/active/);
   // the List Builder card applies the design to the existing List Builder, without adding another
   await page.getByRole('button', { name: 'Add to timeline', exact: true }).click();
   await openOverlaysTab();
