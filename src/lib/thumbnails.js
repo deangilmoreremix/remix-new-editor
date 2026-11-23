@@ -371,6 +371,9 @@ const HERO_THUMBNAILS = {
 
 // Where to aim the banner crop (CSS object-position) per page. The default is the
 // centre; pages whose picture has its subject elsewhere are listed here.
+// Studios whose banner picture is a finished composition: skip the left-edge fade in createStudioHeader.
+const NO_EDGE_FADE = new Set(['zackd']);
+
 const BANNER_FOCUS = {
   zackd: '50% 19%', // portrait 9:16 keyframe in a wide banner: frame the head and the title card, not the torso
   // Apps-page (studios/) pictures are ~1.8:1 and the banner box ~2.4:1, so only a
@@ -722,7 +725,8 @@ export function createStudioHeader(studioId, title, subtitle = '', className = '
     pic.appendChild(img);
     // Fade the picture's left edge to transparent so it dissolves into the blurred backdrop
     // (a solid dark overlay showed as a hard edge against the lighter backdrop). md+ only.
-    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 768px)').matches) {
+    // Banners that ship as a finished composition (a strip of frames) keep their own edge, so no fade.
+    if (!NO_EDGE_FADE.has(studioId) && typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 768px)').matches) {
       const fade = 'linear-gradient(to right, transparent 0, #000 140px)';
       pic.style.webkitMaskImage = fade;
       pic.style.maskImage = fade;
