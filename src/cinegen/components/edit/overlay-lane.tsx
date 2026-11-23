@@ -144,7 +144,7 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
             const thumb = overlayThumb(o);
             const text = overlayText(o, contact.profile);
             // what fits in the block: a picture + text when wide, text alone when medium, just an icon when narrow (the title still says everything)
-            const glyph = GLYPHS[o.type as string];
+            const glyph = o.type === ('overlay-image' as OverlayKind) && thumb ? undefined : GLYPHS[o.type as string];
             const roomy = w >= 190;
             const showText = w >= 90;
             return (
@@ -181,8 +181,8 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
   );
 }
 
-/** Overlays that draw nothing of their own (they control playback) get an icon instead of a blank picture. */
-const GLYPHS: Record<string, string> = { 'addon-pause': '⏸', 'addon-skip': '⏭', 'addon-loop': '🔁' };
+/** Overlays with nothing meaningful to draw as a still (playback controls, a full-frame colour, see-through text, an Image with no picture yet) get an icon instead of a blank picture. */
+const GLYPHS: Record<string, string> = { 'addon-pause': '⏸', 'addon-skip': '⏭', 'addon-loop': '🔁', 'overlay-text-mask': '🔠', 'overlay-background': '🟪', 'overlay-image': '🖼️' };
 const GLYPH_BOX = { display: 'grid', placeItems: 'center', fontSize: 20, lineHeight: 1, background: STAGE_BG } as const;
 
 /** The live stage is drawn at a normal card size and scaled down to fit the block: drawn directly into the small box it was cropped to a corner of the form. */

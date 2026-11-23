@@ -56,4 +56,18 @@ describe('OverlayLane block content', () => {
     expect(c.querySelector('.overlay-card__meta')?.textContent).toContain('Please enter your details');
     cleanup();
   });
+
+  it('gives Text Mask, Wrapper and an Image with no picture an icon, and keeps a picked picture', () => {
+    const { card, cleanup } = render([
+      ov({ type: 'overlay-text-mask', name: 'Text Mask', end: 5 }),
+      ov({ type: 'overlay-background', name: 'Wrapper', end: 5 }),
+      ov({ type: 'overlay-image', name: 'Image', end: 5 }),
+      ov({ type: 'overlay-image', name: 'Picked', id: 'picked', end: 5, addon: { src: '/x.png' } }),
+    ]);
+    expect(card('overlay-text-mask').querySelector('.overlay-card__thumb')?.textContent).toBe('🔠');
+    expect(card('overlay-background').querySelector('.overlay-card__thumb')?.textContent).toBe('🟪');
+    expect(card('overlay-image').querySelector('.overlay-card__thumb')?.textContent).toBe('🖼️');
+    expect(card('picked').querySelector('img.overlay-card__thumb')).not.toBeNull();
+    cleanup();
+  });
 });
