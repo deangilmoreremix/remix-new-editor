@@ -237,6 +237,7 @@ export function defaultOptin(kind = 'list-builder') {
     cardBlur: 0,
     inputOpacity: 100,
     inputIcons: false,
+    inputChevron: false,
     buttonBackground2: '',
     eyebrow: '',
     subtitle: '',
@@ -392,11 +393,12 @@ const DESIGN_FIELDS = [
   { key: 'cardBlur', label: 'Frosted-glass blur behind the card', type: 'range', min: 0, max: 40 },
   { key: 'inputOpacity', label: 'Input background opacity', type: 'range', min: 0, max: 100 },
   { key: 'inputIcons', label: 'Show icons in the boxes', type: 'toggle' },
+  { key: 'inputChevron', label: 'Show a dropdown arrow at the end of the boxes', type: 'toggle' },
   { key: 'buttonBackground2', label: 'Play Button gradient: second color (empty = solid)', type: 'color' },
 ];
 
 const LAYOUT_FIELDS = [
-  { key: 'fieldLayout', label: 'Box layout', type: 'select', options: FIELD_LAYOUTS },
+  { key: 'fieldLayout', label: 'Box layout (uses fewer columns when a smaller video would cut off the labels)', type: 'select', options: FIELD_LAYOUTS },
   { key: 'fieldWidth', label: 'Boxes width (% of the form)', type: 'range', min: 30, max: 100 },
   { key: 'fieldGap', label: 'Space between boxes', type: 'range', min: 0, max: 20 },
   { key: 'fieldAlign', label: 'Align boxes', type: 'select', options: [['center', 'Center'], ['left', 'Left']] },

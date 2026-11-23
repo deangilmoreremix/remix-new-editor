@@ -294,6 +294,18 @@ function buildInput(declaration, prefill, config = {}) {
     input.classList.add('has-icon');
     Object.assign(input.style, { backgroundImage: inputIcon(input.type, config.inputFontColor || '#888888'), backgroundRepeat: 'no-repeat', backgroundPosition: '0.7em center', backgroundSize: '1.1em', paddingLeft: '2.3em' });
   }
+  if (config.inputChevron && input.tagName === 'INPUT') {
+    // a small arrow at the right end of the box (the Accordion look); drawn together with the icon, if any
+    const chevron = `url("data:image/svg+xml;utf8,${`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M5 9l7 7 7-7' fill='none' stroke='${String(safeColor(config.inputFontColor, '#888888')).replace('#', '%23')}' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>`.replace(/</g, '%3C').replace(/>/g, '%3E')}")`;
+    const withIcon = input.classList.contains('has-icon');
+    Object.assign(input.style, {
+      backgroundImage: withIcon ? `${input.style.backgroundImage}, ${chevron}` : chevron,
+      backgroundRepeat: withIcon ? 'no-repeat, no-repeat' : 'no-repeat',
+      backgroundPosition: withIcon ? '0.7em center, right 0.7em center' : 'right 0.7em center',
+      backgroundSize: withIcon ? '1.1em, 0.9em' : '0.9em',
+      paddingRight: '2.2em',
+    });
+  }
   if (prefill?.[token]) input.value = prefill[token];
   return input;
 }
@@ -331,10 +343,32 @@ export function resolveFieldLayout(count, wanted = 'auto') {
  * Every size on the form is a % of the form's own font size, so one number scales all of it.
  * Returns the scale used (1 = untouched); also left in form.dataset.fit.
  */
+const LAYOUT_FALLBACK = { inline: 'cols', cols: 'grid', grid: 'stacked' };
+let measureCtx;
+/** True when a box's hint text ("First Name") does not fit inside the box. */
+function hintsCut(form) {
+  measureCtx = measureCtx || document.createElement('canvas').getContext('2d');
+  return Array.from(form.querySelectorAll('.input-wrapper input:not([type="radio"]):not([type="checkbox"])')).some((el) => {
+    if (!el.offsetParent || !el.placeholder) return false;
+    const cs = getComputedStyle(el);
+    const room = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    if (room <= 0) return false; // not laid out (hidden step, no layout engine)
+    measureCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    return measureCtx.measureText(el.placeholder.trim()).width > room + 0.5;
+  });
+}
+
 export function fitOptinForm(form) {
   const box = form?.querySelector?.('.form-scrollable');
   if (!box) return 1;
   form.style.fontSize = '';
+  // 1) every box shows its full label: one row -> three across -> two across -> one column
+  const wrapper = form.querySelector('.input-wrapper-container');
+  if (wrapper?.dataset.wanted) {
+    wrapper.dataset.layout = wrapper.dataset.wanted;
+    while (hintsCut(form) && LAYOUT_FALLBACK[wrapper.dataset.layout]) wrapper.dataset.layout = LAYOUT_FALLBACK[wrapper.dataset.layout];
+  }
+  // 2) the content fits the card's height
   let scale = 1;
   while (box.scrollHeight > box.clientHeight + 1 && scale > 0.5) {
     scale = Math.round((scale - 0.05) * 100) / 100;
@@ -391,6 +425,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   if (radius > 0) inner.style.borderRadius = radius >= 200 ? '50%' : `${radius}px`;
   if (Number(config.cardBorderWidth) > 0 && config.cardBorderColor) inner.style.border = `${Math.min(8, Number(config.cardBorderWidth))}px solid ${cssColor(config.cardBorderColor, '#ffffff')}`;
   if (config.cardGlow) inner.style.boxShadow = `0 0 24px ${hexToRgba(cssColor(config.cardGlow, '#ffffff'), 0.55)}, inset 0 0 18px ${hexToRgba(cssColor(config.cardGlow, '#ffffff'), 0.18)}`;
+  if (radius >= 200) form.dataset.shape = 'oval'; // content is kept inside the ellipse (CSS)
   if (Number(config.cardBlur) > 0) inner.style.backdropFilter = inner.style.webkitBackdropFilter = `blur(${Math.min(40, Number(config.cardBlur))}px)`;
 
   const scrollable = document.createElement('div');
@@ -548,6 +583,7 @@ export function buildOptinForm(config, { prefill = {}, compact = false } = {}) {
   const visibleBoxes = stepCount > 1 ? Math.min(stepSize, elements.length) : elements.length; // one step's worth at a time
   const layout = resolveFieldLayout(visibleBoxes, config.fieldLayout);
   wrapperContainer.dataset.layout = layout;
+  wrapperContainer.dataset.wanted = layout; // fitOptinForm may fall back to a narrower arrangement; this is what the creator asked for
   wrapperContainer.dataset.count = String(visibleBoxes);
   wrapperContainer.style.setProperty('--cols', String(Math.max(1, Math.min(4, visibleBoxes))));
   wrapperContainer.dataset.align = config.fieldAlign === 'left' ? 'left' : 'center';
@@ -1050,10 +1086,14 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
     }
   });
   layer.appendChild(wrap);
+  // The form sizes its text from the video's width (--ovl-w). The editors set it; a published page does not, so set it here
+  // (same value) — otherwise a phone would get desktop-sized text.
+  const sizeFromLayer = () => { if (layer.clientWidth) layer.style.setProperty('--ovl-w', `${layer.clientWidth}px`); };
+  sizeFromLayer();
   // Whatever the video's size or the design, the content fits its card: fit now, and again when the video is resized.
-  requestAnimationFrame?.(fit);
+  requestAnimationFrame?.(() => { sizeFromLayer(); fit(); });
   if (typeof ResizeObserver !== 'undefined') {
-    const watch = new ResizeObserver(() => { if (!wrap.isConnected) { watch.disconnect(); return; } fit(); });
+    const watch = new ResizeObserver(() => { if (!wrap.isConnected) { watch.disconnect(); return; } sizeFromLayer(); fit(); });
     watch.observe(layer);
   }
   if (onEditText && preview) attachTextEditing(wrap, onEditText);

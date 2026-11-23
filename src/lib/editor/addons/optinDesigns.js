@@ -49,6 +49,7 @@ export const DESIGN_BASE = {
   inputBorderRadius: 5,
   placeholderColor: '#6b7280',
   inputIcons: false,
+  inputChevron: false,
   buttonBackground: '#eb5054',
   buttonBackground2: '',
   buttonFontColor: '#ffffff',
@@ -131,7 +132,7 @@ const COPY = {
   'two-step-wizard': { caption: 'Create Your Personalized Video', subtitle: 'Just 2 quick steps to get your custom video experience', btnText: 'Play Video' },
   'conversational-setup': { caption: "Hi there! Let's create your personalized video experience.", subtitle: '', btnText: 'Start My Video' },
   'vip-access': { caption: 'VIP ACCESS', subtitle: 'Get instant access to your personalized video', btnText: 'WATCH NOW' },
-  'qualifying-quiz': { caption: "Let's find the right solution for you", subtitle: 'Answer a quick question and share your details to get a personalized video experience.', btnText: 'Next' },
+  'qualifying-quiz': { caption: "Let's find the right solution for you", subtitle: '', btnText: 'Next' },
   'social-proof': { caption: 'Watch How It Works For You', subtitle: 'Enter your details to get your personalized video.', btnText: 'Watch My Video' },
   'neon-floating-card': { caption: 'Create Your Personalized Video', btnText: 'Play My Video' },
   'aurora-glass': { caption: 'Get Your Personalized Video', subtitle: 'Enter your details below and click play' },
@@ -173,7 +174,7 @@ export const OPTIN_DESIGNS = [
   }),
   d('neon-spotlight', 'Neon Spotlight', 'layouts', {
     designLayout: 'side-card', fontFamily: 'Inter', backgroundColor: '', backdropColor: '#05030f', backdropOpacity: 62,
-    innerWidth: 38, innerHeight: 92, innerColor: '#0e0a24', innerOpacity: 82, cardRadius: 16, cardBorderColor: '#8b5cf6', cardBorderWidth: 1, cardGlow: '#7c3aed', cardBlur: 8,
+    innerWidth: 48, innerHeight: 95, innerColor: '#0e0a24', innerOpacity: 82, cardRadius: 16, cardBorderColor: '#8b5cf6', cardBorderWidth: 1, cardGlow: '#7c3aed', cardBlur: 8,
     captionAlignment: 'left', captionFontSize: 62, fieldWidth: 100, ...darkInputs,
     buttonBackground: '#6d4cff', buttonBackground2: '#4f46e5', buttonBorderRadius: 6, btnBottomBorder: 'none',
   }),
@@ -185,37 +186,37 @@ export const OPTIN_DESIGNS = [
     subtitle: 'Fill out your details below and click play to experience the magic of AI personalization.',
   }),
   d('two-step-wizard', 'Two-Step Wizard', 'layouts', {
-    fontFamily: 'Poppins', fontColor: '#2b2160', backgroundColor: '#8b7be8', backgroundColor2: '#5b3fc4', innerWidth: 62, innerHeight: 84,
+    fontFamily: 'Poppins', fontColor: '#2b2160', backgroundColor: '#8b7be8', backgroundColor2: '#5b3fc4', innerWidth: 74, innerHeight: 94,
     innerColor: '#ffffff', innerOpacity: 90, cardRadius: 18, cardBorderColor: '#e9d5ff', cardBorderWidth: 1, cardGlow: '#a78bfa',
     inputBackground: '#ffffff', inputBorderColor: '#e5e7eb', inputFontColor: '#1f2937', inputBorderRadius: 6, placeholderColor: '#6b7280', inputIcons: true,
     buttonBackground: '#6d4cff', buttonHoverColor: '#5b3fe0', buttonBorderRadius: 8, btnBottomBorder: 'none',
     multiStep: true, stepSize: 2, subtitle: 'Just 2 quick steps to get your custom video experience',
   }),
   d('conversational-setup', 'Conversational Setup', 'layouts', {
-    designLayout: 'chat', fontFamily: 'Inter', fontSize: 52, backgroundColor: '#0d0a1f', backgroundColor2: '#241659', innerWidth: 56, innerHeight: 98,
-    captionAlignment: 'left', captionFontSize: 30, fieldWidth: 100, ...darkInputs, inputBorderColor: '#6d65e6',
+    designLayout: 'chat', fontFamily: 'Inter', fontSize: 66, backgroundColor: '#0d0a1f', backgroundColor2: '#241659', innerWidth: 70, innerHeight: 96,
+    captionAlignment: 'left', captionFontSize: 34, fieldWidth: 100, ...darkInputs, inputBorderColor: '#6d65e6',
     buttonBackground: '#6d4cff', buttonBackground2: '#8b5cf6', buttonBorderRadius: 8, btnBottomBorder: 'none',
     fieldLayout: 'stacked',
   }),
   d('vip-access', 'VIP Access', 'premium', {
-    fontFamily: 'Cinzel', fontColor: '#f5e7b8', captionColor: '#e8c872', captionFontSize: 96, backgroundColor: '#0b0905', backgroundColor2: '#1b1409', bgAngle: 160,
-    innerWidth: 84, innerHeight: 88, cardRadius: 6, cardBorderColor: '#c9a24a', cardBorderWidth: 2, cardGlow: '#c9a24a',
+    fontFamily: 'Cinzel', fontColor: '#f5e7b8', captionColor: '#e8c872', captionFontSize: 78, backgroundColor: '#0b0905', backgroundColor2: '#1b1409', bgAngle: 160,
+    innerWidth: 92, innerHeight: 95, cardRadius: 6, cardBorderColor: '#c9a24a', cardBorderWidth: 2, cardGlow: '#c9a24a',
     inputBackground: '#000000', inputOpacity: 55, inputFontColor: '#f5e7b8', inputBorderColor: '#8a6d2b', inputBorderRadius: 3, placeholderColor: '#b79a52', inputIcons: true,
     fieldLayout: 'grid', fieldWidth: 80,
     buttonBackground: '#f2c14e', buttonBackground2: '#b8860b', buttonFontColor: '#1a1205', buttonHoverColor: '#d9a638', buttonBorderRadius: 3, btnBottomBorder: 'none',
     eyebrow: 'EXCLUSIVE PRIVATE PREVIEW',
   }),
   d('qualifying-quiz', 'Qualifying Quiz', 'layouts', {
-    designLayout: 'split', fontFamily: 'Inter', fontSize: 56, backgroundColor: '#150e33', backgroundColor2: '#2a1b66', innerWidth: 94, innerHeight: 94,
+    designLayout: 'split', fontFamily: 'Inter', fontSize: 64, fieldLayout: 'grid', backgroundColor: '#150e33', backgroundColor2: '#2a1b66', innerWidth: 94, innerHeight: 94,
     innerColor: '#8b5cf6', innerOpacity: 12, cardRadius: 16, cardBorderColor: '#4c3f8f', cardBorderWidth: 1,
     captionAlignment: 'left', captionFontSize: 62, fieldWidth: 100,
     inputBackground: '#ffffff', inputBorderColor: '#ddd6fe', inputFontColor: '#1f2937', inputBorderRadius: 5, placeholderColor: '#6b7280',
     buttonBackground: '#6d4cff', buttonHoverColor: '#5b3fe0', buttonBorderRadius: 6, btnBottomBorder: 'none',
-    eyebrow: 'QUALIFYING QUIZ', subtitle: 'Answer a quick question and share your details to get a personalized video experience.',
+    eyebrow: 'QUALIFYING QUIZ',
   }),
   d('social-proof', 'Social Proof Opt-in', 'layouts', {
-    designLayout: 'split', fontFamily: 'Inter', backgroundColor: '#1b1140', backgroundColor2: '#3b1f8f', innerWidth: 88, innerHeight: 80,
-    innerColor: '#6d4cff', innerOpacity: 30, cardRadius: 14, captionAlignment: 'left', captionFontSize: 70, fieldWidth: 100,
+    designLayout: 'split', fontFamily: 'Inter', backgroundColor: '#1b1140', backgroundColor2: '#3b1f8f', innerWidth: 94, innerHeight: 94,
+    innerColor: '#6d4cff', innerOpacity: 30, cardRadius: 14, captionAlignment: 'left', captionFontSize: 58, fieldWidth: 100,
     inputBackground: '#ffffff', inputBorderColor: '#e5e7eb', inputFontColor: '#1f2937', inputBorderRadius: 4, inputIcons: true,
     buttonBackground: '#6d4cff', buttonBackground2: '#7c3aed', buttonBorderRadius: 6, btnBottomBorder: 'none',
     eyebrow: 'SOCIAL PROOF OPT-IN', subtitle: 'Enter your details to get your personalized video.',
@@ -231,7 +232,7 @@ export const OPTIN_DESIGNS = [
 
   // ---------------------------------------------------------- glass & neon
   d('aurora-glass', 'Aurora Glass', 'glass', {
-    designLayout: 'side-card', fontFamily: 'Poppins', backgroundColor: '#140a3a', backgroundColor2: '#07102e', innerWidth: 46, innerHeight: 88,
+    designLayout: 'side-card', fontFamily: 'Poppins', backgroundColor: '#140a3a', backgroundColor2: '#07102e', innerWidth: 54, innerHeight: 95,
     innerColor: '#5b5bd6', innerOpacity: 24, cardRadius: 28, cardBorderColor: '#a78bfa', cardBorderWidth: 2, cardGlow: '#8b5cf6', cardBlur: 10,
     captionFontSize: 72, fieldWidth: 80, ...darkInputs, inputBackground: '#0b1030', inputOpacity: 55, inputBorderColor: '#4cc9f0', inputBorderRadius: 10,
     buttonBackground: '#4f8cff', buttonBackground2: '#a855f7', buttonBorderRadius: 30, btnBottomBorder: 'none',
@@ -240,7 +241,7 @@ export const OPTIN_DESIGNS = [
   d('holographic-card', 'Holographic Card', 'glass', {
     designLayout: 'card-left', fontFamily: 'Poppins', backgroundColor: '#08122b', backgroundColor2: '#1a0b3f', innerWidth: 46, innerHeight: 88,
     innerColor: '#0b1230', innerOpacity: 88, cardRadius: 26, cardBorderColor: '#7ee7ff', cardBorderWidth: 2, cardGlow: '#22d3ee', cardBlur: 10,
-    captionFontSize: 74, fieldWidth: 80, ...darkInputs, inputBorderColor: '#7ee7ff',
+    captionFontSize: 74, buttonWidth: 'auto', fieldWidth: 80, ...darkInputs, inputBorderColor: '#7ee7ff', placeholderColor: '#d6ecff', inputOpacity: 14,
     buttonBackground: '#22d3ee', buttonBackground2: '#a855f7', buttonBorderRadius: 22, btnBottomBorder: 'none',
   }),
   d('gradient-mesh', 'Gradient Mesh', 'glass', {
@@ -249,14 +250,14 @@ export const OPTIN_DESIGNS = [
     buttonBackground: '#ffffff', buttonFontColor: '#6d28d9', buttonHoverColor: '#f3e8ff', buttonBorderRadius: 24, btnBottomBorder: 'none',
   }),
   d('cosmic-portal', 'Cosmic Portal', 'glass', {
-    fontFamily: 'Poppins', backgroundColor: '#06031a', backgroundColor2: '#2a0f5e', bgAngle: 180, innerWidth: 64, innerHeight: 84,
+    fontFamily: 'Poppins', backgroundColor: '#06031a', backgroundColor2: '#2a0f5e', bgAngle: 180, innerWidth: 78, innerHeight: 92,
     innerColor: '#1a0b4a', innerOpacity: 55, cardRadius: 200, cardBorderColor: '#c084fc', cardBorderWidth: 3, cardGlow: '#a855f7',
-    captionFontSize: 66, fieldWidth: 74, ...darkInputs, inputBorderColor: '#a78bfa',
+    captionFontSize: 66, buttonWidth: 'auto', fieldWidth: 74, ...darkInputs, inputBorderColor: '#a78bfa',
     buttonBackground: '#4c1d95', buttonBackground2: '#6d28d9', buttonBorderRadius: 30, btnBottomBorder: '#c084fc',
   }),
   d('geometric-frames', 'Geometric Frames', 'glass', {
     fontFamily: 'Rajdhani', backgroundColor: '#041f2b', backgroundColor2: '#06384a', innerWidth: 76, innerHeight: 94,
-    captionFontSize: 70, fieldWidth: 60, inputBackground: '#06384a', inputOpacity: 80, inputFontColor: '#d9faff', inputBorderColor: '#22d3ee', inputBorderRadius: 3, placeholderColor: '#7cc8d6', inputIcons: true,
+    captionFontSize: 70, fieldLayout: 'grid', fieldWidth: 82, inputBackground: '#06384a', inputOpacity: 80, inputFontColor: '#d9faff', inputBorderColor: '#22d3ee', inputBorderRadius: 3, placeholderColor: '#7cc8d6', inputIcons: true,
     buttonBackground: '#22e5c4', buttonFontColor: '#03242b', buttonHoverColor: '#14c9aa', buttonBorderRadius: 22, btnBottomBorder: 'none',
   }),
 
@@ -278,7 +279,7 @@ export const OPTIN_DESIGNS = [
   d('soft-pastel-frost', 'Soft Pastel Frost', 'light', {
     designLayout: 'card-left', fontFamily: 'Poppins', fontColor: '#3b2a73', backgroundColor: '#c9d6ff', backgroundColor2: '#f8c8e8', innerWidth: 46, innerHeight: 88,
     innerColor: '#ffffff', innerOpacity: 55, cardRadius: 22, cardBorderColor: '#ffffff', cardBorderWidth: 2, cardBlur: 14,
-    captionFontSize: 72, fieldWidth: 82, inputBackground: '#ffffff', inputOpacity: 80, inputBorderColor: '#e0d7ff', inputFontColor: '#3b2a73', inputBorderRadius: 10, placeholderColor: '#8b7bb8', inputIcons: true,
+    captionFontSize: 72, buttonWidth: 'auto', fieldWidth: 82, inputBackground: '#ffffff', inputOpacity: 80, inputBorderColor: '#e0d7ff', inputFontColor: '#3b2a73', inputBorderRadius: 10, placeholderColor: '#8b7bb8', inputIcons: true,
     buttonBackground: '#ec4899', buttonBackground2: '#a855f7', buttonBorderRadius: 24, btnBottomBorder: 'none',
   }),
   d('progress-milestones', 'Progress Milestones', 'light', {
@@ -289,7 +290,7 @@ export const OPTIN_DESIGNS = [
     multiStep: true, stepSize: 1,
   }),
   d('accordion-form', 'Accordion Form', 'light', {
-    fontFamily: 'Inter', backgroundColor: '#0b1030', backgroundColor2: '#1b1460', bgAngle: 170, innerWidth: 52, innerHeight: 96,
+    fontFamily: 'Inter', backgroundColor: '#0b1030', backgroundColor2: '#1b1460', bgAngle: 170, innerWidth: 60, innerHeight: 96, inputChevron: true,
     captionFontSize: 72, fieldLayout: 'stacked', fieldWidth: 92, fieldGap: 8,
     inputBackground: '#ffffff', inputBorderColor: '#c7d2fe', inputFontColor: '#1e1b4b', inputBorderRadius: 8, placeholderColor: '#4b5563', inputIcons: true,
     buttonBackground: '#a855f7', buttonBackground2: '#6d28d9', buttonBorderRadius: 24, btnBottomBorder: 'none',
@@ -316,8 +317,8 @@ export const OPTIN_DESIGNS = [
     buttonBackground: '#8b5cf6', buttonBackground2: '#a855f7', buttonBorderRadius: 8, btnBottomBorder: 'none',
   }),
   d('spotlight-theater', 'Spotlight Theater', 'bold', {
-    fontFamily: 'Montserrat', backgroundColor: '#2a0508', backgroundColor2: '#0b0203', bgAngle: 180, innerWidth: 70, innerHeight: 84,
-    captionFontSize: 72, fieldLayout: 'stacked', fieldWidth: 90,
+    fontFamily: 'Montserrat', backgroundColor: '#2a0508', backgroundColor2: '#0b0203', bgAngle: 180, innerWidth: 80, innerHeight: 95,
+    captionFontSize: 72, fieldLayout: 'cols', fieldWidth: 94,
     inputBackground: '#ffffff', inputOpacity: 10, inputBorderColor: '#8a8a8a', inputFontColor: '#f5f5f5', inputBorderRadius: 6, placeholderColor: '#bbbbbb', inputIcons: true,
     buttonBackground: '#dc2626', buttonHoverColor: '#b91c1c', buttonBorderRadius: 6, btnBottomBorder: 'none',
     subtitle: 'Enter your details and click play',
@@ -343,7 +344,7 @@ export const OPTIN_DESIGNS = [
   }),
   d('ticket-invitation', 'Ticket Invitation', 'bold', {
     designLayout: 'split', fontFamily: 'Montserrat', backgroundColor: '#12081f', backgroundColor2: '#2a1240', innerWidth: 88, innerHeight: 74,
-    innerColor: '#1a0f2e', innerOpacity: 80, cardRadius: 18, cardBorderColor: '#f5b83a', cardBorderWidth: 2, cardGlow: '#f59e0b',
+    innerColor: '#1a0f2e', innerOpacity: 80, cardRadius: 18, cardBorderColor: '#f5b83a', cardBorderWidth: 2,
     captionFontSize: 80, fieldWidth: 100, fieldLayout: 'stacked',
     inputBackground: '#ffffff', inputBorderColor: '#ffffff', inputFontColor: '#1f2937', inputBorderRadius: 4, placeholderColor: '#6b7280', inputIcons: true,
     buttonBackground: '#facc15', buttonFontColor: '#1a1205', buttonHoverColor: '#eab308', buttonBorderRadius: 4, btnBottomBorder: 'none',
@@ -359,7 +360,7 @@ export const OPTIN_DESIGNS = [
   d('luxe-platinum', 'Luxe Platinum', 'premium', {
     designLayout: 'drawer-right', fontFamily: 'Playfair Display', fontColor: '#1f2937', backgroundColor: '#e5e7eb', backgroundColor2: '#9ca3af', bgAngle: 135, innerWidth: 46, innerHeight: 100,
     innerColor: '#ffffff', innerOpacity: 78, cardRadius: 0, cardBorderColor: '#ffffff', cardBorderWidth: 2, cardBlur: 6,
-    captionFontSize: 76, fieldWidth: 82, inputBackground: '#ffffff', inputBorderColor: '#d1d5db', inputFontColor: '#1f2937', inputBorderRadius: 4, placeholderColor: '#6b7280', inputIcons: true,
+    captionFontSize: 76, buttonWidth: 'auto', fieldWidth: 82, inputBackground: '#ffffff', inputBorderColor: '#d1d5db', inputFontColor: '#1f2937', inputBorderRadius: 4, placeholderColor: '#6b7280', inputIcons: true,
     buttonBackground: '#c9a24a', buttonBackground2: '#e7d08a', buttonFontColor: '#3b2a05', buttonHoverColor: '#b58f3b', buttonBorderRadius: 4, btnBottomBorder: 'none',
   }),
 ];

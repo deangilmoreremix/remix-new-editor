@@ -126,18 +126,41 @@ test('every one of the 30 designs can be picked and is drawn on the video', asyn
       const f = document.querySelector(`${viewer} form.retarget-form`);
       const r = (el) => { const b = el.getBoundingClientRect(); return { x: b.x, y: b.y, w: b.width, h: b.height, r: b.right, b: b.bottom }; };
       const stage = r(f.parentElement); const card = r(f.querySelector('.form-inner'));
-      return { stage, card, btn: r(f.querySelector('button[type="submit"]')), fit: Number(f.dataset.fit), layout: f.dataset.dlayout, boxes: f.querySelector('.input-wrapper-container')?.dataset.layout };
+      // every box shows its full hint text, and the text is big enough to read in the editor's small viewer
+      const ctx = document.createElement('canvas').getContext('2d');
+      const cut = []; let minFont = 99;
+      f.querySelectorAll('.input-wrapper input:not([type="radio"]):not([type="checkbox"])').forEach((el) => {
+        if (!el.offsetParent) return;
+        const cs = getComputedStyle(el); minFont = Math.min(minFont, parseFloat(cs.fontSize));
+        ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        const room = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        if (ctx.measureText(el.placeholder.trim()).width > room + 0.5) cut.push(el.placeholder.trim());
+      });
+      // an oval card: nothing may cross its edge
+      const outside = [];
+      if (f.dataset.shape === 'oval') {
+        const cx = card.x + card.w / 2; const cy = card.y + card.h / 2; const a = card.w / 2; const bb = card.h / 2;
+        f.querySelectorAll('.retarget-caption, .input-wrapper > *, .buttons-inner, .privacy-disclaimer').forEach((el) => {
+          const q = el.getBoundingClientRect(); if (!q.width) return;
+          if ([[q.left, q.top], [q.right, q.top], [q.left, q.bottom], [q.right, q.bottom]].some(([x, y]) => ((x - cx) / a) ** 2 + ((y - cy) / bb) ** 2 > 1.02)) outside.push(el.className.split(' ')[0]);
+        });
+      }
+      const btnBox = r(f.querySelector('button[type="submit"]'));
+      return { stage, card, btn: btnBox, fit: Number(f.dataset.fit), layout: f.dataset.dlayout, boxes: f.querySelector('.input-wrapper-container')?.dataset.layout, cut, minFont, outside, btnWide: Math.round(btnBox.w / card.w * 4) };
     }, VIEWER);
     expect.soft(m.btn.b, `${id}: Play button is cut off`).toBeLessThanOrEqual(m.card.b + 2);
     expect.soft(m.btn.y, `${id}: Play button is above its card`).toBeGreaterThanOrEqual(m.card.y - 2);
     expect.soft(m.card.r, `${id}: card is outside the video`).toBeLessThanOrEqual(m.stage.r + 2);
     expect.soft(m.fit, `${id}: text had to shrink to ${m.fit}`).toBeGreaterThanOrEqual(0.6);
-    seen.push({ id, sig: [m.layout, m.boxes, Math.round((m.card.x - m.stage.x) / m.stage.w * 8), Math.round(m.card.w / m.stage.w * 8), Math.round(m.card.h / m.stage.h * 8)].join('|'), fit: m.fit });
+    expect.soft(m.cut, `${id}: box hints are cut off`).toEqual([]);
+    expect.soft(m.minFont, `${id}: box text is only ${m.minFont}px`).toBeGreaterThanOrEqual(8);
+    expect.soft(m.outside, `${id}: ${m.outside.join(', ')} cross the oval`).toEqual([]);
+    seen.push({ id, sig: [m.layout, m.boxes, m.btnWide, Math.round((m.card.x - m.stage.x) / m.stage.w * 8), Math.round(m.card.w / m.stage.w * 8), Math.round(m.card.h / m.stage.h * 8)].join('|'), fit: m.fit, font: m.minFont });
     if (SHOTS) await form(page).locator('xpath=..').screenshot({ path: path.join(SHOTS, `${String(i + 1).padStart(2, '0')}-${id}.png`) });
   }
   // They really look different: layout, box arrangement and where / how big the card is vary across the 30.
   const signatures = new Set(seen.map((x) => x.sig));
-  console.log(`distinct layout signatures: ${signatures.size} / 30; text scale used: ${seen.map((x) => `${x.id}=${x.fit}`).join(' ')}`);
+  console.log(`distinct layout signatures: ${signatures.size} / 30; text scale / box font px: ${seen.map((x) => `${x.id}=${x.fit}/${x.font}`).join(' ')}`);
   // measured: 15 structurally different arrangements among the 30 (the rest differ by skin: colours, fonts, shapes, decoration). Guard against falling back to one skeleton.
   expect(signatures.size).toBeGreaterThanOrEqual(14);
   expect(pageErrors).toEqual([]);
@@ -199,7 +222,9 @@ test('what you edit is what you see: design options change the form on the video
   await expect(f.locator('input.has-icon').first()).toBeVisible();
   await panelTab(page, 'Fields').click();
   await control('fieldLayout').selectOption('cols');
-  await expect(f.locator('.input-wrapper-container')).toHaveAttribute('data-layout', 'cols');
+  // the choice is kept; in this narrow column the labels would be cut off, so it is drawn with fewer columns (and restored on a wider video)
+  await expect(f.locator('.input-wrapper-container')).toHaveAttribute('data-wanted', 'cols');
+  expect(['cols', 'grid', 'stacked']).toContain(await f.locator('.input-wrapper-container').getAttribute('data-layout'));
   expect(pageErrors).toEqual([]);
 });
 
