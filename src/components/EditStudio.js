@@ -13,8 +13,13 @@ import {
 import { showToast } from '../lib/loading.js';
 import { createMediaRemoveButton } from '../lib/studioHelpers.js';
 import { createMaskPainter } from './edit/maskPainter.js';
+import {
+  EDIT_APPS, getEditAppBySlug, getEditAppGroups, buildAppPrompt, splitAppControlValues, validateAppInputs, formatAppCost,
+} from '../lib/muapiEditApps.js';
 
-// Edit Studio: a gallery of 16 image tools. Clicking a tool opens its own
+// Edit Studio: a gallery of 16 image tools, plus the muapi Studio apps (EDIT_APPS) in a second
+// section below them. Apps open in the same tool studio, with their own presets and controls.
+// (Original description:) a gallery of 16 image tools. Clicking a tool opens its own
 // studio (inputs, settings, before/after preview) at /?tool=<slug>#/edit.
 // Tools with several models (AI Edit, Upscale, Product Shot, Photo Effects,
 // Character & Reference) show a Model picker; the studio adapts to the model.
@@ -270,7 +275,8 @@ export function validateEditInputs(tool, { sourceUrl, secondaryUrl, hasPaintedMa
 
 function readToolFromUrl() {
   try {
-    return getEditToolBySlug(new URLSearchParams(window.location.search).get('tool'));
+    const slug = new URLSearchParams(window.location.search).get('tool');
+    return getEditToolBySlug(slug) || getEditAppBySlug(slug);
   } catch {
     return null;
   }
@@ -317,17 +323,25 @@ export function EditStudio() {
   const toolGrid = document.createElement('div');
   toolGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
   toolGrid.dataset.editToolGrid = 'true';
-  EDIT_TOOLS.forEach(tool => {
+  // One gallery card. Built-in tools use data-edit-tool, muapi apps use data-edit-app.
+  function buildToolCard(tool) {
     const card = document.createElement('button');
     card.type = 'button';
-    card.dataset.editTool = tool.slug;
+    if (tool.isApp) card.dataset.editApp = tool.slug; else card.dataset.editTool = tool.slug;
     card.setAttribute('aria-label', `Open ${tool.name}`);
     card.className = 'text-left bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden hover:bg-white/[0.06] hover:border-primary/40 hover:-translate-y-0.5 transition-all group focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary';
     const thumbWrapper = document.createElement('div');
     thumbWrapper.className = 'thumb-hero relative aspect-video bg-white/5 overflow-hidden';
     thumbWrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
-    const thumbSrc = getToolThumbnail(tool.id);
+    const thumbSrc = tool.thumbnail || getToolThumbnail(tool.id);
     if (thumbSrc) thumbWrapper.appendChild(createThumbnailImg(thumbSrc, tool.name, 'absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500'));
+    if (tool.isApp) {
+      const kind = document.createElement('span');
+      kind.dataset.appKind = tool.outputKind;
+      kind.className = `absolute top-2 left-2 text-[10px] font-black rounded px-2 py-0.5 text-white ${tool.outputKind === 'video' ? 'bg-blue-500/85' : 'bg-emerald-600/85'}`;
+      kind.textContent = tool.outputKind === 'video' ? 'VIDEO' : 'IMAGE';
+      thumbWrapper.appendChild(kind);
+    }
     const openChip = document.createElement('span');
     openChip.className = 'absolute bottom-2 right-2 text-[10px] font-black bg-primary text-black rounded-full px-2.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity';
     openChip.textContent = 'Open studio →';
@@ -343,9 +357,103 @@ export function EditStudio() {
     info.append(name, desc);
     card.append(thumbWrapper, info);
     card.onclick = () => openTool(tool);
-    toolGrid.appendChild(card);
-  });
+    return card;
+  }
+  EDIT_TOOLS.forEach(tool => toolGrid.appendChild(buildToolCard(tool)));
   galleryView.appendChild(toolGrid);
+
+  // ── Apps (muapi Studio apps) ───────────────────────────────────────────
+  const CHIP_ON = 'bg-primary/20 text-primary border-primary/30';
+  const CHIP_OFF = 'bg-white/5 text-secondary border-white/10 hover:bg-white/10';
+  const appGroups = getEditAppGroups();
+  if (appGroups.length) {
+    const appsSection = document.createElement('section');
+    appsSection.dataset.editAppsSection = 'true';
+    appsSection.className = 'mt-10';
+    const appsHead = document.createElement('div');
+    appsHead.className = 'mb-4';
+    appsHead.innerHTML = '<h2 class="text-lg font-black text-white">Apps</h2><p class="text-xs text-muted mt-0.5"></p>';
+    appsHead.querySelector('p').textContent = `${EDIT_APPS.length} one-click effects and video apps, each with its own styles and advanced controls`;
+    const appsBar = document.createElement('div');
+    appsBar.className = 'flex flex-col md:flex-row md:items-center gap-3 mb-5';
+    const appSearch = document.createElement('input');
+    appSearch.type = 'search';
+    appSearch.placeholder = 'Search apps…';
+    appSearch.setAttribute('aria-label', 'Search apps');
+    appSearch.dataset.appSearch = 'true';
+    appSearch.className = 'w-full md:w-64 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50';
+    const chipRow = document.createElement('div');
+    chipRow.className = 'flex gap-2 overflow-x-auto pb-1';
+    appsBar.append(appSearch, chipRow);
+    appsSection.append(appsHead, appsBar);
+
+    let appFilter = null;
+    const groupEls = [];
+    const emptyApps = document.createElement('p');
+    emptyApps.className = 'hidden text-sm text-muted py-6';
+    emptyApps.textContent = 'No apps match your search.';
+
+    const chipButtons = [];
+    const addChip = (key, label) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.dataset.appFilter = key ?? 'all';
+      chip.textContent = label;
+      chip.onclick = () => { appFilter = key; refreshApps(); };
+      chipRow.appendChild(chip);
+      chipButtons.push({ key, chip });
+    };
+    addChip(null, 'All apps');
+    appGroups.forEach(g => addChip(g.key, g.label));
+
+    appGroups.forEach(group => {
+      const wrap = document.createElement('div');
+      wrap.className = 'mb-8';
+      wrap.dataset.appGroup = group.key;
+      const h = document.createElement('h3');
+      h.className = 'text-sm font-black text-white mb-3';
+      h.innerHTML = '<span></span> <span class="text-muted font-bold"></span>';
+      h.children[0].textContent = group.label;
+      h.children[1].textContent = String(group.apps.length);
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
+      const cards = group.apps.map(app => {
+        const card = buildToolCard(app);
+        card.dataset.search = `${app.name} ${app.description}`.toLowerCase();
+        grid.appendChild(card);
+        return card;
+      });
+      wrap.append(h, grid);
+      appsSection.appendChild(wrap);
+      groupEls.push({ key: group.key, wrap, cards });
+    });
+    appsSection.appendChild(emptyApps);
+
+    function refreshApps() {
+      const q = appSearch.value.trim().toLowerCase();
+      let any = false;
+      groupEls.forEach(({ key, wrap, cards }) => {
+        const inFilter = appFilter === null || appFilter === key;
+        let shown = 0;
+        cards.forEach(card => {
+          const match = inFilter && (!q || card.dataset.search.includes(q));
+          card.classList.toggle('hidden', !match);
+          if (match) shown++;
+        });
+        wrap.classList.toggle('hidden', shown === 0);
+        if (shown) any = true;
+      });
+      emptyApps.classList.toggle('hidden', any);
+      chipButtons.forEach(({ key, chip }) => {
+        const on = key === appFilter;
+        chip.setAttribute('aria-pressed', String(on));
+        chip.className = `px-3 py-1.5 rounded-lg text-xs font-bold border whitespace-nowrap transition-all ${on ? CHIP_ON : CHIP_OFF}`;
+      });
+    }
+    appSearch.oninput = refreshApps;
+    refreshApps();
+    galleryView.appendChild(appsSection);
+  }
   container.appendChild(galleryView);
 
   // ── Tool studio view ───────────────────────────────────────────────────
@@ -385,7 +493,18 @@ export function EditStudio() {
     option.textContent = tool.name;
     toolSwitch.appendChild(option);
   });
-  toolSwitch.onchange = () => openTool(getEditToolBySlug(toolSwitch.value));
+  getEditAppGroups().forEach(group => {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = `Apps · ${group.label}`;
+    group.apps.forEach(app => {
+      const option = document.createElement('option');
+      option.value = app.slug;
+      option.textContent = app.name;
+      optgroup.appendChild(option);
+    });
+    toolSwitch.appendChild(optgroup);
+  });
+  toolSwitch.onchange = () => openTool(getEditToolBySlug(toolSwitch.value) || getEditAppBySlug(toolSwitch.value));
   switchLabel.appendChild(toolSwitch);
   studioTop.append(backBtn, titleWrap, switchLabel);
   studioView.appendChild(studioTop);
@@ -568,9 +687,39 @@ export function EditStudio() {
     onSelect: ({ url, assetId }) => setSecondary(url ? { url, assetId: assetId || null } : null),
     onClear: () => setSecondary(null),
   });
-  secondaryRow.append(secondaryPicker.trigger, secondaryPreview, secondaryHint, secondaryClear);
+  // Video inputs for muapi apps (e.g. a video to swap a face into). Created after the image pickers.
+  const secondaryVideoPicker = createUploadPicker({
+    anchorContainer: container,
+    muapiStudio: true,
+    studioId: 'edit-studio',
+    acceptVideo: true,
+    acceptDocuments: false,
+    onSelect: ({ url, assetId }) => setSecondary(url ? { url, assetId: assetId || null, kind: 'video' } : null),
+    onClear: () => setSecondary(null),
+  });
+  secondaryVideoPicker.trigger.classList.add('hidden');
+  secondaryRow.append(secondaryPicker.trigger, secondaryVideoPicker.trigger, secondaryPreview, secondaryHint, secondaryClear);
   container.appendChild(secondaryPicker.panel);
-  secondaryClear.onclick = () => { secondaryPicker.reset(); setSecondary(null); };
+  container.appendChild(secondaryVideoPicker.panel);
+
+  // A video source (apps such as Video Background Remover). Hidden unless the open app needs one.
+  const videoPicker = createUploadPicker({
+    anchorContainer: container,
+    muapiStudio: true,
+    studioId: 'edit-studio',
+    acceptVideo: true,
+    acceptDocuments: false,
+    onSelect: ({ url, assetId }) => setSource(url ? { url, assetId: assetId || null, kind: 'video' } : null),
+    onClear: () => setSource(null),
+    onFilePreview: (file) => {
+      showVideoSource(URL.createObjectURL(file));
+      sourceHint.textContent = `Uploading ${file.name}…`;
+    },
+  });
+  videoPicker.trigger.classList.add('hidden');
+  sourceRow.insertBefore(videoPicker.trigger, pexelsBtn);
+  container.appendChild(videoPicker.panel);
+  secondaryClear.onclick = () => { secondaryPicker.reset(); secondaryVideoPicker.reset(); setSecondary(null); };
 
   // Prompt (shown for models that take one).
   const promptPanel = document.createElement('div');
@@ -584,6 +733,7 @@ export function EditStudio() {
   promptField.setAttribute('aria-label', 'Edit prompt');
   promptPanel.append(promptLabel, promptField);
   leftCol.appendChild(promptPanel);
+  promptField.addEventListener('input', () => { if (activeTool?.isApp) refreshAppCost(); });
 
   // Settings.
   const settingsPanel = document.createElement('div');
@@ -595,6 +745,9 @@ export function EditStudio() {
   controlsContainer.className = 'w-full flex flex-col gap-3';
   settingsPanel.append(settingsLabel, controlsContainer);
   leftCol.appendChild(settingsPanel);
+  // Any setting change re-prices an app (duration, resolution, ...).
+  controlsContainer.addEventListener('change', () => { if (activeTool?.isApp) refreshAppCost(); });
+  controlsContainer.addEventListener('input', () => { if (activeTool?.isApp) refreshAppCost(); });
 
   // Apply + progress.
   const editBtn = document.createElement('button');
@@ -685,10 +838,23 @@ export function EditStudio() {
 
   const runningState = document.createElement('div');
   runningState.className = 'hidden absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3';
-  runningState.innerHTML = '<div class="w-10 h-10 border-2 border-white/10 border-t-primary rounded-full animate-spin"></div><p class="text-sm font-bold text-white">Applying edit…</p>';
+  runningState.innerHTML = '<div class="w-10 h-10 border-2 border-white/10 border-t-primary rounded-full animate-spin"></div><p class="text-sm font-bold text-white" data-running-text>Applying edit…</p>';
   const errorState = document.createElement('div');
   errorState.className = 'hidden absolute bottom-3 left-3 right-3 text-xs text-red-300 bg-red-500/15 border border-red-400/30 rounded-xl p-3';
-  stage.append(emptyState, compareBox, runningState, errorState);
+  // Video preview (muapi apps that make or take a video).
+  const videoBox = document.createElement('div');
+  videoBox.className = 'hidden relative w-full flex items-center justify-center bg-black';
+  videoBox.dataset.editVideoBox = 'true';
+  const videoEl = document.createElement('video');
+  videoEl.className = 'block w-full max-h-[70vh] object-contain';
+  videoEl.controls = true;
+  videoEl.loop = true;
+  videoEl.muted = true;
+  videoEl.playsInline = true;
+  const videoTag = document.createElement('span');
+  videoTag.className = 'absolute top-2 left-2 text-[10px] font-black bg-black/70 text-white rounded px-2 py-0.5 pointer-events-none';
+  videoBox.append(videoEl, videoTag);
+  stage.append(emptyState, compareBox, videoBox, runningState, errorState);
 
   const resultActions = document.createElement('div');
   resultActions.className = 'hidden flex flex-wrap gap-2';
@@ -728,7 +894,31 @@ export function EditStudio() {
   rightCol.appendChild(previewPanel);
 
   // ── State updates ──────────────────────────────────────────────────────
+  function hideVideoBox() {
+    try { videoEl.pause(); } catch { /* not playing */ }
+    videoEl.removeAttribute('src');
+    videoBox.classList.add('hidden');
+  }
+
+  function showVideo(url, tag) {
+    videoEl.src = url;
+    videoTag.textContent = tag;
+    emptyState.classList.add('hidden');
+    compareBox.classList.add('hidden');
+    videoBox.classList.remove('hidden');
+    viewToggle.classList.add('hidden');
+    errorState.classList.add('hidden');
+    try { const played = videoEl.play(); if (played && played.catch) played.catch(() => {}); } catch { /* autoplay blocked or unsupported */ }
+  }
+
+  function showVideoSource(url) {
+    resultUrl = null;
+    resultActions.classList.add('hidden');
+    showVideo(url, 'SOURCE VIDEO');
+  }
+
   function showBefore(url) {
+    hideVideoBox();
     beforeImg.src = url;
     resultUrl = null;
     emptyState.classList.add('hidden');
@@ -744,6 +934,7 @@ export function EditStudio() {
   }
 
   function showEmpty() {
+    hideVideoBox();
     beforeImg.removeAttribute('src');
     resultUrl = null;
     emptyState.classList.remove('hidden');
@@ -757,9 +948,9 @@ export function EditStudio() {
     source = next;
     formError.classList.add('hidden');
     if (next?.url) {
-      sourceHint.textContent = 'Image ready';
+      sourceHint.textContent = next.kind === 'video' ? 'Video ready' : 'Image ready';
       sourceClear.classList.remove('hidden');
-      showBefore(next.url);
+      if (next.kind === 'video') showVideoSource(next.url); else showBefore(next.url);
     } else {
       sourceHint.textContent = sourcePrompt();
       sourceClear.classList.add('hidden');
@@ -776,9 +967,14 @@ export function EditStudio() {
     secondary = next;
     formError.classList.add('hidden');
     if (next?.url) {
-      secondaryPreview.src = next.url;
-      secondaryPreview.classList.remove('hidden');
-      secondaryHint.textContent = 'Uploaded';
+      if (next.kind === 'video') {
+        secondaryPreview.classList.add('hidden');
+        secondaryPreview.removeAttribute('src');
+      } else {
+        secondaryPreview.src = next.url;
+        secondaryPreview.classList.remove('hidden');
+      }
+      secondaryHint.textContent = next.kind === 'video' ? 'Video ready' : 'Uploaded';
       secondaryClear.classList.remove('hidden');
     } else {
       secondaryPreview.classList.add('hidden');
@@ -811,8 +1007,17 @@ export function EditStudio() {
     if (compare) applySlider();
   }
 
-  function showResult(url, beforeUrl) {
+  function showResult(url, beforeUrl, kind = 'image') {
     resultUrl = url;
+    reuseBtn.classList.toggle('hidden', kind === 'video');
+    if (kind === 'video') {
+      showVideo(url, 'RESULT');
+      resultActions.classList.remove('hidden');
+      downloadBtn.href = url;
+      previewLabel.textContent = 'Result';
+      return;
+    }
+    hideVideoBox();
     beforeImg.src = beforeUrl || url;
     afterImg.src = url;
     emptyState.classList.add('hidden');
@@ -826,8 +1031,8 @@ export function EditStudio() {
     setCompareMode(beforeUrl ? 'compare' : 'after');
   }
 
-  function addToHistory(url, beforeUrl) {
-    runs.unshift({ url, beforeUrl, tool: activeTool?.name });
+  function addToHistory(url, beforeUrl, kind = 'image') {
+    runs.unshift({ url, beforeUrl, kind, tool: activeTool?.name });
     historyPanel.classList.toggle('hidden', runs.length < 2);
     historyStrip.innerHTML = '';
     runs.forEach(item => {
@@ -835,12 +1040,20 @@ export function EditStudio() {
       btn.type = 'button';
       btn.title = item.tool || 'Result';
       btn.className = 'w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-white/10 hover:border-primary';
-      const img = document.createElement('img');
-      img.src = item.url;
-      img.alt = '';
+      let img;
+      if (item.kind === 'video') {
+        img = document.createElement('video');
+        img.src = item.url;
+        img.muted = true;
+        img.preload = 'metadata';
+      } else {
+        img = document.createElement('img');
+        img.src = item.url;
+        img.alt = '';
+      }
       img.className = 'w-full h-full object-cover';
       btn.appendChild(img);
-      btn.onclick = () => showResult(item.url, item.beforeUrl);
+      btn.onclick = () => showResult(item.url, item.beforeUrl, item.kind);
       historyStrip.appendChild(btn);
     });
   }
@@ -873,6 +1086,88 @@ export function EditStudio() {
       if (factory) controlsContainer.appendChild(factory(ctrl));
     });
     settingsPanel.classList.toggle('hidden', controls.length === 0);
+    settingsLabel.textContent = 'Settings';
+  }
+
+  // ── muapi apps ───────────────────────────────────────────────────────────
+  let applyingPreset = false;
+
+  // Choosing a preset that carries slider values (e.g. Angles) moves the sliders to match.
+  function applyPresetValues(tool, label) {
+    const values = tool.presetValues?.[label];
+    if (!values) return;
+    applyingPreset = true;
+    try {
+      for (const [key, value] of Object.entries(values)) {
+        const input = controlsContainer.querySelector(`[data-control-key="adj_${key}"]`);
+        if (!input) continue;
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    } finally { applyingPreset = false; }
+  }
+
+  // Moving a slider by hand switches the preset back to "Custom", like muapi's Studio.
+  function markPresetCustom() {
+    if (applyingPreset) return;
+    const hidden = controlsContainer.querySelector('input[data-control-key="style_preset"]');
+    if (!hidden || hidden.value === 'Custom') return;
+    const custom = controlsContainer.querySelector('[data-preset="Custom"]');
+    if (custom) { hidden.value = 'Custom'; custom.click(); }
+  }
+
+  function renderAppControls(tool) {
+    controlsContainer.innerHTML = '';
+    tool.controls.forEach(ctrl => {
+      const control = ctrl.type === 'preset' ? { ...ctrl, onSelect: (label) => { applyPresetValues(tool, label); refreshAppCost(); } } : ctrl;
+      const factory = CONTROL_FACTORIES[ctrl.type];
+      if (factory) controlsContainer.appendChild(factory(control));
+    });
+    controlsContainer.querySelectorAll('input[type="range"]').forEach(range => range.addEventListener('input', markPresetCustom));
+    settingsPanel.classList.toggle('hidden', tool.controls.length === 0);
+    settingsLabel.textContent = tool.controls.some(c => c.type === 'range') ? 'Adjustments & controls' : 'Settings';
+  }
+
+  let appLabel = null;
+  let costTimer = null;
+  const idleLabel = () => appLabel || 'Apply Edit';
+
+  function setApplyLabel(tool, cost, approx) {
+    const price = cost === null || cost === undefined ? '' : ` (${approx ? '≈ ' : ''}${formatAppCost(cost)})`;
+    appLabel = `Generate${price}`;
+    if (!inFlight) editBtn.textContent = appLabel;
+  }
+
+  // The price on the button: the app's default price straight away, then muapi's own estimate
+  // for the settings currently chosen (best effort; the default stays if it can't be priced).
+  function refreshAppCost() {
+    const tool = activeTool;
+    if (!tool?.isApp) return;
+    setApplyLabel(tool, tool.defaultCostUsd, true);
+    clearTimeout(costTimer);
+    if (typeof muapi.calculateDynamicCost !== 'function') return;
+    costTimer = setTimeout(async () => {
+      try {
+        const { style_preset, adjustments, params } = splitAppControlValues(readControlValues());
+        const payload = { ...params };
+        if (tool.hasPrompt) payload.prompt = buildAppPrompt(tool, { style_preset, adjustments, extra: promptField.value });
+        const res = await muapi.calculateDynamicCost(tool.model, payload);
+        const cost = Number(res?.cost ?? res?.data?.cost);
+        if (activeTool === tool && Number.isFinite(cost) && cost >= 0) setApplyLabel(tool, cost, false);
+      } catch { /* keep the default price */ }
+    }, 400);
+  }
+
+  // Which controls the open app needs: prompt box, extra image, video pickers.
+  function applyApp(tool) {
+    activeModelId = null;
+    modelPanel.classList.add('hidden');
+    extrasPanel.classList.add('hidden');
+    promptPanel.classList.toggle('hidden', !tool.hasPrompt);
+    promptLabel.textContent = 'Prompt refinement (optional)';
+    promptField.placeholder = 'Anything specific you want in the result…';
+    renderAppControls(tool);
+    refreshAppCost();
   }
 
   // Fill the Model dropdown (grouped by maker) for tools that offer several.
@@ -932,15 +1227,21 @@ export function EditStudio() {
     toolSwitch.value = tool.slug;
     toolTitle.textContent = tool.name;
     toolHowTo.textContent = tool.howTo || tool.description;
-    const thumb = getToolThumbnail(tool.id);
+    const thumb = tool.thumbnail || getToolThumbnail(tool.id);
     titleThumb.src = thumb || '';
     emptyThumb.src = thumb || '';
     titleThumb.classList.toggle('sm:block', !!thumb);
     emptyThumb.classList.toggle('hidden', !thumb);
     previewLabel.textContent = 'Preview';
 
-    sourceLabel.textContent = tool.sourceLabel || 'Source image';
-    if (!source?.url) sourceHint.textContent = sourcePrompt();
+    const wantsVideoSource = !!tool.isApp && tool.primary.type === 'video';
+    sourceLabel.textContent = tool.isApp ? tool.primary.label : (tool.sourceLabel || 'Source image');
+    // A source from the previous tool only carries over when it is the right kind of file.
+    if (tool.isApp && source && (source.kind === 'video') !== wantsVideoSource) { picker.reset(); videoPicker.reset(); source = null; }
+    picker.trigger.classList.toggle('hidden', wantsVideoSource);
+    videoPicker.trigger.classList.toggle('hidden', !wantsVideoSource);
+    pexelsBtn.classList.toggle('hidden', wantsVideoSource);
+    if (!source?.url) sourceHint.textContent = tool.isApp ? (wantsVideoSource ? 'Upload the video' : 'Upload your photo') : sourcePrompt();
 
     // Extra reference images start empty for each tool.
     extrasPicker.reset();
@@ -949,10 +1250,15 @@ export function EditStudio() {
 
     // Second image.
     secondaryPicker.reset();
+    secondaryVideoPicker.reset();
     setSecondary(null);
     secondaryPanel.classList.toggle('hidden', !tool.secondary);
+    const secondaryIsVideo = !!tool.isApp && tool.secondary?.type === 'video';
+    secondaryPicker.trigger.classList.toggle('hidden', secondaryIsVideo);
+    secondaryVideoPicker.trigger.classList.toggle('hidden', !secondaryIsVideo);
     if (tool.secondary) {
-      secondaryLabel.textContent = tool.secondary.label;
+      const alreadyOptional = /optional/i.test(tool.secondary.label);
+      secondaryLabel.textContent = tool.isApp && !tool.secondary.required && !alreadyOptional ? `${tool.secondary.label} (optional)` : tool.secondary.label;
       secondaryHelp.textContent = tool.secondary.hint || '';
     }
 
@@ -965,8 +1271,20 @@ export function EditStudio() {
       maskEmpty.classList.toggle('hidden', !!source?.url);
     }
 
-    buildModelSelect(tool);
-    applyModel(tool.id);
+    // Apps list their controls first and the prompt box after (like muapi's Studio); tools keep their order.
+    if (tool.isApp) settingsPanel.after(promptPanel); else settingsPanel.before(promptPanel);
+    emptyText.textContent = tool.isApp
+      ? `Upload ${wantsVideoSource ? 'your video' : 'your photo'} to start. Your ${tool.outputKind === 'video' ? 'video' : 'result'} appears here.`
+      : 'Upload an image to start. Your before/after preview appears here.';
+    if (tool.isApp) {
+      applyApp(tool);
+    } else {
+      appLabel = null;
+      clearTimeout(costTimer);
+      editBtn.textContent = 'Apply Edit';
+      buildModelSelect(tool);
+      applyModel(tool.id);
+    }
     formError.classList.add('hidden');
     updateProgress(null);
     if (source?.url) showBefore(source.url); else showEmpty();
@@ -1011,7 +1329,7 @@ export function EditStudio() {
     if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
     updateProgress(null);
     editBtn.disabled = false;
-    editBtn.textContent = 'Apply Edit';
+    editBtn.textContent = idleLabel();
     cancelBtn.classList.add('hidden');
     inFlight = false;
   };
@@ -1019,6 +1337,7 @@ export function EditStudio() {
   editBtn.onclick = async () => {
     if (!activeTool || inFlight) return;
     const tool = activeTool;
+    if (tool.isApp) return runApp(tool);
     const problem = validateEditInputs(tool, {
       sourceUrl: source?.url,
       secondaryUrl: secondary?.url,
@@ -1103,12 +1422,86 @@ export function EditStudio() {
       if (!cancelled()) {
         inFlight = false;
         editBtn.disabled = false;
-        editBtn.textContent = 'Apply Edit';
+        editBtn.textContent = idleLabel();
         cancelBtn.classList.add('hidden');
         runningState.classList.add('hidden');
       }
     }
   };
+
+  // Run a muapi app: the same upload / progress / preview flow as the tools, but the prompt is built
+  // from the app's base text + chosen style + adjustments, and the call depends on the app's route.
+  async function runApp(tool) {
+    if (inFlight) return;
+    const problem = validateAppInputs(tool, { primaryUrl: source?.url, secondaryUrl: secondary?.url });
+    if (problem) { showError(problem); return; }
+
+    const apiKey = localStorage.getItem('muapi_key');
+    if (!apiKey) { AuthModal(() => editBtn.click()); return; }
+
+    inFlight = true;
+    const myRun = ++runId;
+    const cancelled = () => myRun !== runId;
+    formError.classList.add('hidden');
+    errorState.classList.add('hidden');
+    editBtn.disabled = true;
+    editBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
+    const runningText = runningState.querySelector('[data-running-text]');
+    if (runningText) runningText.textContent = tool.outputKind === 'video' ? 'Creating your video…' : 'Generating…';
+    runningState.classList.remove('hidden');
+    updateProgress(0, 'Starting...');
+    if (progressPoll) clearInterval(progressPoll);
+    // Videos take longer, so the bar moves more slowly.
+    const stepMax = tool.outputKind === 'video' ? 3 : 8;
+    progressPoll = setInterval(() => {
+      const current = parseFloat(progressFill.style.width) || 0;
+      const next = Math.min(current + Math.random() * stepMax + 1, 90);
+      updateProgress(next, `Processing... ${Math.round(next)}%`);
+    }, 500);
+    cancelBtn.classList.remove('hidden');
+    const beforeUrl = source.kind === 'video' ? null : source.url;
+
+    try {
+      const { resolveMuapiMediaRef } = await import('../lib/muapiStudioMedia.js');
+      const { style_preset, adjustments, params: controlParams } = splitAppControlValues(readControlValues());
+      const params = { model: tool.model, ...controlParams };
+      params[tool.primary.param] = await resolveMuapiMediaRef({ url: source.url, assetId: source.assetId });
+      if (tool.secondary && secondary?.url) {
+        params[tool.secondary.param] = await resolveMuapiMediaRef({ url: secondary.url, assetId: secondary.assetId });
+      }
+      if (tool.hasPrompt) {
+        params.prompt = replaceTokensInPrompt(buildAppPrompt(tool, { style_preset, adjustments, extra: promptField.value }));
+      }
+
+      const call = tool.route === 'i2i' ? muapi.generateI2I : tool.route === 'i2v' ? muapi.generateI2V : muapi.processV2V;
+      const result = await call.call(muapi, params);
+      if (cancelled()) return;
+      updateProgress(null);
+      if (result?.url) {
+        registerGeneration('edit', tool.outputKind, result.url, {
+          prompt: params.prompt || '', model: tool.model, parameters: { tool: tool.slug },
+        });
+        addToHistory(result.url, beforeUrl, tool.outputKind);
+        if (activeTool === tool) showResult(result.url, beforeUrl, tool.outputKind);
+      } else {
+        throw new Error(`The ${tool.outputKind} finished, but no result file was returned. Please try again.`);
+      }
+    } catch (err) {
+      if (cancelled()) return;
+      updateProgress(null);
+      errorState.textContent = err.message || 'An unexpected error occurred';
+      errorState.classList.remove('hidden');
+    } finally {
+      if (progressPoll) { clearInterval(progressPoll); progressPoll = null; }
+      if (!cancelled()) {
+        inFlight = false;
+        editBtn.disabled = false;
+        editBtn.textContent = idleLabel();
+        cancelBtn.classList.add('hidden');
+        runningState.classList.add('hidden');
+      }
+    }
+  }
 
   function readControlValues() {
     const values = {};
@@ -1171,7 +1564,7 @@ export function EditStudio() {
     control.options.forEach(opt => {
       const option = document.createElement('option');
       option.value = opt;
-      option.textContent = opt;
+      option.textContent = control.optionLabel ? control.optionLabel(opt) : opt;
       if (opt === control.default) option.selected = true;
       select.appendChild(option);
     });
@@ -1247,7 +1640,7 @@ export function EditStudio() {
       btn.dataset.preset = option;
       btn.textContent = option;
       btn.setAttribute('role', 'option');
-      btn.onclick = () => select(option);
+      btn.onclick = () => { select(option); if (control.onSelect) control.onSelect(option); };
       grid.appendChild(btn);
       return btn;
     });
