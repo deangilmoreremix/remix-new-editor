@@ -2,14 +2,15 @@
 // Video Pages has no studio page of its own: new pages are made from any studio's "Create landing page" button,
 // the header's Video Pages button, or "+ New page" here (all open the same picker + editor, src/lib/landingPages/pickerModal.js).
 import { LandingPagesStudio } from '../LandingPagesStudio.js';
+import { lockScroll, unlockScroll } from '../../lib/landingPages/scrollLock.js';
 
 let openOverlay = null;
 
-// Stacking: this window 2000 (the picker's own default), the picker opened from here 2200, this window opened from the picker 2100.
+// Stacking: this window 2000 (the picker's own default); the picker opened from here 2200; this window opened from the picker
+// goes 100 above that picker (its zIndex + 100).
 export function openMyVideoPages({ zIndex = 2000 } = {}) {
-  if (openOverlay?.isConnected) return openOverlay;
-  const prevOverflow = document.body.style.overflow;
-  document.body.style.overflow = 'hidden';
+  if (openOverlay?.isConnected) { openOverlay.style.zIndex = String(zIndex); return openOverlay; }   // already open: just bring it to the requested level
+  lockScroll();
   const overlay = document.createElement('div');
   overlay.dataset.myVideoPages = '';
   overlay.className = 'fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-xl p-2 md:p-6';
@@ -40,7 +41,7 @@ export function openMyVideoPages({ zIndex = 2000 } = {}) {
   const close = () => {
     document.removeEventListener('keydown', onKey);
     overlay.remove();
-    if (!document.querySelector('[data-landing-picker]')) document.body.style.overflow = prevOverflow;   // keep the scroll lock while the picker is still open
+    unlockScroll();   // the page stays locked while the picker is still open
     openOverlay = null;
   };
   // Escape closes this window only when no other window (the picker) is on top of it

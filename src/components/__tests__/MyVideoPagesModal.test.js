@@ -4,8 +4,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('../LandingPagesStudio.js', () => ({ LandingPagesStudio: vi.fn(({ embedded } = {}) => { const d = document.createElement('div'); d.dataset.studio = embedded ? 'embedded' : 'page'; return d; }) }));
 import { openMyVideoPages } from '../modals/MyVideoPagesModal.js';
 import { RETIRED_ROUTES } from '../../lib/router.js';
+import { lockScroll, unlockScroll } from '../../lib/landingPages/scrollLock.js';
 
-beforeEach(() => { document.body.innerHTML = ''; document.body.style.overflow = ''; });
+beforeEach(() => {
+  // release the scroll lock of any window a previous test left open
+  document.querySelectorAll('[data-my-video-pages] [aria-label="Close"]').forEach((b) => b.click());
+  document.body.innerHTML = '';
+  document.body.style.overflow = '';
+});
 
 describe('My Video Pages is a modal, not a studio page', () => {
   it('opens as a dialog with the saved-pages list inside, once', () => {
@@ -37,10 +43,16 @@ describe('stacking with the picker', () => {
     expect(document.querySelector('[data-my-video-pages]')).not.toBeNull();
   });
   it('closing it leaves the page scroll locked while the picker is open', () => {
-    const picker = document.createElement('div'); picker.dataset.landingPicker = ''; document.body.appendChild(picker);
-    document.body.style.overflow = 'hidden';
+    lockScroll();   // the picker's own lock
     openMyVideoPages({ zIndex: 2100 });
     document.querySelector('[aria-label="Close"]').click();
     expect(document.body.style.overflow).toBe('hidden');
+    unlockScroll();
+    expect(document.body.style.overflow).toBe('');   // the page's original scroll comes back once the last window closes
+  });
+  it('asking again for the open window brings it to the requested level', () => {
+    const o = openMyVideoPages({ zIndex: 2000 });
+    expect(openMyVideoPages({ zIndex: 2300 })).toBe(o);
+    expect(o.style.zIndex).toBe('2300');
   });
 });

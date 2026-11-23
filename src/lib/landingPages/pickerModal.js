@@ -18,6 +18,7 @@ import { sampleSections } from './sampleContent.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from './ingest.js';
 import { updatePage, pageUrl, addContacts, personalUrl } from './client.js';
 import { createAiRewritePanel } from './aiRewritePanel.js';
+import { lockScroll, unlockScroll } from './scrollLock.js';
 import { normalizeItems, routeContent, listSlots, slotsFor, setSlot, resolveSlot, persistTrayMedia, typeOfItem } from './contentTray.js';
 import { useTrayItem } from './trayUse.js';
 import { exportLinksCsv } from './csv.js';
@@ -105,7 +106,6 @@ const brandDefaults = () => {
 };
 
 const MAX_IMAGE_MB = 15;
-let openCount = 0;
 
 /** `zIndex`: where the picker stacks (default 2000); a caller that is itself a full-screen window (the Template Generator, 9999) passes a higher one. */
 export function openLandingPagePicker({ video = null, items = [], template = null, data: startData = null, onEdit = null, saveLabel = 'Save page', customers = [], preselect = 'active', onPick, onClose, doneLabel = '', zIndex = 2000, deps = {} } = {}) {
@@ -116,9 +116,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
   // the item the studio asked for stays the main one, even a local file (blob:) that the tray (https only) does not hold
   let src = asked && /^blob:/i.test(asked.url) ? asked : (routed.main || asked);      // a local file (blob:) is not https, so it is not in the tray but still the main item
   let tray = routed.all.length ? routed.all : (src ? [src] : []);
-  const prevOverflow = document.body.style.overflow;
-  document.body.style.overflow = 'hidden';
-  openCount += 1;
+  lockScroll();
 
   const overlay = el('div', 'fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-xl p-2 md:p-6');
   overlay.style.zIndex = String(zIndex);
@@ -167,8 +165,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     clearPreviews();
     overlay.remove();
     document.removeEventListener('keydown', onKey, true);
-    document.body.style.overflow = openCount > 1 ? 'hidden' : prevOverflow;
-    openCount -= 1;
+    unlockScroll();
     try { onClose?.(); } catch { /* caller bug must not leave the page locked */ }
   };
   const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select,textarea';
@@ -611,7 +608,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     open.type = 'button';
     open.addEventListener('click', async () => {
       close();
-      try { const { openMyVideoPages } = await import('../../components/modals/MyVideoPagesModal.js'); openMyVideoPages({ zIndex: 2100 }); } catch { showToast('Open My Video Pages from the Library.', 'info', 3000); }
+      try { const { openMyVideoPages } = await import('../../components/modals/MyVideoPagesModal.js'); openMyVideoPages({ zIndex: zIndex + 100 }); } catch { showToast('Open My Video Pages from the Library.', 'info', 3000); }
     });
     const done = el('button', doneLabel ? BTN_PRIMARY : BTN, doneLabel || 'Done');
     done.type = 'button';
