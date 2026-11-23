@@ -50,7 +50,11 @@
     "Gmail and LinkedIn share buttons per prospect",
     "Sendspark-style landing page on any Video Pages design, with Your details",
     "Editor tools (scissors icon on the Record step): Cut, Look, Background, Audio, Captions, Text & graphics, B-roll, Chapters and Export, previewed live and rendered in your browser with Apply edits",
-    "Lip-sync the greeting: your mouth says each prospect's name (one paid MuAPI lip-sync request per different greeting, about $0.05 each; ones already made are reused for free)"
+    "Lip-sync the greeting: your mouth says each prospect's name (one paid MuAPI lip-sync request per different greeting, about $0.05 each; ones already made are reused for free)",
+    "Live alerts: the bell and the campaign's Alerts card update the moment a prospect watches or clicks",
+    "Talk live: prospects can video-call you from their page while you're available",
+    "Add from my contacts: pick prospects from your phone's contacts (Android Chrome)",
+    "One tab edits a campaign at a time; another tab follows along read-only"
   ],
   "featureExplanations": [
     {
@@ -214,6 +218,26 @@
       "feature": "Lip-sync the greeting",
       "explanation": "On Generate & share, tick Lip-sync the greeting. The first seconds of your video are cut out once and each prospect's greeting is lip-synced onto them, so your mouth says their name. Leave a pause at the start at least as long as the longest greeting: you are warned before paying if your first words would be covered. Failed prospects still hear their greeting, with the reason shown.",
       "whyToUse": "The greeting looks natural instead of your mouth not moving."
+    },
+    {
+      "feature": "Live alerts",
+      "explanation": "When a prospect starts watching, gets to 75% or clicks your button, the bell at the top updates at once and pulses, and on Generate & share the Alerts card shows it (for example “Mike Ross is watching your video · just now”) and adds it to Recent activity. If the live connection drops, the bell still refreshes every few minutes.",
+      "whyToUse": "Follow up while they are still on your page."
+    },
+    {
+      "feature": "Talk live",
+      "explanation": "Turn on “Let prospects call me live” in the Page step (or the editor's Talk live switch), then generate. Click “Live calls off” at the top of Video Outreach to make it “Available for live calls”. While that tab is open, the prospect's page shows “Talk live with <your first name> now”. When they click, you get “Mike Ross wants to talk live” with Accept and Decline; on Accept you are in a video call (Mute, Camera off, Hang up). If you don't answer in 30 seconds, decline, or the call can't connect, their page points them to your booking button.",
+      "whyToUse": "Turn a warm viewer into a conversation on the spot."
+    },
+    {
+      "feature": "Add from my contacts",
+      "explanation": "In Prospects on an Android phone in Chrome, Add from my contacts opens the phone's contact picker. Only the people you pick are added; anyone without an email address is skipped and counted.",
+      "whyToUse": "Add people you already know without a CSV."
+    },
+    {
+      "feature": "Open in another tab",
+      "explanation": "If Video Outreach is open in two tabs, only one edits the campaign. The other shows “This campaign is open in another tab”, follows its changes and is read-only. Click Edit here instead to edit there; closing the editing tab hands editing back.",
+      "whyToUse": "Two tabs can't overwrite each other's work."
     }
   ],
   "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",
@@ -303,7 +327,9 @@
     "Contact details travel inside each personal link.",
     "The in-progress draft is stored in this browser.",
     "Up to 500 contacts per campaign.",
-    "The Videos library of generated campaigns is kept in this browser (the last 30)."
+    "The Videos library of generated campaigns is kept in this browser (the last 30).",
+    "Talk live works only while you have Video Outreach open with Available for live calls on; without a relay server, some strict company networks can't connect (the page then offers your booking button).",
+    "Add from my contacts is only available in Chrome on Android."
   ],
   "limitationDetails": [
     {
@@ -358,6 +384,22 @@
     {
       "question": "Can I change my edits after applying them?",
       "answer": "Yes. Edits are always made from your original recording, so you can change, move or remove any text, caption or graphic and click Apply edits again: the new video replaces the old one (nothing is burned in twice). The background change is done first, before text and graphics, so they stay sharp, and it is reused when you only change other things."
+    },
+    {
+      "question": "Why does my second tab say the campaign is open in another tab?",
+      "answer": "Only one tab edits a campaign at a time, so two tabs can't overwrite each other. Click Edit here instead to edit in this tab; the other tab becomes read-only. Closing the editing tab gives editing back to the other one."
+    },
+    {
+      "question": "How does Talk live work, and what does the prospect need?",
+      "answer": "Turn on “Let prospects call me live” in the Page step and generate, then switch on Available for live calls at the top of Video Outreach and keep that tab open. Prospects on your pages see Talk live and their browser asks for their camera and mic. The call goes directly between the two browsers. On some strict company networks it can't connect; then their page shows your booking button instead. Calls aren't recorded."
+    },
+    {
+      "question": "Do I need to refresh to see who is watching?",
+      "answer": "No. The bell and the Alerts card on Generate & share update the moment a prospect watches or clicks."
+    },
+    {
+      "question": "The recorder says my camera or microphone is blocked. What do I do?",
+      "answer": "Click the camera or lock icon at the left of your browser's address bar, set Camera and Microphone to Allow, then try again. The message clears by itself once access is allowed. If it says no camera was found, plug one in or choose Screen or Audio only; if it's busy in another app, close Zoom, Teams or FaceTime."
     }
   ],
   "glossary": [
@@ -368,7 +410,9 @@
   ],
   "tips": [
     "Leave a two-second pause at the start of your recording.",
-    "Keep the greeting short."
+    "Keep the greeting short.",
+    "The screen stays awake while you record or read the teleprompter, so long takes don't dim.",
+    "The browser's Back and Forward buttons move between Video Outreach steps."
   ],
   "bestPractices": [
     "Use your real voice sample in a quiet room.",
@@ -397,7 +441,10 @@
     "src/lib/outreach/voiceSample.js",
     "src/pages/WatchPage.jsx",
     "src/lib/editor/publish/publishClient.js",
-    "netlify/functions/agent-audio.js"
+    "netlify/functions/agent-audio.js",
+    "src/lib/outreach/liveCall.js",
+    "src/lib/liveAlerts.js",
+    "src/lib/outreach/tabGuard.js"
   ],
   "verification": {
     "status": "code-review",

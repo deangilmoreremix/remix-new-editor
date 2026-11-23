@@ -49,6 +49,8 @@ async function realtimeClient() {
  */
 export async function joinChannel(name, { onSignal = () => {}, onPresence, presence } = {}) {
   const rt = await realtimeClient();
+  // The client keeps one channel per topic: a channel left over from an earlier call is dropped first.
+  for (const old of rt.getChannels?.() || []) if (old.topic === `realtime:${name}`) { try { rt.removeChannel(old); } catch { /* gone */ } }
   const ch = rt.channel(name, { config: { broadcast: { self: false }, presence: { key: randomId() } } });
   ch.on('broadcast', { event: 'sig' }, ({ payload }) => onSignal(payload || {}));
   if (onPresence) ch.on('presence', { event: 'sync' }, () => onPresence(Object.values(ch.presenceState()).flat()));

@@ -163,7 +163,10 @@ export function OutreachStudio() {
     if (changed && push) { try { history.pushState({ ...(history.state || {}), outreachStep: n }, '', location.href); } catch { /* sandboxed */ } }
     const motion = animate && changed && typeof document.startViewTransition === 'function' && container.isConnected
       && !globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (motion) document.startViewTransition(() => render()); else render();
+    if (!motion) { render(); return; }
+    // A quick second click skips the running transition; that's fine (the page still updates).
+    const t = document.startViewTransition(() => render());
+    t.ready?.catch?.(() => {}); t.finished?.catch?.(() => {}); t.updateCallbackDone?.catch?.(() => {});
   }
   const resumeStep = () => { for (let s = 1; s <= SETUP_STEPS + 1; s++) if (stepErrors(draft, s).length) return s; return SETUP_STEPS + 1; };
   // Generation progress per prospect: { total, done, phase }.
@@ -206,10 +209,10 @@ export function OutreachStudio() {
   // editing tab's saves; "Edit here instead" takes over.
   let changedElsewhere = false;
   const guard = createTabGuard({
-    onChange: (on) => { if (on) reloadDraft(); if (container.isConnected || on) render(); },
+    onChange: (on) => { if (on) reloadDraft(); render(); }, // may arrive before the studio is on the page
     onRemoteSave: () => {
-      if (!guard.supported) { changedElsewhere = true; if (container.isConnected) render(); return; }
-      if (!guard.active()) { reloadDraft(); if (container.isConnected && !busy) render(); }
+      if (!guard.supported) { changedElsewhere = true; render(); return; }
+      if (!guard.active()) { reloadDraft(); if (!busy) render(); }
     },
   });
   // Run when the studio is left (src/lib/router.js calls container.cleanup).
