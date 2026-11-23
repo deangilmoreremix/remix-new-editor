@@ -90,6 +90,13 @@
   status = 200
   force = true
 
+# Hosted MCP over streamable HTTP (claude mcp add --transport http).
+[[redirects]]
+  from = "/api/mcp"
+  to = "/.netlify/functions/mcp-http"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/mcp-gateway/*"
   to = "/.netlify/functions/mcp-gateway/:splat"

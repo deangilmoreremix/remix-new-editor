@@ -9,3 +9,11 @@ export async function connectInMemory(server, { name = 'smoke', version = '1' } 
   await Promise.all([server.connect(a), mcp.connect(b)]);
   return mcp;
 }
+
+/** A real MCP client speaking streamable HTTP through any fetch implementation (tests call the handler directly with it). */
+export async function connectOverHttp({ url, fetchImpl, headers = {}, name = 'http-test', version = '1' }) {
+  const { StreamableHTTPClientTransport } = await import('@modelcontextprotocol/sdk/client/streamableHttp.js');
+  const mcp = new Client({ name, version });
+  await mcp.connect(new StreamableHTTPClientTransport(new URL(url), { fetch: fetchImpl, requestInit: { headers } }));
+  return mcp;
+}
