@@ -10,6 +10,7 @@ import { downloaderContract } from '@vidbee/downloader-core'
 import { resolveAutoVideoDownloadPath } from '@vidbee/downloader-core/output-path'
 import type { Task, TaskStatus } from '@vidbee/task-queue'
 import { apiDataDir, apiDefaultDownloadDir, apiSettingsFilesDir, isPathInside } from './api-paths'
+import { resolveReadableMediaFile } from './managed-files'
 import { APP_VERSION } from './app-version'
 import { getDatabaseFilePath } from './database'
 import { taskQueue } from './downloader'
@@ -593,9 +594,9 @@ export const rpcRouter = os.router({
     }),
     openFile: os.files.openFile.handler(async ({ input }) => {
       try {
-        const resolvedPath = path.resolve(input.path)
-        const exists = await pathExists(resolvedPath)
-        if (!exists) {
+        // Only files inside the managed download folders may be opened or copied: never an arbitrary path.
+        const resolvedPath = await resolveReadableMediaFile(input.path)
+        if (!resolvedPath) {
           return { success: false }
         }
         return { success: await openFileWithSystem(resolvedPath) }
@@ -607,9 +608,9 @@ export const rpcRouter = os.router({
     }),
     openFileLocation: os.files.openFileLocation.handler(async ({ input }) => {
       try {
-        const resolvedPath = path.resolve(input.path)
-        const exists = await pathExists(resolvedPath)
-        if (!exists) {
+        // Only files inside the managed download folders may be opened or copied: never an arbitrary path.
+        const resolvedPath = await resolveReadableMediaFile(input.path)
+        if (!resolvedPath) {
           return { success: false }
         }
         return { success: await openFileLocationWithSystem(resolvedPath) }
@@ -621,9 +622,9 @@ export const rpcRouter = os.router({
     }),
     copyFileToClipboard: os.files.copyFileToClipboard.handler(async ({ input }) => {
       try {
-        const resolvedPath = path.resolve(input.path)
-        const exists = await pathExists(resolvedPath)
-        if (!exists) {
+        // Only files inside the managed download folders may be opened or copied: never an arbitrary path.
+        const resolvedPath = await resolveReadableMediaFile(input.path)
+        if (!resolvedPath) {
           return { success: false }
         }
         return { success: await copyFileToClipboardWithSystem(resolvedPath) }

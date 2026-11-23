@@ -716,7 +716,7 @@ export const DownloadPage = () => {
 											});
 										}}
 									>
-										{t("history.cookiesTipAction")}
+										{t("history.cookiesTipCta")}
 									</Button>
 								</div>
 							</div>

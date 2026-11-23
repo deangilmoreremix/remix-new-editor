@@ -84,10 +84,10 @@ export function MediaHubPage() {
       if (!token) throw new Error('Sign in to use SmartVidDownloader.');
       const res = await fetch(`${base}/api/vidbee/session`, { method: 'POST', credentials: 'include', headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `SmartVidDownloader unavailable (${res.status})`);
-      if (iframe) { iframe.src = frameUrl(`${base}/vidbee/`); return; }
+      if (iframe) { iframe.src = frameUrl(`${base}/vidbee/?brand=remix`); return; }
       // Light / Dark / System is switched inside VidBee itself (title-bar button, or Settings → Theme).
       iframe = document.createElement('iframe');
-      iframe.src = frameUrl(`${base}/vidbee/`);
+      iframe.src = frameUrl(`${base}/vidbee/?brand=remix`);
       iframe.title = 'SmartVidDownloader';
       iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;';
       iframe.setAttribute('allow', 'clipboard-write; fullscreen');

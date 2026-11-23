@@ -8,7 +8,8 @@ const MAX_KITS = 50;
 function read() {
   try {
     const list = JSON.parse(localStorage.getItem(KEY) || '[]');
-    return Array.isArray(list) ? list : [];
+    // Parsing proves the text is JSON, not that every entry is a kit: keep only the valid ones.
+    return Array.isArray(list) ? list.filter((k) => k && typeof k === 'object' && typeof k.id === 'string') : [];
   } catch { return []; }
 }
 

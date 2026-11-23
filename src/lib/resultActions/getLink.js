@@ -1,22 +1,30 @@
 /**
  * "Get link" for a studio result.
  *
- *   const r = await getLink({ url, kind: 'video', title: 'Spring promo' });
+ *   const r = await getLink({ url, kind: 'video', title: 'AI video' });
  *   // -> { fileUrl, kind, reused, watchUrl, canonicalUrl, pageError }
  *
  * 1. Copies the result into OUR storage (copyToStorage) -> a permanent direct file URL. Images and audio stop here.
  * 2. Videos also get a page: a one-clip /watch/<id> published through the same code as the Timeline editor, plus the
  *    readable /v/<business>/<slug> address when a signed-in owner has a business name.
- * Idempotent: the same owner + same result gives the same file and the same /watch id; clicks while one is running
- * share the running one. The file link is returned even when the page link fails (pageError says why).
+ *
+ * Idempotent: the same person + same result gives the same file and the same /watch id, and clicks while one is
+ * running share the running one. A remembered link is re-checked before it is reused (the file must still answer and
+ * the page must still be published), so a deleted file or page is made again instead of handed out dead.
+ * The file link is returned even when the page link fails (pageError says why).
+ *
+ * Who the link belongs to is decided ONCE, at the click, and used for the copy, the publish and the slug: if the
+ * person signs in or out part-way, it stops with a message instead of publishing under the wrong owner.
+ * Signed-out people all share the storage folder 'anonymous', so a per-browser salt is mixed into the names.
  */
-import { preparePublishProject, publishVideo, getMyBusiness, setVideoSlug, slugify, validateSlug, canonicalUrl, watchUrl } from '../editor/publish/publishClient.js';
+import { preparePublishProject, publishVideo, getMyVideo, getMyBusiness, setVideoSlug, slugify, validateSlug, canonicalUrl, watchUrl } from '../editor/publish/publishClient.js';
 import { copyToStorage } from './copyToStorage.js';
 import { buildMinimalProject } from './minimalProject.js';
 import { probeVideo } from './probeVideo.js';
 import { createLinkCache } from './linkCache.js';
 import { stableId, canonicalSource } from './ids.js';
-import { getPublishOwnerClient, getOwnerKey, isSignedIn } from './ownerClient.js';
+import { verifyPublicFile } from './storageUpload.js';
+import { getPublishOwnerClient, getOwnerKey, getGuestSalt, isSignedIn } from './ownerClient.js';
 
 export class LinkError extends Error {
   constructor(code, message) { super(message); this.name = 'LinkError'; this.code = code; }
@@ -46,46 +54,68 @@ async function readableAddress({ client, id, title }) {
   return null;
 }
 
+/** True when the remembered file still exists. A failed check counts as "gone": the copy is simply made again. */
+async function stillThere(url, verify) {
+  try { return !!(await verify(url))?.exists; } catch { return false; }
+}
+
 /**
  * @param {object} o { url, kind, title, durationHint, deps } - deps are for tests:
- *   { ownerKey, copy, getClient, signedIn, probe, cache }
+ *   { ownerKey, guestSalt, copy, getClient, signedIn, probe, cache, verifyFile }
  */
-export async function getLink({ url, kind = 'video', title = 'Untitled video', durationHint, deps = {} } = {}) {
+export async function getLink({ url, kind = 'video', title = 'AI video', durationHint, deps = {} } = {}) {
   if (!url) throw new LinkError('no_url', 'There is no result to link yet.');
+  const isIn = deps.signedIn ?? isSignedIn;
+  const signedIn = !!isIn();
   const ownerKey = deps.ownerKey || await getOwnerKey();
+  const scope = ownerKey === 'anonymous' ? `anonymous:${deps.guestSalt ?? getGuestSalt()}` : ownerKey;
   const source = canonicalSource(url);
-  const key = stableId(`${ownerKey}|${source}`);
+  const key = stableId(`${scope}|${source}`);
   if (inflight.has(key)) return inflight.get(key);
 
   const run = async () => {
     const cache = deps.cache || defaultCache();
-    const cached = cache.get(key);
-    let fileUrl = cached?.fileUrl || null;
-    let finalKind = cached?.kind || kind;
-    let reused = !!fileUrl;
+    const verify = deps.verifyFile || ((u) => verifyPublicFile(u));
+    let cached = cache.get(key);
+    let fileUrl = null;
+    let finalKind = kind;
+    let reused = false;
+    if (cached?.fileUrl) {
+      if (await stillThere(cached.fileUrl, verify)) { fileUrl = cached.fileUrl; finalKind = cached.kind || kind; reused = true; }
+      else { cache.delete(key); cached = null; }
+    }
     if (!fileUrl) {
-      const copy = await (deps.copy || copyToStorage)(source, { kind, ownerKey });
+      const copy = await (deps.copy || copyToStorage)(source, { kind, ownerKey, scope });
       fileUrl = copy.fileUrl;
       finalKind = copy.kind || kind;
       reused = !!copy.reused;
       cache.set(key, { fileUrl, kind: finalKind });
+      if (!!isIn() !== signedIn) throw new LinkError('identity_changed', 'You signed in or out while the link was being made. Click Get link again.');
     }
     const result = { fileUrl, kind: finalKind, reused, watchUrl: null, canonicalUrl: null, pageError: null };
     if (finalKind !== 'video') return result;
 
-    const id = `v${stableId(`${ownerKey}|${source}|page`)}`;
-    if (cached?.watchId) {
-      return { ...result, watchUrl: watchUrl(cached.watchId), canonicalUrl: cached.canonical || null };
-    }
+    const id = `v${stableId(`${scope}|${source}|page`)}`;
     try {
-      const probe = durationHint ? { duration: durationHint } : await (deps.probe || probeVideo)(fileUrl);
-      if (!probe?.duration) throw new Error('the video could not be read to build a page');
-      const client = await (deps.getClient || getPublishOwnerClient)();
-      const project = preparePublishProject(buildMinimalProject({ fileUrl, title, durationSec: probe.duration, width: probe.width, height: probe.height }), { title });
-      await publishVideo(client, { id, project });
-      const address = (deps.signedIn ?? isSignedIn)() ? await readableAddress({ client, id, title }) : null;
-      cache.set(key, { watchId: id, canonical: address });
-      return { ...result, watchUrl: watchUrl(id), canonicalUrl: address };
+      const client = await (deps.getClient || getPublishOwnerClient)({ signedIn });
+      let canonical = cached?.canonical || null;
+      let page = null;
+      if (cached?.watchId) {
+        const row = await getMyVideo(client, cached.watchId).catch(() => null);
+        if (row?.published) page = cached.watchId;
+      }
+      if (!page) {
+        const probe = durationHint ? { duration: durationHint } : await (deps.probe || probeVideo)(fileUrl);
+        if (!probe?.duration) throw new Error('the video could not be read to build a page');
+        const project = preparePublishProject(buildMinimalProject({ fileUrl, title, durationSec: probe.duration, width: probe.width, height: probe.height }), { title });
+        await publishVideo(client, { id, project });
+        page = id;
+        canonical = null;
+      }
+      // A readable address is only remembered when it exists; a missing one is tried again next time.
+      if (!canonical && signedIn) canonical = await readableAddress({ client, id: page, title });
+      cache.set(key, { watchId: page, ...(canonical ? { canonical } : {}) });
+      return { ...result, watchUrl: watchUrl(page), canonicalUrl: canonical };
     } catch (err) {
       return { ...result, pageError: pageErrorMessage(err) };
     }

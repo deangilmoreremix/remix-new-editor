@@ -12,16 +12,19 @@
 // "Use My Brand" shares the personalization modal's clients and assets.
 
 import { installPersonalizationApiAuth } from '../features/personalization/lib/apiAuth.ts';
+import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 
 export function MotionDirectorPage() {
   installPersonalizationApiAuth();
 
   const container = document.createElement('div');
-  container.className = 'w-full h-full overflow-hidden bg-app-bg text-white';
+  container.className = 'w-full h-full flex flex-col overflow-hidden bg-app-bg text-white';
   container.dataset.studio = 'motion-director';
+  // The app below has its own heading, so the banner's title is demoted to keep a single h1.
+  container.appendChild(demoteBannerHeading(createEditorBanner('motion-director', 'Motion Director', 'Plan a film from a prompt and your website')));
 
   const host = document.createElement('div');
-  host.className = 'w-full h-full';
+  host.className = 'w-full flex-1 min-h-0';
   container.appendChild(host);
 
   let unmount = null;

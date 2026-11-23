@@ -1,0 +1,91 @@
+/* Brand palettes for the host apps. The default (no data-brand) is upstream VidBee's own amber look.
+   The page picks one with ?brand=remix or ?brand=higgs (remembered in this browser); light and dark follow the
+   Theme setting (the `.dark` class), exactly like the Media Hub palettes in this repository. */
+:root[data-brand="remix"] {
+  color-scheme: light;
+  --background: #ffffff; --foreground: #0a0a0a; --card: #f6f6f4; --card-foreground: #0a0a0a;
+  --popover: #ffffff; --popover-foreground: #0a0a0a;
+  --primary: #6b7d00; --primary-foreground: #ffffff;
+  --secondary: #efefec; --secondary-foreground: #0a0a0a;
+  --muted: #efefec; --muted-foreground: #52525b;
+  --hover: rgb(0 0 0 / 0.04); --active: rgb(0 0 0 / 0.08);
+  --accent: rgb(107 125 0 / 0.1); --accent-foreground: #6b7d00;
+  --border: #e4e4e0; --input: #f6f6f4; --ring: #6b7d00; --focus-ring: #6b7d00;
+  --sidebar: #f6f6f4; --sidebar-foreground: #0a0a0a; --sidebar-primary: #6b7d00; --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgb(107 125 0 / 0.1); --sidebar-accent-foreground: #6b7d00; --sidebar-border: #e4e4e0; --sidebar-ring: #6b7d00;
+  --selected: #e4e4e0;
+  --surface-1: #fafaf8;
+  --surface-2: #f6f6f4;
+  --surface-3: #f1f1ee;
+  --surface-4: #ecece8;
+  --surface-5: #e7e7e3;
+  --surface-6: #e2e2de;
+  --surface-7: #dcdcd8;
+  --surface-8: #d6d6d2;
+}
+:root.dark[data-brand="remix"] {
+  color-scheme: dark;
+  --background: #050505; --foreground: #fafafa; --card: #141414; --card-foreground: #fafafa;
+  --popover: #0a0a0a; --popover-foreground: #fafafa;
+  --primary: #d9ff00; --primary-foreground: #000000;
+  --secondary: #1c1c1f; --secondary-foreground: #fafafa;
+  --muted: #1c1c1f; --muted-foreground: #a1a1aa;
+  --hover: rgb(255 255 255 / 0.05); --active: rgb(255 255 255 / 0.09);
+  --accent: rgb(217 255 0 / 0.12); --accent-foreground: #d9ff00;
+  --border: #27272a; --input: #141414; --ring: #d9ff00; --focus-ring: #d9ff00;
+  --sidebar: #0a0a0a; --sidebar-foreground: #fafafa; --sidebar-primary: #d9ff00; --sidebar-primary-foreground: #000000;
+  --sidebar-accent: rgb(217 255 0 / 0.12); --sidebar-accent-foreground: #d9ff00; --sidebar-border: #27272a; --sidebar-ring: #d9ff00;
+  --selected: #27272a;
+  --surface-1: #0a0a0a;
+  --surface-2: #101010;
+  --surface-3: #141414;
+  --surface-4: #181818;
+  --surface-5: #1c1c1c;
+  --surface-6: #202020;
+  --surface-7: #242424;
+  --surface-8: #282828;
+}
+:root[data-brand="higgs"] {
+  color-scheme: light;
+  --background: #ffffff; --foreground: #0a0a0a; --card: #f6f6f4; --card-foreground: #0a0a0a;
+  --popover: #ffffff; --popover-foreground: #0a0a0a;
+  --primary: #0e7490; --primary-foreground: #ffffff;
+  --secondary: #efefec; --secondary-foreground: #0a0a0a;
+  --muted: #efefec; --muted-foreground: #52525b;
+  --hover: rgb(0 0 0 / 0.04); --active: rgb(0 0 0 / 0.08);
+  --accent: rgb(14 116 144 / 0.1); --accent-foreground: #0e7490;
+  --border: #e4e4e0; --input: #f6f6f4; --ring: #0e7490; --focus-ring: #0e7490;
+  --sidebar: #f6f6f4; --sidebar-foreground: #0a0a0a; --sidebar-primary: #0e7490; --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgb(14 116 144 / 0.1); --sidebar-accent-foreground: #0e7490; --sidebar-border: #e4e4e0; --sidebar-ring: #0e7490;
+  --selected: #e4e4e0;
+  --surface-1: #fafaf8;
+  --surface-2: #f6f6f4;
+  --surface-3: #f1f1ee;
+  --surface-4: #ecece8;
+  --surface-5: #e7e7e3;
+  --surface-6: #e2e2de;
+  --surface-7: #dcdcd8;
+  --surface-8: #d6d6d2;
+}
+:root.dark[data-brand="higgs"] {
+  color-scheme: dark;
+  --background: #050505; --foreground: #fafafa; --card: #141414; --card-foreground: #fafafa;
+  --popover: #0a0a0a; --popover-foreground: #fafafa;
+  --primary: #22d3ee; --primary-foreground: #000000;
+  --secondary: #1c1c1f; --secondary-foreground: #fafafa;
+  --muted: #1c1c1f; --muted-foreground: #a1a1aa;
+  --hover: rgb(255 255 255 / 0.05); --active: rgb(255 255 255 / 0.09);
+  --accent: rgb(34 211 238 / 0.12); --accent-foreground: #22d3ee;
+  --border: #27272a; --input: #141414; --ring: #22d3ee; --focus-ring: #22d3ee;
+  --sidebar: #0a0a0a; --sidebar-foreground: #fafafa; --sidebar-primary: #22d3ee; --sidebar-primary-foreground: #000000;
+  --sidebar-accent: rgb(34 211 238 / 0.12); --sidebar-accent-foreground: #22d3ee; --sidebar-border: #27272a; --sidebar-ring: #22d3ee;
+  --selected: #27272a;
+  --surface-1: #0a0a0a;
+  --surface-2: #101010;
+  --surface-3: #141414;
+  --surface-4: #181818;
+  --surface-5: #1c1c1c;
+  --surface-6: #202020;
+  --surface-7: #242424;
+  --surface-8: #282828;
+}
