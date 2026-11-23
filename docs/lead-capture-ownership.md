@@ -27,8 +27,9 @@ Two apps use the same Supabase project (`VideoRemix Product`) and the same funct
 |---|---|---|---|
 | v6 | before 2026-11-18 | unknown | older than this repo |
 | v7 | 2026-11-18 | this repo | spam checks, MX check, dedupe, follow-up columns |
-| v8 | 2026-11-18 | not this repo | added the landing-page branch (Puck pages, per-page rate limits, `landing_page_form_settings`, service-key delivery-only path). Source archived in `docs/archive/lead-capture-v8/` (saved as `.txt`) for rollback |
+| v8 | 2026-11-18 | not this repo | added the landing-page branch (visual-editor pages, per-page rate limits, `landing_page_form_settings`, service-key delivery-only path). Source archived in `docs/archive/lead-capture-v8/` (saved as `.txt`) for rollback |
 | v9 | 2026-11-19 | this repo | three-way merge of v7 + repo (`develop` chat alerts, auto-reply, guest handling) + v8 landing-page branch |
+| v10, v11 | 2026-11-22 | not recorded | deployed by someone else; source not compared with the repo when this was written. Check the live version before the next deploy (rule 2) |
 
 ## Rolling back to v8
 
