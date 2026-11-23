@@ -193,7 +193,7 @@ export const OPTIN_DESIGNS = [
     multiStep: true, stepSize: 2, subtitle: 'Just 2 quick steps to get your custom video experience',
   }),
   d('conversational-setup', 'Conversational Setup', 'layouts', {
-    designLayout: 'chat', fontFamily: 'Inter', fontSize: 66, fontColor: '#1f2340', backgroundColor: '', backdropColor: '#0b0b18', backdropOpacity: 25, innerWidth: 64, innerHeight: 96,
+    designLayout: 'chat', fontFamily: 'Inter', fontSize: 66, fontColor: '#1f2340', backgroundColor: '', backdropColor: '#0b0b18', backdropOpacity: 25, innerWidth: 64, innerHeight: 88,
     innerColor: '#ffffff', innerOpacity: 98, cardRadius: 18, cardBorderColor: '#e2e5ff', cardBorderWidth: 1, cardGlow: '#6d4cff',
     captionAlignment: 'left', captionFontSize: 34, fieldWidth: 100,
     inputBackground: '#f4f5ff', inputFontColor: '#1f2340', inputBorderColor: '#d5d9ff', inputBorderRadius: 10, placeholderColor: '#7a80a8', inputIcons: true,
