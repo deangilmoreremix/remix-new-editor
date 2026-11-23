@@ -3,7 +3,18 @@
 // punctuation; look entries up through resolveStudioHelp() so labels like "Generate (Ctrl+Enter)" or "Advanced…" still match.
 // Controls can also opt in explicitly with data-help="<key>".
 
+import { STUDIO_DESCRIPTIONS } from './../studioDescriptions.js';
+
 const h = (name, summary, what, shortcut) => ({ name, summary, what, shortcut });
+
+/**
+ * Studio-level help for a sidebar item or Apps hub card (data-sidebar-item / data-studio = route id): the studio's name and the one-line
+ * description the owner wrote for it (lib/studioDescriptions.js, copied from the Apps hub cards). Null when a route has no description.
+ */
+export function studioEntry(id) {
+  const d = STUDIO_DESCRIPTIONS[id];
+  return d ? { name: d.name, summary: d.text } : null;
+}
 
 export const STUDIO_HELP = {
   // ── Shared controls ─────────────────────────────────────────────────────────
@@ -239,6 +250,56 @@ export const STUDIO_HELP = {
   'voice': h('Voice', 'Choose the voice.'),
   'scroll left': h('Scroll left', 'Show earlier items.'),
   'scroll right': h('Scroll right', 'Show more items.'),
+
+  // ── Photo Studio (6 categories x 5 styles; see the page's own header comment) ──
+  'photo generation mode': h('Generation mode', 'Switch between Brand API and Direct MuAPI.', 'Direct MuAPI lets you pick a model yourself.'),
+  'photo select all': h('Select all', 'Select or clear every style in this category.'),
+  'photo brand': h('Brand', 'Choose a saved brand to use its logo.', 'Generation and saved photoshoots follow your choice.'),
+  'photo direction': h('Direction', 'Describe the look, mood or specific details you want.'),
+  // ── Library ──
+  'library filter': h('Filter', 'Show only this kind of item.'),
+  'library uploads': h('Uploads', 'Your permanently saved uploaded files.'),
+  'library sort': h('Sort', 'Show the newest or the oldest items first.'),
+  'search': h('Search', 'Filter the list by what you type.'),
+  // ── Motion graphics modes (Edit needs a motion graphic you already generated, per the studio's own message) ──
+  'motion graphics generate': h('Generate', 'Create a new motion graphic.'),
+  'motion graphics edit': h('Edit', 'Edit a motion graphic you already generated.'),
+  // ── Director ──
+  'clear chat': h('Clear Chat', 'Clear the conversation.'),
+  'send command': h('Send', 'Send your command to the Director.'),
+  'command input': h('Command', 'Type what you want the Director to do.'),
+  'category filter': h('Category', 'Show only this category.'),
+  // ── Render ──
+  'render preset': h('Preset', 'A ready-made look for the render.', 'It sets the colour profile, pacing, music mood and caption style.'),
+  'trailer cut': h('Trailer Cut', 'Build a teaser or fast-paced trailer version.'),
+  'save draft': h('Save Draft', 'Save this render as a draft.'),
+  'start render': h('Start Render', 'Start rendering the video.'),
+  'export video': h('Export Video', 'Export the finished video.'),
+  'download frame': h('Download Frame', 'Download a single frame.'),
+  'queue render': h('Queue Render', 'Add this render to the queue.'),
+  'duplicate render': h('Duplicate Render', 'Make a copy of this render.'),
+  'save as template': h('Save as Template', 'Save this setup as a template.'),
+  'send to storyboard': h('Send to Storyboard', 'Send this to the Storyboard studio.'),
+  // ── Commercial / Marketing, Brand pages, Academy, Workbench, Zack D ──
+  'ad script': h('Ad script', 'Write what the presenter says.', 'Use @image1 for the product and @image2 for the avatar.'),
+  'generate ad video': h('Generate Ad Video', 'Create the ad video.'),
+  'select avatar': h('Select Avatar', 'Pick the presenter.'),
+  'back to brand studio': h('Back to Brand Studio', 'Return to Brand Studio.'),
+  'reset progress': h('Reset progress', 'Clear your course progress.'),
+  'add your generations': h('Add your generations', 'Bring your generations into the Workbench.'),
+  'topic': h('Topic', 'What the video is about.'),
+  'high bitrate': h('High bitrate', 'Switch between normal and high bitrate.'),
+  'character orientation': h('Character orientation', 'Choose whether the character follows the video or the image.'),
+  'motion video': h('Motion video', 'Upload the video whose motion is used.'),
+  'character image': h('Character image', 'Upload the character image.'),
+  'character images': h('Character images', 'Upload the character images.'),
+  'video tools motion transfer': h('Motion transfer', 'Copy the motion from your video onto the character.'),
+  'try this prompt': h('Try this prompt', 'Open Image Studio with this prompt filled in.'),
+  'update api key': h('Update API Key', 'Update your API key.'),
+  'attach image / video / audio': h('Attach', 'Add an image, video or audio file.'),
+  'performance direction': h('Performance', 'Describe the performance you want.', 'Optional.'),
+  'scene tweaks': h('Scene tweaks', 'Describe any changes to the rebuilt scene.', 'Optional.'),
+  'look': h('Look', 'Pick the visual style of the video.'),
 };
 
 const SHORTCUT = /\s*\((?:ctrl|cmd|alt|shift|⌘|⌥|⇧)[^)]*\)\s*$/i;
@@ -273,12 +334,22 @@ export function idLabels(id) {
 
 // Placeholder text is the only label some inputs have. Matched by prefix, since the text is long and sometimes truncated.
 const PLACEHOLDERS = [
+  [/^describe the motion graphic/, 'prompt'], // must stay ahead of the broader "describe the motion" rule below
   [/^describe the motion/, 'motion prompt'],
   [/^optional: describe the subject/, 'vfx subject'],
   [/^…?or paste an image url/, 'vfx image url'],
   [/^influencer prompt/, 'prompt'],
   [/^search prompts/, 'viral search'],
   [/^show all \d+/, 'prompt gallery'], // "Show all 272 image prompts"
+  [/^type your command/, 'command input'],
+  [/^describe your ad script/, 'ad script'],
+  [/^describe the look, mood/, 'photo direction'],
+  [/^describe your motion video/, 'prompt'],
+  [/^bitrate: /, 'high bitrate'],
+  [/^orientation: /, 'character orientation'],
+  [/^optional: describe the performance/, 'performance direction'],
+  [/^optional: describe tweaks to the rebuilt scene/, 'scene tweaks'],
+  [/^search /, 'search'], // last: the specific "search prompts" rule above wins
 ];
 
 // Descriptive tooltip sentences the studios already use, mapped to the entry they describe.

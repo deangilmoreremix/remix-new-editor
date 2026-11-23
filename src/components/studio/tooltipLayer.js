@@ -5,7 +5,7 @@
 // Theming: the card reads --tip-* from CSS. A studio root can opt into a palette with data-studio-theme="<key>" (see STUDIO_COLOR_SCHEMES).
 // The Timeline Editor (.cinegen-root) has its own help layer and is skipped here.
 
-import { resolveStudioHelp, idLabels } from '../../lib/help/studioHelp.js';
+import { resolveStudioHelp, idLabels, studioEntry } from '../../lib/help/studioHelp.js';
 import { getStudioTipAccent } from '../../lib/config/openaiConfig.js';
 
 const SHOW_DELAY_MS = 350;
@@ -31,15 +31,24 @@ export function findHelp(start) {
   let el = start instanceof HTMLElement ? start : start && start.parentElement;
   for (let i = 0; el && i < 6; i++, el = el.parentElement) {
     if (el.closest(SKIP)) return null;
+    // Sidebar items and Apps hub cards carry their route id: show that studio's own description.
+    const studio = el.dataset.sidebarItem || el.dataset.studio ? studioEntry(el.dataset.sidebarItem || el.dataset.studio) : null;
+    if (studio) return { el, entry: studio };
+    // Copy supplied by the studio at render time: data-help-text is the sentence, data-help-name an optional heading.
+    if (el.dataset.helpText) {
+      const name = el.dataset.helpName || el.getAttribute('aria-label') || el.getAttribute('placeholder') || fieldLabel(el) || el.textContent.trim().replace(/\s+/g, ' ').slice(0, 40);
+      return { el, entry: { name: name || 'Info', summary: el.dataset.helpText } };
+    }
     const plain = el.dataset.tooltip || el.dataset.helpTitle || el.getAttribute('title') || '';
     const text = (el.tagName === 'BUTTON' || el.tagName === 'SUMMARY' || el.getAttribute('role') === 'button')
       ? (el.textContent || '').trim().replace(/\s+/g, ' ') : '';
     // Try every label the control carries against the copy before settling for plain text: a long tooltip sentence
     // ("Show advanced options") must not shadow the visible name ("Advanced") that has an entry.
-    const candidates = [el.dataset.help, text, el.getAttribute('aria-label'), ...idLabels(el.id), el.getAttribute('placeholder'), fieldLabel(el),
+    const placeholder = el.getAttribute('placeholder');
+    const candidates = [el.dataset.help, text, el.getAttribute('aria-label'), ...idLabels(el.id), placeholder, fieldLabel(el),
       el.dataset.helpTitle, el.getAttribute('title'), el.dataset.tooltip];
     for (const c of candidates) {
-      const entry = c && c.length <= 80 ? resolveStudioHelp(c) : null;
+      const entry = c && c.length <= (c === placeholder ? 240 : 80) ? resolveStudioHelp(c) : null;
       if (entry) return { el, entry };
     }
     // No copy yet: still theme the control's own title / data-tooltip text.

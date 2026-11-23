@@ -550,6 +550,7 @@ export function RenderPage() {
     btn.textContent = preset;
     btn.onclick = () => selectPreset(preset);
     btn.setAttribute('aria-pressed', String(preset === selectedPreset));
+    btn.dataset.help = 'render preset';
     presetsBtnsDiv.appendChild(btn);
   });
   presetsDiv.querySelector('div').appendChild(presetsBtnsDiv);

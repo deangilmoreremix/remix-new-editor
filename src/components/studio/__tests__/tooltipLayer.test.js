@@ -163,3 +163,66 @@ describe('data-help keys written in the source', () => {
     expect(bad).toEqual([]);
   });
 });
+
+// ── Studio-level tooltips (sidebar items, Apps hub cards) ───────────────────────────────────────────────────────────────
+import { studioEntry } from '../../../lib/help/studioHelp.js';
+import { STUDIO_DESCRIPTIONS } from '../../../lib/studioDescriptions.js';
+import { NAV_GROUPS } from '../../../lib/studioRoutes.js';
+
+describe('studio-level tooltips', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+  // Sidebar studios that have no owner-written description yet. Listed on purpose: a NEW studio without a description fails the test below,
+  // and filling one of these in fails it too until the list is updated, so the gap cannot grow or linger unnoticed.
+  const AWAITING_DESCRIPTION = ['zackd'];
+
+  it('the descriptions are the Apps hub cards\' own words (no drift between the two)', () => {
+    const hub = readFileSync(join(process.cwd(), 'src/components/AppsHub.js'), 'utf8');
+    const cards = [...hub.matchAll(/\{\s*id:\s*'([a-z-]+)',\s*name:\s*'([^']+)',\s*description:\s*'([^']+)'/g)];
+    expect(cards.length).toBeGreaterThan(20);
+    for (const [, id, name, text] of cards) expect(STUDIO_DESCRIPTIONS[id], id).toEqual({ name, text });
+  });
+  it('every sidebar studio has a description, except the documented ones', () => {
+    const ids = [...new Set(NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id)))];
+    const missing = ids.filter((id) => !STUDIO_DESCRIPTIONS[id]);
+    expect(missing).toEqual(AWAITING_DESCRIPTION);
+  });
+  it('a sidebar icon button resolves to its studio (the label lives in a sibling span, not on the button)', () => {
+    document.body.innerHTML = '<div data-sidebar-item="video"><button><svg></svg></button><span>VIDEO</span></div>';
+    expect(findHelp(document.querySelector('button'))?.entry).toEqual({ name: 'Video Studio', summary: 'Create AI videos from text and images' });
+  });
+  it('an Apps hub card resolves to its studio, and an unknown id falls back to normal lookup', () => {
+    document.body.innerHTML = '<div data-studio="cinema" title="x"><h3>Cinema Studio</h3></div><div data-studio="nope" title="Fallback"><h3>t</h3></div>';
+    const [a, b] = document.querySelectorAll('div[data-studio]');
+    expect(findHelp(a)?.entry.name).toBe('Cinema Studio');
+    expect(findHelp(b)?.entry).toEqual({ name: 'Fallback' });
+  });
+  it('studioEntry returns null for a studio with no description instead of guessing', () => {
+    expect(studioEntry('zackd')).toBeNull();
+    expect(studioEntry('not-a-studio')).toBeNull();
+  });
+  it('data-help-text carries copy supplied at render time, and long placeholders still match by prefix', () => {
+    document.body.innerHTML = '<input placeholder="Persona ID" data-help-text="The voice to apply.">';
+    expect(findHelp(document.querySelector('input'))?.entry).toEqual({ name: 'Persona ID', summary: 'The voice to apply.' });
+  });
+});
+
+describe('patterns for the feature pages found by the all-routes audit', () => {
+  it('the motion-graphics prompt resolves to Prompt, not the Animate "motion prompt" (rule order)', () => {
+    expect(resolveStudioHelp("Describe the motion graphic \u2014 'Animated sales dashboard'")?.name).toBe('Prompt');
+    expect(resolveStudioHelp('Describe the motion or effect (optional)')?.name).toBe('Motion prompt');
+  });
+  it('generic search is last, so the viral search keeps its own copy', () => {
+    expect(resolveStudioHelp('Search prompts, tags, or authors\u2026')?.name).toBe('Search');
+    expect(resolveStudioHelp('Search by prompt or model...')?.name).toBe('Search');
+    expect(resolveStudioHelp('Search saved content...')?.summary).toMatch(/filter/i);
+  });
+  it('Director, Photo Studio and Library controls resolve', () => {
+    expect(resolveStudioHelp("Type your command (e.g., 'Summarize this video')")?.name).toBe('Command');
+    expect(resolveStudioHelp('Describe the look, mood, or specific details...')?.name).toBe('Direction');
+    document.body.innerHTML = '<button id="send-command-btn">Send</button><button id="clear-chat-btn">Clear Chat</button><button data-photo-preset="x" data-help-name="Studio white" data-help-text="A clean white studio shot.">Studio white \u00b7 1:1</button>';
+    const [send, clear, style] = document.querySelectorAll('button');
+    expect(findHelp(send)?.entry.name).toBe('Send');
+    expect(findHelp(clear)?.entry.name).toBe('Clear Chat');
+    expect(findHelp(style)?.entry).toEqual({ name: 'Studio white', summary: 'A clean white studio shot.' });
+  });
+});
