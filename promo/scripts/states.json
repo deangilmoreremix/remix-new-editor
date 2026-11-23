@@ -1,10 +1,5 @@
 [
  {
-  "name": "video",
-  "route": "video",
-  "wait": 9000
- },
- {
   "name": "apps",
   "route": "apps",
   "wait": 9000
@@ -148,5 +143,73 @@
   "name": "viral",
   "route": "viral",
   "wait": 9000
+ },
+ {
+  "name": "video-empty",
+  "route": "video",
+  "wait": 10000,
+  "boxes": [
+   {
+    "key": "prompt",
+    "selector": "#v-v-prompt-textarea"
+   },
+   {
+    "key": "model",
+    "selector": "#v-model-btn"
+   },
+   {
+    "key": "bar",
+    "selector": "#v-v-prompt-textarea"
+   }
+  ]
+ },
+ {
+  "name": "video-typed",
+  "route": "video",
+  "wait": 10000,
+  "steps": [
+   {
+    "type": "#v-v-prompt-textarea",
+    "text": "A lone tower in golden wheat",
+    "wait": 1500
+   }
+  ],
+  "measure": {
+   "selector": "#v-v-prompt-textarea",
+   "text": "A lone tower in golden wheat"
+  },
+  "boxes": [
+   {
+    "key": "prompt",
+    "selector": "#v-v-prompt-textarea"
+   }
+  ]
+ },
+ {
+  "name": "video-model",
+  "route": "video",
+  "wait": 10000,
+  "steps": [
+   {
+    "click": "#v-model-btn",
+    "wait": 2500
+   }
+  ]
+ },
+ {
+  "name": "apps2",
+  "route": "apps",
+  "wait": 16000
+ },
+ {
+  "name": "video-blank",
+  "route": "video",
+  "wait": 10000,
+  "steps": [
+   {
+    "eval": "document.getElementById('v-v-prompt-textarea').placeholder=''",
+    "wait": 800
+   }
+  ]
  }
 ]

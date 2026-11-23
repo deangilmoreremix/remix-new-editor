@@ -1,0 +1,62 @@
+{
+ "click-camera.mp3": {
+  "peak_s": 0.194,
+  "peak_f": 5.8,
+  "attack50_f": 5.6,
+  "max_db": -7.0
+ },
+ "impact-cine.mp3": {
+  "peak_s": 0.632,
+  "peak_f": 19.0,
+  "attack50_f": 12.7,
+  "max_db": -0.9
+ },
+ "keyboard.mp3": {
+  "peak_s": 3.192,
+  "peak_f": 95.8,
+  "attack50_f": 0.2,
+  "max_db": -1.4
+ },
+ "riser-cine.mp3": {
+  "peak_s": 1.168,
+  "peak_f": 35.0,
+  "attack50_f": 14.2,
+  "max_db": -0.1
+ },
+ "sparkle.mp3": {
+  "peak_s": 1.476,
+  "peak_f": 44.3,
+  "attack50_f": 40.6,
+  "max_db": -8.2
+ },
+ "swoosh-quick.mp3": {
+  "peak_s": 0.336,
+  "peak_f": 10.1,
+  "attack50_f": 7.0,
+  "max_db": -3.9
+ },
+ "transition-snap.mp3": {
+  "peak_s": 0.114,
+  "peak_f": 3.4,
+  "attack50_f": 2.9,
+  "max_db": -5.6
+ },
+ "transition-soft.mp3": {
+  "peak_s": 0.453,
+  "peak_f": 13.6,
+  "attack50_f": 11.0,
+  "max_db": -0.9
+ },
+ "whoosh-big.mp3": {
+  "peak_s": 0.719,
+  "peak_f": 21.6,
+  "attack50_f": 21.2,
+  "max_db": -1.5
+ },
+ "whoosh-fast.mp3": {
+  "peak_s": 0.725,
+  "peak_f": 21.8,
+  "attack50_f": 20.2,
+  "max_db": -6.1
+ }
+}

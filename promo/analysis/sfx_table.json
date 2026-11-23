@@ -1,0 +1,46 @@
+[
+ {
+  "from": 31,
+  "src": "transition-soft.mp3",
+  "volume": 0.55,
+  "note": "wordmark letterpress lands (open, f46)"
+ },
+ {
+  "from": 133,
+  "src": "keyboard.mp3",
+  "volume": 0.5,
+  "durationInFrames": 105,
+  "note": "typing in Video Studio prompt, window = typing length"
+ },
+ {
+  "from": 245,
+  "src": "whoosh-fast.mp3",
+  "volume": 0.5,
+  "note": "example clip card rises in"
+ },
+ {
+  "from": 440,
+  "src": "whoosh-big.mp3",
+  "volume": 0.5,
+  "note": "studio wall starts lighting"
+ },
+ {
+  "from": 623,
+  "src": "riser-cine.mp3",
+  "volume": 0.45,
+  "durationInFrames": 60,
+  "note": "riser into the logo collapse"
+ },
+ {
+  "from": 665,
+  "src": "impact-cine.mp3",
+  "volume": 0.6,
+  "note": "logo lands (brake on collapse)"
+ },
+ {
+  "from": 681,
+  "src": "sparkle.mp3",
+  "volume": 0.45,
+  "note": "tagline lands"
+ }
+]

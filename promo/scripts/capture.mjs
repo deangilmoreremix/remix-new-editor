@@ -66,6 +66,7 @@ for (const st of STATES) {
     }
     await sleep(st.wait ?? 9000);
     for (const step of st.steps || []) {
+      if (step.eval) await page.evaluate(new Function(step.eval));
       if (step.type) {
         const h = await page.$(step.type);
         if (h) { await h.click(); await page.keyboard.type(step.text || PROMPT, { delay: 4 }); } else console.log('  type miss', step.type);
@@ -88,6 +89,14 @@ for (const st of STATES) {
         }
       }
       await sleep(step.wait ?? 1200);
+    }
+    if (st.measure) {
+      // cumulative text width per character (same font as the real textarea) so Remotion can reveal typing exactly
+      entry.measure = await page.evaluate((sel, text) => {
+        const t = document.querySelector(sel); const cs = getComputedStyle(t); const r = t.getBoundingClientRect();
+        const c = document.createElement('canvas').getContext('2d'); c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        return { x0: r.x + parseFloat(cs.paddingLeft || '0'), y: r.y, h: r.height, w: r.width, font: c.font, offsets: [...text].map((_, i) => c.measureText(text.slice(0, i + 1)).width) };
+      }, st.measure.selector, st.measure.text);
     }
     entry.pageH = await page.evaluate(() => document.documentElement.scrollHeight);
     await page.screenshot({ path: `${OUT}/${st.name}-full.png` });

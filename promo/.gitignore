@@ -2,3 +2,5 @@ node_modules/
 out/
 public/textures/
 public/audio/bgm/
+public/sample-tower.mp4
+public/audio/
