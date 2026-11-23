@@ -1,0 +1,5 @@
+{
+  "choosing-a-video": { "selector": "div:has(> h3:text-is(\"Choose a video to render\")), div:has(> div:text-is(\"Choose a video to render\")), div:has(> p:text-is(\"Choose a video to render\"))", "text": "Choose a video to render", "click": false },
+  "drafts-templates-and-saved-items": { "text": "Save Draft", "exact": true, "click": false },
+  "personalization-overlays": { "route": "personalizer", "selector": ".personalization-hub" }
+}

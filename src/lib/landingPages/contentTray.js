@@ -49,7 +49,7 @@ export function normalizeItems(items, normalize = (x) => x) {
  */
 export function routeContent(items, { prefer = null } = {}) {
   const list = Array.isArray(items) ? items : [];
-  let main = (prefer && list.find((i) => i.url === prefer))
+  const main = (prefer && list.find((i) => i.url === prefer))
     || list.find((i) => typeOfItem(i) === 'video')
     || list.find((i) => typeOfItem(i) === 'image')
     || null;

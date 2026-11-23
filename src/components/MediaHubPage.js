@@ -1,4 +1,4 @@
-// Media Hub — hosts the vendored upstream VidBee web app (apps/vidbee) in an iframe.
+// SmartVidDownloader (formerly Media Hub) — hosts the vendored upstream VidBee web app (apps/vidbee) in an iframe.
 // Like BrandStudioIframe this is a shell: all download / queue / RSS / transcription UI is upstream's.
 // Access: the backend gate (backend/services/vidbeeProxy.js) issues a short-lived cookie after auth + allowlist.
 import { mountStudioChrome } from '../lib/studioChrome.js';
@@ -27,20 +27,20 @@ export function MediaHubPage() {
   const note = document.createElement('div');
   note.className = 'flex-1 flex items-center justify-center text-center p-8 text-sm';
   note.style.color = '#a1a1aa';
-  note.textContent = 'Starting Media Hub…';
+  note.textContent = 'Starting SmartVidDownloader…';
   container.appendChild(note);
 
   (async () => {
     const base = backendBase();
     try {
       const token = await accessToken();
-      if (!token) throw new Error('Sign in to use Media Hub.');
+      if (!token) throw new Error('Sign in to use SmartVidDownloader.');
       const res = await fetch(`${base}/api/vidbee/session`, { method: 'POST', credentials: 'include', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Media Hub unavailable (${res.status})`);
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `SmartVidDownloader unavailable (${res.status})`);
       // Light / Dark / System is switched inside VidBee itself (title-bar button, or Settings → Theme).
       const iframe = document.createElement('iframe');
       iframe.src = `${base}/vidbee/`;
-      iframe.title = 'Media Hub';
+      iframe.title = 'SmartVidDownloader';
       iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;';
       iframe.setAttribute('allow', 'clipboard-write; fullscreen');
       note.replaceWith(iframe);

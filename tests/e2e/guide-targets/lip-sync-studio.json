@@ -1,0 +1,25 @@
+{
+  "video-mode": {
+    "selector": "xpath=//button[contains(normalize-space(.),'Video') and contains(.,'\ud83c\udfac')]",
+    "click": true
+  },
+  "model-selector": {
+    "selector": "#ls-model-btn",
+    "click": true
+  },
+  "resolution-picker": {
+    "selector": "#ls-resolution-btn",
+    "click": true
+  },
+  "pending-job-recovery-and-history": {
+    "setup": "localStorage.setItem('lipsync_history', JSON.stringify([{\"id\": \"g0\", \"url\": \"/media/awesome-seedance/videos/john1.mp4\", \"prompt\": \"Lip sync take 1\", \"model\": \"infinitetalk-image-to-video\", \"timestamp\": \"2026-11-18T10:00:00Z\"}, {\"id\": \"g1\", \"url\": \"/media/awesome-seedance/videos/vicky.mp4\", \"prompt\": \"Lip sync take 2\", \"model\": \"infinitetalk-image-to-video\", \"timestamp\": \"2026-11-18T11:00:00Z\"}, {\"id\": \"g2\", \"url\": \"/media/awesome-seedance/videos/john4.mp4\", \"prompt\": \"Lip sync take 3\", \"model\": \"infinitetalk-image-to-video\", \"timestamp\": \"2026-11-18T12:00:00Z\"}, {\"id\": \"g3\", \"url\": \"/media/outreach-sample/presenter.mp4\", \"prompt\": \"Lip sync take 4\", \"model\": \"infinitetalk-image-to-video\", \"timestamp\": \"2026-11-18T13:00:00Z\"}]))",
+    "selector": "#lipsync-history-sidebar",
+    "click": false
+  },
+  "result-actions": {
+    "setup": "new Promise((done) => { localStorage.setItem('lipsync_history', JSON.stringify([{\"id\": \"g0\", \"url\": \"/media/awesome-seedance/videos/john1.mp4\", \"prompt\": \"Lip sync take 1\", \"model\": \"infinitetalk-image-to-video\", \"timestamp\": \"2026-11-18T10:00:00Z\"}, {\"id\": \"g1\", \"url\": \"/media/awesome-seedance/videos/vicky.mp4\", \"prompt\": \"Lip sync take 2\", \"model\": \"infinitetalk-image-to-video\", \"timestamp\": \"2026-11-18T11:00:00Z\"}, {\"id\": \"g2\", \"url\": \"/media/awesome-seedance/videos/john4.mp4\", \"prompt\": \"Lip sync take 3\", \"model\": \"infinitetalk-image-to-video\", \"timestamp\": \"2026-11-18T12:00:00Z\"}, {\"id\": \"g3\", \"url\": \"/media/outreach-sample/presenter.mp4\", \"prompt\": \"Lip sync take 4\", \"model\": \"infinitetalk-image-to-video\", \"timestamp\": \"2026-11-18T13:00:00Z\"}])); location.hash = '#/apps'; setTimeout(() => { location.hash = '#/lipsync'; let n = 0; const iv = setInterval(() => { const v = document.querySelector('#lipsync-history-sidebar video'); if (!v && ++n < 80) return; clearInterval(iv); if (v) v.parentElement.click(); setTimeout(done, 3000); }, 250); }, 1500); })",
+    "reload": false,
+    "selector": "xpath=//button[normalize-space(.)='Publish to Social']/..",
+    "click": false
+  }
+}

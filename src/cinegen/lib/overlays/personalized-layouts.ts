@@ -39,6 +39,6 @@ export function createLayoutOverlays(layoutId: string, startSec: number, timelin
   })).length;
   return {
     ok: true, overlays, measureLogo: plan.some((i) => i.addon?.plate === 'auto'),
-    message: `Added ${layout.label}${missing ? `. ${missing} contact${missing === 1 ? ' has' : 's have'} no image for it yet (check contacts in the Export tab).` : '.'}`,
+    message: `Added ${layout.label}${missing ? `. ${missing} contact${missing === 1 ? ' has' : 's have'} no image for it yet (use Check contacts in this window).` : '.'}`,
   };
 }

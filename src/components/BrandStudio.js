@@ -3,13 +3,13 @@
 // Can run standalone or embedded via iframe.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { listBrands, saveBrand } from '../lib/brandStore.js';
+import { listBrands, saveBrand, resolveBrandId, listCampaigns, listAssets } from '../lib/brandStore.js';
 import { createSafeImage } from '../lib/security.js';
 import { analyzeBrand } from '../lib/brandAnalyzer.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
 import { createStudioHeader } from '../lib/thumbnails.js';
-import { createLoadingOverlay } from '../lib/loading.js';
+import { createLoadingOverlay, showToast } from '../lib/loading.js';
 import { navigate, isIframeMode } from '../lib/brandNavigation.js';
 
 export function BrandStudio() {
@@ -42,12 +42,24 @@ export function BrandStudio() {
   const toolsGrid = document.createElement('div');
   toolsGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
   const brandTools = [
+    { route: 'brand-kit', label: 'Brand Kit', description: 'Find a brand, then make a video' },
     { route: 'brand-dna', label: 'Brand DNA', description: 'Review and edit your brand identity' },
     { route: 'campaign', label: 'Campaigns', description: 'Create on-brand campaigns' },
     { route: 'asset-edit', label: 'Asset Editor', description: 'Edit campaign assets' },
     { route: 'photo-studio', label: 'Photo Studio', description: 'Create branded photos' },
     { route: 'animate', label: 'Animate', description: 'Animate branded creative assets' },
   ];
+  // The Asset Editor needs an asset: open the current brand's most recent one, or send the
+  // user to Campaign Studio to make some first.
+  const openLatestAsset = () => {
+    const brandId = resolveBrandId();
+    const assets = brandId ? listCampaigns(brandId).flatMap((c) => listAssets(c.id)) : [];
+    const latest = assets.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))).at(0);
+    if (latest) return navigate('asset-edit', { id: latest.id, brandId });
+    if (!brandId) return showToast('Analyze a brand first, then create a campaign to edit its assets', 'info');
+    showToast('Create a campaign first to edit its assets', 'info');
+    return navigate('campaign', { brandId });
+  };
   brandTools.forEach(({ route, label, description }) => {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -59,7 +71,10 @@ export function BrandStudio() {
     detail.className = 'text-xs text-secondary mt-2';
     detail.textContent = description;
     btn.append(title, detail);
-    btn.addEventListener('click', () => navigate(route));
+    btn.addEventListener('click', () => {
+      if (route === 'brand-kit') return import('./modals/BrandKitModal.js').then((m) => m.openBrandKitModal({ url: state.url }));
+      return route === 'asset-edit' ? openLatestAsset() : navigate(route);
+    });
     toolsGrid.appendChild(btn);
   });
   tools.appendChild(toolsGrid);

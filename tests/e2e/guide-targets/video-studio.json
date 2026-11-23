@@ -1,0 +1,59 @@
+{
+  "animate-image-image-to-video": {
+    "route": "image-to-video"
+  },
+  "edit-video-extend-uploaded-video-motion-transfer": {
+    "steps": [
+      {
+        "selector": "#v-workflow-btn",
+        "wait": 1800
+      }
+    ],
+    "selector": "xpath=//div[contains(@class,'cursor-pointer')]/span[normalize-space(.)='Edit video']/..",
+    "click": false
+  },
+  "keyframes-start-end": {
+    "steps": [
+      {
+        "selector": "#v-workflow-btn",
+        "wait": 1800
+      }
+    ],
+    "selector": "xpath=//div[contains(@class,'cursor-pointer')]/span[normalize-space(.)='Keyframes (start + end)']/..",
+    "click": false
+  },
+  "references": {
+    "steps": [
+      {
+        "selector": "#v-workflow-btn",
+        "wait": 1800
+      }
+    ],
+    "selector": "xpath=//div[contains(@class,'cursor-pointer')]/span[normalize-space(.)='References']/..",
+    "click": false
+  },
+  "extend-upscale-to-4k": {
+    "setup": "new Promise((done) => { localStorage.setItem('video_history', JSON.stringify([{\"id\": \"3f2b6c1e-8a4d-4b7e-9c2a-1d5e6f7a8b9c\", \"url\": \"/media/awesome-seedance/videos/john1.mp4\", \"prompt\": \"A lone rider crosses a neon-lit desert highway at dusk\", \"model\": \"veo3.1-text-to-video\", \"resolution\": \"720p\", \"timestamp\": \"2026-11-18T10:00:00Z\"}, {\"id\": \"7a1c2e3f-4b5d-4c6e-8f9a-0b1c2d3e4f5a\", \"url\": \"/media/awesome-seedance/videos/vicky.mp4\", \"prompt\": \"Night market chase\", \"model\": \"veo3.1-text-to-video\", \"resolution\": \"720p\", \"timestamp\": \"2026-11-18T09:00:00Z\"}, {\"id\": \"9c8b7a6f-5e4d-4c3b-8a2f-1e0d9c8b7a6f\", \"url\": \"/media/awesome-seedance/videos/john4.mp4\", \"prompt\": \"Vault close-up\", \"model\": \"veo3.1-text-to-video\", \"resolution\": \"720p\", \"timestamp\": \"2026-11-18T08:00:00Z\"}])); location.hash = '#/apps'; setTimeout(() => { location.hash = '#/video'; let n = 0; const iv = setInterval(() => { const v = document.querySelector('#video-history-sidebar video'); if (!v && ++n < 80) return; clearInterval(iv); if (v) v.parentElement.click(); setTimeout(done, 3500); }, 250); }, 1500); })",
+    "reload": false,
+    "selector": "xpath=//button[starts-with(normalize-space(.),'\u2197 Extend')]",
+    "click": true
+  },
+  "result-actions": {
+    "setup": "new Promise((done) => { localStorage.setItem('video_history', JSON.stringify([{\"id\": \"3f2b6c1e-8a4d-4b7e-9c2a-1d5e6f7a8b9c\", \"url\": \"/media/awesome-seedance/videos/john1.mp4\", \"prompt\": \"A lone rider crosses a neon-lit desert highway at dusk\", \"model\": \"veo3.1-text-to-video\", \"resolution\": \"720p\", \"timestamp\": \"2026-11-18T10:00:00Z\"}, {\"id\": \"7a1c2e3f-4b5d-4c6e-8f9a-0b1c2d3e4f5a\", \"url\": \"/media/awesome-seedance/videos/vicky.mp4\", \"prompt\": \"Night market chase\", \"model\": \"veo3.1-text-to-video\", \"resolution\": \"720p\", \"timestamp\": \"2026-11-18T09:00:00Z\"}, {\"id\": \"9c8b7a6f-5e4d-4c3b-8a2f-1e0d9c8b7a6f\", \"url\": \"/media/awesome-seedance/videos/john4.mp4\", \"prompt\": \"Vault close-up\", \"model\": \"veo3.1-text-to-video\", \"resolution\": \"720p\", \"timestamp\": \"2026-11-18T08:00:00Z\"}])); location.hash = '#/apps'; setTimeout(() => { location.hash = '#/video'; let n = 0; const iv = setInterval(() => { const v = document.querySelector('#video-history-sidebar video'); if (!v && ++n < 80) return; clearInterval(iv); if (v) v.parentElement.click(); setTimeout(done, 3500); }, 250); }, 1500); })",
+    "reload": false,
+    "selector": "xpath=//button[normalize-space(.)='\ud83c\udfac Open in Render']/..",
+    "click": false
+  },
+  "video-watermark-removal": {
+    "selector": "button[aria-label=\"Upload video to remove watermark\"], button[title=\"Upload video to remove watermark\"]",
+    "click": false
+  },
+  "advanced-native-audio-and-character-lock": {
+    "selector": "#v-advanced-btn",
+    "click": true
+  },
+  "motion-and-style-panel": {
+    "selector": "#v-motion-style-btn",
+    "click": true
+  }
+}

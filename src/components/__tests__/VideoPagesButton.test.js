@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+/* global EventTarget */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const picker = vi.hoisted(() => ({ open: vi.fn() }));

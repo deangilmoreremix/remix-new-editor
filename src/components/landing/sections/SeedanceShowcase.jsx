@@ -11,7 +11,6 @@ import {
   formatDuration,
   loadDemoPrompt,
   getCreateTarget,
-  ratioToNumber,
 } from '../../../data/seedanceDemos.js';
 import { createMediaFrame, cleanupFrames, pauseFramesIn, revealOnScroll } from './minimax/mediaFrame.js';
 import {
@@ -45,8 +44,8 @@ function createGalleryCard(demo) {
 
     <div class="flex flex-1 flex-col p-4">
       <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400/80">${escapeHtml(demo.category)}</span>
-      <h3 class="mt-1.5 text-sm font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
-      <p class="mt-1 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(demo.useCase)}</p>
+      <h3 class="mt-1.5 line-clamp-2 break-words text-sm font-bold leading-snug text-white" title="${escapeHtml(demo.title)}">${escapeHtml(demo.title)}</h3>
+      <p class="mt-1 line-clamp-2 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(demo.useCase)}</p>
       <div class="mt-4 flex flex-col items-center gap-2" data-mmx-card-actions>
         <div class="flex flex-wrap items-center justify-center gap-2" data-mmx-primary-actions></div>
         <div class="flex items-center justify-center gap-1.5" data-mmx-studio-icons></div>
@@ -57,7 +56,7 @@ function createGalleryCard(demo) {
   const mediaHost = card.querySelector('[data-mmx-card-media]');
   const frame = createMediaFrame(demo, {
     mode: 'hover',
-    ratio: ratioToNumber(demo.aspectRatio),
+    ratio: 16 / 9, // uniform media box so card rows stay aligned
     className: 'w-full',
     ariaLabel: `${demo.title} — ${demo.useCase}`,
   });

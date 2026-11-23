@@ -18,8 +18,8 @@ import { notifyGeneration } from '../../studio/generationNotifications.js';
 import { call, runJob, pollJob, pool } from '../../../lib/zackd/api.js';
 import { runAssembly, buildSrt, DEFAULT_TRANSITION_SEC } from '../../../lib/zackd/assemble.js';
 import { TEMPLATES, TEMPLATE_ATTRIBUTION, templateToProject } from '../../../lib/zackd/templates.js';
-import {
 import { openLandingPageFor } from '../../studio/landingPageAction.js';
+import {
   SEED_TOPICS, LOOKS, DEFAULT_LOOK, TTS_VOICES, DEFAULT_VOICE, DEFAULT_TTS_SPEED, UPSTREAM_VOICE, DEFAULT_EXTRAS,
   characterSheetPrompt, keyframePrompt, clipPrompt, narrationText, allShots, totalDuration,
 } from '../../../../netlify/functions/_shared/zackdPrompts.js';

@@ -1,5 +1,17 @@
 import { openCaptionStudio } from '../captionStudio/modal.js';
 import { openaiConfig } from '../config/openaiConfig.js';
+import { loadGenerationHistory } from '../generationHistory.js';
+
+const asCard = (h, studio) => ({ id: h.id, url: h.url, title: h.prompt, studio: studio || h.studio, createdAt: h.timestamp || h.created_at });
+/** "Your videos": every video the studios saved to the generation history (this device, plus the cloud copy when signed in). */
+const videoLibrary = async () => (await loadGenerationHistory()).filter((h) => h.type === 'video' && h.url).map((h) => asCard(h));
+/** A studio just saved a video (`generation:saved`): the open Caption Studio adds it to "Your videos". */
+const watchVideos = (cb) => {
+  if (typeof window === 'undefined') return () => {};
+  const on = (e) => { const en = e?.detail?.entry; if (en?.type === 'video' && en.url) cb(asCard(en, e.detail.studio)); };
+  window.addEventListener('generation:saved', on);
+  return () => window.removeEventListener('generation:saved', on);
+};
 
 /**
  * Open the free Caption Studio (host adapter for remix-new-editor; the studio itself lives in src/lib/captionStudio and is shared
@@ -19,7 +31,7 @@ export function addCaptionButton(opts = {}) {
   // Older call sites passed a full language name ("English") for the paid service; Whisper takes a code or 'auto'.
   const lang = /^[a-z]{2}$/.test(language) || language === 'auto' ? language : 'auto';
   return openCaptionStudio({
-    videoUrl, language: lang, captions, style,
+    videoUrl, language: lang, captions, style, videoLibrary, watchVideos, sampleImage: '/library-previews/sample-in.jpg', lookImage: (key) => `/caption-looks/${key}.webp`,
     accentColor: openaiConfig.getStudioColorScheme(appTheme)?.primary,
     onComplete: typeof onComplete === 'function' ? (url) => onComplete(url) : undefined,
     onApply: typeof onApply === 'function' ? (payload) => onApply(payload) : undefined,

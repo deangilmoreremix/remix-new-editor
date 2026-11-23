@@ -18,6 +18,7 @@ import { createDefaultTimeline } from '@cinegen/lib/editor/timeline-operations';
 import { migrateSequenceToTimelines } from '@cinegen/lib/editor/timeline-migration';
 import { migrateLoadedTimelines, PROJECT_SCHEMA_VERSION } from '@cinegen/lib/editor/project-migrations'; // [remix] Fix E: versioned load migrations
 import { TopTabs, type LlmCopilotNavStatus } from './top-tabs';
+import { requestRetarget } from '@cinegen/lib/leads/open-retarget';
 import { WorkspaceLoadingState } from './workspace-loading-state';
 import { useCloudAuthRecovery } from './use-cloud-auth-recovery';
 import { ElementsTab } from '@cinegen/components/elements/elements-tab';
@@ -332,6 +333,12 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
       setLlmCopilotStatus((current) => ({ ...current, hasUnreadResponse: false }));
     }
     wrappedDispatch({ type: 'SET_TAB', tab });
+  }, [wrappedDispatch]);
+
+  // [remix] The header's Retarget button: Analytics > Retarget for the video that is open.
+  const handleOpenRetarget = useCallback(() => {
+    requestRetarget(); // before the tab switch: a tab that mounts afterwards reads the request on mount
+    wrappedDispatch({ type: 'SET_TAB', tab: 'analytics' });
   }, [wrappedDispatch]);
 
   // [remix] The header bell (alerts) opens this project's Analytics tab, which shows the alerts.
@@ -1420,6 +1427,7 @@ export function WorkspaceShell({ projectId, useSqlite = false, onBackToHome }: {
         }}
         voiceDirectorOpen={voiceDirectorOpen}
         onToggleVoiceDirector={toggleVoiceDirector}
+        onOpenRetarget={handleOpenRetarget}
       />
       <main className="workspace-content" aria-busy={!hydrationComplete}>
         {hydrationError ? (

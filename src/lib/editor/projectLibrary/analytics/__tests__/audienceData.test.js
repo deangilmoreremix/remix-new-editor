@@ -20,6 +20,23 @@ describe('audienceRows', () => {
     expect(a.countries[0].label).toBe('United States');
     expect(a.countries[1]).toMatchObject({ key: null, label: 'Unknown' });
   });
+  it('shares are against ALL sessions, not just the top ten rows the database returns', () => {
+    // 100 sessions in total (devices); the database returned only 3 referrers (5 sessions each = 15) because it keeps the top ten
+    const many = [
+      { dimension: 'device', key: 'mobile', sessions: 60 }, { dimension: 'device', key: 'desktop', sessions: 40 },
+      ...[1, 2, 3].map((i) => ({ dimension: 'referrer', key: `r${i}.com`, sessions: 5 })),
+      ...[1, 2].map((i) => ({ dimension: 'country', key: i === 1 ? 'US' : 'DE', sessions: 10 })),
+    ];
+    const a = audienceRows(many);
+    expect(a.total).toBe(100);
+    expect(a.referrers.map((r) => r.sharePercent)).toEqual([5, 5, 5]);   // not 33
+    expect(a.countries.map((r) => r.sharePercent)).toEqual([10, 10]);    // not 50
+    expect(a.devices.map((r) => r.sharePercent)).toEqual([60, 40]);
+  });
+  it('with no device rows the shares fall back to the list\'s own total', () => {
+    const a = audienceRows([{ dimension: 'referrer', key: 'a.com', sessions: 3 }, { dimension: 'referrer', key: 'b.com', sessions: 1 }]);
+    expect(a.referrers.map((r) => r.sharePercent)).toEqual([75, 25]);
+  });
   it('handles empty / bad input', () => {
     expect(audienceRows(null)).toEqual({ referrers: [], devices: [], countries: [], total: 0 });
     expect(audienceRows([{ dimension: 'device', key: 'tablet', sessions: 0 }]).devices).toEqual([]);
