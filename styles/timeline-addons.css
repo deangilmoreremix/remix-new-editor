@@ -1710,3 +1710,6 @@
 .addon-overlay-layer .retarget-form[data-design] .optin-badge { margin-bottom: .3em; }
 .addon-overlay-layer .retarget-form[data-design] .privacy-disclaimer { line-height: 1.25; margin-top: .3em; }
 .addon-overlay-layer .retarget-form[data-design] .optin-steps { margin-top: .3em; }
+/* keep the ticket's punched notches clear of the content */
+.addon-overlay-layer .retarget-form[data-design="ticket-invitation"] .optin-side { padding-left: 1.6em; }
+.addon-overlay-layer .retarget-form[data-design="ticket-invitation"] .optin-main { padding-right: 1.6em; box-sizing: border-box; }
