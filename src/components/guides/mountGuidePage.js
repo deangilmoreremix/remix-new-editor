@@ -53,7 +53,7 @@ export function mountGuidePage(app, slug) {
   app.innerHTML = guide ? renderGuideHtml(guide, GUIDES.length) : renderHubHtml(GUIDES_BY_CATEGORY, GUIDES.length, slug && !guide ? slug : '');
   applyHead(guideHead(guide, window.location.origin, GUIDES_BY_CATEGORY));
 
-  const hash = window.location.hash.slice(1);
+  const hash = window.location.hash.slice(1); // an in-page anchor; `#/route` hashes are routes, not anchors
   if (hash && !hash.startsWith('/')) document.getElementById(hash)?.scrollIntoView();
   else window.scrollTo(0, 0);
 

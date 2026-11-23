@@ -430,7 +430,8 @@ function securityHeaders() {
         configureServer(server) {
             server.middlewares.use((req, res, next) => {
                 const url = req.url || '';
-                if (url.startsWith('/ai-vfx')) {
+                // The bare /ai-vfx path is the in-app studio route (the SPA); only /ai-vfx/* is the vendored sub-app.
+                if (url.startsWith('/ai-vfx/')) {
                     return next();
                 }
                 // The Remotion export runner sets its own (stricter) CSP via
@@ -1169,7 +1170,7 @@ export default defineConfig({
 
             server.middlewares.use((req, res, next) => {
               const url = req.url || '';
-              if (url.startsWith('/ai-vfx/') || url === '/ai-vfx') {
+              if (url.startsWith('/ai-vfx/')) {
                 const relativePath = url.replace('/ai-vfx', '').replace(/^\//, '') || 'index.html';
                 const filePath = path.join(aiVfxOutDir, relativePath);
                 if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
@@ -1348,10 +1349,13 @@ export default defineConfig({
             // Media Hub: vendored VidBee, gated by the Express backend (see backend/services/vidbeeProxy.js).
             '/vidbee': { target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001', changeOrigin: true },
             '/api/vidbee': { target: process.env.VITE_BACKEND_PROXY || 'http://localhost:3001', changeOrigin: true },
+            // `/ai-vfx` is also a studio route of the SPA (/ai-vfx?public=1 on the landing page): a
+            // page load of the bare path belongs to the SPA; everything under /ai-vfx/ is the sub-app.
             '/ai-vfx': {
                 target: 'http://localhost:3000',
                 changeOrigin: true,
                 ws: true,
+                bypass: (req) => (/^\/ai-vfx\/?(\?|$)/.test(req.url || '') && (req.headers.accept || '').includes('text/html') ? '/index.html' : undefined),
             },
             '/_next/static': {
                 target: 'http://localhost:3000',

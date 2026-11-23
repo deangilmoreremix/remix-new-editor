@@ -174,6 +174,12 @@ let currentPageEl = null;
 let contentArea = null;
 let onNavigateCallback = null;
 let isNavigating = false;
+let currentSearch = '';
+
+/** True when `page` (with the current query string) is already the page on screen. */
+export function isCurrentRoute(page) {
+  return currentPage === (RETIRED_ROUTES[page] || page) && currentSearch === (window.location.search || '');
+}
 
 export function getQueryParam(name) {
   if (typeof window === 'undefined') return '';
@@ -186,7 +192,12 @@ export function initRouter(container, callback) {
   onNavigateCallback = callback;
 }
 
-export async function navigate(page, params = {}) {
+/**
+ * Opens a page. `opts.history` controls the address bar: 'push' (default) adds an entry,
+ * 'replace' swaps the current one (first load), 'none' leaves it alone (Back/Forward and
+ * hand-edited URLs, where the browser already moved the URL).
+ */
+export async function navigate(page, params = {}, opts = {}) {
   if (!contentArea) return;
 
   // Prevent concurrent navigation to avoid infinite loops
@@ -202,7 +213,10 @@ export async function navigate(page, params = {}) {
   // Update URL with params so components can read them via URLSearchParams
   const searchParams = new URLSearchParams(params).toString();
   const newUrl = searchParams ? `/?${searchParams}#/${page}` : `/#/${page}`;
-  window.history.pushState({}, '', newUrl);
+  const mode = opts.history || 'push';
+  if (mode === 'push') window.history.pushState({}, '', newUrl);
+  else if (mode === 'replace') window.history.replaceState({}, '', newUrl);
+  currentSearch = window.location.search || '';
 
   currentPageEl?.cleanup?.();
   currentPageEl = null;
