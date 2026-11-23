@@ -50,7 +50,8 @@ async function startLiveCalls({ button, videoId, contactId, host, analytics, pla
     onUpdate: (st) => {
       who = st.hostName || host || 'us';
       const free = st.hostOnline && (st.phase === 'idle' || ['missed', 'declined', 'ended', 'failed'].includes(st.phase));
-      button.hidden = !st.hostOnline && !win;
+      const inCall = ['ringing', 'connecting', 'live'].includes(st.phase);
+      button.hidden = !st.hostOnline && !inCall;
       button.disabled = !free;
       label.textContent = st.error || (st.hostOnline ? `Talk live with ${who} now` : `${who} is away`);
       if (win) win.update(st);
