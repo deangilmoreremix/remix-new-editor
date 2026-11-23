@@ -18,6 +18,13 @@ interface GenerationsPanelProps {
 
 type FilterType = 'all' | 'images' | 'video' | 'audio' | 'avatar' | '3d';
 
+/** Put a finished picture or video on a landing page (opens the picker and editor with it loaded). */
+async function openLanding(item: { url: string; type: string; prompt: string }) {
+  // @ts-expect-error plain JS module
+  const m = (await import('../../studio/landingPageAction.js')) as { openLandingPageFor: (i: unknown) => Promise<boolean> }
+  await m.openLandingPageFor({ ...item, studio: 'smartvideo' })
+}
+
 export default function GenerationsPanel({ jobs, loading, onRetry, onDelete, onUseAsInput }: GenerationsPanelProps) {
   const [filter, setFilter] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -166,6 +173,18 @@ export default function GenerationsPanel({ jobs, loading, onRetry, onDelete, onU
                       >
                         ↗️
                       </button>
+                      {(outputType === 'image' || outputType === 'video') && typeof job.output === 'string' && /^https:\/\//i.test(job.output) && (
+                        <button
+                          type="button"
+                          data-action="create-landing-page"
+                          onClick={() => { void openLanding({ url: String(job.output), type: /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(String(job.output)) ? 'video' : outputType, prompt: String(job.input.prompt || '') }) }}
+                          className="generation-action-btn"
+                          title="Create landing page"
+                          aria-label="Create landing page"
+                        >
+                          ▤
+                        </button>
+                      )}
                     </>
                   )}
                   <button

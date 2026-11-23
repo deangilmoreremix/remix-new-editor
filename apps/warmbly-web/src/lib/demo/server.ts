@@ -72,6 +72,14 @@ function mutate(method: string, path: string, body: unknown): DemoResponse {
         for (const e of store.values()) for (const o of objectsWithId(e.b, id)) { Object.assign(o, payload, { updated_at: new Date().toISOString() }); last = o; }
         return json(200, last ?? { id, ...payload });
     }
+    // POST /parents/:id/stages (a plural noun) creates a child of that parent; POST /parents/:id/start is an action.
+    if (method === "POST" && id && tail.length === 1 && /s$/.test(tail[0])) {
+        const child = { id: uuid(), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...payload };
+        for (const e of store.values()) for (const o of objectsWithId(e.b, id)) {
+            if (Array.isArray(o[tail[0]])) (o[tail[0]] as unknown[]).push(child); else o[tail[0]] = [child];
+        }
+        return json(201, child);
+    }
     if (method === "POST" && id && tail.length > 0) {
         const action = tail[tail.length - 1];
         const status = ({ start: "active", resume: "active", pause: "paused", stop: "stopped", archive: "archived", complete: "completed" } as Record<string, string>)[action];

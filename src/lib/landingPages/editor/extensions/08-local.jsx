@@ -13,10 +13,10 @@ const iconField = { type: 'select', label: 'Icon', options: ICON_KEYS.map((k) =>
 const imgField = T('Custom icon image URL (optional, replaces the icon)');
 const art = (v) => safeImageUrl(v) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(v || '')) ? String(v) : '');
 const Pic = ({ image, icon, className }) => (art(image) ? <img className={className} src={art(image)} alt="" width="56" height="56" /> : <Icon name={icon} className={`${className} lc-svg`} />);
-function LocalIndustries({ title, text, tiles, more }) {
+function LocalIndustries({ title, text, tiles, more, sectionName }) {
   const t = useTokens();
   return (
-    <section className="lc-ind" aria-label="Industries">
+    <section className="lc-ind" aria-label={t(sectionName) || 'Industries'}>
       <div className="lc-ind-in">
         <div className="lc-ind-intro">
           <AccentText as="h2" className="lc-ind-title" text={title} />
@@ -106,9 +106,9 @@ const art8 = (k) => `/landing-art/08/${k}.webp`;
 export const components = {
   LocalIndustries: {
     label: 'Local: industry tiles',
-    fields: { title: A('Heading ([[double brackets]] underline words)'), text: A('Text'), tiles: { type: 'array', label: 'Tiles', arrayFields: { label: T('Label'), icon: iconField, image: imgField }, getItemSummary: (i) => i.label || 'Tile', defaultItemProps: { label: 'Industry', icon: 'star', image: '' } }, more: A('Handwritten note at the end') },
+    fields: { sectionName: T('Screen-reader name of this section'), title: A('Heading ([[double brackets]] underline words)'), text: A('Text'), tiles: { type: 'array', label: 'Tiles', arrayFields: { label: T('Label'), icon: iconField, image: imgField }, getItemSummary: (i) => i.label || 'Tile', defaultItemProps: { label: 'Industry', icon: 'star', image: '' } }, more: A('Handwritten note at the end') },
     defaultProps: {
-      title: 'Built for\nLocal & [[Service]]\nBusinesses', text: 'A simple, powerful way to connect with more people in your area.',
+      sectionName: 'Industries', title: 'Built for\nLocal & [[Service]]\nBusinesses', text: 'A simple, powerful way to connect with more people in your area.',
       tiles: TILES.map(([label, icon, k]) => ({ label, icon, image: art8(k) })), more: 'And many more!',
     },
     render: (p) => <LocalIndustries {...p} />,

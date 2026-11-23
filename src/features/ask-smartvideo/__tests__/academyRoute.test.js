@@ -46,6 +46,12 @@ describe('academy route', () => {
     expect(academyKey('academyfoo')).toBe('academyfoo');
   });
 
+  it('opens nested SmartWarmupAI Help deep links in the studio, not the placeholder', () => {
+    expect(academyKey('smartwarmupai/help/guides/mailboxes/')).toBe('smartwarmupai');
+    expect(academyKey('smartwarmupai/help')).toBe('smartwarmupai');
+    expect(academyKey('smartwarmupaifoo')).toBe('smartwarmupaifoo');
+  });
+
   it('mounts the Academy hub for #/academy', async () => {
     await navigate('academy');
     await vi.waitFor(() => expect(area.textContent).toContain('AI Creator Academy'));

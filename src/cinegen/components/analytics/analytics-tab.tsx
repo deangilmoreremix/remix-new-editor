@@ -8,6 +8,7 @@ import { usePublished, getClient } from '@cinegen/components/leads/use-publish';
 import { buildPublishState } from '@cinegen/lib/leads/publish-state';
 import { PublishedOverview } from '@cinegen/components/overview/published-overview';
 import { SampleAnalytics } from './sample-analytics';
+import { DemoVideos, DemoRestore, useDemosHidden } from './demo-videos';
 import { captureRowThumbnail } from '@cinegen/lib/leads/thumbnail';
 import { ensureProjectRow, linkVideoToProject, linkedProjectId, rowName } from '@cinegen/lib/leads/project-link';
 import { openCinegenFollowup } from '@cinegen/lib/leads/followup-project';
@@ -33,6 +34,8 @@ export function AnalyticsTab() {
   const [toast, setToast] = useState('');
   const [rowId, setRowId] = useState<string | null>(null); // this timeline's project row (one per published timeline)
   const [retry, setRetry] = useState(0);
+  const [demosHidden] = useDemosHidden();
+  const [demoId, setDemoId] = useState<string | null>(null); // the demo video that is open (its own Analytics screen), if any
   const hostRef = useRef<HTMLDivElement>(null);
   const tl = state.timelines.find((t) => t.id === state.activeTimelineId) ?? state.timelines[0];
   const latest = useRef({ tl, state, title: pub.title }); latest.current = { tl, state, title: pub.title };
@@ -136,7 +139,10 @@ export function AnalyticsTab() {
 
   return (
     <div className="cg-analytics" data-testid="analytics-tab">
-      {!pub.signedIn ? empty('Sign in to see analytics', 'Viewer data belongs to your account.')
+      {/* [remix] Three demo videos with sample viewers, so the screens can be tried before anything is published. */}
+      {demosHidden ? <DemoRestore /> : <DemoVideos openId={demoId} onOpen={setDemoId} />}
+      {!demosHidden && demoId ? null
+        : !pub.signedIn ? empty('Sign in to see analytics', 'Viewer data belongs to your account.')
         : !pub.loaded || linked === 'checking' ? <div className="cg-analytics__empty" aria-busy="true"><p>Loading…</p></div>
         : !pub.info ? empty('Publish this video first', 'Viewer data is collected on the published video page. Publish it, share the link, and plays, watch time, clicks and forms show up here.', true)
         : linked === 'unavailable' ? failed(toast || 'This project could not be linked to its published video.')

@@ -8,9 +8,11 @@ import { createRoot } from 'react-dom/client';
 import { Puck as PageEditor, Render } from '@page-editor/core';
 import '@page-editor/core/no-external.css';
 import '../../../../styles/page-editor.css';
+import '../../../../styles/page-editor-theme.css'; // dark chrome (.rx-editor) + the shared accent variables
 // One stylesheet per design (styles/page-editor/NN-name.css), loaded AFTER the base styles so a design can override them.
 import './designCss.js';
 import { PageContext } from './context.js';
+import { pageStyleHint } from './styleHint.js';
 import { editorConfig } from './config.jsx';
 
 export function mountEditablePage(container, { page, data, tokens = {}, handlers = {}, preview = false }) {
@@ -23,11 +25,14 @@ export function mountEditablePage(container, { page, data, tokens = {}, handlers
   return { destroy: () => root.unmount() };
 }
 
-export function mountPageEditor(container, { page, data, tokens = {}, onChange, onPublish }) {
+export function mountPageEditor(container, { page, data, tokens = {}, onChange, onPublish, getTray = () => [] }) {
   const root = createRoot(container);
+  // The page's current look (accent, background, text, dark or light), kept up to date as it is edited, for the AI buttons.
+  const look = { current: pageStyleHint(data?.root) };
+  const track = (d) => { look.current = pageStyleHint(d?.root); onChange?.(d); };
   root.render(
-    <PageContext.Provider value={{ page, tokens, handlers: {}, preview: true }}>
-      <PageEditor config={editorConfig} data={data} onChange={onChange} onPublish={onPublish} />
+    <PageContext.Provider value={{ page, tokens, handlers: {}, preview: true, getStyle: () => look.current, getTray }}>
+      <PageEditor config={editorConfig} data={data} onChange={track} onPublish={onPublish} />
     </PageContext.Provider>,
   );
   return { destroy: () => root.unmount() };

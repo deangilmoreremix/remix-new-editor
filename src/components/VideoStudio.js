@@ -42,6 +42,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
+import { openLandingPageFor } from './studio/landingPageAction.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -111,6 +112,9 @@ export function VideoStudio() {
 
     // Read gallery / deep-link params and apply them as studio defaults.
     // This lets "Create This Style" from ExampleGallery pre-fill the studio.
+    // The prompt textarea does not exist yet at this point, so the prompt is
+    // kept here and applied when the textarea is built (see videoPrefill below).
+    let deepLinkPrompt = '';
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const templateParam = urlParams.get('template');
@@ -147,10 +151,7 @@ export function VideoStudio() {
         // Academy / direct-studio deep-link.
         const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
         const params = target?.params || {};
-        if (params.prompt) {
-          const textarea = document.getElementById('v-v-prompt-textarea');
-          if (textarea) textarea.value = params.prompt;
-        }
+        deepLinkPrompt = params.prompt || promptParam || '';
         if (params.style) selectedStyle = params.style;
         if (params.aspect_ratio) selectedAr = params.aspect_ratio;
         if (params.duration) selectedDuration = params.duration;
@@ -590,6 +591,7 @@ export function VideoStudio() {
             stagedAspectRatio = staged.params?.aspectRatio || null;
         }
     }
+    if (!videoPrefill && deepLinkPrompt) videoPrefill = deepLinkPrompt;
     if (videoPrefill) {
         textarea.value = videoPrefill;
         requestAnimationFrame(() => {
@@ -1647,7 +1649,7 @@ generateBtn.type = 'button';
 
     // Shared result bar: Download MP4, Get link (file URL + /watch page) and Publish to Social. setUrl() keeps
     // all three on the current video (including after captions).
-    const resultBar = createResultBar({ kind: 'video', filename: 'video', studio: 'video' });
+    const resultBar = createResultBar({ kind: 'video', filename: 'video', studio: 'video', extraActions: [{ id: 'video-landing-page', label: 'Create landing page', onClick: (url) => { if (url) void openLandingPageFor({ url, type: 'video', studio: 'video' }); } }] });
     resultBar.el.classList.add('w-full');
     canvasControls.appendChild(resultBar.el);
 
