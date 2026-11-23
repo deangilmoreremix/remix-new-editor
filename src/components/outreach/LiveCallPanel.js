@@ -10,10 +10,11 @@ const CSS = `
 .svlive-local{position:absolute;right:8px;bottom:8px;width:30%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:#222}
 .svlive-status{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:16px;font-weight:600}
 .svlive-bar{display:flex;gap:8px;padding:10px;justify-content:center}
-.svlive-btn{border:0;border-radius:999px;padding:8px 14px;font:inherit;font-weight:700;cursor:pointer;background:rgba(255,255,255,.12);color:#fff}
-.svlive-btn[aria-pressed=true]{background:rgba(255,255,255,.3)}
-.svlive-end{background:#e5484d}
-.svlive-ok{background:#2fb344}
+.svlive-btn{border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:7px 14px;font:inherit;font-weight:700;cursor:pointer;background:transparent;color:#fff}
+.svlive-btn:hover{border-color:rgba(255,255,255,.6)}
+.svlive-btn[aria-pressed=true]{border-color:#d9ff00;color:#d9ff00}
+.svlive-end{border-color:#e5484d;color:#ff8a8d}
+.svlive-ok{border-color:#2fb344;color:#6ee787}
 .svlive-ring{position:fixed;inset:auto 16px 16px auto;margin:0;z-index:2147483001;width:min(320px,calc(100vw - 32px));border-radius:16px;border:1px solid rgba(217,255,0,.45);background:#13160c;color:#fff;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.55);font:14px/1.4 system-ui,-apple-system,Segoe UI,sans-serif}
 .svlive-ring p{margin:0 0 12px}
 .svlive-pulse{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2fb344;margin-right:8px;animation:svlive-p 1.2s ease-in-out infinite}
