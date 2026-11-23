@@ -7,7 +7,7 @@ import './styles/studio-tooltip.css';
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
 // real error surfaces in the dev-tools console if any step fails.
 import { initPopcorn } from './lib/popcornInit.js';
-import { parseLocation } from './lib/routeUrl.js';
+import { parseLocation, installLinkInterceptor } from './lib/routeUrl.js';
 const IS_WATCH_PAGE = /^(watch|v|p)\//.test(parseLocation().page);
 // The public video player (/watch/<id>, /v/<business>/<slug>) and landing pages (/p/<slug>) don't use Popcorn.
 (IS_WATCH_PAGE ? Promise.resolve(null) : initPopcorn()).then(() => {
@@ -19,7 +19,7 @@ const IS_WATCH_PAGE = /^(watch|v|p)\//.test(parseLocation().page);
 
 import { Header } from './components/Header.js';
 import { Sidebar } from './components/Sidebar.js';
-import { initRouter, navigate, getCurrentPage, isCurrentRoute } from './lib/router.js';
+import { initRouter, navigate, getCurrentPage, isCurrentRoute, isKnownPage } from './lib/router.js';
 import { mountAskSmartVideo } from './features/ask-smartvideo/AskSmartVideo.js';
 import { mountGenerationNotifications } from './components/studio/generationNotifications.js';
 import { mountStudioTooltips } from './components/studio/tooltipLayer.js';
@@ -270,6 +270,8 @@ try {
     if (page === 'landing' || isCurrentRoute(page)) return;
     navigate(page, params, { history: 'none' });
   };
+  // Links to app pages (/image, #/image, /?a=1#/image) open in-app instead of reloading.
+  installLinkInterceptor({ navigate: (page, params) => navigate(page, params), isKnownPage });
   window.addEventListener('popstate', syncFromLocation);
   window.addEventListener('hashchange', syncFromLocation);
 

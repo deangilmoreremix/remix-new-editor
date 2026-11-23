@@ -33,7 +33,7 @@ describe('immediate owner e-mail', () => {
     const mail = s.adapter.send.mock.calls[0][0];
     expect(mail).toMatchObject({ to: ADDRESS, subject: 'New lead: Ana signed up', idempotencyKey: ID });
     expect(mail.text).toContain('Say hello.');
-    expect(mail.text).toContain('Open alerts: https://smartvid.app/?alerts=1#/timeline');
+    expect(mail.text).toContain('Open alerts: https://smartvid.app/timeline?alerts=1');
     expect(mail.html).toContain('Open alerts');
     expect(s.sb.db.notification_email_queue).toHaveLength(1);
     expect(s.sb.db.notification_email_queue[0]).toMatchObject({ notification_id: ID, clerk_user_id: 'user_1', status: 'sent', attempts: 1 });
@@ -41,7 +41,7 @@ describe('immediate owner e-mail', () => {
   it('uses APP_URL for the link when it is set', async () => {
     const s = setup({ env: { ...PUSH_ENV, APP_URL: 'https://app.example.test' } });
     await s.go();
-    expect(s.adapter.send.mock.calls[0][0].text).toContain('Open alerts: https://app.example.test/?alerts=1#/timeline');
+    expect(s.adapter.send.mock.calls[0][0].text).toContain('Open alerts: https://app.example.test/timeline?alerts=1');
   });
   it('email off: nothing queued or sent', async () => {
     const s = setup({ prefs: { ...PREFS, email: false } });

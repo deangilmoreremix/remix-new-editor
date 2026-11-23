@@ -4,7 +4,7 @@
 // user's own OpenAI key). Source chips navigate with the SPA router, so the
 // conversation survives moving between studios; history is kept in
 // sessionStorage for the tab.
-import { onRouteChange } from '../../lib/routeUrl.js';
+import { onRouteChange, goTo } from '../../lib/routeUrl.js';
 import { apiKeyManager } from '../../lib/apiKeyManager.js';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 import { ENDPOINT, studioLabel, studioForRoute, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
@@ -271,8 +271,8 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
       return;
     }
     // On a public guide page there is no app shell: go to the app page itself.
-    if (onGuidePage) { window.location.href = `/${String(url).startsWith('#') ? url : `#/${url}`}`; return; }
-    if (isAcademyUrl(url)) window.location.hash = url; // the Academy page parses its own hash path
+    if (onGuidePage) { window.location.href = `/${String(url).replace(/^#?\/?/, '')}`; return; }
+    if (isAcademyUrl(url)) goTo(String(url).replace(/^#?\/?/, '')); // the Academy page parses its own path
     else if (pageOf(url) === 'settings') window.dispatchEvent(new CustomEvent('navigate', { detail: { page: 'settings' } }));
     else navigate(pageOf(url));
     if (window.matchMedia('(max-width: 639px)').matches) setOpen(false);
