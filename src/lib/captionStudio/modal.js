@@ -420,7 +420,11 @@ export class CaptionStudioModal extends ModalShell {
         if (json.length < 1.5e6) localStorage.setItem(key, json);
       } catch { /* private mode or full storage: autosave is a convenience */ }
       // the history job keeps the latest words and look too, not only the ones from the first transcription or the last render
-      if (this.jobId && this.captions.length) updateJob(this.jobId, { captions: this.captions, style: this.style, lookName: this.lookName() }).then((rec) => { if (rec) this.refreshJobs(); }).catch(() => {});
+      // only when something changed since the last write (every render calls queueSave), and without re-rendering: that would schedule the next save
+      if (this.jobId && this.captions.length) {
+        const sig = JSON.stringify([this.captions, this.style]);
+        if (sig !== this._jobSig) { this._jobSig = sig; updateJob(this.jobId, { captions: this.captions, style: this.style, lookName: this.lookName() }).catch(() => {}); }
+      }
     }, 500);
   }
 
@@ -601,6 +605,7 @@ export class CaptionStudioModal extends ModalShell {
       sourceUrl: this.srcBlob || /^blob:/.test(this.srcUrl) ? '' : this.srcUrl, captions: this.captions, style: this.style, ...(this.srcBlob ? { video: this.srcBlob } : {}), ...extra,
     });
     this.jobId = rec.id;
+    this._jobSig = JSON.stringify([this.captions, this.style]);
     this.refreshJobs();
   }
 
@@ -621,6 +626,7 @@ export class CaptionStudioModal extends ModalShell {
     this.captions = sortCaptions(j.captions || []);
     this.style = this.coerceFont({ ...this.style, ...(j.style || {}) });
     ensureCaptionFont(this.style, this.fontText());
+    this._jobSig = JSON.stringify([this.captions, this.style]);
     this.jobId = j.id; this.processingMs = j.processingMs || 0; this.language = CAPTION_LANGUAGES.some(([v]) => v === j.language) ? j.language : 'auto'; // the code, never the display label
     this.note = `Opened “${j.title}” from your history.`;
     this.tab = 'edit'; this.refresh();

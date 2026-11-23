@@ -10,6 +10,7 @@ vi.mock('../burn.js', () => ({ burnCaptions: vi.fn(async () => ({ url: 'blob:out
 
 import { CaptionStudioModal } from '../modal.js';
 import { transcribeMedia } from '../engines.js';
+import * as history from '../history.js';
 import { clearJobs, saveJob, listJobs } from '../history.js';
 import { announceVideo, clearSessionVideos, loadVideos, studioCounts, filterVideos, addVideo, subscribeNewVideos, captureFrame, clearFrames, toVideoCard, studioLabel, VIDEO_CREATED_EVENT } from '../videos.js';
 
@@ -176,6 +177,23 @@ describe('review fixes: history jobs', () => {
     const job = (await listJobs()).find((j) => j.id === id);
     expect(job.captions[0].text).toBe('Edited'); expect(job.style.color).toBe('#ff0000');
     expect(job.createdAt).toBeLessThanOrEqual(Date.now());
+    m.close();
+  });
+  it('saving edits does not re-render the window or loop, and unchanged captions are not rewritten', async () => {
+    const spy = vi.spyOn(history, 'updateJob');
+    const m = open({ videoLibrary: async () => [V(1)] });
+    await flush(); await flush();
+    await m.generate(); await flush(); await flush();
+    document.querySelector('[data-act="tab"][data-tab="history"]').click();
+    spy.mockClear();
+    const refresh = vi.spyOn(m, 'refresh');
+    await new Promise((r) => setTimeout(r, 1800));                     // several autosave periods on the History tab
+    expect(spy).not.toHaveBeenCalled();                                // nothing changed: nothing written
+    refresh.mockClear();
+    m.captions = m.captions.map((c, i) => (i === 0 ? { ...c, text: 'Changed' } : c)); m.queueSave();
+    await new Promise((r) => setTimeout(r, 1800));
+    expect(spy).toHaveBeenCalledTimes(1);                              // written once, then quiet
+    expect(refresh).not.toHaveBeenCalled();                            // and the write did not re-render
     m.close();
   });
   it('a failed frame capture is not remembered, so the next try can succeed', async () => {
