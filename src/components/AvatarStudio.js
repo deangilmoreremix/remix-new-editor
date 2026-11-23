@@ -33,6 +33,9 @@ export function AvatarStudio() {
   let selectedModel = avatarModels[0];
   let nativeAudio = false;
   let uploadedVideoUrl = null;
+  // 'image' | 'video' as reported by the picker / Pexels; the URL itself can't
+  // be trusted (clip.mp4#t=1, extensionless CDN links).
+  let uploadedSourceType = null;
   let uploadedAudioUrl = null;
   let prompt = '';
   let customThumbnailUrl = getCustomThumbnailFromCache('avatar-studio');
@@ -150,10 +153,11 @@ const triggerBtn = document.createElement('button');
   const videoPicker = createUploadPicker({
     anchorContainer: container,
     acceptVideo: true,
-    onSelect: ({ url, type }) => { 
-      uploadedVideoUrl = url; 
+    onSelect: ({ url, type }) => {
+      uploadedVideoUrl = url;
+      uploadedSourceType = type === 'image' || type === 'video' ? type : null;
     },
-    onClear: () => { uploadedVideoUrl = null; },
+    onClear: () => { uploadedVideoUrl = null; uploadedSourceType = null; },
   });
   videoUploadGroup.appendChild(videoPicker.trigger);
 
@@ -174,6 +178,7 @@ const triggerBtn = document.createElement('button');
           ? (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url
           : (asset.src?.large || asset.src?.original || asset.url);
         uploadedVideoUrl = url;
+        uploadedSourceType = isVideo ? 'video' : 'image';
       },
     });
   };
@@ -479,10 +484,18 @@ const triggerBtn = document.createElement('button');
         signal: avatarAbortController.signal,
       };
 
-      // Models that take a portrait (image_url) get the picked image there, not in video_url.
-      if (selectedModel.inputs?.image_url && uploadedVideoUrl && !/\.(mp4|webm|mov|m4v|m3u8)(\?|$)/i.test(uploadedVideoUrl)) {
-        params.image_url = uploadedVideoUrl;
-        if (!selectedModel.inputs?.video_url) delete params.video_url;
+      // Route by the media type the picker reported; only guess from the URL
+      // when it didn't say (e.g. an old history entry without a type).
+      const sourceType = uploadedSourceType
+        || (/\.(mp4|webm|mov|m4v|m3u8)(?:[?#]|$)/i.test(uploadedVideoUrl || '') ? 'video'
+          : /\.(png|jpe?g|webp|gif|avif|heic)(?:[?#]|$)/i.test(uploadedVideoUrl || '') ? 'image'
+            // Still unknown: a portrait-only model can only mean an image.
+            : (selectedModel.inputs?.image_url && !selectedModel.hasVideo && !selectedModel.inputs?.video_url) ? 'image' : null);
+      if (sourceType === 'image' && uploadedVideoUrl) {
+        // A still is never a video source; models that take a portrait get it as image_url.
+        delete params.video_url;
+        if (selectedModel.inputs?.image_url) params.image_url = uploadedVideoUrl;
+        else if (needsSource) throw new Error('This model needs a source video, not an image.');
       }
       if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
       if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);

@@ -203,6 +203,15 @@ export class MuapiClient {
         return { ...result, id: result.id || requestId, request_id: requestId, url };
     }
 
+    /**
+     * Public wrapper around _submitAndPoll for callers that build their own payload.
+     * opts: { signal, onRequestId, generationType, studioType, maxAttempts, interval }
+     */
+    submitAndPoll(endpoint, payload, opts = {}) {
+        const { signal, onRequestId, ...pollOpts } = opts;
+        return this._submitAndPoll(endpoint, payload, { onRequestId }, signal, pollOpts);
+    }
+
     /** Vibe Motion: generate a motion-graphics clip from a prompt. */
     async runMotionGraphics(params, signal) {
         if (!params?.prompt?.trim()) throw new Error('Describe the motion graphic you want first.');

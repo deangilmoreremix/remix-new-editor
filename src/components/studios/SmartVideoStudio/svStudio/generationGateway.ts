@@ -24,23 +24,28 @@ const OUTPUT_TYPE_BY_GENERATION: Record<string, string> = {
   image: 'image', video: 'video', audio: 'audio', avatar: 'video', lipsync: 'video',
 };
 
+/** Remote catalog categories whose output is a video even though they live on the Avatar tab. */
+const VIDEO_CATEGORIES = new Set(['talking-avatar', 'lip-sync', 'audio-to-video', 'character-animation']);
+
 function generationTypeFor(meta: ModelMeta): string {
   const fromOverrides = (meta.ui_overrides as { generationType?: string } | undefined)?.generationType;
   if (fromOverrides) return fromOverrides;
-  const tab = meta.category.includes('video') ? 'video' : meta.category.includes('audio') || ['music', 'speech'].includes(meta.category) ? 'audio' : 'image';
-  return tab;
+  if (VIDEO_CATEGORIES.has(meta.category) || meta.category.includes('video')) return 'video';
+  if (meta.category.includes('audio') || ['music', 'speech'].includes(meta.category)) return 'audio';
+  return 'image';
 }
 
 /** Thrown when /api/generate is not deployed, so the caller falls back to muapi. */
 class EndpointUnavailable extends Error {}
 
-async function submitViaApi(params: { modelId: string; values: Record<string, unknown> }): Promise<GenerationJob> {
+async function submitViaApi(params: { modelId: string; values: Record<string, unknown> }, meta?: ModelMeta): Promise<GenerationJob> {
+  const parameters = await preparePayload(meta, params.values);
   let response: Response;
   try {
     response = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ modelId: params.modelId, parameters: params.values }),
+      body: JSON.stringify({ modelId: params.modelId, parameters }),
     });
   } catch (e) {
     throw new EndpointUnavailable(e instanceof Error ? e.message : 'Network error');
@@ -56,13 +61,45 @@ async function submitViaApi(params: { modelId: string; values: Record<string, un
   return (await response.json()) as GenerationJob;
 }
 
-/** blob: URLs from the upload fields are local to this tab; upload them so the API can read them. */
+const isLocalUrl = (v: unknown): v is string => typeof v === 'string' && (v.startsWith('blob:') || v.startsWith('data:'));
+
+/** blob:/data: URLs from the upload fields are local to this tab; upload them so the API can read them. */
 async function hostMedia(value: unknown, upload: (file: File) => Promise<string>): Promise<unknown> {
   if (Array.isArray(value)) return Promise.all(value.map(v => hostMedia(v, upload)));
-  if (typeof value !== 'string' || !value.startsWith('blob:')) return value;
+  if (!isLocalUrl(value)) return value;
   const blob = await (await fetch(value)).blob();
   const ext = (blob.type.split('/')[1] || 'bin').split(';')[0];
   return upload(new File([blob], `upload.${ext}`, { type: blob.type || 'application/octet-stream' }));
+}
+
+const hasLocalUrl = (v: unknown): boolean => (Array.isArray(v) ? v.some(hasLocalUrl) : isLocalUrl(v));
+
+/**
+ * Drops empty values, uploads browser-local media, and matches each value's shape to the schema:
+ * array fields (videos_list, reference audio lists...) get an array, single fields get one value.
+ */
+async function preparePayload(meta: ModelMeta | undefined, values: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const schema = meta?.input_schema || {};
+  let upload: ((file: File) => Promise<string>) | null = null;
+  const getUpload = async () => {
+    if (!upload) {
+      // muapi.js pulls in the large model catalog, so load it only when there is something to upload.
+      const { muapi } = await import('../../../../lib/muapi.js');
+      upload = (file: File) => muapi.uploadFile(file);
+    }
+    return upload;
+  };
+  const payload: Record<string, unknown> = {};
+  for (const [key, raw] of Object.entries(values)) {
+    if (raw === undefined || raw === null || raw === '') continue;
+    if (Array.isArray(raw) && raw.length === 0) continue;
+    let value = hasLocalUrl(raw) ? await hostMedia(raw, await getUpload()) : raw;
+    const fieldType = (schema[key] as { type?: string } | undefined)?.type;
+    if (fieldType === 'array' && !Array.isArray(value)) value = [value];
+    else if (fieldType && fieldType !== 'array' && Array.isArray(value)) value = value[0];
+    payload[key] = value;
+  }
+  return payload;
 }
 
 async function submitViaMuapi(meta: ModelMeta, values: Record<string, unknown>): Promise<GenerationJob> {
@@ -86,19 +123,8 @@ async function submitViaMuapi(meta: ModelMeta, values: Record<string, unknown>):
       throw new Error('Add your MuAPI key in Settings to generate. No key is configured yet.');
     }
 
-    const schema = meta.input_schema || {};
-    const payload: Record<string, unknown> = {};
-    for (const [key, raw] of Object.entries(values)) {
-      if (raw === undefined || raw === null || raw === '') continue;
-      if (Array.isArray(raw) && raw.length === 0) continue;
-      let value = await hostMedia(raw, file => muapi.uploadFile(file));
-      // Single-image fields get an array from the upload widget: send the first one.
-      const fieldType = (schema[key] as { type?: string } | undefined)?.type;
-      if (Array.isArray(value) && fieldType && fieldType !== 'array') value = value[0];
-      payload[key] = value;
-    }
-
-    const result = await muapi._submitAndPoll(meta.endpoint, payload, {}, undefined, {
+    const payload = await preparePayload(meta, values);
+    const result = await muapi.submitAndPoll(meta.endpoint, payload, {
       generationType,
       studioType: generationType,
     });
@@ -118,7 +144,7 @@ export async function submitGeneration(params: {
   // Models from the local catalog have no backend behind /api/generate: go straight to muapi.
   if (getCatalogSource() !== 'local') {
     try {
-      return await submitViaApi(params);
+      return await submitViaApi(params, meta);
     } catch (e) {
       if (!(e instanceof EndpointUnavailable)) throw e;
     }
