@@ -4,6 +4,7 @@
  */
 import * as C from './components.jsx';
 import { withImagePickers } from './ImageField.jsx';
+import { withAltFill } from './altFill.js';
 import { withTokenPickers, withTokenUrls, withViewerOptions, withSectionStyle, ContactAccent } from './tokenFields.jsx';
 import { FONT_OPTIONS, fontStack } from './fontChoices.js';
 import { ICON_KEYS } from '../siteIcons.js';
@@ -180,6 +181,7 @@ withSectionStyle(editorConfig.components, Object.keys(EXT_COMPONENTS).filter((n)
 withViewerOptions(editorConfig.components);
 // Every image-link field also offers "Choose from my library" (images made in any studio).
 withImagePickers(editorConfig.components);
+withAltFill(editorConfig.components);
 // Every text and link field gets an "Insert field" menu, and links / pictures accept {{tokens}} (filled per contact).
 withTokenPickers(editorConfig.components);
 withTokenUrls(editorConfig.components);

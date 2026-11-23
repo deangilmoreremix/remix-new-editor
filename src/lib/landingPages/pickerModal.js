@@ -103,6 +103,7 @@ const brandDefaults = () => {
   } catch { return {}; }
 };
 
+const MAX_IMAGE_MB = 15;
 let openCount = 0;
 
 /** `zIndex`: where the picker stacks (default 2000); a caller that is itself a full-screen window (the Template Generator, 9999) passes a higher one. */
@@ -309,18 +310,20 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
 
     const drop = el('label', 'flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-white/20 p-6 text-center cursor-pointer hover:border-primary/60 transition-colors');
     drop.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;border:1px dashed rgba(255,255,255,.25);border-radius:16px;padding:22px;text-align:center;cursor:pointer';
-    drop.append(el('span', 'text-sm font-bold', 'Upload a video'), el('span', 'text-xs text-secondary', `Drop a video here or click to choose (up to ${MAX_VIDEO_BYTES / 1048576}MB)`));
+    drop.append(el('span', 'text-sm font-bold', 'Upload a video or picture'), el('span', 'text-xs text-secondary', `Drop a file here or click to choose (video up to ${MAX_VIDEO_BYTES / 1048576}MB, picture up to ${MAX_IMAGE_MB}MB)`));
     const file = el('input', 'sr-only');
     file.type = 'file';
-    file.accept = 'video/*';
-    file.setAttribute('aria-label', 'Upload a video');
+    file.accept = 'video/*,image/*';
+    file.setAttribute('aria-label', 'Upload a video or picture');
     file.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0';
     drop.appendChild(file);
     const takeFile = (f) => {
       if (!f) return;
-      if (f.size > MAX_VIDEO_BYTES) { msg.textContent = `This video is ${Math.round(f.size / 1048576)}MB; the limit is ${MAX_VIDEO_BYTES / 1048576}MB.`; return; }
+      const pic = String(f.type).startsWith('image/');
+      const limit = pic ? MAX_IMAGE_MB * 1048576 : MAX_VIDEO_BYTES;
+      if (f.size > limit) { msg.textContent = `This ${pic ? 'picture' : 'video'} is ${Math.round(f.size / 1048576)}MB; the limit is ${limit / 1048576}MB.`; return; }
       const v = fromFile(f, URL.createObjectURL(f));
-      if (!v) { msg.textContent = 'That is not a video file.'; return; }
+      if (!v) { msg.textContent = 'That is not a video or picture file.'; return; }
       take(toPickerVideo({ ...v, file: f }));
     };
     file.addEventListener('change', () => takeFile(file.files?.[0]));

@@ -1,3 +1,4 @@
+import { rememberPictureLabel } from './altFill.js';
 /**
  * Image field for the page editor: a link box plus "Choose from my library", which lists images
  * made in any studio (generation history). Only https images are offered; the page still runs the
@@ -30,7 +31,7 @@ function Library({ onPick, onClose, kind = 'image' }) {
       {items === null && !err ? <p style={{ fontSize: 12 }}>Loading…</p> : null}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, maxHeight: 220, overflowY: 'auto' }}>
         {(items || []).map((e) => (
-          <button key={e.url} type="button" onClick={() => onPick(e.url)} title={e.prompt || ''} style={{ padding: 0, border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden', cursor: 'pointer', background: '#f1f5f9' }}>
+          <button key={e.url} type="button" onClick={() => onPick(e.url, e)} title={e.prompt || ''} style={{ padding: 0, border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden', cursor: 'pointer', background: '#f1f5f9' }}>
             {kind === 'video' && !e.thumbnail_url
               ? <video src={`${e.url}#t=0.5`} muted preload="metadata" style={{ display: 'block', width: '100%', height: 64, objectFit: 'cover', background: '#000' }} />
               : <img src={e.thumbnail_url || e.url} alt={e.prompt || `Library ${kind}`} loading="lazy" style={{ display: 'block', width: '100%', height: 64, objectFit: 'cover' }} />}
@@ -80,7 +81,9 @@ export function imageField(label, kind = 'image') {
         try {
           const { useTrayItem } = await import('../trayUse.js');
           setSaving(item.url);
-          onChange(await useTrayItem(item));
+          const url = await useTrayItem(item);
+          rememberPictureLabel(url, item.title || item.prompt);
+          onChange(url);
         } catch (e) { setTrayError(e?.message || 'Could not use that one.'); }
         setSaving('');
       };
@@ -91,8 +94,8 @@ export function imageField(label, kind = 'image') {
           {tray.length ? <TrayRow items={tray} current={value} saving={saving} onUse={useItem} /> : null}
           {trayError ? <p data-tray-error style={{ margin: '6px 0 0', fontSize: 12, color: '#f87171' }}>{trayError}</p> : null}
           <button type="button" style={btnStyle} onClick={() => setOpen((o) => !o)}>{open ? 'Hide library' : kind === 'video' ? 'Choose a video I made' : 'Choose from my library'}</button>
-          {kind !== 'video' ? <button type="button" data-ai-image style={aiBtnStyle} onClick={() => { import('../aiImageModal.js').then((mod) => mod.openAiImageModal({ label, pageTitle: page?.title || '', brief: readBrief(page), style: getStyle?.() || null, onUse: (url) => onChange(url) })); }}>Create with AI</button> : null}
-          {open ? <Library kind={kind} onPick={(u) => { onChange(u); setOpen(false); }} onClose={() => setOpen(false)} /> : null}
+          {kind !== 'video' ? <button type="button" data-ai-image style={aiBtnStyle} onClick={() => { import('../aiImageModal.js').then((mod) => mod.openAiImageModal({ label, pageTitle: page?.title || '', brief: readBrief(page), style: getStyle?.() || null, onUse: (url, info) => { rememberPictureLabel(url, info?.prompt); onChange(url); } })); }}>Create with AI</button> : null}
+          {open ? <Library kind={kind} onPick={(u, entry) => { rememberPictureLabel(u, entry?.prompt || entry?.title); onChange(u); setOpen(false); }} onClose={() => setOpen(false)} /> : null}
         </div>
       );
     },
