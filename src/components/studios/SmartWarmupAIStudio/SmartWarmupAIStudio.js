@@ -24,7 +24,28 @@ async function isBuilt(base) {
   }
 }
 
+// The dashboard opens in its light theme. SmartVideo is dark, so default it to the dashboard's own dark theme.
+// 'theme-default' is the dashboard's brand-default setting (apps/warmbly-web/src/lib/theme.ts), read before first paint;
+// a theme the viewer picked themselves ('theme') always wins, so this never overrides their choice.
+function defaultToDarkTheme() {
+  try {
+    if (!localStorage.getItem('theme')) localStorage.setItem('theme-default', 'dark');
+  } catch {
+    // No storage: the dashboard keeps its own default.
+  }
+}
+
+// The frame's colour until the dashboard paints: dark unless the viewer explicitly chose light.
+function frameBackground() {
+  try {
+    return localStorage.getItem('theme') === 'light' ? '#fff' : '#111214';
+  } catch {
+    return '#111214';
+  }
+}
+
 export function SmartWarmupAIStudio() {
+  defaultToDarkTheme();
   const container = document.createElement('div');
   Object.assign(container.style, { width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' });
   // Pin to the viewport below the header (the app shell grows with the sidebar).
@@ -56,7 +77,7 @@ export function SmartWarmupAIStudio() {
   const makeFrame = (key, src, title) => {
     const f = document.createElement('iframe'); f.src = src; f.title = title; f.dataset.frame = key;
     f.setAttribute('allow', 'clipboard-read; clipboard-write; fullscreen');
-    Object.assign(f.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', border: '0', background: '#fff', display: 'none' });
+    Object.assign(f.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', border: '0', background: frameBackground(), display: 'none' });
     host.appendChild(f); frames[key] = f; return f;
   };
   const show = (key, src) => {
