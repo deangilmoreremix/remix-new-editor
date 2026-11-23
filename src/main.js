@@ -160,6 +160,16 @@ try {
     return;
   }
 
+  // Public feature landing pages (/studios/<slug>): no app shell, no sign-in.
+  if (initialPage.startsWith('studios/')) {
+    const slug = decodeURIComponent(initialPage.slice('studios/'.length).split(/[/?#]/)[0]);
+    const { default: StudioLandingPage } = await import('./components/landing/StudioLandingPage.js');
+    app.appendChild(await StudioLandingPage(slug));
+    window.scrollTo(0, 0);
+    console.log('[App] Studio landing page rendered');
+    return;
+  }
+
   // Public interactive video player (/watch/<id>): no app shell, no sign-in.
   if (initialPage.startsWith('watch/')) {
     const { mountWatchPage } = await import('./pages/WatchPage.jsx');

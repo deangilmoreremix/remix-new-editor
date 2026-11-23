@@ -61,6 +61,17 @@ export function FinalCTASection() {
         <!-- Footer Links -->
         <div class="border-t border-white/10 pt-8">
           <div class="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
+            <a href="/studios/image" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Image Studio</a>
+            <a href="/studios/video" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Video Studio</a>
+            <a href="/studios/storyboard" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Storyboard</a>
+            <a href="/studios/edit" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Edit</a>
+            <a href="/studios/character" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Character</a>
+            <a href="/studios/effects" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Effects</a>
+            <a href="/studios/cinema" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Cinema</a>
+            <a href="/studios/cinema-template" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Cinema Templates</a>
+            <a href="/studios/influencer" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Influencer</a>
+            <a href="/studios/viral" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Viral</a>
+            <a href="/studios/openthorn" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Website Builder</a>
             <a href="/apps" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Explore All Apps</a>
             <a href="/docs" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Documentation</a>
             <a href="/community" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Community</a>
