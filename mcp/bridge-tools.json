@@ -1332,9 +1332,6 @@
     ]
   },
   "notExposed": {
-    "timeline": {
-      "timeline_export_video_to_disk": "export_video renders in the browser; the file is saved by the page, not returned."
-    },
     "workbench": {
       "workbench_export": "Rendering the MP4 runs behind the Export button in the editor and has no call to trigger it from outside.",
       "workbench_ai_chat": "The editor chat needs the user's own OpenAI key held in the iframe; use workbench_run_ops with explicit operations instead.",

@@ -266,3 +266,16 @@ customTools.push({
   input: {},
   run: async (a, client) => ({ balance: await client.balance() }),
 });
+
+// ── Social publishing (upstream publish routes, run as the key's owner) ─────────────────────────────
+const PLATFORM = z.enum(['youtube', 'tiktok', 'instagram']);
+customTools.push(
+  { name: 'social_accounts_list', description: 'Social accounts you have connected in SmartVid (connecting or removing accounts is done in the app).', input: {}, run: (a, client) => client.studio('social', { action: 'accounts' }) },
+  {
+    name: 'social_publish', risk: 'publish', timeoutMs: 120_000,
+    description: 'Publish a video or image to one of your connected accounts. This posts publicly. The payload is the platform\'s post details (account id, media link, title or caption); see social_accounts_list for account ids. Returns a request id for social_publish_status.',
+    input: { platform: PLATFORM, payload: z.record(z.string(), z.unknown()).describe('Post details, e.g. { account_id, video_url, title, caption }') },
+    run: (a, client) => client.studio('social', { action: 'publish', platform: a.platform, payload: a.payload }),
+  },
+  { name: 'social_publish_status', description: 'Check a publish started with social_publish.', input: { request_id: z.string().min(6).max(80) }, run: (a, client) => client.studio('social', { action: 'status', request_id: a.request_id }) },
+);

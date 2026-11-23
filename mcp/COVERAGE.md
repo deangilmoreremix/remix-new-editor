@@ -74,3 +74,127 @@ No live run recorded yet.
 | `timeline` | not exposed | Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools. | n/a |
 | `timeline-classic` | not exposed | Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools. | n/a |
 | `viral` | not exposed | A static gallery of example videos; nothing to generate. | n/a |
+
+## Features
+
+Every tool is listed under a feature, or the feature says why it is not exposed. Live status is "not run" until a real smoke run records it. Tab tools (timeline, workbench, motion director, render queue, brand) only work while that studio is open in a signed-in tab with "Let MCP control this tab" switched on.
+
+### Timeline editor (open tab)
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| Read the timeline, search stock, preview a frame, describe a frame | `timeline_get_timeline`, `timeline_search_stock`, `timeline_search_footage`, `timeline_preview_frame`, `timeline_describe_frame`, `timeline_list_effects` | not run |
+| Add and edit clips, overlays, transitions, effects, keyframes, masks, captions | `timeline_add_media_clip`, `timeline_add_overlay`, `timeline_add_video_transition`, `timeline_add_interactive`, `timeline_add_effect`, `timeline_set_keyframes`, `timeline_mask_object`, `timeline_add_captions`, `timeline_translate_captions`, `timeline_label_speakers`, `timeline_tag_clip`, `timeline_update_clip`, `timeline_remove_clip`, `timeline_set_duration`, `timeline_create_animation`, `timeline_blur_background`, `timeline_remove_background`, `timeline_remove_silences`, `timeline_storyboard` | not run |
+| Add audio (voiceover, free voiceover, music) | `timeline_add_voiceover`, `timeline_add_free_voiceover`, `timeline_add_music` | not run |
+| Generate new media into the timeline (paid) | `timeline_generate_image`, `timeline_fill_gap`, `timeline_extend_clip` | not run |
+| Export the video (renders in the browser) | `timeline_export_video` | not run |
+| Same AI actions without a tab (paid) | `video_fill_gap`, `video_extend`, `video_remove_watermark`, `image_layers`, `music_create` | not run |
+
+### Workbench (open tab)
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| Read and edit the project, undo and redo | `workbench_get_project`, `workbench_run_ops`, `workbench_undo`, `workbench_redo` | not run |
+| Bring in media | `workbench_import_assets` | not run |
+| workbench_export | not exposed | Export runs behind the editor's Export button; there is no call to start it. |
+| workbench_ai_chat | not exposed | The editor chat needs the user's own OpenAI key inside the iframe; use explicit operations instead. |
+| workbench_file_upload | not exposed | Needs a file the user picks; import by link instead. |
+
+### Motion Director (open tab)
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| Read the project | `motion_director_get_project` | not run |
+| Edit with plain-English commands or exact clip changes | `motion_director_command`, `motion_director_set_clip_props`, `motion_director_add_clip`, `motion_director_remove_clip`, `motion_director_set_background` | not run |
+| Undo, redo | `motion_director_undo`, `motion_director_redo` | not run |
+| Render the MP4 | `motion_director_render` | not run |
+| film_director_chat | not exposed | The multi-step film pipeline runs from the chat panel; no single call runs it. |
+| timeline_dragging | not exposed | Drag, resize and trim gestures have no programmatic surface. |
+| render_progress | not exposed | Progress is shown in the Export button only. |
+
+### Render queue (open tab)
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| List, queue, process and remove render jobs | `render_queue_list`, `render_queue_enqueue`, `render_queue_process`, `render_queue_remove` | not run |
+| render_queue_clear | not exposed | Clearing everything at once is not offered. |
+
+### Brand Studio
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| Brands, campaigns and assets saved in the tab | `brand_list`, `brand_get`, `brand_save`, `brand_campaigns_list`, `brand_assets_list` | not run |
+| Scrape a website for brand details | `brand_scrape` | not run |
+| Discover brand assets, find a brand | `brand_assets_discover`, `brand_assets_status`, `find_my_brand` | not run |
+| personalizer_stores | not exposed | Personalizer contacts and profiles live in server tables: use leads_* and video_pages_contacts. |
+| brand_delete | not exposed | The store has no delete. |
+| api_keys | not exposed | Saving or reading API keys is human-only. |
+
+### App
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| Where the tab is, open another page | `app_state`, `app_navigate` | not run |
+| Account credit | `usage_info` | not run |
+
+### Video Pages (server, as the key owner)
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| Create, edit, list and read pages | `video_pages_templates`, `video_pages_list`, `video_pages_get`, `video_pages_create`, `video_pages_update` | not run |
+| Publish, unpublish, delete | `video_pages_publish`, `video_pages_unpublish`, `video_pages_delete` | not run |
+| Stats and personalized recipients | `video_pages_stats`, `video_pages_contacts`, `video_pages_add_contacts`, `video_pages_remove_contact` | not run |
+
+### Social publishing (server, as the key owner)
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| List connected accounts | `social_accounts_list` | not run |
+| Publish and check a publish | `social_publish`, `social_publish_status` | not run |
+| social_connect_account | not exposed | Connecting, renaming or disconnecting accounts is an OAuth/ownership action and stays in the app. |
+
+### Lead Finder and personalization
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| Saved leads | `leads_list`, `leads_save`, `leads_update`, `leads_delete` | not run |
+| Find and research businesses | `businesses_find`, `business_research`, `business_contact_enrich` | not run |
+
+### Zack D
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| Trends, script, media, status | `zackd_trends`, `zackd_script`, `zackd_submit`, `zackd_status` | not run |
+| Voiceover | `voiceover_create` | not run |
+
+### CineGen
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| cinegen_web_host | not exposed | The CineGen timeline's host handlers bind to the desktop app; the web app has none. Server-side CineGen actions run through the gateway's cinegen studio. |
+| cinegen_export | not exposed | Desktop only: export runs through the Electron app, the web editor has no export host. |
+| cinegen_extract_media | not exposed | Desktop only: needs the Electron app's file access. |
+
+### Video Agent
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| video_agent_edit | not exposed | The Video Agent runs in an iframe whose only protocol is sign-in in and finished video out; it has no call to read or change the animation. |
+
+### Content library
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| content_library | not exposed | A shared table every signed-in user can read; not a per-user library, so exposing it would show other people's files. |
+
+### Generation history
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| generation_history | not exposed | Kept in the browser's own storage only; there is no server copy to read or delete. |
+
+### Website Builder
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| website_builder | not exposed | Runs on its own sign-in identity and holds provider keys in its tables; neither belongs behind an MCP key. |

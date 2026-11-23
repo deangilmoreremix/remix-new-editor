@@ -11,10 +11,6 @@ import { createAppTools } from './adapters/app.js';
 const inert = () => { throw new Error('manifest only'); };
 const brandStub = new Proxy({}, { get: () => inert });
 
-export const TIMELINE_NOT_EXPOSED = {
-  timeline_export_video_to_disk: 'export_video renders in the browser; the file is saved by the page, not returned.',
-};
-
 export function adapterTools() {
   return {
     timeline: toBridgeTools(createAgentTools({ snapshot: () => ({ timelineSeconds: 0, playheadSec: 0, tracks: [] }), confirm: async () => false })),
@@ -27,7 +23,6 @@ export function adapterTools() {
 }
 
 export const NOT_EXPOSED = {
-  timeline: TIMELINE_NOT_EXPOSED,
   workbench: WORKBENCH_NOT_EXPOSED,
   motion_director: MOTION_DIRECTOR_NOT_EXPOSED,
   render: RENDER_QUEUE_NOT_EXPOSED,

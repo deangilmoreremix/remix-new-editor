@@ -103,3 +103,33 @@ describe('safeguards for pages', () => {
     expect(humanOnlyViolations(customTools.map((x) => x.name))).toEqual([]);
   });
 });
+
+import { createSocialStudio } from '../../netlify/functions/_shared/mcpSocial.js';
+describe('social studio', () => {
+  const mk = () => { const calls = []; const run = createSocialStudio({ fetchImpl: async (url, init) => { calls.push([url, init]); return { ok: true, status: 200, text: async () => JSON.stringify({ request_id: 'req_123456', via: 'muapi.ai' }) }; } }); return { calls, run }; };
+  const w = { userId: 'user_owner', keys: { muapi: 'mu_test_key_0123456789abcdef' } };
+  it('lists accounts for the owner only and hides the backend name', async () => {
+    const s = mk();
+    const r = await s.run({ action: 'accounts' }, w);
+    expect(s.calls[0][0]).toContain('external_user_id=user_owner');
+    expect(r.body).not.toMatch(/mu-?api/i);
+  });
+  it('publishes as the owner no matter what the caller sends, and only to known platforms', async () => {
+    const s = mk();
+    expect((await s.run({ action: 'publish', platform: 'myspace', payload: {} }, w)).statusCode).toBe(400);
+    await s.run({ action: 'publish', platform: 'youtube', payload: { video_url: 'https://x/y.mp4', external_user_id: 'someone_else' } }, w);
+    expect(s.calls[0][0]).toMatch(/youtube-publish$/);
+    expect(JSON.parse(s.calls[0][1].body).external_user_id).toBe('user_owner');
+  });
+  it('refuses account management and the local-development principal', async () => {
+    const s = mk();
+    for (const action of ['connect', 'disconnect', 'rename', 'delete_account']) expect((await s.run({ action }, w)).statusCode).toBe(400);
+    expect((await s.run({ action: 'accounts' }, { userId: 'byok', keys: w.keys })).statusCode).toBe(401);
+    expect(s.calls).toEqual([]);
+  });
+  it('is classified by the gateway: publish needs confirm, the tool is labelled publish', async () => {
+    expect(classifyRequest('/studio/social', 'POST', { action: 'publish' }).risk).toBe('publish');
+    expect(classifyRequest('/studio/social', 'POST', { action: 'accounts' }).risk).toBe('read');
+    expect(customTools.find((t) => t.name === 'social_publish').risk).toBe('publish');
+  });
+});

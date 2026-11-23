@@ -56,3 +56,26 @@ describe('every supported studio is actually reachable', () => {
     for (const e of catalog) for (const s of e.studios) expect(known.has(s), `${e.key} tagged with unknown studio ${s}`).toBe(true);
   });
 });
+
+// ── Features: every tool is mapped to a feature, or the feature says why it is not exposed ──────────
+describe('features', () => {
+  const bridge = JSON.parse(read('../../mcp/bridge-tools.json'));
+  const bridgeNames = Object.values(bridge.studios).flat().map((t) => t.name);
+  const items = Object.values(manifest.features).flatMap((g) => Object.entries(g.items));
+  const mapped = new Set(items.flatMap(([, v]) => v.tools || []));
+
+  it('every feature is either tools that exist or a reason', () => {
+    for (const [name, v] of items) {
+      expect(Boolean(v.tools) !== Boolean(v.notExposed), `${name}: give tools or notExposed, not both`).toBe(true);
+      if (v.notExposed) expect(v.notExposed.length, name).toBeGreaterThan(15);
+      for (const t of v.tools || []) expect(toolNames.has(t) || bridgeNames.includes(t), `feature "${name}" lists unknown tool ${t}`).toBe(true);
+    }
+  });
+  it('every custom tool and every tab tool is mapped to a feature', () => {
+    expect([...customTools.map((t) => t.name), ...bridgeNames].filter((n) => !mapped.has(n))).toEqual([]);
+  });
+  it('every "not exposed" the adapters declare is explained in a feature', () => {
+    const explained = new Set(items.filter(([, v]) => v.notExposed).map(([k]) => k));
+    for (const [studio, list] of Object.entries(bridge.notExposed)) for (const key of Object.keys(list)) expect(explained.has(key), `${studio}.${key} needs a feature entry with notExposed`).toBe(true);
+  });
+});
