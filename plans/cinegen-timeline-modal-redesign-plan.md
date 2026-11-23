@@ -56,6 +56,15 @@ the primary action. The Monetization mockup's lesson list, durations and "Open t
 - Prompt Gallery redesigned in place; Recipes shares the same catalog styles. Mockups `06-monetization-hub.png` and the Monetization notes above are
   obsolete. The accent follows the host app's `--primary` (lime in the studios), not the Edit tab's cyan.
 
+## Update: Edit-tab redesign status
+Done: shared `ModalShell` (`components/ui/modal-shell.tsx`, `styles/modal-shell.css`); effects library (Effects / LUTs / Transitions / Extensions);
+stock media and sound library popups; template videos, MG templates, HyperFrames and Add-to-timeline modals; the overlay-settings,
+personalized-layouts, contact-check, my-presets and landing-pages panels. Not done: `preview-card.tsx` (still has hex colours),
+`extend-modal`, `fill-gap-modal`, `frame-chat-modal` and the other class-based popups (already on tokens, not touched).
+Transitions in the library stay preview-only: they are applied from the inspector's "Transition to next clip" section, which has its
+own picker, length slider and handle check, so the Clip 1 → Clip 2 strip in the first mockups belongs there, not in the library modal.
+Nothing was checked visually except the effects library (rendered with the real component).
+
 ## Phases
 0. **Decide the accent** (cyan as the Edit tab shows now, or lime as the tokens say). Mockups use cyan. Switching is one token
    change: `--acc`, `--acc-dim`, `--acc-line` at the top of `mock.css`.

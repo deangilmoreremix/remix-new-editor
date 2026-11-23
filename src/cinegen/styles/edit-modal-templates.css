@@ -1,0 +1,46 @@
+/* [remix] Layout helpers for the template / animation / motion-graphics browsers and the Add to timeline window.
+   Builds on the shared shell classes (modal-shell.css: cg-seg, cg-chip, cg-count, cg-field, cg-card, cg-btn ...). */
+.etm-fill { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+.etm-head { display: flex; align-items: baseline; gap: 10px; }
+.etm-head strong { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; }
+.etm-spacer { flex: 1; }
+.etm-hint { margin: 4px 0 12px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.etm-hint label { cursor: pointer; }
+.etm-chips { margin-bottom: 14px; }
+.cg-chip.etm-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; }
+.etm-chip[aria-selected='true'] { background: var(--accent-dim); border-color: var(--accent); color: var(--text-primary); }
+.etm-chip[aria-selected='true'] .cg-count { color: var(--accent); }
+.etm-glyph { opacity: 0.8; font-size: 12px; }
+.etm-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 10px; }
+.etm-filters .cg-label { display: block; margin-bottom: 6px; }
+.etm-filters .cg-search { min-width: 0; }
+.etm-count { margin: 6px 0 10px; }
+.etm-cards { overflow: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; align-content: start; padding-right: 4px; min-height: 0; flex: 1; }
+.etm-cards > .cg-empty, .etm-cards > .etm-wide { grid-column: 1 / -1; }
+.etm-more { grid-column: 1 / -1; justify-self: center; }
+.etm-link { background: transparent; border: 0; color: var(--accent); cursor: pointer; font: 600 12px var(--font-display); padding: 0; }
+.etm-link:hover { text-decoration: underline; }
+.etm-seg { flex-wrap: wrap; }
+.etm-seg .etm-glyph { margin-right: -2px; }
+.etm-banner { display: flex; gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--border-medium); border-radius: var(--radius-md); background: var(--bg-elevated); font-size: 13px; }
+.etm-banner > span { flex: 1; }
+.etm-form { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; padding: 12px; border: 1px solid var(--accent); border-radius: var(--radius-md); background: var(--accent-dim); font-size: 13px; }
+.etm-form .cg-field { flex: 1; }
+.etm-form > span { flex: 0 0 auto; }
+.etm-section { margin-bottom: 22px; }
+.etm-section-head { display: flex; align-items: baseline; gap: 10px; margin: 4px 0 10px; }
+.etm-scroll { overflow: auto; padding-right: 4px; min-height: 0; flex: 1; }
+.etm-cards-plain { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; align-content: start; }
+
+/* template-video cards */
+.etm-tv { padding: 10px 10px 12px; gap: 0; }
+.etm-tv__media { position: relative; }
+.etm-tv .cg-card__thumb { aspect-ratio: 16 / 9; border-radius: var(--radius-md); }
+.etm-tv__img, .etm-tv__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.etm-tv__video { background: var(--bg-base); pointer-events: none; transition: opacity 0.2s ease; }
+.etm-badge { position: absolute; top: 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 6px; border-radius: 6px; color: var(--text-primary); }
+.etm-badge--sub { left: 8px; max-width: calc(100% - 90px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: rgba(0, 0, 0, 0.55); }
+.etm-badge--ok { right: 8px; background: rgba(16, 120, 70, 0.85); }
+.etm-badge--warn { right: 8px; background: rgba(150, 95, 10, 0.9); }
+.etm-tv__title { font-size: 14px; font-weight: 700; margin-top: 10px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.etm-tv__sub { font-size: 12px; margin-top: 2px; color: var(--text-secondary); }
