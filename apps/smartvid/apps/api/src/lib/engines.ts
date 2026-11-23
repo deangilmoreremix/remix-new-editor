@@ -7,7 +7,7 @@
  */
 import { execFile } from 'node:child_process'
 import { createWriteStream, existsSync } from 'node:fs'
-import { chmod, mkdir, rename } from 'node:fs/promises'
+import { chmod, mkdir, rename, unlink } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { Readable } from 'node:stream'
@@ -278,6 +278,32 @@ const downloadOfficialYtDlp = async (destPath: string): Promise<void> => {
   }
 }
 
+/** Alpine (musl) cannot run the official standalone yt-dlp build; the image's own yt-dlp package is used there. */
+const isAlpine = (): boolean => process.platform === 'linux' && existsSync('/etc/alpine-release')
+
+/**
+ * A managed yt-dlp that cannot run (for example a build for another C library, left on the data disk by an earlier
+ * update) makes every download fail with ENOENT while the rest of the app keeps using the system copy. Remove it so
+ * the working copy is used.
+ */
+export const discardBrokenManagedBinary = async (): Promise<boolean> => {
+  const managed = managedYtDlpPath()
+  if (!existsSync(managed)) {
+    return false
+  }
+  try {
+    await runCommand(managed, ['--version'], VERSION_TIMEOUT_MS)
+    return false
+  } catch {
+    await unlink(managed).catch(() => undefined)
+    if (cachedYtDlpPath === managed) {
+      cachedYtDlpPath = null
+    }
+    log.warn({ event: 'engines', message: 'removed a yt-dlp copy that cannot run on this system', meta: { path: managed } })
+    return true
+  }
+}
+
 export const updateYtDlp = async (): Promise<EngineStatus> => {
   if (updateInFlight) {
     return updateInFlight
@@ -286,8 +312,22 @@ export const updateYtDlp = async (): Promise<EngineStatus> => {
     engineState = 'installing'
     engineError = null
     try {
+      if (isAlpine()) {
+        // The official standalone build does not run on Alpine; keep using the image's own yt-dlp.
+        engineState = 'up-to-date'
+        return snapshot()
+      }
       const destPath = managedYtDlpPath()
       await downloadOfficialYtDlp(destPath)
+      // Only use the new copy once it has proven it runs: never leave an unusable binary in front of a working one.
+      try {
+        await runCommand(destPath, ['--version'], VERSION_TIMEOUT_MS)
+      } catch (cause) {
+        await unlink(destPath).catch(() => undefined)
+        throw new Error(
+          `The downloaded yt-dlp cannot run on this system (${cause instanceof Error ? cause.message : String(cause)})`
+        )
+      }
       cachedYtDlpPath = destPath
       const probed = await probeYtDlpVersion()
       if (!probed) {
@@ -343,6 +383,11 @@ const autoUpdateIfNeeded = async (): Promise<void> => {
 }
 
 export const startEngines = async (): Promise<void> => {
+  try {
+    await discardBrokenManagedBinary()
+  } catch {
+    /* best effort */
+  }
   try {
     const { webSettingsStore } = await import('./web-settings-store')
     const settings = await webSettingsStore.get()
