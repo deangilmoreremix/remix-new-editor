@@ -25,7 +25,7 @@ export const LLM_PROVIDER_PRESETS = [
     label: 'OpenAI',
     protocol: 'openai',
     baseUrl: 'https://api.openai.com/v1',
-    defaultModel: 'gpt-5',
+    defaultModel: 'gpt-6.1-sol',
   },
   {
     id: 'gemini',

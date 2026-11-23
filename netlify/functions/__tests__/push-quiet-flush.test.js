@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
 import { dispatchPush } from '../_shared/pushAdapter.js';
-import { buildSummaryPayload, summaryCounts, SUMMARY_TAG } from '../_shared/pushSummary.js';
+import { buildSummaryPayload, summaryCounts, SUMMARY_TAG, PAGE_SIZE, MAX_PAGES } from '../_shared/pushSummary.js';
 import { run, config } from '../push-quiet-flush.mjs';
 import { fakeSupabase } from './_fakeSupabase.js';
 
@@ -130,6 +130,46 @@ describe('flush', () => {
   it('quiet hours disabled (null) counts as "not in quiet hours"', async () => {
     const s = setup({ prefs: { ...PREFS, quiet_hours: null } });
     expect(await s.go()).toMatchObject({ sent: 1 });
+  });
+  it('owners behind a full page of held rows are still flushed (the oldest rows must not starve everyone else)', async () => {
+    const held = Array.from({ length: PAGE_SIZE }, (_, i) => def(`h${i}`, 'new_lead', { clerk_user_id: 'user_held' }));
+    const sb = fakeSupabase({
+      owner_push_deferred: [...held, def('late1', 'new_lead', { clerk_user_id: 'user_late' })].map((r) => ({ ...r })),
+      retarget_preferences: [{ ...PREFS, clerk_user_id: 'user_held', quiet_hours: QUIET_NOW }, { ...PREFS, clerk_user_id: 'user_late' }],
+      owner_push_subscriptions: [sub('s9', { clerk_user_id: 'user_late' })],
+    }, { now: NOW });
+    const webpush = { setVapidDetails: vi.fn(), sendNotification: vi.fn(async () => ({ statusCode: 201 })) };
+    const r = await run({ env: ENV, fetchImpl: sb.fetchImpl, webpush, now: NOW, adapter: NOOP });
+    expect(r).toMatchObject({ ok: true, owners: 2, held: 1, sent: 1 });
+    expect(webpush.sendNotification).toHaveBeenCalledTimes(1);
+    expect(sb.db.owner_push_deferred).toHaveLength(PAGE_SIZE); // only the held owner's rows remain
+  });
+  it('looks at no more than MAX_PAGES pages per run and says so', async () => {
+    const many = Array.from({ length: PAGE_SIZE * MAX_PAGES + 5 }, (_, i) => def(`m${i}`, 'new_lead', { clerk_user_id: 'user_held' }));
+    const sb = fakeSupabase({ owner_push_deferred: many, retarget_preferences: [{ ...PREFS, clerk_user_id: 'user_held', quiet_hours: QUIET_NOW }] }, { now: NOW });
+    const webpush = { setVapidDetails: vi.fn(), sendNotification: vi.fn() };
+    const r = await run({ env: ENV, fetchImpl: sb.fetchImpl, webpush, now: NOW, adapter: NOOP });
+    expect(r).toMatchObject({ ok: true, truncated: true, held: 1 });
+    expect(sb.calls.filter((c) => c.path === 'owner_push_deferred' && c.method === 'GET')).toHaveLength(MAX_PAGES + 1);   // the pages, plus one probe row beyond them
+  });
+  it('`truncated` is exact: not reported when the table holds exactly MAX_PAGES full pages', async () => {
+    const exact = Array.from({ length: PAGE_SIZE * MAX_PAGES }, (_, i) => def(`x${i}`, 'new_lead', { clerk_user_id: 'user_held' }));
+    const sb = fakeSupabase({ owner_push_deferred: exact, retarget_preferences: [{ ...PREFS, clerk_user_id: 'user_held', quiet_hours: QUIET_NOW }] }, { now: NOW });
+    const r = await run({ env: ENV, fetchImpl: sb.fetchImpl, webpush: { setVapidDetails: vi.fn(), sendNotification: vi.fn() }, now: NOW, adapter: NOOP });
+    expect(r.truncated).toBeUndefined();
+    expect(r).toMatchObject({ ok: true, held: 1 });
+  });
+  it('more than 1,000 owners: preferences are read in small chunks, so nobody comes back "without preferences" and loses their rows', async () => {
+    const N = 1001;                                                   // more than one response page can hold
+    const rows = Array.from({ length: N }, (_, i) => def(`o${i}`, 'new_lead', { clerk_user_id: `u${i}` }));
+    const prefsRows = Array.from({ length: N }, (_, i) => ({ ...PREFS, clerk_user_id: `u${i}`, quiet_hours: QUIET_NOW }));   // all still in quiet hours
+    const sb = fakeSupabase({ owner_push_deferred: rows, retarget_preferences: prefsRows }, { now: NOW });
+    const r = await run({ env: ENV, fetchImpl: sb.fetchImpl, webpush: { setVapidDetails: vi.fn(), sendNotification: vi.fn() }, now: NOW, adapter: NOOP });
+    expect(r).toMatchObject({ ok: true, owners: N, held: N, dropped: 0, errors: 0 });
+    expect(sb.db.owner_push_deferred).toHaveLength(N);               // nothing was deleted
+    const prefCalls = sb.calls.filter((c) => c.path === 'retarget_preferences');
+    expect(prefCalls.length).toBeGreaterThanOrEqual(Math.ceil(N / 100));
+    prefCalls.forEach((c) => expect((c.query.match(/u\d+/g) || []).length).toBeLessThanOrEqual(100));   // short URLs, small answers
   });
   it('handles several owners independently', async () => {
     const rows = [...ROWS, def('e1', 'new_lead', { clerk_user_id: 'user_2' })];

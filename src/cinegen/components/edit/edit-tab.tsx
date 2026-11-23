@@ -741,7 +741,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [sourceViewerEntry, state.assets]);
   const stage1 = useStage1Editing({
     timeline, dispatch, selectedClipIds, setSelectedClipIds, currentTime, seek, isPlaying, play, pause, setSpeed,
-    sourceAsset: sourceViewerEntry && !sourceViewerEntry.clip ? resolvedSourceViewerAsset : null, sourceVisible: layout.sourceViewerVisible,
+    sourceAsset: sourceViewerEntry ? resolvedSourceViewerAsset : null, sourceVisible: layout.sourceViewerVisible,
   });
   const sourceViewerNativeVideoEnabled = nativeVideoAvailable
     && activeTool !== 'mask'

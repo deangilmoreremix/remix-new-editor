@@ -3,11 +3,9 @@
 // their own list in the project state and saved with it (like Sets).
 import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
 // @ts-expect-error plain JS add-on registry from the main app
-import { createAddonClip } from '../../../lib/editor/addons/registry.js';
+import { createAddonClip, getAddon } from '../../../lib/editor/addons/registry.js';
 // @ts-expect-error plain JS add-ons (registers lead-form / click-to-call)
 import '../../../lib/editor/addons/interactiveAddons.js';
-// @ts-expect-error plain JS add-ons (registers Smart Text, Text Mask, Image, Personalized Image, Stickers, Wrapper, Lower Thirds)
-import { getAddon } from '../../../lib/editor/addons/registry.js';
 // @ts-expect-error plain JS add-ons
 import '../../../lib/editor/addons/overlayAddons.js';
 // @ts-expect-error plain JS add-on: a Personalization Studio design as an overlay (filled in for each contact)

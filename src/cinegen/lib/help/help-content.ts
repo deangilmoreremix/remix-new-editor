@@ -392,6 +392,8 @@ export const HELP: Record<string, HelpEntry> = {
   'open ai assistant': e('Assistant', 'Ask the AI to help.', 'Opens the AI assistant drawer.', ['Press the button.']),
   'open voice director': e('Voice Director', 'Speak commands to the editor.', 'Starts voice control. Needs microphone permission.', ['Press the button and speak.']),
   'open app settings': e('Settings', 'Keys and defaults.', 'Opens the application settings.', ['Press the button.']),
+  'open retarget': e('Retarget', 'Follow up with the people who watched this video.', 'Opens Analytics > Retarget for the video that is open: suggestions based on what viewers watched and clicked, a map of which part of your video is about what, and a button that turns a suggestion into a follow-up video. The video must be published first.', ['Press the button.', 'Pick a suggestion and press Create follow-up.']),
+  'retarget': e('Retarget', 'Follow up with the people who watched this video.', 'Opens Analytics > Retarget for the video that is open: suggestions based on what viewers watched and clicked, a map of which part of your video is about what, and a button that turns a suggestion into a follow-up video. The video must be published first.', ['Press the button.', 'Pick a suggestion and press Create follow-up.']),
   'open skill builder': e('Skill builder', 'Create reusable AI actions.', 'Lets you describe a repeatable editing task and save it as a skill the assistant can run.', ['Press the button and describe the skill.']),
   'new chat': e('New chat', 'Start a fresh conversation.', 'Clears the context so the assistant starts over.', ['Press the button.']),
   'clear conversation': e('Clear conversation', 'Erase this chat.', 'Deletes the messages in this conversation.', ['Press the button.']),

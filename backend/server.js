@@ -21,7 +21,7 @@ import pixabayProxyService from './services/pixabayProxyService.js';
 import giphyProxyService from './services/giphyProxyService.js';
 import templateService from './services/templateService.js';
 import openmontageProxy from './services/openmontageProxy.js';
-import { installSmartvid } from './services/smartvidProxy.js';
+import { installVidBee } from './services/vidbeeProxy.js';
 import { auth, optionalAuth } from './middleware/auth.js';
 import chatRouter from './routes/chat.js';
 import setupChatWebSocket from './websocket/chat.js';
@@ -31,13 +31,14 @@ import setupChatWebSocket from './websocket/chat.js';
   app.set('trust proxy', 1);
  
  // Middleware
- // Smartvid Downloader (vendored upstream Smartvid Downloader): installSmartvid mounts the credentialed session route, then the global cors(), then the proxy
-// (before the body parsers, so request streams pass through untouched). The order matters; see backend/services/smartvidProxy.js.
-installSmartvid(app, { auth, cors: cors() });
+ // Media Hub (vendored upstream VidBee): installVidBee mounts the credentialed session route, then the global cors(), then the proxy
+// (before the body parsers, so request streams pass through untouched). The order matters; see backend/services/vidbeeProxy.js.
+installVidBee(app, { auth, cors: cors() });
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-const videoAgentLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
+const videoAgentLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, // Job polling (GET /job/:id, every 1.5s from the Director page) must not count against the 10/min submit limit.
+  skip: (req) => process.env.NODE_ENV === 'test' || (req.method === 'GET' && req.path.startsWith('/job/')), standardHeaders: true, legacyHeaders: false });
 const agentActionsLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
 const videodbProxyLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 const pexelsSearchLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });

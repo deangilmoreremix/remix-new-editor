@@ -35,11 +35,10 @@ class GTMContentLibrary {
 
   initializeModelOptions() {
     return [
-      { id: 'gpt-4o-mini', label: 'GPT-4o Mini (fast/cheap)', description: 'Fast, cost-effective model for quick prompt generation and high-volume usage', bestFor: 'Drafts, iterations, and bulk prompts', example: 'Quickly generate 10 prompt variants', difficulty: 'Easy' },
-      { id: 'gpt-4o',      label: 'GPT-4o (balanced)',       description: 'Balanced performance and quality for most GTM prompt enhancement tasks', bestFor: 'Most GTM workflows and daily use', example: 'Polished prompt with solid methodology framing', difficulty: 'Easy' },
-      { id: 'gpt-4.1',     label: 'GPT-4.1 (quality)',       description: 'Highest quality outputs for critical prompts where nuance and precision matter most', bestFor: 'Executive decks and high-stakes video', example: 'Narrative prompt with layered emotional cues', difficulty: 'Medium' },
-      { id: 'gpt-5-mini',  label: 'GPT-5 Mini (next-gen fast)', description: 'Next-generation fast model with improved reasoning for rapid iteration', bestFor: 'Fast refinement of good first drafts', example: 'Rapid A/B prompt rewrites', difficulty: 'Easy' },
-      { id: 'gpt-5-nano', label: 'GPT-5 Nano (ultra-fast)', description: 'Ultra-fast lightweight model ideal for real-time prompt suggestions and drafts', bestFor: 'In-the-moment suggestions and sketches', example: 'One-line prompt polish on the fly', difficulty: 'Easy' },
+      { id: 'gpt-6.1-sol',  label: 'GPT-6.1 Sol (recommended)', description: 'Default GPT-6 model with strong reasoning for most GTM prompt enhancement tasks', bestFor: 'Most GTM workflows and daily use', example: 'Polished prompt with solid methodology framing', difficulty: 'Easy' },
+      { id: 'gpt-6-luna',   label: 'GPT-6 Luna (fast/cheap)',  description: 'Fastest, lowest-cost GPT-6 model for quick prompt generation and high-volume usage', bestFor: 'Drafts, iterations, and bulk prompts', example: 'Quickly generate 10 prompt variants', difficulty: 'Easy' },
+      { id: 'gpt-6-astra',  label: 'GPT-6 Astra (top quality)', description: 'Most capable GPT-6 model for critical prompts where nuance and precision matter most', bestFor: 'Executive decks and high-stakes video', example: 'Narrative prompt with layered emotional cues', difficulty: 'Medium' },
+      { id: 'gpt-5.6-sol',  label: 'GPT-5.6 Sol (previous gen)', description: 'Previous-generation frontier model, kept for comparison', bestFor: 'Matching earlier GPT-5.6 output', example: 'Re-run a prompt drafted on GPT-5.6', difficulty: 'Easy' },
     ];
   }
 

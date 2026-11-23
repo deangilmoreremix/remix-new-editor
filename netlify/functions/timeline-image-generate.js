@@ -37,13 +37,15 @@
  */
 
 import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
+import { OPENAI_FAST_MODEL } from './_shared/openaiModels.js';
 const TIMEOUT_MS = 120_000;
 
 // Images 2.6 Flare (fast) is the default; callers may pin another model, and an
 // unpinned request falls back once to `gpt-image-2` if the account lacks 2.6.
 const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.6-flare';
 const FALLBACK_IMAGE_MODEL = 'gpt-image-2';
-const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
+// Prompt refiner (text): the cheap/background model is plenty for a one-paragraph rewrite.
+const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || OPENAI_FAST_MODEL;
 
 /**
  * Models this function is allowed to call directly on the OpenAI Images API.
@@ -200,6 +202,8 @@ export async function handler(event) {
     n = 1,
     model,
   } = body;
+  // Logos and cut-outs can ask for a transparent background. Only these two values are ever forwarded.
+  const bg = body.background === 'transparent' || body.background === 'opaque' ? body.background : null;
 
   // Reference images (edit / consistency). Public https only — never data: or
   // internal URLs — and at most 8.
@@ -293,7 +297,12 @@ export async function handler(event) {
       return jsonResponse(502, { ok: false, error: 'Invalid JSON from OpenAI Responses API' });
     }
     responseId = refineData.id || null;
-    const refined = (refineData.output_text || '').trim();
+    // Raw REST responses may omit `output_text` and put a reasoning item first, so read the message items.
+    const refined = (typeof refineData.output_text === 'string' && refineData.output_text
+      ? refineData.output_text
+      : (Array.isArray(refineData.output) ? refineData.output : []).filter((o) => o.type === 'message')
+        .flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join('')
+    ).trim();
     revisedPrompt = refined || prompt.trim();
 
     // Now call the direct image generation endpoint with the refined prompt
@@ -304,6 +313,7 @@ export async function handler(event) {
       n: Math.min(Math.max(n, 1), 4),
     };
     if (quality && quality !== 'auto') directBody.quality = quality;
+    if (bg) { directBody.background = bg; if (bg === 'transparent') directBody.output_format = 'png'; }
 
     try {
       lastCall = { fn: callImagesApi, body: directBody };
@@ -321,6 +331,7 @@ export async function handler(event) {
       n: Math.min(Math.max(n, 1), 4),
     };
     if (quality && quality !== 'auto') directBody.quality = quality;
+    if (bg) { directBody.background = bg; if (bg === 'transparent') directBody.output_format = 'png'; }
 
     try {
       lastCall = { fn: callImagesApi, body: directBody };
@@ -328,6 +339,16 @@ export async function handler(event) {
     } catch (e) {
       const msg = e?.name === 'AbortError' ? 'OpenAI Images API timed out' : `Network error: ${e.message}`;
       return jsonResponse(502, { ok: false, error: msg });
+    }
+  }
+
+  // A model that refuses a transparent background: try once more without it (the picture is still made).
+  if (!imageRes.ok && bg && imageRes.status === 400 && lastCall) {
+    let m = '';
+    try { m = (await imageRes.clone().text()).toLowerCase(); } catch { /* ignore */ }
+    if (/background|transparent|output_format/.test(m)) {
+      delete lastCall.body.background; delete lastCall.body.output_format;
+      try { imageRes = await lastCall.fn(apiKey, lastCall.body); } catch (e) { return jsonResponse(502, { ok: false, error: e?.name === 'AbortError' ? 'OpenAI Images API timed out' : `Network error: ${e.message}` }); }
     }
   }
 

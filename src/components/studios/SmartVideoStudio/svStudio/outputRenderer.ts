@@ -10,6 +10,12 @@ export type OutputType = 'image' | 'video' | 'audio' | '3d' | 'text' | 'unknown'
 export function detectOutputType(output: unknown, modelId: string): OutputType {
   if (!output) return 'unknown';
 
+  const url = String(output).split('?')[0].toLowerCase();
+  if (/\.(png|jpe?g|webp|gif|avif|bmp)$/.test(url)) return 'image';
+  if (/\.(mp4|webm|mov|m4v|mkv)$/.test(url)) return 'video';
+  if (/\.(mp3|wav|ogg|m4a|aac|flac)$/.test(url)) return 'audio';
+  if (/\.(glb|gltf|obj|fbx|usdz)$/.test(url)) return '3d';
+
   const modelName = modelId.toLowerCase();
 
   if (modelName.includes('image') || modelName.includes('flux') || modelName.includes('dall') || modelName.includes('midjourney')) {

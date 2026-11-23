@@ -75,7 +75,7 @@ function EnterpriseTestimonials({ title, text, quotes }) {
           <figure key={i} className="ent-quote">
             <blockquote>{`“${t(q.text)}”`}</blockquote>
             <figcaption>
-              {img(q.avatar) ? <img src={img(q.avatar)} alt="" width="44" height="44" loading="lazy" /> : <i className="ent-initial">{String(q.name || '?').slice(0, 1)}</i>}
+              {img(q.avatar) ? <img src={img(q.avatar)} alt={t(q.avatarAlt) || ''} width="44" height="44" loading="lazy" /> : <i className="ent-initial">{String(q.name || '?').slice(0, 1)}</i>}
               <span><b>{t(q.name)}</b><small>{t(q.role)}</small></span>
             </figcaption>
           </figure>
@@ -120,7 +120,7 @@ export const components = {
     label: 'Enterprise: testimonial row',
     fields: {
       title: T('Heading'), text: A('Text under the heading'),
-      quotes: { type: 'array', label: 'Testimonials', arrayFields: { text: A('Quote'), name: T('Name'), role: T('Role, company'), avatar: T('Photo (https link or /landing-art/..)') }, getItemSummary: (i) => i.name || 'Quote', defaultItemProps: { text: 'A quote you have permission to use.', name: 'Name', role: 'Role, Company', avatar: '' } },
+      quotes: { type: 'array', label: 'Testimonials', arrayFields: { text: A('Quote'), name: T('Name'), role: T('Role, company'), avatar: T('Photo (https link or /landing-art/..)'), avatarAlt: T('Screen-reader description (alt text)') }, getItemSummary: (i) => i.name || 'Quote', defaultItemProps: { text: 'A quote you have permission to use.', name: 'Name', role: 'Role, Company', avatar: '' } },
     },
     defaultProps: { title: 'What our customers say', text: '', quotes: [{ text: 'A quote you have permission to use.', name: 'Name', role: 'Role, Company', avatar: '' }] },
     render: (p) => <EnterpriseTestimonials {...p} />,

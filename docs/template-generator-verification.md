@@ -86,19 +86,18 @@ Verified: the engine and the strip with a stand-in recognizer (tests), and the r
 ### MoonshineJS (live captions): checked, not integrated
 Checked from npm and Hugging Face: `@moonshine-ai/moonshine-js` 0.1.29 is **MIT**, and so is the English model it uses (the `onnx-community/moonshine-*-ONNX` model cards say MIT). Its **Spanish model is under the "Moonshine AI Community License"** (free for researchers, developers, small businesses and creators under $1M annual revenue), which is not a blanket production licence for this app. The package was last published in **July 2025**, the original JS repository is reported as archived in favour of a newer SDK (I could not read the repository from this session to confirm), and the models are **English only**. Web Speech (above) already gives a live preview in many languages with no extra download, and Whisper does the timed captions. So it is **not added**. If a free, fully on-device live engine for English becomes a requirement, the MIT English model is the candidate; re-verify the current SDK and licence first.
 
-## 9b. AI Captions window (the "💬 Add AI Captions" button in the studios)
+## 9b. Free AI Captions window (Caption Studio, "💬 Add AI Captions" in the studios)
 
-Merges the features of ai-video-captions and Capite (MIT) into the existing window, in the "Personalize this demo" look. Tabs: Create, Script & Words, Motion & Style, History. The old cloud route stays as "AI themes (cloud)".
+The shared Caption Studio (`src/lib/captionStudio`, also copied into OpenHiggsBolt) with two additions made here: **Your videos** (the Generate tab lists every video made in the app: the studios' generation history on this device plus the cloud copy when signed in, videos finished in this tab such as a timeline or Template Generator export, and the clip the studio passed in; one click captions it, no upload) and **History** (caption jobs kept in this browser: duration, language, style, processing time, size, date; open and edit again, SRT, delete). The 32 looks are also drawn on a real picture of the picked video (the host's sample photo until one is picked).
 
-Checked here in a real browser (headless Chrome, no GPU): on-device transcription of a speech clip, the editor and History, burning captions into a real H.264 MP4 (audio kept), "Your videos" with a clip picked and a studio saving a video while the window was open, no upload request, previews on the picked video's real frame.
+Checked here in a real browser (headless Chrome, no GPU): the list, picking, a video saved while the window was open appearing, no upload request, the looks on the video's real frame, the History tab. The earlier AI Captions window's transcription and MP4 burn-in were verified in a real browser before it was replaced; Caption Studio's own engines are covered by its tests.
 
 Needs you (accounts, keys, hardware):
-1. Signed in, open the window from a studio: your created videos are listed (the cloud copy of the history needs a real sign-in) and the one you came from is picked. Press Generate Captions: no upload happens.
-2. Whisper speed on a real GPU (about 4 minutes for a 5-second clip on a CPU-only machine); a clip over 3 minutes is transcribed in 180-second pieces.
-3. "AI themes (cloud)" with a real key.
-4. A video from another website: the browser may not let the page read it, so the captions work but the burned-in MP4 may not.
-5. "Detect" shows the language read from the text (Whisper does not report it).
-Videos finished during a visit (Template Generator export, timeline export, a captioned render) appear in "Your videos" only until the page is closed.
+1. Signed in, open the window from a studio: your created videos are listed (the cloud copy of the history needs a real sign-in) and the one you came from is picked; Generate captions runs with no upload.
+2. Whisper speed on a real GPU.
+3. A video from another website: the browser may not let the page read it, so the captions work but the rendered video and the look pictures may not.
+4. After editing `src/lib/captionStudio`, copy it to OpenHiggsBolt: `node scripts/sync-caption-studio.mjs ../OpenHiggsBolt` (the sibling repo is not in this checkout). The two new files (`videos.js`, `history.js`) import nothing; the host passes `videoLibrary`, `watchVideos` and `sampleImage` (see `src/lib/editor/captionActions.js`).
+Videos finished during a visit appear in "Your videos" only until the page is closed.
 
 ## 10. Other notes
 - `public/motion-studio/legacy-textures/agent-stream.jpg` is a generated placeholder (the original artwork was never committed in this repo or in `develop`). Replace it with the real image when you have it.

@@ -78,7 +78,7 @@ export const LESSONS_15 = [
     ],
     exercises: [
       'Easy: complete a tool scope definition for a "YouTube Script Formatter" (input/output/transformation/buyer).',
-      'Medium: build a script that reads `designs.txt` and writes `titles.csv` with 3 Etsy titles each via gpt-4o-mini.',
+      'Medium: build a script that reads `designs.txt` and writes `titles.csv` with 3 Etsy titles each via gpt-6-luna.',
       'Hard: package your tool with README, sample input, and `requirements.txt`; have a peer run it cold.',
     ],
     relatedTemplateIds: [],

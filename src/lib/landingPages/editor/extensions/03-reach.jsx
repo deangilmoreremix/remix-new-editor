@@ -99,7 +99,7 @@ function ReachStatsCard({ columns, title, items }) {
   );
 }
 
-function ReachQuotesCard({ columns, heading, quotes }) {
+function ReachQuotesCard({ columns, heading, quotes, prevLabel, nextLabel }) {
   const t = useTokens();
   const track = useRef(null);
   const [page, setPage] = useState(0);
@@ -117,19 +117,19 @@ function ReachQuotesCard({ columns, heading, quotes }) {
     <CardShell columns={columns} className="pk-card--quotes rc-quotes">
       {heading ? <h3 className="pk-card-title"><AccentText text={heading} /></h3> : null}
       <div className="rc-q-stage">
-        <button type="button" className="rc-q-arrow rc-q-prev" onClick={() => go(-1)} aria-label="Previous testimonials"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M8 1.5 3.5 6 8 10.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+        <button type="button" className="rc-q-arrow rc-q-prev" onClick={() => go(-1)} aria-label={t(prevLabel) || 'Previous testimonials'}><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M8 1.5 3.5 6 8 10.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
         <div className="rc-q-track" ref={track} onScroll={onScroll}>
           {qs.map((q, i) => (
             <figure key={i} className="pk-quote">
               <blockquote>{`“${t(q.text)}”`}</blockquote>
               <figcaption>
-                {art(q.avatar) ? <img className="pk-avatar" src={art(q.avatar)} alt="" loading="lazy" width="38" height="38" /> : <i className="pk-dot pk-dot--lg">{String(q.name || '?').slice(0, 1).toUpperCase()}</i>}
+                {art(q.avatar) ? <img className="pk-avatar" src={art(q.avatar)} alt={t(q.avatarAlt) || ''} loading="lazy" width="38" height="38" /> : <i className="pk-dot pk-dot--lg">{String(q.name || '?').slice(0, 1).toUpperCase()}</i>}
                 <span><b>{t(q.name)}</b><small>{t(q.role)}</small></span>
               </figcaption>
             </figure>
           ))}
         </div>
-        <button type="button" className="rc-q-arrow rc-q-next" onClick={() => go(1)} aria-label="Next testimonials"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4 1.5 8.5 6 4 10.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+        <button type="button" className="rc-q-arrow rc-q-next" onClick={() => go(1)} aria-label={t(nextLabel) || 'Next testimonials'}><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4 1.5 8.5 6 4 10.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
       </div>
       <div className="rc-q-dots" aria-hidden="true">{qs.map((_, i) => <i key={i} className={i === page ? 'on' : ''} />)}</div>
     </CardShell>
@@ -180,8 +180,8 @@ export const components = {
   },
   ReachQuotesCard: {
     label: 'Reach card: testimonial carousel (arrows and dots)',
-    fields: { columns: cols, heading: T('Heading ([[words]] highlighted)'), quotes: { type: 'array', label: 'Testimonials', arrayFields: { text: A('Quote'), name: T('Name'), role: T('Role / company'), avatar: T('Photo (https link or /landing-art/ path)') }, getItemSummary: (i) => i.name || 'Quote', defaultItemProps: { text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company', avatar: '' } } },
-    defaultProps: { columns: 1, heading: 'What Our Customers Are Saying', quotes: [{ text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company', avatar: '' }] },
+    fields: { columns: cols, heading: T('Heading ([[words]] highlighted)'), prevLabel: T('Screen-reader name of the left arrow'), nextLabel: T('Screen-reader name of the right arrow'), quotes: { type: 'array', label: 'Testimonials', arrayFields: { text: A('Quote'), name: T('Name'), role: T('Role / company'), avatar: T('Photo (https link or /landing-art/ path)'), avatarAlt: T('Screen-reader description (alt text)') }, getItemSummary: (i) => i.name || 'Quote', defaultItemProps: { text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company', avatar: '' } } },
+    defaultProps: { columns: 1, heading: 'What Our Customers Are Saying', prevLabel: 'Previous testimonials', nextLabel: 'Next testimonials', quotes: [{ text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company', avatar: '' }] },
     render: (p) => <ReachQuotesCard {...p} />,
   },
 };

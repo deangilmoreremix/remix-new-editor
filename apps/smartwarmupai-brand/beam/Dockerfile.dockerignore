@@ -1,0 +1,12 @@
+node_modules
+.git
+**/node_modules
+apps/warmbly-web
+apps/smartwarmupai-help
+apps/warmbly-server/site
+apps/warmbly-server/ios
+apps/warmbly-server/qa
+apps/warmbly-server/web
+public
+dist
+bin

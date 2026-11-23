@@ -24,7 +24,7 @@
     "Templates: one tap loads an upstream template; loading one never calls a paid API.",
     "Redo on any character sheet, keyframe or clip, and a message when part of a batch fails.",
     "Final cut assembled in the browser; Download MP4 and Download captions (.srt).",
-    "Burn captions with a chosen language and theme (asks for confirmation about the cost).",
+    "Free Captions: transcribe the final cut on your device with Whisper, fix any words, pick a look and render the captions into the video (no credits; transcribed and rendered in your browser).",
     "History sidebar and a New project button."
   ],
   "featureExplanations": [
@@ -48,9 +48,10 @@
     },
     {
       "feature": "Burn captions",
-      "explanation": "Adds AI captions to the final video after you confirm a cost warning (about $0.20 minimum, $0.005 per second).",
+      "explanation": "Under the final cut, 'Captions on your device' has a 'Free Captions' button ('Edit captions' once you have made them). It opens the Caption Studio window, which transcribes the video in your browser with Whisper, lets you fix words and pick a look, then renders the captions into the video. The captioned video can be opened, downloaded or saved with 'Save captioned to library'. 'Download captions (.srt)' gives a separate caption file.",
       "whyToUse": "Silent autoplay on social platforms.",
-      "inputRequired": "A rendered final cut."
+      "inputRequired": "A rendered final cut. Free: no credits. Transcription and rendering happen in your browser; 'Save captioned to library' uploads the captioned video to your library.",
+      "restrictions": "Transcription and rendering run in your browser, so long videos depend on your device."
     }
   ],
   "howToUse": "1. Open Zack D Studio from the side menu (#/zackd). 2. Type a question or topic, or pick a seed idea or template. 3. Click 'Write script' and edit the beats if you like. 4. Click 'Approve script'. 5. Click the next button to generate character sheets, then keyframes, then 'Animate clips' (the most expensive step, it asks first). 6. Optionally add voice-over and music. 7. Click 'Render final cut'. 8. Download the MP4, download the .srt, or burn captions. Use Redo to retry any failed item and New project to start again.",
@@ -74,7 +75,7 @@
     "Look",
     "Voice",
     "Music (optional)",
-    "Caption language and theme (optional)"
+    "Caption words and look (optional, in the Free Captions window)"
   ],
   "requiredInputs": [
     "Topic or question"
@@ -84,8 +85,7 @@
     "Voice",
     "Music",
     "Consistency boost",
-    "Caption language",
-    "Caption theme"
+    "Caption words and look"
   ],
   "inputDetails": [
     {
@@ -121,7 +121,7 @@
   "limitationDetails": [
     {
       "limitation": "Paid steps",
-      "impact": "Character sheets, keyframes, clips and caption burning use credits.",
+      "impact": "Character sheets, keyframes and clips use credits. Captions are free (made on your device).",
       "workaround": "Use a template or Redo only what failed."
     }
   ],

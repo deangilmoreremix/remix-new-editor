@@ -1,0 +1,24 @@
+{
+  "storyboard-planning-with-your-options": {
+    "setup": "(async()=>{const st=await import('/src/features/personalization/apps/motion-director/store.ts');const ad=await import('/src/features/personalization/apps/motion-director/lib/sessionAdapter.ts');const fc=await import('/src/features/personalization/apps/motion-director/lib/filmChat.ts');const S=st.useStore.getState();const s=ad.projectToSession(S.project,'Notebook launch film','Make a 20 second launch film for my note-taking app');const t=new Date().toISOString();s.messages=[{role:'user',content:'Make a 20 second launch film for my note-taking app',ts:t},{role:'assistant',content:fc.INK_PRESS_INTRO,ts:t},{role:'user',content:'Use Ink Press.',ts:t},{role:'assistant',content:'Storyboard “Notebook — write it once” — 6 scenes, 20s:\\n1. Title card · paper and ink (2s)\\n2. Spotlight hero card · your home page (4s)\\n3. Deck deal fly-in · three feature pages (4s)\\n4. Row embed · search across notes (3s)\\n5. Crash zoom · the editor (3s)\\n6. Launch outro · logo and call to action (4s)\\n\\nApprove to build the film, ask me why I chose something, or tell me what to change.',ts:t}];s.messageCount=s.messages.length;S.addSession(s);S.selectSession&&S.selectSession(null);await new Promise(r=>setTimeout(r,800));})()",
+    "reload": false,
+    "steps": [
+      {
+        "text": "Notebook launch film",
+        "wait": 3500
+      }
+    ]
+  },
+  "aspect-ratio": {
+    "selector": "button[title='Aspect ratio']",
+    "click": true
+  },
+  "open-in-motion-workbench": {
+    "route": "motion-director/workbench"
+  },
+  "export-video": {
+    "route": "motion-director/workbench",
+    "selector": "button[title^='Render the current project']",
+    "click": false
+  }
+}

@@ -16,6 +16,10 @@ BG0's own documentation lists additional third-party components (for example HEI
 other BG0 packages. Version 0.1.1 of `@bg0/browser` does not include them; if a later version is adopted,
 re-check its notices and keep any required attribution and distribution terms.
 
+## Warmbly dashboard
+
+`apps/warmbly-web/` contains the dashboard from https://github.com/warmbly/warmbly, licensed under the Apache License 2.0 (copy in `apps/warmbly-web/LICENSE`). See `apps/warmbly-web/UPSTREAM.md` for the source commit and the local changes.
+
 ## Pitch shifting / time stretching (CineGen Media tools > Audio)
 
 - **SoundTouch JS** v0.2.3 (`src/cinegen/vendor-soundtouch/time-stretch.ts`) — GNU Lesser General Public License v2.1 or later.

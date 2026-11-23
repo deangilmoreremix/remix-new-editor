@@ -9,11 +9,13 @@ import { LANGUAGES } from '../captions/scripts'
 import { transcriptText } from '../captions/textTools'
 import { CAPITE_CAPTION_STYLES, CAPITE_CATEGORIES, capiteStyleById } from '../captions/capiteStyles'
 import { CAPTION_POSITIONS, CAPTION_STYLES } from '../captions/captionStyle'
+import { captionAvoid, clearOf, coveredNow } from './captionAvoid'
 import { useCaptions } from '../captions/useCaptions'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { LocalAINotice } from './LocalAINotice'
 import { SavedStylesBar } from './SavedStylesBar'
 import { applyCaptionStyle, captureCaptionStyle } from '../preview/textStyles'
+import type { PreviewInputProps } from '../preview/types'
 import { C, chipStyle, hintStyle, inputStyle, labelStyle, secondaryButtonStyle } from './tokens'
 
 function saveText(text: string, fileName: string, mime: string) {
@@ -31,12 +33,16 @@ const smallButton = { ...secondaryButtonStyle, minHeight: 28, fontSize: 10, padd
  * the preview and in every export, including the extra shapes), and can also be downloaded as SRT/VTT files for
  * platforms that take a separate caption file. Lines can be corrected; the speech recogniser is not perfect.
  */
-export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null; disabled?: boolean }): React.JSX.Element | null {
+export function CaptionsPanel({ videoUrl, disabled, brand }: { videoUrl: string | null; disabled?: boolean; /** The business's own words, to find the text layers the captions could cover. */ brand?: PreviewInputProps['brand'] }): React.JSX.Element | null {
   const c = useCaptions(videoUrl)
   const { previewSettings, updatePreviewComposition } = useDemoPersonalize()
   const [copied, setCopied] = useState<'copied' | 'failed' | null>(null)
   const [confirmRedo, setConfirmRedo] = useState(false)
   if (!videoUrl) return null
+  // What the Studio captions cover: other layers that are on screen while a caption is.
+  const avoid = c.captions ? captionAvoid({ layers: previewSettings.layers, width: previewSettings.width, height: previewSettings.height, fps: previewSettings.fps, captions: c.captions }, brand) : null
+  const covered = avoid ? coveredNow(avoid) : 0
+  const clear = avoid && covered > 0 ? clearOf(avoid) : null
   const busy = c.ai.phase !== 'idle'
   const studio = c.captions?.studio
   // With the Caption Studio available, captions are made and edited in that one window; this panel only opens it and shows the result.
@@ -98,9 +104,18 @@ export function CaptionsPanel({ videoUrl, disabled }: { videoUrl: string | null;
             Show captions in the video
           </label>
           {hosted ? (
+            <>
             <p data-testid="captions-summary" style={{ ...hintStyle, margin: 0 }}>
               {cues.length} lines{studio ? ' · drawn as designed in the Caption Studio (colours, motion and height included)' : ' · open the Caption Studio to restyle or fix these'}.
             </p>
+            {covered > 0 && (
+              <p data-testid="captions-overlap" role="status" style={{ ...hintStyle, margin: 0, color: C.text }}>
+                The captions cover {covered === 1 ? 'a text layer' : `${covered} text layers`} while they are on screen.
+                {clear && !clear.cleared ? ' There is no clear spot on this frame: shorten the lines or move the other text.' : ' '}
+                {clear?.cleared && <button type="button" data-testid="captions-clear-now" onClick={() => c.setStudioPositionY(clear.positionY)} style={smallButton}>Move them clear</button>}
+              </p>
+            )}
+            </>
           ) : (
             <>
           <div role="group" aria-label="Caption style" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>

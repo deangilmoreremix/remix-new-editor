@@ -35,7 +35,7 @@
     "Recast: three models with orientation control and optional prompt.",
     "Motion control: two modes (Motion transfer, Objects swap), four Seedance models, duration, quality, bitrate and audio options.",
     "Recast and Motion control keep the last 30 results in this browser.",
-    "AI Captions window: 'Your videos' picker, 49 caption looks on a real frame, a Script & Words editor, history, and MP4 / SRT / VTT / TXT downloads."
+    "Free AI Captions window: 'Your videos' picker, 32 looks on a real picture, Script & Words editor, History, and video / SRT / VTT / TXT / ASS downloads."
   ],
   "featureExplanations": [
     {
@@ -123,9 +123,9 @@
       "restrictions": "Models differ: Seedance 2.5 Motion Control and its Intl and Spicy variants allow 4 to 30 seconds and up to 30 images with audio and bitrate options; Seedance 2.0 Motion Control allows 4 to 15 seconds and up to 9 images with quality (High or Basic) and audio options. Default duration is 5 seconds and default aspect ratio is 16:9."
     },
     {
-      "feature": "AI Captions window (the '💬 Add AI Captions' button, also in Avatar, Cinema, Effects, Lip Sync, Video and Template studios)",
-      "explanation": "AI Captions opens as a window from the '💬 Add AI Captions' button in the studios. It has four tabs: Create, Script & Words, Motion & Style and History. On Create, 'Your videos' lists every video you made in the app (newest first, with a first-frame picture, search, and studio filters); the one you opened it from is already picked. You can also upload a video or paste a video link. 'On this device' (default) listens to the audio with Whisper in your browser, so nothing is uploaded; 'AI themes (cloud)' sends the video to the caption service instead and returns a finished video. Pick one of 49 caption looks (the six popular ones are Hormozi, MrBeast, Karaoke, Minimal, Bounce and Classic), see it drawn over a real frame of your video, and move it Top, Middle or Bottom with the slider. Press 'Generate Captions'. Script & Words then shows each line with its time: click a word to fix it, use Find & Replace, change the casing, nudge a line by 0.1 s, split, merge, add or delete lines. 'Apply & Re-render' burns the edited captions into the video in your browser. Download the MP4, or the .srt, .vtt or .txt. History keeps your caption jobs in this browser only.",
-      "whyToUse": "Caption any video you made without uploading it, fix wrong words, and download the burned-in MP4 or the .srt, .vtt and .txt files."
+      "feature": "Free AI Captions window (the '💬 Add AI Captions' button, also in Avatar, Cinema, Effects, Lip Sync, Video and Template studios)",
+      "explanation": "The window has five tabs: Generate, Script & Words, Motion & Style, Export and History. On Generate, 'Your videos' lists every video you made in the app (newest first, with a picture, search and studio filters; the one you opened it from is already picked), or choose 'Upload a file'. Pick the engine, model and language and press 'Generate captions — free': Whisper listens in your browser, so nothing is uploaded and no credits are used. Script & Words shows each line with its time: click a word to jump there, double-click to fix it, use Find & Replace, change the casing, nudge a line, split or delete lines. Motion & Style has 32 looks (Hormozi, MrBeast, Karaoke and more), each drawn on a real picture, with colour, font, size and position controls. 'Render video — free' burns the captions into the video in your browser; Export gives SRT, VTT, TXT and ASS. History keeps your caption jobs in this browser so you can reopen and edit them.",
+      "whyToUse": "Caption any video you made without uploading it, fix wrong words, and download the captioned video or the subtitle files."
     }
   ],
   "howToUse": "1. Open Video Tools from the side menu (#/videotools). The page opens on the Tools tab. 2. Click the model button at the top and choose a tool, for example AI Video Upscaler. 3. Under Source Video, upload your video (hint: Upload a video or pick a stock clip) or use the stock video button. 4. If the Prompt (optional) box appears, describe what you want (placeholder: Describe the transformation you want...). If a Native Audio switch appears, turn it on to keep or create audio. 5. Optional: open Advanced for extra options, or use Thumbnail and Personalize. 6. Press Process Video. The button shows Processing... while it works. 7. When the result appears, press Download Video, Publish to Social or Add AI Captions. 8. For Recast: switch the top toggle to Recast, upload a Motion video and a Character image, choose the model, set Orientation, then press Generate. 9. For Motion control: switch to Motion control, choose Motion transfer or Objects swap, upload a Motion video and Character images, choose model, Aspect, duration, Quality, Bitrate and Audio, and press Generate.",
@@ -277,8 +277,9 @@
     "Processing may take several minutes for long or high resolution videos.",
     "The Video Tools page does not generate new clips from text or images; use Video Studio or Animate for that.",
     "On this device, Whisper runs in the browser: the first run downloads a model and a long clip takes a while without a graphics card.",
-    "Burning the video needs a browser with video encoding (Chrome, Edge or Safari); otherwise only the .srt, .vtt and .txt downloads work.",
-    "A video from another website may not be readable by the browser; captions still work but the burned-in MP4 may not."
+    "A video from another website may not be readable by the browser; captions still work but the rendered video may not.",
+    "Videos finished during a visit (such as an export) are in 'Your videos' only until the page is closed.",
+    "Caption history is kept in this browser only: the 30 newest jobs, and the video itself only for clips up to 100 MB."
   ],
   "limitationDetails": [
     {
@@ -311,8 +312,7 @@
     "No video URL returned by API: the service finished without a video. Retry or try a shorter clip.",
     "Add AI Captions button is missing on the result: it appears only when the result link looks like a video file.",
     "'No speech was found to caption': the clip has no clear speech; try another clip or language.",
-    "The window says the browser cannot export video: use Chrome, Edge or Safari, or download the .srt/.vtt/.txt.",
-    "Generate takes a long time: use a smaller Accuracy option, or the local Whisper.cpp server on your computer."
+    "Your video is missing from 'Your videos': it may not have been saved to history; use 'Upload a file'."
   ],
   "troubleshootingSteps": [
     {

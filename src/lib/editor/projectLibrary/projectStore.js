@@ -128,7 +128,7 @@ export async function duplicateProject(client, id) {
  * linked to it (parent_project_id) with the brief that produced it
  * (followup_context). The original is never modified.
  */
-export async function createFollowupProject(client, originalId, context = {}) {
+export async function createFollowupProject(client, originalId, context = {}, overrides = {}) {
   const src = await loadProject(client, originalId);
   if (!src) throw new Error('The original project was not found');
   const topic = String(context.interest || 'follow-up').slice(0, 60);
@@ -143,13 +143,14 @@ export async function createFollowupProject(client, originalId, context = {}) {
     createdFrom: 'retarget',
   };
   const { data, error } = await client.from(TABLE).insert({
+    ...(overrides.id ? { id: overrides.id } : {}), // [remix] CineGen: the row id of the new CineGen project's own timeline
     name: cleanName(`${src.name}: ${topic} follow-up`),
     data: { ...(src.data || {}), projectId: undefined, publishedVideos: {} }, // fresh project: nothing published yet
     tags: [...new Set([...(src.tags || []), 'follow-up'])].slice(0, 12),
     thumbnail_url: src.thumbnail_url,
     duration_s: src.duration_s,
     aspect_ratio: src.aspect_ratio,
-    settings: src.settings,
+    settings: overrides.settings ?? src.settings, // [remix] CineGen points this at the new project, not the original
     parent_project_id: src.id,
     followup_context: ctx,
   }).select('*').single();

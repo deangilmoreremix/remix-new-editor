@@ -1,0 +1,31 @@
+{
+  "model-selector": {
+    "selector": "xpath=//button[contains(normalize-space(.),'LTX LipSync')]",
+    "click": false
+  },
+  "source-video-image-upload": {
+    "selector": "xpath=//label[normalize-space(.)='Source Video/Image']/..",
+    "click": false
+  },
+  "audio-for-lip-sync": {
+    "selector": "xpath=//label[normalize-space(.)='Audio (for lip sync)']/..",
+    "click": false
+  },
+  "prompt-optional": {
+    "setup": "new Promise((done) => { let n = 0; const t = setInterval(() => { const el = [...document.querySelectorAll('button')].find((b) => b.innerText.includes('LTX LipSync')); if (!el && ++n < 80) return; clearInterval(t); if (el) { el.click(); setTimeout(() => { const f = [...document.querySelectorAll('button')].find((b) => b.innerText.trim().startsWith('FLUX 3 Avatar')); if (f) f.click(); setTimeout(done, 800); }, 600); return; } done(); }, 250); })",
+    "reload": false,
+    "selector": "xpath=//label[normalize-space(.)='Prompt (optional)']/..",
+    "click": false
+  },
+  "native-audio-toggle": {
+    "setup": "new Promise((done) => { let n = 0; const t = setInterval(() => { const el = [...document.querySelectorAll('button')].find((b) => b.innerText.includes('LTX LipSync')); if (!el && ++n < 80) return; clearInterval(t); if (el) { el.click(); setTimeout(() => { const f = [...document.querySelectorAll('button')].find((b) => b.innerText.trim().startsWith('FLUX 3 Avatar')); if (f) f.click(); setTimeout(done, 800); }, 600); return; } done(); }, 250); })",
+    "reload": false,
+    "selector": "xpath=//label[normalize-space(.)='Native Audio']/..",
+    "click": false
+  },
+  "result-actions": {
+    "setup": "new Promise((done) => { let n = 0; const t = setInterval(() => { const el = document.querySelector('div.w-full.mt-6[role=\"status\"]'); if (!el && ++n < 80) return; clearInterval(t); if (el) { el.classList.remove('hidden'); el.innerHTML = '<div class=\"bg-card-bg/80 border border-white/10 rounded-2xl p-4\"><video controls preload=\"auto\" class=\"w-full rounded-xl mb-3\" style=\"max-height:52vh;background:#000\" src=\"/media/outreach-sample/presenter.mp4#t=1\"></video><a href=\"#\" class=\"block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all\">Download Video</a><button type=\"button\" class=\"publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all\">Publish to Social</button><button type=\"button\" class=\"w-full bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-xl font-bold text-sm border border-white/10 transition-all mt-3\">💬 Add AI Captions</button></div>'; const v = el.querySelector('video'); v.addEventListener('loadeddata', () => setTimeout(done, 300)); setTimeout(done, 8000); return; } done(); }, 250); })",
+    "reload": false,
+    "selector": "div.w-full.mt-6[role=\"status\"] > div"
+  }
+}

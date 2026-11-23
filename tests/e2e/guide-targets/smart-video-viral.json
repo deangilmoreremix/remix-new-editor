@@ -1,0 +1,15 @@
+{
+  "video-preview": {
+    "selector": "button.smart-play-toggle",
+    "click": false
+  },
+  "personalize-this-demo": {
+    "steps": [
+      {
+        "selector": ".personalize-demo-btn",
+        "wait": 7000
+      }
+    ],
+    "selector": "[role=\"dialog\"][aria-modal=\"true\"]:has-text(\"Personalize this demo\")"
+  }
+}
