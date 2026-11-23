@@ -31,6 +31,7 @@ import {
 } from './pointerDesigns.js';
 import { leadFieldTokens, ESP_PROVIDERS, espName, espListLabel } from './leadClient.js';
 import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS } from './addonOverlay.js';
+import { hasAccount, ACCOUNT_ONLY_FIELDS, ACCOUNT_ONLY_NOTE } from './accountGate.js';
 
 export const LIST_BUILDER_KINDS = {
   'list-builder': 'List Builder',
@@ -374,6 +375,10 @@ export function listBuilderFields(config) {
       { key: 'espListId', label: espListLabel(config?.espProvider), type: 'text', tab: 'Integrations', showIf: (o) => !!o.espProvider },
       { key: '_espConnect', label: `Connect ${espName(config?.espProvider) || 'account'}`, type: 'action', action: 'connectEsp', tab: 'Integrations', showIf: (o) => !!o.espProvider },
     );
+  }
+  // Someone publishing without an account is not offered what the server will not run for them.
+  if (!personalizer && !hasAccount()) {
+    return [...fields.filter((f) => !ACCOUNT_ONLY_FIELDS.has(f.key)), { key: '_accountOnlyNote', type: 'note', text: ACCOUNT_ONLY_NOTE, tab: 'Integrations' }];
   }
   return fields;
 }

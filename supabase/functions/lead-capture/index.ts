@@ -381,7 +381,8 @@ Deno.serve(async (req: Request) => {
       // The settings use the List Builder's shape (webhookEnabled/webhook..., emailEnabled/emailAddress..., espProvider/espListId).
       // Guest-owned pages (no account) never relay to webhooks, the same rule the published-video path has.
       const hooks = isGuestOwner(ownerId) ? [] : savedWebhooks(settings, true);
-      const notifyTo = savedNotifyEmails(settings, true);
+      // ...and no notification emails either: an anonymous owner must not choose who gets mailed.
+      const notifyTo = isGuestOwner(ownerId) ? [] : savedNotifyEmails(settings, true);
       const [sent] = await Promise.all([
         hooks.length
           // The same event and payload the timeline's forms send, so one receiver can serve both.
@@ -449,11 +450,12 @@ Deno.serve(async (req: Request) => {
     const callNotify = leadKind === "call-attempt"
       ? String((config.callNotifyAddress ?? (config.addon as Json | undefined)?.callNotifyAddress) || "").trim()
       : "";
-    // Guest-owned videos (no account) never have webhooks relayed on their behalf.
+    // Guest-owned videos (no account) never have webhooks relayed, emails sent or auto-replies mailed on their behalf:
+    // an anonymous owner must not be able to choose who receives mail from this function.
     const guestOwned = isGuestOwner(video.clerk_user_id);
     const hooks = leadKind === "call-attempt" || guestOwned ? [] : savedWebhooks(config, listBuilder);
     // The recipients always come from the saved project, never from the request.
-    const notifyTo = leadKind === "call-attempt" ? (isValidEmail(callNotify) ? [callNotify] : []) : savedNotifyEmails(config, listBuilder);
+    const notifyTo = guestOwned ? [] : leadKind === "call-attempt" ? (isValidEmail(callNotify) ? [callNotify] : []) : savedNotifyEmails(config, listBuilder);
     const ownerId = String(video.clerk_user_id ?? "");
     // Everything after the lead is saved (webhooks with retries, notification emails, Kit/MailerLite, the delivery
     // log) runs after the viewer has their answer, so a slow or down receiver can never keep their form waiting.
@@ -464,7 +466,7 @@ Deno.serve(async (req: Request) => {
           ? forward(hooks, { event: "video_opted_in", kind: leadKind, projectId: publishedId, clipId, data: leadData, submittedAt: new Date().toISOString(), ...(Object.keys(attribution).length ? { source: attribution } : {}) }, { secret: await ownerSecret(ownerId) })
           : Promise.resolve({ forwarded: 0, failed: 0, deliveries: [] as Delivery[] }),
         notify(notifyTo, leadKind, leadData, attribution),
-        leadKind === "call-attempt" ? Promise.resolve() : sendAutoReply(admin, { publishedId, config, data: leadData, replyTo: autoReplyReplyTo(config, notifyTo) }),
+        leadKind === "call-attempt" || guestOwned ? Promise.resolve() : sendAutoReply(admin, { publishedId, config, data: leadData, replyTo: autoReplyReplyTo(config, notifyTo) }),
         leadKind === "call-attempt" ? Promise.resolve(null) : pushToEsp(admin, ownerId, savedEsp(config), leadData),
       ]);
       await logDeliveries(admin, ownerId, { projectId: publishedId, clipId, kind: leadKind }, sent.deliveries);

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, testWebhooks, runWebhookTest, webhookTestMessage, deliveriesSummary, fetchSigningSecret, integrationStatusText, fetchIntegrations, saveIntegration, leadsToCsv, mergeLeads, webhookUrlsFor, sanitizeLeadData,
   defaultListBuilder, listBuilderFields, listBuilderWebhookConfig, switchListBuilderKind, savePersonalizerProfile,
@@ -7,6 +7,9 @@ import {
 } from '../index.js';
 
 describe('lead client', () => {
+  // Webhooks, email alerts and email-list settings belong to a signed-in account (see accountGate.js and guestFields.test.js).
+  beforeEach(() => { globalThis.window.Clerk = { user: { id: 'user_1' } }; });
+  afterEach(() => { delete globalThis.window.Clerk; });
   it('only forwards enabled, https webhooks', () => {
     expect(webhookUrlsFor({ webhookEnabled: false, webhookUrl: 'https://a.test/h' })).toEqual([]);
     expect(webhookUrlsFor({

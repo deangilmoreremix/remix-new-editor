@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // New form field types (dropdown, checkbox, URL, validated phone) and the consent checkbox, for both forms.
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   defaultListBuilder, listBuilderFields, ensureOverlayLayer, showOptinOverlay, renderAddonEditor, leadFormToOptin, applyOptinToLeadForm, FORM_FIELD_TYPES, LEAD_FIELD_TYPES,
 } from '../index.js';
@@ -137,6 +137,9 @@ describe('editor and Lead Generator clip', () => {
 });
 
 describe('auto-reply settings', () => {
+  // Auto-replies belong to a signed-in account (see accountGate.js and guestFields.test.js).
+  beforeEach(() => { globalThis.window.Clerk = { user: { id: 'user_1' } }; });
+  afterEach(() => { delete globalThis.window.Clerk; });
   it('are offered on the Integrations tab once switched on, and kept on the Lead Generator clip', async () => {
     const { listBuilderFields: fields, defaultListBuilder: dflt, applyOptinToLeadForm: apply, leadFormToOptin: back } = await import('../index.js');
     const shown = (o) => fields(o).filter((f) => !f.showIf || f.showIf(o)).map((f) => f.key);
