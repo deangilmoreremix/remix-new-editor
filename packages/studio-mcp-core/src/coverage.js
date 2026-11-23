@@ -23,7 +23,7 @@ export function renderCoverage({ manifest, report, customToolNames, brandName = 
   const live = report && !report.dryRun ? report : null;
   const date = live?.generatedAt?.slice(0, 10);
   const rows = [
-    ...Object.entries(manifest.supported).map(([s, v]) => `| \`${s}\` | supported | ${v.tools.map((t) => `\`${t}\``).join(', ')} | ${live ? liveStatus(v, live.results, customToolNames, date) : 'not run'} |`),
+    ...Object.entries(manifest.supported).map(([s, v]) => `| \`${s}\` | supported | ${v.tools.map((t) => `\`${t}\``).join(', ')}${v.note ? ` (${String(v.note).replace(/\|/g, '/')})` : ''} | ${live ? liveStatus(v, live.results, customToolNames, date) : 'not run'} |`),
     ...Object.entries(manifest.unsupported).map(([s, why]) => `| \`${s}\` | not exposed | ${String(why).replace(/\|/g, '/')} | n/a |`),
   ];
   const neg = (live?.results || []).filter((r) => r.id.startsWith('neg:'));
