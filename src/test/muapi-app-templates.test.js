@@ -73,6 +73,19 @@ describe('muapi Studio app templates', () => {
     expect(prompts._note).toMatch(/NOT muapi/);
   });
 
+  it('never borrows unrelated stock thumbnails; only its own file is tried', async () => {
+    const { getTemplateThumbnailCandidates } = await import('../lib/thumbnails.js');
+    for (const t of MUAPI_APP_TEMPLATES) {
+      // Both the raw template and the normalized copy the studio passes in.
+      for (const shape of [t, normalizeTemplate(t), t.id]) {
+        const c = getTemplateThumbnailCandidates(shape);
+        expect(c.every((p) => p.includes(`/thumbnails/templates/${t.id}.webp`)), t.id).toBe(true);
+      }
+    }
+    // Other templates keep the old fallback chain.
+    expect(getTemplateThumbnailCandidates(getTemplateById('face-swap')).length).toBeGreaterThan(2);
+  });
+
   it('keeps the Skin Enhancer with its note', () => {
     const t = MUAPI_APP_TEMPLATES.find((x) => x.id === 'muapi-skin-enhancer');
     expect(t).toBeTruthy();

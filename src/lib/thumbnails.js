@@ -557,6 +557,13 @@ export function getTemplateThumbnailCandidates(template) {
   // 2) Per-template .webp.png
   if (stem) candidates.push(`/thumbnails/templates/${stem}.webp.png`);
 
+  // muapi Studio apps have no per-app artwork yet. Do not borrow unrelated niche/category
+  // photos (a restaurant shot on a face-swap tool is misleading): stop here so the card and
+  // the studio header fall back to the app's own icon tile until a real file is added at
+  // /thumbnails/templates/<id>.webp.
+  // (Checked by id prefix: the studio passes a normalized copy that does not keep `muapiApp`.)
+  if (id && String(id).startsWith('muapi-')) return candidates;
+
   // 3) Niche/industry thumbnail rotation — find the FIRST unused rotation entry
   // for this niche and claim only that one; the rest of the niche's own pool
   // becomes the fallback chain for future dedup misses.
