@@ -288,6 +288,13 @@ export const STUDIO_HELP = {
   'reset progress': h('Reset progress', 'Clear your course progress.'),
   'add your generations': h('Add your generations', 'Bring your generations into the Workbench.'),
   'topic': h('Topic', 'What the video is about.'),
+  'paste url': h('Paste a link', 'Paste a web address and press Enter to add it.'),
+  'try this': h('Try this', 'Open the studio with this prompt filled in.'),
+  'social resize': h('Social Resize', 'Reframe for feed, story, reel and ad formats.'),
+  'remix scene': h('Remix Scene', 'Export a remixed version with a brightness and contrast boost.', 'It uses the selected preset.'),
+  'publish / deliver': h('Publish / Deliver', 'Export the video as MP4 or WebM, whichever your browser supports.'),
+  'commercial avatar': h('Avatar', 'Add the presenter image.', 'It shows up as @image2.'),
+  'commercial references': h('References', 'Add reference images.'),
   'high bitrate': h('High bitrate', 'Switch between normal and high bitrate.'),
   'character orientation': h('Character orientation', 'Choose whether the character follows the video or the image.'),
   'motion video': h('Motion video', 'Upload the video whose motion is used.'),
@@ -334,6 +341,7 @@ export function idLabels(id) {
 
 // Placeholder text is the only label some inputs have. Matched by prefix, since the text is long and sometimes truncated.
 const PLACEHOLDERS = [
+  [/^paste (an? )?(image|logo|image or video) url/, 'paste url'],
   [/^describe the motion graphic/, 'prompt'], // must stay ahead of the broader "describe the motion" rule below
   [/^describe the motion/, 'motion prompt'],
   [/^optional: describe the subject/, 'vfx subject'],
@@ -345,6 +353,8 @@ const PLACEHOLDERS = [
   [/^describe your ad script/, 'ad script'],
   [/^describe the look, mood/, 'photo direction'],
   [/^describe your motion video/, 'prompt'],
+  [/^avatar \(optional\)/, 'commercial avatar'],
+  [/^references \(optional\)/, 'commercial references'],
   [/^bitrate: /, 'high bitrate'],
   [/^orientation: /, 'character orientation'],
   [/^optional: describe the performance/, 'performance direction'],
@@ -375,6 +385,7 @@ export const ALIASES = {
   'start f': 'start frame',
   'end f': 'end frame',
   'ar': 'aspect ratio',
+  'browse stock media': 'pexels',
   'aspect': 'aspect ratio',
   'aspect_ratio': 'aspect ratio',
   'lip sync prompt': 'prompt',
@@ -389,6 +400,12 @@ const lookup = (key) => STUDIO_HELP[key] || STUDIO_HELP[ALIASES[key]] || null;
 
 /** Help entry for a control label, or null. */
 export function resolveStudioHelp(label) {
+  // Wizard steps name their destination in the label itself ("← Profile", "Next: Overlays →"), so the sentence is built from it.
+  const raw = String(label || '').trim();
+  const back = /^←\s*(.{2,40})$/.exec(raw);
+  if (back) return h('Back', `Go back to ${back[1]}.`);
+  const next = /^next:\s*(.{2,40}?)\s*→?$/i.exec(raw);
+  if (next) return h('Next', `Continue to ${next[1]}.`);
   const key = helpKey(label);
   const direct = lookup(key);
   if (direct) return direct;

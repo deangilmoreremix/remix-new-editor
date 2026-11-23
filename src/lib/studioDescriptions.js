@@ -2,7 +2,8 @@
 //
 // The entries from "image" to "content-library" are copied from the cards in components/AppsHub.js, so the tooltip uses the owner's own
 // wording; a test fails if the two drift apart. The entries after them describe hub pages AppsHub has no card for, using only what those
-// pages show. A studio with no entry here simply gets no studio-level copy (a test lists them), rather than a guessed description.
+// pages show (Zack D\'s is from the header comment of its own studio file). A studio with no entry here simply gets no studio-level copy
+// (a test lists them), rather than a guessed description.
 
 export const STUDIO_DESCRIPTIONS = {
   image: { name: 'Image Studio', text: 'Generate images with 20+ AI models' },
@@ -38,6 +39,7 @@ export const STUDIO_DESCRIPTIONS = {
   explore: { name: 'Explore', text: 'Browse example prompts and try them.' },
   templates: { name: 'Templates', text: 'Browse ready-made templates and start from one.' },
   academy: { name: 'Academy', text: 'Courses and guides for using the studios.' },
+  zackd: { name: 'Zack D Studio', text: 'Turn one question into a script, character sheets, keyframes, clips and a final cut.' },
   render: { name: 'Video Render', text: 'Render and export your video.' },
   leadfinder: { name: 'Lead Finder', text: 'Find businesses and save the prospects you like.' },
   settings: { name: 'Settings', text: 'Your API key and preferences.' },

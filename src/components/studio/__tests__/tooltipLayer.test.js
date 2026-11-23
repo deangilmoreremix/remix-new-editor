@@ -173,7 +173,7 @@ describe('studio-level tooltips', () => {
   beforeEach(() => { document.body.innerHTML = ''; });
   // Sidebar studios that have no owner-written description yet. Listed on purpose: a NEW studio without a description fails the test below,
   // and filling one of these in fails it too until the list is updated, so the gap cannot grow or linger unnoticed.
-  const AWAITING_DESCRIPTION = ['zackd'];
+  const AWAITING_DESCRIPTION = [];
 
   it('the descriptions are the Apps hub cards\' own words (no drift between the two)', () => {
     const hub = readFileSync(join(process.cwd(), 'src/components/AppsHub.js'), 'utf8');
@@ -197,7 +197,7 @@ describe('studio-level tooltips', () => {
     expect(findHelp(b)?.entry).toEqual({ name: 'Fallback' });
   });
   it('studioEntry returns null for a studio with no description instead of guessing', () => {
-    expect(studioEntry('zackd')).toBeNull();
+    expect(studioEntry('zackd')?.name).toBe('Zack D Studio');
     expect(studioEntry('not-a-studio')).toBeNull();
   });
   it('data-help-text carries copy supplied at render time, and long placeholders still match by prefix', () => {
@@ -224,5 +224,17 @@ describe('patterns for the feature pages found by the all-routes audit', () => {
     expect(findHelp(send)?.entry.name).toBe('Send');
     expect(findHelp(clear)?.entry.name).toBe('Clear Chat');
     expect(findHelp(style)?.entry).toEqual({ name: 'Studio white', summary: 'A clean white studio shot.' });
+  });
+});
+
+describe('plain titles vs ancestor copy', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+  it('an inner element\'s own title does not hide copy an ancestor has', () => {
+    document.body.innerHTML = '<div data-sidebar-item="video"><span title="inner title">VIDEO</span></div>';
+    expect(findHelp(document.querySelector('span'))?.entry.name).toBe('Video Studio');
+  });
+  it('with no copy anywhere, the nearest plain title still wins', () => {
+    document.body.innerHTML = '<div title="Outer"><span title="Inner">x</span></div>';
+    expect(findHelp(document.querySelector('span'))?.entry).toEqual({ name: 'Inner' });
   });
 });
