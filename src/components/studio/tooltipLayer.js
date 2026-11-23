@@ -18,11 +18,11 @@ let mounted = false;
 
 /** The short caption beside a form field ("Duration", "Resolution"), for selects and inputs that carry no label of their own. */
 function fieldLabel(el) {
-  if (!(el instanceof HTMLSelectElement || el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return '';
+  if (!(el instanceof window.HTMLSelectElement || el instanceof HTMLInputElement || el instanceof window.HTMLTextAreaElement)) return '';
   const own = (n) => (n?.textContent || '').trim().replace(/\s+/g, ' ');
   const wrap = el.closest('label');
   const span = wrap?.querySelector(':scope > span, :scope > div');
-  const first = el instanceof HTMLSelectElement ? (el.options[0]?.text || '').trim() : '';
+  const first = el instanceof window.HTMLSelectElement ? (el.options[0]?.text || '').trim() : '';
   return [own(span), own(el.previousElementSibling), own(wrap), first].find((c) => c && c.length <= 28) || '';
 }
 

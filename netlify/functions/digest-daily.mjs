@@ -5,44 +5,28 @@
  *   - detect rising interests / follow-up opportunities
  *   - prune raw analytics older than 90 days
  *   - queue + send owner e-mails ONLY if an e-mail adapter is configured
- *     (none is by default, so this step reports `not_configured` and stays in-app)
+ *     (RESEND_API_KEY + ALERT_EMAIL_FROM; without them this step reports `not_configured` and stays in-app).
+ *     Alerts are e-mailed right away by push-dispatch. This sweep sends the digests, retries what is left, and RECOVERS alerts from the
+ *     last 24 hours that never reached the queue (push-dispatch is a one-shot call from the database trigger; if it failed before
+ *     enqueuing, nothing else would ever e-mail that alert). Already-queued notifications are skipped, so nothing is sent twice.
  * Idempotent: notifications are de-duplicated by key, so a re-run is harmless.
  */
-import { getEmailAdapter, enqueueNotificationEmails, drainEmailQueue } from './_shared/emailAdapter.js';
+import { getEmailAdapter, enqueueNotificationEmails, drainEmailQueue, alertsUrl } from './_shared/emailAdapter.js';
+import { emailDb } from './_shared/ownerEmail.js';
+import { rest, supabaseConfig } from './_shared/supabaseRest.js';
 
 export const config = { schedule: '17 6 * * *' };
 
-const rest = (cfg, fetchImpl) => async (path, { method = 'GET', body, prefer } = {}) => {
-  const res = await fetchImpl(`${cfg.url}/rest/v1/${path}`, {
-    method,
-    headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}`, 'Content-Type': 'application/json', ...(prefer ? { Prefer: prefer } : {}) },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`${method} ${path.split('?')[0]} failed (HTTP ${res.status})`);
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
-};
+// Alerts younger than RECOVERY_MIN_AGE_MINUTES are left to the immediate path, so each daily window must reach back one day PLUS that gap: an alert
+// created 5 minutes before today's sweep is skipped today and must still be inside tomorrow's window (24 h 5 min back).
+export const RECOVERY_MIN_AGE_MINUTES = 15;
+export const RECOVERY_LOOKBACK_HOURS = 24 + 1;
 
-export function emailDb(call) {
-  const inList = (ids) => `in.(${ids.map((i) => `"${String(i).replace(/"/g, '')}"`).join(',')})`;
-  return {
-    recentNotifications: (since) => call(`owner_notifications?select=id,clerk_user_id,type,title,summary,suggestion&created_at=gte.${encodeURIComponent(since)}&limit=500`),
-    preferences: async (ids) => {
-      if (!ids.length) return {};
-      const rows = await call(`retarget_preferences?select=clerk_user_id,email,digest_frequency,quiet_hours&clerk_user_id=${inList(ids)}`);
-      return Object.fromEntries((rows || []).map((r) => [r.clerk_user_id, r]));
-    },
-    queuedIds: async (ids) => (ids.length ? (await call(`notification_email_queue?select=notification_id&notification_id=${inList(ids)}`)).map((r) => r.notification_id) : []),
-    enqueue: (rows) => call('notification_email_queue?on_conflict=notification_id', { method: 'POST', body: rows, prefer: 'resolution=ignore-duplicates' }),
-    due: (nowIso, limit) => call(`notification_email_queue?select=*&status=eq.pending&next_attempt_at=lte.${encodeURIComponent(nowIso)}&order=next_attempt_at.asc&limit=${limit}`),
-    mark: (id, patch) => call(`notification_email_queue?id=eq.${id}`, { method: 'PATCH', body: patch }),
-    notification: async (id) => (await call(`owner_notifications?select=id,title,summary,suggestion&id=eq.${id}&limit=1`))?.[0] || null,
-  };
-}
+export { emailDb };
 
 /** Exported for tests: runs every job and reports what happened. */
-export async function run({ env = process.env, fetchImpl = fetch, now = new Date(), adapter = getEmailAdapter(env) } = {}) {
-  const cfg = { url: String(env.SUPABASE_URL || env.VITE_SUPABASE_URL || '').replace(/\/$/, ''), key: env.SUPABASE_SERVICE_ROLE_KEY || '' };
+export async function run({ env = process.env, fetchImpl = fetch, now = new Date(), adapter = getEmailAdapter(env, { fetchImpl }) } = {}) {
+  const cfg = supabaseConfig(env);
   if (!cfg.url || !cfg.key) return { ok: false, error: 'not_configured' };
   const call = rest(cfg, fetchImpl);
   const rpc = (name, args = {}) => call(`rpc/${name}`, { method: 'POST', body: args });
@@ -54,8 +38,8 @@ export async function run({ env = process.env, fetchImpl = fetch, now = new Date
   await step('interest_surges', () => rpc('detect_interest_surges'));
   await step('prune', () => rpc('prune_video_analytics', { p_raw_days: 90 }));
   const db = emailDb(call);
-  await step('email_enqueue', () => enqueueNotificationEmails({ adapter, db, now }));
-  await step('email_drain', () => drainEmailQueue({ adapter, db, now }));
+  await step('email_enqueue', () => enqueueNotificationEmails({ adapter, db, now, sinceHours: RECOVERY_LOOKBACK_HOURS, minAgeMinutes: RECOVERY_MIN_AGE_MINUTES })); // digests, plus alerts the immediate path missed
+  await step('email_drain', async () => { const res = await drainEmailQueue({ adapter, db, now, url: alertsUrl(env) }); delete res.outcomes; return res; });
   return result;
 }
 

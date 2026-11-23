@@ -84,6 +84,8 @@ export function sanitizeSource(raw: unknown): Record<string, unknown> {
   }
   if (typeof src.referrer === "string" && /^https?:\/\//i.test(src.referrer.trim())) out.referrer = cleanText(src.referrer, 300);
   if (src.variant === "A" || src.variant === "B") out.variant = src.variant; // which version of an A/B-tested form the viewer saw
+  // The viewer's analytics session (only sent when analytics is on), so the owner can see how much of the video the lead watched.
+  if (typeof src.session === "string" && /^[A-Za-z0-9_-]{16,64}$/.test(src.session)) out.session = src.session;
   return out;
 }
 
@@ -336,25 +338,181 @@ const DISPOSABLE_DOMAINS = new Set([
   "33mail.com", "anonbox.net", "getairmail.com", "jetable.org", "meltmail.com", "mailcatch.com", "mailnull.com", "trbvm.com",
 ]);
 
-export function isDisposableEmail(raw: unknown): boolean {
+export function isDisposableEmail(raw: unknown, extraDomains: readonly string[] = []): boolean {
   if (typeof raw !== "string") return false;
-  const at = raw.trim().toLowerCase().lastIndexOf("@");
-  if (at < 0) return false;
-  const domain = raw.trim().toLowerCase().slice(at + 1);
-  return DISPOSABLE_DOMAINS.has(domain) || [...DISPOSABLE_DOMAINS].some((d) => domain.endsWith(`.${d}`));
+  const domain = emailDomain(raw);
+  if (!domain) return false;
+  const all = [...DISPOSABLE_DOMAINS, ...extraDomains];
+  return all.some((d) => domain === d || domain.endsWith(`.${d}`));
 }
 
 /**
- * A short, viewer-safe message when an email answer is not acceptable, else "". Every answer whose field name contains "email"
- * must be a valid address; with `blockDisposable` (an owner setting) throwaway inboxes are refused too.
+ * The answer keys of the fields a saved form DECLARES as email fields, or null when its field types are not known.
+ * List Builder: `elements[]` (key = token, else the label upper-cased). Lead Generator: `fields[]` (key = label upper-cased,
+ * duplicates get _2, _3 like the form). So a checkbox or dropdown that merely has "email" in its label is never treated as an address.
  */
-export function emailProblem(data: Record<string, string>, opts: { blockDisposable?: boolean } = {}): string {
+export function declaredEmailKeys(config: Json | null | undefined): Set<string> | null {
+  if (!config) return null;
+  const norm = (v: unknown) => String(v ?? "").trim().toUpperCase();
+  const out = new Set<string>();
+  if (Array.isArray(config.elements)) {
+    for (const el of config.elements as Json[]) if (el?.type === "email") out.add(norm(el.token) || norm(el.label));
+    return out;
+  }
+  if (Array.isArray(config.fields)) {
+    const seen = new Map<string, number>();
+    for (const f of config.fields as Json[]) {
+      const base = norm(f?.label) || norm(f?.id) || "FIELD";
+      const n = (seen.get(base) ?? 0) + 1;
+      seen.set(base, n);
+      if (f?.type === "email") out.add(n === 1 ? base : `${base}_${n}`);
+    }
+    return out;
+  }
+  return null;
+}
+
+/**
+ * A short, viewer-safe message when an email answer is not acceptable, else "". With `emailKeys` (from the saved form) only
+ * those answers are checked; without it, every answer whose field name contains "email" is. With `blockDisposable` (an owner
+ * setting) throwaway inboxes are refused too.
+ */
+export function emailProblem(data: Record<string, string>, opts: { blockDisposable?: boolean; emailKeys?: Set<string> | null; extraDisposable?: readonly string[] } = {}): string {
   for (const [key, value] of Object.entries(data)) {
-    if (!/e-?mail/i.test(key)) continue;
+    const isEmail = opts.emailKeys ? opts.emailKeys.has(key.trim().toUpperCase()) : /e-?mail/i.test(key);
+    if (!isEmail) continue;
     if (!isValidEmail(value)) return "Please enter a valid email address.";
-    if (opts.blockDisposable && isDisposableEmail(value)) return "Please use a permanent email address.";
+    if (opts.blockDisposable && isDisposableEmail(value, opts.extraDisposable)) return "Please use a permanent email address.";
   }
   return "";
+}
+
+/** The owner of a published page or video is a guest (a visitor with no account). Guests may not have leads relayed to webhooks. */
+export function isGuestOwner(ownerId: unknown): boolean {
+  return String(ownerId ?? "").startsWith("guest_");
+}
+
+/**
+ * Whether a submission must pass the human check (Turnstile) when it is configured. A call-attempt is only the record of a
+ * viewer tapping "call": it comes from a button with no form or widget to complete, carries no email, and is rate limited,
+ * so it is not asked for a token (otherwise every call-attempt would be rejected once Turnstile is switched on).
+ */
+export function needsHumanCheck(kind: unknown): boolean {
+  return kind !== "call-attempt";
+}
+
+/** Extra throwaway domains an operator can add without a code change (comma-separated, e.g. env LEAD_EXTRA_DISPOSABLE_DOMAINS). */
+export function parseExtraDomains(raw: string | undefined | null): string[] {
+  return String(raw ?? "").split(",").map((d) => d.trim().toLowerCase().replace(/^@/, "")).filter((d) => /^[a-z0-9.-]+\.[a-z]{2,}$/.test(d));
+}
+
+/** The email lead (first valid email answer) as a case-insensitive key, or "" when the lead gave none. */
+export function emailKeyOf(data: Record<string, string>): string {
+  return leadContact(data)?.email.toLowerCase() ?? "";
+}
+
+/** Postgres unique_violation: the same email already signed up on this form (see the email_key unique index). */
+export function isDuplicateError(err: { code?: string } | null | undefined): boolean {
+  return err?.code === "23505";
+}
+
+/** PostgREST / Postgres "column does not exist" (a migration not applied yet): callers retry without the new column. */
+export function isMissingColumnError(err: { code?: string } | null | undefined): boolean {
+  return err?.code === "42703" || err?.code === "PGRST204";
+}
+
+type InsertResult = { error: { code?: string } | null };
+/**
+ * Insert a lead row carrying its `email_key` (when the lead has an email), so the unique index makes a repeat sign-up
+ * (same owner, page / video, form and email) a no-op. Falls back to the row without the column while the migration is not
+ * applied yet. `duplicate` is true when the index rejected the row: the caller must not deliver it again.
+ */
+export async function insertLeadRow(
+  insert: (row: Record<string, unknown>) => PromiseLike<InsertResult>,
+  row: Record<string, unknown>,
+  emailKey: string,
+): Promise<{ error: { code?: string } | null; duplicate: boolean }> {
+  let { error } = await insert(emailKey ? { ...row, email_key: emailKey } : row);
+  if (isMissingColumnError(error)) { const retry = await insert(row); error = retry.error; }
+  return { error, duplicate: isDuplicateError(error) };
+}
+
+/** The domain part of an address, lower-cased ("" when there is none). */
+export function emailDomain(raw: string): string {
+  const s = raw.trim().toLowerCase();
+  const at = s.lastIndexOf("@");
+  return at < 0 ? "" : s.slice(at + 1);
+}
+
+// ---------------------------------------------------------------------------------------------- MX check (fail open)
+export type DnsLookup = "records" | "none" | "unknown";
+export type DnsResolver = (name: string, type: "MX" | "A" | "AAAA") => Promise<unknown[]>;
+
+/** A resolver error that means "this name has no such records" (NXDOMAIN / NODATA), as opposed to a timeout or outage. */
+export function isNoRecordsError(err: unknown): boolean {
+  const e = err as { name?: string; message?: string } | null;
+  return e?.name === "NotFound" || /no records?|nxdomain|not found|no data|nodata/i.test(String(e?.message ?? ""));
+}
+
+/** One lookup, bounded by `timeoutMs`. Anything that is not a clear "no records" answer is "unknown" so callers fail open. */
+export async function lookup(resolve: DnsResolver, name: string, type: "MX" | "A" | "AAAA", timeoutMs: number): Promise<DnsLookup> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const timeout = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("timeout")), timeoutMs); });
+    const records = await Promise.race([resolve(name, type), timeout]);
+    const real = (Array.isArray(records) ? records : []).filter((r) => {
+      const ex = r && typeof r === "object" ? (r as { exchange?: string }).exchange : r;
+      return type !== "MX" || (typeof ex === "string" && ex.replace(/\.$/, "") !== ""); // a lone "." MX means "no mail" (RFC 7505)
+    });
+    return real.length ? "records" : "none";
+  } catch (err) {
+    return isNoRecordsError(err) ? "none" : "unknown";
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/** False only when the domain definitively has no MX, A or AAAA records. Errors and timeouts never reject a lead. */
+export async function domainAcceptsMail(domain: string, resolve: DnsResolver | null, timeoutMs = 2000): Promise<boolean> {
+  if (!domain || !resolve) return true;
+  const mx = await lookup(resolve, domain, "MX", timeoutMs);
+  if (mx !== "none") return true;
+  const [a, aaaa] = await Promise.all([lookup(resolve, domain, "A", timeoutMs), lookup(resolve, domain, "AAAA", timeoutMs)]);
+  return !(a === "none" && aaaa === "none");
+}
+
+// ------------------------------------------------------------------------------------------ Cloudflare Turnstile (optional)
+export const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+export type TurnstileVerdict = { ok: true; skipped?: boolean; unavailable?: boolean } | { ok: false; reason: "missing" | "rejected" };
+
+/**
+ * Verify a Turnstile token with Cloudflare. With no secret configured this is a no-op (ok, skipped). A missing token or a
+ * `success: false` answer rejects; if Cloudflare itself is unreachable the lead is let through (an outage must not stop
+ * every sign-up; the honeypot, timing and rate limits still apply).
+ */
+export async function verifyTurnstile(
+  secret: string | undefined | null,
+  token: unknown,
+  remoteIp: string,
+  fetchFn: (url: string, init: { method: string; headers: Record<string, string>; body: string; signal: AbortSignal }) => Promise<{ ok: boolean; json: () => Promise<unknown> }>,
+  timeoutMs = 4000,
+): Promise<TurnstileVerdict> {
+  if (!secret) return { ok: true, skipped: true };
+  if (typeof token !== "string" || !token.trim() || token.length > 2048) return { ok: false, reason: "missing" };
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const form = new URLSearchParams({ secret, response: token.trim() });
+    if (remoteIp && remoteIp !== "anonymous") form.set("remoteip", remoteIp);
+    const res = await fetchFn(TURNSTILE_VERIFY_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: form.toString(), signal: ctrl.signal });
+    if (!res.ok) return { ok: true, unavailable: true };
+    const out = await res.json() as { success?: boolean } | null;
+    return out?.success === true ? { ok: true } : { ok: false, reason: "rejected" };
+  } catch {
+    return { ok: true, unavailable: true };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /** Valid addresses only, trimmed, de-duplicated ignoring case, at most MAX_NOTIFY_EMAILS. */
@@ -394,7 +552,7 @@ export function savedNotifyEmail(config: Json | null | undefined, listBuilder = 
 }
 
 // ------------------------------------------------------------------------------------------------ chat alert presets
-export type ChatPreset = "slack" | "discord" | "teams";
+export type ChatPreset = "slack" | "discord" | "teams" | "teams-workflow";
 
 /** Which chat app a webhook URL belongs to (so the alert is shaped the way that app needs), or null for a normal webhook. */
 export function chatPreset(url: string): ChatPreset | null {
@@ -404,7 +562,9 @@ export function chatPreset(url: string): ChatPreset | null {
   const host = u.hostname.toLowerCase();
   if (host === "hooks.slack.com" && u.pathname.startsWith("/services/")) return "slack";
   if ((host === "discord.com" || host === "discordapp.com" || host === "canary.discord.com" || host === "ptb.discord.com") && u.pathname.startsWith("/api/webhooks/")) return "discord";
-  if ((host.endsWith(".webhook.office.com") || host === "outlook.office.com") && u.pathname.includes("/webhook")) return "teams";
+  if ((host.endsWith(".webhook.office.com") || host === "outlook.office.com") && u.pathname.includes("/webhook")) return "teams"; // legacy Office 365 connector
+  // Teams "Workflows" (Power Automate: "Post to a channel when a webhook request is received"), the replacement for connectors
+  if ((host.endsWith(".logic.azure.com") && u.pathname.includes("/workflows/")) || (host.endsWith(".powerplatform.com") && u.pathname.includes("/workflows/"))) return "teams-workflow";
   return null;
 }
 
@@ -436,6 +596,22 @@ export function chatBody(preset: ChatPreset, alert: { title: string; lines: stri
   if (preset === "discord") {
     return { content: clip([`**${safe(alert.title)}**`, ...alert.lines.map(safe)].join("\n"), 2000), allowed_mentions: { parse: [] } };
   }
+  if (preset === "teams-workflow") {
+    // The Workflows trigger takes a message with an Adaptive Card attachment.
+    return {
+      type: "message",
+      attachments: [{
+        contentType: "application/vnd.microsoft.card.adaptive", contentUrl: null,
+        content: {
+          type: "AdaptiveCard", $schema: "http://adaptivecards.io/schemas/adaptive-card.json", version: "1.4",
+          body: [
+            { type: "TextBlock", text: safe(alert.title), weight: "Bolder", size: "Medium", wrap: true },
+            ...alert.lines.map((l) => ({ type: "TextBlock", text: safe(l), wrap: true, spacing: "Small" })),
+          ],
+        },
+      }],
+    };
+  }
   return {
     "@type": "MessageCard", "@context": "https://schema.org/extensions", summary: safe(alert.title), themeColor: "22D3EE",
     title: safe(alert.title), text: alert.lines.map(safe).join("\n\n"),
@@ -454,6 +630,13 @@ export function autoReplySettings(config: Json | null | undefined): { subject: s
     return t || fallback;
   };
   return { subject: oneLine(clean(config.autoReplySubject, 120, AUTO_REPLY_DEFAULT_SUBJECT)), body: clean(config.autoReplyBody, 1000, AUTO_REPLY_DEFAULT_BODY) };
+}
+
+/** Where a lead's reply to the auto-reply goes: the owner's reply-to setting when it is a valid address, else the first notification address, else none. */
+export function autoReplyReplyTo(config: Json | null | undefined, notifyTo: string[] = []): string {
+  const own = typeof config?.autoReplyReplyTo === "string" ? config.autoReplyReplyTo.trim() : "";
+  if (own && isValidEmail(own)) return own;
+  return notifyTo[0] ?? "";
 }
 
 /**

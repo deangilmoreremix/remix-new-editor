@@ -7,8 +7,8 @@ vi.hoisted(() => { globalThis.IS_REACT_ACT_ENVIRONMENT = true; globalThis.Resize
 import { resolveAfterSubmit, scheduleRedirect, REDIRECT_DELAY_MS, AFTER_SUBMIT_OPTIONS } from '../afterSubmit.js';
 import { sanitizeConfig, defaultConfig } from '../templates.js';
 import { renderLandingPage } from '../render.js';
-import { PageContext, AfterSubmitContext } from '../puck/context.js';
-import { LeadForm } from '../puck/components.jsx';
+import { PageContext, AfterSubmitContext } from '../editor/context.js';
+import { LeadForm } from '../editor/components.jsx';
 
 describe('resolveAfterSubmit', () => {
   it('defaults to the thank-you message', () => {
@@ -76,7 +76,7 @@ describe('classic page renderer', () => {
   });
 });
 
-describe('Puck form', () => {
+describe('Editor form', () => {
   let root; let host;
   afterEach(() => { act(() => root?.unmount()); host?.remove(); vi.useRealTimers(); });
   const mount = async ({ after, preview = false }) => {

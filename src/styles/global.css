@@ -18,6 +18,25 @@
     --shadow-glow: 0 0 20px rgba(217, 255, 0, 0.4);
     --shadow-glow-accent: 0 0 20px rgba(196, 230, 0, 0.4);
     --shadow-3xl: 0 35px 60px -15px rgba(0, 0, 0, 0.8);
+
+    /* Remotion Recorder UI (src/features/recorder): its shadcn colour names, prefixed rr-. */
+    --color-rr-background: #0a0a0a;
+    --color-rr-foreground: #fafafa;
+    --color-rr-popover: #141414;
+    --color-rr-popover-foreground: #fafafa;
+    --color-rr-primary: #d9ff00;
+    --color-rr-primary-foreground: #0a0a0a;
+    --color-rr-secondary: #27272a;
+    --color-rr-secondary-foreground: #fafafa;
+    --color-rr-muted: #27272a;
+    --color-rr-muted-foreground: #a1a1aa;
+    --color-rr-accent: #27272a;
+    --color-rr-accent-foreground: #fafafa;
+    --color-rr-destructive: #b91c1c;
+    --color-rr-destructive-foreground: #fafafa;
+    --color-rr-border: #27272a;
+    --color-rr-input: #3f3f46;
+    --color-rr-ring: #d9ff00;
 }
 
 @layer base {
@@ -506,3 +525,9 @@
 
 /* MediaDetailView */
 @import "./media-detail.css";
+/* Image, Cinema and Video Studio show a result as an overlay on the page; hide the
+   example gallery below it while a result is up so the two don't overlap. */
+.studio-result-showing > .eg-section,
+.studio-result-showing > .eg-show-more {
+    display: none;
+}

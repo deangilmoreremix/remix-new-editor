@@ -49,6 +49,17 @@ function dispatchFiles(input, files) {
   return false;
 }
 
+/**
+ * True unless the drag is known to carry no files. Internal drags (for example
+ * reordering cards, which carry text) must not be treated as file uploads: doing
+ * so forced dropEffect to "copy" and swallowed the card's own drag handlers.
+ * Events with no dataTransfer at all are still treated as potential file drops.
+ */
+function mayCarryFiles(event) {
+  const types = event.dataTransfer?.types;
+  return !types || Array.from(types).includes('Files');
+}
+
 export function enableStudioFileDropDelegation(root) {
   if (!root || root.dataset.fileDropDelegation === 'true') {
     return { destroy() {} };
@@ -77,6 +88,7 @@ export function enableStudioFileDropDelegation(root) {
   };
 
   const onDragEnter = (event) => {
+    if (!mayCarryFiles(event)) return;
     const match = findDropHost(root, event.target);
     if (!match || match.input.disabled) return;
     const files = Array.from(event.dataTransfer?.files || []);
@@ -91,6 +103,7 @@ export function enableStudioFileDropDelegation(root) {
   };
 
   const onDragOver = (event) => {
+    if (!mayCarryFiles(event)) return;
     const match = findDropHost(root, event.target);
     if (!match || match.input.disabled) return;
     event.preventDefault();
@@ -108,6 +121,7 @@ export function enableStudioFileDropDelegation(root) {
   };
 
   const onDrop = (event) => {
+    if (!mayCarryFiles(event)) return;
     const match = findDropHost(root, event.target) || (activeHost ? findDropHost(root, activeHost) : null);
     if (!match || match.input.disabled) {
       clearActiveHost();

@@ -72,13 +72,13 @@ export async function mountVideoPage(container, id, deps = {}) {
     },
   };
   const cfg = sanitizeConfig(page.config);
-  if (cfg.puck) {
-    // Editable (Puck) page: same video, tokens and tracking, rendered by the responsive component library.
-    const { mountPuckPage } = await import('../lib/landingPages/puck/mount.jsx');
+  if (cfg.editor) {
+    // Editable page: same video, tokens and tracking, rendered by the responsive component library.
+    const { mountEditablePage } = await import('../lib/landingPages/editor/mount.jsx');
     container.replaceChildren();
     const host = document.createElement('div');
     container.appendChild(host);
-    const view = mountPuckPage(host, { page, data: cfg.puck, tokens, handlers });
+    const view = mountEditablePage(host, { page, data: cfg.editor, tokens, handlers });
     track('view');
     return view;
   }

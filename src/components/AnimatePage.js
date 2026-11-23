@@ -7,6 +7,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { listBrands, getBrand, saveAnimation, listAnimations, listCampaigns, listAssets, resolveBrandId } from '../lib/brandStore.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { showToast, createLoadingOverlay } from '../lib/loading.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { DEFAULT_PROMPTS, SOURCE_PROMPTS } from '../lib/animate.js';
 import { muapi } from '../lib/muapi.js';
 import { saveGeneration } from '../lib/generationHistory.js';
@@ -355,7 +356,7 @@ export function AnimatePage() {
     }
     advancedMuapiRow.classList.remove('hidden');
     const card = document.createElement('div');
-    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-3';
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-3';
 
     const addField = (label, type, value, onChange, placeholder) => {
       const row = document.createElement('div');
@@ -565,7 +566,7 @@ export function AnimatePage() {
     }
 
     const card = document.createElement('div');
-    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden';
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden';
 
     const video = document.createElement('video');
     video.src = state.result.videoUrl;
@@ -582,8 +583,17 @@ export function AnimatePage() {
         <div class="text-xs font-bold text-white">${state.duration}s · ${state.resolution}</div>
         <div class="text-[10px] text-muted uppercase tracking-wider">Image to Video</div>
       </div>
-      <a href="${state.result.videoUrl}" download class="btn-secondary-modern text-xs">Download</a>
+      <div class="flex gap-2">
+        <button type="button" class="btn-secondary-modern text-xs caption-studio-btn">💬 Free Captions</button>
+        <a href="${state.result.videoUrl}" download class="btn-secondary-modern text-xs">Download</a>
+      </div>
     `;
+    let captionedPrev = null; // the earlier captioned render (a blob: URL), freed when a new one replaces it
+    meta.querySelector('.caption-studio-btn').onclick = () => addCaptionButton({
+      videoUrl: state.result.videoUrl, appTheme: 'animate',
+      onComplete: (captionedUrl) => { if (captionedPrev) URL.revokeObjectURL(captionedPrev); captionedPrev = captionedUrl; video.src = captionedUrl; meta.querySelector('a[download]').href = captionedUrl; showToast('Preview updated with captions'); },
+      onError: (err) => showToast(err?.message || 'Captions failed'),
+    });
     card.appendChild(meta);
     resultSection.appendChild(card);
   }
@@ -596,7 +606,7 @@ export function AnimatePage() {
 
     animations.forEach(anim => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden';
       if (anim.videoUrl) {
         const video = document.createElement('video');
         video.src = anim.videoUrl;

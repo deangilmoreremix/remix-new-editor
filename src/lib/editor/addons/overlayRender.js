@@ -21,6 +21,7 @@ import { applyLottieEdits } from '../../../cinegen/lib/editor/stage2/lottie-edit
 import { buildLowerThirdLottie, lowerThirdFrame } from './lowerThirds.js';
 import { loadGlTransitions, createTransitionRenderer } from './glTransitionRenderer.js';
 import { ctaTarget } from './ctaLink.js';
+import { tokensToHtml } from './tokenChips.js';
 
 export const OVERLAY_TAG = 'overlay-clip';
 export const PERSONALIZED_PLACEHOLDER = '/static/images/personalized-image-placeholder.svg';
@@ -215,7 +216,9 @@ function buildText(opts, ctx) {
   });
   const span = document.createElement('span');
   span.className = 'personalizer-input';
-  span.textContent = resolveOverlayText(opts.text, ctx.profile);
+  const shown = resolveOverlayText(opts.text, ctx.profile);
+  // Editor preview: a token with no contact to fill it is shown as a chip, as upstream's editor does (the player and export keep the text).
+  if (ctx.editor && /\{\{/.test(shown)) span.innerHTML = tokensToHtml(shown); else span.textContent = shown;
   row.appendChild(wrapLink(span, opts, ctx.editor));
   inner.appendChild(row);
   el.appendChild(inner);
@@ -655,6 +658,8 @@ export function setOverlayPlaying(layer, playing) {
 export function playInAnimation(el, animation) {
   const a = animation || {};
   if (!a.in && !a.idle) return;
+  // replaying on the same element (Play after Pause): a leftover idle class would win over the entrance in the stylesheet
+  el.classList.remove('infinite', ...[a.in, a.idle].filter(Boolean));
   el.classList.add('animated');
   const startIdle = () => {
     if (a.in) el.classList.remove(a.in);

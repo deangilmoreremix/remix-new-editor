@@ -10,9 +10,8 @@ import { leadsToCsv } from '../../../lib/editor/addons/leadClient.js';
 // @ts-expect-error plain JS attribution helpers
 import { sourceLabel as rawSourceLabel } from '../../../lib/editor/publish/attribution.js';
 
-export interface LeadSource { utm?: Record<string, string>; referrer?: string; page?: string | null; variant?: string }
-export interface LeadRow { id: string; kind: string; clipId: string | null; createdAt: string; data: Record<string, string>; source?: LeadSource; status?: string; notes?: string; tags?: string[] }
-
+export interface LeadSource { utm?: Record<string, string>; referrer?: string; page?: string | null; variant?: string; session?: string }
+export interface LeadRow { id: string; kind: string; clipId: string | null; createdAt: string; data: Record<string, string>; source?: LeadSource; status?: string; notes?: string; tags?: string[]; updatedAt?: string }
 /** "google / spring-sale", else the referring host, else "". */
 export const sourceLabel = (row: LeadRow): string => String(rawSourceLabel(row.source) || '');
 export interface LeadForm { key: string; label: string; short: string; tone: 'wall' | 'lead' }
@@ -31,6 +30,17 @@ export function cleanFollowUp(patch: { status?: unknown; notes?: unknown; tags?:
     const raw = Array.isArray(patch.tags) ? patch.tags : String(patch.tags ?? '').split(',');
     out.tags = [...new Set(raw.map((t) => String(t).trim().toLowerCase().replace(/\s+/g, '-').slice(0, 30)).filter(Boolean))].slice(0, 10);
   }
+  return out;
+}
+
+/** The tags with `input` added (cleaned like the database wants: lower-case, no spaces, 30 characters, no repeats, at most 10). */
+export const addTag = (tags: string[], input: string): string[] => cleanFollowUp({ tags: [...tags, input] }).tags ?? tags;
+export const removeTag = (tags: string[], tag: string): string[] => tags.filter((t) => t !== tag);
+
+/** How many rows are in each status (rows without one count as "new"). */
+export function statusCounts(rows: LeadRow[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  rows.forEach((r) => { const k = r.status ?? 'new'; out[k] = (out[k] ?? 0) + 1; });
   return out;
 }
 
@@ -71,6 +81,16 @@ export function variantCounts(rows: LeadRow[]): { A: number; B: number } | null 
   rows.forEach((r) => { const v = variantOf(r); if (v === 'A' || v === 'B') out[v] += 1; });
   return out.A + out.B ? out : null;
 }
+// ---------------------------------------------------------------------------------------------- how much a lead watched
+export interface WatchInfo { progress: number; completed: boolean }
+/** The viewing session a lead came from (sent with the lead when analytics was on), or ''. */
+export const sessionOf = (row: LeadRow): string => (typeof row.source?.session === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(row.source.session) ? row.source.session : '');
+/** Hot: finished or watched 75%+; Warm: 25%+; Cold: less. */
+export const watchTag = (w?: WatchInfo | null): '' | 'Hot' | 'Warm' | 'Cold' => (!w ? '' : w.completed || w.progress >= 0.75 ? 'Hot' : w.progress >= 0.25 ? 'Warm' : 'Cold');
+export const watchPercent = (w?: WatchInfo | null): string => (w ? `${Math.round(Math.max(0, Math.min(1, w.progress)) * 100)}%` : '');
+/** The distinct session ids to look up (most recent first, at most `max`). */
+export const sessionKeys = (rows: LeadRow[], max = 200): string[] => [...new Set(rows.map(sessionOf).filter(Boolean))].slice(0, max);
+
 export const fromMp4 = (row: LeadRow): boolean => rowSource(row) === 'mp4';
 
 /** Leads per day for the last `days` days (oldest first), zero-filled, in the viewer's local time. */
@@ -109,6 +129,70 @@ export function collapseRepeats(rows: LeadRow[]): { rows: LeadRow[]; counts: Rec
     counts[first.id] += 1;
   });
   return { rows: out, counts };
+}
+
+// ------------------------------------------------------------------------------------------------------- lead score
+export type LeadTemperature = 'Hot' | 'Warm' | 'Cold';
+export interface LeadScore { score: number; label: LeadTemperature; reasons: string[] }
+type Part = [number, string];
+
+/** Personal inbox providers: a lead on one of these is worth less than one on a company domain. */
+const FREE_MAIL = new Set(['gmail.com', 'googlemail.com', 'yahoo.com', 'ymail.com', 'hotmail.com', 'outlook.com', 'live.com', 'msn.com', 'aol.com', 'icloud.com', 'me.com', 'mac.com', 'proton.me', 'protonmail.com', 'gmx.com', 'gmx.net', 'mail.com', 'yandex.com', 'qq.com', '163.com']);
+export const isFreeMail = (email: string): boolean => FREE_MAIL.has(email.slice(email.lastIndexOf('@') + 1).toLowerCase());
+
+const looksLikeEmail = (v: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+const answerOf = (row: LeadRow, pattern: RegExp): string => String(Object.entries(row.data).find(([k, v]) => pattern.test(k) && String(v).trim())?.[1] ?? '').trim();
+
+/** Points for the email: a company address beats a personal one; none (or a malformed one) scores nothing. */
+function emailPoints(row: LeadRow): Part[] {
+  const email = leadEmail(row) || Object.values(row.data).map((v) => String(v).trim().toLowerCase()).find(looksLikeEmail) || '';
+  if (!looksLikeEmail(email)) return [];
+  return [isFreeMail(email) ? [15, 'Personal email address'] : [30, 'Business email address']];
+}
+
+/** The lead's own answers that count: a phone number (7+ digits), a name, company / project details, and how many fields they filled in. */
+function answerPoints(row: LeadRow): Part[] {
+  const out: Part[] = [];
+  if (answerOf(row, /phone|mobile|tel|whats/i).replace(/\D/g, '').length >= 7) out.push([20, 'Gave a phone number']);
+  if (answerOf(row, /name/i) && !/mail/i.test(Object.keys(row.data).find((k) => /name/i.test(k)) ?? '')) out.push([5, 'Gave a name']);
+  if (answerOf(row, /company|business|organi[sz]ation|website|budget|message|need|question|comment/i)) out.push([10, 'Gave company or project details']);
+  const filled = Object.values(row.data).filter((v) => String(v).trim()).length;
+  if (filled > 1) out.push([Math.min(filled - 1, 5) * 3, `${filled} answers filled in`]);
+  return out;
+}
+
+/** Campaign tags show intent from an ad or campaign; a referrer shows they followed a link. */
+function attributionPoints(row: LeadRow): Part[] {
+  if (row.source?.utm && Object.values(row.source.utm).some(Boolean)) return [[10, 'Came from a tracked campaign']];
+  return row.source?.referrer ? [[5, 'Came from another site']] : [];
+}
+
+/** A tap on a call button is the strongest signal there is, so it scores high before anything else is looked at. */
+export const CALL_ATTEMPT_POINTS = 70;
+const KIND_POINTS: Record<string, Part> = { 'lead-form': [10, 'Filled in a form mid-video'] };
+
+export const temperatureOf = (score: number): LeadTemperature => (score >= 65 ? 'Hot' : score >= 30 ? 'Warm' : 'Cold');
+
+/**
+ * A 0-100 score and a Hot / Warm / Cold label from what the lead row itself holds: the kind of form, the answers given
+ * (email quality, phone, name, other fields) and where they came from (utm / referrer). It needs no watch-time data.
+ */
+export function scoreLead(row: LeadRow): LeadScore {
+  const parts: Part[] = row.kind === 'call-attempt'
+    ? [[CALL_ATTEMPT_POINTS, 'Tapped to call you']]
+    : [...(KIND_POINTS[row.kind] ? [KIND_POINTS[row.kind]] : []), ...emailPoints(row), ...answerPoints(row)];
+  const earned = [...parts, ...attributionPoints(row)].filter(([n]) => n > 0);
+  const score = Math.min(100, earned.reduce((sum, [n]) => sum + n, 0));
+  return { score, label: temperatureOf(score), reasons: earned.map(([, why]) => why) };
+}
+
+export type LeadSort = 'newest' | 'score-desc' | 'score-asc';
+/** The rows in the chosen order. "newest" keeps the order given; equal scores keep it too. */
+export function sortRows(rows: LeadRow[], sort: LeadSort = 'newest'): LeadRow[] {
+  if (sort === 'newest') return rows;
+  const dir = sort === 'score-desc' ? -1 : 1;
+  const scored = rows.map((r, i) => ({ r, i, n: scoreLead(r).score }));
+  return scored.sort((a, b) => dir * (a.n - b.n) || a.i - b.i).map(({ r }) => r);
 }
 
 export function countsByForm(rows: LeadRow[]): Record<string, number> {
@@ -154,24 +238,49 @@ export function answerColumns(rows: LeadRow[]): Array<{ key: string; label: stri
 /** A viewer controls utm_* and the referrer; a leading = + - @ (or tab/CR) would be read as a formula by spreadsheets. */
 export const csvSafe = (v: string): string => (/^[=+\-@\t\r]/.test(v) ? `'${v}` : v);
 
-export function rowsToCsv(rows: LeadRow[], forms: LeadForm[]): string {
-  const name = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r))?.label ?? 'Form';
-  // Source columns only appear when at least one lead has them, so older exports keep their shape.
-  return leadsToCsv(rows.map((r) => {
+export type ExportRecord = Record<string, string | number>;
+
+/**
+ * One flat record per lead for CSV / Excel: when, form, every answer, campaign + follow-up columns (only when some lead has
+ * them, so older exports keep their shape) and the lead score, and how much of the video each lead watched when that is known. `escape` guards spreadsheet formulas in CSV; Excel cells are
+ * typed text, so the Excel export leaves values as they were typed.
+ */
+export function exportRecords(rows: LeadRow[], forms: LeadForm[], { escape = true, watch = {} }: { escape?: boolean; watch?: Record<string, WatchInfo> } = {}): ExportRecord[] {  const name = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r))?.label ?? 'Form';
+  const safe = escape ? csvSafe : (v: string) => v;
+  // The visitor's own answers are never overwritten. A computed column whose name an answer uses (an editable label such as
+  // "Lead Score" or "Status") gets " (computed)" appended, decided ONCE for the whole export from every row's answers, so all rows put
+  // the computed value in the same column (CSV / Excel merge records by key into shared headers).
+  const answerKeys = new Set(rows.flatMap((r) => Object.keys(r.data)));
+  const columnNames = new Map<string, string>();
+  const column = (key: string): string => {
+    let k = columnNames.get(key);
+    if (k === undefined) { k = key; while (answerKeys.has(k)) k = `${k} (computed)`; columnNames.set(key, k); }
+    return k;
+  };
+  return rows.map((r) => {
     const utm = r.source?.utm ?? {};
-    const src: Record<string, string> = {};
-    if (utm.source) src['UTM Source'] = csvSafe(utm.source);
-    if (utm.medium) src['UTM Medium'] = csvSafe(utm.medium);
-    if (utm.campaign) src['UTM Campaign'] = csvSafe(utm.campaign);
-    if (utm.term) src['UTM Term'] = csvSafe(utm.term);
-    if (utm.content) src['UTM Content'] = csvSafe(utm.content);
-    if (r.source?.referrer) src.Referrer = csvSafe(r.source.referrer);
+    const src: ExportRecord = {};
+    if (utm.source) src['UTM Source'] = safe(utm.source);
+    if (utm.medium) src['UTM Medium'] = safe(utm.medium);
+    if (utm.campaign) src['UTM Campaign'] = safe(utm.campaign);
+    if (utm.term) src['UTM Term'] = safe(utm.term);
+    if (utm.content) src['UTM Content'] = safe(utm.content);
+    if (r.source?.referrer) src.Referrer = safe(r.source.referrer);
     if (fromMp4(r)) src['From MP4'] = 'Yes';
     if (variantOf(r)) src.Version = variantOf(r);
-    if (r.status !== undefined) { src.Status = statusLabel(r.status); if (r.notes) src.Notes = csvSafe(r.notes); if (r.tags?.length) src.Tags = csvSafe(r.tags.join(', ')); }
-    return { Submitted: r.createdAt, Form: name(r), ...r.data, ...src };
-  }));
-}
+    const w = watch[sessionOf(r)];
+    if (w) { src['Watched %'] = watchPercent(w).replace('%', ''); src.Interest = watchTag(w); }
+    if (r.status !== undefined) { src.Status = statusLabel(r.status); if (r.notes) src.Notes = safe(r.notes); if (r.tags?.length) src.Tags = safe(r.tags.join(', ')); }
+    const { score, label } = scoreLead(r);
+    const rec: ExportRecord = {};
+    rec[column('Submitted')] = r.createdAt; rec[column('Form')] = name(r);   // generated like every other computed column; the answers are added next and keep their own names
+    Object.assign(rec, r.data);
+    Object.entries(src).forEach(([k, v]) => { rec[column(k)] = v; });
+    rec[column('Lead Score')] = score; rec[column('Lead Rating')] = label;
+    return rec;
+  });}
+
+export const rowsToCsv = (rows: LeadRow[], forms: LeadForm[], watch: Record<string, WatchInfo> = {}): string => leadsToCsv(exportRecords(rows, forms, { watch }));
 
 /** "Today 14:02" / "Yesterday 19:05" / "Nov 3 09:12" */
 export function whenLabel(iso: string, now = new Date()): string {

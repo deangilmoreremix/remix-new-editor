@@ -203,16 +203,23 @@ describe('Analytics tab: opportunities and follow-up', () => {
     view({ client: makeClient({ notes: [] }) });
     await screen.findByText('No opportunities detected for this period.');
   });
-  it('the marketing insight is the latest real alert and launches the follow-up flow', async () => {
+  const noRetention = () => ({ ...defaults(), video_retention_curve: [] }); // no curve -> no rule-based insight -> the alert text is the fallback
+  it('the marketing insight falls back to the latest real alert and launches the follow-up flow', async () => {
     const onCreateFollowup = vi.fn();
-    view({ client: makeClient({ notes }), onCreateFollowup });
+    view({ client: makeClient({ notes, rpcs: noRetention() }), onCreateFollowup });
     await screen.findByText('Marketing insight');
     expect(screen.getByText('Viewers clicked "Get a quote".', { selector: 'p' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /Plan personalized follow-up/ }));
     expect(onCreateFollowup).toHaveBeenCalled();
   });
+  it('rule-based insights (numbers from the data) feed the insight box, ahead of the alert text', async () => {
+    view({ client: makeClient({ notes }) });
+    await screen.findByText('Marketing insight');
+    expect(screen.getByText(/^Biggest drop: \d+(\.\d)? points between/)).toBeTruthy();
+    expect(screen.queryByText('Viewers clicked "Get a quote".', { selector: 'p' })).toBeNull();
+  });
   it('without any alert the insight says insights appear after engagement; the action is disabled without a handler', async () => {
-    view({ client: makeClient({ notes: [] }) });
+    view({ client: makeClient({ notes: [], rpcs: noRetention() }) });
     await screen.findByText('Marketing insight');
     expect(screen.getByText(/Insights will appear when your published video collects engagement data/)).toBeTruthy();
     expect(screen.getByRole('button', { name: /Plan personalized follow-up/ }).disabled).toBe(true);
@@ -274,5 +281,76 @@ describe('editor palette', () => {
     await screen.findByText('Analytics could not be loaded');
     expect(document.querySelector('.sv-analytics').classList.contains('sv-editor')).toBe(true);
     void ok;
+  });
+});
+
+describe('Analytics tab: markers, audience and versions', () => {
+  const withForm = { ...VIDEO, project: { ...VIDEO.project, tracks: [...VIDEO.project.tracks, { type: 'text', items: [{ id: 'lf', type: 'lead-form', start: 45, end: 60 }] }] } };
+  const extra = {
+    owner_video_audience_breakdown: [
+      { dimension: 'referrer', key: null, sessions: 30, completed_sessions: 12, lead_sessions: 2 },
+      { dimension: 'referrer', key: 'news.com', sessions: 18, completed_sessions: 9, lead_sessions: 3 },
+      { dimension: 'device', key: 'mobile', sessions: 40, completed_sessions: 15, lead_sessions: 4 },
+      { dimension: 'device', key: 'desktop', sessions: 8, completed_sessions: 6, lead_sessions: 1 },
+      { dimension: 'country', key: 'US', sessions: 48, completed_sessions: 21, lead_sessions: 5 },
+    ],
+    owner_video_revision_comparison: [
+      { revision: 1, plays: 20, completed_sessions: 6, completion_rate: 0.3, avg_percent_watched: 0.5, lead_sessions: 1, cta_sessions: 2 },
+      { revision: 2, plays: 28, completed_sessions: 12, completion_rate: 0.4286, avg_percent_watched: 0.6, lead_sessions: 4, cta_sessions: 5 },
+    ],
+  };
+
+  it('overlays labelled, focusable markers on the retention curve and lists them with retention and drop', async () => {
+    view({ client: makeClient({ video: withForm }) });
+    await screen.findByText('Video Analytics');
+    fireEvent.click(screen.getByRole('button', { name: 'Engagement' }));
+    const marker = screen.getByRole('img', { name: /^Lead form at 0:45, \d+% still watching, (drops|no drop)/ });
+    expect(marker.getAttribute('tabindex')).toBe('0');
+    expect(marker.querySelector('title').textContent).toBe(marker.getAttribute('aria-label'));
+    expect(screen.getByRole('list', { name: 'Forms and buttons in this video' })).toBeTruthy();
+    expect(screen.getAllByText('Lead form 0:45').length).toBeGreaterThan(0);
+  });
+
+  it('still renders markers (without a curve) when retention is empty', async () => {
+    view({ client: makeClient({ video: withForm, rpcs: { ...defaults(), video_retention_curve: [] } }) });
+    await screen.findByText('Video Analytics');
+    fireEvent.click(screen.getByRole('button', { name: 'Engagement' }));
+    expect(screen.getByText('No playback data for this period.')).toBeTruthy();
+    expect(screen.getByRole('img', { name: /^Lead form at 0:45$/ })).toBeTruthy();
+  });
+
+  it('shows "Where your viewers come from" with Direct, devices and countries', async () => {
+    view({ client: makeClient({ rpcs: { ...defaults(), ...extra } }) });
+    await screen.findByText('Where your viewers come from');
+    expect(screen.getByText('Direct')).toBeTruthy();
+    expect(screen.getByText('news.com')).toBeTruthy();
+    expect(screen.getByText('Mobile')).toBeTruthy();
+    expect(screen.getByText('United States')).toBeTruthy();
+    expect(screen.getByRole('meter', { name: 'Mobile share of viewing sessions' }).getAttribute('aria-valuenow')).toBe('83');
+  });
+
+  it('Compare versions appears only with two or more revisions and shows deltas', async () => {
+    view({ client: makeClient({ rpcs: { ...defaults(), ...extra } }) });
+    await screen.findByText('Video Analytics');
+    fireEvent.click(screen.getByRole('button', { name: 'Engagement' }));
+    expect(screen.getByText('Compare versions')).toBeTruthy();
+    expect(screen.getByText('+12.9 pts')).toBeTruthy(); // completion 30% -> 42.9%
+    cleanup();
+    const one = { ...extra, owner_video_revision_comparison: [extra.owner_video_revision_comparison[0]] };
+    view({ client: makeClient({ rpcs: { ...defaults(), ...one } }) });
+    await screen.findByText('Video Analytics');
+    fireEvent.click(screen.getByRole('button', { name: 'Engagement' }));
+    expect(screen.queryByText('Compare versions')).toBeNull();
+  });
+
+  it('degrades quietly when the new RPCs are unavailable (migration not applied)', async () => {
+    const client = makeClient({ video: withForm });
+    const rpc = client.rpc;
+    client.rpc = async (name, args) => (name.startsWith('owner_video_') ? { data: null, error: { message: 'function not found' } } : rpc(name, args));
+    view({ client });
+    await screen.findByText('Video Analytics');
+    expect(screen.getByText(/No viewing sessions with this data/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Engagement' }));
+    expect(screen.queryByText('Compare versions')).toBeNull();
   });
 });

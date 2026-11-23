@@ -34,7 +34,7 @@ export function stripUnresolvedTokens(value, key = '') {
 }
 
 export function buildViewerModel(project, profile, { fps = 30, quality = '1080p' } = {}) {
-  const model = timelineToComposition(project, { fps, quality, profile });
+  const model = timelineToComposition(project, { fps, quality, profile, ...(project?.aspect ? { aspect: project.aspect } : {}) });
   return { ...model, layers: stripUnresolvedTokens(model.layers) };
 }
 

@@ -11,6 +11,7 @@ import { navigate } from '../lib/brandNavigation.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { getBrand, saveBrand, resolveBrandId, rememberBrandId, listCampaigns, listAssets } from '../lib/brandStore.js';
 import { createSafeImage } from '../lib/security.js';
+import { goalLabel } from '../lib/campaignGenerator.js';
 
 export function BrandDnaEditor(params = {}) {
   const container = document.createElement('div');
@@ -302,11 +303,11 @@ export function BrandDnaEditor(params = {}) {
     const grid = document.createElement('div');
     grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3';
     [...campaigns].reverse().forEach((c) => {
-      const goal = c.goal || 'Campaign';
+      const goal = goalLabel(c.goal) || 'Campaign';
       const card = document.createElement('button');
       card.type = 'button';
       card.dataset.campaignId = c.id;
-      card.className = 'text-left bg-[#111]/90 border border-white/10 rounded-xl p-4 hover:bg-white/[0.06] transition-all';
+      card.className = 'text-left bg-card-bg/90 border border-white/10 rounded-xl p-4 hover:bg-white/[0.06] transition-all';
       const title = document.createElement('div');
       title.className = 'text-sm font-bold text-white';
       title.textContent = goal;

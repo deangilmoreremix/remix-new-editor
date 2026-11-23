@@ -19,6 +19,8 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
+import { addCaptionButton } from '../lib/editor/captionActions.js';
+import { uploadFileToSupabase } from '../lib/uploadService.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -54,7 +56,7 @@ export async function CommercialStudio() {
   container.appendChild(header);
 
   const formCard = document.createElement('div');
-  formCard.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
+  formCard.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.15s';
 
   const modelLabel = document.createElement('label');
@@ -87,7 +89,7 @@ const COMMERCIAL_MODELS = [
   updateTrigger();
 
   const dropdown = document.createElement('div');
-  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.className = 'fixed z-[200] bg-card-bg border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
   dropdown.style.width = 'calc(100vw - 2rem)';
   dropdown.style.maxWidth = '480px';
   dropdown.style.maxHeight = '70vh';
@@ -407,11 +409,12 @@ const COMMERCIAL_MODELS = [
       if (!res?.url) throw new Error('No video URL returned by API');
       resultArea.classList.remove('hidden');
       resultArea.innerHTML = `
-        <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
+        <div class="bg-card-bg/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
           <video controls playsinline class="w-full rounded-xl mb-3"></video>
           <div class="flex gap-3">
             <a download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
             <button type="button" class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
+            <button type="button" class="caption-studio-btn flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all">💬 Free Captions</button>
             <button type="button" class="publish-social-btn flex-1 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>
           </div>
         </div>
@@ -419,7 +422,34 @@ const COMMERCIAL_MODELS = [
       resultArea.querySelector('video').src = res.url;
       resultArea.querySelector('a[download]').href = res.url;
       resultArea.querySelector('.regen-btn').onclick = () => genBtn.click();
-      resultArea.querySelector('.publish-social-btn').onclick = () => openSocialPublish({ mediaUrl: res.url, mediaType: 'video' });
+      // What the preview shows: the generated ad, or the captioned version (a blob: URL on this device) after Free Captions.
+      let shownUrl = res.url;
+      let captionedPublicUrl = null; // the captioned video once uploaded, so Publish needs one upload only
+      resultArea.querySelector('.caption-studio-btn').onclick = () => addCaptionButton({
+        videoUrl: shownUrl, appTheme: 'commercial-studio',
+        onComplete: (captionedUrl) => {
+          if (shownUrl !== res.url && shownUrl.startsWith('blob:')) URL.revokeObjectURL(shownUrl); // the earlier captioned render
+          shownUrl = captionedUrl; captionedPublicUrl = null;
+          resultArea.querySelector('video').src = captionedUrl; resultArea.querySelector('a[download]').href = captionedUrl; showToast('Preview updated with captions');
+        },
+        onError: (err) => showToast(err?.message || 'Captions failed'),
+      });
+      resultArea.querySelector('.publish-social-btn').onclick = async () => {
+        let mediaUrl = res.url;
+        if (shownUrl !== res.url) {
+          // The captioned video only exists on this device and the publisher needs a public URL: upload it first, never publish the uncaptioned ad instead.
+          try {
+            if (!captionedPublicUrl) {
+              showToast('Uploading the captioned video…');
+              const blob = await (await fetch(shownUrl)).blob();
+              const file = new File([blob], `commercial-captioned.${/webm/.test(blob.type) ? 'webm' : 'mp4'}`, { type: blob.type || 'video/mp4' });
+              captionedPublicUrl = (await uploadFileToSupabase(file, { category: 'video' })).url;
+            }
+            mediaUrl = captionedPublicUrl;
+          } catch (err) { showToast(`Couldn't upload the captioned video (${err?.message || 'upload failed'}). Download it instead.`, 'error', 5000); return; }
+        }
+        openSocialPublish({ mediaUrl, mediaType: 'video' });
+      };
       saveGeneration({
         studio: 'commercial', type: 'video', url: res.url, prompt: script, model: 'seedance-2-vip-omni-reference',
         parameters: { format: adMode.state.format.name, aspect_ratio: adMode.state.ratio, resolution: adMode.state.res, duration: adMode.state.duration },
@@ -469,7 +499,7 @@ const COMMERCIAL_MODELS = [
        if (result?.url) {
          resultArea.classList.remove('hidden');
          resultArea.innerHTML = `
-           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
+           <div class="bg-card-bg/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
              <img src="${result.url}" class="w-full rounded-xl mb-3">
              <div class="flex gap-3">
                <a href="${result.url}" download class="flex-1 btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>

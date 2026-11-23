@@ -50,6 +50,7 @@ export function showLeadForm(layer, clip, { profile, onSubmit, onSkip, onEditTex
   });
   const wrap = showOptinOverlay(layer, cfg, {
     name: 'lead-form',
+    ctaId: clip.id,
     prefill,
     preview,
     allowRedirect,

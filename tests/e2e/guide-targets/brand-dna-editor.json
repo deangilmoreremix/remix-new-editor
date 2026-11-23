@@ -1,0 +1,34 @@
+{
+  "__overview": {
+    "setup": "(async () => { const brand = { id: 'guide-aurum', brandName: 'Aurum Elixir', industry: 'Luxury Fragrance', tagline: 'Golden hour, bottled.', valueProposition: 'Small-batch parfums blended by hand with amber, vanilla and oud.', targetAudience: 'Gift buyers and fragrance lovers aged 25-45 who want a signature scent.', imageryStyle: 'moody studio, warm gold light', layoutStyle: 'minimal luxury', toneOfVoice: ['Elegant', 'Warm', 'Confident'], brandPersonality: ['Sophisticated', 'Timeless'], keyMessages: ['Hand-blended in small batches', 'Notes of amber, vanilla and oud'], fonts: ['Cormorant Garamond', 'Inter'], primaryColors: ['#c9a24a', '#111111'], secondaryColors: ['#f5ecd7'], logoUrl: '/landing-art/01/logo.webp', screenshotUrl: '/thumbnails/studios/commercial.webp' }; const concepts = [ { title: 'The Golden Hour Ritual', theme: 'Make the scent part of an evening ritual.', key_message: 'Aurum Elixir turns any evening into golden hour.', hook: 'Some light you can wear.', cta: 'Discover the scent', tone_notes: 'Slow, sensory, elegant; short sentences.' }, { title: 'Gift the Glow', theme: 'Position the bottle as the season’s most thoughtful gift.', key_message: 'A gift that lingers long after it is unwrapped.', hook: 'Wrap up golden hour.', cta: 'Shop gift sets', tone_notes: 'Warm and generous; speak to the giver.' }, { title: 'Made by Hand', theme: 'Show the small-batch craft behind every bottle.', key_message: 'Every bottle is blended and filled by hand.', hook: 'Fifty bottles a day. Not one more.', cta: 'Meet the makers', tone_notes: 'Confident, craft-proud, concrete details.' }, { title: 'Your Signature Note', theme: 'Help buyers find the note that is theirs.', key_message: 'Amber, vanilla or oud: find your signature.', hook: 'Which note are you?', cta: 'Take the quiz', tone_notes: 'Playful but refined; invite a reply.' }, ]; const now = new Date('2026-11-18T10:00:00Z').toISOString(); const campaign = { id: 'guide-camp-1', brandId: brand.id, goal: 'product-launch', direction: 'Holiday gifting season', concepts: concepts.map((c, index) => ({ ...c, index })), createdAt: now }; const assets = [ { id: 'guide-asset-1', campaignId: campaign.id, platform: 'web-banner', format: 'Web Banner', imageUrl: '/thumbnails/studios/commercial.webp', headline: 'Golden hour, bottled', body: 'Hand-blended amber, vanilla and oud. Limited holiday batch.', cta: 'Shop Now', variants: { conceptIndex: 0, platformId: 'web-banner' }, createdAt: now }, { id: 'guide-asset-2', campaignId: campaign.id, platform: 'instagram-feed', format: 'Instagram Feed', imageUrl: '/thumbnails/studios/commercial.webp', headline: 'Wrap up golden hour', body: 'The gift that lingers long after it is unwrapped.', cta: 'Shop gift sets', variants: { conceptIndex: 1, platformId: 'instagram-feed' }, createdAt: now }, ]; localStorage.setItem('brand_dna_list', JSON.stringify([brand])); localStorage.setItem('brand_campaigns', JSON.stringify([campaign])); localStorage.setItem('brand_assets', JSON.stringify(assets)); localStorage.setItem('brand_last_used_id', brand.id);  })()"
+  },
+  "website-screenshot-and-logo": {
+    "selector": "xpath=//img[@alt=\"Website screenshot\"]/.."
+  },
+  "personalize": {
+    "text": "Personalize"
+  },
+  "brand-details-fields": {
+    "selector": "xpath=//label[normalize-space()=\"Brand Name\"]/../.."
+  },
+  "tone-of-voice-brand-personality-and-key-messages": {
+    "selector": "xpath=//label[normalize-space()=\"Tone of Voice\"]/../.."
+  },
+  "detected-fonts": {
+    "selector": "xpath=//label[normalize-space()=\"Detected Fonts\"]/.."
+  },
+  "colors": {
+    "selector": "xpath=//label[normalize-space()=\"Colors\"]/.."
+  },
+  "past-campaigns": {
+    "selector": "[data-past-campaigns]"
+  },
+  "new-campaign-photo-studio-and-animate": {
+    "selector": "xpath=//button[@data-action=\"campaigns\"]/..",
+    "click": false
+  },
+  "save": {
+    "selector": "button[data-action=\"save\"]",
+    "click": false
+  }
+}

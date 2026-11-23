@@ -565,8 +565,7 @@ describe('protected applications — upload import surface', () => {
       './dragDrop.js',
     ];
     // Files with live upload call sites. Superset of the byte baseline: it also
-    // covers non-byte-pinned upload call sites (the shared caption modal and
-    // its action wrapper), so a re-route there stays visible even though those
+    // covers non-byte-pinned upload call sites (the caption action wrapper), so a re-route there stays visible even though those
     // files are not protected application files.
     const uploadCallSiteFiles = [
       'src/components/TimelineEditorPage.jsx',
@@ -575,7 +574,6 @@ describe('protected applications — upload import surface', () => {
       'src/lib/editor/mediaLibrary.js',
       'src/lib/editor/aiTools.js',
       'src/lib/editor/captionActions.js',
-      'src/components/modals/AICaptionsModal.jsx',
       'src/components/ChatStudio.js',
       'src/components/chat/ChatStudio.jsx',
       'src/components/chat/ChatInput.jsx',
@@ -656,7 +654,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     // dynamically imported and use the same owner client; publishing carries
     // the owner's interest map; editor-wide Delete/Backspace/Ctrl+D/Ctrl+Z
     // shortcuts no longer fire while typing in a field (isTypingTarget). Semantic coverage in section 5.
-        ['src/components/TimelineEditorPage.jsx', '07994fb3cd74a575a5af03f6890a5f54a2f2ba2fc07f60dfe99a82988f5c494e'], // re-recorded after the approved Lead Generator / List Builder integrations (webhook test + log + signing, notification emails, Kit/MailerLite, after-submit actions, UTM, extra pixels), then (approved by the repo owner) for the personalized-videos work: Studio design clips (overlay-studio-design) with a design picker, hotspot clips (isEditorOverlay), the Personalized output panel (personalVariables, stored personal links) and a guest identity for publishing without an account. Semantic coverage in section 5.
+        ['src/components/TimelineEditorPage.jsx', '6b3fcef5f44af64da7540152c7f8524eaf9c6ef54fc4575aefed1255f07b8836'], // re-recorded after the approved free Caption Studio entry point (openCaptionStudio: on-device Whisper, no upload or provider call; the inline captions panel is now a summary that opens it and the unused cloud whisper-client import was removed), together with the approved personalized-videos work (Studio design clips, hotspot clips, the Personalized output panel, a guest identity) and, earlier, the approved Lead Generator / List Builder integrations (webhook test + log + signing, notification emails, Kit/MailerLite, after-submit actions, UTM, extra pixels). Semantic coverage in section 5.
     ['src/components/ChatStudio.js', 'eaa16413b85735695edc1205677a1d4155d769e8f358bc93e719acefc246354a'],
     ['src/components/chat/ChatStudio.jsx', '596d60a5d1b78b38c4041af4c4606ff2e13ce667ef232218dc984b3e6943f909'],
     ['src/components/chat/ChatInput.jsx', '5401123b227dab3fe16b9e6124995b34edb96d0dcd2d54a149e8165a57a18693'],
@@ -664,11 +662,18 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/components/chat/ChatSidebar.jsx', '6bea82236dba0a41bbf9f5ef6ef5e58a97c2388820fd2b07f03842af89d14c49'],
     ['src/components/chat/AttachmentChips.jsx', '8731d3421f55883019a3f1e33bb9132777de9ab6ff38eeb53a335bc59d4dc104'],
     ['src/components/chat/AttachmentToolbar.jsx', '30bddd1f38b34f5d2056a5b3ebafa360e03f8858a6847a4cf69e3614f9e3e763'],
-    ['src/components/chat/ModelSelector.jsx', 'db0298741d663dad799003d3c6fb7227ceaa25b30ec1e94ca3d9d7c9b2a98f87'],
+    // Re-recorded deliberately for the approved GPT-6 text-model migration: the
+    // chat model picker lists the MuAPI GPT-6 ids (gpt-6-1-sol default,
+    // gpt-6-luna, gpt-6-astra). No upload code. Semantic coverage in section 5.
+    ['src/components/chat/ModelSelector.jsx', '22319a5534f395645893416183b31b042054596850baa229ddac304e0648ead1'],
     ['src/components/chat/ChatStudio.css', 'c2037cbf6e595c85926958f233bdd98d67de1d4da77cf904bf52d2041da61cf4'],
     ['src/hooks/useAttachmentState.js', '8e4bf9b95ddc0e4561a70a1688169a1e31a8d8be3481caf521123a8203f9bec2'],
     ['src/hooks/useChat.js', '0a48a4e58c7180de654c3ff9330f66b85b48b9d2635d6d56c1058dc748e16948'],
-    ['src/lib/chatApi.js', '277372658b0a9b978441ae747ef32960680505575178036d5f566c2be27f9a3c'],
+    // Re-recorded deliberately for the approved GPT-6 text-model migration: the
+    // default chat model is MuAPI gpt-6-1-sol and temperature is omitted for
+    // reasoning models. Still streams through muapi.generateTextStream; no
+    // upload code. Semantic coverage in section 5.
+    ['src/lib/chatApi.js', '70a094c62d93deeaa308ac8601e781602b8703df112230652977dcf6375c602e'],
     ['src/lib/chatStore.js', 'bf656c016fc8f4ca01ce5aaa6dd7261a0caa4a8693943335f47ca2b0afd86b77'],
     ['src/lib/chatPersistence.js', '2d81dd7bb1edc0298f61f111f1adc5cdf35d32eaa03e4800600852ff83e39bfe'],
     // Re-recorded deliberately after the intentional personalization
@@ -837,6 +842,17 @@ const SEMANTIC_GUARDED: Array<{ file: string; app: string; exports: string[] }> 
     app: 'Timeline Editor — drag & drop',
     exports: ['setupEnhancedTooltips', 'uploadFile', 'processMultipleFiles'],
   },
+  // Re-recorded deliberately for the GPT-6 text-model migration.
+  {
+    file: 'src/lib/chatApi.js',
+    app: 'Chat — API client',
+    exports: ['sendChatMessage', 'createConversation', 'muapi.generateTextStream', 'muapi.generateText'],
+  },
+  {
+    file: 'src/components/chat/ModelSelector.jsx',
+    app: 'Chat — model picker',
+    exports: ['export default function ModelSelector'],
+  },
 ];
 
 describe('protected files — semantic integrity assertions', () => {
@@ -969,6 +985,22 @@ describe('protected files — semantic integrity assertions', () => {
     // Opening a project must never silently replace an unsaved timeline.
     expect(source).toContain('is not saved as a project and will be replaced');
     // No browser-exposed provider key or direct provider fetch was introduced.
+    expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
+  });
+
+  it('TimelineEditorPage.jsx opens the free on-device Caption Studio without a new upload or provider path', () => {
+    const source = readSource('src/components/TimelineEditorPage.jsx');
+    // Subtitle entry points open the studio through the shared caption action (dynamic import, no static upload import).
+    expect(source).toContain('async function openCaptionStudio(source, existing)');
+    expect(source).toContain("import('../lib/editor/captionActions.js')");
+    // The result becomes a captions clip through the existing timeline helpers.
+    expect(source).toContain("insertClipIntoTrack(clip, textTrack?.name || 'Text')");
+    // Captions are made on the user's device: nothing here uploads media or calls a provider.
+    const block = source.slice(source.indexOf('async function openCaptionStudio'), source.indexOf('async function suggestBRoll'));
+    expect(block).not.toMatch(/uploadFileToStorage|supabase|muapi|fetch\(/);
+    // One captions window: the old cloud transcription client is gone and the inline panel only opens the studio.
+    expect(source).not.toContain('whisper-client');
+    expect(source).toContain('onOpenStudio: () => openCaptionStudio(');
     expect(source).not.toMatch(DIRECT_PROVIDER_FETCH);
   });
 

@@ -242,7 +242,7 @@ export function AIVFXPage() {
       card.dataset.vfxEffect = fx.name;
       card.dataset.help = 'vfx effect';
       const active = state.effect?.name === fx.name;
-      card.className = `group relative aspect-[3/4] rounded-2xl overflow-hidden border text-left transition-all ${active ? 'border-primary shadow-[0_0_20px_rgba(217,255,0,0.25)]' : 'border-white/10 hover:border-white/30'} bg-[#111]`;
+      card.className = `group relative aspect-[3/4] rounded-2xl overflow-hidden border text-left transition-all ${active ? 'border-primary shadow-[0_0_20px_rgba(217,255,0,0.25)]' : 'border-white/10 hover:border-white/30'} bg-card-bg`;
       card.appendChild(thumbImg(fx.thumbs, fx.name));
       const shade = document.createElement('div');
       shade.className = 'absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent';
@@ -292,7 +292,7 @@ export function AIVFXPage() {
   function addResult(entry) {
     results.classList.remove('hidden');
     const card = document.createElement('div');
-    card.className = 'rounded-2xl overflow-hidden border border-white/10 bg-[#111]';
+    card.className = 'rounded-2xl overflow-hidden border border-white/10 bg-card-bg';
     card.innerHTML = `
       <video src="${entry.url}" class="w-full aspect-video bg-black object-contain" controls playsinline loop></video>
       <div class="p-3 flex items-center justify-between gap-2">
@@ -311,7 +311,7 @@ export function AIVFXPage() {
     genBtn.disabled = true;
     genBtn.textContent = 'Generating…';
     const pending = document.createElement('div');
-    pending.className = 'rounded-2xl border border-white/10 bg-[#111] aspect-video flex items-center justify-center text-xs text-white/60';
+    pending.className = 'rounded-2xl border border-white/10 bg-card-bg aspect-video flex items-center justify-center text-xs text-white/60';
     pending.innerHTML = `<span class="animate-pulse">Rendering ${state.effect.name}…</span>`;
     results.classList.remove('hidden');
     results.prepend(pending);

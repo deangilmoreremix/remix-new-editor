@@ -6,12 +6,15 @@ import type { Asset } from '@cinegen/types/project';
 import type { Timeline, Transition } from '@cinegen/types/timeline';
 import type { OverlayClip } from '@cinegen/types/workspace';
 import { addClipToTrack } from '@cinegen/lib/editor/timeline-operations';
-import { createOverlay } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, createTemplateOverlays } from '@cinegen/lib/overlays/overlays';
 import { generateId } from '@cinegen/lib/utils/ids';
+import { isGlTransition } from './transitions';
 
-interface CompClip { type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
+interface CompClip { volume?: number; keyframes?: { volume?: Array<{ t: number; v: number }> }; _overlayConfig?: { animation?: { overlay?: OverlayClip; templateId?: string; call?: { phone: string; country?: string; buttonText?: string } }; lowerThird?: { template?: string; name?: string; title?: string }; textStyle?: Record<string, unknown> }; type?: string; name?: string; duration?: number; startTime?: number; text?: string; assetId?: string; asset?: { id?: string; type?: string; name?: string; url?: string; duration?: number; thumbnail?: string } | null }
 interface CompTrack { type?: string; name?: string; clips?: CompClip[] }
-export interface Composition { name?: string; tracks?: CompTrack[]; transitions?: Array<{ fromClipIndex: number; toClipIndex: number; inTrack?: number; type?: string; duration?: number }> }
+/** [remix] A styled, word-timed caption track for the cut (words in ms from the cut's start); it lands as the first clip's OpenChatCut captions. */
+export interface CompositionCaptions { template: string; motionPreset?: string; pacing?: 'word' | 'phrase'; words: Array<{ text: string; start: number; end: number }> }
+export interface Composition { name?: string; captionTrack?: CompositionCaptions | null; tracks?: CompTrack[]; transitions?: Array<{ fromClipIndex: number; toClipIndex: number; inTrack?: number; type?: string; duration?: number }> }
 
 export interface AppliedComposition { timeline: Timeline; assets: Asset[]; overlays: OverlayClip[]; clipIds: string[] }
 
@@ -23,6 +26,8 @@ export function applyComposition(timeline: Timeline, comp: Composition, at?: num
   const placed = new Map<number, string[]>(); // composition track index → timeline clip ids in order
   const base = typeof at === 'number' && Number.isFinite(at) ? Math.max(0, at) : Math.max(0, tl.duration || 0);
   const T = Math.max(10, base + 1);
+  // where the generated cut ends on this timeline (end screens are anchored there)
+  const compEnd = base + Math.max(1, ...(comp.tracks ?? []).flatMap((t) => (t.clips ?? []).map((c) => (c.startTime ?? 0) + (c.duration ?? 0))));
 
   (comp.tracks ?? []).forEach((track, ti) => {
     const ids: string[] = [];
@@ -36,19 +41,43 @@ export function applyComposition(timeline: Timeline, comp: Composition, at?: num
         const target = tl.tracks.find((t) => t.kind === kind && !t.locked) ?? tl.tracks.find((t) => t.kind === kind);
         if (!target) continue;
         const before = new Set(tl.clips.map((x) => x.id));
-        tl = addClipToTrack(tl, target.id, { ...asset, duration: asset.type === 'image' ? dur : asset.duration }, start);
+        // footage keeps its own length; images and audio (voice, and music that is far longer than the cut) are placed for the cut's length
+        tl = addClipToTrack(tl, target.id, { ...asset, duration: asset.type === 'video' ? asset.duration : dur }, start);
         const added = tl.clips.find((x) => !before.has(x.id) && x.assetId === asset.id && x.trackId === target.id);
         if (added) ids.push(added.id);
+        // the wizard's mix: the clip's volume and (for music) the fade / ducking curve, as the editor's volume keyframes
+        // (a video also gets its own sound clip on the audio track: the footage volume applies to both)
+        if (added && (c.volume != null || c.keyframes?.volume?.length)) {
+          const created = new Set(tl.clips.filter((x) => !before.has(x.id)).map((x) => x.id));
+          const kfs = (c.keyframes?.volume ?? []).map((k) => ({ time: k.t, property: 'volume' as const, value: k.v }));
+          tl = { ...tl, clips: tl.clips.map((x) => (created.has(x.id) ? { ...x, ...(c.volume != null ? { volume: c.volume } : {}), ...(kfs.length ? { keyframes: [...(x.keyframes ?? []), ...kfs] } : {}) } : x)) };
+        }
         assets.push(asset);
       } else if (c.type === 'cta' || c.type === 'lead-form' || c.type === 'lower-third' || c.type === 'sticker') {
         // wizard overlay kinds → the matching overlay-lane kind (defaults from the overlay's own descriptor)
         const kind = { cta: 'click-to-call', 'lead-form': 'lead-form', 'lower-third': 'overlay-lower-third', sticker: 'overlay-sticker' }[c.type] as 'click-to-call';
         const o = createOverlay(kind, start, T + dur);
         // a wizard call button sits low in the frame so it does not cover the text overlay (both default to the centre)
-        overlays.push({ ...o, start, end: start + dur, ...(kind === 'click-to-call' ? { style: { ...((o.style as Record<string, unknown>) ?? {}), posTop: 72 } } : {}) });
+        // a wizard lower third with a chosen style: that Lottie template, with the user's name and title
+        const lt = c.type === 'lower-third' ? c._overlayConfig?.lowerThird : undefined;
+        const addon = lt ? { ...((o.addon as Record<string, unknown>) ?? {}), ...(lt.template ? { template: lt.template } : {}), ...(lt.name ? { name: lt.name } : {}), title: lt.title ?? '' } : o.addon;
+        overlays.push({ ...o, ...(lt ? { addon } : {}), start, end: start + dur, ...(kind === 'click-to-call' ? { style: { ...((o.style as Record<string, unknown>) ?? {}), posTop: 72 } } : {}) });
+      } else if (c.type === 'animation') {
+        // an animation / motion graphic picked in the wizard: the overlay its library resolved, re-timed to this cut; or an end-screen / form template
+        const cfg = c._overlayConfig?.animation;
+        if (cfg?.overlay) overlays.push({ ...cfg.overlay, id: generateId(), start, end: start + dur });
+        else if (cfg?.templateId) {
+          // an end-screen template is anchored to the cut's end; when the cut is shorter than the template, slide it forward so it
+          // never starts before this cut (it must not cover footage that was already on the timeline)
+          const made = createTemplateOverlays(cfg.templateId, start, compEnd, cfg.call);
+          const earliest = made.length ? Math.min(...made.map((o) => o.start)) : base;
+          const shift = earliest < base ? base - earliest : 0;
+          overlays.push(...made.map((o) => (shift ? { ...o, start: o.start + shift, end: o.end + shift } : o)));
+        }
       } else if (c.text) {
         const o = createOverlay('overlay-text', start, T + dur);
-        const addon = { ...((o.addon as Record<string, unknown>) ?? {}), text: c.text };
+        // the look the wizard chose for this text (font, colours, outline, box position, entrance), as Smart Text options
+        const addon = { ...((o.addon as Record<string, unknown>) ?? {}), ...(c._overlayConfig?.textStyle ?? {}), text: c.text };
         overlays.push({ ...o, addon, start, end: start + dur, name: c.name ?? 'Text' });
       }
     }
@@ -61,8 +90,17 @@ export function applyComposition(timeline: Timeline, comp: Composition, at?: num
     const direct = placed.get(t.inTrack ?? 0) ?? [];
     const ids = direct.length >= 2 ? direct : ([...placed.values()].find((v) => v.length >= 2) ?? []);
     const a = ids[t.fromClipIndex]; const b = ids[t.toClipIndex];
-    if (a && b) transitions.push({ id: generateId(), type: 'dissolve', duration: Math.max(0.1, Math.min(t.duration ?? 1, 2)), clipAId: a, clipBId: b });
+    if (a && b) // the wizard's pick is one of the editor's GL transitions → keep it (glType); anything else stays a plain dissolve
+    transitions.push({ id: generateId(), type: 'dissolve', duration: Math.max(0.1, Math.min(t.duration ?? 1, 2)), clipAId: a, clipBId: b, ...(isGlTransition(t.type) ? { glType: t.type } : {}) });
   }
   if (transitions.length) tl = { ...tl, transitions: [...tl.transitions, ...transitions] };
+  // the caption track rides on the first footage clip: words are timeline ms, so shift them to where this cut starts
+  const ct = comp.captionTrack;
+  const first = ct?.words?.length ? [...placed.values()].flat().find((id) => tl.clips.some((x) => x.id === id && x.type !== 'audio')) : undefined;
+  if (ct && first) {
+    const off = Math.round(base * 1000);
+    const captions = { enabled: true, template: ct.template, pacing: ct.pacing ?? 'phrase', motionPreset: ct.motionPreset ?? 'pop', offsetFrames: 0, words: ct.words.map((w) => ({ text: w.text, start: w.start + off, end: w.end + off })) } as unknown as NonNullable<Timeline['clips'][number]['captions']>;
+    tl = { ...tl, clips: tl.clips.map((x) => (x.id === first ? { ...x, captions } : x)) };
+  }
   return { timeline: tl, assets, overlays, clipIds: [...placed.values()].flat() };
 }

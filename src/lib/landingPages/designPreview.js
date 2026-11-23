@@ -1,8 +1,8 @@
 // src/lib/landingPages/designPreview.js
 //
-// A small, non-interactive LIVE picture of a landing page design: the real page is rendered (Puck <Render>) at a fixed
+// A small, non-interactive LIVE picture of a landing page design: the real page is rendered (the editor's <Render>) at a fixed
 // 1280px width and scaled down to fit the card. It is only drawn once the card scrolls into view, so a grid of 34 stays light.
-//   const h = attachDesignPreview(box, template.puckData);  ...  h.destroy();
+//   const h = attachDesignPreview(box, template.editorData);  ...  h.destroy();
 const PAGE_WIDTH = 1280;
 const PREVIEW_PAGE = { id: 'preview', title: 'Preview', video_url: '', poster_url: null };
 const TOKENS = { firstname: 'Alex', company: 'Brightline' };
@@ -32,7 +32,7 @@ export function attachDesignPreview(host, data, { aspect = 0.72, deps = {} } = {
     host.appendChild(inner);
     fit();
     try {
-      const mount = deps.mountPuckPage || (await import('./puck/mount.jsx')).mountPuckPage;
+      const mount = deps.mountEditablePage || (await import('./editor/mount.jsx')).mountEditablePage;
       if (gone) return;
       mounted = mount(inner, { page: PREVIEW_PAGE, data, tokens: TOKENS, preview: true });
     } catch { /* a failed preview just leaves the card without a picture */ }

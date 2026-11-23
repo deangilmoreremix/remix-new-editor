@@ -2,6 +2,7 @@
 // upstream academy. Lessons/Templates are catalog-driven; track 01 keeps its
 // rich interactive editors, the other 14 render as documents via the Markdown
 // renderer. Mounted by the router as the `academy` route.
+import { routeHash } from '../../lib/routeUrl.js';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { navigate } from '../../lib/router.js';
@@ -644,7 +645,7 @@ function Hub({ onOpenTrack, bookmarks, onToggleBookmark, onOpenLesson, progressA
 
 function parseAcademyHash() {
   if (typeof window === 'undefined') return null;
-  const hash = window.location.hash;
+  const hash = routeHash();
   const match = hash.match(/^#\/academy(?:\/track\/([^/]+))(?:\/(lesson|template)\/([^/]+))?$/);
   if (!match) return null;
   const [, trackSlug, kind, itemId] = match;

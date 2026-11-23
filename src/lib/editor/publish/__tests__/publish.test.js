@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
-  makeSlug, preparePublishProject, uploadLocalMedia, localSources, publishVideo, fetchPublishedVideo, submitViewerLead, profileFromQuery, embedCode, watchUrl,
+  makeSlug, preparePublishProject, cleanLanding, uploadLocalMedia, localSources, publishVideo, fetchPublishedVideo, submitViewerLead, profileFromQuery, embedCode, watchUrl,
 } from '../publishClient.js';
 import { createInteractivePlayer, stripUnresolvedTokens, profileWithAnswers } from '../interactivePlayer.js';
 import { showLeadForm, ctaElement, linkBoxElement, personalize } from '../viewerOverlays.js';
@@ -81,6 +81,20 @@ describe('viewer lead: A/B version', () => {
   });
 });
 
+describe('viewer lead: viewing session', () => {
+  it('sends the session id inside source only when it is well formed', async () => {
+    const fetchImpl = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ ok: true, stored: true }) }));
+    const base = { publishedId: 'Abc123XyZ9', clipId: 'a', kind: 'list-builder', data: { EMAIL: 'a@b.co' } };
+    const env = { url: 'https://x.supabase.co', key: 'k', fetchImpl };
+    await submitViewerLead({ ...base, session: 'abcDEF1234567890abcd' }, env);
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).source.session).toBe('abcDEF1234567890abcd');
+    for (const [i, bad] of [null, '', 'short', 'bad session id!!!!!!!!'].entries()) {
+      await submitViewerLead({ ...base, session: bad }, env);
+      expect(JSON.parse(fetchImpl.mock.calls[i + 1][1].body).source).not.toHaveProperty('session');
+    }
+  });
+});
+
 describe('publish client', () => {
   it('makes unguessable slugs and share links', () => {
     const s = makeSlug();
@@ -99,6 +113,26 @@ describe('publish client', () => {
     state.tracks[0].items.push({ id: 2, type: 'video', src: 'blob:http://x/1', addon: { src: 'blob:http://x/2' } });
     expect(localSources(state.tracks)).toEqual(['blob:http://x/1', 'blob:http://x/2']);
     expect(() => preparePublishProject(state)).toThrow(/only on this computer/);
+  });
+
+  it('passes Video Outreach landing text through, cleaned', () => {
+    const p = preparePublishProject({
+      tracks: [], timelineSeconds: 10, kind: 'outreach', campaign: { name: '  Cold   outreach ', contacts: '12', extra: 1 },
+      landing: { header: 'Hi {{firstname}}'.padEnd(300, '!'), message: 'Hello', fallbacks: { firstname: 'there', 'bad key': 'x' }, cta: { label: 'Book', url: 'https://cal.com/x' } },
+    }, { title: 'Campaign' });
+    expect(p.kind).toBe('outreach');
+    expect(p.campaign).toEqual({ name: 'Cold outreach', contacts: 12 });
+    expect(p.landing.header).toHaveLength(200);
+    expect(p.landing.fallbacks).toEqual({ firstname: 'there' });
+    expect(p.landing.cta).toEqual({ label: 'Book', url: 'https://cal.com/x' });
+    expect(cleanLanding({ cta: { label: 'Go', url: 'http://cal.com/x' } }).cta).toBeNull();
+    expect(cleanLanding({ cta: { label: 'Go', url: 'javascript:alert(1)' } }).cta).toBeNull();
+    expect(cleanLanding({ cta: { label: 'Go', url: 'https://cal.com/x', embed: true } }).cta).toEqual({ label: 'Go', url: 'https://cal.com/x', embed: true });
+    expect(cleanLanding({ cta: { label: 'Go', url: 'https://cal.com/x', embed: 'yes' } }).cta).toEqual({ label: 'Go', url: 'https://cal.com/x' });
+    // Ordinary videos are unchanged.
+    const plain = preparePublishProject({ tracks: [], kind: 'something' });
+    expect(plain).not.toHaveProperty('kind');
+    expect(plain).not.toHaveProperty('landing');
   });
 
   it('uploads local media and swaps the URLs in the timeline', async () => {
@@ -410,5 +444,73 @@ describe('share panel and watch page', () => {
     const missing = document.createElement('div');
     expect(await mountWatchPage(missing, 'nope12345', { fetchVideo: async () => null })).toBeNull();
     expect(missing.textContent).toContain('Video not found');
+  });
+
+  it('watch page shows a Video Outreach landing: personalized header, message and booking button', async () => {
+    const landing = {
+      header: 'Hi {{firstname}}, I made this for you',
+      message: 'Excited to help {{company}} <b>grow</b>.',
+      fallbacks: { firstname: 'there', company: 'your company' },
+      cta: { label: 'Book a call', url: 'https://cal.com/me/intro' },
+    };
+    const mount = async (search) => {
+      window.history.replaceState(null, '', `/watch/abcdefgh12${search}`);
+      const box = document.createElement('div');
+      document.body.appendChild(box);
+      const analytics = { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() };
+      const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Campaign', project: { ...project(), kind: 'outreach', landing } }), createEngine: fakeEngine().create, analytics, onLead: vi.fn() });
+      return { box, analytics, player };
+    };
+    const a = await mount('?c=c1&firstName=Mike&company=Acme');
+    expect(a.box.querySelector('h1').textContent).toBe('Hi Mike, I made this for you');
+    // Escaped: viewer-controlled values and owner text never become markup.
+    expect(a.box.querySelector('.watch-landing-msg').textContent).toBe('Excited to help Acme <b>grow</b>.');
+    expect(a.box.querySelector('.watch-landing-msg b')).toBeNull();
+    const cta = a.box.querySelector('[data-landing-cta]');
+    expect(cta.getAttribute('href')).toBe('https://cal.com/me/intro');
+    expect(cta.getAttribute('rel')).toContain('noopener');
+    cta.addEventListener('click', (ev) => ev.preventDefault());
+    cta.click();
+    expect(a.analytics.track).toHaveBeenCalledWith('cta_click', expect.objectContaining({ props: { label: 'Book a call' } }));
+    a.player.destroy();
+    // No personal link: fallbacks fill in.
+    const b = await mount('');
+    expect(b.box.querySelector('h1').textContent).toBe('Hi there, I made this for you');
+    expect(b.box.querySelector('.watch-landing-msg').textContent).toBe('Excited to help your company <b>grow</b>.');
+    b.player.destroy();
+    // A non-https booking link is never rendered.
+    landing.cta = { label: 'Book', url: 'javascript:alert(1)' };
+    const c = await mount('');
+    expect(c.box.querySelector('[data-landing-cta]')).toBeNull();
+    c.player.destroy();
+    window.history.replaceState(null, '', '/');
+  });
+});
+
+describe('watch page transcript (Video Outreach captions)', () => {
+  const transcript = { lang: 'en', lines: [{ startMs: 0, endMs: 2000, text: 'Hi there.' }, { startMs: 2000, endMs: 5000, text: 'I made this for you.' }], translations: { es: [{ startMs: 0, endMs: 2000, text: 'Hola.' }, { startMs: 2000, endMs: 5000, text: 'Lo hice para ti.' }] } };
+  const mount = async (search, extra = {}) => {
+    window.history.replaceState(null, '', `/watch/abcdefgh12${search}`);
+    const box = document.createElement('div');
+    document.body.appendChild(box);
+    const engine = fakeEngine();
+    const analytics = { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() };
+    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Campaign', project: { ...project(), kind: 'outreach', ...extra } }), createEngine: engine.create, analytics, onLead: vi.fn() });
+    return { box, player };
+  };
+  it('lists every line with its time, switches language, and a line jumps the video there', async () => {
+    const { box, player } = await mount('', { transcript });
+    const rows = [...box.querySelectorAll('.watch-transcript-line')];
+    expect(rows.map((r) => r.textContent)).toEqual(['0:00Hi there.', '0:02I made this for you.']);
+    const sel = box.querySelector('[data-transcript-lang]');
+    sel.value = 'es'; sel.dispatchEvent(new Event('change'));
+    expect(box.querySelector('[data-transcript-lines]').textContent).toContain('Lo hice para ti.');
+    const seek = vi.spyOn(player, 'seek');
+    box.querySelectorAll('.watch-transcript-line')[1].click();
+    expect(seek).toHaveBeenCalledWith(2);
+  });
+  it('no transcript without captions, and none in the embedded player', async () => {
+    expect((await mount('')).box.querySelector('[data-transcript]')).toBeNull();
+    expect((await mount('?embed=1', { transcript })).box.querySelector('[data-transcript]')).toBeNull();
   });
 });

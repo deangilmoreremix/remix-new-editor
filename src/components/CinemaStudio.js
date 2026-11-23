@@ -38,6 +38,7 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -129,7 +130,13 @@ export function CinemaStudio() {
             currentSettings.prompt = tpl.basePrompt;
           } else if (tpl.slug) {
             loadTemplatePrompt(templateParam)
-              .then((prompt) => { if (prompt) currentSettings.prompt = prompt; })
+              .then((prompt) => {
+                if (!prompt) return;
+                currentSettings.prompt = prompt;
+                // The textarea is built before this async load resolves.
+                const ta = document.querySelector('textarea[aria-label="Cinema prompt"]');
+                if (ta && !ta.value) ta.value = prompt;
+              })
               .catch(() => {});
           }
         }
@@ -265,7 +272,7 @@ export function CinemaStudio() {
 
     const overlayContent = document.createElement('div');
     // Reduced padding for mobile (p-4) and added max-height/overflow handling
-    overlayContent.className = 'w-full max-w-5xl bg-(--bg-cinema-panel) border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto';
+    overlayContent.className = 'w-full max-w-5xl bg-card-bg border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-y-auto';
     overlayBackdrop.appendChild(overlayContent);
 
     // Header for Overlay
@@ -320,7 +327,7 @@ export function CinemaStudio() {
     promptBarWrapper.style.animationDelay = '0.2s';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'w-full bg-(--bg-cinema-panel)/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
+    promptBar.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 shadow-3xl relative';
 
     // --- INPUT AREA (Prompt + Upload) ---
     const inputArea = document.createElement('div');
@@ -1298,6 +1305,8 @@ export function CinemaStudio() {
     publishBtn.textContent = 'Publish to Social';
 
     canvasControls.appendChild(publishBtn);
+    const landingBtn = createLandingPageButton({ like: downloadBtn });
+    canvasControls.appendChild(landingBtn);
 
     canvas.appendChild(canvasControls);
 
@@ -1438,11 +1447,13 @@ export function CinemaStudio() {
 
         // Show Canvas
         canvas.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+            container.classList.add('studio-result-showing'); // hides the example gallery under the result
         canvas.classList.add('opacity-100', 'translate-y-0', 'scale-100');
         canvasControls.classList.remove('opacity-0');
         canvasControls.classList.add('opacity-100');
 
         publishBtn.onclick = () => { const mediaUrl = currentResultUrl; if (mediaUrl) { const isVid = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(mediaUrl); openSocialPublish({ mediaUrl, mediaType: isVid ? 'video' : 'image' }); } };
+        landingBtn.onclick = () => { const url = currentResultUrl; if (url) void openLandingPageFor({ url, type: /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url) ? 'video' : 'image', studio: 'cinema' }); };
         if (/\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url)) {
           const captionBtn = document.createElement('button');
           captionBtn.type = 'button';
@@ -1467,6 +1478,7 @@ export function CinemaStudio() {
     const resetToPrompt = () => {
         // Hide Canvas
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+        container.classList.remove('studio-result-showing');
         canvas.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
 
         // Show Input UI

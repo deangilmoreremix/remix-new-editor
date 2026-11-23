@@ -28,6 +28,33 @@ const OPENAI_IMAGE_MODEL_BRANDED = /^gpt-image-\d+(?:\.\d+)?-[a-z][a-z0-9]*$/i;
 const MUAPI_ENDPOINT_ROLE = /-(?:text-to-image|image-to-image|edit)$/i;
 
 /**
+ * OpenAI TEXT model ids (GPT-6 family).
+ *
+ * Direct OpenAI calls (user's own key / our backend) use the dotted ids;
+ * MuAPI-routed calls use the catalog's DASHED endpoint ids
+ * (see `src/lib/muapi/liveModels.json`).
+ *
+ * GPT-6 models are reasoning models: do not send `temperature` / `top_p`,
+ * and use `max_completion_tokens` (not `max_tokens`) on chat/completions.
+ */
+export const OPENAI_TEXT_MODEL = 'gpt-6.1-sol';
+export const OPENAI_FAST_TEXT_MODEL = 'gpt-6-luna';
+export const OPENAI_TOP_TEXT_MODEL = 'gpt-6-astra';
+export const MUAPI_TEXT_MODEL = 'gpt-6-1-sol';
+export const MUAPI_FAST_TEXT_MODEL = 'gpt-6-luna';
+export const MUAPI_TOP_TEXT_MODEL = 'gpt-6-astra';
+
+/**
+ * True for OpenAI reasoning-family text models (gpt-5*, gpt-6*, o-series),
+ * which reject sampling params such as `temperature` / `top_p`.
+ * @param {string} modelId
+ * @returns {boolean}
+ */
+export function isOpenAIReasoningModel(modelId) {
+  return typeof modelId === 'string' && /^(?:openai\/)?(?:gpt-5|gpt-6|o\d)/i.test(modelId.trim());
+}
+
+/**
  * Standalone form of {@link OpenAIConfig.isOpenAIImageModel}, for callers that
  * have not imported the singleton (and for the server-side twin).
  *
@@ -44,6 +71,29 @@ export function isOpenAIImageModelId(modelId) {
   const id = modelId.trim();
   if (MUAPI_ENDPOINT_ROLE.test(id)) return false;
   return OPENAI_IMAGE_MODEL_VERSION.test(id) || OPENAI_IMAGE_MODEL_BRANDED.test(id);
+}
+
+/**
+ * Pull the assistant text out of a Responses API payload. Reasoning models
+ * (GPT-5/GPT-6) emit a `reasoning` item before the `message`, so
+ * `output[0].content[0].text` is not reliable.
+ * @param {object} json - raw /v1/responses JSON
+ * @returns {string}
+ */
+export function extractResponsesOutputText(json) {
+  if (typeof json?.output_text === 'string' && json.output_text) return json.output_text;
+  // Like the SDK's `output_text`, join every text part across message items in order.
+  const parts = [];
+  for (const item of json?.output || []) {
+    if (item?.type !== 'message') continue;
+    for (const part of item.content || []) {
+      if (part?.type === 'output_text' && part.text) parts.push(part.text);
+      else if (part?.type === 'refusal' && part.refusal && parts.length === 0) {
+        throw new Error(`Model refused: ${part.refusal}`);
+      }
+    }
+  }
+  return parts.join('');
 }
 
 /**
@@ -157,12 +207,13 @@ class OpenAIConfig {
       // Mainline model used by the Responses API image generation tool. The
       // tool selects the underlying GPT Image model; this is the conversational
       // model that supports calling the image_generation tool.
-      responsesModel: 'gpt-5.6',
+      responsesModel: 'gpt-6.1-sol',
       supportedResponsesModels: [
+        'gpt-6.1-sol',
+        'gpt-6-luna',
+        'gpt-6-astra',
         'gpt-5.6',
-        'gpt-5.5',
-        'gpt-5.1',
-        'gpt-5'
+        'gpt-5.5'
       ],
       // Thumbnail overrides used by ThumbnailService / ai-thumbnail-generator
       // Default to OpenAI's gpt-image-2 so the v2 image generation/editing path
@@ -249,9 +300,9 @@ class OpenAIConfig {
         generate: 'Always generate new',
         edit: 'Always edit existing',
       },
-      // Mainline Responses API model override (gpt-5.6, gpt-5.5, etc.)
-      thumbnailResponsesModel: 'gpt-5.6',
-      thumbnailResponsesModelOptions: ['gpt-5.6', 'gpt-5.5', 'gpt-5.1', 'gpt-5'],
+      // Mainline Responses API model override (gpt-6.1-sol, gpt-6-luna, etc.)
+      thumbnailResponsesModel: 'gpt-6.1-sol',
+      thumbnailResponsesModelOptions: ['gpt-6.1-sol', 'gpt-6-luna', 'gpt-6-astra', 'gpt-5.6', 'gpt-5.5'],
       // `include` for Responses API — configurable, default to reasoning.
       thumbnailIncludeOptions: [
         'reasoning.encrypted_content',

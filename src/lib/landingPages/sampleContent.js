@@ -35,8 +35,8 @@ const isProof = (c, extraTypes) => {
 const titleOf = (c) => String(c.props?.title || c.props?.heading || c.props?.windowTitle || '').replace(/\[\[|\]\]/g, '').slice(0, 60);
 
 /**
- * @param {object} current  the page's Puck data
- * @param {object} original the template's initial Puck data
+ * @param {object} current  the page's page data
+ * @param {object} original the template's initial page data
  * @param {string[]} extraTypes component types the template marks as sample-bearing (template.sampleTypes)
  * @returns {{id:string,type:string,title:string}[]} sections whose content is still the design's sample content
  */

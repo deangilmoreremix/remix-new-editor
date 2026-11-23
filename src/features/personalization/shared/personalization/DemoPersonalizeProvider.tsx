@@ -6,6 +6,7 @@
 
 'use client'
 
+import { MAX_AUDIO_TRACKS, newAudioTrack, type AudioTrackKind } from './preview/audioMix'
 import { pickBestLogo } from './logoScoring'
 import {
   createContext,
@@ -117,14 +118,13 @@ import {
   applyLayoutPreset,
   applyDesignTemplate,
   addDesignTemplate,
-  removeDesignLayer,
   resetLayoutToDefaults,
   resetPreviewDesign,
   normalizePreviewSettings,
   getCompositionDimensions,
   reflowLayersForAspect,
 } from './preview/presets'
-import { addDesignWithRules, moveDesignLayer } from './preview/designAddons'
+import { addDesignWithRules, moveDesignLayer, removeDesignKeepingLayout } from './preview/designAddons'
 import {
   applyResearchedBrandColors,
   firstParagraphOf,
@@ -1079,7 +1079,7 @@ export type DemoPersonalizeContextValue = {
   updatePreviewBrandColors: (patch: Partial<PreviewBrandColors>) => void
   /** Burned-in captions: merge a patch over them, or `null` to remove them. Counts for undo/redo, saves with the project. */
   updatePreviewCaptions: (patch: Partial<PreviewCaptions> | null) => void
-   updatePreviewComposition: (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard' | 'look' | 'cutout'>>) => void
+   updatePreviewComposition: (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard' | 'look' | 'cutout' | 'audioTracks' | 'videoVolume' | 'videoMuted' | 'audioSolo' | 'captions' | 'textStyles'>>) => void
    resetPreviewLayout: () => void
    /**
     * Every registered Remotion design, in registration order. Empty when no
@@ -1119,6 +1119,9 @@ export type DemoPersonalizeContextValue = {
    cancelExport: () => void
    apiKey: string
    setPreviewAudio: (file: File) => Promise<void>
+   /** Adds a track to the audio mix (music or voiceover). Optimistic with a local URL, then swapped for the durable upload. */
+   addAudioTrack: (file: File, kind: AudioTrackKind) => Promise<void>
+   removeAudioTrack: (id: string) => void
    removePreviewAudio: () => void
    previewAudioError: string | null
   /** Set when the prompt was filled in without the AI (the AI call failed). */
@@ -5932,7 +5935,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
   const removePreviewDesignLayer = useCallback((layerId: string) => {
     markSessionStarted()
-    setPreviewSettings((prev) => removeDesignLayer(prev, layerId))
+    setPreviewSettings((prev) => removeDesignKeepingLayout(prev, layerId, previewSeedRef.current))
   }, [])
 
   // ── Undo / redo for edits to the preview ─────────────────────────────────
@@ -6119,7 +6122,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   }, [])
 
   const updatePreviewComposition = useCallback(
-    (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard' | 'look' | 'cutout'>>) => {
+    (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard' | 'look' | 'cutout' | 'audioTracks' | 'videoVolume' | 'videoMuted' | 'audioSolo' | 'captions' | 'textStyles'>>) => {
       markSessionStarted()
       setPreviewSettings((prev) => {
         let next = { ...prev, ...patch }
@@ -6498,6 +6501,58 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       }))
     }
   }, [apiKey, registerOwnedBlobUrl, releaseJobBlobUrls])
+
+  const addAudioTrack = useCallback(async (file: File, kind: AudioTrackKind) => {
+    markSessionStarted()
+    setPreviewAudioError(null)
+    const blobUrl = URL.createObjectURL(file)
+    const track = newAudioTrack({ url: blobUrl, name: file.name, kind })
+    const audioAsset: PersonalizationAsset = {
+      id: `asset_${track.id}`,
+      role: 'audio_reference',
+      name: file.name,
+      url: blobUrl,
+      isPrimary: false,
+      mimeType: file.type || '',
+      createdAt: new Date().toISOString(),
+      uploadStatus: 'local',
+      uploadError: null,
+      file,
+    }
+    setAssets((prev) => ({ ...prev, audio: [...prev.audio, audioAsset] }))
+    setPreviewSettings((prev) => ({ ...prev, audioTracks: [...(prev.audioTracks ?? []), track].slice(0, MAX_AUDIO_TRACKS) }))
+    registerOwnedBlobUrl(audioAsset.id, blobUrl)
+    try {
+      const { url: durableUrl } = await uploadPersonalizationAsset(apiKey, { file })
+      setAssets((prev) => ({
+        ...prev,
+        audio: prev.audio.map((a) => (a.id === audioAsset.id ? { ...a, uploadedUrl: durableUrl, uploadStatus: 'ready' as const, url: durableUrl } : a)),
+      }))
+      setPreviewSettings((prev) => ({ ...prev, audioTracks: (prev.audioTracks ?? []).map((t) => (t.id === track.id ? { ...t, url: durableUrl } : t)) }))
+      releaseJobBlobUrls(audioAsset.id, audioAsset, { superseded: [blobUrl] })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Upload failed'
+      setPreviewAudioError(message)
+      setAssets((prev) => ({
+        ...prev,
+        audio: prev.audio.map((a) => (a.id === audioAsset.id ? { ...a, uploadStatus: 'error' as const, uploadError: message } : a)),
+      }))
+    }
+  }, [apiKey, registerOwnedBlobUrl, releaseJobBlobUrls])
+
+  const removeAudioTrack = useCallback((id: string) => {
+    setAssets((prev) => {
+      const gone = prev.audio.find((a) => a.id === `asset_${id}`)
+      if (gone) releaseJobBlobUrls(gone.id, gone, { dropOriginal: true })
+      return { ...prev, audio: prev.audio.filter((a) => a.id !== `asset_${id}`) }
+    })
+    setPreviewSettings((prev) => {
+      const rest = (prev.audioTracks ?? []).filter((t) => t.id !== id)
+      const next = { ...prev, audioTracks: rest.length ? rest : undefined }
+      if (prev.audioSolo === id) next.audioSolo = undefined
+      return next
+    })
+  }, [releaseJobBlobUrls])
 
   const removePreviewAudio = useCallback(() => {
     setAssets((prev) => {
@@ -6896,6 +6951,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
      cancelExport,
      apiKey,
      setPreviewAudio,
+     addAudioTrack,
+     removeAudioTrack,
      removePreviewAudio,
      previewAudioError,
     promptNotice,

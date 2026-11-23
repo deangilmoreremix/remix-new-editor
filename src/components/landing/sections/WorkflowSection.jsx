@@ -1,4 +1,13 @@
+import { videoSlot, mountLandingVideos } from '../common/landingVideo.js';
 // Workflow Section - Go From Simple Idea To Finished Client Asset In Minutes
+
+const STEP_CLIPS = [
+  ['c02-apps-hub', 'The apps hub'],
+  ['c03-model-picker', 'Choosing a model in Video Studio'],
+  ['c11-vfx-effects', 'AI VFX and Effects studios'],
+  ['c06-director', 'The Director studio'],
+  ['c12-templates', 'The template library']
+];
 
 export function WorkflowSection() {
   const section = document.createElement('section');
@@ -67,6 +76,7 @@ export function WorkflowSection() {
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-4 workflow-steps">
           ${workflowSteps.map((step, i) => `
           <div class="workflow-step opacity-0 translate-y-4 text-center group" style="transition-delay: ${i * 100}ms;">
+            ${STEP_CLIPS[i] ? videoSlot(STEP_CLIPS[i][0], STEP_CLIPS[i][1], { className: 'aspect-video rounded-lg border border-white/10 mb-4' }) : ''}
             <div class="relative mb-4">
               <div class="w-16 h-16 bg-gradient-to-br ${step.gradient} rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <span class="text-2xl">${step.icon}</span>
@@ -130,5 +140,6 @@ export function WorkflowSection() {
     });
   }, 100);
 
+  mountLandingVideos(section);
   return section;
 }

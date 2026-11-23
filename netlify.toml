@@ -9,12 +9,22 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # onnxruntime-node (a nested dependency of @bg0/browser and kokoro-js) downloads a CUDA/GPU
+  # binary in its postinstall and the release asset now returns 404, which fails every fresh
+  # install ("Failed to download the binaries: 404"). Netlify has no GPU, so skip it.
+  ONNXRUNTIME_NODE_INSTALL_CUDA = "skip"
+  # puppeteer and playwright download hundreds of MB of browser binaries during
+  # install. The Netlify build never launches a browser (functions use the
+  # @sparticuz/chromium package instead), so skip them to save build disk space.
+  PUPPETEER_SKIP_DOWNLOAD = "true"
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
   # Server-only secrets that the Netlify functions read at runtime. Listing them
   # here keeps the build-time secrets scanner from failing a deploy when one of
   # them legitimately appears in a log line or build output. Every name below is
   # read ONLY by code under netlify/functions/ (server-side) — none is inlined
   # into the client bundle, and none carries a VITE_ prefix.
-  SECRETS_SCAN_OMIT_KEYS = "INTERNAL_FUNCTION_SECRET,FIRECRAWL_API_KEY,CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL,PERSONALIZATION_DISCOVERY_SECRET,SUPABASE_SERVICE_ROLE_KEY,CLERK_WEBHOOK_SIGNING_SECRET,OPENAI_API_KEY,MUAPI_API_KEY,PIXABAY_API_KEY,FAL_KEY,GEMINI_API_KEY,GITHUB_TOKEN"
+  SECRETS_SCAN_OMIT_KEYS = "INTERNAL_FUNCTION_SECRET,FIRECRAWL_API_KEY,CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL,PERSONALIZATION_DISCOVERY_SECRET,SUPABASE_SERVICE_ROLE_KEY,CLERK_WEBHOOK_SIGNING_SECRET,OPENAI_API_KEY,MUAPI_API_KEY,PIXABAY_API_KEY,FAL_KEY,GEMINI_API_KEY,GITHUB_TOKEN,VAPID_PRIVATE_KEY,PUSH_DISPATCH_SECRET,RESEND_API_KEY,ALERT_EMAIL_FROM,ADMIN_ALERT_EMAIL"
 
 # MEDIA UPLOADS DO NOT TRANSIT NETLIFY FUNCTIONS.
 # Netlify synchronous functions cap the request payload at 6 MB (≈4.5 MB for
@@ -51,6 +61,10 @@
 [functions."brand-scrape"]
   node_bundler = "esbuild"
   external_node_modules = ["@sparticuz/chromium", "playwright-core", "playwright"]
+
+# Brand Kit deep scan (POST /api/brand-kit): plain SSRF-validated fetches of the site's own pages; no browser.
+[functions."brand-kit"]
+  node_bundler = "esbuild"
 
 [functions."motion-studio-capture-background"]
   node_bundler = "esbuild"
@@ -225,6 +239,14 @@
     Access-Control-Allow-Origin = "*"
     Cache-Control = "public, max-age=3600"
 
+# [template-generator] Bundled background music. The sandboxed export-runner iframe has an opaque origin, so it can only fetch the
+# music tracks the Template Generator adds to a video when they are served with CORS.
+[[headers]]
+  for = "/motion-studio/bgmlib/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=604800"
+
 # The public video player (/watch/<id>) can be embedded anywhere: its
 # framing headers are rewritten by netlify/edge-functions/watch-embed.js
 # (header rules below are merged, not overridden, so a rule can't do it).
@@ -245,7 +267,8 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(self)"
+    # camera=(self): the Video Outreach studio and the recorders record the webcam (same origin only).
+    Permissions-Policy = "camera=(self), microphone=(self)"
 
 # Ensure the SPA fallback only fires when no file matches.
 # Netlify's default redirect behavior already skips existing files.
@@ -327,3 +350,12 @@ from = "/*"
 to = "/index.html"
 status = 200
 force = false
+
+# Web Push (owner browser alerts): called by the database (pg_net) with x-push-secret. The
+# `web-push` package is loaded at runtime via dynamic import, so keep it external.
+[functions."push-dispatch"]
+  external_node_modules = ["web-push"]
+
+# Scheduled (every 15 min): sends the "while you were away" summary push after quiet hours, same send code as push-dispatch.
+[functions."push-quiet-flush"]
+  external_node_modules = ["web-push"]

@@ -109,7 +109,7 @@ export function DesignRecommendations({
       </button>
       {browseAll && (
         <div style={{ marginTop: 10 }}>
-          <PersonalizationTemplateBrowser onSelect={onSelectLayout} onSelectDesign={(id) => choose(id, activeDesignId === id)} />
+          <PersonalizationTemplateBrowser showError={false} onSelect={onSelectLayout} onSelectDesign={(id) => choose(id, activeDesignId === id)} />
         </div>
       )}
     </div>

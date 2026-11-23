@@ -1,11 +1,15 @@
 import { navigate } from '../lib/router.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
+import { storePrefillModel } from '../lib/prefillModel.js';
+import { v2vModels } from '../lib/models.js';
 
+// Each card opens Video Studio with a real video-to-video model (ids from v2vModels in models.js).
 const WATERMARK_TOOLS = [
-  { name: 'AI Video Watermark Remover', description: 'Remove watermarks from videos using AI', category: 'Watermark' },
-  { name: 'AI Video Object Remover', description: 'Remove unwanted objects from videos', category: 'Removal' },
-  { name: 'AI Video Logo Remover', description: 'Remove logos and branding from videos', category: 'Removal' },
+  { name: 'AI Video Watermark Remover', model: 'video-watermark-remover', description: 'Remove watermarks, captions and on-screen text from videos using AI', category: 'Watermark' },
+  { name: 'AI Video Logo Remover', model: 'video-watermark-remover', description: 'Remove logos and channel branding (uses the watermark remover, which also clears logos)', category: 'Removal' },
+  { name: 'Seedance 2 Watermark Remover', model: 'seedance-2-watermark-remover', description: 'Remove the Seedance 2.0 watermark from clips made with Seedance', category: 'Watermark' },
+  { name: 'Video Background Remover', model: 'video-background-remover', description: 'Cut the subject out and remove the whole background', category: 'Removal' },
 ];
 
 const FEATURES = [
@@ -29,17 +33,7 @@ export function VideoWatermarkPage() {
   // Hero
   const hero = document.createElement('div');
   hero.className = 'flex flex-col items-center mb-8 md:mb-12 animate-fade-in-up transition-all duration-700 w-full max-w-5xl';
-  const heroBanner = createHeroSection('video', 'h-32 md:h-44 mb-4');
-  if (heroBanner) {
-    const heroContent = document.createElement('div');
-    heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight mb-1">Video Watermark Remover</h1>
-      <p class="text-white/60 text-sm font-medium">Remove watermarks, logos, and unwanted elements from your videos with AI</p>
-    `;
-    heroBanner.appendChild(heroContent);
-    hero.appendChild(heroBanner);
-  }
+  hero.appendChild(createStudioHeader('video', 'Video Watermark Remover', `Remove watermarks, logos, and unwanted elements from your videos with AI`, 'mb-4'));
   container.appendChild(hero);
 
   // Main content wrapper
@@ -57,7 +51,7 @@ export function VideoWatermarkPage() {
     </div>
 
     <!-- Features -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Powerful Removal Tools</h2>
       <p class="text-sm text-muted mb-6">Everything you need to clean up your videos</p>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -72,7 +66,7 @@ export function VideoWatermarkPage() {
     </div>
 
     <!-- How It Works -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">How It Works</h2>
       <p class="text-sm text-muted mb-6">Remove watermarks in three simple steps</p>
       <div class="grid md:grid-cols-3 gap-4">
@@ -87,12 +81,12 @@ export function VideoWatermarkPage() {
     </div>
 
     <!-- Available Tools -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Available Tools</h2>
       <p class="text-sm text-muted mb-6">Professional video cleaning tools</p>
-      <div class="grid md:grid-cols-3 gap-4">
+      <div class="grid md:grid-cols-2 gap-4">
         ${WATERMARK_TOOLS.map(m => `
-          <button class="model-card bg-white/[0.03] border border-white/5 rounded-xl p-4 hover:border-primary/20 transition-all duration-300 text-left cursor-pointer" data-model="${m.name}">
+          <button class="model-card bg-white/[0.03] border border-white/5 rounded-xl p-4 hover:border-primary/20 transition-all duration-300 text-left cursor-pointer" data-model="${m.model}">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-bold text-white">${m.name}</span>
               <span class="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">${m.category}</span>
@@ -104,7 +98,7 @@ export function VideoWatermarkPage() {
     </div>
 
     <!-- Final CTA -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
       <h2 class="text-2xl font-black text-white mb-2">Clean Your Videos Today</h2>
       <p class="text-white/60 text-sm mb-6 max-w-md mx-auto">Remove watermarks and unwanted content with powerful AI</p>
       <button class="cta-btn btn-primary-modern">
@@ -123,8 +117,7 @@ export function VideoWatermarkPage() {
 
   container.querySelectorAll('.model-card').forEach(card => {
     card.onclick = () => {
-      const modelName = card.dataset.model;
-      localStorage.setItem('prefill_model', modelName);
+      storePrefillModel(v2vModels, card.dataset.model);
       navigate('video');
     };
   });

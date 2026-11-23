@@ -28,6 +28,10 @@ describe('website-builder-api adapter', () => {
     expect(noToken.status).toBe(401);
   });
 
+  it('serves the cloudflare route (401 without a session)', async () => {
+    expect((await call('/openthorn/api/cloudflare')).status).toBe(401);
+  });
+
   it('passes method, lower-cased headers, parsed JSON body and url to the handler', async () => {
     let seen;
     ROUTES.echo = (req, res) => { seen = req; res.status(201).setHeader('X-Test', '1'); res.json({ ok: true }); };

@@ -1,0 +1,39 @@
+{
+  "mode-rail": {
+    "selector": ".mode-rail"
+  },
+  "model-picker": {
+    "selector": ".model-selector-trigger",
+    "click": true
+  },
+  "model-settings-form": {
+    "selector": ".dynamic-form"
+  },
+  "example-prompts": {
+    "selector": ".dynamic-form-examples"
+  },
+  "enhance-prompt": {
+    "selector": ".smart-enhance-btn",
+    "click": true
+  },
+  "advanced-settings": {
+    "selector": "button[data-tooltip=\"Show advanced options\"]",
+    "click": true
+  },
+  "cost-estimate-and-reset": {
+    "selector": ".dynamic-form-footer-meta"
+  },
+  "prompt-bar-and-generate": {
+    "selector": ".smart-video-prompt-bar",
+    "click": false
+  },
+  "generations-list-and-filters": {
+    "selector": ".generations-panel-filters"
+  },
+  "generation-actions": {
+    "selector": ".generation-card-actions"
+  },
+  "credit-balance": {
+    "selector": ".smart-video-balance"
+  }
+}

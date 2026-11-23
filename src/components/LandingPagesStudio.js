@@ -8,31 +8,22 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
-import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
-import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizePuck, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
+import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizeEditorData, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
 import { AFTER_SUBMIT_OPTIONS } from '../lib/landingPages/afterSubmit.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
 import { sampleSections } from '../lib/landingPages/sampleContent.js';
-import { wireframeSvg } from '../lib/landingPages/wireframes.js';
-import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
-import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
-import { createCustomerPanel } from '../lib/landingPages/customerPanel.js';
-import { applyCustomerToPuck, brandForConfig, customerTokens, toContactFields } from '../lib/landingPages/customerProfile.js';
-import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
-import { attachDesignPreview } from '../lib/landingPages/designPreview.js';
-import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
+import { ownPages } from '../lib/outreach/landingPage.js';
+import { createAiRewritePanel } from '../lib/landingPages/aiRewritePanel.js';
 import {
-  listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts, addContacts,
+  listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts,
 } from '../lib/landingPages/client.js';
 
 const INPUT = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50';
 const BTN = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white hover:border-primary/60 hover:text-primary transition-colors disabled:opacity-50';
 const BTN_PRIMARY = 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-black hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50';
 const SAMPLE_TOKENS = { firstname: 'Ann', company: 'Acme' };
-// The customer a page was just made for: the editor previews as them instead of the sample person.
-let editorPreviewTokens = null;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -55,16 +46,6 @@ async function ownerClient() {
   return supabase;
 }
 
-/** Upload helper handed to the ingest layer (videos up to the bucket's 100MB). */
-const upload = (file) => {
-  const isVideo = String(file.type).startsWith('video/');
-  return uploadFileToSupabase(file, {
-    category: isVideo ? 'video' : 'image',
-    maxSize: isVideo ? MAX_VIDEO_BYTES : undefined,
-    userId: getClerkUserId() || undefined,
-  });
-};
-
 async function copy(text, label) {
   try {
     await navigator.clipboard.writeText(text);
@@ -74,9 +55,10 @@ async function copy(text, label) {
   }
 }
 
-export function LandingPagesStudio() {
-  const container = el('div', 'w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
-  mountStudioChrome(container, { title: 'Video Pages', currentRoute: 'video-pages' });
+/** My saved pages (list, edit, publish, share, analytics). It lives in a modal (components/modals/MyVideoPagesModal.js), not on a page of its own. */
+export function LandingPagesStudio({ embedded = false } = {}) {
+  const container = el('div', `w-full h-full flex flex-col overflow-hidden text-white ${embedded ? 'bg-panel-bg' : 'bg-app-bg'}`);
+  if (!embedded) mountStudioChrome(container, { title: 'My Video Pages', currentRoute: 'library' });
   const scroll = el('div', 'flex-1 overflow-y-auto');
   const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 py-8 flex flex-col gap-6');
   scroll.appendChild(inner);
@@ -96,7 +78,8 @@ export function LandingPagesStudio() {
     if (!guard()) return;
     inner.replaceChildren(el('p', 'text-sm text-secondary', 'Loading your pages…'));
     try {
-      state.pages = await listPages(await ownerClient());
+      // A Video Outreach campaign's page belongs to that video (edited in Video Outreach), so it is not listed here.
+      state.pages = ownPages(await listPages(await ownerClient()));
     } catch (err) {
       inner.replaceChildren(el('p', 'text-sm text-red-300', err.message || 'Could not load your pages.'));
       return;
@@ -104,18 +87,22 @@ export function LandingPagesStudio() {
     const head = el('div', 'flex flex-wrap items-center justify-between gap-3');
     const titleWrap = el('div');
     titleWrap.append(
-      el('div', 'text-[11px] font-extrabold uppercase tracking-[0.14em] text-primary mb-1', 'Video Pages'),
+      el('div', 'text-[11px] font-extrabold uppercase tracking-[0.14em] text-primary mb-1', 'My Video Pages'),
       el('h1', 'text-2xl md:text-3xl font-black', 'Landing pages for your videos'),
       el('p', 'text-sm text-secondary mt-1 max-w-xl', 'Turn any generated or uploaded video or picture into a branded page with a call to action, a lead form and view analytics. Free for everything you create.'),
     );
     const newBtn = el('button', BTN_PRIMARY, '+ New page');
     newBtn.type = 'button';
-    newBtn.addEventListener('click', () => showNew());
+    // Pages are made from a video: the shared picker lets you upload one, pick one you made, or paste a link.
+    newBtn.addEventListener('click', async () => {
+      const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
+      openLandingPagePicker({ zIndex: 2200 });   // above this window
+    });
     head.append(titleWrap, newBtn);
 
     const grid = el('div', 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3');
     if (!state.pages.length) {
-      grid.appendChild(el('div', 'col-span-full rounded-2xl border border-dashed border-white/15 p-10 text-center text-sm text-secondary', 'No pages yet. Pick a video you made, or upload an MP4, to create your first page.'));
+      grid.appendChild(el('div', 'col-span-full rounded-2xl border border-dashed border-white/15 p-10 text-center text-sm text-secondary', 'No pages yet. Open any video in your Library (or finish a generation) and choose Create landing page.'));
     }
     state.pages.forEach((p) => grid.appendChild(pageCard(p)));
     inner.replaceChildren(head, grid);
@@ -151,199 +138,20 @@ export function LandingPagesStudio() {
     return card;
   }
 
-  // ------------------------------------------------------------------- new
-  async function showNew(preselected = null) {
-    if (!guard()) return;
-    const sel = { video: preselected && preselected.url ? preselected : null, template: 'clean' };
-    const back = el('button', BTN, '← Back');
-    back.type = 'button';
-    const dropPreviews = () => { (sel.previewHandles || []).forEach((h) => h.destroy()); sel.previewHandles = []; };
-    back.addEventListener('click', () => { dropPreviews(); showList(); });
-
-    const title = el('h1', 'text-2xl font-black', 'New video page');
-    const status = el('p', 'text-sm text-secondary min-h-[1.25rem]', sel.video ? `Selected: ${sel.video.title}` : 'Choose a video, then a template.');
-
-    // Upload / drop
-    const drop = el('label', 'flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-white/20 p-6 text-center cursor-pointer hover:border-primary/60 transition-colors');
-    drop.append(el('span', 'text-sm font-bold', 'Upload an MP4'), el('span', 'text-xs text-secondary', `Drop a video here or click to choose (up to ${MAX_VIDEO_BYTES / 1048576}MB)`));
-    const file = el('input', 'sr-only');
-    file.type = 'file';
-    file.accept = 'video/*';
-    drop.appendChild(file);
-    const takeFile = (f) => {
-      const src = fromFile(f, URL.createObjectURL(f));
-      if (!src) { showToast('That is not a video file.', 'warning', 3000); return; }
-      sel.video = src;
-      status.textContent = `Selected: ${src.title}`;
-      markSelected();
-    };
-    file.addEventListener('change', () => file.files?.[0] && takeFile(file.files[0]));
-    drop.addEventListener('dragover', (e) => e.preventDefault());
-    drop.addEventListener('drop', (e) => { e.preventDefault(); e.dataTransfer?.files?.[0] && takeFile(e.dataTransfer.files[0]); });
-
-    // Any hosted video link (e.g. an OpenMontage render served by its proxy, or an MP4 on a CDN)
-    const linkRow = el('div', 'flex flex-col sm:flex-row gap-2');
-    const linkInput = el('input', INPUT);
-    linkInput.type = 'url';
-    linkInput.placeholder = 'Or paste a video or picture link (https://…/video.mp4 or image.png)';
-    linkInput.setAttribute('aria-label', 'Video link');
-    const linkBtn = el('button', BTN, 'Use link');
-    linkBtn.type = 'button';
-    linkBtn.addEventListener('click', () => {
-      const url = linkInput.value.trim();
-      if (!/^https:\/\/\S+$/i.test(url)) { showToast('Paste a full https:// video or picture link.', 'warning', 3000); return; }
-      const name = decodeURIComponent(url.split('?')[0].split('/').pop() || '').replace(/\.[^.]+$/, '') || 'Linked video';
-      sel.video = { key: `link:${url}`, url, posterUrl: null, title: name.slice(0, 80), duration: null, source: { kind: 'link' }, createdAt: null, permanent: false };
-      status.textContent = `Selected: ${sel.video.title}`;
-      markSelected();
-    });
-    linkRow.append(linkInput, linkBtn);
-
-    // Existing videos from every studio
-    const libHead = el('h2', 'text-sm font-extrabold uppercase tracking-wide', 'Or pick a video you already made');
-    const grid = el('div', 'grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
-    grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'Loading your videos…'));
-    const tiles = new Map();
-    const markSelected = () => tiles.forEach((tile, key) => {
-      tile.classList.toggle('ring-2', sel.video?.key === key);
-      tile.classList.toggle('ring-primary', sel.video?.key === key);
-    });
-    (state.sources ? Promise.resolve(state.sources) : loadVideoSources({ pictures: true })).then((list) => {
-      state.sources = list;
-      grid.replaceChildren();
-      if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'Nothing found yet. Make a video or picture in any studio, or upload an MP4 above.'));
-      list.slice(0, 60).forEach((v) => {
-        const tile = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
-        tile.type = 'button';
-        const media = el('div', 'aspect-video bg-black');
-        if (v.posterUrl || v.isPicture) {
-          const img = el('img', 'w-full h-full object-cover');
-          img.src = v.posterUrl || v.url; img.alt = ''; img.loading = 'lazy';
-          media.appendChild(img);
-        } else {
-          const vid = el('video', 'w-full h-full object-cover');
-          vid.muted = true; vid.preload = 'metadata'; vid.src = `${v.url}#t=0.5`;
-          media.appendChild(vid);
-        }
-        const cap = el('div', 'p-2');
-        cap.append(el('div', 'text-xs font-bold truncate', v.title), el('div', 'text-[11px] text-secondary truncate', [v.source.studio || v.source.kind, v.permanent ? '' : 'will be copied'].filter(Boolean).join(' · ')));
-        tile.append(media, cap);
-        tile.addEventListener('click', async () => {
-          if (v.isPicture) {
-            // A picture becomes a page through the design picker (it fills the video slot as a still).
-            const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
-            openLandingPagePicker({ video: { url: v.url, title: v.title, type: 'image', studio: v.source?.studio || '' } });
-            return;
-          }
-          sel.video = v; status.textContent = `Selected: ${v.title}`; markSelected();
-        });
-        tiles.set(v.key, tile);
-        grid.appendChild(tile);
-      });
-    });
-
-    // Template
-    const tplHead = el('h2', 'text-sm font-extrabold uppercase tracking-wide', 'Template');
-    const tplRow = el('div', 'flex flex-col gap-4');
-    const cards = new Map();
-    const paintCards = () => cards.forEach((c, id) => {
-      const on = id === sel.template;
-      c.classList.toggle('border-primary', on);
-      c.classList.toggle('ring-2', on);
-      c.classList.toggle('ring-primary', on);
-      c.setAttribute('aria-pressed', String(on));
-    });
-    // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
-      const grp = el('div', 'flex flex-col gap-2');
-      grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
-      const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
-      list.forEach((t) => {
-        const b = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
-        b.type = 'button';
-        b.title = t.description;
-        // The thumbnail is the page's SHAPE (a wireframe) tinted with its colours, so layouts are told apart by structure.
-        let sw;
-        if (t.puck && t.puckData) {
-          // Editable landing pages: a LIVE, scaled picture of the real page (drawn when it scrolls into view).
-          sw = el('div', '');
-          sw.style.margin = '8px 8px 0';
-          const handle = attachDesignPreview(sw, t.puckData);
-          const prev = sel.previewHandles || (sel.previewHandles = []);
-          prev.push(handle);
-        } else {
-          sw = el('div', 'h-20 p-2 flex items-center justify-center');
-          sw.style.background = t.theme.bg;
-          sw.style.color = t.theme.accent;
-          sw.innerHTML = wireframeSvg(t.layout);
-        }
-        const cap = el('div', 'p-2');
-        cap.append(el('div', 'text-xs font-bold truncate', t.name), el('div', 'text-[11px] text-secondary line-clamp-2', t.description));
-        b.append(sw, cap);
-        b.addEventListener('click', () => { sel.template = t.id; paintCards(); });
-        cards.set(t.id, b);
-        row.appendChild(b);
-      });
-      grp.appendChild(row);
-      tplRow.appendChild(grp);
-    });
-    paintCards();
-
-    const cp = createCustomerPanel();
-    void cp.load();
-    const create = el('button', BTN_PRIMARY, 'Create page');
-    create.type = 'button';
-    create.addEventListener('click', async () => {
-      if (!sel.video) { showToast('Choose a video first.', 'warning', 3000); return; }
-      create.disabled = true;
-      try {
-        const chosen = cp.selected();
-        const one = chosen.length === 1 ? chosen[0] : null;
-        const withBrand = !!one && cp.brand();
-        const withImage = !!one && cp.useImage();
-        const client = await ownerClient();
-        let page = await createPageFromVideo(client, sel.video, {
-          template: sel.template,
-          brand: withBrand ? brandForConfig(one) : brandDefaults(),
-          deps: { upload },
-          onStep: (label) => { status.textContent = `${label}…`; },
-        });
-        if ((withBrand || withImage) && page.config?.puck) {
-          const applied = applyCustomerToPuck(page.config.puck, one, { useImage: withImage, brand: withBrand });
-          page = await updatePage(client, page.id, { config: { ...page.config, puck: applied.data } });
-        }
-        const rows = chosen.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
-        if (rows.length) {
-          try { await addContacts(client, page.id, rows); showToast(`${rows.length} personal link${rows.length === 1 ? '' : 's'} made (Personal links tab)`, 'success', 3500); } catch (err) { showToast(`Page saved, but the personal links were not made: ${err.message}`, 'warning', 5000); }
-        }
-        editorPreviewTokens = chosen.length ? customerTokens(chosen[0]) : null;
-        showToast('Page created', 'success', 2000);
-        dropPreviews();
-        showEditor(page);
-      } catch (err) {
-        status.textContent = err.message || 'Could not create the page.';
-        create.disabled = false;
-      }
-    });
-
-    inner.replaceChildren(el('div', 'flex items-center gap-3'), title, status, drop, linkRow, libHead, grid, cp.el, tplHead, tplRow, create);
-    inner.firstChild.appendChild(back);
-  }
-
   // ---------------------------------------------------------------- editor
   function showEditor(page) {
     let current = { ...page, config: sanitizeConfig(page.config) };
     let dirty = false;
     let tab = 'design';
-    let puckHandle = null; // the visual (Puck) editor, when this page uses it
+    let editorHandle = null; // the visual editor, when this page uses it
 
     const top = el('div', 'flex flex-wrap items-center gap-3');
     const back = el('button', BTN, '← All pages');
     back.type = 'button';
     back.addEventListener('click', () => {
       if (dirty && !window.confirm('Discard unsaved changes?')) return;
-      puckHandle?.destroy();
-      puckHandle = null;
+      editorHandle?.destroy();
+      editorHandle = null;
       showList();
     });
     const titleInput = el('input', `${INPUT} flex-1 min-w-[12rem] max-w-md font-bold`);
@@ -383,13 +191,18 @@ export function LandingPagesStudio() {
     };
 
     const markDirty = () => { dirty = true; dirtyTag.textContent = 'Unsaved changes'; };
+    let mediaPatch = {}; // a changed video / picture / poster, saved with the next Save
     const save = async (patch = {}) => {
       saveBtn.disabled = publishBtn.disabled = true;
       try {
-        const saved = await updatePage(await ownerClient(), current.id, { title: titleInput.value, config: current.config, ...patch });
+        const sent = mediaPatch;
+        const saved = await updatePage(await ownerClient(), current.id, { title: titleInput.value, config: current.config, ...sent, ...patch });
+        // clear only what was sent: a video or picture picked while this was saving stays pending (and the page stays unsaved)
+        mediaPatch = Object.fromEntries(Object.entries(mediaPatch).filter(([k, v]) => sent[k] !== v));
+        const newer = Object.keys(mediaPatch).length > 0;
         current = { ...current, ...saved, config: sanitizeConfig(saved.config) };
-        dirty = false;
-        dirtyTag.textContent = 'Saved';
+        dirty = newer;
+        dirtyTag.textContent = newer ? 'Unsaved changes' : 'Saved';
         publishBtn.textContent = current.published ? 'Unpublish' : 'Publish';
         drawShare();
       } catch (err) {
@@ -400,9 +213,9 @@ export function LandingPagesStudio() {
     };
     saveBtn.addEventListener('click', () => save());
     publishBtn.addEventListener('click', () => {
-      if (!current.published && current.config.puck) {
+      if (!current.published && current.config.editor) {
         const tpl = getTemplate(current.config.template);
-        const left = sampleSections(current.config.puck, tpl.puckData, tpl.sampleTypes || []);
+        const left = sampleSections(current.config.editor, tpl.editorData, tpl.sampleTypes || []);
         if (left.length && !window.confirm(`These sections still contain the sample content from the design (made-up names, numbers or quotes):\n\n${left.map((x) => `• ${x.title || x.type}`).join('\n')}\n\nReplace them with your own before sharing. Publish anyway?`)) return;
       }
       save({ published: !current.published });
@@ -411,85 +224,14 @@ export function LandingPagesStudio() {
 
     // ---- design tab
     // AI rewrite: words only. Sections, layout, links, images and form fields are never sent or changed.
-    function aiRewritePanel(getData, setData) {
-      const wrap = el('details', 'rounded-xl border border-white/10 bg-white/5 text-xs text-secondary');
-      const sum = el('summary', 'cursor-pointer select-none px-3 py-2 font-bold text-primary', 'Rewrite with AI');
-      const body = el('div', 'flex flex-col gap-2 p-3');
-      const row = el('div', 'flex flex-wrap items-end gap-2');
-      const scope = el('select', INPUT);
-      const fillScope = () => {
-        scope.replaceChildren();
-        const all = el('option', '', 'Whole page'); all.value = ''; scope.appendChild(all);
-        sectionList(getData()).forEach((sec) => { if (!sec.count) return; const o = el('option', '', `${sec.index + 1}. ${sec.label} (${sec.count} texts)`); o.value = String(sec.index); scope.appendChild(o); });
-      };
-      fillScope();
-      wrap.addEventListener('toggle', fillScope);
-      const instr = el('input', `${INPUT} flex-1 min-w-[16rem]`);
-      instr.placeholder = 'What should change? e.g. friendlier, for dentists in Texas, shorter';
-      instr.maxLength = 300;
-      const run = el('button', 'rounded-lg bg-primary px-3 py-2 font-bold text-black', 'Rewrite');
-      run.type = 'button';
-      const undo = el('button', 'rounded-lg border border-white/20 px-3 py-2 font-bold hidden', 'Undo last rewrite');
-      undo.type = 'button';
-      row.append(scope, instr, run, undo);
-      const out = el('div', 'flex flex-col gap-2');
-      body.append(el('p', '', 'Rewrites the words only (headlines, buttons, text, names, quotes, numbers). Sections, layout, links, images and form fields stay exactly as they are. You review every change before it is applied. Uses your own OpenAI key.'), row, out);
-      wrap.append(sum, body);
-      let before = null;
-      const preview = (changes, skipped, scopeIdx) => {
-        out.replaceChildren();
-        if (!changes.length) { out.appendChild(el('p', 'text-amber-300', 'The AI returned nothing usable. Try a different instruction.')); return; }
-        const list = el('div', 'flex max-h-72 flex-col gap-1 overflow-y-auto rounded-lg border border-white/10 p-2');
-        const boxes = [];
-        changes.forEach((c) => {
-          const line = el('label', 'flex cursor-pointer items-start gap-2 rounded p-1 hover:bg-white/5');
-          const cb = el('input'); cb.type = 'checkbox'; cb.checked = true; boxes.push([cb, c]);
-          const t = el('div', 'min-w-0');
-          t.append(el('div', 'text-secondary/70 line-through break-words', c.text), el('div', 'text-primary break-words', c.after));
-          line.append(cb, t); list.appendChild(line);
-        });
-        const acts = el('div', 'flex flex-wrap items-center gap-2');
-        const apply = el('button', 'rounded-lg bg-primary px-3 py-2 font-bold text-black', `Apply ${changes.length} change${changes.length === 1 ? '' : 's'}`);
-        apply.type = 'button';
-        const cancel = el('button', 'rounded-lg border border-white/20 px-3 py-2 font-bold', 'Discard');
-        cancel.type = 'button';
-        cancel.addEventListener('click', () => out.replaceChildren());
-        apply.addEventListener('click', () => {
-          const chosen = boxes.filter(([cb]) => cb.checked).map(([, c]) => c);
-          if (!chosen.length) { out.replaceChildren(); return; }
-          before = JSON.parse(JSON.stringify(getData()));
-          setData(applyChanges(getData(), chosen));
-          out.replaceChildren(el('p', 'text-emerald-300', `Applied ${chosen.length} change${chosen.length === 1 ? '' : 's'}. Save to publish them.`));
-          undo.classList.remove('hidden');
-          fillScope();
-        });
-        acts.append(apply, cancel);
-        if (skipped) acts.appendChild(el('span', 'text-secondary/70', `${skipped} text${skipped === 1 ? '' : 's'} kept as they were (the AI broke a {{token}} or marker).`));
-        out.append(list, acts);
-      };
-      run.addEventListener('click', async () => {
-        const idx = scope.value === '' ? null : Number(scope.value);
-        run.disabled = true; run.textContent = 'Rewriting…'; out.replaceChildren();
-        try {
-          const r = await proposeRewrite(getData(), { section: idx, instruction: instr.value.trim(), context: `${titleInput.value || ''} (${current.config.template || ''})` });
-          preview(r.changes, r.skipped, idx);
-        } catch (err) {
-          out.replaceChildren(el('p', 'text-red-300', err.message || 'The AI rewrite failed.'));
-        } finally { run.disabled = false; run.textContent = 'Rewrite'; }
-      });
-      undo.addEventListener('click', () => {
-        if (!before) return;
-        setData(before); before = null; undo.classList.add('hidden'); fillScope();
-        out.replaceChildren(el('p', 'text-secondary', 'Restored the text from before the rewrite.'));
-      });
-      return wrap;
-    }
+    // AI writing for the whole page: shared with the picker (src/lib/landingPages/aiRewritePanel.js).
+    const aiRewritePanel = (getData, setData) => createAiRewritePanel({ getData, setData, context: `${titleInput.value || ''} (${current.config.template || ''})`, pageId: current.id });
 
-    function puckDesignTab() {
+    function editorDesignTab() {
       const box = el('div', 'flex flex-col gap-3');
       const bar = el('div', 'flex flex-wrap items-center gap-3 text-xs text-secondary');
       const tplSel = el('select', INPUT);
-      TEMPLATES.filter((t) => t.puck).forEach((t) => { const o = el('option', '', t.name); o.value = t.id; tplSel.appendChild(o); });
+      TEMPLATES.filter((t) => t.editable).forEach((t) => { const o = el('option', '', t.name); o.value = t.id; tplSel.appendChild(o); });
       tplSel.value = current.config.template;
       tplSel.addEventListener('change', () => {
         current.config = applyTemplate(current.config, tplSel.value, { title: titleInput.value, brand: brandDefaults() });
@@ -499,14 +241,66 @@ export function LandingPagesStudio() {
       const sampleNote = el('span', 'text-amber-300 font-bold', '');
       const updateSample = () => {
         const tpl = getTemplate(current.config.template);
-        const n = sampleSections(current.config.puck, tpl.puckData, tpl.sampleTypes || []).length;
+        const n = sampleSections(current.config.editor, tpl.editorData, tpl.sampleTypes || []).length;
         sampleNote.textContent = n ? `${n} section${n === 1 ? '' : 's'} still use sample content (made-up names, numbers, quotes). Replace before sharing.` : '';
       };
       updateSample();
       bar.append(el('span', 'font-bold', 'Design'), tplSel, el('span', '', 'Click any text on the page to edit it. Use the left panel to add, remove and reorder sections. Save when you are done.'), sampleNote);
-      const host = el('div', 'rounded-2xl border border-white/10 overflow-hidden bg-white');
+      const host = el('div', 'rounded-2xl border border-white/10 overflow-hidden rx-editor');
       host.style.height = '78vh';
-      box.append(bar, host);
+      // Preview as: the sample, nobody (shows the {{token|fallback}} text), or any real contact of this page
+      // (their own name, logo, colour, picture and video, exactly what their personal link shows).
+      let editorTokens = SAMPLE_TOKENS;
+      const asSel = el('select', INPUT);
+      asSel.setAttribute('aria-label', 'Preview as contact');
+      asSel.dataset.previewAs = '';
+      const asTokens = new Map();
+      const asOpt = (v, l) => { const o = el('option', '', l); o.value = v; asSel.appendChild(o); };
+      asOpt('sample', 'Preview as: Ann at Acme (sample)');
+      asOpt('none', 'Preview as: nobody (shows fallbacks)');
+      asSel.addEventListener('change', () => {
+        editorTokens = asSel.value === 'sample' ? SAMPLE_TOKENS : asSel.value === 'none' ? {} : (asTokens.get(asSel.value) || {});
+        if (mountPageEditorFn) mountEditor(current.config.editor);
+      });
+      ownerClient().then((c) => listContacts(c, current.id)).then((rows) => {
+        rows.slice(0, 200).forEach((r) => {
+          const tk = {};
+          PUBLIC_TOKEN_KEYS.forEach((k) => { if (r.fields?.[k]) tk[k] = String(r.fields[k]); });
+          asTokens.set(r.id, tk);
+          asOpt(r.id, `Preview as: ${contactLabel(r)}`);
+        });
+      }).catch(() => { /* no contacts yet, or not signed in: the sample still works */ });
+      bar.append(asSel);
+      // The page's own video or picture and its poster (what the viewer shows before it plays): change them without starting over.
+      const media = el('details', 'rounded-xl border border-white/10 bg-white/5 text-xs text-secondary');
+      media.dataset.pageMedia = '';
+      const mediaBody = el('div', 'flex flex-col gap-2 p-3');
+      const vIn = el('input', INPUT); vIn.type = 'url'; vIn.value = current.video_url || ''; vIn.setAttribute('aria-label', 'Page video or picture link'); vIn.placeholder = 'https://… video (.mp4) or picture';
+      const pIn = el('input', INPUT); pIn.type = 'url'; pIn.value = current.poster_url || ''; pIn.setAttribute('aria-label', 'Poster picture link'); pIn.placeholder = 'https://… picture shown before the video plays (optional)';
+      const useLatest = el('button', BTN, 'Use my latest creation');
+      useLatest.type = 'button';
+      const applyMedia = () => {
+        const v = vIn.value.trim(); const p = pIn.value.trim();
+        if (v && !/^https:\/\/\S+$/i.test(v)) { showToast('Paste a full https:// link.', 'warning', 3000); return; }
+        mediaPatch = { ...(v ? { videoUrl: v } : {}), posterUrl: p };
+        current = { ...current, ...(v ? { video_url: v } : {}), poster_url: p || null };
+        markDirty();
+        if (mountPageEditorFn) mountEditor(current.config.editor);
+      };
+      vIn.addEventListener('change', applyMedia);
+      pIn.addEventListener('change', applyMedia);
+      useLatest.addEventListener('click', async () => {
+        try {
+          const { loadGenerationHistory } = await import('../lib/generationHistory.js');
+          const { pickLatest } = await import('./VideoPagesButton.js');
+          const l = pickLatest(await loadGenerationHistory());
+          if (!l) { showToast('Nothing in your library yet.', 'info', 3000); return; }
+          vIn.value = l.url; applyMedia();
+        } catch { showToast('Could not load your library.', 'warning', 3000); }
+      });
+      mediaBody.append(vIn, pIn, useLatest);
+      media.append(el('summary', 'cursor-pointer select-none px-3 py-2 font-bold text-primary', 'Page video or picture'), mediaBody);
+      box.append(bar, media, host);
       const danger = el('button', 'self-start text-xs text-red-300 hover:underline mt-4', 'Delete this page');
       danger.type = 'button';
       danger.addEventListener('click', async () => {
@@ -514,47 +308,55 @@ export function LandingPagesStudio() {
         try { await deletePage(await ownerClient(), current.id); showToast('Page deleted', 'success', 2000); showList(); } catch (err) { showToast(err.message, 'error', 4000); }
       });
       box.appendChild(danger);
-      let last = JSON.stringify(current.config.puck);
-      let mountPuckEditorFn = null;
+      let last = JSON.stringify(current.config.editor);
+      let mountPageEditorFn = null;
+      // Your recent pictures and videos, offered first in every picture and video field ("From your studio").
+      let studioTray = [];
+      import('./studio/landingPageAction.js').then(async ({ recentItems }) => {
+        const { normalizeItems } = await import('../lib/landingPages/contentTray.js');
+        const { toPickerVideo } = await import('../lib/landingPages/pickerModal.js');
+        studioTray = normalizeItems(await recentItems({ n: 8 }), toPickerVideo);
+      }).catch(() => {});
       const mountEditor = (data) => {
-        puckHandle?.destroy();
-        puckHandle = mountPuckEditorFn(host, {
+        editorHandle?.destroy();
+        editorHandle = mountPageEditorFn(host, {
           page: current,
           data,
-          tokens: editorPreviewTokens || SAMPLE_TOKENS,
-          onPublish: () => saveBtn.click(), // Puck's own Publish button = our Save
+          tokens: editorTokens,
+          getTray: () => studioTray,
+          onPublish: () => saveBtn.click(), // the editor's own Publish button = our Save
           onChange: (d) => {
-            const next = sanitizePuck(d);
+            const next = sanitizeEditorData(d);
             if (!next) return;
             const json = JSON.stringify(next);
             if (json === last) return;
             last = json;
-            current.config = { ...current.config, puck: next };
+            current.config = { ...current.config, editor: next };
             markDirty();
             updateSample();
           },
         });
       };
       // Apply new page data (AI rewrite accepted / undone): remount the editor on it.
-      const setPuckData = (data) => {
-        const next = sanitizePuck(data);
+      const setEditorData = (data) => {
+        const next = sanitizeEditorData(data);
         if (!next) return;
         last = JSON.stringify(next);
-        current.config = { ...current.config, puck: next };
+        current.config = { ...current.config, editor: next };
         markDirty();
         updateSample();
         mountEditor(next);
       };
-      box.insertBefore(aiRewritePanel(() => current.config.puck, setPuckData), host);
-      import('../lib/landingPages/puck/mount.jsx').then(({ mountPuckEditor }) => {
-        mountPuckEditorFn = mountPuckEditor;
-        mountEditor(current.config.puck);
+      box.insertBefore(aiRewritePanel(() => current.config.editor, setEditorData), host);
+      import('../lib/landingPages/editor/mount.jsx').then(({ mountPageEditor }) => {
+        mountPageEditorFn = mountPageEditor;
+        mountEditor(current.config.editor);
       }).catch((err) => showToast(err.message || 'Could not load the editor', 'error', 4000));
       return box;
     }
 
     function designTab() {
-      if (current.config.puck) return puckDesignTab();
+      if (current.config.editor) return editorDesignTab();
       const wrap = el('div', 'grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]');
       const form = el('div', 'flex flex-col gap-4');
       const previewBox = el('div', 'rounded-2xl border border-white/10 overflow-hidden bg-black max-h-[80vh] overflow-y-auto');
@@ -582,7 +384,7 @@ export function LandingPagesStudio() {
       };
 
       const tplSel = el('select', INPUT);
-      [['Editable landing pages', TEMPLATES.filter((t) => t.puck)], ['Page structures', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)], ['Older fixed-layout website pages', TEMPLATES.filter((t) => t.site)]].forEach(([label, list]) => {
+      [['Editable landing pages', TEMPLATES.filter((t) => t.editable)], ['Page structures', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.editable)], ['Personal intro', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)], ['Older fixed-layout website pages', TEMPLATES.filter((t) => t.site)]].forEach(([label, list]) => {
         const og = el('optgroup');
         og.label = label;
         list.forEach((t) => { const o = el('option', '', t.name); o.value = t.id; og.appendChild(o); });
@@ -1048,8 +850,8 @@ export function LandingPagesStudio() {
     }
 
     function draw() {
-      puckHandle?.destroy();
-      puckHandle = null;
+      editorHandle?.destroy();
+      editorHandle = null;
       Object.entries(tabBtns).forEach(([id, b]) => {
         const on = id === tab;
         b.className = `px-4 py-2 text-sm font-bold border-b-2 -mb-px ${on ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-white'}`;
@@ -1078,9 +880,6 @@ export function LandingPagesStudio() {
     inner.replaceChildren(top, shareRow, tabs, body);
   }
 
-  // Arrived from "Create landing page" elsewhere in the app: start with that video selected.
-  const queued = takeQueuedVideo();
-  if (queued) showNew(queued);
-  else showList();
+  showList();
   return container;
 }

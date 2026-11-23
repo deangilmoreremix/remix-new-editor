@@ -82,17 +82,30 @@ export function CampaignWizard(params = {}) {
   const goalGrid = document.createElement('div');
   goalGrid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4';
 
+  // The goal stays visible after it is picked, so it can be changed (and a direction added)
+  // before generating. Changing it starts a new campaign.
+  const goalCards = [];
   CAMPAIGN_GOALS.forEach(g => {
     const card = document.createElement('div');
-    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
+    card.dataset.goal = g.value;
     card.innerHTML = `
       <div class="text-sm font-bold text-white">${g.label}</div>
     `;
     card.onclick = () => {
-      state.goal = g.value;
+      if (state.goal !== g.value) {
+        state.goal = g.value;
+        state.concepts = [];
+        state.selectedConcept = null;
+        state.assets = [];
+        state.campaignId = null;
+        renderConcepts();
+        renderAssets();
+      }
       state.step = 'concepts';
       render();
     };
+    goalCards.push(card);
     goalGrid.appendChild(card);
   });
 
@@ -181,7 +194,8 @@ export function CampaignWizard(params = {}) {
       // Open-Pomelli's campaign generator, run client-side through MuAPI.
       const concepts = await generateCampaignConcepts(brand, state.goal, state.direction || '');
       state.concepts = concepts.map((c, index) => ({ ...c, index }));
-      state.campaignId = generateId();
+      // Regenerating for the same goal updates this campaign instead of saving another one.
+      state.campaignId = state.campaignId || generateId();
       // Persist the campaign so the campaign page and asset editor can open it later.
       saveCampaign({
         id: state.campaignId,
@@ -296,7 +310,7 @@ export function CampaignWizard(params = {}) {
     conceptList.innerHTML = '';
     state.concepts.forEach((concept, idx) => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-5 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-5 cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all';
       card.innerHTML = `
         <div class="flex items-start justify-between mb-2">
           <div class="text-sm font-bold text-white">${concept.title || `Concept ${idx + 1}`}</div>
@@ -370,7 +384,7 @@ export function CampaignWizard(params = {}) {
     assetGrid.innerHTML = '';
     state.assets.forEach(asset => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden';
 
       if (asset.imageUrl) {
         const img = createSafeImage(asset.imageUrl, asset.format, 'w-full h-40 object-cover');
@@ -380,7 +394,7 @@ export function CampaignWizard(params = {}) {
       const body = document.createElement('div');
       body.className = 'p-4';
       body.innerHTML = `
-        <div class="text-xs font-bold text-white mb-1">${asset.platform}</div>
+        <div class="text-xs font-bold text-white mb-1">${escapeHtml(PLATFORMS.find((p) => p.id === asset.platform)?.label || asset.platform)}</div>
         <div class="text-xs text-secondary mb-2">${asset.format}</div>
         ${asset.headline ? `<div class="text-xs text-white font-bold mb-1">${escapeHtml(asset.headline)}</div>` : ''}
         ${asset.body ? `<div class="text-xs text-secondary mb-2">${escapeHtml(asset.body)}</div>` : ''}
@@ -406,7 +420,12 @@ export function CampaignWizard(params = {}) {
   }
 
   function render() {
-    goalSection.style.display = state.step === 'goal' ? '' : 'none';
+    goalCards.forEach((c) => {
+      const on = c.dataset.goal === state.goal;
+      c.classList.toggle('border-primary', on);
+      c.classList.toggle('border-white/10', !on);
+      c.setAttribute('aria-pressed', String(on));
+    });
     conceptSection.style.display = state.step === 'concepts' || state.step === 'assets' ? '' : 'none';
     assetSection.style.display = state.step === 'assets' ? '' : 'none';
 
