@@ -702,7 +702,7 @@ export function VideoStudio() {
             }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
-          openRecipeModal().catch(() => {});
+          openRecipeModal({ studio: 'video' }).catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-studio',

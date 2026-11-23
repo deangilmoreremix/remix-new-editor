@@ -281,8 +281,7 @@ const triggerBtn = document.createElement('button');
           }).catch((err) => console.error('[VideoToolsStudio] GTM Boost failed:', err));
         } else if (action === 'recipe') {
           openRecipeModal({
-            onRunRecipe: (url) => {
-            }
+            studio: 'video'
           }).catch((err) => console.error('[Recipe] open failed:', err));
         } else if (action === 'prompts') {
           openPromptGallery({

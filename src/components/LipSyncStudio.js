@@ -263,8 +263,7 @@ export function LipSyncStudio() {
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
-            onRunRecipe: (url) => {
-            }
+            studio: 'lipsync'
           }).catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({

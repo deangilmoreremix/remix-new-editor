@@ -340,8 +340,7 @@ const COMMERCIAL_MODELS = [
       const action = item.dataset.enhance;
       if (action === 'recipe') {
         openRecipeModal({
-          onRunRecipe: (url) => {
-          }
+          studio: 'commercial'
         }).catch(() => {});
       } else if (action === 'prompts') {
         openPromptGallery({

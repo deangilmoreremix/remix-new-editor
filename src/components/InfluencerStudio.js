@@ -759,8 +759,7 @@ export async function InfluencerStudio() {
         }).catch(() => {});
       } else if (action === 'recipe') {
         openRecipeModal({
-          onRunRecipe: (url) => {
-          }
+          studio: 'influencer'
           }).catch(() => {});
       } else if (action === 'prompts') {
         openPromptGallery({

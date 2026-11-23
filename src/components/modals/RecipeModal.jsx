@@ -1,10 +1,14 @@
 import { BaseModal } from './BaseModal.jsx';
 import { searchRecipes, getRecipeById, runRecipe } from '../../lib/recipeEngine.js';
 import { muapi } from '../../lib/muapi.js';
+import { registerGeneration, loadGenerationHistory } from '../../lib/generationHistory.js';
 import { MODAL_SHORTCUTS, renderShortcutsOverlay } from './modalShortcuts.js';
 import { injectCatalogModalStyles } from './catalogModalStyles.js';
 
-const STORAGE_KEY = 'recipeHistory';
+// Finished outputs are saved through the app's generation history (browser +
+// cloud), so they show up in the Library and "Edit in Workbench"; the recent
+// runs list is read back from there.
+const MEDIA_TYPE = { image: 'image', i2i: 'image', audio: 'audio' };
 
 function esc(value) {
   return String(value ?? '')
@@ -38,7 +42,9 @@ export class RecipeModal extends BaseModal {
     this.referenceName = '';
     this.referenceStatus = '';
     this.referenceError = '';
-    this.history = this._loadHistory();
+    this.studio = options.studio || 'image';
+    this.runs = {};
+    this._abort = null;
     this.loading = options.loading || false;
     this.showShortcuts = false;
   }
@@ -46,23 +52,45 @@ export class RecipeModal extends BaseModal {
   open() {
     injectCatalogModalStyles();
     super.open();
+    this._loadRuns();
+  }
+
+  destroy() {
+    // Closing the modal mid-run stops waiting for the remaining steps.
+    this._abort?.abort();
+    super.destroy();
+  }
+
+  async _loadRuns() {
+    try {
+      const items = await loadGenerationHistory();
+      const byRun = new Map();
+      for (const it of items) {
+        const p = it.parameters || {};
+        if (!p.recipe_id || !p.run_id) continue;
+        let run = byRun.get(p.run_id);
+        if (!run) {
+          run = { runId: p.run_id, recipeId: p.recipe_id, time: it.timestamp, results: [] };
+          byRun.set(p.run_id, run);
+        }
+        run.results.push({ label: p.step_label || `Step ${p.step || ''}`.trim(), url: it.url, step: p.step || 0 });
+        if (it.timestamp && (!run.time || new Date(it.timestamp) > new Date(run.time))) run.time = it.timestamp;
+      }
+      const runs = {};
+      for (const run of byRun.values()) {
+        run.results.sort((a, b) => a.step - b.step);
+        (runs[run.recipeId] ||= []).push(run);
+      }
+      for (const id of Object.keys(runs)) runs[id].sort((a, b) => new Date(b.time) - new Date(a.time));
+      this.runs = runs;
+      this._refresh();
+    } catch {
+      /* history is a convenience; never block the modal on it */
+    }
   }
 
   onRender() {
     this._bind();
-  }
-
-  _loadHistory() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  _saveHistory() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.history.slice(0, 20))); } catch {}
   }
 
   _addLog(text) {
@@ -109,6 +137,15 @@ export class RecipeModal extends BaseModal {
         this._addLog('Starting recipe...');
         this._refresh();
         this._runRecipe(this.selectedRecipeId);
+      };
+    });
+
+    root.querySelectorAll('[data-action="cancel-recipe"]').forEach(btn => {
+      btn.onclick = () => {
+        if (!this._abort || this._abort.signal.aborted) return;
+        this._abort.abort();
+        this._addLog('Cancelling...');
+        this._refresh();
       };
     });
 
@@ -208,48 +245,56 @@ export class RecipeModal extends BaseModal {
       this._refresh();
     };
 
+    const runId = `run-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    const abort = new AbortController();
+    this._abort = abort;
     const results = [];
+    const saves = [];
     this.stepStatus = recipe.steps.map(() => 'pending');
     let failed = false;
     try {
       await runRecipe(muapi, recipe, {
         basePrompt: this._basePrompt,
         referenceImage: this.referenceUrl,
+        signal: abort.signal,
         onLog,
         onStep: ({ index, status, label, url }) => {
           this.stepStatus[index] = status;
-          if (status === 'done' && url) results.push({ label, url });
+          if (status === 'done' && url) {
+            results.push({ label, url });
+            const step = recipe.steps[index];
+            saves.push(
+              registerGeneration(this.studio, MEDIA_TYPE[step.type] || 'video', url, {
+                prompt: this._basePrompt,
+                model: step.model,
+                parameters: { recipe_id: recipe.id, recipe_name: recipe.name, run_id: runId, step: index + 1, step_label: label },
+              }).catch(() => null)
+            );
+          }
           this.results = [...results];
         },
       });
     } catch {
-      failed = true;
-      this.stepStatus = this.stepStatus.map((st) => (st === 'running' ? 'error' : st));
+      failed = !abort.signal.aborted;
+      this.stepStatus = this.stepStatus.map((st) => (st === 'running' ? (failed ? 'error' : 'cancelled') : st));
     }
 
+    const cancelled = abort.signal.aborted;
     this.running = false;
     this.results = [...results];
     const last = results[results.length - 1];
-    this.lastResult = failed ? '' : (last?.url || '');
-    this._addLog(failed ? 'Recipe stopped.' : 'Recipe finished.');
-    // Keep partial outputs of a failed run too: they were already paid for.
-    this.history = [{ id: recipeId, time: new Date().toISOString(), results, failed }, ...this.history];
-    this._saveHistory();
+    this.lastResult = failed || cancelled ? '' : (last?.url || '');
+    this._addLog(cancelled ? 'Recipe cancelled.' : failed ? 'Recipe stopped.' : 'Recipe finished.');
     this._refresh();
-    if (this.lastResult) this.onRunRecipe(this.lastResult);
+    // Outputs that finished before a failure or cancel were already paid for,
+    // so they are saved to the history too.
+    await Promise.allSettled(saves);
+    this._loadRuns();
+    if (this.lastResult) this.onRunRecipe(this.lastResult, { recipe, results: [...results], runId });
   }
 
   _recentRuns(recipeId) {
-    return this.history
-      .filter((h) => h.id === recipeId)
-      .map((h) => ({
-        time: h.time,
-        failed: !!h.failed,
-        // Older entries stored a single `result` URL.
-        results: Array.isArray(h.results) ? h.results : (h.result ? [{ label: 'Result', url: h.result }] : []),
-      }))
-      .filter((h) => h.results.length)
-      .slice(0, 3);
+    return (this.runs[recipeId] || []).filter((r) => r.results.length).slice(0, 3);
   }
 
   _needsReference(recipe) {
@@ -331,7 +376,7 @@ export class RecipeModal extends BaseModal {
               <div class="detail-title">${selected.name}</div>
               <div class="detail-desc">${selected.description}</div>
               <div class="detail-steps">
-                ${selected.steps.map((s, i) => { const st = this.stepStatus[i] || ''; return `<div class="step ${st ? 'step--' + st : ''}"><span class="step-num">${st === 'done' ? '✓' : st === 'error' ? '!' : i + 1}</span>${esc(s.label)} <span class="step-meta">${esc(s.model)}</span></div>`; }).join('')}
+                ${selected.steps.map((s, i) => { const st = this.stepStatus[i] || ''; return `<div class="step ${st ? 'step--' + st : ''}"><span class="step-num">${st === 'done' ? '✓' : st === 'error' ? '!' : st === 'cancelled' ? '–' : i + 1}</span>${esc(s.label)} <span class="step-meta">${esc(s.model)}</span></div>`; }).join('')}
               </div>
               <div class="recipe-cost">Each run makes ${selected.steps.length} paid generation call${selected.steps.length === 1 ? '' : 's'} and uses credits from your MuAPI account.</div>
               ${selected.reference ? this._renderReference(selected.reference) : ''}
@@ -340,13 +385,16 @@ export class RecipeModal extends BaseModal {
             </div>
             <div class="detail-actions">
               <button type="button" class="btn-primary-modern" data-action="run-recipe" ${this.running || this._needsReference(selected) ? 'disabled' : ''}>${this.running ? 'Running...' : 'Run Recipe'}</button>
+              ${this.running ? '<button type="button" class="btn-secondary-modern" data-action="cancel-recipe">Cancel</button>' : ''}
               ${this._needsReference(selected) ? `<span class="recipe-hint">Add a ${esc(selected.reference.label.toLowerCase())} to run this recipe.</span>` : ''}
             </div>
+            ${this.running ? '<div class="recipe-cost">Cancel stops waiting for the remaining steps. A step that was already submitted may still finish and use credits.</div>' : ''}
+            ${this.results.length && !this.running ? '<div class="recipe-cost">Outputs are saved to your Library history.</div>' : ''}
             ${this.logs.length ? `<div class="recipe-log">
               ${this.logs.map(l => `<div class="log-line"><span class="log-time">${new Date(l.time).toLocaleTimeString()}</span>${esc(l.text)}</div>`).join('')}
             </div>` : ''}
             ${this.results.length ? `<div class="recipe-result">${this.results.map((r) => `<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.label)} ↗</a>`).join('')}</div>` : ''}
-            ${this._recentRuns(selected.id).length ? `<div class="recipe-history"><div class="recipe-history__title">Recent runs</div>${this._recentRuns(selected.id).map((h) => `<div class="recipe-history__row"><span>${esc(new Date(h.time).toLocaleString())}${h.failed ? ' · stopped early' : ''}</span>${h.results.map((r) => `<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.label)} ↗</a>`).join('')}</div>`).join('')}</div>` : ''}
+            ${this._recentRuns(selected.id).length ? `<div class="recipe-history"><div class="recipe-history__title">Recent runs</div>${this._recentRuns(selected.id).map((h) => `<div class="recipe-history__row"><span>${esc(new Date(h.time).toLocaleString())}</span>${h.results.map((r) => `<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.label)} ↗</a>`).join('')}</div>`).join('')}</div>` : ''}
           ` : this.loading ? '<div class="empty-state"><div class="skeleton-card" style="height:120px"></div></div>' : '<div class="empty-state">Pick a recipe on the left to see its steps, then run it with your prompt.</div>'}
         </div>
       </div>

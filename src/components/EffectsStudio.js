@@ -525,8 +525,7 @@ generateBtn.type = 'button';
         const action = item.dataset.enhance;
         if (action === 'recipe') {
           openRecipeModal({
-            onRunRecipe: (url) => {
-            }
+            studio: 'effects'
           }).catch((err) => console.error('[Recipe] open failed:', err));
         } else if (action === 'prompts') {
           openPromptGallery({

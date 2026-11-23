@@ -103,4 +103,26 @@ describe('runRecipe chaining', () => {
       if (r.reference) expect(r.steps[0].reference).toBe(true);
     }
   });
+
+  it('cancels before the next step and never starts it', async () => {
+    const client = fakeClient();
+    const ctrl = new AbortController();
+    client.generateImage.mockImplementationOnce(async () => { ctrl.abort(); return { url: 'https://cdn/img.png' }; });
+    const onStep = vi.fn();
+    const onLog = vi.fn();
+    await expect(runRecipe(client, getRecipeById('social-ad-bundle'), { basePrompt: 'x', signal: ctrl.signal, onStep, onLog })).rejects.toMatchObject({ name: 'AbortError' });
+    expect(client.generateI2V).not.toHaveBeenCalled();
+    // The step that returned after the cancel is still reported (it was paid for).
+    expect(onStep.mock.calls.some(c => c[0].status === 'done' && c[0].url === 'https://cdn/img.png')).toBe(true);
+    expect(onLog.mock.calls.filter(c => c[0] === 'Cancelled')).toHaveLength(1);
+  });
+
+  it('passes the abort signal to the muapi call and refuses to start when already aborted', async () => {
+    const client = fakeClient();
+    const ctrl = new AbortController();
+    await runRecipe(client, getRecipeById('music-track'), { basePrompt: 'x', signal: ctrl.signal });
+    expect(client.generateAudio.mock.calls[0][1]).toBe(ctrl.signal);
+    ctrl.abort();
+    await expect(runRecipe(fakeClient(), getRecipeById('music-track'), { basePrompt: 'x', signal: ctrl.signal })).rejects.toMatchObject({ name: 'AbortError' });
+  });
 });

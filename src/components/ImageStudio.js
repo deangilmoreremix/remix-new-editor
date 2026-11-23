@@ -299,7 +299,7 @@ export function ImageStudio() {
       const ta = document.getElementById('i-prompt-textarea') || textarea;
       openRecipeModal({
         basePrompt: ta?.value?.trim() || '',
-        onRunRecipe: () => showToast('Recipe finished — open the result from the Recipe panel.', 'success'),
+        studio: 'image',
       }).catch((err) => {
         console.error('[Recipe] open failed:', err);
         showToast('Could not open Recipes: ' + (err?.message || err), 'error');

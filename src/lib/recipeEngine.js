@@ -147,6 +147,9 @@ async function dispatchStep(muapiClient, type, params, signal) {
 //   (e.g. both the clip and the soundtrack), not just the last one.
 // A failed step, or a chained step with nothing to chain from, throws after
 // logging; outputs of earlier steps were already delivered through onStep.
+// `signal` (AbortSignal) cancels the run: it is checked before each step and
+// passed to the muapi call, and the run throws an AbortError. A step that was
+// already submitted may still finish on the provider's side and use credits.
 export async function runRecipe(muapiClient, recipe, options = {}) {
   const {
     basePrompt = ' cinematic quality',
@@ -172,7 +175,17 @@ export async function runRecipe(muapiClient, recipe, options = {}) {
   const total = recipe.steps.length;
   let prev = previousResult || '';
 
+  const cancelled = () => {
+    const err = new Error('Recipe cancelled');
+    err.name = 'AbortError';
+    return err;
+  };
+
   for (let index = 0; index < total; index++) {
+    if (signal?.aborted) {
+      onLog('Cancelled');
+      throw cancelled();
+    }
     const step = recipe.steps[index];
     onLog(`Step ${index + 1}/${total}: ${step.label}`);
     onStep({ index, total, label: step.label, status: 'running', url: '' });
@@ -220,13 +233,20 @@ export async function runRecipe(muapiClient, recipe, options = {}) {
 
       const result = await dispatchStep(client, step.type, params, signal);
       const url = result?.url || result?.outputs?.[0] || '';
+      if (signal?.aborted) {
+        // The call returned after the user cancelled: keep what it produced
+        // (it was paid for) but do not start another step.
+        if (url) onStep({ index, total, label: step.label, status: 'done', url });
+        throw cancelled();
+      }
       onLog(`Done: ${url ? 'output ready' : 'no output'}`);
       onStep({ index, total, label: step.label, status: 'done', url });
       // A step that returns nothing must not silently feed the next one the
       // previous step's output, so chaining restarts from this step's result.
       prev = url;
     } catch (err) {
-      onLog(`Error: ${err?.message || err}`);
+      if (err?.name === 'AbortError' || signal?.aborted) onLog('Cancelled');
+      else onLog(`Error: ${err?.message || err}`);
       throw err;
     }
   }

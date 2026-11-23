@@ -301,8 +301,7 @@ const pexelsBtn = document.createElement('button');
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
-            onRunRecipe: (url) => {
-            }
+            studio: 'character'
           }).catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({

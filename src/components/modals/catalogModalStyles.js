@@ -150,6 +150,8 @@ const CATALOG_STYLES = `
   }
   .step--running .step-num { background: var(--cm-accent); color: var(--cm-on-accent); }
   .step--done .step-num { background: rgba(52,211,153,0.18); color: #34d399; }
+  .step--cancelled { opacity: 0.6; }
+  .step--cancelled .step-num { background: rgba(255,255,255,0.08); color: var(--cm-text3); }
   .step--error .step-num { background: rgba(239,68,68,0.2); color: #f87171; }
   .step-meta { margin-left: auto; font: 11px var(--cm-mono); color: var(--cm-text3); }
   .recipe-cost { margin-top: 12px; font-size: 11.5px; color: var(--cm-text2); }

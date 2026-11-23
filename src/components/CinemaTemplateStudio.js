@@ -1844,7 +1844,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
                 openGTMPromptModal('cinema-template-studio', { onPromptGenerated, templateContext });
               }).catch((err) => console.error('[CinemaTemplateStudio] GTM Boost failed:', err));
             } else if (action === 'recipe') {
-              openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+              openRecipeModal({ studio: 'cinema' }).catch((err) => console.error('[Recipe] open failed:', err));
             } else if (action === 'prompts') {
               openPromptGallery({
                 appTheme: 'cinema-template-studio',

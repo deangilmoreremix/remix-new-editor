@@ -755,7 +755,7 @@ export function AudioStudio() {
           }, { basePrompt: promptInput.value });
         }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
-        openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
+        openRecipeModal({ studio: 'audio' }).catch((err) => console.error('[Recipe] open failed:', err));
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'audio-studio',

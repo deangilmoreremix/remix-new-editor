@@ -469,8 +469,7 @@ export function TemplateStudio(templateId) {
           }
         } else if (action === 'recipe') {
           openRecipeModal({
-            onRunRecipe: (url) => {
-            }
+            studio: 'template'
           }).catch((err) => console.error('[Recipe] open failed:', err));
         } else if (action === 'prompts') {
           openPromptGallery({

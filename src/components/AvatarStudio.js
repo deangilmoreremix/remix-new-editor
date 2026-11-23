@@ -289,8 +289,7 @@ const triggerBtn = document.createElement('button');
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
-            onRunRecipe: (url) => {
-            }
+            studio: 'avatar'
           }).catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
