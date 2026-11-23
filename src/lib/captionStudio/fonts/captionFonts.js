@@ -1,5 +1,5 @@
 /**
- * The 16 caption fonts of Capite, embedded (Latin subset, woff2) so a caption renders and exports with no font request: the data lives in
+ * The 16 caption fonts of Capite plus the 6 other picker fonts, embedded (Latin subset, woff2) so a caption renders and exports with no font request: the data lives in
  * lazily imported modules (./data/*.js, one per family) and is registered through a data-URI @font-face under the alias "Capite <name>",
  * which can never clash with a same-named font on the host page. IBM Plex Sans is the fallback behind each of them.
  */
@@ -20,6 +20,12 @@ export const EMBEDDED_FONTS = Object.freeze([
   { name: 'Rubik', load: () => import('./data/rubik.js') },
   { name: 'Space Grotesk', load: () => import('./data/space-grotesk.js') },
   { name: 'Syne', load: () => import('./data/syne.js') },
+  { name: 'Roboto', load: () => import('./data/roboto.js') },
+  { name: 'Open Sans', load: () => import('./data/open-sans.js') },
+  { name: 'Lato', load: () => import('./data/lato.js') },
+  { name: 'Oswald', load: () => import('./data/oswald.js') },
+  { name: 'Archivo Black', load: () => import('./data/archivo-black.js') },
+  { name: 'Sora', load: () => import('./data/sora.js') },
 ].map((f) => Object.freeze(f)));
 export const FALLBACK_FONT = Object.freeze({ name: 'IBM Plex Sans', load: () => import('./data/ibm-plex-sans.js') });
 
