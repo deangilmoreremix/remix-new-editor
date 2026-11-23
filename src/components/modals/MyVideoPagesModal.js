@@ -39,6 +39,7 @@ export function openMyVideoPages({ zIndex = 2000 } = {}) {
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
   const close = () => {
+    if (!overlay.isConnected) return;   // Escape and the close button can both fire: unlock once
     document.removeEventListener('keydown', onKey);
     overlay.remove();
     unlockScroll();   // the page stays locked while the picker is still open

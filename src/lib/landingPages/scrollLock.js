@@ -10,6 +10,7 @@ export function lockScroll() {
 }
 
 export function unlockScroll() {
-  holders = Math.max(0, holders - 1);
+  if (holders === 0) return;   // an unbalanced call must not restore a stale value
+  holders -= 1;
   if (holders === 0) document.body.style.overflow = base;
 }

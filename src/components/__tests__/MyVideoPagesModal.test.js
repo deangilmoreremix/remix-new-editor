@@ -32,6 +32,22 @@ describe('My Video Pages is a modal, not a studio page', () => {
   });
 });
 
+describe('closing twice', () => {
+  it('releases the scroll lock once, and an extra unlock does nothing', () => {
+    document.body.style.overflow = 'auto';
+    lockScroll(); unlockScroll(); unlockScroll();
+    expect(document.body.style.overflow).toBe('auto');
+  });
+  it('Escape then the close button does not unlock twice', () => {
+    lockScroll();   // another window holding the lock
+    const o = openMyVideoPages();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    o.querySelector('[aria-label="Close"]').click();
+    expect(document.body.style.overflow).toBe('hidden');
+    unlockScroll();
+  });
+});
+
 describe('stacking with the picker', () => {
   it('Escape closes the window on top: this one when it is above the picker, not when under it', () => {
     const picker = document.createElement('div'); picker.dataset.landingPicker = ''; picker.style.zIndex = '2000'; document.body.appendChild(picker);
