@@ -22,7 +22,7 @@ function inferType(url, type) {
   if (type === 'video' || type === 'audio' || type === 'image' || type === 'pdf') return type;
   const ext = (String(url).split('?')[0].split('.').pop() || '').toLowerCase();
   if (['mp4', 'webm', 'mov', 'm4v'].includes(ext)) return 'video';
-  if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return 'audio';
+  if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'oga'].includes(ext)) return 'audio';
   if (ext === 'pdf') return 'pdf';
   return 'image';
 }
@@ -85,9 +85,10 @@ export async function uploadToContentLibrary(file) {
   // Validate file type
   const isPdf = file.type === 'application/pdf';
   const isVideo = file.type.startsWith('video/');
+  const isAudio = file.type.startsWith('audio/');
 
-  if (!isPdf && !isVideo) {
-    throw new Error('Only PDF and video files are allowed.');
+  if (!isPdf && !isVideo && !isAudio) {
+    throw new Error('Only PDF, video and audio files are allowed.');
   }
 
   // 1. Upload file to storage
@@ -103,7 +104,7 @@ export async function uploadToContentLibrary(file) {
   const storagePath = urlPath.split('/').slice(-2).join('/'); // e.g. "userKey/filename.pdf"
 
   // 3. Determine type
-  const type = isPdf ? 'pdf' : 'video';
+  const type = isPdf ? 'pdf' : isAudio ? 'audio' : 'video';
 
   // 4. Write metadata record
   const { data, error } = await supabase
@@ -142,6 +143,8 @@ export async function saveContentLibraryEntry(url, meta = {}) {
     if (!meta.type) {
       if (ext === 'mp4' || ext === 'webm' || ext === 'mov' || ext === 'avi' || ext === 'mkv' || ext === 'm4v' || ext === 'flv' || ext === 'wmv' || ext === '3gp' || ext === 'ogv') {
         type = 'video';
+      } else if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'oga'].includes(ext)) {
+        type = 'audio';
       } else if (ext === 'jpg' || ext === 'jpeg' || ext === 'png' || ext === 'webp' || ext === 'gif' || ext === 'svg' || ext === 'bmp') {
         type = 'image';
       } else if (ext !== 'pdf') {
@@ -152,7 +155,7 @@ export async function saveContentLibraryEntry(url, meta = {}) {
     const storagePath = urlPath.split('/').slice(-2).join('/');
 
     let fileSize = 0;
-    let mimeType = type === 'pdf' ? 'application/pdf' : type === 'video' ? 'video/mp4' : 'image/jpeg';
+    let mimeType = type === 'pdf' ? 'application/pdf' : type === 'video' ? 'video/mp4' : type === 'audio' ? 'audio/mpeg' : 'image/jpeg';
     try {
       const head = await fetch(url, { method: 'HEAD' });
       if (head.ok) {

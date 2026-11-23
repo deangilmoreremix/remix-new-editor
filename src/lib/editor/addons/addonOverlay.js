@@ -13,6 +13,7 @@
  */
 
 import { pointerSvg, getPointerDesign, safeColor, HINT_STYLES } from './pointerDesigns.js';
+import { turnstileSiteKey, mountTurnstile } from '../publish/turnstile.js';
 
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -723,6 +724,16 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
   trap.type = 'text'; trap.dataset.trap = ''; trap.tabIndex = -1; trap.autocomplete = 'off'; trap.setAttribute('aria-hidden', 'true');
   trap.style.cssText = 'position:absolute;left:-9999px;top:auto;width:1px;height:1px;opacity:0;pointer-events:none';
   form.appendChild(trap);
+  // Optional Cloudflare Turnstile (only on published videos, and only when VITE_TURNSTILE_SITE_KEY is set).
+  const siteKey = preview ? '' : turnstileSiteKey();
+  let captcha = null;
+  if (siteKey) {
+    const box = document.createElement('div');
+    box.className = 'addon-optin__captcha';
+    const statusEl = form.querySelector('.addon-optin__status');
+    if (statusEl) statusEl.before(box); else form.appendChild(box);
+    captcha = mountTurnstile(box, siteKey);
+  }
   const openedAt = Date.now();
   const prefilled = Object.values(prefill || {}).some((v) => String(v || '').trim());
   wrap.appendChild(form);
@@ -784,8 +795,9 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
       blank.focus?.({ preventScroll: true });
       return;
     }
+    if (captcha?.isReady() && !captcha.token()) { status.textContent = 'Please complete the verification.'; return; }
     const data = Object.fromEntries(new FormData(form).entries());
-    const signals = { hp: trap.value, ...(prefilled ? {} : { ms: Date.now() - openedAt }) }; // prefilled answers can be sent at once
+    const signals = { hp: trap.value, ...(prefilled ? {} : { ms: Date.now() - openedAt }), ...(captcha?.token() ? { turnstile: captcha.token() } : {}) }; // prefilled answers can be sent at once
     const btn = form.querySelector('button[type="submit"]');
     btn.disabled = true;
     try {
@@ -796,6 +808,7 @@ export function showOptinOverlay(layer, config, { onSubmit, onSkip, onEditText, 
       try { showThanks(layer, config, { allowRedirect, isActive }); } catch { /* the thank-you card is cosmetic; the lead is already saved */ }
     } catch (err) {
       btn.disabled = false;
+      captcha?.reset(); // a Turnstile token is single-use
       status.textContent = err?.message || 'Something went wrong — try again.';
     }
   });

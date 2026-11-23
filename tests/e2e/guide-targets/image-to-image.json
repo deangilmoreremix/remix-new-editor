@@ -1,0 +1,25 @@
+{
+  "get-started-free": {
+    "selector": ".cta-btn"
+  },
+  "powerful-image-editing-cards": {
+    "selector": "xpath=//h2[normalize-space(.)=\"Powerful Image Editing\"]/.."
+  },
+  "available-models": {
+    "selector": ".model-card"
+  },
+  "example-transformations": {
+    "selector": "xpath=//h2[normalize-space(.)=\"Example Transformations\"]/.."
+  },
+  "start-editing": {
+    "selector": ".start-btn"
+  },
+  "gtm-boost": {
+    "steps": [
+      {
+        "selector": ".gtm-boost-btn",
+        "wait": 2000
+      }
+    ]
+  }
+}

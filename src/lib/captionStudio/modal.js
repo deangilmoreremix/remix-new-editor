@@ -24,6 +24,9 @@ import {
   captionsToSrt, captionsToVtt, captionPages, shiftCaptions,
 } from './model.js';
 import { BASE_FONTS, capiteStyleById } from './styles.js';
+import { loadVideos, addVideo, subscribeNewVideos, captureFrame, announceVideo, filterVideos, studioCounts } from './videos.js';
+import { languageLabel } from './language.js';
+import { saveJob, updateJob, listJobs, getJob, deleteJob, clearJobs, formatBytes, formatDuration } from './history.js';
 
 const FONTS = [...new Set([...BASE_FONTS, ...Object.values(CAPITE_PRESETS).map((p) => p.fontFamily)])];
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -134,6 +137,27 @@ const STYLE_TEXT = `
 .csm-lineedit{display:grid;grid-template-columns:62px 62px 1fr;gap:6px;margin-top:9px}
 .csm-foot-note{display:flex;justify-content:space-between;gap:10px;margin-top:10px;color:var(--mute);font-size:11.5px}
 .csm-live{font-size:15px;min-height:44px;padding:10px;border-radius:12px;background:var(--field)}
+.csm-row input[type=search]{flex:1;min-width:0;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:inherit;font:inherit}
+.csm-src{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+.csm-vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;max-height:300px;overflow:auto;padding-right:4px;margin-top:8px}
+.csm-vcard{display:flex;flex-direction:column;gap:5px;padding:7px;text-align:left;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:inherit;font:inherit;cursor:pointer;min-width:0}
+.csm-vcard:hover{border-color:rgba(255,255,255,.3)}
+.csm-vcard.on{border-color:#22c55e;background:rgba(34,197,94,.08);box-shadow:0 0 0 1px #22c55e}
+.csm-vthumb{position:relative;display:block;aspect-ratio:16/10;border-radius:9px;overflow:hidden;background:#000}
+.csm-vthumb video{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.csm-vbadge{position:absolute;top:5px;right:5px;padding:1px 7px;border-radius:999px;background:#22c55e;color:#04130a;font-size:10px;font-weight:800}
+.csm-vtitle{font-size:12px;font-weight:700;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.csm-vmeta{font-size:10.5px;color:var(--mute)}
+.csm-vempty{padding:22px 12px;text-align:center;border:1px dashed rgba(255,255,255,.2);border-radius:14px;color:var(--mute)}
+.csm-pic{display:grid;place-items:end center;aspect-ratio:16/8;border-radius:9px;overflow:hidden;margin-bottom:8px;padding-bottom:6%;background-size:cover;background-position:center;background-color:#000}
+.csm-pic-img{display:block;width:100%;height:auto;object-fit:cover;aspect-ratio:16/9;padding:0;background:#000}
+.csm-pic span{display:block;max-width:94%;text-align:center;font-size:12px;line-height:1.1}
+.csm-jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:10px}
+.csm-job{display:flex;flex-direction:column;gap:9px;padding:13px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.025)}
+.csm-job h5{margin:0;font-size:13.5px;overflow-wrap:anywhere}
+.csm-job dl{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:7px 10px}
+.csm-job dt{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.csm-job dd{margin:2px 0 0;font-size:12px}
 `;
 let cssIn = false;
 const injectCss = () => { if (cssIn || typeof document === 'undefined') return; const s = document.createElement('style'); s.textContent = STYLE_TEXT; document.head.appendChild(s); cssIn = true; };
@@ -235,6 +259,9 @@ export class CaptionStudioModal extends ModalShell {
     this.shift = 0;
     this.speed = 1; this.backdrop = 'cinematic'; this.view = 'lines'; this.styleFilter = 'all'; this.autoScroll = true; this.editingLine = -1; this.fr = { find: '', replace: '', matchCase: false };
     this.renderQuality = 'high'; this.renderSize = 'original'; this._wi = -1;
+    // "Your videos" (everything the host reports + videos finished in this tab) and the history of caption jobs
+    this.source = 'library'; this.library = []; this.libraryLoading = true; this.libQuery = ''; this.libStudio = 'all'; this.libLimit = 24;
+    this.selectedUrl = options.videoUrl || ''; this.frame = ''; this.jobs = []; this.jobId = ''; this.processingMs = 0; this.captionedUrls = new Set();
     if (this.srcUrl) this.restore();
     this._raf = 0;
   }
@@ -254,9 +281,14 @@ export class CaptionStudioModal extends ModalShell {
     });
     ensureCaptionFont(this.style);
     this.loop();
+    this.loadLibrary();
+    this.refreshJobs();
+    this.stopWatching = subscribeNewVideos((card) => this.onNewVideo(card), { watch: this.opts.watchVideos });
+    if (this.srcUrl) this.loadFrame(this.srcUrl);
   }
 
   destroy() {
+    this.stopWatching?.();
     cancelAnimationFrame(this._raf);
     this._raf = -1;
     this.controller?.abort();
@@ -387,6 +419,12 @@ export class CaptionStudioModal extends ModalShell {
         const json = JSON.stringify({ captions: this.captions, style: this.style, savedAt: Date.now() });
         if (json.length < 1.5e6) localStorage.setItem(key, json);
       } catch { /* private mode or full storage: autosave is a convenience */ }
+      // the history job keeps the latest words and look too, not only the ones from the first transcription or the last render
+      // only when something changed since the last write (every render calls queueSave), and without re-rendering: that would schedule the next save
+      if (this.jobId && this.captions.length) {
+        const sig = JSON.stringify([this.captions, this.style]);
+        if (sig !== this._jobSig) { this._jobSig = sig; updateJob(this.jobId, { captions: this.captions, style: this.style, lookName: this.lookName() }).catch(() => {}); }
+      }
     }, 500);
   }
 
@@ -396,7 +434,7 @@ export class CaptionStudioModal extends ModalShell {
       const saved = raw && JSON.parse(raw);
       if (saved?.captions?.length && !this.captions.length) {
         this.captions = sortCaptions(saved.captions);
-        this.style = { ...this.style, ...saved.style };
+        this.style = this.coerceFont({ ...this.style, ...saved.style }); // a look saved before the host limited fonts must not bring its font back
         this.note = `Restored your saved captions for this video (${this.captions.length} words).`;
         ensureCaptionFont(this.style, this.fontText());
       }
@@ -408,7 +446,9 @@ export class CaptionStudioModal extends ModalShell {
     if (this.srcBlob && this.srcUrl) URL.revokeObjectURL(this.srcUrl);
     if (fileOrUrl instanceof Blob) { this.srcBlob = fileOrUrl; this.srcUrl = URL.createObjectURL(fileOrUrl); this.srcName = name || fileOrUrl.name || 'video'; }
     else { this.srcBlob = null; this.srcUrl = String(fileOrUrl || ''); this.srcName = name || this.srcUrl.split('?')[0].split('/').pop(); }
-    this.result = null; this.errMsg = ''; this.note = ''; this.captions = [];
+    this.result = null; this.errMsg = ''; this.note = ''; this.captions = []; this.jobId = '';
+    if (!(fileOrUrl instanceof Blob)) this.selectedUrl = this.srcUrl;
+    this.loadFrame(this.srcUrl);
     this.restore();
     this.ensureStage();
     this.video.src = this.srcUrl;
@@ -435,7 +475,7 @@ export class CaptionStudioModal extends ModalShell {
 
   renderBody() {
     const words = this.captions.length;
-    const tabs = [['generate', 'Generate', '◎', null], ['edit', 'Script & Words', '≣', words || null], ['style', 'Motion & Style', '✺', 32], ['export', 'Export', '⬇', null]];
+    const tabs = [['generate', 'Generate', '◎', null], ['edit', 'Script & Words', '≣', words || null], ['style', 'Motion & Style', '✺', 32], ['export', 'Export', '⬇', null], ['history', 'History', '🕘', this.jobs.length || null]];
     const noVideo = !this.srcUrl;
     return `<div class="csm" style="${this.themeStyle}">
       <div class="csm-left">
@@ -450,7 +490,7 @@ export class CaptionStudioModal extends ModalShell {
         <div class="csm-tabs" role="tablist">${tabs.map(([id, label, glyph, n]) => `<button type="button" role="tab" class="csm-tab${this.tab === id ? ' on' : ''}" data-act="tab" data-tab="${id}"><span aria-hidden="true">${glyph}</span>${label}${n ? `<span class="csm-badge">${n}</span>` : ''}</button>`).join('')}</div>
         ${this.errMsg ? `<div class="csm-err" role="alert">⚠ ${esc(this.errMsg)}</div>` : ''}
         ${this.note ? `<div class="csm-note">${esc(this.note)}</div>` : ''}
-        <section class="csm-section">${{ generate: () => this.renderGenerate(), style: () => this.renderStyle(), edit: () => this.renderEdit(), export: () => this.renderExport() }[this.tab]()}</section>
+        <section class="csm-section">${{ generate: () => this.renderGenerate(), style: () => this.renderStyle(), edit: () => this.renderEdit(), export: () => this.renderExport(), history: () => this.renderHistory() }[this.tab]()}</section>
       </div>
     </div>`;
   }
@@ -479,16 +519,131 @@ export class CaptionStudioModal extends ModalShell {
     return `<div role="status"><div>${esc(b.text)}</div><div class="csm-bar"><i style="width:${Math.round((b.progress || 0) * 100)}%"></i></div><button type="button" class="csm-btn" data-act="cancel">Cancel</button></div>`;
   }
 
+  // ---------------------------------------------------------------- your videos
+  /** Source of the clip: "Your videos" (everything made in the app, no upload) or a file from this computer. */
+  renderSource() {
+    const chips = `<div class="csm-src">${[['library', '🎞 Your videos', this.library.length], ['upload', '📁 Upload a file', null]].map(([id, l, n]) => `<button type="button" class="csm-chip${this.source === id ? ' on' : ''}" data-act="src" data-s="${id}">${l}${n ? `<span class="csm-badge">${n}</span>` : ''}</button>`).join('')}</div>`;
+    const upload = `<div class="csm-drop" data-act="pick" data-drop>
+        <input type="file" accept="video/*,audio/*" hidden data-file />
+        ${this.srcName && this.source === 'upload' ? `<strong>${esc(this.srcName)}</strong><div class="csm-hint">Click or drop to replace</div>` : '<strong>Drop a finished video here or click to browse</strong><div class="csm-hint">MP4, MOV, WebM, MP3, WAV…</div>'}
+      </div>`;
+    return chips + (this.source === 'library' ? this.renderLibrary() : upload);
+  }
+
+  renderLibrary() {
+    if (!this.library.length) return `<div class="csm-vempty" data-testid="csm-vempty">${this.libraryLoading ? 'Looking for your videos…' : 'No videos made yet. Create one in any studio and it shows up here, or upload a file.'}</div>`;
+    const list = filterVideos(this.library, { query: this.libQuery, studio: this.libStudio });
+    const shown = list.slice(0, this.libLimit);
+    const cards = shown.map((v) => `<button type="button" class="csm-vcard${this.selectedUrl === v.url ? ' on' : ''}" data-act="pick-video" data-id="${esc(v.id)}" data-testid="csm-vcard" aria-pressed="${this.selectedUrl === v.url}"><span class="csm-vthumb"><video src="${esc(v.url)}#t=0.1" preload="metadata" muted playsinline tabindex="-1"></video>${this.captionedUrls.has(v.url) ? '<span class="csm-vbadge">Captioned</span>' : ''}</span><span class="csm-vtitle">${esc(v.title)}</span><span class="csm-vmeta">${esc(v.label)} · ${esc(new Date(v.createdAt).toLocaleDateString())}</span></button>`).join('');
+    return `<div class="csm-chips">${studioCounts(this.library).map(([id, l, n]) => `<button type="button" class="csm-chip${this.libStudio === id ? ' on' : ''}" data-act="lib-studio" data-v="${esc(id)}">${esc(l)}<span class="csm-badge">${n}</span></button>`).join('')}</div>
+      <label class="csm-row"><span>Search</span><input type="search" data-lib-q placeholder="Search your videos…" value="${esc(this.libQuery)}" /></label>
+      <p class="csm-hint">Showing ${shown.length} of ${this.library.length} videos · pick one to caption it, nothing is uploaded</p>
+      <div class="csm-vgrid" data-testid="csm-vgrid">${cards || '<div class="csm-vempty">No video matches.</div>'}</div>
+      ${list.length > shown.length ? `<button type="button" class="csm-mini" data-act="lib-more">Show more (${list.length - shown.length})</button>` : ''}`;
+  }
+
+  /** Every video made in the app (host list + this visit) with the clip the Studio was opened with first and picked. */
+  async loadLibrary() {
+    const current = this.opts.videoUrl ? { url: this.opts.videoUrl, title: this.srcName } : null;
+    this.library = await loadVideos({ current, load: this.opts.videoLibrary });
+    this.libraryLoading = false;
+    if (!this.srcUrl && this.library[0]) this.selectVideo(this.library[0]);
+    if (!this.library.length && !this.srcUrl) this.source = 'upload';
+    if (this.overlay && !this.busy) this.refresh();
+  }
+
+  selectVideo(card) {
+    this.selectedUrl = card.url;
+    if (card.url !== this.srcUrl) this.setSource(card.url, card.title);
+  }
+
+  pickVideo(id) {
+    const card = this.library.find((v) => v.id === id);
+    if (card) this.selectVideo(card);
+  }
+
+  /** A video was just made: add it, and pick it when nothing is picked yet. */
+  onNewVideo(card) {
+    this.library = addVideo(this.library, card);
+    if (!this.srcUrl && this.source === 'library') this.selectVideo(card);
+    else if (this.overlay && !this.busy && this.tab === 'generate') this.refresh();
+  }
+
+  async loadFrame(url) {
+    this.frame = '';
+    const still = await captureFrame(url);
+    if (this.srcUrl !== url || !still) return;
+    this.frame = still;
+    if (this.overlay && !this.busy && (this.tab === 'style' || this.tab === 'generate')) this.refresh();
+  }
+
+  /** The look drawn over a real picture: the picked video's own frame, else the host's sample image. Nothing made-up. */
+  lookPic(p, key) {
+    const real = typeof this.opts.lookImage === 'function' ? this.opts.lookImage(key) : '';
+    if (real) return `<img class="csm-pic csm-pic-img" src="${esc(real)}" alt="${esc(p.label)} caption look" loading="lazy" decoding="async" />`;
+    const img = this.frame || this.opts.sampleImage;
+    if (!img) return '';
+    const u = String(img).replace(/["'\\\n()]/g, ''); // goes inside style="…": no quotes or brackets
+    const stroke = p.stroke ? `-webkit-text-stroke:1px ${esc(p.strokeColor || '#000')};paint-order:stroke fill;` : '';
+    const box = p.boxed ? `background:${esc(p.highlightColor)};padding:0 4px;border-radius:4px;` : '';
+    return `<span class="csm-pic" style="background-image:url('${u}')"><span style="font-family:${esc(p.fontFamily)},system-ui,sans-serif;font-weight:${p.bold ? 800 : 500};${p.italic ? 'font-style:italic;' : ''}color:${esc(p.color)};${p.uppercase ? 'text-transform:uppercase;' : ''}${stroke}${box}">Make it pop</span></span>`;
+  }
+
+  // ---------------------------------------------------------------- history
+  async refreshJobs() {
+    try { this.jobs = (await listJobs()).map((j) => ({ ...j, hasVideo: !!j.video })); } catch { this.jobs = []; }
+    this.captionedUrls = new Set(this.jobs.map((j) => j.sourceUrl).filter(Boolean));
+    if (this.overlay && !this.busy && (this.tab === 'history' || this.tab === 'generate')) this.refresh();
+  }
+
+  async saveCurrentJob(extra = {}) {
+    if (!this.captions.length) return;
+    const last = this.captions[this.captions.length - 1];
+    const rec = await saveJob({
+      id: this.jobId || undefined, title: this.srcName || 'Untitled video', durationSec: this.video?.duration > 0 && Number.isFinite(this.video.duration) ? this.video.duration : last.endMs / 1000,
+      language: this.language, languageLabel: languageLabel(this.language, this.captions.map((c) => c.text).join('')), lookName: this.lookName(), processingMs: this.processingMs || 0, fileSize: this.srcBlob?.size || 0,
+      sourceUrl: this.srcBlob || /^blob:/.test(this.srcUrl) ? '' : this.srcUrl, captions: this.captions, style: this.style, ...(this.srcBlob ? { video: this.srcBlob } : {}), ...extra,
+    });
+    this.jobId = rec.id;
+    this._jobSig = JSON.stringify([this.captions, this.style]);
+    this.refreshJobs();
+  }
+
+  renderHistory() {
+    if (!this.jobs.length) return '<h3 class="csm-sec-title"><span class="glyph">🕘</span>Caption history</h3><div class="csm-vempty" data-testid="csm-history-empty">No caption jobs yet. They are kept in this browser only.</div>';
+    const cards = this.jobs.map((j) => `<article class="csm-job" data-testid="csm-job"><h5>${esc(j.title || 'Untitled video')}</h5><dl>`
+      + `<div><dt>Duration</dt><dd>${formatDuration(j.durationSec)}</dd></div><div><dt>Language</dt><dd>${esc(j.languageLabel || j.language || '—')}</dd></div><div><dt>Caption style</dt><dd>${esc(j.lookName || '—')}</dd></div>`
+      + `<div><dt>Processing time</dt><dd>${j.processingMs ? `${(j.processingMs / 1000).toFixed(1)}s` : '—'}</dd></div><div><dt>File size</dt><dd>${formatBytes(j.fileSize)}</dd></div><div><dt>Created</dt><dd>${esc(new Date(j.createdAt).toLocaleString())}</dd></div></dl>`
+      + `<div class="csm-chips"><button type="button" class="csm-btn primary" data-act="job-open" data-id="${esc(j.id)}">${j.hasVideo ? 'Open &amp; edit' : 'Open script'}</button><button type="button" class="csm-mini" data-act="job-srt" data-id="${esc(j.id)}">SRT</button><button type="button" class="csm-mini" data-act="job-del" data-id="${esc(j.id)}">Delete</button></div></article>`).join('');
+    return `<h3 class="csm-sec-title"><span class="glyph">🕘</span>Caption history<span class="grow"></span><button type="button" class="csm-mini" data-act="job-clear">Clear all</button></h3><div class="csm-jobs" data-testid="csm-jobs">${cards}</div>`;
+  }
+
+  async openJob(id) {
+    const j = await getJob(id);
+    if (!j) return;
+    // a job without a kept video must not stay attached to the video that was picked before: clear it (and any render) first
+    if (j.video) this.setSource(j.video, j.title); else if (j.sourceUrl) this.setSource(j.sourceUrl, j.title); else { this.setSource('', j.title); this.selectedUrl = ''; }
+    this.captions = sortCaptions(j.captions || []);
+    this.style = this.coerceFont({ ...this.style, ...(j.style || {}) });
+    ensureCaptionFont(this.style, this.fontText());
+    this._jobSig = JSON.stringify([this.captions, this.style]);
+    this.jobId = j.id; this.processingMs = j.processingMs || 0; this.language = CAPTION_LANGUAGES.some(([v]) => v === j.language) ? j.language : 'auto'; // the code, never the display label
+    this.note = `Opened “${j.title}” from your history.`;
+    this.tab = 'edit'; this.refresh();
+  }
+
+  async exportJob(id) {
+    const j = await getJob(id);
+    if (j) this.download(`${(j.title || 'captions').replace(/\.[^.]+$/, '').replace(/[^\w.-]+/g, '_')}.srt`, captionsToSrt(sortCaptions(j.captions || []), { combineMs: (j.style || this.style).combineMs }), 'application/x-subrip');
+  }
+
   renderGenerate() {
     const caps = this.caps;
     const engines = ENGINES.filter((e) => e.file && (e.device !== 'webgpu' || caps?.webgpu));
     return `
       <h3 class="csm-sec-title"><span class="glyph">◎</span>Free on-device transcription</h3>
       <p class="csm-hint">Whisper runs in your browser${caps?.webgpu ? ' on your GPU' : ''}. The model downloads once and is cached. No credits are used and the audio never leaves your computer.</p>
-      <div class="csm-drop" data-act="pick" data-drop>
-        <input type="file" accept="video/*,audio/*" hidden data-file />
-        ${this.srcName ? `<strong>${esc(this.srcName)}</strong><div class="csm-hint">Click or drop to replace</div>` : '<strong>Drop a finished video here or click to browse</strong><div class="csm-hint">MP4, MOV, WebM, MP3, WAV…</div>'}
-      </div>
+      ${this.renderSource()}
       <h4>Engine</h4>
       <label class="csm-row"><span>Engine</span><select data-set="engine">${engines.map((e) => `<option value="${e.id}" ${e.id === this.engine ? 'selected' : ''}>${esc(e.label)}</option>`).join('')}</select></label>
       <label class="csm-row"><span>Model</span><select data-set="model">${WHISPER_MODELS.map(([v, l]) => `<option value="${v}" ${v === this.model ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
@@ -511,7 +666,7 @@ export class CaptionStudioModal extends ModalShell {
     const shown = all.filter((x) => this.styleFilter === 'all' || x[2] === this.styleFilter);
     const blurb = { tiktok: 'Short-form hooks', classic: 'Clean subtitles', box: 'Boxed words', karaoke: 'Sing-along wipe', minimal: 'Quiet & simple' };
     const card = ([k, p]) => `<button type="button" class="csm-preset${s.preset === k ? ' on' : ''}" data-act="preset" data-preset="${k}" title="${esc(capiteOf(k)?.description || p.label)}">
-      <b>${esc(p.label)}</b><span>${esc(capiteOf(k)?.bestFor || `Basic • ${blurb[k] || ''}`)}</span><i style="background:linear-gradient(135deg,${esc(toHex(p.color))} 50%,${esc(toHex(p.highlightColor))} 50%)"></i></button>`;
+      ${this.lookPic(p, k)}<b>${esc(p.label)}</b><span>${esc(capiteOf(k)?.bestFor || `Basic • ${blurb[k] || ''}`)}</span><i style="background:linear-gradient(135deg,${esc(toHex(p.color))} 50%,${esc(toHex(p.highlightColor))} 50%)"></i></button>`;
     const info = capiteOf(s.preset);
     return `
       <h3 class="csm-sec-title"><span class="glyph">✺</span>Motion style presets<span class="grow"></span><button type="button" class="csm-mini" data-act="reset-style">↺ Reset to default</button></h3>
@@ -599,7 +754,10 @@ export class CaptionStudioModal extends ModalShell {
     o.addEventListener('click', (e) => this.onClick(e));
     o.addEventListener('change', (e) => this.onChange(e));
     o.addEventListener('dblclick', (e) => this.editWord(e));
-    o.addEventListener('input', (e) => { if (e.target.matches('input[type=range],input[type=color]')) this.onChange(e); });
+    o.addEventListener('input', (e) => {
+      if (e.target.matches('input[type=range],input[type=color]')) this.onChange(e);
+      else if (e.target.matches('[data-lib-q]')) { this.libQuery = e.target.value; this.libLimit = 24; this.refresh(); const q = this.overlay.querySelector('[data-lib-q]'); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } }
+    });
     o.addEventListener('dragover', (e) => { if (e.target.closest?.('[data-drop]')) { e.preventDefault(); e.target.closest('[data-drop]').classList.add('over'); } });
     o.addEventListener('dragleave', (e) => e.target.closest?.('[data-drop]')?.classList.remove('over'));
     o.addEventListener('drop', (e) => {
@@ -654,7 +812,13 @@ export class CaptionStudioModal extends ModalShell {
   }
 
   fail(err) {
-    if (err?.name === 'AbortError') return;
+    if (err?.name === 'AbortError') {
+      // A cancel (or a declined speech-model download) is not an error toast, but the busy state must still end.
+      this.busy = null;
+      if (/declined/i.test(err.message || '')) this.note = 'The speech model was not downloaded, so captions cannot be written from the video’s sound yet. Press Generate again and choose OK to download it once (about 40–250 MB, depending on the model).';
+      this.refresh();
+      return;
+    }
     this.errMsg = err?.message || String(err);
     this.busy = null;
     this.opts.onError?.(err);
@@ -670,6 +834,14 @@ export class CaptionStudioModal extends ModalShell {
       close: () => this.close(),
       tab: () => { this.tab = el.dataset.tab; this.errMsg = ''; this.refresh(); },
       generate: () => this.generate(),
+      src: () => { this.source = el.dataset.s; this.refresh(); },
+      'pick-video': () => this.pickVideo(el.dataset.id),
+      'lib-studio': () => { this.libStudio = el.dataset.v; this.libLimit = 24; this.refresh(); },
+      'lib-more': () => { this.libLimit += 24; this.refresh(); },
+      'job-open': () => this.openJob(el.dataset.id),
+      'job-srt': () => this.exportJob(el.dataset.id),
+      'job-del': () => deleteJob(el.dataset.id).then(() => this.refreshJobs()),
+      'job-clear': () => clearJobs().then(() => this.refreshJobs()),
       cancel: () => { this.controller?.abort(); this.busy = null; this.refresh(); },
       preset: () => { this.style = this.coerceFont({ ...defaultCaptionStyle(el.dataset.preset), fontSize: this.style.fontSize, position: this.style.position, ...(Number.isFinite(this.style.positionY) ? { positionY: this.style.positionY } : {}) }); ensureCaptionFont(this.style, this.fontText()); this.refresh(); },
       seek: () => { this.video.currentTime = Number(el.dataset.ms) / 1000; this.video.play().catch(() => {}); },
@@ -726,8 +898,10 @@ export class CaptionStudioModal extends ModalShell {
     if (t.dataset.lineText != null) { const l = lines()[Number(t.dataset.lineText)]; if (l) this.captions = setLineText(this.captions, l, t.value); this.refresh(); return; }
     if (t.dataset.lineStart != null || t.dataset.lineEnd != null) {
       const i = Number(t.dataset.lineStart ?? t.dataset.lineEnd); const l = lines()[i]; if (!l) return;
-      const row = t.closest('.csm-line');
-      this.captions = setLineTiming(this.captions, l, Number(row.querySelector('[data-line-start]').value) * 1000, Number(row.querySelector('[data-line-end]').value) * 1000);
+      const row = t.closest('.csm-lineedit') || t.closest('.csm-seg');
+      const start = row?.querySelector('[data-line-start]'); const end = row?.querySelector('[data-line-end]');
+      if (!start || !end) return;
+      this.captions = setLineTiming(this.captions, l, Number(start.value) * 1000, Number(end.value) * 1000);
       this.refresh();
     }
   }
@@ -753,6 +927,7 @@ export class CaptionStudioModal extends ModalShell {
     const ctl = new AbortController(); this.controller = ctl;
     this.errMsg = ''; this.note = '';
     this.setBusy('Reading audio…', 0, 'transcribe');
+    const t0 = Date.now();
     try {
       const { captions } = await transcribeMedia(this.srcBlob || this.srcUrl, {
         engine: this.engine, model: this.model, language: this.language, signal: ctl.signal,
@@ -762,9 +937,11 @@ export class CaptionStudioModal extends ModalShell {
       this.captions = sortCaptions(captions);
       ensureCaptionFont(this.style, this.fontText());
       this.busy = null; this.result = null;
+      this.processingMs = Date.now() - t0;
       this.note = `${this.captions.length} words transcribed. Pick a look, then render or export.`;
       this.tab = 'edit';
       this.refresh();
+      this.saveCurrentJob();
     } catch (err) { this.fail(err); } finally { if (this.controller === ctl) this.controller = null; }
   }
 
@@ -779,6 +956,8 @@ export class CaptionStudioModal extends ModalShell {
         onProgress: (p) => this.setBusy(p.stage === 'fallback' ? 'This browser can’t render faster than real time — recording the video with captions…' : 'Rendering captions into the video…', p.progress || 0),
       });
       this.result = out; this.busy = null; this.refresh();
+      announceVideo({ url: out.url, title: `${this.srcName || 'Video'} (captioned)`, studio: 'caption-studio' });
+      this.saveCurrentJob({ fileSize: out.blob?.size || out.size || 0 });
     } catch (err) { this.fail(err); } finally { if (this.controller === ctl) this.controller = null; }
   }
 
@@ -792,33 +971,38 @@ export class CaptionStudioModal extends ModalShell {
 
   async liveStart() {
     this.errMsg = ''; this.note = '';
+    let live = null;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { facingMode: 'user' } }).catch(() => navigator.mediaDevices.getUserMedia({ audio: true }));
       const chunks = [];
       const recorder = new MediaRecorder(stream);
       recorder.ondataavailable = (ev) => { if (ev.data.size) chunks.push(ev.data); };
-      this.live = { stream, recorder, interim: '', mode: null };
+      live = { stream, recorder, interim: '', mode: null, handle: null };
+      this.live = live;
       this.video.srcObject = stream; this.video.muted = true; this.video.controls = false; this.video.play().catch(() => {});
       recorder.onstop = () => {
         stream.getTracks().forEach((tr) => tr.stop());
         this.video.srcObject = null; this.video.muted = false; this.video.controls = true;
         const blob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
-        this.live = null;
+        if (this.live === live) this.live = null;
         this.setSource(blob, 'recording.webm');
         this.note = 'Recording saved. Live captions were approximate — press “Generate captions” for exact word timing, or keep them.';
         this.refresh();
       };
       recorder.start(500);
-      this.live.handle = await startLiveCaptions({
+      // Stop can be pressed while the recogniser is still starting: every callback below checks that this is still the live session.
+      const handle = await startLiveCaptions({
         lang: this.language === 'auto' ? (navigator.language || 'en-US') : this.language,
-        onMode: (m) => { this.live.mode = m; this.refresh(); },
-        onUpdate: ({ captions, interim }) => { this.captions = captions; if (this.live) this.live.interim = interim; const el = this.overlay?.querySelector('.csm-live'); if (el) el.textContent = interim || captions.slice(-6).map((c) => c.text).join('') || 'Listening…'; },
-        onError: (err) => this.fail(err),
+        onMode: (m) => { if (this.live === live) { live.mode = m; this.refresh(); } },
+        onUpdate: ({ captions, interim }) => { this.captions = captions; if (this.live === live) live.interim = interim; const el = this.overlay?.querySelector('.csm-live'); if (el) el.textContent = interim || captions.slice(-6).map((c) => c.text).join('') || 'Listening…'; },
+        onError: (err) => { if (this.live === live) this.fail(err); },
       });
+      if (this.live !== live) { handle?.stop?.(); return; }
+      live.handle = handle;
       this.refresh();
     } catch (err) {
-      this.live?.stream?.getTracks().forEach((tr) => tr.stop());
-      this.live = null;
+      (live?.stream || null)?.getTracks().forEach((tr) => tr.stop());
+      if (this.live === live) this.live = null;
       this.fail(err?.name === 'NotAllowedError' ? new Error('Camera/microphone permission was denied.') : err);
     }
   }

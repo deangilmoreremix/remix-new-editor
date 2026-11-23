@@ -71,3 +71,56 @@ Ported from `christopherjohnogden/CineGen@769f148` `tests/` (`@/` → `@cinegen/
 - `components/assistant/assistant-drawer.test.tsx` — whole file
 
 - `components/create/model-node.test.tsx`, `lib/workflows/topview-video-task.test.ts` — whole file (provider registry differs: Higgsfield/Topview/LTX session models)
+
+## remix feature: OpenChatCut clip speed range is 0.1–8×, CineGen's is 0.25–4×
+
+- `lib/editor/timeline-operations.test.ts` — clamps speed to 0.25-4 range (`updateClipProperties` clamps to `MIN_RATE`/`MAX_RATE` from `openchatcut/editor/rateStretch`, which the Alt-drag rate stretch also uses)
+
+## source not ported: desktop (Electron), cloud sync/auth, MCP, and the Topview / Higgsfield / RunPod / Artlist providers
+
+- `components/settings/claude-mcp-connect.test.tsx` — whole file
+- `electron/browser-session.test.ts` — whole file
+- `electron/ipc/assistant-image-attachments.test.ts` — whole file
+- `electron/ipc/canvas-image-preview.test.ts` — whole file
+- `electron/ipc/claude-code-vision.test.ts` — whole file
+- `electron/ipc/claude-mcp-config.test.ts` — whole file
+- `electron/ipc/claude-mcp.test.ts` — whole file
+- `electron/ipc/cli-auth.test.ts` — whole file
+- `electron/ipc/codex-cli.test.ts` — whole file
+- `electron/ipc/gemini-cli-vision.test.ts` — whole file
+- `electron/workers/audio-sync.test.ts` — whole file
+- `lib/artlist/client.test.ts` — whole file
+- `lib/cloud/firebase-auth.test.ts` — whole file
+- `lib/higgsfield/client.test.ts` — whole file
+- `lib/higgsfield/clip-reference.test.ts` — whole file
+- `lib/higgsfield/quick-edit-drawn-frame.test.ts` — whole file
+- `lib/runpod/ltx25-service.test.ts` — whole file
+- `lib/runpod/site-media-reference.test.ts` — whole file
+- `lib/topview/canvas-audio.test.ts` — whole file
+- `lib/topview/client.test.ts` — whole file
+- `lib/topview/clip-edit.test.ts` — whole file
+- `lib/topview/media-tools.test.ts` — whole file
+
+## behaviour differs by design (individual tests skipped)
+
+- `components/settings/settings-runpod-gpu-profile.test.tsx` — defaults to both image models and sends the persisted next-session choices (RunPod provider and settings UI are not part of this app)
+- `components/settings/settings-runpod-gpu-profile.test.tsx` — locks the choice while a Pod exists without changing or restarting it (RunPod provider and settings UI are not part of this app)
+- `components/settings/settings-runpod-gpu-profile.test.tsx` — normalizes invalid and duplicate saved image-model values (RunPod provider and settings UI are not part of this app)
+- `components/settings/settings-runpod-status.test.tsx` — ignores a pending status response after the session is ended (RunPod provider and settings UI are not part of this app)
+- `components/settings/settings-runpod-status.test.tsx` — keeps automatic checks single-flight and shows successful check feedback (RunPod provider and settings UI are not part of this app)
+- `components/settings/settings-runpod-status.test.tsx` — keeps polling after a transient check failure and later transitions to ready (RunPod provider and settings UI are not part of this app)
+- `components/settings/settings-runpod-status.test.tsx` — runs a manual status check with visible progress and shows the provider message (RunPod provider and settings UI are not part of this app)
+- `lib/director/prompts.test.ts` — keeps the full Director duration for live Topview model validation and every unique element reference (provider registry differs: MuAPI default instead of Topview, OpenAI/MuAPI instead of fal/Topview/CLI vision)
+- `lib/director/run-llm.test.ts` — keeps an installed pick and otherwise takes the first installed CLI (provider registry differs: MuAPI default instead of Topview, OpenAI/MuAPI instead of fal/Topview/CLI vision)
+- `lib/director/run-llm.test.ts` — passes mood-board stills to OpenAI and CLI look-bible jobs (provider registry differs: MuAPI default instead of Topview, OpenAI/MuAPI instead of fal/Topview/CLI vision)
+- `lib/director/run-llm.test.ts` — sends image data to hosted OpenAI and fal vision (provider registry differs: MuAPI default instead of Topview, OpenAI/MuAPI instead of fal/Topview/CLI vision)
+- `lib/director/snapshot.test.ts` — assigns the take asset to the variant folder (our editor has extra tabs (Leads/Publish/Analytics) and MuAPI is the default video provider)
+- `lib/director/snapshot.test.ts` — places Director between Spaces and Edit (our editor has extra tabs (Leads/Publish/Analytics) and MuAPI is the default video provider)
+- `lib/director/snapshot.test.ts` — round-trips a show through snapshot and workflow extras (our editor has extra tabs (Leads/Publish/Analytics) and MuAPI is the default video provider)
+- `lib/runpod/qwen-prompt.test.ts` — replaces CineGen tags with numbered natural-language roles without exposing tags (RunPod provider and settings UI are not part of this app)
+- `lib/utils/file-url.test.ts` — keeps Electron local path conversion intact (desktop adaptation: browser URLs instead of Electron local-media:// paths)
+- `lib/utils/media-file.test.ts` — turns a Finder file path into an encoded Electron media URL (desktop adaptation: browser URLs instead of Electron local-media:// paths)
+- `lib/utils/media-file.test.ts` — uploads a phone video when the browser bridge supplies only a blob preview (desktop adaptation: browser URLs instead of Electron local-media:// paths)
+- `lib/utils/video-generation-provider.test.ts` — defaults to Topview and maps it to the live MCP adapter (provider registry differs: MuAPI default instead of Topview, OpenAI/MuAPI instead of fal/Topview/CLI vision)
+- `lib/utils/video-generation-provider.test.ts` — falls back safely when an old or unknown provider value is stored (provider registry differs: MuAPI default instead of Topview, OpenAI/MuAPI instead of fal/Topview/CLI vision)
+- `lib/utils/video-generation-provider.test.ts` — migrates an old saved provider selection to the new Topview default once (provider registry differs: MuAPI default instead of Topview, OpenAI/MuAPI instead of fal/Topview/CLI vision)

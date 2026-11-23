@@ -57,12 +57,17 @@ export function canonicalUrl(video, origin = globalThis.location?.origin || '') 
   return watchUrl(video.id, origin);
 }
 
+/** The link on the business's own domain, or null until a domain is set. Live only once it is verified (customDomainVerified). */
+export const customDomainUrl = (video) => (video?.customDomain && video?.slug ? `https://${video.customDomain}/${encodeURIComponent(video.slug)}` : null);
+
 const SLUG_ERRORS = {
   slug_taken: 'That name is already taken. Try another.',
   invalid_slug: 'That name is not allowed. Use 3-48 lowercase letters, numbers and hyphens.',
   business_required: 'Choose a business name first.',
   not_found: 'Publish the video first.',
   not_authenticated: 'Sign in to change your link.',
+  domain_taken: 'That domain is already used by another business.',
+  invalid_domain: 'Enter a domain like videos.yourbusiness.com (no https:// or path).',
 };
 const slugFail = (error) => {
   if (!error) return;
@@ -232,14 +237,14 @@ export async function getMyVideo(client, id) {
   const { data, error } = await client.from('published_videos').select('id, title, published, view_count, updated_at, slug, privacy, revision').eq('id', id).maybeSingle();
   fail(error, 'Could not load the video');
   if (!data) return data;
-  const { business } = await getMyBusiness(client).catch(() => ({ business: null }));
-  return { ...data, business };
+  const { business, customDomain, customDomainVerified } = await getMyBusiness(client).catch(() => ({ business: null, customDomain: null, customDomainVerified: false }));
+  return { ...data, business, customDomain, customDomainVerified };
 }
 
 export async function getMyBusiness(client) {
-  const { data, error } = await client.from('video_owner_profiles').select('business_slug, display_name').maybeSingle();
+  const { data, error } = await client.from('video_owner_profiles').select('business_slug, display_name, custom_domain, custom_domain_verified').maybeSingle();
   fail(error, 'Could not load your business name');
-  return { business: data?.business_slug || null, displayName: data?.display_name || null };
+  return { business: data?.business_slug || null, displayName: data?.display_name || null, customDomain: data?.custom_domain || null, customDomainVerified: !!data?.custom_domain_verified };
 }
 
 export async function claimBusinessSlug(client, slug, displayName = null) {
@@ -252,6 +257,21 @@ export async function setVideoSlug(client, id, slug) {
   const { data, error } = await client.rpc('set_video_slug', { p_video_id: id, p_slug: slug });
   slugFail(error);
   return data;
+}
+
+/** Hostname for a business's own video domain, or null when it is not a plain domain. */
+export function normalizeDomain(raw) {
+  const d = String(raw ?? '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  return /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/.test(d) && !/(^|\.)(smartvid\.app|netlify\.app|netlify\.com|localhost)$/.test(d) ? d : null;
+}
+
+/** Set (or clear with an empty value) the business's own domain. Resolves to the saved hostname or null. */
+export async function setCustomDomain(client, domain) {
+  const d = String(domain ?? '').trim() ? normalizeDomain(domain) : null;
+  if (String(domain ?? '').trim() && !d) throw new Error(SLUG_ERRORS.invalid_domain);
+  const { data, error } = await client.rpc('set_custom_domain', { p_domain: d });
+  slugFail(error);
+  return data || null;
 }
 
 export async function setVideoPrivacy(client, id, privacy) {
@@ -355,6 +375,7 @@ export async function submitViewerLead({ publishedId, clipId, kind, data, attrib
       headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         publishedId, clipId: clipId != null ? String(clipId) : null, kind, data,
+        ...(signals && typeof signals.turnstile === 'string' && signals.turnstile ? { 'cf-turnstile-response': signals.turnstile.slice(0, 2048) } : {}),
         ...(signals && typeof signals === 'object' ? { signals: { hp: String(signals.hp ?? ''), ...(Number.isFinite(Number(signals.ms)) && signals.ms !== undefined ? { ms: Number(signals.ms) } : {}) } } : {}),
         source: {
           page: globalThis.location?.href || null,
@@ -367,7 +388,7 @@ export async function submitViewerLead({ publishedId, clipId, kind, data, attrib
       }),
     });
     const body = await res.json().catch(() => ({}));
-    return res.ok && body.ok ? { stored: !!body.stored, error: null } : { stored: false, error: body.error || `HTTP ${res.status}`, fix: res.status === 400 && body.error ? String(body.error) : null }; // `fix`: a short message the viewer can act on
+    return res.ok && body.ok ? { stored: !!body.stored, ...(body.duplicate ? { duplicate: true } : {}), error: null } : { stored: false, error: body.error || `HTTP ${res.status}`, fix: res.status === 400 && body.error ? String(body.error) : null }; // `fix`: a short message the viewer can act on
   } catch (err) {
     return { stored: false, error: err?.message || String(err) };
   }

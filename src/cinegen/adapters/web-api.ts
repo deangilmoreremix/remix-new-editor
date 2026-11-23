@@ -146,7 +146,10 @@ export function registerWebApi() {
           (model as { occCaptions?: unknown[] }).occCaptions = a.clips.flatMap((c) => (c.captions ? [c.captions] : []));
           for (const c of a.clips) { const cap = c.captions as { template?: string; styleOverride?: { fontFamily?: string } } | undefined; const tpl = cap?.template; const fam = cap?.styleOverride?.fontFamily || (tpl && (CAPTION_STYLE_BY_ID as Record<string, { fontFamily?: string } | undefined>)[tpl]?.fontFamily); if (fam) { const m = model as { fonts?: string[] }; m.fonts = [...new Set([...(m.fonts ?? []), fam])]; } }
           // [remix] imported caption fonts travel with the render
-          (model as { userFonts?: unknown[] }).userFonts = userFontsFor(a.clips.map((c) => (c.captions as { styleOverride?: { fontFamily?: string } } | undefined)?.styleOverride?.fontFamily));
+          (model as { userFonts?: unknown[] }).userFonts = userFontsFor([
+            ...a.clips.map((c) => (c.captions as { styleOverride?: { fontFamily?: string } } | undefined)?.styleOverride?.fontFamily),
+            ...((a.overlays ?? []) as Array<{ addon?: { fontFamily?: string } }>).map((o) => o.addon?.fontFamily), // Smart Text / Text Mask / lower thirds can use an imported font too
+          ]);
           // [remix] GL transitions: window = B's start → A's end; rendered as an extra layer over both clips
           (model as { glTransitions?: unknown[] }).glTransitions = attachGlSideLooks(buildGlTransitionLayers(a.transitions, a.clips as never, a.fps), a.clips as never, (model as { layers: never[] }).layers, glSideLayerFrom as never); // [remix] Fix A: each side keeps its clip's own transform / keys / effects / opacity
           return model;
