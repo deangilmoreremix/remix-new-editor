@@ -306,12 +306,20 @@ export function LandingPagesStudio() {
       box.appendChild(danger);
       let last = JSON.stringify(current.config.editor);
       let mountPageEditorFn = null;
+      // Your recent pictures and videos, offered first in every picture and video field ("From your studio").
+      let studioTray = [];
+      import('./studio/landingPageAction.js').then(async ({ recentItems }) => {
+        const { normalizeItems } = await import('../lib/landingPages/contentTray.js');
+        const { toPickerVideo } = await import('../lib/landingPages/pickerModal.js');
+        studioTray = normalizeItems(await recentItems({ n: 8 }), toPickerVideo);
+      }).catch(() => {});
       const mountEditor = (data) => {
         editorHandle?.destroy();
         editorHandle = mountPageEditorFn(host, {
           page: current,
           data,
           tokens: editorTokens,
+          getTray: () => studioTray,
           onPublish: () => saveBtn.click(), // the editor's own Publish button = our Save
           onChange: (d) => {
             const next = sanitizeEditorData(d);
