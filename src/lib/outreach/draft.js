@@ -60,7 +60,8 @@ export function defaultDraft() {
     header: 'Hi {{firstname}}, I made this for you',
     message: 'Excited to show how we can help {{company}}.',
     fallbacks: { firstname: 'there', company: 'your company' },
-    cta: { enabled: true, label: 'Schedule a demo', url: '' },
+    // live: "Talk live" on the landing page (src/lib/outreach/liveCall.js) while you're available in the studio.
+    cta: { enabled: true, label: 'Schedule a demo', url: '', live: false },
     // Who sent it (Customize step): shown on the landing page and in the page's menu bar.
     sender: { name: '', title: '', company: '', logo: '', photo: '' },
     // The landing page of this dynamic video (like Sendspark, the page belongs to the video): null = the plain
@@ -697,6 +698,8 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, ext
       cta: draft.cta?.enabled
         ? { label: String(draft.cta.label).trim(), url: draft.cta.url, ...(draft.cta.embed && calendarEmbedUrl(draft.cta.url) ? { embed: true } : {}) }
         : null,
+      // "Talk live with Sam now" on the page while Sam is available (just the first name is shown).
+      ...(draft.cta?.live ? { live: { host: String(draft.sender?.name || '').trim().split(/\s+/)[0].slice(0, 40) } } : {}),
     },
   };
 }
@@ -763,6 +766,15 @@ export function listLibrary(storage = globalThis.localStorage) {
       video: e.draft.video?.url || '',
       thumbnailUrl: e.draft.campaign.links?.find((l) => l.thumbnailUrl)?.thumbnailUrl || '',
     }));
+}
+
+/** Generated campaigns that let prospects call live: [{ videoId, name, contacts }] (for the studio's host line). */
+export function liveCampaigns(storage = globalThis.localStorage, extra = null) {
+  const out = new Map();
+  const add = (d) => { if (d?.cta?.live && d.campaign?.id) out.set(d.campaign.id, { videoId: d.campaign.id, name: d.name || 'Untitled campaign', contacts: (d.contacts || []).map((c) => ({ id: c.id, firstName: c.firstName, lastName: c.lastName, email: c.email })) }); };
+  for (const e of Object.values(readLibrary(storage))) add(e?.draft);
+  add(extra);
+  return [...out.values()].slice(0, 20);
 }
 
 /** A saved campaign's draft (merged over defaults like loadDraft), or null. */

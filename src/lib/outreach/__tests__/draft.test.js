@@ -28,7 +28,7 @@ describe('outreach draft', () => {
     store.setItem(DRAFT_KEY, JSON.stringify({ header: 'Yo {{firstname}}', cta: { label: 'Call me' } }));
     const d = loadDraft(store);
     expect(d.header).toBe('Yo {{firstname}}');
-    expect(d.cta).toEqual({ enabled: true, label: 'Call me', url: '' });
+    expect(d.cta).toEqual({ enabled: true, label: 'Call me', url: '', live: false });
     expect(d.voice.mode).toBe('clone');
     saveDraft({ ...d, header: 'Saved' }, store);
     expect(loadDraft(store).header).toBe('Saved');

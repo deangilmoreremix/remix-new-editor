@@ -37,6 +37,40 @@ function message(container, title, text) {
  * @param {string|{business:string,slug:string}} ref  a video id (/watch/<id>) or a readable link (/v/<business>/<slug>)
  * @param {object} deps  (tests) { fetchVideo, createEngine, onLead, analytics, attribution }
  */
+async function startLiveCalls({ button, videoId, contactId, host, analytics, player, container }) {
+  const { liveCallSupported, createGuestLine } = await import('../lib/outreach/liveCall.js');
+  if (!liveCallSupported()) return;
+  const { createCallWindow } = await import('../components/outreach/LiveCallPanel.js');
+  const label = button.querySelector('[data-live-label]');
+  let win = null;
+  let who = host;
+  const line = createGuestLine({
+    videoId,
+    contactId,
+    onUpdate: (st) => {
+      who = st.hostName || host || 'us';
+      const free = st.hostOnline && (st.phase === 'idle' || ['missed', 'declined', 'ended', 'failed'].includes(st.phase));
+      button.hidden = !st.hostOnline && !win;
+      button.disabled = !free;
+      label.textContent = st.error || (st.hostOnline ? `Talk live with ${who} now` : `${who} is away`);
+      if (win) win.update(st);
+      if (['missed', 'declined', 'failed'].includes(st.phase)) {
+        // Offer the booking button instead.
+        container.querySelector('[data-landing-cta]')?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+      }
+    },
+  });
+  button.addEventListener('click', () => {
+    if (button.disabled) return;
+    try { player?.pause?.(); } catch { /* the call still starts */ }
+    win?.destroy();
+    win = createCallWindow({ who, onHangup: () => line.hangup(), onClose: () => { win = null; } });
+    analytics?.track?.('overlay_click', { t: player?.time, props: { label: 'Talk live' } });
+    line.call();
+  });
+  globalThis.addEventListener?.('pagehide', () => { line.destroy(); win?.destroy(); }, { once: true });
+}
+
 export async function mountWatchPage(container, ref, deps = {}) {
   const params = new URLSearchParams(globalThis.location?.search || '');
   const embed = params.get('embed') === '1';
@@ -108,9 +142,12 @@ export async function mountWatchPage(container, ref, deps = {}) {
   const ctaHref = (() => { try { const u = new URL(String(landing?.cta?.url || '')); return u.protocol === 'https:' ? u.toString() : null; } catch { return null; } })();
   // The booking page itself, shown under the button, for known calendar hosts only.
   const calendarSrc = landing?.cta?.embed && ctaHref ? calendarEmbedUrl(ctaHref) : null;
-  const landingBody = landing && !embed && (landing.message || (ctaHref && landing.cta?.label))
+  // "Talk live" (src/lib/outreach/liveCall.js): the button shows only while the sender is available.
+  const liveOn = !!(landing?.live && !embed);
+  const landingBody = landing && !embed && (landing.message || (ctaHref && landing.cta?.label) || liveOn)
     ? `<section class="watch-landing">
         ${landing.message ? `<p class="watch-landing-msg">${esc(fill(landing.message))}</p>` : ''}
+        ${liveOn ? `<button type="button" class="watch-live-btn" data-live-call hidden><span class="watch-live-dot" aria-hidden="true"></span><span data-live-label>Talk live now</span></button>` : ''}
         ${ctaHref && landing.cta?.label ? `<a class="watch-landing-cta" data-landing-cta href="${esc(ctaHref)}" target="_blank" rel="noopener noreferrer">${esc(landing.cta.label)}</a>` : ''}
         ${calendarSrc ? `<iframe class="watch-landing-calendar" data-landing-calendar src="${esc(calendarSrc)}" title="${esc(landing.cta.label || 'Book a time')}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>` : ''}
       </section>`
@@ -300,6 +337,9 @@ export async function mountWatchPage(container, ref, deps = {}) {
   container.querySelector('[data-landing-cta]')?.addEventListener('click', () => {
     analytics.track('cta_click', { t: player.time, props: { label: String(landing.cta.label).slice(0, 60) } });
   });
+  // Talk live with the sender while they are available (WebRTC; signalling over Supabase Realtime).
+  const liveBtn = container.querySelector('[data-live-call]');
+  if (liveBtn) startLiveCalls({ button: liveBtn, videoId: video.id, contactId: viewerProfile?.id || null, host: landing.live?.host || '', analytics, player, container }).catch(() => {});
   // Playback errors are measured too (the viewer sees the player's own message).
   frame.addEventListener('error', (e) => { if (e.target?.tagName === 'VIDEO' || e.target?.tagName === 'AUDIO') analytics.track('error', { props: { reason: 'media' } }); }, true);
   globalThis.addEventListener?.('pagehide', () => { heat.destroy(); analytics.destroy(); }, { once: true });

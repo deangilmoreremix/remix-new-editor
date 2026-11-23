@@ -16,12 +16,14 @@ import { renderProspectTable } from './outreach/ProspectTable.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
 import { createTabGuard } from '../lib/outreach/tabGuard.js';
 import { onOwnerNotification, isOutreachAlertFor } from '../lib/liveAlerts.js';
+import { createHostLine, liveCallSupported } from '../lib/outreach/liveCall.js';
+import { createCallWindow, showIncomingCall } from './outreach/LiveCallPanel.js';
 
 // Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
 const TRANSLATE_LANGS = [['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['it', 'Italian'], ['pt', 'Portuguese'], ['nl', 'Dutch'], ['pl', 'Polish'], ['ru', 'Russian'], ['tr', 'Turkish'], ['ar', 'Arabic'], ['hi', 'Hindi'], ['ja', 'Japanese'], ['ko', 'Korean'], ['zh', 'Chinese'], ['vi', 'Vietnamese'], ['id', 'Indonesian'], ['sv', 'Swedish'], ['en', 'English']];
 import {
   STEPS, SETUP_STEPS, STOCK_VOICES, FIRST_NAME_FALLBACKS, CONTACT_FIELDS, CSV_TEMPLATE, MAX_CONTACTS,
-  loadDraft, saveDraft, contactPickerSupported, contactsFromPicker, stepErrors, fillTemplate, speakRequest, tokensIn,
+  loadDraft, saveDraft, contactPickerSupported, contactsFromPicker, liveCampaigns, stepErrors, fillTemplate, speakRequest, tokensIn,
   parseCsv, guessMapping, contactsFromRows, contactsFromLeads, makeContact, mergeContacts, contactProfile, contactValues,
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
   SITE_ERROR, siteErrorFor, MISSING_MODES, onMissingOf, siteStatus, backgroundProblems,
@@ -213,6 +215,41 @@ export function OutreachStudio() {
   // Run when the studio is left (src/lib/router.js calls container.cleanup).
   const cleanups = [() => guard.destroy()];
   container.cleanup = () => { while (cleanups.length) { try { cleanups.pop()(); } catch { /* keep going */ } } };
+
+  // "Talk live" (src/lib/outreach/liveCall.js): while "Available for live calls" is on, this tab answers
+  // calls from the pages of campaigns that allow them. Only the editing tab answers.
+  const LIVE_KEY = 'outreach-live-available';
+  let liveAvailable = (() => { try { return globalThis.localStorage?.getItem(LIVE_KEY) === '1'; } catch { return false; } })();
+  let hostLine = null; let hostKey = ''; let ringBox = null; let callWin = null; let callWho = '';
+  const liveList = () => { try { return liveCampaigns(globalThis.localStorage, draft); } catch { return []; } };
+  function onHostUpdate(st) {
+    if (st.incoming && !ringBox) {
+      const camp = liveList().find((c) => c.videoId === st.incoming.videoId);
+      callWho = st.incoming.name;
+      ringBox = showIncomingCall({
+        name: st.incoming.name, campaign: camp?.name || '',
+        onAccept: () => { ringBox = null; hostLine?.accept(); },
+        onDecline: () => { ringBox = null; hostLine?.decline(); },
+      });
+      globalThis.dispatchEvent?.(new CustomEvent('remix:notifications-changed'));
+    }
+    if (!st.incoming && ringBox) { ringBox.close(); ringBox = null; } // they hung up, or answered in another tab
+    if (!callWin && (st.phase === 'connecting' || st.phase === 'live')) {
+      callWin = createCallWindow({ who: callWho, onHangup: () => hostLine?.hangup(), onClose: () => { callWin = null; } });
+    }
+    callWin?.update(st);
+    if (st.error && container.isConnected) { notice = st.error; render(); }
+  }
+  function syncHostLine() {
+    const list = liveAvailable && guard.active() && liveCallSupported() ? liveList() : [];
+    const key = list.map((c) => c.videoId).join(',');
+    if (key === hostKey) return;
+    hostKey = key;
+    hostLine?.destroy(); hostLine = null;
+    ringBox?.close(); ringBox = null;
+    if (list.length) hostLine = createHostLine({ campaigns: list, hostName: String(draft.sender?.name || '').trim().split(/\s+/)[0], onUpdate: onHostUpdate });
+  }
+  cleanups.push(() => { hostKey = ''; hostLine?.destroy(); hostLine = null; ringBox?.close(); ringBox = null; callWin?.destroy(); callWin = null; });
   const replaceDraft = (next) => { for (const k of Object.keys(draft)) delete draft[k]; Object.assign(draft, next); edit = startEdit(draft.edit); stopPreview(); linkStats = { id: null, loading: false, byContact: null }; pendingCsv = null; pendingLeads = null; persist(); };
   const setBusy = (label) => { busy = label; render(); };
   const fail = (err) => { busy = ''; notice = err?.message || String(err); render(); };
@@ -944,6 +981,8 @@ export function OutreachStudio() {
     ctaSw.setAttribute('data-editor-cta', '');
     const calSw = toggle(!!draft.cta.embed, (on) => setCta({ embed: on, enabled: on ? true : draft.cta.enabled }), { label: 'Calendar embed' });
     calSw.setAttribute('data-editor-calendar', '');
+    const liveSw = toggle(!!draft.cta.live, (on) => setCta({ live: on }), { label: 'Talk live' });
+    liveSw.setAttribute('data-editor-live', '');
     const hasCaptions = !!draft.captions?.lines?.length;
     const trSw = toggle(hasCaptions && draft.showTranscript !== false, (on) => { draft.showTranscript = on; persist(); render(); }, { label: 'Transcript', disabled: !hasCaptions });
     trSw.setAttribute('data-editor-transcript', '');
@@ -951,6 +990,7 @@ export function OutreachStudio() {
     cz.append(
       row('megaphone', 'Call-to-action', 'Give your prospects their next step.', ctaSw, ctaFields),
       row('calendar', 'Calendar embed', 'Show your booking calendar with your video (plain video page).', calSw),
+      row('megaphone', 'Talk live', 'Prospects can video-call you from the page while you\u2019re available in Video Outreach (plain video page). Regenerate to apply.', liveSw),
       row('lines', 'Transcript', 'Show a transcript on the page.', trSw, trNote),
     );
     side.append(addBlock, tpl, cz);
@@ -1478,18 +1518,21 @@ export function OutreachStudio() {
     const ctaLabel = textInput(draft.cta.label, 'Schedule a demo');
     const ctaUrl = textInput(draft.cta.url, 'https://cal.com/you/intro');
     const calOn = el('input'); calOn.type = 'checkbox'; calOn.checked = !!draft.cta.embed; calOn.setAttribute('data-outreach-calendar', '');
+    const liveOn = el('input'); liveOn.type = 'checkbox'; liveOn.checked = !!draft.cta.live; liveOn.setAttribute('data-outreach-live', '');
     const sync = () => {
       draft.header = header.value; draft.message = message.value; draft.fallbacks.company = company.value;
-      draft.cta = { enabled: ctaOn.checked, label: ctaLabel.value, url: ctaUrl.value.trim(), embed: calOn.checked };
+      draft.cta = { ...draft.cta, enabled: ctaOn.checked, label: ctaLabel.value, url: ctaUrl.value.trim(), embed: calOn.checked, live: liveOn.checked };
       persist(); updatePreview();
     };
     [header, message, company, ctaLabel, ctaUrl].forEach((i) => i.addEventListener('input', sync));
     ctaOn.addEventListener('change', sync);
     calOn.addEventListener('change', sync);
+    liveOn.addEventListener('change', sync);
     const ctaRow = el('label', 'flex items-center gap-3 text-sm font-bold'); ctaRow.append(ctaOn, el('span', '', 'Call-to-action button'));
     const calRow = el('label', 'flex items-center gap-3 text-sm'); calRow.append(calOn, el('span', '', 'Plain video page only: show the calendar under the video so contacts can book without leaving the page'));
+    const liveRow = el('label', 'flex items-center gap-3 text-sm'); liveRow.append(liveOn, el('span', '', 'Let prospects call me live: a \u201cTalk live\u201d button shows on their page (plain video page) whenever you switch on \u201cAvailable for live calls\u201d here'));
     main.append(field('Header', header, draft.page ? 'For the plain video page. Your landing page keeps its own words; change them with Edit page.' : ''), variableChips(header), field('Message', message), variableChips(message), field('If the company is missing, say', company), ctaRow,
-      field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow);
+      field('Button label', ctaLabel), field('Booking link', ctaUrl, 'Your Cal.com, Calendly or other booking page (https).'), calRow, liveRow);
 
 
     // Video background: on the AI intro step for AI voices; here for Same audio (which has no AI intro step).
@@ -3048,12 +3091,31 @@ export function OutreachStudio() {
       pill.addEventListener('click', () => goStep(n, '', { animate: true }));
       stepper.appendChild(pill);
     });
+    // Available for live calls: shown once a campaign lets prospects call (Page step → Talk live).
+    if (liveCallSupported() && (draft.cta?.live || liveList().length)) {
+      const chip = el('button', `ml-auto flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${liveAvailable ? 'border-emerald-400/50 bg-emerald-400/10 text-emerald-100' : 'border-white/10 text-white/60'}`);
+      chip.type = 'button';
+      chip.setAttribute('data-outreach-live-available', liveAvailable ? 'on' : 'off');
+      chip.setAttribute('aria-pressed', String(liveAvailable));
+      chip.title = liveAvailable
+        ? 'Prospects on your pages see \u201cTalk live\u201d and can video-call you while this tab is open. Click to stop.'
+        : 'Let prospects on your pages video-call you while this tab is open.';
+      chip.append(el('span', `h-2 w-2 rounded-full ${liveAvailable ? 'bg-emerald-400 animate-pulse' : 'bg-white/30'}`), el('span', '', liveAvailable ? 'Available for live calls' : 'Live calls off'));
+      chip.addEventListener('click', () => {
+        liveAvailable = !liveAvailable;
+        try { globalThis.localStorage?.setItem(LIVE_KEY, liveAvailable ? '1' : '0'); } catch { /* private mode */ }
+        notice = liveAvailable ? (liveList().length ? 'You\u2019re available: prospects on your pages can call you while this tab is open.' : 'You\u2019re available. Generate a campaign with Talk live on so prospects can call you.') : 'Live calls are off.';
+        render();
+      });
+      stepper.appendChild(chip);
+    }
   }
 
   const VIEWS = { 1: () => renderRecord(), 2: () => renderVoice(), 3: () => renderCustomize(), 4: () => renderContacts(), 5: () => renderGenerate(), 6: () => renderCampaigns() };
 
   function render() {
     dropPreviewHandles();
+    syncHostLine();
     renderStepper();
     inner.replaceChildren();
     const elsewhere = !guard.active();

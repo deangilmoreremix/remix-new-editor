@@ -98,3 +98,11 @@ html.watch-root #app { height: auto; min-height: 100vh; background: transparent;
 .watch-stage[data-play-pending]::after { content: ''; position: absolute; left: 50%; top: 50%; width: 36px; height: 36px; margin: -18px 0 0 -18px; border: 3px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: watch-pending-spin .8s linear infinite; pointer-events: none; }
 @keyframes watch-pending-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .watch-stage[data-play-pending]::after { animation: none; } }
+/* Talk live (Video Outreach): shown while the sender is available. */
+.watch-live-btn { display: inline-flex; align-items: center; gap: 10px; margin: 0 12px 12px 0; padding: 12px 24px; border: 0; border-radius: 999px; background: #2fb344; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.watch-live-btn[hidden] { display: none; }
+.watch-live-btn:disabled { opacity: .6; cursor: default; }
+.watch-live-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.watch-live-dot { width: 9px; height: 9px; border-radius: 50%; background: #fff; animation: watch-live-pulse 1.2s ease-in-out infinite; }
+@keyframes watch-live-pulse { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .watch-live-dot { animation: none; } }
