@@ -429,7 +429,7 @@ interface LLMTabProps {
 
 // [remix] One cloud model: the OpenAI Responses API on the user's own key (served by /api/timeline-llm).
 const MODEL_SUGGESTIONS = [
-  'openai/gpt-5.6-sol',
+  'openai/gpt-6.1-sol',
 ];
 
 const LOCAL_MODEL_DEFAULT = 'qwen3.5:latest';

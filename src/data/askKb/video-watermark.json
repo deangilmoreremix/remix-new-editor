@@ -4,7 +4,7 @@
   "route": "#/video-watermark",
   "description": "An intro page for removing watermarks from videos. Its buttons open Video Studio, where you upload the video and remove the watermark.",
   "shortDescription": "Intro page that sends you to Video Studio to remove video watermarks.",
-  "fullDescription": "Video Watermark Remover (#/video-watermark, 'Watermark Remover' in the app menu) is an information page titled 'Video Watermark Remover - Remove watermarks, logos, and unwanted elements from your videos with AI'. It has a 'Remove Watermarks Free' button, a 'Powerful Removal Tools' section (Smart Removal, Precise Editing, Fast Processing, Professional Results), a 'How It Works' section (01 Upload Video, 02 AI Processing, 03 Download), an 'Available Tools' section with three cards (AI Video Watermark Remover, AI Video Object Remover, AI Video Logo Remover) and a closing 'Clean Your Videos Today' box with 'Get Started Free'. Nothing is uploaded or processed on this page: every button and card opens Video Studio (#/video). The removal itself happens there: click the video button left of the prompt (tooltip 'Upload video to remove watermark'), choose a video, and the studio switches to the 'AI Video Watermark Remover' model, greys out the prompt with 'Video ready — click Generate to remove watermark', and Generate makes the clean video. Video Studio also lists 'Seedance 2 Video Watermark Remover Pro'. There is no separate object-remover or logo-remover model behind those two cards; they open Video Studio like the others.",
+  "fullDescription": "Video Watermark Remover (#/video-watermark, 'Watermark Remover' in the app menu) is an information page titled 'Video Watermark Remover - Remove watermarks, logos, and unwanted elements from your videos with AI'. It has a 'Remove Watermarks Free' button, a 'Powerful Removal Tools' section (Smart Removal, Precise Editing, Fast Processing, Professional Results), a 'How It Works' section (01 Upload Video, 02 AI Processing, 03 Download), an 'Available Tools' section with four cards (AI Video Watermark Remover, AI Video Logo Remover, Seedance 2 Watermark Remover, Video Background Remover) and a closing 'Clean Your Videos Today' box with 'Get Started Free'. Nothing is uploaded or processed on this page: every button and card opens Video Studio (#/video), and each card also picks its model there in video-to-video mode. The removal itself happens there: click the video button left of the prompt (tooltip 'Upload video to remove watermark'), choose a video, and the studio switches to the 'AI Video Watermark Remover' model, greys out the prompt with 'Video ready — click Generate to remove watermark', and Generate makes the clean video. Video Studio also lists 'Seedance 2 Video Watermark Remover Pro'. The Logo Remover card uses the AI Video Watermark Remover, which also clears logos; there is no separate object-remover model for video.",
   "bestFor": "Anyone who wants to remove a watermark, logo, caption or overlaid text from a video they have the right to edit.",
   "whenToUse": [
     "You want to know how video watermark removal works in the app.",
@@ -18,7 +18,7 @@
   "keyFeatures": [
     "'Remove Watermarks Free' and 'Get Started Free' buttons open Video Studio",
     "'Powerful Removal Tools' and 'How It Works' overview sections",
-    "Available Tools cards: AI Video Watermark Remover, AI Video Object Remover, AI Video Logo Remover",
+    "Available Tools cards: AI Video Watermark Remover, AI Video Logo Remover, Seedance 2 Watermark Remover, Video Background Remover",
     "The actual removal in Video Studio: upload a video and Generate with the AI Video Watermark Remover model"
   ],
   "featureExplanations": [
@@ -45,17 +45,17 @@
     },
     {
       "feature": "AI Video Watermark Remover card",
-      "explanation": "In 'Available Tools', the card tagged 'Watermark'. Clicking it opens Video Studio.",
+      "explanation": "In 'Available Tools', the card tagged 'Watermark'. Clicking it opens Video Studio with the AI Video Watermark Remover model already selected.",
       "whyToUse": "Opens the studio where the AI Video Watermark Remover model is used.",
       "inputRequired": "None on this page.",
-      "restrictions": "The card does not pre-select the model; the model is chosen automatically when you upload a video in Video Studio."
+      "restrictions": "You still upload the video in Video Studio, with the video button left of the prompt."
     },
     {
-      "feature": "AI Video Object Remover and Logo Remover cards",
-      "explanation": "Two more cards tagged 'Removal': 'Remove unwanted objects from videos' and 'Remove logos and branding from videos'. Both open Video Studio.",
-      "whyToUse": "To start removing logos or unwanted elements.",
-      "inputRequired": "None on this page.",
-      "restrictions": "There is no separate object or logo remover model; Video Studio uses the AI Video Watermark Remover, whose description covers 'watermarks, logos, captions, and unwanted text'."
+      "feature": "Logo, Seedance and Background Remover cards",
+      "explanation": "Three more cards. 'AI Video Logo Remover' opens Video Studio with the AI Video Watermark Remover selected, since that model also removes logos and channel branding. 'Seedance 2 Watermark Remover' selects the model that removes the Seedance 2.0 watermark. 'Video Background Remover' selects the model that cuts the subject out and removes the background.",
+      "whyToUse": "To jump straight to the right removal model for your clip.",
+      "inputRequired": "None on this page; upload the video in Video Studio.",
+      "restrictions": "There is no separate object-remover model for video. For still images, Image Studio's AI Object Eraser removes objects."
     },
     {
       "feature": "Get Started Free button",
@@ -149,9 +149,9 @@
   ],
   "commonProblems": [
     {
-      "problem": "I clicked AI Video Logo Remover but see a different model",
-      "whyItHappens": "The cards only open Video Studio; they do not set the model.",
-      "howToFix": "Upload your video with the video button; AI Video Watermark Remover is selected automatically and also removes logos."
+      "problem": "I clicked AI Video Logo Remover and Video Studio shows 'AI Video Watermark Remover'",
+      "whyItHappens": "That is the right model: it removes logos and branding as well as watermarks and captions.",
+      "howToFix": "Upload your video with the video button and click Generate."
     }
   ],
   "exampleWorkflows": [
@@ -242,9 +242,7 @@
   ],
   "notConfirmed": [
     "The credit cost of watermark removal.",
-    "Maximum video length or file size for the Video Studio upload (this path uses uploadMediaFile; no limit is shown on the page).",
-    "Whether the 'prefill_model' value the tool cards save is meant to pre-select a model: nothing in the app reads it.",
-    "How well object removal works, since the cards for it use the same watermark remover."
+    "Maximum video length or file size for the Video Studio upload (this path uses uploadMediaFile; no limit is shown on the page)."
   ],
   "sourceFiles": [
     "src/components/VideoWatermarkPage.js",
@@ -258,6 +256,6 @@
     "status": "code-review",
     "verifiedAt": "2026-11-20",
     "verifiedBy": "Code review (LLM-assisted)",
-    "evidence": "Read VideoWatermarkPage.js (all buttons navigate to 'video'; cards store prefill_model, which no code reads), VideoStudio.js's video upload path (switches to v2vModels[0] = AI Video Watermark Remover) and the v2v model list in models.js. Loaded the page in the dev app."
+    "evidence": "Read VideoWatermarkPage.js (each card stores its v2v model with storePrefillModel and opens Video Studio), VideoStudio.js (a v2v prefill model opens the studio in video-to-video mode with that model) and the v2v model list in models.js."
   }
 }

@@ -246,7 +246,7 @@ export const STUDIO_ACADEMY = {
 const SAME_LESSONS_AS = {
   'text-to-image': 'image', 'image-to-image': 'edit', 'text-to-video': 'video', 'image-to-video': 'video',
   'video-to-video': 'video', 'video-watermark': 'video', 'smart-video-studio': 'image',
-  'photo-studio': 'brand', campaign: 'brand', 'brand-dna': 'brand', 'asset-edit': 'brand',
+  'photo-studio': 'brand', campaign: 'brand', 'brand-dna': 'brand', 'asset-edit': 'brand', 'muapi-studio': 'image',
 };
 for (const [page, studio] of Object.entries(SAME_LESSONS_AS)) STUDIO_ACADEMY[page] = STUDIO_ACADEMY[studio];
 STUDIO_ACADEMY['smart-video-scheduler'] = { tracks: [], lessons: [] };

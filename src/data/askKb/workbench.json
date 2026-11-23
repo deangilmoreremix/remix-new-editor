@@ -169,7 +169,7 @@
       "useCase": "Bringing in material from other studios."
     }
   ],
-  "modelCapabilities": "Workbench itself does not generate images or video. Only the Edit with AI chat uses a model: it calls the OpenAI Responses API with your own OpenAI key. The default model in the code is gpt-5.6-sol, and a deployment can override it with the environment variable OPENAI_RESPONSES_TEXT_MODEL. The model returns a short reply plus a list of edit operations (update clip, set text props, add clip, remove clip, split clip, move to track, add or remove track, set project name or background). The app validates every operation before applying it. Rendering uses Remotion in your browser.",
+  "modelCapabilities": "Workbench itself does not generate images or video. Only the Edit with AI chat uses a model: it calls the OpenAI Responses API with your own OpenAI key. The default model in the code is gpt-6.1-sol (OpenAI GPT-6.1 Sol), and a deployment can override it with the environment variable OPENAI_RESPONSES_TEXT_MODEL. The model returns a short reply plus a list of edit operations (update clip, set text props, add clip, remove clip, split clip, move to track, add or remove track, set project name or background). The app validates every operation before applying it. Rendering uses Remotion in your browser.",
   "outputs": [
     "A multi-track edited project (autosaved in your browser)",
     "An MP4 exported from your browser and saved to your library",
@@ -386,7 +386,7 @@
     "Whether the aspect ratio and frame rate can be changed by the user and what the defaults are.",
     "The older apps/shotcraft guide describes a local developer workflow (dev server, Finder export); the hosted app instead exports in the browser, and only browser behavior is described here.",
     "The studio registry describes Workbench as a node-based workspace; the code shows a multi-track timeline editor, and the code was trusted.",
-    "The exact model used in production, because the default gpt-5.6-sol can be overridden by an environment variable."
+    "The exact model used in production, because the default gpt-6.1-sol can be overridden by an environment variable."
   ],
   "sourceFiles": [
     "src/components/studios/WorkbenchStudio/WorkbenchStudio.js",

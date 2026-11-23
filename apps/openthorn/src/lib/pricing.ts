@@ -18,6 +18,9 @@ const qualityMap: Record<string, { index: number; strengths: string }> = {
   'anthropic/claude-sonnet-4.6': { index: 88, strengths: 'Fast coding, balanced performance' },
   'anthropic/claude-sonnet-4.5': { index: 85, strengths: 'Reliable coding, cost-effective' },
   'anthropic/claude-haiku-4.5': { index: 75, strengths: 'Quick tasks, lightweight coding' },
+  'openai/gpt-6-astra': { index: 100, strengths: 'Top GPT-6 model, deepest reasoning, hardest agentic work' },
+  'openai/gpt-6.1-sol': { index: 99, strengths: 'Default GPT-6 model, strong reasoning and coding' },
+  'openai/gpt-6-luna': { index: 84, strengths: 'Cheapest GPT-6, fast high-volume tasks' },
   'openai/gpt-5.5': { index: 100, strengths: 'Advanced reasoning, math, coding agents' },
   'openai/gpt-5.4': { index: 92, strengths: 'Strong reasoning, large context' },
   'openai/gpt-4.1': { index: 82, strengths: 'Solid general coding, mature SDK' },
@@ -43,6 +46,7 @@ const flagshipIds = [
   'anthropic/claude-sonnet-4.6', 'anthropic/claude-sonnet-4.5',
   'anthropic/claude-haiku-4.5',
   // OpenAI
+  'openai/gpt-6.1-sol', 'openai/gpt-6-luna', 'openai/gpt-6-astra',
   'openai/gpt-5.5', 'openai/gpt-5.4', 'openai/gpt-4.1',
   'openai/o3', 'openai/o4-mini',
   // Google
@@ -64,6 +68,14 @@ function getProvider(id: string): string {
     moonshot: 'Moonshot', meta: 'Meta', xai: 'xAI',
   }
   return map[p] || p.charAt(0).toUpperCase() + p.slice(1)
+}
+
+// List prices ($/1M tokens, input/output) for models OpenRouter may not list
+// yet. Used only when the live OpenRouter catalog has no entry for the id.
+const fallbackPricing: Record<string, { name: string; inputPer1M: number; outputPer1M: number; contextLength: number }> = {
+  'openai/gpt-6.1-sol': { name: 'GPT-6.1 Sol', inputPer1M: 2, outputPer1M: 10, contextLength: 1_000_000 },
+  'openai/gpt-6-luna': { name: 'GPT-6 Luna', inputPer1M: 0.1, outputPer1M: 0.5, contextLength: 1_000_000 },
+  'openai/gpt-6-astra': { name: 'GPT-6 Astra', inputPer1M: 10, outputPer1M: 50, contextLength: 1_000_000 },
 }
 
 let cached: ModelEntry[] | null = null
@@ -108,6 +120,12 @@ export async function fetchModels(): Promise<ModelEntry[]> {
       strengths: q.strengths,
     }
   })
+
+  for (const [id, p] of Object.entries(fallbackPricing)) {
+    if (all.some((m) => m.id === id)) continue
+    const q = qualityMap[id] || { index: 0, strengths: '' }
+    all.push({ id, name: p.name, provider: getProvider(id), inputPer1M: p.inputPer1M, outputPer1M: p.outputPer1M, contextLength: p.contextLength, qualityIndex: q.index, strengths: q.strengths })
+  }
 
   cached = all
   lastFetch = Date.now()

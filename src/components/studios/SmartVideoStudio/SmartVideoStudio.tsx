@@ -5,15 +5,16 @@
  * build-import-analysis parse errors with SWC.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { syncCatalog, getModelsForTab, STUDIO_TABS } from './svStudio/modelRegistry';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createRoot } from 'react-dom/client';
+import { syncCatalog, getModelsForTab, getModelById, loadModelSchema, STUDIO_TABS } from './svStudio/modelRegistry';
 import ModeRail from './ModeRail';
 import ModelSelector from './ModelSelector';
 import DynamicModelForm from './DynamicModelForm';
 import GenerationsPanel from './GenerationsPanel';
 import { submitGeneration, type GenerationJob } from './svStudio/generationGateway';
 import './svStudio/outputRenderer';
-import '../../styles/smartVideoStudio.css';
+import '../../../styles/smartVideoStudio.css';
 
 const h = React.createElement;
 
@@ -26,14 +27,21 @@ export default function SmartVideoStudio() {
   const [userBalance, setUserBalance] = useState(null);
   const [prompt, setPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [catalogError, setCatalogError] = useState(null);
+  const [notice, setNotice] = useState(null);
+  const formValuesRef = useRef({});
+  const handleValuesChange = useCallback((values) => { formValuesRef.current = values; }, []);
 
   useEffect(() => {
     let cancelled = false;
     async function loadCatalog() {
       setLoading(true);
       try {
-        await syncCatalog();
+        const all = await syncCatalog();
         if (cancelled) return;
+        if (all.length === 0) {
+          setCatalogError('No models could be loaded. Check your connection and reload the page.');
+        }
         const byTab = {};
         for (const tab of STUDIO_TABS) {
           byTab[tab.id] = getModelsForTab(tab.id).filter(m => m.enabled);
@@ -44,6 +52,7 @@ export default function SmartVideoStudio() {
         }
       } catch (e) {
         console.error('[SmartVideoStudio] Catalog load failed', e);
+        if (!cancelled) setCatalogError('The model catalog failed to load. Reload the page to try again.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -52,14 +61,38 @@ export default function SmartVideoStudio() {
     return () => { cancelled = true; };
   }, []);
 
+  const tabModels = modelsByTab[activeTab] || [];
+  // Only a model that belongs to the active tab can be generated with.
+  const activeModel = selectedModel && tabModels.some(m => m.id === selectedModel.id) ? selectedModel : null;
+  // Which key the bottom prompt bar fills: null for models with no prompt (lip-sync, upscale...).
+  // The schema the form actually loaded (inline, or fetched into the registry cache for remote models).
+  const [loadedSchema, setLoadedSchema] = useState<{ id: string; schema: Record<string, unknown> } | null>(null);
   useEffect(() => {
-    if (modelsByTab[activeTab]?.length > 0) {
-      const currentInTab = modelsByTab[activeTab].find(m => m.id === selectedModel?.id);
-      if (!currentInTab) {
-        setSelectedModel(modelsByTab[activeTab][0]);
-      }
+    if (!activeModel) return undefined;
+    let stale = false;
+    loadModelSchema(activeModel.id)
+      .then((schema) => { if (!stale) setLoadedSchema({ id: activeModel.id, schema: schema || {} }); })
+      .catch(() => { if (!stale) setLoadedSchema({ id: activeModel.id, schema: {} }); });
+    return () => { stale = true; };
+  }, [activeModel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const activeSchema = activeModel
+    ? (loadedSchema?.id === activeModel.id ? loadedSchema.schema : (getModelById(activeModel.id)?.input_schema || activeModel.input_schema || null))
+    : null;
+  const schemaReady = !!activeModel && !!activeSchema;
+  // undefined until the schema is known (Generate stays disabled); null when the model takes no prompt.
+  const promptKey = !activeModel || !activeSchema ? (activeModel ? undefined : null)
+    : 'prompt' in activeSchema ? 'prompt' : 'text' in activeSchema ? 'text' : null;
+
+  useEffect(() => {
+    if (tabModels.length > 0) {
+      if (!tabModels.some(m => m.id === selectedModel?.id)) setSelectedModel(tabModels[0]);
+    } else if (selectedModel && !loading) {
+      // Empty mode (3D, AI Tools): drop the previous tab's model so it cannot be submitted from here.
+      setSelectedModel(null);
     }
-  }, [activeTab, modelsByTab, selectedModel]);
+  }, [tabModels, selectedModel, loading]);
+
+  useEffect(() => { setNotice(null); }, [activeTab, selectedModel]);
 
   const handleTabChange = useCallback((tabId) => {
     setActiveTab(tabId);
@@ -69,38 +102,83 @@ export default function SmartVideoStudio() {
     setSelectedModel(model);
   }, []);
 
+  // Shows a "processing" card right away, then swaps in the finished (or failed) job.
+  const runJob = useCallback(async (modelId, values) => {
+    const now = new Date().toISOString();
+    const tempId = `pending_${Date.now()}`;
+    const model = selectedModel?.id === modelId ? selectedModel : null;
+    setJobs(prev => [{
+      id: tempId, modelId, modelName: model?.display_name || model?.name || modelId,
+      status: 'processing', input: values, createdAt: now, updatedAt: now,
+    }, ...prev]);
+    let job;
+    try {
+      job = await submitGeneration({ modelId, values });
+    } catch (e) {
+      job = {
+        id: tempId, modelId, modelName: model?.display_name || model?.name || modelId,
+        status: 'failed', input: values, error: e instanceof Error ? e.message : String(e),
+        createdAt: now, updatedAt: new Date().toISOString(),
+      };
+    }
+    setJobs(prev => prev.map(j => (j.id === tempId ? job : j)));
+    return job;
+  }, [selectedModel]);
+
   const handleGenerate = useCallback(async (params) => {
-    if (!selectedModel || !prompt.trim()) return;
+    if (!activeModel || params.modelId !== activeModel.id) {
+      setNotice('Pick a model in this mode before generating.');
+      return;
+    }
+    if (promptKey === undefined) {
+      setNotice('The model form is still loading. Try again in a moment.');
+      return;
+    }
+    const values = { ...formValuesRef.current, ...params.values };
+    if (promptKey) {
+      if (prompt.trim()) values[promptKey] = prompt.trim();
+      if (!String(values[promptKey] ?? '').trim()) {
+        setNotice('Enter a prompt first.');
+        return;
+      }
+    }
+    setNotice(null);
     setGenerating(true);
     try {
-      const job = await submitGeneration({
-        modelId: params.modelId,
-        values: { ...params.values, prompt: prompt.trim() },
-      });
-      setJobs(prev => [job, ...prev]);
-      setPrompt('');
+      const job = await runJob(params.modelId, values);
+      // Keep the prompt editable when the request was rejected, so the user can fix and resend it.
+      if (job?.status !== 'failed') setPrompt('');
     } catch (e) {
       console.error('[SmartVideoStudio] Generation failed', e);
+      const message = e instanceof Error ? e.message : String(e);
+      const now = new Date().toISOString();
+      setJobs(prev => [{
+        id: `failed_${Date.now()}`, modelId: params.modelId,
+        modelName: activeModel.display_name || activeModel.name || params.modelId,
+        status: 'failed', input: values, error: message, createdAt: now, updatedAt: now,
+      }, ...prev]);
+      setNotice(`Generation failed: ${message}`);
     } finally {
       setGenerating(false);
     }
-  }, [selectedModel, prompt]);
+  }, [activeModel, promptKey, prompt, runJob]);
+
+  const submitFromBar = useCallback(() => {
+    if (!activeModel) {
+      setNotice('No models are available in this mode yet. Pick another mode on the left.');
+      return;
+    }
+    handleGenerate({ modelId: activeModel.id, values: {}, cost: 0 });
+  }, [activeModel, handleGenerate]);
 
   const handleRetry = useCallback(async (job) => {
-    if (!selectedModel) return;
     setGenerating(true);
     try {
-      const newJob = await submitGeneration({
-        modelId: job.modelId,
-        values: job.input,
-      });
-      setJobs(prev => [newJob, ...prev]);
-    } catch (e) {
-      console.error('[SmartVideoStudio] Retry failed', e);
+      await runJob(job.modelId, job.input);
     } finally {
       setGenerating(false);
     }
-  }, [selectedModel]);
+  }, [runJob]);
 
   const handleUseAsInput = useCallback((job) => {
     console.log('[SmartVideoStudio] Use as input:', job);
@@ -114,12 +192,10 @@ export default function SmartVideoStudio() {
     let cancelled = false;
     async function fetchBalance() {
       try {
-        const response = await fetch('/api/user/balance');
-        if (!response.ok) return;
-        const data = await response.json();
-        if (!cancelled) {
-          setUserBalance(data.balance ?? data.credits ?? null);
-        }
+        // MuAPI balance for the user's own key (null when no key is set).
+        const { muapi } = await import('../../../lib/muapi.js');
+        const balance = await muapi.getBalance();
+        if (!cancelled && typeof balance === 'number') setUserBalance(balance);
       } catch {
         // Silently fail - balance display is optional
       }
@@ -133,13 +209,6 @@ export default function SmartVideoStudio() {
     h('header', { className: 'smart-video-studio-header' },
       h('div', { className: 'smart-video-studio-header-inner' },
         h('div', { className: 'smart-video-studio-header-logo' },
-          h('img', {
-            alt: 'SmartVideo Logo',
-            width: 32,
-            height: 32,
-            src: '/m-logo.png',
-            style: { color: 'transparent' }
-          }),
           h('span', {
             style: {
               fontSize: '18px',
@@ -147,25 +216,14 @@ export default function SmartVideoStudio() {
               letterSpacing: '-0.02em',
               color: '#fff'
             }
-          }, 'SmartVideo')
-        ),
-        h('nav', {
-          className: 'smart-video-studio-header-nav',
-          'aria-label': 'Main Navigation'
-        },
-          h('a', { href: '/playground' }, 'Explore'),
-          h('a', { href: '/rankings' }, 'Rankings'),
-          h('a', { href: '/docs/introduction' }, 'Docs'),
-          h('a', { href: '/blog' }, 'Blog'),
-          h('a', { href: 'https://discord.com/invite/zpnuBRXhKg' }, 'Discord')
+          }, 'SmartVideo Studio')
         ),
         h('div', { className: 'smart-video-studio-header-actions' },
           userBalance !== null && h('div', { className: 'smart-video-balance' },
             h('span', { className: 'smart-video-balance-label' }, 'Balance:'),
             h('span', { className: 'smart-video-balance-value' }, userBalance.toFixed(2)),
             h('span', { className: 'smart-video-balance-currency' }, 'credits')
-          ),
-          h('button', { className: 'smart-video-studio-header-signin' }, 'Sign In')
+          )
         )
       )
     ),
@@ -178,15 +236,25 @@ export default function SmartVideoStudio() {
           selectedModelId: selectedModel?.id || null,
           onSelect: handleModelSelect
         }),
-        selectedModel
-          ? h(DynamicModelForm, {
-              modelId: selectedModel.id,
-              onGenerate: handleGenerate,
-              onReset: handleReset
-            })
-          : h('div', { className: 'smart-video-no-model' },
-              h('p', null, 'Select a model to begin creating.')
+        catalogError
+          ? h('div', { className: 'smart-video-no-model', role: 'alert' },
+              h('p', null, catalogError)
             )
+          : activeModel
+            ? h(DynamicModelForm, {
+                key: activeModel.id,
+                modelId: activeModel.id,
+                onGenerate: handleGenerate,
+                onReset: handleReset,
+                onValuesChange: handleValuesChange
+              })
+            : h('div', { className: 'smart-video-no-model' },
+                h('p', null, loading
+                  ? 'Loading models...'
+                  : tabModels.length
+                    ? 'Select a model to begin creating.'
+                    : 'No models are available in this category yet. Pick another mode on the left.')
+              )
       ),
       h('div', { className: 'smart-video-studio-main' },
         h(GenerationsPanel, {
@@ -209,19 +277,33 @@ export default function SmartVideoStudio() {
           onKeyDown: (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
-              if (selectedModel && prompt.trim()) {
-                handleGenerate({ modelId: selectedModel.id, values: {}, cost: 0 });
-              }
+              if (!generating) submitFromBar();
             }
           }
         }),
         h('button', {
           type: 'button',
-          onClick: () => selectedModel && prompt.trim() && handleGenerate({ modelId: selectedModel.id, values: {}, cost: 0 }),
-          disabled: generating || !selectedModel || !prompt.trim(),
+          onClick: submitFromBar,
+          disabled: generating || !activeModel || !schemaReady,
+          title: !activeModel ? 'No model selected for this mode' : undefined,
           className: 'smart-video-prompt-submit'
         }, generating ? 'Generating...' : 'Generate')
-      )
+      ),
+      notice && h('div', {
+        className: 'smart-video-prompt-notice',
+        role: 'status',
+        style: { fontSize: '12px', color: '#f87171', padding: '4px 4px 0' }
+      }, notice)
     )
   );
+}
+
+/** Router entry: mounts the studio into a div and unmounts it when the route changes. */
+export function SmartVideoStudioPage() {
+  const container = document.createElement('div');
+  container.className = 'w-full h-full';
+  const root = createRoot(container);
+  root.render(h(SmartVideoStudio));
+  container.cleanup = () => root.unmount();
+  return container;
 }

@@ -159,12 +159,12 @@ export const DEFAULT_BASE_URLS = Object.fromEntries(
 
 export const DEFAULT_PROVIDER_MODELS: Record<string, ProviderModel[]> = {
   openai: [
-    // GPT-5.6 family (GA July 2026); the bare `gpt-5.6` alias routes to sol.
-    { name: 'GPT-5.6 Sol', id: 'gpt-5.6-sol', recommended: true, contextWindow: 1_000_000 },
-    { name: 'GPT-5.6 Terra', id: 'gpt-5.6-terra', contextWindow: 1_000_000 },
-    { name: 'GPT-5.6 Luna', id: 'gpt-5.6-luna', cheapest: true, contextWindow: 1_000_000 },
-    { name: 'GPT-5.5', id: 'gpt-5.5', contextWindow: 1_000_000 },
-    { name: 'GPT-5.4 mini', id: 'gpt-5.4-mini', contextWindow: 1_000_000 },
+    // GPT-6 family. The first entry is the default model (agent.ts uses merged[0]).
+    { name: 'GPT-6.1 Sol', id: 'gpt-6.1-sol', recommended: true, contextWindow: 1_000_000 },
+    { name: 'GPT-6 Luna', id: 'gpt-6-luna', cheapest: true, contextWindow: 1_000_000 },
+    { name: 'GPT-6 Astra', id: 'gpt-6-astra', contextWindow: 1_000_000 },
+    // Previous generation (GPT-5.6, GA July 2026).
+    { name: 'GPT-5.6 Sol', id: 'gpt-5.6-sol', contextWindow: 1_000_000 },
   ],
   anthropic: [
     // Fable/Mythos/Opus 5/Sonnet 5 all run the 1M window by default now.
@@ -214,7 +214,8 @@ export const DEFAULT_PROVIDER_MODELS: Record<string, ProviderModel[]> = {
     { name: 'Sonar Deep Research', id: 'sonar-deep-research', contextWindow: 128_000 },
   ],
   openrouter: [
-    { name: 'GPT-5.6 Sol', id: 'openai/gpt-5.6-sol', recommended: true, contextWindow: 1_000_000 },
+    { name: 'GPT-6.1 Sol', id: 'openai/gpt-6.1-sol', recommended: true, contextWindow: 1_000_000 },
+    { name: 'GPT-5.6 Sol', id: 'openai/gpt-5.6-sol', contextWindow: 1_000_000 },
     { name: 'Claude Opus 5', id: 'anthropic/claude-opus-5', contextWindow: 1_000_000 },
     { name: 'Gemini 3.7 Flash', id: 'google/gemini-3.7-flash', contextWindow: 1_000_000 },
     { name: 'Grok 4.6', id: 'x-ai/grok-4.6', contextWindow: 500_000 },

@@ -58,11 +58,12 @@ describe('OpenAI image-editing preservation', () => {
 
     // Currently configured models.
     expect(config).toContain("imageModel: 'gpt-image-2'");
-    expect(config).toContain("responsesModel: 'gpt-5.6'");
+    expect(config).toContain("responsesModel: 'gpt-6.1-sol'");
     expect(config).toContain("thumbnailModel: 'gpt-image-2'");
-    expect(config).toContain("thumbnailResponsesModel: 'gpt-5.6'");
-    // The supported Responses model list must keep gpt-5.6 available.
-    expect(config).toContain("thumbnailResponsesModelOptions: ['gpt-5.6'");
+    expect(config).toContain("thumbnailResponsesModel: 'gpt-6.1-sol'");
+    // The supported Responses model list leads with GPT-6 and keeps gpt-5.6 available.
+    expect(config).toContain("thumbnailResponsesModelOptions: ['gpt-6.1-sol'");
+    expect(config).toMatch(/thumbnailResponsesModelOptions: \[[^\]]*'gpt-5\.6'/);
 
     // ...and the resolvers still read the stored config values.
     expect(config).toContain('getResponsesModel() {');
@@ -77,7 +78,8 @@ describe('OpenAI image-editing preservation', () => {
     expect(service).toContain("'Authorization': `Bearer ${openaiKey}`");
 
     // The configured editing model is still resolved (never a MuAPI model id).
-    expect(service).toContain("model || this.config.getResponsesModel?.() || 'gpt-5.6'");
+    expect(service).toContain('model || this.config.getResponsesModel?.() || OPENAI_TEXT_MODEL');
+    expect(src('lib/config/openaiConfig.js')).toContain("export const OPENAI_TEXT_MODEL = 'gpt-6.1-sol';");
     expect(service).toContain('tools: [tool]');
     expect(service).toContain("const tool = { type: 'image_generation', action };");
   });
