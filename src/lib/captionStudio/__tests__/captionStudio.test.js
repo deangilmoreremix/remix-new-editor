@@ -312,3 +312,15 @@ describe('host font list', () => {
     expect(m.fontList().length).toBeGreaterThan(10);
   });
 });
+
+describe('WebVTT import without parseVtt', () => {
+  it('reads cues with settings, tags, notes, short timestamps and CRLF', async () => {
+    const { captionsFromFile } = await import('../model.js');
+    const vtt = 'WEBVTT\r\n\r\nNOTE hidden\r\n\r\nintro\r\n00:01.000 --> 00:02.500 align:start\r\n<v Ann>Hello <b>there</b>\r\n\r\n01:00:03.000 --> 01:00:04.000\r\nSecond\r\n';
+    const caps = captionsFromFile(vtt, 'a.vtt');
+    expect(caps.map((c) => [c.text.trim(), c.startMs, c.endMs])).toEqual([
+      ['Hello there', 1000, 2500],
+      ['Second', 3603000, 3604000],
+    ]);
+  });
+});
