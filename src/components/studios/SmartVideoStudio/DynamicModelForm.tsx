@@ -249,7 +249,7 @@ export default function DynamicModelForm({ modelId, onGenerate, onReset, onValue
         const fields = schema.fields.filter(f => {
           if (f.section !== section) return false;
           if (!isFieldVisible(f)) return false;
-          if (f.advanced && !showAdvanced) return false;
+          if (f.advanced && !showAdvanced && !f.required) return false; // required inputs stay visible
           return true;
         });
         if (fields.length === 0) return null;

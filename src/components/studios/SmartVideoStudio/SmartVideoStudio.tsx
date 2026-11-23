@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { syncCatalog, getModelsForTab, STUDIO_TABS } from './svStudio/modelRegistry';
+import { syncCatalog, getModelsForTab, getModelById, STUDIO_TABS } from './svStudio/modelRegistry';
 import ModeRail from './ModeRail';
 import ModelSelector from './ModelSelector';
 import DynamicModelForm from './DynamicModelForm';
@@ -28,6 +28,7 @@ export default function SmartVideoStudio() {
   const [prompt, setPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
   const [catalogError, setCatalogError] = useState(null);
+  const [notice, setNotice] = useState(null);
   const formValuesRef = useRef({});
   const handleValuesChange = useCallback((values) => { formValuesRef.current = values; }, []);
 
@@ -60,14 +61,25 @@ export default function SmartVideoStudio() {
     return () => { cancelled = true; };
   }, []);
 
+  const tabModels = modelsByTab[activeTab] || [];
+  // Only a model that belongs to the active tab can be generated with.
+  const activeModel = selectedModel && tabModels.some(m => m.id === selectedModel.id) ? selectedModel : null;
+  // Which key the bottom prompt bar fills: null for models with no prompt (lip-sync, upscale...).
+  const activeSchema = activeModel ? (getModelById(activeModel.id)?.input_schema || activeModel.input_schema) : null;
+  const promptKey = !activeModel ? null
+    : !activeSchema ? 'prompt'
+      : 'prompt' in activeSchema ? 'prompt' : 'text' in activeSchema ? 'text' : null;
+
   useEffect(() => {
-    if (modelsByTab[activeTab]?.length > 0) {
-      const currentInTab = modelsByTab[activeTab].find(m => m.id === selectedModel?.id);
-      if (!currentInTab) {
-        setSelectedModel(modelsByTab[activeTab][0]);
-      }
+    if (tabModels.length > 0) {
+      if (!tabModels.some(m => m.id === selectedModel?.id)) setSelectedModel(tabModels[0]);
+    } else if (selectedModel && !loading) {
+      // Empty mode (3D, AI Tools): drop the previous tab's model so it cannot be submitted from here.
+      setSelectedModel(null);
     }
-  }, [activeTab, modelsByTab, selectedModel]);
+  }, [tabModels, selectedModel, loading]);
+
+  useEffect(() => { setNotice(null); }, [activeTab, selectedModel]);
 
   const handleTabChange = useCallback((tabId) => {
     setActiveTab(tabId);
@@ -100,17 +112,45 @@ export default function SmartVideoStudio() {
   }, [selectedModel]);
 
   const handleGenerate = useCallback(async (params) => {
-    if (!selectedModel) return;
+    if (!activeModel || params.modelId !== activeModel.id) {
+      setNotice('Pick a model in this mode before generating.');
+      return;
+    }
     const values = { ...formValuesRef.current, ...params.values };
-    if (prompt.trim()) values.prompt = prompt.trim();
+    if (promptKey) {
+      if (prompt.trim()) values[promptKey] = prompt.trim();
+      if (!String(values[promptKey] ?? '').trim()) {
+        setNotice('Enter a prompt first.');
+        return;
+      }
+    }
+    setNotice(null);
     setGenerating(true);
     try {
       await runJob(params.modelId, values);
       setPrompt('');
+    } catch (e) {
+      console.error('[SmartVideoStudio] Generation failed', e);
+      const message = e instanceof Error ? e.message : String(e);
+      const now = new Date().toISOString();
+      setJobs(prev => [{
+        id: `failed_${Date.now()}`, modelId: params.modelId,
+        modelName: activeModel.display_name || activeModel.name || params.modelId,
+        status: 'failed', input: values, error: message, createdAt: now, updatedAt: now,
+      }, ...prev]);
+      setNotice(`Generation failed: ${message}`);
     } finally {
       setGenerating(false);
     }
-  }, [selectedModel, prompt, runJob]);
+  }, [activeModel, promptKey, prompt, runJob]);
+
+  const submitFromBar = useCallback(() => {
+    if (!activeModel) {
+      setNotice('No models are available in this mode yet. Pick another mode on the left.');
+      return;
+    }
+    handleGenerate({ modelId: activeModel.id, values: {}, cost: 0 });
+  }, [activeModel, handleGenerate]);
 
   const handleRetry = useCallback(async (job) => {
     setGenerating(true);
@@ -181,10 +221,10 @@ export default function SmartVideoStudio() {
           ? h('div', { className: 'smart-video-no-model', role: 'alert' },
               h('p', null, catalogError)
             )
-          : selectedModel && modelsByTab[activeTab]?.some(m => m.id === selectedModel.id)
+          : activeModel
             ? h(DynamicModelForm, {
-                key: selectedModel.id,
-                modelId: selectedModel.id,
+                key: activeModel.id,
+                modelId: activeModel.id,
                 onGenerate: handleGenerate,
                 onReset: handleReset,
                 onValuesChange: handleValuesChange
@@ -192,7 +232,7 @@ export default function SmartVideoStudio() {
             : h('div', { className: 'smart-video-no-model' },
                 h('p', null, loading
                   ? 'Loading models...'
-                  : modelsByTab[activeTab]?.length
+                  : tabModels.length
                     ? 'Select a model to begin creating.'
                     : 'No models are available in this category yet. Pick another mode on the left.')
               )
@@ -218,19 +258,23 @@ export default function SmartVideoStudio() {
           onKeyDown: (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
-              if (selectedModel && prompt.trim()) {
-                handleGenerate({ modelId: selectedModel.id, values: {}, cost: 0 });
-              }
+              if (!generating) submitFromBar();
             }
           }
         }),
         h('button', {
           type: 'button',
-          onClick: () => selectedModel && prompt.trim() && handleGenerate({ modelId: selectedModel.id, values: {}, cost: 0 }),
-          disabled: generating || !selectedModel || !prompt.trim(),
+          onClick: submitFromBar,
+          disabled: generating || !activeModel,
+          title: !activeModel ? 'No model selected for this mode' : undefined,
           className: 'smart-video-prompt-submit'
         }, generating ? 'Generating...' : 'Generate')
-      )
+      ),
+      notice && h('div', {
+        className: 'smart-video-prompt-notice',
+        role: 'status',
+        style: { fontSize: '12px', color: '#f87171', padding: '4px 4px 0' }
+      }, notice)
     )
   );
 }

@@ -115,11 +115,11 @@ export async function loadModelSchema(modelId: string): Promise<Record<string, u
     throw new Error(`Model "${modelId}" not found in registry. Run syncCatalog() first.`);
   }
 
-  if (meta.input_schema) return meta.input_schema;
-
   if (schemaCache.has(meta.model_name)) {
     return schemaCache.get(meta.model_name)!;
   }
+
+  if (meta.input_schema) return meta.input_schema;
 
   try {
     const response = await fetch(`/api/v1/models/${encodeURIComponent(meta.model_name)}`);
@@ -178,18 +178,62 @@ const LOCAL_LISTS: { exportName: string; generationType: string; category: (m: L
   { exportName: 'lipsyncModels', generationType: 'lipsync', category: () => 'lip-sync' },
 ];
 
+/** models.js uses int/float where the normalizer expects JSON-schema integer/number. */
+const TYPE_ALIASES: Record<string, string> = { int: 'integer', float: 'number', double: 'number', bool: 'boolean', text: 'string' };
+
 /** models.js `inputs` use minValue/maxValue/minimum/maximum; the normalizer reads min/max. */
-function toFieldSchema(raw: Record<string, unknown>): Record<string, unknown> {
+function toFieldSchema(raw: Record<string, unknown>, required = false): Record<string, unknown> {
   const out: Record<string, unknown> = { ...raw };
+  if (typeof raw.type === 'string' && TYPE_ALIASES[raw.type]) out.type = TYPE_ALIASES[raw.type];
   const min = raw.min ?? raw.minValue ?? raw.minimum;
   const max = raw.max ?? raw.maxValue ?? raw.maximum;
   if (typeof min === 'number') out.min = min;
   if (typeof max === 'number') out.max = max;
+  if (required) out.required = true;
   return out;
 }
 
-function buildLocalSchema(m: LocalModel, generationType: string, category: string): Record<string, unknown> {
+/** Objects and arrays of objects (dialogue turns, speakers, LoRA lists) have no form widget. */
+function isUnrenderable(field: Record<string, unknown>): boolean {
+  if (field.type === 'object') return true;
+  const items = field.items as Record<string, unknown> | undefined;
+  return field.type === 'array' && !!items && (items.type === 'object' || !!items.properties);
+}
+
+type LiveField = { name: string; type?: string; required?: number | boolean; title?: string; enum?: unknown[]; default?: unknown; min?: number; max?: number };
+
+/** Required fields from MuAPI's live catalog, by model name (fills in models.js entries such as MiniMax Speech's voice_id). */
+let liveRequired: Map<string, LiveField[]> | null = null;
+async function loadLiveRequired(): Promise<Map<string, LiveField[]>> {
+  if (liveRequired) return liveRequired;
+  const map = new Map<string, LiveField[]>();
+  try {
+    const live = (await import('../../../../lib/muapi/liveModels.json')).default as { models?: { name: string; fields?: LiveField[] }[] };
+    for (const m of live.models || []) {
+      const required = (m.fields || []).filter(f => f && f.name && f.required);
+      if (required.length) map.set(m.name, required);
+    }
+  } catch (e) {
+    console.warn('[ModelRegistry] Live catalog unavailable; required fields come from models.js only.', e);
+  }
+  liveRequired = map;
+  return map;
+}
+
+function liveFieldSchema(f: LiveField): Record<string, unknown> {
+  const type = TYPE_ALIASES[f.type || ''] || f.type || 'string';
+  const out: Record<string, unknown> = { type, title: f.title || f.name, required: true };
+  if (Array.isArray(f.enum) && f.enum.length) out.enum = f.enum;
+  if (f.default !== undefined) out.default = f.default;
+  if (typeof f.min === 'number') out.min = f.min;
+  if (typeof f.max === 'number') out.max = f.max;
+  return out;
+}
+
+/** Returns null when a required input cannot be rendered, so the model is hidden instead of shown broken. */
+function buildLocalSchema(m: LocalModel, generationType: string, category: string, live: Map<string, LiveField[]>): Record<string, unknown> | null {
   const schema: Record<string, unknown> = {};
+  const requiredKeys = new Set(Array.isArray(m.required) ? (m.required as string[]) : []);
   const add = (key: unknown, field: Record<string, unknown>) => {
     if (typeof key === 'string' && key && !schema[key]) schema[key] = field;
   };
@@ -197,7 +241,13 @@ function buildLocalSchema(m: LocalModel, generationType: string, category: strin
     add('prompt', { type: 'string', title: generationType === 'audio' && category === 'speech' ? 'Text' : 'Prompt' });
   }
   for (const [key, field] of Object.entries(m.inputs || {})) {
-    if (field && typeof field === 'object') schema[key] = toFieldSchema(field);
+    if (!field || typeof field !== 'object') continue;
+    const required = requiredKeys.has(key) || field.required === true;
+    if (isUnrenderable(field)) {
+      if (required) return null;
+      continue; // optional: leave it out rather than render an empty widget
+    }
+    schema[key] = toFieldSchema(field, required);
   }
   const needsImage = ['image-to-image', 'image-upscale', 'background-removal', 'image-to-video'].includes(category)
     || (generationType === 'lipsync' && m.category === 'image')
@@ -208,6 +258,7 @@ function buildLocalSchema(m: LocalModel, generationType: string, category: strin
       ? { type: 'array', title: 'Images', items: { type: 'string' } }
       : { type: 'string', title: 'Image', format: 'uri' });
   }
+  if (m.swapField) add(m.swapField, { type: 'string', title: 'Face Image', format: 'uri' });
   if (m.lastImageField) add(m.lastImageField, { type: 'string', title: 'Last Frame', format: 'uri' });
   if (category === 'video-to-video' || category === 'video-upscale' || m.hasVideo || (generationType === 'lipsync' && m.category === 'video')) {
     add((m.videoField as string) || 'video_url', { type: 'string', title: 'Video', format: 'uri' });
@@ -215,18 +266,25 @@ function buildLocalSchema(m: LocalModel, generationType: string, category: strin
   if (m.hasAudio || m.requiresAudio || generationType === 'lipsync' || m.audioField) {
     add((m.audioField as string) || 'audio_url', { type: 'string', title: 'Audio', format: 'uri' });
   }
+  // models.js leaves some required inputs implicit (MiniMax Speech: voiceOptions, no voice_id).
+  for (const f of live.get(String(m.endpoint || m.id)) || live.get(m.id) || []) {
+    if (f.name === 'text' && schema.prompt) continue;
+    add(f.name, liveFieldSchema(f));
+  }
   return schema;
 }
 
 async function loadLocalCatalog(): Promise<ModelMeta[]> {
   const lib = (await import('../../../../lib/models.js')) as unknown as Record<string, LocalModel[] | undefined>;
   const nowIso = new Date().toISOString();
+  const live = await loadLiveRequired();
   const metas: ModelMeta[] = [];
   for (const list of LOCAL_LISTS) {
     for (const m of lib[list.exportName] || []) {
       if (!m || !m.id) continue;
       const category = list.category(m);
-      const input_schema = buildLocalSchema(m, list.generationType, category);
+      const input_schema = buildLocalSchema(m, list.generationType, category, live);
+      if (!input_schema) continue;
       const has = (k: string) => Object.keys(input_schema).some(f => f.includes(k));
       metas.push({
         id: `${list.exportName}/${m.id}`,
