@@ -42,7 +42,7 @@ export const PromptShot: React.FC = () => {
   const caretX = typed === 0 ? M.x0 : M.x0 + M.offsets[typed - 1] + 2;
 
   // page dims once the pull-out is under way so the clip card owns the frame (also keeps the example-gallery strip unreadable)
-  const dim = seg(frame, 118, 150, E.outQuad) * 0.97;
+  const dim = seg(frame, 112, 132, E.outQuad) * 0.97;
   const camTransform = `translate(${960 - c.cx * c.z}px, ${540 - c.cy * c.z}px) scale(${c.z})`;
 
   const rise = seg(frame, 150, 186, bezier(0.2, 1.1, 0.3, 1));
@@ -75,9 +75,9 @@ export const PromptShot: React.FC = () => {
           opacity: 1 - cardOut, transform: `translateY(${(1 - rise) * 120}px) scale(${push})`, background: T.card,
         }}
       >
-        <Sequence from={150}><OffthreadVideo src={staticFile('sample-tower.mp4')} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></Sequence>
-        <div style={{ position: 'absolute', left: 20, top: 20, padding: '8px 16px', borderRadius: 999, background: 'rgba(5,5,5,0.72)', border: `1px solid ${T.accent}`, color: T.accent, fontFamily: T.font, fontWeight: 700, fontSize: 24, letterSpacing: '0.12em' }}>
-          SAMPLE
+        <Sequence from={150}><OffthreadVideo src={staticFile('sample-tower.mp4')} muted playbackRate={0.85} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></Sequence>
+        <div style={{ position: 'absolute', left: 20, top: 20, padding: '10px 22px', borderRadius: 999, background: 'rgba(5,5,5,0.85)', border: `2px solid ${T.accent}`, color: T.accent, fontFamily: T.font, fontWeight: 700, fontSize: 36, letterSpacing: '0.06em' }}>
+          EXAMPLE FROM THE GALLERY
         </div>
       </div>
     </AbsoluteFill>

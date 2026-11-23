@@ -27,7 +27,7 @@ const STUDIOS = [
   { name: 'Character Studio', tex: 'character' },
   { name: 'Lip Sync Studio', tex: 'lipsync' },
 ];
-const REGION = { right: 1880, y: 60, h: 480 }; // page region cropped into each cell (top of the studio: banner + prompt bar)
+const REGION = { right: 1880, y: 70, h: 270 }; // banner art only: no UI fragments inside the cells // page region cropped into each cell (top of the studio: banner + prompt bar)
 const START = (i: number) => beatF(i + 1) - 2; // one cell per beat, local to the shot
 export const WALL_PUSH_START = START(5) + 24;
 

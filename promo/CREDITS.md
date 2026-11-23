@@ -22,4 +22,4 @@ None of the SFX or the BGM were auditioned by a person (no audio device); placem
 
 ## Measured pipeline offset
 Remotion 4.0.484, mp4/AAC 48 kHz: output audio is +1.28 f late (7 SFX probes, 1.28-1.29 f; BGM 1.34 f). Compensated in `src/timeline.ts`
-(`OUTPUT_AUDIO_OFFSET_F`); post-compensation residuals: SFX within +-0.5 f of target (integer-frame rounding), BGM +0.34 f (`analysis/verify_sync.py`).
+(`OUTPUT_AUDIO_OFFSET_F`); `analysis/verify_sync.py` prints offsets relative to the compensated `from`, so it shows ~1.28 f for SFX (the encoder delay, as expected). The residual vs target is therefore derived: integer rounding of `from` leaves each SFX within about 0.5 f of target. BGM measured +0.34 f.

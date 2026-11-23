@@ -27,7 +27,7 @@ export const PROMPT_TEXT = 'A lone tower in golden wheat';
 // Captions (text on screen). Sizes follow aesthetic-rules Q11 (>= 56px for narrative captions).
 export const CAPTIONS = [
   { id: 'describe', text: 'Describe the shot.', from: SHOTS.prompt.from + 128, to: SHOTS.prompt.from + 210 },
-  { id: 'studios', text: 'Every studio. One place.', from: SHOTS.wall.from + 10, to: SHOTS.wall.to - 8 },
+  { id: 'studios', text: 'Your studios, one place.', from: SHOTS.wall.from + 10, to: SHOTS.wall.to - 8 },
 ] as const;
 
 // SFX table: { from = SHOTS.x.from + offset - peakLag - outputOffset, src, volume }. Peaks measured in analysis/sfx_peaks.json.
@@ -40,10 +40,10 @@ const sfxFrom = (targetPeakF: number, src: string) => Math.max(0, Math.round(tar
 export type Sfx = { from: number; src: string; volume: number; durationInFrames?: number; note: string };
 export const SFX: Sfx[] = [
   { from: sfxFrom(SHOTS.open.from + 46, 'transition-soft.mp3'), src: 'transition-soft.mp3', volume: 0.55, note: 'wordmark letterpress lands (open, f46)' },
-  { from: sfxFrom(SHOTS.prompt.from + 16, 'keyboard.mp3'), src: 'keyboard.mp3', volume: 0.5, durationInFrames: 105, note: 'typing in Video Studio prompt, window = typing length' },
-  { from: sfxFrom(SHOTS.prompt.from + 150, 'whoosh-fast.mp3'), src: 'whoosh-fast.mp3', volume: 0.5, note: 'example clip card rises in' },
+  { from: sfxFrom(SHOTS.prompt.from + 16, 'keyboard.mp3'), src: 'keyboard.mp3', volume: 1.0, durationInFrames: 86, note: 'typing in Video Studio prompt, window = typing length' },
+  { from: sfxFrom(SHOTS.prompt.from + 150, 'whoosh-fast.mp3'), src: 'whoosh-fast.mp3', volume: 0.9, note: 'example clip card rises in' },
   { from: sfxFrom(SHOTS.wall.from + 20, 'whoosh-big.mp3'), src: 'whoosh-big.mp3', volume: 0.5, note: 'studio wall starts lighting' },
   { from: sfxFrom(SHOTS.lockup.from + 10, 'riser-cine.mp3'), src: 'riser-cine.mp3', volume: 0.45, durationInFrames: 60, note: 'riser into the logo collapse' },
   { from: sfxFrom(SHOTS.lockup.from + 36, 'impact-cine.mp3'), src: 'impact-cine.mp3', volume: 0.6, note: 'logo lands (brake on collapse)' },
-  { from: sfxFrom(SHOTS.lockup.from + 78, 'sparkle.mp3'), src: 'sparkle.mp3', volume: 0.45, note: 'tagline lands' },
+  { from: sfxFrom(SHOTS.lockup.from + 100, 'sparkle.mp3'), src: 'sparkle.mp3', volume: 0.9, note: 'tagline fades in (local 94-110, peak pinned f100)' },
 ];

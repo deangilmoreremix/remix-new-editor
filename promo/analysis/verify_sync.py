@@ -25,7 +25,7 @@ print('SFX offsets (frames, +=late):',res)
 d=bg[:len(nob)]-nob[:len(bg)]
 t0=7.9356
 ref=dec('public/audio/bgm.mp3', ss=t0, t=10)
-ref=ref*0.34
+ref=ref*0.30
 seg=d[int(0.5*SR):int(10*SR)]
 c=fftconvolve(seg,ref[int(0.5*SR):int(10*SR)][::-1],mode='valid')
 # search small window

@@ -12,7 +12,7 @@ import { AppMark, INTER, T } from '../lib/tokens';
 const WORDMARK = 'SmartVideo';
 const TAGLINE = 'DESCRIBE IT. DIRECT IT.';
 const ICON = 30, MARK = 30, GAP = 9;
-const WORD_W = 118; // measured width of the wordmark row at 22px/700 (verified on a still, see out/qa)
+const WORD_W = 128; // measured width of the wordmark row at 22px/700 (reviewer measured 511px / 4 = 128 on a render)
 const SHIFT = -(ICON + GAP + WORD_W) / 2 + ICON / 2;
 const ROW_LEFT = SHIFT + ICON / 2 + GAP;
 const STAGGER = (0.7 - 0.46) / WORDMARK.length;

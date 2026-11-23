@@ -8,14 +8,14 @@
  {
   "from": 133,
   "src": "keyboard.mp3",
-  "volume": 0.5,
-  "durationInFrames": 105,
+  "volume": 1,
+  "durationInFrames": 86,
   "note": "typing in Video Studio prompt, window = typing length"
  },
  {
   "from": 245,
   "src": "whoosh-fast.mp3",
-  "volume": 0.5,
+  "volume": 0.9,
   "note": "example clip card rises in"
  },
  {
@@ -38,9 +38,9 @@
   "note": "logo lands (brake on collapse)"
  },
  {
-  "from": 681,
+  "from": 703,
   "src": "sparkle.mp3",
-  "volume": 0.45,
-  "note": "tagline lands"
+  "volume": 0.9,
+  "note": "tagline fades in (local 94-110, peak pinned f100)"
  }
 ]

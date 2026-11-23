@@ -7,7 +7,7 @@ import { WallShot } from './shots/WallShot';
 import { BGM_START_FRAME, SFX, SHOTS, V1_TOTAL, dur } from './timeline';
 
 export type V1Props = { bgm: boolean };
-export const BGM_VOLUME = 0.34;
+export const BGM_VOLUME = 0.30;
 
 export const V1Hero: React.FC<V1Props> = ({ bgm }) => {
   const { durationInFrames } = useVideoConfig();
