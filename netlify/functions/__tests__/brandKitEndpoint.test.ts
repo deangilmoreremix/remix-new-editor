@@ -6,6 +6,7 @@ let port = 0
 // Real HTTP to a local fixture site; the production fetcher (which blocks private addresses) is swapped for one
 // that reads from it, so everything after the fetch (link picking, parsing, merging, the handler) runs for real.
 vi.mock('../_personalization/src/server/discoverAssets', () => ({
+  fetchStylesheet: async () => null,
   fetchPageWithFinalUrl: async (url: string) => {
     const u = new URL(url)
     // node:http, not fetch: the shared test setup stubs the global fetch.
@@ -29,7 +30,7 @@ const PAGES: Record<string, string> = {
     <img src="/img/hero.jpg"></body></html>`,
   '/our-story': `<html><title>Our story</title><body><h1>Our story</h1><p>Two sisters opened Bluebird in 2011 and still bake everything by hand with local, natural ingredients and care.</p></body></html>`,
   '/menu': `<html><title>Menu</title><body><h2>Sourdough loaf</h2><h2>Almond croissant</h2><h2>Seasonal fruit tart</h2><img src="/img/tart.jpg"></body></html>`,
-  '/reviews': `<html><title>Reviews</title><body><blockquote>The best croissant I have had outside of Paris, and the staff always remember my name.</blockquote></body></html>`,
+  '/reviews': `<html><title>Reviews</title><body><blockquote>The best croissant I have had outside of Paris, and the staff always remember my name.<cite>Lena K.</cite></blockquote></body></html>`,
 }
 
 let server: http.Server
