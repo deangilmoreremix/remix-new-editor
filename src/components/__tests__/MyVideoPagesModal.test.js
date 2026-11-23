@@ -25,3 +25,22 @@ describe('My Video Pages is a modal, not a studio page', () => {
     expect(RETIRED_ROUTES['video-pages']).toBe('library');
   });
 });
+
+describe('stacking with the picker', () => {
+  it('Escape closes the window on top: this one when it is above the picker, not when under it', () => {
+    const picker = document.createElement('div'); picker.dataset.landingPicker = ''; picker.style.zIndex = '2000'; document.body.appendChild(picker);
+    openMyVideoPages({ zIndex: 2100 });
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(document.querySelector('[data-my-video-pages]')).toBeNull();
+    openMyVideoPages({ zIndex: 1000 });
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(document.querySelector('[data-my-video-pages]')).not.toBeNull();
+  });
+  it('closing it leaves the page scroll locked while the picker is open', () => {
+    const picker = document.createElement('div'); picker.dataset.landingPicker = ''; document.body.appendChild(picker);
+    document.body.style.overflow = 'hidden';
+    openMyVideoPages({ zIndex: 2100 });
+    document.querySelector('[aria-label="Close"]').click();
+    expect(document.body.style.overflow).toBe('hidden');
+  });
+});

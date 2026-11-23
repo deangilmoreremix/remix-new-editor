@@ -611,7 +611,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     open.type = 'button';
     open.addEventListener('click', async () => {
       close();
-      try { const { openMyVideoPages } = await import('../../components/modals/MyVideoPagesModal.js'); openMyVideoPages(); } catch { showToast('Open My Video Pages from the Library.', 'info', 3000); }
+      try { const { openMyVideoPages } = await import('../../components/modals/MyVideoPagesModal.js'); openMyVideoPages({ zIndex: 2100 }); } catch { showToast('Open My Video Pages from the Library.', 'info', 3000); }
     });
     const done = el('button', doneLabel ? BTN_PRIMARY : BTN, doneLabel || 'Done');
     done.type = 'button';

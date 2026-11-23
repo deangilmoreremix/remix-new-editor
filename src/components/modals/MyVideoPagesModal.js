@@ -5,7 +5,8 @@ import { LandingPagesStudio } from '../LandingPagesStudio.js';
 
 let openOverlay = null;
 
-export function openMyVideoPages({ zIndex = 1900 } = {}) {
+// Stacking: this window 2000 (the picker's own default), the picker opened from here 2200, this window opened from the picker 2100.
+export function openMyVideoPages({ zIndex = 2000 } = {}) {
   if (openOverlay?.isConnected) return openOverlay;
   const prevOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
@@ -36,9 +37,18 @@ export function openMyVideoPages({ zIndex = 1900 } = {}) {
   dialog.append(head, body);
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
-  const close = () => { document.removeEventListener('keydown', onKey); overlay.remove(); document.body.style.overflow = prevOverflow; openOverlay = null; };
+  const close = () => {
+    document.removeEventListener('keydown', onKey);
+    overlay.remove();
+    if (!document.querySelector('[data-landing-picker]')) document.body.style.overflow = prevOverflow;   // keep the scroll lock while the picker is still open
+    openOverlay = null;
+  };
   // Escape closes this window only when no other window (the picker) is on top of it
-  const onKey = (e) => { if (e.key === 'Escape' && !document.querySelector('[data-landing-picker]')) close(); };
+  const onKey = (e) => {
+    if (e.key !== 'Escape') return;
+    const picker = document.querySelector('[data-landing-picker]');
+    if (!picker || Number(overlay.style.zIndex) > Number(picker.style.zIndex || 0)) close();
+  };
   document.addEventListener('keydown', onKey);
   closeBtn.addEventListener('click', close);
   overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });

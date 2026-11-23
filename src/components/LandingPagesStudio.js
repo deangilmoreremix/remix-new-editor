@@ -96,7 +96,7 @@ export function LandingPagesStudio({ embedded = false } = {}) {
     // Pages are made from a video: the shared picker lets you upload one, pick one you made, or paste a link.
     newBtn.addEventListener('click', async () => {
       const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
-      openLandingPagePicker({ zIndex: 2100 });
+      openLandingPagePicker({ zIndex: 2200 });   // above this window
     });
     head.append(titleWrap, newBtn);
 
