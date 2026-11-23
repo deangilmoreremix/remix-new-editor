@@ -1,5 +1,5 @@
 import { apiKeyManager } from './apiKeyManager.js';
-import openaiConfig from './config/openaiConfig.js';
+import openaiConfig, { OPENAI_TEXT_MODEL, extractResponsesOutputText } from './config/openaiConfig.js';
 
 // ---------------------------------------------------------------------------
 // Social post copy enhancer
@@ -14,7 +14,7 @@ import openaiConfig from './config/openaiConfig.js';
 // ---------------------------------------------------------------------------
 
 const RESPONSES_URL = 'https://api.openai.com/v1/responses';
-const DEFAULT_MODEL = openaiConfig.getResponsesModel?.() || 'gpt-4.1-mini';
+const DEFAULT_MODEL = openaiConfig.getResponsesModel?.() || OPENAI_TEXT_MODEL;
 
 // Tonalities are sourced verbatim from the GTM Skills repo
 // (https://gtm-skills.com/free-tools/tonalities) in lib/tonalities.js.
@@ -87,8 +87,9 @@ export async function enhanceSocialPostText({ text, field = 'caption', platform 
       model: model || DEFAULT_MODEL,
       input: [{ role: 'user', content: trimmed }],
       instructions: buildSystemPrompt(field, platform, tone, goal ? { goal } : {}),
-      temperature: 0.8,
-      max_tokens: 500,
+      // GPT-6 reasoning models reject temperature; Responses uses
+      // max_output_tokens (max_tokens is not a Responses parameter).
+      max_output_tokens: 2000,
     }),
     signal,
   });
@@ -99,7 +100,7 @@ export async function enhanceSocialPostText({ text, field = 'caption', platform 
   }
 
   const data = await res.json();
-  const out = data?.output?.[0]?.content?.[0]?.text?.trim();
+  const out = extractResponsesOutputText(data).trim();
   return out || trimmed;
 }
 

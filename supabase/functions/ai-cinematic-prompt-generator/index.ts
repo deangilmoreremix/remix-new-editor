@@ -27,7 +27,7 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-const GTM_MODEL = Deno.env.get("GTM_PROMPT_MODEL") || "gpt-4.1-mini";
+const GTM_MODEL = Deno.env.get("GTM_PROMPT_MODEL") || "gpt-6.1-sol";
 const GTM_VARIANT_COUNT = Number(Deno.env.get("GTM_VARIANT_COUNT") || "3");
 
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
@@ -209,12 +209,15 @@ function buildGTMInput(params: {
 // Mirrors the client-side catalog (src/lib/gtmResponses.js) so the server
 // fallback honors the user's selection. Anything else falls back to GTM_MODEL.
 const ALLOWED_MODELS = new Set([
-  "gpt-4.1-mini",
-  "gpt-4.1",
-  "gpt-5.4-mini",
-  "gpt-5.4",
-  "gpt-5.6-terra",
+  "gpt-6.1-sol",
+  "gpt-6-luna",
+  "gpt-6-astra",
   "gpt-5.6-sol",
+  "gpt-5.6-terra",
+  "gpt-5.4",
+  "gpt-5.4-mini",
+  "gpt-4.1",
+  "gpt-4.1-mini",
 ]);
 
 function resolveModel(preferred?: string): string {
@@ -252,12 +255,12 @@ async function handleGenerate(body: Record<string, unknown>, userId?: string | n
     model: String(body.model || ""),
   };
 
+  const model = resolveModel(gtmParams.model);
   const completion = await openai.responses.create({
-    model: resolveModel(gtmParams.model),
+    model,
     instructions: buildInstructions(),
     input: buildGTMInput(gtmParams),
     store: true,
-    temperature: 0.7,
     text: {
       format: {
         type: "json_schema",
@@ -290,7 +293,7 @@ async function handleGenerate(body: Record<string, unknown>, userId?: string | n
     openaiResponseId: completion.id,
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
-    model: GTM_MODEL,
+    model,
   });
 
   return jsonResponse({ prompt, response_id: completion.id, usage });
@@ -306,13 +309,13 @@ async function handleRefine(body: Record<string, unknown>, userId?: string | nul
     return jsonResponse({ error: "Missing previousResponseId or refineInstruction" }, 400);
   }
 
+  const model = resolveModel(String(body.model || ""));
   const completion = await openai.responses.create({
-    model: resolveModel(String(body.model || "")),
+    model,
     instructions: buildInstructions(),
     input: [{ role: "user", content: String(refineInstruction) }],
     previous_response_id: String(previousResponseId),
     store: true,
-    temperature: 0.7,
     text: {
       format: {
         type: "json_schema",
@@ -345,7 +348,7 @@ async function handleRefine(body: Record<string, unknown>, userId?: string | nul
     openaiResponseId: completion.id,
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
-    model: GTM_MODEL,
+    model,
   });
 
   return jsonResponse({ prompt, response_id: completion.id, usage });
@@ -370,15 +373,15 @@ async function handleVariants(body: Record<string, unknown>, userId?: string | n
     model: String(body.model || ""),
   };
 
+  const model = resolveModel(params.model);
   const results = await Promise.all(
     Array.from({ length: count }).map(async () => {
       try {
         const completion = await openai!.responses.create({
-          model: resolveModel(params.model),
+          model,
           instructions: buildInstructions(),
           input: buildGTMInput(params),
           store: true,
-          temperature: 0.9,
           text: {
             format: {
               type: "json_schema",
@@ -418,7 +421,7 @@ async function handleVariants(body: Record<string, unknown>, userId?: string | n
     openaiResponseId: first.response_id,
     inputTokens: fu.inputTokens,
     outputTokens: fu.outputTokens,
-    model: GTM_MODEL,
+    model,
   });
 
   return jsonResponse({ variants });
@@ -447,12 +450,12 @@ function streamGenerate(body: Record<string, unknown>, userId?: string | null): 
           model: String(body.model || ""),
         };
 
+        const model = resolveModel(gtmParams.model);
         const run = openai.responses.stream({
-          model: resolveModel(gtmParams.model),
+          model,
           instructions: buildInstructions(),
           input: buildGTMInput(gtmParams),
           store: true,
-          temperature: 0.7,
           text: {
             format: {
               type: "json_schema",
@@ -489,7 +492,7 @@ function streamGenerate(body: Record<string, unknown>, userId?: string | null): 
           openaiResponseId: completion.id,
           inputTokens: usage.inputTokens,
           outputTokens: usage.outputTokens,
-          model: GTM_MODEL,
+          model,
         });
       } catch (err) {
         send({ type: "error", message: err instanceof Error ? err.message : "Stream failed" });

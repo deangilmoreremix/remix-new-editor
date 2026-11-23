@@ -12,6 +12,10 @@ import { ImageStyleControls } from './ImageStyleControls'
 import { ColorField } from './editor/ColorField'
 import { SortableRow } from './editor/SortableRow'
 import { Tip } from './editor/Tip'
+import { CaptionDragHandle } from './CaptionDragHandle'
+import { captionAvoid, clearOf } from './captionAvoid'
+import { withPositionY } from '../captions/studioCaptions'
+import { studioBandRect } from '../captions/studioClearance'
 import { PersonalizationPlayer } from '../preview/PersonalizationPlayer'
 import type { PlayerRef } from '@remotion/player'
 import { Timeline } from './editor/Timeline'
@@ -648,6 +652,24 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
               </div>
               {/* Shield: clicks on empty stage must not reach the Player (it would toggle play). Layers sit above it. */}
               <div aria-hidden data-testid="editor-live-shield" style={{ position: 'absolute', inset: 0 }} />
+              {/* Captions made in the Caption Studio: a grip level with them, to drag them up or down (saved as their height). */}
+              {ctx.previewSettings.captions?.enabled && ctx.previewSettings.captions.studio && ctx.previewSettings.captions.forUrl === inputProps.videoUrl && (() => {
+                const studio = ctx.previewSettings.captions.studio
+                const band = studioBandRect(studio, compW, compH)
+                return (
+                  <CaptionDragHandle
+                    y={(band.top + band.bottom) / 2}
+                    onChange={(y) => ctx.updatePreviewCaptions({ studio: withPositionY(studio, y) })}
+                    // Let go over other text and the captions stop just short of it.
+                    onRelease={() => {
+                      const a = captionAvoid(ctx.previewSettings, inputProps.brand)
+                      const out = a ? clearOf(a) : null
+                      const current = ctx.previewSettings.captions?.studio
+                      if (current && out?.overlapped && out.cleared) ctx.updatePreviewCaptions({ studio: withPositionY(current, out.positionY) })
+                    }}
+                  />
+                )
+              })()}
             </>
           ) : (
             <>

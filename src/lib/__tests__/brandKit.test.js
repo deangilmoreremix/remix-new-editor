@@ -5,7 +5,7 @@ vi.mock('../supabase.js', () => ({ supabase: null, isSupabaseConfigured: () => f
 
 import { navigate } from '../router.js';
 import { buildBrandKit, saveBrandKit, buildBrandAdPlan, makeBrandAd, buildBrandBrief, makeBrandProject, mergeBrandProfile, enrichBrandKit, scanAndSaveBrandKit } from '../brandKit.js';
-import { listBrands } from '../brandStore.js';
+import { listBrandKits } from '../brandKitStore.js';
 import { consumeStudioPrefill } from '../studioPrefill.js';
 
 const research = {
@@ -35,6 +35,26 @@ describe('brand kit', () => {
     expect(kit.tagline).toBe('');
   });
 
+  it('ignores a one-word description fragment', () => {
+    expect(buildBrandKit({ research: { ...research, description: 'We' }, client: { businessName: 'Acme' } }).valueProposition).toBe('');
+    expect(buildBrandKit({ research: { ...research, description: 'Fast, friendly plumbers serving all of Austin.' }, client }).valueProposition).toBe('Fast, friendly plumbers serving all of Austin.');
+  });
+
+  it('keeps Brand Kits separate from Brand Studio: saving never touches its brands', () => {
+    localStorage.setItem('brand_dna_list', JSON.stringify([{ id: 'mine', brandName: 'Existing brand' }]));
+    saveBrandKit(buildBrandKit({ research, client, assets }));
+    expect(JSON.parse(localStorage.getItem('brand_dna_list'))).toEqual([{ id: 'mine', brandName: 'Existing brand' }]);
+    expect(JSON.parse(localStorage.getItem('sv_brand_kits'))).toHaveLength(1);
+  });
+
+  it('throws instead of pretending to save when the browser will not store the kit', () => {
+    const kit = buildBrandKit({ research, client, assets });
+    const spy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('QuotaExceededError'); });
+    expect(() => saveBrandKit(kit)).toThrow("Couldn't save");
+    spy.mockRestore();
+    expect(saveBrandKit(kit).id).toBeTruthy(); // and works again once storage does
+  });
+
   it('returns null with nothing usable', () => {
     expect(buildBrandKit({})).toBeNull();
   });
@@ -42,7 +62,7 @@ describe('brand kit', () => {
   it('saves once per website and updates it on re-run', () => {
     const first = saveBrandKit(buildBrandKit({ research, client, assets }));
     const again = saveBrandKit(buildBrandKit({ research, client: { ...client, offer: 'Free quote' }, assets: [] }));
-    expect(listBrands()).toHaveLength(1);
+    expect(listBrandKits()).toHaveLength(1);
     expect(again.id).toBe(first.id);
     expect(again.offer).toBe('Free quote');
     expect(again.productImages).toEqual(['https://acme-plumbing.com/van.jpg']); // empty re-run does not wipe images
@@ -105,9 +125,9 @@ describe('deep scan', () => {
   it('scanAndSave persists the richer record on the same brand', async () => {
     const f = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true, profile }) });
     const saved = await scanAndSaveBrandKit(buildBrandKit({ research, client, assets }), f);
-    expect(listBrands()).toHaveLength(1);
-    expect(listBrands()[0].id).toBe(saved.id);
-    expect(listBrands()[0].fonts).toEqual(['Poppins', 'Lora']);
+    expect(listBrandKits()).toHaveLength(1);
+    expect(listBrandKits()[0].id).toBe(saved.id);
+    expect(listBrandKits()[0].fonts).toEqual(['Poppins', 'Lora']);
   });
 });
 

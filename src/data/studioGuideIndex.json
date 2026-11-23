@@ -145,7 +145,7 @@
         "route": "media-hub",
         "shortDescription": "Download videos and audio from links, then transcribe them and ask AI about them.",
         "features": 18,
-        "thumbnail": "/thumbnails/pages/placeholder.webp"
+        "thumbnail": "/guides/smartviddownloader/overview.webp"
       },
       {
         "slug": "storyboard-studio",
@@ -335,6 +335,14 @@
         "shortDescription": "Continuously refreshed feed of trending AI prompts from X - copy any prompt into your studio and create.",
         "features": 10,
         "thumbnail": "/guides/smart-video-viral/overview.webp"
+      },
+      {
+        "slug": "smartwarmupai",
+        "name": "SmartWarmupAI",
+        "route": "smartwarmupai",
+        "shortDescription": "Warm up mailboxes, send cold email sequences and handle replies.",
+        "features": 15,
+        "thumbnail": "/guides/smartwarmupai/overview.webp"
       },
       {
         "slug": "timeline-editor",

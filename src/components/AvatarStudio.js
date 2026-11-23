@@ -33,6 +33,9 @@ export function AvatarStudio() {
   let selectedModel = avatarModels[0];
   let nativeAudio = false;
   let uploadedVideoUrl = null;
+  // 'image' | 'video' as reported by the picker / Pexels; the URL itself can't
+  // be trusted (clip.mp4#t=1, extensionless CDN links).
+  let uploadedSourceType = null;
   let uploadedAudioUrl = null;
   let prompt = '';
   let customThumbnailUrl = getCustomThumbnailFromCache('avatar-studio');
@@ -129,8 +132,10 @@ const triggerBtn = document.createElement('button');
   };
 
   modelWrapper.appendChild(triggerBtn);
-  modelWrapper.appendChild(dropdown);
   container.appendChild(modelWrapper);
+  // On the page container, not the animated wrapper: a transformed parent traps the
+  // dropdown's z-index and the form card painted over it.
+  container.appendChild(dropdown);
 
   // Form card
   const formCard = document.createElement('div');
@@ -148,10 +153,11 @@ const triggerBtn = document.createElement('button');
   const videoPicker = createUploadPicker({
     anchorContainer: container,
     acceptVideo: true,
-    onSelect: ({ url, type }) => { 
-      uploadedVideoUrl = url; 
+    onSelect: ({ url, type }) => {
+      uploadedVideoUrl = url;
+      uploadedSourceType = type === 'image' || type === 'video' ? type : null;
     },
-    onClear: () => { uploadedVideoUrl = null; },
+    onClear: () => { uploadedVideoUrl = null; uploadedSourceType = null; },
   });
   videoUploadGroup.appendChild(videoPicker.trigger);
 
@@ -172,6 +178,7 @@ const triggerBtn = document.createElement('button');
           ? (asset.video_files?.find(f => f.quality === 'hd') || asset.video_files?.[0])?.link || asset.url
           : (asset.src?.large || asset.src?.original || asset.url);
         uploadedVideoUrl = url;
+        uploadedSourceType = isVideo ? 'video' : 'image';
       },
     });
   };
@@ -342,7 +349,7 @@ const triggerBtn = document.createElement('button');
     dynamicControls = createAdvancedControls({
       model,
       container: dynamicControlsContainer,
-      exclude: new Set(['video_url', 'audio_url', 'prompt']),
+      exclude: new Set(['video_url', 'image_url', 'audio_url', 'prompt']),
     });
   }
   buildDynamicControls();
@@ -426,11 +433,13 @@ const triggerBtn = document.createElement('button');
 
   function updateFormVisibility() {
     // Show/hide video upload
-    const needsVideo = selectedModel.hasVideo;
+    // FLUX 3 Avatar lists its inputs (image_url, video_url, audio_url) but has no hasVideo/hasAudio flags.
+    const inputs = selectedModel.inputs || {};
+    const needsVideo = Boolean(selectedModel.hasVideo || inputs.video_url || inputs.image_url);
     videoUploadGroup.classList.toggle('hidden', !needsVideo);
 
     // Show/hide audio upload
-    const needsAudio = selectedModel.hasAudio;
+    const needsAudio = Boolean(selectedModel.hasAudio || inputs.audio_url);
     audioUploadGroup.classList.toggle('hidden', !needsAudio);
 
     // Show/hide prompt
@@ -447,7 +456,8 @@ const triggerBtn = document.createElement('button');
   // Generate button handler
   genBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
-    if (!uploadedVideoUrl && selectedModel.hasVideo) {
+    const needsSource = Boolean(selectedModel.hasVideo || selectedModel.inputs?.video_url || selectedModel.inputs?.image_url);
+    if (!uploadedVideoUrl && needsSource) {
       showToast('Upload a source video or image first', 'error');
       return;
     }
@@ -474,6 +484,23 @@ const triggerBtn = document.createElement('button');
         signal: avatarAbortController.signal,
       };
 
+      // Route by the media type the picker reported; only guess from the URL
+      // when it didn't say (e.g. an old history entry without a type).
+      const sourceType = uploadedSourceType
+        || (/\.(mp4|webm|mov|m4v|m3u8)(?:[?#]|$)/i.test(uploadedVideoUrl || '') ? 'video'
+          : /\.(png|jpe?g|webp|gif|avif|heic)(?:[?#]|$)/i.test(uploadedVideoUrl || '') ? 'image'
+            // Still unknown: a portrait-only model can only mean an image.
+            : (selectedModel.inputs?.image_url && !selectedModel.hasVideo && !selectedModel.inputs?.video_url) ? 'image' : null);
+      if (sourceType === 'image' && uploadedVideoUrl) {
+        // A still is never a video source; models that take a portrait get it as image_url.
+        delete params.video_url;
+        if (selectedModel.inputs?.image_url) params.image_url = uploadedVideoUrl;
+        else if (needsSource) throw new Error('This model needs a source video, not an image.');
+      } else if (sourceType === 'video' && uploadedVideoUrl && selectedModel.inputs?.image_url
+        && !selectedModel.hasVideo && !selectedModel.inputs?.video_url) {
+        // Portrait-only models (e.g. Kling Avatar, InfiniteTalk Image to Video) reject a video source.
+        throw new Error('This model needs a still portrait image, not a video.');
+      }
       if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
       if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);
       if (dynamicControls) {

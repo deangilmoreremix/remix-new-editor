@@ -38,6 +38,8 @@ import { AuthModal } from './AuthModal.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
+import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
@@ -207,7 +209,41 @@ export function CinemaTemplateStudio() {
     const q = new URLSearchParams(window.location.search);
     const sharedTemplate = q.get('fill') && q.get('template') ? registry.get(q.get('template')) : null;
     if (sharedTemplate) selectTemplate(sharedTemplate);
+    else openLandingDemoHandoff(q);
   } catch { /* ignore malformed links */ }
+
+  // Landing-page demo hand-off ("C" icon): instead of the generic gallery, open a
+  // cinematic template's create view with the demo's prompt already filled in,
+  // like the other studios do.
+  function openLandingDemoHandoff(q) {
+    const academyId = q.get('academy-template');
+    const promptParam = q.get('prompt');
+    const demoParam = q.get('template');
+    if (!academyId && !promptParam && !demoParam) return;
+    const fillPrompt = (text) => {
+      if (!text || !currentTemplate) return;
+      const schema = new TemplateInputBuilder(currentTemplate, currentMode).buildFormSchema();
+      const field = schema.find((i) => i && i.name === 'prompt' && (i.type === 'text' || i.type === 'textarea'))
+        || schema.find((i) => i && (i.type === 'text' || i.type === 'textarea'));
+      const form = container.querySelector('#inputs-form');
+      if (!field || !form) return;
+      const values = { [field.name]: text };
+      applyValuesToForm(form, values);
+      markFieldsEdited(values);
+    };
+    const template = registry.get('cinematic_short_film') || registry.getAll()[0];
+    if (!template) return;
+    selectTemplate(template);
+    const target = academyId ? getAcademyCreateTarget(academyId) : null;
+    const direct = target?.params?.prompt || promptParam || '';
+    if (direct) {
+      fillPrompt(direct);
+    } else if (demoParam && resolveTemplate(demoParam)) {
+      const tpl = resolveTemplate(demoParam);
+      if (tpl.basePrompt) fillPrompt(tpl.basePrompt);
+      else loadTemplatePrompt(demoParam).then(fillPrompt).catch(() => {});
+    }
+  }
 
   function render() {
     container.innerHTML = '';

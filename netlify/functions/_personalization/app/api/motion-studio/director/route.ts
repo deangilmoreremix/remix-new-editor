@@ -48,7 +48,7 @@ export const maxDuration = 60
  */
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses'
 const DIRECTOR_MODEL = process.env.MOTION_STUDIO_DIRECTOR_MODEL || 'gpt-6-astra'
-const ALLOWED_MODELS = new Set(['gpt-6-astra', 'gpt-4o', 'gpt-4o-mini'])
+const ALLOWED_MODELS = new Set(['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-luna', 'gpt-4o', 'gpt-4o-mini'])
 
 const CATALOG_BRIEF = buildCatalogBrief()
 
@@ -188,7 +188,7 @@ Catalog (id | title | category | native length | flags | what it does):
 ${CATALOG_BRIEF}`
 
 function extractOutputText(payload: any): string {
-  if (typeof payload?.output_text === 'string') return payload.output_text
+  if (typeof payload?.output_text === 'string' && payload.output_text) return payload.output_text
   for (const item of Array.isArray(payload?.output) ? payload.output : []) {
     for (const content of Array.isArray(item?.content) ? item.content : []) {
       if (content?.type === 'output_text' && typeof content?.text === 'string') return content.text

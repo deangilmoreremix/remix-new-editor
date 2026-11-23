@@ -9,7 +9,7 @@
  * is reported as inferred.
  */
 import * as cheerio from 'cheerio'
-import { fetchPageWithFinalUrl } from './discoverAssets'
+import { fetchPageWithFinalUrl, fetchStylesheet } from './discoverAssets'
 import { parseBrandHtml } from './brandStaticScrape'
 
 export const MAX_SUBPAGES = 4
@@ -97,27 +97,51 @@ export interface PageFacts {
   text: string
   images: string[]
   fonts: string[]
+  styleLinks: string[]
 }
 
 const clean = (s: string) => s.replace(/\s+/g, ' ').trim()
 const GENERIC_HEADING = /^(home|menu|about( us)?|contact( us)?|services?|products?|shop|search|cart|login|sign in|subscribe|newsletter|follow us|our (services|products|team|story)|reviews?|testimonials?|faq|footer)$/i
+/** Calls to action, utility links and site chrome that are not something the business offers. */
+const CTA_HEADING = /^(get|download|receive|subscribe|sign|join|follow|view|see|learn|read|find|call|email|book|request|contact|visit|shop all|start|try|watch|explore|discover|connect|stay|store locator|our social|social communities|help|support|privacy|terms|cookie|accessibility|careers?)\b|\b(store locator|social communities|get in touch|newsletter|special offers|recipe app|back to top)\b/i
+/** A business talking about itself is not a customer testimonial. */
+const SELF_VOICE = /^(we|our|at [A-Z])\b|\b(our mission|we['’]re (on|here|a)|we believe|we are)\b/i
+/** Parts of a page that are navigation and chrome, not the business's own content. */
+const CHROME = 'nav, header, footer, aside, form, [role="navigation"], [role="banner"], [role="contentinfo"], [class*="cookie" i], [class*="newsletter" i], [class*="subscribe" i], [id*="cookie" i], [class*="footer" i], [class*="breadcrumb" i]'
 
-/** Pure: headings, testimonial quotes, copy, images and fonts of one page. */
+/** Pure: headings, testimonial quotes, copy, images, fonts and stylesheet links of one page. */
 export function extractPageFacts(html: string, pageUrl: string, kind: PageKind): PageFacts {
   const parsed = parseBrandHtml(html, pageUrl)
   const $ = cheerio.load(html)
+  const styleLinks: string[] = []
+  $('link[rel~="stylesheet"][href]').each((_i, el) => {
+    try { styleLinks.push(new URL($(el).attr('href') || '', pageUrl).href) } catch { /* skip */ }
+  })
   $('script, style, noscript, svg, template').remove()
+
+  // Quotes first (they can sit in a footer-ish block), by clear testimonial markup only.
+  const quotes: string[] = []
+  const addQuote = (raw: string) => {
+    const t = clean(raw).replace(/^["“”']+|["“”']+$/g, '')
+    if (t.length >= 40 && t.length <= 280 && !SELF_VOICE.test(t) && !quotes.includes(t)) quotes.push(t)
+  }
+  $('[itemprop="reviewBody"], [class*="testimonial" i] blockquote, [class*="testimonial" i] p, [class*="review" i] blockquote, [class*="review" i] p').each((_i, el) => addQuote($(el).text()))
+  // A plain blockquote counts only with an attribution (a customer's name), so a pull quote is not mistaken for one.
+  $('blockquote').each((_i, el) => {
+    if ($(el).find('cite, footer, figcaption').length || $(el).next('cite, figcaption').length || $(el).closest('figure').find('figcaption').length) {
+      const copy = $(el).clone()
+      copy.find('cite, footer, figcaption').remove()
+      addQuote(copy.text())
+    }
+  })
+
+  $(CHROME).remove()
   const headings: string[] = []
   $('h1, h2, h3').each((_i, el) => {
     const t = clean($(el).text())
-    if (t.length >= 3 && t.length <= 90 && !GENERIC_HEADING.test(t) && !headings.includes(t)) headings.push(t)
+    if (t.length >= 3 && t.length <= 90 && !GENERIC_HEADING.test(t) && !CTA_HEADING.test(t) && !headings.includes(t)) headings.push(t)
   })
-  const quotes: string[] = []
-  $('blockquote, [class*="testimonial" i], [class*="review" i] p, [itemprop="reviewBody"]').each((_i, el) => {
-    const t = clean($(el).text()).replace(/^["“”']+|["“”']+$/g, '')
-    if (t.length >= 40 && t.length <= 280 && !quotes.includes(t)) quotes.push(t)
-  })
-  return { url: pageUrl, kind, title: parsed.title, headings: headings.slice(0, 30), quotes: quotes.slice(0, 8), text: parsed.bodyText, images: parsed.images, fonts: parsed.fonts }
+  return { url: pageUrl, kind, title: parsed.title, headings: headings.slice(0, 30), quotes: quotes.slice(0, 8), text: parsed.bodyText, images: parsed.images, fonts: parsed.fonts, styleLinks: styleLinks.slice(0, 12) }
 }
 
 export interface BrandProfile {
@@ -135,9 +159,56 @@ export interface BrandProfile {
 
 const GENERIC_FONT = /^(serif|sans-serif|monospace|cursive|system-ui|ui-sans-serif|ui-serif|-apple-system|blinkmacsystemfont|segoe ui|helvetica( neue)?|arial|times( new roman)?|georgia|verdana|tahoma|courier( new)?|roboto|inherit)$/i
 
+/** Icon, symbol and UI-widget fonts are not brand typography. */
+const ICON_FONT = /(awesome|icon|glyph|symbol|dashicons|material|\bfa\b|fa-|slick|swiper|emoji|genericons|ionicons|bootstrap)/i
+const cleanFontName = (raw: string) => raw.trim().replace(/^['"]|['"]$/g, '').replace(/\s+/g, ' ')
+const usableFont = (name: string) => name.length >= 2 && name.length <= 40 && !/^(inherit|initial|unset|var\(|-)/i.test(name) && !GENERIC_FONT.test(name) && !ICON_FONT.test(name)
+
+/**
+ * Pure: brand font names from CSS. Fonts the site loads itself (@font-face) come first, then the most-used names in
+ * font-family rules. Generic, system and icon fonts are left out.
+ */
+export function fontsFromCss(css: string): string[] {
+  const text = String(css || '').slice(0, 800_000)
+  const out: string[] = []
+  const add = (n: string) => { const name = cleanFontName(n); if (usableFont(name) && !out.some((o) => o.toLowerCase() === name.toLowerCase())) out.push(name) }
+  for (const m of text.matchAll(/@font-face\s*\{[^}]*?font-family\s*:\s*([^;}]+)/gi)) add(m[1])
+  for (const m of text.matchAll(/@import[^;]*fonts\.googleapis\.com[^;]*family=([^&;'")]+)/gi)) add(decodeURIComponent(m[1].split(':')[0]).replace(/\+/g, ' '))
+  const counts = new Map<string, number>()
+  for (const m of text.replace(/@font-face\s*\{[^}]*\}/gi, '').matchAll(/font-family\s*:\s*([^;}{]+)/gi)) {
+    for (const part of m[1].split(',').slice(0, 2)) {
+      const name = cleanFontName(part)
+      if (usableFont(name)) counts.set(name, (counts.get(name) || 0) + 1)
+    }
+  }
+  for (const [name] of [...counts.entries()].sort((a, b) => b[1] - a[1])) add(name)
+  return out.slice(0, 6)
+}
+
+const STYLE_SKIP_HOST = /(googletagmanager|hotjar|intercom|zendesk|cookiebot|onetrust|fontawesome|typekit|cdnjs|jsdelivr|unpkg)/i
+const MAX_STYLESHEETS = 3
+
+/** Pure: which stylesheets to read for fonts: the site's own first, then its CDN, a few at most. */
+export function pickStylesheets(links: string[], siteUrl: string): string[] {
+  let host = ''
+  try { host = stripWww(new URL(siteUrl).hostname) } catch { return [] }
+  const seen = new Set<string>()
+  const ok = links.filter((l) => {
+    try {
+      const u = new URL(l)
+      if (!/^https?:$/.test(u.protocol) || STYLE_SKIP_HOST.test(u.hostname) || seen.has(u.href)) return false
+      seen.add(u.href)
+      return true
+    } catch { return false }
+  })
+  const own = ok.filter((l) => stripWww(new URL(l).hostname) === host)
+  const other = ok.filter((l) => stripWww(new URL(l).hostname) !== host)
+  return [...own, ...other].slice(0, MAX_STYLESHEETS)
+}
+
 /** Pure: merge the facts of every page read into one profile. */
-export function buildBrandProfile(pages: PageFacts[]): BrandProfile {
-  const fonts = [...new Set(pages.flatMap((p) => p.fonts).filter((f) => f && !GENERIC_FONT.test(f)))].slice(0, 6)
+export function buildBrandProfile(pages: PageFacts[], cssFonts: string[] = []): BrandProfile {
+  const fonts = [...new Set([...cssFonts, ...pages.flatMap((p) => p.fonts)].filter(usableFont))].slice(0, 6)
   const copy = pages.map((p) => p.text).join(' ')
   const tone = inferTone(copy)
   const about = pages.find((p) => p.kind === 'about')
@@ -160,5 +231,8 @@ export async function crawlBrandSite(rawUrl: string, deadlineAt: number): Promis
   const links = pickSubpageLinks(home.html, home.finalUrl)
   const pages = await Promise.all(links.map((l) => fetchPageWithFinalUrl(l.url, deadlineAt).then((p) => (p ? { p, l } : null)).catch(() => null)))
   for (const got of pages) if (got) facts.push(extractPageFacts(got.p.html, got.p.finalUrl, got.l.kind))
-  return buildBrandProfile(facts)
+  // Fonts usually live in external stylesheets, so read a few (home page links, the site's own first).
+  const sheets = await Promise.all(pickStylesheets(facts[0].styleLinks, home.finalUrl).map((u) => fetchStylesheet(u, deadlineAt).catch(() => null)))
+  const cssFonts = [...new Set(sheets.flatMap((css) => (css ? fontsFromCss(css) : [])))]
+  return buildBrandProfile(facts, cssFonts)
 }
