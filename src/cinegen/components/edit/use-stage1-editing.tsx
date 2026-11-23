@@ -30,7 +30,7 @@ export interface Stage1Params {
   play: () => void;
   pause: () => void;
   setSpeed: (rate: number) => void;
-  /** the media-pool asset loaded in the source monitor (null when a timeline clip is loaded, or nothing) */
+  /** the file loaded in the source monitor, whether opened from the media pool or from a timeline clip (null when nothing is loaded) */
   sourceAsset: Asset | null;
   sourceVisible: boolean;
 }
