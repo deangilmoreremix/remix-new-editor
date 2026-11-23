@@ -31,12 +31,14 @@ export function confirmMessage(label, risk) {
 }
 
 /**
- * store: { incr(keyId, day, risk) -> count after increment, audit(row), recent(userId, limit) }
+ * @typedef {{ incr: (keyId: string, day: string, risk: string) => Promise<number>, audit: (row: Record<string, unknown>) => Promise<void>, recent: (userId: string, limit: number) => Promise<unknown[]> }} GovernorStore
+ * @param {{ store: GovernorStore, caps?: Record<string, number>, now?: () => number }} deps
  * returns { check, record, recent }
  */
-export function createGovernor({ store, caps = DEFAULT_CAPS, now = Date.now } = {}) {
+export function createGovernor({ store, caps = DEFAULT_CAPS, now = Date.now }) {
   return {
     /** Decide before running. Returns { ok: true } or { ok: false, status, message }. Counts the call against the daily cap when it is allowed. */
+    /** @param {{ keyId?: string | null, risk: string, confirm?: unknown, label?: string }} a */
     async check({ keyId, risk, confirm, label = 'this action' }) {
       if (!RISKS.includes(risk)) return { ok: false, status: 500, message: `Unknown risk class for ${label}.` };
       if (!NEEDS_CONFIRM.has(risk)) return { ok: true };
@@ -48,6 +50,7 @@ export function createGovernor({ store, caps = DEFAULT_CAPS, now = Date.now } = 
       return { ok: true };
     },
     /** Write one audit row. Never throws: an audit failure must not break (or hide) the action. */
+    /** @param {{ keyId?: string | null, userId?: string | null, tool: string, risk: string, ok: boolean, ms?: number }} a */
     async record({ keyId, userId, tool, risk, ok, ms }) {
       try { await store.audit({ key_id: keyId || null, clerk_user_id: userId || null, tool: String(tool).slice(0, 80), risk, ok: !!ok, ms: Math.max(0, Math.round(ms || 0)), at: new Date(now()).toISOString() }); } catch { /* best effort */ }
     },
@@ -55,8 +58,10 @@ export function createGovernor({ store, caps = DEFAULT_CAPS, now = Date.now } = 
   };
 }
 
+/** @returns {GovernorStore & { rows: any[] }} */
 export function createMemoryGovernorStore() {
   const counts = new Map();
+  /** @type {any[]} */
   const rows = [];
   return {
     rows,
@@ -67,6 +72,7 @@ export function createMemoryGovernorStore() {
 }
 
 /** Supabase-backed store (tables from the mcp_governor migration). `admin` is a service-role client. */
+/** @param {any} admin @returns {GovernorStore} */
 export function createSupabaseGovernorStore(admin) {
   return {
     async incr(keyId, day, risk) {
