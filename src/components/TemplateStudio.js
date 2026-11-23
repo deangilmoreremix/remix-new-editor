@@ -297,16 +297,6 @@ export function TemplateStudio(templateId) {
     ${hasSpecs && specs.coreUseCase ? `<span class="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/75">${specs.coreUseCase}</span>` : ''}
   `;
   heroSection.appendChild(pills);
-  // muapi Studio apps can carry a known-issue warning (e.g. Skin Enhancer's backend error).
-  const appWarning = (template._original || template).muapiApp?.warning;
-  if (appWarning) {
-    const warn = document.createElement('p');
-    warn.dataset.appWarning = '';
-    warn.setAttribute('role', 'note');
-    warn.className = 'mt-4 inline-block rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200';
-    warn.textContent = appWarning;
-    heroSection.appendChild(warn);
-  }
   centeredContainer.appendChild(heroSection);
 
   // Two-column grid
@@ -975,7 +965,6 @@ export function TemplateStudio(templateId) {
   leftPanel.appendChild(genBtn);
   // Estimated price for one generation (best-effort; hidden when unavailable).
   const costEstimate = createTemplateCost({
-    fallbackUsd: (template._original || template).muapiApp?.defaultCostUsd ?? null,
     getRequest: () => {
       const { model } = currentMediaRoute();
       return { model, settings: videoSettings ? videoSettings.getSettings() : {} };

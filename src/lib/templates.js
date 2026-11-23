@@ -1,7 +1,6 @@
 import { ALL_NICHE_TEMPLATES, RESTAURANT_TEMPLATES, MED_SPA_TEMPLATES, SALON_TEMPLATES, FITNESS_TEMPLATES, REAL_ESTATE_TEMPLATES, DENTAL_TEMPLATES, CHIROPRACTIC_TEMPLATES, LEGAL_TEMPLATES, AUTOMOTIVE_TEMPLATES, FASHION_TEMPLATES, EVENT_TEMPLATES, LUXURY_TEMPLATES } from './nicheTemplatesIndex.js';
 import { MATRIX_TEMPLATES } from './templateMatrix.js';
 import { getMinimaxTemplateById } from './minimaxTemplates.js';
-import { MUAPI_APP_TEMPLATES, MUAPI_APP_CATEGORIES } from './muapiAppTemplates.js';
 
 export const TEMPLATE_CATEGORIES = {
   SOCIAL: 'Social Media',
@@ -26,14 +25,6 @@ export const TEMPLATE_CATEGORIES = {
   FASHION: 'Fashion',
   EVENT: 'Events',
   LUXURY: 'Luxury',
-  // muapi Studio app categories (see muapiAppTemplates.js)
-  APP_PROFESSIONAL: MUAPI_APP_CATEGORIES['professional'],
-  APP_ENHANCE_STYLE: MUAPI_APP_CATEGORIES['enhance-style'],
-  APP_FACE_IDENTITY: MUAPI_APP_CATEGORIES['face-identity'],
-  APP_VIDEO_EDITING: MUAPI_APP_CATEGORIES['video-editing'],
-  APP_ADS: MUAPI_APP_CATEGORIES['ads'],
-  APP_GAMES_CHARACTERS: MUAPI_APP_CATEGORIES['games-characters'],
-  APP_TRENDING: MUAPI_APP_CATEGORIES['trending-templates'],
 };
 
 export const templates = [
@@ -937,7 +928,7 @@ export const templates = [
 ];
 
 // Combine all templates including niche templates and matrix templates
-export const allTemplates = [...templates, ...ALL_NICHE_TEMPLATES, ...MATRIX_TEMPLATES, ...MUAPI_APP_TEMPLATES];
+export const allTemplates = [...templates, ...ALL_NICHE_TEMPLATES, ...MATRIX_TEMPLATES];
 
 export function getTemplateById(id) {
   const list = Array.isArray(allTemplates) ? allTemplates : [];
