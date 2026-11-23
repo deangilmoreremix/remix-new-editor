@@ -26,7 +26,7 @@ function LeadLogoStrip({ title, logos }) {
           const src = safeImageUrl(l.image) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(l.image || '') ? l.image : '');
           return (
             <li key={i} className="pk-strip-item">
-              {src ? <img className="ld-logo-mark" src={src} alt="" width="30" height="31" loading="lazy" /> : null}
+              {src ? <img className="ld-logo-mark" src={src} alt={t(l.imageAlt) || ''} width="30" height="31" loading="lazy" /> : null}
               <span className="pk-logo-word">{t(l.name)}</span>
             </li>
           );
@@ -41,7 +41,7 @@ export const components = {
     label: 'Lead: logo strip (with logo images)',
     fields: {
       title: { type: 'text', label: 'Heading' },
-      logos: { type: 'array', label: 'Logos', arrayFields: { name: { type: 'text', label: 'Name' }, image: { type: 'text', label: 'Logo mark image (https link or /landing-art path)' } }, getItemSummary: (i) => i.name || 'Logo', defaultItemProps: { name: 'Company', image: '' } },
+      logos: { type: 'array', label: 'Logos', arrayFields: { name: { type: 'text', label: 'Name' }, image: { type: 'text', label: 'Logo mark image (https link or /landing-art path)' }, imageAlt: { type: 'text', label: 'Screen-reader description (alt text)' } }, getItemSummary: (i) => i.name || 'Logo', defaultItemProps: { name: 'Company', image: '' } },
     },
     defaultProps: { title: 'Trusted by growth-focused teams', logos: [{ name: 'Notionly', image: '/landing-art/02/l1.webp' }, { name: 'Cloudway', image: '/landing-art/02/l2.webp' }] },
     render: (p) => <LeadLogoStrip {...p} />,

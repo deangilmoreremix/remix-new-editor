@@ -26,7 +26,9 @@
 .smart-video-studio {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  /* Fill the app shell's content area (it already sits below the top bar). */
+  height: 100%;
+  min-height: 0;
   background: var(--studio-bg);
   color: var(--studio-text);
   font-family: inherit;
@@ -171,6 +173,20 @@
   padding: 12px 16px;
 }
 
+/* Keep the Generate button clear of the floating "Ask SmartVideo" launcher. */
+@media (min-width: 768px) {
+  .smart-video-prompt-bar {
+    padding-right: 200px;
+  }
+}
+
+.generation-card-error {
+  margin: 4px 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--studio-error);
+}
+
 .smart-video-prompt-bar-inner {
   max-width: 90%;
   margin: 0 auto;
@@ -202,9 +218,10 @@
 
 .smart-video-prompt-submit {
   padding: 10px 24px;
-  background: var(--studio-lime);
-  color: var(--studio-bg);
-  border: none;
+  /* App buttons are outline-only (outline-buttons.css): neon border and text, no fill. */
+  background: transparent;
+  color: var(--studio-lime);
+  border: 1px solid var(--studio-lime);
   border-radius: var(--studio-radius-md);
   font-size: 14px;
   font-weight: 700;
@@ -715,9 +732,10 @@
 .dynamic-form-generate-btn {
   flex: 1;
   padding: 10px 20px;
-  background: var(--studio-lime);
-  color: var(--studio-bg);
-  border: none;
+  /* App buttons are outline-only (outline-buttons.css): neon border and text, no fill. */
+  background: transparent;
+  color: var(--studio-lime);
+  border: 1px solid var(--studio-lime);
   border-radius: var(--studio-radius-md);
   font-size: 14px;
   font-weight: 700;
@@ -1528,4 +1546,9 @@
   .smart-video-studio-header-nav {
     display: flex;
   }
+}
+
+/* A failed job has no output to preview: keep its card compact. */
+.generation-card.is-failed .generation-card-preview {
+  display: none;
 }

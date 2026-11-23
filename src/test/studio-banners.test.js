@@ -21,6 +21,14 @@ describe('studio banners', () => {
     }
   });
 
+  it('Zack D has a landscape banner picture of its own (not a portrait keyframe)', async () => {
+    const src = getHeroThumbnail('zackd');
+    expect(src).toBe('/thumbnails/heroes/zackd.webp');
+    const el = createStudioHeader('zackd', 'Zack D Studio', 'x');
+    expect(el.dataset.studioHeader).toBe('zackd');
+    expect(el.querySelector('img:not([aria-hidden])').getAttribute('src')).toBe(src);
+  });
+
   it('the new banners are not another page\'s picture', () => {
     const paths = ['director', 'workbench', 'viral', 'personalizer', 'website-builder'].map(getHeroThumbnail);
     expect(new Set(paths).size).toBe(paths.length);

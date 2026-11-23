@@ -48,7 +48,7 @@ assert.equal(normalizeLlmProvider('glm'), 'glm');
 assert.equal(normalizeLlmProvider('OpenRouter'), 'openrouter');
 assert.equal(normalizeLlmProvider('unexpected'), 'anthropic');
 assert.equal(defaultModelForProvider('anthropic'), 'claude-fable-5');
-assert.equal(defaultModelForProvider('openai'), 'gpt-5');
+assert.equal(defaultModelForProvider('openai'), 'gpt-6.1-sol');
 assert.equal(defaultModelForProvider('kimi'), 'kimi-k3');
 assert.equal(defaultModelForProvider('qwen'), 'qwen-plus');
 assert.equal(defaultModelForProvider('glm'), 'glm-5.2');

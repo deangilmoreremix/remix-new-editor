@@ -6,9 +6,10 @@ vi.mock('../../supabase.js', () => ({ isSupabaseConfigured: () => true, getClerk
 vi.mock('../client.js', async (orig) => ({ ...(await orig()), listPages: vi.fn(async () => pages.list) }));
 vi.mock('../editor/mount.jsx', () => ({ mountPageEditor: vi.fn(() => ({ destroy() {} })), mountEditablePage: vi.fn(() => ({ destroy() {} })) }));
 vi.mock('../../studioChrome.js', () => ({ mountStudioChrome: () => {} }));
+const picker = vi.hoisted(() => ({ open: vi.fn() }));
+vi.mock('../pickerModal.js', () => ({ openLandingPagePicker: picker.open }));
 
-import { queueVideoForPage } from '../handoff.js';
-import { TEMPLATES, defaultConfig } from '../templates.js';
+import { defaultConfig } from '../templates.js';
 import { LandingPagesStudio } from '../../../components/LandingPagesStudio.js';
 import { mountPageEditor } from '../editor/mount.jsx';
 
@@ -25,18 +26,10 @@ describe('Video Pages studio', () => {
     expect(mountPageEditor).not.toHaveBeenCalled();
   });
 
-  it('the New page picker: editable designs show a live preview of the page, every other design shows its picture, and a wireframe stands in when a picture fails to load', async () => {
-    expect(queueVideoForPage({ url: 'https://x.test/v.mp4', type: 'video', prompt: 'Launch video' })).toBe(true);
+  it('+ New page opens the shared picker (pages are made from a video, not in a separate flow)', async () => {
     const root = LandingPagesStudio(); document.body.appendChild(root);
-    await vi.waitFor(() => expect(root.textContent).toContain('New video page'));
-    const others = TEMPLATES.filter((t) => !t.site && !t.editable);
-    await vi.waitFor(() => expect(root.querySelectorAll('img[data-design-preview]').length).toBe(others.length));
-    const first = root.querySelector('img[data-design-preview="clean"]');
-    expect(first.getAttribute('src')).toBe('/landing-previews/clean.jpg');
-    expect(root.querySelector('img[data-design-preview="editable-leadiq"]')).toBeNull();   // an editable design is drawn live instead
-    const card = first.closest('div');
-    first.dispatchEvent(new Event('error'));
-    expect(card.querySelector('svg')).toBeTruthy();                       // the page's shape stands in
-    expect(card.querySelector('img')).toBeNull();
+    await vi.waitFor(() => expect(root.textContent).toContain('+ New page'));
+    [...root.querySelectorAll('button')].find((b) => b.textContent === '+ New page').click();
+    await vi.waitFor(() => expect(picker.open).toHaveBeenCalledTimes(1));
   });
 });

@@ -3,8 +3,12 @@
  *
  * Everything here comes from owner-only Supabase RPCs / tables (row-level
  * security on the Clerk `sub`) through the signed-in client. There is no demo
- * data path: when nothing has been collected the result says so (zeros for known
+ * data path here: when nothing has been collected the result says so (zeros for known
  * zeros, null -> "—" for values that are undefined or unsupported).
+ *
+ * The DEMO videos of the Analytics tab (./demo/) do not change that: they run these same
+ * functions with a different `client` (a stand-in that answers from made-up viewers) and
+ * are only ever given demo video ids. The real client never sees them.
  */
 import { projectSections, ctaLabels, projectDuration } from '../../publish/sections.js';
 import { canonicalUrl } from '../../publish/publishClient.js';

@@ -41,6 +41,7 @@ import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 export function ImageStudio() {
     const container = document.createElement('div');
@@ -105,6 +106,9 @@ export function ImageStudio() {
     let showToolsPanel = false;
 
     // Read gallery / deep-link params and apply them as studio defaults.
+    // The prompt textarea is built later, so the deep-link prompt is kept here
+    // and applied when it exists (see `prefill` below).
+    let deepLinkPrompt = '';
     (async () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
@@ -127,12 +131,14 @@ export function ImageStudio() {
             if (tpl.model) selectedModel = tpl.model;
             if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;
             if (tpl.basePrompt) {
+              deepLinkPrompt = tpl.basePrompt;
               const textarea = document.getElementById('i-prompt-textarea');
               if (textarea) textarea.value = tpl.basePrompt;
             } else if (tpl.slug) {
               loadTemplatePrompt(templateParam)
                 .then((prompt) => {
                   if (prompt) {
+                    deepLinkPrompt = deepLinkPrompt || prompt;
                     const textarea = document.getElementById('i-prompt-textarea');
                     if (textarea) textarea.value = prompt;
                   }
@@ -145,6 +151,7 @@ export function ImageStudio() {
         if (academyParam || promptParam) {
           const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
           const params = target?.params || {};
+          deepLinkPrompt = params.prompt || promptParam || deepLinkPrompt;
           if (params.prompt) {
             const textarea = document.getElementById('i-prompt-textarea');
             if (textarea) textarea.value = params.prompt;
@@ -361,6 +368,7 @@ export function ImageStudio() {
             requestAnimationFrame(applyReference);
         }
     }
+    if (!prefill && deepLinkPrompt) prefill = deepLinkPrompt;
     if (prefill) {
         textarea.value = prefill;
         requestAnimationFrame(() => {
@@ -1268,25 +1276,34 @@ generateBtn.type = 'button';
     publishBtn.textContent = 'Publish to Social';
 
     canvasControls.appendChild(publishBtn);
+    const landingBtn = createLandingPageButton({ like: downloadBtn });
+    canvasControls.appendChild(landingBtn);
 
     canvas.appendChild(imageContainer);
     canvas.appendChild(canvasControls);
     container.appendChild(canvas);
 
     // --- Helper: Show image in canvas ---
+    // Bumped by every show and by "+ New", so a slow image that finishes
+    // loading after the user reset (or picked another) can't reopen the canvas.
+    let canvasLoadToken = 0;
     const showImageInCanvas = (imageUrl) => {
+        const token = ++canvasLoadToken;
         // Fully hide hero and prompt
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
 
-        resultImg.src = imageUrl;
         resultImg.onload = () => {
+            if (token !== canvasLoadToken) return;
             canvas.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+            container.classList.add('studio-result-showing'); // hides the example gallery under the result
             canvas.classList.add('opacity-100', 'translate-y-0', 'scale-100');
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
         };
+        resultImg.src = imageUrl;
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: imageUrl, mediaType: 'image' });
+        landingBtn.onclick = () => { void openLandingPageFor({ url: imageUrl, type: 'image', studio: 'image' }); };
     };
 
     // --- Helper: Add to history ---
@@ -1411,8 +1428,10 @@ generateBtn.type = 'button';
     };
 
     newPromptBtn.onclick = () => {
+        canvasLoadToken++; // drop any still-loading result
         // Reset to prompt view
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
+        container.classList.remove('studio-result-showing');
         canvas.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
         canvasControls.classList.add('opacity-0');
         canvasControls.classList.remove('opacity-100');
@@ -1606,7 +1625,7 @@ generateBtn.type = 'button';
       const showMoreBtn = document.createElement('button');
       showMoreBtn.type = 'button';
       showMoreBtn.textContent = `Show all ${galleryAssets.length} image prompts`;
-      showMoreBtn.className = 'mt-4 mb-8 px-6 py-3 rounded-xl text-sm font-bold bg-white/5 text-secondary hover:bg-white/10 hover:text-primary transition-all border border-white/5 hover:border-primary/30';
+      showMoreBtn.className = 'eg-show-more mt-4 mb-8 px-6 py-3 rounded-xl text-sm font-bold bg-white/5 text-secondary hover:bg-white/10 hover:text-primary transition-all border border-white/5 hover:border-primary/30';
       showMoreBtn.addEventListener('click', () => {
         expanded = !expanded;
         if (expanded) {

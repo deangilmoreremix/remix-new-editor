@@ -3,6 +3,7 @@ const ROUTE_MAP = {
   'Image': 'image',
   'Video': 'video',
   'Storyboard': 'storyboard',
+  'Studio': 'muapi-studio',
   'Edit': 'edit',
   'Character': 'character',
   'Commercial': 'commercial',
@@ -83,7 +84,7 @@ const pageLoaders = {
   avatar: () => import('../components/AvatarStudio.js').then(m => m.AvatarStudio()),
   'smart-video-scheduler': () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
   brightbean: () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
-  'smart-video-studio': () => import('../components/studios/SmartVideoStudio/SmartVideoStudio.tsx').then(m => m.default || m.SmartVideoStudio),
+  'smart-video-studio': () => import('../components/studios/SmartVideoStudio/SmartVideoStudio.tsx').then(m => m.SmartVideoStudioPage()),
   audio: () => import('../components/AudioStudio.js').then(m => m.AudioStudio()),
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
@@ -101,6 +102,7 @@ const pageLoaders = {
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
   storyboard: () => import('../components/StoryboardStudio.js').then(m => m.StoryboardStudio()),
+  'muapi-studio': () => import('../components/MuapiStudioPage.js').then(m => m.MuapiStudioPage()),
   'text-to-image': () => import('../components/TextToImagePage.js').then(m => m.TextToImagePage()),
   'image-to-image': () => import('../components/ImageToImagePage.js').then(m => m.ImageToImagePage()),
   'text-to-video': () => import('../components/TextToVideoPage.js').then(m => m.TextToVideoPage()),
@@ -156,7 +158,13 @@ const pageLoaders = {
 };
 
 // Sub-paths like 'academy/track/<t>/lesson/<id>' are handled by the Academy page itself.
-export const academyKey = (page) => (typeof page === 'string' && page.startsWith('academy/') ? 'academy' : page);
+export const academyKey = (page) => {
+  if (typeof page !== 'string') return page;
+  if (page.startsWith('academy/')) return 'academy';
+  // #/smartwarmupai/help/<docs path> and other studio deep links are parsed by the studio itself.
+  if (page.startsWith('smartwarmupai/')) return 'smartwarmupai';
+  return page;
+};
 
 /** True when navigate(page) opens a real page rather than the placeholder. */
 export const isKnownPage = (page) => typeof page === 'string' && (page.startsWith('template/') || Boolean(pageLoaders[academyKey(RETIRED_ROUTES[page] || page)]));

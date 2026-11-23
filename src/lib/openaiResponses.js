@@ -12,9 +12,10 @@
  */
 
 import { apiKeyManager } from './apiKeyManager.js';
+import { OPENAI_TEXT_MODEL, extractResponsesOutputText } from './config/openaiConfig.js';
 
 const RESPONSES_URL = 'https://api.openai.com/v1/responses';
-const PLANNER_MODEL = 'gpt-4.1';
+const PLANNER_MODEL = OPENAI_TEXT_MODEL;
 
 function getOpenAIKey() {
   const key = apiKeyManager.getOpenAIKey?.();
@@ -131,7 +132,7 @@ export async function planAutoEdit(meta = {}, { signal } = {}) {
   }
 
   const json = await res.json();
-  const text = json?.output?.[0]?.content?.[0]?.text;
+  const text = extractResponsesOutputText(json);
   if (!text) {
     throw new Error('OpenAI Responses API returned no structured content');
   }

@@ -10,11 +10,7 @@
     "selector": "xpath=//h2[normalize-space()=\"How It Works\"]/.."
   },
   "ai-video-watermark-remover-card": {
-    "selector": "[data-model=\"AI Video Watermark Remover\"]",
-    "click": false
-  },
-  "ai-video-object-remover-and-logo-remover-cards": {
-    "selector": "[data-model=\"AI Video Object Remover\"]",
+    "selector": "[data-model=\"video-watermark-remover\"]",
     "click": false
   },
   "get-started-free-button": {
@@ -24,6 +20,10 @@
   "removing-a-watermark-in-video-studio": {
     "route": "video",
     "selector": "button[title=\"Upload video to remove watermark\"]",
+    "click": false
+  },
+  "logo-seedance-and-background-remover-cards": {
+    "selector": "[data-model=\"seedance-2-watermark-remover\"]",
     "click": false
   }
 }

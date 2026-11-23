@@ -20,7 +20,7 @@ function Voices({ eyebrow, title, quotes }) {
           const photo = imgOk(q.photo);
           return (
             <figure key={i} className="pk-lq-card">
-              {photo ? <img src={photo} alt="" width="58" height="58" loading="lazy" /> : <i className="pk-dot pk-dot--lg">{String(q.name || '?').slice(0, 1).toUpperCase()}</i>}
+              {photo ? <img src={photo} alt={t(q.photoAlt) || ''} width="58" height="58" loading="lazy" /> : <i className="pk-dot pk-dot--lg">{String(q.name || '?').slice(0, 1).toUpperCase()}</i>}
               <div className="pk-lq-body">
                 <blockquote>{`“${t(q.text)}”`}</blockquote>
                 <figcaption>
@@ -91,7 +91,7 @@ export const components = {
     fields: {
       eyebrow: T('Small label'),
       title: T('Heading (wrap words in [[double brackets]] to highlight)'),
-      quotes: { type: 'array', label: 'Testimonials', arrayFields: { photo: T('Photo (https link)'), text: { type: 'textarea', label: 'Quote' }, name: T('Name'), role: T('Role / company'), stars: { type: 'number', label: 'Stars (0-5)', min: 0, max: 5 } }, getItemSummary: (i) => i.name || 'Quote', defaultItemProps: { photo: '', text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company', stars: 5 } },
+      quotes: { type: 'array', label: 'Testimonials', arrayFields: { photo: T('Photo (https link)'), photoAlt: T('Screen-reader description (alt text)'), text: { type: 'textarea', label: 'Quote' }, name: T('Name'), role: T('Role / company'), stars: { type: 'number', label: 'Stars (0-5)', min: 0, max: 5 } }, getItemSummary: (i) => i.name || 'Quote', defaultItemProps: { photo: '', text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company', stars: 5 } },
     },
     defaultProps: { eyebrow: 'CUSTOMER LOVE', title: 'What Our Users Are Saying', quotes: [{ photo: '', text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company', stars: 5 }] },
     render: (p) => <Voices {...p} />,

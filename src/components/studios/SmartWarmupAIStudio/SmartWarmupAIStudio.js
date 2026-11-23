@@ -79,7 +79,9 @@ export function SmartWarmupAIStudio() {
     }
     const appFrame = makeFrame('app', `${APP}${VIEW_ROUTES[hash] || '/app/emails'}`, 'SmartWarmupAI');
     if (helpBuilt) {
-      makeFrame('help', `${HELP}/${wantsHelp ? hash.slice(5).replace(/^\//, '') : ''}`, 'SmartWarmupAI Help');
+      // Help pages are folders (getting-started/index.html): keep the trailing slash so their relative links resolve.
+      const helpPage = wantsHelp ? hash.slice(5).replace(/^\//, '').replace(/([^/])$/, '$1/') : '';
+      makeFrame('help', `${HELP}/${helpPage}`, 'SmartWarmupAI Help');
       // A help link clicked inside the dashboard opens the Help tab instead of a new browser tab.
       appFrame.addEventListener('load', () => {
         try {
