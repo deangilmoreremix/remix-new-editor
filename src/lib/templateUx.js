@@ -163,6 +163,14 @@ export function setFavoriteTemplateIds(ids) {
   emit('template-favorites-changed', { ids: clean });
 }
 
+// The favorite star on template cards. White on a dark disc with a ring, so it stays visible over both
+// dark and bright thumbnails; paintFavoriteStar() switches it to yellow when the template is a favorite.
+export const FAVORITE_STAR_CLASS = 'absolute top-2 right-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/50 bg-black/85 text-base text-white shadow-lg shadow-black/50 ring-1 ring-black/60 transition hover:bg-black hover:scale-110';
+export function paintFavoriteStar(star, on) {
+  star.classList.toggle('text-white', !on);
+  star.classList.toggle('text-yellow-300', on);
+}
+
 // Pages and the cloud sync listen to these (templateCloud.js); nothing here depends on them.
 function emit(name, detail) {
   try { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(name, { detail })); } catch { /* optional */ }

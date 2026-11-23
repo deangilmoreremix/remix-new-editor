@@ -168,3 +168,31 @@ describe('Templates page category link', () => {
     window.history.replaceState({}, '', '/');
   });
 });
+
+describe('Favorite stars and Templates intro', () => {
+  it('stars opt out of the outline-button reset, so their dark disc shows on light thumbnails', async () => {
+    const page = ExplorePage();
+    const stars = [...page.querySelectorAll('[data-favorite]')];
+    expect(stars.length).toBeGreaterThan(0);
+    expect(stars.every((s) => s.hasAttribute('data-keep-fill'))).toBe(true);
+    const { TemplatesPage } = await import('../components/TemplatesPage.js');
+    const hearts = [...TemplatesPage().querySelectorAll('[data-favorite]')];
+    expect(hearts.length).toBeGreaterThan(0);
+    expect(hearts.every((s) => s.hasAttribute('data-keep-fill'))).toBe(true);
+  });
+  it('a favorite star turns yellow, an unfavorited one is white', () => {
+    setFavoriteTemplateIds([templates[0].id]);
+    const page = ExplorePage();
+    const on = page.querySelector(`[data-explore-trending] [data-favorite="${templates[0].id}"]`);
+    const off = page.querySelector(`[data-explore-trending] [data-favorite="${templates[1].id}"]`);
+    expect(on.className).toContain('text-yellow-300');
+    expect(off.className).toContain('text-white');
+  });
+  it('the Templates how-it-works text no longer claims 60+ templates', async () => {
+    const { getInstructionsSync } = await import('../lib/instructions.js');
+    const text = JSON.stringify(getInstructionsSync('templates'));
+    expect(text).toContain('Pick a template');
+    expect(text).not.toContain('60+');
+    expect(text).toContain('hundreds');
+  });
+});

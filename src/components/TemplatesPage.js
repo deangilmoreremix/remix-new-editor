@@ -1,5 +1,5 @@
 import { allTemplates, getAllCategories } from '../lib/templates.js';
-import { cssEscape, getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
+import { FAVORITE_STAR_CLASS, paintFavoriteStar, cssEscape, getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
 import { navigate, getQueryParam } from '../lib/router.js';
 import { syncFavorites } from '../lib/templateCloud.js';
@@ -362,13 +362,14 @@ function createTemplateSection(category, catTemplates, isNiche) {
     const heart = document.createElement('button');
     heart.type = 'button';
     heart.dataset.favorite = t.id;
-    heart.className = 'absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/70 text-sm text-zinc-300 transition hover:bg-black/90';
+    heart.className = FAVORITE_STAR_CLASS;
+    heart.setAttribute('data-keep-fill', ''); // outline-buttons.css would otherwise make the dark disc transparent
     const paintHeart = () => {
       const on = isFavoriteTemplate(t.id);
       heart.textContent = on ? '★' : '☆';
       heart.setAttribute('aria-pressed', String(on));
       heart.setAttribute('aria-label', on ? `Remove ${t.name} from favorites` : `Add ${t.name} to favorites`);
-      heart.classList.toggle('text-yellow-300', on);
+      paintFavoriteStar(heart, on);
     };
     paintHeart();
     heart.onclick = (e) => {

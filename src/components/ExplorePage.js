@@ -3,7 +3,7 @@ import { templates, allTemplates } from '../lib/templates.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
 import { templatesForNiche } from '../lib/templateCategories.js';
 import { getTemplateThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
-import { getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
+import { FAVORITE_STAR_CLASS, paintFavoriteStar, getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
 import { syncFavorites, fetchTrendingTemplateIds, isCloudReady, TRENDING_WINDOW_DAYS } from '../lib/templateCloud.js';
 import { CURATED_PROMPTS } from '../data/curatedPrompts.js';
 import { studioCards, createSection } from './AppsHub.js';
@@ -50,7 +50,8 @@ function templateCard(t) {
   const star = document.createElement('button');
   star.type = 'button';
   star.dataset.favorite = t.id;
-  star.className = 'absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/70 text-sm text-zinc-300 transition hover:bg-black/90';
+  star.className = FAVORITE_STAR_CLASS;
+  star.setAttribute('data-keep-fill', ''); // outline-buttons.css would otherwise make the dark disc transparent
   star.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); toggleFavoriteTemplate(t.id); });
   card.appendChild(star);
 
@@ -67,6 +68,7 @@ function paintStars(root) {
     const name = star.closest('[data-template-id]')?.querySelector('.font-bold')?.textContent || 'template';
     star.textContent = on ? '★' : '☆';
     star.setAttribute('aria-pressed', String(on));
+    paintFavoriteStar(star, on);
     star.setAttribute('aria-label', on ? `Remove ${name} from favorites` : `Add ${name} to favorites`);
   });
 }
