@@ -19,6 +19,7 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
+import { uploadFileToSupabase } from '../lib/uploadService.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -414,12 +415,34 @@ const COMMERCIAL_MODELS = [
       resultArea.querySelector('video').src = res.url;
       resultArea.querySelector('a[download]').href = res.url;
       resultArea.querySelector('.regen-btn').onclick = () => genBtn.click();
+      // What the preview shows: the generated ad, or the captioned version (a blob: URL on this device) after Free Captions.
+      let shownUrl = res.url;
+      let captionedPublicUrl = null; // the captioned video once uploaded, so Publish needs one upload only
       resultArea.querySelector('.caption-studio-btn').onclick = () => addCaptionButton({
-        videoUrl: res.url, appTheme: 'commercial-studio',
-        onComplete: (captionedUrl) => { resultArea.querySelector('video').src = captionedUrl; resultArea.querySelector('a[download]').href = captionedUrl; showToast('Preview updated with captions'); },
+        videoUrl: shownUrl, appTheme: 'commercial-studio',
+        onComplete: (captionedUrl) => {
+          if (shownUrl !== res.url && shownUrl.startsWith('blob:')) URL.revokeObjectURL(shownUrl); // the earlier captioned render
+          shownUrl = captionedUrl; captionedPublicUrl = null;
+          resultArea.querySelector('video').src = captionedUrl; resultArea.querySelector('a[download]').href = captionedUrl; showToast('Preview updated with captions');
+        },
         onError: (err) => showToast(err?.message || 'Captions failed'),
       });
-      resultArea.querySelector('.publish-social-btn').onclick = () => openSocialPublish({ mediaUrl: res.url, mediaType: 'video' });
+      resultArea.querySelector('.publish-social-btn').onclick = async () => {
+        let mediaUrl = res.url;
+        if (shownUrl !== res.url) {
+          // The captioned video only exists on this device and the publisher needs a public URL: upload it first, never publish the uncaptioned ad instead.
+          try {
+            if (!captionedPublicUrl) {
+              showToast('Uploading the captioned video…');
+              const blob = await (await fetch(shownUrl)).blob();
+              const file = new File([blob], `commercial-captioned.${/webm/.test(blob.type) ? 'webm' : 'mp4'}`, { type: blob.type || 'video/mp4' });
+              captionedPublicUrl = (await uploadFileToSupabase(file, { category: 'video' })).url;
+            }
+            mediaUrl = captionedPublicUrl;
+          } catch (err) { showToast(`Couldn't upload the captioned video (${err?.message || 'upload failed'}). Download it instead.`, 'error', 5000); return; }
+        }
+        openSocialPublish({ mediaUrl, mediaType: 'video' });
+      };
       saveGeneration({
         studio: 'commercial', type: 'video', url: res.url, prompt: script, model: 'seedance-2-vip-omni-reference',
         parameters: { format: adMode.state.format.name, aspect_ratio: adMode.state.ratio, resolution: adMode.state.res, duration: adMode.state.duration },
