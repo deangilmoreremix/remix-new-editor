@@ -7,6 +7,7 @@ from director.agents.base import BaseAgent, AgentResponse, AgentStatus
 from director.core.session import Session, VideoContent, MsgStatus, VideoData
 from director.tools.videodb_tool import VideoDBTool
 from director.tools.elevenlabs import ElevenLabsTool
+from director.utils.keys import get_key
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +106,7 @@ class DubbingAgent(BaseAgent):
 
                 os.makedirs(DOWNLOADS_PATH, exist_ok=True)
                 dubbed_file_path = f"{DOWNLOADS_PATH}/{video_id}_dubbed.mp4"
-                ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+                ELEVENLABS_API_KEY = get_key("ELEVENLABS_API_KEY")
                 if not ELEVENLABS_API_KEY:
                     raise Exception("Elevenlabs API key not present in .env")
                 elevenlabs_tool = ElevenLabsTool(api_key=ELEVENLABS_API_KEY)

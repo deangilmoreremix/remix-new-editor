@@ -9,6 +9,7 @@ from director.core.session import Session, MsgStatus, TextContent
 from director.tools.elevenlabs import ElevenLabsTool
 from director.tools.videodb_tool import VideoDBTool
 from director.constants import DOWNLOADS_PATH
+from director.utils.keys import get_key
 
 logger = logging.getLogger(__name__)
 
@@ -215,7 +216,7 @@ class CloneVoiceAgent(BaseAgent):
             
             audio_source = self.validate_audio_source(audio_source)
 
-            ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+            ELEVENLABS_API_KEY = get_key("ELEVENLABS_API_KEY")
             if not ELEVENLABS_API_KEY:
                     raise Exception("Elevenlabs API key not present in .env")
             

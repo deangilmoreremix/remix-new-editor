@@ -8,11 +8,13 @@ from videodb.timeline import Timeline
 from videodb.asset import VideoAsset, ImageAsset
 from director.tools.elevenlabs import VOICE_ID_MAP
 from director.constants import DOWNLOADS_PATH
+from director.utils.keys import get_key
 
 
 class VideoDBTool:
     def __init__(self, collection_id="default"):
         self.conn = videodb.connect(
+            api_key=get_key("VIDEO_DB_API_KEY"),
             base_url=os.getenv("VIDEO_DB_BASE_URL", "https://api.videodb.io")
         )
         self.collection = None

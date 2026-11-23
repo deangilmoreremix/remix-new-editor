@@ -9,6 +9,7 @@ from director.llm.base import BaseLLM, BaseLLMConfig, LLMResponse, LLMResponseSt
 from director.constants import (
     LLMType,
 )
+from director.utils.keys import get_key
 
 
 class OpenAIChatModel(str, Enum):
@@ -21,7 +22,7 @@ class VideoDBProxyConfig(BaseLLMConfig):
     """OpenAI Config"""
 
     llm_type: str = LLMType.VIDEODB_PROXY
-    api_key: str = os.getenv("VIDEO_DB_API_KEY")
+    api_key: str = ""
     api_base: str = os.getenv("VIDEO_DB_BASE_URL", "https://api.videodb.io")
     chat_model: str = Field(default=OpenAIChatModel.GPT4o)
     max_tokens: int = 4096
@@ -40,7 +41,7 @@ class VideoDBProxy(BaseLLM):
         :param config: OpenAI Config
         """
         if config is None:
-            config = VideoDBProxyConfig()
+            config = VideoDBProxyConfig(api_key=get_key("VIDEO_DB_API_KEY") or "")
         super().__init__(config=config)
         try:
             import openai

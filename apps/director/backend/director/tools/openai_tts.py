@@ -2,6 +2,7 @@ import os
 import requests
 from typing import Optional, Dict, Any
 from openai import OpenAI
+from director.utils.keys import get_key
 
 
 PARAMS_CONFIG = {
@@ -37,7 +38,7 @@ PARAMS_CONFIG = {
 
 class OpenAITTSTool:
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self.api_key = api_key or get_key("OPENAI_API_KEY")
         if not self.api_key:
             raise Exception("OpenAI API key not found")
 

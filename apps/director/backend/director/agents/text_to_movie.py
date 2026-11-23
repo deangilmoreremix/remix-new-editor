@@ -27,6 +27,7 @@ from director.tools.elevenlabs import (
 )
 from director.tools.videodb_tool import VDBAudioGenerationTool, VDBVideoGenerationTool, VideoDBTool
 from director.constants import DOWNLOADS_PATH
+from director.utils.keys import get_key
 
 
 logger = logging.getLogger(__name__)
@@ -187,14 +188,14 @@ class TextToMovieAgent(BaseAgent):
                 raise ValueError(f"Unsupported engine: {engine}")
 
             if engine == "stabilityai":
-                STABILITY_API_KEY = os.getenv("STABILITYAI_API_KEY")
+                STABILITY_API_KEY = get_key("STABILITYAI_API_KEY")
                 if not STABILITY_API_KEY:
                     raise Exception("Stability AI API key not found")
                 self.video_gen_tool = StabilityAITool(api_key=STABILITY_API_KEY)
                 self.video_gen_config_key = "video_stabilityai_config"
             elif engine == "kling":
-                KLING_API_ACCESS_KEY = os.getenv("KLING_AI_ACCESS_API_KEY")
-                KLING_API_SECRET_KEY = os.getenv("KLING_AI_SECRET_API_KEY")
+                KLING_API_ACCESS_KEY = get_key("KLING_AI_ACCESS_API_KEY")
+                KLING_API_SECRET_KEY = get_key("KLING_AI_SECRET_API_KEY")
                 if not KLING_API_ACCESS_KEY or not KLING_API_SECRET_KEY:
                     raise Exception("Kling AI API key not found")
                 self.video_gen_tool = KlingAITool(
@@ -212,7 +213,7 @@ class TextToMovieAgent(BaseAgent):
             self.audio_gen_config_key = "audio_elevenlabs_config"
 
             if audio_engine == "elevenlabs":
-                ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+                ELEVENLABS_API_KEY = get_key("ELEVENLABS_API_KEY")
                 if not ELEVENLABS_API_KEY:
                     raise Exception("ElevenLabs API key not found")
                 self.audio_gen_tool = ElevenLabsTool(api_key=ELEVENLABS_API_KEY)

@@ -11,6 +11,7 @@ from director.tools.fal_video import (
     FalVideoGenerationTool,
     PARAMS_CONFIG as FAL_VIDEO_GEN_PARAMS_CONFIG,
 )
+from director.utils.keys import get_key
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +128,7 @@ class ImageGenerationAgent(BaseAgent):
                     image_content.status = MsgStatus.success
                     image_content.status_message = "Here is your generated image"
             elif job_type == "image_to_image":
-                FAL_KEY = os.getenv("FAL_KEY")
+                FAL_KEY = get_key("FAL_KEY")
                 image_id = image_to_image.get("image_id")
 
                 if not image_id:

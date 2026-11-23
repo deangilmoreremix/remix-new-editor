@@ -73,6 +73,7 @@ from director.db.base import BaseDB
 from director.db import load_db
 from director.tools.videodb_tool import VideoDBTool
 from dotenv import load_dotenv
+from director.utils.keys import get_key
 
 load_dotenv()
 
@@ -337,7 +338,7 @@ class VideoDBHandler:
 class ConfigHandler:
     def check(self):
         """Check the configuration of the server."""
-        videodb_configured = True if os.getenv("VIDEO_DB_API_KEY") else False
+        videodb_configured = True if get_key("VIDEO_DB_API_KEY") else False
 
         db = load_db(os.getenv("SERVER_DB_TYPE", os.getenv("DB_TYPE", "sqlite")))
         db_configured = db.health_check()

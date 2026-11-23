@@ -1,6 +1,7 @@
 import logging
 import json
 import concurrent.futures
+import contextvars
 
 from director.agents.base import BaseAgent, AgentResponse, AgentStatus
 from director.core.session import (
@@ -94,6 +95,7 @@ class PromptClipAgent(BaseAgent):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             future_to_index = {
                 executor.submit(
+                    contextvars.copy_context().run,
                     self.llm.chat_completions,
                     [ContextMessage(content=prompt, role=RoleTypes.user).to_llm_msg()],
                     response_format={"type": "json_object"},
@@ -288,6 +290,7 @@ class PromptClipAgent(BaseAgent):
                 if content_type == "spoken_content":
                     future_to_index = {
                         executor.submit(
+                            contextvars.copy_context().run,
                             self.videodb_tool.keyword_search,
                             query=description,
                             video_id=video_id,
@@ -297,6 +300,7 @@ class PromptClipAgent(BaseAgent):
                 else:
                     future_to_index = {
                         executor.submit(
+                            contextvars.copy_context().run,
                             self.videodb_tool.keyword_search,
                             query=description,
                             index_type="scene",

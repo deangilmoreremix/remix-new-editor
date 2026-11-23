@@ -5,6 +5,7 @@ from pydantic import Field, field_validator, FieldValidationInfo
 from pydantic_settings import SettingsConfigDict
 
 
+from director.utils.keys import get_key
 from director.llm.base import BaseLLM, BaseLLMConfig, LLMResponse, LLMResponseStatus
 from director.constants import (
     LLMType,
@@ -50,7 +51,7 @@ class GoogleAI(BaseLLM):
         :param config: GoogleAI Config
         """
         if config is None:
-            config = GoogleAIConfig()
+            config = GoogleAIConfig(api_key=get_key("GOOGLEAI_API_KEY") or "")
         super().__init__(config=config)
         try:
             import openai

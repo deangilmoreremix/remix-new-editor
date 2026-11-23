@@ -16,6 +16,7 @@ from director.tools.fal_video import (
     PARAMS_CONFIG as FAL_VIDEO_GEN_PARAMS_CONFIG,
 )
 from director.constants import DOWNLOADS_PATH
+from director.utils.keys import get_key
 
 logger = logging.getLogger(__name__)
 
@@ -151,13 +152,13 @@ class VideoGenerationAgent(BaseAgent):
                 self.output_message.content.append(video_content)
 
             if engine == "stabilityai":
-                STABILITYAI_API_KEY = os.getenv("STABILITYAI_API_KEY")
+                STABILITYAI_API_KEY = get_key("STABILITYAI_API_KEY")
                 if not STABILITYAI_API_KEY:
                     raise Exception("Stability AI API key not found")
                 video_gen_tool = StabilityAITool(api_key=STABILITYAI_API_KEY)
                 config_key = "stabilityai_config"
             elif engine == "fal":
-                FAL_KEY = os.getenv("FAL_KEY")
+                FAL_KEY = get_key("FAL_KEY")
                 if not FAL_KEY:
                     raise Exception("FAL API key not found")
                 video_gen_tool = FalVideoGenerationTool(api_key=FAL_KEY)

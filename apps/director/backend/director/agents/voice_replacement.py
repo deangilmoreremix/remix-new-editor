@@ -10,6 +10,7 @@ from director.tools.videodb_tool import VideoDBTool
 from director.constants import DOWNLOADS_PATH
 from videodb.asset import VideoAsset, AudioAsset
 from videodb.timeline import Timeline
+from director.utils.keys import get_key
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +189,7 @@ class VoiceReplacementAgent(BaseAgent):
             if not is_authorized_to_clone_voice:
                 return AgentResponse(status=AgentStatus.ERROR, message="Not authorised to clone the voice")
 
-            ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+            ELEVENLABS_API_KEY = get_key("ELEVENLABS_API_KEY")
             if not ELEVENLABS_API_KEY:
                     raise Exception("Elevenlabs API key not present in .env")
             

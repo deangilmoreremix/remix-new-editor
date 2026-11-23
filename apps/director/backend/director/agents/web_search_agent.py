@@ -16,6 +16,7 @@ from director.core.session import (
 )
 from director.tools.serp import SerpAPI
 from urllib.parse import urlparse, parse_qs
+from director.utils.keys import get_key
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -116,7 +117,7 @@ class WebSearchAgent(BaseAgent):
                 message=f"Engine '{engine}' is not supported.",
             )
 
-        self.api_key = os.getenv("SERP_API_KEY")
+        self.api_key = get_key("SERP_API_KEY")
         if self.api_key and engine == "serp":
             serp_config = search_videos.get("serp_config", {})
             search_engine_tool = SerpAPI(

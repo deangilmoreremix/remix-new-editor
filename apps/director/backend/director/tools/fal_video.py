@@ -15,6 +15,7 @@ import os
 import time
 import requests
 from typing import Optional
+from director.utils.keys import get_key
 
 
 # Map legacy fal-* model names to MuAPI equivalents. This keeps existing
@@ -116,7 +117,7 @@ class MuapiVideoGenerationTool:
     """Drop-in replacement for FalVideoGenerationTool backed by MuAPI."""
 
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("MUAPI_API_KEY") or os.getenv("VITE_MUAPI_KEY")
+        self.api_key = api_key or get_key("MUAPI_API_KEY") or os.getenv("VITE_MUAPI_KEY")
         if not self.api_key:
             raise Exception("MUAPI_API_KEY not found in environment")
         self.base = (os.getenv("MUAPI_BASE_URL") or "https://api.muapi.ai/api/v1").rstrip("/")

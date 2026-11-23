@@ -4,6 +4,7 @@ from pydantic import Field, field_validator, FieldValidationInfo
 from pydantic_settings import SettingsConfigDict
 
 from director.core.session import RoleTypes
+from director.utils.keys import get_key
 from director.llm.base import BaseLLM, BaseLLMConfig, LLMResponse, LLMResponseStatus
 from director.constants import (
     LLMType,
@@ -49,7 +50,7 @@ class AnthropicAI(BaseLLM):
         :param config: AnthropicAI Config
         """
         if config is None:
-            config = AnthropicAIConfig()
+            config = AnthropicAIConfig(api_key=get_key("ANTHROPIC_API_KEY") or "")
         super().__init__(config=config)
         try:
             import anthropic

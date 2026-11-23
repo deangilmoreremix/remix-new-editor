@@ -5,6 +5,7 @@ from pydantic import Field, field_validator, FieldValidationInfo
 from pydantic_settings import SettingsConfigDict
 
 
+from director.utils.keys import get_key
 from director.llm.base import BaseLLM, BaseLLMConfig, LLMResponse, LLMResponseStatus
 from director.constants import (
     LLMType,
@@ -54,7 +55,7 @@ class OpenAI(BaseLLM):
         :param config: OpenAI Config
         """
         if config is None:
-            config = OpenaiConfig()
+            config = OpenaiConfig(api_key=get_key("OPENAI_API_KEY") or "")
         super().__init__(config=config)
         try:
             import openai

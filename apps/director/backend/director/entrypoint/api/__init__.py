@@ -39,11 +39,19 @@ def create_app(app_config: object):
     socketio.init_app(
         app,
         cors_allowed_origins="*",
-        logger=True,
-        engineio_logger=True,
+        # Never log socket payloads outside debug: they can carry user API keys.
+        logger=bool(app.config["DEBUG"]),
+        engineio_logger=bool(app.config["DEBUG"]),
         reconnection=False if app.config["DEBUG"] else True,
     )
     app.socketio = socketio
+
+    @app.before_request
+    def _load_request_keys():
+        from flask import request
+        from director.utils.keys import set_request_keys
+
+        set_request_keys(request.headers.get("X-Provider-Keys"))
 
     # Set the logging config
     dictConfig(app.config["LOGGING_CONFIG"])

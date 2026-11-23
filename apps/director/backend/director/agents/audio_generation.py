@@ -14,6 +14,7 @@ from director.tools.elevenlabs import (
 from director.tools.beatoven import BeatovenTool
 
 from director.constants import DOWNLOADS_PATH
+from director.utils.keys import get_key
 
 logger = logging.getLogger(__name__)
 
@@ -136,12 +137,12 @@ class AudioGenerationAgent(BaseAgent):
 
             config_key = "audio_config"
             if engine == "elevenlabs":
-                ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+                ELEVENLABS_API_KEY = get_key("ELEVENLABS_API_KEY")
                 if not ELEVENLABS_API_KEY:
                     raise Exception("Elevenlabs API key not present in .env")
                 audio_gen_tool = ElevenLabsTool(api_key=ELEVENLABS_API_KEY)
             elif engine == "beatoven":
-                BEATOVEN_API_KEY = os.getenv("BEATOVEN_API_KEY")
+                BEATOVEN_API_KEY = get_key("BEATOVEN_API_KEY")
                 if not BEATOVEN_API_KEY:
                     raise Exception("Beatoven API key not present in .env")
                 audio_gen_tool = BeatovenTool(api_key=BEATOVEN_API_KEY)
