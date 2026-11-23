@@ -108,6 +108,39 @@ const APP_GAPS = {
   ]
 };
 
+// A decision for every gap above. PROVISIONAL: made from what the app's client sends and what the model schema lists, not from a review of each studio's screen;
+// confirm the "app-candidate" ones with the product owner before touching the app.
+// "mcp-only" = the MCP exposes the model's own field and the app is left as it is
+// (changing the app's studio UI is a product decision, not an MCP one). "app-candidate" = worth adding to the app UI if wanted.
+const APP_GAP_DECISIONS = {
+  'ai-dance-effects': { decision: 'mcp-only', why: 'The app picks a preset dance; the model also accepts a free-text prompt.' },
+  'ai-dress-change': { decision: 'app-candidate', why: 'The model lists a garment image; the app's client does not send one.' },
+  'ai-object-eraser': { decision: 'app-candidate', why: 'The model lists a mask image; the app's client does not send one.' },
+  'gpt4o-edit': { decision: 'mcp-only', why: 'Optional mask for targeted edits; the app edits the whole image.' },
+  'elevenlabs-text-to-dialogue-v3': { decision: 'app-candidate', why: 'The model's dialogue input is not sent by the app's client.' },
+  'gemini-2-5-pro-tts': { decision: 'mcp-only', why: 'Multi-speaker turns and speaker voices are optional; the app sends one voice.' },
+  'gemini-3-1-flash-tts': { decision: 'mcp-only', why: 'Multi-speaker turns and speaker voices are optional; the app sends one voice.' },
+  'ltx-2.3-video-extend': { decision: 'mcp-only', why: 'Optional prompt to steer the extension; the app extends without one.' },
+  'mmaudio-v2-video-to-video': { decision: 'mcp-only', why: 'Optional prompt describing the sound; the app lets the model infer it.' },
+  'runway-aleph-v2v': { decision: 'mcp-only', why: 'Optional prompt for the edit; the app does not collect one for this model.' },
+  'seedance-2-video-edit': { decision: 'mcp-only', why: 'Extra reference videos; the app sends one video.' },
+  'minimax-music-3.0': { decision: 'mcp-only', why: 'Optional lyrics; the app generates instrumentals from a prompt.' },
+  'suno-add-instrumental': { decision: 'mcp-only', why: 'Optional tags and title; the app adds an instrumental with defaults.' },
+  'suno-add-vocals': { decision: 'mcp-only', why: 'Optional title only.' },
+  'suno-convert-to-wav': { decision: 'app-candidate', why: 'The model lists earlier track ids (audio_id, task_id); the app's client does not send them.' },
+  'suno-generate-mashup': { decision: 'app-candidate', why: 'The model lists the tracks to mash up; the app's client does not send them.' },
+};
+
+describe('every app gap has a recorded decision', () => {
+  test('decisions and gaps list the same models, each with a reason', () => {
+    expect(Object.keys(APP_GAP_DECISIONS).sort()).toEqual(Object.keys(APP_GAPS).sort());
+    for (const [id, d] of Object.entries(APP_GAP_DECISIONS)) {
+      expect(['mcp-only', 'app-candidate'], id).toContain(d.decision);
+      expect(d.why.length, id).toBeGreaterThan(10);
+    }
+  });
+});
+
 describe('catalog-driven studios send what the MCP would send (every model)', () => {
   for (const [kind, call] of Object.entries(CALLS)) {
     const models = entries.filter((e) => e.kind === kind && !/watermark/.test(e.id) && !e.fixedRoute);
