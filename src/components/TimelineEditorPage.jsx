@@ -6041,11 +6041,26 @@ export function TimelineEditorPage() {
       });
     }
 
+    /**
+     * MCP tab control: offer the same agent tools to an MCP client the user has connected (Claude, Cursor...).
+     * Nothing is announced until the user switches "Let MCP control this tab" on, and every non-read tool asks first.
+     */
+    async function initMcpBridge() {
+      const [{ setBridgeTools }, { toBridgeTools }, tools] = await Promise.all([
+        import('../lib/mcpBridge/index.js'), import('../lib/editor/agent/bridgeTools.js'), getAgentTools(),
+      ]);
+      const list = toBridgeTools(tools).map((t) => ({ ...t, run: async (args) => { const out = await t.run(args); if (t.risk !== 'read') saveStateSnapshot(state); return out; } }));
+      setBridgeTools('timeline', list);
+      mcpBridgeStop = () => setBridgeTools('timeline', []);
+    }
+
     // ---------------------------------------------------------------
     // Projects: durable, per-owner project library (timeline_projects).
     // The editor keeps working from localStorage; a project is that same state
     // mirrored to Supabase under state.projectId. Publishing and rendering never
     // overwrite the editable source.
+    // eslint-disable-next-line no-var -- hoisted: destroy() can run before the bridge starts
+    var mcpBridgeStop = null;
     // eslint-disable-next-line no-var -- hoisted: debouncedSave can run before this line
     var projectsPanel = null;
     // eslint-disable-next-line no-var -- hoisted: debouncedSave can run before this line
@@ -9612,6 +9627,7 @@ export function TimelineEditorPage() {
       // the timeline at the playhead (the Stock Media panel).
       els.pexelsMediaBtn?.addEventListener('click', () => openPanel('stockPanel'));
       initWebMcp().catch((err) => console.warn('[WebMCP] unavailable', err));
+      initMcpBridge().catch((err) => console.warn('[MCP bridge] unavailable', err));
       root.querySelector('#openAgents')?.addEventListener('click', () => openPanel('aiAgentPanel'));
 
       // VideoDB: add an indexed video to the timeline using the user's VideoDB
@@ -10437,6 +10453,7 @@ export function TimelineEditorPage() {
         if (root._agentIntegration) {
           root._agentIntegration.destroy();
         }
+        try { mcpBridgeStop?.(); } catch { /* bridge never started */ }
         // Run all registered cleanups (document listeners, timers, intervals)
         cleanup.run();
         // Save final state
