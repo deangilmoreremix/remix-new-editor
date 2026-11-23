@@ -4,8 +4,8 @@
 // Videos never all autoplay: cards use hover (desktop) / tap (mobile) playback,
 // and the shared governor in mediaFrame.js caps concurrent playback at two.
 
-import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget, loadDemoPrompt as loadDemoPromptMinimax, ratioToNumber as minimaxRatioToNumber } from '../../../data/minimaxH3Demos.js';
-import { seedanceDemos, getCreateTarget as getCreateTargetSeedance, loadDemoPrompt as loadDemoPromptSeedance, ratioToNumber as seedanceRatioToNumber } from '../../../data/seedanceDemos.js';
+import { minimaxH3Demos, formatDuration, getCreateTarget as getMinimaxCreateTarget, loadDemoPrompt as loadDemoPromptMinimax } from '../../../data/minimaxH3Demos.js';
+import { seedanceDemos, getCreateTarget as getCreateTargetSeedance, loadDemoPrompt as loadDemoPromptSeedance } from '../../../data/seedanceDemos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -45,8 +45,8 @@ function createReelCard(demo) {
     </div>
 
     <div class="flex flex-1 flex-col p-5">
-      <h3 class="text-base font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
-      <p class="mt-1.5 flex-1 text-sm leading-relaxed text-gray-400">${escapeHtml(demo.useCase)}</p>
+      <h3 class="line-clamp-2 break-words text-base font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
+      <p class="mt-1.5 line-clamp-3 flex-1 text-sm leading-relaxed text-gray-400">${escapeHtml(demo.useCase)}</p>
       <div class="mt-5 flex flex-col items-center gap-2.5" data-mmx-card-actions>
         <div class="flex flex-wrap items-center justify-center gap-2.5" data-mmx-primary-actions></div>
         <div class="flex items-center justify-center gap-1.5" data-mmx-studio-icons></div>
@@ -55,9 +55,8 @@ function createReelCard(demo) {
   `;
 
   const mediaHost = card.querySelector('[data-mmx-card-media]');
-  const ratio = demo._source === 'seedance25'
-    ? seedanceRatioToNumber(demo.aspectRatio)
-    : minimaxRatioToNumber(demo.aspectRatio);
+  // Uniform media box (clips are cropped with object-cover) so cards stay aligned.
+  const ratio = 16 / 9;
   const frame = createMediaFrame(demo, {
     mode: 'hover',
     ratio,
