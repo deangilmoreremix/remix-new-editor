@@ -90,12 +90,15 @@
    2. Reset / Base Styles
    -------------------------------------------------------------------------- */
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* [remix] In Tailwind's `base` layer: an unlayered `* { margin: 0; padding: 0 }` beats every Tailwind utility (p-5, mt-3, ...) in the rest of the app once this stylesheet loads */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 html,
