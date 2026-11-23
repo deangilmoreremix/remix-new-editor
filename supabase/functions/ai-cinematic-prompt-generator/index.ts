@@ -255,8 +255,9 @@ async function handleGenerate(body: Record<string, unknown>, userId?: string | n
     model: String(body.model || ""),
   };
 
+  const model = resolveModel(gtmParams.model);
   const completion = await openai.responses.create({
-    model: resolveModel(gtmParams.model),
+    model,
     instructions: buildInstructions(),
     input: buildGTMInput(gtmParams),
     store: true,
@@ -292,7 +293,7 @@ async function handleGenerate(body: Record<string, unknown>, userId?: string | n
     openaiResponseId: completion.id,
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
-    model: GTM_MODEL,
+    model,
   });
 
   return jsonResponse({ prompt, response_id: completion.id, usage });
@@ -308,8 +309,9 @@ async function handleRefine(body: Record<string, unknown>, userId?: string | nul
     return jsonResponse({ error: "Missing previousResponseId or refineInstruction" }, 400);
   }
 
+  const model = resolveModel(String(body.model || ""));
   const completion = await openai.responses.create({
-    model: resolveModel(String(body.model || "")),
+    model,
     instructions: buildInstructions(),
     input: [{ role: "user", content: String(refineInstruction) }],
     previous_response_id: String(previousResponseId),
@@ -346,7 +348,7 @@ async function handleRefine(body: Record<string, unknown>, userId?: string | nul
     openaiResponseId: completion.id,
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
-    model: GTM_MODEL,
+    model,
   });
 
   return jsonResponse({ prompt, response_id: completion.id, usage });
@@ -371,11 +373,12 @@ async function handleVariants(body: Record<string, unknown>, userId?: string | n
     model: String(body.model || ""),
   };
 
+  const model = resolveModel(params.model);
   const results = await Promise.all(
     Array.from({ length: count }).map(async () => {
       try {
         const completion = await openai!.responses.create({
-          model: resolveModel(params.model),
+          model,
           instructions: buildInstructions(),
           input: buildGTMInput(params),
           store: true,
@@ -418,7 +421,7 @@ async function handleVariants(body: Record<string, unknown>, userId?: string | n
     openaiResponseId: first.response_id,
     inputTokens: fu.inputTokens,
     outputTokens: fu.outputTokens,
-    model: GTM_MODEL,
+    model,
   });
 
   return jsonResponse({ variants });
@@ -447,8 +450,9 @@ function streamGenerate(body: Record<string, unknown>, userId?: string | null): 
           model: String(body.model || ""),
         };
 
+        const model = resolveModel(gtmParams.model);
         const run = openai.responses.stream({
-          model: resolveModel(gtmParams.model),
+          model,
           instructions: buildInstructions(),
           input: buildGTMInput(gtmParams),
           store: true,
@@ -488,7 +492,7 @@ function streamGenerate(body: Record<string, unknown>, userId?: string | null): 
           openaiResponseId: completion.id,
           inputTokens: usage.inputTokens,
           outputTokens: usage.outputTokens,
-          model: GTM_MODEL,
+          model,
         });
       } catch (err) {
         send({ type: "error", message: err instanceof Error ? err.message : "Stream failed" });

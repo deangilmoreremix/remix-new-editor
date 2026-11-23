@@ -35,7 +35,11 @@ const SUPABASE_URL = readEnv("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = readEnv("SUPABASE_SERVICE_ROLE_KEY");
 
 const IMG_GEN_MAINLINE_MODEL = readEnv("IMG_GEN_MAINLINE_MODEL") || "gpt-6.1-sol";
-const MODEL_FALLBACK_CHAIN = [IMG_GEN_MAINLINE_MODEL, "gpt-6-luna"].filter(
+// Fallback is a different model than the mainline, also when the override is gpt-6-luna itself.
+const MODEL_FALLBACK_CHAIN = [
+  IMG_GEN_MAINLINE_MODEL,
+  IMG_GEN_MAINLINE_MODEL === "gpt-6-luna" ? "gpt-6.1-sol" : "gpt-6-luna",
+].filter(
   (m, i, arr) => arr.indexOf(m) === i
 );
 
