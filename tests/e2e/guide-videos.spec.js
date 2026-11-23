@@ -219,6 +219,7 @@ async function act(el, target, feature, label) {
   }
   if (textual) {
     await el.click({ timeout: 3000 }).catch(() => {});
+    if (target?.clear) await el.fill('').catch(() => {}); // a studio with sample text in the box: type over it
     await el.type(target?.type || DEFAULT_PROMPT, { delay: 38 }).catch(() => {});
     await page_().waitForTimeout(600);
     return;

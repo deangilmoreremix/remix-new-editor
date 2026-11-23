@@ -69,7 +69,7 @@ Video-only overrides live in `tests/e2e/guide-demos/<slug>.json`, keyed by featu
 ```
 
 Keys: `selector`/`text` (control), `type` (what to type), `upload: true` + `file: image|video|audio`,
-`click: false` (only show it), `steps` (unrecorded setup clicks), `setup` (localStorage seed), and
+`click: false` (only show it), `clear: true` (empty the text box before typing), `waitFor` (selector to wait for before starting, for slow studios), `steps` (unrecorded setup clicks; they also look inside embedded app frames), `setup` (localStorage seed), and
 `then`: follow-up actions, each `{selector|text, type?, upload?, file?, wait?, hold?}`.
 `node scripts/guide-videos/dump-controls.mjs <route>` lists a studio's controls. Quick trial of one feature:
 `FORCE=1 GUIDE_VIDEO_DIR=/tmp/trial GUIDES=<slug> FEATURES=<feature-id> npm run capture:videos`.

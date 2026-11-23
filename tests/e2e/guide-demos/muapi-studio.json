@@ -39,7 +39,8 @@
     "click": true,
     "type": "A cozy cabin at dusk, warm light in the windows, soft snow",
     "hold": 3000,
-    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")",
+    "clear": true
   },
   "image-urls-and-uploads": {
     "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"Upload file\")",
