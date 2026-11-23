@@ -47,6 +47,8 @@ describe('Brand Kit modal', () => {
   it('opens empty and closes with Escape, the backdrop and the close button', () => {
     close = openBrandKitModal();
     expect(q('brand-kit-modal')).not.toBeNull();
+    expect(q('brand-kit-modal').querySelector('h2').textContent).toBe('Find My Brand'); // not confused with Brand Studio
+    expect(q('brand-kit-modal').querySelector('[role="dialog"]').getAttribute('aria-label')).toBe('Find My Brand');
     expect(q('brand-kit-found')).toBeNull();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(q('brand-kit-modal')).toBeNull();
@@ -88,8 +90,10 @@ describe('Brand Kit modal', () => {
     expect(document.body.textContent).toContain('Read 1 page');
 
     q('brand-kit-save').click();
-    expect(q('brand-kit-save').textContent).toContain('Saved');
-    const list = JSON.parse(localStorage.getItem('brand_dna_list'));
+    expect(q('brand-kit-save').textContent).toBe('✓ Saved');
+    expect(document.body.textContent).not.toContain('Brand Studio');
+    expect(localStorage.getItem('brand_dna_list')).toBeNull(); // Brand Studio's list is not touched
+    const list = JSON.parse(localStorage.getItem('sv_brand_kits'));
     expect(list).toHaveLength(1);
     expect(list[0].productImages).toEqual(['https://bluebird-bakery.com/b.jpg']); // the dropped image is not kept
     expect(list[0].fonts).toEqual(['Playfair Display']);
@@ -101,7 +105,22 @@ describe('Brand Kit modal', () => {
     expect(navigate).toHaveBeenCalledWith('storyboard');
     expect(consumeStudioPrefill('storyboard').prompt).toContain('Bluebird Bakery');
     expect(q('brand-kit-modal')).toBeNull();
-    expect(JSON.parse(localStorage.getItem('brand_dna_list'))).toHaveLength(1);
+    expect(JSON.parse(localStorage.getItem('sv_brand_kits'))).toHaveLength(1);
+  });
+
+  it('does not say Saved, and stays open, when the browser will not store the kit', async () => {
+    close = openBrandKitModal();
+    await findBrand();
+    const spy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('QuotaExceededError'); });
+    q('brand-kit-save').click();
+    expect(document.querySelector('[role="alert"]').textContent).toContain("Couldn't save");
+    expect(q('brand-kit-save').textContent).toBe('Save Brand Kit');
+    q('brand-kit-make').click();
+    expect(q('brand-kit-modal')).not.toBeNull(); // no studio opened without a saved kit
+    expect(navigate).not.toHaveBeenCalled();
+    spy.mockRestore();
+    q('brand-kit-save').click();
+    expect(q('brand-kit-save').textContent).toBe('✓ Saved');
   });
 
   it('shows a readable error and no kit when the lookup fails', async () => {

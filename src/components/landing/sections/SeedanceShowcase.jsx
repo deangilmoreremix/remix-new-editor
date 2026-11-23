@@ -99,7 +99,7 @@ function createGalleryCard(demo) {
           params: icon.params || {},
           label: icon.label,
           title: icon.title,
-          loadPrompt: icon.loadPrompt,
+          loadPrompt: icon.loadPrompt || studioIcons.find((i) => i.route === 'personalize')?.loadPrompt,
         })
       );
     });
