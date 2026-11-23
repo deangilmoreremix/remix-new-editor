@@ -47,6 +47,16 @@ describe('brand kit', () => {
     expect(JSON.parse(localStorage.getItem('sv_brand_kits'))).toHaveLength(1);
   });
 
+  it('one malformed saved entry does not block saving or lookups', () => {
+    localStorage.setItem('sv_brand_kits', JSON.stringify([null, 'x', 5, {}, { id: 'keep', url: 'https://old.example/', brandName: 'Old' }]));
+    expect(listBrandKits().map((k) => k.id)).toEqual(['keep']);
+    const saved = saveBrandKit(buildBrandKit({ research, client, assets }));
+    expect(saved.id).toBeTruthy();
+    expect(listBrandKits().map((k) => k.id)).toEqual([saved.id, 'keep']);
+    localStorage.setItem('sv_brand_kits', '{"not":"a list"}');
+    expect(listBrandKits()).toEqual([]);
+  });
+
   it('throws instead of pretending to save when the browser will not store the kit', () => {
     const kit = buildBrandKit({ research, client, assets });
     const spy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('QuotaExceededError'); });
