@@ -232,6 +232,7 @@
     "mobx-react": "^9.2.2",
     "moment": "^2.30.1",
     "mp4box": "^2.4.1",
+    "muapi-studio": "file:vendor/muapi-studio",
     "music-metadata-browser": "^2.5.11",
     "nanoid": "^5.0.7",
     "next": "^15.3.4",
