@@ -10,6 +10,7 @@ import { applyVariant } from '../addons/abTest.js';
 import { resolveOverlayText } from '../addons/overlayRender.js';
 import { getAddon, addonOptions } from '../addons/registry.js';
 import { ctaTarget } from '../addons/ctaLink.js';
+import { pathChoices } from '../addons/interactiveAddons.js';
 import { ctaBox } from '../addons/ctaLottie.js';
 
 
@@ -155,4 +156,36 @@ export function hotspotElement(clip, { onSeek, onCall, onClick } = {}) {
   el.dataset.clipId = String(clip.id);
   Object.assign(el.style, { left: `${g.left}%`, top: `${g.top}%`, width: `${g.width}%`, height: `${g.height}%` });
   return el;
+}
+
+/**
+ * "Choose your path" card: a question and one button per choice (addon-path-choice).
+ * `onPick({ clip, choice, label })` reports the click; the player does the jump.
+ * Returns null when the clip has fewer than two usable choices.
+ */
+export function pathChoiceElement(clip, { onPick } = {}) {
+  const o = addonOptions(clip);
+  const choices = pathChoices(o);
+  if (choices.length < 2) return null;
+  const box = document.createElement('div');
+  box.className = 'wf-pathchoice';
+  box.dataset.clipId = String(clip.id);
+  box.setAttribute('role', 'group');
+  const q = String(o.heading || '').trim().slice(0, 120);
+  if (q) {
+    const h = document.createElement('p');
+    h.className = 'wf-pathchoice__q';
+    h.textContent = q;
+    box.appendChild(h);
+  }
+  choices.forEach((choice) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'wf-pathchoice__btn';
+    b.dataset.pathChoice = '1';
+    b.textContent = choice.label;
+    b.addEventListener('click', () => onPick?.({ clip, choice, label: choice.label }));
+    box.appendChild(b);
+  });
+  return box;
 }

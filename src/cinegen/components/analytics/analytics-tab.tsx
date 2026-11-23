@@ -16,6 +16,8 @@ import { OPEN_RETARGET_EVENT } from '@cinegen/lib/leads/open-retarget';
 // @ts-expect-error plain JS
 import { audienceTab, retargetTab, notificationsTab } from '../../../lib/editor/projectLibrary/projectTabs.js';
 // @ts-expect-error plain JS
+import { friendlyPublishError } from '../../../lib/editor/publish/guestMessages.js';
+// @ts-expect-error plain JS
 import { mountAnalyticsTab } from '../../../lib/editor/projectLibrary/analytics/mountAnalyticsTab.jsx';
 import '../../../../styles/smartvideo-analytics.css';
 import '../../../../styles/projects-panel.css';
@@ -24,6 +26,34 @@ import '../../styles/analytics-tab.css';
 type View = 'analytics' | 'audience' | 'retarget' | 'notifications';
 const VIEWS: [View, string][] = [['analytics', 'Analytics'], ['audience', 'Audience'], ['retarget', 'Retarget'], ['notifications', 'Alerts']];
 const OPEN_FLAG = 'remix_open_projects'; // set by the header bell
+
+/**
+ * Analytics for someone publishing without an account. There is no cloud project row to link, so the existing Analytics view is
+ * mounted straight onto the published video (found by its id); Audience, Retarget and Alerts need an account.
+ */
+function GuestAnalytics({ pub, onPublish }: { pub: ReturnType<typeof usePublished>; onPublish: () => void }) {
+  const host = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!host.current || !pub.id) return undefined;
+    let stop: (() => void) | null = null; let cancelled = false;
+    const panel = document.createElement('div');
+    host.current.replaceChildren(panel);
+    getClient().then((client) => {
+      if (cancelled) return;
+      stop = mountAnalyticsTab(panel, { project: { id: null, name: pub.title, videoId: pub.id }, card: { id: null, published: true, publishedId: pub.id } }, { client, onPublish });
+    }).catch((e: Error) => { panel.textContent = friendlyPublishError(e, 'Analytics is not available right now.'); });
+    return () => { cancelled = true; try { stop?.(); } catch { /* already unmounted */ } };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- remount only for a different video
+  }, [pub.id]);
+  return (
+    <>
+      <p className="cg-analytics__toast" role="note" data-testid="guest-analytics-note">
+        You are viewing analytics without an account. Audience, Retarget and Alerts need an account; sign in to use them and to keep your videos.
+      </p>
+      <div ref={host} className="cg-analytics__host" data-testid="guest-analytics" />
+    </>
+  );
+}
 
 export function AnalyticsTab() {
   const { state, projectId, dispatch } = useWorkspace();
@@ -142,6 +172,11 @@ export function AnalyticsTab() {
       {/* [remix] Three demo videos with sample viewers, so the screens can be tried before anything is published. */}
       {demosHidden ? <DemoRestore /> : <DemoVideos openId={demoId} onOpen={setDemoId} />}
       {!demosHidden && demoId ? null
+        : pub.guest ? (
+          !pub.loaded ? <div className="cg-analytics__empty" aria-busy="true"><p>Loading…</p></div>
+            : !pub.info ? empty('Publish this video first', 'Viewer data is collected on the published video page. Publish it, share the link, and plays, watch time, clicks and forms show up here. No account needed.', true)
+              : <GuestAnalytics pub={pub} onPublish={() => dispatch({ type: 'SET_TAB', tab: 'leads' })} />
+        )
         : !pub.signedIn ? empty('Sign in to see analytics', 'Viewer data belongs to your account.')
         : !pub.loaded || linked === 'checking' ? <div className="cg-analytics__empty" aria-busy="true"><p>Loading…</p></div>
         : !pub.info ? empty('Publish this video first', 'Viewer data is collected on the published video page. Publish it, share the link, and plays, watch time, clicks and forms show up here.', true)

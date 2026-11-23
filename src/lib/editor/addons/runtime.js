@@ -124,6 +124,16 @@ export class AddonRuntime {
         break;
       }
 
+      // Choose your path: stop at the card and let the viewer pick (the player draws it and does the jumping).
+      if (behavior === 'path' && crossed(start) && !this.firedPauses.has(id)) {
+        this.firedPauses.add(id);
+        actions.push({ type: 'seek', time: start, clip });
+        actions.push({ type: 'pause', clip });
+        actions.push({ type: 'show', overlay: 'path-choice', clip });
+        position = start;
+        break;
+      }
+
       // A Lead Generator's trigger: its place on the timeline (default), the very end, or an event ('pause' / 'exit') that the player handles.
       const trigger = clip.trigger || 'time';
       const gateAt = trigger === 'end' ? Math.max(0, timelineSeconds - END_GATE_LEAD) : start;

@@ -33,7 +33,7 @@ function play(runtime, clips, { from = 0, to = T, step = 0.36, maxTicks = 2000, 
 
 describe('addon registry', () => {
   it('registers upstream Video Controls and Lead Generation entries in upstream order', () => {
-    expect(INTERACTIVE_ADDONS.map((a) => a.label)).toEqual(['Skip', 'Pause', 'Loop', 'Hotspot', 'Lead Generator', 'CTA']);
+    expect(INTERACTIVE_ADDONS.map((a) => a.label)).toEqual(['Skip', 'Pause', 'Loop', 'Hotspot', 'Choose your path', 'Lead Generator', 'CTA']);
     expect(getAddon('addon-skip').section).toBe('Video Controls');
     expect(getAddon('lead-form').section).toBe('Lead Generation');
     expect(getAddon('addon-pause').iconSrc).toBe('/static/images/toolbar/pause.svg');

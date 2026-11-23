@@ -189,8 +189,62 @@ export const HOTSPOT = registerAddon({
   summary: (o) => (o.label ? `Hotspot: ${o.label}` : o.action === 'seek' ? `Hotspot: jump to ${Number(o.seekTime) || 0}s` : 'Hotspot'),
 });
 
+// "Choose your path": a card that pauses the video and lets the viewer pick one of 2-4 routes.
+// There is no upstream spec, so this is deliberately small: each choice jumps to its `from` time and, when it
+// has an `until`, playback jumps on to the shared `thenTime` once it gets there (so routes can rejoin).
+export const PATH_CHOICES_MAX = 4;
+const choiceFields = Array.from({ length: PATH_CHOICES_MAX }, (_, i) => {
+  const n = i + 1;
+  // Choices 1-3 are always offered; the fourth appears once the third has a label.
+  const on = (o) => n < 4 || String(o.choice3Label || '').trim().length > 0;
+  return [
+    { key: `choice${n}Label`, label: `Choice ${n}${n > 2 ? ' (optional)' : ''}`, type: 'text', placeholder: n === 1 ? 'e.g. I want pricing' : '', showIf: on },
+    { key: `choice${n}From`, label: `Choice ${n} starts at (seconds)`, type: 'range', min: 0, max: 600, step: 1, showIf: on },
+    { key: `choice${n}Until`, label: `Choice ${n} ends at (0 = play on)`, type: 'range', min: 0, max: 600, step: 1, showIf: on },
+  ];
+}).flat();
+
+/** The valid choices of a path-choice clip: [{ label, from, until }] (a choice needs a label). */
+export function pathChoices(o = {}) {
+  const out = [];
+  for (let n = 1; n <= PATH_CHOICES_MAX; n += 1) {
+    const label = String(o[`choice${n}Label`] || '').trim().slice(0, 60);
+    const from = Number(o[`choice${n}From`]);
+    if (!label || !Number.isFinite(from) || from < 0) continue;
+    const until = Number(o[`choice${n}Until`]);
+    out.push({ label, from, until: Number.isFinite(until) && until > from ? until : 0 });
+  }
+  return out;
+}
+
+export const PATH_CHOICE = registerAddon({
+  type: 'addon-path-choice',
+  label: 'Choose your path',
+  icon: '🔀',
+  iconSrc: ICON('call-to-action'),
+  section: 'Video Controls',
+  description: 'Pause and let the viewer pick a route through the video. Works on the published link.',
+  behavior: 'path',
+  editorOverlay: true,
+  defaultDuration: 5,
+  timing: ['start'],
+  defaults: () => ({
+    heading: 'What would you like to see?', thenTime: 0,
+    choice1Label: 'Option A', choice1From: 0, choice1Until: 0,
+    choice2Label: 'Option B', choice2From: 0, choice2Until: 0,
+    choice3Label: '', choice3From: 0, choice3Until: 0,
+    choice4Label: '', choice4From: 0, choice4Until: 0,
+  }),
+  fields: [
+    { key: 'heading', label: 'Question', type: 'text' },
+    ...choiceFields,
+    { key: 'thenTime', label: 'After a choice ends, continue at (seconds)', type: 'range', min: 0, max: 600, step: 1 },
+  ],
+  summary: (o) => `Path: ${pathChoices(o).map((c) => c.label).join(' / ') || 'no choices yet'}`,
+});
+
 // Upstream order within each toolbar section.
-export const INTERACTIVE_ADDONS = [SKIP, PAUSE, LOOP, HOTSPOT, LEAD_FORM, CTA_BUTTON];
+export const INTERACTIVE_ADDONS = [SKIP, PAUSE, LOOP, HOTSPOT, PATH_CHOICE, LEAD_FORM, CTA_BUTTON];
 
 /** Project-level forms (not clips), shown in the Lead Generation section. */
 export const PROJECT_FORMS = [
