@@ -51,6 +51,7 @@ export const fontStack = (name, tail) => {
 
 const ready = new Map(); // font name → Promise<boolean>: its @font-face is in the page
 function register(font) {
+  if (ready.has(font.name) && !document.head.querySelector(`style[data-caption-font="${font.name}"]`)) ready.delete(font.name); // removed from the page (route change, tests): register it again
   if (!ready.has(font.name)) {
     ready.set(font.name, font.load().then(({ faces }) => {
       const css = faces.map((f) => `@font-face{font-family:"Capite ${font.name}";font-style:${f.style};font-weight:${f.weight};font-display:block;src:url(data:font/woff2;base64,${f.data}) format("woff2")}`).join('');

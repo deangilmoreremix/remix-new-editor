@@ -58,6 +58,12 @@ describe('embedded caption fonts', () => {
     expect(document.head.querySelectorAll('style[data-caption-font="Anton"]')).toHaveLength(1);
     expect(fontsLoad).toHaveBeenLastCalledWith('italic 700 16px "Capite Anton"', expect.any(String));
   });
+  it('registers a font again when its style element was removed from the page', async () => {
+    await loadEmbeddedFont('Syne')
+    document.head.querySelectorAll('style[data-caption-font]').forEach((e) => e.remove())
+    await loadEmbeddedFont('Syne')
+    expect(document.head.querySelectorAll('style[data-caption-font="Syne"]')).toHaveLength(1)
+  })
   it('does nothing for a font that is not embedded, and reports a failed load instead of throwing', async () => {
     expect(await loadEmbeddedFont('Comic Sans')).toBe(false);
     expect(fontsLoad).not.toHaveBeenCalled();
