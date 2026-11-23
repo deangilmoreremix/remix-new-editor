@@ -139,7 +139,8 @@
         ]
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/ai-stylist.webp"
     },
     {
       "id": "relight",
@@ -250,6 +251,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/relight.webp",
       "existingIn": [
         {
           "repo": "OpenHiggsBolt",
@@ -302,6 +304,7 @@
       },
       "notes": "API test 2026-11-20: two calls to POST /api/v1/ai-skin-enhancer with {image_url} (the exact payload the Studio sends; WebP and PNG inputs) were accepted but the result failed with 'Application \"retoucher\" not found' (request ids 296c7a99-26ab-47a5-a117-8af01665b84f, a7138132-4298-4462-9369-84d26c5686f8). No credits were charged. Re-test before relying on it.",
       "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/skin-enhancer.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -379,6 +382,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/outfit-swap.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -475,7 +479,8 @@
         ]
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/style-snap.webp"
     },
     {
       "id": "outfit-vending",
@@ -544,7 +549,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/outfit-vending.webp"
     },
     {
       "id": "glitter-sticker",
@@ -613,7 +619,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/glitter-sticker.webp"
     },
     {
       "id": "outfit-shot",
@@ -687,6 +694,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/outfit-shot.webp",
       "similarWorkflow": {
         "slug": "fashion-video-generator-qwen-image-seedance-v1-5",
         "id": "f9d988cf-00e5-49eb-9bdf-d34c7967274d",
@@ -786,6 +794,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/game-dump.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -862,7 +871,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/nano-strike.webp"
     },
     {
       "id": "nano-theft",
@@ -932,6 +942,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/nano-theft.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -1008,7 +1019,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/simlife.webp"
     },
     {
       "id": "plushies",
@@ -1077,7 +1089,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/plushies.webp"
     },
     {
       "id": "3d-render",
@@ -1146,7 +1159,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/3d-render.webp"
     },
     {
       "id": "3d-figure",
@@ -1216,6 +1230,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/3d-figure.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -1317,6 +1332,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/pixel-game.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -1394,6 +1410,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/brick-cube.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -1474,7 +1491,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/sketch-to-real.webp"
     },
     {
       "id": "click-to-ad",
@@ -1548,6 +1566,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/click-to-ad.webp",
       "similarWorkflow": {
         "slug": "ugc-ads-workflow-seedance-2-omni",
         "id": "0e4042ae-4628-487f-b571-5dd9d598df22",
@@ -1626,6 +1645,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/asmr-add-on.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -1707,6 +1727,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/asmr-classic.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -1784,6 +1805,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/poster.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -1871,6 +1893,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/bullet-time-scene.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -1958,7 +1981,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/chameleon.webp"
     },
     {
       "id": "asmr-host",
@@ -2032,6 +2056,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/asmr-host.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -2113,6 +2138,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/packshot.webp",
       "similarWorkflow": {
         "slug": "product-360-video-flux-2-flex-wan2-5",
         "id": "1734b542-6ecd-4eee-9e28-582fa79c227e",
@@ -2190,7 +2216,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/macro-scene.webp"
     },
     {
       "id": "magic-button",
@@ -2263,7 +2290,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/magic-button.webp"
     },
     {
       "id": "truck-ad",
@@ -2336,7 +2364,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/truck-ad.webp"
     },
     {
       "id": "giant-product",
@@ -2410,6 +2439,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/giant-product.webp",
       "similarWorkflow": {
         "slug": "giant-product-vfx-ad-nano-banana-2",
         "id": "0fb56847-2334-44d7-ab93-d2318cf3cc28",
@@ -2488,6 +2518,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/bullet-time-white.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -2573,7 +2604,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/kick-ad.webp"
     },
     {
       "id": "billboard-ad",
@@ -2647,6 +2679,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/billboard-ad.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -2724,7 +2757,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/graffiti-ad.webp"
     },
     {
       "id": "bullet-time-splash",
@@ -2798,6 +2832,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/bullet-time-splash.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -2878,7 +2913,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/fridge-ad.webp"
     },
     {
       "id": "volcano-ad",
@@ -2951,7 +2987,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/volcano-ad.webp"
     },
     {
       "id": "macroshot-product",
@@ -3020,7 +3057,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/macroshot-product.webp"
     },
     {
       "id": "recast",
@@ -3113,6 +3151,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/recast.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -3197,7 +3236,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/character-swap.webp"
     },
     {
       "id": "face-swap",
@@ -3257,6 +3297,7 @@
         "presets": []
       },
       "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/face-swap.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -3345,7 +3386,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/commercial-faces.webp"
     },
     {
       "id": "video-face-swap",
@@ -3417,6 +3459,7 @@
         "presets": []
       },
       "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/video-face-swap.webp",
       "existingIn": [
         {
           "repo": "OpenHiggsBolt",
@@ -3508,6 +3551,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/headshot-generator.webp",
       "similarWorkflow": {
         "slug": "professional-fashion-headshots-flux-2-pro",
         "id": "6b41af09-a40f-459f-8179-7ee3a90d300b",
@@ -3585,7 +3629,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/clipcut.webp"
     },
     {
       "id": "urban-cuts",
@@ -3658,7 +3703,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/urban-cuts.webp"
     },
     {
       "id": "sticker-matchcut",
@@ -3731,7 +3777,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/sticker-matchcut.webp"
     },
     {
       "id": "breakdown",
@@ -3800,7 +3847,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/breakdown.webp"
     },
     {
       "id": "japanese-show",
@@ -3869,7 +3917,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/japanese-show.webp"
     },
     {
       "id": "video-bg-remover",
@@ -3954,6 +4003,7 @@
         "presets": []
       },
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/video-bg-remover.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -4036,6 +4086,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/yes-kiss.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -4116,7 +4167,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/latex.webp"
     },
     {
       "id": "j-magazine",
@@ -4189,7 +4241,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/j-magazine.webp"
     },
     {
       "id": "roller-coaster",
@@ -4262,7 +4315,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/roller-coaster.webp"
     },
     {
       "id": "60s-cafe",
@@ -4335,7 +4389,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/60s-cafe.webp"
     },
     {
       "id": "victory-card",
@@ -4408,7 +4463,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/victory-card.webp"
     },
     {
       "id": "sand-worm",
@@ -4481,7 +4537,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/sand-worm.webp"
     },
     {
       "id": "skibidi",
@@ -4554,7 +4611,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/skibidi.webp"
     },
     {
       "id": "j-poster",
@@ -4627,7 +4685,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/j-poster.webp"
     },
     {
       "id": "mascot",
@@ -4700,7 +4759,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/mascot.webp"
     },
     {
       "id": "storm-creature",
@@ -4773,7 +4833,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/storm-creature.webp"
     },
     {
       "id": "burning-sunset",
@@ -4846,7 +4907,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/burning-sunset.webp"
     },
     {
       "id": "on-fire",
@@ -4919,7 +4981,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/on-fire.webp"
     },
     {
       "id": "comic-book",
@@ -4993,6 +5056,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/comic-book.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -5073,7 +5137,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/cloud-surf.webp"
     },
     {
       "id": "mukbang",
@@ -5146,7 +5211,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/mukbang.webp"
     },
     {
       "id": "melting-doodle",
@@ -5219,7 +5285,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/melting-doodle.webp"
     },
     {
       "id": "giallo-horror",
@@ -5292,7 +5359,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/giallo-horror.webp"
     },
     {
       "id": "renaissance",
@@ -5365,7 +5433,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/renaissance.webp"
     },
     {
       "id": "rap-god",
@@ -5438,7 +5507,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/rap-god.webp"
     },
     {
       "id": "angles",
@@ -5596,6 +5666,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/angles.webp",
       "existingIn": [
         {
           "repo": "OpenHiggsBolt",
@@ -5683,7 +5754,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/whats-next.webp"
     },
     {
       "id": "shots",
@@ -5778,6 +5850,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/shots.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -5886,7 +5959,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/zooms.webp"
     },
     {
       "id": "behind-the-scenes",
@@ -5959,7 +6033,8 @@
         "presets": []
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
-      "overlap": "new"
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/behind-the-scenes.webp"
     },
     {
       "id": "transitions",
@@ -6049,6 +6124,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/transitions.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -6127,6 +6203,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/expand-image.webp",
       "existingIn": [
         {
           "repo": "remix-new-editor",
@@ -6297,6 +6374,7 @@
       },
       "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
       "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/color-grading.webp",
       "existingIn": [
         {
           "repo": "OpenHiggsBolt",

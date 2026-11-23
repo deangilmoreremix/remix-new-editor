@@ -190,6 +190,10 @@ for (const [categoryKey, list] of Object.entries(catalog)) {
     if (NOTES[a.slug]) entry.notes = NOTES[a.slug];
     // Is it already in another studio? duplicate = same endpoint/function, similar = related, new = not found.
     entry.overlap = overlapOf(EXISTING[a.slug]);
+    // Cover image (muapi's artwork, used with permission; see public/thumbnails/muapi-apps/NOTICE.md).
+    // Fetch with scripts/fetch-muapi-app-thumbnails.mjs.
+    const thumbFile = join(root, 'public/thumbnails/muapi-apps', `${a.slug}.webp`);
+    if (existsSync(thumbFile)) entry.thumbnail = `/thumbnails/muapi-apps/${a.slug}.webp`;
     if (EXISTING[a.slug]) entry.existingIn = EXISTING[a.slug];
     const wfSlug = SIMILAR_WORKFLOW[a.slug];
     if (wfSlug) {

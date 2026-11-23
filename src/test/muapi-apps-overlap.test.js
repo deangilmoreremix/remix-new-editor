@@ -37,4 +37,12 @@ describe('muapi apps overlap with existing studios', () => {
     const dup = appsMap.apps.filter((a) => a.overlap === 'duplicate').map((a) => a.id);
     expect(dup).toEqual(expect.arrayContaining(['skin-enhancer', 'face-swap', 'expand-image', 'recast', 'relight', 'color-grading']));
   });
+
+  it('has a cover image file for every app, with a NOTICE next to them', () => {
+    for (const a of appsMap.apps) {
+      expect(a.thumbnail, a.id).toBe(`/thumbnails/muapi-apps/${a.id}.webp`);
+      expect(existsSync(`${root}public${a.thumbnail}`), a.thumbnail).toBe(true);
+    }
+    expect(readFileSync(`${root}public/thumbnails/muapi-apps/NOTICE.md`, 'utf8')).toMatch(/permission/);
+  });
 });
