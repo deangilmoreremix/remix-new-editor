@@ -47,11 +47,23 @@ describe('StudioCaptionLine: the Caption Studio look, drawn as DOM', () => {
     // #001122 outline (jsdom may serialise the colour as hex or as rgb(), depending on its version)
     expect(lo.querySelector('span')!.style.textShadow).toMatch(/#001122|rgb\(0, 17, 34\)/i)
   })
-  it('always draws in the composition font, whatever font the studio data names (no font that is not loaded)', () => {
-    for (const fontFamily of ['Anton', 'Orbitron', 'Inter']) {
-      expect(line(studio({ fontFamily }), 500).querySelector('span')!.style.fontFamily).toBe('Arial') // the stack the test passes as the composition's own
+  it('draws in the chosen font, as its embedded "Capite" alias with the composition font behind it', () => {
+    for (const fontFamily of ['Anton', 'Orbitron', 'Roboto', 'Inter']) {
+      const ff = line(studio({ fontFamily }), 500).querySelector('span')!.style.fontFamily
+      expect(ff, fontFamily).toContain(`Capite ${fontFamily}`)
+      expect(ff.endsWith('Arial'), fontFamily).toBe(true) // the stack the test passes as the composition's own
     }
   })
+  it('keeps the composition font for a font that is not embedded', () => {
+    expect(line(studio({ fontFamily: 'Comic Sans' }), 500).querySelector('span')!.style.fontFamily).toBe('"Comic Sans", Arial')
+  })
+  it('draws the chosen weight, or the look\'s own (bold 800, else 500)', () => {
+    expect(line(studio({ weight: 'light' }), 500).querySelector('span')!.style.fontWeight).toBe('300')
+    expect(line(studio({ weight: 'bold', bold: false }), 500).querySelector('span')!.style.fontWeight).toBe('700')
+    expect(line(studio({ bold: true }), 500).querySelector('span')!.style.fontWeight).toBe('800')
+    expect(line(studio({ bold: false }), 500).querySelector('span')!.style.fontWeight).toBe('500')
+  })
+
   it('draws karaoke wipes, boxed words and a line background with plain CSS', () => {
     const k = line(studio({ animation: 'karaoke' }), 600)
     expect(k.querySelector('div[style*="overflow: hidden"]')).not.toBeNull()

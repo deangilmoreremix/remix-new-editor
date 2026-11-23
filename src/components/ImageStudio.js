@@ -106,6 +106,9 @@ export function ImageStudio() {
     let showToolsPanel = false;
 
     // Read gallery / deep-link params and apply them as studio defaults.
+    // The prompt textarea is built later, so the deep-link prompt is kept here
+    // and applied when it exists (see `prefill` below).
+    let deepLinkPrompt = '';
     (async () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
@@ -128,12 +131,14 @@ export function ImageStudio() {
             if (tpl.model) selectedModel = tpl.model;
             if (tpl.aspectRatio) selectedAr = tpl.aspectRatio;
             if (tpl.basePrompt) {
+              deepLinkPrompt = tpl.basePrompt;
               const textarea = document.getElementById('i-prompt-textarea');
               if (textarea) textarea.value = tpl.basePrompt;
             } else if (tpl.slug) {
               loadTemplatePrompt(templateParam)
                 .then((prompt) => {
                   if (prompt) {
+                    deepLinkPrompt = deepLinkPrompt || prompt;
                     const textarea = document.getElementById('i-prompt-textarea');
                     if (textarea) textarea.value = prompt;
                   }
@@ -146,6 +151,7 @@ export function ImageStudio() {
         if (academyParam || promptParam) {
           const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
           const params = target?.params || {};
+          deepLinkPrompt = params.prompt || promptParam || deepLinkPrompt;
           if (params.prompt) {
             const textarea = document.getElementById('i-prompt-textarea');
             if (textarea) textarea.value = params.prompt;
@@ -362,6 +368,7 @@ export function ImageStudio() {
             requestAnimationFrame(applyReference);
         }
     }
+    if (!prefill && deepLinkPrompt) prefill = deepLinkPrompt;
     if (prefill) {
         textarea.value = prefill;
         requestAnimationFrame(() => {

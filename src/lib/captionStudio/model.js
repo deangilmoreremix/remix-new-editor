@@ -10,7 +10,7 @@
  * renders them identically in the Player preview and the exported video.
  */
 import { CAPITE_CAPTION_STYLES, CAPITE_CATEGORIES } from './styles.js';
-import { parseSrt, parseVtt, serializeSrt, createTikTokStyleCaptions } from '@remotion/captions';
+import { parseSrt, serializeSrt, createTikTokStyleCaptions } from '@remotion/captions';
 
 export const CAPTION_PRESETS = {
   tiktok: { label: 'Word highlight', fontFamily: 'Montserrat', bold: true, uppercase: true, color: '#FFFFFF', highlightColor: '#FFE14D', stroke: true, background: false, combineMs: 900 },
@@ -83,10 +83,30 @@ export function chunksToCaptions(chunks = [], { offsetSec = 0 } = {}) {
 
 // ------------------------------------------------------------------ import / export
 
+/**
+ * WebVTT → SRT text, so one parser (parseSrt) reads both. @remotion/captions only exports parseVtt from 4.0.5xx on and the host apps
+ * pin different Remotion versions, so the core does not depend on it.
+ */
+export function vttToSrt(src) {
+  const blocks = String(src).replace(/\r\n?/g, '\n').split(/\n{2,}/);
+  const stamp = (t) => { const [a, b, c] = t.replace(',', '.').split(':'); return c === undefined ? `00:${a}:${b.replace('.', ',')}` : `${a.padStart(2, '0')}:${b}:${c.replace('.', ',')}`; };
+  const cues = [];
+  blocks.forEach((block) => {
+    const lines = block.split('\n');
+    const at = lines.findIndex((l) => l.includes('-->'));
+    if (at < 0 || /^(NOTE|STYLE|REGION)\b/.test(lines[0])) return;
+    const m = lines[at].match(/^\s*([\d:.,]+)\s*-->\s*([\d:.,]+)/);
+    if (!m) return;
+    const text = lines.slice(at + 1).join('\n').replace(/<[^>]+>/g, '').trim();
+    if (text) cues.push(`${cues.length + 1}\n${stamp(m[1])} --> ${stamp(m[2])}\n${text}`);
+  });
+  return cues.join('\n\n');
+}
+
 export function captionsFromFile(text, fileName = '') {
   const src = String(text || '').replace(/^\uFEFF/, '');
   const isVtt = /\.vtt$/i.test(fileName) || /^WEBVTT/.test(src.trim());
-  const { captions } = isVtt ? parseVtt({ input: src }) : parseSrt({ input: src });
+  const { captions } = parseSrt({ input: isVtt ? vttToSrt(src) : src });
   return sortCaptions(captions);
 }
 
