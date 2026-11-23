@@ -10,6 +10,7 @@
 //   onComplete(url)                                 the video with captions burned in (blob: URL)
 //   onApply({ captions, captionStyle, srt, vtt })   hand the captions to a timeline / project
 //   applyLabel ('Add captions to timeline'), fonts (the ONLY fonts allowed, e.g. the one font a host can draw and export; every look is forced onto them)
+//   theme ({ bg, card, ink, mute, line, field, bezel }: the host's own surface colours as #hex / rgb() / rgba(); anything else is ignored)
 //   onError(err), onClose()
 import {
   ENGINES, WHISPER_MODELS, CAPTION_LANGUAGES, detectCapabilities, recommendEngine, recommendModel, transcribeMedia,
@@ -42,9 +43,18 @@ const TABS = [['generate', '1 · Captions'], ['style', '2 · Style'], ['edit', '
 const capiteOf = (key) => (typeof key === 'string' && key.startsWith('capite-') ? capiteStyleById(key.slice(7)) : undefined);
 const SAMPLE = [' Free', ' captions', ' that', ' run', ' on', ' your', ' device'].map((text, i) => ({ text, startMs: i * 450, endMs: i * 450 + 450, timestampMs: i * 450 + 225, confidence: null }));
 
+/** The host's surface colours, reduced to the few variables the modal uses. Only plain colours get through (they end up in a style attribute). */
+const SURFACE_KEYS = ['bg', 'card', 'ink', 'mute', 'line', 'field', 'bezel'];
+const PLAIN_COLOR = /^(#[0-9a-f]{3,8}|rgba?\(\s*\d{1,3}(\s*,\s*\d{1,3}){2}(\s*,\s*(0|1|0?\.\d+))?\s*\))$/i;
+export function surfaceTheme(theme) {
+  const out = {};
+  if (theme && typeof theme === 'object') SURFACE_KEYS.forEach((k) => { if (typeof theme[k] === 'string' && PLAIN_COLOR.test(theme[k].trim())) out[k] = theme[k].trim(); });
+  return out;
+}
+
 const STYLE_TEXT = `
 .csm-overlay{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.7);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
-.csm-dialog{--ink:#e5edf5;--mute:rgba(229,237,245,.62);--line:rgba(255,255,255,.1);--card:#0f151c;--field:rgba(0,0,0,.4);position:relative;display:flex;flex-direction:column;width:min(1480px,100%);height:min(930px,100%);background:#0a0e13;color:var(--ink);border:1px solid var(--line);border-radius:28px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.6);outline:none}
+.csm-dialog{--ink:#e5edf5;--mute:rgba(229,237,245,.62);--line:rgba(255,255,255,.1);--card:#0f151c;--field:rgba(0,0,0,.4);position:relative;display:flex;flex-direction:column;width:min(1480px,100%);height:min(930px,100%);background:var(--bg,#0a0e13);color:var(--ink);border:1px solid var(--line);border-radius:28px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.6);outline:none}
 .csm-dialog.full{width:100%;height:100%;border-radius:0}
 .csm-head{display:flex;align-items:flex-start;gap:16px;padding:20px 26px 16px;border-bottom:1px solid var(--line)}
 .csm-icon{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--app-soft,rgba(217,255,0,.12));color:var(--app-primary,#d9ff00);border:1px solid var(--app-line,rgba(217,255,0,.25))}
@@ -61,7 +71,7 @@ const STYLE_TEXT = `
 .csm-stage{position:relative;background:#000;border-radius:18px;overflow:hidden;margin:0 auto;box-shadow:0 0 0 1px var(--line)}
 .csm-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:transparent}
 .csm-stage canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.csm-stage.phone{border-radius:38px;box-shadow:0 0 0 7px #151b24,0 0 0 8px var(--line),0 24px 60px rgba(0,0,0,.5)}
+.csm-stage.phone{border-radius:38px;box-shadow:0 0 0 7px var(--bezel,#151b24),0 0 0 8px var(--line),0 24px 60px rgba(0,0,0,.5)}
 .csm-stage.phone::before{content:"";position:absolute;top:8px;left:50%;width:28%;height:15px;margin-left:-14%;border-radius:99px;background:#05070a;z-index:3}
 .csm-handle{position:absolute;right:8px;width:30px;height:30px;margin-top:-15px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.65);border:1px solid var(--app-primary,#d9ff00);color:var(--app-primary,#d9ff00);cursor:ns-resize;touch-action:none;font-size:15px;z-index:2}
 .csm-speed{display:flex;align-items:center;gap:6px;justify-content:center}
@@ -239,6 +249,7 @@ export class CaptionStudioModal extends ModalShell {
   constructor(options = {}) {
     super({ title: 'Free AI Captions', subtitle: 'Add captions on your device — free, no credits. Upload a finished video, edit the script, pick a motion style, then export SRT, VTT, TXT or ASS, or render the captions into the video.' });
     this.accent = /^#[0-9a-f]{6}$/i.test(options.accentColor || '') ? options.accentColor : '#d9ff00';
+    this.theme = surfaceTheme(options.theme);
     this.opts = options;
     this.tab = 'generate';
     this.caps = null;
@@ -268,7 +279,8 @@ export class CaptionStudioModal extends ModalShell {
 
   // ---------------------------------------------------------------- theme / chrome
   get themeStyle() {
-    return `--app-primary:${this.accent};--app-soft:${hexToRgba(this.accent, 0.12)};--app-line:${hexToRgba(this.accent, 0.3)}`;
+    const theme = Object.entries(this.theme).map(([k, v]) => `--${k}:${v}`).join(';');
+    return `--app-primary:${this.accent};--app-soft:${hexToRgba(this.accent, 0.12)};--app-line:${hexToRgba(this.accent, 0.3)}${theme ? `;${theme}` : ''}`;
   }
 
   start() {
