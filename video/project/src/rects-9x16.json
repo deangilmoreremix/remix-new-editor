@@ -1,0 +1,482 @@
+{
+ "video": {
+  "h1": {
+   "t": "Video Studio",
+   "x": 121,
+   "y": 131,
+   "w": 271,
+   "h": 30
+  },
+  "sub": [
+   {
+    "t": "Create AI videos from text and images with 15+ models",
+    "x": 121,
+    "y": 165,
+    "w": 271,
+    "h": 40
+   }
+  ],
+  "countish": [
+   {
+    "t": "Create AI videos from text and images with 15+ models",
+    "x": 121,
+    "y": 165,
+    "w": 271,
+    "h": 40
+   },
+   {
+    "t": "28 examples",
+    "x": 978,
+    "y": 761,
+    "w": 74,
+    "h": 12
+   }
+  ],
+  "imgs": [
+   {
+    "a": "",
+    "x": -27,
+    "y": 59,
+    "w": 1203,
+    "h": 218
+   },
+   {
+    "a": "",
+    "x": 644,
+    "y": 81,
+    "w": 411,
+    "h": 174
+   },
+   {
+    "a": "1980s open-source family comed",
+    "x": 97,
+    "y": 878,
+    "w": 228,
+    "h": 171
+   },
+   {
+    "a": "Ramen Bowl UGC Taste Test",
+    "x": 339,
+    "y": 878,
+    "w": 228,
+    "h": 171
+   },
+   {
+    "a": "Gourmet Burger UGC Taste Test",
+    "x": 581,
+    "y": 878,
+    "w": 228,
+    "h": 171
+   },
+   {
+    "a": "Y2K K-Pop Candy Typography Mus",
+    "x": 823,
+    "y": 878,
+    "w": 228,
+    "h": 171
+   },
+   {
+    "a": "Blackberry Vanilla Soda UGC Vl",
+    "x": 97,
+    "y": 1264,
+    "w": 228,
+    "h": 171
+   },
+   {
+    "a": "Morning Lip Oil UGC Testimonia",
+    "x": 334,
+    "y": 1256,
+    "w": 237,
+    "h": 178
+   },
+   {
+    "a": "1980s open-source family comed",
+    "x": 581,
+    "y": 1264,
+    "w": 228,
+    "h": 171
+   },
+   {
+    "a": "3 references. One model",
+    "x": 823,
+    "y": 1264,
+    "w": 228,
+    "h": 171
+   },
+   {
+    "a": "7-second video. The Office (US",
+    "x": 97,
+    "y": 1676,
+    "w": 228,
+    "h": 171
+   },
+   {
+    "a": "A handheld found-footage shot ",
+    "x": 339,
+    "y": 1676,
+    "w": 228,
+    "h": 171
+   },
+   {
+    "a": "\"A hyper-realistic handheld ph",
+    "x": 581,
+    "y": 1676,
+    "w": 228,
+    "h": 171
+   },
+   {
+    "a": "An 1890s field guide plate, dr",
+    "x": 823,
+    "y": 1676,
+    "w": 228,
+    "h": 171
+   }
+  ],
+  "ta": {
+   "x": 937,
+   "y": 293,
+   "w": 22,
+   "h": 43
+  }
+ },
+ "storyboard": {
+  "h1": {
+   "t": "Storyboard Studio",
+   "x": 129,
+   "y": 131,
+   "w": 266,
+   "h": 30
+  },
+  "sub": [
+   {
+    "t": "Plan scenes as AI storyboard frames, then turn them into video",
+    "x": 129,
+    "y": 165,
+    "w": 266,
+    "h": 40
+   }
+  ],
+  "countish": [],
+  "imgs": [
+   {
+    "a": "",
+    "x": -17,
+    "y": 59,
+    "w": 1183,
+    "h": 218
+   },
+   {
+    "a": "",
+    "x": 636,
+    "y": 81,
+    "w": 411,
+    "h": 174
+   }
+  ],
+  "ta": {
+   "x": 125,
+   "y": 454,
+   "w": 898,
+   "h": 82
+  }
+ },
+ "edit": {
+  "h1": {
+   "t": "Edit Studio",
+   "x": 129,
+   "y": 131,
+   "w": 266,
+   "h": 30
+  },
+  "sub": [
+   {
+    "t": "16 AI editing tools: remove objects, backgrounds, reframe, effects and",
+    "x": 129,
+    "y": 165,
+    "w": 266,
+    "h": 40
+   }
+  ],
+  "countish": [],
+  "imgs": [
+   {
+    "a": "",
+    "x": -17,
+    "y": 59,
+    "w": 1183,
+    "h": 218
+   },
+   {
+    "a": "",
+    "x": 636,
+    "y": 81,
+    "w": 411,
+    "h": 174
+   },
+   {
+    "a": "Remove Object",
+    "x": 101,
+    "y": 277,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Remove Background",
+    "x": 422,
+    "y": 277,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Extend Image",
+    "x": 744,
+    "y": 277,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "AI Edit",
+    "x": 101,
+    "y": 528,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Reframe",
+    "x": 422,
+    "y": 528,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Change Dress",
+    "x": 744,
+    "y": 528,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Enhance Skin",
+    "x": 101,
+    "y": 779,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Colorize",
+    "x": 422,
+    "y": 779,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Add Watermark",
+    "x": 744,
+    "y": 779,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Upscale",
+    "x": 101,
+    "y": 1030,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Face Swap",
+    "x": 422,
+    "y": 1030,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Product Shot",
+    "x": 744,
+    "y": 1030,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Ghibli Style",
+    "x": 101,
+    "y": 1282,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Photo Effects",
+    "x": 407,
+    "y": 1271,
+    "w": 334,
+    "h": 188
+   },
+   {
+    "a": "Change Angle",
+    "x": 744,
+    "y": 1282,
+    "w": 303,
+    "h": 171
+   },
+   {
+    "a": "Character & Reference",
+    "x": 101,
+    "y": 1533,
+    "w": 303,
+    "h": 171
+   }
+  ],
+  "ta": {
+   "x": 0,
+   "y": 0,
+   "w": 0,
+   "h": 0
+  }
+ },
+ "avatar": {
+  "h1": {
+   "t": "Avatar Studio",
+   "x": 137,
+   "y": 147,
+   "w": 260,
+   "h": 30
+  },
+  "sub": [
+   {
+    "t": "Create talking avatars and lip sync videos",
+    "x": 137,
+    "y": 181,
+    "w": 260,
+    "h": 40
+   }
+  ],
+  "countish": [
+   {
+    "t": "28 examples",
+    "x": 962,
+    "y": 990,
+    "w": 74,
+    "h": 12
+   }
+  ],
+  "imgs": [
+   {
+    "a": "",
+    "x": -7,
+    "y": 75,
+    "w": 1163,
+    "h": 218
+   },
+   {
+    "a": "",
+    "x": 628,
+    "y": 97,
+    "w": 411,
+    "h": 174
+   },
+   {
+    "a": "Profile / Avatar - Copper-Red ",
+    "x": 113,
+    "y": 1107,
+    "w": 220,
+    "h": 165
+   },
+   {
+    "a": "Profile / Avatar - Cinematic S",
+    "x": 343,
+    "y": 1099,
+    "w": 229,
+    "h": 172
+   },
+   {
+    "a": "Profile / Avatar - Casual Hija",
+    "x": 581,
+    "y": 1107,
+    "w": 220,
+    "h": 165
+   },
+   {
+    "a": "Profile / Avatar - Madison Bee",
+    "x": 815,
+    "y": 1107,
+    "w": 220,
+    "h": 165
+   },
+   {
+    "a": "Profile / Avatar - Ultra-Detai",
+    "x": 113,
+    "y": 1514,
+    "w": 220,
+    "h": 165
+   },
+   {
+    "a": "Profile / Avatar - Cinematic T",
+    "x": 347,
+    "y": 1514,
+    "w": 220,
+    "h": 165
+   },
+   {
+    "a": "Profile / Avatar - Royal Blue ",
+    "x": 581,
+    "y": 1514,
+    "w": 220,
+    "h": 165
+   },
+   {
+    "a": "Profile / Avatar - Fisheye Con",
+    "x": 815,
+    "y": 1514,
+    "w": 220,
+    "h": 165
+   }
+  ],
+  "ta": {
+   "x": 0,
+   "y": 0,
+   "w": 0,
+   "h": 0
+  }
+ },
+ "lipsync": {
+  "h1": {
+   "t": "Lip Sync Studio",
+   "x": 121,
+   "y": 131,
+   "w": 271,
+   "h": 30
+  },
+  "sub": [
+   {
+    "t": "Make a portrait talk or re-sync any video to new audio",
+    "x": 121,
+    "y": 165,
+    "w": 271,
+    "h": 40
+   }
+  ],
+  "countish": [],
+  "imgs": [
+   {
+    "a": "",
+    "x": -27,
+    "y": 59,
+    "w": 1203,
+    "h": 218
+   },
+   {
+    "a": "",
+    "x": 644,
+    "y": 81,
+    "w": 411,
+    "h": 174
+   }
+  ],
+  "ta": {
+   "x": 361,
+   "y": 351,
+   "w": 606,
+   "h": 75
+  }
+ }
+}

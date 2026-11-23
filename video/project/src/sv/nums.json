@@ -1,0 +1,267 @@
+{
+ "apps": [
+  {
+   "t": "Generate images with 20+ AI models",
+   "x": 157,
+   "y": 729,
+   "w": 192,
+   "h": 17
+  },
+  {
+   "t": "20+ models",
+   "x": 157,
+   "y": 749,
+   "w": 278,
+   "h": 15
+  },
+  {
+   "t": "16 tools",
+   "x": 517,
+   "y": 749,
+   "w": 278,
+   "h": 15
+  },
+  {
+   "t": "3 methods",
+   "x": 877,
+   "y": 749,
+   "w": 278,
+   "h": 15
+  }
+ ],
+ "workbench": [],
+ "templates": [
+  {
+   "t": "Browse 60+ ready-made templates by category or search by name. Each template is ",
+   "x": 153,
+   "y": 481,
+   "w": 665,
+   "h": 18
+  },
+  {
+   "t": "Video templates take 1-3 minutes to process",
+   "x": 137,
+   "y": 658,
+   "w": 230,
+   "h": 18
+  },
+  {
+   "t": "Create viral 9:16 videos with trending effects",
+   "x": 157,
+   "y": 865,
+   "w": 231,
+   "h": 17
+  }
+ ],
+ "video-agent": [],
+ "community": [
+  {
+   "t": "Create viral 9:16 videos with trending effects",
+   "x": 113,
+   "y": 451,
+   "w": 412,
+   "h": 16
+  }
+ ],
+ "storyboard": [
+  {
+   "t": "Choose how many frames you need (3-12). More frames create a more detailed narra",
+   "x": 1053,
+   "y": 855,
+   "w": 465,
+   "h": 18
+  },
+  {
+   "t": "Start with 4-6 frames for a simple scene",
+   "x": 137,
+   "y": 1008,
+   "w": 209,
+   "h": 18
+  }
+ ],
+ "character": [
+  {
+   "t": "Upload 1-3 clear photos or video clips of the person or character you want to ge",
+   "x": 161,
+   "y": 930,
+   "w": 518,
+   "h": 18
+  }
+ ],
+ "influencer": [
+  {
+   "t": "Flux Kontext Dev I2I",
+   "x": 129,
+   "y": 640,
+   "w": 122,
+   "h": 20
+  },
+  {
+   "t": "Flux Kontext Pro I2I",
+   "x": 129,
+   "y": 827,
+   "w": 119,
+   "h": 20
+  },
+  {
+   "t": "Flux Kontext Max I2I",
+   "x": 129,
+   "y": 865,
+   "w": 124,
+   "h": 20
+  },
+  {
+   "t": "GPT-4o Image To Image",
+   "x": 129,
+   "y": 902,
+   "w": 149,
+   "h": 20
+  },
+  {
+   "t": "GPT-4o Edit",
+   "x": 129,
+   "y": 940,
+   "w": 74,
+   "h": 20
+  },
+  {
+   "t": "Midjourney v7 Image To Image",
+   "x": 129,
+   "y": 977,
+   "w": 189,
+   "h": 20
+  },
+  {
+   "t": "Bytedance Seededit v3",
+   "x": 129,
+   "y": 1015,
+   "w": 143,
+   "h": 20
+  },
+  {
+   "t": "Midjourney v7 Style Reference",
+   "x": 129,
+   "y": 1052,
+   "w": 188,
+   "h": 20
+  }
+ ],
+ "ai-vfx": [
+  {
+   "t": "⭐ AI Effects · 64",
+   "x": 386,
+   "y": 589,
+   "w": 134,
+   "h": 34
+  },
+  {
+   "t": "🎬 Motion Controls · 47",
+   "x": 528,
+   "y": 589,
+   "w": 170,
+   "h": 34
+  },
+  {
+   "t": "💥 VFX · 9",
+   "x": 706,
+   "y": 589,
+   "w": 94,
+   "h": 34
+  },
+  {
+   "t": "360 Rotation",
+   "x": 387,
+   "y": 864,
+   "w": 191,
+   "h": 35
+  }
+ ],
+ "lipsync": [
+  {
+   "t": "480p",
+   "x": 324,
+   "y": 607,
+   "w": 32,
+   "h": 16
+  }
+ ],
+ "cinema": [
+  {
+   "t": "Modular 8K Digital",
+   "x": 1284,
+   "y": 547,
+   "w": 113,
+   "h": 15
+  },
+  {
+   "t": "Pick a camera lens profile (anamorphic, 70mm, macro) and film look to set the ci",
+   "x": 137,
+   "y": 760,
+   "w": 494,
+   "h": 18
+  },
+  {
+   "t": "Modular 8K Digital",
+   "x": 638,
+   "y": 610,
+   "w": 120,
+   "h": 12
+  },
+  {
+   "t": "Grand Format 70mm Film",
+   "x": 647,
+   "y": 793,
+   "w": 101,
+   "h": 9
+  },
+  {
+   "t": "Studio Digital S35",
+   "x": 656,
+   "y": 888,
+   "w": 84,
+   "h": 9
+  },
+  {
+   "t": "Classic 16mm Film",
+   "x": 656,
+   "y": 983,
+   "w": 84,
+   "h": 9
+  },
+  {
+   "t": "70s Cinema Prime",
+   "x": 833,
+   "y": 888,
+   "w": 80,
+   "h": 9
+  },
+  {
+   "t": "f/1.4",
+   "x": 1206,
+   "y": 610,
+   "w": 33,
+   "h": 12
+  },
+  {
+   "t": "f/4",
+   "x": 1213,
+   "y": 698,
+   "w": 19,
+   "h": 9
+  },
+  {
+   "t": "f/11",
+   "x": 1212,
+   "y": 793,
+   "w": 20,
+   "h": 9
+  },
+  {
+   "t": "28 examples",
+   "x": 1842,
+   "y": 969,
+   "w": 74,
+   "h": 12
+  }
+ ]
+}

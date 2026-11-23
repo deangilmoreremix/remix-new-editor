@@ -215,3 +215,5 @@ apps/warmbly-server/realtime/deps/
 verify-out/
 .whisper/
 !/public/academy/**/images/*.jpg
+video/project/node_modules/
+video/project/public/cap/
