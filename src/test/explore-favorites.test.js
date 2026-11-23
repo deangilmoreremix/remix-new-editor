@@ -48,12 +48,24 @@ describe('Explore categories', () => {
     expect(cats.filter((c) => c.niche).reduce((n, c) => n + c.count, 0)).toBe(allTemplates.filter((t) => t.niche).length);
     expect(cats.every((c) => c.count > 0)).toBe(true);
   });
-  it('renders those counts and opens Templates on the clicked category', () => {
+  it('shows a row of real templates per category, with its count and a See all link to Templates', () => {
     const page = ExplorePage();
-    const texts = [...page.querySelectorAll('[data-category-count]')].map((n) => n.textContent);
-    expect(texts.length).toBe(exploreCategories().length);
-    expect(texts.some((t) => t.startsWith('0 '))).toBe(false);
-    expect(page.textContent).toContain(`${allTemplates.length} templates in ${exploreCategories().length} categories`);
+    const cats = exploreCategories();
+    const rows = [...page.querySelectorAll('[data-explore-categories] [data-category]')];
+    expect(rows.length).toBe(cats.length);
+    expect(page.textContent).toContain(`${allTemplates.length} templates in ${cats.length} categories`);
+    for (const { label, count } of cats) {
+      const row = rows.find((r) => r.dataset.category === label);
+      expect(row.querySelector('[data-category-count]').textContent.startsWith(`${count} `), label).toBe(true);
+      expect(row.querySelectorAll('[data-template-id]').length, label).toBe(Math.min(4, count));
+      expect(row.querySelector('[data-see-all]').textContent).toContain(`See all ${count}`);
+    }
+  });
+  it('puts only templates of that category in its row', () => {
+    const page = ExplorePage();
+    const byId = new Map(allTemplates.map((t) => [t.id, t]));
+    const row = page.querySelector('[data-explore-categories] [data-category="Social Media"]');
+    for (const id of ids(row, '[data-template-id]')) expect(byId.get(id).category).toBe('Social Media');
   });
 });
 

@@ -2,7 +2,7 @@ import { navigate } from '../lib/router.js';
 import { templates, allTemplates } from '../lib/templates.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
 import { templatesForNiche } from '../lib/templateCategories.js';
-import { getTemplateThumbnail, getCategoryThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { getTemplateThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 import { getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
 import { syncFavorites, fetchTrendingTemplateIds, isCloudReady, TRENDING_WINDOW_DAYS } from '../lib/templateCloud.js';
 import { CURATED_PROMPTS } from '../data/curatedPrompts.js';
@@ -10,6 +10,7 @@ import { studioCards, createSection } from './AppsHub.js';
 
 const TRENDING_COUNT = 8;
 const RECENT_COUNT = 4;
+const CATEGORY_ROW_COUNT = 4;
 
 /** Every template category with its real size: the 8 standard ones plus the industry (niche) ones, as on the Templates page. */
 export function exploreCategories() {
@@ -195,44 +196,55 @@ export function ExplorePage() {
   promptsSection.appendChild(promptsGrid);
   inner.appendChild(promptsSection);
 
-  // ---- Browse by category: real counts, opens Templates on that category ---
+  // ---- Browse by category: a row of real templates per category, "See all" opens Templates on it ----
   const categoriesSection = document.createElement('div');
   categoriesSection.className = 'animate-fade-in-up';
   categoriesSection.style.animationDelay = '0.3s';
-  categoriesSection.appendChild(sectionHeading('Browse by Category', `${allTemplates.length} templates in ${exploreCategories().length} categories`));
-  const catGrid = document.createElement('div');
-  catGrid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3';
-  exploreCategories().forEach(({ label, count, niche }) => {
-    const card = document.createElement('div');
-    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group';
-    card.dataset.category = label;
-    card.setAttribute('role', 'button');
-    card.setAttribute('tabindex', '0');
-    const catThumb = niche ? null : getCategoryThumbnail(label);
-    if (catThumb) {
-      const heroWrapper = document.createElement('div');
-      heroWrapper.className = 'thumb-hero h-24 relative';
-      heroWrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
-      heroWrapper.appendChild(createThumbnailImg(catThumb, label, 'w-full h-full object-cover'));
-      card.appendChild(heroWrapper);
-    }
-    const info = document.createElement('div');
-    info.className = 'p-3';
-    const name = document.createElement('div');
-    name.className = 'text-sm font-bold text-white group-hover:text-primary transition-colors';
+  categoriesSection.dataset.exploreCategories = '';
+  const categories = exploreCategories();
+  categoriesSection.appendChild(sectionHeading('Browse by Category', `${allTemplates.length} templates in ${categories.length} categories`));
+  const allList = (Array.isArray(allTemplates) ? allTemplates : []).filter(Boolean);
+  categories.forEach(({ label, count, niche }) => {
+    const row = document.createElement('div');
+    row.className = 'mb-10';
+    row.dataset.category = label;
+
+    const head = document.createElement('div');
+    head.className = 'flex items-center justify-between gap-3 mb-3';
+    const title = document.createElement('div');
+    title.className = 'min-w-0 flex items-baseline gap-2 flex-wrap';
+    const name = document.createElement('h3');
+    name.className = `text-base font-bold ${niche ? 'text-cyan-400' : 'text-white'}`;
     name.textContent = label;
-    const n = document.createElement('div');
-    n.className = 'text-xs text-muted mt-1';
+    title.appendChild(name);
+    if (niche) {
+      const tag = document.createElement('span');
+      tag.className = 'text-[10px] font-medium text-cyan-500/70 uppercase tracking-wider';
+      tag.textContent = 'Industry';
+      title.appendChild(tag);
+    }
+    const n = document.createElement('span');
+    n.className = 'text-xs text-muted';
     n.dataset.categoryCount = String(count);
     n.textContent = `${count} ${count === 1 ? 'template' : 'templates'}`;
-    info.append(name, n);
-    card.appendChild(info);
-    const open = () => navigate('templates', { category: label });
-    card.onclick = open;
-    card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
-    catGrid.appendChild(card);
+    title.appendChild(n);
+    const seeAll = document.createElement('button');
+    seeAll.type = 'button';
+    seeAll.dataset.seeAll = label;
+    seeAll.className = 'shrink-0 text-xs font-bold text-primary hover:underline';
+    seeAll.textContent = `See all ${count} \u2192`;
+    seeAll.onclick = () => navigate('templates', { category: label });
+    head.append(title, seeAll);
+    row.appendChild(head);
+
+    const inCategory = niche ? templatesForNiche(allList, label) : allList.filter((t) => !t.niche && t.category === label);
+    const grid = document.createElement('div');
+    grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3';
+    inCategory.slice(0, CATEGORY_ROW_COUNT).forEach((t) => grid.appendChild(templateCard(t)));
+    row.appendChild(grid);
+    categoriesSection.appendChild(row);
   });
-  categoriesSection.appendChild(catGrid);
+  paintStars(categoriesSection);
   inner.appendChild(categoriesSection);
 
   // ---- All studios ----------------------------------------------------------
