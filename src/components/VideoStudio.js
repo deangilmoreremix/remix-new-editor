@@ -1289,6 +1289,11 @@ generateBtn.type = 'button';
         }
     };
 
+    // Opened straight into a v2v tool (prefill): the "Initial visibility" block
+    // above assumed t2v and showed a bogus duration (getDurationsForModel → [5]
+    // for unknown ids). Run the same v2v path a mode switch would.
+    if (v2vMode) updateControlsForModel(selectedModel);
+
     // ---- Upstream split-pane video model picker integration ----------------
     let videoPickerController = null;
 
@@ -1665,7 +1670,11 @@ generateBtn.type = 'button';
     container.appendChild(canvas);
 
     // --- Helper: Show video in canvas ---
+    // Bumped by every show and by reset, so a slow video that finishes loading
+    // after the user hit New (or picked another) can't reopen the canvas.
+    let canvasLoadToken = 0;
     const showVideoInCanvas = (videoUrl, genModel) => {
+        const token = ++canvasLoadToken;
         hero.classList.add('hidden');
         promptWrapper.classList.add('hidden');
 
@@ -1676,14 +1685,15 @@ generateBtn.type = 'button';
         extendBtn.classList.toggle('hidden', continuationTargets.length === 0);
         extendBtn.textContent = continuationTargets.length === 1 ? `↗ ${continuationLabel(continuationTargets[0])}` : '↗ Extend / 4K';
 
-        resultVideo.src = videoUrl;
         resultVideo.onloadeddata = () => {
+            if (token !== canvasLoadToken) return;
             canvas.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
             container.classList.add('studio-result-showing'); // hides the example gallery under the result
             canvas.classList.add('opacity-100', 'translate-y-0', 'scale-100');
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
         };
+        resultVideo.src = videoUrl;
         publishBtn.onclick = () => { const url = resultVideo.src; if (url) openSocialPublish({ mediaUrl: url, mediaType: 'video' }); };
 
         const captionBtn = document.createElement('button');
@@ -1851,6 +1861,7 @@ generateBtn.type = 'button';
     };
 
     const resetToPromptBar = () => {
+        canvasLoadToken++; // drop any still-loading result
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');
         container.classList.remove('studio-result-showing');
         canvas.classList.remove('opacity-100', 'translate-y-0', 'scale-100');

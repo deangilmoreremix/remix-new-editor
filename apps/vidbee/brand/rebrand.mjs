@@ -93,7 +93,32 @@ class AiStore {` },
     file,
     find: `[\`\${safeTitle} via ${NAME}.\${format}\`, `,
     replace: `[\`\${safeTitle} via ${NAME}.\${format}\`, \`\${safeTitle} via ${UP}.\${format}\`, `
-  }))
+  })),
+  // SmartVid gate (backend/services/vidbeeProxy.js): an expired session (401) or a stopped service (502) answers API calls
+  // with plain text + `X-SmartVid-Reconnect: 1`, which upstream's IPC calls (web-shim.js → fetch) would only show as errors.
+  // Ask the embedding page (MediaHubPage) to start a new session and reload this frame; opened on its own, just reload
+  // (the gate then serves its reconnect page). Once per page load, so a burst of failing calls sends one request.
+  {
+    file: '/renderer/src/main.tsx',
+    find: '\ninitGlitchTipRenderer()\n',
+    replace: `
+{
+  const smartvidFetch = window.fetch.bind(window)
+  let smartvidReconnectAsked = false
+  window.fetch = async (...args: Parameters<typeof fetch>) => {
+    const res = await smartvidFetch(...args)
+    if (!smartvidReconnectAsked && (res.status === 401 || res.status === 502) && res.headers.get('x-smartvid-reconnect') === '1') {
+      smartvidReconnectAsked = true
+      if (window.parent !== window) window.parent.postMessage({ type: 'smartviddownloader:reconnect' }, '*')
+      else window.location.reload()
+    }
+    return res
+  }
+}
+
+initGlitchTipRenderer()
+`
+  }
 ]
 
 // Workspace packages: packages/<pkg>/src, or pnpm's injected copy (node_modules/.pnpm/.../@vidbee/<pkg>/src, e.g. downloader-core).

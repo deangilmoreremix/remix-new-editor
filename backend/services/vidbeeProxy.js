@@ -68,9 +68,17 @@ export const errorPage = (title, detail, { reconnect = false } = {}) => `<!docty
 h1{font-size:20px;margin:0 0 8px;color:#fff}p{margin:0 0 20px;color:#a1a1aa;max-width:420px}
 button{background:#d9ff00;color:#000;border:0;border-radius:12px;padding:10px 20px;font-weight:800;font-size:14px;cursor:pointer}</style></head>
 <body><main><h1>${esc(title)}</h1><p>${esc(detail)}</p>${reconnect ? `<button type="button" onclick="parent.postMessage({type:'smartviddownloader:reconnect'},'*')">Reconnect</button>` : ''}</main></body></html>`;
-const fail = (req, res, status, text, title, detail, opts) => (wantsPage(req)
-  ? res.status(status).type('html').send(errorPage(title, detail, opts))
-  : res.status(status).type('text').send(text));
+/**
+ * API calls / assets get plain text. When the fix is a new session (`reconnect`), they also get `X-SmartVid-Reconnect: 1`:
+ * the embedded app (brand/rebrand.mjs patch on the renderer's fetch) then asks MediaHubPage to reconnect, since it never
+ * sees the HTML page above.
+ */
+export const RECONNECT_HEADER = 'X-SmartVid-Reconnect';
+const fail = (req, res, status, text, title, detail, opts) => {
+  if (wantsPage(req)) return res.status(status).type('html').send(errorPage(title, detail, opts));
+  if (opts?.reconnect) res.setHeader(RECONNECT_HEADER, '1');
+  return res.status(status).type('text').send(text);
+};
 
 export function createVidBeeRouters({ auth }) {
   const session = express.Router();

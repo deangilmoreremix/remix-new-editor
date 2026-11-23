@@ -33,16 +33,45 @@ export function MediaHubPage() {
   const base = backendBase();
   let iframe = null;
   // Dev only: VITE_VIDBEE_DEV_URL (e.g. http://127.0.0.1:3300/) embeds a local VidBee server directly, skipping the gate.
-  const devUrl = import.meta.env.DEV ? import.meta.env.VITE_VIDBEE_DEV_URL : '';
-  const start = async () => {
+  // Also requires the app itself to be on localhost, so a dev build that ends up deployed never bypasses the gate.
+  const onLocalhost = typeof location !== 'undefined' && ['localhost', '127.0.0.1'].includes(location.hostname);
+  const devUrl = import.meta.env.DEV && onLocalhost ? import.meta.env.VITE_VIDBEE_DEV_URL : '';
+
+  const showError = (message) => {
+    if (iframe) { iframe.replaceWith(note); iframe = null; }
+    note.replaceChildren();
+    note.style.color = '#ef4444';
+    const box = document.createElement('div');
+    box.className = 'flex flex-col items-center gap-3';
+    const text = document.createElement('div');
+    text.textContent = message;
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.textContent = 'Retry';
+    retry.className = 'px-4 py-2 rounded-xl text-sm font-bold';
+    retry.style.cssText = 'background:#d9ff00;color:#000;border:0;cursor:pointer;';
+    retry.onclick = () => start();
+    box.append(text, retry);
+    note.appendChild(box);
+  };
+
+  // One session request at a time: the gate page's Reconnect button, the embedded app's reconnect message and Retry can
+  // all fire together; later calls share the running one instead of racing it (and creating duplicate iframes).
+  let inFlight = null;
+  const run = async () => {
     try {
       if (devUrl) {
+        if (iframe) { iframe.src = devUrl; return; }
         iframe = document.createElement('iframe');
         iframe.src = devUrl;
         iframe.title = 'SmartVidDownloader';
         iframe.style.cssText = 'flex:1;min-height:0;border:none;width:100%;';
         note.replaceWith(iframe);
         return;
+      }
+      if (!iframe) {
+        note.style.color = '#a1a1aa';
+        note.textContent = 'Starting SmartVidDownloader…';
       }
       const token = await accessToken();
       if (!token) throw new Error('Sign in to use SmartVidDownloader.');
@@ -57,14 +86,17 @@ export function MediaHubPage() {
       iframe.setAttribute('allow', 'clipboard-write; fullscreen');
       note.replaceWith(iframe);
     } catch (e) {
-      if (iframe) { iframe.replaceWith(note); iframe = null; }
-      note.textContent = e.message;
-      note.style.color = '#ef4444';
+      showError(e.message);
     }
+  };
+  const start = () => {
+    if (!inFlight) inFlight = run().finally(() => { inFlight = null; });
+    return inFlight;
   };
   start();
 
-  // The gate's error page (expired 8-hour session, service down) has a Reconnect button that posts this message.
+  // The gate's error page (expired 8-hour session, service down) has a Reconnect button that posts this message; the embedded
+  // app posts it too when an API call gets the gate's 401/502 (X-SmartVid-Reconnect, see apps/vidbee/brand/rebrand.mjs).
   const onMessage = (e) => {
     if (iframe && e.source === iframe.contentWindow && e.data?.type === 'smartviddownloader:reconnect') start();
   };
