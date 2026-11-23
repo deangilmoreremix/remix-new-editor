@@ -203,6 +203,12 @@ export function SixEnginesSection() {
       .engine-card {
         transition: transform 0.5s ease-out-quart, border-color 0.3s ease, box-shadow 0.3s ease;
       }
+      /* The global .animate-in rule starts elements at opacity 0 until a .visible class is added;
+         this section adds animate-in on scroll, so the cards must be explicitly shown. */
+      .engine-card.animate-in {
+        opacity: 1;
+        transform: translateY(0);
+      }
       .engine-card:hover {
         transform: translateY(-8px) scale(1.02);
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
