@@ -1,30 +1,29 @@
-# Capture report (Phase 1, partial)
+# Capture report (Phase 1, revision 2: live site)
 
-Method: Playwright, 1920x1080, dark colour scheme, unauthenticated, vite dev server on :3100, first-run key modal dismissed ("Skip for now"). Script: scratchpad cap.cjs. Contact sheet: contact-sheet.png.
+Source: https://smartvid.app (production build, signed out), Playwright, 1920x1080, dark scheme, first-run key dialog dismissed. Revision 1 used the local vite dev server, which lacked the built Workbench bundle and had blocked images; it is superseded. Contact sheet: contact-sheet.png (26 captures).
 
-## Blockers affecting every shot
-- No provider keys. The app is BYOK: Muapi, OpenAI and VideoDB keys are entered in the UI. None are available, so no generation ever ran. No prompt-to-result, before/after, model-count scrolling, or end-to-end run can be captured honestly.
-- No Supabase env (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY) and no demo account: not signed in.
-- Sandbox proxy blocks external hosts (ERR_TUNNEL_CONNECTION_FAILED): some remote images/fonts may be missing.
+## Blockers that remain
+- No provider keys (Muapi, OpenAI, VideoDB are BYOK, entered in the UI) and no signed-in account (Clerk connector needs re-auth). No generation can run, so no prompt-to-result, before/after outcome, model-count scroll, 3-language clip or live cost counter has been captured. None are faked.
+- Some third-party images are blocked by the sandbox proxy (ERR_TUNNEL_CONNECTION_FAILED) and a few calls return 401 (signed out).
 
 ## Per-shot status
 | Shot | Capture | Status |
 |---|---|---|
-| 01 Hero (prompt typed + clip) | 01-hero-video-studio | FAILED: page blank (route `#/hero`-less; `#/video` empty body in this run, 0 chars). Clip needs a key anyway |
-| 02 Apps hub | 02-apps-hub | Page only; the "33 apps" count is not verified/visible |
-| 03 Model picker | 03-model-picker | Studio page only; picker not opened, no count |
-| 04 Image Studio | 04-image-studio | Idle UI only; no result, advanced panel not opened |
-| 05 Cinema / Director | 05a, 05b | Idle UI only; Director loads, no escapeHtml error seen |
-| 06 Storyboard / Backlot | 06a | Idle UI only; Backlot is a separate OpenMontage board, not captured; no cost counter |
-| 07 Edit tools | 07a, 07b | Edit gallery has stock before/after tiles (check provenance); upscale idle |
-| 08 Character / Influencer | 08a, 08b | Idle UI only; no 4-6 scene run |
-| 09 Avatar / Lip Sync / Dubbing | 09a, 09b | Idle UI only; no 3-language clip; no dubbing route captured |
-| 10 AI-VFX / Effects | 10a, 10b | Idle UI; template tiles only; nothing applied to a clip |
-| 11 Timeline / Render | 11a, 11b | FAILED: stuck on loading spinner |
-| 12 Templates / Commercial | 12a, 12b | FAILED: blank / spinner. Commercial route resolved to Product Shot page in the sheet |
-| 13 Video Agent | 13 | FAILED: route showed Product Shot Studio, not Video Agent; needs a key anyway |
-| 14 Chat / Assist | 14a, 14b | FAILED: both show the Apps hub, not chat/assist |
-| 15 Library / Community / Stock | 15a, 15b, 15c | Library empty (needs sign-in); Community (Explore) OK; stock-media route shows Library, not Pexels |
-| 16 Agency dashboard | none | FAILED: no route found in router |
+| 01 Hero | 01-hero-video-studio | Idle Video Studio only; no typed prompt or finished clip |
+| 02 Apps hub | 02-apps-hub | Page OK; "33 apps" count not verified on screen |
+| 03 Model picker | 03-model-picker | Studio page only (same as 01); picker not opened, no count |
+| 04 Image Studio | 04-image-studio | Idle only; advanced panel not opened |
+| 05 Cinema / Director | 05a, 05b | Idle only |
+| 06 Storyboard / Backlot | 06a | Idle only; Backlot is an OpenMontage board, not captured; no cost counter |
+| 07 Edit tools | 07a, 07b | Edit gallery shows before/after tiles (provenance unchecked); upscale idle |
+| 08 Character / Influencer | 08a, 08b | Idle only |
+| 09 Avatar / Lip Sync / Dubbing | 09a, 09b | Idle only; no dubbing route captured |
+| 10 AI-VFX / Effects | 10a, 10b | Idle only |
+| 11 Timeline / Render | 11a workbench, 11b timeline, 11c render-legacy | Workbench (replaces Render in nav) loads: empty project with demo timeline. Timeline shows empty project manager. Render is an empty shell (placeholder title "Generated Video Prompt Title"): do not use |
+| 12 Templates / Commercial | 12a, 12b | Templates grid OK. Commercial route shows Product Shot Studio: wrong page |
+| 13 Video Agent | 13 | Idle "What do you want to create?" prompt; no run |
+| 14 Chat / Assist | 14a, 14b | FAILED: both show Apps hub; correct entry point unknown |
+| 15 Library / Community / Stock | 15a, 15b, 15c | Library empty (401, signed out); Community OK; stock route shows Library, not Pexels |
+| 16 Agency dashboard | none | FAILED: no route found |
 
-Usable as-is (idle UI): 02, 03, 04, 05a, 05b, 07a, 08a, 08b, 09a, 09b, 10a, 10b, 15b. None show a result, so none can carry a feature claim.
+Usable now as screen-tour frames: 02, 05b, 07a, 11a, 12a, 13, 15b and the studio idle pages. None shows a generated result.
