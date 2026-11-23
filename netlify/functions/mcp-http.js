@@ -4,7 +4,7 @@
 // caps and audit log apply exactly as they do for a local MCP.
 import { createMcpHttpHandler, bearerFrom, createBrandedServer, createCatalog, createGatewayClient } from '../../packages/studio-mcp-core/src/index.js';
 import { createSupabaseStore, resolveMcpKey, isMcpKey } from './_shared/mcpKeys.js';
-import { createHandler as createGateway } from './mcp-gateway.js';
+import { createHandler as createGateway, defaultLimiter } from './mcp-gateway.js';
 import { brand, endpointFixes } from '../../mcp/brand.js';
 import { customTools } from '../../mcp/tools.js';
 import catalogEntries from '../../mcp/catalog.json' with { type: 'json' };
@@ -25,7 +25,9 @@ export function inProcessFetch(gateway) {
   };
 }
 
-export function createHttpHandler({ store = () => createSupabaseStore(), gateway = createGateway(), env = process.env, limit } = {}) {
+export function createHttpHandler({ store = () => createSupabaseStore(), env = process.env, limiter = defaultLimiter(env), gateway = createGateway({ env, limiter: null }), limit } = {}) {
+  // The request limit is counted once here (one MCP request); the in-process gateway calls it makes are not counted again.
+  const applyLimit = limit || (limiter ? (caller) => limiter.check(caller.who.id) : undefined);
   return createMcpHttpHandler({
     brandName: brand.name,
     authenticate: async (request) => {
@@ -34,7 +36,7 @@ export function createHttpHandler({ store = () => createSupabaseStore(), gateway
       const who = await resolveMcpKey(store(), token);
       return who ? { who, token } : null;
     },
-    limit,
+    limit: applyLimit,
     buildServer: ({ token }) => createBrandedServer({
       brand: { ...brand, customTools },
       catalog: getCatalog(),

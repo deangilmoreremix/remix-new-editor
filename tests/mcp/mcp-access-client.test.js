@@ -34,3 +34,22 @@ describe('mcpAccess client', () => {
     expect(s.claudeCode + s.json).not.toMatch(/mu-?api/i);
   });
 });
+
+describe('mcpAccess client: rotation and activity', () => {
+  it('rotate sends the saved keys like create; audit does not', async () => {
+    const f = vi.fn(async () => reply(200, { ok: true, key: 'sv_live_n', id: 'i', events: [{ tool: 'generate', risk: 'write', ok: true, at: 'x' }] }));
+    globalThis.window = { Clerk: { session: { getToken: async () => 'clerk.jwt' } } };
+    const { rotateMcpKey, listMcpAudit } = await import('../../src/lib/mcpAccess.js');
+    await rotateMcpKey('abc', { fetchImpl: f, keyManager: km });
+    expect(await listMcpAudit({ fetchImpl: f, keyManager: km })).toHaveLength(1);
+    expect(f.mock.calls[0][1].headers['X-MuAPI-Key']).toBe('mu_test_key_0123456789abcdef');
+    expect(f.mock.calls[1][1].headers['X-MuAPI-Key']).toBeUndefined();
+    expect(JSON.parse(f.mock.calls[0][1].body)).toEqual({ action: 'rotate', id: 'abc' });
+  });
+  it('the hosted snippet uses the SmartVid names and the key header', () => {
+    const s = mcpInstallSnippets('sv_live_abc');
+    expect(s.http).toContain('--transport http');
+    expect(s.http).toContain('Authorization: Bearer sv_live_abc');
+    expect(s.http).not.toMatch(/mu-?api/i);
+  });
+});

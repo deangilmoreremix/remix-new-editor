@@ -1,4 +1,4 @@
-import { listMcpKeys, createMcpKey, revokeMcpKey, mcpInstallSnippets } from '../lib/mcpAccess.js';
+import { listMcpKeys, createMcpKey, revokeMcpKey, rotateMcpKey, listMcpAudit, mcpInstallSnippets } from '../lib/mcpAccess.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { videoDb } from '../lib/videoDb.js';
 import { showToast } from '../lib/loading.js';
@@ -217,7 +217,14 @@ function buildMcpAccessSection() {
         const r = document.createElement('div');
         r.className = 'flex items-center justify-between gap-2 text-[12px] text-white/80';
         const label = document.createElement('span');
-        label.textContent = `${k.label} · ${k.prefix}${k.last_used_at ? ' · used ' + new Date(k.last_used_at).toLocaleDateString() : ' · never used'}`;
+        label.textContent = `${k.label} · ${k.prefix}${k.last_used_at ? ' · last used ' + new Date(k.last_used_at).toLocaleString() : ' · never used'}${k.expires_at ? ' · expires ' + new Date(k.expires_at).toLocaleDateString() : ''}`;
+        const rotate = document.createElement('button');
+        rotate.textContent = 'Rotate';
+        rotate.className = 'text-[11px] text-sky-300 hover:text-sky-200';
+        rotate.onclick = async () => {
+            rotate.disabled = true;
+            try { const made = await rotateMcpKey(k.id); showKey(made); await refresh(); say('Key replaced. The old key no longer works.'); } catch (e) { say(e.message, true); rotate.disabled = false; }
+        };
         const revoke = document.createElement('button');
         revoke.textContent = 'Revoke';
         revoke.className = 'text-[11px] text-red-400 hover:text-red-300';
@@ -225,7 +232,10 @@ function buildMcpAccessSection() {
             revoke.disabled = true;
             try { await revokeMcpKey(k.id); await refresh(); say('Key revoked.'); } catch (e) { say(e.message, true); revoke.disabled = false; }
         };
-        r.append(label, revoke);
+        const actions = document.createElement('span');
+        actions.className = 'flex gap-3 shrink-0';
+        actions.append(rotate, revoke);
+        r.append(label, actions);
         return r;
     };
     async function refresh() {
@@ -233,27 +243,46 @@ function buildMcpAccessSection() {
         list.replaceChildren(...keys.map(row));
         if (!keys.length) list.textContent = 'No MCP keys yet.';
     }
+    function showKey(made) {
+        const snip = mcpInstallSnippets(made.key);
+        reveal.innerHTML = '';
+        const warn = document.createElement('p');
+        warn.className = 'text-[11px] text-amber-300 mb-1';
+        warn.textContent = 'Copy this now. It is shown once.';
+        const code = document.createElement('textarea');
+        code.readOnly = true;
+        code.rows = 8;
+        code.value = `${made.key}\n\n# Claude Code (hosted, nothing to install)\n${snip.http}\n\n# Claude Code (local)\n${snip.claudeCode}\n\n# Claude Desktop / Cursor\n${snip.json}`;
+        code.className = 'w-full text-[11px] font-mono bg-black/40 border border-white/10 rounded-lg p-2 text-white/80';
+        reveal.append(warn, code);
+    }
     createBtn.onclick = async () => {
         createBtn.disabled = true;
         say('Creating…');
         try {
-            const made = await createMcpKey('MCP key');
-            const snip = mcpInstallSnippets(made.key);
-            reveal.innerHTML = '';
-            const warn = document.createElement('p');
-            warn.className = 'text-[11px] text-amber-300 mb-1';
-            warn.textContent = 'Copy this now. It is shown once.';
-            const code = document.createElement('textarea');
-            code.readOnly = true;
-            code.rows = 6;
-            code.value = `${made.key}\n\n# Claude Code\n${snip.claudeCode}\n\n# Claude Desktop / Cursor\n${snip.json}`;
-            code.className = 'w-full text-[11px] font-mono bg-black/40 border border-white/10 rounded-lg p-2 text-white/80';
-            reveal.append(warn, code);
+            showKey(await createMcpKey('MCP key'));
             say('Key created.');
             await refresh();
         } catch (e) { say(e.message, true); } finally { createBtn.disabled = false; }
     };
-    wrap.append(status, list, reveal, createBtn);
+    // What the keys did lately: tool, kind of action, outcome and time. Never arguments or content.
+    const auditBtn = document.createElement('button');
+    auditBtn.textContent = 'Show recent activity';
+    auditBtn.className = 'ml-2 px-3 py-2 rounded-lg text-xs font-bold btn-secondary-modern';
+    const audit = document.createElement('div');
+    audit.className = 'mt-3 space-y-0.5 text-[11px] text-white/70 font-mono';
+    auditBtn.onclick = async () => {
+        auditBtn.disabled = true;
+        try {
+            const events = await listMcpAudit();
+            audit.replaceChildren(...(events.length ? events : [{ tool: 'No activity yet.' }]).map((e) => {
+                const line = document.createElement('div');
+                line.textContent = e.at ? `${new Date(e.at).toLocaleString()} · ${e.tool} · ${e.risk} · ${e.ok ? 'ok' : 'failed'}` : e.tool;
+                return line;
+            }));
+        } catch (e) { say(e.message, true); } finally { auditBtn.disabled = false; }
+    };
+    wrap.append(status, list, reveal, createBtn, auditBtn, audit);
     refresh().catch(() => { list.textContent = ''; say('Sign in to manage MCP access.'); });
     return wrap;
 }

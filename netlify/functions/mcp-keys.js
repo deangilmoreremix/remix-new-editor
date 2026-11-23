@@ -14,6 +14,15 @@ import { claimsHaveFeature } from './website-builder-session.js';
 const json = (statusCode, body) => ({ statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify(body) });
 const fail = (statusCode, code, message) => json(statusCode, { ok: false, error: { code, message } });
 
+/** Days until a new key expires. MCP_KEY_MAX_DAYS caps it (and is the default when set); with neither, keys do not expire. */
+function expiryDays(requested, env) {
+  const max = Number(env.MCP_KEY_MAX_DAYS);
+  const asked = Number(requested);
+  const hasMax = Number.isFinite(max) && max > 0;
+  if (Number.isFinite(asked) && asked > 0) return hasMax ? Math.min(asked, max) : Math.min(asked, 3650);
+  return hasMax ? max : undefined;
+}
+
 export function createHandler({ store, env = process.env, audit } = {}) {
   return async (event) => {
     if (event.httpMethod !== 'POST') return fail(405, 'method_not_allowed', 'Use POST');
@@ -44,9 +53,21 @@ export function createHandler({ store, env = process.env, audit } = {}) {
         // The user's own keys come from the same BYOK headers the app already sends to every function.
         const muapiKey = userMuapiKey(event.headers);
         const openaiKey = userOpenAIKey(event.headers);
-        const r = await createMcpKey(s, { userId, workspaceId, label: body.label, muapiKey, openaiKey });
+        const r = await createMcpKey(s, { userId, workspaceId, label: body.label, muapiKey, openaiKey, expiresInDays: expiryDays(body.expiresInDays, env) });
         if (r.error) return fail(400, r.error, r.message);
-        return json(200, { ok: true, key: r.key, id: r.id, prefix: r.prefix, label: r.label });
+        return json(200, { ok: true, key: r.key, id: r.id, prefix: r.prefix, label: r.label, expires_at: r.expires_at });
+      }
+      if (body.action === 'rotate') {
+        // Make the replacement first, revoke the old key only once the new one exists, so a failure never leaves the user with no key.
+        if (!/^[0-9a-f-]{36}$/i.test(String(body.id || ''))) return fail(400, 'bad_request', 'Invalid id');
+        const current = (await s.listForUser(userId)).find((k) => k.id === body.id);
+        if (!current) return fail(404, 'not_found', 'Key not found');
+        const muapiKey = userMuapiKey(event.headers);
+        const openaiKey = userOpenAIKey(event.headers);
+        const r = await createMcpKey(s, { userId, workspaceId, label: current.label, muapiKey, openaiKey, expiresInDays: expiryDays(body.expiresInDays, env), maxActive: Infinity });
+        if (r.error) return fail(400, r.error, r.message);
+        await s.revoke(userId, current.id);
+        return json(200, { ok: true, key: r.key, id: r.id, prefix: r.prefix, label: r.label, expires_at: r.expires_at, replaced: current.id });
       }
       return fail(400, 'bad_request', 'Unknown action');
     } catch (err) {

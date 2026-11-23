@@ -19,7 +19,7 @@ async function authHeader() {
 async function call(body, { fetchImpl = fetch, keyManager } = {}) {
   const res = await fetchImpl(MCP_KEYS_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...(await authHeader()), ...(body.action === 'create' ? byokHeaders(keyManager) : {}) },
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()), ...(body.action === 'create' || body.action === 'rotate' ? byokHeaders(keyManager) : {}) },
     body: JSON.stringify(body),
   });
   const data = await res.json().catch(() => null);
@@ -31,10 +31,16 @@ async function call(body, { fetchImpl = fetch, keyManager } = {}) {
 export const listMcpKeys = (opts) => call({ action: 'list' }, opts).then((d) => d.keys);
 export const createMcpKey = (label, opts) => call({ action: 'create', label }, opts);
 export const revokeMcpKey = (id, opts) => call({ action: 'revoke', id }, opts);
+/** Replace a key: the new one is made first, the old one is revoked only when that worked. The new raw key is shown once. */
+export const rotateMcpKey = (id, opts) => call({ action: 'rotate', id }, opts);
+/** The last 50 things this user's keys did (tool, risk, outcome, time; never arguments or content). */
+export const listMcpAudit = (opts) => call({ action: 'audit' }, opts).then((d) => d.events);
 
 /** The install snippets shown next to a new key. */
-export function mcpInstallSnippets(rawKey, { url = 'https://smartvid.app/api/mcp-gateway', repoPath = '/path/to/remix-new-editor' } = {}) {
+export function mcpInstallSnippets(rawKey, { url = 'https://smartvid.app/api/mcp-gateway', repoPath = '/path/to/remix-new-editor', mcpUrl = 'https://smartvid.app/api/mcp' } = {}) {
   return {
+    // Hosted endpoint: nothing to install.
+    http: `claude mcp add --transport http smartvid ${mcpUrl} --header "Authorization: Bearer ${rawKey}"`,
     claudeCode: `claude mcp add smartvid -e SMARTVID_API_KEY=${rawKey} -- node ${repoPath}/mcp/index.js`,
     json: JSON.stringify({ mcpServers: { smartvid: { command: 'node', args: [`${repoPath}/mcp/index.js`], env: { SMARTVID_API_KEY: rawKey, SMARTVID_API_URL: url } } } }, null, 2),
   };

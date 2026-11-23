@@ -13,6 +13,7 @@
 
 import { createSupabaseStore, resolveMcpKey, isMcpKey } from './_shared/mcpKeys.js';
 import { createGovernor, createSupabaseGovernorStore } from '../../packages/studio-mcp-core/src/governor.js';
+import { createRateLimiter, createMemoryRateStore, createSupabaseRateStore, DEFAULT_PER_MINUTE } from '../../packages/studio-mcp-core/src/limiter.js';
 import { createBridge, createSupabaseBridgeStore, BridgeError } from '../../packages/studio-mcp-core/src/bridge.js';
 import { createClient } from '@supabase/supabase-js';
 import { handle as zackdHandle } from './zackd.js';
@@ -141,7 +142,7 @@ export function classifyRequest(route, method, input = {}) {
   return { risk: 'write', label: route.slice(1, 40) };
 }
 
-export function createHandler({ store = () => createSupabaseStore(), studios = STUDIOS, env = process.env, governor = defaultGovernor(env), bridge = defaultBridge(env) } = {}) {
+export function createHandler({ store = () => createSupabaseStore(), studios = STUDIOS, env = process.env, governor = defaultGovernor(env), bridge = defaultBridge(env), limiter = defaultLimiter(env) } = {}) {
   return async function gateway(event) {
   let who;
   try { who = await authenticate(event, { store, env }); } catch (err) {
@@ -153,6 +154,15 @@ export function createHandler({ store = () => createSupabaseStore(), studios = S
 
   const route = String(event.path || '').split('?')[0].replace(/^.*\/(?:api\/mcp-gateway|mcp-gateway)/, '').replace(/\/+$/, '') || '/';
   const method = event.httpMethod;
+  // Per-key request limit. Polling for a finished job is exempt: it is cheap and a long job would otherwise eat the allowance.
+  if (limiter && who.id && !(method === 'GET' && (route.startsWith('/result/') || route.startsWith('/bridge/result/')))) {
+    const verdict = await limiter.check(who.id);
+    if (!verdict.ok) {
+      const out = json(429, { error: { message: verdict.message, code: 'rate_limited' } });
+      out.headers['Retry-After'] = String(verdict.retryAfter);
+      return out;
+    }
+  }
   let input = {};
   if (method === 'POST') {
     if (String(event.body || '').length > MAX_BODY_CHARS) return fail(413, 'Request body is too large.');
@@ -272,6 +282,17 @@ function defaultBridge(env) {
   try {
     return createBridge({ store: createSupabaseBridgeStore(createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })), brandName: BRAND });
   } catch { return null; }
+}
+
+/** Shared by the gateway and the hosted endpoint. MCP_RATE_PER_MIN=0 turns the limit off. */
+export function defaultLimiter(env) {
+  const perMinute = env.MCP_RATE_PER_MIN === undefined || env.MCP_RATE_PER_MIN === '' ? DEFAULT_PER_MINUTE : Number(env.MCP_RATE_PER_MIN);
+  if (!Number.isFinite(perMinute) || perMinute <= 0) return null;
+  let store = createMemoryRateStore();
+  if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+    try { store = createSupabaseRateStore(createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })); } catch { /* memory fallback */ }
+  }
+  return createRateLimiter({ store, perMinute, brandName: BRAND });
 }
 
 function defaultGovernor(env) {

@@ -12,6 +12,7 @@ export * as smoke from './smoke.js';
 export { renderCoverage, liveStatus } from './coverage.js';
 export { z } from 'zod';
 export * from './governor.js';
+export * from './limiter.js';
 export * from './bridge.js';
 export { createTabBridge } from './bridge-tab.js';
 export { createMcpHttpHandler, bearerFrom } from './http.js';
