@@ -29,7 +29,7 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
   isForwardableWebhook, isPrivateAddress, sanitizeData, looksAutomated, emailProblem, verifyTurnstile, parseExtraDomains, emailKeyOf, emailDomain, domainAcceptsMail, isGuestOwner, needsHumanCheck, insertLeadRow, type DnsResolver, declaredEmailKeys, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, autoReplyReplyTo, sanitizeSource, attributionOf, savedWebhooks, savedNotifyEmails, uniqueEmails, isValidEmail, buildLeadEmail,
   isCallClip, leadConfigFor, hashKey, MAX_WEBHOOKS, MAX_ATTEMPTS, hostOf, deriveSigningSecret,
-  savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, deliverWebhook, type Delivery, type DeliverDeps, type HttpCall, type Json,
+  savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret, ESP_PROVIDERS, deliverWebhook, keyResolver, type Delivery, type DeliverDeps, type HttpCall, type Json,
 } from "./logic.ts";
 export { isForwardableWebhook, savedWebhooks, isCallClip, leadConfigFor };
 
@@ -57,11 +57,19 @@ const LEAD_EMAIL_FROM = Deno.env.get("LEAD_EMAIL_FROM") ?? "";
 // Public site address, used for the video link in the auto-reply email (e.g. https://app.example.com).
 const PUBLIC_APP_URL = (Deno.env.get("PUBLIC_APP_URL") ?? "").replace(/\/+$/, "");
 
-// Webhook signing: every delivery carries X-Remix-Signature, an HMAC with a per-owner secret
-// derived from this master secret (set WEBHOOK_SIGNING_SECRET to any long random string).
-const WEBHOOK_SIGNING_MASTER = Deno.env.get("WEBHOOK_SIGNING_SECRET") ?? "";
-// Kit / MailerLite API keys are stored AES-GCM encrypted with this key (any long random string).
-const INTEGRATIONS_KEY = Deno.env.get("INTEGRATIONS_ENCRYPTION_KEY") ?? "";
+// Webhook signing: every delivery carries X-Remix-Signature, an HMAC with a per-owner secret derived from a
+// master secret. Kit / MailerLite API keys are stored AES-GCM encrypted with a second key. Each comes from the
+// WEBHOOK_SIGNING_SECRET / INTEGRATIONS_ENCRYPTION_KEY edge function secret when set, otherwise from a random key
+// the database generated for this function (migration 20261123000000, service role only), so nothing has to be pasted.
+const storedKey = (name: string) => async (): Promise<string> => {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return "";
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data, error } = await admin.rpc("get_lead_function_key", { p_name: name });
+  if (error) throw new Error("key lookup failed");
+  return typeof data === "string" ? data : "";
+};
+const signingMaster = keyResolver(Deno.env.get("WEBHOOK_SIGNING_SECRET") ?? "", storedKey("lead_webhook_signing"));
+const integrationsKey = keyResolver(Deno.env.get("INTEGRATIONS_ENCRYPTION_KEY") ?? "", storedKey("lead_integrations_encryption"));
 
 // Optional Cloudflare Turnstile: with this secret set, published-video submissions must carry a valid `cf-turnstile-response`.
 const TURNSTILE_SECRET = Deno.env.get("TURNSTILE_SECRET_KEY") ?? "";
@@ -172,8 +180,8 @@ async function forward(
   return { forwarded: urls.length - failed, failed, deliveries };
 }
 
-/** Per-owner signing secret ("" when WEBHOOK_SIGNING_SECRET isn't set, so deliveries go unsigned). */
-const ownerSecret = (ownerId: string) => deriveSigningSecret(WEBHOOK_SIGNING_MASTER, ownerId);
+/** Per-owner signing secret ("" only if no key could be loaded at all, so deliveries go unsigned). */
+const ownerSecret = async (ownerId: string) => deriveSigningSecret(await signingMaster(), ownerId);
 
 /** The caller's verified Clerk user id (PostgREST validated the JWT), or "". */
 async function callerSub(db: Db): Promise<string> {
@@ -218,10 +226,11 @@ async function callEsp(calls: HttpCall[]): Promise<boolean> {
 async function pushToEsp(admin: Db, ownerId: string, esp: ReturnType<typeof savedEsp>, data: Record<string, string>): Promise<EspStatus> {
   const contact = esp ? leadContact(data) : null;
   if (!esp || !contact) return null;
-  if (!INTEGRATIONS_KEY) return "not_connected";
+  const masterKey = await integrationsKey();
+  if (!masterKey) return "not_connected";
   const { data: row } = await admin.from("lead_integrations").select("secret_enc")
     .eq("clerk_user_id", ownerId).eq("provider", esp.provider).maybeSingle();
-  const key = row?.secret_enc ? await decryptSecret(INTEGRATIONS_KEY, String(row.secret_enc)) : "";
+  const key = row?.secret_enc ? await decryptSecret(masterKey, String(row.secret_enc)) : "";
   if (!key) return "not_connected";
   return (await callEsp(espRequests(esp.provider, key, esp.listId, contact))) ? "sent" : "failed";
 }
@@ -495,7 +504,8 @@ Deno.serve(async (req: Request) => {
   // then stored encrypted. Keys are never returned, only whether one is connected.
   if (typeof body.action === "string" && body.action.startsWith("integration-")) {
     if (!hasSession) return json(req, { ok: false, error: "Sign in to manage integrations" }, 401);
-    if (!SUPABASE_SERVICE_ROLE_KEY || !INTEGRATIONS_KEY) {
+    const masterKey = SUPABASE_SERVICE_ROLE_KEY ? await integrationsKey() : "";
+    if (!masterKey) {
       if (body.action === "integration-status") return json(req, { ok: true, configured: false, kit: false, mailerlite: false });
       return json(req, { ok: false, error: "Email-list integrations aren't set up on the server yet" }, 501);
     }
@@ -520,7 +530,7 @@ Deno.serve(async (req: Request) => {
         return json(req, { ok: false, error: `${provider === "kit" ? "Kit" : "MailerLite"} rejected that API key` }, 400);
       }
       const { error } = await admin.from("lead_integrations").upsert(
-        { clerk_user_id: ownerId, provider, secret_enc: await encryptSecret(INTEGRATIONS_KEY, apiKey), updated_at: new Date().toISOString() },
+        { clerk_user_id: ownerId, provider, secret_enc: await encryptSecret(masterKey, apiKey), updated_at: new Date().toISOString() },
         { onConflict: "clerk_user_id,provider" },
       );
       return error ? json(req, { ok: false, error: "Could not save the key" }, 500) : json(req, { ok: true });
@@ -532,7 +542,7 @@ Deno.serve(async (req: Request) => {
   if (body.action === "signing-secret") {
     if (!hasSession) return json(req, { ok: false, error: "Sign in to view your signing secret" }, 401);
     const secret = await ownerSecret(await callerSub(db));
-    return json(req, { ok: true, configured: !!WEBHOOK_SIGNING_MASTER, secret: secret || null });
+    return json(req, { ok: true, configured: !!secret, secret: secret || null });
   }
 
   // Recent webhook deliveries (own rows only, RLS-enforced).

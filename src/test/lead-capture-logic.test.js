@@ -1,10 +1,10 @@
 import { createHmac } from 'node:crypto';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   isForwardableWebhook, isPrivateAddress, sanitizeData, savedWebhooks, leadConfigFor, MAX_DATA_BYTES,
   isValidEmail, savedNotifyEmail, savedNotifyEmails, uniqueEmails, buildLeadEmail,
   isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook, MAX_ATTEMPTS,
-  savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret,
+  savedEsp, leadContact, keyResolver, espRequests, espCheckRequest, encryptSecret, decryptSecret,
   sanitizeSource, attributionOf, looksAutomated, MIN_FILL_MS, isDisposableEmail, emailProblem, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, AUTO_REPLY_DEFAULT_SUBJECT, declaredEmailKeys, autoReplyReplyTo,
 } from '../../supabase/functions/lead-capture/logic.ts';
 
@@ -409,5 +409,33 @@ describe('lead-capture Teams Workflows alerts', () => {
     expect(card.content.type).toBe('AdaptiveCard');
     expect(card.content.body.map((b) => b.text)).toEqual(['New lead', 'EMAIL: ann@x.co', 'NOTE: hi @\u200beveryone']);
     expect(card.content.body[0].weight).toBe('Bolder');
+  });
+});
+
+describe('keyResolver', () => {
+  it('uses the environment value without asking the database', async () => {
+    const fetchStored = vi.fn(async () => 'stored');
+    expect(await keyResolver('from-env', fetchStored)()).toBe('from-env');
+    expect(fetchStored).not.toHaveBeenCalled();
+  });
+  it('falls back to the stored key and remembers it', async () => {
+    const fetchStored = vi.fn(async () => 'stored');
+    const get = keyResolver('', fetchStored);
+    expect(await get()).toBe('stored');
+    expect(await get()).toBe('stored');
+    expect(fetchStored).toHaveBeenCalledTimes(1);
+  });
+  it('gives "" when nothing is configured, and asks again next time', async () => {
+    const fetchStored = vi.fn(async () => '');
+    const get = keyResolver('', fetchStored);
+    expect(await get()).toBe('');
+    expect(await get()).toBe('');
+    expect(fetchStored).toHaveBeenCalledTimes(2);
+  });
+  it('treats a failed lookup as not configured (no throw) and recovers later', async () => {
+    const fetchStored = vi.fn().mockRejectedValueOnce(new Error('db down')).mockResolvedValue('stored');
+    const get = keyResolver('', fetchStored);
+    expect(await get()).toBe('');
+    expect(await get()).toBe('stored');
   });
 });

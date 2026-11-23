@@ -147,6 +147,22 @@ async function hmacHex(secret: string, message: string): Promise<string> {
   return Array.from(new Uint8Array(sig), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Resolve a server key lazily: the environment value wins when set; otherwise the stored one is fetched once and
+ * remembered. A failed or empty lookup gives "" (callers treat that as "not configured") and is retried next time.
+ */
+export function keyResolver(envValue: string, fetchStored: () => Promise<string>): () => Promise<string> {
+  let cached = envValue || "";
+  return async () => {
+    if (cached) return cached;
+    try {
+      const stored = await fetchStored();
+      if (stored) cached = stored;
+    } catch { /* not configured right now */ }
+    return cached;
+  };
+}
+
 /** A stable per-owner signing secret derived from a server master secret (nothing to store). */
 export async function deriveSigningSecret(master: string, ownerId: string): Promise<string> {
   if (!master || !ownerId) return "";
