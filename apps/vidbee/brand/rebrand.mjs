@@ -149,7 +149,7 @@ initGlitchTipRenderer()
 ]
 
 // Workspace packages: packages/<pkg>/src, or pnpm's injected copy (node_modules/.pnpm/.../@vidbee/<pkg>/src, e.g. downloader-core).
-const SOURCE = /\/(?:apps\/desktop\/src|packages\/[^/]+\/src|node_modules\/@vidbee\/[^/]+\/src)\/.*\.(?:[cm]?[jt]sx?)$/
+const SOURCE = /\/(?:apps\/desktop\/src|apps\/web\/src|packages\/[^/]+\/src|node_modules\/@vidbee\/[^/]+\/src)\/.*\.(?:[cm]?[jt]sx?)$/
 const SKILL = /\/skills\/[^/]+\/SKILL\.md$/
 const LOCALE = /\/packages\/i18n\/src\/locales\/([\w-]+)\.json$/
 

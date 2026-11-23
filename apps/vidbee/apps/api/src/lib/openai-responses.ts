@@ -5,9 +5,13 @@
  * format: it streams server-sent events, forwards text deltas, and returns the
  * response's output items so callers can replay them (tool calls, reasoning) next turn.
  */
+import { byokEnabled, clientAi } from './byok'
 import fs from 'node:fs'
 import path from 'node:path'
 import { apiDataDir, trimEnv } from './api-paths'
+
+/** One model request may run at most this long (reading the streamed answer included). */
+const REQUEST_DEADLINE_MS = 15 * 60 * 1000
 
 export const DEFAULT_BASE_URL = 'https://api.openai.com/v1'
 export const DEFAULT_MODEL = 'gpt-4.1-mini'
@@ -29,6 +33,16 @@ export const readStoredAiSettings = (): StoredAiSettings => {
 }
 
 export const getOpenAiConfig = () => {
+  if (byokEnabled()) {
+    // Bring your own key: only the visitor's own key counts, and the address is the server's, never the visitor's.
+    const mine = clientAi()
+    return {
+      apiKey: mine.apiKey,
+      keyFromEnv: false,
+      baseUrl: (trimEnv('OPENAI_BASE_URL') || DEFAULT_BASE_URL).replace(/\/+$/, ''),
+      model: mine.model || trimEnv('VIDBEE_OPENAI_MODEL') || DEFAULT_MODEL
+    }
+  }
   const stored = readStoredAiSettings()
   const envKey = trimEnv('OPENAI_API_KEY')
   const storedKey = stored.apiKey?.trim() || undefined
@@ -61,6 +75,8 @@ export interface ResponseResult {
   output: OutputItem[]
   /** Concatenated assistant text. */
   text: string
+  /** Pages the model cited (from the built-in web search tool), de-duplicated by address. */
+  sources: Array<{ title: string; url: string }>
 }
 
 export interface CreateResponseOptions {
@@ -103,6 +119,33 @@ const textOfMessage = (item: OutputItem): string => {
     .join('')
 }
 
+/** Pages cited in the answer: `url_citation` annotations on the output text. */
+export const citedSources = (output: OutputItem[]): Array<{ title: string; url: string }> => {
+  const seen = new Map<string, { title: string; url: string }>()
+  for (const item of output) {
+    if (item.type !== 'message' || !Array.isArray(item.content)) {
+      continue
+    }
+    for (const part of item.content as Array<{ annotations?: unknown }>) {
+      if (!Array.isArray(part?.annotations)) {
+        continue
+      }
+      for (const note of part.annotations as Array<{ type?: string; url?: string; title?: string }>) {
+        if (note?.type === 'url_citation' && typeof note.url === 'string' && /^https?:\/\//i.test(note.url) && !seen.has(note.url)) {
+          seen.set(note.url, { title: (note.title ?? '').trim() || note.url, url: note.url })
+        }
+      }
+    }
+  }
+  return [...seen.values()]
+}
+
+/** "Sources" list in Markdown, or an empty string. */
+export const sourcesMarkdown = (sources: Array<{ title: string; url: string }>): string =>
+  sources.length === 0
+    ? ''
+    : `\n\n**Sources**\n${sources.map((s) => `- [${s.title.replace(/[\[\]]/g, '')}](${s.url})`).join('\n')}`
+
 /** Create a streamed response and wait for it to finish. */
 export const createResponse = async (options: CreateResponseOptions): Promise<ResponseResult> => {
   const config = options.config ?? requireOpenAiConfig()
@@ -115,7 +158,10 @@ export const createResponse = async (options: CreateResponseOptions): Promise<Re
       store: false,
       ...options.body
     }),
+    // Overall deadline, so a stalled upstream cannot hold a request forever (the caller's own signal still cancels sooner).
     signal: options.signal
+      ? AbortSignal.any([options.signal, AbortSignal.timeout(REQUEST_DEADLINE_MS)])
+      : AbortSignal.timeout(REQUEST_DEADLINE_MS)
   })
   if (!response.ok) {
     throw new Error(await errorFromResponse(response))
@@ -205,5 +251,5 @@ export const createResponse = async (options: CreateResponseOptions): Promise<Re
       .filter((item) => item.type === 'message')
       .map(textOfMessage)
       .join('') || streamedText
-  return { output, text }
+  return { output, text, sources: citedSources(output) }
 }

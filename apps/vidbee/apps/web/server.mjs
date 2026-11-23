@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { log } from '@vidbee/logger/script'
 import { stat } from 'node:fs/promises'
@@ -31,6 +32,23 @@ const CONTENT_TYPES = new Map([
   ['.txt', 'text/plain; charset=utf-8'],
   ['.webp', 'image/webp']
 ])
+
+/** Mount point, for example /vidbee (VIDBEE_BASE_PATH). Empty when served from the site root. */
+const normalizeBasePath = (raw) => {
+  const trimmed = String(raw ?? '').trim().replace(/^\/+|\/+$/g, '')
+  return trimmed ? `/${trimmed}` : ''
+}
+
+/** Shared secret the host app's gate sends (VIDBEE_GATE_TOKEN); when set, requests without it are refused. */
+const gateAllows = (request, token) => {
+  if (!token) return true
+  const sent = request.headers['x-vidbee-gate']
+  const value = Array.isArray(sent) ? sent[0] : sent
+  if (typeof value !== 'string') return false
+  const a = Buffer.from(value)
+  const b = Buffer.from(token)
+  return a.length === b.length && timingSafeEqual(a, b)
+}
 
 let defaultServerEntryPromise
 
@@ -142,13 +160,29 @@ const handleRequest = async (request, response, options) => {
   const host = request.headers.host ?? 'localhost'
   const protocol = request.socket.encrypted ? 'https' : 'http'
   const requestUrl = new URL(request.url ?? '/', `${protocol}://${host}`)
+  const base = options.basePath
+  const underBase = !base || requestUrl.pathname === base || requestUrl.pathname.startsWith(`${base}/`)
+  // The path without the mount point: what static files and the API are keyed by.
+  const innerPath = base && underBase ? requestUrl.pathname.slice(base.length) || '/' : requestUrl.pathname
 
   try {
-    if (isProxyPath(requestUrl.pathname)) {
-      await proxyApiRequest(request, response, requestUrl, options.apiUrl)
+    if (!gateAllows(request, options.gateToken)) {
+      response.statusCode = 401
+      response.setHeader('content-type', 'text/plain; charset=utf-8')
+      response.end('Open this app from the host app.')
       return
     }
-    if (await serveStaticFile(request, response, options.clientDirectory, requestUrl.pathname)) {
+    if (!underBase) {
+      response.statusCode = 302
+      response.setHeader('location', `${base}/${requestUrl.search}`)
+      response.end()
+      return
+    }
+    if (isProxyPath(innerPath)) {
+      await proxyApiRequest(request, response, new URL(`${innerPath}${requestUrl.search}`, requestUrl), options.apiUrl)
+      return
+    }
+    if (await serveStaticFile(request, response, options.clientDirectory, innerPath)) {
       return
     }
 
@@ -172,7 +206,9 @@ const handleRequest = async (request, response, options) => {
 export const createWebServer = (options = {}) => {
   const resolvedOptions = {
     apiUrl: new URL(options.apiUrl ?? process.env.VIDBEE_API_URL_INTERNAL ?? DEFAULT_API_URL),
+    basePath: normalizeBasePath(options.basePath ?? process.env.VIDBEE_BASE_PATH),
     clientDirectory: options.clientDirectory ?? DEFAULT_CLIENT_DIRECTORY,
+    gateToken: options.gateToken ?? process.env.VIDBEE_GATE_TOKEN?.trim() ?? '',
     serverEntry: options.serverEntry
   }
   return createServer((request, response) => {

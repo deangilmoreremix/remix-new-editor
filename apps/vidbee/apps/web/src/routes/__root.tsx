@@ -5,6 +5,7 @@ import { RemoteImageProvider } from "@vidbee/ui/components/ui/remote-image";
 import { ShapeProvider } from "@vidbee/ui/lib/shape-context";
 import { useEffect } from "react";
 import { Toaster } from "sonner";
+import { applyBrandToDocument, BRAND_BOOT_SCRIPT } from "../lib/brand";
 import { i18n } from "../lib/i18n";
 import { resolveImageProxyUrl } from "../lib/remote-image-proxy";
 import { applyThemeToDocument, readWebSettings } from "../lib/web-settings";
@@ -31,6 +32,7 @@ export const Route = createRootRoute({
 				href: appCss,
 			},
 		],
+		scripts: [{ children: BRAND_BOOT_SCRIPT }],
 	}),
 	shellComponent: RootDocument,
 });
@@ -71,6 +73,7 @@ function RootHydrationEffects() {
 	useEffect(() => {
 		const settings = readWebSettings();
 		applyThemeToDocument(settings.theme);
+		applyBrandToDocument();
 		void i18n.changeLanguage(settings.language);
 	}, []);
 
