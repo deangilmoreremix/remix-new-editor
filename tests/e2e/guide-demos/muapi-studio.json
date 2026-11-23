@@ -43,7 +43,7 @@
     "clear": true
   },
   "image-urls-and-uploads": {
-    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"Upload file\")",
+    "selector": "[data-studio=\"muapi-studio\"] button[aria-label=\"Upload file\"]",
     "upload": true,
     "file": "image",
     "hold": 3500,
