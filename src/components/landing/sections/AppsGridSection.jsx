@@ -1,5 +1,22 @@
 import { guideHrefFor } from '../guideLinks.js';
+import { videoSlot, mountLandingVideos } from '../common/landingVideo.js';
 // Apps Grid Section - 33 AI Creative Apps Showcase
+
+const APP_CLIPS = {
+  video: ['c01-hero-prompt', 'Typing a prompt in Video Studio'],
+  image: ['c04-image-studio', 'Image Studio with a typed prompt and the Advanced panel'],
+  cinema: ['c05-cinema-studio', 'Cinema Studio with the camera and lens prompt builder'],
+  director: ['c06-director', 'The Director studio'],
+  edit: ['c07-edit-tools', 'Edit Studio before and after examples'],
+  character: ['c08-character', 'Character Studio'],
+  avatar: ['c09-avatar', 'Avatar Studio'],
+  'lip-sync': ['c10-lip-sync', 'Lip Sync Studio'],
+  lipsync: ['c10-lip-sync', 'Lip Sync Studio'],
+  'ai-vfx': ['c11-vfx-effects', 'AI VFX and Effects studios'],
+  vfx: ['c11-vfx-effects', 'AI VFX and Effects studios'],
+  effects: ['c11-vfx-effects', 'AI VFX and Effects studios'],
+  templates: ['c12-templates', 'The template library']
+};
 
 export function AppsGridSection({ apps }) {
   const section = document.createElement('section');
@@ -64,6 +81,7 @@ export function AppsGridSection({ apps }) {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12" id="apps-grid">
         ${apps.map((app, index) => `
           <a href="${guideHrefFor(app.id) || guideHrefFor(app.title) || app.link}" class="app-card group block p-6 bg-gradient-to-br from-white/5 to-white/2 border border-white/10 rounded-xl hover:border-cyan-400/50 hover:bg-cyan-400/5 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-2xl hover:shadow-cyan-400/20 opacity-0 translate-y-4" data-app-id="${app.id}" data-index="${index}" data-testid="app-card">
+            ${APP_CLIPS[app.id] ? videoSlot(APP_CLIPS[app.id][0], APP_CLIPS[app.id][1], { className: 'aspect-video rounded-lg border border-white/10 mb-4' }) : ''}
             <div class="flex items-start gap-4">
               <div class="w-12 h-12 bg-cyan-400/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-400/30 transition-colors">
                 <span class="text-2xl">${getAppIcon(app.id)}</span>
@@ -190,6 +208,7 @@ export function AppsGridSection({ apps }) {
     });
   }, 0);
 
+  mountLandingVideos(section);
   return section;
 }
 
