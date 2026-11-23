@@ -1,0 +1,241 @@
+{
+  "id": "video-pages",
+  "name": "Video Pages",
+  "route": "#/video-pages",
+  "description": "Video Pages turns a video into a shareable landing page with a call to action, an optional lead form and view analytics, and can make a personalized link for each contact.",
+  "shortDescription": "Landing pages for your videos, with a lead form, personal links and analytics.",
+  "fullDescription": "Video Pages (route #/video-pages) is headed \"Landing pages for your videos - Turn any generated or uploaded video into a branded page with a call to action, a lead form and view analytics.\" It needs the cloud connection and a signed-in account; otherwise it says \"Video pages need the Supabase connection, which is not configured here.\" or \"Sign in to create and manage video landing pages.\" The list shows your pages as cards with a Live or Draft badge and a view count, and a Copy link button. \"New video page\" lets you choose a video (upload one, paste a video link, or pick one you already made) and a template, then press \"Create page\". The page editor has three tabs: Design, Contacts and Analytics. A new page is a draft that only you can see; press Publish to get a shareable link (and Copy embed for an embed code), or Unpublish to take it offline. Save keeps your edits (a tag shows \"Unsaved changes\" or \"Saved\"), and \"Delete this page\" removes it.",
+  "bestFor": "Sending a video to prospects or customers on a page of its own, with a button, a form to capture leads and numbers on who watched.",
+  "whenToUse": [
+    "You want a branded page around a video instead of sending a bare file.",
+    "You want a lead form and a call-to-action button next to the video.",
+    "You want to see views, plays and clicks.",
+    "You want a different link per recipient so each can be greeted by name."
+  ],
+  "whenToUseAnother": [
+    "To find the people to send to, use Lead Finder (#/leadfinder).",
+    "To make the video itself, use Video, Avatar or Timeline.",
+    "For a full multi-page website, use Website Builder (#/website-builder)."
+  ],
+  "keyFeatures": [
+    "Create from an uploaded video, a pasted video link, or one you already made.",
+    "Many templates: editable landing pages, page structures and layouts (for example Clean, Dark, Bold hero, Minimal, Sales, Personal intro, Cinema, Corporate, Neon Tech, Pitch page).",
+    "Editor with click-to-edit text, add/remove/reorder sections, button settings, brand name, tagline and colours.",
+    "Calls to action: link, calendar, phone, text message, download or form.",
+    "Optional lead form with Name, Email, Phone and Message fields.",
+    "Optional Like button, transcript panel and countdown.",
+    "\"Rewrite with AI\" for page text, with an undo.",
+    "Contacts tab with personal links, and tokens such as {{firstname|there}} to greet each viewer.",
+    "Analytics tab: Views, Plays, Play rate, Watched to end, CTA clicks, Likes, Leads.",
+    "Publish / Unpublish, Copy link, Copy embed."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Publish and share",
+      "explanation": "A new page is a draft. Press Publish to make it public; the row then shows the shareable link and a Copy embed button.",
+      "whyToUse": "Only publish when the page is ready.",
+      "inputRequired": "A saved page.",
+      "restrictions": "Draft pages are visible only to you."
+    },
+    {
+      "feature": "Personal links",
+      "explanation": "In the Contacts tab you add contacts; each gets their own link, and tokens like {{firstname|there}} in the headline greet them by name. When you create a page for a chosen customer from the new-page screen, personal links are made for the selected customers (a message says how many).",
+      "whyToUse": "Outreach where every recipient sees their own name and details.",
+      "inputRequired": "Contacts.",
+      "restrictions": "Sample names, numbers and quotes in some designs are placeholders; the editor warns you before you save if sample content is left."
+    },
+    {
+      "feature": "Analytics",
+      "explanation": "Cards for Views, Plays, Play rate, Watched to end, CTA clicks, Likes and Leads.",
+      "whyToUse": "See whether the video and button work.",
+      "inputRequired": "A published page.",
+      "restrictions": "The tab says \"Publish the page to start collecting views.\" until the page is published."
+    },
+    {
+      "feature": "Rewrite with AI",
+      "explanation": "A panel in the editor rewrites page text from your instruction, for the whole page or one section, and an \"Undo last rewrite\" button restores the earlier text.",
+      "whyToUse": "Change tone or wording quickly.",
+      "inputRequired": "An instruction.",
+      "restrictions": "If the AI returns nothing usable the editor says so."
+    }
+  ],
+  "howToUse": "Open Video Pages from the left menu and sign in. Press the button to make a new page, choose or upload a video and a template, then press Create page. Edit the text, button and form in the Design tab, press Save, then Publish and copy the link. Use Contacts for personal links and Analytics to watch results.",
+  "howToSteps": [
+    "Open Video Pages from the left side menu (you must be signed in).",
+    "Start a new video page.",
+    "Choose a video: upload one, paste a video link, or pick one you already made.",
+    "Choose a template.",
+    "Press \"Create page\".",
+    "In the Design tab edit the headline, button, form and sections; press Save.",
+    "Press Publish, then Copy link (or Copy embed).",
+    "Use the Contacts tab for personal links and the Analytics tab to see views and clicks."
+  ],
+  "gettingStarted": [
+    "Press the new page button, pick a video and the Clean template, press Create page, then Publish."
+  ],
+  "inputs": [
+    "Video",
+    "Template",
+    "Page text and button",
+    "Lead form settings",
+    "Contacts"
+  ],
+  "requiredInputs": [
+    "A signed-in account",
+    "A video"
+  ],
+  "optionalInputs": [
+    "Template choice",
+    "Brand name and tagline",
+    "Calls to action",
+    "Lead form",
+    "Contacts",
+    "Transcript",
+    "Countdown"
+  ],
+  "inputDetails": [
+    {
+      "name": "Video link",
+      "description": "A link to a video you host elsewhere.",
+      "required": false,
+      "whenToUse": "When the video is already online.",
+      "restrictions": "The page needs a permanent https video link."
+    },
+    {
+      "name": "Page title",
+      "description": "The title shown for your page.",
+      "required": false,
+      "whenToUse": "Any time.",
+      "restrictions": "Titles are cut at 200 characters."
+    }
+  ],
+  "generationModes": [],
+  "modeExplanations": [],
+  "modelCapabilities": "",
+  "outputs": [
+    "A landing page with a public link when published",
+    "An embed code",
+    "Personal links per contact",
+    "View and engagement numbers"
+  ],
+  "limitations": [
+    "Needs the cloud connection and a signed-in account.",
+    "Pages are drafts until you publish them.",
+    "Video must have a permanent https link."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Not available when signed out",
+      "impact": "The studio shows a sign-in message instead of your pages.",
+      "workaround": "Sign in, then reopen Video Pages."
+    }
+  ],
+  "troubleshooting": [
+    "\"Video pages need the Supabase connection\": the deployment has no cloud connection configured.",
+    "\"Sign in to create and manage video landing pages\": sign in first.",
+    "\"That is not a video file\": choose a video file.",
+    "\"Choose a video first\": pick a video before pressing Create page.",
+    "Analytics empty: publish the page and share the link."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Page link does not work for other people",
+      "steps": [
+        "Open the page in Video Pages.",
+        "Check the badge: Draft pages are only visible to you.",
+        "Press Publish.",
+        "Copy the link again."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Sample names appear on the page",
+      "whyItHappens": "Some designs include made-up names, numbers and quotes as example content.",
+      "howToFix": "Replace them in the Design tab; the editor warns you on save if sample content remains."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Send a video to one prospect",
+      "steps": [
+        "Create a page from your video.",
+        "Add the prospect as a contact.",
+        "Publish and send their personal link.",
+        "Check Analytics for views and plays."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Sales video with a booking button",
+      "description": "Put a calendar link under your video.",
+      "steps": [
+        "Create the page.",
+        "Add a call to action that opens a calendar.",
+        "Publish and share."
+      ],
+      "expectedOutput": "A page that plays the video and offers a booking button."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What is a Video Page?",
+      "answer": "A branded page that shows your video with a call to action, optional lead form and analytics."
+    },
+    {
+      "question": "Is my page public right away?",
+      "answer": "No. It starts as a draft only you can see until you press Publish."
+    },
+    {
+      "question": "Can each recipient get their own link?",
+      "answer": "Yes, through contacts and personal links."
+    }
+  ],
+  "glossary": {
+    "Draft": "A page that is not published.",
+    "Live": "A published page with a public link.",
+    "Personal link": "A link for one contact so the page can greet them by name.",
+    "CTA": "Call to action, the button on the page."
+  },
+  "tips": [
+    "Publish only after replacing sample content.",
+    "Use {{firstname|there}} in the headline for personal links."
+  ],
+  "bestPractices": [
+    "Check the Draft/Live badge before sharing a link.",
+    "Check Analytics after sending to see if the video is played."
+  ],
+  "relatedStudios": [
+    "video",
+    "leadfinder",
+    "personalizer",
+    "website-builder",
+    "timeline"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "leadfinder",
+      "relationship": "Find the people to send to",
+      "whenToMove": "You need prospects first.",
+      "why": "Lead Finder searches local businesses."
+    }
+  ],
+  "notConfirmed": [
+    "Where a public page's lead-form submissions are delivered or how they are shown beyond the Leads count is not described here.",
+    "Limits on page count, video length or traffic are not stated in the app.",
+    "Exact list and look of every template is not described; only some names are listed.",
+    "The page needs the cloud connection; whether your deployment has it configured is not confirmed."
+  ],
+  "sourceFiles": [
+    "src/components/LandingPagesStudio.js",
+    "src/lib/landingPages/client.js",
+    "src/lib/landingPages/templates.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read: LandingPagesStudio.js, landingPages/client.js, landingPages/templates.js",
+    "verifiedAt": "2026-11-23",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

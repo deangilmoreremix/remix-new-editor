@@ -1,0 +1,274 @@
+{
+  "id": "zackd",
+  "name": "Zack D",
+  "route": "#/zackd",
+  "description": "Zack D turns one curiosity question into a vertical 9:16 3D animated explainer short: a written beat-by-beat script, character sheets, keyframe images, animated clips, optional narration and music, and a final cut assembled in your browser. The menu label is \"Zack D\" and the page title is \"Zack D Studio\".",
+  "shortDescription": "One question in, a 3D animated vertical explainer short out.",
+  "fullDescription": "Zack D (route #/zackd; the alias #/zackd-studio opens the same page) is headed \"Zack D Studio - Turn one question into a 3D animated explainer short\". You type one curiosity question into the prompt bar (placeholder \"Ask one curiosity question, e.g. What happens when you swallow gum?\", maximum 200 characters). The big action button then walks you through the project one step at a time, and its label changes with the stage: \"Write script\", \"Approve script\", \"Generate N character sheets\", \"Generate N keyframes\", \"Animate N clips\" and finally \"Render final cut\" (or \"Render again\"). You review the script before approving it; each image and clip has its own Redo, Download and Copy prompt actions. Beside the prompt bar are controls for the 3D look, the narration voice, Templates and Advanced options; the ratio is fixed at 9:16 (tooltip: \"Zack D shorts are always vertical 9:16\"). The project is kept in this browser (local storage) so a reload keeps your script and results, but the rendered final cut itself lives only in memory until you download it. Text steps (script, trends) use your own OpenAI key; image, clip, voice, music and caption steps use your own generation key; both are saved in Settings.",
+  "bestFor": "Curiosity-style explainer shorts for TikTok, Reels and YouTube Shorts where a clay or glass 3D character explains one question in a few beats.",
+  "whenToUse": [
+    "You have one question or fact that can be explained visually in under a minute.",
+    "You want a script, images, clips and a stitched vertical video from one project page.",
+    "You want to start from a ready sample project using Templates."
+  ],
+  "whenToUseAnother": [
+    "For a general text-to-video clip, use Video (#/video).",
+    "For lip-synced talking presenters, use Avatar or Lipsync.",
+    "To edit footage you already have, use Timeline (#/timeline)."
+  ],
+  "keyFeatures": [
+    "Script step: your question becomes a beat map of up to 8 beats, each with 1-2 shots of 2-4 seconds.",
+    "Character sheets and keyframe images generated per shot, in your chosen look.",
+    "Three looks: \"Plasticine clay (upstream)\", \"Translucent glass\" and \"Bright toy studio\".",
+    "Image-to-clip animation for each shot with a Redo per item.",
+    "Optional narration (text to speech, 13 voices, default Casual Guy) and background music.",
+    "Final cut rendered in the browser with ffmpeg: transitions between clips, Download MP4 and a free .srt caption file.",
+    "Optional burned-in animated captions (paid, needs narration).",
+    "Templates: start from a sample project, either script only or script plus keyframes plus clips."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Script and approve",
+      "explanation": "The first button writes the beat map from your question. You read it and press \"Approve script\" before any media is generated.",
+      "whyToUse": "Fix the story before spending credits on images and clips.",
+      "inputRequired": "A topic and your OpenAI key in Settings.",
+      "restrictions": "Text steps need your own OpenAI key."
+    },
+    {
+      "feature": "Looks",
+      "explanation": "The look button switches the 3D style used for character sheets and keyframes: Plasticine clay (upstream), Translucent glass, or Bright toy studio.",
+      "whyToUse": "Give a channel a consistent visual style.",
+      "inputRequired": "None.",
+      "restrictions": "The two extra looks are additions to the original open-source project."
+    },
+    {
+      "feature": "Voice",
+      "explanation": "The voice button picks the narration voice from a list of 13 (for example Casual Guy, Deep Voice Man, Wise Woman, Calm Woman, Lively Girl). The default is Casual Guy. The original project's voice is marked \"Upstream default (not verified on MuAPI)\".",
+      "whyToUse": "Match narration to the tone of the video.",
+      "inputRequired": "A generation key.",
+      "restrictions": "Narration is generated but only mixed into the video if you turn on the option below."
+    },
+    {
+      "feature": "Advanced options",
+      "explanation": "Checkboxes under \"Final cut and prompts\": keep the clips' own sound (on by default), mix in the narration and music you generated, trim each clip to its planned 2-4 s shot length, and add character descriptions to image prompts (consistency boost).",
+      "whyToUse": "Control what ends up in the final video and how consistent the characters look.",
+      "inputRequired": "None.",
+      "restrictions": "Mixing narration and music, trimming and the consistency boost are extras the original project does not do."
+    },
+    {
+      "feature": "Final cut",
+      "explanation": "\"Render final cut\" stitches the animated clips into one 9:16 video in your browser. Buttons: Download MP4 and Download captions (.srt).",
+      "whyToUse": "Get a finished short without leaving the page.",
+      "inputRequired": "At least one animated clip.",
+      "restrictions": "Rendering runs on your own device, so it can be slow on weak machines; the cut is not kept after you close the page unless you download it."
+    },
+    {
+      "feature": "Burn captions into the video",
+      "explanation": "Animated word-by-word captions. The screen states: paid, about $0.20 minimum ($0.005 per second), takes 2-3 minutes, and needs narration. You pick a caption language and theme, then press \"Burn captions\".",
+      "whyToUse": "Make the short readable with sound off.",
+      "inputRequired": "Generated narration, and a final cut that contains it (turn on mixing the narration in Advanced and render again).",
+      "restrictions": "Paid step."
+    }
+  ],
+  "howToUse": "Open Zack D from the left menu. Type one curiosity question. Optionally pick a look and voice, or open Templates for a sample project. Press the main button to write the script, read it, then approve it. Keep pressing the main button as it moves through character sheets, keyframes, clips and finally the final cut. Download the MP4 (and the .srt if you want captions).",
+  "howToSteps": [
+    "Open Zack D from the left side menu.",
+    "Type one curiosity question in the prompt bar (up to 200 characters), or start from Templates.",
+    "Choose a 3D look and a narration voice if you want something other than the defaults.",
+    "Press \"Write script\", read the beats, then press \"Approve script\".",
+    "Press the main button again for character sheets, then keyframes, then \"Animate\" the clips. Use Redo on any image or clip you do not like.",
+    "Press \"Render final cut\" and wait; it is assembled in your browser.",
+    "Press \"Download MP4\" (and \"Download captions (.srt)\" if you want the caption file)."
+  ],
+  "gettingStarted": [
+    "Open Templates and pick one marked \"Script + keyframes + clips\" to see a finished project, or type a question and press \"Write script\"."
+  ],
+  "inputs": [
+    "Your curiosity question",
+    "Look",
+    "Voice",
+    "Template",
+    "Advanced options",
+    "Caption language and theme"
+  ],
+  "requiredInputs": [
+    "Your curiosity question (or a template)",
+    "Your OpenAI key in Settings for the script step",
+    "Your generation key in Settings for images, clips, voice and music"
+  ],
+  "optionalInputs": [
+    "Look",
+    "Voice",
+    "Advanced options",
+    "Burned-in captions"
+  ],
+  "inputDetails": [
+    {
+      "name": "Topic",
+      "description": "One curiosity question that the short will answer.",
+      "required": true,
+      "whenToUse": "Always, unless you start from a template.",
+      "restrictions": "Maximum 200 characters."
+    },
+    {
+      "name": "Look",
+      "description": "The 3D style: Plasticine clay (upstream), Translucent glass, Bright toy studio.",
+      "required": false,
+      "whenToUse": "To change the visual style.",
+      "restrictions": "None stated."
+    },
+    {
+      "name": "Voice",
+      "description": "Narration voice from a list of 13.",
+      "required": false,
+      "whenToUse": "Before generating narration.",
+      "restrictions": "The original project's default voice is marked as not verified on the generation service."
+    }
+  ],
+  "generationModes": [],
+  "modeExplanations": [],
+  "modelCapabilities": "",
+  "outputs": [
+    "A script as a beat map",
+    "Character sheet and keyframe images",
+    "Animated clips per shot",
+    "Narration and music audio (optional)",
+    "A final vertical 9:16 MP4 and a free .srt caption file",
+    "An optional captioned video (paid)"
+  ],
+  "limitations": [
+    "Output is always vertical 9:16.",
+    "The script has at most 8 beats, 1-2 shots per beat, 2-4 seconds per shot.",
+    "The final cut is rendered in your browser and is not kept after you leave unless you download it.",
+    "Script and trend steps need your own OpenAI key; media steps need your generation key."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Final cut is not saved",
+      "impact": "Closing or reloading the page loses the rendered video (the project steps are kept in this browser).",
+      "workaround": "Press Download MP4 as soon as the render finishes."
+    }
+  ],
+  "troubleshooting": [
+    "Script button disabled: type a topic first.",
+    "Script step fails: check that your OpenAI key is saved in Settings.",
+    "Images, clips, voice or music fail: check your generation key and credit in Settings; use Redo on the failed item.",
+    "Captions button missing or disabled: generate narration first, and render a cut that contains it.",
+    "A failed batch shows a single error under the prompt bar; Redo stays available."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Burned-in captions say the cut does not contain the narration",
+      "steps": [
+        "Open Advanced.",
+        "Turn on \"Mix in the narration and music I generated\".",
+        "Render the final cut again.",
+        "Press \"Burn captions\"."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "The video has no narration even though I generated it",
+      "whyItHappens": "Narration and music are generated as separate files and are only mixed into the cut if the Advanced option is on.",
+      "howToFix": "Turn on \"Mix in the narration and music I generated\" and render again."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Explainer from one question",
+      "steps": [
+        "Type \"What happens when you swallow gum?\".",
+        "Write and approve the script.",
+        "Generate character sheets, keyframes and clips.",
+        "Render the final cut and download the MP4."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Faceless curiosity channel",
+      "description": "Make short explainers on a repeating format.",
+      "steps": [
+        "Pick a look and keep it for every video.",
+        "Use the seed topic ideas or type your own question.",
+        "Render and download each short."
+      ],
+      "expectedOutput": "A vertical 3D explainer short per question."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What is Zack D?",
+      "answer": "A studio that turns one question into a 3D animated vertical explainer short, adapted from an open-source project."
+    },
+    {
+      "question": "Do I need my own keys?",
+      "answer": "Yes. The script step uses your OpenAI key and the image, clip, voice, music and caption steps use your generation key, both saved in Settings."
+    },
+    {
+      "question": "Can I make a landscape video?",
+      "answer": "No. The studio states shorts are always vertical 9:16."
+    },
+    {
+      "question": "Does it keep my project?",
+      "answer": "The steps you completed are kept in this browser; the rendered final cut is not, so download it."
+    }
+  ],
+  "glossary": {
+    "Beat": "One story step in the script, with 1-2 shots.",
+    "Keyframe": "The still image of a shot that is later animated.",
+    "Character sheet": "A reference image of a character used to keep it consistent.",
+    "Final cut": "The stitched 9:16 video rendered in your browser."
+  },
+  "tips": [
+    "Read the script before approving; changing it later means redoing media.",
+    "Keep the same look across videos for a consistent channel style.",
+    "Download the MP4 right after rendering."
+  ],
+  "bestPractices": [
+    "Approve the script before generating media so you do not pay for images you will throw away.",
+    "Turn on narration mixing before rendering if you plan to burn captions."
+  ],
+  "relatedStudios": [
+    "video",
+    "avatar",
+    "timeline",
+    "viral",
+    "audio"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "timeline",
+      "relationship": "Further editing",
+      "whenToMove": "You want to cut, add music or text beyond the final cut.",
+      "why": "Timeline is a full editor."
+    },
+    {
+      "studio": "video",
+      "relationship": "Single clips",
+      "whenToMove": "You only need one AI clip without a script.",
+      "why": "Video generates a clip from a prompt."
+    }
+  ],
+  "notConfirmed": [
+    "Exact credit cost of a full project is not stated in the app; only the caption step shows a price.",
+    "Whether the trend suggestions are live or only the built-in seed topics: the page uses the built-in seed topic list; a trends request exists in the backend but the page was not seen calling it.",
+    "Voice quality and which voices are available on the generation service are not confirmed (the original default voice is labelled not verified).",
+    "Template contents beyond their titles and the \"Script only\" / \"Script + keyframes + clips\" labels."
+  ],
+  "sourceFiles": [
+    "src/components/studios/ZackDStudio/ZackDStudio.js",
+    "src/lib/zackd/assemble.js",
+    "src/lib/zackd/templates.js",
+    "src/lib/zackd/api.js",
+    "netlify/functions/zackd.js",
+    "netlify/functions/_shared/zackdPrompts.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read: ZackDStudio.js, assemble.js, templates.js, netlify/functions/zackd.js, _shared/zackdPrompts.js",
+    "verifiedAt": "2026-11-23",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

@@ -213,6 +213,20 @@ export const STUDIO_ACADEMY = {
   'website-builder': { tracks: [], lessons: [] },
   render: { tracks: [], lessons: [] },
   academy: { tracks: [], lessons: [] },
+  zackd: {
+    tracks: [T03, T04],
+    lessons: [
+      { track: T03, lesson: '01-niche-and-script', why: 'Pick a niche and write the script for a short.' },
+      { track: T03, lesson: '02-narration-and-pacing', why: 'Narration and pacing for short videos.' },
+      { track: T04, lesson: '03-youtube-shorts-factory', why: 'Turn out Shorts on a repeatable format.' },
+    ],
+  },
+  'video-pages': {
+    tracks: [T01],
+    lessons: [
+      { track: T01, lesson: '03-building-an-ad-batch', why: 'Make videos you can put on pages and send.' },
+    ],
+  },
   library: { tracks: [], lessons: [] },
   'content-library': { tracks: [], lessons: [] },
   apps: { tracks: [], lessons: [] },
