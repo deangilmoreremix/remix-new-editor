@@ -13,6 +13,7 @@
 
 import { createSupabaseStore, resolveMcpKey, isMcpKey } from './_shared/mcpKeys.js';
 import { createGovernor, createSupabaseGovernorStore } from '../../packages/studio-mcp-core/src/governor.js';
+import { createBridge, createSupabaseBridgeStore, BridgeError } from '../../packages/studio-mcp-core/src/bridge.js';
 import { createClient } from '@supabase/supabase-js';
 import { handle as zackdHandle } from './zackd.js';
 import { handle as agentAudioHandle } from './agent-audio.js';
@@ -114,11 +115,12 @@ export function classifyRequest(route, method, input = {}) {
   }
   if (route === '/raw') return { risk: 'write', label: 'raw' };
   if (studio) return { risk: 'write', label: studio };
-  if (route === '/bridge/call') return { risk: ['read', 'write', 'destructive', 'publish'].includes(input?.risk) ? input.risk : 'write', label: `bridge ${String(input?.tool || '').slice(0, 40)}` };
+  // A tab tool's risk is the one the TAB registered for it (looked up by the handler before this is used); nothing in the body can lower it.
+  if (route === '/bridge/call') return { risk: 'write', label: `bridge ${String(input?.tool || '').slice(0, 40)}` };
   return { risk: 'write', label: route.slice(1, 40) };
 }
 
-export function createHandler({ store = () => createSupabaseStore(), studios = STUDIOS, env = process.env, governor = defaultGovernor(env) } = {}) {
+export function createHandler({ store = () => createSupabaseStore(), studios = STUDIOS, env = process.env, governor = defaultGovernor(env), bridge = defaultBridge(env) } = {}) {
   return async function gateway(event) {
   let who;
   try { who = await authenticate(event, { store, env }); } catch (err) {
@@ -128,7 +130,7 @@ export function createHandler({ store = () => createSupabaseStore(), studios = S
   if (!who) return fail(401, 'Missing, invalid or revoked SmartVid MCP key. Create one in Settings → MCP access and send it as "Authorization: Bearer <key>".');
   const key = who.keys.muapi;
 
-  const route = String(event.path || '').replace(/^.*\/(?:api\/mcp-gateway|mcp-gateway)/, '').replace(/\/+$/, '') || '/';
+  const route = String(event.path || '').split('?')[0].replace(/^.*\/(?:api\/mcp-gateway|mcp-gateway)/, '').replace(/\/+$/, '') || '/';
   const method = event.httpMethod;
   let input = {};
   if (method === 'POST') {
@@ -139,6 +141,9 @@ export function createHandler({ store = () => createSupabaseStore(), studios = S
 
   // Safeguards: confirm for destructive/publish, a daily cap, and an audit row for every call.
   const cls = classifyRequest(route, method, input);
+  if (route === '/bridge/call' && bridge) {
+    try { cls.risk = (await bridge.toolRisk(who.userId, input?.session, input?.tool)) || 'write'; } catch { cls.risk = 'write'; }
+  }
   if (governor) {
     const gate = await governor.check({ keyId: who.id, risk: cls.risk, confirm: input?.confirm === true, label: cls.label });
     if (!gate.ok) return json(gate.status, { error: { message: gate.message, code: gate.code } });
@@ -197,6 +202,30 @@ export function createHandler({ store = () => createSupabaseStore(), studios = S
       return json(200, { url: data.url || data.file_url || data.data?.url });
     }
 
+    if (route.startsWith('/bridge/')) {
+      if (!bridge) return fail(503, 'Tab control is not configured on this server.');
+      if (who.userId === 'byok') return fail(401, 'This needs a signed-in SmartVid MCP key.');
+      try {
+        if (route === '/bridge/sessions' && method === 'GET') return json(200, { sessions: await bridge.sessions(who.userId) });
+        if (route === '/bridge/call' && method === 'POST') {
+          const asked = Number(input.wait_ms);
+          const waitMs = Math.min(Math.max(Number.isFinite(asked) ? asked : 20_000, 0), 25_000); // 0 means "do not wait"
+          const out = await bridge.call(who.userId, { session: input.session, tool: input.tool, args: input.args, waitMs });
+          return json(200, JSON.parse(brandText(JSON.stringify(out))));
+        }
+        const res = /^\/bridge\/result\/([A-Za-z0-9-]{8,64})$/.exec(route);
+        if (res && method === 'GET') {
+          const q = event.queryStringParameters?.wait ?? new URL(String(event.path || '/'), 'https://x.invalid').searchParams.get('wait');
+          const wait = Math.min(Math.max(Number(q) || 0, 0), 25_000);
+          return json(200, JSON.parse(brandText(JSON.stringify(await bridge.waitFor(who.userId, res[1], wait)))));
+        }
+      } catch (err) {
+        if (err instanceof BridgeError) return json(err.status, { error: { message: brandText(err.message), code: err.code } });
+        throw err;
+      }
+      return fail(404, 'Unknown route.');
+    }
+
     const studioMatch = /^\/studio\/([a-z0-9-]{1,40})$/.exec(route);
     if (studioMatch && method === 'POST') {
       const run = Object.hasOwn(studios, studioMatch[1]) ? studios[studioMatch[1]] : null;
@@ -215,6 +244,13 @@ export function createHandler({ store = () => createSupabaseStore(), studios = S
   if (governor) await governor.record({ keyId: who.id, userId: who.userId, tool: cls.label, risk: cls.risk, ok: (out?.statusCode || 200) < 400, ms: Date.now() - started });
   return out;
   };
+}
+
+function defaultBridge(env) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  try {
+    return createBridge({ store: createSupabaseBridgeStore(createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })), brandName: BRAND });
+  } catch { return null; }
 }
 
 function defaultGovernor(env) {

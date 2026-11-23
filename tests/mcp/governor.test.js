@@ -97,7 +97,8 @@ describe('gateway enforcement', () => {
     expect(classifyRequest('/studio/personalization', 'POST', { method: 'DELETE', path: '/leads/x' }).risk).toBe('destructive');
     expect(classifyRequest('/studio/personalization', 'POST', { method: 'GET', path: '/leads' }).risk).toBe('read');
     expect(classifyRequest('/studio/anything-new', 'POST', {}).risk).toBe('write');
-    expect(classifyRequest('/bridge/call', 'POST', { risk: 'publish', tool: 'x' }).risk).toBe('publish');
+    // a tab tool's risk is the one the tab registered (resolved by the gateway); a body can neither raise nor lower it
+    expect(classifyRequest('/bridge/call', 'POST', { risk: 'read', tool: 'x' }).risk).toBe('write');
     expect(classifyRequest('/bridge/call', 'POST', { risk: 'nonsense' }).risk).toBe('write');
   });
 

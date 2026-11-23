@@ -83,6 +83,13 @@
   status = 200
   force = true
 
+# The browser tab half of MCP tab control (Clerk session required).
+[[redirects]]
+  from = "/api/mcp-bridge"
+  to = "/.netlify/functions/mcp-bridge"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/mcp-gateway/*"
   to = "/.netlify/functions/mcp-gateway/:splat"

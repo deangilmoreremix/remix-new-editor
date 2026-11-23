@@ -40,6 +40,8 @@ export function createBrandedServer({ brand, catalog, client }) {
     try {
       return await fn(args);
     } catch (err) {
+      // The gateway refused a destructive/publish call for want of confirm: tell the model what would happen, as a normal answer.
+      if (err?.code === 'confirm_required') return json({ status: 'confirmation_required', message: sanitizeText(err.message, brand.name) });
       const msg = err instanceof InputError || err?.code === 'BAD_INPUT' ? err.message : sanitizeText(err?.message || 'Request failed', brand.name);
       return json({ error: msg, ...(err?.status ? { status: err.status } : {}) }, true);
     }
@@ -127,6 +129,29 @@ export function createBrandedServer({ brand, catalog, client }) {
       if (!wait) return json({ status: 'processing', request_id: id });
       return json(await c.wait(id, { timeoutMs: tool.timeoutMs || 600_000 }));
     }));
+  }
+
+  // ---- live tabs (studios that only exist in an open browser tab)
+  if (client.bridge) {
+    server.registerTool(p('studio_sessions'), {
+      title: `${brand.name}: open tabs`,
+      description: `List the ${brand.name} browser tabs that are open, signed in, and switched on with "Let MCP control this tab", with the tools each offers. Tab tools only work while the tab stays open.`,
+      inputSchema: {},
+      annotations: { readOnlyHint: true },
+    }, guard(async () => json(await client.scoped({ tool: 'studio_sessions' }).bridge('sessions', undefined, { method: 'GET' }))));
+
+    server.registerTool(p('studio_call'), {
+      title: `${brand.name}: run a tab tool`,
+      description: 'Run one tool in an open tab (get ids from studio_sessions). Reads run silently; changes may ask the user in the tab. If the tab is slow you get a command id: poll it with studio_result. Tools that delete or publish need confirm: true.',
+      inputSchema: { session: z.string().min(8).max(64), tool: z.string().min(2).max(64), args: z.record(z.any()).optional(), confirm: z.boolean().optional(), wait_seconds: z.number().int().min(0).max(25).optional() },
+    }, guard(async ({ session, tool, args, confirm, wait_seconds }) => json(await client.scoped({ confirm, tool: `tab:${tool}` }).bridge('call', { session, tool, args: args || {}, wait_ms: (wait_seconds ?? 20) * 1000 }))));
+
+    server.registerTool(p('studio_result'), {
+      title: `${brand.name}: tab tool result`,
+      description: 'Check a tab tool that was still running (use the id from studio_call). Optionally wait a few seconds.',
+      inputSchema: { command_id: z.string().min(8).max(64), wait_seconds: z.number().int().min(0).max(25).optional() },
+      annotations: { readOnlyHint: true },
+    }, guard(async ({ command_id, wait_seconds }) => json(await client.scoped({ tool: 'studio_result' }).bridge(`result/${encodeURIComponent(command_id)}?wait=${(wait_seconds ?? 0) * 1000}`, undefined, { method: 'GET' }))));
   }
 
   // ---- jobs / account

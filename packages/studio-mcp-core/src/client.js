@@ -45,7 +45,7 @@ export function createGatewayClient({ gatewayUrl, apiKey, brandName, fetchImpl =
     if (!res.ok) {
       const detail = data?.error?.message || data?.error || data?.detail?.error || data?.detail || data?.message || res.statusText;
       const msg = typeof detail === 'string' ? detail : JSON.stringify(detail);
-      throw new BrandedApiError(sanitizeText(msg, brandName), { status: res.status });
+      throw new BrandedApiError(sanitizeText(msg, brandName), { status: res.status, code: typeof data?.error?.code === 'string' ? data.error.code : undefined });
     }
     return sanitizeDeep(data, brandName);
   }

@@ -12,6 +12,8 @@ export * as smoke from './smoke.js';
 export { renderCoverage, liveStatus } from './coverage.js';
 export { z } from 'zod';
 export * from './governor.js';
+export * from './bridge.js';
+export { createTabBridge } from './bridge-tab.js';
 
 /**
  * Start a branded stdio MCP server.
