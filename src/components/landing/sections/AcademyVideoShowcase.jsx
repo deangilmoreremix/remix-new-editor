@@ -195,7 +195,7 @@ function createAcademyCard(asset) {
         params: icon.route === 'personalize' ? {} : params,
         label: icon.label,
         title: icon.title,
-        loadPrompt: icon.loadPrompt,
+        loadPrompt: icon.loadPrompt || loadPrompt,
       })
     );
   });
