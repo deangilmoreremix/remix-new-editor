@@ -26,12 +26,15 @@
 
 /* [remix] Project Manager: CineGen's window is a fixed-size desktop window; in a full browser tab it is
    centred as the same window with larger project cards (host CSS only, no component change). */
+/* The floating "Ask SmartVideo" button sits in the screen's bottom-right corner (20px in, ~46px tall), exactly where this window's bottom bar
+   keeps Create / Open on laptop-sized screens. A strip at the bottom is kept free for it: the window is centred in the space above it. */
 .pm-window {
+  --pm-launcher-clear: 72px;
   position: fixed;
-  inset: 0;
+  inset: 0 0 var(--pm-launcher-clear) 0;
   margin: auto;
-  width: min(1180px, calc(100vw - 48px));
-  height: min(780px, calc(100vh - 48px));
+  width: min(1180px, calc(100% - 48px)); /* % not vw: the window sits beside the app's left rail, so 100vw - 48px ran ~20px off the right edge on narrow screens */
+  height: min(780px, calc(100% - var(--pm-launcher-clear) - 24px));
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
 }
@@ -42,7 +45,7 @@
 }
 .pm-card__name { font-size: 14px; }
 @media (max-width: 640px) {
-  .pm-window { width: 100vw; height: 100vh; border-radius: 0; border: 0; }
+  .pm-window { width: 100vw; height: calc(100% - var(--pm-launcher-clear)); border-radius: 0; border: 0; } /* not 100vh: the window starts below the app header, so 100vh pushed its bottom bar off-screen */
   .pm-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 }
 
