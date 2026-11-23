@@ -37,7 +37,7 @@ export const isAllowed = (user, env = process.env) => {
 };
 
 /**
- * The cookie is SameSite=None on HTTPS (Media Hub runs in an iframe), so the browser attaches it to cross-site requests.
+ * The cookie is SameSite=None on HTTPS (SmartVidDownloader runs in an iframe), so the browser attaches it to cross-site requests.
  * State-changing requests must therefore come from VidBee's own pages: same origin as this host. A browser always sends
  * Origin (and Sec-Fetch-Site) on a cross-site POST; requests without either do not come from a web page.
  */
@@ -57,14 +57,14 @@ export function createVidBeeRouters({ auth }) {
   const sessionCors = cors({ origin: true, credentials: true });
   session.options('/session', sessionCors);
   session.post('/session', sessionCors, auth, (req, res) => {
-    if (!isAllowed(req.user)) return res.status(403).json({ error: 'Media Hub is not enabled for your account. Ask an admin to add you to VIDBEE_ALLOWED_USERS.' });
+    if (!isAllowed(req.user)) return res.status(403).json({ error: 'SmartVidDownloader is not enabled for your account. Ask an admin to give you access.' });
     const secure = req.secure || req.headers['x-forwarded-proto'] === 'https';
     res.setHeader('Set-Cookie', `${COOKIE}=${issue(req.user.id)}; Path=/vidbee; HttpOnly; Max-Age=${TTL_MS / 1000}; SameSite=${secure ? 'None; Secure' : 'Lax'}`);
     res.json({ ok: true, path: '/vidbee/' });
   });
 
   const proxy = (req, res) => {
-    if (!verify(readCookie(req, COOKIE))) return res.status(401).type('text').send('Open Media Hub from the app to start a session.');
+    if (!verify(readCookie(req, COOKIE))) return res.status(401).type('text').send('Open SmartVidDownloader from the app to start a session.');
     if (!isSameOriginMutation(req)) return res.status(403).type('text').send('Cross-site request blocked.');
     const t = target();
     const headers = { ...req.headers, host: t.host };
@@ -74,7 +74,7 @@ export function createVidBeeRouters({ auth }) {
       res.writeHead(r.statusCode || 502, r.headers);
       r.pipe(res);
     });
-    up.on('error', () => { if (!res.headersSent) res.status(502).type('text').send('Media Hub service is not running.'); else res.destroy(); });
+    up.on('error', () => { if (!res.headersSent) res.status(502).type('text').send('SmartVidDownloader service is not running.'); else res.destroy(); });
     res.on('close', () => up.destroy());
     req.pipe(up);
   };

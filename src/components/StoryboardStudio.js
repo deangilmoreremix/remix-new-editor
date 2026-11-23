@@ -700,7 +700,7 @@ export function StoryboardStudio(options = {}) {
   thumbBtn.type = 'button';
   thumbBtn.textContent = '🖼 Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
-  thumbBtn.className = 'btn-action-secondary shrink-0';
+  thumbBtn.className = 'btn-action-secondary shrink-0 min-h-[36px]';
   thumbBtn.addEventListener('click', () => {
     const modal = new TemplateThumbnailModal({
       appTheme: 'storyboard-studio',
@@ -721,6 +721,7 @@ export function StoryboardStudio(options = {}) {
     mountThumbnailModal(modal);
     modal.open();
   });
+  personalizeTrigger?.button?.classList.add('min-h-[36px]');
   arrangeActionRow(actionRow, { thumbnail: thumbBtn, personalize: personalizeTrigger?.button });
   generateRow.appendChild(sendBtn);
 
@@ -837,7 +838,7 @@ export function StoryboardStudio(options = {}) {
       out.textContent = settings[key] ?? 'auto';
       input.oninput = () => { settings[key] = Number(input.value); out.textContent = input.value; };
       const reset = document.createElement('button');
-      reset.type = 'button'; reset.className = 'text-[10px] text-muted hover:text-white';
+      reset.type = 'button'; reset.className = 'min-h-[32px] px-2 text-[10px] text-muted hover:text-white';
       reset.textContent = 'auto';
       reset.onclick = () => { settings[key] = undefined; out.textContent = 'auto'; };
       wrap.append(input, out, reset);
@@ -927,13 +928,16 @@ export function StoryboardStudio(options = {}) {
     redoBtn.classList.toggle('opacity-50', !undoRedo.canRedo());
   }
 
+  /** Name shown on exports: the saved project, or whatever is typed in the name box. */
+  const displayName = () => projectName || projectInput.value.trim();
+
   function buildStoryboardPayload() {
     const b = readBrief();
     renumberFrames(frames);
     return {
       id: projectName || `storyboard-${Date.now()}`,
       projectId: projectName || undefined,
-      projectName: projectName || 'Untitled storyboard',
+      projectName: displayName() || 'Untitled storyboard',
       createdAt: generatedStoryboard?.metadata?.generatedAt || new Date().toISOString(),
       videoType: b.videoType,
       duration: totalDuration(frames),
@@ -976,7 +980,7 @@ export function StoryboardStudio(options = {}) {
         <td>${escapeHtml(f.prompt)}${f.notes ? `<p class="notes">${escapeHtml(f.notes)}</p>` : ''}</td>
         <td>${escapeHtml(f.narration)}</td>
       </tr>`).join('');
-    win.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(projectName || 'Storyboard')}</title><style>
+    win.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(displayName() || 'Storyboard')}</title><style>
       body{font-family:ui-sans-serif,system-ui,sans-serif;color:#111;padding:24px}
       h1{font-size:20px;margin:0 0 4px} p.meta{color:#555;margin:0 0 16px}
       table{width:100%;border-collapse:collapse} th{text-align:left;font-size:11px;color:#555;border-bottom:2px solid #111;padding:6px}
@@ -986,7 +990,7 @@ export function StoryboardStudio(options = {}) {
       .notes{color:#666;font-style:italic;margin:6px 0 0}
       @media print{tr{page-break-inside:avoid}}
     </style></head><body>
-      <h1>${escapeHtml(projectName || 'Storyboard')}</h1>
+      <h1>${escapeHtml(displayName() || 'Storyboard')}</h1>
       <p class="meta">${frames.length} frames · ${totalDuration(frames)}s · ${escapeHtml(selectedAr)} · ${new Date().toLocaleDateString()}</p>
       <table><thead><tr><th>#</th><th>Frame</th><th>Shot / camera / time</th><th>Visual</th><th>Narration</th></tr></thead><tbody>${rows}</tbody></table>
       <script>setTimeout(function(){window.print()},400)</script>
@@ -1060,6 +1064,7 @@ export function StoryboardStudio(options = {}) {
       if (!url) throw new Error('No image was returned');
       frame.imageUrl = url;
       frame.status = 'done';
+      renderTimelineStrip();
       registerGeneration('storyboard', 'image', url, { prompt, model: selectedModel || '', parameters: { shot: frame.shot, aspect_ratio: selectedAr } });
       scheduleAutosave();
     } catch (err) {
@@ -1090,6 +1095,7 @@ export function StoryboardStudio(options = {}) {
     generation.done = 0;
     generation.failedIds = [];
     genAllBtn.textContent = 'Stop';
+    genAllBtn.setAttribute('aria-label', 'Stop generating');
     list.forEach((f) => { f.status = 'queued'; paintImage(f); });
     updateProgress();
 
@@ -1113,6 +1119,7 @@ export function StoryboardStudio(options = {}) {
 
     generation.running = false;
     genAllBtn.textContent = 'Generate all frames';
+    genAllBtn.setAttribute('aria-label', 'Generate all frames');
     updateProgress();
     if (generation.stop) showToast('Stopped. Finished frames are kept.', 'info');
     else if (!generation.failedIds.length) showToast('All frames generated', 'success');
@@ -1120,7 +1127,7 @@ export function StoryboardStudio(options = {}) {
   }
 
   genAllBtn.onclick = async () => {
-    if (generation.running) { generation.stop = true; genAllBtn.textContent = 'Stopping...'; return; }
+    if (generation.running) { generation.stop = true; genAllBtn.textContent = 'Stopping...'; genAllBtn.setAttribute('aria-label', 'Stopping'); return; }
     if (!(await requireEntitlement())) return;
     const list = frames.filter((f) => f.prompt.trim());
     if (!list.length) { showToast('Describe at least one frame first.', 'warning'); return; }
@@ -1265,6 +1272,9 @@ export function StoryboardStudio(options = {}) {
       card.classList.add('opacity-50');
     };
     card.ondragend = () => card.classList.remove('opacity-50');
+    // Both enter and over must be cancelled, or the browser rejects the drop once the
+    // pointer moves over the text boxes inside the card.
+    card.ondragenter = (e) => { e.preventDefault(); };
     card.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
     card.ondrop = (e) => {
       e.preventDefault();
@@ -1279,10 +1289,10 @@ export function StoryboardStudio(options = {}) {
     head.innerHTML = `
       <span class="text-xs font-bold text-primary">Frame ${idx + 1} <span class="text-muted font-normal">· ${frame.sceneNumber}.${frame.shotNumber}</span></span>
       <span class="flex items-center gap-1 text-muted">
-        <button type="button" class="px-1.5 hover:text-white disabled:opacity-30" data-act="up" title="Move earlier" aria-label="Move frame earlier" ${idx === 0 ? 'disabled' : ''}>↑</button>
-        <button type="button" class="px-1.5 hover:text-white disabled:opacity-30" data-act="down" title="Move later" aria-label="Move frame later" ${idx === frames.length - 1 ? 'disabled' : ''}>↓</button>
-        <button type="button" class="px-1.5 hover:text-white" data-act="dup" title="Duplicate frame" aria-label="Duplicate frame">⧉</button>
-        <button type="button" class="px-1.5 hover:text-red-400 disabled:opacity-30" data-act="del" title="Delete frame" aria-label="Delete frame" ${frames.length <= 1 ? 'disabled' : ''}>&times;</button>
+        <button type="button" class="min-w-[32px] min-h-[32px] px-1.5 hover:text-white disabled:opacity-30" data-act="up" title="Move earlier" aria-label="Move frame earlier" ${idx === 0 ? 'disabled' : ''}>↑</button>
+        <button type="button" class="min-w-[32px] min-h-[32px] px-1.5 hover:text-white disabled:opacity-30" data-act="down" title="Move later" aria-label="Move frame later" ${idx === frames.length - 1 ? 'disabled' : ''}>↓</button>
+        <button type="button" class="min-w-[32px] min-h-[32px] px-1.5 hover:text-white" data-act="dup" title="Duplicate frame" aria-label="Duplicate frame">⧉</button>
+        <button type="button" class="min-w-[32px] min-h-[32px] px-1.5 hover:text-red-400 disabled:opacity-30" data-act="del" title="Delete frame" aria-label="Delete frame" ${frames.length <= 1 ? 'disabled' : ''}>&times;</button>
       </span>`;
     head.querySelector('[data-act="up"]').onclick = () => moveFrame(idx, idx - 1);
     head.querySelector('[data-act="down"]').onclick = () => moveFrame(idx, idx + 1);
@@ -1369,10 +1379,10 @@ export function StoryboardStudio(options = {}) {
 
     // Apply a quick shot-style starter to THIS frame only
     const starter = document.createElement('div');
-    starter.className = 'flex items-center justify-between -mt-1 gap-2';
+    starter.className = 'flex items-center justify-between gap-2';
     const starterBtn = document.createElement('button');
     starterBtn.type = 'button';
-    starterBtn.className = 'text-[10px] font-bold text-primary hover:text-white transition-colors';
+    starterBtn.className = 'min-h-[32px] text-[10px] font-bold text-primary hover:text-white transition-colors';
     starterBtn.textContent = '✨ Start from shot preset';
     starterBtn.title = 'Fill an empty description with a starter for this shot type';
     starterBtn.onclick = () => {
@@ -1385,7 +1395,7 @@ export function StoryboardStudio(options = {}) {
     };
     const enhanceBtn = document.createElement('button');
     enhanceBtn.type = 'button';
-    enhanceBtn.className = 'text-[10px] font-bold text-primary hover:text-white transition-colors';
+    enhanceBtn.className = 'min-h-[32px] text-[10px] font-bold text-primary hover:text-white transition-colors';
     enhanceBtn.textContent = frame.enhancedPrompt ? '🎯 Enhanced' : '🎯 Enhance';
     enhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
     enhanceBtn.onclick = () => {
@@ -1704,6 +1714,7 @@ export function StoryboardStudio(options = {}) {
     }
     // Inline images can be megabytes; the template only needs the text plan in the URL.
     const light = { ...payload, frames: payload.frames.map((f) => ({ ...f, imageUrl: /^data:/.test(f.imageUrl || '') ? null : f.imageUrl })) };
+    showToast('Storyboard attached. Pick a Cinema template with a scene builder and your frames become its scenes.', 'success', 9000);
     navigate('cinema-template', { storyboard: JSON.stringify(light) });
   };
 

@@ -3,6 +3,7 @@ const ROUTE_MAP = {
   'Image': 'image',
   'Video': 'video',
   'Storyboard': 'storyboard',
+  'Studio': 'muapi-studio',
   'Edit': 'edit',
   'Character': 'character',
   'Commercial': 'commercial',
@@ -36,6 +37,7 @@ const ROUTE_MAP = {
   'Brand Photo Studio': 'brand-photo-studio',
   'Animate': 'animate',
   'Media Hub': 'media-hub',
+  'SmartVidDownloader': 'media-hub',
 };
 
 export function getRouteForItem(item) {
@@ -100,6 +102,7 @@ const pageLoaders = {
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
   storyboard: () => import('../components/StoryboardStudio.js').then(m => m.StoryboardStudio()),
+  'muapi-studio': () => import('../components/MuapiStudioPage.js').then(m => m.MuapiStudioPage()),
   'text-to-image': () => import('../components/TextToImagePage.js').then(m => m.TextToImagePage()),
   'image-to-image': () => import('../components/ImageToImagePage.js').then(m => m.ImageToImagePage()),
   'text-to-video': () => import('../components/TextToVideoPage.js').then(m => m.TextToVideoPage()),
@@ -148,6 +151,8 @@ const pageLoaders = {
   'brand-photo-studio': () => import('../components/PhotoStudioPage.js').then(m => m.PhotoStudioPage()),
   animate: () => import('../components/AnimatePage.js').then(m => m.AnimatePage()),
   'media-hub': () => import('../components/MediaHubPage.js').then(m => m.MediaHubPage()),
+  // SmartVidDownloader (the vendored VidBee app): same page under its product name.
+  smartviddownloader: () => import('../components/MediaHubPage.js').then(m => m.MediaHubPage()),
   // Academy: the page parses its own #/academy/track/<track>[/lesson|template/<id>] hash.
   academy: () => import('../components/academy/AcademyPage.jsx').then(m => m.AcademyPage()),
 };

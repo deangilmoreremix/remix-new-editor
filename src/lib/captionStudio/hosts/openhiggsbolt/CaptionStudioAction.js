@@ -31,7 +31,7 @@ export default function CaptionStudioAction({ videoUrl, onComplete, onApply, onE
   const open = useCallback(async () => {
     try {
       const { openCaptionStudio } = await import('@/shared/captionStudio/modal');
-      openCaptionStudio({ videoUrl, onComplete, onApply, onError, language, accentColor });
+      openCaptionStudio({ videoUrl, onComplete, onApply, onError, language, accentColor, lookImage: (key) => `/caption-looks/${key}.webp` });
     } catch (err) {
       onError?.(err);
     }

@@ -1,0 +1,20 @@
+{
+  "name": "muapi-studio",
+  "version": "0.1.0",
+  "description": "muapi.ai/studio-style generative media studio as a React component (prebuilt, vendored).",
+  "private": true,
+  "type": "module",
+  "main": "./index.js",
+  "module": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./style.css": "./style.css"
+  },
+  "sideEffects": [
+    "*.css"
+  ],
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  }
+}

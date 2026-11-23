@@ -18,6 +18,7 @@ import { PersonalizedOutput } from './personalized-output';
 export function ExportTab() {
   const { state, dispatch } = useWorkspace();
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const announced = useRef<Set<string>>(new Set());
   // [remix] set by ExportSettings: renders with the options chosen there (optionally one video per contact)
   const renderRef = useRef<((contactIds?: string[]) => void) | null>(null);
 
@@ -92,6 +93,11 @@ export function ExportTab() {
             failures: updated.failures,
           },
         });
+        // a finished export is a video the user made: list it in Caption Studio's "Your videos" (a blob: file, so for this visit only)
+        if (updated.status === 'complete' && updated.outputUrl && !announced.current.has(activeJob.id)) {
+          announced.current.add(activeJob.id);
+          void import('../../../lib/captionStudio/videos.js').then((m) => m.announceVideo({ url: updated.outputUrl, title: 'Timeline export', studio: 'cinegen' })).catch(() => {});
+        }
       } catch {
         /* polling failures are non-fatal */
       }

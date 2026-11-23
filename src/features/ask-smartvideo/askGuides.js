@@ -12,7 +12,7 @@ let guidesPromise = null;
 export function loadGuides() {
   if (!guidesPromise) {
     guidesPromise = import('../../data/studioGuides.js')
-      .then((m) => m.GUIDES)
+      .then((m) => m.ALL_GUIDES)
       .catch((e) => { guidesPromise = null; throw e; });
   }
   return guidesPromise;
