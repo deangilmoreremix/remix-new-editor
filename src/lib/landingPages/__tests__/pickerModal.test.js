@@ -168,6 +168,7 @@ describe('openLandingPagePicker', () => {
     Object.defineProperty(input, 'files', { value: [new File(['x'], 'Sunset.png', { type: 'image/png' })], configurable: true });
     input.dispatchEvent(new Event('change'));
     expect(document.querySelector('[data-picker-video]').textContent).toContain('Sunset');
+    expect(toPickerVideo({ url: 'blob:pic-1', type: 'image', title: 'Sunset' }).isPicture).toBe(true);
   });
 
   it('Change video in the editor keeps the edits and shows the new video', async () => {

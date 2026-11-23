@@ -177,7 +177,7 @@ export default function GenerationsPanel({ jobs, loading, onRetry, onDelete, onU
                         <button
                           type="button"
                           data-action="create-landing-page"
-                          onClick={() => { void openLanding({ url: String(job.output), type: outputType, prompt: String(job.input.prompt || '') }) }}
+                          onClick={() => { void openLanding({ url: String(job.output), type: /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(String(job.output)) ? 'video' : outputType, prompt: String(job.input.prompt || '') }) }}
                           className="generation-action-btn"
                           title="Create landing page"
                           aria-label="Create landing page"

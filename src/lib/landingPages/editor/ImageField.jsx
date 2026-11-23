@@ -105,7 +105,7 @@ export function imageField(label, kind = 'image') {
 /** Swap every text field that asks for an image link for the library-aware field. */
 export function withImagePickers(components) {
   const isVid = (f) => f && f.type === 'text' && /video you made/i.test(f.label || '');
-  const isImg = (f) => f && f.type === 'text' && /image|photo|picture|logo|avatar/i.test(f.label || '') && !/#hex|colou?r/i.test(f.label || '');
+  const isImg = (f) => f && f.type === 'text' && /image|photo|picture|logo|avatar/i.test(f.label || '') && !/#hex|colou?r|alt text|screen.?reader|description/i.test(f.label || '');
   for (const comp of Object.values(components)) {
     const fields = comp.fields || {};
     for (const [k, f] of Object.entries(fields)) {

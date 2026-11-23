@@ -194,11 +194,14 @@ export function LandingPagesStudio() {
     const save = async (patch = {}) => {
       saveBtn.disabled = publishBtn.disabled = true;
       try {
-        const saved = await updatePage(await ownerClient(), current.id, { title: titleInput.value, config: current.config, ...mediaPatch, ...patch });
-        mediaPatch = {};
+        const sent = mediaPatch;
+        const saved = await updatePage(await ownerClient(), current.id, { title: titleInput.value, config: current.config, ...sent, ...patch });
+        // clear only what was sent: a video or picture picked while this was saving stays pending (and the page stays unsaved)
+        mediaPatch = Object.fromEntries(Object.entries(mediaPatch).filter(([k, v]) => sent[k] !== v));
+        const newer = Object.keys(mediaPatch).length > 0;
         current = { ...current, ...saved, config: sanitizeConfig(saved.config) };
-        dirty = false;
-        dirtyTag.textContent = 'Saved';
+        dirty = newer;
+        dirtyTag.textContent = newer ? 'Unsaved changes' : 'Saved';
         publishBtn.textContent = current.published ? 'Unpublish' : 'Publish';
         drawShare();
       } catch (err) {

@@ -994,7 +994,7 @@ export function LipSyncStudio() {
             canvasControls.classList.add('opacity-100');
         };
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: videoUrl, mediaType: 'video' });
-        landingBtn.onclick = () => { void openLandingPageFor({ url: videoUrl, type: 'video', studio: 'lipsync' }); };
+        landingBtn.onclick = () => { void openLandingPageFor({ url: resultVideo.src || videoUrl, type: 'video', studio: 'lipsync' }); };
 
         const captionBtn = document.createElement('button');
         captionBtn.type = 'button';

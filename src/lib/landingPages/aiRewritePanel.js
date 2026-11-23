@@ -3,7 +3,7 @@
 // "Write with AI" for a whole page (or one section): the same panel in the Studio and in the picker's editor.
 // It changes WORDS only (see rewrite.js), shows every proposed change with a checkbox, and can undo.
 // The business line is remembered per page and shared with the per-field "Write with AI" buttons.
-import { sectionList, proposeRewrite, applyChanges } from './rewrite.js';
+import { sectionList, proposeRewrite, applyChanges, revertChanges } from './rewrite.js';
 import { readBrief, saveBrief } from './editor/tokenFields.jsx';
 
 const INPUT = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50';
@@ -97,9 +97,12 @@ export function createAiRewritePanel({ getData, setData, context = '', pageId = 
     apply.addEventListener('click', () => {
       const chosen = boxes.filter(([cb]) => cb.checked).map(([, c]) => c);
       if (!chosen.length) { out.replaceChildren(); return; }
-      before = JSON.parse(JSON.stringify(getData()));
-      setData(applyChanges(getData(), chosen));
-      out.replaceChildren(el('p', 'text-emerald-300', `Applied ${chosen.length} change${chosen.length === 1 ? '' : 's'}. Save to keep them.`, 'margin:0;color:#6ee7b7'));
+      const current = getData();
+      const fresh = chosen.filter((c) => { let n = current; for (let i = 0; i < c.path.length - 1; i += 1) n = n?.[c.path[i]]; return n && n[c.path[c.path.length - 1]] === c.text; });
+      before = fresh;
+      setData(applyChanges(current, fresh));
+      const stale = chosen.length - fresh.length;
+      out.replaceChildren(el('p', 'text-emerald-300', `Applied ${fresh.length} change${fresh.length === 1 ? '' : 's'}${stale ? ` (${stale} skipped: that text was edited meanwhile)` : ''}. Save to keep them.`, 'margin:0;color:#6ee7b7'));
       undo.hidden = false;
       fillScope();
       wrap.open = false;   // give the editor its room back; open the panel again to undo
@@ -121,7 +124,7 @@ export function createAiRewritePanel({ getData, setData, context = '', pageId = 
   });
   undo.addEventListener('click', () => {
     if (!before) return;
-    setData(before); before = null; undo.hidden = true; fillScope();
+    setData(revertChanges(getData(), before)); before = null; undo.hidden = true; fillScope();
     out.replaceChildren(el('p', 'text-secondary', 'Restored the text from before.', 'margin:0'));
   });
   return wrap;

@@ -351,7 +351,7 @@ async function EffectsCatalogStudio() {
   landingActionBtn.onclick = () => {
     const url = outputPreview.getUrl();
     if (!url) { showToast('No result yet', 'warning'); return; }
-    void openLandingPageFor({ url, type: lastResultType === 'video' ? 'video' : 'image', studio: 'effects' });
+    void openLandingPageFor({ url, type: lastResultType === 'video' ? 'video' : 'image', studio: 'effects' }, { toast: (m) => showToast(m, 'warning') });
   };
   outputActions.appendChild(landingActionBtn);
 

@@ -63,7 +63,7 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
     fn?.(kind);
   };
   // A Video Outreach campaign plays its personal player (each contact's greeting) here.
-  const outreachSrc = preview ? null : outreachPlayerSrc(page?.video_url);
+  const outreachSrc = preview || viewer.type === 'still' ? null : outreachPlayerSrc(page?.video_url);   // "still only" never plays a video, personal player included
   if (outreachSrc) {
     return (
       <div className="pk-video">

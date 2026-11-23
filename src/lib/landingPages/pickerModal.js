@@ -18,7 +18,7 @@ import { sampleSections } from './sampleContent.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from './ingest.js';
 import { updatePage, pageUrl, addContacts, personalUrl } from './client.js';
 import { createAiRewritePanel } from './aiRewritePanel.js';
-import { normalizeItems, routeContent, listSlots, slotsFor, setSlot, persistTrayMedia, typeOfItem } from './contentTray.js';
+import { normalizeItems, routeContent, listSlots, slotsFor, setSlot, resolveSlot, persistTrayMedia, typeOfItem } from './contentTray.js';
 import { useTrayItem } from './trayUse.js';
 import { exportLinksCsv } from './csv.js';
 import { loadCustomers } from './customerSources.js';
@@ -68,6 +68,7 @@ export function toPickerVideo(input) {
     duration: Number.isFinite(Number(input.duration)) ? Number(input.duration) : null,
     source: input.source && typeof input.source === 'object' ? input.source : { kind: isPicture(input) ? 'image' : 'video', studio: String(input.studio || '').slice(0, 40) },
     permanent: isPermanentUrl(url),
+    ...(isPicture(input) ? { isPicture: true } : {}),
     ...(input.file ? { file: input.file } : {}),
   };
 }
@@ -111,7 +112,9 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
   // Everything the studio sent: the requested item fills the viewer; the rest wait in the tray (a video goes to the video
   // viewer, a picture shows as a still; any item can also be placed in any picture or video slot of the page).
   const routed = routeContent(normalizeItems([video, ...(Array.isArray(items) ? items : [])], toPickerVideo), { prefer: toPickerVideo(video)?.url });
-  let src = routed.main || toPickerVideo(video);      // a local file (blob:) is not https, so it is not in the tray but still the main item
+  const asked = toPickerVideo(video);
+  // the item the studio asked for stays the main one, even a local file (blob:) that the tray (https only) does not hold
+  let src = asked && /^blob:/i.test(asked.url) ? asked : (routed.main || asked);      // a local file (blob:) is not https, so it is not in the tray but still the main item
   let tray = routed.all.length ? routed.all : (src ? [src] : []);
   const prevOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
@@ -282,7 +285,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     bar.dataset.pickerVideo = '';
     const pic = el('div', 'shrink-0 overflow-hidden rounded-lg bg-black');
     pic.style.cssText = 'width:96px;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#000;flex-shrink:0';
-    const isStill = !!src && (src.source?.kind === 'image' || isPicture({ url: src.url }));
+    const isStill = !!src && (src.isPicture === true || src.source?.kind === 'image' || isPicture({ url: src.url }));
     if (isStill && !src.posterUrl) { const i = el('img'); i.src = src.url; i.alt = ''; i.style.cssText = 'width:100%;height:100%;object-fit:cover'; pic.appendChild(i); }
     else if (src?.posterUrl) { const i = el('img'); i.src = src.posterUrl; i.alt = ''; i.style.cssText = 'width:100%;height:100%;object-fit:cover'; pic.appendChild(i); }
     else if (src?.url) { const v = el('video'); v.muted = true; v.preload = 'metadata'; v.src = `${src.url}#t=0.5`; v.style.cssText = 'width:100%;height:100%;object-fit:cover'; pic.appendChild(v); }
@@ -483,7 +486,10 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
               tray = [item, ...tray.filter((t) => t !== item)];
             } else {
               const url = await useTrayItem(item, { upload });
-              data = setSlot(data, own[Number(v)].path, url);
+              // sections may have been moved or removed while this was saving: find the same section now, never a position
+              const now = resolveSlot((await import('./editor/config.jsx').then((m) => listSlots(data, m.editorConfig.components)).catch(() => slots)), own[Number(v)]);
+              if (!now) throw new Error('That place on the page has moved or was removed. Pick it again from the menu.');
+              data = setSlot(data, now.path, url);
             }
             msg.textContent = '';
             await startEditor();

@@ -34,7 +34,7 @@ export function kindOfField(label = '') {
 
 const GUIDE = {
   face: 'Friendly, natural head-and-shoulders portrait of a smiling customer, face centred (it is shown in a small circle), soft daylight, plain softly blurred background',
-  logo: 'A simple, bold logo mark centred with generous empty space around it, flat design, no words, on a plain solid background',
+  logo: 'A simple, bold logo mark centred with generous empty space around it, flat design, no words, on a transparent background',
   poster: 'Cinematic still frame that makes people want to press play, subject off-centre so the centre stays clear for a play button',
   background: 'Wide, soft, uncluttered background photo with low contrast and calm areas, so text placed on top stays easy to read',
   screen: 'Clean, modern product-style visual with simple shapes, no tiny unreadable text',

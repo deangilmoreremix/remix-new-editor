@@ -73,17 +73,18 @@ export function listSlots(editorData, components) {
   const counts = {};
   const walk = (node, path, trail) => {
     const comp = components?.[node.type];
+    const nid = node.props?.id || node.id || '';
     if (!comp) return;
     const compName = bare(comp.label) || node.type;
     const nth = (counts[node.type] = (counts[node.type] || 0) + 1);
     const where = nth > 1 ? `${compName} ${nth}` : compName;
     for (const [key, field] of Object.entries(comp.fields || {})) {
       const value = node.props[key];
-      if (field?.slotKind) out.push({ path: [...path, 'props', key], label: `${[...trail, where].join(' › ')}: ${bare(field.label)}`, kind: field.slotKind, value: typeof value === 'string' ? value : '' });
+      if (field?.slotKind) out.push({ id: nid, rel: `props.${key}`, path: [...path, 'props', key], label: `${[...trail, where].join(' › ')}: ${bare(field.label)}`, kind: field.slotKind, value: typeof value === 'string' ? value : '' });
       else if (field?.type === 'array' && Array.isArray(value)) {
         const subs = Object.entries(field.arrayFields || {}).filter(([, f]) => f?.slotKind);
         value.forEach((item, i) => {
-          for (const [sk, sf] of subs) out.push({ path: [...path, 'props', key, i, sk], label: `${[...trail, where].join(' › ')} ${bare(field.label) || key} ${i + 1}: ${bare(sf.label)}`, kind: sf.slotKind, value: typeof item?.[sk] === 'string' ? item[sk] : '' });
+          for (const [sk, sf] of subs) out.push({ id: nid, rel: `props.${key}.${i}.${sk}`, path: [...path, 'props', key, i, sk], label: `${[...trail, where].join(' › ')} ${bare(field.label) || key} ${i + 1}: ${bare(sf.label)}`, kind: sf.slotKind, value: typeof item?.[sk] === 'string' ? item[sk] : '' });
         });
       }
     }
@@ -98,6 +99,16 @@ export function listSlots(editorData, components) {
 
 /** Slots that take this kind of item. */
 export const slotsFor = (slots, kind) => slots.filter((s) => s.kind === kind);
+
+/**
+ * The slot as it is on the page NOW: the same section (by its id) and field, or, for a design without ids, the same label and
+ * the same current value. Returns null when it is gone (sections were removed or reordered), so nothing is written elsewhere.
+ */
+export function resolveSlot(slots, old) {
+  if (!old) return null;
+  if (old.id) return slots.find((s) => s.id === old.id && s.rel === old.rel) || null;
+  return slots.find((s) => s.label === old.label && s.value === old.value) || null;
+}
 
 /** A copy of `data` with the value at `path` replaced. Throws if the path does not exist. */
 export function setSlot(data, path, url) {
@@ -134,15 +145,18 @@ const collectStrings = (v, set) => {
 export async function persistTrayMedia(data, { tray = [], upload, fetchImpl, isPermanent = isPermanentUrl } = {}) {
   const used = new Set();
   collectStrings(data, used);
-  const pending = tray.filter((t) => t?.url && used.has(t.url) && !isPermanent(t.url));
+  // A tray item used earlier was stored and its url swapped for the permanent one; the temporary link it replaced (origUrl)
+  // may still be on the page, so both are looked for.
+  const keys = (t) => [t?.url, t?.origUrl].filter((u) => u && used.has(u) && !isPermanent(u));
+  const pending = tray.filter((t) => t && (keys(t).length || (t.origUrl && used.has(t.origUrl))));
   const map = new Map();
   const failed = [];
   for (const item of pending) {
     try {
-      const url = await ensurePermanent(item, { upload, fetchImpl });
-      map.set(item.url, url);
+      const stored = isPermanent(item.url) ? item.url : await ensurePermanent(item, { upload, fetchImpl });
+      [item.url, item.origUrl].filter((u) => u && !isPermanent(u)).forEach((u) => map.set(u, stored));
     } catch (err) {
-      map.set(item.url, '');
+      [item.url, item.origUrl].filter((u) => u && !isPermanent(u)).forEach((u) => map.set(u, ''));
       failed.push({ url: item.url, title: item.title || 'a picture', message: err?.message || 'Could not save it' });
     }
   }

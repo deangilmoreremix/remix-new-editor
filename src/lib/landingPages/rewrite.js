@@ -144,7 +144,20 @@ export function applyChanges(editorData, changes) {
     let node = next;
     for (let i = 0; i < c.path.length - 1; i += 1) node = node?.[c.path[i]];
     const last = c.path[c.path.length - 1];
-    if (node && typeof node[last] === 'string') node[last] = c.after;
+    // only when the text there is still the text the change was written for (the page may have been edited since)
+    if (node && typeof node[last] === 'string' && (c.text === undefined || node[last] === c.text)) node[last] = c.after;
+  }
+  return next;
+}
+
+/** Copy of editorData with applied changes taken back: each is restored only if its target still holds the AI text. */
+export function revertChanges(editorData, changes) {
+  const next = JSON.parse(JSON.stringify(editorData));
+  for (const c of changes) {
+    let node = next;
+    for (let i = 0; i < c.path.length - 1; i += 1) node = node?.[c.path[i]];
+    const last = c.path[c.path.length - 1];
+    if (node && typeof node[last] === 'string' && node[last] === c.after && c.text !== undefined) node[last] = c.text;
   }
   return next;
 }

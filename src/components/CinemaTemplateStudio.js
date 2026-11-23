@@ -3245,7 +3245,7 @@ const firstChild = storyboardRoot.firstElementChild;
     actions.appendChild(publishBtn);
     // Create landing page: same look as this row's Download button
     const landingBtn = createLandingPageButton({ like: downloadBtn });
-    landingBtn.onclick = () => { const url = generationResult || resultMedia.src || ''; if (url) void openLandingPageFor({ url, type: mediaType, studio: 'cinema-template' }); };
+    landingBtn.onclick = () => { const url = generationResult || resultMedia.src || ''; if (url) void openLandingPageFor({ url, type: isVideoOutput ? 'video' : 'image', studio: 'cinema-template' }); };
     actions.appendChild(landingBtn);
 
     preview.appendChild(resultMedia);
