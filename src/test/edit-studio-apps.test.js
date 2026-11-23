@@ -285,3 +285,39 @@ describe('3D camera control', () => {
   });
 });
 
+describe('The price on the button', () => {
+  // Estimates for one model only: timers from an earlier test's page can still fire during this one.
+  const estimatesFor = (model) => muapi.calculateDynamicCost.mock.calls.filter((c) => c[0] === model);
+
+  test('includes the chosen media in the estimate, and re-prices when the source changes', async () => {
+    const el = mount('app-video-bg-remover');
+    await vi.waitFor(() => expect(estimatesFor('video-background-remover').length).toBeGreaterThan(0));
+    expect(estimatesFor('video-background-remover').at(-1)[1].video_url).toBeUndefined();
+    muapi.calculateDynamicCost.mockClear();
+    pickers.at(-1).opts.onSelect({ url: 'https://x/clip.mp4', assetId: null });
+    await vi.waitFor(() => expect(estimatesFor('video-background-remover').length).toBeGreaterThan(0));
+    expect(estimatesFor('video-background-remover').at(-1)[1].video_url).toBe('https://x/clip.mp4');
+    await vi.waitFor(() => expect(applyBtn(el).textContent).toBe('Generate ($0.07)'));
+  });
+
+  test('sends the second input too (ClipCut end frame)', async () => {
+    mount('app-clipcut');
+    pickers[SOURCE].opts.onSelect({ url: 'https://x/a.png', assetId: null });
+    pickers[SECONDARY].opts.onSelect({ url: 'https://x/end.png', assetId: null });
+    const model = 'minimax-h3-image-to-video';
+    await vi.waitFor(() => expect(estimatesFor(model).at(-1)?.[1].last_image_url).toBe('https://x/end.png'));
+    expect(estimatesFor(model).at(-1)[1].image_url).toBe('https://x/a.png');
+  });
+
+  test('a zero estimate is treated as "could not price", so the default price stays', async () => {
+    muapi.calculateDynamicCost.mockImplementation(async () => ({ cost: 0 }));
+    try {
+      const el = mount('app-video-bg-remover');
+      await vi.waitFor(() => expect(estimatesFor('video-background-remover').length).toBeGreaterThan(0));
+      await new Promise((r) => setTimeout(r, 50));
+      expect(applyBtn(el).textContent).toBe('Generate (≈ $0.05)');
+    } finally {
+      muapi.calculateDynamicCost.mockImplementation(async () => ({ cost: 0.07 }));
+    }
+  });
+});

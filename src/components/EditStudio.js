@@ -951,6 +951,7 @@ export function EditStudio() {
   function setSource(next) {
     source = next;
     formError.classList.add('hidden');
+    if (activeTool?.isApp) refreshAppCost();
     if (next?.url) {
       if (cameraWidget) cameraWidget.setImage(next.kind === 'video' ? null : next.url);
       sourceHint.textContent = next.kind === 'video' ? 'Video ready' : 'Image ready';
@@ -972,6 +973,7 @@ export function EditStudio() {
   function setSecondary(next) {
     secondary = next;
     formError.classList.add('hidden');
+    if (activeTool?.isApp) refreshAppCost();
     if (next?.url) {
       if (next.kind === 'video') {
         secondaryPreview.classList.add('hidden');
@@ -1160,9 +1162,14 @@ export function EditStudio() {
         const { style_preset, adjustments, params } = splitAppControlValues(readControlValues());
         const payload = { ...params };
         if (tool.hasPrompt) payload.prompt = buildAppPrompt(tool, { style_preset, adjustments, extra: promptField.value });
+        // Some models are priced by the length of the media (e.g. per second of video), so the
+        // estimate needs the same files the run will send, like muapi's own Studio does.
+        if (source?.url) payload[tool.primary.param] = source.url;
+        if (tool.secondary && secondary?.url) payload[tool.secondary.param] = secondary.url;
         const res = await muapi.calculateDynamicCost(tool.model, payload);
         const cost = Number(res?.cost ?? res?.data?.cost);
-        if (activeTool === tool && Number.isFinite(cost) && cost >= 0) setApplyLabel(tool, cost, false);
+        // A zero or missing answer means "could not price this", not "free": keep the default price.
+        if (activeTool === tool && Number.isFinite(cost) && cost > 0) setApplyLabel(tool, cost, false);
       } catch { /* keep the default price */ }
     }, 400);
   }
