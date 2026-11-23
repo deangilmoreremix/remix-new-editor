@@ -22,6 +22,9 @@ So the screens, features, downloads, transcripts with speaker labels, AI prompts
 | `demo/` | Optional demo tooling for feature screenshots (seed data, throttled live downloads, local RSS feeds, a stand-in AI provider, `capture.cjs`); not used in normal operation |
 | `setup-binaries.mjs` | Links the server's yt-dlp / ffmpeg / ffprobe / node into `resources/` (upstream bundles them for Electron) |
 
+## Rebrand (`brand/`, not upstream)
+Shown in SmartVid as **SmartVidDownloader**. `brand/rebrand.mjs` rewrites user-facing text at build time (hooked into `host/vite.web.config.ts` and `host/build-host.mjs`; `VIDBEE_BRAND=off` disables it) and hides the VidBee Cloud / GitHub sign-in UI, so the upstream files below stay untouched. See `brand/README.md`.
+
 ## `[host patch]` edits to upstream files
 - `src/renderer/src/lib/local-file-src.ts`: media URLs use the host `/media` route instead of `file://`.
 - (only with `HOST_THEME=1`) `src/renderer/src/assets/global.css` + new `host-theme.css`: remix neon palette (light + dark).
@@ -34,6 +37,9 @@ So the screens, features, downloads, transcripts with speaker labels, AI prompts
   `DownloadRuntimeSettingsSchema` already defines (upstream's web client did not type-check without them).
 - `apps/web/server.mjs`: `/export` and `/stream` are added to the paths proxied to the API (needed by video export and live AI streaming).
 - `pnpm-workspace.yaml`: `onnxruntime-node: false` (the Node binding is not used; browser Whisper uses onnxruntime-web).
+
+## Changed in the web client
+- `apps/web/src/components/pages/download-page.tsx`: the cookies banner button asked for `history.cookiesTipAction`, which no locale defines (they define `history.cookiesTipCta`), so it showed the raw key. It now uses `history.cookiesTipCta`.
 
 ## Added for the web edition (not upstream)
 Transcripts, AI summaries, chat, translation and `GET /stream` in `apps/api` and `apps/web` (see `docs/VIDBEE_WEB_TRANSCRIPTS_AI.md`),

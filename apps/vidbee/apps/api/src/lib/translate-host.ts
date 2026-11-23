@@ -8,7 +8,7 @@
 import type { WebTranslation, WebTranslationStatus } from '@vidbee/transcription/web-contract'
 import { getDatabaseConnection } from './database'
 import { translateChannel, publishLive } from './live-events'
-import { createResponse } from './openai-responses'
+import { createResponse, requireOpenAiConfig } from './openai-responses'
 import { getTranscriptDetail } from './transcripts-host'
 
 const BATCH_SIZE = 40
@@ -113,12 +113,14 @@ const translateBatch = async (
   language: string,
   batch: Array<{ index: number; text: string }>,
   context: Array<{ source: string; translation: string }>,
-  signal: AbortSignal
+  signal: AbortSignal,
+  config: ReturnType<typeof requireOpenAiConfig>
 ): Promise<Map<number, string>> => {
   const expected = new Set(batch.map((cue) => cue.index))
   let lastProblem = ''
   for (let attempt = 0; attempt < 2; attempt++) {
     const result = await createResponse({
+      config,
       body: {
         instructions: [
           `Translate subtitle cues into ${language}.`,
@@ -185,6 +187,7 @@ export const startTranslation = (downloadId: string, languageInput: string): Web
   live.set(key, controller)
   saveRow(downloadId, language, cues, 'running', 0, null)
 
+  const config = requireOpenAiConfig()
   void (async () => {
     try {
       let done = 0
@@ -194,7 +197,7 @@ export const startTranslation = (downloadId: string, languageInput: string): Web
         const context = cues
           .slice(Math.max(0, start - CONTEXT_CUES), start)
           .map((cue) => ({ source: cue.source, translation: cue.text }))
-        const translated = await translateBatch(language, batch, context, controller.signal)
+        const translated = await translateBatch(language, batch, context, controller.signal, config)
         for (const item of batch) {
           const cue = cues[item.index]
           if (cue) {

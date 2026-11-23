@@ -9,6 +9,7 @@ import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 import Icons from 'unplugin-icons/vite'
 import { defineConfig } from 'vite'
 import { createRendererResolve } from '../renderer-react-resolve'
+import { vitePlugin as rebrand } from '../../../brand/rebrand.mjs'
 
 const require = createRequire(import.meta.url)
 const desktopRoot = resolve(import.meta.dirname, '..')
@@ -29,6 +30,8 @@ export default defineConfig({
     return { ...base, alias: { ...base.alias, 'electron-ga4-telemetry/desktop': resolve(import.meta.dirname, 'ga4-renderer-stub.js') } }
   })(),
   plugins: [
+    // Rebrands user-facing text at build time (see ../../../brand); VIDBEE_BRAND=off for a pristine upstream build.
+    rebrand(),
     {
       name: 'host-web-shim',
       transformIndexHtml: () => [{ tag: 'script', attrs: { src: './web-shim.js' }, injectTo: 'head-prepend' }]

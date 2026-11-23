@@ -25,14 +25,15 @@
  * Returns: { ok: true, text, responseId, model } | { ok: false, error }
  *
  * Model: uses the current SmartVideo Responses API text model
- * (resolved via the same pattern as intelligence-api.js — gpt-5.6 family,
- * concretely `gpt-5.6-sol`; a bare `gpt-5.6` is not a documented model ID).
+ * (OPENAI_RESPONSES_TEXT_MODEL, else OPENAI_TEXT_MODEL from _shared/openaiModels.js —
+ * currently `gpt-6.1-sol`).
  *
  * BYOK: runs on the user's own OpenAI key (X-OpenAI-Key header from the API key modal).
  * No platform-key fallback; the key is never logged or echoed back.
  */
 
 import { NEED_OPENAI_KEY, openAIKeyError, userOpenAIKey } from './_shared/byok.js';
+import { OPENAI_TEXT_MODEL } from './_shared/openaiModels.js';
 
 const TIMEOUT_MS = 60_000;
 
@@ -46,7 +47,7 @@ const fetchWithTimeout = async (url, options = {}, timeoutMs = TIMEOUT_MS) => {
   }
 };
 
-const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
+const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || OPENAI_TEXT_MODEL;
 
 const ACTION_INSTRUCTIONS = {
   generate: `You are an expert short-form video scriptwriter.

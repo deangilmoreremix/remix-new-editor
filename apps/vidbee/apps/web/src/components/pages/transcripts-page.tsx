@@ -21,28 +21,11 @@ import { LocalTranscribePanel } from "./local-transcribe-panel";
 import { MediaPlayer, type MediaPlayerHandle } from "./media-player";
 import { VideoExport } from "./video-export";
 import { ChatPanel } from "./chat-panel";
+import { InfoPane, SpeakerAvatar, SpeakersPane, formatClock, speakerStyle } from "./speakers-pane";
 import { TranslatePanel } from "./translate-panel";
 
 const ACTIVE_STATES = new Set(["queued", "running", "retry-scheduled"]);
 const EXPORT_FORMATS: WebTranscriptExportFormat[] = ["txt", "md", "srt", "vtt"];
-const SPEAKER_COLORS = [
-	"text-sky-500",
-	"text-emerald-500",
-	"text-amber-500",
-	"text-fuchsia-500",
-	"text-rose-500",
-	"text-cyan-500",
-];
-
-const formatClock = (ms: number): string => {
-	const total = Math.max(0, Math.floor(ms / 1000));
-	const h = Math.floor(total / 3600);
-	const m = Math.floor((total % 3600) / 60);
-	const s = total % 60;
-	const mm = String(m).padStart(2, "0");
-	const ss = String(s).padStart(2, "0");
-	return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
-};
 
 const messageOf = (error: unknown): string =>
 	error instanceof Error && error.message ? error.message : "Request failed";
@@ -77,6 +60,8 @@ export const TranscriptsPage = () => {
 	const [notifyState, setNotifyState] = useState(notificationPermission());
 	const lastStates = useRef<Record<string, string>>({});
 	const [tab, setTab] = useState<"transcript" | "ai" | "chat" | "translate">("transcript");
+	const [leftTab, setLeftTab] = useState<"speakers" | "info">("speakers");
+	const [exportOpen, setExportOpen] = useState(false);
 
 	const refreshList = useCallback(async () => {
 		try {
@@ -164,7 +149,7 @@ export const TranscriptsPage = () => {
 			new Map(
 				(detail?.record?.speakers ?? []).map((speaker, index) => [
 					speaker.id,
-					{ name: speaker.displayName, color: SPEAKER_COLORS[index % SPEAKER_COLORS.length] },
+					{ name: speaker.displayName, index },
 				]),
 			),
 		[detail],
@@ -205,6 +190,11 @@ export const TranscriptsPage = () => {
 		return [...ordered].reverse().find((segment) => segment.startMs <= playheadMs)?.id ?? null;
 	}, [detail, playheadMs, playing]);
 
+	const activeSpeakerId = useMemo(
+		() => detail?.record?.segments.find((segment) => segment.id === activeSegmentId)?.speakerId ?? null,
+		[detail, activeSegmentId],
+	);
+
 	useEffect(() => {
 		if (!(followPlayback && playing && activeSegmentId && tab === "transcript")) {
 			return;
@@ -244,12 +234,57 @@ export const TranscriptsPage = () => {
 	const stateLabel = (state: string) =>
 		t(`webTranscripts.state.${state}`, { defaultValue: state });
 
+	const actionButtons = detail ? (
+		<>
+			{(detail.state === "none" || detail.state === "no-speech") && (
+				<Button
+					disabled={busy || !detail.sourceFilePath}
+					onClick={() => void act((id) => transcriptsClient.start({ downloadId: id }))}
+					size="sm"
+				>
+					{detail.state === "no-speech"
+						? t("webTranscripts.startAnyway", { defaultValue: "Transcribe anyway" })
+						: t("webTranscripts.start", { defaultValue: "Transcribe" })}
+				</Button>
+			)}
+			{ACTIVE_STATES.has(detail.state) && (
+				<Button
+					disabled={busy}
+					onClick={() => void act((id) => transcriptsClient.cancel({ downloadId: id }))}
+					size="sm"
+					variant="outline"
+				>
+					{t("webTranscripts.cancel", { defaultValue: "Cancel" })}
+				</Button>
+			)}
+			{(detail.state === "failed" || detail.state === "cancelled") && (
+				<Button
+					disabled={busy}
+					onClick={() => void act((id) => transcriptsClient.retry({ downloadId: id }))}
+					size="sm"
+				>
+					{t("webTranscripts.retry", { defaultValue: "Retry" })}
+				</Button>
+			)}
+			{detail.state === "completed" && (
+				<Button
+					disabled={busy || !detail.sourceFilePath}
+					onClick={() => void act((id) => transcriptsClient.start({ downloadId: id, force: true }))}
+					size="sm"
+					variant="ghost"
+				>
+					{t("webTranscripts.redo", { defaultValue: "Re-transcribe" })}
+				</Button>
+			)}
+		</>
+	) : null;
+
 	return (
 		<AppShell page="transcripts">
-			<div className="flex h-full min-h-0">
-				<aside className="w-72 shrink-0 overflow-y-auto border-r">
-					<div className="flex items-center justify-between p-3 font-medium text-sm">
-						{t("menu.transcripts")}
+			{!detail && !localOpen ? (
+				<div className="flex h-full min-h-0 flex-col">
+					<div className="flex items-center justify-between border-b p-4">
+						<h1 className="font-semibold text-lg">{t("menu.transcripts")}</h1>
 						<Button
 							onClick={() => {
 								setSelectedId(null);
@@ -261,135 +296,148 @@ export const TranscriptsPage = () => {
 							{t("webTranscripts.local.open", { defaultValue: "From a file" })}
 						</Button>
 					</div>
-					{loaded && items.length === 0 && (
-						<p className="px-3 text-muted-foreground text-sm">
+					{loaded && items.length === 0 ? (
+						<p className="p-6 text-muted-foreground text-sm">
 							{t("webTranscripts.empty", {
 								defaultValue:
 									"No transcripts yet. Finish a download on Home, then open it here to transcribe.",
 							})}
 						</p>
-					)}
-					<ul>
-						{items.map((item) => (
-							<li key={item.downloadId}>
-								<button
-									className={`w-full px-3 py-2 text-left hover:bg-muted ${
-										item.downloadId === selectedId ? "bg-muted" : ""
-									}`}
-									onClick={() => {
-										setLocalOpen(false);
-										setSelectedId(item.downloadId);
-									}}
-									type="button"
-								>
-									<div className="truncate text-sm">
-										{item.title ?? item.downloadId}
-									</div>
-									<div className="mt-1 flex items-center gap-2">
-										<Badge variant="secondary">{stateLabel(item.state)}</Badge>
+					) : (
+						<ul className="min-h-0 flex-1 divide-y overflow-y-auto">
+							{items.map((item) => (
+								<li key={item.downloadId}>
+									<button
+										className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/60"
+										onClick={() => {
+											setLocalOpen(false);
+											setSelectedId(item.downloadId);
+										}}
+										type="button"
+									>
+										<div className="min-w-0 flex-1">
+											<div className="truncate text-sm">{item.title ?? item.downloadId}</div>
+											{item.author && (
+												<div className="truncate text-muted-foreground text-xs">{item.author}</div>
+											)}
+										</div>
 										{item.language && (
-											<span className="text-muted-foreground text-xs">
-												{item.language}
-											</span>
+											<span className="text-muted-foreground text-xs">{item.language}</span>
 										)}
-									</div>
-								</button>
-							</li>
-						))}
-					</ul>
-				</aside>
+										<Badge variant="secondary">{stateLabel(item.state)}</Badge>
+									</button>
+								</li>
+							))}
+						</ul>
+					)}
+				</div>
+			) : localOpen && !detail ? (
+				<div className="flex h-full min-h-0 flex-col">
+					<div className="flex items-center gap-2 border-b p-3">
+						<Button onClick={() => setLocalOpen(false)} size="sm" variant="ghost">
+							←
+						</Button>
+						<h1 className="font-medium text-sm">
+							{t("webTranscripts.local.open", { defaultValue: "From a file" })}
+						</h1>
+					</div>
+					<div className="min-h-0 flex-1 overflow-y-auto p-4">
+						<LocalTranscribePanel
+							onImported={(status) => {
+								setLocalOpen(false);
+								void refreshList();
+								setSelectedId(status.downloadId);
+							}}
+						/>
+					</div>
+				</div>
+			) : detail ? (
+				<div className="flex h-full min-h-0 flex-col">
+					<header className="flex flex-wrap items-center gap-2 border-b px-3 py-2">
+						<Button
+							aria-label={t("webTranscripts.back", { defaultValue: "Back to transcripts" })}
+							onClick={() => {
+								setSelectedId(null);
+								setPlaying(false);
+								setPlayheadMs(0);
+							}}
+							size="sm"
+							variant="ghost"
+						>
+							←
+						</Button>
+						<h2 className="mr-auto min-w-0 truncate font-medium text-sm">
+							{detail.title ?? detail.downloadId}
+						</h2>
+						{ACTIVE_STATES.has(detail.state) || detail.state === "failed" || detail.state === "cancelled" ? (
+							<Badge variant="secondary">{stateLabel(detail.state)}</Badge>
+						) : null}
+						{detail.stage && <span className="text-muted-foreground text-xs">{detail.stage}</span>}
+						{notifyState === "default" && (
+							<Button
+								onClick={() => void requestNotifications().then(setNotifyState)}
+								size="sm"
+								variant="ghost"
+							>
+								{t("webTranscripts.notify.enable", { defaultValue: "Notify me" })}
+							</Button>
+						)}
+						{actionButtons}
+						{detail.record && (
+							<div className="relative">
+								<Button onClick={() => setExportOpen((open) => !open)} size="sm" variant="outline">
+									{t("webTranscripts.export", { defaultValue: "Export" })}
+								</Button>
+								{exportOpen && (
+									<>
+										<button
+											aria-label="Close"
+											className="fixed inset-0 z-10 cursor-default"
+											onClick={() => setExportOpen(false)}
+											type="button"
+										/>
+										<div className="absolute right-0 z-20 mt-1 w-36 overflow-hidden rounded-md border bg-popover shadow-md">
+											{EXPORT_FORMATS.map((format) => (
+												<button
+													className="block w-full px-3 py-2 text-left text-sm hover:bg-muted"
+													key={format}
+													onClick={() => {
+														setExportOpen(false);
+														void exportAs(format);
+													}}
+													type="button"
+												>
+													{format.toUpperCase()}
+												</button>
+											))}
+										</div>
+									</>
+								)}
+							</div>
+						)}
+						{detail.sourceFilePath && (
+							<Button
+								aria-pressed={showPlayer}
+								onClick={() => setShowPlayer((value) => !value)}
+								size="sm"
+								title={
+									showPlayer
+										? t("webTranscripts.player.hide", { defaultValue: "Hide player" })
+										: t("webTranscripts.player.show", { defaultValue: "Show player" })
+								}
+								variant="ghost"
+							>
+								▭
+							</Button>
+						)}
+					</header>
 
-				<section className="flex min-w-0 flex-1 flex-col">
-					{localOpen && !detail ? (
-						<div className="p-4">
-							<LocalTranscribePanel
-								onImported={(status) => {
-									setLocalOpen(false);
-									void refreshList();
-									setSelectedId(status.downloadId);
-								}}
-							/>
-						</div>
-					) : detail ? (
-						<>
-							<header className="flex flex-wrap items-center gap-2 border-b p-3">
-								<h2 className="mr-auto min-w-0 truncate font-medium">
-									{detail.title ?? detail.downloadId}
-								</h2>
-								<Badge variant="secondary">{stateLabel(detail.state)}</Badge>
-								{notifyState === "default" && (
-									<Button
-										onClick={() => void requestNotifications().then(setNotifyState)}
-										size="sm"
-										variant="ghost"
-									>
-										{t("webTranscripts.notify.enable", { defaultValue: "Notify me" })}
-									</Button>
-								)}
-								{detail.sourceFilePath && (
-									<Button
-										onClick={() => setShowPlayer((value) => !value)}
-										size="sm"
-										variant="ghost"
-									>
-										{showPlayer
-											? t("webTranscripts.player.hide", { defaultValue: "Hide player" })
-											: t("webTranscripts.player.show", { defaultValue: "Show player" })}
-									</Button>
-								)}
-								{detail.stage && (
-									<span className="text-muted-foreground text-xs">
-										{detail.stage}
-									</span>
-								)}
-								{(detail.state === "none" || detail.state === "no-speech") && (
-									<Button
-										disabled={busy || !detail.sourceFilePath}
-										onClick={() => void act((id) => transcriptsClient.start({ downloadId: id }))}
-										size="sm"
-									>
-										{detail.state === "no-speech"
-											? t("webTranscripts.startAnyway", { defaultValue: "Transcribe anyway" })
-											: t("webTranscripts.start", { defaultValue: "Transcribe" })}
-									</Button>
-								)}
-								{ACTIVE_STATES.has(detail.state) && (
-									<Button
-										disabled={busy}
-										onClick={() => void act((id) => transcriptsClient.cancel({ downloadId: id }))}
-										size="sm"
-										variant="outline"
-									>
-										{t("webTranscripts.cancel", { defaultValue: "Cancel" })}
-									</Button>
-								)}
-								{(detail.state === "failed" || detail.state === "cancelled") && (
-									<Button
-										disabled={busy}
-										onClick={() => void act((id) => transcriptsClient.retry({ downloadId: id }))}
-										size="sm"
-									>
-										{t("webTranscripts.retry", { defaultValue: "Retry" })}
-									</Button>
-								)}
-								{detail.state === "completed" && (
-									<Button
-										disabled={busy || !detail.sourceFilePath}
-										onClick={() => void act((id) => transcriptsClient.start({ downloadId: id, force: true }))}
-										size="sm"
-										variant="outline"
-									>
-										{t("webTranscripts.redo", { defaultValue: "Re-transcribe" })}
-									</Button>
-								)}
-							</header>
+					{detail.error && (
+						<p className="border-b px-3 py-2 text-destructive text-sm">{detail.error}</p>
+					)}
 
-							{detail.error && (
-								<p className="border-b p-3 text-destructive text-sm">
-									{detail.error}
-								</p>
-							)}
-
+					<div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+						<div className="flex min-h-0 flex-col overflow-y-auto border-b lg:border-r lg:border-b-0">
 							{detail.sourceFilePath && showPlayer && (
 								<MediaPlayer
 									downloadId={detail.downloadId}
@@ -401,11 +449,59 @@ export const TranscriptsPage = () => {
 									ref={playerRef}
 								/>
 							)}
+							{detail.record && (
+								<>
+									<div className="flex items-center gap-1 border-b px-4 pt-2">
+										{(["speakers", "info"] as const).map((name) => (
+											<button
+												className={`border-b-2 px-3 py-1.5 text-sm ${
+													leftTab === name
+														? "border-primary font-medium"
+														: "border-transparent text-muted-foreground"
+												}`}
+												key={name}
+												onClick={() => setLeftTab(name)}
+												type="button"
+											>
+												{name === "speakers"
+													? t("webTranscripts.speakers.tab", {
+															defaultValue: "Speakers ({{count}})",
+															count: detail.record?.speakers.length ?? 0,
+														})
+													: t("webTranscripts.info.tab", { defaultValue: "Info" })}
+											</button>
+										))}
+									</div>
+									{leftTab === "speakers" ? (
+										<SpeakersPane
+											activeSpeakerId={activeSpeakerId}
+											onSeek={(ms) => playerRef.current?.seek(ms / 1000)}
+											record={detail.record}
+										/>
+									) : (
+										<>
+											<InfoPane detail={detail} />
+											{detail.sourceFilePath && (
+												<div className="border-t px-4 py-3">
+													<VideoExport
+														downloadId={detail.downloadId}
+														sourceFilePath={detail.sourceFilePath}
+														title={detail.title ?? detail.downloadId}
+														translationVersion={translationVersion}
+													/>
+												</div>
+											)}
+										</>
+									)}
+								</>
+							)}
+						</div>
 
-							<div className="flex gap-1 border-b px-3 pt-2">
+						<div className="flex min-h-0 min-w-0 flex-col">
+							<div className="flex gap-1 overflow-x-auto border-b px-3 pt-2">
 								{(["transcript", "ai", "chat", "translate"] as const).map((name) => (
 									<button
-										className={`border-b-2 px-3 py-1.5 text-sm ${
+										className={`shrink-0 border-b-2 px-3 py-1.5 text-sm ${
 											tab === name
 												? "border-primary font-medium"
 												: "border-transparent text-muted-foreground"
@@ -414,14 +510,11 @@ export const TranscriptsPage = () => {
 										onClick={() => setTab(name)}
 										type="button"
 									>
-										{name === "ai" &&
-											t("webTranscripts.ai.tab", { defaultValue: "AI summary" })}
-										{name === "chat" &&
-											t("webTranscripts.chat.tab", { defaultValue: "Chat" })}
+										{name === "ai" && t("webTranscripts.ai.tab", { defaultValue: "AI summary" })}
+										{name === "chat" && t("webTranscripts.chat.tab", { defaultValue: "Chat" })}
 										{name === "translate" &&
 											t("webTranscripts.translate.tab", { defaultValue: "Translate" })}
-										{name === "transcript" &&
-											t("webTranscripts.tab", { defaultValue: "Transcript" })}
+										{name === "transcript" && t("webTranscripts.tab", { defaultValue: "Transcript" })}
 									</button>
 								))}
 							</div>
@@ -437,10 +530,7 @@ export const TranscriptsPage = () => {
 							)}
 
 							{tab === "chat" && (
-								<ChatPanel
-									downloadId={detail.downloadId}
-									hasTranscript={Boolean(detail.record)}
-								/>
+								<ChatPanel downloadId={detail.downloadId} hasTranscript={Boolean(detail.record)} />
 							)}
 
 							{tab === "translate" && (
@@ -452,20 +542,18 @@ export const TranscriptsPage = () => {
 							)}
 
 							{tab === "transcript" && detail.record && (
-								<div className="flex flex-wrap items-center gap-2 border-b p-3">
+								<div className="flex items-center gap-2 px-3 py-2">
 									<Input
-										className="max-w-xs"
+										className="min-w-0 flex-1"
 										onChange={(event) => setQuery(event.target.value)}
-										placeholder={t("webTranscripts.search", {
-											defaultValue: "Search transcript",
-										})}
+										placeholder={t("webTranscripts.search", { defaultValue: "Search transcript" })}
 										value={query}
 									/>
-									<span className="mr-auto text-muted-foreground text-xs">
+									<span className="text-muted-foreground text-xs tabular-nums">
 										{segments.length}/{detail.segmentCount}
 									</span>
 									{detail.sourceFilePath && (
-										<label className="flex items-center gap-1 text-xs">
+										<label className="flex items-center gap-1 whitespace-nowrap text-xs">
 											<input
 												checked={followPlayback}
 												onChange={(event) => setFollowPlayback(event.target.checked)}
@@ -474,98 +562,72 @@ export const TranscriptsPage = () => {
 											{t("webTranscripts.player.follow", { defaultValue: "Follow playback" })}
 										</label>
 									)}
-									{EXPORT_FORMATS.map((format) => (
-										<Button
-											key={format}
-											onClick={() => void exportAs(format)}
-											size="sm"
-											variant="outline"
-										>
-											{format.toUpperCase()}
-										</Button>
-									))}
-								</div>
-							)}
-
-							{tab === "transcript" && detail.record && detail.sourceFilePath && (
-								<div className="border-b px-3 py-2">
-									<VideoExport
-										downloadId={detail.downloadId}
-										sourceFilePath={detail.sourceFilePath}
-										title={detail.title ?? detail.downloadId}
-										translationVersion={translationVersion}
-									/>
 								</div>
 							)}
 
 							{tab === "transcript" && (
-							<div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
-								{segments.map((segment) => {
-									const speaker = segment.speakerId
-										? speakerNames.get(segment.speakerId)
-										: undefined;
-									return (
-										<div
-											className={`flex gap-3 rounded-md text-sm ${
-												highlightId === segment.id
-													? "bg-primary/15"
-													: activeSegmentId === segment.id
-														? "bg-muted"
-														: ""
-											}`}
-											id={`seg-${segment.id}`}
-											key={segment.id}
-										>
-											<button
-												className="w-14 shrink-0 text-left text-muted-foreground tabular-nums hover:text-primary"
-												onClick={() => playerRef.current?.seek(segment.startMs / 1000)}
-												title={t("webTranscripts.player.seek", { defaultValue: "Play from here" })}
-												type="button"
+								<div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-4">
+									{segments.map((segment) => {
+										const speaker = segment.speakerId ? speakerNames.get(segment.speakerId) : undefined;
+										return (
+											<div
+												className={`flex gap-3 rounded-md px-2 py-2 text-sm ${
+													highlightId === segment.id
+														? "bg-primary/15"
+														: activeSegmentId === segment.id
+															? "bg-muted"
+															: ""
+												}`}
+												id={`seg-${segment.id}`}
+												key={segment.id}
 											>
-												{formatClock(segment.startMs)}
-											</button>
-											<div>
-												{speaker && (
-													<div className={`font-medium ${speaker.color}`}>
-														{speaker.name}
+												{speaker && <SpeakerAvatar index={speaker.index} name={speaker.name} />}
+												<div className="min-w-0 flex-1">
+													<div className="flex items-baseline gap-2">
+														{speaker && (
+															<span className={`font-medium ${speakerStyle(speaker.index).name}`}>
+																{speaker.name}
+															</span>
+														)}
+														<button
+															className="text-muted-foreground text-xs tabular-nums hover:text-primary"
+															onClick={() => playerRef.current?.seek(segment.startMs / 1000)}
+															title={t("webTranscripts.player.seek", { defaultValue: "Play from here" })}
+															type="button"
+														>
+															{formatClock(segment.startMs)}
+														</button>
 													</div>
-												)}
-												<div>{segment.text}</div>
+													<div>{segment.text}</div>
+												</div>
 											</div>
-										</div>
-									);
-								})}
-								{!detail.record && detail.sourceFilePath && !ACTIVE_STATES.has(detail.state) && (
-									<LocalTranscribePanel
-										downloadId={detail.downloadId}
-										filePath={detail.sourceFilePath}
-										onImported={() => {
-											void refreshDetail(detail.downloadId);
-											void refreshList();
-										}}
-									/>
-								)}
-								{!detail.record && !detail.error && (
-									<p className="text-muted-foreground text-sm">
-										{ACTIVE_STATES.has(detail.state)
-											? t("webTranscripts.working", { defaultValue: "Transcribing…" })
-											: t("webTranscripts.none", {
-													defaultValue: "No transcript for this download yet.",
-												})}
-									</p>
-								)}
-							</div>
+										);
+									})}
+									{!detail.record && detail.sourceFilePath && !ACTIVE_STATES.has(detail.state) && (
+										<LocalTranscribePanel
+											downloadId={detail.downloadId}
+											filePath={detail.sourceFilePath}
+											onImported={() => {
+												void refreshDetail(detail.downloadId);
+												void refreshList();
+											}}
+										/>
+									)}
+									{!detail.record && !detail.error && (
+										<p className="text-muted-foreground text-sm">
+											{ACTIVE_STATES.has(detail.state)
+												? t("webTranscripts.working", { defaultValue: "Transcribing…" })
+												: t("webTranscripts.none", {
+														defaultValue: "No transcript for this download yet.",
+													})}
+										</p>
+									)}
+								</div>
 							)}
-						</>
-					) : (
-						<p className="p-6 text-muted-foreground text-sm">
-							{t("webTranscripts.pick", {
-								defaultValue: "Select a download to view its transcript.",
-							})}
-						</p>
-					)}
-				</section>
-			</div>
+						</div>
+					</div>
+				</div>
+			) : null}
 		</AppShell>
 	);
 };

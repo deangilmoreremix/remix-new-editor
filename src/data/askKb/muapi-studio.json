@@ -1,0 +1,250 @@
+{
+  "id": "muapi-studio",
+  "name": "Studio (Muapi Studio)",
+  "route": "#/muapi-studio",
+  "description": "Studio is an all-in-one generator in the side menu's Image group. It lets you browse the whole MuAPI model catalog and create images, videos, audio, avatars, 3D and more with any model, using your own MuAPI key.",
+  "shortDescription": "One studio for every MuAPI model: images, video, audio, avatars, 3D and tools, on your own MuAPI key.",
+  "fullDescription": "Studio (the side menu calls it 'Studio', in the Image group; the page itself calls it Muapi Studio; address #/muapi-studio) hosts a full generation studio in the style of muapi.ai/studio. It has areas for Image, Video, Audio, Avatar, 3D, Tools, Text and More, and it can generate with any model in the MuAPI catalog, so new models show up without a new page. It runs on YOUR MuAPI key (saved in Settings), never a shared one. Every request goes through the app's own secure proxy, and your saved generations are kept per account, so another key never shows yours.",
+  "bestFor": "People who want to try many different AI models in one place, or use a model that the dedicated studios (Image, Video, Audio, Avatar) do not feature.",
+  "whenToUse": [
+    "You want to compare several image or video models on the same prompt.",
+    "You want a model or tool from the MuAPI catalog that has no page of its own.",
+    "You want images, video, audio and avatars from one screen with one key.",
+    "You want to browse what the catalog offers before choosing a model."
+  ],
+  "whenToUseAnother": [
+    "For guided image generation with prompt help and examples, use Image Studio (#/image) or Text to Image (#/text-to-image).",
+    "For guided video generation, use Video Studio (#/video) or Text to Video (#/text-to-video).",
+    "For music, speech and sound effects with simpler controls, use Audio Studio (#/audio).",
+    "For talking avatars and lip sync, use Avatar Studio (#/avatar) or Lip Sync Studio (#/lipsync).",
+    "To edit and render what you generate, use the Timeline Editor (#/timeline)."
+  ],
+  "keyFeatures": [
+    "Generate with any model in the MuAPI catalog",
+    "Areas for Image, Video, Audio, Avatar, 3D, Tools, Text and More",
+    "Runs on your own MuAPI key (Settings), never a shared one",
+    "Model details and a cost estimate before you submit (supported by the connection)",
+    "Results are polled until they finish, and history of your generations",
+    "Account balance and deleting a generated item (supported by the connection)",
+    "Uploads for reference files: small files through the app's proxy, large files straight to MuAPI",
+    "Saved generations are kept per account, so changing the key never mixes accounts"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Connect your MuAPI key",
+      "explanation": "Until a MuAPI key is saved, the studio shows 'Connect your MuAPI key' and explains that the key stays with your own account. Its button opens Settings. After you save a key the studio reloads by itself, so you do not need to refresh the page."
+    },
+    {
+      "feature": "Any model in the catalog",
+      "explanation": "The models are loaded from MuAPI when the studio opens, so the list follows the catalog rather than a fixed list in the app. Which models you see, and what each one accepts, depends on the catalog and your key."
+    },
+    {
+      "feature": "Your own key and a secure proxy",
+      "explanation": "The browser does not call MuAPI directly for normal requests. Each request goes through the app's own proxy with your key, which is why the studio needs you to be signed in with a key saved."
+    },
+    {
+      "feature": "Uploads",
+      "explanation": "When a model needs a reference image, video or audio file, small files are sent through the proxy and large files go straight to MuAPI so they do not hit the proxy's size limit."
+    },
+    {
+      "feature": "Per-account history",
+      "explanation": "Your saved generations are stored per key. If you change to a different MuAPI key the studio reloads and shows that account's generations instead."
+    }
+  ],
+  "howToUse": "1. Sign in and click Studio in the side menu (Image group). 2. If you see 'Connect your MuAPI key', click its button, paste your MuAPI key in Settings and save. 3. Choose an area (Image, Video, Audio, Avatar, 3D, Tools, Text or More) and pick a model. 4. Write your prompt or add the reference file the model asks for, and set the options it offers. 5. Check the cost estimate if one is shown, then generate. 6. Wait for the result, then open or download it from your history.",
+  "howToSteps": [
+    "Sign in and open Studio from the side menu (Image group).",
+    "If asked to connect a MuAPI key, open Settings from the button and save your key.",
+    "Pick an area and a model.",
+    "Enter the prompt and any reference files, and set the model's options.",
+    "Generate, and wait for the result to finish.",
+    "Open the result from your history, or move it into the Timeline Editor to edit."
+  ],
+  "gettingStarted": [
+    "Save your MuAPI key first; nothing can be generated without it.",
+    "Start with one image model and a short prompt to learn the screen.",
+    "Try the same prompt on two models to see the difference.",
+    "Use the dedicated studios (Image, Video, Audio) when you want more guidance."
+  ],
+  "inputs": [
+    "A MuAPI key",
+    "A model choice",
+    "A prompt",
+    "Reference images, video or audio (for models that take them)",
+    "Model options such as size or duration (these depend on the model)"
+  ],
+  "requiredInputs": [
+    "You are signed in",
+    "A MuAPI key saved in Settings",
+    "A model and the inputs that model requires"
+  ],
+  "optionalInputs": [
+    "Reference files",
+    "Extra model options",
+    "A different key to switch accounts"
+  ],
+  "generationModes": ["Image", "Video", "Audio", "Avatar", "3D", "Tools", "Text", "More"],
+  "modelCapabilities": "Studio uses whatever models the MuAPI catalog currently offers, so its abilities change with the catalog. The areas follow the type of output (image, video, audio, avatar, 3D, tools, text and more). Which specific models, sizes, durations and prices are available is decided by MuAPI and your key, not by this app.",
+  "outputs": [
+    "Generated images, videos, audio, avatars and 3D results, depending on the model",
+    "A history of your generations (kept per account)"
+  ],
+  "limitations": [
+    "It needs your own MuAPI key; there is no shared or free key.",
+    "Generations use your MuAPI account, so how they are charged is set by MuAPI.",
+    "MuAPI's media library is not available inside this studio (the app does not forward it), so that feature is hidden.",
+    "The models, options and prices are set by the catalog and can change."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Needs a MuAPI key",
+      "impact": "Without a saved key the studio cannot list models or generate.",
+      "workaround": "Click the 'Connect your MuAPI key' button, save a key in Settings, and the studio reloads."
+    },
+    {
+      "limitation": "Media library not available",
+      "impact": "Anything that depends on MuAPI's own media library is not shown here.",
+      "workaround": "Use your generation history, or upload the file again when a model asks for one."
+    }
+  ],
+  "troubleshooting": [
+    "'Connect your MuAPI key': save a key in Settings; the studio reloads by itself.",
+    "'Could not load Muapi Studio. Please reload the page.': reload the page; if it repeats, check your connection and try again later.",
+    "Nothing generates or the model list is empty: check that the saved key is valid and has credit on MuAPI.",
+    "You see different generations after changing keys: history is kept per key, so switch back to the earlier key to see them."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "The studio asks for a MuAPI key",
+      "steps": [
+        "Click the 'Connect your MuAPI key' button.",
+        "Paste your key in Settings and save it.",
+        "The studio reloads and loads the models."
+      ]
+    },
+    {
+      "issue": "The studio does not load",
+      "steps": [
+        "Reload the page.",
+        "Sign in again if you were signed out.",
+        "Try another browser tab or a private window if it still fails."
+      ]
+    },
+    {
+      "issue": "A generation does not start or fails",
+      "steps": [
+        "Check the model's required inputs are filled in.",
+        "Check your MuAPI key is valid and has credit.",
+        "Try a different model or a shorter prompt."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "I saved my key but the studio still asks for it",
+      "whyItHappens": "The key may not have saved, or the page has not reloaded the studio yet.",
+      "howToFix": "Open Settings, check the key is saved, then reload the page."
+    },
+    {
+      "problem": "My earlier generations are missing",
+      "whyItHappens": "History is kept per MuAPI key, and you are now using a different key.",
+      "howToFix": "Switch back to the key you used before."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Compare two image models",
+      "steps": [
+        "Open Studio and choose the Image area.",
+        "Pick the first model, write a prompt and generate.",
+        "Pick a second model, use the same prompt and generate.",
+        "Compare the results in your history and keep the better one."
+      ]
+    },
+    {
+      "title": "Make a clip and edit it",
+      "steps": [
+        "Generate an image you like in the Image area.",
+        "Use it as the reference for a video model in the Video area.",
+        "Download the finished clip.",
+        "Add it to the Timeline Editor (#/timeline) to cut and finish the video."
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Why does the menu say 'Studio' but the page says Muapi Studio?",
+      "answer": "It is the same page. The side menu shows the short name 'Studio' in the Image group; the page itself is the Muapi Studio."
+    },
+    {
+      "question": "Do I need my own key?",
+      "answer": "Yes. Studio uses your own MuAPI key, never a shared one. Without it the studio shows 'Connect your MuAPI key'."
+    },
+    {
+      "question": "Why are there so many models?",
+      "answer": "Studio lists whatever the MuAPI catalog offers, so the list follows the catalog. The dedicated studios (Image, Video, Audio) show a smaller, guided set."
+    },
+    {
+      "question": "Can another person see my generations?",
+      "answer": "History is kept per account and per key in this app, so a different key does not show yours."
+    }
+  ],
+  "glossary": {
+    "MuAPI": "The AI model service Studio generates with.",
+    "MuAPI key": "Your personal key for that service, saved in Settings. Generations run on it.",
+    "Model": "A specific AI generator in the catalog, such as one for images or one for video.",
+    "Catalog": "The list of models MuAPI offers. Studio follows it.",
+    "Proxy": "The app's own secure relay that sends your requests to MuAPI with your key."
+  },
+  "tips": [
+    "Save your MuAPI key before anything else.",
+    "Try one prompt on several models to learn which fits your style.",
+    "Use the dedicated studios when you want prompt help and examples.",
+    "Download results you want to keep; check your history for the rest."
+  ],
+  "bestPractices": [
+    "Keep your MuAPI key private and use a key you control.",
+    "Check a model's required inputs before generating.",
+    "Edit and finish your generations in the Timeline Editor."
+  ],
+  "relatedStudios": ["image", "video", "audio", "avatar", "lipsync", "text-to-image", "text-to-video", "timeline", "workbench"],
+  "relatedStudioGuidance": [
+    {
+      "studio": "image",
+      "relationship": "A guided image studio with 80+ models, prompt help and examples.",
+      "whenToMove": "When you want an easier, more guided way to make images.",
+      "why": "Studio shows the whole catalog with less guidance."
+    },
+    {
+      "studio": "video",
+      "relationship": "A guided video studio for text, image and video inputs.",
+      "whenToMove": "When you want a simpler way to make a video clip.",
+      "why": "Studio is broader but has fewer guides."
+    },
+    {
+      "studio": "timeline",
+      "relationship": "Edits and renders your finished clips and images into one video.",
+      "whenToMove": "After you have generated the pieces you want.",
+      "why": "Studio generates; it does not arrange clips on a timeline."
+    }
+  ],
+  "notConfirmed": [
+    "The exact names of the tabs, buttons and options inside the studio screen (it is a prebuilt component and was not opened).",
+    "Which models, sizes, durations and prices the catalog offers right now.",
+    "How MuAPI charges for a generation on your key, and whether a cost estimate and your balance are shown on screen.",
+    "Whether every area (Tools, Text, More) is available for every account."
+  ],
+  "sourceFiles": [
+    "src/components/MuapiStudioPage.js",
+    "src/lib/muapiStudioTransport.js",
+    "vendor/muapi-studio/README.md",
+    "src/lib/studioRoutes.js",
+    "src/lib/router.js"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Written from the page that hosts the studio, its network adapter, the vendored package notes and the side-menu entry. The studio screen itself is a prebuilt component and was not opened or run; no screenshots. On-screen names are therefore limited to the 'Connect your MuAPI key' panel, the load-failure message and the area names in the page's header comment.",
+    "verifiedAt": "2026-11-23",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

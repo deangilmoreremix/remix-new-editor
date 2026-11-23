@@ -5,7 +5,7 @@ import {
 } from '@cinegen/lib/llm/claude-code-session';
 
 /** Director jobs run on a local CLI, the OpenAI Responses API, Higgsfield's llm_text model,
- *  ChatGPT Luna (Codex CLI), or OpenAI Luna (API key, gpt-5.6-luna). */
+ *  ChatGPT Luna (Codex CLI), or OpenAI Luna (API key, gpt-6-luna). */
 export type DirectorLlmProvider = CliLlmProviderId | 'luna' | 'openai' | 'fal' | 'higgsfield';
 
 export const DEFAULT_DIRECTOR_LLM: DirectorLlmProvider = 'openai'; // [remix] OpenAI Responses API (was the Claude Code CLI)
@@ -14,8 +14,8 @@ export const DEFAULT_DIRECTOR_LLM: DirectorLlmProvider = 'openai'; // [remix] Op
 export const FAL_DIRECTOR_LLM_MODEL = 'google/gemini-2.5-flash';
 export const FAL_DIRECTOR_LLM_LABEL = 'OpenAI Responses API';
 
-/** ChatGPT's cheap GPT-5.6 tier. Codex CLI Luna uses ChatGPT quota; OpenAI Luna uses an API key. */
-export const LUNA_DIRECTOR_LLM_MODEL = 'gpt-5.6-luna';
+/** ChatGPT's cheap GPT-6 tier. Codex CLI Luna uses ChatGPT quota; OpenAI Luna uses an API key. */
+export const LUNA_DIRECTOR_LLM_MODEL = 'gpt-6-luna';
 export const LUNA_DIRECTOR_LLM_LABEL = 'ChatGPT Luna';
 export const OPENAI_DIRECTOR_LLM_LABEL = 'OpenAI Luna';
 

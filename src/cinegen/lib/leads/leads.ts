@@ -247,6 +247,16 @@ export type ExportRecord = Record<string, string | number>;
  */
 export function exportRecords(rows: LeadRow[], forms: LeadForm[], { escape = true, watch = {} }: { escape?: boolean; watch?: Record<string, WatchInfo> } = {}): ExportRecord[] {  const name = (r: LeadRow) => forms.find((f) => f.key === rowFormKey(r))?.label ?? 'Form';
   const safe = escape ? csvSafe : (v: string) => v;
+  // The visitor's own answers are never overwritten. A computed column whose name an answer uses (an editable label such as
+  // "Lead Score" or "Status") gets " (computed)" appended, decided ONCE for the whole export from every row's answers, so all rows put
+  // the computed value in the same column (CSV / Excel merge records by key into shared headers).
+  const answerKeys = new Set(rows.flatMap((r) => Object.keys(r.data)));
+  const columnNames = new Map<string, string>();
+  const column = (key: string): string => {
+    let k = columnNames.get(key);
+    if (k === undefined) { k = key; while (answerKeys.has(k)) k = `${k} (computed)`; columnNames.set(key, k); }
+    return k;
+  };
   return rows.map((r) => {
     const utm = r.source?.utm ?? {};
     const src: ExportRecord = {};
@@ -262,7 +272,12 @@ export function exportRecords(rows: LeadRow[], forms: LeadForm[], { escape = tru
     if (w) { src['Watched %'] = watchPercent(w).replace('%', ''); src.Interest = watchTag(w); }
     if (r.status !== undefined) { src.Status = statusLabel(r.status); if (r.notes) src.Notes = safe(r.notes); if (r.tags?.length) src.Tags = safe(r.tags.join(', ')); }
     const { score, label } = scoreLead(r);
-    return { Submitted: r.createdAt, Form: name(r), ...r.data, ...src, 'Lead Score': score, 'Lead Rating': label };
+    const rec: ExportRecord = {};
+    rec[column('Submitted')] = r.createdAt; rec[column('Form')] = name(r);   // generated like every other computed column; the answers are added next and keep their own names
+    Object.assign(rec, r.data);
+    Object.entries(src).forEach(([k, v]) => { rec[column(k)] = v; });
+    rec[column('Lead Score')] = score; rec[column('Lead Rating')] = label;
+    return rec;
   });}
 
 export const rowsToCsv = (rows: LeadRow[], forms: LeadForm[], watch: Record<string, WatchInfo> = {}): string => leadsToCsv(exportRecords(rows, forms, { watch }));

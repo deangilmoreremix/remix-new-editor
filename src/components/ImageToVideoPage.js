@@ -1,6 +1,8 @@
 import { navigate } from '../lib/router.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
+import { i2vModels } from '../lib/models.js';
+import { storePrefillModel } from '../lib/prefillModel.js';
 
 const IMAGE_TO_VIDEO_MODELS = [
   { name: 'Kling I2V', description: 'Kling image-to-video', category: 'Kling' },
@@ -34,7 +36,7 @@ const EXAMPLE_PROMPTS = [
 
 const FEATURES = [
   { icon: '🖼️', title: 'Image to Video', description: 'Transform static images into dynamic, animated videos' },
-  { icon: '🎞️', title: '60+ Models', description: 'Access specialized image-to-video models for any use case' },
+  { icon: '🎞️', title: `${i2vModels.length} Models`, description: 'Access specialized image-to-video models for any use case' },
   { icon: '🎭', title: 'Motion Effects', description: 'Add camera movements, particle effects, and more' },
   { icon: '✨', title: 'Smooth Animation', description: 'Natural motion that preserves image quality' },
 ];
@@ -49,17 +51,7 @@ export function ImageToVideoPage() {
   // ==========================================
   const hero = document.createElement('div');
   hero.className = 'flex flex-col items-center mb-6 md:mb-8 animate-fade-in-up transition-all duration-700 w-full max-w-5xl';
-  const heroBanner = createHeroSection('video', 'h-32 md:h-44 mb-4');
-  if (heroBanner) {
-    const heroContent = document.createElement('div');
-    heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight mb-1">Image to Video</h1>
-      <p class="text-white/60 text-sm font-medium">Bring your static images to life with AI-powered animation</p>
-    `;
-    heroBanner.appendChild(heroContent);
-    hero.appendChild(heroBanner);
-  }
+  hero.appendChild(createStudioHeader('video', 'Image to Video', `Bring your static images to life with AI-powered animation`, 'mb-4'));
   container.appendChild(hero);
 
   // Main content wrapper
@@ -97,7 +89,7 @@ export function ImageToVideoPage() {
     <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl mb-6">
       <div class="mb-6">
         <h2 class="text-xl font-black text-white mb-1">Available Models</h2>
-        <p class="text-sm text-muted">Choose from ${IMAGE_TO_VIDEO_MODELS.length}+ powerful animation models</p>
+        <p class="text-sm text-muted">${IMAGE_TO_VIDEO_MODELS.length} featured models out of ${i2vModels.length} image-to-video models in Video Studio</p>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         ${IMAGE_TO_VIDEO_MODELS.map(m => `
@@ -162,7 +154,7 @@ export function ImageToVideoPage() {
   container.querySelectorAll('.model-card').forEach(card => {
     card.onclick = () => {
       const modelName = card.dataset.model;
-      localStorage.setItem('prefill_model', modelName);
+      storePrefillModel([], modelName);
       navigate('video');
     };
   });
@@ -171,7 +163,7 @@ export function ImageToVideoPage() {
     card.onclick = () => {
       const prompt = EXAMPLE_PROMPTS[i];
       localStorage.setItem('prefill_prompt', prompt.prompt);
-      localStorage.setItem('prefill_model', prompt.model);
+      storePrefillModel([], prompt.model);
       navigate('video');
     };
   });
@@ -181,7 +173,7 @@ export function ImageToVideoPage() {
       e.stopPropagation();
       const prompt = EXAMPLE_PROMPTS[i];
       localStorage.setItem('prefill_prompt', prompt.prompt);
-      localStorage.setItem('prefill_model', prompt.model);
+      storePrefillModel([], prompt.model);
       navigate('video');
     };
   });

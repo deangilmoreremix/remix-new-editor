@@ -41,10 +41,10 @@ function DreamHero(p) {
   );
 }
 
-function DreamFeatures({ items }) {
+function DreamFeatures({ items, sectionName }) {
   const t = useTokens();
   return (
-    <section className="dh-features" id="features" aria-label="Features">
+    <section className="dh-features" id="features" aria-label={t(sectionName) || 'Features'}>
       <ul>
         {asList(items).map((it, i) => (
           <li key={i}>
@@ -67,7 +67,7 @@ function DreamProof({ title, quotes }) {
           const n = Math.max(0, Math.min(5, Number(q.stars) || 0));
           return (
             <figure key={i} className="dh-quote">
-              {art(q.photo) ? <img className="dh-avatar" src={art(q.photo)} alt="" width="84" height="84" /> : <i className="dh-avatar dh-avatar--blank">{String(q.name || '?').slice(0, 1).toUpperCase()}</i>}
+              {art(q.photo) ? <img className="dh-avatar" src={art(q.photo)} alt={t(q.photoAlt) || ''} width="84" height="84" /> : <i className="dh-avatar dh-avatar--blank">{String(q.name || '?').slice(0, 1).toUpperCase()}</i>}
               <div className="dh-quote-body">
                 <blockquote>{`“${t(q.text)}”`}</blockquote>
                 <figcaption><b>{t(q.name)}</b><small>{t(q.role)}</small></figcaption>
@@ -81,7 +81,7 @@ function DreamProof({ title, quotes }) {
   );
 }
 
-function DreamCta({ title, text, buttonLabel, buttonUrl, image }) {
+function DreamCta({ title, text, buttonLabel, buttonUrl, image, imageAlt }) {
   const t = useTokens();
   return (
     <section className="dh-cta" id="cta">
@@ -90,7 +90,7 @@ function DreamCta({ title, text, buttonLabel, buttonUrl, image }) {
         {text ? <p>{t(text)}</p> : null}
         {buttonLabel ? <SafeLink className="dh-cta-btn" href={buttonUrl || '#lead'}>{t(buttonLabel)}<Icon name="arrow" className="pk-ico" /></SafeLink> : null}
       </div>
-      {art(image) ? <img className="dh-cta-art" src={art(image)} alt="" /> : null}
+      {art(image) ? <img className="dh-cta-art" src={art(image)} alt={t(imageAlt) || ''} /> : null}
     </section>
   );
 }
@@ -130,8 +130,9 @@ export const components = {
   },
   DreamhomeFeatures: {
     label: 'Dream home feature strip (4 icons)',
-    fields: { items: arr('Features', { image: T('Icon image path'), text: A('Text (new line allowed)') }, { image: '', text: 'New feature' }, 'text') },
+    fields: { sectionName: T('Screen-reader name of this section'), items: arr('Features', { image: T('Icon image path'), text: A('Text (new line allowed)') }, { image: '', text: 'New feature' }, 'text') },
     defaultProps: {
+      sectionName: 'Features',
       items: [
         { image: '/landing-art/dreamhome/f1.webp', text: 'Personalize\nin Minutes' },
         { image: '/landing-art/dreamhome/f2.webp', text: 'Find & Target\nLocal Leads' },
@@ -145,7 +146,7 @@ export const components = {
     label: 'Dream home testimonials (sample quotes)',
     fields: {
       title: T('Section title'),
-      quotes: arr('Testimonials', { photo: T('Portrait image path'), text: A('Quote'), name: T('Name'), role: T('Role'), stars: { type: 'number', label: 'Stars (0-5)', min: 0, max: 5 } }, { photo: '', text: 'Great tool.', name: 'Name', role: 'Role', stars: 5 }, 'name'),
+      quotes: arr('Testimonials', { photo: T('Portrait image path'), photoAlt: T('Screen-reader description (alt text)'), text: A('Quote'), name: T('Name'), role: T('Role'), stars: { type: 'number', label: 'Stars (0-5)', min: 0, max: 5 } }, { photo: '', text: 'Great tool.', name: 'Name', role: 'Role', stars: 5 }, 'name'),
     },
     defaultProps: {
       title: 'Trusted by Professionals Like You',
@@ -159,11 +160,11 @@ export const components = {
   },
   DreamhomeCta: {
     label: 'Dream home CTA band (laptop picture)',
-    fields: { title: T('Title'), text: A('Text'), buttonLabel: T('Button text'), buttonUrl: T('Button link (https, mailto: or #lead)'), image: T('Picture path (laptop)') },
+    fields: { title: T('Title'), text: A('Text'), buttonLabel: T('Button text'), buttonUrl: T('Button link (https, mailto: or #lead)'), image: T('Picture path (laptop)'), imageAlt: T('Screen-reader description (alt text)') },
     defaultProps: {
       title: 'Ready to Grow Your Business?',
       text: 'Join thousands of professionals using SmartVideo AI to get more leads and close more deals.',
-      buttonLabel: 'Start Free Today', buttonUrl: '#lead', image: '/landing-art/dreamhome/laptop.webp',
+      buttonLabel: 'Start Free Today', buttonUrl: '#lead', image: '/landing-art/dreamhome/laptop.webp', imageAlt: '',
     },
     render: (p) => <DreamCta {...p} />,
   },

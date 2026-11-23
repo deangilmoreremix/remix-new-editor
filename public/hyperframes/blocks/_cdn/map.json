@@ -3,5 +3,6 @@
  "https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js": "_cdn/cdn.jsdelivr.net_npm_gsap_3.14.2_dist_CustomEase.min.js",
  "https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js": "_cdn/cdn.jsdelivr.net_npm_gsap_3.14.2_dist_gsap.min.js",
  "https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js": "_cdn/cdn.jsdelivr.net_npm_gsap_3.15.0_dist_gsap.min.js",
+ "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js": "_cdn/cdn.jsdelivr.net_npm_three_0.147.0_build_three.min.js",
  "https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js": "_cdn/cdn.jsdelivr.net_npm_topojson-client_3.1.0_dist_topojson-client.min.js"
 }

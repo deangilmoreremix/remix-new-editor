@@ -97,7 +97,7 @@ export function retargetTab(deps) {
       });
       root.querySelectorAll('[data-rec]').forEach((b) => b.addEventListener('click', async () => {
         b.disabled = true;
-        try { await launchFollowup({ client, original, followup: recs[Number(b.dataset.rec)].followup, navigate: deps.navigate, videoUrl: url }); } catch (e) { b.disabled = false; deps.onToast?.(e.message, 'error'); }
+        try { await launchFollowup({ client, original, followup: recs[Number(b.dataset.rec)].followup, navigate: deps.navigate, videoUrl: url, openFollowup: deps.openFollowup }); } catch (e) { b.disabled = false; deps.onToast?.(e.message, 'error'); }
       }));
     });
     return () => { alive = false; };
@@ -118,7 +118,7 @@ export function notificationsTab(deps) {
         const typeLabel = Object.fromEntries(NOTIFICATION_TYPES);
         const grouped = new Set(NOTIFICATION_GROUPS.flatMap((g) => g.types));
         let pushUsable = false; // master "Send me push notifications" is on and push is set up here (reported by the push card)
-        const pushed = new Set(effectivePushTypes(prefs));
+        let pushed = new Set(effectivePushTypes(prefs)); // all derived from the SAVED prefs again on every draw()
         const typeRow = (k, l) => {
           const canPush = grouped.has(k);
           return `<div style="display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;justify-content:space-between" data-type-row="${k}">
@@ -139,10 +139,14 @@ export function notificationsTab(deps) {
               <div style="display:flex;flex-direction:column;gap:4px;margin:4px 0 0 24px">${g.types.map((k) => typeRow(k, typeLabel[k] || k)).join('')}</div></fieldset>`).join('')
           + NOTIFICATION_TYPES.filter(([k]) => !grouped.has(k)).map(([k, l]) => typeRow(k, l)).join('');
         const syncGroups = (form) => {
+          // Pushes and e-mails are made from the in-app alert itself: with In-app alerts off no alert is created, so neither is ever sent.
+          const inApp = form.querySelector('[name=inapp]')?.checked !== false;
+          const inAppHint = form.querySelector('[data-inapp-hint]');
+          if (inAppHint) inAppHint.textContent = !inApp && (pushUsable || form.querySelector('[name=email]')?.checked) ? 'In-app alerts is off, so no alerts are created and no push or e-mail is sent. Turn it on to receive them.' : '';
           form.querySelectorAll('[name=pushtype]').forEach((p) => {
             const alert = form.querySelector(`[name=type][value="${p.value}"]`);
             if (alert && !alert.checked) p.checked = false; // Push only exists for alerts that are on
-            p.disabled = !pushUsable || !alert?.checked;
+            p.disabled = !pushUsable || !inApp || !alert?.checked;
           });
           NOTIFICATION_GROUPS.forEach((g) => {
             const box = form.querySelector(`[data-group="${g.id}"]`); if (!box) return;
@@ -152,11 +156,11 @@ export function notificationsTab(deps) {
             const pkids = [...form.querySelectorAll(`[data-group-box="${g.id}"] [name=pushtype]`)].filter((k) => form.querySelector(`[name=type][value="${k.value}"]`)?.checked);
             const pn = pkids.filter((k) => k.checked).length;
             pbox.checked = pkids.length > 0 && pn === pkids.length; pbox.indeterminate = pn > 0 && pn < pkids.length;
-            pbox.disabled = !pushUsable || pkids.length === 0;
+            pbox.disabled = !pushUsable || !inApp || pkids.length === 0;
           });
         };
         const zoneNow = browserTimeZone();
-        const quiet = quietToForm(prefs.quiet_hours, zoneNow);
+        let quiet = quietToForm(prefs.quiet_hours, zoneNow);
         const quietHtml = () => `<fieldset style="border:0;padding:0;margin:12px 0" data-quiet>
               <legend><strong>Quiet hours</strong></legend>
               <label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="quiet" ${quiet.enabled ? 'checked' : ''}/> Enable quiet hours</label>
@@ -174,7 +178,16 @@ export function notificationsTab(deps) {
           form.querySelector('[data-quiet-note]').textContent = form.querySelector('[name=quiet-summary]').checked ? QUIET_NOTE_SUMMARY : QUIET_NOTE_DROPPED;
           form.querySelector('[data-quiet-hint]').textContent = r.error || (r.same ? 'From and Until are the same time, so quiet hours are off.' : '');
         };
+        // Every preference write goes through one chain, and each payload is built from the latest saved prefs when it runs, so the push
+        // toggle and the form (or two quick saves) can never overwrite each other's change with a stale copy.
+        let writeChain = Promise.resolve();
+        const savePrefs = (build, saveOpts) => {
+          const run = writeChain.then(async () => { prefs = await savePreferences(client, build(prefs), saveOpts); return prefs; });
+          writeChain = run.catch(() => {});
+          return run;
+        };
         const draw = () => {
+          pushed = new Set(effectivePushTypes(prefs)); quiet = quietToForm(prefs.quiet_hours, zoneNow);
           const root = wrap(panel, `
             <div class="sv-heading"><div><div class="sv-breadcrumb">Owner alerts</div><h1>Notifications</h1></div>${notes.some((n) => !n.read_at) ? '<button type="button" class="sv-secondary-btn" data-read-all>Mark all as read</button>' : ''}</div>
             <div class="sv-card"><h3>History</h3>
@@ -190,6 +203,7 @@ export function notificationsTab(deps) {
               <div class="sv-custom-range"><label>High-interest threshold<input type="number" name="threshold" min="10" max="500" value="${esc(prefs.interest_threshold)}"/></label>
                 <label>Digest<select name="digest"><option value="off">Off</option><option value="daily" ${prefs.digest_frequency === 'daily' ? 'selected' : ''}>Daily</option><option value="weekly" ${prefs.digest_frequency === 'weekly' ? 'selected' : ''}>Weekly</option></select></label></div>
               <label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="inapp" ${prefs.in_app ? 'checked' : ''}/> In-app alerts</label>
+              <p class="sv-hint" data-inapp-hint role="status"></p>
               <label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="email" ${prefs.email ? 'checked' : ''}/> Email alerts</label>
               <p class="sv-hint">Email alerts go to the address on your account. Pushes and email follow the same quiet hours.</p>
               <button type="submit" class="sv-primary-btn">Save preferences</button> <span class="sv-hint" data-prefs-msg role="status"></span></form>`);
@@ -224,7 +238,7 @@ export function notificationsTab(deps) {
           pushCard?.destroy(); pushCard = mountPushCard(root, {
             getClient: () => deps.getClient(), pushEnabled: prefs.push, onToast: deps.onToast, ...(deps.push || {}),
             onState: ({ available, on }) => { pushUsable = available && on; const f = root.querySelector('[data-prefs]'); if (f) syncGroups(f); },
-            onPushPref: async (v) => { prefs = await savePreferences(client, { ...prefs, push: v }); },
+            onPushPref: async (v) => { await savePrefs((p) => ({ ...p, push: v })); },
           });
           root.querySelector('[data-prefs]').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -234,10 +248,11 @@ export function notificationsTab(deps) {
             if (q.error) { msg.textContent = `Quiet hours: ${q.error}`; return; }
             try {
               let columnMissing = false;
-              prefs = await savePreferences(client, {
-                ...prefs, enabled_types: [...f.querySelectorAll('[name=type]:checked')].map((x) => x.value), push_types: [...f.querySelectorAll('[name=pushtype]:checked')].map((x) => x.value),
+              const fromForm = { // read now: the form is what the owner sees at the moment of saving
+                enabled_types: [...f.querySelectorAll('[name=type]:checked')].map((x) => x.value), push_types: [...f.querySelectorAll('[name=pushtype]:checked')].map((x) => x.value),
                 interest_threshold: f.querySelector('[name=threshold]').value, digest_frequency: f.querySelector('[name=digest]').value, in_app: f.querySelector('[name=inapp]').checked, email: f.querySelector('[name=email]').checked, quiet_hours: q.value,
-              }, { onPushTypesMissing: () => { columnMissing = true; } });
+              };
+              await savePrefs((p) => ({ ...p, ...fromForm }), { onPushTypesMissing: () => { columnMissing = true; } });
               msg.textContent = columnMissing ? 'Saved. Per-type push choices need a database update, so push still follows your alert selection.' : 'Saved.';
             } catch (err) { msg.textContent = err.message; }
           });

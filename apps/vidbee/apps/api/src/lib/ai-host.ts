@@ -22,8 +22,16 @@ import type {
   WebAiSkill
 } from '@vidbee/transcription/web-contract'
 import { apiDataDir, trimEnv } from './api-paths'
+import { byokEnabled } from './byok'
 import { getDatabaseConnection } from './database'
-import { aiSettingsFile, createResponse, DEFAULT_BASE_URL, getOpenAiConfig, readStoredAiSettings } from './openai-responses'
+import {
+  aiSettingsFile,
+  createResponse,
+  DEFAULT_BASE_URL,
+  getOpenAiConfig,
+  readStoredAiSettings,
+  sourcesMarkdown
+} from './openai-responses'
 import { aiChannel, publishLive } from './live-events'
 import { getTranscriptDetail } from './transcripts-host'
 
@@ -61,7 +69,8 @@ export const getAiSettings = (): WebAiSettings => {
     apiKeyHint: current.apiKey ? current.apiKey.slice(-4) : null,
     keyFromEnv: current.keyFromEnv,
     model: current.model,
-    locked: settingsLocked()
+    locked: settingsLocked(),
+    byok: byokEnabled()
   }
 }
 
@@ -73,6 +82,9 @@ export const setAiSettings = (input: {
 }): WebAiSettings => {
   if (settingsLocked()) {
     throw new Error('AI settings are managed by the server and cannot be changed here.')
+  }
+  if (byokEnabled()) {
+    throw new Error('Your OpenAI key is kept in your browser, not on the server.')
   }
   const stored = readStored()
   const before = getOpenAiConfig()
@@ -224,6 +236,71 @@ const TRANSLATE_SKILL: LoadedSkill = {
   ].join('\n')
 }
 
+const grounded = (lines: string[]): string =>
+  [...lines, 'Use only what the transcript says. Do not invent quotes, names, numbers or timestamps.'].join('\n')
+
+/** Web-edition prompts written for the Responses API (plain instructions; some also use its built-in tools). */
+const WEB_SKILLS: LoadedSkill[] = [
+  {
+    id: 'key-moments',
+    name: 'key-moments',
+    description: 'Find the best short clips to share, with start and end times.',
+    body: grounded([
+      'Find the 5-8 moments of this video that would make the best standalone short clips (30-90 seconds each).',
+      'Each transcript line starts with [m:ss] or [h:mm:ss]. For every clip give: a catchy title, the start and end time as [m:ss] - [m:ss], a one-sentence hook, and why it works on its own.',
+      'Prefer a complete thought with a strong opening line and a clear ending. Do not overlap clips. List them in time order.',
+      'Write in {{uiLanguage}}.'
+    ])
+  },
+  {
+    id: 'quiz',
+    name: 'quiz',
+    description: 'Make a quiz that checks whether someone watched and understood the video.',
+    body: grounded([
+      'Write a quiz of 8 questions about this video: a mix of multiple choice (four options, one correct) and short answer.',
+      'Only ask about things the transcript states. After each question give the answer and the timestamp [m:ss] where it comes up.',
+      'Put all answers at the end under an "Answer key" heading, not next to the questions.',
+      'Write in {{uiLanguage}}.'
+    ])
+  },
+  {
+    id: 'show-notes',
+    name: 'show-notes',
+    description: 'Show notes: summary, topics, notable quotes and resources mentioned.',
+    body: grounded([
+      'Write show notes for this video: a two-sentence summary, a bulleted list of topics with [m:ss] timestamps, up to five notable quotes with who said them, and a list of any books, tools, people or links that are mentioned.',
+      'Omit a section if the transcript has nothing for it. Write in {{uiLanguage}}.'
+    ])
+  },
+  {
+    id: 'social-posts',
+    name: 'social-posts',
+    description: 'Draft posts for X, LinkedIn and a short-video caption from the video.',
+    body: grounded([
+      'Draft social posts for this video: one X post (under 280 characters), one LinkedIn post (a hook line, 3-5 short lines, a closing question) and one caption for a short vertical video with three hashtags.',
+      'Lead with the most interesting point, not with "In this video". Write in {{uiLanguage}}.'
+    ])
+  },
+  {
+    id: 'fact-check',
+    name: 'fact-check',
+    description: 'Check the checkable claims in the video against the web, with sources.',
+    body: [
+      'Fact-check this video. List the 5-8 most important factual claims made (figures, dates, named events, scientific or legal statements), each with its [m:ss] timestamp.',
+      'For each claim search the web and give a verdict: Supported, Partly supported, Not supported or Could not verify, plus one sentence of evidence.',
+      'Skip opinions and predictions. Be honest when sources disagree or are weak. Write in {{uiLanguage}}.'
+    ].join('\n')
+  }
+]
+
+/** Built-in tools of the Responses API a web-edition prompt may use, by prompt id. */
+const WEB_SKILL_TOOLS: Record<string, Array<Record<string, unknown>>> = {
+  'fact-check': [{ type: 'web_search' }]
+}
+
+/** Prompts whose transcript is sent with [m:ss] timestamps. */
+const TIMESTAMPED_SKILLS = new Set(['overview', CHAPTERS_SKILL_ID, 'key-moments', 'quiz', 'show-notes', 'fact-check'])
+
 interface BuiltinMeta {
   title: string
   icon: string
@@ -241,12 +318,17 @@ const BUILTIN_META: Record<string, BuiltinMeta> = {
   'improve-grammar': { title: 'Improve Grammar & Punctuation', icon: '✍️', visible: false, editable: true },
   'extract-statistics': { title: 'Extract Statistics', icon: '📊', visible: false, editable: true },
   'paraphrase-content': { title: 'Paraphrase Content', icon: '🔁', visible: false, editable: true },
-  translate: { title: 'Translate', icon: '🌐', visible: false, editable: true }
+  translate: { title: 'Translate', icon: '🌐', visible: false, editable: true },
+  'key-moments': { title: 'Key moments', icon: '🎬', visible: false, editable: true },
+  quiz: { title: 'Quiz', icon: '🎓', visible: false, editable: true },
+  'show-notes': { title: 'Show notes', icon: '🗒️', visible: false, editable: true },
+  'social-posts': { title: 'Social posts', icon: '📣', visible: false, editable: true },
+  'fact-check': { title: 'Fact-check (web)', icon: '🔎', visible: false, editable: true }
 }
 
 const loadSkills = (): LoadedSkill[] => {
   const dir = skillsDir()
-  const out: LoadedSkill[] = [CHAPTERS_SKILL, TRANSLATE_SKILL]
+  const out: LoadedSkill[] = [CHAPTERS_SKILL, TRANSLATE_SKILL, ...WEB_SKILLS]
   if (!dir) {
     return out
   }
@@ -521,6 +603,8 @@ interface RunSpec {
   transcript: string
   durationSeconds: number
   chapters: boolean
+  /** Built-in Responses API tools (for example web search) this run may use. */
+  tools?: Array<Record<string, unknown>>
   /** False for test runs: nothing is written to the database. */
   persist: boolean
 }
@@ -571,6 +655,7 @@ const executeRun = (spec: RunSpec): WebAiRun => {
   void (async () => {
     try {
       const result = await createResponse({
+        config: { apiKey: settings.apiKey as string, baseUrl: settings.baseUrl, model: settings.model },
         body: {
           instructions: spec.instructions,
           input: spec.transcript,
@@ -580,7 +665,8 @@ const executeRun = (spec: RunSpec): WebAiRun => {
                   format: { type: 'json_schema', name: 'chapters', strict: true, schema: CHAPTERS_SCHEMA }
                 }
               }
-            : {})
+            : {}),
+          ...(spec.tools?.length ? { tools: spec.tools } : {})
         },
         signal: controller.signal,
         onTextDelta: (delta) => {
@@ -597,6 +683,12 @@ const executeRun = (spec: RunSpec): WebAiRun => {
       }
       if (spec.chapters) {
         run.text = normalizeChapters(run.text, spec.durationSeconds)
+      } else {
+        const sources = sourcesMarkdown(result.sources)
+        if (sources) {
+          run.text += sources
+          publishLive(channel, 'delta', { delta: sources })
+        }
       }
       finish('completed', null)
     } catch (error) {
@@ -625,7 +717,7 @@ export const startAiRun = (input: {
     throw new Error('Add an OpenAI API key in AI settings first.')
   }
   const chapters = skill.id === CHAPTERS_SKILL_ID
-  const timestamped = skill.id === 'overview' || chapters
+  const timestamped = TIMESTAMPED_SKILLS.has(skill.id)
   const transcript = buildTranscriptText(input.downloadId, timestamped)
   const durationSeconds =
     (getTranscriptDetail(input.downloadId).record?.segments.reduce((max, seg) => Math.max(max, seg.endMs), 0) ?? 0) /
@@ -637,6 +729,7 @@ export const startAiRun = (input: {
     transcript,
     durationSeconds,
     chapters,
+    tools: WEB_SKILL_TOOLS[skill.id],
     persist: true
   })
 }
@@ -680,8 +773,10 @@ export const testConnection = async (input: {
   const saved = getOpenAiConfig()
   // When the server owner locked the settings, only the server's own configuration is tested: nothing typed by the caller is used.
   const locked = settingsLocked()
+  // Bring your own key: the visitor's typed key and model are theirs to try, but the address stays the server's.
+  const byok = byokEnabled()
   const typedKey = locked ? '' : input.apiKey?.trim() || ''
-  const baseUrl = ((locked ? '' : input.baseUrl?.trim()) || saved.baseUrl).replace(/\/+$/, '')
+  const baseUrl = ((locked || byok ? '' : input.baseUrl?.trim()) || saved.baseUrl).replace(/\/+$/, '')
   const model = (locked ? '' : input.model?.trim()) || saved.model
   // The server's key (saved or from the environment) is only ever sent to the address it is configured for.
   if (!typedKey && normalizeBase(baseUrl) !== normalizeBase(saved.baseUrl)) {

@@ -1450,8 +1450,7 @@
 /* Smart Text Advanced tab (upstream layout): B / I buttons, alignment icons, colour swatches, switch + colour rows */
 .addon-field.is-disabled { opacity: 0.45; }
 .addon-panel .addon-field.addon-field--togglebtn, .clip-editor__field.addon-field--togglebtn { display: inline-block; width: calc(50% - 8px); margin-right: 4px; box-sizing: border-box; }
-.addon-togglebtn { width: 100%; }
-.addon-togglebtn { padding: 6px 10px; }
+.addon-togglebtn { width: 100%; padding: 6px 10px; }
 .addon-togglebtn.is-on, .addon-position-grid .mini-btn.is-on { background: rgba(34, 211, 238, 0.18); border-color: var(--cyan, #22d3ee); box-shadow: inset 0 0 0 1px var(--cyan, #22d3ee); color: #fff; }
 .addon-colorrow { display: flex; gap: 8px; align-items: center; }
 .addon-colorrow input[type="color"] { flex: 0 0 56px; height: 30px; padding: 0; }
@@ -1462,8 +1461,7 @@
 .addon-panel .addon-field.addon-field--togglecolor, .clip-editor__field.addon-field--togglecolor { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
 .addon-field--togglecolor > label { display: flex; align-items: center; gap: 8px; margin: 0; flex: 1; }
 .addon-field--togglecolor input[type="checkbox"] { width: auto; flex: 0 0 auto; }
-.addon-field--togglecolor input[type="color"] { flex: 0 0 56px; }
-.addon-field--togglecolor input[type="color"] { width: 56px; height: 28px; padding: 0; }
+.addon-field--togglecolor input[type="color"] { flex: 0 0 56px; width: 56px; height: 28px; padding: 0; }
 .addon-field--togglecolor input[type="color"]:disabled { opacity: 0.35; }
 .addon-font-preview { margin-top: 6px; padding: 8px 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); font-size: 20px; line-height: 1.2; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 

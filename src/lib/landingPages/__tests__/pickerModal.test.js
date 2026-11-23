@@ -160,6 +160,17 @@ describe('openLandingPagePicker', () => {
     expect(createPageFromVideo.mock.calls[0][1].file).toBe(f);
   });
 
+  it('a picture file is accepted from the computer and shows as a picture; an oversize one is refused', async () => {
+    globalThis.URL.createObjectURL = vi.fn(() => 'blob:pic-1');
+    openLandingPagePicker({ deps: { loadVideoSources: async () => [], mountPageEditor: vi.fn(() => ({ destroy() {} })) } });
+    const input = document.querySelector('input[type="file"]');
+    expect(input.accept).toContain('image/*');
+    Object.defineProperty(input, 'files', { value: [new File(['x'], 'Sunset.png', { type: 'image/png' })], configurable: true });
+    input.dispatchEvent(new Event('change'));
+    expect(document.querySelector('[data-picker-video]').textContent).toContain('Sunset');
+    expect(toPickerVideo({ url: 'blob:pic-1', type: 'image', title: 'Sunset' }).isPicture).toBe(true);
+  });
+
   it('Change video in the editor keeps the edits and shows the new video', async () => {
     const mountPageEditor = vi.fn(() => ({ destroy() {} }));
     openLandingPagePicker({ video: VIDEO, deps: { loadVideoSources: async () => LIB, mountPageEditor } });

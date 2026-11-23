@@ -10,7 +10,7 @@
 import type { WebChat, WebChatMessage, WebChatStatus } from '@vidbee/transcription/web-contract'
 import { getDatabaseConnection } from './database'
 import { chatChannel, publishLive } from './live-events'
-import { createResponse, type OutputItem, requireOpenAiConfig } from './openai-responses'
+import { createResponse, type OutputItem, requireOpenAiConfig, sourcesMarkdown } from './openai-responses'
 import { getTranscriptDetail, getTranscriptStatusMap } from './transcripts-host'
 
 const MAX_ROUNDS = 6
@@ -238,7 +238,7 @@ const textOf = (item: OutputItem): string => {
     : ''
 }
 
-export const sendChat = (downloadId: string, message: string): WebChat => {
+export const sendChat = (downloadId: string, message: string, webSearch = false): WebChat => {
   const text = message.trim()
   if (!text) {
     throw new Error('Type a message first.')
@@ -246,7 +246,8 @@ export const sendChat = (downloadId: string, message: string): WebChat => {
   if (live.get(downloadId)?.status === 'running') {
     throw new Error('The assistant is still answering.')
   }
-  requireOpenAiConfig()
+  // Captured now: the visitor's own key (bring-your-own-key mode) belongs to this request, not to the background job.
+  const config = requireOpenAiConfig()
   const controller = new AbortController()
   const state = { status: 'running' as WebChatStatus, partial: '', error: null as string | null, controller }
   live.set(downloadId, state)
@@ -269,10 +270,15 @@ export const sendChat = (downloadId: string, message: string): WebChat => {
       for (let round = 0; round < MAX_ROUNDS; round++) {
         state.partial = ''
         const result = await createResponse({
+          config,
           body: {
-            instructions: `${INSTRUCTIONS}\nThe user is viewing download id: ${downloadId}.`,
+            instructions: `${INSTRUCTIONS}\nThe user is viewing download id: ${downloadId}.${
+              webSearch
+                ? '\nYou may also search the web for facts the transcript does not contain; say which parts come from the web and cite the pages.'
+                : ''
+            }`,
             input,
-            tools: TOOLS,
+            tools: webSearch ? [...TOOLS, { type: 'web_search' }] : TOOLS,
             tool_choice: 'auto'
           },
           signal: controller.signal,
@@ -287,7 +293,7 @@ export const sendChat = (downloadId: string, message: string): WebChat => {
             .filter((item) => item.type === 'message')
             .map(textOf)
             .join('')
-          answer = answer || result.text
+          answer = (answer || result.text) + sourcesMarkdown(result.sources)
           break
         }
         input.push(...result.output)

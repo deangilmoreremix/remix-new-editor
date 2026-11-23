@@ -16,7 +16,7 @@ export const CLI_LLM_PROVIDER_IDS: CliLlmProviderId[] = ['claude-code', 'codex',
 
 export const CODEX_MODELS = [
   { id: 'auto', label: 'Codex default' },
-  { id: 'gpt-5.6-luna', label: 'GPT-5.6 Luna' },
+  { id: 'gpt-6-luna', label: 'GPT-6 Luna' },
 ] as const;
 
 export const GEMINI_MODELS = [

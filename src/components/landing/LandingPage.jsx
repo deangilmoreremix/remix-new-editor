@@ -234,6 +234,9 @@ export default async function LandingPage() {
     container.appendChild(valueStack);
     container.appendChild(agency);
     container.appendChild(offer);
+    // Not lazy: the guide links should be in the page from the start, for crawlers.
+    const { StudioGuidesSection } = await import('./sections/StudioGuidesSection.jsx');
+    container.appendChild(StudioGuidesSection());
     container.appendChild(finalCTA);
   } catch (error) {
     console.error('Error rendering landing page:', error);

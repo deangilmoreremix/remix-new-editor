@@ -1991,7 +1991,7 @@ export function TimelineEditor({
   useLayoutEffect(() => {
     const el = videoScrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [trackHeight]);
+  }, [trackHeight, state.overlays.length]); // [remix] the Overlays lane grows with each overlay and shrinks this section
 
   // Default video section scroll to the bottom so V1 is fully visible on first open/layout change.
   useLayoutEffect(() => {

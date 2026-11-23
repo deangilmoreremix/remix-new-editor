@@ -2,6 +2,7 @@ import { build } from 'esbuild';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { parse } from 'yaml';
+import { esbuildPlugin as rebrand, enabled as brandOn, renameText } from '../../../brand/rebrand.mjs';
 
 const desktop = path.resolve(import.meta.dirname, '..');
 const root = path.resolve(desktop, '../..'); // vendored workspace root (skills/, packages/)
@@ -20,7 +21,7 @@ const viteCompat = {
     // shared/builtin-skills.ts uses import.meta.glob over skills/*/SKILL.md → inline the same files.
     b.onLoad({ filter: /shared\/builtin-skills\.ts$/ }, () => {
       const dir = `${root}/skills`;
-      const docs = readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort().map((n) => readFileSync(`${dir}/${n}/SKILL.md`, 'utf8'));
+      const docs = readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort().map((n) => readFileSync(`${dir}/${n}/SKILL.md`, 'utf8')).map((d) => (brandOn ? renameText(d) : d));
       return { loader: 'ts', contents: `import { parse } from 'yaml'
 const documents = ${JSON.stringify(docs)}
 export const BUILTIN_SKILLS = documents.map((document) => {
@@ -50,7 +51,8 @@ const common = {
   external: ['better-sqlite3', 'sherpa-onnx-node', 'sherpa-onnx-*', 'jiti', '@gotgenes/*', '@mzwing/*'],
   banner: { js: "import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);" },
   define: { __GLITCHTIP_DSN__: '""', __GLITCHTIP_ENVIRONMENT__: '"web"', __GLITCHTIP_RELEASE__: '"vidbee-web"' },
-  plugins: [viteCompat],
+  // rebrand (../../../brand) runs after vite-compat so its virtual modules win; VIDBEE_BRAND=off disables it.
+  plugins: [viteCompat, rebrand()],
   nodePaths: [`${desktop}/node_modules`],
 };
 const out = `${desktop}/out-web`;

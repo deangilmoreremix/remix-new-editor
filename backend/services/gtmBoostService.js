@@ -16,13 +16,14 @@
  *                            (e.g. pre-selects industry from a template
  *                            category/niche).
  *
- * The service tries to use OpenAI (gpt-4o-mini by default) when an
+ * The service tries to use OpenAI (gpt-6.1-sol by default) when an
  * OPENAI_API_KEY is set, and falls back to a deterministic local
  * library that mirrors src/lib/gtmContentLibrary.js so the endpoint
  * always returns a useful prompt.
  */
 
 import express from 'express';
+import { OPENAI_TEXT_MODEL } from './openaiModels.js';
 
 const router = express.Router();
 
@@ -323,13 +324,13 @@ Return ONLY the optimized cinematic prompt — no preamble, no explanation, no l
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: process.env.GTM_BOOST_MODEL || 'gpt-4o-mini',
+        model: process.env.GTM_BOOST_MODEL || OPENAI_TEXT_MODEL,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        temperature: 0.7,
-        max_tokens: 600,
+        // Reasoning model: no temperature; the budget covers reasoning + output.
+        max_completion_tokens: 2000,
       }),
     });
 

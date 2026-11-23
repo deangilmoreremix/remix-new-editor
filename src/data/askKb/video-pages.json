@@ -4,7 +4,7 @@
   "route": "#/video-pages",
   "description": "Video Pages turns a generated or uploaded video into a branded landing page with a call to action, a lead form and analytics. The page is public at /p/<slug>.",
   "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
-  "fullDescription": "In Video Pages you pick a video (one you generated, one from your library, or a file you upload), pick a page design, and the studio builds a landing page around it. You can edit the page sections, apply your brand, add a call to action and a lead form, and attach a customer so the page is personalised with tokens such as the first name and company. Pages are published at /p/<slug>; you can copy the link or an embed code, view page statistics, and manage the contacts collected. An AI rewrite option proposes new copy for the page sections that you can accept or reject.",
+  "fullDescription": "Any video or picture you made can become a landing page from any studio: press the Video Pages button in the top bar (always there; it loads your latest creation, or lets you upload, pick or paste one), or choose Create landing page on a video (Library, a finished generation, or the timeline's Add to timeline window), pick a page design, and a page is built around it. My Video Pages (opened from Library) is where your pages are listed and managed. You can edit the page sections, apply your brand, add a call to action and a lead form, and attach a customer so the page is personalised with tokens such as the first name and company. Pages are published at /p/<slug>; you can copy the link or an embed code, view page statistics, and manage the contacts collected. An AI rewrite option proposes new copy for the page sections that you can accept or reject.",
   "bestFor": "Creators and agencies who want a shareable page around a video, with a lead form and basic analytics, without building a website.",
   "whenToUse": [
     "You have a finished video and want a page you can send or embed.",
@@ -47,7 +47,7 @@
       "inputRequired": "None."
     }
   ],
-  "howToUse": "1. Open Video Pages from the side menu (#/video-pages). 2. Choose a video: from your library, a generated video, or upload one. 3. Pick a page design. 4. Edit the sections, add your call to action and lead form, and apply a brand if you want one. 5. Optionally attach a customer to personalise the page. 6. Publish, then copy the page link (/p/<slug>) or the embed code. 7. Open the page statistics and contacts to see views and leads.",
+  "howToUse": "1. Press the Video Pages button in the top bar of any studio (or open a video in your Library and choose Create landing page); or open My Video Pages from Library (#/video-pages) and press + New page. 2. Choose a video if none is attached: from your library, a generated video, or upload one. 3. Pick a page design. 4. Edit the sections, add your call to action and lead form, and apply a brand if you want one. 5. Optionally attach a customer to personalise the page. 6. Publish, then copy the page link (/p/<slug>) or the embed code. 7. Open the page statistics and contacts to see views and leads.",
   "howToSteps": [
     "Choose or upload a video.",
     "Pick a page design.",
@@ -177,7 +177,9 @@
   },
   "tips": [
     "Keep the CTA to one clear action.",
-    "Preview as a customer before sending."
+    "Preview as a customer before sending.",
+    "Your latest creations ride along in the editor's content tray ('From your studio'): in any picture or video field, tap one to use it, and it is saved to your account so the link never expires.",
+    "Every picture field has Create with AI (Images 2.6), and every text field can write copy that fits its box."
   ],
   "bestPractices": [
     "Publish, then test the public link yourself before sharing."

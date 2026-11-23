@@ -1,0 +1,25 @@
+{
+  "start-creating-free": {
+    "selector": ".start-btn"
+  },
+  "why-choose-our-text-to-image-cards": {
+    "selector": "xpath=//h2[normalize-space(.)=\"Why Choose Our Text to Image?\"]/.."
+  },
+  "available-models": {
+    "selector": ".model-card"
+  },
+  "example-prompts": {
+    "selector": "xpath=//h2[normalize-space(.)=\"Example Prompts\"]/.."
+  },
+  "get-started-free": {
+    "selector": ".cta-btn"
+  },
+  "gtm-boost": {
+    "steps": [
+      {
+        "selector": ".gtm-boost-btn",
+        "wait": 2000
+      }
+    ]
+  }
+}

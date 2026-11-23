@@ -6,7 +6,8 @@ import './styles/outline-buttons.css';
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
 // real error surfaces in the dev-tools console if any step fails.
 import { initPopcorn } from './lib/popcornInit.js';
-const IS_WATCH_PAGE = /^\/(watch|v|p)\//.test(window.location.pathname) || /^#\/(watch|v|p)\//.test(window.location.hash);
+import { parseLocation } from './lib/routeUrl.js';
+const IS_WATCH_PAGE = /^(watch|v|p)\//.test(parseLocation().page);
 // The public video player (/watch/<id>, /v/<business>/<slug>) and landing pages (/p/<slug>) don't use Popcorn.
 (IS_WATCH_PAGE ? Promise.resolve(null) : initPopcorn()).then(() => {
   if (IS_WATCH_PAGE) return;
@@ -17,9 +18,10 @@ const IS_WATCH_PAGE = /^\/(watch|v|p)\//.test(window.location.pathname) || /^#\/
 
 import { Header } from './components/Header.js';
 import { Sidebar } from './components/Sidebar.js';
-import { initRouter, navigate, getCurrentPage } from './lib/router.js';
+import { initRouter, navigate, getCurrentPage, isCurrentRoute } from './lib/router.js';
 import { mountAskSmartVideo } from './features/ask-smartvideo/AskSmartVideo.js';
 import { mountGenerationNotifications } from './components/studio/generationNotifications.js';
+import { mountLandingPageButtons } from './components/studio/landingPageAttach.js';
 import { ensureClerkLoaded } from './lib/clerkInit.js';
 import { perfMonitor } from './lib/performance.js';
 import { analytics } from './lib/analytics.js';
@@ -125,21 +127,10 @@ try {
   app.innerHTML = '';
 
   // Compute initial page from URL (deep linking + studio query param)
-  const path = window.location.pathname;
-  const hash = window.location.hash;
-  let initialPage = 'landing';
-
-  if (path === '/' || path === '') {
-    initialPage = 'landing';
-  } else if (path.startsWith('/')) {
-    initialPage = path.slice(1);
-  }
-
-  // Hash-based routing (e.g. /#/signin)
-  if (hash && hash.startsWith('#/')) {
-    const hashPage = hash.slice(2).replace(/^\//, '');
-    if (hashPage) initialPage = hashPage;
-  }
+  // Both URL forms work: clean paths (/signin) and the older hash routes (/#/signin,
+  // /?a=1#/image, /#/edit?asset=7). See lib/routeUrl.js.
+  const parsedLocation = parseLocation();
+  let initialPage = parsedLocation.page;
 
   // A business's own domain (netlify/edge-functions/custom-domain.js): videos.acme.com/intro opens /v/acme/intro.
   const customRoute = document.querySelector('meta[name="sv-route"]')?.getAttribute('content');
@@ -157,6 +148,16 @@ try {
     const landingPage = await LandingPage();
     app.appendChild(landingPage);
     console.log('[App] Landing page rendered');
+    return;
+  }
+
+  // Public studio feature guides (/studios, /studios/<slug>): no app shell,
+  // no sign-in. Prerendered to static HTML at build time for SEO.
+  const guidePath = initialPage.split(/[?#]/)[0].replace(/\/+$/, '');
+  if (guidePath === 'studios' || /^studios\/[a-z0-9-]+$/.test(guidePath)) {
+    const { mountGuidePage } = await import('./components/guides/mountGuidePage.js');
+    mountGuidePage(app, guidePath.slice('studios/'.length));
+    console.log('[App] Studio guide rendered');
     return;
   }
 
@@ -214,6 +215,7 @@ try {
   const { header: headerEl, headerAuthSlot } = Header((page) => navigate(page));
   app.appendChild(headerEl);
   mountGenerationNotifications((page) => navigate(page));
+  mountLandingPageButtons(); // "Create landing page" beside every studio's Download link, in that studio's own style
   mountAskSmartVideo({ navigate: (page) => navigate(page), getPage: () => getCurrentPage() || '' });
 
   const body = document.createElement('div');
@@ -247,6 +249,7 @@ try {
   initRouter(contentArea, (page) => {
     headerEl.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
     sidebar.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
+    window.dispatchEvent(new CustomEvent('sv:route-changed', { detail: { page } }));
     if (typeof activeTimelineModal?.unmount === 'function') {
       activeTimelineModal.unmount();
     }
@@ -256,15 +259,16 @@ try {
     }
   });
 
-  // Sync the router with hash changes so deep links and browser back/forward
-  // work even when the initial hash was not yet populated during page load.
-  window.addEventListener('hashchange', () => {
-    const hash = window.location.hash;
-    if (hash && hash.startsWith('#/')) {
-      const page = hash.slice(2).replace(/^\//, '');
-      if (page) navigate(page);
-    }
-  });
+  // Browser Back/Forward and hand-edited URLs: the browser has already moved the address bar,
+  // so just open the page it now points at. Back between two hash URLs fires popstate and
+  // hashchange both; isCurrentRoute drops the second one.
+  const syncFromLocation = () => {
+    const { page, params } = parseLocation();
+    if (page === 'landing' || isCurrentRoute(page)) return;
+    navigate(page, params, { history: 'none' });
+  };
+  window.addEventListener('popstate', syncFromLocation);
+  window.addEventListener('hashchange', syncFromLocation);
 
   // Track initialization time
   const initDuration = performance.now() - initStart;
@@ -275,7 +279,7 @@ try {
   console.log('[App] Navigating to initial page:', initialPage);
   // Preserve any deep-link query params (e.g. ?asset=<id> for Render) so the
   // target page can read them. navigate() serializes params into the URL.
-  const initialParams = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+  const initialParams = parsedLocation.params;
   // Ensure the shared Clerk instance is loaded before the router checks
   // authentication on gated studio pages. Without this, ensureStudioAccess
   // in router.js calls waitForClerk() before ClerkProvider has set
@@ -288,7 +292,7 @@ try {
       console.warn('[App] Clerk preload failed, continuing anyway:', err.message);
     }
   }
-  navigate(initialPage, initialParams);
+  navigate(initialPage, initialParams, { history: 'replace' });
 
   // Show the provider API key setup popup once when the user lands in the app.
   // Gated per-session so it doesn't re-appear on every in-app navigation, and

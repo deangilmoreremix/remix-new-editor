@@ -1,0 +1,466 @@
+{
+  "id": "smartwarmupai",
+  "name": "SmartWarmupAI",
+  "route": "#/smartwarmupai",
+  "description": "Email warmup, cold email campaigns, a shared inbox, contacts, CRM and automations in one dashboard, with a Help tab. Runs on demo data by default.",
+  "shortDescription": "Warm up mailboxes, send cold email sequences and handle replies.",
+  "fullDescription": "SmartWarmupAI (#/smartwarmupai, under Agents in the side menu) embeds a full email outreach dashboard with two tabs at the top: Dashboard and Help. It opens on Accounts (your mailboxes). The dashboard's own side menu has Inbox; an Email group (Accounts, Campaigns, Contacts, Lead finder, Forms, Analytics, Reports, Deliverability, Placement tests); a CRM group (Pipelines, Deals, Tasks, Meetings); a Resources group (Templates, Integrations, Automations, API Keys, Audit log); and Settings. Ask Remie in the header opens its AI assistant. Deep links open a view directly: #/smartwarmupai/mailboxes, /campaigns, /inbox, /contacts, /pipeline (Deals), /deliverability, /automations, /integrations, /dashboard (Analytics), /settings (Settings > Profile) and /help (the Help tab, optionally followed by a page path such as #/smartwarmupai/help/guides/warmup/). Important: the studio is built in demo mode, so it shows a recorded sample workspace (Sunrise Labs, with sample mailboxes, campaigns, contacts and replies). You can click around, create and edit things, but nothing is really sent or connected, changes are kept only in the browser and disappear when you reload, and views without recorded data say 'This view has no recorded demo data yet.' Connecting real mailboxes, real warmup, sending campaigns, integrations and the AI assistant need a real compatible backend configured by whoever runs this app. The dashboard and Help are based on an open-source project and renamed to SmartWarmupAI; pages and labels about plans, billing, 'SmartWarmupAI Cloud', pricing or support describe the original project's hosted service, not a SmartWarmupAI plan.",
+  "bestFor": "Teams and agencies who send cold email and want mailbox warmup, sequences, replies, contacts and simple CRM in one place.",
+  "whenToUse": [
+    "You want to warm up new mailboxes before cold outreach.",
+    "You want to send a multi-step email sequence with follow-ups and stop on reply.",
+    "You want all prospect replies from many mailboxes in one inbox.",
+    "You want to check inbox placement, bounce and spam rates.",
+    "You want to track deals, tasks and meetings from email replies.",
+    "You want to explore how an email outreach tool works using demo data."
+  ],
+  "whenToUseAnother": [
+    "Use Video Outreach (#/outreach) to send personalized videos that greet each contact by name.",
+    "Use Lead Finder (#/leadfinder) to find local businesses and make a personalized video demo for each.",
+    "Use Personalizer (#/personalizer) to build a personalized page for a prospect.",
+    "Use Video Pages (#/video-pages) to publish a video landing page you can link from an email."
+  ],
+  "keyFeatures": [
+    "Dashboard and Help tabs, with deep links to each main view",
+    "Accounts: Add account for Google, Microsoft or any SMTP / IMAP mailbox",
+    "Warmup per mailbox with a ramp, sending window and sending days",
+    "Campaigns with a step-by-step New campaign wizard and a sequence of steps",
+    "Inbox with views such as Action required, Hot leads and Needs a reply",
+    "Contacts with segments, labels, suppression list, import and sheet sync",
+    "Lead finder map search",
+    "CRM: Pipelines, Deals, Tasks and Meetings",
+    "Templates and hosted lead-capture Forms",
+    "Automations and Integrations (HubSpot, Salesforce, Pipedrive, Apollo, Clay)",
+    "Analytics, Reports, Deliverability and Placement tests",
+    "Settings for account, workspace, developers and advanced options",
+    "Ask Remie AI assistant",
+    "Help site with guides"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Connect mailboxes (Accounts)",
+      "explanation": "Open Accounts in the side menu or go to #/smartwarmupai/mailboxes (the studio also opens here by default). The list shows each mailbox with Warmup, Inbox, Health and Last observed, and filters Healthy, Warming and Needs attention, plus Search by email… and Tags. Click Add account and choose Google (Sign in with Google for Workspace, App password for personal Gmail or any Workspace mailbox, or Workspace domain grant), Microsoft (Whole organization or Sign in one mailbox), Other (SMTP / IMAP), or Import mailboxes. Sending domains lists your domains; Invite client to connect sends a client a link to connect their own mailbox. Click a mailbox to open its drawer with tabs Overview, Deliverability, Analytics, Warmup, Sending and Settings.",
+      "whyToUse": "Every warmup, campaign and inbox feature works on the mailboxes you connect here.",
+      "inputRequired": "A real mailbox and its sign-in (Google or Microsoft account, an app password, or SMTP / IMAP details).",
+      "restrictions": "In demo mode the list shows sample mailboxes and no real account can be connected. Google and Microsoft sign-in only work if the deployment has them set up; otherwise the dialog says the provider is not configured and SMTP / IMAP still works."
+    },
+    {
+      "feature": "Warmup",
+      "explanation": "Open a mailbox from Accounts and go to its Warmup tab, then click Start warmup (Resume warmup if paused; Pause stops it while keeping the ramp history). Ramp configuration sets Starting volume, Daily increase, Maximum volume and Reply rate; the Help guide gives defaults of 10 emails a day rising by 1 a day to 40. Sending window sets Start time and End time; Sending days offers Every day, Weekdays, Follow sending plan or single days. Where warmup mail goes chooses its own folder, leaving it in the inbox, or archiving it. The drawer also shows Warmup today, Reply target, Days warming and Warmup reputation, and Domain authentication checks SPF, DKIM and DMARC. Several mailboxes can be started at once from the list.",
+      "whyToUse": "Warmup sends natural-looking emails between participating mailboxes and records where they land, so you can spot delivery problems before cold outreach.",
+      "inputRequired": "A connected mailbox.",
+      "restrictions": "Real warmup needs a real backend and other participating mailboxes; a self-hosted setup only warms against its own mailboxes. Warmup does not guarantee inbox placement. In demo mode the numbers are sample data and nothing is sent."
+    },
+    {
+      "feature": "Campaigns and sequences",
+      "explanation": "Open Campaigns or go to #/smartwarmupai/campaigns. Click New campaign: enter the Campaign name, choose Who should get it? (a lead list, or Import new leads from a CSV), What will they receive? (the email steps), When, and from which mailboxes? (Start as soon as it launches or On a date, Sending window, Maximum per mailbox per day, and Tracking and replies switches: Stop on reply, Stop on meeting booked, Track opens, Track clicks, Add UTM parameters, Unsubscribe header), then Review and launch shows a Launch plan. Each campaign has tabs Overview, Leads, Steps, Schedule and Settings. Steps can be Email, If / else, If they reply, Switch, Go to a step or AI step; Write with AI suggests email copy and subject ideas. Folders groups campaigns.",
+      "whyToUse": "Sends a multi-step cold email sequence from several mailboxes and stops when someone replies.",
+      "inputRequired": "Connected mailboxes, leads, and at least one email step.",
+      "restrictions": "Launching really sends only with a real backend and real mailboxes. In demo mode campaigns are samples and edits are lost on reload. Write with AI needs an AI connection."
+    },
+    {
+      "feature": "Inbox",
+      "explanation": "Open Inbox at the top of the side menu or go to #/smartwarmupai/inbox. It gathers replies from all your mailboxes. Views include Action required, Hot leads, Needs a reply, Follow up, Declined and Automated, with folders Drafts, Sent, Archive, Spam and Trash. Open a conversation to Reply or Forward, send later (up to 29 days out), Snooze, Mark as unread, Archive thread, pause the contact's follow-ups, insert a saved reply or booking link, or use Edit with AI. AI-drafted replies show Approve & send and Discard. A contact panel shows who you are talking to, with Add as contact.",
+      "whyToUse": "Handle every prospect reply in one place instead of opening each mailbox.",
+      "inputRequired": "Connected mailboxes that receive replies.",
+      "restrictions": "Warmup mail never appears here. In demo mode the conversations are samples and replies are not really sent."
+    },
+    {
+      "feature": "Contacts",
+      "explanation": "Open Contacts or go to #/smartwarmupai/contacts. Tabs: All contacts, Segments, Labels and Suppression list. Add people with New contact, Import (a file in four steps: Upload, Map columns, Review, Import), Sheet sync, or From contacts; Export downloads them. Open a contact to see and edit their details and custom fields.",
+      "whyToUse": "Keeps your prospect lists clean and ready to add to campaigns.",
+      "inputRequired": "Contact details or a CSV file.",
+      "restrictions": "In demo mode imported or added contacts are kept only until you reload. Sheet sync needs a real backend and a connected sheet."
+    },
+    {
+      "feature": "Lead finder",
+      "explanation": "Open Lead finder in the side menu (there is no studio deep link). Pick a category or type what to look for, move the map, then Search this area, or draw a rectangle, circle or shape to search inside it. Results can be shown on the map by Reachability, Status, Score or Rating, and lassoed to select several.",
+      "whyToUse": "Finds businesses to contact directly inside the outreach dashboard.",
+      "inputRequired": "What to look for and an area on the map.",
+      "restrictions": "This is separate from SmartVideo's own Lead Finder studio (#/leadfinder). In demo mode results are recorded samples."
+    },
+    {
+      "feature": "CRM: Pipelines, Deals, Tasks, Meetings",
+      "explanation": "Under CRM in the side menu: Pipelines (stages a deal moves through; New pipeline), Deals (New deal; deep link #/smartwarmupai/pipeline), Tasks (follow-up to-dos) and Meetings / Calls (calls you schedule and calls prospects book, with Join call, Reschedule and Cancel).",
+      "whyToUse": "Tracks interested prospects from first reply to closed deal.",
+      "inputRequired": "A pipeline with stages; deal, task or meeting details.",
+      "restrictions": "If a CRM such as HubSpot or Salesforce is connected, these pages may show records from it. Demo data is sample only."
+    },
+    {
+      "feature": "Templates and Forms",
+      "explanation": "Templates (side menu, Resources) holds reusable subject + body for cold opens, follow-ups and replies; click New template. Forms (side menu, Email) creates hosted lead-capture forms you can embed anywhere.",
+      "whyToUse": "Reuse your best emails and collect new leads from your website.",
+      "inputRequired": "Template text; form fields.",
+      "restrictions": "Forms need a real backend to be live for visitors. Some form views may have no demo data."
+    },
+    {
+      "feature": "Automations",
+      "explanation": "Open Automations or go to #/smartwarmupai/automations. Click New automation, pick a trigger (for example a meeting booked) and connect what should happen: ping Slack, create a deal, push to your CRM, or fire a webhook. The page counts Automations, Active and Action steps.",
+      "whyToUse": "Saves manual work when something happens with a prospect.",
+      "inputRequired": "A trigger and at least one action; connected integrations for actions that use them.",
+      "restrictions": "Actions only run with a real backend and connected apps."
+    },
+    {
+      "feature": "Integrations",
+      "explanation": "Open Integrations or go to #/smartwarmupai/integrations to connect the tools your team already uses, including HubSpot, Salesforce, Pipedrive, Apollo and Clay, plus community apps. Connected shows what is linked.",
+      "whyToUse": "Syncs contacts and deals with your CRM and lead tools.",
+      "inputRequired": "An account with the other tool.",
+      "restrictions": "Connecting needs a real backend; it does not work in demo mode."
+    },
+    {
+      "feature": "Analytics and Reports",
+      "explanation": "Analytics (#/smartwarmupai/dashboard) shows Emails sent, Open rate and Reply rate over a chosen period. Reports lets you share campaign results with clients by link or by email.",
+      "whyToUse": "See which campaigns work and share results with clients.",
+      "inputRequired": "Campaign sends.",
+      "restrictions": "Demo numbers are recorded samples."
+    },
+    {
+      "feature": "Deliverability and Placement tests",
+      "explanation": "Deliverability (#/smartwarmupai/deliverability) shows inbox placement, bounce and complaint health across your mailboxes: Inbox rate, Spam rate, Bounce rate and Complaint rate, per mailbox and campaign. Placement tests (side menu) sends test copies to seed inboxes; click New test or New batch.",
+      "whyToUse": "Find out whether your emails land in the inbox or in spam, and fix problems early.",
+      "inputRequired": "Connected mailboxes; for a test, the email to check.",
+      "restrictions": "Real tests need a real backend. Spam placement is judged at Google, Microsoft and Yahoo only (per the Help guide)."
+    },
+    {
+      "feature": "Settings",
+      "explanation": "Settings at the bottom of the side menu (deep link #/smartwarmupai/settings opens Profile). Groups: Account (Profile, Notifications, Security), Workspace (Members, Teams, Roles & access, Workspace, Sending, Website tracking, Branding, Inbox tagging, AI skills, Billing, Limits), Developers (Mailbox sign-in, OAuth apps, Webhooks, Connections) and Advanced (SmartWarmupAI Cloud or Linked instances, Migrate from another tool, Data, Danger zone).",
+      "whyToUse": "Set your timezone, team, sending rules, branding and AI behaviour.",
+      "inputRequired": "None to look around.",
+      "restrictions": "Billing and 'SmartWarmupAI Cloud' describe the original open-source project's hosted service and plans, renamed; they are not SmartWarmupAI plans and nothing can be bought there. Avoid Danger zone actions. Some items show only for owners or certain permissions."
+    },
+    {
+      "feature": "Ask Remie (AI assistant)",
+      "explanation": "Click Ask Remie in the dashboard header (or press Ctrl/Cmd+I) to open its AI assistant, which can answer questions about your campaigns and take actions, asking for approval first.",
+      "whyToUse": "Get quick answers or have routine work done by chat inside the dashboard.",
+      "inputRequired": "A question or request.",
+      "restrictions": "Needs a real backend with an AI connection; whether it answers in demo mode is not confirmed. This is separate from the Ask SmartVideo assistant."
+    },
+    {
+      "feature": "Help",
+      "explanation": "Click the Help tab above the dashboard, or go to #/smartwarmupai/help. It has Guides (for example mailboxes, warmup, campaigns, sequences, unibox, contacts and CRM, deliverability), Learn articles (cold email rules, SPF, DKIM and DMARC, warmup pools), the API reference and self-hosting notes, with search. Open a page directly with its path and a trailing slash, for example #/smartwarmupai/help/guides/warmup/. Help links clicked inside the dashboard open in this tab.",
+      "whyToUse": "Detailed explanations of every dashboard feature.",
+      "inputRequired": "None.",
+      "restrictions": "The Help pages come from the original open-source project, renamed. Pages about hosted plans, billing, pricing, partnership, community or support describe that project's service, not SmartWarmupAI."
+    }
+  ],
+  "howToUse": "1. Open SmartWarmupAI at #/smartwarmupai; it starts on Accounts. 2. Click Add account to connect a mailbox (Google, Microsoft or Other (SMTP / IMAP)) - this needs a real backend; in demo mode explore the sample mailboxes instead. 3. Open a mailbox, go to its Warmup tab and click Start warmup. 4. Add prospects in Contacts with New contact or Import. 5. In Campaigns click New campaign, fill Campaign name, Who should get it?, What will they receive? and When, and from which mailboxes?, then Review and launch. 6. Answer replies in Inbox. 7. Check Analytics and Deliverability. 8. Use the Help tab for detailed guides.",
+  "howToSteps": [
+    "Open #/smartwarmupai.",
+    "Connect a mailbox with Add account (real backend only).",
+    "Start warmup on the mailbox's Warmup tab.",
+    "Add contacts with New contact or Import.",
+    "Create and launch a campaign with New campaign.",
+    "Reply to prospects in Inbox.",
+    "Review Analytics and Deliverability."
+  ],
+  "gettingStarted": [
+    "Remember the studio shows demo data by default: nothing is really sent and changes vanish on reload.",
+    "Use the deep links (for example #/smartwarmupai/inbox) to jump straight to a view.",
+    "Read Help > Guides > Warmup before starting warmup on real mailboxes.",
+    "Warm new mailboxes for a while before sending campaigns from them."
+  ],
+  "inputs": [
+    "Mailbox sign-in (Google, Microsoft, app password or SMTP / IMAP)",
+    "Warmup ramp, sending window and sending days",
+    "Contacts or a CSV file",
+    "Campaign name, leads, email steps and schedule",
+    "Replies and templates",
+    "Automation trigger and actions"
+  ],
+  "requiredInputs": [
+    "A connected mailbox (for warmup, campaigns and inbox, on a real backend)"
+  ],
+  "optionalInputs": [
+    "Warmup ramp settings",
+    "Contacts and segments",
+    "Templates",
+    "Integrations",
+    "Automations"
+  ],
+  "inputDetails": [
+    {
+      "name": "Mailbox",
+      "description": "An email account connected with Add account.",
+      "required": true,
+      "whenToUse": "Before warmup, campaigns or the inbox.",
+      "restrictions": "Real connection needs a real backend; Google and Microsoft sign-in must be configured on the deployment."
+    },
+    {
+      "name": "Ramp configuration",
+      "description": "Starting volume, Daily increase, Maximum volume and Reply rate for warmup.",
+      "required": false,
+      "whenToUse": "To change how fast warmup volume grows.",
+      "restrictions": "Starting volume can't exceed the maximum."
+    },
+    {
+      "name": "Sending window",
+      "description": "Start time and End time for warmup or campaign sends.",
+      "required": false,
+      "whenToUse": "To keep sends inside working hours.",
+      "restrictions": "The end must be later than the start on the same day."
+    },
+    {
+      "name": "Leads",
+      "description": "The contacts a campaign sends to, from a list or an imported CSV.",
+      "required": true,
+      "whenToUse": "When creating a campaign.",
+      "restrictions": "Contacts on the Suppression list are not emailed."
+    },
+    {
+      "name": "Email steps",
+      "description": "The emails and logic (If / else, If they reply, Switch, AI step) in a campaign.",
+      "required": true,
+      "whenToUse": "In What will they receive? or the campaign's Steps tab.",
+      "restrictions": "AI step and Write with AI need an AI connection."
+    }
+  ],
+  "generationModes": [],
+  "modeExplanations": [],
+  "modelCapabilities": "",
+  "outputs": [
+    "Warmed-up mailboxes with health and placement data",
+    "Sent cold email sequences",
+    "Replies handled in one inbox",
+    "Contacts, deals, tasks and meetings",
+    "Analytics, deliverability results and shareable reports"
+  ],
+  "limitations": [
+    "The studio runs on recorded demo data unless a real backend is configured.",
+    "Demo changes are kept only in the browser and are lost on reload.",
+    "Some views have no demo data and say so.",
+    "Billing, plans and 'SmartWarmupAI Cloud' describe the original project's hosted service, not SmartWarmupAI.",
+    "Warmup does not guarantee inbox placement."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Demo mode",
+      "impact": "You cannot connect real mailboxes or send real email.",
+      "workaround": "Use it to learn the dashboard; ask whoever runs the app to set up a real backend for real use."
+    },
+    {
+      "limitation": "Changes not saved",
+      "impact": "Campaigns, contacts and settings you change disappear after a reload.",
+      "workaround": "Treat demo edits as practice only."
+    },
+    {
+      "limitation": "Renamed upstream pages",
+      "impact": "Billing, Cloud and some Help pages read as if they were SmartWarmupAI's own service.",
+      "workaround": "Ignore plans, pricing and support details there; they belong to the original project."
+    }
+  ],
+  "troubleshooting": [
+    "'The SmartWarmupAI dashboard has not been built yet.': the dashboard files are missing on this server; the person running the app must run npm run build:smartwarmupai.",
+    "'This view has no recorded demo data yet.': that view has no sample data in demo mode; try another view.",
+    "My changes disappeared: demo mode keeps changes only until you reload.",
+    "Add account says the provider is not configured: Google or Microsoft sign-in is not set up on this deployment; use Other (SMTP / IMAP) on a real backend.",
+    "The Help tab is missing: the Help site has not been built on this server.",
+    "A Help deep link does not open: add a trailing slash, for example #/smartwarmupai/help/guides/warmup/."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Dashboard not showing",
+      "steps": [
+        "Check the message in the studio.",
+        "If it says the dashboard has not been built yet, ask the app owner to run npm run build:smartwarmupai.",
+        "Reload #/smartwarmupai."
+      ]
+    },
+    {
+      "issue": "Warmup is not starting",
+      "steps": [
+        "Check you are not in demo mode (sample Sunrise Labs mailboxes mean demo mode).",
+        "Open the mailbox drawer and look for Needs reconnect or Needs attention.",
+        "Check Domain authentication (SPF, DKIM, DMARC) on the mailbox.",
+        "Click Start warmup on the Warmup tab again."
+      ]
+    },
+    {
+      "issue": "Campaign is not sending",
+      "steps": [
+        "Make sure it is on a real backend with real mailboxes.",
+        "Check the campaign has leads, at least one Email step and mailboxes chosen.",
+        "Check the sending window and start date in Schedule."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "Nothing is actually sent",
+      "whyItHappens": "The studio is in demo mode with recorded sample data.",
+      "howToFix": "A real compatible backend must be configured by the app owner."
+    },
+    {
+      "problem": "Plans and prices look like SmartWarmupAI's",
+      "whyItHappens": "The original project's hosted-service pages were renamed automatically.",
+      "howToFix": "Ignore them; they are not SmartWarmupAI plans."
+    },
+    {
+      "problem": "Emails land in spam",
+      "whyItHappens": "New mailboxes or domains without SPF, DKIM and DMARC, or sending too much too soon.",
+      "howToFix": "Fix Domain authentication, keep warmup on, lower Maximum per mailbox per day and run a Placement test."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Warm up and launch a first campaign",
+      "steps": [
+        "In Accounts click Add account and connect a mailbox (real backend).",
+        "Open the mailbox, go to Warmup and click Start warmup.",
+        "Import your prospects in Contacts.",
+        "In Campaigns click New campaign, add two Email steps and turn on Stop on reply.",
+        "Review and launch, then watch replies in Inbox."
+      ]
+    },
+    {
+      "title": "Explore the demo",
+      "steps": [
+        "Open #/smartwarmupai/inbox and read the sample replies.",
+        "Open #/smartwarmupai/campaigns and open a campaign's Steps tab.",
+        "Open #/smartwarmupai/deliverability to see inbox and spam rates."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Agency cold outreach",
+      "description": "Warm several client mailboxes and run sequences for each client.",
+      "steps": [
+        "Use Invite client to connect so the client connects their mailbox.",
+        "Start warmup on each mailbox.",
+        "Create a campaign per client.",
+        "Share results with Reports."
+      ],
+      "expectedOutput": "Warmed mailboxes, running campaigns and shareable client reports."
+    },
+    {
+      "title": "Video plus email follow-up",
+      "description": "Make a personalized video in Video Outreach and send follow-ups from SmartWarmupAI.",
+      "steps": [
+        "Create personal links in Video Outreach (#/outreach).",
+        "Download the links .csv and import it in Contacts.",
+        "Add the link to an Email step in a campaign."
+      ],
+      "expectedOutput": "An email sequence that links each prospect to their video."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Can I connect my real Gmail or Outlook here?",
+      "answer": "Only when the app owner has connected a real backend. By default the studio runs on demo data and nothing is connected or sent."
+    },
+    {
+      "question": "Why does my work disappear when I reload?",
+      "answer": "In demo mode changes are kept only in your browser for that session."
+    },
+    {
+      "question": "Are the plans on the Billing page SmartWarmupAI plans?",
+      "answer": "No. Billing and 'SmartWarmupAI Cloud' come from the original open-source project's hosted service and were renamed; they are not SmartWarmupAI plans."
+    },
+    {
+      "question": "How fast does warmup ramp up?",
+      "answer": "According to the Help guide, by default it starts at 10 emails a day and rises by 1 a day to 40. You can change this in Ramp configuration on the mailbox's Warmup tab."
+    },
+    {
+      "question": "How do I open a view directly?",
+      "answer": "Use #/smartwarmupai/ followed by mailboxes, campaigns, inbox, contacts, pipeline, deliverability, automations, integrations, dashboard, settings or help."
+    }
+  ],
+  "glossary": {
+    "Warmup": "Automatic emails between participating mailboxes that build sending history and show where mail lands.",
+    "Ramp": "How warmup volume grows each day up to a maximum.",
+    "Sequence": "The steps of a campaign: emails, waits and conditions.",
+    "Inbox (unibox)": "One inbox for replies from all connected mailboxes.",
+    "Placement test": "Sending a test email to seed inboxes to see if it lands in inbox or spam.",
+    "Suppression list": "Addresses that must never be emailed.",
+    "Demo mode": "The studio's default: recorded sample data, nothing really sent or saved."
+  },
+  "tips": [
+    "Keep warmup on after campaigns start.",
+    "Set SPF, DKIM and DMARC before sending.",
+    "Use Stop on reply so prospects who answer get no more follow-ups.",
+    "Run a Placement test before a big campaign."
+  ],
+  "bestPractices": [
+    "Warm new mailboxes before cold outreach.",
+    "Keep daily sends per mailbox modest.",
+    "Keep your Suppression list up to date.",
+    "Never click Danger zone actions unless you mean it."
+  ],
+  "relatedStudios": ["outreach", "leadfinder", "personalizer", "video-pages"],
+  "relatedStudioGuidance": [
+    {
+      "studio": "outreach",
+      "relationship": "Personalized video outreach",
+      "whenToMove": "You want each prospect to get a video that says their name.",
+      "why": "Video Outreach makes the personal video links you can send from SmartWarmupAI campaigns."
+    },
+    {
+      "studio": "leadfinder",
+      "relationship": "Find local business prospects",
+      "whenToMove": "You need local businesses and a personalized demo video for each.",
+      "why": "It finds and saves leads and makes demos; SmartWarmupAI then emails them."
+    },
+    {
+      "studio": "personalizer",
+      "relationship": "Personalized pages",
+      "whenToMove": "You want a personal landing page to link in your emails.",
+      "why": "A personal page can lift replies to a cold email."
+    },
+    {
+      "studio": "video-pages",
+      "relationship": "Video landing pages",
+      "whenToMove": "You want one video page to link from every email.",
+      "why": "It publishes a shareable page for your video."
+    }
+  ],
+  "notConfirmed": [
+    "Whether the live site is configured with a real backend or always runs in demo mode.",
+    "Whether Ask Remie answers in demo mode.",
+    "Exactly which views have no recorded demo data.",
+    "Whether demo changes survive moving between pages inside the dashboard (they are lost on reload).",
+    "Plan gates, limits and AI credit costs on a real backend.",
+    "Whether Help deep links without a trailing slash open on the live site.",
+    "Whether Google and Microsoft sign-in are configured on any real deployment."
+  ],
+  "sourceFiles": [
+    "src/components/studios/SmartWarmupAIStudio/SmartWarmupAIStudio.js",
+    "src/lib/router.js",
+    "src/lib/studioRoutes.js",
+    "apps/smartwarmupai-brand/README.md",
+    "apps/smartwarmupai-brand/brand.json",
+    "apps/smartwarmupai-brand/rebrand-plugin.mjs",
+    "apps/warmbly-web/UPSTREAM.md",
+    "apps/warmbly-web/src/lib/demo/server.ts",
+    "apps/warmbly-web/src/lib/demo/fixtures.json",
+    "apps/warmbly-web/src/components/layout/AppNav.tsx",
+    "apps/warmbly-web/src/components/layout/AppHeader.tsx",
+    "apps/warmbly-web/src/app/app/emails/page.tsx",
+    "apps/warmbly-web/src/components/app/modals/AddEmailModal.tsx",
+    "apps/warmbly-web/src/components/app/emails/InboxDetails.tsx",
+    "apps/warmbly-web/src/app/app/campaigns/page.tsx",
+    "apps/warmbly-web/src/app/app/campaigns/[id]/layout.tsx",
+    "apps/warmbly-web/src/components/app/campaigns/new/steps.tsx",
+    "apps/warmbly-web/src/components/app/campaigns/sequences/campaignSteps.tsx",
+    "apps/warmbly-web/src/lib/unibox/views.ts",
+    "apps/warmbly-web/src/components/app/unibox/ScopeRail.tsx",
+    "apps/warmbly-web/src/components/app/unibox/ThreadView.tsx",
+    "apps/warmbly-web/src/components/app/unibox/ReplyComposer.tsx",
+    "apps/warmbly-web/src/components/app/contacts/ContactsTable.tsx",
+    "apps/warmbly-web/src/components/app/contacts/ImportWizard.tsx",
+    "apps/warmbly-web/src/app/app/leads/page.tsx",
+    "apps/warmbly-web/src/app/app/automations/page.tsx",
+    "apps/warmbly-web/src/app/app/integrations/page.tsx",
+    "apps/warmbly-web/src/app/app/analytics/page.tsx",
+    "apps/warmbly-web/src/app/app/deliverability/page.tsx",
+    "apps/warmbly-web/src/app/app/placement/page.tsx",
+    "apps/warmbly-web/src/app/app/settings/layout.tsx",
+    "apps/smartwarmupai-help/build.mjs",
+    "apps/smartwarmupai-help/content/docs/guides/warmup.mdx"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the studio shell and deep links, brand and demo-mode notes, the dashboard side menu, Accounts, Add account dialog, mailbox drawer, campaign wizard and steps, inbox views, contacts, lead finder, automations, deliverability and settings labels, and the Help warmup guide. Not run in a browser.",
+    "verifiedAt": "2026-11-22",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

@@ -4,6 +4,7 @@
  * project, and turns them into caption cues for the list and the SRT/VTT downloads. No browser code, no Remotion: fully testable.
  */
 import type { CaptionPage } from './studioLayout'
+import { WEIGHTS, type WeightName } from './studioFonts'
 import type { CaptionStyleId, PreviewCaptionCue, PreviewCaptionWord } from '../preview/types'
 
 export interface StudioCaptionStyle {
@@ -19,6 +20,8 @@ export interface StudioCaptionStyle {
   highlightColor: string
   strokeColor: string
   backgroundColor: string
+  /** One of the five weights; absent = the look's own (bold 800, otherwise 500). */
+  weight?: WeightName
   bold: boolean
   italic: boolean
   uppercase: boolean
@@ -59,6 +62,7 @@ function cleanStyle(raw: unknown): StudioCaptionStyle {
     highlightColor: color(r.highlightColor, '#FFE14D'),
     strokeColor: color(r.strokeColor, '#000000'),
     backgroundColor: color(r.backgroundColor, 'rgba(0,0,0,0.6)'),
+    ...(typeof r.weight === 'string' && Object.prototype.hasOwnProperty.call(WEIGHTS, r.weight) ? { weight: r.weight as WeightName } : {}),
     bold: flag(r.bold, true), italic: flag(r.italic, false), uppercase: flag(r.uppercase, false),
     stroke: flag(r.stroke, true), background: flag(r.background, false), highlightActive: flag(r.highlightActive, true),
     combineMs: clamp(num(r.combineMs) ?? 900, 100, 6000),
@@ -107,10 +111,8 @@ export function studioFallbackStyle(style: StudioCaptionStyle): CaptionStyleId {
   return style.stroke ? 'bold' : 'clean'
 }
 
-/**
- * The ONE font the personalization composition draws with (the local "Personalization Sans" Inter subset, public/fonts), so the live
- * preview and the browser export can never disagree and nothing is fetched at export. The Caption Studio is told this is the only allowed
- * font, so a look's own font is replaced by it while designing. (Other font packages are installed but not loaded in the composition, so
- * a caption in e.g. Anton would silently fall back; it is deliberately not offered.)
- */
-export const EDITOR_CAPTION_FONTS: readonly string[] = Object.freeze(['Inter'])
+/** The captions at a dragged height (0..1 of the frame from the top), or back in their place with `undefined`. */
+export function withPositionY(studio: StudioCaptions, positionY: number | undefined): StudioCaptions {
+  const { positionY: _was, ...rest } = studio.style
+  return { ...studio, style: positionY === undefined ? rest : { ...rest, positionY: clamp(positionY, 0, 1) } }
+}

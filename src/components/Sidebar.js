@@ -1,3 +1,4 @@
+import { parseLocation } from '../lib/routeUrl.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { getStudioIcon, NAV_GROUPS, getNavItemForRoute } from '../lib/studioRoutes.js';
 
@@ -92,7 +93,7 @@ export function Sidebar(navigate) {
     });
   };
 
-  setActive(typeof window !== 'undefined' ? window.location.hash.slice(2) : '');
+  setActive(typeof window !== 'undefined' ? parseLocation().page : '');
   element.addEventListener('route-changed', (e) => setActive(e.detail.page));
 
   // Mobile menu toggle button. On desktop the sidebar is always visible (via
