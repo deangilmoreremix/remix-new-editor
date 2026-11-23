@@ -49,11 +49,11 @@ describe('captions panel with the Caption Studio available', () => {
     expect(document.querySelector('[data-testid^="captions-style-"]')).toBeNull()
     expect(engine.transcribeVideo).not.toHaveBeenCalled()
   })
-  it('opens the studio on this video, allowing only the font the composition loads', () => {
+  it('opens the studio on this video, with every embedded font allowed', () => {
     act(() => { q('captions-open-studio')!.click() })
     expect(requests).toHaveLength(1)
     expect(requests[0].videoUrl).toBe(VIDEO)
-    expect(requests[0].fonts).toEqual(['Inter'])
+    expect(requests[0].fonts).toBeUndefined() // no restriction: every font is embedded
   })
   it('stores what the studio returns: pages, full style, and the cues for the list and SRT', () => {
     act(() => { q('captions-open-studio')!.click() })

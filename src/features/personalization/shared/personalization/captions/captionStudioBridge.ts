@@ -11,7 +11,7 @@ export interface CaptionStudioRequest {
   /** Existing captions to start from, word by word. */
   words?: CaptionStudioWord[]
   /** The look to start from (a StudioCaptionStyle, or part of one). */
-  style?: Record<string, unknown>
+  style?: object
   /** Fonts the editor can draw and export offline; the Studio limits its font menu to these. */
   fonts?: readonly string[]
   /** Called with `{ pages, style }` (see captions/studioCaptions.ts) when the person applies their captions. */

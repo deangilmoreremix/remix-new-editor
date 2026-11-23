@@ -7,7 +7,7 @@ import { useLocalAI, type LocalAI } from '../localAI/useLocalAI'
 import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaptions } from '../preview/types'
 import { groupCaptionCues } from './captionCues'
 import { getCaptionStudio, type CaptionStudioWord } from './captionStudioBridge'
-import { EDITOR_CAPTION_FONTS, cleanStudioCaptions, studioFallbackStyle, studioToCues } from './studioCaptions'
+import { cleanStudioCaptions, studioFallbackStyle, studioToCues } from './studioCaptions'
 
 export interface Captions {
   ai: LocalAI
@@ -95,7 +95,7 @@ export function useCaptions(videoUrl: string | null): Captions {
       ? captions.studio.pages.flatMap((p) => p.tokens.map((t) => ({ text: t.text.trim(), startMs: t.fromMs, endMs: t.toMs })))
       : (captions?.cues ?? []).flatMap((cue) => cue.words?.length ? cue.words.map((w) => ({ text: w.text, startMs: w.startMs, endMs: w.endMs })) : [{ text: cue.text, startMs: cue.startMs, endMs: cue.endMs }])
     open({
-      videoUrl, words, style: captions?.studio?.style, fonts: EDITOR_CAPTION_FONTS,
+      videoUrl, words, style: captions?.studio?.style,
       onApply: (raw) => {
         if (latestUrl.current !== openedFor) { setNote('The video changed while you were captioning, so those captions were not added.'); return }
         const studio = cleanStudioCaptions(raw)
