@@ -70,8 +70,8 @@ export const StudioCaptionLine: React.FC<{ studio: StudioCaptions; ms: number; w
               {w.box && <div style={{ position: 'absolute', left: w.width / 2 + w.box.x, top: frame.lineH / 2 + w.box.y, width: w.box.w, height: w.box.h, borderRadius: w.box.r, background: w.box.color }} />}
               <span style={{ ...text, color: w.color, textShadow: shadow }}>{w.text}</span>
               {w.wipe && (
-                <div style={{ position: 'absolute', left: 0, top: 0, width: w.width * w.wipe.fraction, height: frame.lineH, overflow: 'hidden' }}>
-                  <span style={{ ...text, color: w.wipe.color, textShadow: shadow }}>{w.text}</span>
+                <div style={{ position: 'absolute', ...(w.rtl ? { right: 0 } : { left: 0 }), top: 0, width: w.width * w.wipe.fraction, height: frame.lineH, overflow: 'hidden' }}>
+                  <span style={{ ...text, ...(w.rtl ? { left: 'auto', right: 0 } : {}), color: w.wipe.color, textShadow: shadow }}>{w.text}</span>
                 </div>
               )}
             </div>

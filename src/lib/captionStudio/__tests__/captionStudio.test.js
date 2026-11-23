@@ -254,6 +254,25 @@ describe('layout core', () => {
     expect(frameAt(500, { background: true }).lineBoxes).toHaveLength(1);
     expect(frameAt(500, { background: true, stroke: true }).words[0].outlinePx).toBe(0); // a line box replaces the outline
   });
+  it('lays right-to-left lines out from the right, so Arabic and Hebrew read in order', () => {
+    const rtl = words('שלום', 'עולם', 'יפה');
+    const page = activePageAt(modelPages(rtl, { combineMs: 5000 }), 500);
+    const f = layoutCaptionFrame({ page, style: { fontSize: 6 }, ms: 500, width: 1000, height: 1000, measure: meas });
+    expect(f.words.map((w) => w.text)).toEqual(['שלום', 'עולם', 'יפה']);
+    expect(f.words.every((w) => w.rtl)).toBe(true);
+    expect(f.words[0].cx).toBeGreaterThan(f.words[1].cx);
+    expect(f.words[1].cx).toBeGreaterThan(f.words[2].cx);
+    const left = Math.min(...f.words.map((w) => w.cx - w.width / 2));
+    const right = Math.max(...f.words.map((w) => w.cx + w.width / 2));
+    expect((left + right) / 2).toBeCloseTo(500, 0); // still centred
+  });
+  it('keeps left-to-right lines as they were, and decides per line by the majority script', () => {
+    const f = frameAt(500);
+    expect(f.words.every((w) => !w.rtl)).toBe(true);
+    expect(f.words[0].cx).toBeLessThan(f.words[1].cx);
+    const mixed = layoutCaptionFrame({ page: activePageAt(modelPages(words('שלום', 'עולם', 'ok'), { combineMs: 5000 }), 500), style: { fontSize: 6 }, ms: 500, width: 1000, height: 1000, measure: meas });
+    expect(mixed.words.every((w) => w.rtl)).toBe(true); // 2 of 3 words are Hebrew
+  });
   it('returns nothing when there is no page', () => {
     expect(layoutCaptionFrame({ page: null, style: {}, ms: 0, width: 100, height: 100, measure: meas })).toBeNull();
   });

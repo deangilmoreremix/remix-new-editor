@@ -62,7 +62,7 @@ export function drawCaptionFrame(ctx, frame, style = {}) {
     if (w.box) { ctx.fillStyle = w.box.color; roundRect(ctx, w.box.x, w.box.y, w.box.w, w.box.h, w.box.r); ctx.fill(); }
     const draw = (color, clipFraction) => {
       ctx.save();
-      if (clipFraction != null) { ctx.beginPath(); ctx.rect(lx, -lineH, w.width * clipFraction, lineH * 2); ctx.clip(); }
+      if (clipFraction != null) { ctx.beginPath(); ctx.rect(w.rtl ? lx + w.width * (1 - clipFraction) : lx, -lineH, w.width * clipFraction, lineH * 2); ctx.clip(); }
       if (w.outlinePx) {
         ctx.lineWidth = w.outlinePx * 2; // the stroke is centred on the glyph edge, so half of it shows outside
         ctx.strokeStyle = w.outlineColor;
