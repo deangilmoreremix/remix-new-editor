@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Promotes plain (single-file) BLOCKS that were evaluated through the production path, when every gate passes:
+"""Promotes plain (single-file) BLOCKS and starter projects (type example, keeps its pinned project record) that were evaluated through the production path, when every gate passes:
 SSIM >= 0.95 vs native HyperFrames at every sample (native not blank), no adapter error, policy features clean (WebGL / three.js allowed: measured with software WebGL; WebGPU and
 html-in-canvas are not), real full-length 1080p browser MP4 export >= 3 fps (< 8 fps = `slow` label), and either >= 1 editable text field with a measured visible effect or no visible text.
 Inputs are the evaluation artefacts (see docs/hyperframes-timeline-integration.md, "Stage 3, part 3"):
@@ -46,7 +46,7 @@ for k in [x for x in a.ids.split(',') if x]:
         if not ready: blocked.append('shows built-in text and exposes no editable field with a visible effect' if leaves else 'barely visible output')
     elif not any(x['type'] == 'text' for x in good) and leaves: blocked.append('shows built-in text that cannot be edited')
     if blocked: report[k] = '; '.join(blocked); continue
-    rec = {kk: vv for kk, vv in ev[k].items() if kk != 'project'}; rec['category'] = (rec.get('tags') or ['other'])[0]; rec['type'] = 'block'; rec['editables'] = good; rec['readyToUse'] = ready; rec['motion'] = 'static' if motion(ours) < 0.0005 else 'animated'
+    isx = ev[k].get('type') == 'example'; rec = {kk: vv for kk, vv in ev[k].items() if isx or kk != 'project'}; rec['category'] = (rec.get('tags') or ['other'])[0]; rec['type'] = 'example' if isx else 'block'; rec['editables'] = good; rec['readyToUse'] = ready; rec['motion'] = 'static' if motion(ours) < 0.0005 else 'animated'
     if e['fps'] < SLOW_FPS: rec['slow'] = True
     new.append(rec)
     v.update(status='verified-export', enabled=True, enabledBlockedBy=[], reason='SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK')

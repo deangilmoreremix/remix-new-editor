@@ -122,7 +122,7 @@ curtain-reveal,component,specialized,no,no,no,0.572,,worst-sample SSIM 0.572: co
 cut-the-curve,component,verified-export,yes,yes,no,0.961,1,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
 dart-cursor,component,host-dependent,no,no,no,0.998,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 data-chart,block,verified-export,yes,yes,no,0.995,5,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
-decision-tree,example,verified-export,yes,no,no,0.995,,export throughput 6.7 fps < 8
+decision-tree,example,verified-export,yes,yes,no,0.99,11,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 decline-chart,component,specialized,no,no,no,0.564,,worst-sample SSIM 0.564: content differs from native
 device-frame-stage,component,adapter-compatible,no,no,no,0.892,,worst-sample SSIM 0.892
 directional-wipe,component,verified-export,yes,no,no,1.0,,export throughput 4.4 fps < 8
@@ -264,7 +264,7 @@ notification-stack,component,specialized,no,no,no,0.723,,worst-sample SSIM 0.723
 number-pop-in,component,verified-export,yes,yes,no,0.999,4,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 number-wheel,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 nyc-paris-flight,block,verified-export,yes,no,no,0.99,,audio feature; no real browser export run
-nyt-graph,example,verified-export,yes,no,no,0.995,,export throughput 6.9 fps < 8
+nyt-graph,example,verified-export,yes,yes,no,0.976,5,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 obsidian,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline obsidian: no __timelines entry (data-no-timeline block)
 offset-path-traveler,component,verified-export,yes,no,no,0.973,,no real browser export run; no editable field with a measured visible effect
 onboarding-stepper-flow,component,verified-export,yes,no,no,0.983,,export throughput 4.4 fps < 8
@@ -292,7 +292,7 @@ perspective-marquee,component,verified-export,yes,yes,no,1.0,4,SSIM >= 0.95 at a
 physical-exit,component,specialized,no,no,no,0.641,,worst-sample SSIM 0.641: content differs from native
 plasma,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline plasma: no __timelines entry (data-no-timeline block)
 plastic,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline plastic: no __timelines entry (data-no-timeline block)
-play-mode,example,adapter-compatible,no,no,no,0.932,,worst-sample SSIM 0.932
+play-mode,example,adapter-compatible,no,no,no,0.932,,worst-sample SSIM 0.62 against native (production path); held back
 press-ripple,component,verified-export,yes,no,no,0.989,,standalone output is (nearly) blank; no real browser export run; no editable field with a measured visible effect
 prism,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline prism: no __timelines entry (data-no-timeline block)
 product-promo,example,verified-export,yes,yes,no,0.995,4,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
@@ -364,7 +364,7 @@ svg-stroke-trace,component,adapter-compatible,no,no,no,0.867,,worst-sample SSIM 
 swipe-rail,component,specialized,no,no,no,0.595,,worst-sample SSIM 0.595: content differs from native
 swirl,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline swirl: no __timelines entry (data-no-timeline block)
 swirl-vortex,block,verified-export,yes,yes,no,0.984,4,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
-swiss-grid,example,adapter-compatible,no,no,no,0.876,,worst-sample SSIM 0.876
+swiss-grid,example,adapter-compatible,no,no,no,0.876,,worst-sample SSIM 0.80 against native (production path); held back
 tabs-slide-indicator,component,verified-export,yes,yes,no,1.0,3,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 telemetry-hud,component,adapter-compatible,no,no,no,0.891,,worst-sample SSIM 0.891
 terminal-simulator,component,verified-export,yes,no,no,0.967,,export throughput 4.4 fps < 8
@@ -426,12 +426,12 @@ vfx-magnetic,block,verified-export,yes,no,no,,,WebGL; HTML-in-canvas API; no edi
 vfx-portal,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.000: content differs from native (export not attempted)"
 vfx-shatter,block,unsupported,no,no,no,,,the block failed to mount: mount vfx-shatter: ctxA.drawElementImage is not a function
 vfx-text-cursor,block,unsupported,no,no,no,,,MP4 export failed: export timeout
-vignelli,example,adapter-compatible,no,no,no,0.895,,worst-sample SSIM 0.895
+vignelli,example,adapter-compatible,no,no,no,0.895,,native render failed (no reference) and production SSIM is not measurable; held back
 vignette,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 voronoi,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline voronoi: no __timelines entry (data-no-timeline block)
 vox-annotate,component,adapter-compatible,no,no,no,0.949,,worst-sample SSIM 0.949
 vpn-youtube-spot,block,verified-export,yes,no,no,0.97,,audio feature; no real browser export run
-warm-grain,example,adapter-compatible,no,no,no,0.942,,worst-sample SSIM 0.942
+warm-grain,example,adapter-compatible,no,no,no,0.942,,native render failed (no reference) and production SSIM is not measurable; held back
 water,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline water: no __timelines entry (data-no-timeline block)
 waveform,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline waveform: no __timelines entry (data-no-timeline block)
 week-in-merges,block,verified-export,yes,yes,no,0.991,7,SSIM >= 0.95 at all samples; MP4 export OK

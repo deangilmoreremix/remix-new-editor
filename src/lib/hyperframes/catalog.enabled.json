@@ -10423,6 +10423,242 @@
    ],
    "motion": "animated",
    "slow": true
+  },
+  {
+   "id": "decision-tree",
+   "type": "example",
+   "title": "Decision Tree",
+   "description": "Animated flowchart with branching paths",
+   "tags": [],
+   "category": "other",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 10,
+   "sourceSha256": "1fcbe4d6226d36937d75d2a03e88a9cc695df5293f44087f122c8c8f60dfde39",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "compositions/decision_tree.html",
+     "target": "compositions/decision_tree.html",
+     "sha256": "e647d23a41933f100208a1b3c38d089105441e7daf77f54a61edd8dde06cfa27"
+    },
+    {
+     "path": "index.html",
+     "target": "index.html",
+     "sha256": "1fcbe4d6226d36937d75d2a03e88a9cc695df5293f44087f122c8c8f60dfde39"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t12",
+     "label": "Branch label 1",
+     "defaultValue": "Yes",
+     "type": "text",
+     "target": {
+      "hfId": "hf-12",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t13",
+     "label": "Branch label 2",
+     "defaultValue": "Not sure",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t14",
+     "label": "Question",
+     "defaultValue": "Should I learn to code?",
+     "type": "text",
+     "target": {
+      "hfId": "hf-14",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t15",
+     "label": "Choice 1",
+     "defaultValue": "Yes",
+     "type": "text",
+     "target": {
+      "hfId": "hf-15",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t16",
+     "label": "Choice 2",
+     "defaultValue": "Not sure",
+     "type": "text",
+     "target": {
+      "hfId": "hf-16",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t19",
+     "label": "Answer 1",
+     "defaultValue": "Start with Python",
+     "type": "text",
+     "target": {
+      "hfId": "hf-19",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t22",
+     "label": "Answer 2",
+     "defaultValue": "Try no-code first",
+     "type": "text",
+     "target": {
+      "hfId": "hf-22",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t23",
+     "label": "Answer 3",
+     "defaultValue": "Build a personal website",
+     "type": "text",
+     "target": {
+      "hfId": "hf-23",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t24",
+     "label": "Answer 4",
+     "defaultValue": "Take a free intro course",
+     "type": "text",
+     "target": {
+      "hfId": "hf-24",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t28",
+     "label": "Cursor name",
+     "defaultValue": "You",
+     "type": "text",
+     "target": {
+      "hfId": "hf-28",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t29",
+     "label": "Reaction emoji",
+     "defaultValue": "\ud83d\udc4d",
+     "type": "text",
+     "target": {
+      "hfId": "hf-29",
+      "kind": "text"
+     }
+    }
+   ],
+   "project": {
+    "dir": "examples/decision-tree",
+    "entry": "index.html",
+    "files": {
+     "compositions/decision_tree.html": "e647d23a41933f100208a1b3c38d089105441e7daf77f54a61edd8dde06cfa27",
+     "index.html": "1fcbe4d6226d36937d75d2a03e88a9cc695df5293f44087f122c8c8f60dfde39"
+    }
+   },
+   "motion": "animated"
+  },
+  {
+   "id": "nyt-graph",
+   "type": "example",
+   "title": "NYT Graph",
+   "description": "Animated data chart in print editorial style",
+   "tags": [],
+   "category": "other",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 15,
+   "sourceSha256": "7dbef284e58bb2f0db8050eb1d088f4ed1462f857985bd9c5f0de0d41fb34e1d",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "compositions/nyt-chart.html",
+     "target": "compositions/nyt-chart.html",
+     "sha256": "6ab04469ee1c6244980b8008c306737e1de1b8a97aa5efe19777269e615cde52"
+    },
+    {
+     "path": "index.html",
+     "target": "index.html",
+     "sha256": "7dbef284e58bb2f0db8050eb1d088f4ed1462f857985bd9c5f0de0d41fb34e1d"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t6",
+     "label": "Title",
+     "defaultValue": "Monthly Revenue vs. Conversion Rate",
+     "type": "text",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t7",
+     "label": "Subtitle",
+     "defaultValue": "Jan\u2013Jun 2024, in thousands",
+     "type": "text",
+     "target": {
+      "hfId": "hf-7",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t11",
+     "label": "Bar series name",
+     "defaultValue": "Revenue",
+     "type": "text",
+     "target": {
+      "hfId": "hf-11",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t14",
+     "label": "Line series name",
+     "defaultValue": "Conversion Rate",
+     "type": "text",
+     "target": {
+      "hfId": "hf-14",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t25",
+     "label": "Source note",
+     "defaultValue": "Source: Internal analytics",
+     "type": "text",
+     "target": {
+      "hfId": "hf-25",
+      "kind": "text"
+     }
+    }
+   ],
+   "project": {
+    "dir": "examples/nyt-graph",
+    "entry": "index.html",
+    "files": {
+     "compositions/nyt-chart.html": "6ab04469ee1c6244980b8008c306737e1de1b8a97aa5efe19777269e615cde52",
+     "index.html": "7dbef284e58bb2f0db8050eb1d088f4ed1462f857985bd9c5f0de0d41fb34e1d"
+    }
+   },
+   "motion": "animated"
   }
  ]
 }

@@ -57,7 +57,7 @@
   "no editable field with a measured visible effect": 1,
   "export throughput 4.6 fps < 8.0": 1
  },
- "enabledCount": 137,
+ "enabledCount": 139,
  "items": {
   "ai-answer-rank": {
    "type": "block",
@@ -8940,26 +8940,20 @@
   "decision-tree": {
    "type": "example",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
-    "prodSsimMin": 0.995,
+    "prodSsimMin": 0.99,
     "adapterErrors": [],
     "motion": 0.0554,
     "export": {
-     "id": "decision-tree",
      "ok": true,
-     "ms": 8987,
-     "bytes": 98646,
-     "fps": 6.7,
-     "hfErrors": {}
+     "fps": 12.5
     },
     "kind": "animated",
-    "nonBlank": 1.0
+    "nonBlank": 0.0736
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 6.7 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "kinetic-type": {
    "type": "example",
@@ -8980,26 +8974,20 @@
   "nyt-graph": {
    "type": "example",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
-    "prodSsimMin": 0.995,
+    "prodSsimMin": 0.976,
     "adapterErrors": [],
     "motion": 0.0653,
     "export": {
-     "id": "nyt-graph",
      "ok": true,
-     "ms": 8642,
-     "bytes": 63410,
-     "fps": 6.9,
-     "hfErrors": {}
+     "fps": 16.3
     },
     "kind": "animated",
-    "nonBlank": 1.0
+    "nonBlank": 0.101
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 6.9 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "path-traced-3d": {
    "type": "example",
@@ -9020,7 +9008,7 @@
   "play-mode": {
    "type": "example",
    "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.932",
+   "reason": "worst-sample SSIM 0.62 against native (production path); held back",
    "evidence": {
     "prodSsimMin": 0.932,
     "adapterErrors": [],
@@ -9056,7 +9044,7 @@
   "swiss-grid": {
    "type": "example",
    "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.876",
+   "reason": "worst-sample SSIM 0.80 against native (production path); held back",
    "evidence": {
     "prodSsimMin": 0.876,
     "adapterErrors": [],
@@ -9070,7 +9058,7 @@
   "vignelli": {
    "type": "example",
    "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.895",
+   "reason": "native render failed (no reference) and production SSIM is not measurable; held back",
    "evidence": {
     "prodSsimMin": 0.895,
     "adapterErrors": [],
@@ -9084,7 +9072,7 @@
   "warm-grain": {
    "type": "example",
    "status": "adapter-compatible",
-   "reason": "worst-sample SSIM 0.942",
+   "reason": "native render failed (no reference) and production SSIM is not measurable; held back",
    "evidence": {
     "prodSsimMin": 0.942,
     "adapterErrors": [],

@@ -174,3 +174,6 @@ Software WebGL works in the test browser (ANGLE SwiftShader), so WebGL and three
 - **Held back:** `code-particle-assemble` (SSIM 0.909) and `cosmic-orb` (matches native, export 2.9 fps, below the 3 fps minimum).
 - **`vfx-iphone-device`:** its model files now load (block scripts resolve relative URLs against the block folder: `fetch` rebasing in `BlockClip.jsx`), but it needs the experimental Chrome html-in-canvas API (`drawElementImage`); the native render is blank too. Stays unsupported. 9 blocks/components with that feature stay out for the same reason.
 - Export speeds were measured serially for items near the limit (two exports in parallel depress the figure).
+
+## Stage 3, part 4: starter projects
+Six held-back starter projects were run through the production path against native HyperFrames. **`decision-tree` and `nyt-graph` are enabled** (SSIM 0.98-1.00 vs native; real 1080p export 12.5 and 16.3 fps; 11 and 5 text fields, all measured to change the picture; chart/graph numbers are fixed sample data). **Held back:** `play-mode` (SSIM 0.62-0.93) and `swiss-grid` (0.80-0.87) differ from native; `vignelli` and `warm-grain` have a blank/failed native reference (native render FAIL) and show no measurable match; `kinetic-type` and `path-traced-3d` stay unsupported. HyperFrames enabled: 139.
