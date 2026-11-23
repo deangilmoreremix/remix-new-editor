@@ -43,7 +43,7 @@ async function runAll(page) {
         fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project, privacy: 'public' }),
         createEngine,
         analytics: { track() {}, trackWatch() {}, onPlayerChange() {}, flush() {}, destroy() {}, sessionId: 'x' },
-        heatmap: { destroy() {} },
+        heatmap: { destroy() {}, onPlayerChange() {} },
         onLead: async (x) => { leads.push(x); return { stored: true }; },
       });
       const big = box.querySelector('[data-bigplay]');
