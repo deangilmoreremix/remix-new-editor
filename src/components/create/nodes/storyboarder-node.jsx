@@ -26,6 +26,7 @@ import { addClipToTrack } from '../../../lib/editor/timeline-operations.js';
 import { clipEffectiveDuration } from '/src/types/timeline.js';
 import { generateId, timestamp } from '../../../lib/workspace/workspace-context.jsx';
 import { WorkflowNodeData } from '/src/types/workflow.js';
+import { isOpenAIReasoningModel } from '../../../lib/config/openaiConfig.js';
 import { Asset } from '/src/types/project.js';
 
 const STORYBOARD_SYSTEM_PROMPT = `You are a cinematic storyboard director. Given a reference image and a scene description, break the scene into a sequence of cinematic shots that tell the story visually.
@@ -93,7 +94,7 @@ function StoryboarderNodeInner({ id, data, selected }) {
   const savedLlm = (data.config?.selectedLlm) ?? 'google/gemini-2.5-flash';
   // Saved nodes may still hold the retired 'openai/gpt-4.1' option.
   const selectedLlm = savedLlm === 'openai/gpt-4.1' ? 'gpt-6-1-sol' : savedLlm;
-  const isGpt6Llm = selectedLlm.startsWith('gpt-6');
+  const isGpt6Llm = isOpenAIReasoningModel(selectedLlm);
   const shotCount = (data.config?.shotCount) ?? 9;
   const rawShots = (data.config?.shots) ?? [];
   const shots = Array.from({ length: shotCount }, (_, i) =>

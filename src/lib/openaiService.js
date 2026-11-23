@@ -1342,9 +1342,10 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
    * @param {string} [opts.system] - system message
    * @param {boolean} [opts.json] - ask for a JSON object reply
    * @param {number} [opts.maxTokens]
+   * @param {string} [opts.model] - OpenAI model id (default GPT-6.1 Sol)
    * @returns {Promise<string>} the reply text
    */
-  async generateText({ prompt, system, json = false, maxTokens = 2000, signal } = {}) {
+  async generateText({ prompt, system, json = false, maxTokens = 2000, model = OPENAI_TEXT_MODEL, signal } = {}) {
     if (!this._hasKey()) throw new Error(this.missingKeyMessage);
     const openaiKey = this._getOpenAIKey();
     if (!openaiKey) throw new Error(this.missingKeyMessage);
@@ -1358,12 +1359,12 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
       body: JSON.stringify({
         // GPT-6 is a reasoning model: no temperature/top_p, and chat/completions
         // takes max_completion_tokens (reasoning tokens count against it).
-        model: OPENAI_TEXT_MODEL,
+        model,
         messages: [
           ...(system ? [{ role: 'system', content: system }] : []),
           { role: 'user', content: prompt },
         ],
-        max_completion_tokens: maxTokens + 4000, // headroom for reasoning tokens
+        max_completion_tokens: Math.min(maxTokens + 4000, 128000), // headroom for reasoning tokens; GPT-6 output cap is 128k
         ...(json ? { response_format: { type: 'json_object' } } : {}),
       }),
       signal: effectiveSignal,

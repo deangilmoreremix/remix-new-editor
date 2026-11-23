@@ -86,6 +86,7 @@ export function extractResponsesOutputText(json) {
     if (item?.type !== 'message') continue;
     for (const part of item.content || []) {
       if (part?.type === 'output_text' && part.text) return part.text;
+      if (part?.type === 'refusal' && part.refusal) throw new Error(`Model refused: ${part.refusal}`);
     }
   }
   return '';

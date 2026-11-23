@@ -4,7 +4,7 @@
   "route": "#/smart-video-studio",
   "description": "A one-screen AI studio: pick a mode (Image, Video, Audio, Avatar, 3D, AI Tools), pick a model, fill its settings, prompt, and see generations.",
   "shortDescription": "All-in-one studio: choose a mode and model, set options, prompt, generate.",
-  "fullDescription": "SmartVideo Studio (#/smart-video-studio) is built as a single workspace. A header shows the title SmartVideo Studio and your MuAPI credit balance when available ('Balance: N credits'). On the left, a mode rail switches between Image, Video, Audio, Avatar, 3D and AI Tools (hover shows the mode and how many models it has). Next to it, the Model picker ('Select a model...') opens a searchable list ('Search models...') where each model shows its name, description, family, cost ('N credits' or 'Dynamic') and badges such as BEST, FAST, BUDGET, AUDIO, 4K and LoRA. Under it, the model's own settings are built from the model's schema, grouped into sections, with Example Prompts, a '✨ Enhance' toggle, an 'Advanced' button for extra settings, a cost estimate ('~N credits') and Reset. The main area lists your generations with filters (All, Images, Video, Audio, Avatar, 3d), 'Search generations...', and per-card Retry, Use as input and Delete. The prompt bar at the bottom ('Enter your prompt here...') and its Generate button (or Enter) send the prompt to the chosen model. The model list comes from the app's model registry service. At the moment #/smart-video-studio does not open: it shows 'Failed to load smart-video-studio: ...' because the page cannot load its stylesheet, and the studio is not yet wired into the app's page loader.",
+  "fullDescription": "SmartVideo Studio (#/smart-video-studio) is built as a single workspace. A header shows the title SmartVideo Studio and your MuAPI credit balance when available ('Balance: N credits'). On the left, a mode rail switches between Image, Video, Audio, Avatar, 3D and AI Tools (hover shows the mode and how many models it has). Next to it, the Model picker ('Select a model...') opens a searchable list ('Search models...') where each model shows its name, description, family, cost ('N credits' or 'Dynamic') and badges such as BEST, FAST, BUDGET, AUDIO, 4K and LoRA. Under it, the model's own settings are built from the model's schema, grouped into sections, with Example Prompts, a '✨ Enhance' toggle, an 'Advanced' button for extra settings, a cost estimate ('~N credits') and Reset. The main area lists your generations with filters (All, Images, Video, Audio, Avatar, 3d), 'Search generations...', and per-card Retry, Use as input and Delete. The prompt bar at the bottom ('Enter your prompt here...') and its Generate button (or Enter) send the prompt to the chosen model. The model list comes from the app's model registry service.",
   "bestFor": "People who want every kind of AI model (image, video, audio, avatar, 3D and tools) in one screen with each model's full settings.",
   "whenToUse": [
     "You want to switch between image, video, audio, avatar and 3D models without changing pages.",
@@ -107,7 +107,7 @@
       "restrictions": "Hidden when the balance cannot be loaded."
     }
   ],
-  "howToUse": "1. Open SmartVideo Studio (#/smart-video-studio). 2. Pick a mode on the left rail (Image, Video, Audio, Avatar, 3D or AI Tools). 3. Open the Model picker, search and choose a model. 4. Fill the model's settings; open Advanced if needed and check the '~N credits' estimate. 5. Type your prompt in the bottom bar and press Generate (or Enter). 6. Find the result in the generations list, filter or search it, and Retry or Delete. Note: At the moment #/smart-video-studio does not open: it shows 'Failed to load smart-video-studio: ...' because the page cannot load its stylesheet, and the studio is not yet wired into the app's page loader.",
+  "howToUse": "1. Open SmartVideo Studio (#/smart-video-studio). 2. Pick a mode on the left rail (Image, Video, Audio, Avatar, 3D or AI Tools). 3. Open the Model picker, search and choose a model. 4. Fill the model's settings; open Advanced if needed and check the '~N credits' estimate. 5. Type your prompt in the bottom bar and press Generate (or Enter). 6. Find the result in the generations list, filter or search it, and Retry or Delete.",
   "howToSteps": [
     "Open #/smart-video-studio.",
     "Choose a mode.",
@@ -342,7 +342,6 @@
   ],
   "notConfirmed": [
     "Whether a separate model registry (/api/model-registry) and generate service (/api/generate) will exist in production; until then the studio uses the app's built-in model catalog and MuAPI.",
-    "Where the header links (Explore, Rankings, Docs, Blog) lead in this app, and what Sign In does (it has no click handler).",
     "How a 3D result is shown: the generation card only previews images, video and audio.",
     "Whether 'Use as input' will load the result into the form (it only logs today)."
   ],
