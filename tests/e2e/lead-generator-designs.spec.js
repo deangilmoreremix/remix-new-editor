@@ -335,3 +335,74 @@ test('the standard (no design) look still works: the Lead Generator is not force
   await expect(form(page)).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
+
+// ---------------------------------------------------------------- colour schemes (one click recolours the whole design)
+const hueOfHex = (hex) => {
+  const n = parseInt(hex.slice(1), 16); const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((x) => x / 255);
+  const mx = Math.max(r, g, b); const mn = Math.min(r, g, b); const d = mx - mn;
+  if (!d) return null;
+  const h = mx === r ? ((g - b) / d + (g < b ? 6 : 0)) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return Math.round(h * 60);
+};
+
+test('a colour scheme recolours the whole design in one click; it is saved, restorable, and every colour is still editable', async () => {
+  await pickDesign('aurora-glass'); // teal / green
+  const buttonColor = async () => { await panelTab(page, 'Styles').click(); return (await control('buttonBackground').inputValue()).toLowerCase(); };
+  const own = await buttonColor();
+  await panelTab(page, 'Design').click();
+  await expect(page.locator('.addon-panel [data-scheme-pick]')).toHaveCount(13);
+  await page.locator('.addon-panel [data-scheme-pick="pink"]').click();
+  await expect(page.locator('.addon-panel [data-scheme-pick="pink"]')).toHaveClass(/active/);
+  // the form on the video wears it: the Play button's colour is pink now (it was teal)
+  const pink = await buttonColor();
+  expect(pink).not.toBe(own);
+  expect(Math.abs(hueOfHex(pink) - 330)).toBeLessThanOrEqual(40);
+  const shownButton = await form(page).locator('button[type="submit"]').evaluate((b) => b.style.background);
+  expect(shownButton).toMatch(/rgb/);
+  // saved on the overlay
+  await reselectOverlay();
+  await panelTab(page, 'Design').click();
+  await expect(page.locator('.addon-panel [data-scheme-pick="pink"]')).toHaveClass(/active/);
+  expect(await buttonColor()).toBe(pink);
+  // another scheme starts from the design's own colours (no drift), and "the design's own" restores them exactly
+  await panelTab(page, 'Design').click();
+  await page.locator('.addon-panel [data-scheme-pick="blue"]').click();
+  expect(Math.abs(hueOfHex(await buttonColor()) - 218)).toBeLessThanOrEqual(40);
+  await panelTab(page, 'Design').click();
+  await page.locator('.addon-panel [data-scheme-pick=""]').click();
+  expect(await buttonColor()).toBe(own);
+  // after a scheme every colour is still a plain editable control
+  await panelTab(page, 'Design').click();
+  await page.locator('.addon-panel [data-scheme-pick="amber"]').click();
+  await panelTab(page, 'Styles').click();
+  await control('buttonBackground').fill('#123456');
+  expect(await control('buttonBackground').inputValue()).toBe('#123456');
+  // picking a design again goes back to that design's own colours (and no scheme is marked)
+  await pickDesign('retro-terminal');
+  await panelTab(page, 'Design').click();
+  await expect(page.locator('.addon-panel [data-scheme-pick][class*="active"]')).toHaveAttribute('data-scheme-pick', '');
+  expect(pageErrors).toEqual([]);
+});
+
+test('every design wears every colour scheme: fits, labels intact, text readable on the Play button', async () => {
+  await panelTab(page, 'Design').click();
+  const ids = await page.locator('.addon-panel [data-design-pick]').evaluateAll((els) => els.map((e) => e.dataset.designPick));
+  const schemes = ['', 'amber', 'cyan', 'pink'];
+  for (const id of ids) {
+    await pickDesign(id);
+    for (const sch of schemes) {
+      await panelTab(page, 'Design').click();
+      await page.locator(`.addon-panel [data-scheme-pick="${sch}"]`).click();
+      await expect.poll(async () => Number(await form(page).getAttribute('data-fit') || 0)).toBeGreaterThan(0);
+      const m = await page.evaluate((viewer) => {
+        const f = document.querySelector(`${viewer} form.retarget-form`);
+        const card = f.querySelector('.form-inner').getBoundingClientRect(); const btn = f.querySelector('button[type="submit"]');
+        const b = btn.getBoundingClientRect();
+        return { inside: b.bottom <= card.bottom + 2 && b.right <= card.right + 2, fit: Number(f.dataset.fit), color: getComputedStyle(btn).color, bg: btn.style.background };
+      }, VIEWER);
+      expect.soft(m.inside, `${id} + ${sch || 'own'}: Play inside card`).toBe(true);
+      expect.soft(m.fit, `${id} + ${sch || 'own'}: text scale`).toBeGreaterThanOrEqual(0.6);
+    }
+  }
+  expect(pageErrors).toEqual([]);
+});

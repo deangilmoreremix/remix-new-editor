@@ -80,6 +80,7 @@ export const DESIGN_BASE = {
   panelHint: '',
   designAccent: '',
   decorEnabled: true,
+  colorScheme: '', // '' = the design's own colours; otherwise the id of the colour scheme last applied (COLOR_SCHEMES)
 };
 
 export const BADGE_ICONS = [['none', 'None'], ['crown', 'Crown'], ['ticket', 'Ticket'], ['star', 'Star'], ['play', 'Play circle'], ['lock', 'Lock'], ['sparkle', 'Sparkle']];
@@ -416,7 +417,7 @@ const QUIZ_FIELD = {
  * Everything picking `design` changes on `current`: its look (always) plus its wording and starter boxes (only while
  * the creator's own are still untouched defaults). Returns the keys to set.
  */
-export function applyOptinDesign(current, design) {
+export function applyOptinDesign(current, design, schemeId = '') {
   const out = { ...design.patch };
   const copy = design.copy || {};
   if (copy.caption !== undefined) {
@@ -439,5 +440,133 @@ export function applyOptinDesign(current, design) {
     const base = starterFields(required);
     out.elements = design.id === 'qualifying-quiz' ? [{ ...QUIZ_FIELD, required }, ...base] : base;
   }
+  // created / picked with a colour scheme: recolour the design's own colours (never compounding: it always starts from them)
+  if (schemeId) { const scheme = COLOR_SCHEMES.find((x) => x.id === schemeId); if (scheme) Object.assign(out, recolorOptin({ ...current, ...out }, scheme)); }
   return out;
 }
+
+
+// ----------------------------------------------------------------------------- colour schemes
+
+/** One-click colour schemes: each is a hue. Picking one recolours the whole design (background, card, inputs, button, decoration) to that hue. */
+export const COLOR_SCHEMES = [
+  { id: '', label: "The design's own", hue: null },
+  { id: 'violet', label: 'Violet', hue: 262 },
+  { id: 'blue', label: 'Blue', hue: 218 },
+  { id: 'sky', label: 'Sky', hue: 199 },
+  { id: 'cyan', label: 'Cyan', hue: 187 },
+  { id: 'teal', label: 'Teal', hue: 168 },
+  { id: 'green', label: 'Green', hue: 142 },
+  { id: 'lime', label: 'Lime', hue: 84 },
+  { id: 'amber', label: 'Amber', hue: 42 },
+  { id: 'orange', label: 'Orange', hue: 24 },
+  { id: 'red', label: 'Red', hue: 352 },
+  { id: 'pink', label: 'Pink', hue: 330 },
+  { id: 'magenta', label: 'Magenta', hue: 295 },
+];
+
+// Colours a scheme turns. Text, the white of inputs and other neutrals (greys, black, white) are left alone, so contrast is kept:
+// only the hue of a coloured value changes, never its lightness or strength.
+const RECOLOR_KEYS = [
+  'backgroundColor', 'backgroundColor2', 'backdropColor', 'innerColor', 'cardBorderColor', 'cardGlow', 'designAccent',
+  'inputBackground', 'inputBorderColor', 'inputFontColor', 'placeholderColor', 'fontColor', 'captionColor',
+  'buttonBackground', 'buttonBackground2', 'buttonHoverColor', 'btnBottomBorder', 'buttonFontColor',
+];
+
+const parseHex = (v) => {
+  const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(v ?? '').trim());
+  if (!m) return null;
+  const h = m[1].length === 3 ? m[1].split('').map((c) => c + c).join('') : m[1];
+  const n = parseInt(h, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+function toHsl([r, g, b]) {
+  const R = r / 255; const G = g / 255; const B = b / 255;
+  const max = Math.max(R, G, B); const min = Math.min(R, G, B); const l = (max + min) / 2; const d = max - min;
+  if (!d) return [0, 0, l];
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  const h = max === R ? ((G - B) / d + (G < B ? 6 : 0)) : max === G ? (B - R) / d + 2 : (R - G) / d + 4;
+  return [h * 60, s, l];
+}
+function hslHex(h, s, l) {
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) => { const k = (n + h / 30) % 12; return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))); };
+  return `#${[f(0), f(8), f(4)].map((x) => x.toString(16).padStart(2, '0')).join('')}`;
+}
+const SAT = 0.12; // below this a colour counts as a neutral (grey / black / white)
+const hueOf = (hex) => { const rgb = parseHex(hex); if (!rgb) return null; const [h, s] = toHsl(rgb); return s >= SAT ? h : null; };
+const lumOf = (hex) => { const rgb = parseHex(hex); if (!rgb) return 0; const [r, g, b] = rgb.map((c) => { const x = c / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+/** Moves a coloured value to the scheme: its hue lands near the target (a design that mixes two hues keeps a little of that, 40%), lightness and strength unchanged. */
+/** WCAG contrast ratio of two colours (1..21). */
+export function contrastRatio(a, b) {
+  const [hi, lo] = [lumOf(a), lumOf(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+/** Whichever of white or near-black reads better on `bg`. */
+const bestText = (bg) => (contrastRatio('#ffffff', bg) >= contrastRatio('#111827', bg) ? '#ffffff' : '#111827');
+/** `fg` moved lighter or darker (same hue) until it reads on `bg` with at least `min` contrast. */
+function readableOn(fg, bg, min = 3) {
+  const rgb = parseHex(fg);
+  if (!rgb || contrastRatio(fg, bg) >= min) return fg;
+  const [h, s, l] = toHsl(rgb);
+  const darker = lumOf(bg) > 0.4;
+  for (let step = 1; step <= 20; step += 1) {
+    const next = hslHex(h, s, Math.max(0, Math.min(1, l + (darker ? -1 : 1) * step * 0.05)));
+    if (contrastRatio(next, bg) >= min) return next;
+  }
+  return darker ? '#111827' : '#ffffff';
+}
+function rotateHex(hex, base, target) {
+  const rgb = parseHex(hex);
+  if (!rgb) return hex;
+  const [h, s, l] = toHsl(rgb);
+  if (s < SAT) return hex;
+  const offset = ((h - base + 540) % 360) - 180; // -180..180: how far this colour sits from the design's base hue
+  return hslHex((target + offset * 0.4 + 360) % 360, s, l);
+}
+/** The hue a design is built around: its first coloured button / frame / background colour (null for a black-and-white design). */
+function baseHueOf(source) {
+  for (const k of ['buttonBackground', 'buttonBackground2', 'cardBorderColor', 'designAccent', 'backgroundColor', 'innerColor', 'backdropColor']) {
+    const h = hueOf(source?.[k]);
+    if (h !== null) return h;
+  }
+  return null;
+}
+
+/**
+ * The colour keys to set so `current` wears `scheme`. It always starts from the design's own colours (not from the current ones), so
+ * picking schemes one after another never drifts, and "The design's own" restores them exactly. With no design it turns the current colours.
+ */
+export function recolorOptin(current, scheme) {
+  const design = getOptinDesign(current?.designPreset);
+  const source = design ? design.patch : current;
+  const out = { colorScheme: scheme?.id || '' };
+  if (scheme?.hue == null) {
+    if (design) RECOLOR_KEYS.forEach((k) => { if (k in source) out[k] = source[k]; });
+    return out;
+  }
+  const base = baseHueOf(source);
+  const keys = RECOLOR_KEYS.filter((k) => k in source && source[k] !== undefined && source[k] !== null);
+  if (base === null) {
+    // a black-and-white design: it keeps its look and gains the scheme as its accent (button, decoration)
+    keys.forEach((k) => { out[k] = source[k]; });
+    out.buttonBackground = hslHex(scheme.hue, 0.72, 0.46);
+    out.buttonHoverColor = hslHex(scheme.hue, 0.72, 0.38);
+    out.designAccent = hslHex(scheme.hue, 0.72, 0.52);
+    out.buttonFontColor = bestText(out.buttonBackground);
+    return out;
+  }
+  keys.forEach((k) => { out[k] = rotateHex(source[k], base, scheme.hue); });
+  // decoration that is drawn in an accent (frames, stripes, badge) follows the scheme even when the design did not set one
+  if (!hueOf(source.designAccent)) out.designAccent = hslHex(scheme.hue, 0.72, 0.52);
+  // button text: a coloured text keeps its tint; a black / white one is re-picked so it reads on the new button colour
+  if (hueOf(out.buttonBackground) !== null && hueOf(source.buttonFontColor) === null && 'buttonFontColor' in source) {
+    out.buttonFontColor = bestText(out.buttonBackground);
+  } else if ('buttonFontColor' in out && out.buttonBackground) {
+    out.buttonFontColor = readableOn(out.buttonFontColor, out.buttonBackground); // a tinted text on a new colour still has to read
+  }
+  return out;
+}
+
+/** Swatch colour of a scheme tile. */
+export const schemeSwatch = (scheme) => (scheme.hue == null ? 'conic-gradient(#f43f5e,#f59e0b,#22c55e,#06b6d4,#6366f1,#d946ef,#f43f5e)' : `hsl(${scheme.hue} 75% 52%)`);

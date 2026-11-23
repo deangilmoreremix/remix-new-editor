@@ -106,3 +106,28 @@ describe('the Add to timeline catalog has a card for every design, for both kind
     expect(cards.filter((c) => hay(c).includes('glass split')).map((c) => c.id).sort()).toEqual(['design:lead-form:glass-split', 'design:list-builder:glass-split']);
   });
 });
+
+describe('creating with a colour scheme', () => {
+  it('both kinds are created in the chosen colour (and "the design\'s own" is the default)', () => {
+    const own = createOverlay('lead-form', 0, 10, 'glass-split');
+    const teal = createOverlay('lead-form', 0, 10, 'glass-split', 'teal');
+    expect(leadFormToOptin(own).colorScheme).toBe('');
+    expect(leadFormToOptin(teal).colorScheme).toBe('teal');
+    expect(leadFormToOptin(teal).buttonBackground).not.toBe(leadFormToOptin(own).buttonBackground);
+    const lbTeal = createOverlay('list-builder', 0, 10, 'glass-split', 'teal');
+    expect(cfg(lbTeal).colorScheme).toBe('teal');
+    expect(cfg(lbTeal).buttonBackground).toBe(leadFormToOptin(teal).buttonBackground);
+    // the gate rules are unchanged
+    expect(lbTeal.start).toBe(0);
+    expect(lbTeal.end).toBe(GATE_SECONDS);
+  });
+
+  it('a colour on its own (no design) is ignored, and applying to an existing List Builder keeps the creator\'s wording', () => {
+    expect(cfg(createOverlay('list-builder', 0, 10, undefined, 'teal')).colorScheme).toBe('');
+    const gate = createOverlay('list-builder', 0, 10);
+    const mine = { ...gate, config: { ...cfg(gate), caption: 'Join my list' } };
+    const updated = applyDesignToOverlay(mine as never, 'aurora-glass', 'pink');
+    expect(cfg(updated).caption).toBe('Join my list');
+    expect(cfg(updated).colorScheme).toBe('pink');
+  });
+});

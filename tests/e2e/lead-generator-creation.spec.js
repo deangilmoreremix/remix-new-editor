@@ -157,3 +157,26 @@ test('Add to timeline: a card per design for both kinds, found by search, create
   await expect(page.locator('.addon-panel [data-design-pick="ticket-invitation"]')).toHaveClass(/active/);
   expect(pageErrors).toEqual([]);
 });
+
+test('colour at creation: the Elements gallery has a colour row; previews and the created Lead Generator / List Builder follow it', async () => {
+  await elementsKind('Lead Generator');
+  const thumbButton = () => page.locator('[data-testid="design-card-classic-overlay"] form button[type="submit"]').evaluate((b) => b.style.background);
+  const before = await thumbButton();
+  await page.locator('[data-testid="design-color-teal"]').click();
+  await expect(page.locator('[data-testid="design-color-teal"]')).toHaveAttribute('aria-pressed', 'true');
+  expect(await thumbButton()).not.toBe(before); // the previews are recoloured
+  await page.locator('[data-testid="design-card-classic-overlay"]').click();
+  await page.locator('.addon-panel').waitFor();
+  await panelTab(page, 'Design').click();
+  await expect(page.locator('.addon-panel [data-scheme-pick="teal"]')).toHaveClass(/active/);
+  await expect(page.locator('.addon-panel [data-design-pick="classic-overlay"]')).toHaveClass(/active/);
+  // a List Builder, in another colour
+  await elementsKind('List Builder');
+  await page.locator('[data-testid="design-color-amber"]').click();
+  await page.locator('[data-testid="design-card-glass-split"]').click();
+  await page.locator('.addon-panel').waitFor();
+  await panelTab(page, 'Design').click();
+  await expect(page.locator('.addon-panel [data-scheme-pick="amber"]')).toHaveClass(/active/);
+  await expect(page.locator('.addon-panel [data-design-pick="glass-split"]')).toHaveClass(/active/);
+  expect(pageErrors).toEqual([]);
+});

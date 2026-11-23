@@ -250,3 +250,109 @@ describe('picking a design shows the full design, without overwriting the creato
     expect(cols.querySelector('.input-wrapper-container').style.getPropertyValue('--cols')).toBe('3');
   });
 });
+
+// ---------------------------------------------------------------- colour schemes
+import { COLOR_SCHEMES, recolorOptin, contrastRatio } from '../index.js';
+
+const scheme = (id) => COLOR_SCHEMES.find((s) => s.id === id);
+const hueOfHex = (hex) => {
+  const n = parseInt(hex.slice(1), 16); const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((x) => x / 255);
+  const mx = Math.max(r, g, b); const mn = Math.min(r, g, b); const d = mx - mn;
+  if (!d) return null;
+  const h = mx === r ? ((g - b) / d + (g < b ? 6 : 0)) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return Math.round(h * 60);
+};
+const hueDist = (a, b) => Math.min(Math.abs(a - b), 360 - Math.abs(a - b));
+
+describe('colour schemes: one click recolours the whole design', () => {
+  it('there are 12 hues plus "the design\'s own", each with a swatch', () => {
+    expect(COLOR_SCHEMES).toHaveLength(13);
+    expect(COLOR_SCHEMES[0]).toMatchObject({ id: '', hue: null });
+    expect(new Set(COLOR_SCHEMES.map((s) => s.id)).size).toBe(13);
+  });
+
+  it('every design x every scheme: the button lands on the scheme hue, text stays readable, nothing is lost', () => {
+    OPTIN_DESIGNS.forEach((d) => {
+      const own = { ...d.patch, designPreset: d.id };
+      COLOR_SCHEMES.filter((s) => s.hue != null).forEach((s) => {
+        const out = recolorOptin(own, s);
+        expect(out.colorScheme).toBe(s.id);
+        // the button is on the scheme (within the 40% spread a two-hue design keeps)
+        const bh = hueOfHex(out.buttonBackground);
+        if (bh !== null) expect(hueDist(bh, s.hue), `${d.id} -> ${s.id}: button hue ${bh}`).toBeLessThanOrEqual(75);
+        // button text keeps (or reaches) a readable contrast
+        const before = contrastRatio(d.patch.buttonFontColor, d.patch.buttonBackground);
+        const after = contrastRatio(out.buttonFontColor ?? d.patch.buttonFontColor, out.buttonBackground);
+        expect(after, `${d.id} -> ${s.id}: button text ${after.toFixed(1)}`).toBeGreaterThanOrEqual(Math.min(before, 3) - 0.01);
+        // body text on an opaque background keeps its contrast
+        if (own.backgroundColor && own.innerOpacity < 30) {
+          const b0 = contrastRatio(own.fontColor, own.backgroundColor);
+          const b1 = contrastRatio(out.fontColor ?? own.fontColor, out.backgroundColor ?? own.backgroundColor);
+          expect(b1, `${d.id} -> ${s.id}: text on background`).toBeGreaterThanOrEqual(Math.min(b0, 3) - 0.6);
+        }
+        // only colour keys change
+        Object.keys(out).forEach((k) => expect(['colorScheme', ...Object.keys(d.patch)]).toContain(k));
+      });
+    });
+  });
+
+  it('never compounds, and "the design\'s own" restores the colours exactly', () => {
+    const d = getOptinDesign('aurora-glass');
+    const own = { ...d.patch, designPreset: d.id };
+    const viaTeal = { ...own, ...recolorOptin(own, scheme('teal')) };
+    const direct = recolorOptin(own, scheme('pink'));
+    const afterTeal = recolorOptin(viaTeal, scheme('pink'));
+    expect(afterTeal).toEqual(direct); // pink from teal == pink from the design
+    const back = recolorOptin({ ...own, ...direct }, scheme(''));
+    ['backgroundColor', 'buttonBackground', 'cardBorderColor', 'inputBorderColor', 'buttonFontColor'].forEach((k) => expect(back[k], k).toBe(d.patch[k]));
+    expect(back.colorScheme).toBe('');
+  });
+
+  it('a black-and-white design keeps its look and gains the scheme as its accent', () => {
+    const d = getOptinDesign('editorial-minimalist');
+    const out = recolorOptin({ ...d.patch, designPreset: d.id }, scheme('red'));
+    expect(out.backgroundColor).toBe(d.patch.backgroundColor);
+    expect(hueDist(hueOfHex(out.buttonBackground), scheme('red').hue)).toBeLessThanOrEqual(15);
+    expect(contrastRatio(out.buttonFontColor, out.buttonBackground)).toBeGreaterThan(3);
+    expect(out.designAccent).toBeTruthy();
+  });
+
+  it('colours the design wears at creation: picking a design with a scheme, and picking a design resets the scheme', () => {
+    const base = defaultOptin('list-builder');
+    const d = getOptinDesign('glass-split');
+    const withScheme = applyOptinDesign(base, d, 'amber');
+    expect(withScheme.colorScheme).toBe('amber');
+    expect(withScheme.buttonBackground).not.toBe(d.patch.buttonBackground);
+    expect(applyOptinDesign(base, d).colorScheme).toBe(''); // no scheme: the design's own colours
+    expect(applyOptinDesign(base, d).buttonBackground).toBe(d.patch.buttonBackground);
+  });
+
+  it('the Design tab has a Color scheme picker; clicking a tile recolours the form and every colour is still editable', () => {
+    const fields = listBuilderFields(defaultOptin('list-builder'));
+    expect(fields.find((f) => f.key === 'colorScheme')).toMatchObject({ type: 'colorSchemes', tab: 'Design' });
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    let latest = null;
+    renderAddonEditor(host, { fields, options: { ...defaultOptin('list-builder'), ...applyOptinDesign(defaultOptin('list-builder'), getOptinDesign('vip-access')) }, onChange: (o) => { latest = o; } });
+    host.querySelector('[data-addon-tab="Design"]').click();
+    expect(host.querySelectorAll('[data-scheme-pick]')).toHaveLength(13);
+    host.querySelector('[data-scheme-pick="blue"]').click();
+    expect(latest.colorScheme).toBe('blue');
+    expect(hueOfHex(latest.buttonBackground)).toBeGreaterThan(190);
+    expect(hueOfHex(latest.buttonBackground)).toBeLessThan(250);
+    host.querySelector('[data-addon-tab="Design"]').click();
+    expect(host.querySelector('[data-scheme-pick="blue"]').classList.contains('active')).toBe(true);
+    // the colours are still plain editable options (Styles tab)
+    host.querySelector('[data-addon-tab="Styles"]').click();
+    const btn = host.querySelector('[data-key="buttonBackground"]:not([data-kind="hex"])');
+    btn.value = '#123456';
+    btn.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(latest.buttonBackground).toBe('#123456');
+    // picking a design again goes back to that design's own colours
+    host.querySelector('[data-addon-tab="Design"]').click();
+    host.querySelector('[data-design-pick="retro-terminal"]').click();
+    expect(latest.colorScheme).toBe('');
+    expect(latest.buttonBackground).toBe(getOptinDesign('retro-terminal').patch.buttonBackground);
+    host.remove();
+  });
+});

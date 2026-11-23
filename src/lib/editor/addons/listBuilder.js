@@ -31,7 +31,7 @@ import {
 } from './pointerDesigns.js';
 import { leadFieldTokens, ESP_PROVIDERS, espName, espListLabel } from './leadClient.js';
 import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS, buildOptinForm, backdropStyle } from './addonOverlay.js';
-import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, DESIGN_BASE, applyOptinDesign } from './optinDesigns.js';
+import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, DESIGN_BASE, COLOR_SCHEMES, applyOptinDesign, recolorOptin, schemeSwatch } from './optinDesigns.js';
 
 export const LIST_BUILDER_KINDS = {
   'list-builder': 'List Builder',
@@ -256,6 +256,7 @@ export function defaultOptin(kind = 'list-builder') {
     panelHint: '',
     designAccent: '',
     decorEnabled: true,
+    colorScheme: '',
   };
 }
 
@@ -351,11 +352,12 @@ const TEXT_FIELDS = (personalizer) => [
 
 // Picker tile: a real, scaled-down render of the design with its own wording and three boxes (cached: it never changes).
 const thumbCache = new Map();
-export function liveDesignThumb(design) {
+export function liveDesignThumb(design, schemeId = '') {
   if (typeof document === 'undefined') return '';
-  if (thumbCache.has(design.id)) return thumbCache.get(design.id);
+  const cacheKey = `${design.id}|${schemeId}`;
+  if (thumbCache.has(cacheKey)) return thumbCache.get(cacheKey);
   const base = defaultOptin('list-builder');
-  const cfg = { ...base, ...applyOptinDesign(base, design), enabled: true, pointerEnabled: false, privacyDisclaimer: '' };
+  const cfg = { ...base, ...applyOptinDesign(base, design, schemeId), enabled: true, pointerEnabled: false, privacyDisclaimer: '' };
   const form = buildOptinForm(cfg);
   form.querySelectorAll('[data-step]').forEach((n) => { if (n.dataset.step !== '0') n.hidden = true; }); // first step of a stepped design
   const wrap = document.createElement('div');
@@ -369,7 +371,7 @@ export function liveDesignThumb(design) {
   stage.style.setProperty('--ovl-w', '640px');
   stage.appendChild(wrap);
   const html = `<span class="optin-mini-frame">${stage.outerHTML}</span>`;
-  thumbCache.set(design.id, html);
+  thumbCache.set(cacheKey, html);
   return html;
 }
 
@@ -383,6 +385,7 @@ const DESIGN_FIELDS = [
   { key: 'choiceStyle', label: 'Dropdown fields look like', type: 'select', options: [['dropdown', 'A dropdown'], ['list', 'A list of choices (quiz)']] },
   { key: 'designAccent', label: 'Decoration color (lines, frames, glow accents; empty = the design\'s own)', type: 'color' },
   { key: 'decorEnabled', label: 'Show the design\'s decoration (glow, grid, frames, stripes)', type: 'toggle' },
+  { key: 'colorScheme', label: 'Color scheme (one click recolors the whole design; every color can still be changed below)', type: 'colorSchemes', schemes: COLOR_SCHEMES, applyScheme: recolorOptin, swatch: schemeSwatch },
   { key: 'designLayout', label: 'Layout', type: 'select', options: DESIGN_LAYOUTS },
   { key: 'backgroundColor2', label: 'Background gradient: second color (empty = solid)', type: 'color' },
   { key: 'bgAngle', label: 'Background gradient angle', type: 'range', min: 0, max: 360, showIf: (o) => !!o.backgroundColor2 },

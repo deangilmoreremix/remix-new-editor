@@ -304,6 +304,11 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
         : `<div class="addon-designs" role="group" aria-label="${esc(field.label)}">${(field.designs || []).map(tile).join('')}</div>`;
       return `<div class="clip-editor__field addon-field addon-field--designs"><label>${esc(field.label)}</label>${groups}</div>`;
     }
+    case 'colorSchemes': {
+      // One-click colour schemes: each tile is a hue; field.applyScheme(current, scheme) returns every colour key to set.
+      const tiles = (field.schemes || []).map((sc) => `<button type="button" class="addon-theme addon-scheme${String(value || '') === sc.id ? ' active' : ''}" data-scheme-pick="${esc(sc.id)}" data-scheme-key="${esc(field.key)}" aria-pressed="${String(value || '') === sc.id}" title="${esc(sc.label)}"><span class="addon-scheme__swatch" style="background:${esc(field.swatch ? field.swatch(sc) : '#888')}"></span><span>${esc(sc.label)}</span></button>`).join('');
+      return `<div class="clip-editor__field addon-field addon-field--schemes"><label>${esc(field.label)}</label><div class="addon-themes" role="group" aria-label="${esc(field.label)}">${tiles}</div></div>`;
+    }
     case 'themePicker': {
       // One-click colour schemes: each theme sets several keys at once.
       const tiles = (field.themes || []).map((t) => `<button type="button" class="addon-theme" data-theme-pick="${esc(t.id)}" data-theme-key="${esc(field.key)}" title="${esc(t.label)}"><span class="addon-theme__swatch" style="background:${esc(t.hintBackground)};border-color:${esc(t.hintBorderColor)}"><i style="background:${esc(t.pointerColor)}"></i></span><span>${esc(t.label)}</span></button>`).join('');
@@ -575,6 +580,15 @@ export function renderAddonEditor(container, {
           Object.entries(patch).forEach(([k, v]) => setPath(current, k, v));
           emit(true, btn.dataset.pickKey);
         } else setAndEmit(btn.dataset.pickKey, btn.dataset.designPick);
+        return;
+      }
+      if (btn?.hasAttribute('data-scheme-pick')) {
+        const field = drawnFields.find((f) => f.key === btn.dataset.schemeKey);
+        const scheme = (field?.schemes || []).find((sc) => sc.id === btn.dataset.schemePick);
+        if (scheme && field?.applyScheme) {
+          Object.entries(field.applyScheme(current, scheme)).forEach(([k, v]) => setPath(current, k, v));
+          emit(true, field.key);
+        }
         return;
       }
       if (btn?.dataset.themePick) {
