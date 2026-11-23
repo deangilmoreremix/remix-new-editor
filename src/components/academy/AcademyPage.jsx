@@ -615,6 +615,8 @@ function Hub({ onOpenTrack, bookmarks, onToggleBookmark, onOpenLesson, progressA
             <button
               key={t.slug}
               onClick={() => onOpenTrack(t.slug)}
+              data-help-name={t.title}
+              data-help-text={tp.total > 0 ? `Open this track. ${tp.completed} of ${tp.total} lessons done.` : 'Open this track.'}
               className={cardCls + ' text-left hover:border-white/25 transition'}
             >
               <div className="flex items-center justify-between mb-1">

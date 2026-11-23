@@ -98,7 +98,10 @@ export function CommercialPage() {
   container.appendChild(contentWrapper);
 
   container.querySelector('.start-btn').onclick = () => navigate('commercial');
+
+  container.querySelector('.start-btn').dataset.helpText = 'Open Product Shot Studio.';
   container.querySelector('.cta-btn').onclick = () => navigate('commercial');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Product Shot Studio.';
 
   return container;
 }

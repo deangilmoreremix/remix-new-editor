@@ -119,6 +119,7 @@ export function CharacterPage() {
     btn.onclick = () => navigate('character');
   });
   container.querySelector('.cta-btn').onclick = () => navigate('character');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Character Studio.';
 
   return container;
 }

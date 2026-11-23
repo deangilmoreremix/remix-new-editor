@@ -145,7 +145,9 @@ export function ImageToVideoPage() {
 
   // Event Listeners
   container.querySelector('.start-btn').onclick = () => navigate('video');
+  container.querySelector('.start-btn').dataset.helpText = 'Open Video Studio.';
   container.querySelector('.cta-btn').onclick = () => navigate('video');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Video Studio.';
 
   const gtmBoostBtn = contentWrapper.querySelector('.gtm-boost-btn');
   if (gtmBoostBtn) {

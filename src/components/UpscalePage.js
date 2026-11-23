@@ -117,7 +117,10 @@ export function UpscalePage() {
   container.appendChild(contentWrapper);
 
   container.querySelector('.start-btn').onclick = () => navigate('upscale');
+
+  container.querySelector('.start-btn').dataset.helpText = 'Open Upscale Suite.';
   container.querySelector('.cta-btn').onclick = () => navigate('upscale');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Upscale Suite.';
 
   return container;
 }
