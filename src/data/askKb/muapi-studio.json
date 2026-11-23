@@ -1,0 +1,473 @@
+{
+  "id": "muapi-studio",
+  "name": "All-Models Studio",
+  "route": "#/muapi-studio",
+  "description": "All-Models Studio (the 'Studio' entry in the Image group of the side menu) is one workspace for generating images, video, audio, avatars, 3D models and more with hundreds of AI models. Pick a model, fill in the form that model needs, see the price, and generate. You use your own MuAPI key.",
+  "shortDescription": "One workspace for hundreds of AI models across image, video, audio, avatar and 3D, using your own MuAPI key.",
+  "fullDescription": "All-Models Studio is opened from 'Studio' in the Image group of the side menu (#/muapi-studio). It has a left rail of eight modes: Image, Video, Audio, Avatar, 3D, Tools, Text and More. Each mode lists the models of that kind from the live MuAPI catalog (more than 800 in total, and the list changes as models are added). Choose a model and the studio builds the form that model needs: a prompt, reference images or videos, aspect ratio, resolution, duration and other options. The price for your exact settings is shown on the Generate button before you spend anything, and a batch of 1, 2, 4, 6 or 8 can be run in one click. In Image and Video modes a Models / Apps switch lets you pick one of 76 ready-made apps (such as camera angles, face swap, product shots and transitions) instead of a raw model. Results appear in My Generations on the right with download, approve, reject, reuse, re-run and copy-link actions. Everything runs with your own MuAPI API key, which you add in Settings; the studio asks for it the first time you open it.",
+  "bestFor": "Creators and teams who want to try many different AI models in one place, compare results side by side, and pay per generation with their own MuAPI account.",
+  "whenToUse": [
+    "You want to try or compare many AI models (image, video, audio, avatar, 3D) from one screen.",
+    "You want to see the price of a generation before you run it.",
+    "You want to run several variations at once (batch of 1, 2, 4, 6 or 8).",
+    "You want a ready-made app such as camera angles, face swap, product shots or transitions without writing a prompt from scratch.",
+    "You already have a MuAPI key and want to use it directly."
+  ],
+  "whenToUseAnother": [
+    "Use Image Studio (#/image) when you want a simple prompt bar for images with a curated model list.",
+    "Use Video Studio (#/video) when you want a guided video workflow with its own tools.",
+    "Use Edit Studio (#/edit) for focused photo tools such as Remove Background or Reframe.",
+    "Use Upscale Suite (#/upscale) when you only need more resolution on an existing image.",
+    "Use Audio (#/audio) or Avatar (#/avatar) for the guided voice and avatar workflows."
+  ],
+  "keyFeatures": [
+    "Eight modes in a left rail: Image, Video, Audio, Avatar, 3D, Tools, Text and More.",
+    "A searchable model picker with a provider rail, category tabs and sort options, fed by the live MuAPI model catalog.",
+    "A form built from each model's own settings: prompt, image / video / audio inputs, aspect ratio, resolution, duration and more, with an 'Auto' option on optional numeric and dropdown fields.",
+    "A Form / JSON switch: edit the request as a form or as raw JSON.",
+    "Live price on the Generate button for your exact settings, with a struck-through original price when a model is on sale.",
+    "Batch of 1, 2, 4, 6 or 8 generations in one click; the default is 4.",
+    "A spend confirmation when one click would cost more than $0.25 in total.",
+    "A Models / Apps switch in Image and Video modes, with 76 ready-made apps, search and category filters.",
+    "My Generations: filters (All, Approved, Rejected, Unlabeled), search, and per-result Download, Approve, Reject, Reuse, Re-run, Copy link and Hide.",
+    "Uploads by drag and drop onto a field, drop anywhere on the form, paste, or the upload button, with per-file status, Retry and a Recent uploads list.",
+    "An inline 3D viewer for .glb and .gltf results.",
+    "Your own MuAPI key: added in Settings, used only for your own requests."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Model picker",
+      "explanation": "The model button opens a picker with a provider rail on the left, category tabs, search and a sort menu. Choosing a model rebuilds the form to match what that model accepts.",
+      "whyToUse": "Different models are better at different things, and the catalog is too large to scroll through without search and filters.",
+      "inputRequired": "None.",
+      "restrictions": "The list comes from the live MuAPI catalog, so models appear and disappear over time. Models marked as coming soon are hidden."
+    },
+    {
+      "feature": "Live price and batch",
+      "explanation": "The Generate button shows the price for your current settings and the batch size (for example 'Generate x4'). The price is checked with MuAPI for your exact settings, and falls back to the catalog price if that check is unavailable.",
+      "whyToUse": "You see what a run costs before you spend anything, and can change the settings to bring it down.",
+      "inputRequired": "None. The batch buttons 1, 2, 4, 6 and 8 are above the results.",
+      "restrictions": "If one click would cost more than $0.25 in total, the studio shows the amount and asks you to confirm. If the exact price cannot be checked, it always asks."
+    },
+    {
+      "feature": "Form and JSON input",
+      "explanation": "The Form / JSON menu next to the studio title switches between the generated form and a raw JSON request body.",
+      "whyToUse": "JSON is useful when you want to copy exact settings or set a field the form does not show.",
+      "inputRequired": "Valid JSON when in JSON mode.",
+      "restrictions": "Switching back to Form keeps only the fields the JSON contains; optional fields you removed stay removed."
+    },
+    {
+      "feature": "Apps",
+      "explanation": "In Image and Video modes, the Models / Apps switch lists 76 ready-made apps. Each app asks only for what it needs (for example a source image and a preset) and builds the request for you.",
+      "whyToUse": "Apps give a good result without writing a prompt, for tasks such as camera angles, face swap, product shots and transitions.",
+      "inputRequired": "Whatever the chosen app asks for, usually one or two images or a video.",
+      "restrictions": "Apps are only offered in Image and Video modes. Generations from an app appear in that mode's My Generations list."
+    },
+    {
+      "feature": "Uploading files",
+      "explanation": "Any field that takes an image, video or audio file shows a drop box with the URL input. Drag a file over it and the drop message replaces the URL input; drop it and the file uploads. You can also drop a file anywhere on the form (it goes to the first field that takes that kind of file), paste an image, or click the upload button.",
+      "whyToUse": "Use your own files as references without having to host them somewhere first.",
+      "inputRequired": "A file of the kind the field takes, or a public URL.",
+      "restrictions": "A file of the wrong kind, or an empty file, is refused with a message. Up to three files upload at once, and a failed file never costs the others: it shows its error and a Retry button. Very large files are sent directly to MuAPI instead of through the app's proxy."
+    },
+    {
+      "feature": "Recent uploads",
+      "explanation": "After you upload something, a clock button appears in the field. It lists your last 40 uploads of the matching kind, so you can reuse one without uploading again.",
+      "whyToUse": "Saves time when you try the same reference image with several models.",
+      "inputRequired": "None.",
+      "restrictions": "The list is stored in this browser for your key only. You can remove entries. It is not a server-side media library."
+    },
+    {
+      "feature": "My Generations",
+      "explanation": "Every result is added to the list on the right with its prompt, model, price and time. Each card can be downloaded, approved or rejected, reused (loads its model and settings back into the form), re-run, copied as a link, or hidden.",
+      "whyToUse": "Keeps your results together and makes it easy to repeat or refine a good one.",
+      "inputRequired": "None.",
+      "restrictions": "Approve and Reject labels, hidden items and recent uploads are saved in this browser. History from MuAPI is merged in when your account allows it. Re-run shows the price of the saved settings and asks you to confirm when it is high."
+    },
+    {
+      "feature": "3D results",
+      "explanation": "Results in .glb or .gltf format open in an inline 3D viewer on the result card.",
+      "whyToUse": "Look at a generated 3D model without downloading it.",
+      "inputRequired": "None.",
+      "restrictions": "The viewer needs the model file to be served over https."
+    },
+    {
+      "feature": "Your own MuAPI key",
+      "explanation": "The studio uses your own MuAPI API key. The first time you open it, it shows 'Connect your MuAPI key' with an Add API key button that opens Settings. The Key button at the bottom of the rail opens Settings again whenever you want to change it.",
+      "whyToUse": "You pay MuAPI directly for what you generate, and your account's models and limits apply.",
+      "inputRequired": "A MuAPI API key.",
+      "restrictions": "If MuAPI rejects the key, a banner says 'Your MuAPI key was rejected' and offers Update key. Changing the key switches to the new account's own history."
+    }
+  ],
+  "howToUse": "Open Studio from the Image group in the side menu. If asked, add your MuAPI key in Settings. Pick a mode in the left rail, choose a model, fill in the form, check the price on the Generate button, and click Generate. Your results appear in My Generations on the right.",
+  "howToSteps": [
+    "Open 'Studio' in the Image group of the side menu (#/muapi-studio).",
+    "If you see 'Connect your MuAPI key', click Add API key and paste your key into Settings, then close Settings.",
+    "Pick a mode in the left rail (Image, Video, Audio, Avatar, 3D, Tools, Text or More).",
+    "Choose a model with the model button, or in Image / Video switch to Apps to pick a ready-made app.",
+    "Fill in the form: at least the required fields marked '* required'. Drop a file onto an upload field or paste a URL when a model needs a reference.",
+    "Choose a batch size (1, 2, 4, 6 or 8) and check the price on the Generate button.",
+    "Click Generate. If the total is above $0.25 you are asked to confirm.",
+    "Find the result in My Generations. Download it, approve or reject it, or use Reuse to load its settings back into the form."
+  ],
+  "gettingStarted": [
+    "Add your MuAPI key first; nothing can be generated without it.",
+    "Start in Image mode with a batch of 1 to keep the first run cheap, and read the price on the Generate button.",
+    "Use Reuse on a result you like to change just one setting and run it again."
+  ],
+  "inputs": [
+    "MuAPI API key",
+    "Prompt",
+    "Reference image, video or audio (file or URL)",
+    "Aspect ratio",
+    "Resolution",
+    "Duration",
+    "Batch size",
+    "Form or JSON"
+  ],
+  "requiredInputs": [
+    "A MuAPI API key",
+    "The fields marked '* required' for the chosen model (often a prompt, sometimes a reference image)"
+  ],
+  "optionalInputs": [
+    "Aspect ratio, resolution, duration and other model options",
+    "Reference files",
+    "Batch size (the default is 4)"
+  ],
+  "inputDetails": [
+    {
+      "name": "MuAPI API key",
+      "description": "Your own MuAPI key, added in Settings. It is sent with your requests only. Without it the studio shows 'Connect your MuAPI key'."
+    },
+    {
+      "name": "Prompt",
+      "description": "The text instruction for the model. Required for most models. Models that take several reference images show @image1, @image2 tags you can click to insert into the prompt."
+    },
+    {
+      "name": "Reference files",
+      "description": "Images, videos or audio a model needs. Add them by drag and drop, paste, the upload button, a public URL, or Recent uploads. The upload box shows the item count and limit for list fields, such as '0/8 items'."
+    },
+    {
+      "name": "Aspect ratio, resolution, duration",
+      "description": "Dropdowns built from the chosen model's own options. Optional numeric and dropdown fields have an Auto choice that leaves them out of the request so the model decides."
+    },
+    {
+      "name": "Batch size",
+      "description": "How many generations one click starts: 1, 2, 4, 6 or 8. The default is 4. The Generate button shows the combined price."
+    },
+    {
+      "name": "Form / JSON",
+      "description": "Switches between the generated form and the raw request body as JSON."
+    }
+  ],
+  "generationModes": [
+    "Image",
+    "Video",
+    "Audio",
+    "Avatar",
+    "3D",
+    "Tools",
+    "Text",
+    "More",
+    "Apps (inside Image and Video)"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Image",
+      "description": "Image models from the live catalog, including text-to-image and image editing models.",
+      "useCase": "Create or edit still images."
+    },
+    {
+      "mode": "Video",
+      "description": "Video models, grouped by provider and by type such as text-to-video and image-to-video.",
+      "useCase": "Create video clips from text or from a start image."
+    },
+    {
+      "mode": "Audio",
+      "description": "Music, voice and sound-effect models.",
+      "useCase": "Make a voiceover, a track or a sound effect."
+    },
+    {
+      "mode": "Avatar",
+      "description": "Talking-avatar and lip-sync style models.",
+      "useCase": "Make a presenter or character speak a script."
+    },
+    {
+      "mode": "3D",
+      "description": "Models that produce 3D files, shown in an inline viewer.",
+      "useCase": "Generate a 3D asset from text or an image."
+    },
+    {
+      "mode": "Tools",
+      "description": "Utility models such as enhancement and conversion tools.",
+      "useCase": "Improve or transform an existing file."
+    },
+    {
+      "mode": "Text and More",
+      "description": "Text models and the remaining model groups from the catalog.",
+      "useCase": "Anything that does not fit the other modes."
+    },
+    {
+      "mode": "Apps",
+      "description": "Ready-made apps inside Image and Video modes, opened with the Models / Apps switch.",
+      "useCase": "Get a result for a common task without writing a prompt."
+    }
+  ],
+  "modelCapabilities": "The model list is the live MuAPI catalog (more than 800 models), so exactly which models, options and prices you see depends on MuAPI and can change at any time. Each model brings its own form fields, limits and price. The studio does not choose a model for you; it shows each model's own settings.",
+  "outputs": [
+    "Images",
+    "Video clips",
+    "Audio files",
+    "Avatar videos",
+    "3D files (shown inline for .glb and .gltf)",
+    "Text and other files returned by a model"
+  ],
+  "limitations": [
+    "A MuAPI API key is required, and your MuAPI account's limits and balance apply.",
+    "The model list, options and prices come from MuAPI and can change.",
+    "Approve and Reject labels, hidden items and Recent uploads are saved in this browser only.",
+    "The MuAPI media library is not available in this app, so uploads are kept in Recent uploads instead.",
+    "The 3D viewer needs the file to be served over https."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "No MuAPI key",
+      "impact": "The studio shows 'Connect your MuAPI key' and cannot generate.",
+      "workaround": "Click Add API key and paste your key in Settings."
+    },
+    {
+      "limitation": "Key rejected by MuAPI",
+      "impact": "A banner says 'Your MuAPI key was rejected' and requests fail.",
+      "workaround": "Click Update key and enter a valid key."
+    },
+    {
+      "limitation": "Wrong kind of file for a field",
+      "impact": "The upload is refused with a message such as 'This field takes image files.'",
+      "workaround": "Choose a file of the kind the field takes."
+    },
+    {
+      "limitation": "Labels and recent uploads are per browser",
+      "impact": "They do not follow you to another browser or device.",
+      "workaround": "Download results you want to keep."
+    }
+  ],
+  "troubleshooting": [
+    "'Connect your MuAPI key': add your key in Settings with Add API key.",
+    "'Your MuAPI key was rejected': click Update key and enter a valid key.",
+    "Generate is disabled or the form is empty: wait for the model's settings to load, or choose another model if the error mentions loading.",
+    "A file is refused on upload: check the message under the field; it names the problem (wrong kind of file, empty file, or a server error) and has a Retry button.",
+    "A result stays on 'Generating...': long jobs can take minutes; leave the page open or come back, and the studio resumes checking unfinished jobs when you return."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "The studio asks for a key every time",
+      "steps": [
+        "Open Settings with the Key button and make sure the MuAPI key is saved.",
+        "Close Settings and reopen the studio."
+      ]
+    },
+    {
+      "issue": "An upload failed",
+      "steps": [
+        "Read the message under the file name.",
+        "If it is a server error, click Retry.",
+        "If the file is the wrong kind or empty, choose a different file."
+      ]
+    },
+    {
+      "issue": "Generate asks me to confirm",
+      "steps": [
+        "Read the total in the confirmation.",
+        "Lower the batch size or change a setting if it is more than you want to spend, or click Confirm."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "The price is higher than I expected",
+      "whyItHappens": "Price depends on the model and your settings, such as duration, resolution and batch size.",
+      "howToFix": "Lower the batch, duration or resolution, or choose a cheaper model, and watch the Generate button update."
+    },
+    {
+      "problem": "A model I used before is missing",
+      "whyItHappens": "The list comes from the live MuAPI catalog, which changes.",
+      "howToFix": "Search for the model's name; if it is gone, pick a similar one."
+    },
+    {
+      "problem": "My approved or rejected results are gone on another device",
+      "whyItHappens": "Labels are saved in the browser you used.",
+      "howToFix": "Download results you want to keep."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "Compare three image models on one prompt",
+      "steps": [
+        "Open Studio in Image mode and set the batch to 1.",
+        "Pick the first model, type the prompt and Generate.",
+        "Click Reuse on the result, then switch the model and Generate again.",
+        "Compare the results in My Generations and approve the best one."
+      ]
+    },
+    {
+      "title": "Turn a photo into a short video",
+      "steps": [
+        "Switch to Video mode and pick an image-to-video model.",
+        "Drop your photo onto the image field.",
+        "Add a prompt describing the motion, check the price, and Generate.",
+        "Download the clip from My Generations."
+      ]
+    },
+    {
+      "title": "Use a ready-made app",
+      "steps": [
+        "In Image mode, switch from Models to Apps.",
+        "Search or filter for the app you want and pick it.",
+        "Drop the source image into its upload slot and choose a preset.",
+        "Click Generate."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Model comparison",
+      "description": "Run the same prompt through several models and keep the best result.",
+      "steps": [
+        "Generate with one model",
+        "Reuse the settings with another",
+        "Compare in My Generations"
+      ]
+    },
+    {
+      "title": "Product and marketing visuals",
+      "description": "Make images, short videos and audio for a campaign from one workspace.",
+      "steps": [
+        "Create the image",
+        "Animate it in Video mode",
+        "Add a voiceover in Audio mode"
+      ]
+    },
+    {
+      "title": "Trying new models quickly",
+      "description": "New models appear in the catalog without any change to the studio.",
+      "steps": [
+        "Search for the new model",
+        "Read its form",
+        "Generate a single test"
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Where do I find it?",
+      "answer": "In the side menu under Image, labelled 'Studio'. It opens at #/muapi-studio."
+    },
+    {
+      "question": "Do I need an account or key?",
+      "answer": "You need your own MuAPI API key. The studio asks for it the first time and saves it in Settings."
+    },
+    {
+      "question": "How much does a generation cost?",
+      "answer": "It depends on the model and your settings. The price for your exact settings is on the Generate button before you run anything, and one click above $0.25 in total asks you to confirm."
+    },
+    {
+      "question": "What does the batch number do?",
+      "answer": "It is how many generations one click starts: 1, 2, 4, 6 or 8. The default is 4, and the Generate button shows the combined price."
+    },
+    {
+      "question": "How do I upload a reference file?",
+      "answer": "Drag it onto the upload box of a field, drop it anywhere on the form, paste an image, or click the upload button. You can also paste a public URL."
+    },
+    {
+      "question": "Can I reuse an earlier upload?",
+      "answer": "Yes. After your first upload a clock button appears in the field and lists your recent uploads of that kind."
+    },
+    {
+      "question": "What are Apps?",
+      "answer": "Ready-made tools inside Image and Video modes, opened with the Models / Apps switch. Each one asks only for what it needs and builds the request for you."
+    },
+    {
+      "question": "Are my results saved?",
+      "answer": "They appear in My Generations. Approve and Reject labels and recent uploads are saved in the browser you used, so download anything you want to keep."
+    },
+    {
+      "question": "Why is a model missing?",
+      "answer": "The model list comes from the live MuAPI catalog, which changes over time."
+    }
+  ],
+  "glossary": {
+    "Model": "An AI system that produces an image, video, audio, 3D file or text from your inputs.",
+    "Batch": "How many generations one click of Generate starts.",
+    "Apps": "Ready-made tools inside Image and Video modes that build the request for a common task.",
+    "My Generations": "The list of your results with actions such as Download, Reuse and Re-run.",
+    "Reuse": "Loads a past result's model and settings back into the form.",
+    "Re-run": "Runs a past result's settings again.",
+    "Auto": "An option on optional fields that leaves the field out so the model decides.",
+    "MuAPI key": "Your own API key from MuAPI, used to pay for and run generations."
+  },
+  "tips": [
+    "Start with a batch of 1 until you know what a model costs.",
+    "Use Reuse to change one setting at a time and compare.",
+    "Drop reference files anywhere on the form; they go to the first field that takes them.",
+    "Use the Auto option on optional fields to let the model choose."
+  ],
+  "bestPractices": [
+    "Check the price on the Generate button after every setting change.",
+    "Download results you want to keep; labels are saved in this browser only.",
+    "Try a cheap model first, then run the final version with a better one."
+  ],
+  "relatedStudios": [
+    "image",
+    "video",
+    "edit",
+    "upscale",
+    "audio",
+    "avatar"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "image",
+      "relationship": "Guided image generation",
+      "whenToMove": "When you want a simple prompt bar and a curated model list.",
+      "why": "Image Studio is a lighter way to make images; All-Models Studio is for exploring the full catalog."
+    },
+    {
+      "studio": "video",
+      "relationship": "Guided video generation",
+      "whenToMove": "When you want a guided video workflow with extra tools.",
+      "why": "Video Studio adds its own editing and finishing tools."
+    },
+    {
+      "studio": "edit",
+      "relationship": "Focused photo tools",
+      "whenToMove": "When you need Remove Background, Reframe or similar one-click edits.",
+      "why": "Each Edit tool has the right inputs built in."
+    },
+    {
+      "studio": "upscale",
+      "relationship": "Increase resolution",
+      "whenToMove": "When the image is right but needs more pixels.",
+      "why": "It runs dedicated upscaling models."
+    }
+  ],
+  "notConfirmed": [
+    "Exact prices: they come from MuAPI per request and vary with the model and settings.",
+    "How many models are in the catalog on any given day: it changes; 'more than 800' was true when this guide was written.",
+    "Behavior with a real MuAPI key and real uploads: the studio was exercised in a browser with a placeholder key and mocked uploads, not with live generations.",
+    "A few of the 76 apps build their request in a shape inferred from the model's published settings rather than confirmed by a live run."
+  ],
+  "sourceFiles": [
+    "src/components/MuapiStudioPage.js",
+    "src/lib/muapiStudioTransport.js",
+    "src/lib/studioRoutes.js",
+    "src/lib/router.js",
+    "vendor/muapi-studio/index.js",
+    "vendor/muapi-studio/README.md"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Written from the studio package source and the host page, transport and route files, and checked against the running studio in a browser (side menu entry, modes, form, price on the Generate button, drag-and-drop and paste upload, recent uploads, 3D viewer, key prompt). Not run with a real MuAPI key.",
+    "verifiedAt": "2026-11-23",
+    "verifiedBy": "Code review and browser check (LLM-assisted)"
+  }
+}

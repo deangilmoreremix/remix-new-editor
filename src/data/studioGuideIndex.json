@@ -13,6 +13,14 @@
         "thumbnail": "/guides/ai-influencer/overview.webp"
       },
       {
+        "slug": "all-models-studio",
+        "name": "All-Models Studio",
+        "route": "muapi-studio",
+        "shortDescription": "One workspace for hundreds of AI models across image, video, audio, avatar and 3D, using your own MuAPI key.",
+        "features": 9,
+        "thumbnail": "/thumbnails/studios/muapi-studio.webp"
+      },
+      {
         "slug": "brand-studio",
         "name": "Brand Studio",
         "route": "brand",
