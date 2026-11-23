@@ -13,7 +13,8 @@ export function loadGuides() {
     fs.readdirSync(kbDir).filter((f) => f.endsWith('.json') && !f.startsWith('_'))
       .map((f) => [f.slice(0, -5), JSON.parse(fs.readFileSync(path.join(kbDir, f), 'utf8'))]),
   );
-  return buildGuides(kb);
+  // A guide with no public page (UNLISTED_GUIDES) is toured only when it has a narration script.
+  return buildGuides(kb, {}, { includeUnlisted: true }).filter((g) => !g.unlisted || fs.existsSync(path.join(NARRATION_DIR, `${g.slug}.json`)));
 }
 
 export function loadNarration(slug) {
