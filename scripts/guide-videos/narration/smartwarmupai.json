@@ -6,11 +6,11 @@
     "connect-mailboxes-accounts": "Accounts lists every mailbox you have connected, with its warmup status and health. Add a new mailbox here, whether it is Gmail, Microsoft 365 or any other email account.",
     "warmup": "Open a mailbox and go to its Warmup tab. Start warmup builds up sending volume gradually and replies to messages, so your mailbox earns a good reputation before real campaigns.",
     "campaigns-and-sequences": "Campaigns is where you build cold email sequences. Name a campaign, choose who should get it, write the steps and delays, and pick which mailboxes send.",
-    "inbox": "The inbox gathers replies from all your mailboxes in one place. Use views like action required and hot leads to see which conversations need an answer first.",
+    "inbox": "The inbox gathers replies from all your mailboxes in one place. Use views like unread and awaiting reply to see which conversations need an answer first.",
     "contacts": "Contacts holds the people you email. Group them into segments, tag them with labels, and keep a suppression list so nobody who opted out is ever contacted again.",
     "crm-pipelines-deals-tasks-meetings": "The CRM tracks deals as they move through pipeline stages. Add tasks and meetings to each deal, so follow-ups from a reply never slip through the cracks.",
     "analytics-and-reports": "Analytics shows emails sent, open rate and reply rate over the period you choose. Reports let you share campaign results with clients, so everyone sees what is working.",
-    "deliverability-and-placement-tests": "Deliverability shows how well your mail lands across mailboxes, including inbox rate, spam rate and bounce rate. Run placement tests to see where your emails really arrive.",
+    "deliverability-and-placement-tests": "Deliverability shows how well your mail lands, with a deliverability score and your bounce and complaint rates over time. Placement tests show where your emails really arrive.",
     "ask-remie-ai-assistant": "Ask Remie opens the built in AI assistant. It answers questions about your campaigns and can take actions for you, asking your permission before it changes anything."
   },
   "outro": "That's SmartWarmupAI. Warm your mailboxes first, launch a small campaign, and use the inbox and analytics to see what earns replies."
