@@ -1,3 +1,4 @@
+import { routeHash } from './routeUrl.js';
 /**
  * Header notification bell: unread count for the signed-in owner's video alerts (owner_notifications).
  * Counts come from the owner-only RPC (row-level security), refreshed on load, when the tab regains focus and
@@ -49,7 +50,7 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   }
   btn.addEventListener('click', () => {
     try { sessionStorage.setItem(OPEN_FLAG, '1'); } catch { /* the event below still works on the editor page */ }
-    const hash = globalThis.location?.hash || '';
+    const hash = routeHash(globalThis.location);
     if (/^#\/timeline-classic/.test(hash)) { try { sessionStorage.removeItem(OPEN_FLAG); } catch { /* ignore */ } globalThis.dispatchEvent(new CustomEvent('remix:open-projects')); }
     else if (/^#\/timeline(?![-\w])/.test(hash)) globalThis.dispatchEvent(new CustomEvent('remix:open-projects')); // the new editor listens too
     else navigate?.('timeline'); // opens the editor; its Analytics tab reads the flag and shows the alerts

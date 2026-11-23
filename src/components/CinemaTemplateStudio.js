@@ -3,6 +3,7 @@
  * UI Component for the Cinematic Template System
  */
 
+import { parseLocation } from '../lib/routeUrl.js';
 import { showToast } from '../lib/loading.js';
 import { createTemplateCost } from '../lib/templateCost.js';
 import { formatActualCost } from '../lib/templateUx.js';
@@ -506,7 +507,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     incomingStoryboard = null;
     storyboardProjectId = null;
     try {
-      const params = new URLSearchParams(window.location.hash.split('?')[1] || window.location.search);
+      const params = new URLSearchParams({ ...parseLocation().params });
       const storyboardParam = params.get('storyboard');
       const cinemaTemplateParam = params.get('template');
       if (storyboardParam) {

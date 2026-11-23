@@ -4,6 +4,7 @@
 // user's own OpenAI key). Source chips navigate with the SPA router, so the
 // conversation survives moving between studios; history is kept in
 // sessionStorage for the tab.
+import { onRouteChange } from '../../lib/routeUrl.js';
 import { apiKeyManager } from '../../lib/apiKeyManager.js';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 import { ENDPOINT, studioLabel, studioForRoute, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
@@ -293,5 +294,5 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
   input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(input.scrollHeight, 112)}px`; });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) setOpen(false); });
   // Keep "You're in <studio>" and the starters current as the user moves around.
-  window.addEventListener('hashchange', () => { if (!panel.hidden && !busy && !messages.length) renderAll(); else if (!panel.hidden) $('context').textContent = ctx(); });
+  onRouteChange(() => { if (!panel.hidden && !busy && !messages.length) renderAll(); else if (!panel.hidden) $('context').textContent = ctx(); });
 }
