@@ -1,0 +1,352 @@
+[
+ {
+  "slug": "ai-influencer",
+  "route": "influencer",
+  "name": "AI Influencer",
+  "category": "Image",
+  "unlisted": false
+ },
+ {
+  "slug": "brand-studio",
+  "route": "brand",
+  "name": "Brand Studio",
+  "category": "Image",
+  "unlisted": false
+ },
+ {
+  "slug": "character-studio",
+  "route": "character",
+  "name": "Character Studio",
+  "category": "Image",
+  "unlisted": false
+ },
+ {
+  "slug": "edit-studio",
+  "route": "edit",
+  "name": "Edit Studio",
+  "category": "Image",
+  "unlisted": false
+ },
+ {
+  "slug": "image-studio",
+  "route": "image",
+  "name": "Image Studio",
+  "category": "Image",
+  "unlisted": false
+ },
+ {
+  "slug": "product-shot-studio",
+  "route": "commercial",
+  "name": "Product Shot Studio",
+  "category": "Image",
+  "unlisted": false
+ },
+ {
+  "slug": "upscale-suite",
+  "route": "upscale",
+  "name": "Upscale Suite",
+  "category": "Image",
+  "unlisted": false
+ },
+ {
+  "slug": "ai-vfx-studio",
+  "route": "ai-vfx",
+  "name": "AI VFX Studio",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "animate-studio",
+  "route": "animate",
+  "name": "Animate Studio",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "audio-studio",
+  "route": "audio",
+  "name": "Audio Studio",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "avatar-studio",
+  "route": "avatar",
+  "name": "Avatar Studio",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "cinema-studio",
+  "route": "cinema",
+  "name": "Cinema Studio",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "cinema-templates",
+  "route": "cinema-template",
+  "name": "Cinema Templates",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "effects-studio",
+  "route": "effects",
+  "name": "Effects Studio",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "lip-sync-studio",
+  "route": "lipsync",
+  "name": "Lip Sync Studio",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "smartviddownloader",
+  "route": "media-hub",
+  "name": "SmartVidDownloader",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "storyboard-studio",
+  "route": "storyboard",
+  "name": "Storyboard Studio",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "video-studio",
+  "route": "video",
+  "name": "Video Studio",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "video-tools",
+  "route": "videotools",
+  "name": "Video Tools",
+  "category": "Video",
+  "unlisted": false
+ },
+ {
+  "slug": "image-to-image",
+  "route": "image-to-image",
+  "name": "Image to Image",
+  "category": "Generate",
+  "unlisted": false
+ },
+ {
+  "slug": "image-to-video",
+  "route": "image-to-video",
+  "name": "Image to Video",
+  "category": "Generate",
+  "unlisted": false
+ },
+ {
+  "slug": "text-to-image",
+  "route": "text-to-image",
+  "name": "Text to Image",
+  "category": "Generate",
+  "unlisted": false
+ },
+ {
+  "slug": "text-to-video",
+  "route": "text-to-video",
+  "name": "Text to Video",
+  "category": "Generate",
+  "unlisted": false
+ },
+ {
+  "slug": "video-to-video",
+  "route": "video-to-video",
+  "name": "Video to Video",
+  "category": "Generate",
+  "unlisted": false
+ },
+ {
+  "slug": "video-watermark-remover",
+  "route": "video-watermark",
+  "name": "Video Watermark Remover",
+  "category": "Generate",
+  "unlisted": false
+ },
+ {
+  "slug": "asset-editor",
+  "route": "asset-edit",
+  "name": "Asset Editor",
+  "category": "Brand",
+  "unlisted": false
+ },
+ {
+  "slug": "brand-dna-editor",
+  "route": "brand-dna",
+  "name": "Brand DNA Editor",
+  "category": "Brand",
+  "unlisted": false
+ },
+ {
+  "slug": "campaign-studio",
+  "route": "campaign",
+  "name": "Campaign Studio",
+  "category": "Brand",
+  "unlisted": false
+ },
+ {
+  "slug": "photo-studio",
+  "route": "photo-studio",
+  "name": "Photo Studio",
+  "category": "Brand",
+  "unlisted": false
+ },
+ {
+  "slug": "director",
+  "route": "director",
+  "name": "Director",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "find-my-brand",
+  "route": "find-my-brand",
+  "name": "Find My Brand",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "lead-finder",
+  "route": "leadfinder",
+  "name": "Lead Finder",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "motion-director",
+  "route": "motion-director",
+  "name": "Motion Director",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "personalizer",
+  "route": "personalizer",
+  "name": "Personalizer",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "recorder",
+  "route": "recorder",
+  "name": "Recorder",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "smart-video-scheduler",
+  "route": "smart-video-scheduler",
+  "name": "Smart Video Scheduler",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "smart-video-viral",
+  "route": "viral",
+  "name": "Smart Video Viral",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "timeline-editor",
+  "route": "timeline",
+  "name": "Timeline Editor",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "video-agent",
+  "route": "video-agent",
+  "name": "Video Agent",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "video-outreach",
+  "route": "outreach",
+  "name": "Video Outreach",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "video-render",
+  "route": "render",
+  "name": "Video Render",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "workbench",
+  "route": "workbench",
+  "name": "Workbench",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "zack-d-studio",
+  "route": "zackd",
+  "name": "Zack D Studio",
+  "category": "Agents",
+  "unlisted": false
+ },
+ {
+  "slug": "smart-video-academy",
+  "route": "academy",
+  "name": "Academy",
+  "category": "Home",
+  "unlisted": false
+ },
+ {
+  "slug": "apps",
+  "route": "apps",
+  "name": "Apps",
+  "category": "Home",
+  "unlisted": false
+ },
+ {
+  "slug": "explore",
+  "route": "explore",
+  "name": "Explore",
+  "category": "Home",
+  "unlisted": false
+ },
+ {
+  "slug": "templates",
+  "route": "templates",
+  "name": "Templates",
+  "category": "Home",
+  "unlisted": false
+ },
+ {
+  "slug": "content-library",
+  "route": "content-library",
+  "name": "Content",
+  "category": "My Work",
+  "unlisted": false
+ },
+ {
+  "slug": "library",
+  "route": "library",
+  "name": "Library",
+  "category": "My Work",
+  "unlisted": false
+ },
+ {
+  "slug": "smartwarmupai",
+  "route": "smartwarmupai",
+  "name": "SmartWarmupAI",
+  "category": "Agents",
+  "unlisted": false
+ }
+]
