@@ -1504,7 +1504,7 @@ export default function PersonalizationModal() {
                     className={`${advancedFrame ? 'hidden' : 'hidden md:block'} mt-1.5 max-w-[900px] text-[13px] leading-[1.55]`}
                     style={{ color: C.muted }}
                   >
-                    {isAnonymous
+                    {isAnonymous && source?.sourceMetadata?.freeDiscovery === true
                       ? 'Find My Brand: paste your business website — or search for a business — and we surface the logos, photos, products and branding its page already has, for you to review and arrange below. Nothing is generated and nothing is charged.'
                       : 'Turn this demo into a custom version for yourself, your business, or a customer. Personalize the person, branding, products, prompt, offer and CTA.'}
                   </p>

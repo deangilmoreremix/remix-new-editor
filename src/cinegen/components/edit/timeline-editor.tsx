@@ -7,6 +7,9 @@ import { OverlayLane } from './overlay-lane';
 import { type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 import { CaptionLane } from './caption-lane';
 import { createOverlay, createStudioDesignOverlay, createTemplateOverlays, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
+import { presetOverlays } from '@cinegen/lib/overlays/overlay-presets';
+import { createLayoutOverlays } from '@cinegen/lib/overlays/personalized-layouts';
+import { measureActiveLogo, makeAllVideoReady } from '@cinegen/lib/personalize/contact-image-services';
 import { selectOverlay, getSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
 import { formatTimecode } from './time-ruler';
@@ -60,7 +63,7 @@ import { clipEffectiveDuration, clipEndTime, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_
 const LABEL_WIDTH = 150;
 const FPS = 24; // assumed frame rate for snap-to-frame grid
 
-const DEFAULT_TRACK_HEIGHT = 110; // [remix] was 80
+const DEFAULT_TRACK_HEIGHT = 80; // same as CineGen upstream
 
 
 interface TimelineEditorProps {
@@ -3212,6 +3215,20 @@ export function TimelineEditor({
       {/* [remix] Overlays lane: Lead Generator, List Builder, CTA drawn over the video */}
       <OverlayLane
         onLibraryDrop={onLibraryDrop}
+        onAssetDrop={(assetId, ctx) => {
+          // a picture from the Media pool dropped on the Overlays lane becomes an Image overlay showing that picture
+          const asset = assetsRef.current.find((a) => a.id === assetId);
+          if (!asset || asset.type !== 'image' || !asset.url) return;
+          const base = createOverlay('overlay-image', startAfterGate(state.overlays, ctx.time), Math.max(sequenceDuration, 10));
+          const overlay = {
+            ...base,
+            ...(typeof ctx.row === 'number' ? { row: ctx.row } : {}),
+            name: asset.name || base.name,
+            addon: { ...((base.addon as Record<string, unknown> | undefined) ?? {}), src: asset.url },
+          };
+          dispatch({ type: 'ADD_OVERLAY', overlay });
+          selectOverlay(overlay.id);
+        }}
         overlays={state.overlays}
         pxPerSecond={pxPerSecond}
         scrollLeft={Math.max(0, rulerScrollLeft)}
@@ -3247,6 +3264,22 @@ export function TimelineEditor({
             },
             onPickTemplateVideo: handlePickTemplateVideo, // Template videos tab
             onPickLandingPage: handlePickLandingPage, // Landing pages tab
+            getOverlays: () => state.overlays ?? [],
+            onMakeAllVideoReady: (h) => makeAllVideoReady(state.overlays ?? [], h), // the images this video's Personalized Images use, for every contact
+            onAddLayout: (layoutId) => { // Personalized layouts tab: logo + CTA end card, presenter intro, product spotlight, opening frame
+              const r = createLayoutOverlays(layoutId, currentTime, Math.max(sequenceDuration, 10));
+              if (r.ok) {
+                r.overlays.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
+                if (r.overlays.length) selectOverlay(r.overlays[r.overlays.length - 1].id);
+                if (r.measureLogo) void measureActiveLogo();
+              }
+              return { ok: r.ok, message: r.message };
+            },
+            onPickPreset: (preset) => { // My presets tab
+              const made = presetOverlays(preset, startAfterGate(state.overlays, currentTime), Math.max(sequenceDuration, 10)); // not over a List Builder gate marker
+              made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
+              if (made.length) selectOverlay(made[made.length - 1].id);
+            },
             onAddTemplate: (templateId, phone) => {
               const made = createTemplateOverlays(templateId, currentTime, Math.max(sequenceDuration, 10), phone ? { phone } : undefined);
               made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));

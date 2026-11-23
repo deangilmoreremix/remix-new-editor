@@ -71,3 +71,7 @@ Ported from `christopherjohnogden/CineGen@769f148` `tests/` (`@/` → `@cinegen/
 - `components/assistant/assistant-drawer.test.tsx` — whole file
 
 - `components/create/model-node.test.tsx`, `lib/workflows/topview-video-task.test.ts` — whole file (provider registry differs: Higgsfield/Topview/LTX session models)
+
+## remix feature: OpenChatCut clip speed range is 0.1–8×, CineGen's is 0.25–4×
+
+- `lib/editor/timeline-operations.test.ts` — clamps speed to 0.25-4 range (`updateClipProperties` clamps to `MIN_RATE`/`MAX_RATE` from `openchatcut/editor/rateStretch`, which the Alt-drag rate stretch also uses)

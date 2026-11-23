@@ -93,7 +93,17 @@ export async function burnWithRecorder({ src, captions, style, onProgress, signa
   const url = URL.createObjectURL(blob);
   const video = document.createElement('video');
   video.src = url; video.playsInline = true; video.crossOrigin = 'anonymous';
-  await new Promise((res, rej) => { video.onloadedmetadata = res; video.onerror = () => rej(new Error('The browser could not open this video.')); });
+  try {
+    await new Promise((res, rej) => {
+      const timer = setTimeout(() => rej(new Error('Timed out opening this video.')), 20000);
+      const done = (fn, v) => { clearTimeout(timer); signal?.removeEventListener('abort', onAbort); fn(v); };
+      const onAbort = () => done(rej, abortError());
+      if (signal?.aborted) { onAbort(); return; }
+      signal?.addEventListener('abort', onAbort, { once: true });
+      video.onloadedmetadata = () => done(res);
+      video.onerror = () => done(rej, new Error('The browser could not open this video.'));
+    });
+  } catch (err) { URL.revokeObjectURL(url); throw err; }
   const W = video.videoWidth; const H = video.videoHeight;
   const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');

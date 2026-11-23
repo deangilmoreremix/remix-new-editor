@@ -141,6 +141,10 @@ try {
     if (hashPage) initialPage = hashPage;
   }
 
+  // A business's own domain (netlify/edge-functions/custom-domain.js): videos.acme.com/intro opens /v/acme/intro.
+  const customRoute = document.querySelector('meta[name="sv-route"]')?.getAttribute('content');
+  if (customRoute && /^v\/[a-z0-9-]+\/[a-z0-9-]+$/.test(customRoute)) initialPage = customRoute;
+
   // Handle studio query param
   const studioParam = new URLSearchParams(window.location.search).get('studio');
   if (studioParam) {
@@ -153,6 +157,16 @@ try {
     const landingPage = await LandingPage();
     app.appendChild(landingPage);
     console.log('[App] Landing page rendered');
+    return;
+  }
+
+  // Public studio feature guides (/studios, /studios/<slug>): no app shell,
+  // no sign-in. Prerendered to static HTML at build time for SEO.
+  const guidePath = initialPage.split(/[?#]/)[0].replace(/\/+$/, '');
+  if (guidePath === 'studios' || /^studios\/[a-z0-9-]+$/.test(guidePath)) {
+    const { mountGuidePage } = await import('./components/guides/mountGuidePage.js');
+    mountGuidePage(app, guidePath.slice('studios/'.length));
+    console.log('[App] Studio guide rendered');
     return;
   }
 

@@ -7,7 +7,7 @@
  * rules are identical everywhere.
  */
 
-import { addDesignTemplate } from './presets'
+import { addDesignTemplate, removeDesignLayer, resetPreviewDesign } from './presets'
 import type { ApplyLayoutContext } from './presets'
 import { getRemotionDesignTemplate, isRemotionDesignTemplateSupported } from '../templates/registry'
 import type { RemotionDesignMediaRole, RemotionDesignTemplate } from '../templates/types'
@@ -139,6 +139,20 @@ export function addDesignWithRules(
     }
   })
   return { settings: { ...next, layers } }
+}
+
+/**
+ * Takes one design off the video. If that was the only thing on it (the customer had used "Replace my layout"),
+ * the default layout comes back instead of an empty video, as removing a design always did before.
+ */
+export function removeDesignKeepingLayout(
+  prev: PersonalizationPreviewSettings,
+  layerId: string,
+  ctx?: ApplyLayoutContext,
+): PersonalizationPreviewSettings {
+  const next = removeDesignLayer(prev, layerId)
+  if (next === prev || next.layers.length > 0) return next
+  return resetPreviewDesign(next, ctx)
 }
 
 /** Moves one added design earlier (-1) or later (+1) in the stack, past other design layers only. */

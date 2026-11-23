@@ -8,7 +8,7 @@ import { inList } from './supabaseRest.js';
 
 export function emailDb(call) {
   return {
-    recentNotifications: (since) => call(`owner_notifications?select=id,clerk_user_id,type,title,summary,suggestion&created_at=gte.${encodeURIComponent(since)}&limit=500`),
+    recentNotifications: (since) => call(`owner_notifications?select=id,clerk_user_id,type,title,summary,suggestion,created_at&created_at=gte.${encodeURIComponent(since)}&limit=500`),
     preferences: async (ids) => {
       if (!ids.length) return {};
       const rows = await call(`retarget_preferences?select=clerk_user_id,email,enabled_types,digest_frequency,quiet_hours&clerk_user_id=${inList(ids)}`);

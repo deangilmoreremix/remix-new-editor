@@ -244,7 +244,7 @@ export function useStage1Editing(p: Stage1Params) {
   const selHasGroup = timeline.clips.some((c) => selectedClipIds.has(c.id) && c.groupId);
   const selHasCompound = timeline.clips.some((c) => selectedClipIds.has(c.id) && c.compound);
   const bar = (
-    <div data-testid="stage1-bar" role="toolbar" aria-label="Clip tools" style={{ position: 'fixed', left: 560, bottom: 6, zIndex: 40, display: 'flex', gap: 6, alignItems: 'center', background: 'rgba(20,20,24,0.92)', color: '#eee', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 8, padding: '4px 8px', fontSize: 11 }}>
+    <div data-testid="stage1-bar" role="toolbar" aria-label="Clip tools" style={{ position: 'relative', flex: '1 1 auto', minWidth: 0, overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none', display: 'flex', flexWrap: 'nowrap', gap: 6, alignItems: 'center', background: 'rgba(20,20,24,0.92)', color: '#eee', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 8, padding: '2px 8px', fontSize: 11, whiteSpace: 'nowrap' }}>
       <button type="button" data-testid="group-btn" disabled={selectedClipIds.size < 2} onClick={group} title="Group selected clips (Ctrl+G)">Group</button>
       <button type="button" data-testid="ungroup-btn" disabled={!selHasGroup} onClick={ungroup} title="Ungroup (Ctrl+Shift+G)">Ungroup</button>
       <button type="button" data-testid="nest-btn" disabled={!hasSel} onClick={nest} title="Nest selected clips into a compound clip (Ctrl+Alt+G)">Nest</button>

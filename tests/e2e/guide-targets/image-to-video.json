@@ -1,0 +1,25 @@
+{
+  "animate-your-images": {
+    "selector": ".start-btn"
+  },
+  "gtm-boost": {
+    "steps": [
+      {
+        "selector": ".gtm-boost-btn",
+        "wait": 2000
+      }
+    ]
+  },
+  "highlight-cards": {
+    "selector": "xpath=//h3[normalize-space(.)=\"Motion Effects\"]/../.."
+  },
+  "available-models": {
+    "selector": ".model-card"
+  },
+  "example-animations": {
+    "selector": "xpath=//h2[normalize-space(.)=\"Example Animations\"]/../.."
+  },
+  "get-started-free": {
+    "selector": ".cta-btn"
+  }
+}

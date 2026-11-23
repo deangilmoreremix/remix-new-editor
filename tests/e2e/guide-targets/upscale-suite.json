@@ -1,0 +1,19 @@
+{
+  "scale-factor": {
+    "steps": [
+      {
+        "selector": "#upscale-advanced-btn"
+      }
+    ],
+    "selector": "[data-studio-advanced-panel]"
+  },
+  "upscale-image": {
+    "selector": "xpath=//button[normalize-space(.)=\"Upscale Image\"]",
+    "click": false
+  },
+  "result-card-download-and-publish-to-social": {
+    "setup": "new Promise((done) => { let n = 0; const t = setInterval(() => { const el = document.querySelector('div.w-full.mt-6[role=\"status\"]'); if (!el && ++n < 80) return; clearInterval(t); if (el) { el.classList.remove('hidden'); el.innerHTML = '<div class=\"bg-card-bg/80 border border-white/10 rounded-2xl p-4\"><img src=\"/landing-art/01/presenter.webp\" class=\"w-full rounded-xl mb-3\"><a href=\"#\" class=\"block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all\">Download</a><button type=\"button\" class=\"publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all\">Publish to Social</button></div>'; } done(); }, 250); })",
+    "reload": false,
+    "selector": "div.w-full.mt-6[role=\"status\"] > div"
+  }
+}
