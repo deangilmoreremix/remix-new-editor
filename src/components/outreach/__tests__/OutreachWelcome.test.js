@@ -45,7 +45,7 @@ describe('SmartVideo welcome', () => {
     // "How did you hear" is no longer the end: the Brand Kit is the last step.
     expect(onFinish).not.toHaveBeenCalled();
     expect(document.body.textContent).toContain('Step 6 of 6');
-    expect($('h1').textContent).toBe('Last step: your Brand Kit');
+    expect($('h1').textContent).toBe('Last step: Find My Brand');
     await vi.waitFor(() => expect($('[data-welcome-brand-save]')).not.toBeNull(), { timeout: 5000 });
     expect(fetch).toHaveBeenCalledWith('/api/demo/discover', expect.objectContaining({ body: JSON.stringify({ websiteUrl: 'acme.com' }) }));
     expect($('[data-welcome-brand]').textContent).toContain('Acme');

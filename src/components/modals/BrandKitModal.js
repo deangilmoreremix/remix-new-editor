@@ -52,7 +52,7 @@ export function openBrandKitModal({ url = '' } = {}) {
   const dialog = el('div', 'relative w-full max-w-3xl max-h-full overflow-y-auto custom-scrollbar rounded-2xl border border-white/10 bg-[#0d0d10] p-5 md:p-7 text-white');
   dialog.setAttribute('role', 'dialog');
   dialog.setAttribute('aria-modal', 'true');
-  dialog.setAttribute('aria-label', 'Brand Kit');
+  dialog.setAttribute('aria-label', 'Find My Brand');
   overlay.appendChild(dialog);
 
   const close = () => {
@@ -156,7 +156,7 @@ export function openBrandKitModal({ url = '' } = {}) {
 
     const head = el('div', 'flex items-start justify-between gap-3 mb-4');
     const titles = el('div');
-    titles.appendChild(el('h2', 'text-xl font-black tracking-tight', 'Brand Kit'));
+    titles.appendChild(el('h2', 'text-xl font-black tracking-tight', 'Find My Brand'));
     titles.appendChild(el('p', 'text-xs text-secondary mt-1', 'Paste a business website to pull its logo, colors, copy and images — then make a video from it.'));
     head.appendChild(titles);
     const x = el('button', 'text-white/70 hover:text-white text-lg leading-none px-2', '✕');

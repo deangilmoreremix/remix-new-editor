@@ -47,6 +47,8 @@ describe('Brand Kit modal', () => {
   it('opens empty and closes with Escape, the backdrop and the close button', () => {
     close = openBrandKitModal();
     expect(q('brand-kit-modal')).not.toBeNull();
+    expect(q('brand-kit-modal').querySelector('h2').textContent).toBe('Find My Brand'); // not confused with Brand Studio
+    expect(q('brand-kit-modal').querySelector('[role="dialog"]').getAttribute('aria-label')).toBe('Find My Brand');
     expect(q('brand-kit-found')).toBeNull();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(q('brand-kit-modal')).toBeNull();
