@@ -27,6 +27,10 @@ function setupChatWebSocket(server) {
 
           try {
             const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+            const endpoint = msg.model || 'gpt-6-1-sol';
+            // GPT-5/GPT-6 and o-series endpoints take no sampling or token-limit fields (the MuAPI GPT-6 contract is
+            // prompt + system_prompt), so only send them to other models.
+            const reasoningModel = /^(gpt-[56]|o\d)/i.test(endpoint);
             const response = await fetch(`${backendUrl}/functions/v1/muapi-proxy`, {
               method: 'POST',
               headers: {
@@ -34,12 +38,14 @@ function setupChatWebSocket(server) {
                 'x-api-key': msg.apiKey || '',
               },
               body: JSON.stringify({
-                endpoint: msg.model || 'gpt-6-1-sol',
+                endpoint,
                 params: {
                   prompt: msg.content,
                   system_prompt: msg.systemPrompt,
-                  temperature: msg.temperature ?? 0.7,
-                  max_tokens: msg.maxTokens ?? 1024,
+                  ...(reasoningModel ? {} : {
+                    temperature: msg.temperature ?? 0.7,
+                    max_tokens: msg.maxTokens ?? 1024,
+                  }),
                   stream: true,
                 },
                 generationType: 'text',

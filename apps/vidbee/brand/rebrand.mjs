@@ -83,9 +83,25 @@ const smartvidManagedProvider = (): StoredProvider | null => {
 }
 
 class AiStore {` },
-  { file: '/main/lib/ai-store.ts', find: /(\n    const activeProviderId = this\.store\.get\('activeProviderId'\)\n    return \{)/, replace: `
+  // The managed provider is a read-only overlay: snapshots and the runners see it, but readState() (which every mutation
+  // reads and writes back) stays the stored document, so the server key is never persisted and saved providers survive.
+  // With no server key, saved providers are hidden too (there is no UI to manage them), so AI reports it is not set up.
+  { file: '/main/lib/ai-store.ts', find: '  /** Read the managed model selected for future requests. */\n', replace: `  /** SmartVid: the providers snapshots and runners see. Never persisted. */
+  private smartvidView(): StoredAiState {
+    const state = this.readState()
     const managed = smartvidManagedProvider()
-    if (managed) return { activeProviderId: managed.id, providers: [managed], prompts }$1` },
+    return managed
+      ? { ...state, activeProviderId: managed.id, providers: [managed] }
+      : { ...state, activeProviderId: null, providers: [] }
+  }
+
+  /** Read the managed model selected for future requests. */
+` },
+  { file: '/main/lib/ai-store.ts', find: '  getSnapshot(): AiSettingsSnapshot {\n    const state = this.readState()\n', replace: '  getSnapshot(): AiSettingsSnapshot {\n    const state = this.smartvidView()\n' },
+  { file: '/main/lib/ai-store.ts', find: '  getActiveProviderSecret(): { provider: AiProviderConfig; apiKey: string } | null {\n    const state = this.readState()\n', replace: '  getActiveProviderSecret(): { provider: AiProviderConfig; apiKey: string } | null {\n    const state = this.smartvidView()\n' },
+  { file: '/main/lib/ai-store.ts', find: '    const provider = this.readState().providers.find((entry) => entry.id === id)\n    return provider ? openAiSecret', replace: '    const provider = this.smartvidView().providers.find((entry) => entry.id === id)\n    return provider ? openAiSecret' },
+  // The composer selects the managed provider by id; it is not stored, so selecting it changes nothing.
+  { file: '/main/lib/ai-store.ts', find: '  setActiveProvider(id: string | null): AiSettingsSnapshot {\n', replace: "  setActiveProvider(id: string | null): AiSettingsSnapshot {\n    if (id === 'smartvid-openai') return this.getSnapshot()\n" },
   // Logo text under the sidebar icon is 80px wide: let the long name wrap.
   { file: '/renderer/src/components/ui/sidebar.tsx', find: `appName="${NAME}"`, replace: `appName={${JSON.stringify(brand.sidebarName ?? NAME)}}` },
   // Files saved before the rebrand carry upstream's "via VidBee" suffix: keep finding them.

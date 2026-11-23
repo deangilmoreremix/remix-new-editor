@@ -30,8 +30,8 @@ built with `apps/vidbee` as its context.
   The composer's cloud placeholder is removed (it reads "AI is not configured on this server" only when no key is set).
 - **AI runs on SmartVid's OpenAI key**: set `SMARTVID_OPENAI_API_KEY` (falls back to `OPENAI_API_KEY`) on the VidBee
   server, and optionally `SMARTVID_OPENAI_MODEL` (default `gpt-6.1-sol`). The AI store then reports a single
-  "OpenAI (SmartVid)" provider, always in use; providers users saved earlier are ignored, and the key never reaches the
-  browser. The Settings → Providers page and the "Open provider settings" button are removed (`?tab=providers` opens
+  "OpenAI (SmartVid)" provider, always in use; providers users saved earlier are ignored (left in storage, never shown or
+  used, also when no key is set), and the key is never written to disk or sent to the browser. The Settings → Providers page and the "Open provider settings" button are removed (`?tab=providers` opens
   General), and AI error help says to try again or contact support. With no key set the app still runs, AI features
   just report that AI is not set up. The VidBee server is separate from Netlify: Netlify's `OPENAI_API_KEY` does not
   reach it, so set the key where the VidBee container runs.

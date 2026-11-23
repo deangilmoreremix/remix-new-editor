@@ -263,6 +263,33 @@ describe('endpoint', () => {
     for await (const d of openAIDeltas(sseBody(['data: {"choices":[{"delta":{"con', 'tent":"Hi"}}]}\n', 'data: [DONE]\n']).body)) out.push(d);
     expect(out).toEqual(['Hi']);
   });
+  it('keeps the finish reason of the stream', async () => {
+    const meta = {};
+    const out = [];
+    for await (const d of openAIDeltas(sseBody(['data: {"choices":[{"delta":{"content":"Hi"}}]}\n', 'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n', 'data: [DONE]\n']).body, meta)) out.push(d);
+    expect(out).toEqual(['Hi']);
+    expect(meta.finishReason).toBe('stop');
+  });
+  it('reports an error, not a grounded answer, when the budget runs out before any text', async () => {
+    const fetchImpl = vi.fn(async () => sseBody(['data: {"choices":[{"delta":{},"finish_reason":"length"}]}\n\ndata: [DONE]\n\n']));
+    const text = await (await handle(req({ messages: [{ role: 'user', content: 'how do I remove the background' }] }), { verify: verifyOk, fetchImpl })).text();
+    expect(text).toContain('event: error');
+    expect(text).toContain('ran out of room');
+    expect(text).not.toContain('event: done');
+  });
+  it('reports an error when the stream ends with no text', async () => {
+    const fetchImpl = vi.fn(async () => sseBody(['data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n']));
+    const text = await (await handle(req({ messages: [{ role: 'user', content: 'how do I remove the background' }] }), { verify: verifyOk, fetchImpl })).text();
+    expect(text).toContain('event: error');
+    expect(text).toContain('"code":"upstream"');
+    expect(text).not.toContain('grounded');
+  });
+  it('still finishes a partial answer cut off by the budget', async () => {
+    const fetchImpl = vi.fn(async () => sseBody(['data: {"choices":[{"delta":{"content":"Open Edit"}}]}\n\ndata: {"choices":[{"delta":{},"finish_reason":"length"}]}\n\ndata: [DONE]\n\n']));
+    const text = await (await handle(req({ messages: [{ role: 'user', content: 'how do I remove the background' }] }), { verify: verifyOk, fetchImpl })).text();
+    expect(text).toContain('Open Edit');
+    expect(text).toContain('event: done');
+  });
   it('stops the OpenAI request when the client disconnects', async () => {
     let signal;
     const endless = () => new Response(new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"Hi "}}]}\n\n')); } }));

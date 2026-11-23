@@ -12,6 +12,29 @@ function responsesText(data) {
     .filter((c) => c.type === 'output_text').map((c) => c.text).join('');
 }
 
+// The enrichment schema is not strict, so the model can return any shape: keep only fields of the right type
+// (strings, arrays of strings, a known tone) before they reach the profile. Missing fields stay missing.
+const TONES = ['formal', 'casual', 'technical', 'friendly'];
+const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const pickFields = (src, fields) => {
+  const out = {};
+  if (!isObj(src)) return out;
+  for (const [key, ok] of Object.entries(fields)) if (key in src && ok(src[key])) out[key] = src[key];
+  return out;
+};
+const str = (v) => typeof v === 'string';
+const strList = (v) => Array.isArray(v) && v.every(str);
+export function sanitizeEnrichment(extracted) {
+  return {
+    company: pickFields(extracted?.company, { name: str, domain: str, industry: str, size: str, summary: str }),
+    intelligence: pickFields(extracted?.intelligence, {
+      summary: str, products: strList, services: strList, painPoints: strList, interests: strList, buyingSignals: strList,
+      tone: (v) => TONES.includes(v),
+    }),
+    brandColors: pickFields(isObj(extracted?.brand) ? extracted.brand.colors : null, { primary: str, secondary: str, accent: str }),
+  };
+}
+
 const supabaseService = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -477,12 +500,13 @@ export async function handler(event, context) {
       let extracted;
       try { extracted = JSON.parse(textContent); } catch { return { statusCode: 502, headers, body: JSON.stringify({ error: 'OpenAI returned invalid JSON' }) }; }
 
-      // Merge extracted fields into the profile
-      profile.company = { ...(profile.company || {}), ...(extracted.company || {}) };
-      profile.intelligence = { ...(profile.intelligence || {}), ...(extracted.intelligence || {}) };
-      if (extracted.brand?.colors) {
+      // Merge the type-checked extracted fields into the profile
+      const clean = sanitizeEnrichment(extracted);
+      profile.company = { ...(profile.company || {}), ...clean.company };
+      profile.intelligence = { ...(profile.intelligence || {}), ...clean.intelligence };
+      if (Object.keys(clean.brandColors).length) {
         profile.brand = profile.brand || {};
-        profile.brand.colors = { ...(profile.brand.colors || {}), ...extracted.brand.colors };
+        profile.brand.colors = { ...(profile.brand.colors || {}), ...clean.brandColors };
       }
       profile.updatedAt = new Date().toISOString();
 
@@ -792,12 +816,12 @@ async function runDiscoveryPipeline(contactId, sources, openaiKey = null) {
         const textContent = responsesText(openaiData);
         if (textContent) {
           try {
-            const extracted = JSON.parse(textContent);
-            profile.company = { ...(profile.company || {}), ...(extracted.company || {}) };
-            profile.intelligence = { ...(profile.intelligence || {}), ...(extracted.intelligence || {}) };
-            if (extracted.brand?.colors) {
+            const clean = sanitizeEnrichment(JSON.parse(textContent));
+            profile.company = { ...(profile.company || {}), ...clean.company };
+            profile.intelligence = { ...(profile.intelligence || {}), ...clean.intelligence };
+            if (Object.keys(clean.brandColors).length) {
               profile.brand = profile.brand || {};
-              profile.brand.colors = { ...(profile.brand.colors || {}), ...extracted.brand.colors };
+              profile.brand.colors = { ...(profile.brand.colors || {}), ...clean.brandColors };
             }
             // Update variables with new structured fields
             if (profile.company.industry) variables.industry = profile.company.industry;

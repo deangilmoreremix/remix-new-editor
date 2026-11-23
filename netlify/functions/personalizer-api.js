@@ -98,6 +98,19 @@ async function callMaigretWorker(username, options, maigretUrl, maigretSecret) {
   return res.json();
 }
 
+/**
+ * Visible text of a chat completion. Reasoning tokens count against max_completion_tokens, so a completion can stop
+ * ('length') with null or empty content: throw then, so callers fall back instead of saving an empty result.
+ */
+export function completionText(data) {
+  const choice = data?.choices?.[0];
+  const content = choice?.message?.content;
+  if (typeof content !== 'string' || !content.trim()) {
+    throw new Error(choice?.finish_reason === 'length' ? 'OpenAI ran out of tokens before answering' : 'OpenAI returned no content');
+  }
+  return content;
+}
+
 async function callOpenAI(apiKey, systemPrompt, userPrompt) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
@@ -109,8 +122,7 @@ async function callOpenAI(apiKey, systemPrompt, userPrompt) {
       signal: controller.signal
     });
     if (!res.ok) { const text = await res.text(); throw new Error(`OpenAI API error (${res.status}): ${text}`); }
-    const data = await res.json();
-    return data.choices[0].message.content;
+    return completionText(await res.json());
   } finally { clearTimeout(timeout); }
 }
 
@@ -220,9 +232,9 @@ async function callOpenAIStructured(apiKey, systemPrompt, userPrompt) {
     throw new Error(`OpenAI structured call failed (${res.status}): ${text}`);
   }
   const data = await res.json();
-  const content = data?.choices?.[0]?.message?.content;
-  if (!content) throw new Error('OpenAI returned no content');
-  return JSON.parse(content);
+  // Cut off by the token cap, the JSON is incomplete even when some text came back.
+  if (data?.choices?.[0]?.finish_reason === 'length') throw new Error('OpenAI ran out of tokens before finishing');
+  return JSON.parse(completionText(data));
 }
 
 /** Clamp a string to a max length, returning '' for non-strings. */
