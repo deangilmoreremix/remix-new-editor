@@ -64,7 +64,8 @@ describe('add-to-timeline catalog', () => {
       expect(calls.length, `${e.id} did nothing`).toBeGreaterThan(0);
       if (e.tab === 'animations') expect(calls).toEqual([`hf:${e.id.slice(3)}`]);
       else if (e.tab === 'motion') expect(calls).toEqual([`mg:${e.id.slice(3)}`]);
-      else if (e.tab === 'overlays') expect(calls).toEqual([`kind:${e.id}`, 'close']);
+      // a design card ('design:<kind>:<design>') creates that kind (with the design); a plain card's id is the kind
+      else if (e.tab === 'overlays') expect(calls).toEqual([`kind:${e.id.startsWith('design:') ? e.id.split(':')[1] : e.id}`, 'close']);
       else if (isConnectTemplate(e.id.slice(4))) expect(calls).toEqual([`phone:${e.id.slice(4)}`]); // asks for the phone first, adds nothing yet
       else expect(calls).toEqual([`tpl:${e.id.slice(4)}`, 'close']);
     }
