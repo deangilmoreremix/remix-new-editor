@@ -14,6 +14,7 @@ import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, outlookUrl, linkedinMessag
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
 import { renderProspectTable } from './outreach/ProspectTable.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
+import { createTabGuard } from '../lib/outreach/tabGuard.js';
 
 // Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
 const TRANSLATE_LANGS = [['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['it', 'Italian'], ['pt', 'Portuguese'], ['nl', 'Dutch'], ['pl', 'Polish'], ['ru', 'Russian'], ['tr', 'Turkish'], ['ar', 'Arabic'], ['hi', 'Hindi'], ['ja', 'Japanese'], ['ko', 'Korean'], ['zh', 'Chinese'], ['vi', 'Vietnamese'], ['id', 'Indonesian'], ['sv', 'Swedish'], ['en', 'English']];
@@ -159,7 +160,31 @@ export function OutreachStudio() {
   // A generated campaign is also kept in the Videos library, so it can be opened again later.
   // The edit recipe (src/lib/outreach/editTools.js) is saved with the draft; clips added before/after are local files,
   // kept for this session only.
-  const persist = () => { draft.edit = { ...edit, before: null, after: null }; saveDraft(draft); if (draft.campaign) saveToLibrary(draft); };
+  const persist = () => {
+    if (!guard.active()) return; // another tab is editing this campaign: don't overwrite its work
+    draft.edit = { ...edit, before: null, after: null }; saveDraft(draft); if (draft.campaign) saveToLibrary(draft);
+    guard.saved();
+  };
+  // Load the draft another tab saved (without saving it back).
+  const reloadDraft = () => {
+    const fresh = loadDraft();
+    for (const k of Object.keys(draft)) delete draft[k];
+    Object.assign(draft, fresh);
+    edit = startEdit(draft.edit); stopPreview(); pendingCsv = null; pendingLeads = null;
+  };
+  // One tab edits at a time (src/lib/outreach/tabGuard.js). The other shows a banner and follows the
+  // editing tab's saves; "Edit here instead" takes over.
+  let changedElsewhere = false;
+  const guard = createTabGuard({
+    onChange: (on) => { if (on) reloadDraft(); if (container.isConnected || on) render(); },
+    onRemoteSave: () => {
+      if (!guard.supported) { changedElsewhere = true; if (container.isConnected) render(); return; }
+      if (!guard.active()) { reloadDraft(); if (container.isConnected && !busy) render(); }
+    },
+  });
+  // Run when the studio is left (src/lib/router.js calls container.cleanup).
+  const cleanups = [() => guard.destroy()];
+  container.cleanup = () => { while (cleanups.length) { try { cleanups.pop()(); } catch { /* keep going */ } } };
   const replaceDraft = (next) => { for (const k of Object.keys(draft)) delete draft[k]; Object.assign(draft, next); edit = startEdit(draft.edit); stopPreview(); linkStats = { id: null, loading: false, byContact: null }; pendingCsv = null; pendingLeads = null; persist(); };
   const setBusy = (label) => { busy = label; render(); };
   const fail = (err) => { busy = ''; notice = err?.message || String(err); render(); };
@@ -2965,6 +2990,22 @@ export function OutreachStudio() {
     dropPreviewHandles();
     renderStepper();
     inner.replaceChildren();
+    const elsewhere = !guard.active();
+    stepper.inert = elsewhere;
+    if (elsewhere || changedElsewhere) {
+      const bar = el('div', 'sticky top-0 z-20 flex flex-wrap items-center gap-3 rounded-xl border border-amber-300/40 bg-[#2a2410] px-4 py-3 text-sm shadow-lg');
+      bar.setAttribute('data-outreach-other-tab', elsewhere ? 'blocked' : 'changed');
+      const btn = button(elsewhere ? 'Edit here instead' : 'Load the latest', { primary: true, small: true });
+      btn.setAttribute('data-outreach-take-over', '');
+      btn.addEventListener('click', () => {
+        if (elsewhere) { guard.takeOver(); return; }
+        changedElsewhere = false; reloadDraft(); render();
+      });
+      bar.append(el('span', 'flex-1 text-amber-100', elsewhere
+        ? 'This campaign is open in another tab. You can look here; changes are made in the other tab.'
+        : 'This campaign was changed in another tab.'), btn);
+      inner.appendChild(bar);
+    }
     if (!paid()) {
       // Preview: everything can be seen; recording, generating and sharing ask for the upgrade.
       const bar = el('div', 'flex flex-wrap items-center gap-3 rounded-xl border border-primary/25 bg-primary/[0.06] px-4 py-3 text-sm');
@@ -2975,7 +3016,9 @@ export function OutreachStudio() {
       bar.append(el('span', 'flex-1 text-white/85', 'You\u2019re previewing Video Outreach. Upgrade to SmartVideo full access to record, generate and share.'), up);
       inner.appendChild(bar);
     }
-    inner.appendChild(VIEWS[step]());
+    const view = VIEWS[step]();
+    if (elsewhere) view.inert = true; // read-only while another tab edits
+    inner.appendChild(view);
 
     const footer = el('div', 'flex flex-wrap items-center gap-3');
     const errors = step <= SETUP_STEPS + 1 ? stepErrors(draft, step) : [];
@@ -3004,6 +3047,7 @@ export function OutreachStudio() {
       footer.appendChild(close);
     }
     footer.appendChild(status);
+    if (elsewhere) footer.inert = true;
     inner.appendChild(footer);
   }
 
