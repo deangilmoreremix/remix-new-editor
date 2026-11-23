@@ -496,6 +496,10 @@ const triggerBtn = document.createElement('button');
         delete params.video_url;
         if (selectedModel.inputs?.image_url) params.image_url = uploadedVideoUrl;
         else if (needsSource) throw new Error('This model needs a source video, not an image.');
+      } else if (sourceType === 'video' && uploadedVideoUrl && selectedModel.inputs?.image_url
+        && !selectedModel.hasVideo && !selectedModel.inputs?.video_url) {
+        // Portrait-only models (e.g. Kling Avatar, InfiniteTalk Image to Video) reject a video source.
+        throw new Error('This model needs a still portrait image, not a video.');
       }
       if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
       if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);

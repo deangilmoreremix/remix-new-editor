@@ -55,9 +55,11 @@ class OpenAIService {
   }
 
   _getKey() {
-    // The muapi proxy identifies the caller via x-api-key; OpenAI requests use
-    // the user's OpenAI key (a separate credential from the MuAPI key).
-    return apiKeyManager.getOpenAIKey();
+    // Every _headers() call goes to the muapi proxy, which reads x-api-key as
+    // the caller's MuAPI key. The OpenAI key is a separate credential and
+    // travels only in params.openai_api_key (see _withOpenAIKey). With no
+    // MuAPI key the header is omitted and callers fall back as before.
+    return apiKeyManager.getMuapiKey?.() || null;
   }
 
   _getOpenAIKey() {

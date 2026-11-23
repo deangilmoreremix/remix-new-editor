@@ -109,6 +109,7 @@ export default function SmartVideoStudio() {
       };
     }
     setJobs(prev => prev.map(j => (j.id === tempId ? job : j)));
+    return job;
   }, [selectedModel]);
 
   const handleGenerate = useCallback(async (params) => {
@@ -127,8 +128,9 @@ export default function SmartVideoStudio() {
     setNotice(null);
     setGenerating(true);
     try {
-      await runJob(params.modelId, values);
-      setPrompt('');
+      const job = await runJob(params.modelId, values);
+      // Keep the prompt editable when the request was rejected, so the user can fix and resend it.
+      if (job?.status !== 'failed') setPrompt('');
     } catch (e) {
       console.error('[SmartVideoStudio] Generation failed', e);
       const message = e instanceof Error ? e.message : String(e);

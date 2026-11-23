@@ -82,14 +82,18 @@ export function isOpenAIImageModelId(modelId) {
  */
 export function extractResponsesOutputText(json) {
   if (typeof json?.output_text === 'string' && json.output_text) return json.output_text;
+  // Like the SDK's `output_text`, join every text part across message items in order.
+  const parts = [];
   for (const item of json?.output || []) {
     if (item?.type !== 'message') continue;
     for (const part of item.content || []) {
-      if (part?.type === 'output_text' && part.text) return part.text;
-      if (part?.type === 'refusal' && part.refusal) throw new Error(`Model refused: ${part.refusal}`);
+      if (part?.type === 'output_text' && part.text) parts.push(part.text);
+      else if (part?.type === 'refusal' && part.refusal && parts.length === 0) {
+        throw new Error(`Model refused: ${part.refusal}`);
+      }
     }
   }
-  return '';
+  return parts.join('');
 }
 
 /**
