@@ -27,6 +27,8 @@ export function generatorHostOptions(assets: Asset[]) {
         onProgress?.((job.progress ?? 0) / 100);
       }
       if (job.status === 'failed') throw new Error(job.error || 'The export failed');
+      // this video only exists in this tab (a blob: file): list it in Caption Studio's "Your videos" for as long as the page is open
+      if (job.outputUrl) void import('../../../lib/captionStudio/videos.js').then((m) => m.announceVideo({ url: job.outputUrl, title: 'Template Generator video', studio: 'template-generator' })).catch(() => {});
       return { filename: 'cinegen-export.mp4', fileSize: job.fileSize ?? 0, url: job.outputUrl };
     },
     // "Add to Video Pages": the app's one landing page picker (src/lib/landingPages/pickerModal.js) with the rendered video attached. It lists the

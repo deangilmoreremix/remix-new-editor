@@ -1,7 +1,7 @@
 /**
  * Netlify function: Pixabay proxy at /api/pixabay/* (see netlify.toml).
  * Same routes and parameters as backend/services/pixabayProxyService.js.
- * Key: the user's own key sent in the `x-pixabay-api-key` header (Settings → API keys)
+ * Key: the user's own key sent in the `x-pixabay-api-key` header (no screen sets it any more; the server key is the normal path)
  * when present, otherwise PIXABAY_API_KEY (Netlify environment variable).
  *
  * Pixabay asks for results to be cached for 24 hours, hence the
@@ -23,7 +23,7 @@ export function resolveKey(event) {
   const headers = event?.headers || {};
   const fromHeader = Object.entries(headers).find(([k]) => k.toLowerCase() === 'x-pixabay-api-key')?.[1];
   const key = String(fromHeader || process.env.PIXABAY_API_KEY || '').trim();
-  if (!key) throw httpError(503, 'PIXABAY_NOT_CONFIGURED', 'No Pixabay API key available. Add yours in Settings → API keys.');
+  if (!key) throw httpError(503, 'PIXABAY_NOT_CONFIGURED', 'No Pixabay API key available. Set PIXABAY_API_KEY in the Netlify environment.');
   return key;
 }
 

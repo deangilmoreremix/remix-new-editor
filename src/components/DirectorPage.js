@@ -262,6 +262,79 @@ async function callVideoDb(endpoint, { method = 'POST', body } = {}, signal) {
   }, { maxAttempts: 3 });
 }
 
+// ── Keyword → Agent inference (chat-only fallback) ────────────────
+export const KEYWORD_TO_AGENT = {
+    summarizer: ['summarize', 'summary', 'tldr', 'recap', 'overview'],
+    search: ['search', 'find', 'look for', 'where'],
+    clipper: ['clip', 'cut', 'segment', 'trim'],
+    dubbing: ['dub', 'translate', 'language', 'spanish', 'french', 'german'],
+    subtitler: ['subtitle', 'caption', 'transcribe', 'subtitles'],
+    subtitle_agent: ['subtitle agent', 'auto subtitle', 'embed subtitle'],
+    highlighter: ['highlight', 'best moment', 'key moment'],
+    auto_highlights: ['auto highlight', 'automatic highlight', 'ai highlight'],
+    scenes: ['scene', 'boundary', 'chapter', 'detect scene'],
+    broll: ['b-roll', 'broll', 'overlay', 'stock footage'],
+    voiceover: ['voiceover', 'narration', 'narrate'],
+    ai_voiceovers: ['ai voiceover', 'ai narration'],
+    voice_cloning: ['voice clone', 'clone voice', 'voice print', 'clone'],
+    editor: ['edit', 'arrange', 'storyboard edit'],
+    enhancer: ['enhance', 'upscale', 'sharpen', 'improve quality'],
+    compiler: ['compile', 'combine', 'merge videos'],
+    meme: ['meme', 'funny', 'viral'],
+    musicvideo: ['music video', 'song', 'music'],
+    trailer: ['trailer', 'preview clip', 'teaser'],
+    trailer_narration: ['trailer narration', 'dramatic narration'],
+    compilation: ['compilation', 'highlights reel', 'best of'],
+    social: ['shorts', 'tiktok', 'reel', 'vertical', 'social media'],
+    preview: ['thumbnail', 'cover', 'preview image'],
+    thumbnail: ['thumbnail agent', 'pick thumbnail', 'best frame'],
+    montage: ['montage', 'sequence'],
+    story: ['story', 'narrative'],
+    storyboarding: ['storyboard', 'shot list', 'shot-by-shot'],
+    color: ['color', 'grade', 'tone', 'color correct'],
+    stabilize: ['stabilize', 'shaky', 'steady'],
+    speed: ['speed', 'slow', 'fast', 'speed up', 'slow motion'],
+    reverse: ['reverse', 'backwards', 'rewind'],
+    comparison: ['compare', 'versus', 'vs'],
+    audio_overlays: ['audio overlay', 'sound effect', 'sfx', 'music overlay'],
+    keyword_search: ['keyword search', 'spoken word search', 'find word'],
+    output_formatting: ['output format', 'aspect ratio', 'export format'],
+    visual_search: ['visual search', 'image query', 'find by image'],
+    slack_agent: ['slack', 'post to slack', 'send to slack'],
+    text_to_movie: ['text to movie', 'script to movie', 'text to video'],
+    faceless_video_creator: ['faceless', 'no face', 'faceless video'],
+    ai_ad_films: ['ad film', 'advertisement', 'product ad', 'commercial'],
+    tiktok_lyric_video: ['tiktok lyric', 'lyric video', 'song clip'],
+    kids_storyteller: ['kids story', 'children', 'storytime', 'kids'],
+    year_in_frames: ['year in frames', 'yearly recap', 'annual recap'],
+    profanity_remover: ['profanity', 'clean language', 'beep', 'censor'],
+    sales_assistant: ['sales', 'crm', 'follow-up', 'sales call'],
+    dynamic_ads: ['dynamic ad', 'ad variation', 'ad creative', 'dynamic creative'],
+    intro_outro: ['intro', 'outro', 'opening', 'closing', 'title sequence'],
+    brand_elements: ['brand', 'watermark', 'logo', 'branding'],
+};
+// Whole-word, longest-match-wins. Plain `includes` in object order sent "make a trailer narration" to Voiceover,
+// "kids story" to Story Builder and "introduce my channel" to Intro/Outro; a longer, more specific phrase must beat
+// a shorter generic one, and a keyword must not match inside another word ("edit" in "credit").
+const escapeRe = (k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/[\s-]+/g, '[\\s-]+');
+const KEYWORD_MATCHERS = Object.entries(KEYWORD_TO_AGENT).flatMap(([agentId, keywords]) =>
+    keywords.map((k) => ({ agentId, length: k.length, re: new RegExp(`(?<![a-z0-9])${escapeRe(k)}(?:s|es)?(?![a-z0-9])`, 'i') })));
+export function inferAgentId(text) {
+    let best = null;
+    for (const m of KEYWORD_MATCHERS) {
+        if (m.re.test(text) && (!best || m.length > best.length)) best = m;
+    }
+    return best ? best.agentId : null;
+}
+
+// Agents that work from text, a collection or a URL pair and so run without a loaded video; every other agent needs one.
+export const AGENTS_WITHOUT_VIDEO = new Set([
+    'compiler', 'compilation', 'montage', 'comparison', 'voice_cloning', 'audio_overlays', 'ai_voiceovers', 'voiceover',
+    'text_to_movie', 'storyboarding', 'story', 'faceless_video_creator', 'ai_ad_films', 'kids_storyteller', 'dynamic_ads',
+    'intro_outro', 'brand_elements', 'meme', 'slack_agent', 'tiktok_lyric_video', 'output_formatting', 'sales_assistant',
+]);
+export const agentNeedsVideo = (agentId) => !AGENTS_WITHOUT_VIDEO.has(agentId);
+
 /**
  * Run a Director agent by id. Dispatches to the right backend based on the
  * agent's `tool` mapping. Returns a structured result suitable for the chat UI.
@@ -702,7 +775,7 @@ export function DirectorPage() {
             return;
         }
         commandInput.value = agent.description;
-        processCommand(agent.description);
+        processCommand(agent.description, agent.id);
     });
 
     cancelBtn.onclick = () => {
@@ -1128,65 +1201,6 @@ export function DirectorPage() {
         resultPreview.innerHTML = html;
     }
 
-    // ── Keyword → Agent inference (chat-only fallback) ────────────────
-    const KEYWORD_TO_AGENT = {
-        summarizer: ['summarize', 'summary', 'tldr', 'recap', 'overview'],
-        search: ['search', 'find', 'look for', 'where'],
-        clipper: ['clip', 'cut', 'segment', 'trim'],
-        dubbing: ['dub', 'translate', 'language', 'spanish', 'french', 'german'],
-        subtitler: ['subtitle', 'caption', 'transcribe', 'subtitles'],
-        subtitle_agent: ['subtitle agent', 'auto subtitle', 'embed subtitle'],
-        highlighter: ['highlight', 'best moment', 'key moment'],
-        auto_highlights: ['auto highlight', 'automatic highlight', 'ai highlight'],
-        scenes: ['scene', 'boundary', 'chapter', 'detect scene'],
-        broll: ['b-roll', 'broll', 'overlay', 'stock footage'],
-        voiceover: ['voiceover', 'narration', 'narrate'],
-        ai_voiceovers: ['ai voiceover', 'ai narration'],
-        voice_cloning: ['voice clone', 'clone voice', 'voice print', 'clone'],
-        editor: ['edit', 'arrange', 'storyboard edit'],
-        enhancer: ['enhance', 'upscale', 'sharpen', 'improve quality'],
-        compiler: ['compile', 'combine', 'merge videos'],
-        meme: ['meme', 'funny', 'viral'],
-        musicvideo: ['music video', 'song', 'music'],
-        trailer: ['trailer', 'preview clip', 'teaser'],
-        trailer_narration: ['trailer narration', 'dramatic narration'],
-        compilation: ['compilation', 'highlights reel', 'best of'],
-        social: ['shorts', 'tiktok', 'reel', 'vertical', 'social media'],
-        preview: ['thumbnail', 'cover', 'preview image'],
-        thumbnail: ['thumbnail agent', 'pick thumbnail', 'best frame'],
-        montage: ['montage', 'sequence'],
-        story: ['story', 'narrative'],
-        storyboarding: ['storyboard', 'shot list', 'shot-by-shot'],
-        color: ['color', 'grade', 'tone', 'color correct'],
-        stabilize: ['stabilize', 'shaky', 'steady'],
-        speed: ['speed', 'slow', 'fast', 'speed up', 'slow motion'],
-        reverse: ['reverse', 'backwards', 'rewind'],
-        comparison: ['compare', 'versus', 'vs'],
-        audio_overlays: ['audio overlay', 'sound effect', 'sfx', 'music overlay'],
-        keyword_search: ['keyword search', 'spoken word search', 'find word'],
-        output_formatting: ['output format', 'aspect ratio', 'export format'],
-        visual_search: ['visual search', 'image query', 'find by image'],
-        slack_agent: ['slack', 'post to slack', 'send to slack'],
-        text_to_movie: ['text to movie', 'script to movie', 'text to video'],
-        faceless_video_creator: ['faceless', 'no face', 'faceless video'],
-        ai_ad_films: ['ad film', 'advertisement', 'product ad', 'commercial'],
-        tiktok_lyric_video: ['tiktok lyric', 'lyric video', 'song clip'],
-        kids_storyteller: ['kids story', 'children', 'storytime', 'kids'],
-        year_in_frames: ['year in frames', 'yearly recap', 'annual recap'],
-        profanity_remover: ['profanity', 'clean language', 'beep', 'censor'],
-        sales_assistant: ['sales', 'crm', 'follow-up', 'sales call'],
-        dynamic_ads: ['dynamic ad', 'ad variation', 'ad creative', 'dynamic creative'],
-        intro_outro: ['intro', 'outro', 'opening', 'closing', 'title sequence'],
-        brand_elements: ['brand', 'watermark', 'logo', 'branding'],
-    };
-    function inferAgentId(text) {
-        const lower = text.toLowerCase();
-        for (const [agentId, keywords] of Object.entries(KEYWORD_TO_AGENT)) {
-            if (keywords.some((k) => lower.includes(k))) return agentId;
-        }
-        return null;
-    }
-
     // ── Inline input prompts for agents that need extra data ──────────
     // These four agent categories require user-provided fields beyond the
     // main chat command. The form is rendered as a chat bubble; the caller
@@ -1331,7 +1345,9 @@ export function DirectorPage() {
     }
 
     // ── Main command processor ────────────────────────────────────────
-    async function processCommand(command) {
+    // `forcedAgentId` is passed by the agent buttons and suggestion chips so a click always runs the agent that was
+    // clicked; only free-typed commands are matched by keyword.
+    async function processCommand(command, forcedAgentId) {
         if (!command.trim() || isProcessing) return;
 
         // Entitlement gate — every agent run checks the user's plan/credits.
@@ -1340,7 +1356,7 @@ export function DirectorPage() {
             return;
         }
 
-        const agentId = inferAgentId(command);
+        const agentId = forcedAgentId || inferAgentId(command);
         if (!agentId) {
             const suggestedIds = DIRECTOR_AGENTS.slice(0, 6).map((a) => a.id);
             addMessage("I couldn't match that to a specific agent. Try one of these or use a keyword:", {
@@ -1353,6 +1369,13 @@ export function DirectorPage() {
 
         const agent = DIRECTOR_AGENTS.find(a => a.id === agentId);
         if (!agent) return;
+
+        // Typed commands used to start the job with no video and fail later with a backend error; say so up front.
+        if (agentNeedsVideo(agentId) && !videoUrl && !videoId) {
+            addMessage(`${agent.name} works on a video. Open Director with a video URL (from the Render studio) first.`, { isError: true });
+            showToast('No video loaded', 'warning');
+            return;
+        }
 
         // ── Prompt for extra input (e.g. voice-cloning text, comparison URLs) ─
         // Some agents need fields beyond the main command. Show an inline form
@@ -1506,7 +1529,7 @@ export function DirectorPage() {
                 showToast('No video loaded', 'warning');
                 return;
             }
-            await processCommand(agent.description);
+            await processCommand(agent.description, agent.id);
         };
     });
 

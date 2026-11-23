@@ -67,4 +67,13 @@ describe("demo API server", () => {
         send("PATCH", `/v1/automations/${created.automation.id}`, { name: "Mine 2" });
         expect((get(`/v1/automations/${created.automation.id}`).body as { automation: { name: string } }).automation.name).toBe("Mine 2");
     });
+
+    it("creating a child (POST /parent/:id/stages) persists it on the parent instead of acting like an action", () => {
+        const parent = send("POST", "/v1/campaigns", { name: "Parent" }).body as { id: string };
+        const child = send("POST", `/v1/campaigns/${parent.id}/stages`, { name: "Stage 1" });
+        expect(child.status).toBe(201);
+        const read = get(`/v1/campaigns/${parent.id}`).body as Record<string, unknown>;
+        const found = JSON.stringify(read);
+        expect(found).toContain("Stage 1");
+    });
 });

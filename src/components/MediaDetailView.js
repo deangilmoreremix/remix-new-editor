@@ -1,4 +1,5 @@
 import { createSafeImage, createSafeVideo } from '../lib/security.js';
+import { canMakeLandingPage, openLandingPageFor } from './studio/landingPageAction.js';
 
 let activeInstance = null;
 
@@ -281,6 +282,13 @@ export class MediaDetailView {
         </button>
       `);
     }
+    if (canMakeLandingPage({ url: this.mediaUrl, type: this.mediaType }) && !this.actions.some((a) => a.id === 'landing-page')) {
+      actions.push(`
+        <button class="mdv-action-btn mdv-action-ghost" data-action="create-landing-page">
+          <span>Create landing page</span>
+        </button>
+      `);
+    }
     for (const action of this.actions) {
       actions.push(`
         <button class="mdv-action-btn mdv-action-ghost" data-action="${escapeHtml(action.id || '')}">
@@ -328,6 +336,10 @@ export class MediaDetailView {
         break;
       case 'copy-prompt':
         this._copyPrompt();
+        break;
+      case 'create-landing-page':
+        this.hide();
+        void openLandingPageFor({ url: this.mediaUrl, type: this.mediaType, prompt: this.prompt, studio: this.source });
         break;
       case 'toggle-prompt':
         this._togglePrompt();

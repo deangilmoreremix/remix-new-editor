@@ -115,6 +115,30 @@ describe('timeline-image-generate — Images 2.6 and reference images', async ()
     expect(JSON.parse(openaiCalls[0].body).model).toBe('gpt-image-2.6-flare');
   });
 
+  it('a transparent background is forwarded (as PNG); anything else is dropped', async () => {
+    stubOpenAI(200, { data: [{ b64_json: 'aGVsbG8=' }] });
+    await handler({ httpMethod: 'POST', headers: { 'X-OpenAI-Key': USER_KEY }, body: JSON.stringify({ prompt: 'a logo', background: 'transparent' }) });
+    expect(JSON.parse(openaiCalls[0].body)).toMatchObject({ background: 'transparent', output_format: 'png' });
+    openaiCalls.length = 0;
+    await handler({ httpMethod: 'POST', headers: { 'X-OpenAI-Key': USER_KEY }, body: JSON.stringify({ prompt: 'a logo', background: 'url(evil)' }) });
+    expect(JSON.parse(openaiCalls[0].body).background).toBeUndefined();
+  });
+
+  it('a model that refuses the transparent background is asked again without it', async () => {
+    openaiCalls = [];
+    vi.stubGlobal('fetch', async (url, init = {}) => {
+      const b = JSON.parse(init.body || '{}');
+      openaiCalls.push({ url: String(url), body: init.body });
+      return b.background
+        ? new Response(JSON.stringify({ error: { message: 'Unknown parameter: background' } }), { status: 400 })
+        : new Response(JSON.stringify({ data: [{ b64_json: 'aGVsbG8=' }] }), { status: 200 });
+    });
+    const r = await handler({ httpMethod: 'POST', headers: { 'X-OpenAI-Key': USER_KEY }, body: JSON.stringify({ prompt: 'a logo', background: 'transparent' }) });
+    expect(JSON.parse(r.body).ok).toBe(true);
+    expect(openaiCalls).toHaveLength(2);
+    expect(JSON.parse(openaiCalls[1].body).background).toBeUndefined();
+  });
+
   it('an unpinned request falls back once to gpt-image-2 when the account lacks 2.6', async () => {
     openaiCalls = [];
     vi.stubGlobal('fetch', async (url, init = {}) => {

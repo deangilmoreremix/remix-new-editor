@@ -15,6 +15,7 @@ const ICONS = {
   character: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
   influencer: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6v12a3 3 0 103 3V6a3 3 0 10-3 3z"/></svg>',
   landing: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  'muapi-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>',
   storyboard: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="6" height="8" rx="1"/><rect x="9" y="3" width="6" height="8" rx="1"/><rect x="16" y="3" width="6" height="8" rx="1"/><rect x="2" y="13" width="6" height="8" rx="1"/><rect x="9" y="13" width="6" height="8" rx="1"/><rect x="16" y="13" width="6" height="8" rx="1"/></svg>',
   effects: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
   edit: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
@@ -79,6 +80,7 @@ export const STUDIO_ROUTES = {
   templates: { label: 'Templates', category: 'Home' },
   image: { label: 'Image Studio', category: 'Image' },
   edit: { label: 'Edit Studio', category: 'Image' },
+  'muapi-studio': { label: 'Studio', category: 'Image' },
   upscale: { label: 'Upscale Suite', category: 'Image' },
   character: { label: 'Character Studio', category: 'Image' },
   commercial: { label: 'Product Shot Studio', category: 'Image' },
@@ -108,7 +110,8 @@ export const STUDIO_ROUTES = {
   leadfinder: { label: 'Lead Finder', category: 'Agents' },
   outreach: { label: 'Video Outreach', category: 'Agents' },
   recorder: { label: 'Recorder', category: 'Agents' },
-  'video-pages': { label: 'Video Pages', category: 'Agents' },
+  // Not an app: pages are made from a video ("Create landing page"); this route is where they are managed (linked from Library).
+  'video-pages': { label: 'My Video Pages', category: 'My Work' },
   'find-my-brand': { label: 'Find My Brand', category: 'Agents' },
   'website-builder': { label: 'Website Builder', category: 'Agents' },
   render: { label: 'Video Render', category: 'Agents' },
@@ -177,6 +180,7 @@ export const NAV_GROUPS = [
   ] },
   { title: 'Image', items: [
     { id: 'image', label: 'Image' },
+    { id: 'muapi-studio', label: 'Studio' },
     { id: 'edit', label: 'Edit' },
     { id: 'upscale', label: 'Upscale' },
     { id: 'character', label: 'Character' },
@@ -206,7 +210,6 @@ export const NAV_GROUPS = [
     { id: 'smartwarmupai', label: 'SmartWarmupAI' },
     { id: 'viral', label: 'Viral' },
     { id: 'personalizer', label: 'Personalizer' },
-    { id: 'video-pages', label: 'Video Pages' },
     { id: 'website-builder', label: 'Website' },
   ] },
   { title: 'My Work', items: [

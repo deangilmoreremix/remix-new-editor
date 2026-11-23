@@ -9,7 +9,7 @@ const mem = () => { const m = {}; return { getItem: (k) => m[k] ?? null, setItem
 describe('SmartVideo welcome answers', () => {
   it('keeps only known answers, trimmed and capped', () => {
     const c = cleanOnboarding({ step: 9, goal: 'dynamic', team: 'huge', volume: '100+', company: '  Acme   Inc ', heard: 'other', heardOther: 'x'.repeat(500), completedAt: 'nope' });
-    expect(c).toMatchObject({ step: 5, goal: 'dynamic', team: '', volume: '100+', company: 'Acme Inc', heard: 'other', completedAt: null });
+    expect(c).toMatchObject({ step: 6, goal: 'dynamic', team: '', volume: '100+', company: 'Acme Inc', heard: 'other', completedAt: null });
     expect(c.heardOther).toHaveLength(120);
     expect(cleanOnboarding(null)).toEqual(blankOnboarding());
   });

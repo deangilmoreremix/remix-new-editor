@@ -573,6 +573,90 @@ async function ensureIndexed(jobId, payload) {
   return indexed.id;
 }
 
+// ── Creative agents ──────────────────────────────────────────────────────
+// Script/plan-producing agents that share one pipeline: optionally pull moments
+// from the indexed video (VideoDB), ask OpenAI for a structured plan, and
+// optionally synthesize the narration with OpenAI TTS. Like `text-to-movie`
+// they return a plan (and audio where relevant), not a rendered video.
+const CREATIVE_AGENTS = {
+  'trailer-narration': {
+    stage: 'writing-narration', moments: 'the most dramatic, high-stakes or visually striking moments', narrate: true, voice: 'onyx',
+    brief: 'A gripping trailer for this video',
+    instruction: 'You are a movie-trailer writer. Write a dramatic trailer narration of 6-10 short lines. Return JSON: { "title": string, "narration": string (all lines joined with newlines), "beats": [{ "time": number, "line": string }] }.',
+  },
+  'faceless-video': {
+    stage: 'writing-script', narrate: true, voice: 'nova',
+    brief: 'A short explainer with no on-camera presenter',
+    instruction: 'Plan a faceless video (voiceover over visuals, no presenter on camera). Return JSON: { "title": string, "voiceover": string, "scenes": [{ "visual": string, "text": string, "seconds": number }] }.',
+  },
+  'ai-ad-films': {
+    stage: 'writing-ad-script', moments: 'the product, its key benefit and the strongest visual', voice: 'alloy',
+    brief: 'A 30-second product ad film',
+    instruction: 'You are an ad-film director. Write a 30-second ad: hook, problem, product reveal, proof, call to action. Return JSON: { "title": string, "tagline": string, "script": string, "shots": [{ "visual": string, "voiceover": string, "seconds": number }] }.',
+  },
+  'kids-storyteller': {
+    stage: 'writing-story', narrate: true, voice: 'shimmer',
+    brief: 'A gentle bedtime story about a brave little fox',
+    instruction: 'Write a short, kind, age-appropriate children\'s story (under 250 words) with a clear beginning, middle and end. Return JSON: { "title": string, "story": string, "illustrations": [string] } where illustrations describes one picture per paragraph.',
+  },
+  'tiktok-lyric': {
+    stage: 'timing-lyrics', transcript: true,
+    brief: 'Lyric-synced short clip',
+    instruction: 'Turn the lyrics or transcript below into a TikTok lyric video plan: split into short on-screen lines with start/end seconds, and suggest a text animation and color palette. Return JSON: { "title": string, "style": string, "lines": [{ "text": string, "start": number, "end": number }] }.',
+  },
+  'year-in-frames': {
+    stage: 'selecting-moments', moments: 'important, joyful or memorable moments from across the year', voice: 'alloy',
+    brief: 'A year-in-review recap',
+    instruction: 'Plan a "year in frames" recap montage from the moments below. Group by season or month, pick the strongest frame per group, and write a one-line caption for each. Return JSON: { "title": string, "chapters": [{ "label": string, "caption": string, "start": number }] }.',
+  },
+  'dynamic-ads': {
+    stage: 'generating-variants',
+    brief: 'Dynamic ad variants for different audiences',
+    instruction: 'Generate 4 ad variants of the same offer, each aimed at a different audience or platform. Return JSON: { "variants": [{ "audience": string, "platform": string, "headline": string, "body": string, "cta": string, "visual": string }] }.',
+  },
+  'intro-outro': {
+    stage: 'designing-sequence',
+    brief: 'A short branded intro and outro',
+    instruction: 'Design a 3-5 second intro and a 5-8 second outro for this video. Return JSON: { "intro": { "seconds": number, "visual": string, "text": string, "sound": string }, "outro": { "seconds": number, "visual": string, "text": string, "cta": string, "sound": string } }.',
+  },
+  'brand-elements': {
+    stage: 'placing-brand-elements',
+    brief: 'Watermark, lower third and end card',
+    instruction: 'Plan brand elements for this video: a watermark, a lower-third name card and an end card. Return JSON: { "watermark": { "position": string, "opacity": number, "size": string }, "lowerThird": { "text": string, "start": number, "end": number }, "endCard": { "text": string, "seconds": number } }.',
+  },
+};
+
+async function runCreativeAgent(jobId, agentId, { apiKey, videoDbKey, videoId, prompt, payload }) {
+  const cfg = CREATIVE_AGENTS[agentId];
+  updateJob(jobId, { progress: 40, currentStep: 2, stage: cfg.stage });
+  let moments = [];
+  if (cfg.moments && videoId) {
+    const found = await videoDbSearch(videoId, cfg.moments, videoDbKey, { indexType: 'scene', resultThreshold: 8 });
+    moments = found.map((r) => ({ start: r.start ?? 0, end: r.end ?? 0, text: (r.text || '').slice(0, 160) }));
+  }
+  let transcript = '';
+  if (cfg.transcript) {
+    transcript = payload.lyrics || (videoId
+      ? (await videoDbSearch(videoId, 'all spoken or sung words with timing', videoDbKey, { indexType: 'spoken', resultThreshold: 50 })).map((r) => `${r.start ?? 0}s: ${r.text || ''}`).join('\n')
+      : '');
+  }
+  const parts = [cfg.instruction, `Brief: ${prompt || cfg.brief}`];
+  if (payload.brandName) parts.push(`Brand: ${payload.brandName}`);
+  if (moments.length) parts.push(`Moments from the video:\n${moments.map((m) => `${m.start}s: ${m.text}`).join('\n')}`);
+  if (transcript) parts.push(`Lyrics / transcript:\n${transcript.slice(0, 4000)}`);
+  const out = await callResponsesApi(apiKey, { input: parts.join('\n\n') });
+  const plan = parseJsonObj(out.text);
+  const result = { agent: agentId, plan, text: out.text, moments, source: moments.length || transcript ? 'videodb+openai' : 'openai-responses' };
+  if (cfg.narrate) {
+    updateJob(jobId, { progress: 70, currentStep: 3, stage: 'synthesizing-voice' });
+    const spoken = String(plan.narration || plan.voiceover || plan.story || out.text).slice(0, 4000);
+    const syn = await synthesizeSpeech({ text: spoken, voice: payload.voice || cfg.voice, apiKey }, jobId);
+    const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
+    Object.assign(result, { audioUrl: url, downloadUrl: url, spokenText: spoken });
+  }
+  return completeJob(jobId, result);
+}
+
 async function runAgentJob(jobId, agentId, payload) {
   const apiKey = resolveApiKey(payload);
   const videoDbKey = resolveVideoDbKey(payload);
@@ -681,7 +765,7 @@ async function runAgentJob(jobId, agentId, payload) {
         const sub = await callResponsesApi(apiKey, {
           input: `Generate SRT subtitles (timestamped) from this transcript. Transcript:\n${transcript.slice(0, 4000) || prompt}`,
         });
-        const srtUrl = storeOutput(jobId, sub.text, '.srt');
+        const srtUrl = storeOutput(jobId, Buffer.from(sub.text, 'utf8'), '.srt');
         return completeJob(jobId, { agent: 'subtitle', srt: sub.text, srtUrl, downloadUrl: srtUrl, source: 'videodb+openai' });
       }
       case 'slack': {
@@ -693,6 +777,9 @@ async function runAgentJob(jobId, agentId, payload) {
         return completeJob(jobId, { agent: 'slack', posted: true, summary: summary.slice(0, 500) });
       }
       default:
+        if (CREATIVE_AGENTS[agentId]) {
+          return runCreativeAgent(jobId, agentId, { apiKey, videoDbKey, videoId, prompt, payload });
+        }
         return failJob(jobId, new Error(`Unsupported agent: ${agentId}`));
     }
   } catch (err) {
@@ -937,6 +1024,8 @@ async function runToolJob(jobId, toolId, payload) {
     case 'dynamic-ads':
     case 'multi-lang-dubbing':
       return runAgentJob(jobId, toolId, payload);
+    case 'meme':
+      return runMemeJob(jobId, payload);
     default:
       return failJob(jobId, new Error(`Unsupported tool: ${toolId}`));
   }
@@ -1024,7 +1113,7 @@ async function runMemeJob(jobId, payload) {
       input: `Create a viral meme based on this video. Return JSON: { topText, bottomText, format, caption }. Context: ${ctx.slice(0, 1500)}`,
     });
     const card = `MEME\n${(parseJsonObj(meme.text).topText) || ''}\n${(parseJsonObj(meme.text).bottomText) || ''}`;
-    const url = storeOutput(jobId, card, '.txt');
+    const url = storeOutput(jobId, Buffer.from(card, 'utf8'), '.txt');
     return completeJob(jobId, { agent: 'meme', meme: parseJsonObj(meme.text), text: card, downloadUrl: url, source: 'videodb+openai' });
   } catch (err) {
     failJob(jobId, err);
@@ -1285,6 +1374,22 @@ async function transcribeWithWhisper(input, apiKey, jobId) {
 }
 
 // OpenAI TTS synthesis
+// Retries transient failures (network errors, 429, 5xx). Used by the OpenAI TTS / transcription helpers below;
+// it was referenced but never defined, which made every speech-based agent fail with "withRetry is not defined".
+async function withRetry(fn, { maxAttempts = 3, baseDelay = 500, maxDelay = 8000 } = {}) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const status = err?.status || err?.response?.status || Number((String(err?.message).match(/\b(\d{3})\b/) || [])[1]);
+      const transient = err instanceof TypeError || status === 429 || status >= 500;
+      if (!transient || attempt === maxAttempts) throw err;
+      const delay = Math.min(baseDelay * 2 ** (attempt - 1) + Math.random() * baseDelay, maxDelay);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 async function synthesizeSpeech({ text, voice = 'alloy', model = 'tts-1', apiKey }, jobId) {
   return withRetry(async () => {
     if (!apiKey) {
