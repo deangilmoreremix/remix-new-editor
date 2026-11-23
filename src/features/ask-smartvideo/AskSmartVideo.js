@@ -7,7 +7,7 @@
 import { apiKeyManager } from '../../lib/apiKeyManager.js';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
 import { ENDPOINT, studioLabel, studioForRoute, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
-import { guideForStudio, searchGuides, guideUrl } from './askGuides.js';
+import { guideForStudio, searchGuides, guideUrl, tourVideoFor } from './askGuides.js';
 
 const STORE = 'askSmartVideo:v1';
 const MAX_LEN = 1500;
@@ -145,6 +145,18 @@ export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
     head.appendChild(all);
     box.appendChild(head);
     if (g.shortDescription) box.appendChild(el('p', 'pt-1 text-xs text-secondary', g.shortDescription));
+    // The studio's tour video (captions are burned in). It is not fetched until the viewer presses play (preload none).
+    let tour = null;
+    try { tour = await tourVideoFor(g.slug); } catch { /* no video: the guide still shows */ }
+    if (tour && into.isConnected && studioId() === id) {
+      const wrap = el('div', 'pt-2');
+      wrap.appendChild(el('div', 'pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted', `Watch the ${g.name} tour · ${Math.floor(tour.seconds / 60)}:${String(tour.seconds % 60).padStart(2, '0')}`));
+      const v = el('video', 'w-full aspect-[16/10] rounded-lg border border-white/10 bg-black');
+      v.controls = true; v.preload = 'none'; v.playsInline = true; v.poster = tour.poster; v.src = tour.video;
+      v.setAttribute('aria-label', `${g.name} tour video`);
+      wrap.appendChild(v);
+      box.appendChild(wrap);
+    }
     const list = el('div', 'flex flex-col gap-1.5 pt-2');
     g.features.forEach((f) => list.appendChild(featureCard(g, f)));
     box.appendChild(list);
