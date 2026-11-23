@@ -6,7 +6,7 @@
 // small + adds it at the playhead; dragging it onto the timeline places it there. One search box looks through every category at once.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { OverlayKind } from '@cinegen/types/workspace';
-import { OVERLAY_KINDS, overlayTemplates, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
+import { OVERLAY_KINDS, FORM_DESIGNS, overlayTemplates, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
 import { loadMgTemplates, type MgTemplate } from '@cinegen/lib/occ/mg-templates';
 import { buildAnimationCatalog, animationGroups, filterAnimations } from '@cinegen/lib/occ/animation-catalog';
 import { hyperframesItems, type HfItem } from '@cinegen/lib/hyperframes/overlay';
@@ -56,7 +56,7 @@ export const LIBRARY_CATEGORIES: Array<{ id: LibraryCategory; label: string; hin
 
 /** What happens when you click a card. A handler may return a short message to show (for example "Select a clip first"). */
 export interface LibraryActions {
-  onAddOverlay: (kind: OverlayKind, ctx?: LibraryDropCtx) => string | void;
+  onAddOverlay: (kind: OverlayKind, ctx?: LibraryDropCtx, designId?: string) => string | void;
   onAddTemplate: (templateId: string, ctx?: LibraryDropCtx) => string | void;
   onAddMg: (template: MgTemplate, ctx?: LibraryDropCtx) => string | void;
   onAddHf: (item: HfItem, ctx?: LibraryDropCtx) => string | void;
@@ -160,6 +160,14 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
     return <LibraryCard key={k.kind} testId={`library-overlay-${k.kind}`} favorite={memory.isFavorite(mid)} onToggleFavorite={() => memory.toggleFavorite(mid)} title={k.label} sub={k.blurb} badge="Overlay" preview={e?.preview} drag={dragProps('overlay', k.kind)}
       onOpen={() => openModal('overlays', k.label)} onAdd={() => { memory.remember(mid); void run(() => actions.onAddOverlay(k.kind)); }} />;
   };
+  // Every Lead Generator / List Builder design: the same creation path as the plain card, with the design chosen
+  const designCard = (kind: 'lead-form' | 'list-builder', d: (typeof FORM_DESIGNS)[number]) => {
+    const kindLabel = OVERLAY_KINDS.find((o) => o.kind === kind)?.label ?? kind;
+    const e = fixed().get(`design:${kind}:${d.id}`);
+    const mid = `design:${kind}:${d.id}`;
+    return <LibraryCard key={mid} testId={`library-design-${kind}-${d.id}`} favorite={memory.isFavorite(mid)} onToggleFavorite={() => memory.toggleFavorite(mid)} title={`${kindLabel}: ${d.label}`} sub={`${d.categoryLabel} · ${d.layout}`} badge={`${kindLabel} design`} preview={e?.preview}
+      onOpen={() => openModal('overlays', `${kindLabel}: ${d.label}`)} onAdd={() => { memory.remember(mid); void run(() => actions.onAddOverlay(kind, undefined, d.id)); }} />;
+  };
   const templateCard = (x: ReturnType<typeof overlayTemplates>[number]) => {
     const e = fixed().get(`tpl:${x.id}`);
     const mid = `tpl:${x.id}`;
@@ -181,13 +189,14 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
 
   // ── what each category / search matches ────────────────────────────────────
   const kindMatches = OVERLAY_KINDS.filter((k) => match(k.label, k.blurb));
+  const designMatches = (['lead-form', 'list-builder'] as const).flatMap((k) => FORM_DESIGNS.filter((d) => match(`${OVERLAY_KINDS.find((o) => o.kind === k)?.label} ${d.label}`, d.categoryLabel, d.layout, 'design style template')).map((d) => ({ k, d })));
   const tplMatches = overlayTemplates().filter((x) => match(x.name, x.description, x.library));
   const animMatches = filterAnimations(animItems, group, q);
   const videoMatches = searchTemplateVideos(ALL_VIDEOS, q);
   const soundMatches = sounds.filter((s) => match(s.name, s.desc, s.keywords.join(' '), SOUND_GROUPS.find((g) => g.id === s.group)?.nameEn));
   const idMatches = (ids: string[], name: (id: string) => string) => ids.filter((id) => match(name(id)));
 
-  const counts: Record<LibraryCategory, number> = { animations: animItems.length, effects: fxIds.length, transitions: trIds.length, looks: lutIds.length, overlays: OVERLAY_KINDS.length + overlayTemplates().length, videos: ALL_VIDEOS.length, sounds: sounds.length, stock: 3 };
+  const counts: Record<LibraryCategory, number> = { animations: animItems.length, effects: fxIds.length, transitions: trIds.length, looks: lutIds.length, overlays: OVERLAY_KINDS.length + FORM_DESIGNS.length * 2 + overlayTemplates().length, videos: ALL_VIDEOS.length, sounds: sounds.length, stock: 3 };
 
   const head = (label: string, n: number, c: LibraryCategory) => (
     <div className="library-panel__group-head"><span>{label}</span><span style={{ opacity: 0.6 }}>{n}</span>{n > SEARCH_CAP && <button type="button" onClick={() => { setCat(c); setPinned(true); }}>See all {n}</button>}</div>
@@ -197,7 +206,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
   const results = () => {
     const sections: Array<React.ReactNode> = [];
     if (animMatches.length) sections.push(<div key="a">{head('Animations', animMatches.length, 'animations')}<div className="library-panel__cards">{animMatches.slice(0, SEARCH_CAP).map(animCard)}</div></div>);
-    if (kindMatches.length || tplMatches.length) sections.push(<div key="o">{head('Overlays, forms & end screens', kindMatches.length + tplMatches.length, 'overlays')}<div className="library-panel__cards">{kindMatches.slice(0, SEARCH_CAP).map(overlayCard)}{tplMatches.slice(0, Math.max(0, SEARCH_CAP - kindMatches.length)).map(templateCard)}</div></div>);
+    if (kindMatches.length || designMatches.length || tplMatches.length) sections.push(<div key="o">{head('Overlays, forms & end screens', kindMatches.length + designMatches.length + tplMatches.length, 'overlays')}<div className="library-panel__cards">{kindMatches.slice(0, SEARCH_CAP).map(overlayCard)}{designMatches.slice(0, Math.max(0, SEARCH_CAP - kindMatches.length)).map((x) => designCard(x.k, x.d))}{tplMatches.slice(0, Math.max(0, SEARCH_CAP - kindMatches.length - designMatches.length)).map(templateCard)}</div></div>);
     if (videoMatches.length) sections.push(<div key="v">{head('Template videos', videoMatches.length, 'videos')}<div className="library-panel__cards">{videoMatches.slice(0, SEARCH_CAP).map(videoCard)}</div></div>);
     if (match('stock', 'ai media', 'pexels', 'pixabay', 'photos', 'ai video')) sections.push(<div key="k">{head('Stock & AI media', 3, 'stock')}{stockBody()}</div>);
     if (soundMatches.length) sections.push(<div key="s">{head('Sounds', soundMatches.length, 'sounds')}<div className="library-panel__stack">{soundMatches.slice(0, 3).map(soundRow)}</div></div>);
@@ -213,6 +222,7 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
     const [type, ...rest] = id.split(':'); const key = rest.join(':');
     if (type === 'anim') { const x = animItems.find((a) => a.id === key); return x ? animCard(x) : null; }
     if (type === 'overlay') { const k = OVERLAY_KINDS.find((o) => o.kind === key); return k ? overlayCard(k) : null; }
+    if (type === 'design') { const [k, ...r] = key.split(':'); const d = FORM_DESIGNS.find((x) => x.id === r.join(':')); return d && (k === 'lead-form' || k === 'list-builder') ? designCard(k, d) : null; }
     if (type === 'tpl') { const x = overlayTemplates().find((t) => t.id === key); return x ? templateCard(x) : null; }
     if (type === 'video') { const v = ALL_VIDEOS.find((c) => c.id === key); return v ? videoCard(v) : null; }
     return null;
@@ -261,9 +271,11 @@ export function LibraryPanel(actions: LibraryActions & { initialCategory?: Libra
       return (
         <div className="library-panel__stack">
           <div className="library-panel__cards">{kindMatches.map(overlayCard)}</div>
+          {designMatches.length > 0 && <div className="library-panel__subhead">Lead Generator and List Builder designs</div>}
+          <div className="library-panel__cards" data-testid="library-designs">{designMatches.map((x) => designCard(x.k, x.d))}</div>
           {tplMatches.length > 0 && <div className="library-panel__subhead">End screens and connect forms</div>}
           <div className="library-panel__cards">{tplMatches.map(templateCard)}</div>
-          {!kindMatches.length && !tplMatches.length && <span className="library-panel__empty">No overlays match.</span>}
+          {!kindMatches.length && !designMatches.length && !tplMatches.length && <span className="library-panel__empty">No overlays match.</span>}
         </div>
       );
     }
