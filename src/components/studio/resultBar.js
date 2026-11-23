@@ -34,7 +34,7 @@ function el(tag, className, text) {
  *   extraActions [{ id, label, className?, onClick(currentUrl), when?(kind) }], onLink(result), deps (tests) }
  */
 export function createResultBar(o = {}) {
-  const state = { url: o.url || '', kind: resolveKind(o.kind, o.url), filename: o.filename || 'result', title: o.title || '', busy: false };
+  const state = { url: o.url || '', kind: resolveKind(o.kind, o.url), filename: o.filename || 'result', title: o.title || '', busy: false, gen: 0 };
   const root = el('div', 'flex flex-col items-center gap-2');
   root.setAttribute('data-result-bar', '');
   const row = el('div', 'flex flex-wrap items-center justify-center gap-3');
@@ -72,6 +72,18 @@ export function createResultBar(o = {}) {
     extraButtons.forEach(({ a, b }) => { b.hidden = typeof a.when === 'function' ? !a.when(state.kind) : false; });
   }
 
+  // When the browser would not download or open the file by itself: a real link the person clicks.
+  function manualRow(url, message) {
+    const r = el('div', 'flex items-center gap-2 justify-center');
+    const open = el('a', 'bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold text-white', 'Open file');
+    open.href = url;
+    open.target = '_blank';
+    open.rel = 'noopener noreferrer';
+    r.appendChild(open);
+    say(message);
+    return r;
+  }
+
   function linkRow(label, url) {
     const r = el('div', 'flex items-center gap-2');
     const l = el('span', 'text-[11px] font-bold text-white/70 w-24 shrink-0 text-left', label);
@@ -98,12 +110,20 @@ export function createResultBar(o = {}) {
 
   downloadBtn.addEventListener('click', async () => {
     if (!state.url || state.busy) return;
+    const gen = state.gen;
     state.busy = true; render();
-    try { await downloadMedia(state.url, { filename: state.filename, kind: state.kind, onStatus: say }); } finally { state.busy = false; render(); }
+    links.replaceChildren();
+    // Status text from a download that belongs to an earlier result is ignored.
+    const sayIfCurrent = (text) => { if (gen === state.gen) say(text); };
+    try {
+      const res = await downloadMedia(state.url, { filename: state.filename, kind: state.kind, onStatus: sayIfCurrent });
+      if (gen === state.gen && res.method === 'manual' && res.openUrl && isWebUrl(res.openUrl)) links.replaceChildren(manualRow(res.openUrl, res.message));
+    } finally { if (gen === state.gen) { state.busy = false; render(); } }
   });
 
   linkBtn.addEventListener('click', async () => {
     if (!state.url || state.busy) return;
+    const gen = state.gen;
     state.busy = true; render();
     const original = linkBtn.textContent;
     linkBtn.textContent = 'Working…';
@@ -111,14 +131,16 @@ export function createResultBar(o = {}) {
     links.replaceChildren();
     try {
       const res = await getLink({ url: state.url, kind: state.kind, title: state.title || state.filename, deps: o.deps });
+      // The result changed while this ran (captions, another video): these links belong to the old one. Drop them.
+      if (gen !== state.gen) return;
       links.append(linkRow('File link', res.fileUrl));
       if (res.watchUrl) links.append(linkRow('Watch page', res.watchUrl));
       if (res.canonicalUrl) links.append(linkRow('Your link', res.canonicalUrl));
       say(res.pageError || (res.reused ? 'Link ready (already saved).' : 'Link ready.'));
       o.onLink?.(res);
     } catch (err) {
-      say(err?.message || 'Could not create a link. You can still download the file.');
-    } finally { state.busy = false; linkBtn.textContent = original; render(); }
+      if (gen === state.gen) say(err?.message || 'Could not create a link. You can still download the file.');
+    } finally { if (gen === state.gen) { state.busy = false; linkBtn.textContent = original; render(); } }
   });
 
   socialBtn.addEventListener('click', () => {
@@ -131,9 +153,13 @@ export function createResultBar(o = {}) {
     el: root,
     /** The one place the result changes. Download, Get link and Publish all read the current value. */
     setUrl(url, next = {}) {
+      state.gen += 1; // anything still running for the previous result is now ignored
+      state.busy = false;
+      linkBtn.textContent = 'Get link';
       state.url = url || '';
       state.kind = resolveKind(next.kind || o.kind, state.url);
       if (next.filename) state.filename = next.filename;
+      if (next.filenameSuffix && !state.filename.endsWith(next.filenameSuffix)) state.filename = `${state.filename}${next.filenameSuffix}`;
       if (next.title != null) state.title = next.title;
       links.replaceChildren();
       say('');
@@ -141,6 +167,6 @@ export function createResultBar(o = {}) {
     },
     getUrl: () => state.url,
     setBusy(b) { state.busy = !!b; render(); },
-    destroy() { root.remove(); },
+    destroy() { state.gen += 1; root.remove(); },
   };
 }
