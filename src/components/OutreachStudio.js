@@ -126,7 +126,7 @@ function videoMeta(url) {
 
 export function OutreachStudio() {
   const container = el('div', 'relative w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
-  mountStudioChrome(container, { title: 'Video Outreach', currentRoute: 'outreach' });
+  mountStudioChrome(container, { currentRoute: 'outreach' });
 
   const draft = loadDraft();
   // The last recording stays in memory so its sound can become the voice sample.

@@ -20,7 +20,7 @@ const RESOLUTIONS = ['1k', '2k', '4k'];
 export function PhotoStudioPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full overflow-y-auto bg-app-bg custom-scrollbar';
-  mountStudioChrome(container, { currentRoute: 'photo-studio', title: 'Photo Studio' });
+  mountStudioChrome(container, { currentRoute: 'photo-studio' });
 
   const brands = listBrands();
   // ?brandId= (from Brand DNA) or the last-used brand picks the initial brand; the dropdown can change it.

@@ -87,7 +87,7 @@ export function LeadFinderStudio() {
   installPersonalizationApiAuth();
 
   const container = el('div', 'w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
-  mountStudioChrome(container, { title: 'Lead Finder', currentRoute: 'leadfinder' });
+  mountStudioChrome(container, { currentRoute: 'leadfinder' });
 
   const scroll = el('div', 'flex-1 overflow-y-auto');
   const inner = el('div', 'max-w-5xl mx-auto w-full px-4 md:px-8 py-8 flex flex-col gap-6');
