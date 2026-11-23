@@ -7,7 +7,7 @@ import { useLocalAI, type LocalAI } from '../localAI/useLocalAI'
 import type { CaptionPosition, CaptionStyleId, PreviewCaptionCue, PreviewCaptions } from '../preview/types'
 import { groupCaptionCues } from './captionCues'
 import { getCaptionStudio, type CaptionStudioWord } from './captionStudioBridge'
-import { cleanStudioCaptions, studioFallbackStyle, studioToCues } from './studioCaptions'
+import { withPositionY, cleanStudioCaptions, studioFallbackStyle, studioToCues } from './studioCaptions'
 
 export interface Captions {
   ai: LocalAI
@@ -24,6 +24,8 @@ export interface Captions {
   language: string
   setLanguage: (language: string) => void
   setEnabled: (enabled: boolean) => void
+  /** Move the Studio captions to a dragged height (0..1 of the frame; undefined = back to their place). */
+  setStudioPositionY: (positionY: number | undefined) => void
   setStyle: (style: CaptionStyleId) => void
   setPosition: (position: CaptionPosition) => void
   /** Replaces a line's text. Clearing it deletes the line. Word-by-word timing is dropped for an edited line. */
@@ -71,6 +73,11 @@ export function useCaptions(videoUrl: string | null): Captions {
   }, [ai, videoUrl, language, previewSettings.captions, updatePreviewCaptions])
 
   const setEnabled = useCallback((enabled: boolean) => updatePreviewCaptions({ enabled }), [updatePreviewCaptions])
+  const setStudioPositionY = useCallback((positionY: number | undefined) => {
+    const studio = captions?.studio
+    if (!studio) return
+    updatePreviewCaptions({ studio: withPositionY(studio, positionY) })
+  }, [captions, updatePreviewCaptions])
   const setStyle = useCallback((style: CaptionStyleId) => updatePreviewCaptions({ style, studio: undefined }), [updatePreviewCaptions])
   const setPosition = useCallback((position: CaptionPosition) => updatePreviewCaptions({ position, studio: undefined }), [updatePreviewCaptions])
   const editCue = useCallback((index: number, text: string) => {
@@ -107,5 +114,5 @@ export function useCaptions(videoUrl: string | null): Captions {
     })
   }, [videoUrl, captions, updatePreviewCaptions])
 
-  return { ai, captions, note, generate, language, setLanguage, studioAvailable, openStudio, setEnabled, setStyle, setPosition, editCue, remove }
+  return { ai, captions, note, generate, language, setLanguage, studioAvailable, openStudio, setEnabled, setStudioPositionY, setStyle, setPosition, editCue, remove }
 }

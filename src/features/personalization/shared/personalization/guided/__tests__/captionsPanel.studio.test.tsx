@@ -4,6 +4,7 @@ import { describe, it, expect, vi, afterEach, beforeAll, beforeEach } from 'vite
 import { createRoot } from 'react-dom/client'
 import { CaptionsPanel } from '../CaptionsPanel'
 import { applyCaptionsPatch } from '../../captions/captionStyle'
+import { createDefaultPreviewSettings } from '../../preview/presets'
 import { registerCaptionStudio, type CaptionStudioRequest } from '../../captions/captionStudioBridge'
 
 const engine = vi.hoisted(() => ({ isModelCached: vi.fn(), modelInfo: vi.fn(), cancelLocalAI: vi.fn(), transcribeVideo: vi.fn() }))
@@ -13,6 +14,8 @@ vi.mock('../../DemoPersonalizeProvider', () => ({ useDemoPersonalize: () => ctx 
 
 beforeAll(() => { (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true })
 const VIDEO = 'https://x/clip.mp4'
+const BRAND = { businessName: 'Rascop And Associates LLC', headline: 'Call us today', offer: '10% off', cta: 'Book now' } as never
+const nameLayerAt = (y: number) => ({ ...createDefaultPreviewSettings().layers.find((l) => l.kind === 'businessName')!, visible: true, opacity: 1, startFrame: 0, endFrame: undefined, x: 0.05, y })
 const q = (id: string) => document.querySelector(`[data-testid="${id}"]`) as HTMLElement | null
 let rerender: () => void
 let setUrl: (u: string) => void
@@ -32,7 +35,7 @@ beforeEach(() => {
   const el = document.body.appendChild(document.createElement('div'))
   const root = createRoot(el)
   let url = VIDEO
-  rerender = () => act(() => { root.render(<CaptionsPanel videoUrl={url} />) })
+  rerender = () => act(() => { root.render(<CaptionsPanel videoUrl={url} brand={BRAND} />) })
   setUrl = (u) => { url = u; rerender() }
   rerender()
 })
@@ -79,5 +82,27 @@ describe('captions panel with the Caption Studio available', () => {
     act(() => { requests[0].onApply(payload()) })
     expect(ctx.previewSettings.captions).toBeUndefined()
     expect(q('captions-note')?.textContent).toContain('video changed')
+  })
+})
+
+describe('captions panel: keeping the Studio captions off other text', () => {
+  const lowCaptions = { ...payload(), style: { ...payload().style, position: 'bottom', positionY: 0.84 } }
+  const withLayer = (y: number) => { ctx.previewSettings = { ...ctx.previewSettings, layers: [nameLayerAt(y)], width: 1920, height: 1080, fps: 30 } as never }
+  it('warns when the captions cover a layer, and moves them clear in one click', () => {
+    withLayer(0.84)
+    act(() => { q('captions-open-studio')!.click() })
+    act(() => { requests[0].onApply(lowCaptions) })
+    expect(q('captions-overlap')?.textContent).toMatch(/cover/i)
+    act(() => { q('captions-clear-now')!.click() })
+    const y = (ctx.previewSettings.captions as { studio: { style: { positionY: number } } }).studio.style.positionY
+    expect(y).toBeLessThan(0.84)
+    expect(q('captions-overlap')).toBeNull()
+  })
+  it('says nothing when they are clear', () => {
+    withLayer(0.1)
+    act(() => { q('captions-open-studio')!.click() })
+    act(() => { requests[0].onApply(lowCaptions) })
+    expect(q('captions-overlap')).toBeNull()
+    expect(q('captions-clear-now')).toBeNull()
   })
 })

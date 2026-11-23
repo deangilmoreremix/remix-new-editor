@@ -111,3 +111,8 @@ export function studioFallbackStyle(style: StudioCaptionStyle): CaptionStyleId {
   return style.stroke ? 'bold' : 'clean'
 }
 
+/** The captions at a dragged height (0..1 of the frame from the top), or back in their place with `undefined`. */
+export function withPositionY(studio: StudioCaptions, positionY: number | undefined): StudioCaptions {
+  const { positionY: _was, ...rest } = studio.style
+  return { ...studio, style: positionY === undefined ? rest : { ...rest, positionY: clamp(positionY, 0, 1) } }
+}

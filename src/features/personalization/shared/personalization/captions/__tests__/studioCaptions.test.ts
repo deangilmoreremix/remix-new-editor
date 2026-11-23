@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { cleanStudioCaptions, studioToCues, studioFallbackStyle, MAX_TOKENS_PER_PAGE, MAX_STUDIO_PAGES } from '../studioCaptions'
+import { cleanStudioCaptions, withPositionY, studioToCues, studioFallbackStyle, MAX_TOKENS_PER_PAGE, MAX_STUDIO_PAGES } from '../studioCaptions'
 import { applyCaptionsPatch, normalizeCaptions } from '../captionStyle'
 
 const page = (start: number, words: string[]) => ({ startMs: start, durationMs: words.length * 400, tokens: words.map((text, i) => ({ text: (i ? ' ' : '') + text, fromMs: start + i * 400, toMs: start + i * 400 + 400 })) })
@@ -78,5 +78,18 @@ const core = join(__dirname, '../../../../../../lib/captionStudio/layout.js')
 describe.skipIf(!existsSync(core))('studio layout copy', () => {
   it('is byte-identical to the Caption Studio core', () => {
     expect(readFileSync(join(__dirname, '../studioLayout.js'), 'utf8')).toBe(readFileSync(core, 'utf8'))
+  })
+})
+
+describe('withPositionY', () => {
+  const s = cleanStudioCaptions(good)!
+  it('sets the dragged height and leaves the rest alone', () => {
+    const moved = withPositionY(s, 0.61)
+    expect(moved.style.positionY).toBe(0.61)
+    expect(moved.pages).toBe(s.pages)
+    expect(s.style.positionY).toBe(0.3) // the original is untouched
+  })
+  it('puts them back in their place with undefined', () => {
+    expect('positionY' in withPositionY(s, undefined).style).toBe(false)
   })
 })
