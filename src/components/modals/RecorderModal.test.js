@@ -1,11 +1,14 @@
 // @vitest-environment jsdom
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { FakeTrack, FakeStream, FakeRecorder } from '../../lib/recorder/__tests__/fakes.js';
+import { FakeTrack, FakeStream, FakeRecorder, blobText } from '../../lib/recorder/__tests__/fakes.js';
 
 // Combining a Both take renders video in the browser (WebCodecs); jsdom can't, so it is faked here
 // and checked for real in a browser run.
 const composeBoth = vi.fn(async () => ({ blob: new Blob(['combined'], { type: 'video/mp4' }), mimeType: 'video/mp4' }));
 vi.mock('../../lib/recorder/composeBoth.jsx', () => ({ composeBoth: (...a) => composeBoth(...a) }));
+// Trimming re-muxes with Mediabunny (needs real media); faked here, run for real in the browser check.
+const trimTake = vi.fn(async (blob, { start, end }) => new Blob([`trimmed ${start}-${end}`], { type: blob.type }));
+vi.mock('../../lib/recorder/convert.js', () => ({ trimTake: (...a) => trimTake(...a) }));
 const { RecorderModal } = await import('./RecorderModal.jsx');
 
 let requests;
@@ -30,7 +33,7 @@ function installMedia({ micDenied = false } = {}) {
 
 function makeModal(type) {
   const onComplete = vi.fn();
-  const modal = new RecorderModal({ onComplete });
+  const modal = new RecorderModal({ onComplete, countdown: 0 });
   modal.recordingType = type;
   // Only the capture logic is under test, not the modal chrome.
   modal.updateBody = () => {};
@@ -53,7 +56,7 @@ describe('RecorderModal on the Remotion Recorder engine', () => {
   test('exposes Screen, Camera, Both and Audio modes', () => {
     const { modal } = makeModal('screen');
     const html = modal.renderBody();
-    for (const label of ['Screen', 'Camera', 'Both', 'Audio']) expect(html).toContain(`>${label}<`);
+    for (const label of ['Screen', 'Camera', 'Screen + Camera', 'Audio']) expect(html).toContain(`>${label}<`);
   });
 
   test('camera mode records one file with the microphone, from one getUserMedia call', async () => {
@@ -64,6 +67,7 @@ describe('RecorderModal on the Remotion Recorder engine', () => {
     expect(FakeRecorder.all[0].stream.getAudioTracks()).toHaveLength(1);
     await modal.stopRecording();
     modal.useRecording();
+    await vi.waitFor(() => expect(onComplete).toHaveBeenCalled());
     const result = onComplete.mock.calls[0][0];
     expect(result).toMatchObject({ type: 'camera', hasAudio: true, tracks: {} });
     expect(result.blob).toBeInstanceOf(Blob);
@@ -87,7 +91,7 @@ describe('RecorderModal on the Remotion Recorder engine', () => {
     expect(FakeRecorder.all[1].stream.getAudioTracks()).toHaveLength(0);
     await modal.stopRecording();
     expect(composeBoth).toHaveBeenCalledWith(expect.objectContaining({ shape: 'rounded', screen: expect.any(Blob), camera: expect.any(Blob) }));
-    modal.useRecording();
+    await modal.useRecording();
     const result = onComplete.mock.calls[0][0];
     expect(result.type).toBe('both');
     expect(result.blob.type).toBe('video/mp4');
@@ -154,7 +158,7 @@ describe('RecorderModal on the Remotion Recorder engine', () => {
   });
 
   test('in the real modal, one click starts one take and the mic toggle flips once', async () => {
-    const modal = new RecorderModal({ onComplete: vi.fn() });
+    const modal = new RecorderModal({ onComplete: vi.fn(), countdown: 0 });
     modal.open();
     const click = (sel) => modal.overlay.querySelector(sel).dispatchEvent(new MouseEvent('click', { bubbles: true }));
     click('.type-btn[data-type="camera"]');
@@ -216,5 +220,170 @@ describe('RecorderModal on the Remotion Recorder engine', () => {
       expect(win.close).toHaveBeenCalled();
       expect(modal.pipWin).toBeNull();
     } finally { delete window.documentPictureInPicture; }
+  });
+});
+
+describe('the recorder screens: countdown, devices, audio settings, review and trim', () => {
+  const click = (modal, sel) => modal.overlay.querySelector(sel).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+  test('opens full screen, titled for the mode, with the record button in the bottom bar', () => {
+    const modal = new RecorderModal({ countdown: 0 });
+    modal.recordingType = 'camera';
+    modal.open();
+    expect(modal.content.classList.contains('rec-modal')).toBe(true);
+    expect(modal.overlay.querySelector('.modal-title').textContent).toBe('Record your camera');
+    expect(modal.overlay.querySelector('.rec-bar [data-action="start"]')).not.toBeNull();
+    // Quality lives in Settings and has no "Audio Only" duplicate of the Audio tab.
+    expect(modal.overlay.querySelector('.quality-btn')).toBeNull();
+    click(modal, '[data-action="toggle-settings"]');
+    expect([...modal.overlay.querySelectorAll('.quality-btn')].map((b) => b.dataset.quality)).toEqual(['1080p', '720p', '480p']);
+    modal.destroy();
+  });
+
+  test('the settings panel has the voice clean-up switches; computer sound only for screen modes', () => {
+    const modal = new RecorderModal({ countdown: 0 });
+    modal.recordingType = 'camera';
+    modal.showSettings = true;
+    let html = modal.renderBody();
+    for (const k of ['noiseSuppression', 'echoCancellation', 'autoGainControl']) expect(html).toContain(`data-audio-setting="${k}"`);
+    expect(html).not.toContain('data-audio-setting="systemAudio"');
+    expect(html).toContain('data-action="mic-test"');
+    modal.recordingType = 'screen';
+    html = modal.renderBody();
+    expect(html).toContain('data-audio-setting="systemAudio"');
+    expect(html).not.toContain('class="quality-btn');
+  });
+
+  test('turning a switch off is saved and used for the take', async () => {
+    const modal = new RecorderModal({ countdown: 0 });
+    modal.recordingType = 'camera';
+    modal.showSettings = true;
+    modal.open();
+    const box = modal.overlay.querySelector('[data-audio-setting="noiseSuppression"]');
+    box.checked = false;
+    box.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(modal.audio.noiseSuppression).toBe(false);
+    expect(JSON.parse(localStorage.getItem('recorder-audio-settings')).noiseSuppression).toBe(false);
+    await modal.startRecording();
+    const camReq = requests.find(([k, c]) => k === 'user' && c.video && c.audio);
+    expect(camReq[1].audio).toMatchObject({ noiseSuppression: false, echoCancellation: true });
+    modal.destroy();
+    localStorage.removeItem('recorder-audio-settings');
+  });
+
+  test('the chosen camera is the one recorded', async () => {
+    const { modal } = makeModal('camera');
+    modal.selectedCamera = 'cam-usb';
+    await modal.startRecording();
+    const camReq = requests.find(([k, c]) => k === 'user' && c.video);
+    expect(camReq[1].video.deviceId).toEqual({ exact: 'cam-usb' });
+  });
+
+  test('cameras and microphones are listed by name', async () => {
+    navigator.mediaDevices.enumerateDevices = () => Promise.resolve([
+      { kind: 'videoinput', deviceId: 'cam-a', label: 'FaceTime HD' },
+      { kind: 'videoinput', deviceId: 'cam-b', label: 'Logitech C920' },
+      { kind: 'audioinput', deviceId: 'mic-a', label: 'Blue Yeti' },
+    ]);
+    const modal = new RecorderModal({ countdown: 0 });
+    await modal.loadMicDevices();
+    expect(modal.cameraList.map((c) => c.label)).toEqual(['FaceTime HD', 'Logitech C920']);
+    expect(modal.selectedCamera).toBe('cam-a');
+    expect(modal.selectedMic).toBe('mic-a');
+    modal.recordingType = 'camera';
+    expect(modal.renderBody()).toContain('Logitech C920');
+  });
+
+  test('3-2-1 runs on the live picture before the take; cancelling records nothing', async () => {
+    vi.useFakeTimers();
+    try {
+      const { modal } = makeModal('camera');
+      modal.countdownSeconds = 3;
+      const started = modal.startRecording();
+      await vi.waitFor(() => expect(modal.phase).toBe('countdown'));
+      expect(modal.renderBody()).toContain('data-countdown');
+      expect(FakeRecorder.all).toHaveLength(0);
+      const takeTracks = [...FakeTrack.all];
+      modal.counting.cancel();
+      await started;
+      expect(modal.isRecording).toBe(false);
+      expect(FakeRecorder.all).toHaveLength(0);
+      // The take's camera and mic are released (the live preview then comes back on its own).
+      expect(takeTracks.filter((t) => !t.stopped)).toEqual([]);
+
+      const again = modal.startRecording();
+      await vi.waitFor(() => expect(modal.phase).toBe('countdown'));
+      await vi.advanceTimersByTimeAsync(3000);
+      await again;
+      expect(modal.isRecording).toBe(true);
+      expect(FakeRecorder.all).toHaveLength(1);
+      modal.destroy();
+    } finally { vi.useRealTimers(); }
+  });
+
+  test('Space pauses and resumes, Esc stops instead of closing the recorder', async () => {
+    const { modal } = makeModal('camera');
+    const closed = vi.spyOn(modal, 'close');
+    await modal.startRecording();
+    modal.handleKeyDown(new KeyboardEvent('keydown', { key: ' ' }));
+    expect(modal.isPaused).toBe(true);
+    modal.handleKeyDown(new KeyboardEvent('keydown', { key: ' ' }));
+    expect(modal.isPaused).toBe(false);
+    modal.handleKeyDown(new KeyboardEvent('keydown', { key: 'Escape' }));
+    await vi.waitFor(() => expect(modal.recordedBlob).not.toBeNull());
+    expect(closed).not.toHaveBeenCalled();
+    expect(modal.phase).toBe('review');
+  });
+
+  test('after Stop the take plays big with trim handles and Retake / Download / Use this take', async () => {
+    const { modal } = makeModal('camera');
+    await modal.startRecording();
+    modal.recordingTime = 12;
+    modal.activeMs = 12000; modal.activeSince = null;
+    await modal.stopRecording();
+    const html = modal.renderBody();
+    expect(html).toContain('rec-review-video');
+    expect(html).toContain('data-trim-start');
+    for (const a of ['discard', 'save', 'use-recording']) expect(html).toContain(`data-action="${a}"`);
+    // The live camera preview is gone; the review replaces it (no black box above a hidden player).
+    expect(html).not.toContain('class="webcam-feed"');
+  });
+
+  test('trim handles cut the take used, and keep a minimum length', async () => {
+    trimTake.mockClear();
+    const { modal, onComplete } = makeModal('camera');
+    await modal.startRecording();
+    modal.activeMs = 10000; modal.activeSince = null; modal.recordingTime = 10;
+    await modal.stopRecording();
+    modal.setTrim({ start: 2 });
+    modal.setTrim({ end: 1 }); // cannot cross the start
+    expect(modal.trim.end).toBeGreaterThan(2);
+    modal.setTrim({ end: 8 });
+    expect(modal.trim).toEqual({ start: 2, end: 8 });
+    await modal.useRecording();
+    expect(trimTake).toHaveBeenCalledWith(expect.any(Blob), expect.objectContaining({ start: 2, end: 8 }));
+    const result = onComplete.mock.calls[0][0];
+    expect(result.duration).toBe(6);
+    expect(await blobText(result.blob)).toBe('trimmed 2-8');
+  });
+
+  test('an untouched take is used as recorded (no trimming)', async () => {
+    trimTake.mockClear();
+    const { modal, onComplete } = makeModal('audio');
+    await modal.startRecording();
+    await modal.stopRecording();
+    await modal.useRecording();
+    expect(trimTake).not.toHaveBeenCalled();
+    expect(onComplete).toHaveBeenCalled();
+  });
+
+  test('Retake goes back to recording', async () => {
+    const { modal } = makeModal('camera');
+    await modal.startRecording();
+    await modal.stopRecording();
+    modal.rerender = () => {};
+    modal.discardRecording();
+    expect(modal.phase).toBe('setup');
+    expect(modal.trim).toEqual({ start: 0, end: null });
   });
 });

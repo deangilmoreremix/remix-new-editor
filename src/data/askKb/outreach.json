@@ -54,12 +54,14 @@
     "Live alerts: the bell and the campaign's Alerts card update the moment a prospect watches or clicks",
     "Talk live: prospects can video-call you from their page while you're available",
     "Add from my contacts: pick prospects from your phone's contacts (Android Chrome)",
-    "One tab edits a campaign at a time; another tab follows along read-only"
+    "One tab edits a campaign at a time; another tab follows along read-only",
+    "Full-screen recorder: camera and microphone pickers, live mic level meter, 3-2-1 countdown, review with trim, Retake / Download / Use this take",
+    "Recorder audio settings: noise suppression, echo cancellation, automatic volume, computer sound in screen recordings, and Test my microphone"
   ],
   "featureExplanations": [
     {
       "feature": "Record",
-      "explanation": "Click Record to open the recorder; it defaults to Both (screen with a round camera bubble) and you can switch to Screen, Camera or Audio. Click Use Recording and the video is uploaded to your storage. Or click Upload a video. The Your recording card shows the length and whether it has sound. Or click Full Recorder (captions, scenes, B-roll) to open the Recorder studio, export there, and click Use this video.",
+      "explanation": "Click Record to open the recorder; it defaults to Both (screen with a round camera bubble) and you can switch to Screen, Camera or Audio. After you stop, the take plays large; drag the Trim handles to cut the start or end, then click Use this take (or Retake, or Download) and the video is uploaded to your storage. Or click Upload a video. The Your recording card shows the length and whether it has sound. Or click Full Recorder (captions, scenes, B-roll) to open the Recorder studio, export there, and click Use this video.",
       "whyToUse": "Every campaign starts from one video.",
       "inputRequired": "Camera, screen and microphone permission, or a video file.",
       "restrictions": "Uploading needs you to be signed in. Leave a two-second pause at the start: the personalized greeting plays there."
@@ -238,6 +240,16 @@
       "feature": "Open in another tab",
       "explanation": "If Video Outreach is open in two tabs, only one edits the campaign. The other shows “This campaign is open in another tab”, follows its changes and is read-only. Click Edit here instead to edit there; closing the editing tab hands editing back.",
       "whyToUse": "Two tabs can't overwrite each other's work."
+    },
+    {
+      "feature": "Recorder layout and recording",
+      "explanation": "The recorder opens full screen. Pick Screen, Camera, Screen + Camera or Audio at the top. The bottom bar has your camera and microphone, a live level meter and the round record button. Recording starts after a 3-2-1 countdown (click to start at once, Esc to cancel; change it to Off or 5 seconds in Settings). While recording, Space pauses and resumes and Esc stops. In Screen and Screen + Camera, 'Choose what to share' shows your screen in the preview before you record. After you stop, the take plays large with Trim handles; Retake records again, Download saves it, Use this take keeps it (trimmed if you moved the handles).",
+      "whyToUse": "You see yourself clearly, know your mic works before you start, and only keep the part you want."
+    },
+    {
+      "feature": "Recorder audio settings",
+      "explanation": "Click Settings in the recorder. Microphone picks the mic, with a level meter: 'No sound' means the mic isn't picking you up; 'Too loud' means your voice is distorting, so move back or lower the mic volume. Noise suppression removes steady background noise, Echo cancellation stops speaker sound coming back into the mic, and Automatic volume evens out loud and quiet speech (turn it off if your volume pumps up and down). In Screen and Screen + Camera, Include computer sound records the tab's or screen's sound mixed with your voice; tick 'Share tab audio' or 'Share system audio' in Chrome's share window. Test my microphone records 4 seconds and plays it back so you can hear how you'll sound. Settings are remembered.",
+      "whyToUse": "Clean, even sound without needing an audio editor."
     }
   ],
   "howToUse": "1. Open Video Outreach at #/outreach. 2. Record (or upload) your video with a two-second pause at the start. 3. Clone your voice (tick 'This is my own voice') or pick a stock voice, write the greeting and click Generate greeting. 4. Write the header, message and booking button. 5. Upload a CSV of contacts or add them one by one. 6. Click Generate campaign and confirm. 7. Copy each personal link or download the CSV of links and send them. 8. Open Campaigns to see who watched and clicked.",
@@ -400,6 +412,14 @@
     {
       "question": "The recorder says my camera or microphone is blocked. What do I do?",
       "answer": "Click the camera or lock icon at the left of your browser's address bar, set Camera and Microphone to Allow, then try again. The message clears by itself once access is allowed. If it says no camera was found, plug one in or choose Screen or Audio only; if it's busy in another app, close Zoom, Teams or FaceTime."
+    },
+    {
+      "question": "My recording sounds bad (echo, noise or too quiet). What can I change?",
+      "answer": "In the recorder click Settings. Keep Noise suppression and Echo cancellation on unless you wear headphones; turn Automatic volume off if your volume rises and falls. Pick the right microphone and watch the level meter while you talk: it should move into the middle, without 'Too loud'. Click Test my microphone to hear 4 seconds back before you record."
+    },
+    {
+      "question": "Can I record the sound playing on my computer?",
+      "answer": "Yes, in Screen or Screen + Camera: turn on Settings → Include computer sound, then in Chrome's share window tick 'Share tab audio' (for a tab) or 'Share system audio' (for the whole screen, Windows and ChromeOS). It is mixed with your microphone."
     }
   ],
   "glossary": [
