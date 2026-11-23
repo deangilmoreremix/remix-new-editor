@@ -1,0 +1,290 @@
+[
+  {
+    "id": "summarizer",
+    "name": "Video Summarizer",
+    "description": "Summarize video content",
+    "category": "analysis"
+  },
+  {
+    "id": "search",
+    "name": "Video Search",
+    "description": "Search and index media library",
+    "category": "search"
+  },
+  {
+    "id": "clipper",
+    "name": "Clip Creator",
+    "description": "Extract and create clips",
+    "category": "extract"
+  },
+  {
+    "id": "dubbing",
+    "name": "Video Dubbing",
+    "description": "Translate and dub audio/video",
+    "category": "translate"
+  },
+  {
+    "id": "subtitler",
+    "name": "Subtitle Generator",
+    "description": "Add subtitles in any language",
+    "category": "accessibility"
+  },
+  {
+    "id": "highlighter",
+    "name": "Highlight Extractor",
+    "description": "Find key moments automatically",
+    "category": "extract"
+  },
+  {
+    "id": "scenes",
+    "name": "Scene Detector",
+    "description": "Identify scene boundaries",
+    "category": "analysis"
+  },
+  {
+    "id": "broll",
+    "name": "B-Roll Adder",
+    "description": "Add overlay footage",
+    "category": "enhance"
+  },
+  {
+    "id": "voiceover",
+    "name": "Voiceover",
+    "description": "Add AI voiceover",
+    "category": "audio"
+  },
+  {
+    "id": "editor",
+    "name": "Video Editor",
+    "description": "Edit and enhance video",
+    "category": "edit"
+  },
+  {
+    "id": "enhancer",
+    "name": "Video Enhancer",
+    "description": "Quality enhancement",
+    "category": "enhance"
+  },
+  {
+    "id": "compiler",
+    "name": "Content Compiler",
+    "description": "Compile multiple videos",
+    "category": "create"
+  },
+  {
+    "id": "meme",
+    "name": "Meme Generator",
+    "description": "Create meme videos",
+    "category": "create"
+  },
+  {
+    "id": "musicvideo",
+    "name": "Music Video Maker",
+    "description": "Generate music videos",
+    "category": "create"
+  },
+  {
+    "id": "trailer",
+    "name": "Trailer Creator",
+    "description": "Make video trailers",
+    "category": "create"
+  },
+  {
+    "id": "compilation",
+    "name": "Compilation Builder",
+    "description": "Build compilations",
+    "category": "create"
+  },
+  {
+    "id": "social",
+    "name": "Social Media Clip",
+    "description": "Create social media clips",
+    "category": "social"
+  },
+  {
+    "id": "preview",
+    "name": "Preview Generator",
+    "description": "Generate video previews",
+    "category": "create"
+  },
+  {
+    "id": "montage",
+    "name": "Montage Builder",
+    "description": "Create video montages",
+    "category": "create"
+  },
+  {
+    "id": "story",
+    "name": "Story Builder",
+    "description": "Build narratives from clips",
+    "category": "create"
+  },
+  {
+    "id": "color",
+    "name": "Color Correction",
+    "description": "Adjust colors and tones",
+    "category": "enhance"
+  },
+  {
+    "id": "stabilize",
+    "name": "Video Stabilize",
+    "description": "Stabilize shaky footage",
+    "category": "enhance"
+  },
+  {
+    "id": "speed",
+    "name": "Speed Control",
+    "description": "Adjust video speed",
+    "category": "edit"
+  },
+  {
+    "id": "reverse",
+    "name": "Reverse Video",
+    "description": "Play video backwards",
+    "category": "edit"
+  },
+  {
+    "id": "voice_cloning",
+    "name": "Voice Cloning",
+    "description": "Clone a voice from audio",
+    "category": "audio"
+  },
+  {
+    "id": "comparison",
+    "name": "Comparison Agent",
+    "description": "Compare two videos or scripts",
+    "category": "analysis"
+  },
+  {
+    "id": "audio_overlays",
+    "name": "Gen AI Audio Overlays",
+    "description": "Add AI-generated music/SFX",
+    "category": "audio"
+  },
+  {
+    "id": "keyword_search",
+    "name": "Keyword Search & Compilation",
+    "description": "Search spoken words and compile",
+    "category": "search"
+  },
+  {
+    "id": "output_formatting",
+    "name": "Intelligent Output Formatting",
+    "description": "Format video for any platform",
+    "category": "create"
+  },
+  {
+    "id": "auto_highlights",
+    "name": "Automated Video Highlights",
+    "description": "AI-ranked highlight reel",
+    "category": "extract"
+  },
+  {
+    "id": "thumbnail",
+    "name": "Thumbnail Agent",
+    "description": "Pick the best thumbnail frame",
+    "category": "create"
+  },
+  {
+    "id": "subtitle_agent",
+    "name": "Subtitle Agent",
+    "description": "Generate & embed subtitles",
+    "category": "accessibility"
+  },
+  {
+    "id": "visual_search",
+    "name": "Visual Search",
+    "description": "Find by visual query",
+    "category": "search"
+  },
+  {
+    "id": "slack_agent",
+    "name": "Slack Agent",
+    "description": "Post summaries to Slack",
+    "category": "social"
+  },
+  {
+    "id": "text_to_movie",
+    "name": "Text to Movie",
+    "description": "Turn a script into a movie",
+    "category": "create"
+  },
+  {
+    "id": "storyboarding",
+    "name": "Storyboarding Agent",
+    "description": "Shot-by-shot storyboard",
+    "category": "create"
+  },
+  {
+    "id": "faceless_video_creator",
+    "name": "Faceless Video Creator",
+    "description": "No-face narration video",
+    "category": "create"
+  },
+  {
+    "id": "ai_ad_films",
+    "name": "AI Ad Films",
+    "description": "Generate product ad videos",
+    "category": "create"
+  },
+  {
+    "id": "tiktok_lyric_video",
+    "name": "TikTok Lyric Video",
+    "description": "Lyric-synced TikTok clip",
+    "category": "social"
+  },
+  {
+    "id": "ai_voiceovers",
+    "name": "AI Voiceovers",
+    "description": "AI narration from script",
+    "category": "audio"
+  },
+  {
+    "id": "trailer_narration",
+    "name": "Trailer Narration",
+    "description": "Dramatic trailer narration",
+    "category": "create"
+  },
+  {
+    "id": "kids_storyteller",
+    "name": "Kids Storyteller",
+    "description": "Children storytelling video",
+    "category": "create"
+  },
+  {
+    "id": "year_in_frames",
+    "name": "Year in Frames",
+    "description": "Yearly recap montage",
+    "category": "create"
+  },
+  {
+    "id": "profanity_remover",
+    "name": "Profanity Remover",
+    "description": "Clean profanity from audio",
+    "category": "enhance"
+  },
+  {
+    "id": "sales_assistant",
+    "name": "Sales Assistant",
+    "description": "Extract CRM follow-up from pitch",
+    "category": "analysis"
+  },
+  {
+    "id": "dynamic_ads",
+    "name": "Dynamic Ads Generator",
+    "description": "Generate dynamic ad variations",
+    "category": "create"
+  },
+  {
+    "id": "intro_outro",
+    "name": "Intro/Outro Maker",
+    "description": "Create intro and outro sequences",
+    "category": "create"
+  },
+  {
+    "id": "brand_elements",
+    "name": "Brand Elements",
+    "description": "Add brand elements and watermarks",
+    "category": "enhance"
+  }
+]

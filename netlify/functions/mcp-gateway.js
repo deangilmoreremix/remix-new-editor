@@ -19,6 +19,7 @@ import { handle as zackdHandle } from './zackd.js';
 import { handle as agentAudioHandle } from './agent-audio.js';
 import { handle as cinegenHandle } from './cinegen.js';
 import { createPagesStudio, PAGE_ACTIONS } from './_shared/mcpPages.js';
+import { createDirectorStudio, DIRECTOR_ACTIONS } from './_shared/mcpDirector.js';
 import { createSocialStudio, SOCIAL_ACTIONS } from './_shared/mcpSocial.js';
 
 const UPSTREAM = 'https://api.muapi.ai/api/v1';
@@ -31,6 +32,8 @@ export const STUDIOS = {
   cinegen: (body, who) => cinegenHandle(body, who.userId, { key: who.keys.muapi }),
   // Video Pages: the app's own landing-page data layer, run with the key owner's identity (row-level security applies).
   pages: createPagesStudio(),
+  // Director: the separately deployed Director backend (DIRECTOR_API_URL), behind an allow-list and per-owner scoping of its shared collections and sessions.
+  director: createDirectorStudio(),
   // Social publishing: list connected accounts, publish, check a publish. Connecting or removing accounts stays in the app.
   social: createSocialStudio(),
   // Lead Finder and website discovery: the app's own personalization route handlers, run as the key's owner.
@@ -126,6 +129,10 @@ export function classifyRequest(route, method, input = {}) {
   if (studio === 'social') {
     const a = String(input?.action || '');
     return { risk: Object.hasOwn(SOCIAL_ACTIONS, a) ? SOCIAL_ACTIONS[a] : 'write', label: `social ${a.slice(0, 20)}` };
+  }
+  if (studio === 'director') {
+    const a = String(input?.action || '');
+    return { risk: Object.hasOwn(DIRECTOR_ACTIONS, a) ? DIRECTOR_ACTIONS[a] : 'write', label: `director ${a.slice(0, 24)}` };
   }
   if (route === '/raw') return { risk: 'write', label: 'raw' };
   if (studio) return { risk: 'write', label: studio };

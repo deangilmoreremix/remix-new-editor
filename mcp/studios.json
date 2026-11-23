@@ -1,748 +1,819 @@
 {
- "supported": {
-  "image": {
-   "tools": [
-    "image_generate",
-    "image_edit"
-   ],
-   "kinds": [
-    "t2i",
-    "i2i"
-   ]
+  "supported": {
+    "image": {
+      "tools": [
+        "image_generate",
+        "image_edit"
+      ],
+      "kinds": [
+        "t2i",
+        "i2i"
+      ]
+    },
+    "text-to-image": {
+      "tools": [
+        "image_generate"
+      ],
+      "kinds": [
+        "t2i"
+      ]
+    },
+    "image-to-image": {
+      "tools": [
+        "image_edit"
+      ],
+      "kinds": [
+        "i2i"
+      ]
+    },
+    "video": {
+      "tools": [
+        "video_generate",
+        "video_from_image",
+        "video_to_video"
+      ],
+      "kinds": [
+        "t2v",
+        "i2v",
+        "v2v"
+      ]
+    },
+    "text-to-video": {
+      "tools": [
+        "video_generate"
+      ],
+      "kinds": [
+        "t2v"
+      ]
+    },
+    "image-to-video": {
+      "tools": [
+        "video_from_image"
+      ],
+      "kinds": [
+        "i2v"
+      ]
+    },
+    "video-to-video": {
+      "tools": [
+        "video_to_video"
+      ],
+      "kinds": [
+        "v2v"
+      ]
+    },
+    "cinema": {
+      "tools": [
+        "image_generate",
+        "video_generate",
+        "video_from_image"
+      ],
+      "kinds": [
+        "t2i",
+        "t2v",
+        "i2v"
+      ]
+    },
+    "cinema-page": {
+      "tools": [
+        "video_generate"
+      ],
+      "kinds": [
+        "t2v"
+      ]
+    },
+    "cinema-template": {
+      "tools": [
+        "video_generate",
+        "video_from_image",
+        "video_to_video",
+        "image_generate"
+      ],
+      "kinds": [
+        "t2v",
+        "i2v",
+        "v2v",
+        "t2i"
+      ]
+    },
+    "effects": {
+      "tools": [
+        "video_from_image",
+        "motion_graphics"
+      ],
+      "kinds": [
+        "i2v",
+        "graphics"
+      ]
+    },
+    "effects-page": {
+      "tools": [
+        "video_from_image",
+        "motion_graphics"
+      ],
+      "kinds": [
+        "i2v",
+        "graphics"
+      ]
+    },
+    "edit": {
+      "tools": [
+        "image_edit"
+      ],
+      "kinds": [
+        "i2i"
+      ]
+    },
+    "upscale": {
+      "tools": [
+        "image_edit"
+      ],
+      "kinds": [
+        "i2i"
+      ]
+    },
+    "upscale-page": {
+      "tools": [
+        "image_edit"
+      ],
+      "kinds": [
+        "i2i"
+      ]
+    },
+    "character": {
+      "tools": [
+        "image_edit"
+      ],
+      "kinds": [
+        "i2i"
+      ]
+    },
+    "character-page": {
+      "tools": [
+        "image_edit"
+      ],
+      "kinds": [
+        "i2i"
+      ]
+    },
+    "influencer": {
+      "tools": [
+        "image_edit"
+      ],
+      "kinds": [
+        "i2i"
+      ]
+    },
+    "influencer-page": {
+      "tools": [
+        "image_edit"
+      ],
+      "kinds": [
+        "i2i"
+      ]
+    },
+    "commercial": {
+      "tools": [
+        "marketing_ad",
+        "image_edit"
+      ],
+      "kinds": [
+        "ad",
+        "i2i"
+      ]
+    },
+    "commercial-page": {
+      "tools": [
+        "marketing_ad"
+      ],
+      "kinds": [
+        "ad"
+      ]
+    },
+    "avatar": {
+      "tools": [
+        "avatar_generate"
+      ],
+      "kinds": [
+        "avatar"
+      ]
+    },
+    "audio": {
+      "tools": [
+        "audio_generate"
+      ],
+      "kinds": [
+        "audio"
+      ]
+    },
+    "videotools": {
+      "tools": [
+        "video_tool",
+        "motion_control",
+        "recast"
+      ],
+      "kinds": [
+        "tools",
+        "motion",
+        "recast"
+      ]
+    },
+    "lipsync": {
+      "tools": [
+        "lipsync"
+      ],
+      "kinds": [
+        "lipsync"
+      ]
+    },
+    "storyboard": {
+      "tools": [
+        "image_generate"
+      ],
+      "kinds": [
+        "t2i"
+      ]
+    },
+    "storyboard-page": {
+      "tools": [
+        "image_generate"
+      ],
+      "kinds": [
+        "t2i"
+      ]
+    },
+    "video-watermark": {
+      "tools": [
+        "video_remove_watermark"
+      ],
+      "kinds": []
+    },
+    "photo-studio": {
+      "tools": [
+        "image_edit"
+      ],
+      "kinds": [
+        "i2i"
+      ]
+    },
+    "brand-photo-studio": {
+      "tools": [
+        "image_edit"
+      ],
+      "kinds": [
+        "i2i"
+      ]
+    },
+    "animate": {
+      "tools": [
+        "video_from_image"
+      ],
+      "kinds": [
+        "i2v"
+      ]
+    },
+    "zackd": {
+      "tools": [
+        "zackd_trends",
+        "zackd_script",
+        "zackd_submit",
+        "zackd_status"
+      ],
+      "kinds": []
+    },
+    "zackd-studio": {
+      "tools": [
+        "zackd_trends",
+        "zackd_script",
+        "zackd_submit",
+        "zackd_status"
+      ],
+      "kinds": []
+    },
+    "brand": {
+      "tools": [
+        "text_generate",
+        "vision_describe",
+        "image_generate",
+        "image_edit",
+        "brand_scrape"
+      ],
+      "kinds": [
+        "text",
+        "vision",
+        "t2i",
+        "i2i"
+      ]
+    },
+    "campaign": {
+      "tools": [
+        "text_generate",
+        "image_generate",
+        "image_edit"
+      ],
+      "kinds": [
+        "text",
+        "t2i",
+        "i2i"
+      ]
+    },
+    "campaign-page": {
+      "tools": [
+        "text_generate",
+        "image_generate",
+        "image_edit"
+      ],
+      "kinds": [
+        "text",
+        "t2i",
+        "i2i"
+      ]
+    },
+    "asset-edit": {
+      "tools": [
+        "text_generate",
+        "image_generate",
+        "image_edit"
+      ],
+      "kinds": [
+        "text",
+        "t2i",
+        "i2i"
+      ]
+    },
+    "ai-vfx": {
+      "tools": [
+        "video_from_image"
+      ],
+      "kinds": [
+        "i2v"
+      ]
+    },
+    "smart-video-studio": {
+      "tools": [
+        "image_generate",
+        "image_edit",
+        "video_generate",
+        "video_from_image",
+        "video_to_video"
+      ],
+      "kinds": [
+        "t2i",
+        "i2i",
+        "t2v",
+        "i2v",
+        "v2v"
+      ]
+    },
+    "leadfinder": {
+      "tools": [
+        "leads_list",
+        "leads_save",
+        "leads_update",
+        "leads_delete",
+        "businesses_find",
+        "business_research",
+        "business_contact_enrich"
+      ],
+      "kinds": []
+    },
+    "find-my-brand": {
+      "tools": [
+        "find_my_brand",
+        "brand_assets_discover",
+        "brand_assets_status"
+      ],
+      "kinds": []
+    },
+    "director": {
+      "tools": [
+        "director_health",
+        "director_config_check",
+        "director_agents_list",
+        "director_run_agent",
+        "director_chat",
+        "director_workflow",
+        "director_collections_list",
+        "director_collection_get",
+        "director_collection_create",
+        "director_collection_delete",
+        "director_media_list",
+        "director_media_get",
+        "director_media_url",
+        "director_media_delete",
+        "director_upload",
+        "director_sessions_list",
+        "director_session_get",
+        "director_session_delete"
+      ],
+      "kinds": [],
+      "note": "Needs the Director backend deployed (DIRECTOR_API_URL). The gateway scopes its shared collections and sessions to the key owner."
+    }
   },
-  "text-to-image": {
-   "tools": [
-    "image_generate"
-   ],
-   "kinds": [
-    "t2i"
-   ]
+  "unsupported": {
+    "library": "Non-generative UI (browsing, learning or navigation).",
+    "content-library": "Non-generative UI (browsing, learning or navigation).",
+    "explore": "Non-generative UI (browsing, learning or navigation).",
+    "apps": "Non-generative UI (browsing, learning or navigation).",
+    "templates": "Non-generative UI (browsing, learning or navigation).",
+    "academy": "Non-generative UI (browsing, learning or navigation).",
+    "timeline-iframe-warning": "Non-generative UI (browsing, learning or navigation).",
+    "smart-video-scheduler": "A calendar UI with state kept in the browser; there is no scheduling backend to call.",
+    "brightbean": "A calendar UI with state kept in the browser; there is no scheduling backend to call.",
+    "personalizer": "Its contacts and personalization tokens are kept in the browser. The server parts it uses (brand discovery, business research, lead search) are available as tools; the personalization itself is done by the image and video tools.",
+    "brand-dna": "Edits brand data held in the browser; brand_scrape plus text_generate cover the analysis.",
+    "motion-director": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
+    "motion-director/workbench": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
+    "video-pages": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
+    "website-builder": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
+    "render": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
+    "video-agent": "Each step runs a tool loop inside the browser against the user's own timeline; there is nothing to do without that editor open.",
+    "video-agent-studio": "Each step runs a tool loop inside the browser against the user's own timeline; there is nothing to do without that editor open.",
+    "workbench": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
+    "cinegen": "Editor (replaced by the Workbench). Its fill-gap/extend actions are the Timeline AI tools. Its own function calls generic /image-to-video and /generate-image routes, which frameModels.js notes do not exist upstream (not checked live).",
+    "timeline": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
+    "timeline-classic": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
+    "viral": "A static gallery of example videos; nothing to generate."
   },
-  "image-to-image": {
-   "tools": [
-    "image_edit"
-   ],
-   "kinds": [
-    "i2i"
-   ]
-  },
-  "video": {
-   "tools": [
-    "video_generate",
-    "video_from_image",
-    "video_to_video"
-   ],
-   "kinds": [
-    "t2v",
-    "i2v",
-    "v2v"
-   ]
-  },
-  "text-to-video": {
-   "tools": [
-    "video_generate"
-   ],
-   "kinds": [
-    "t2v"
-   ]
-  },
-  "image-to-video": {
-   "tools": [
-    "video_from_image"
-   ],
-   "kinds": [
-    "i2v"
-   ]
-  },
-  "video-to-video": {
-   "tools": [
-    "video_to_video"
-   ],
-   "kinds": [
-    "v2v"
-   ]
-  },
-  "cinema": {
-   "tools": [
-    "image_generate",
-    "video_generate",
-    "video_from_image"
-   ],
-   "kinds": [
-    "t2i",
-    "t2v",
-    "i2v"
-   ]
-  },
-  "cinema-page": {
-   "tools": [
-    "video_generate"
-   ],
-   "kinds": [
-    "t2v"
-   ]
-  },
-  "cinema-template": {
-   "tools": [
-    "video_generate",
-    "video_from_image",
-    "video_to_video",
-    "image_generate"
-   ],
-   "kinds": [
-    "t2v",
-    "i2v",
-    "v2v",
-    "t2i"
-   ]
-  },
-  "effects": {
-   "tools": [
-    "video_from_image",
-    "motion_graphics"
-   ],
-   "kinds": [
-    "i2v",
-    "graphics"
-   ]
-  },
-  "effects-page": {
-   "tools": [
-    "video_from_image",
-    "motion_graphics"
-   ],
-   "kinds": [
-    "i2v",
-    "graphics"
-   ]
-  },
-  "edit": {
-   "tools": [
-    "image_edit"
-   ],
-   "kinds": [
-    "i2i"
-   ]
-  },
-  "upscale": {
-   "tools": [
-    "image_edit"
-   ],
-   "kinds": [
-    "i2i"
-   ]
-  },
-  "upscale-page": {
-   "tools": [
-    "image_edit"
-   ],
-   "kinds": [
-    "i2i"
-   ]
-  },
-  "character": {
-   "tools": [
-    "image_edit"
-   ],
-   "kinds": [
-    "i2i"
-   ]
-  },
-  "character-page": {
-   "tools": [
-    "image_edit"
-   ],
-   "kinds": [
-    "i2i"
-   ]
-  },
-  "influencer": {
-   "tools": [
-    "image_edit"
-   ],
-   "kinds": [
-    "i2i"
-   ]
-  },
-  "influencer-page": {
-   "tools": [
-    "image_edit"
-   ],
-   "kinds": [
-    "i2i"
-   ]
-  },
-  "commercial": {
-   "tools": [
-    "marketing_ad",
-    "image_edit"
-   ],
-   "kinds": [
-    "ad",
-    "i2i"
-   ]
-  },
-  "commercial-page": {
-   "tools": [
-    "marketing_ad"
-   ],
-   "kinds": [
-    "ad"
-   ]
-  },
-  "avatar": {
-   "tools": [
-    "avatar_generate"
-   ],
-   "kinds": [
-    "avatar"
-   ]
-  },
-  "audio": {
-   "tools": [
-    "audio_generate"
-   ],
-   "kinds": [
-    "audio"
-   ]
-  },
-  "videotools": {
-   "tools": [
-    "video_tool",
-    "motion_control",
-    "recast"
-   ],
-   "kinds": [
-    "tools",
-    "motion",
-    "recast"
-   ]
-  },
-  "lipsync": {
-   "tools": [
-    "lipsync"
-   ],
-   "kinds": [
-    "lipsync"
-   ]
-  },
-  "storyboard": {
-   "tools": [
-    "image_generate"
-   ],
-   "kinds": [
-    "t2i"
-   ]
-  },
-  "storyboard-page": {
-   "tools": [
-    "image_generate"
-   ],
-   "kinds": [
-    "t2i"
-   ]
-  },
-  "video-watermark": {
-   "tools": [
-    "video_remove_watermark"
-   ],
-   "kinds": []
-  },
-  "photo-studio": {
-   "tools": [
-    "image_edit"
-   ],
-   "kinds": [
-    "i2i"
-   ]
-  },
-  "brand-photo-studio": {
-   "tools": [
-    "image_edit"
-   ],
-   "kinds": [
-    "i2i"
-   ]
-  },
-  "animate": {
-   "tools": [
-    "video_from_image"
-   ],
-   "kinds": [
-    "i2v"
-   ]
-  },
-  "zackd": {
-   "tools": [
-    "zackd_trends",
-    "zackd_script",
-    "zackd_submit",
-    "zackd_status"
-   ],
-   "kinds": []
-  },
-  "zackd-studio": {
-   "tools": [
-    "zackd_trends",
-    "zackd_script",
-    "zackd_submit",
-    "zackd_status"
-   ],
-   "kinds": []
-  },
-  "brand": {
-   "tools": [
-    "text_generate",
-    "vision_describe",
-    "image_generate",
-    "image_edit",
-    "brand_scrape"
-   ],
-   "kinds": [
-    "text",
-    "vision",
-    "t2i",
-    "i2i"
-   ]
-  },
-  "campaign": {
-   "tools": [
-    "text_generate",
-    "image_generate",
-    "image_edit"
-   ],
-   "kinds": [
-    "text",
-    "t2i",
-    "i2i"
-   ]
-  },
-  "campaign-page": {
-   "tools": [
-    "text_generate",
-    "image_generate",
-    "image_edit"
-   ],
-   "kinds": [
-    "text",
-    "t2i",
-    "i2i"
-   ]
-  },
-  "asset-edit": {
-   "tools": [
-    "text_generate",
-    "image_generate",
-    "image_edit"
-   ],
-   "kinds": [
-    "text",
-    "t2i",
-    "i2i"
-   ]
-  },
-  "ai-vfx": {
-   "tools": [
-    "video_from_image"
-   ],
-   "kinds": [
-    "i2v"
-   ]
-  },
-  "smart-video-studio": {
-   "tools": [
-    "image_generate",
-    "image_edit",
-    "video_generate",
-    "video_from_image",
-    "video_to_video"
-   ],
-   "kinds": [
-    "t2i",
-    "i2i",
-    "t2v",
-    "i2v",
-    "v2v"
-   ]
-  },
-  "leadfinder": {
-   "tools": [
-    "leads_list",
-    "leads_save",
-    "leads_update",
-    "leads_delete",
-    "businesses_find",
-    "business_research",
-    "business_contact_enrich"
-   ],
-   "kinds": []
-  },
-  "find-my-brand": {
-   "tools": [
-    "find_my_brand",
-    "brand_assets_discover",
-    "brand_assets_status"
-   ],
-   "kinds": []
+  "features": {
+    "timeline": {
+      "title": "Timeline editor (open tab)",
+      "items": {
+        "Read the timeline, search stock, preview a frame, describe a frame": {
+          "tools": [
+            "timeline_get_timeline",
+            "timeline_search_stock",
+            "timeline_search_footage",
+            "timeline_preview_frame",
+            "timeline_describe_frame",
+            "timeline_list_effects"
+          ]
+        },
+        "Add and edit clips, overlays, transitions, effects, keyframes, masks, captions": {
+          "tools": [
+            "timeline_add_media_clip",
+            "timeline_add_overlay",
+            "timeline_add_video_transition",
+            "timeline_add_interactive",
+            "timeline_add_effect",
+            "timeline_set_keyframes",
+            "timeline_mask_object",
+            "timeline_add_captions",
+            "timeline_translate_captions",
+            "timeline_label_speakers",
+            "timeline_tag_clip",
+            "timeline_update_clip",
+            "timeline_remove_clip",
+            "timeline_set_duration",
+            "timeline_create_animation",
+            "timeline_blur_background",
+            "timeline_remove_background",
+            "timeline_remove_silences",
+            "timeline_storyboard"
+          ]
+        },
+        "Add audio (voiceover, free voiceover, music)": {
+          "tools": [
+            "timeline_add_voiceover",
+            "timeline_add_free_voiceover",
+            "timeline_add_music"
+          ]
+        },
+        "Generate new media into the timeline (paid)": {
+          "tools": [
+            "timeline_generate_image",
+            "timeline_fill_gap",
+            "timeline_extend_clip"
+          ]
+        },
+        "Export the video (renders in the browser)": {
+          "tools": [
+            "timeline_export_video"
+          ]
+        },
+        "Same AI actions without a tab (paid)": {
+          "tools": [
+            "video_fill_gap",
+            "video_extend",
+            "video_remove_watermark",
+            "image_layers",
+            "music_create"
+          ]
+        }
+      }
+    },
+    "workbench": {
+      "title": "Workbench (open tab)",
+      "items": {
+        "Read and edit the project, undo and redo": {
+          "tools": [
+            "workbench_get_project",
+            "workbench_run_ops",
+            "workbench_undo",
+            "workbench_redo"
+          ]
+        },
+        "Bring in media": {
+          "tools": [
+            "workbench_import_assets"
+          ]
+        },
+        "workbench_export": {
+          "notExposed": "Export runs behind the editor's Export button; there is no call to start it."
+        },
+        "workbench_ai_chat": {
+          "notExposed": "The editor chat needs the user's own OpenAI key inside the iframe; use explicit operations instead."
+        },
+        "workbench_file_upload": {
+          "notExposed": "Needs a file the user picks; import by link instead."
+        }
+      }
+    },
+    "motion-director": {
+      "title": "Motion Director (open tab)",
+      "items": {
+        "Read the project": {
+          "tools": [
+            "motion_director_get_project"
+          ]
+        },
+        "Edit with plain-English commands or exact clip changes": {
+          "tools": [
+            "motion_director_command",
+            "motion_director_set_clip_props",
+            "motion_director_add_clip",
+            "motion_director_remove_clip",
+            "motion_director_set_background"
+          ]
+        },
+        "Undo, redo": {
+          "tools": [
+            "motion_director_undo",
+            "motion_director_redo"
+          ]
+        },
+        "Render the MP4": {
+          "tools": [
+            "motion_director_render"
+          ]
+        },
+        "film_director_chat": {
+          "notExposed": "The multi-step film pipeline runs from the chat panel; no single call runs it."
+        },
+        "timeline_dragging": {
+          "notExposed": "Drag, resize and trim gestures have no programmatic surface."
+        },
+        "render_progress": {
+          "notExposed": "Progress is shown in the Export button only."
+        }
+      }
+    },
+    "render": {
+      "title": "Render queue (open tab)",
+      "items": {
+        "List, queue, process and remove render jobs": {
+          "tools": [
+            "render_queue_list",
+            "render_queue_enqueue",
+            "render_queue_process",
+            "render_queue_remove"
+          ]
+        },
+        "render_queue_clear": {
+          "notExposed": "Clearing everything at once is not offered."
+        }
+      }
+    },
+    "brand": {
+      "title": "Brand Studio",
+      "items": {
+        "Brands, campaigns and assets saved in the tab": {
+          "tools": [
+            "brand_list",
+            "brand_get",
+            "brand_save",
+            "brand_campaigns_list",
+            "brand_assets_list"
+          ]
+        },
+        "Scrape a website for brand details": {
+          "tools": [
+            "brand_scrape"
+          ]
+        },
+        "Discover brand assets, find a brand": {
+          "tools": [
+            "brand_assets_discover",
+            "brand_assets_status",
+            "find_my_brand"
+          ]
+        },
+        "personalizer_stores": {
+          "notExposed": "Personalizer contacts and profiles live in server tables: use leads_* and video_pages_contacts."
+        },
+        "brand_delete": {
+          "notExposed": "The store has no delete."
+        },
+        "api_keys": {
+          "notExposed": "Saving or reading API keys is human-only."
+        }
+      }
+    },
+    "app": {
+      "title": "App",
+      "items": {
+        "Where the tab is, open another page": {
+          "tools": [
+            "app_state",
+            "app_navigate"
+          ]
+        },
+        "Account credit": {
+          "tools": [
+            "usage_info"
+          ]
+        }
+      }
+    },
+    "video-pages": {
+      "title": "Video Pages (server, as the key owner)",
+      "items": {
+        "Create, edit, list and read pages": {
+          "tools": [
+            "video_pages_templates",
+            "video_pages_list",
+            "video_pages_get",
+            "video_pages_create",
+            "video_pages_update"
+          ]
+        },
+        "Publish, unpublish, delete": {
+          "tools": [
+            "video_pages_publish",
+            "video_pages_unpublish",
+            "video_pages_delete"
+          ]
+        },
+        "Stats and personalized recipients": {
+          "tools": [
+            "video_pages_stats",
+            "video_pages_contacts",
+            "video_pages_add_contacts",
+            "video_pages_remove_contact"
+          ]
+        }
+      }
+    },
+    "social": {
+      "title": "Social publishing (server, as the key owner)",
+      "items": {
+        "List connected accounts": {
+          "tools": [
+            "social_accounts_list"
+          ]
+        },
+        "Publish and check a publish": {
+          "tools": [
+            "social_publish",
+            "social_publish_status"
+          ]
+        },
+        "social_connect_account": {
+          "notExposed": "Connecting, renaming or disconnecting accounts is an OAuth/ownership action and stays in the app."
+        }
+      }
+    },
+    "leadfinder": {
+      "title": "Lead Finder and personalization",
+      "items": {
+        "Saved leads": {
+          "tools": [
+            "leads_list",
+            "leads_save",
+            "leads_update",
+            "leads_delete"
+          ]
+        },
+        "Find and research businesses": {
+          "tools": [
+            "businesses_find",
+            "business_research",
+            "business_contact_enrich"
+          ]
+        }
+      }
+    },
+    "zackd": {
+      "title": "Zack D",
+      "items": {
+        "Trends, script, media, status": {
+          "tools": [
+            "zackd_trends",
+            "zackd_script",
+            "zackd_submit",
+            "zackd_status"
+          ]
+        },
+        "Voiceover": {
+          "tools": [
+            "voiceover_create"
+          ]
+        }
+      }
+    },
+    "cinegen": {
+      "title": "CineGen",
+      "items": {
+        "cinegen_web_host": {
+          "notExposed": "The CineGen timeline's host handlers bind to the desktop app; the web app has none. Server-side CineGen actions run through the gateway's cinegen studio."
+        },
+        "cinegen_export": {
+          "notExposed": "Desktop only: export runs through the Electron app, the web editor has no export host."
+        },
+        "cinegen_extract_media": {
+          "notExposed": "Desktop only: needs the Electron app's file access."
+        }
+      }
+    },
+    "video-agent": {
+      "title": "Video Agent",
+      "items": {
+        "video_agent_edit": {
+          "notExposed": "The Video Agent runs in an iframe whose only protocol is sign-in in and finished video out; it has no call to read or change the animation."
+        }
+      }
+    },
+    "content-library": {
+      "title": "Content library",
+      "items": {
+        "content_library": {
+          "notExposed": "A shared table every signed-in user can read; not a per-user library, so exposing it would show other people's files."
+        }
+      }
+    },
+    "generation-history": {
+      "title": "Generation history",
+      "items": {
+        "generation_history": {
+          "notExposed": "Kept in the browser's own storage only; there is no server copy to read or delete."
+        }
+      }
+    },
+    "website-builder": {
+      "title": "Website Builder",
+      "items": {
+        "website_builder": {
+          "notExposed": "Runs on its own sign-in identity and holds provider keys in its tables; neither belongs behind an MCP key."
+        }
+      }
+    },
+    "director": {
+      "title": "Director (own backend, owner-scoped by the gateway)",
+      "items": {
+        "Status and setup check": {
+          "tools": [
+            "director_health",
+            "director_config_check"
+          ]
+        },
+        "Agents": {
+          "tools": [
+            "director_agents_list",
+            "director_run_agent",
+            "director_chat",
+            "director_workflow"
+          ]
+        },
+        "Media collections": {
+          "tools": [
+            "director_collections_list",
+            "director_collection_get",
+            "director_collection_create",
+            "director_collection_delete",
+            "director_media_list",
+            "director_media_get",
+            "director_media_url",
+            "director_media_delete",
+            "director_upload"
+          ]
+        },
+        "Conversations": {
+          "tools": [
+            "director_sessions_list",
+            "director_session_get",
+            "director_session_delete"
+          ]
+        },
+        "Agents that run only inside the app (videoagent process/jobs, media proxy)": {
+          "notExposed": "The app's Director page calls /videoagent/process and /api/videodb/proxy, which are not routes of the Director backend in this repo (routes.py). Only the backend's own allow-listed routes are exposed; render agents beyond the six the backend whitelists are reachable only by name through director_chat."
+        },
+        "Live chat stream (Socket.IO)": {
+          "notExposed": "Replaced by the plain session routes (director_chat, director_session_get); a live socket cannot be driven through a request/response tool."
+        },
+        "Direct file upload to a collection": {
+          "notExposed": "The gateway only accepts a public https link (director_upload); binary file bodies are not sent through it."
+        }
+      }
+    }
   }
- },
- "unsupported": {
-  "library": "Non-generative UI (browsing, learning or navigation).",
-  "content-library": "Non-generative UI (browsing, learning or navigation).",
-  "explore": "Non-generative UI (browsing, learning or navigation).",
-  "apps": "Non-generative UI (browsing, learning or navigation).",
-  "templates": "Non-generative UI (browsing, learning or navigation).",
-  "academy": "Non-generative UI (browsing, learning or navigation).",
-  "timeline-iframe-warning": "Non-generative UI (browsing, learning or navigation).",
-  "smart-video-scheduler": "A calendar UI with state kept in the browser; there is no scheduling backend to call.",
-  "brightbean": "A calendar UI with state kept in the browser; there is no scheduling backend to call.",
-  "personalizer": "Its contacts and personalization tokens are kept in the browser. The server parts it uses (brand discovery, business research, lead search) are available as tools; the personalization itself is done by the image and video tools.",
-  "brand-dna": "Edits brand data held in the browser; brand_scrape plus text_generate cover the analysis.",
-  "motion-director": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
-  "motion-director/workbench": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
-  "video-pages": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
-  "website-builder": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
-  "render": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
-  "video-agent": "Each step runs a tool loop inside the browser against the user's own timeline; there is nothing to do without that editor open.",
-  "video-agent-studio": "Each step runs a tool loop inside the browser against the user's own timeline; there is nothing to do without that editor open.",
-  "director": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
-  "workbench": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
-  "cinegen": "Editor (replaced by the Workbench). Its fill-gap/extend actions are the Timeline AI tools. Its own function calls generic /image-to-video and /generate-image routes, which frameModels.js notes do not exist upstream (not checked live).",
-  "timeline": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
-  "timeline-classic": "Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools.",
-  "viral": "A static gallery of example videos; nothing to generate."
- },
- "features": {
-  "timeline": {
-   "title": "Timeline editor (open tab)",
-   "items": {
-    "Read the timeline, search stock, preview a frame, describe a frame": {
-     "tools": [
-      "timeline_get_timeline",
-      "timeline_search_stock",
-      "timeline_search_footage",
-      "timeline_preview_frame",
-      "timeline_describe_frame",
-      "timeline_list_effects"
-     ]
-    },
-    "Add and edit clips, overlays, transitions, effects, keyframes, masks, captions": {
-     "tools": [
-      "timeline_add_media_clip",
-      "timeline_add_overlay",
-      "timeline_add_video_transition",
-      "timeline_add_interactive",
-      "timeline_add_effect",
-      "timeline_set_keyframes",
-      "timeline_mask_object",
-      "timeline_add_captions",
-      "timeline_translate_captions",
-      "timeline_label_speakers",
-      "timeline_tag_clip",
-      "timeline_update_clip",
-      "timeline_remove_clip",
-      "timeline_set_duration",
-      "timeline_create_animation",
-      "timeline_blur_background",
-      "timeline_remove_background",
-      "timeline_remove_silences",
-      "timeline_storyboard"
-     ]
-    },
-    "Add audio (voiceover, free voiceover, music)": {
-     "tools": [
-      "timeline_add_voiceover",
-      "timeline_add_free_voiceover",
-      "timeline_add_music"
-     ]
-    },
-    "Generate new media into the timeline (paid)": {
-     "tools": [
-      "timeline_generate_image",
-      "timeline_fill_gap",
-      "timeline_extend_clip"
-     ]
-    },
-    "Export the video (renders in the browser)": {
-     "tools": [
-      "timeline_export_video"
-     ]
-    },
-    "Same AI actions without a tab (paid)": {
-     "tools": [
-      "video_fill_gap",
-      "video_extend",
-      "video_remove_watermark",
-      "image_layers",
-      "music_create"
-     ]
-    }
-   }
-  },
-  "workbench": {
-   "title": "Workbench (open tab)",
-   "items": {
-    "Read and edit the project, undo and redo": {
-     "tools": [
-      "workbench_get_project",
-      "workbench_run_ops",
-      "workbench_undo",
-      "workbench_redo"
-     ]
-    },
-    "Bring in media": {
-     "tools": [
-      "workbench_import_assets"
-     ]
-    },
-    "workbench_export": {
-     "notExposed": "Export runs behind the editor's Export button; there is no call to start it."
-    },
-    "workbench_ai_chat": {
-     "notExposed": "The editor chat needs the user's own OpenAI key inside the iframe; use explicit operations instead."
-    },
-    "workbench_file_upload": {
-     "notExposed": "Needs a file the user picks; import by link instead."
-    }
-   }
-  },
-  "motion-director": {
-   "title": "Motion Director (open tab)",
-   "items": {
-    "Read the project": {
-     "tools": [
-      "motion_director_get_project"
-     ]
-    },
-    "Edit with plain-English commands or exact clip changes": {
-     "tools": [
-      "motion_director_command",
-      "motion_director_set_clip_props",
-      "motion_director_add_clip",
-      "motion_director_remove_clip",
-      "motion_director_set_background"
-     ]
-    },
-    "Undo, redo": {
-     "tools": [
-      "motion_director_undo",
-      "motion_director_redo"
-     ]
-    },
-    "Render the MP4": {
-     "tools": [
-      "motion_director_render"
-     ]
-    },
-    "film_director_chat": {
-     "notExposed": "The multi-step film pipeline runs from the chat panel; no single call runs it."
-    },
-    "timeline_dragging": {
-     "notExposed": "Drag, resize and trim gestures have no programmatic surface."
-    },
-    "render_progress": {
-     "notExposed": "Progress is shown in the Export button only."
-    }
-   }
-  },
-  "render": {
-   "title": "Render queue (open tab)",
-   "items": {
-    "List, queue, process and remove render jobs": {
-     "tools": [
-      "render_queue_list",
-      "render_queue_enqueue",
-      "render_queue_process",
-      "render_queue_remove"
-     ]
-    },
-    "render_queue_clear": {
-     "notExposed": "Clearing everything at once is not offered."
-    }
-   }
-  },
-  "brand": {
-   "title": "Brand Studio",
-   "items": {
-    "Brands, campaigns and assets saved in the tab": {
-     "tools": [
-      "brand_list",
-      "brand_get",
-      "brand_save",
-      "brand_campaigns_list",
-      "brand_assets_list"
-     ]
-    },
-    "Scrape a website for brand details": {
-     "tools": [
-      "brand_scrape"
-     ]
-    },
-    "Discover brand assets, find a brand": {
-     "tools": [
-      "brand_assets_discover",
-      "brand_assets_status",
-      "find_my_brand"
-     ]
-    },
-    "personalizer_stores": {
-     "notExposed": "Personalizer contacts and profiles live in server tables: use leads_* and video_pages_contacts."
-    },
-    "brand_delete": {
-     "notExposed": "The store has no delete."
-    },
-    "api_keys": {
-     "notExposed": "Saving or reading API keys is human-only."
-    }
-   }
-  },
-  "app": {
-   "title": "App",
-   "items": {
-    "Where the tab is, open another page": {
-     "tools": [
-      "app_state",
-      "app_navigate"
-     ]
-    },
-    "Account credit": {
-     "tools": [
-      "usage_info"
-     ]
-    }
-   }
-  },
-  "video-pages": {
-   "title": "Video Pages (server, as the key owner)",
-   "items": {
-    "Create, edit, list and read pages": {
-     "tools": [
-      "video_pages_templates",
-      "video_pages_list",
-      "video_pages_get",
-      "video_pages_create",
-      "video_pages_update"
-     ]
-    },
-    "Publish, unpublish, delete": {
-     "tools": [
-      "video_pages_publish",
-      "video_pages_unpublish",
-      "video_pages_delete"
-     ]
-    },
-    "Stats and personalized recipients": {
-     "tools": [
-      "video_pages_stats",
-      "video_pages_contacts",
-      "video_pages_add_contacts",
-      "video_pages_remove_contact"
-     ]
-    }
-   }
-  },
-  "social": {
-   "title": "Social publishing (server, as the key owner)",
-   "items": {
-    "List connected accounts": {
-     "tools": [
-      "social_accounts_list"
-     ]
-    },
-    "Publish and check a publish": {
-     "tools": [
-      "social_publish",
-      "social_publish_status"
-     ]
-    },
-    "social_connect_account": {
-     "notExposed": "Connecting, renaming or disconnecting accounts is an OAuth/ownership action and stays in the app."
-    }
-   }
-  },
-  "leadfinder": {
-   "title": "Lead Finder and personalization",
-   "items": {
-    "Saved leads": {
-     "tools": [
-      "leads_list",
-      "leads_save",
-      "leads_update",
-      "leads_delete"
-     ]
-    },
-    "Find and research businesses": {
-     "tools": [
-      "businesses_find",
-      "business_research",
-      "business_contact_enrich"
-     ]
-    }
-   }
-  },
-  "zackd": {
-   "title": "Zack D",
-   "items": {
-    "Trends, script, media, status": {
-     "tools": [
-      "zackd_trends",
-      "zackd_script",
-      "zackd_submit",
-      "zackd_status"
-     ]
-    },
-    "Voiceover": {
-     "tools": [
-      "voiceover_create"
-     ]
-    }
-   }
-  },
-  "cinegen": {
-   "title": "CineGen",
-   "items": {
-    "cinegen_web_host": {
-     "notExposed": "The CineGen timeline's host handlers bind to the desktop app; the web app has none. Server-side CineGen actions run through the gateway's cinegen studio."
-    },
-    "cinegen_export": {
-     "notExposed": "Desktop only: export runs through the Electron app, the web editor has no export host."
-    },
-    "cinegen_extract_media": {
-     "notExposed": "Desktop only: needs the Electron app's file access."
-    }
-   }
-  },
-  "video-agent": {
-   "title": "Video Agent",
-   "items": {
-    "video_agent_edit": {
-     "notExposed": "The Video Agent runs in an iframe whose only protocol is sign-in in and finished video out; it has no call to read or change the animation."
-    }
-   }
-  },
-  "content-library": {
-   "title": "Content library",
-   "items": {
-    "content_library": {
-     "notExposed": "A shared table every signed-in user can read; not a per-user library, so exposing it would show other people's files."
-    }
-   }
-  },
-  "generation-history": {
-   "title": "Generation history",
-   "items": {
-    "generation_history": {
-     "notExposed": "Kept in the browser's own storage only; there is no server copy to read or delete."
-    }
-   }
-  },
-  "website-builder": {
-   "title": "Website Builder",
-   "items": {
-    "website_builder": {
-     "notExposed": "Runs on its own sign-in identity and holds provider keys in its tables; neither belongs behind an MCP key."
-    }
-   }
-  }
- }
 }

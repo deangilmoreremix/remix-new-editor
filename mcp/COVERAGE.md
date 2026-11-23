@@ -5,7 +5,7 @@ The Live column comes from the smoke run against a deployed gateway with a real 
 
 No live run recorded yet.
 
-41 supported, 24 not exposed.
+42 supported, 23 not exposed.
 
 | Studio | Status | Tools / reason | Live |
 |---|---|---|---|
@@ -50,6 +50,7 @@ No live run recorded yet.
 | `smart-video-studio` | supported | `image_generate`, `image_edit`, `video_generate`, `video_from_image`, `video_to_video` | not run |
 | `leadfinder` | supported | `leads_list`, `leads_save`, `leads_update`, `leads_delete`, `businesses_find`, `business_research`, `business_contact_enrich` | not run |
 | `find-my-brand` | supported | `find_my_brand`, `brand_assets_discover`, `brand_assets_status` | not run |
+| `director` | supported | `director_health`, `director_config_check`, `director_agents_list`, `director_run_agent`, `director_chat`, `director_workflow`, `director_collections_list`, `director_collection_get`, `director_collection_create`, `director_collection_delete`, `director_media_list`, `director_media_get`, `director_media_url`, `director_media_delete`, `director_upload`, `director_sessions_list`, `director_session_get`, `director_session_delete` (Needs the Director backend deployed (DIRECTOR_API_URL). The gateway scopes its shared collections and sessions to the key owner.) | not run |
 | `library` | not exposed | Non-generative UI (browsing, learning or navigation). | n/a |
 | `content-library` | not exposed | Non-generative UI (browsing, learning or navigation). | n/a |
 | `explore` | not exposed | Non-generative UI (browsing, learning or navigation). | n/a |
@@ -68,7 +69,6 @@ No live run recorded yet.
 | `render` | not exposed | Interactive editor or client-side renderer; not a single request, so permanently unsupported. | n/a |
 | `video-agent` | not exposed | Each step runs a tool loop inside the browser against the user's own timeline; there is nothing to do without that editor open. | n/a |
 | `video-agent-studio` | not exposed | Each step runs a tool loop inside the browser against the user's own timeline; there is nothing to do without that editor open. | n/a |
-| `director` | not exposed | Interactive editor or client-side renderer; not a single request, so permanently unsupported. | n/a |
 | `workbench` | not exposed | Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools. | n/a |
 | `cinegen` | not exposed | Editor (replaced by the Workbench). Its fill-gap/extend actions are the Timeline AI tools. Its own function calls generic /image-to-video and /generate-image routes, which frameModels.js notes do not exist upstream (not checked live). | n/a |
 | `timeline` | not exposed | Interactive editor or client-side renderer (Remotion/CineGen/Director); not a single request. Its AI actions (fill gap, extend, watermark removal, layers, music) are available as tools. | n/a |
@@ -198,3 +198,15 @@ Every tool is listed under a feature, or the feature says why it is not exposed.
 | Feature | Tools | Reason / Live |
 |---|---|---|
 | website_builder | not exposed | Runs on its own sign-in identity and holds provider keys in its tables; neither belongs behind an MCP key. |
+
+### Director (own backend, owner-scoped by the gateway)
+
+| Feature | Tools | Reason / Live |
+|---|---|---|
+| Status and setup check | `director_health`, `director_config_check` | not run |
+| Agents | `director_agents_list`, `director_run_agent`, `director_chat`, `director_workflow` | not run |
+| Media collections | `director_collections_list`, `director_collection_get`, `director_collection_create`, `director_collection_delete`, `director_media_list`, `director_media_get`, `director_media_url`, `director_media_delete`, `director_upload` | not run |
+| Conversations | `director_sessions_list`, `director_session_get`, `director_session_delete` | not run |
+| Agents that run only inside the app (videoagent process/jobs, media proxy) | not exposed | The app's Director page calls /videoagent/process and /api/videodb/proxy, which are not routes of the Director backend in this repo (routes.py). Only the backend's own allow-listed routes are exposed; render agents beyond the six the backend whitelists are reachable only by name through director_chat. |
+| Live chat stream (Socket.IO) | not exposed | Replaced by the plain session routes (director_chat, director_session_get); a live socket cannot be driven through a request/response tool. |
+| Direct file upload to a collection | not exposed | The gateway only accepts a public https link (director_upload); binary file bodies are not sent through it. |

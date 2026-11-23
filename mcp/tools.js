@@ -1,5 +1,6 @@
 // Timeline AI tools. Request building is the app's own code (src/lib/muapi/frameModels.js, the same builders
 // netlify/functions/timeline-ai.js uses), so these tools cannot drift from what the editor sends.
+import { readFileSync } from 'node:fs';
 import { z } from '../packages/studio-mcp-core/src/index.js';
 import {
   FIRST_LAST_FRAME_MODELS, VIDEO_EXTEND_MODELS, MUSIC_MODELS, LAYER_MODELS, WATERMARK_MODELS,
@@ -278,4 +279,53 @@ customTools.push(
     run: (a, client) => client.studio('social', { action: 'publish', platform: a.platform, payload: a.payload }),
   },
   { name: 'social_publish_status', description: 'Check a publish started with social_publish.', input: { request_id: z.string().min(6).max(80) }, run: (a, client) => client.studio('social', { action: 'status', request_id: a.request_id }) },
+);
+
+// ── Director (separately deployed backend; the gateway scopes its shared collections and sessions to the key's owner) ─────
+const dir = (client, body) => client.studio('director', body);
+const COLLECTION = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/).describe('Collection id from director_collections_list');
+const MEDIA_KIND = z.enum(['video', 'audio', 'image']);
+const DIRECTOR_SESSION = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/).describe('Session id returned by director_chat');
+const readJson = (rel) => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'));
+const DIRECTOR_RENDER_AGENTS = ['subtitle', 'scenes', 'highlight_reel', 'voiceover', 'dubbing', 'social'];
+
+customTools.push(
+  { name: 'director_health', description: 'Is the Director backend set up and reachable? Says "not configured" plainly when this deployment has none.', input: {}, run: (a, client) => dir(client, { action: 'health' }) },
+  { name: 'director_config_check', description: 'Which Director features the backend has what it needs for (no secret values).', input: {}, run: (a, client) => dir(client, { action: 'config_check' }) },
+  {
+    name: 'director_agents_list',
+    description: 'The Director studio\'s agents as the app lists them, plus the ones that can be run directly (render_agents). Listing an agent does not mean it can be run here: only render_agents run through director_run_agent; the rest are reachable by name through director_chat.',
+    input: {},
+    run: async () => ({ render_agents: DIRECTOR_RENDER_AGENTS, agents: readJson('./director-agents.json') }),
+  },
+  {
+    name: 'director_run_agent', timeoutMs: 300_000,
+    description: 'Run one finishing agent directly on a video in one of your collections: subtitle, scenes, highlight_reel, voiceover, dubbing, social. Params are the agent\'s own options.',
+    input: { agent: z.enum(DIRECTOR_RENDER_AGENTS), collection_id: COLLECTION, video_id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/), params: z.record(z.string(), z.unknown()).optional() },
+    run: (a, client) => dir(client, { action: 'render_agent', agent: a.agent, collection_id: a.collection_id, video_id: a.video_id, params: a.params }),
+  },
+  {
+    name: 'director_chat', timeoutMs: 300_000,
+    description: 'Ask Director in plain language to work on media in one of your collections. Returns a session_id; pass it back to continue the conversation. Optionally restrict which agents may be used.',
+    input: { text: z.string().min(1).max(4000), collection_id: COLLECTION, session_id: DIRECTOR_SESSION.optional(), agents: z.array(z.string().regex(/^[a-z0-9_]{1,40}$/)).max(10).optional() },
+    run: (a, client) => dir(client, { action: 'agent_chat', text: a.text, collection_id: a.collection_id, session_id: a.session_id, agents: a.agents }),
+  },
+  {
+    name: 'director_workflow',
+    description: 'Send a list of steps ({ agent, params }) to Director\'s workflow endpoint. The backend records the steps; it does not run them for you.',
+    input: { steps: z.array(z.object({ agent: z.string().max(40), params: z.record(z.string(), z.unknown()).optional() })).min(1).max(20), command: z.string().max(500).optional() },
+    run: (a, client) => dir(client, { action: 'workflow', steps: a.steps, command: a.command }),
+  },
+  { name: 'director_collections_list', description: 'Your Director media collections (other people\'s are never shown).', input: {}, run: (a, client) => dir(client, { action: 'collections_list' }) },
+  { name: 'director_collection_get', description: 'One of your collections.', input: { collection_id: COLLECTION }, run: (a, client) => dir(client, { action: 'collection_get', collection_id: a.collection_id }) },
+  { name: 'director_collection_create', description: 'Create a media collection for Director.', input: { name: z.string().min(1).max(80), description: z.string().min(1).max(300) }, run: (a, client) => dir(client, { action: 'collection_create', name: a.name, description: a.description }) },
+  { name: 'director_collection_delete', risk: 'destructive', description: 'Delete one of your collections and everything in it.', input: { collection_id: COLLECTION }, run: (a, client) => dir(client, { action: 'collection_delete', collection_id: a.collection_id }) },
+  { name: 'director_media_list', description: 'List the videos, audio or images in one of your collections.', input: { collection_id: COLLECTION, kind: MEDIA_KIND }, run: (a, client) => dir(client, { action: 'media_list', collection_id: a.collection_id, kind: a.kind }) },
+  { name: 'director_media_get', description: 'One item in a collection.', input: { collection_id: COLLECTION, kind: MEDIA_KIND, media_id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/) }, run: (a, client) => dir(client, { action: 'media_get', collection_id: a.collection_id, kind: a.kind, media_id: a.media_id }) },
+  { name: 'director_media_url', description: 'A fresh link for an image or audio item.', input: { collection_id: COLLECTION, kind: z.enum(['audio', 'image']), media_id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/) }, run: (a, client) => dir(client, { action: 'media_url', collection_id: a.collection_id, kind: a.kind, media_id: a.media_id }) },
+  { name: 'director_media_delete', risk: 'destructive', description: 'Delete one item from one of your collections.', input: { collection_id: COLLECTION, kind: MEDIA_KIND, media_id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/) }, run: (a, client) => dir(client, { action: 'media_delete', collection_id: a.collection_id, kind: a.kind, media_id: a.media_id }) },
+  { name: 'director_upload', timeoutMs: 300_000, description: 'Add a video, audio or image to one of your collections from a public https link.', input: { collection_id: COLLECTION, source_url: url('Media') }, run: (a, client) => dir(client, { action: 'upload', collection_id: a.collection_id, source_url: a.source_url }) },
+  { name: 'director_sessions_list', description: 'Your Director conversations.', input: {}, run: (a, client) => dir(client, { action: 'sessions_list' }) },
+  { name: 'director_session_get', description: 'One Director conversation with its messages.', input: { session_id: DIRECTOR_SESSION }, run: (a, client) => dir(client, { action: 'session_get', session_id: a.session_id }) },
+  { name: 'director_session_delete', risk: 'destructive', description: 'Delete one of your Director conversations.', input: { session_id: DIRECTOR_SESSION }, run: (a, client) => dir(client, { action: 'session_delete', session_id: a.session_id }) },
 );

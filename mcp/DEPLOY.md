@@ -17,6 +17,8 @@ Check: in the SQL editor, `select count(*) from public.mcp_keys;` (and each othe
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | already set for other functions | `_shared/mcpKeys.js` |
 | `CLERK_SECRET_KEY` / `CLERK_PUBLISHABLE_KEY` (or the existing `CLERK_*` settings) | already set | `_shared/clerkAuth.js` |
 | `SUPABASE_JWT_SECRET`, `SUPABASE_ANON_KEY` (or `VITE_SUPABASE_ANON_KEY`) | **Needed for Video Pages tools.** The gateway signs a 5-minute identity token for the key's owner (same claims as `supabase-token.js`) so the database's own row-level security applies. Without them `video_pages_*` answer "not configured". | `_shared/ownerSupabase.js` |
+| `DIRECTOR_API_URL` | Address of your separately deployed Director backend (`apps/director/backend`), https only (`http://localhost` allowed for development). **Optional**: unset, every `director_*` tool except `director_health` answers "not configured" and `director_health` says so. | `_shared/mcpDirector.js` |
+| `DIRECTOR_API_TOKEN` | Optional. Sent as `Authorization: Bearer` to the Director backend if you put it behind a gateway that checks one (the backend itself has no auth). Backend-side keys (VideoDB, OpenAI, ...) are set on the backend's own host, never here. | `_shared/mcpDirector.js` |
 | `MCP_CAP_DESTRUCTIVE`, `MCP_CAP_PUBLISH` | Optional per-key daily limits for delete/overwrite and publish actions (defaults 50 and 20; they reset at midnight UTC). | `mcp-gateway.js` |
 | `MCP_REQUIRE_ENTITLEMENT` | `1` to require the paid feature when a user creates a key. Optional. | `mcp-keys.js` |
 | `MCP_ALLOW_BYOK` | **leave unset in any deployed environment.** Local development only. | `mcp-gateway.js` |
@@ -66,6 +68,11 @@ The run also reports which verb the upstream status route accepted (the gateway 
 - Actions that delete, overwrite or publish (`leads_delete`, `video_pages_publish`/`_delete`, `social_publish`, ...) need `confirm: true` and count against the daily caps above. Every call is written to `mcp_audit`.
 - Tab tools (timeline, workbench, motion director, render queue, brand store, app navigation) need the studio open in a signed-in tab and the user to switch on "Let MCP control this tab". Read tools run silently; everything else asks in the page. Check this in a real browser: nothing in this repo has exercised it outside simulated tests.
 - Social publishing lists accounts connected in the app and publishes to them; connecting accounts stays in the app.
+
+## Director
+The Director backend has no accounts: its collections and sessions are shared by everyone who can reach it. The gateway therefore does the isolation, per MCP key owner: collections are created with an owner tag (a hash of the user id) in their name and are only listed, read, written or deleted when the name carries the caller's tag; session and conversation ids are tagged and checked the same way; every agent run needs one of the caller's collections, so it never falls back to a shared default; only the routes in `mcp/studios.json` -> `director` (allow-list in `_shared/mcpDirector.js`) are forwarded, with size caps and https-only media links. Treat the backend as private: it must not be reachable by users directly, because anyone who can call it directly bypasses these checks. Collections created in the Director page itself carry no tag and are intentionally invisible to MCP keys.
+Limits to expect: a Netlify function answers within about 26 seconds, so the gateway gives the backend 25 seconds per call; long agent runs may come back as "could not be reached" even though the backend carries on. The collection and session response shapes are read from the backend's source (`routes.py`, `videodb_tool.py`), not from a running instance.
+Check after deploying: `director_health`, then create a collection with two different users' keys and confirm neither can see the other's.
 
 ## Rollback
 1. Revoke keys: `update public.mcp_keys set revoked_at = now() where revoked_at is null;`
