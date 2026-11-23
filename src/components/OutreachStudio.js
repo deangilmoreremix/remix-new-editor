@@ -9,6 +9,7 @@
 // each contact's link (?c=<id>&firstName=…) picks their voiced greeting and
 // fills the landing text. The logic lives in src/lib/outreach/draft.js.
 
+import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, linkedinMessage } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
@@ -150,7 +151,7 @@ export function OutreachStudio() {
   // Bottom padding keeps the footer buttons clear of the floating Ask SmartVideo button.
   const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 pt-6 pb-28 flex flex-col gap-5');
   scroll.appendChild(inner);
-  container.append(stepper, scroll);
+  container.append(demoteBannerHeading(createEditorBanner('outreach', 'Video Outreach', 'Personalized videos for every prospect')), stepper, scroll);
 
   // A generated campaign is also kept in the Videos library, so it can be opened again later.
   // The edit recipe (src/lib/outreach/editTools.js) is saved with the draft; clips added before/after are local files,

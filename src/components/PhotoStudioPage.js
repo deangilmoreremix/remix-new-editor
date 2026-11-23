@@ -2,6 +2,7 @@
 // AI Photo Studio — 6 categories × 5 styles = 30 product-photography presets.
 // Follows the exact pattern of existing studios (vanilla DOM + mountStudioChrome).
 
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { listBrands, savePhotoshoot, resolveBrandId } from '../lib/brandStore.js';
 import { navigate } from '../lib/brandNavigation.js';
@@ -54,13 +55,7 @@ export function PhotoStudioPage() {
   root.className = 'w-full max-w-3xl mx-auto px-4 py-8 animate-fade-in-up';
 
   // ---- Header ----
-  const header = document.createElement('div');
-  header.className = 'mb-6';
-  header.innerHTML = `
-    <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Photo Studio</h1>
-    <p class="text-secondary text-sm">AI product photography with brand-aware styling.</p>
-  `;
-  root.appendChild(header);
+  root.appendChild(createStudioHeader('photo-studio', 'Photo Studio', 'AI product photography with brand-aware styling.', 'mb-6'));
 
   // ---- Upload + Brand Selector ----
   const uploadRow = document.createElement('div');

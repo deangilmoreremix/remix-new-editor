@@ -10,6 +10,7 @@
 // lists the leads already saved, with their pipeline stage.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { createStudioHeader, demoteBannerHeading } from '../lib/thumbnails.js';
 import { installPersonalizationApiAuth } from '../features/personalization/lib/apiAuth.ts';
 
 const STAGES = ['New', 'Qualified', 'Shortlisted', 'Demo Created', 'Contacted', 'Responded', 'Converted', 'Not Interested'];
@@ -92,6 +93,9 @@ export function LeadFinderStudio() {
   const inner = el('div', 'max-w-5xl mx-auto w-full px-4 md:px-8 py-8 flex flex-col gap-6');
   scroll.appendChild(inner);
   container.appendChild(scroll);
+
+  // Banner (same size and width as every studio); the hero card below keeps the page's heading.
+  inner.appendChild(demoteBannerHeading(createStudioHeader('leadfinder', 'Lead Finder', 'Find local businesses that need video')));
 
   // Hero
   const hero = el('section', 'rounded-2xl border border-white/10 bg-panel-bg p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6');
