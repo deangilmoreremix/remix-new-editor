@@ -10,6 +10,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { apiDataDir, trimEnv } from './api-paths'
 
+/** One model request may run at most this long (reading the streamed answer included). */
+const REQUEST_DEADLINE_MS = 15 * 60 * 1000
+
 export const DEFAULT_BASE_URL = 'https://api.openai.com/v1'
 export const DEFAULT_MODEL = 'gpt-4.1-mini'
 
@@ -155,7 +158,10 @@ export const createResponse = async (options: CreateResponseOptions): Promise<Re
       store: false,
       ...options.body
     }),
+    // Overall deadline, so a stalled upstream cannot hold a request forever (the caller's own signal still cancels sooner).
     signal: options.signal
+      ? AbortSignal.any([options.signal, AbortSignal.timeout(REQUEST_DEADLINE_MS)])
+      : AbortSignal.timeout(REQUEST_DEADLINE_MS)
   })
   if (!response.ok) {
     throw new Error(await errorFromResponse(response))
