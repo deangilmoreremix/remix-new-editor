@@ -15,6 +15,7 @@ import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
 import { renderProspectTable } from './outreach/ProspectTable.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
 import { createTabGuard } from '../lib/outreach/tabGuard.js';
+import { onOwnerNotification, isOutreachAlertFor } from '../lib/liveAlerts.js';
 
 // Caption translation languages (src/lib/editor/ml/modelRegistry.js TRANSLATE_LANGUAGES).
 const TRANSLATE_LANGS = [['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['it', 'Italian'], ['pt', 'Portuguese'], ['nl', 'Dutch'], ['pl', 'Polish'], ['ru', 'Russian'], ['tr', 'Turkish'], ['ar', 'Arabic'], ['hi', 'Hindi'], ['ja', 'Japanese'], ['ko', 'Korean'], ['zh', 'Chinese'], ['vi', 'Vietnamese'], ['id', 'Indonesian'], ['sv', 'Swedish'], ['en', 'English']];
@@ -155,6 +156,7 @@ export function OutreachStudio() {
   // steps (popstate below); user clicks animate with a View Transition where the browser has it.
   function goStep(n, msg = '', { push = true, animate = false } = {}) {
     const changed = n !== step;
+    if (changed && step === 5) stopListeningLiveAlerts();
     step = n; notice = msg;
     if (changed && push) { try { history.pushState({ ...(history.state || {}), outreachStep: n }, '', location.href); } catch { /* sandboxed */ } }
     const motion = animate && changed && typeof document.startViewTransition === 'function' && container.isConnected
@@ -2641,7 +2643,20 @@ export function OutreachStudio() {
 
   // Alerts when a prospect watches or clicks (supabase/functions/outreach-alerts): always in the notification bell,
   // and by email and Slack when set here.
-  const alerts = { loaded: false, loading: false, row: null, error: '', saved: false, activity: [] };
+  const alerts = { loaded: false, loading: false, row: null, error: '', saved: false, activity: [], live: null };
+  // While Generate & share is open, a prospect watching or clicking shows here at once (src/lib/liveAlerts.js).
+  let stopLiveAlerts = null;
+  function listenLiveAlerts() {
+    if (stopLiveAlerts || !draft.campaign?.id) return;
+    stopLiveAlerts = onOwnerNotification((row) => {
+      if (!isOutreachAlertFor(row, draft.campaign?.id)) return;
+      alerts.live = { title: row.title, at: Date.now() };
+      alerts.activity = [row, ...(alerts.activity || []).filter((a) => a.id !== row.id)].slice(0, 10);
+      if (step === 5 && !busy && container.isConnected) render();
+    });
+  }
+  function stopListeningLiveAlerts() { stopLiveAlerts?.(); stopLiveAlerts = null; }
+  cleanups.push(stopListeningLiveAlerts);
   async function loadAlerts() {
     alerts.loading = true;
     try {
@@ -2664,6 +2679,15 @@ export function OutreachStudio() {
     const box = card('Alerts', 'Know the moment a prospect watches or clicks. Alerts always show in the bell at the top; add your email or a Slack channel to get them there too.');
     box.setAttribute('data-outreach-alerts', '');
     if (!alerts.loaded && !alerts.loading) setTimeout(loadAlerts, 0);
+    listenLiveAlerts();
+    if (alerts.live && Date.now() - alerts.live.at < 5 * 60 * 1000) {
+      const now = el('div', 'flex items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-400/10 px-3 py-2 text-sm text-emerald-100');
+      now.setAttribute('data-alerts-live', '');
+      const dot = el('span', 'h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-400');
+      const mins = Math.floor((Date.now() - alerts.live.at) / 60000);
+      now.append(dot, el('span', 'flex-1', alerts.live.title), el('span', 'text-xs text-emerald-200/70', mins < 1 ? 'just now' : `${mins} min ago`));
+      box.appendChild(now);
+    }
     if (!alerts.loaded) { box.appendChild(el('p', 'text-xs text-white/50', 'Loading…')); return box; }
     const r = alerts.row || { enabled: true, on_watch: true, on_click: true, email: '', slack_webhook: '' };
     const on = el('input'); on.type = 'checkbox'; on.checked = r.enabled !== false; on.setAttribute('data-alerts-enabled', '');

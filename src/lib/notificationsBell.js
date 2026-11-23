@@ -1,12 +1,12 @@
 /**
  * Header notification bell: unread count for the signed-in owner's video alerts (owner_notifications).
  * Counts come from the owner-only RPC (row-level security), refreshed on load, when the tab regains focus and
- * every few minutes while visible. Nothing is shown for signed-out visitors. Clicking opens the Timeline Editor's
+ * every few minutes while visible, and at once when a live alert arrives (Supabase Realtime, liveAlerts.js). Nothing is shown for signed-out visitors. Clicking opens the Timeline Editor's
  * Projects panel on the project with the most unread alerts.
  */
 export const OPEN_FLAG = 'remix_open_projects';
 
-export function createNotificationsBell({ getClient, isSignedIn = () => !!globalThis.window?.Clerk?.user, navigate, intervalMs = 180000, doc = globalThis.document }) {
+export function createNotificationsBell({ getClient, isSignedIn = () => !!globalThis.window?.Clerk?.user, navigate, intervalMs = 180000, doc = globalThis.document, live = null }) {
   const btn = doc.createElement('button');
   btn.type = 'button';
   btn.className = 'hidden relative p-2 text-secondary hover:text-white transition-colors';
@@ -35,8 +35,16 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
       count = error ? count : Math.max(0, Number(data) || 0);
     } catch { /* keep the previous count; the bell is informational */ }
     draw();
+    live?.ensure?.(); // signed in now: connect the live alerts if not yet
     return count;
   }
+  // Live alerts (src/lib/liveAlerts.js): a new alert updates the count at once and the bell pulses.
+  const onLive = () => {
+    refresh(true);
+    btn.classList.add('animate-pulse');
+    setTimeout(() => btn.classList.remove('animate-pulse'), 3000);
+  };
+  const stopLive = live?.listen ? live.listen(onLive) : null;
   btn.addEventListener('click', () => {
     try { sessionStorage.setItem(OPEN_FLAG, '1'); } catch { /* the event below still works on the editor page */ }
     const hash = globalThis.location?.hash || '';
@@ -52,5 +60,5 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   refresh(true);
   // Clerk usually finishes loading after the header is created: re-check a few times so a signed-in owner sees the bell soon.
   [1500, 4000, 9000].forEach((ms) => setTimeout(() => { if (alive && !isSignedIn()) return; refresh(true); }, ms));
-  return { element: btn, refresh: () => refresh(true), destroy() { alive = false; clearInterval(timer); globalThis.removeEventListener?.('focus', onFocus); globalThis.removeEventListener?.('remix:notifications-changed', onRead); }, _count: () => count };
+  return { element: btn, refresh: () => refresh(true), destroy() { alive = false; clearInterval(timer); stopLive?.(); globalThis.removeEventListener?.('focus', onFocus); globalThis.removeEventListener?.('remix:notifications-changed', onRead); }, _count: () => count };
 }
