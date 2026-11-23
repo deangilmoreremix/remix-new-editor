@@ -109,4 +109,19 @@ describe('muapiStudioTransport failures', () => {
     const f = make(async () => { throw Object.assign(new Error('Aborted'), { name: 'AbortError' }); });
     await expect(f(`${STUDIO_BASE}/api/v1/models`, { signal: ac.signal })).rejects.toThrow();
   });
+
+  it('still times out when the caller supplied a signal and AbortSignal.any is unavailable', async () => {
+    const original = AbortSignal.any;
+    AbortSignal.any = undefined;
+    try {
+      const hang = (_u, init) => new Promise((_r, reject) => init.signal.addEventListener('abort', () => reject(Object.assign(new Error('Aborted'), { name: 'AbortError' }))));
+      vi.useFakeTimers();
+      const p = make(hang)(`${STUDIO_BASE}/api/v1/models`, { signal: new AbortController().signal });
+      await vi.advanceTimersByTimeAsync(61000);
+      expect((await p).status).toBe(504);
+    } finally {
+      vi.useRealTimers();
+      AbortSignal.any = original;
+    }
+  });
 });
