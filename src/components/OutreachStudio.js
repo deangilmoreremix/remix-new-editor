@@ -2551,7 +2551,7 @@ export function OutreachStudio() {
         if (!made.has(key)) {
           setBusy(`Making ${still ? 'thumbnails' : 'GIF thumbnails'} ${i + 1} of ${links.length}…`);
           // A GIF also gets its first frame as a still, for Outlook on Windows (which shows only that frame).
-          const set = await T.renderThumbnailSet({ frames, siteUrl: site, logoUrl: logo, text, settings, seconds: duration });
+          const set = await T.renderThumbnailSet({ frames, siteUrl: site, logoUrl: logo, text, settings, seconds: duration, signal });
           const stamp = `${Date.now()}-${made.size}`;
           const mainUrl = await uploadToStorage(new File([set.main], `thumb-${stamp}.${still ? 'jpg' : 'gif'}`, { type: set.main.type }));
           const stillUrl = set.still ? await uploadToStorage(new File([set.still], `thumb-${stamp}-still.jpg`, { type: 'image/jpeg' })) : mainUrl;
