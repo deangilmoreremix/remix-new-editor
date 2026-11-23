@@ -59,7 +59,9 @@ export async function uploadToUploadsBucket(path, file, { timeoutMs = 240000, cl
   const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(fail('timeout', 'The upload took too long.')), timeoutMs); });
   let existed = false;
   try {
-    const { error } = await Promise.race([bucket.upload(path, file, { contentType: file.type, upsert: false }), timeout]);
+    const sending = bucket.upload(path, file, { contentType: file.type, upsert: false });
+    sending.catch(() => {}); // if the timeout wins, a later failure of this upload must not surface as an unhandled rejection
+    const { error } = await Promise.race([sending, timeout]);
     if (error) {
       if (EXISTS.test(`${error.message || ''} ${error.statusCode || ''} ${error.error || ''}`)) existed = true;
       else throw fail('upload_failed', describeUploadError(error));

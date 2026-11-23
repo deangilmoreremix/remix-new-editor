@@ -66,6 +66,7 @@ async function readCapped(res, limit, kind, ctrl) {
 export async function copyToStorage(sourceUrl, { kind: wantedKind, ownerKey = 'anonymous', scope = ownerKey, fetchImpl = globalThis.fetch, upload = uploadToUploadsBucket, timeoutMs = 180000, supabaseUrl } = {}) {
   const src = canonicalSource(sourceUrl);
   if (!src) throw new CopyError('no_url', 'There is no result to link yet.');
+  // An address already in our storage is returned as is; callers that need proof the file still exists (getLink does) verify it themselves.
   if (isOurStorageUrl(src, supabaseUrl)) return { fileUrl: src, kind: wantedKind || null, bytes: null, contentType: null, ext: extFromUrl(src), reused: true };
   if (!isHttpsUrl(src) && !isLocalUrl(src)) throw new CopyError('bad_source', COPY_MESSAGES.badSource);
 
