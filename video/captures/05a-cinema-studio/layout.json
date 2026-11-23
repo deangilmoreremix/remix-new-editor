@@ -1,0 +1,898 @@
+{
+ "pageH": 1080,
+ "vw": 1920,
+ "vh": 1080,
+ "els": [
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": -142,
+   "y": 24,
+   "w": 2273,
+   "h": 328
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 1285,
+   "y": 57,
+   "w": 618,
+   "h": 262
+  },
+  {
+   "tag": "H1",
+   "t": "Cinema Studio",
+   "x": 113,
+   "y": 161,
+   "w": 414,
+   "h": 30
+  },
+  {
+   "tag": "DIV",
+   "t": "Start f...\nEnd f...\nIMAGE\nVIDEO\nAUDIO\nVi",
+   "x": 68,
+   "y": 336,
+   "w": 1852,
+   "h": 275
+  },
+  {
+   "tag": "TEXTAREA",
+   "t": "",
+   "x": 435,
+   "y": 357,
+   "w": 1456,
+   "h": 43
+  },
+  {
+   "tag": "BUTTON",
+   "id": "cs-character-lock-btn",
+   "t": "",
+   "x": 846,
+   "y": 550,
+   "w": 44,
+   "h": 24
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-contact-btn",
+   "t": "Personalize",
+   "x": 1152,
+   "y": 547,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "tag": "DIV",
+   "t": "All\nCAMERA\nMODULAR 8K DIGITAL\nFULL-FRAME",
+   "x": 474,
+   "y": 283,
+   "w": 973,
+   "h": 514
+  },
+  {
+   "tag": "BUTTON",
+   "id": "close-overlay-btn",
+   "t": "",
+   "x": 1392,
+   "y": 319,
+   "w": 23,
+   "h": 23
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 670,
+   "y": 544,
+   "w": 56,
+   "h": 56
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 679,
+   "y": 650,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 679,
+   "y": 745,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 679,
+   "y": 840,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 679,
+   "y": 935,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 679,
+   "y": 1030,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 844,
+   "y": 544,
+   "w": 56,
+   "h": 56
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 853,
+   "y": 650,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 853,
+   "y": 745,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 853,
+   "y": 840,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 853,
+   "y": 935,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 853,
+   "y": 1030,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 853,
+   "y": 1125,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 853,
+   "y": 1220,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 853,
+   "y": 1315,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 853,
+   "y": 1410,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 853,
+   "y": 1505,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 1194,
+   "y": 544,
+   "w": 56,
+   "h": 56
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 1203,
+   "y": 650,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 1203,
+   "y": 745,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "BUTTON",
+   "t": "All",
+   "x": 72,
+   "y": 1025,
+   "w": 45,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "gameplay",
+   "x": 125,
+   "y": 1025,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "fps",
+   "x": 220,
+   "y": 1025,
+   "w": 49,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "trailer",
+   "x": 277,
+   "y": 1025,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "action",
+   "x": 349,
+   "y": 1025,
+   "w": 66,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "story",
+   "x": 423,
+   "y": 1025,
+   "w": 60,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "drama",
+   "x": 491,
+   "y": 1025,
+   "w": 67,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "period",
+   "x": 566,
+   "y": 1025,
+   "w": 67,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "cinematic",
+   "x": 641,
+   "y": 1025,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "cinema",
+   "x": 736,
+   "y": 1025,
+   "w": 72,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "anime",
+   "x": 816,
+   "y": 1025,
+   "w": 65,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "isekai",
+   "x": 889,
+   "y": 1025,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "stylized",
+   "x": 961,
+   "y": 1025,
+   "w": 76,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "animation",
+   "x": 1044,
+   "y": 1025,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "battle",
+   "x": 1139,
+   "y": 1025,
+   "w": 63,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "storm",
+   "x": 1211,
+   "y": 1025,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "claymation",
+   "x": 1282,
+   "y": 1025,
+   "w": 94,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "stop-motion",
+   "x": 1384,
+   "y": 1025,
+   "w": 101,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "texture",
+   "x": 1493,
+   "y": 1025,
+   "w": 71,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "chase",
+   "x": 1572,
+   "y": 1025,
+   "w": 65,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "music-sync",
+   "x": 1645,
+   "y": 1025,
+   "w": 98,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "night",
+   "x": 1752,
+   "y": 1025,
+   "w": 60,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "wuxia",
+   "x": 1819,
+   "y": 1025,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "atmosphere",
+   "x": 1892,
+   "y": 1025,
+   "w": 99,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "mystery",
+   "x": 1999,
+   "y": 1025,
+   "w": 78,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "product",
+   "x": 2084,
+   "y": 1025,
+   "w": 75,
+   "h": 32
+  },
+  {
+   "tag": "DIV",
+   "t": "ACTION\nModern warfare FPS gameplay\nminim",
+   "x": 72,
+   "y": 1085,
+   "w": 220,
+   "h": 366
+  },
+  {
+   "tag": "IMG",
+   "t": "Modern warfare FPS gameplay",
+   "x": 73,
+   "y": 1086,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nRadio operator evacuation bridge\n",
+   "x": 304,
+   "y": 1085,
+   "w": 220,
+   "h": 366
+  },
+  {
+   "tag": "IMG",
+   "t": "Radio operator evacuation bridge",
+   "x": 305,
+   "y": 1086,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "ANIMATION\nGreenhouse tea isekai anime\nmi",
+   "x": 536,
+   "y": 1085,
+   "w": 220,
+   "h": 366
+  },
+  {
+   "tag": "IMG",
+   "t": "Greenhouse tea isekai anime",
+   "x": 537,
+   "y": 1086,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "ACTION\nStorm-Lit Pirate Galleon Battle\nm",
+   "x": 768,
+   "y": 1085,
+   "w": 220,
+   "h": 366
+  },
+  {
+   "tag": "IMG",
+   "t": "Storm-Lit Pirate Galleon Battle",
+   "x": 769,
+   "y": 1086,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "ANIMATION\nStormy Claymation Whale Breach",
+   "x": 1000,
+   "y": 1085,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "Stormy Claymation Whale Breach",
+   "x": 1001,
+   "y": 1086,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nNighttime Motorcycle Chase Synced",
+   "x": 1232,
+   "y": 1085,
+   "w": 220,
+   "h": 366
+  },
+  {
+   "tag": "IMG",
+   "t": "Nighttime Motorcycle Chase Synced to Mus",
+   "x": 1233,
+   "y": 1086,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nBamboo Forest Wuxia Mystery\nminim",
+   "x": 1464,
+   "y": 1085,
+   "w": 220,
+   "h": 366
+  },
+  {
+   "tag": "IMG",
+   "t": "Bamboo Forest Wuxia Mystery",
+   "x": 1465,
+   "y": 1086,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "ACTION\nAction Film Study\nminimax\naction\n",
+   "x": 1696,
+   "y": 1085,
+   "w": 220,
+   "h": 374
+  },
+  {
+   "tag": "IMG",
+   "t": "Action Film Study",
+   "x": 1697,
+   "y": 1086,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nCinematic Story Study\nminimax\ncin",
+   "x": 72,
+   "y": 1490,
+   "w": 220,
+   "h": 374
+  },
+  {
+   "tag": "IMG",
+   "t": "Cinematic Story Study",
+   "x": 73,
+   "y": 1491,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nLuminous Creature in a Dusk Kitch",
+   "x": 304,
+   "y": 1490,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "Luminous Creature in a Dusk Kitchen",
+   "x": 305,
+   "y": 1491,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\n1998 Seoul rainy bus stop archiva",
+   "x": 536,
+   "y": 1490,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "1998 Seoul rainy bus stop archival home ",
+   "x": 537,
+   "y": 1491,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "ANIMATION\nGiant Kitchen Spider Comedy Sh",
+   "x": 768,
+   "y": 1490,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "Giant Kitchen Spider Comedy Short",
+   "x": 769,
+   "y": 1491,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\n7- GROK IMAGINE 1.5\nminimax\ncinem",
+   "x": 1000,
+   "y": 1490,
+   "w": 220,
+   "h": 374
+  },
+  {
+   "tag": "IMG",
+   "t": "7- GROK IMAGINE 1.5",
+   "x": 1001,
+   "y": 1491,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nAI can’t replace you Joey\nminimax",
+   "x": 1232,
+   "y": 1490,
+   "w": 220,
+   "h": 374
+  },
+  {
+   "tag": "IMG",
+   "t": "AI can’t replace you Joey",
+   "x": 1233,
+   "y": 1491,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nalso has an impressive understand",
+   "x": 1464,
+   "y": 1490,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "also has an impressive understanding of ",
+   "x": 1465,
+   "y": 1491,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "ANIMATION\nAn other example of poster ani",
+   "x": 1696,
+   "y": 1490,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "An other example of poster animation and",
+   "x": 1697,
+   "y": 1491,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "ANIMATION\nBond-style spy-thriller op-art",
+   "x": 72,
+   "y": 1896,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "Bond-style spy-thriller op-art anime tit",
+   "x": 73,
+   "y": 1897,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nLightning God at a Shaolin Monast",
+   "x": 304,
+   "y": 1896,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "Lightning God at a Shaolin Monastery",
+   "x": 305,
+   "y": 1897,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nCan reason? -- I wanted to see if",
+   "x": 536,
+   "y": 1896,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "Can reason? -- I wanted to see if reason",
+   "x": 537,
+   "y": 1897,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "ANIMATION\nAnime Film Study\nminimax\nanime",
+   "x": 768,
+   "y": 1896,
+   "w": 220,
+   "h": 374
+  },
+  {
+   "tag": "IMG",
+   "t": "Anime Film Study",
+   "x": 769,
+   "y": 1897,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\ncinematic sci-fi suspense video. ",
+   "x": 1000,
+   "y": 1896,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "cinematic sci-fi suspense video. A reali",
+   "x": 1001,
+   "y": 1897,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nCircle, Square, Triangle, and Sta",
+   "x": 1232,
+   "y": 1896,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "Circle, Square, Triangle, and Star",
+   "x": 1233,
+   "y": 1897,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nCloaked Avenger vs. Cyborg Execut",
+   "x": 1464,
+   "y": 1896,
+   "w": 220,
+   "h": 420
+  },
+  {
+   "tag": "IMG",
+   "t": "Cloaked Avenger vs. Cyborg Executioner",
+   "x": 1465,
+   "y": 1897,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nDramatic performances ✅\nminimax\nc",
+   "x": 1696,
+   "y": 1896,
+   "w": 220,
+   "h": 374
+  },
+  {
+   "tag": "IMG",
+   "t": "Dramatic performances ✅",
+   "x": 1697,
+   "y": 1897,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\n\"Drowning deep down the ocean\" cr",
+   "x": 72,
+   "y": 2328,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "\"Drowning deep down the ocean\" created w",
+   "x": 73,
+   "y": 2329,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nEmpty Suit Stop-Motion Assembly\nm",
+   "x": 304,
+   "y": 2328,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "Empty Suit Stop-Motion Assembly",
+   "x": 305,
+   "y": 2329,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "ANIMATION\nAnime Film Study\nminimax\nanime",
+   "x": 536,
+   "y": 2328,
+   "w": 220,
+   "h": 374
+  },
+  {
+   "tag": "IMG",
+   "t": "Anime Film Study",
+   "x": 537,
+   "y": 2329,
+   "w": 218,
+   "h": 164
+  },
+  {
+   "tag": "DIV",
+   "t": "CINEMA\nFire-breathing dragon in broken p",
+   "x": 768,
+   "y": 2328,
+   "w": 220,
+   "h": 393
+  },
+  {
+   "tag": "IMG",
+   "t": "Fire-breathing dragon in broken palace",
+   "x": 769,
+   "y": 2329,
+   "w": 218,
+   "h": 164
+  }
+ ]
+}

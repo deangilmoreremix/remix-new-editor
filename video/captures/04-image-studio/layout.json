@@ -1,0 +1,716 @@
+{
+ "pageH": 1080,
+ "vw": 1920,
+ "vh": 1080,
+ "els": [
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": -132,
+   "y": 48,
+   "w": 2253,
+   "h": 328
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 1277,
+   "y": 81,
+   "w": 618,
+   "h": 262
+  },
+  {
+   "tag": "H1",
+   "t": "Image Studio",
+   "x": 121,
+   "y": 185,
+   "w": 244,
+   "h": 30
+  },
+  {
+   "tag": "DIV",
+   "t": "Start f...\nEnd f...\nIMAGE\nNano Banana\n1:",
+   "x": 92,
+   "y": 360,
+   "w": 1804,
+   "h": 184
+  },
+  {
+   "tag": "TEXTAREA",
+   "id": "i-prompt-textarea",
+   "t": "",
+   "x": 471,
+   "y": 381,
+   "w": 1328,
+   "h": 43
+  },
+  {
+   "tag": "BUTTON",
+   "id": "model-btn",
+   "t": "Nano Banana",
+   "x": 121,
+   "y": 481,
+   "w": 162,
+   "h": 42
+  },
+  {
+   "tag": "BUTTON",
+   "id": "ar-btn",
+   "t": "1:1",
+   "x": 293,
+   "y": 483,
+   "w": 94,
+   "h": 38
+  },
+  {
+   "tag": "BUTTON",
+   "id": "advanced-btn",
+   "t": "Advanced",
+   "x": 500,
+   "y": 483,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-contact-btn",
+   "t": "Personalize",
+   "x": 818,
+   "y": 487,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "tag": "BUTTON",
+   "t": "All",
+   "x": 96,
+   "y": 869,
+   "w": 45,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "product-marketing",
+   "x": 149,
+   "y": 869,
+   "w": 139,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "3d",
+   "x": 297,
+   "y": 869,
+   "w": 45,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "product",
+   "x": 350,
+   "y": 869,
+   "w": 75,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "food",
+   "x": 433,
+   "y": 869,
+   "w": 56,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "landscape",
+   "x": 498,
+   "y": 869,
+   "w": 90,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "infographic-/-edu",
+   "x": 596,
+   "y": 869,
+   "w": 134,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "watercolor",
+   "x": 738,
+   "y": 869,
+   "w": 92,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "infographic",
+   "x": 838,
+   "y": 869,
+   "w": 96,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "app-/-web-design",
+   "x": 942,
+   "y": 869,
+   "w": 137,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "social-media",
+   "x": 1087,
+   "y": 869,
+   "w": 105,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "character",
+   "x": 1200,
+   "y": 869,
+   "w": 86,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "poster",
+   "x": 1294,
+   "y": 869,
+   "w": 67,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "profile-/-avatar",
+   "x": 1369,
+   "y": 869,
+   "w": 120,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "portrait",
+   "x": 1497,
+   "y": 869,
+   "w": 73,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "photorealistic",
+   "x": 1578,
+   "y": 869,
+   "w": 109,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "cinematic",
+   "x": 1695,
+   "y": 869,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "interior",
+   "x": 1790,
+   "y": 869,
+   "w": 72,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "selfie",
+   "x": 1869,
+   "y": 869,
+   "w": 62,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "minimalist",
+   "x": 1939,
+   "y": 869,
+   "w": 89,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "render",
+   "x": 2036,
+   "y": 869,
+   "w": 68,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "fashion",
+   "x": 2113,
+   "y": 869,
+   "w": 73,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "social",
+   "x": 2194,
+   "y": 869,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "tag": "DIV",
+   "t": "PRODUCT MARKETING\nPremium liquid glass B",
+   "x": 96,
+   "y": 929,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Premium liquid glass Bento grid product ",
+   "x": 97,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "INFOGRAPHIC / EDU\nWatercolor map of Germ",
+   "x": 354,
+   "y": 929,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Watercolor map of Germany with labeled s",
+   "x": 355,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "APP / WEB DESIGN\nVintage Patent Document",
+   "x": 613,
+   "y": 925,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Vintage Patent Document for an Invention",
+   "x": 609,
+   "y": 922,
+   "w": 254,
+   "h": 191
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL MEDIA\nEdo-period Ukiyo-e reinterp",
+   "x": 871,
+   "y": 929,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Edo-period Ukiyo-e reinterpretation of a",
+   "x": 872,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Copp",
+   "x": 1129,
+   "y": 929,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Copper-Red Hair Windo",
+   "x": 1130,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Cine",
+   "x": 1387,
+   "y": 929,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Cinematic Summer Gard",
+   "x": 1388,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Casu",
+   "x": 1646,
+   "y": 929,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Casual Hijab Selfie P",
+   "x": 1647,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Madi",
+   "x": 96,
+   "y": 1330,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Madison Beer Boa Hanc",
+   "x": 97,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Ultr",
+   "x": 354,
+   "y": 1330,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Ultra-Detailed Cinema",
+   "x": 355,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Cine",
+   "x": 613,
+   "y": 1330,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Cinematic Tropical Fo",
+   "x": 614,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Roya",
+   "x": 871,
+   "y": 1330,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Royal Blue Satin Dres",
+   "x": 872,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Fish",
+   "x": 1129,
+   "y": 1330,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Fisheye Convenience S",
+   "x": 1130,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Cine",
+   "x": 1387,
+   "y": 1330,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Cinematic Rural Villa",
+   "x": 1388,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Faci",
+   "x": 1646,
+   "y": 1330,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Facial Identity Prese",
+   "x": 1647,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Asia",
+   "x": 96,
+   "y": 1731,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Asian Woman in Stripe",
+   "x": 97,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Sadi",
+   "x": 354,
+   "y": 1731,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Sadie Sink Grassy Fie",
+   "x": 355,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Prof",
+   "x": 613,
+   "y": 1731,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Professional Female P",
+   "x": 614,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Jenn",
+   "x": 871,
+   "y": 1731,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Jenna Ortega Indoor L",
+   "x": 872,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Noir",
+   "x": 1129,
+   "y": 1731,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Noir Punk Street Port",
+   "x": 1130,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Fuch",
+   "x": 1387,
+   "y": 1731,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Fuchsia Rose Bouquet ",
+   "x": 1388,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Rust",
+   "x": 1646,
+   "y": 1731,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Rustic Kitchen Lifest",
+   "x": 1647,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Eleg",
+   "x": 96,
+   "y": 2132,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Elegant Young Woman P",
+   "x": 97,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Indo",
+   "x": 354,
+   "y": 2132,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Indoor Friendship Fas",
+   "x": 355,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL MEDIA\nSocial Media Post - Train-a",
+   "x": 613,
+   "y": 2132,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Social Media Post - Train-ad style book ",
+   "x": 614,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nSocial Media Post - Whi",
+   "x": 871,
+   "y": 2132,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Social Media Post - Whimsical Donkey Fac",
+   "x": 872,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nSocial Media Post - Moo",
+   "x": 1129,
+   "y": 2132,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Social Media Post - Moody Hotel Bedroom ",
+   "x": 1130,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL MEDIA\nSocial Media Post - Romanti",
+   "x": 1387,
+   "y": 2132,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Social Media Post - Romantic Solar Eclip",
+   "x": 1388,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nSocial Media Post - Lux",
+   "x": 1646,
+   "y": 2132,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Social Media Post - Luxury LED Architect",
+   "x": 1647,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  }
+ ]
+}

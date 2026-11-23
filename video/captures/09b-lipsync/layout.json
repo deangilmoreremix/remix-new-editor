@@ -1,0 +1,100 @@
+{
+ "pageH": 1080,
+ "vw": 1920,
+ "vh": 1080,
+ "els": [
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": -132,
+   "y": 48,
+   "w": 2253,
+   "h": 328
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 1277,
+   "y": 81,
+   "w": 618,
+   "h": 262
+  },
+  {
+   "tag": "H1",
+   "t": "Lip Sync Studio",
+   "x": 121,
+   "y": 185,
+   "w": 357,
+   "h": 30
+  },
+  {
+   "tag": "DIV",
+   "t": "INPUT:\n🖼 Portrait Image\n🎬 Video\nIMAGE\n",
+   "x": 92,
+   "y": 368,
+   "w": 1804,
+   "h": 289
+  },
+  {
+   "tag": "TEXTAREA",
+   "t": "",
+   "x": 361,
+   "y": 439,
+   "w": 1446,
+   "h": 75
+  },
+  {
+   "tag": "BUTTON",
+   "id": "ls-model-btn",
+   "t": "Infinite Talk",
+   "x": 121,
+   "y": 594,
+   "w": 152,
+   "h": 42
+  },
+  {
+   "tag": "BUTTON",
+   "id": "ls-resolution-btn",
+   "t": "480p",
+   "x": 285,
+   "y": 596,
+   "w": 108,
+   "h": 38
+  },
+  {
+   "tag": "BUTTON",
+   "id": "ls-advanced-btn",
+   "t": "Advanced",
+   "x": 510,
+   "y": 596,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-contact-btn",
+   "t": "Personalize",
+   "x": 661,
+   "y": 600,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "tag": "BUTTON",
+   "id": "ls-generate-btn",
+   "t": "Generate ✨",
+   "x": 1779,
+   "y": 595,
+   "w": 88,
+   "h": 40
+  },
+  {
+   "tag": "VIDEO",
+   "t": "",
+   "x": 851,
+   "y": 506,
+   "w": 287,
+   "h": 144
+  }
+ ]
+}

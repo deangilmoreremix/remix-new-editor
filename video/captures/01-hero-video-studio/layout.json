@@ -1,0 +1,849 @@
+{
+ "pageH": 1080,
+ "vw": 1920,
+ "vh": 1080,
+ "els": [
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": -132,
+   "y": 48,
+   "w": 2253,
+   "h": 328
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 1277,
+   "y": 81,
+   "w": 618,
+   "h": 262
+  },
+  {
+   "tag": "H1",
+   "t": "Video Studio",
+   "x": 121,
+   "y": 185,
+   "w": 364,
+   "h": 30
+  },
+  {
+   "tag": "DIV",
+   "t": "⏱\n⏮\nStart f...\nEnd f...\nIMAGE\nVIDEO\nSour",
+   "x": 92,
+   "y": 360,
+   "w": 1804,
+   "h": 184
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-workflow-btn",
+   "t": "Source",
+   "x": 795,
+   "y": 394,
+   "w": 122,
+   "h": 38
+  },
+  {
+   "tag": "TEXTAREA",
+   "id": "v-v-prompt-textarea",
+   "t": "",
+   "x": 937,
+   "y": 381,
+   "w": 862,
+   "h": 43
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-model-btn",
+   "t": "Seedance Lite",
+   "x": 121,
+   "y": 481,
+   "w": 167,
+   "h": 42
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-ar-btn",
+   "t": "16:9",
+   "x": 298,
+   "y": 483,
+   "w": 105,
+   "h": 38
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-duration-btn",
+   "t": "5s",
+   "x": 412,
+   "y": 483,
+   "w": 94,
+   "h": 38
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-resolution-btn",
+   "t": "480p",
+   "x": 517,
+   "y": 483,
+   "w": 112,
+   "h": 38
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-motion-style-btn",
+   "t": "Motion & Style",
+   "x": 638,
+   "y": 483,
+   "w": 165,
+   "h": 38
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-advanced-btn",
+   "t": "Advanced",
+   "x": 916,
+   "y": 483,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-contact-btn",
+   "t": "Personalize",
+   "x": 1066,
+   "y": 487,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "tag": "VIDEO",
+   "t": "",
+   "x": 851,
+   "y": 455,
+   "w": 287,
+   "h": 144
+  },
+  {
+   "tag": "BUTTON",
+   "id": "video-landing-page",
+   "t": "Create landing page",
+   "x": 734,
+   "y": 695,
+   "w": 159,
+   "h": 36
+  },
+  {
+   "tag": "BUTTON",
+   "t": "All",
+   "x": 96,
+   "y": 869,
+   "w": 45,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "comedy",
+   "x": 149,
+   "y": 869,
+   "w": 77,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "retro",
+   "x": 234,
+   "y": 869,
+   "w": 58,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "skit",
+   "x": 300,
+   "y": 869,
+   "w": 51,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "social",
+   "x": 359,
+   "y": 869,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "ugc",
+   "x": 431,
+   "y": 869,
+   "w": 52,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "food",
+   "x": 491,
+   "y": 869,
+   "w": 56,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "restaurant",
+   "x": 555,
+   "y": 869,
+   "w": 90,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "taste-test",
+   "x": 653,
+   "y": 869,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "product",
+   "x": 748,
+   "y": 869,
+   "w": 75,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "commercial",
+   "x": 831,
+   "y": 869,
+   "w": 98,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "local-business",
+   "x": 937,
+   "y": 869,
+   "w": 115,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "music-video",
+   "x": 1060,
+   "y": 869,
+   "w": 103,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "y2k",
+   "x": 1171,
+   "y": 869,
+   "w": 51,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "typography",
+   "x": 1230,
+   "y": 869,
+   "w": 97,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "gameplay",
+   "x": 1335,
+   "y": 869,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "beverage",
+   "x": 1430,
+   "y": 869,
+   "w": 84,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "vlog",
+   "x": 1522,
+   "y": 869,
+   "w": 55,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "beauty",
+   "x": 1585,
+   "y": 869,
+   "w": 71,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "testimonial",
+   "x": 1664,
+   "y": 869,
+   "w": 94,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "image-to-video",
+   "x": 1766,
+   "y": 869,
+   "w": 120,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "opening-frame-reference",
+   "x": 1894,
+   "y": 869,
+   "w": 179,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "text-to-video",
+   "x": 2080,
+   "y": 869,
+   "w": 107,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "text-prompt",
+   "x": 2195,
+   "y": 869,
+   "w": 99,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "reference-to-video",
+   "x": 2302,
+   "y": 869,
+   "w": 141,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "style-reference-images",
+   "x": 2451,
+   "y": 869,
+   "w": 168,
+   "h": 32
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\n1980s open-source family comedy\nm",
+   "x": 96,
+   "y": 929,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "1980s open-source family comedy",
+   "x": 97,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "UGC\nRamen Bowl UGC Taste Test\nminimax\nug",
+   "x": 354,
+   "y": 929,
+   "w": 246,
+   "h": 343
+  },
+  {
+   "tag": "IMG",
+   "t": "Ramen Bowl UGC Taste Test",
+   "x": 355,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "UGC\nGourmet Burger UGC Taste Test\nminima",
+   "x": 613,
+   "y": 925,
+   "w": 246,
+   "h": 343
+  },
+  {
+   "tag": "IMG",
+   "t": "Gourmet Burger UGC Taste Test",
+   "x": 609,
+   "y": 922,
+   "w": 254,
+   "h": 191
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nY2K K-Pop Candy Typography Music ",
+   "x": 871,
+   "y": 929,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Y2K K-Pop Candy Typography Music Video",
+   "x": 872,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "UGC\nBlackberry Vanilla Soda UGC Vlog\nmin",
+   "x": 1129,
+   "y": 929,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "Blackberry Vanilla Soda UGC Vlog",
+   "x": 1130,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "UGC\nMorning Lip Oil UGC Testimonial\nmini",
+   "x": 1387,
+   "y": 929,
+   "w": 246,
+   "h": 343
+  },
+  {
+   "tag": "IMG",
+   "t": "Morning Lip Oil UGC Testimonial",
+   "x": 1388,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\n1980s open-source family comedy\nm",
+   "x": 1646,
+   "y": 929,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "1980s open-source family comedy",
+   "x": 1647,
+   "y": 930,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\n3 references. One model\nminimax\nm",
+   "x": 96,
+   "y": 1330,
+   "w": 246,
+   "h": 370
+  },
+  {
+   "tag": "IMG",
+   "t": "3 references. One model",
+   "x": 97,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\n7-second video. The Office (US) m",
+   "x": 354,
+   "y": 1330,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "7-second video. The Office (US) mockumen",
+   "x": 355,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nA handheld found-footage shot fro",
+   "x": 613,
+   "y": 1330,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "A handheld found-footage shot from behin",
+   "x": 614,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\n\"A hyper-realistic handheld phone",
+   "x": 871,
+   "y": 1330,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "\"A hyper-realistic handheld phone video ",
+   "x": 872,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nAn 1890s field guide plate, drawi",
+   "x": 1129,
+   "y": 1330,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "An 1890s field guide plate, drawing itse",
+   "x": 1130,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nBeen testing the new Flux3 and Ha",
+   "x": 1387,
+   "y": 1330,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Been testing the new Flux3 and Hailuo Mi",
+   "x": 1388,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nCreating a sleek, professional ad",
+   "x": 1646,
+   "y": 1330,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Creating a sleek, professional ad for us",
+   "x": 1647,
+   "y": 1331,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nDark-pop cyber-grunge rap music v",
+   "x": 96,
+   "y": 1731,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Dark-pop cyber-grunge rap music video st",
+   "x": 97,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nDark-pop trio music-video perform",
+   "x": 354,
+   "y": 1731,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Dark-pop trio music-video performance wi",
+   "x": 355,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nThe World's Unluckiest Superhero\n",
+   "x": 613,
+   "y": 1731,
+   "w": 246,
+   "h": 362
+  },
+  {
+   "tag": "IMG",
+   "t": "The World's Unluckiest Superhero",
+   "x": 614,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\n\"duration\": \"15s\"\nminimax\nmusic-v",
+   "x": 871,
+   "y": 1731,
+   "w": 246,
+   "h": 370
+  },
+  {
+   "tag": "IMG",
+   "t": "\"duration\": \"15s\"",
+   "x": 872,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nEmotional performance lip-sync to",
+   "x": 1129,
+   "y": 1731,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Emotional performance lip-sync to refere",
+   "x": 1130,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nFirst try with Minimax H3 and is ",
+   "x": 1387,
+   "y": 1731,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "First try with Minimax H3 and is full ci",
+   "x": 1388,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\n15-second, 16:9 vertical, continu",
+   "x": 1646,
+   "y": 1731,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "15-second, 16:9 vertical, continuous sin",
+   "x": 1647,
+   "y": 1732,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nHailuo MiniMax H3 vs. Seedance 2.",
+   "x": 96,
+   "y": 2132,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Hailuo MiniMax H3 vs. Seedance 2.0",
+   "x": 97,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nHandcrafted paper-cut stop-motion",
+   "x": 354,
+   "y": 2132,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Handcrafted paper-cut stop-motion short",
+   "x": 355,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\n🤯 is seriously good at this kind",
+   "x": 613,
+   "y": 2132,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "🤯 is seriously good at this kind of K-p",
+   "x": 614,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nKrea 2 Turbo + Minimax H3 in Comf",
+   "x": 871,
+   "y": 2132,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Krea 2 Turbo + Minimax H3 in Comfyui = .",
+   "x": 872,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\n15-second photorealistic cinemati",
+   "x": 1129,
+   "y": 2132,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "15-second photorealistic cinematic dark-",
+   "x": 1130,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\nCinematic comedy sequence, 15 sec",
+   "x": 1387,
+   "y": 2132,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "Cinematic comedy sequence, 15 seconds",
+   "x": 1388,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "DIV",
+   "t": "SOCIAL\n15 second cinematic sports video ",
+   "x": 1646,
+   "y": 2132,
+   "w": 246,
+   "h": 389
+  },
+  {
+   "tag": "IMG",
+   "t": "15 second cinematic sports video in 16:9",
+   "x": 1647,
+   "y": 2133,
+   "w": 244,
+   "h": 183
+  },
+  {
+   "tag": "H3",
+   "t": "MINIMAX H3 EXAMPLE STYLES",
+   "x": 418,
+   "y": 2577,
+   "w": 266,
+   "h": 20
+  },
+  {
+   "tag": "ARTICLE",
+   "t": "MINIMAX\n16:9\nGAMEPLAY\nModern warfare FPS",
+   "x": 418,
+   "y": 2627,
+   "w": 220,
+   "h": 296
+  },
+  {
+   "tag": "IMG",
+   "t": "Modern warfare FPS gameplay — preview fr",
+   "x": 419,
+   "y": 2628,
+   "w": 218,
+   "h": 123
+  },
+  {
+   "tag": "ARTICLE",
+   "t": "MINIMAX\n16:9\nVIRAL\nGiant koi park incide",
+   "x": 650,
+   "y": 2627,
+   "w": 220,
+   "h": 296
+  },
+  {
+   "tag": "IMG",
+   "t": "Giant koi park incident — preview frame",
+   "x": 651,
+   "y": 2628,
+   "w": 218,
+   "h": 123
+  },
+  {
+   "tag": "ARTICLE",
+   "t": "MINIMAX\n16:9\nSLOW MOTION\nMacaw Scream in",
+   "x": 882,
+   "y": 2627,
+   "w": 220,
+   "h": 296
+  },
+  {
+   "tag": "IMG",
+   "t": "Macaw Scream in Extreme Slow Motion — pr",
+   "x": 883,
+   "y": 2628,
+   "w": 218,
+   "h": 123
+  }
+ ]
+}

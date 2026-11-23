@@ -1,0 +1,673 @@
+{
+ "pageH": 1080,
+ "vw": 1920,
+ "vh": 1080,
+ "els": [
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": -112,
+   "y": 64,
+   "w": 2213,
+   "h": 328
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 1261,
+   "y": 97,
+   "w": 618,
+   "h": 262
+  },
+  {
+   "tag": "H1",
+   "t": "Avatar Studio",
+   "x": 137,
+   "y": 201,
+   "w": 275,
+   "h": 30
+  },
+  {
+   "tag": "DIV",
+   "t": "",
+   "x": 766,
+   "y": 378,
+   "w": 456,
+   "h": 333
+  },
+  {
+   "tag": "DIV",
+   "t": "Source Video/Image\nAudio (for lip sync)\n",
+   "x": 108,
+   "y": 422,
+   "w": 1772,
+   "h": 359
+  },
+  {
+   "tag": "BUTTON",
+   "id": "avatar-advanced-btn",
+   "t": "Advanced",
+   "x": 244,
+   "y": 709,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "tag": "BUTTON",
+   "id": "v-contact-btn",
+   "t": "Personalize",
+   "x": 393,
+   "y": 713,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "tag": "BUTTON",
+   "t": "All",
+   "x": 112,
+   "y": 1098,
+   "w": 45,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "profile-/-avatar",
+   "x": 165,
+   "y": 1098,
+   "w": 120,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "portrait",
+   "x": 293,
+   "y": 1098,
+   "w": 73,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "photorealistic",
+   "x": 374,
+   "y": 1098,
+   "w": 109,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "cinematic",
+   "x": 491,
+   "y": 1098,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "interior",
+   "x": 586,
+   "y": 1098,
+   "w": 72,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "selfie",
+   "x": 666,
+   "y": 1098,
+   "w": 62,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "minimalist",
+   "x": 736,
+   "y": 1098,
+   "w": 89,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "character",
+   "x": 833,
+   "y": 1098,
+   "w": 86,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "render",
+   "x": 927,
+   "y": 1098,
+   "w": 68,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "fashion",
+   "x": 1003,
+   "y": 1098,
+   "w": 73,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "social",
+   "x": 1084,
+   "y": 1098,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "product",
+   "x": 1156,
+   "y": 1098,
+   "w": 75,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "landscape",
+   "x": 1239,
+   "y": 1098,
+   "w": 90,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "avatar",
+   "x": 1337,
+   "y": 1098,
+   "w": 66,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "consistent",
+   "x": 1412,
+   "y": 1098,
+   "w": 91,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "influencer",
+   "x": 1511,
+   "y": 1098,
+   "w": 89,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "motion",
+   "x": 1608,
+   "y": 1098,
+   "w": 70,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "reference",
+   "x": 1686,
+   "y": 1098,
+   "w": 86,
+   "h": 32
+  },
+  {
+   "tag": "BUTTON",
+   "t": "consistency",
+   "x": 1780,
+   "y": 1098,
+   "w": 100,
+   "h": 32
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Copp",
+   "x": 112,
+   "y": 1158,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Copper-Red Hair Windo",
+   "x": 113,
+   "y": 1159,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Cine",
+   "x": 366,
+   "y": 1158,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Cinematic Summer Gard",
+   "x": 367,
+   "y": 1159,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Casu",
+   "x": 619,
+   "y": 1158,
+   "w": 242,
+   "h": 383
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Casual Hijab Selfie P",
+   "x": 620,
+   "y": 1159,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Madi",
+   "x": 873,
+   "y": 1158,
+   "w": 242,
+   "h": 383
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Madison Beer Boa Hanc",
+   "x": 874,
+   "y": 1159,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Ultr",
+   "x": 1127,
+   "y": 1158,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Ultra-Detailed Cinema",
+   "x": 1128,
+   "y": 1159,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Cine",
+   "x": 1381,
+   "y": 1158,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Cinematic Tropical Fo",
+   "x": 1382,
+   "y": 1159,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Roya",
+   "x": 1634,
+   "y": 1158,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Royal Blue Satin Dres",
+   "x": 1635,
+   "y": 1159,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Fish",
+   "x": 112,
+   "y": 1580,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Fisheye Convenience S",
+   "x": 113,
+   "y": 1581,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Cine",
+   "x": 366,
+   "y": 1580,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Cinematic Rural Villa",
+   "x": 367,
+   "y": 1581,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Faci",
+   "x": 619,
+   "y": 1580,
+   "w": 242,
+   "h": 383
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Facial Identity Prese",
+   "x": 620,
+   "y": 1581,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Asia",
+   "x": 873,
+   "y": 1580,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Asian Woman in Stripe",
+   "x": 874,
+   "y": 1581,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Sadi",
+   "x": 1127,
+   "y": 1580,
+   "w": 242,
+   "h": 383
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Sadie Sink Grassy Fie",
+   "x": 1128,
+   "y": 1581,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Prof",
+   "x": 1381,
+   "y": 1580,
+   "w": 242,
+   "h": 383
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Professional Female P",
+   "x": 1382,
+   "y": 1581,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Jenn",
+   "x": 1634,
+   "y": 1580,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Jenna Ortega Indoor L",
+   "x": 1635,
+   "y": 1581,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Noir",
+   "x": 112,
+   "y": 2001,
+   "w": 242,
+   "h": 383
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Noir Punk Street Port",
+   "x": 113,
+   "y": 2002,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Fuch",
+   "x": 366,
+   "y": 2001,
+   "w": 242,
+   "h": 383
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Fuchsia Rose Bouquet ",
+   "x": 367,
+   "y": 2002,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Rust",
+   "x": 619,
+   "y": 2001,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Rustic Kitchen Lifest",
+   "x": 620,
+   "y": 2002,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Eleg",
+   "x": 873,
+   "y": 2001,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Elegant Young Woman P",
+   "x": 874,
+   "y": 2002,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nProfile / Avatar - Indo",
+   "x": 1127,
+   "y": 2001,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Profile / Avatar - Indoor Friendship Fas",
+   "x": 1128,
+   "y": 2002,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nSocial Media Post - Whi",
+   "x": 1381,
+   "y": 2001,
+   "w": 242,
+   "h": 383
+  },
+  {
+   "tag": "IMG",
+   "t": "Social Media Post - Whimsical Donkey Fac",
+   "x": 1382,
+   "y": 2002,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nSocial Media Post - Moo",
+   "x": 1634,
+   "y": 2001,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Social Media Post - Moody Hotel Bedroom ",
+   "x": 1635,
+   "y": 2002,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nSocial Media Post - Lux",
+   "x": 112,
+   "y": 2423,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Social Media Post - Luxury LED Architect",
+   "x": 113,
+   "y": 2424,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nSocial Media Post - Qui",
+   "x": 366,
+   "y": 2423,
+   "w": 242,
+   "h": 383
+  },
+  {
+   "tag": "IMG",
+   "t": "Social Media Post - Quicksilver Kinetic ",
+   "x": 367,
+   "y": 2424,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nSocial Media Post - Ita",
+   "x": 619,
+   "y": 2423,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Social Media Post - Italian Neorealism M",
+   "x": 620,
+   "y": 2424,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "PROFILE / AVATAR\nSocial Media Post - Mou",
+   "x": 873,
+   "y": 2423,
+   "w": 242,
+   "h": 410
+  },
+  {
+   "tag": "IMG",
+   "t": "Social Media Post - Mountain Viewpoint A",
+   "x": 874,
+   "y": 2424,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "AVATAR\nEmma Cafe Consistent\nacademy\navat",
+   "x": 1127,
+   "y": 2423,
+   "w": 242,
+   "h": 364
+  },
+  {
+   "tag": "IMG",
+   "t": "Emma Cafe Consistent",
+   "x": 1128,
+   "y": 2424,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "AVATAR\nEmma Cafe Motion\nacademy\navatar\nc",
+   "x": 1381,
+   "y": 2423,
+   "w": 242,
+   "h": 364
+  },
+  {
+   "tag": "IMG",
+   "t": "Emma Cafe Motion",
+   "x": 1382,
+   "y": 2424,
+   "w": 240,
+   "h": 180
+  },
+  {
+   "tag": "DIV",
+   "t": "AVATAR\nEmma Master\nacademy\navatar\ncharac",
+   "x": 1634,
+   "y": 2423,
+   "w": 242,
+   "h": 364
+  },
+  {
+   "tag": "IMG",
+   "t": "Emma Master",
+   "x": 1635,
+   "y": 2424,
+   "w": 240,
+   "h": 180
+  }
+ ]
+}

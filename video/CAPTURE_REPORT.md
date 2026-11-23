@@ -27,3 +27,22 @@ Source: https://smartvid.app (production build, signed out), Playwright, 1920x10
 | 16 Agency dashboard | none | FAILED: no route found |
 
 Usable now as screen-tour frames: 02, 05b, 07a, 11a, 12a, 13, 15b and the studio idle pages. None shows a generated result.
+
+---
+# Top-up captures (approved after storyboard)
+All from live https://smartvid.app, signed out, no Generate click, no results. Layout files are element boxes in page CSS px (`layout.json`).
+
+| Item | Files | Status |
+|---|---|---|
+| 2x stills 3840x2160 + layout.json | shots 01, 04, 05a, 05b, 07a, 09a, 09b, 13 (`*-2x.png`, `layout.json` in each folder) | OK |
+| Typing recording, Video Studio | `01-hero-video-studio/typing-prompt.mp4` (8.7s) + `prompt-typed.png` | OK. Typed text: "A golden retriever running along a beach at sunset". Not submitted |
+| Model picker open + scroll | `03-model-picker/model-picker-scroll.mp4` (68s, speed up in edit) + `model-picker-open.png`, `model-picker-scrolled.png` | OK. List scrolls (about 9000px of content). Count deliberately not used |
+| Typing recording, Image Studio | `04-image-studio/typing-prompt.mp4` (9.4s) + `prompt-typed.png` | OK. Typed text: "A ceramic coffee mug on a wooden table, soft morning light". Not submitted |
+| Image advanced panel | `04-image-studio/advanced-panel.mp4` (5.0s) + `advanced-open.png` | OK. Shows Prompt, Aspect ratio, Style preset, Negative prompt fields |
+| 9:16 stills 2160x3840 | `01-hero-vertical`, `06a-storyboard-vertical`, `07a-edit-vertical`, `09a-avatar-vertical`, `09b-lipsync-vertical` (`*-2160x3840.png`) | OK. Edit vertical shows the real before/after tiles (Remove Object/Background, Face Swap, Upscale, Colorize, Product Shot) |
+
+## Claims risk found in the captures (must be cropped or masked in video)
+The studio banners show model/tool counts in the live UI: Video Studio "15+ models", Image Studio "20+ AI models", Edit Studio "16 AI editing tools", gallery "28 examples". Per the claims rule, none of these may be readable on screen until you confirm the counts. Plan: crop the banner subtitle out of every shot, or mask it.
+
+## Still not possible
+Anything that needs a result or a signed-in account (generated clips, before/after produced by the user, Library contents, Backlot, Chat/Assist, Commercial, Stock, Agency, Dubbing), and the picker/panel for other studios.

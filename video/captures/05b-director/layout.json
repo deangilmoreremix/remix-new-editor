@@ -1,0 +1,91 @@
+{
+ "pageH": 1080,
+ "vw": 1920,
+ "vh": 1080,
+ "els": [
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": -147,
+   "y": 57,
+   "w": 2283,
+   "h": 118
+  },
+  {
+   "tag": "IMG",
+   "t": "",
+   "x": 1685,
+   "y": 69,
+   "w": 222,
+   "h": 94
+  },
+  {
+   "tag": "BUTTON",
+   "id": "back-btn",
+   "t": "",
+   "x": 84,
+   "y": 183,
+   "w": 38,
+   "h": 38
+  },
+  {
+   "tag": "H1",
+   "t": "DIRECTOR",
+   "x": 190,
+   "y": 180,
+   "w": 167,
+   "h": 28
+  },
+  {
+   "tag": "BUTTON",
+   "id": "clear-chat-btn",
+   "t": "Clear Chat",
+   "x": 1636,
+   "y": 185,
+   "w": 96,
+   "h": 34
+  },
+  {
+   "tag": "H3",
+   "t": "AI AGENTS",
+   "x": 84,
+   "y": 261,
+   "w": 82,
+   "h": 20
+  },
+  {
+   "tag": "H3",
+   "t": "AI CHAT\nPowered by VideoDB",
+   "x": 372,
+   "y": 972,
+   "w": 1212,
+   "h": 20
+  },
+  {
+   "tag": "BUTTON",
+   "id": "send-command-btn",
+   "t": "Send",
+   "x": 1510,
+   "y": 1200,
+   "w": 74,
+   "h": 50
+  },
+  {
+   "tag": "H3",
+   "t": "QUICK ACTIONS",
+   "x": 1617,
+   "y": 257,
+   "w": 287,
+   "h": 20
+  },
+  {
+   "tag": "BUTTON",
+   "id": "pexels-director-btn",
+   "t": "Browse B-Roll from Pexels\nStock footage ",
+   "x": 1617,
+   "y": 709,
+   "w": 287,
+   "h": 62
+  }
+ ]
+}
