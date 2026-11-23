@@ -86,7 +86,8 @@ export function SourceViewer({
 
   void onClose;
 
-  useEffect(() => { onSourceTime?.((clip ? clip.trimStart : 0) + sourceTime); }, [sourceTime, onSourceTime, clip]); // [remix] Stage 1: marks use the file's own time, so a timeline clip adds its trim offset
+  const trimOffset = clip ? clip.trimStart : 0; // [remix] Stage 1: marks use the file's own time, so a timeline clip adds its trim offset
+  useEffect(() => { onSourceTime?.(trimOffset + sourceTime); }, [sourceTime, onSourceTime, trimOffset]);
 
   useEffect(() => {
     setSourceTime(0);
@@ -383,7 +384,7 @@ export function SourceViewer({
               {formatTimecode(effectiveDuration)}
             </span>
           </div>
-          {marksUi && asset && <SourceMarkBar ui={marksUi} sourceTime={(clip ? clip.trimStart : 0) + sourceTime} duration={asset.duration ?? effectiveDuration} />}
+          {marksUi && asset && <SourceMarkBar ui={marksUi} sourceTime={trimOffset + sourceTime} duration={asset.duration ?? trimOffset + effectiveDuration} />}
         </>
       )}
     </div>
