@@ -79,11 +79,7 @@ export function FinalCTASection() {
             <a href="/terms" class="hover:text-cyan-400 hover:underline transition-colors duration-200">Terms of Service</a>
           </div>
           <div class="text-xs text-gray-500 mt-4">
-            © 2026 Smart Video AI Studio. <environment_details>
-Current time: 2026-08-23T20:35:15-04:00
-Working directory: /Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor
-Workspace root folder: /Users/deanellgilmore/Downloads/remixneweditor/remix-new-editor
-</environment_details>
+            © 2026 Smart Video AI Studio.
           </div>
         </div>
       </div>
