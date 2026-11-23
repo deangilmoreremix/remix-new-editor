@@ -98,7 +98,7 @@ function ChatMessage({ message }: { message: ConversationMessage }) {
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-blue-400">Assistant</span>
+        <span className="text-xs font-medium text-primary">Assistant</span>
         <span className="text-xs text-muted-foreground-dim">{time}</span>
       </div>
 
@@ -152,12 +152,12 @@ function PendingMessage({ skills }: { skills?: string[] }) {
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-blue-400">Assistant</span>
+        <span className="text-xs font-medium text-primary">Assistant</span>
         <span className="text-xs text-muted-foreground-dim">now</span>
       </div>
 
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <div className="w-3 h-3 border-2 border-muted-foreground border-t-blue-400 rounded-full animate-spin" />
+        <div className="w-3 h-3 border-2 border-muted-foreground border-t-primary rounded-full animate-spin" />
         <span>Generating...</span>
         {skills && skills.length > 0 && (
           <Tooltip>

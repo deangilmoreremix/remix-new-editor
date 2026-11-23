@@ -204,6 +204,8 @@ export interface PersonalizationTemplateBrowserProps {
   onSelectDesign?: (designId: string) => void
   /** Hide the built-in layouts: only the animated designs (add-ons) are listed. */
   designsOnly?: boolean
+  /** Print the "design not available / not allowed" message above the cards. Off when the caller prints it once itself. */
+  showError?: boolean
 }
 
 /** Categorized gallery of every layout and Remotion design template. */
@@ -211,6 +213,7 @@ export function PersonalizationTemplateBrowser({
   onSelect,
   onSelectDesign,
   designsOnly = false,
+  showError = true,
 }: PersonalizationTemplateBrowserProps): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const {
@@ -363,7 +366,7 @@ export function PersonalizationTemplateBrowser({
 
       {/* ── Grid ────────────────────────────────────────────────────────── */}
       <div style={panelStyle}>
-        {remotionDesignError ? (
+        {showError && remotionDesignError ? (
           <p style={{ ...hintStyle, color: C.danger, marginTop: 0 }}>{remotionDesignError}</p>
         ) : null}
         {visible.length === 0 ? (
@@ -397,7 +400,7 @@ export function PersonalizationTemplateBrowser({
                     padding: '0 16px',
                     borderRadius: 999,
                     border: `1px solid ${C.cyanBorder}`,
-                    background: C.cyanSoft,
+                    background: 'transparent',
                     color: C.cyan,
                     fontSize: 11,
                     fontWeight: 800,
@@ -443,7 +446,7 @@ function CategoryTab({
         padding: '0 12px',
         borderRadius: 999,
         border: `1px solid ${active ? C.cyanBorder : C.border}`,
-        background: active ? C.cyanSoft : 'transparent',
+        background: active ? 'transparent' : 'transparent',
         color: active ? C.cyan : C.muted,
         fontSize: 11,
         fontWeight: 700,

@@ -4,7 +4,7 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { listRemotionDesignTemplates } from '../../templates'
 
-vi.mock('../PersonalizationTemplateBrowser', () => ({ PersonalizationTemplateBrowser: () => <div data-testid="full-browser" /> }))
+vi.mock('../PersonalizationTemplateBrowser', () => ({ PersonalizationTemplateBrowser: (props: { showError?: boolean }) => <div data-testid="full-browser" data-show-error={String(props.showError)} /> }))
 import { DesignRecommendations } from '../DesignRecommendations'
 
 beforeAll(() => { (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true })
@@ -50,6 +50,11 @@ describe('DesignRecommendations', () => {
     act(() => { (m2.el.querySelector(`[data-testid="design-rec-${id}"]`) as HTMLElement).click() })
     expect(m2.onSelectDesign).toHaveBeenCalledWith(null)
   })
+  it('the library does not print its own copy of the refusal message (the panel prints it once)', () => {
+    const { el } = mount()
+    act(() => { q(el, 'design-browse-all')!.click() })
+    expect(q(el, 'full-browser')!.getAttribute('data-show-error')).toBe('false')
+  })
   it('the full searchable library is one click away', () => {
     const { el } = mount()
     expect(q(el, 'full-browser')).toBeNull()
@@ -63,5 +68,13 @@ describe('DesignRecommendations', () => {
     act(() => { first.click() })
     expect(onAddDesign).toHaveBeenCalledWith(first.getAttribute('data-testid')!.replace('design-rec-', ''))
     expect(onSelectDesign).not.toHaveBeenCalled()
+  })
+  it('preselects the suggested goal with its reason until the customer picks one', () => {
+    const { el } = mount({ suggestion: { goal: 'promote-offer', reason: 'Their website has online booking.' } })
+    expect(q(el, 'design-goal-promote-offer')!.getAttribute('aria-pressed')).toBe('true')
+    expect(q(el, 'design-goal-reason')!.textContent).toContain('online booking')
+    act(() => { q(el, 'design-goal-brand-moment')!.click() })
+    expect(q(el, 'design-goal-brand-moment')!.getAttribute('aria-pressed')).toBe('true')
+    expect(q(el, 'design-goal-reason')).toBeNull()
   })
 })

@@ -11,7 +11,7 @@ describe('TimelineBottomBar add-track menu', () => {
     const onAddTrack = vi.fn();
     const host = document.createElement('div'); document.body.appendChild(host);
     const root = createRoot(host);
-    const props = { pxPerSecond: 50, onZoomChange: vi.fn(), trackHeight: 110, onTrackHeightChange: vi.fn(), trackCount: 4, sequenceDuration: 10, onAddTrack } as never;
+    const props = { pxPerSecond: 50, onZoomChange: vi.fn(), trackHeight: 80, onTrackHeightChange: vi.fn(), trackCount: 4, sequenceDuration: 10, onAddTrack } as never;
     act(() => { root.render(<TimelineBottomBar {...props} />); });
     const click = (el: Element | null) => act(() => { (el as HTMLElement).click(); });
     click([...host.querySelectorAll('button')].find((b) => b.textContent?.includes('Add Track')) ?? null);

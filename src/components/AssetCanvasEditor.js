@@ -132,7 +132,7 @@ export function AssetCanvasEditor(params = {}) {
   const btnCls = 'btn-secondary-modern text-xs px-3 py-1.5 disabled:opacity-50';
   const section = (title) => {
     const el = document.createElement('div');
-    el.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-3 flex flex-col gap-2';
+    el.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-3 flex flex-col gap-2';
     const t = document.createElement('p');
     t.className = 'text-[10px] font-bold text-secondary uppercase tracking-wider';
     t.textContent = title;
@@ -160,7 +160,7 @@ export function AssetCanvasEditor(params = {}) {
     const [w, h] = aspect.split(':').map(Number);
     const stage = document.createElement('div');
     stage.id = 'asset-canvas';
-    stage.className = 'relative w-full overflow-hidden rounded-xl border border-white/10 bg-[#111]';
+    stage.className = 'relative w-full overflow-hidden rounded-xl border border-white/10 bg-card-bg';
     stage.style.aspectRatio = w && h ? `${w} / ${h}` : '1 / 1';
     stage.style.containerType = 'inline-size';
     // Tall formats (9:16) must not outgrow the viewport.
@@ -194,6 +194,9 @@ export function AssetCanvasEditor(params = {}) {
     const el = document.createElement('button');
     el.type = 'button';
     el.dataset.block = kind;
+    // A text block drawn on the canvas, not a button in disguise: keep its own background
+    // (outline-buttons.css otherwise forces every button transparent).
+    el.dataset.keepFill = '';
     el.textContent = b.text;
     el.style.cssText = [
       `font-size:${SIZE_PX[b.size] || SIZE_PX.medium}`,
@@ -326,7 +329,7 @@ export function AssetCanvasEditor(params = {}) {
     const b = block();
 
     const tabs = document.createElement('div');
-    tabs.className = 'flex gap-1 rounded-lg border border-white/10 bg-[#111]/90 p-1';
+    tabs.className = 'flex gap-1 rounded-lg border border-white/10 bg-card-bg/90 p-1';
     BLOCKS.forEach(({ key, label }) => {
       const t = document.createElement('button');
       t.type = 'button';

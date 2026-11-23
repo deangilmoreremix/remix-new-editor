@@ -20,6 +20,9 @@ export const PROVIDER_SETTINGS = {
   openai: { voices: OPENAI_VOICES, defaultVoice: 'marin', speed: [0.25, 4], pitch: false, instructions: true },
 };
 
+// Same rule as agent-audio's CLONE_VOICE_ID.
+export const CLONE_VOICE_ID = /^[A-Za-z][A-Za-z0-9_-]{7,63}$/;
+
 export const hasTokens = (text) => /\{\{[^}]+\}\}/.test(String(text || ''));
 
 /** Problems with a draft, in display order (empty when it can be generated). */
@@ -53,6 +56,11 @@ export function speechRequest(d, spokenText) {
   };
   if (p.pitch) req.pitch = Math.max(-12, Math.min(12, Math.round(Number(d.pitch) || 0)));
   if (p.instructions && String(d.instructions || '').trim()) req.instructions = String(d.instructions).trim().slice(0, 500);
+  // A voice the user cloned (Video Outreach studio) is not in the stock list: keep it, MiniMax only.
+  if (d.provider !== 'openai' && CLONE_VOICE_ID.test(String(d.cloneVoiceId || ''))) {
+    req.cloneVoiceId = d.cloneVoiceId;
+    req.voice = d.cloneVoiceId;
+  }
   return req;
 }
 
@@ -69,6 +77,7 @@ export function ttsMeta(d) {
   return {
     provider: req.provider,
     voice: req.voice,
+    ...(req.cloneVoiceId ? { cloneVoiceId: req.cloneVoiceId } : {}),
     speed: req.speed,
     ...(req.pitch !== undefined ? { pitch: req.pitch } : {}),
     ...(req.instructions ? { instructions: req.instructions } : {}),

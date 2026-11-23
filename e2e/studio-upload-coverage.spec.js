@@ -4,7 +4,7 @@
 //   1. Storyboard        (/#/storyboard)      reference-attachment toolbar
 //   2. Personalizer      (/#/personalizer)    image-element "Upload image…"
 //   3. Element Library   (elements/element-image-upload.jsx)
-//   4. AI Captions       (modals/AICaptionsModal.jsx)
+//   4. Free Captions     (lib/captionStudio/modal.js — on-device, no upload)
 //   5. Chat attachments  (chat/ChatStudio.jsx useAttachmentState)
 //   6. Timeline editor   (/#/timeline)        #uploadBtn → uploadPipeline
 //
@@ -255,22 +255,11 @@ test.describe('Studio upload coverage — Phase 3 (six unreached surfaces)', () 
     test.skip(true, 'surface not mounted in this build: src/components/elements/element-image-upload.jsx is only reachable via element-modal.jsx ← elements-tab.jsx, and elements-tab.jsx has no importer — no route/URL renders it, so the dropzone upload cannot be driven');
   });
 
-  // ── 4. AI Captions (modals/AICaptionsModal.jsx) ───────────────────────────
-  // Reachability restored by the loading-overlay fix (R3): createLoadingOverlay
-  // (src/lib/loading.js) now returns the overlay element itself, so
-  // VideoStudio.js:1999-2002's .appendChild() calls no longer throw and the
-  // generate flow reaches the mocked proxy (verified end-to-end below).
-  // The modal opens from the post-generation result handler via the
-  // "💬 Add AI Captions" button that showVideoInCanvas appends.
-  //
-  // NOTE (R3 finding, pre-existing defect in a read-only file): the modal's
-  // upload tab cannot be driven because AICaptionsModal.jsx defines
-  // setupEventListeners() twice (lines 300 and 494) — the second definition
-  // shadows the first, so bindBodyListeners() never runs at open() and the
-  // mode-switch/dropzone listeners are never attached. Uploading a file
-  // through the modal therefore requires (a) that fix and (b) real Clerk
-  // sign-in (saveAsset gate) — see the two skips below.
-  test('ai captions: modal opens via mocked VideoStudio generation and URL-mode caption generation completes through the mocked proxy', async ({ page }) => {
+  // ── 4. Free Captions (lib/captionStudio/modal.js) ─────────────────────────
+  // Captions are made on the user's device (Whisper in the browser), so nothing is uploaded and no credits are used. The only MuAPI
+  // traffic in this test is the mocked video generation that produces the result the button appears on.
+  // The modal opens from the post-generation result handler via the "💬 Add AI Captions" button that showVideoInCanvas appends.
+  test('free captions: modal opens from the VideoStudio result, loads the generated video, and spends no credits', async ({ page }) => {
     const errors = [];
     page.on('pageerror', (e) => errors.push(String(e)));
 
@@ -328,31 +317,17 @@ test.describe('Studio upload coverage — Phase 3 (six unreached surfaces)', () 
     await expect(captionBtn).toBeVisible({ timeout: 30_000 });
     expect(proxy.n, 'generation must go through the MuAPI transport').toBeGreaterThan(0);
 
+    const proxyBefore = proxy.n;
     await captionBtn.click();
-    const modal = page.locator('.ai-captions-modal');
+    const modal = page.locator('.csm-dialog');
     await expect(modal).toBeVisible({ timeout: 30_000 });
-
-    // URL mode is pre-filled with the generated video URL (addCaptionButton
-    // passes videoUrl → inputMode 'url'). Generate Captions →
-    // muapi.processVideoTool (submit → poll, both mocked) → renderResult.
-    await page.locator('[data-action="generate"]').click();
-    await expect(modal).toContainText('Captioned Video', { timeout: 60_000 });
-    expect(proxy.n, 'caption generation must also go through the MuAPI transport').toBeGreaterThan(1);
+    await expect(modal).toContainText('Free AI Captions');
+    await expect(modal).toContainText('No credits are used');
+    // The generated video is pre-loaded, so on-device generation is available right away.
+    await expect(page.locator('[data-act="generate"]')).toBeEnabled({ timeout: 30_000 });
+    // Opening the studio must not call the MuAPI transport at all.
+    expect(proxy.n, 'opening Free Captions must not reach the MuAPI transport').toBe(proxyBefore);
     expect(errors, `Uncaught page errors: ${errors.join(' | ')}`).toEqual([]);
-  });
-
-  // AICaptionsModal.uploadFileIfNeeded → ingestStudioUpload → saveAsset
-  // throws ASSET_SIGN_IN_REQUIRED for the signed-out user BEFORE the MuAPI
-  // transport call (assetLibrary.js:238-244) — and the upload tab itself is
-  // dead code until the duplicate-setupEventListeners shadowing bug in
-  // AICaptionsModal.jsx (read-only file) is fixed, see the note above. Both
-  // blockers must be resolved before a mocked proxy 200 can be observed.
-  test('ai captions: mocked proxy 200 success path', async () => {
-    test.skip(true, 'unreachable offline: (1) the modal upload tab cannot be driven — AICaptionsModal.jsx defines setupEventListeners() twice (lines 300 and 494), the second shadows the first so bindBodyListeners() never runs and the mode-switch/dropzone listeners are never attached (observed: clicking "Upload Video" leaves the URL form mounted; file is read-only/protected); (2) once drivable, uploadFileIfNeeded → ingestStudioUpload → saveAsset throws ASSET_SIGN_IN_REQUIRED for the signed-out user BEFORE the MuAPI transport call — a mocked proxy 200 can never be observed without real Clerk sign-in');
-  });
-
-  test('ai captions: mocked proxy 402 credits error path', async () => {
-    test.skip(true, 'unreachable offline: same two blockers as the proxy 200 skip (AICaptionsModal.jsx duplicate setupEventListeners shadowing kills the upload tab; saveAsset ASSET_SIGN_IN_REQUIRED gate for signed-out users) — a mocked proxy 402 can never be observed');
   });
 
   // Probe fact: /#/chat renders vanilla ChatStudio.js — zero input[type=file]

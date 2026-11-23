@@ -2,6 +2,8 @@
  * Shared Personalization System — Types
  */
 
+import type { PreviewLayer, PreviewInputProps } from './preview/types'
+
 export type PersonalizationSourceType =
   | 'landing-demo'
   | 'go-ai-viral-prompt'
@@ -138,7 +140,19 @@ export interface ClientProfile {
   callToAction: string
   phone: string
   website: string
+  /**
+   * Contact details found on the business's OWN website by the finder's enrichment (never invented, never
+   * verified). Optional so older saved projects and every existing consumer keep working.
+   */
+  email?: string
+  facebook?: string
+  instagram?: string
+  linkedin?: string
+  youtube?: string
+  tiktok?: string
   brandDescription: string
+  /** The business's own brand colors (researched from its site, or chosen); lets the timeline editor tint designs per contact. */
+  brandColors?: { primary?: string; accent?: string }
   createdAt: string
   updatedAt: string
 }
@@ -357,6 +371,16 @@ export interface PersonalizationCompletion {
   originStudio?: string
   /** The source id the run was keyed on. */
   sourceId?: string
+  /**
+   * The approved overlay layers of a branded render (not set for AI-generated
+   * runs). Lets a studio such as the timeline place them as its own clips.
+   */
+  overlay?: {
+    layers: PreviewLayer[]
+    fps: number
+    durationInFrames: number
+    brand: PreviewInputProps['brand']
+  }
 }
 
 export interface ImageStudioHandoff {

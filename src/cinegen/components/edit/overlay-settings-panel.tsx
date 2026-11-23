@@ -1,15 +1,28 @@
 // [remix] Inspector for the selected overlay. The fields are drawn by the old editor's settings renderer (`renderAddonEditor`),
 // so Lead Generator / List Builder / CTA have the same Basic / Style / Fields / Integrations tabs as before.
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { OverlayClip } from '@cinegen/types/workspace';
 // @ts-expect-error plain JS settings renderer from the main app
 import { renderAddonEditor } from '../../../lib/editor/addons/addonEditor.js';
+// @ts-expect-error plain JS personalization tokens (the same list the old editor's Personalize menu uses)
+import { TOKEN_DEFS } from '../../../components/personalize/tokenSchema.js';
 // @ts-expect-error plain JS opt-in form schema + the Lead Generator clip adapter
 import { applyOptinToLeadForm, switchListBuilderKind } from '../../../lib/editor/addons/listBuilder.js';
 import type { MgPropField } from '@cinegen/lib/occ/mg-templates';
 import { overlaySchema } from '@cinegen/lib/overlays/descriptors';
+import { LottieEditSection } from './lottie-edit-section';
 import { FormLeadsButton } from '@cinegen/components/leads/form-leads-button';
-import { isRegistryOverlay } from '@cinegen/lib/overlays/overlays';
+import { isRegistryOverlay, gatesOnTimeline } from '@cinegen/lib/overlays/overlays';
+import { SavePresetRow } from './save-preset-row';
+import { contactImageServices, measureLogoFor, makeAllVideoReady } from '@cinegen/lib/personalize/contact-image-services';
+import { overlayMediaServices } from '@cinegen/lib/overlays/overlay-media-services';
+import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
+import { usePreviewContact } from '@cinegen/lib/personalize/preview-contact';
+import { OPEN_SPEECH_EVENT } from '@cinegen/lib/occ/smart-speech';
+import { importFontFile, loadUserFonts, userFontFamilies } from '@cinegen/lib/occ/user-fonts';
+import { CAPTION_FONT_FAMILIES } from '@cinegen/lib/occ/design-style';
+// @ts-expect-error plain JS: fonts installed on this computer (Local Font Access API)
+import { supportsSystemFonts, systemFontFamilies, loadSystemFonts, refreshSystemFontsIfAllowed } from '../../../lib/editor/addons/systemFonts.js';
 import { hyperframesItem, defaultFit } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS placement helpers
 import { HF_FITS, HF_FIT_LABELS, normalizeGeom, isReactItem } from '../../../lib/hyperframes/placement.js';
@@ -80,12 +93,32 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
   const editorRef = useRef<{ setOptions?: (o: Record<string, unknown>) => void } | null>(null);
   // true while a change came from this panel itself (so its own echo doesn't redraw the form under the caret)
   const ownEdit = useRef(false);
+  const [note, setNote] = useState('');
+  const [allBusy, setAllBusy] = useState(false); // outcome of a picture action (saved to the contact, Video Ready ...)
+  const { state: workspace } = useWorkspace();
+  const assetsRef = useRef(workspace.assets); assetsRef.current = workspace.assets;
+  const contact = usePreviewContact(); // the contact whose pictures the settings show
 
   useEffect(() => {
     if (!box.current || latest.current.type === 'mg-template' || latest.current.type === 'hyperframes') return;
     const schema = overlaySchema(latest.current);
     const editor = renderAddonEditor(box.current, {
       fields: schema.fields, fieldsFor: schema.fieldsFor, options: schema.options, onFieldChange: schema.onFieldChange, idPrefix: `ov-${overlay.id}`,
+      // [remix] the Personalize menu of Smart Text / Text Mask (the old editor passed the same token list)
+      services: {
+        tokens: (TOKEN_DEFS as Array<{ key: string; label: string }>).map((d) => [d.key, d.label]),
+        ...overlayMediaServices({ notify: (m) => setNote(m), assets: () => assetsRef.current }), // upload, project images, Pixabay / Pexels, stickers
+        ...contactImageServices({ notify: (m) => setNote(m) }), // Personalized Image: the contact's pictures, image finder, crop focus, Make Video Ready
+        // the same font import the captions have: the Font list then includes what was imported (stored in this browser)
+        extraFonts: CAPTION_FONT_FAMILIES,
+        userFonts: userFontFamilies,
+        systemFonts: systemFontFamilies,
+        canLoadSystemFonts: supportsSystemFonts,
+        loadSystemFonts,
+        importFont: importFontFile,
+        // Smart Text: "Convert to Smart Speech" opens the Smart Speech window with this text
+        fieldAction: (action: string, opts: { text?: string }) => { if (action === 'speech') window.dispatchEvent(new CustomEvent(OPEN_SPEECH_EVENT, { detail: { text: String(opts.text ?? '') } })); },
+      },
       onChange: (next: Record<string, unknown>) => {
         ownEdit.current = true;
         const cur = latest.current;
@@ -115,17 +148,24 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       },
     });
     editorRef.current = editor;
-    return () => { editor?.destroy?.(); editorRef.current = null; };
+    let alive = true; // a font list that finishes loading after another overlay was picked must not redraw this (destroyed) editor
+    void refreshSystemFontsIfAllowed().then((f: string[]) => { if (alive && f.length) editor?.setOptions?.(overlaySchema(latest.current).options); }); // already allowed earlier: no prompt
+    void loadUserFonts().then((f) => { if (alive && f.length) editor?.setOptions?.(overlaySchema(latest.current).options); }); // fonts imported earlier appear in the list
+    return () => { alive = false; editor?.destroy?.(); editorRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay.id]);
 
   // the form was edited by clicking its text: show the new text in the panel too
   useEffect(() => {
     if (ownEdit.current) { ownEdit.current = false; return; }
-    if (!box.current || overlay.type === 'mg-template' || isRegistryOverlay(overlay.type)) return;
+    if (!box.current || overlay.type === 'mg-template') return; // [remix] add-ons too: Smart Text can be edited on the video
     editorRef.current?.setOptions?.(overlaySchema(overlay).options);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay]);
+
+  // the contact (or its pictures) changed: the picture buttons redraw; a logo gets measured once so "Backing: Auto" suits it
+  useEffect(() => { if (contact.version) editorRef.current?.setOptions?.(overlaySchema(latest.current).options); }, [contact.version]);
+  useEffect(() => { void measureLogoFor(contact.profile as never); }, [contact.profile]);
 
   const num = (v: string, fallback: number) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
   return (
@@ -133,7 +173,7 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       <style>{`
         .addon-panel .addon-tabs{display:flex;gap:6px;margin:6px 0 10px;flex-wrap:wrap}
         .addon-panel .addon-tab{border:1px solid var(--border-medium,rgba(255,255,255,.18));background:transparent;color:var(--text-secondary);border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer}
-        .addon-panel .addon-tab.active{border-color:#eb5054;color:#fff;background:rgba(235,80,84,.18)}
+        .addon-panel .addon-tab.active{border-color:rgba(217,255,0,.25);color:#fff;background:rgba(217,255,0,.08)}
         .addon-panel .addon-field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:11px;color:var(--text-secondary)}
         .addon-panel .addon-field input[type=text],.addon-panel .addon-field input[type=url],.addon-panel .addon-field textarea,.addon-panel .addon-field select{width:100%;box-sizing:border-box;background:var(--bg-raised,#10141c);color:var(--text-primary,#fff);border:1px solid var(--border-medium,rgba(255,255,255,.18));border-radius:6px;padding:6px 8px;font:inherit}
         .addon-panel .addon-fieldlist__row{display:flex;gap:4px;align-items:center;margin-bottom:4px}
@@ -147,6 +187,9 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
         </span>
       </div>
       {(overlay.type === 'list-builder' || overlay.type === 'lead-form') && <FormLeadsButton overlayId={overlay.id} type={overlay.type} />}
+      {overlay.type === 'lead-form' && !gatesOnTimeline(overlay) && (
+        <p data-testid="trigger-note" style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '0 12px 8px' }}>On the published page this form appears {overlay.trigger === 'end' ? 'at the end of the video' : overlay.trigger === 'pause' ? 'when the viewer pauses' : 'when the viewer is about to leave'}. Here it shows while the video is stopped inside this time range, and does not pause playback.</p>
+      )}
       {overlay.type === 'list-builder' ? (
         <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '0 12px 8px' }}>Viewers fill this out before the video plays. It sits at the start of the timeline and takes no video time.</p>
       ) : (
@@ -161,8 +204,29 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
         </label>
       </div>
       )}
+      {isRegistryOverlay(overlay.type) && <SavePresetRow overlay={overlay} />}
+      {note && <p role="status" data-testid="overlay-note" style={{ fontSize: 11, margin: '0 12px 8px', color: 'var(--text-secondary)' }}>{note}</p>}
+      {overlay.type === 'overlay-personalized-image' && contact.profiles.length > 0 && (
+        <div style={{ padding: '0 12px 8px' }}>
+          <button type="button" className="mini-btn" data-testid="all-video-ready" disabled={allBusy} style={{ width: '100%', padding: '5px 8px' }}
+            title="Make all Video Ready"
+            onClick={async () => {
+              setAllBusy(true);
+              try {
+                const r = await makeAllVideoReady(workspace.overlays ?? [], { notify: (m) => setNote(m), onProgress: (d, t, who) => { if (who) setNote(`Making images Video Ready: ${d + 1} of ${t} (${who})…`); } });
+                setNote(r.message);
+              } finally { setAllBusy(false); }
+            }}>{allBusy ? 'Working…' : '✨ Make all contacts’ images Video Ready'}</button>
+        </div>
+      )}
+      {overlay.type === 'overlay-personalized-image' && !contact.profiles.length && (
+        <p data-testid="no-contacts-hint" style={{ fontSize: 11, margin: '0 12px 8px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          No contacts yet, so this shows a grey placeholder. Make one with the <strong>Personalization</strong> button on the Overlays lane: their logo and photo then appear here, and each contact gets their own picture in the video.
+        </p>
+      )}
       {overlay.type === 'hyperframes' && <HfPlacementControls overlay={overlay} duration={duration} onUpdate={onUpdate} />}
       {overlay.type === 'mg-template' || overlay.type === 'hyperframes' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} style={{ padding: '0 12px 16px' }} />}
+      {overlay.type === 'overlay-sticker' && (overlay.addon as { kind?: string } | undefined)?.kind === 'lottie' && <LottieEditSection addon={overlay.addon as never} onChange={(next) => onUpdate({ addon: next })} />}
     </aside>
   );
 }

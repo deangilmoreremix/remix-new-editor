@@ -1,11 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { getMediaFacts } from '@ohb/data/demoLibraryRegistry'
 import { useDemoPersonalize } from '../DemoPersonalizeProvider'
 import { getRemotionDesignTemplate, isRemotionDesignTemplateSupported } from '../templates/registry'
 import type { PreviewInputProps } from '../preview/types'
 import { seekPreviewTo } from '../preview/PreviewControls'
+import { getPresenterBounds, masksVersion, subscribeMasks } from '../preview/cutout/maskStore'
+import { presenterZone } from '../preview/cutout/presenterZone'
 import {
   buildPlacementInput,
   evaluateLayoutQuality,
@@ -24,6 +26,7 @@ import {
   type QualityReport,
 } from '../preview/placement'
 import { checkAccessibility, fixForIssue, withAccessibility } from '../preview/placement/a11y'
+import { useSubjectFinder, type SubjectFinder } from './useSubjectFinder'
 import { splitSideFor } from '../preview/imagePresets'
 import {
   compositionZones,
@@ -55,6 +58,8 @@ export interface LayoutQualityState {
   canFixIssue: (issue: QualityIssue) => boolean
   /** Applies that fix to the layer. Returns whether anything changed. */
   applyIssueFix: (issue: QualityIssue) => boolean
+  /** Free automatic subject detection (on this device); absent where the host does not provide it. */
+  subjectFinder?: SubjectFinder
   /** Customer marks where the subject is (composition space), or clears it. */
   markSubject: (where: 'left' | 'center' | 'right' | 'clear') => void
 }
@@ -123,11 +128,24 @@ export function useLayoutQuality(inputProps: PreviewInputProps): LayoutQualitySt
     return profileForSource({ videoSrc: sourcePath, title: source?.title, width: facts?.width, height: facts?.height })
   }, [sourcePath, source?.title])
 
+  // With the presenter cut out, the person is a known subject: keep the logo and text off them. The zone follows the presenter's
+  // size and position, is recomputed (never saved), and appears once their masks are measured.
+  const masksTick = useSyncExternalStore(subscribeMasks, masksVersion, masksVersion)
+  const cutout = settings.cutout
+  const presenterZones = useMemo(() => {
+    if (!cutout?.enabled || !videoUrl) return []
+    const found = getPresenterBounds(videoUrl)
+    if (!found) return []
+    const z = presenterZone(found.bounds, found.aspect, cutout.presenter, settings.width, settings.height)
+    return z.w > 0.02 && z.h > 0.02 ? [{ id: 'cutout-presenter', label: 'Presenter', source: 'template' as const, ...z }] : []
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cutout?.enabled, cutout?.presenter, videoUrl, settings.width, settings.height, masksTick])
+
   const zones = useMemo(
     // 'cover': PersonalizationComposition fills the frame with the footage (objectFit: 'cover'), so the
     // subject zones must be mapped with the same crop, not the letterboxed 'contain' default.
-    () => [...compositionZones(profile, settings.width, settings.height, 'cover'), ...(settings.protectedZones ?? [])],
-    [profile, settings.width, settings.height, settings.protectedZones],
+    () => [...compositionZones(profile, settings.width, settings.height, 'cover'), ...(settings.protectedZones ?? []), ...presenterZones],
+    [profile, settings.width, settings.height, settings.protectedZones, presenterZones],
   )
 
   const input: PlacementInput = useMemo(
@@ -206,11 +224,14 @@ export function useLayoutQuality(inputProps: PreviewInputProps): LayoutQualitySt
     return true
   }, [settings, brand, updatePreviewLayer])
 
+  const subjectFinder = useSubjectFinder({ settings, videoUrl, isImageSource, setZones: setPreviewProtectedZones })
+
   const markSubject = useCallback((where: 'left' | 'center' | 'right' | 'clear') => {
-    const others = (settings.protectedZones ?? []).filter((z) => z.id !== 'customer-subject')
+    // Marking by hand replaces any automatic result too: the customer's call wins.
+    const others = (settings.protectedZones ?? []).filter((z) => z.id !== 'customer-subject' && z.id !== 'auto-subject')
     if (where === 'clear') { setPreviewProtectedZones(others); return }
     setPreviewProtectedZones([...others, { id: 'customer-subject', label: 'Subject you marked', source: 'user', ...SUBJECT_ZONES[where] }])
   }, [settings.protectedZones, setPreviewProtectedZones])
 
-  return { report, profile, sampling, zones, rightsNeedConfirmation: rightsNeedConfirmation(profile), show, applyRecommended, restoreRecommended, markSubject, canFixIssue, applyIssueFix }
+  return { report, profile, sampling, zones, rightsNeedConfirmation: rightsNeedConfirmation(profile), show, applyRecommended, restoreRecommended, markSubject, canFixIssue, applyIssueFix, subjectFinder }
 }

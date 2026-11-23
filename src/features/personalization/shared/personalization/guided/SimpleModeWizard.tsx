@@ -85,7 +85,7 @@ export function SimpleModeWizard({
                   padding: '10px 12px',
                   borderRadius: 12,
                   border: `1px solid ${active ? C.cyanBorder : C.border}`,
-                  background: active ? C.cyanSoft : 'transparent',
+                  background: active ? 'transparent' : 'transparent',
                   cursor: 'pointer',
                   textAlign: 'left',
                 }}

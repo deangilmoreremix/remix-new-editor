@@ -9,6 +9,8 @@ export interface FxPass {
   uniforms?: Record<string, UniformValue>;
   /** Read u_input from an earlier pass instead of the immediately previous one. */
   inputFrom?: number;
+  /** [remix] Fix G: FBO slot this pass writes to (default: its own index). Lets long ping-pong chains reuse two textures. A pass must not read its own slot. */
+  slot?: number;
   /** Bind named sampler uniforms to earlier pass outputs. */
   samplers?: Record<string, number>;
   /** 3D LUT bound to the u_lut sampler3D uniform. */

@@ -10,17 +10,18 @@ import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
 import { uploadFileToSupabase } from '../lib/uploadService.js';
 import { listBrands } from '../lib/brandStore.js';
-import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizePuck, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
+import { TEMPLATES, getTemplate, sanitizeConfig, defaultConfig, applyTemplate, sanitizeEditorData, tokensUsed, isCalendarUrl, parseTranscript, formatTranscript, moveItem, PUBLIC_TOKEN_KEYS } from '../lib/landingPages/templates.js';
 import { renderLandingPage } from '../lib/landingPages/render.js';
+import { AFTER_SUBMIT_OPTIONS } from '../lib/landingPages/afterSubmit.js';
 import { contactLabel } from '../lib/landingPages/csv.js';
 import { sampleSections } from '../lib/landingPages/sampleContent.js';
-import { wireframeSvg } from '../lib/landingPages/wireframes.js';
+import { templateCards } from './landing/TemplateChooser.js';
 import { loadVideoSources, fromFile } from '../lib/landingPages/sourceRegistry.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from '../lib/landingPages/ingest.js';
 import { createCustomerPanel } from '../lib/landingPages/customerPanel.js';
-import { applyCustomerToPuck, brandForConfig, customerTokens, toContactFields } from '../lib/landingPages/customerProfile.js';
+import { applyCustomerToEditor, brandForConfig, customerTokens, toContactFields } from '../lib/landingPages/customerProfile.js';
 import { takeQueuedVideo } from '../lib/landingPages/handoff.js';
-import { attachDesignPreview } from '../lib/landingPages/designPreview.js';
+import { ownPages } from '../lib/outreach/landingPage.js';
 import { sectionList, proposeRewrite, applyChanges } from '../lib/landingPages/rewrite.js';
 import {
   listPages, updatePage, deletePage, pageUrl, embedCode, fetchPageStats, listContacts, addContacts,
@@ -95,7 +96,8 @@ export function LandingPagesStudio() {
     if (!guard()) return;
     inner.replaceChildren(el('p', 'text-sm text-secondary', 'Loading your pages…'));
     try {
-      state.pages = await listPages(await ownerClient());
+      // A Video Outreach campaign's page belongs to that video (edited in Video Outreach), so it is not listed here.
+      state.pages = ownPages(await listPages(await ownerClient()));
     } catch (err) {
       inner.replaceChildren(el('p', 'text-sm text-red-300', err.message || 'Could not load your pages.'));
       return;
@@ -105,7 +107,7 @@ export function LandingPagesStudio() {
     titleWrap.append(
       el('div', 'text-[11px] font-extrabold uppercase tracking-[0.14em] text-primary mb-1', 'Video Pages'),
       el('h1', 'text-2xl md:text-3xl font-black', 'Landing pages for your videos'),
-      el('p', 'text-sm text-secondary mt-1 max-w-xl', 'Turn any generated or uploaded video into a branded page with a call to action, a lead form and view analytics.'),
+      el('p', 'text-sm text-secondary mt-1 max-w-xl', 'Turn any generated or uploaded video or picture into a branded page with a call to action, a lead form and view analytics. Free for everything you create.'),
     );
     const newBtn = el('button', BTN_PRIMARY, '+ New page');
     newBtn.type = 'button';
@@ -207,17 +209,17 @@ export function LandingPagesStudio() {
       tile.classList.toggle('ring-2', sel.video?.key === key);
       tile.classList.toggle('ring-primary', sel.video?.key === key);
     });
-    (state.sources ? Promise.resolve(state.sources) : loadVideoSources()).then((list) => {
+    (state.sources ? Promise.resolve(state.sources) : loadVideoSources({ pictures: true })).then((list) => {
       state.sources = list;
       grid.replaceChildren();
-      if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'No videos found yet. Generate one in any studio, or upload an MP4 above.'));
+      if (!list.length) grid.appendChild(el('p', 'col-span-full text-sm text-secondary', 'Nothing found yet. Make a video or picture in any studio, or upload an MP4 above.'));
       list.slice(0, 60).forEach((v) => {
         const tile = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
         tile.type = 'button';
         const media = el('div', 'aspect-video bg-black');
-        if (v.posterUrl) {
+        if (v.posterUrl || v.isPicture) {
           const img = el('img', 'w-full h-full object-cover');
-          img.src = v.posterUrl; img.alt = ''; img.loading = 'lazy';
+          img.src = v.posterUrl || v.url; img.alt = ''; img.loading = 'lazy';
           media.appendChild(img);
         } else {
           const vid = el('video', 'w-full h-full object-cover');
@@ -227,7 +229,15 @@ export function LandingPagesStudio() {
         const cap = el('div', 'p-2');
         cap.append(el('div', 'text-xs font-bold truncate', v.title), el('div', 'text-[11px] text-secondary truncate', [v.source.studio || v.source.kind, v.permanent ? '' : 'will be copied'].filter(Boolean).join(' · ')));
         tile.append(media, cap);
-        tile.addEventListener('click', () => { sel.video = v; status.textContent = `Selected: ${v.title}`; markSelected(); });
+        tile.addEventListener('click', async () => {
+          if (v.isPicture) {
+            // A picture becomes a page through the design picker (it fills the video slot as a still).
+            const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
+            openLandingPagePicker({ video: { url: v.url, title: v.title, type: 'image', studio: v.source?.studio || '' } });
+            return;
+          }
+          sel.video = v; status.textContent = `Selected: ${v.title}`; markSelected();
+        });
         tiles.set(v.key, tile);
         grid.appendChild(tile);
       });
@@ -235,50 +245,10 @@ export function LandingPagesStudio() {
 
     // Template
     const tplHead = el('h2', 'text-sm font-extrabold uppercase tracking-wide', 'Template');
-    const tplRow = el('div', 'flex flex-col gap-4');
-    const cards = new Map();
-    const paintCards = () => cards.forEach((c, id) => {
-      const on = id === sel.template;
-      c.classList.toggle('border-primary', on);
-      c.classList.toggle('ring-2', on);
-      c.classList.toggle('ring-primary', on);
-      c.setAttribute('aria-pressed', String(on));
-    });
     // Swatch cards, grouped: simple layouts first, then the co-branded personal-intro designs.
-    [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.puck)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]].forEach(([label, list]) => {
-      const grp = el('div', 'flex flex-col gap-2');
-      grp.appendChild(el('div', 'text-xs font-bold text-secondary', label));
-      const row = el('div', 'grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4');
-      list.forEach((t) => {
-        const b = el('button', 'text-left rounded-xl border border-white/10 bg-panel-bg overflow-hidden hover:border-primary/60 transition-colors');
-        b.type = 'button';
-        b.title = t.description;
-        // The thumbnail is the page's SHAPE (a wireframe) tinted with its colours, so layouts are told apart by structure.
-        let sw;
-        if (t.puck && t.puckData) {
-          // Editable landing pages: a LIVE, scaled picture of the real page (drawn when it scrolls into view).
-          sw = el('div', '');
-          sw.style.margin = '8px 8px 0';
-          const handle = attachDesignPreview(sw, t.puckData);
-          const prev = sel.previewHandles || (sel.previewHandles = []);
-          prev.push(handle);
-        } else {
-          sw = el('div', 'h-20 p-2 flex items-center justify-center');
-          sw.style.background = t.theme.bg;
-          sw.style.color = t.theme.accent;
-          sw.innerHTML = wireframeSvg(t.layout);
-        }
-        const cap = el('div', 'p-2');
-        cap.append(el('div', 'text-xs font-bold truncate', t.name), el('div', 'text-[11px] text-secondary line-clamp-2', t.description));
-        b.append(sw, cap);
-        b.addEventListener('click', () => { sel.template = t.id; paintCards(); });
-        cards.set(t.id, b);
-        row.appendChild(b);
-      });
-      grp.appendChild(row);
-      tplRow.appendChild(grp);
-    });
-    paintCards();
+    const tplCards = templateCards({ groups: [['Editable landing pages (change every word, image and section)', TEMPLATES.filter((t) => t.editable)], ['Page structures (different arrangements)', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.editable)], ['Personal intro (co-branded, greets the viewer by name)', TEMPLATES.filter((t) => t.intro)], ['Pitch page (buttons, calendar, transcript)', TEMPLATES.filter((t) => t.pitch)]], selected: sel.template, onPick: (id) => { sel.template = id; } });
+    sel.previewHandles = [tplCards];
+    const tplRow = tplCards.node;
 
     const cp = createCustomerPanel();
     void cp.load();
@@ -291,6 +261,7 @@ export function LandingPagesStudio() {
         const chosen = cp.selected();
         const one = chosen.length === 1 ? chosen[0] : null;
         const withBrand = !!one && cp.brand();
+        const withImage = !!one && cp.useImage();
         const client = await ownerClient();
         let page = await createPageFromVideo(client, sel.video, {
           template: sel.template,
@@ -298,9 +269,9 @@ export function LandingPagesStudio() {
           deps: { upload },
           onStep: (label) => { status.textContent = `${label}…`; },
         });
-        if (withBrand && page.config?.puck) {
-          const applied = applyCustomerToPuck(page.config.puck, one);
-          page = await updatePage(client, page.id, { config: { ...page.config, puck: applied.data } });
+        if ((withBrand || withImage) && page.config?.editor) {
+          const applied = applyCustomerToEditor(page.config.editor, one, { useImage: withImage, brand: withBrand });
+          page = await updatePage(client, page.id, { config: { ...page.config, editor: applied.data } });
         }
         const rows = chosen.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
         if (rows.length) {
@@ -325,15 +296,15 @@ export function LandingPagesStudio() {
     let current = { ...page, config: sanitizeConfig(page.config) };
     let dirty = false;
     let tab = 'design';
-    let puckHandle = null; // the visual (Puck) editor, when this page uses it
+    let editorHandle = null; // the visual editor, when this page uses it
 
     const top = el('div', 'flex flex-wrap items-center gap-3');
     const back = el('button', BTN, '← All pages');
     back.type = 'button';
     back.addEventListener('click', () => {
       if (dirty && !window.confirm('Discard unsaved changes?')) return;
-      puckHandle?.destroy();
-      puckHandle = null;
+      editorHandle?.destroy();
+      editorHandle = null;
       showList();
     });
     const titleInput = el('input', `${INPUT} flex-1 min-w-[12rem] max-w-md font-bold`);
@@ -390,9 +361,9 @@ export function LandingPagesStudio() {
     };
     saveBtn.addEventListener('click', () => save());
     publishBtn.addEventListener('click', () => {
-      if (!current.published && current.config.puck) {
+      if (!current.published && current.config.editor) {
         const tpl = getTemplate(current.config.template);
-        const left = sampleSections(current.config.puck, tpl.puckData, tpl.sampleTypes || []);
+        const left = sampleSections(current.config.editor, tpl.editorData, tpl.sampleTypes || []);
         if (left.length && !window.confirm(`These sections still contain the sample content from the design (made-up names, numbers or quotes):\n\n${left.map((x) => `• ${x.title || x.type}`).join('\n')}\n\nReplace them with your own before sharing. Publish anyway?`)) return;
       }
       save({ published: !current.published });
@@ -475,11 +446,11 @@ export function LandingPagesStudio() {
       return wrap;
     }
 
-    function puckDesignTab() {
+    function editorDesignTab() {
       const box = el('div', 'flex flex-col gap-3');
       const bar = el('div', 'flex flex-wrap items-center gap-3 text-xs text-secondary');
       const tplSel = el('select', INPUT);
-      TEMPLATES.filter((t) => t.puck).forEach((t) => { const o = el('option', '', t.name); o.value = t.id; tplSel.appendChild(o); });
+      TEMPLATES.filter((t) => t.editable).forEach((t) => { const o = el('option', '', t.name); o.value = t.id; tplSel.appendChild(o); });
       tplSel.value = current.config.template;
       tplSel.addEventListener('change', () => {
         current.config = applyTemplate(current.config, tplSel.value, { title: titleInput.value, brand: brandDefaults() });
@@ -489,7 +460,7 @@ export function LandingPagesStudio() {
       const sampleNote = el('span', 'text-amber-300 font-bold', '');
       const updateSample = () => {
         const tpl = getTemplate(current.config.template);
-        const n = sampleSections(current.config.puck, tpl.puckData, tpl.sampleTypes || []).length;
+        const n = sampleSections(current.config.editor, tpl.editorData, tpl.sampleTypes || []).length;
         sampleNote.textContent = n ? `${n} section${n === 1 ? '' : 's'} still use sample content (made-up names, numbers, quotes). Replace before sharing.` : '';
       };
       updateSample();
@@ -504,47 +475,47 @@ export function LandingPagesStudio() {
         try { await deletePage(await ownerClient(), current.id); showToast('Page deleted', 'success', 2000); showList(); } catch (err) { showToast(err.message, 'error', 4000); }
       });
       box.appendChild(danger);
-      let last = JSON.stringify(current.config.puck);
-      let mountPuckEditorFn = null;
+      let last = JSON.stringify(current.config.editor);
+      let mountPageEditorFn = null;
       const mountEditor = (data) => {
-        puckHandle?.destroy();
-        puckHandle = mountPuckEditorFn(host, {
+        editorHandle?.destroy();
+        editorHandle = mountPageEditorFn(host, {
           page: current,
           data,
           tokens: editorPreviewTokens || SAMPLE_TOKENS,
-          onPublish: () => saveBtn.click(), // Puck's own Publish button = our Save
+          onPublish: () => saveBtn.click(), // the editor's own Publish button = our Save
           onChange: (d) => {
-            const next = sanitizePuck(d);
+            const next = sanitizeEditorData(d);
             if (!next) return;
             const json = JSON.stringify(next);
             if (json === last) return;
             last = json;
-            current.config = { ...current.config, puck: next };
+            current.config = { ...current.config, editor: next };
             markDirty();
             updateSample();
           },
         });
       };
       // Apply new page data (AI rewrite accepted / undone): remount the editor on it.
-      const setPuckData = (data) => {
-        const next = sanitizePuck(data);
+      const setEditorData = (data) => {
+        const next = sanitizeEditorData(data);
         if (!next) return;
         last = JSON.stringify(next);
-        current.config = { ...current.config, puck: next };
+        current.config = { ...current.config, editor: next };
         markDirty();
         updateSample();
         mountEditor(next);
       };
-      box.insertBefore(aiRewritePanel(() => current.config.puck, setPuckData), host);
-      import('../lib/landingPages/puck/mount.jsx').then(({ mountPuckEditor }) => {
-        mountPuckEditorFn = mountPuckEditor;
-        mountEditor(current.config.puck);
+      box.insertBefore(aiRewritePanel(() => current.config.editor, setEditorData), host);
+      import('../lib/landingPages/editor/mount.jsx').then(({ mountPageEditor }) => {
+        mountPageEditorFn = mountPageEditor;
+        mountEditor(current.config.editor);
       }).catch((err) => showToast(err.message || 'Could not load the editor', 'error', 4000));
       return box;
     }
 
     function designTab() {
-      if (current.config.puck) return puckDesignTab();
+      if (current.config.editor) return editorDesignTab();
       const wrap = el('div', 'grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]');
       const form = el('div', 'flex flex-col gap-4');
       const previewBox = el('div', 'rounded-2xl border border-white/10 overflow-hidden bg-black max-h-[80vh] overflow-y-auto');
@@ -572,7 +543,7 @@ export function LandingPagesStudio() {
       };
 
       const tplSel = el('select', INPUT);
-      [['Editable landing pages', TEMPLATES.filter((t) => t.puck)], ['Page structures', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.puck)], ['Personal intro', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)], ['Older fixed-layout website pages', TEMPLATES.filter((t) => t.site)]].forEach(([label, list]) => {
+      [['Editable landing pages', TEMPLATES.filter((t) => t.editable)], ['Page structures', TEMPLATES.filter((t) => t.compose && !t.site)], ['Layouts', TEMPLATES.filter((t) => !t.intro && !t.pitch && !t.compose && !t.editable)], ['Personal intro', TEMPLATES.filter((t) => t.intro)], ['Pitch page', TEMPLATES.filter((t) => t.pitch)], ['Older fixed-layout website pages', TEMPLATES.filter((t) => t.site)]].forEach(([label, list]) => {
         const og = el('optgroup');
         og.label = label;
         list.forEach((t) => { const o = el('option', '', t.name); o.value = t.id; og.appendChild(o); });
@@ -978,6 +949,9 @@ export function LandingPagesStudio() {
           text('subtitle', 'Form subtitle', { path: ['form'] }),
           text('privacy', 'Line under the button', { path: ['form'] }),
           text('successMessage', 'Thank-you message', { path: ['form'] }),
+          select('After the form is sent', AFTER_SUBMIT_OPTIONS, () => current.config.form.afterSubmitAction || 'message', (c, v) => { c.form.afterSubmitAction = v; }),
+          text('afterSubmitUrl', 'Button / redirect link (https, mailto: or tel:)', { path: ['form'] }),
+          text('afterSubmitButtonText', 'Button text (for "Show a button")', { path: ['form'] }),
         ),
         group('Social proof & footer', false,
           text('quote', 'Testimonial quote (only add one you have permission to use)', { path: ['testimonial'], area: true }),
@@ -1035,8 +1009,8 @@ export function LandingPagesStudio() {
     }
 
     function draw() {
-      puckHandle?.destroy();
-      puckHandle = null;
+      editorHandle?.destroy();
+      editorHandle = null;
       Object.entries(tabBtns).forEach(([id, b]) => {
         const on = id === tab;
         b.className = `px-4 py-2 text-sm font-bold border-b-2 -mb-px ${on ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-white'}`;

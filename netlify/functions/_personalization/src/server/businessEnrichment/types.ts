@@ -33,4 +33,8 @@ export interface BusinessEnrichment {
   robots: { checked: boolean; status: 'allow-all' | 'rules' | 'disallow-all' | 'unavailable' }
   jsRendered: boolean
   notes: string[]
+  /** Observations about how the business does business online (form, booking, video, site quality). */
+  siteSignals?: import('./siteSignals').SiteSignals
+  /** When this result was produced (ISO). Lets the UI say how fresh it is; set by the enrichment run. */
+  enrichedAt?: string
 }

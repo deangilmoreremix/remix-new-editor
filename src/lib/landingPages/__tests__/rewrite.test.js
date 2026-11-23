@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { collectTexts, applyChanges, checkRewrite, proposeRewrite, sectionList, isCopy } from '../rewrite.js';
-import { PUCK_TEMPLATES } from '../puck/designs.js';
+import { EDITABLE_TEMPLATES } from '../editor/designs.js';
 
 const data = {
   root: { props: {} }, zones: {},
@@ -59,12 +59,12 @@ describe('landing page AI rewrite', () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
   it('every shipped design has rewritable copy and rewriting never alters its structure', () => {
-    for (const t of PUCK_TEMPLATES) {
-      const items = collectTexts(t.puckData);
+    for (const t of EDITABLE_TEMPLATES) {
+      const items = collectTexts(t.editorData);
       expect(items.length, t.id).toBeGreaterThan(3);
-      const next = applyChanges(t.puckData, items.map((i) => ({ ...i, after: `${i.text} x` })));
+      const next = applyChanges(t.editorData, items.map((i) => ({ ...i, after: `${i.text} x` })));
       const shape = (d) => JSON.stringify(d, (k, v) => (typeof v === 'string' ? '' : v));
-      expect(shape(next), t.id).toBe(shape(t.puckData));
+      expect(shape(next), t.id).toBe(shape(t.editorData));
     }
   });
   it('isCopy rejects settings', () => {

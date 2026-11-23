@@ -5,7 +5,7 @@
 // aspect ratio inside a social-styled shell rather than stretching it. When
 // true 9:16 SmartVideo renders replace the files, set FORCE_VERTICAL to true.
 
-import { getDemoBySlug, formatDuration, ratioToNumber, loadDemoPrompt, getCreateTarget } from '../../../data/minimaxH3Demos.js';
+import { getDemoBySlug, formatDuration, loadDemoPrompt, getCreateTarget } from '../../../data/minimaxH3Demos.js';
 import { createMediaFrame, cleanupFrames, revealOnScroll } from './minimax/mediaFrame.js';
 import {
   injectMinimaxStyles,
@@ -77,7 +77,7 @@ function createUGCCard(config) {
     </div>
 
     <div class="flex flex-1 flex-col p-5">
-      <h3 class="text-base font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
+      <h3 class="line-clamp-2 break-words text-base font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
       <p class="mt-1.5 flex-1 text-sm leading-relaxed text-gray-400">${escapeHtml(config.description)}</p>
       <div class="mt-5 flex flex-col items-center gap-2.5" data-mmx-card-actions>
         <div class="flex flex-wrap items-center justify-center gap-2.5" data-mmx-primary-actions></div>
@@ -89,10 +89,9 @@ function createUGCCard(config) {
   const mediaHost = card.querySelector('[data-mmx-card-media]');
 
   // Never distort: use the clip's real ratio unless we own true vertical assets.
-  const nativeRatio = ratioToNumber(demo.aspectRatio);
   const frame = createMediaFrame(demo, {
     mode: 'hover',
-    ratio: FORCE_VERTICAL ? 9 / 16 : nativeRatio,
+    ratio: FORCE_VERTICAL ? 9 / 16 : 1, // uniform square box so the 4 cards align
     className: 'w-full',
     objectFit: FORCE_VERTICAL ? 'cover' : 'cover',
     ariaLabel: `${config.label} UGC example — ${demo.title}`,
@@ -123,6 +122,7 @@ function createUGCCard(config) {
       { route: 'cinema',                    label: 'F', title: 'Open in Cinema Studio',          params: { template: templateId } },
       { route: 'video',                     label: 'V', title: 'Open in Video Studio',           params: { template: templateId } },
       { route: 'image',                     label: 'I', title: 'Open in Image Studio',           params: { template: templateId } },
+      { route: 'personalize', label: 'P', title: 'Personalize this demo — preview it with your own brand', loadPrompt: loadDemoPrompt },
     ];
     studioIcons.forEach((icon) => {
       studioIconsHost.appendChild(
@@ -131,6 +131,7 @@ function createUGCCard(config) {
           params: icon.params || {},
           label: icon.label,
           title: icon.title,
+          loadPrompt: icon.loadPrompt,
         })
       );
     });

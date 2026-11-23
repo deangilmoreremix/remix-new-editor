@@ -6,6 +6,12 @@
  * every x/y pair describes the CENTER of a layer box.
  */
 
+import { normalizeCaptions } from '../captions/captionStyle'
+import { normalizeTextStyles } from './textStyles'
+import { normalizeAudioTracks, normalizeVideoVolume } from './audioMix'
+import { normalizeKeyframes } from './keyframes'
+import { normalizeLayerEffects, normalizeLook } from './effects'
+import { normalizeCutout } from './cutout/cutoutSettings'
 import { contractFor, roleForLayer } from './mediaRoles'
 import { IMAGE_ROLES, normalizeImageStyle, type ImageHints, type ImageRole } from './imageStyle'
 import type {
@@ -956,6 +962,10 @@ function normalizeLayer(raw: unknown): PreviewLayer | null {
   if (raw.locked === true) normalized.locked = true
   const rotation = normalizeAngle(raw.rotation)
   if (rotation !== 0) normalized.rotation = rotation
+  const keyframes = normalizeKeyframes(raw.keyframes)
+  if (keyframes) normalized.keyframes = keyframes
+  const effects = normalizeLayerEffects(raw.effects)
+  if (effects) normalized.effects = effects
   const imageStyle = normalizeImageStyle(raw.imageStyle)
   if (imageStyle) normalized.imageStyle = imageStyle
   if (typeof raw.imageRole === 'string' && (IMAGE_ROLES as readonly string[]).includes(raw.imageRole)) normalized.imageRole = raw.imageRole as ImageRole
@@ -981,6 +991,8 @@ export function normalizeImageHints(raw: unknown): Record<string, ImageHints> | 
       if (h[k] === true) hint[k] = true
     }
     if (['product', 'service', 'portrait', 'property', 'portfolio', 'logo', 'general'].includes(h.role as string)) hint.role = h.role as ImageHints['role']
+    // A derived, padding-trimmed logo copy: only a bounded PNG data URL is accepted (never a remote or script URL).
+    if (typeof h.trimmedUrl === 'string' && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(h.trimmedUrl) && h.trimmedUrl.length <= 200_000) hint.trimmedUrl = h.trimmedUrl
     if (Object.keys(hint).length) out[url] = hint
   }
   return Object.keys(out).length ? out : undefined
@@ -1139,15 +1151,28 @@ export function normalizePreviewSettings(raw: unknown): PersonalizationPreviewSe
    }
 
    out.audio = normalizePreviewAudio(raw.audio) ?? null
+  const audioTracks = normalizeAudioTracks(raw.audioTracks)
+  if (audioTracks) out.audioTracks = audioTracks
+  const videoVolume = normalizeVideoVolume(raw.videoVolume)
+  if (videoVolume !== undefined) out.videoVolume = videoVolume
+  if (raw.videoMuted === true) out.videoMuted = true
+  if (typeof raw.audioSolo === 'string' && raw.audioSolo) out.audioSolo = raw.audioSolo
 
    // The applied Remotion design. Absent in projects saved before the design
    // registry existed, so it falls back to null instead of throwing.
    out.remotionDesignId = nonEmptyString(raw.remotionDesignId) ?? null
   const zones = normalizeProtectedZones(raw.protectedZones)
   if (zones) out.protectedZones = zones
+  const look = normalizeLook(raw.look)
+  if (look) out.look = look
+  const captions = normalizeCaptions(raw.captions)
+  if (captions) out.captions = captions
+  const textStyles = normalizeTextStyles(raw.textStyles)
+  if (textStyles) out.textStyles = textStyles
+  const cutout = normalizeCutout(raw.cutout)
+  if (cutout) out.cutout = cutout
   const hints = normalizeImageHints(raw.imageHints)
   if (hints) out.imageHints = hints
-
    return out
   } catch {
     return createDefaultPreviewSettings()

@@ -15,10 +15,15 @@ vi.mock('../../preview/logoVectorize', async () => {
   const actual = await vi.importActual<typeof import('../../preview/logoVectorize')>('../../preview/logoVectorize')
   return { ...actual, traceLogo: vi.fn(async () => ({ dataUrl: 'data:image/svg+xml;base64,AAA' })) }
 })
+const engine = vi.hoisted(() => ({
+  isModelCached: vi.fn(), modelInfo: vi.fn(), cancelLocalAI: vi.fn(),
+  upscaleImage: vi.fn(), upscaleRelease: null as null | (() => void), upscaleCalls: [] as (() => void)[],
+}))
+vi.mock('../../localAI/engine', () => engine)
 import { AssetUsagePanel } from '../AssetUsagePanel'
 
 beforeAll(() => { (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true })
-afterEach(() => { document.body.innerHTML = ''; update.mockClear(); blobGate.all.length = 0 })
+afterEach(() => { document.body.innerHTML = ''; update.mockClear(); blobGate.all.length = 0; engine.upscaleCalls.length = 0 })
 
 const asset = (id: string) => ({ id, role: 'product_image', name: `pic-${id}`, url: `https://x/${id}.png`, isPrimary: false, createdAt: '' })
 function setup(n: number) {
@@ -125,5 +130,68 @@ describe('AssetUsagePanel logo tracing', () => {
     act(() => { root.unmount() })
     await act(async () => { blobGate.release?.() }); await settle()
     expect(add).not.toHaveBeenCalled()
+  })
+})
+
+describe('AssetUsagePanel sharpen 2x', () => {
+  const small = { id: 'S1', role: 'logo', name: 'small-logo.png', url: 'https://x/small.png', isPrimary: true, createdAt: '', width: 300, height: 120, mimeType: 'image/png' }
+  const big = { id: 'B1', role: 'product_reference', name: 'big.jpg', url: 'https://x/big.jpg', isPrimary: false, createdAt: '', width: 2400, height: 1600, mimeType: 'image/jpeg' }
+  function setupSharpen(extra: object[] = [], cached = true) {
+    const add = { addLogoFiles: vi.fn(), addLogoUrl: vi.fn(), addProductFiles: vi.fn(), addProductUrl: vi.fn() }
+    engine.upscaleImage.mockReset()
+    engine.isModelCached.mockResolvedValue(cached)
+    engine.modelInfo.mockResolvedValue({ key: 'upscale', label: 'Upscale stills 2x', feature: 'x', sizeMB: 4, license: 'Apache-2.0' })
+    engine.cancelLocalAI.mockResolvedValue(undefined)
+    engine.upscaleImage.mockImplementation(() => new Promise<Blob>((resolve) => { engine.upscaleCalls.push(() => resolve(new Blob(['png'], { type: 'image/png' }))) }))
+    URL.createObjectURL = vi.fn(() => 'blob:http://localhost/sharp') as unknown as typeof URL.createObjectURL
+    ctx.assets = { logos: [small], products: [big, ...extra], primaryLogo: small }
+    ctx.previewSettings = applyLayoutPreset(createDefaultPreviewSettings(), 'product-showcase')
+    ctx.previewVideo = null; ctx.source = { id: 'S1' }; ctx.clientForm = { id: 'client-A', businessName: 'A' }
+    ctx.updatePreviewLayer = update; ctx.setPrimaryLogo = vi.fn(); Object.assign(ctx, add)
+    const el = document.createElement('div'); document.body.appendChild(el)
+    const root = createRoot(el)
+    act(() => { root.render(<AssetUsagePanel />) })
+    return { el, root, add }
+  }
+  const tick = () => act(async () => { await new Promise((r) => setTimeout(r, 5)) })
+
+  it('offers it for a small picture only', () => {
+    const { el } = setupSharpen()
+    expect(el.querySelector('[data-testid="sharpen-S1"]')).toBeTruthy()
+    expect(el.querySelector('[data-testid="sharpen-B1"]')).toBeNull()
+  })
+  it('adds a sharper copy of a small logo as a new logo and keeps the original', async () => {
+    const { el, add } = setupSharpen()
+    act(() => { (el.querySelector('[data-testid="sharpen-S1"]') as HTMLButtonElement).click() }); await tick()
+    expect(engine.upscaleImage).toHaveBeenCalledWith('https://x/small.png', expect.objectContaining({ signal: expect.anything() }))
+    await act(async () => { engine.upscaleCalls[0]() }); await tick()
+    expect(add.addLogoUrl).toHaveBeenCalledWith('blob:http://localhost/sharp') // jsdom has no DataTransfer, so the URL path
+    expect(add.addProductUrl).not.toHaveBeenCalled()
+    expect(el.textContent).toMatch(/original is still there/)
+  })
+  it('asks before downloading the model, and downloads nothing if declined', async () => {
+    const { el } = setupSharpen([], false)
+    act(() => { (el.querySelector('[data-testid="sharpen-S1"]') as HTMLButtonElement).click() }); await tick()
+    expect(el.querySelector('[data-testid="local-ai-notice"]')?.getAttribute('data-phase')).toBe('confirm')
+    expect(el.textContent).toMatch(/one-time download of about 4 MB/)
+    expect(engine.upscaleImage).not.toHaveBeenCalled()
+    act(() => { (el.querySelector('[data-testid="local-ai-decline"]') as HTMLButtonElement).click() }); await tick()
+    expect(engine.upscaleImage).not.toHaveBeenCalled()
+  })
+  it('drops a sharpened copy for a client the person has left', async () => {
+    const { el, root, add } = setupSharpen()
+    act(() => { (el.querySelector('[data-testid="sharpen-S1"]') as HTMLButtonElement).click() }); await tick()
+    ctx.clientForm = { id: 'client-B', businessName: 'B' }
+    act(() => { root.render(<AssetUsagePanel />) })
+    await act(async () => { engine.upscaleCalls[0]() }); await tick()
+    expect(add.addLogoUrl).not.toHaveBeenCalled()
+    expect(add.addLogoFiles).not.toHaveBeenCalled()
+  })
+  it('shows a plain error when the picture cannot be read, and leaves everything as it was', async () => {
+    const { el, add } = setupSharpen()
+    engine.upscaleImage.mockRejectedValue(new Error('This image cannot be read by the browser'))
+    act(() => { (el.querySelector('[data-testid="sharpen-S1"]') as HTMLButtonElement).click() }); await tick()
+    expect(el.querySelector('[data-testid="local-ai-error"]')?.textContent).toContain('cannot be read')
+    expect(add.addLogoUrl).not.toHaveBeenCalled()
   })
 })

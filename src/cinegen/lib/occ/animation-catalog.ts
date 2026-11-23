@@ -1,5 +1,5 @@
 // [remix] One catalogue for every animation the Library offers, filed by what the animation is and never by where it came from.
-// The 267 library animations keep the groups the Animations window already uses (groupOf in hyperframes-modal.tsx); the motion-graphics
+// The library animations (HyperFrames, plus the Remotion UI ones when enabled; the count comes from the data) keep the groups the Animations window already uses (groupOf in hyperframes-modal.tsx); the motion-graphics
 // templates are mapped onto the same group names. Chips follow the window's order, with counts.
 import type { MgTemplate } from './mg-templates';
 import type { HfItem } from '@cinegen/lib/hyperframes/overlay';

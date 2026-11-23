@@ -54,6 +54,7 @@ function referrerHost(doc) {
  * @param {object} o
  *   videoId      published video id
  *   contactId?   personal-link contact id (?c=)
+ *   recipientToken? campaign recipient token (?cr=); only a lookup key, the server validates it against the video's owner
  *   sections?    [{ id, start, end }] seconds; enables section_rewatch
  *   mode?        override consentMode()
  * plus injectables for tests: fetchImpl, beacon, storage, rand, doc, setTimer, clearTimer, flushMs
@@ -83,6 +84,7 @@ export function createAnalytics(o = {}) {
     } catch { viewerId = null; } // storage blocked: still counts as an anonymous session
   }
   const ref = referrerHost(doc);
+  const recipient = typeof o.recipientToken === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(o.recipientToken) ? o.recipientToken : null;
 
   let seq = 0;
   let queue = [];
@@ -93,7 +95,7 @@ export function createAnalytics(o = {}) {
 
   const payload = (events) => JSON.stringify({
     video: o.videoId, session: sessionId, ...(viewerId ? { viewer: viewerId } : {}),
-    ...(o.contactId ? { contact: o.contactId } : {}), ...(ref ? { ref } : {}), events,
+    ...(o.contactId ? { contact: o.contactId } : {}), ...(recipient ? { recipient } : {}), ...(ref ? { ref } : {}), events,
   });
 
   function schedule(ms) {

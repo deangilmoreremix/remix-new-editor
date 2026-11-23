@@ -59,6 +59,7 @@ export type WorkspaceAction =
   | { type: 'ADD_SET'; set: ProjectSet }
   | { type: 'UPDATE_SET'; setId: string; updates: Partial<ProjectSet> }
   | { type: 'REMOVE_SET'; setId: string }
+  | { type: 'BATCH'; actions: WorkspaceAction[] } // [remix] several actions applied together = ONE undo step (Template Generator)
   | { type: 'ADD_OVERLAY'; overlay: OverlayClip }
   | { type: 'UPDATE_OVERLAY'; overlayId: string; updates: Partial<OverlayClip> }
   | { type: 'REMOVE_OVERLAY'; overlayId: string }
@@ -585,6 +586,9 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
         ...state,
         sets: state.sets.map((set) => (set.id === action.setId ? { ...set, ...action.updates } : set)),
       };
+
+    case 'BATCH':
+      return action.actions.reduce((acc, a) => workspaceReducer(acc, a), state);
 
     case 'ADD_OVERLAY':
       if (state.overlays.some((o) => o.id === action.overlay.id)) return state;

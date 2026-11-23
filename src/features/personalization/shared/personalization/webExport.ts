@@ -18,6 +18,7 @@
  * runtime and never pull the package into a bundle.
  */
 
+import { ensureMasks } from './preview/cutout/maskStore'
 import type {
   CanRenderMediaOnWebOptions,
   CanRenderMediaOnWebResult,
@@ -264,6 +265,22 @@ export async function exportPersonalizedVideo(
   const fps = settings?.fps && settings.fps > 0 ? settings.fps : 30
   const durationInFrames = Math.max(1, Math.round(settings?.durationInFrames ?? 1))
 
+  // Background removal: the export draws the presenter from measured masks. If this page does not have them
+  // yet (for example the project was just reopened), measure them first rather than exporting the original
+  // background by mistake.
+  if (settings?.cutout?.enabled && inputProps.videoUrl && !inputProps.isImageSource) {
+    try {
+      await ensureMasks(inputProps.videoUrl, { signal })
+    } catch (error) {
+      if (signal?.aborted) return { ok: false, reason: 'cancelled', error: 'Render cancelled.' }
+      return {
+        ok: false,
+        reason: 'render-failed',
+        error: `Background removal could not be prepared: ${error instanceof Error ? error.message : String(error)}`,
+      }
+    }
+  }
+
   let renderer: LoadedWebRenderer
   try {
     renderer = await loadWebRenderer()
@@ -393,12 +410,24 @@ export async function exportPersonalizedVideo(
     return {
       ok: false,
       reason: 'render-failed',
-      error: error instanceof Error ? error.message : 'The in-browser render failed.',
+      error: friendlyRenderError(error),
     }
   } finally {
     if (signal) signal.removeEventListener('abort', forwardAbort)
     if (activeController === controller) activeController = null
   }
+}
+
+/**
+ * A browser that cannot fetch the source video reports only "Failed to fetch" (Chrome), "Load failed" (Safari) or
+ * "NetworkError…" (Firefox). Say what that means for the customer instead of printing the bare browser string.
+ */
+export function friendlyRenderError(error: unknown): string {
+  const message = error instanceof Error ? error.message : ''
+  if (/^(failed to fetch|load failed|networkerror)/i.test(message.trim())) {
+    return "We couldn't read this video in your browser. Try a different demo or upload your own."
+  }
+  return message || 'The in-browser render failed.'
 }
 
 /** Hand the finished file to the user as a direct download. */

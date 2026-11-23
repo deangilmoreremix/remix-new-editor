@@ -5,7 +5,7 @@ import {
   isValidEmail, savedNotifyEmail, savedNotifyEmails, uniqueEmails, buildLeadEmail,
   isRetryable, backoffMs, hostOf, deriveSigningSecret, signWebhook, MAX_ATTEMPTS,
   savedEsp, leadContact, espRequests, espCheckRequest, encryptSecret, decryptSecret,
-  sanitizeSource, attributionOf,
+  sanitizeSource, attributionOf, looksAutomated, MIN_FILL_MS, isDisposableEmail, emailProblem, chatPreset, chatBody, leadAlertText, autoReplySettings, buildAutoReply, AUTO_REPLY_DEFAULT_SUBJECT, declaredEmailKeys, autoReplyReplyTo,
 } from '../../supabase/functions/lead-capture/logic.ts';
 
 describe('lead-capture webhook safety', () => {
@@ -223,5 +223,191 @@ describe('lead-capture source / UTM', () => {
     expect(withSrc.html).not.toContain('<b>x</b>');
     expect(withSrc.text).toContain('utm_campaign: <b>x</b>');
     expect(withSrc.text).toContain('Referrer: https://r.test/p');
+  });
+});
+
+describe('lead-capture spam signals', () => {
+  it('flags a filled honeypot or a form finished faster than a person can', () => {
+    expect(looksAutomated({ hp: 'http://spam' })).toBe(true);
+    expect(looksAutomated({ ms: 300 })).toBe(true);
+    expect(looksAutomated({ ms: MIN_FILL_MS })).toBe(false);
+    expect(looksAutomated({ ms: 8000, hp: '' })).toBe(false);
+  });
+  it('lets old clients and prefilled forms through (no signals, or no timing)', () => {
+    expect(looksAutomated(undefined)).toBe(false);
+    expect(looksAutomated(null)).toBe(false);
+    expect(looksAutomated([])).toBe(false);
+    expect(looksAutomated({ hp: '' })).toBe(false); // prefilled form: honeypot only, no timing
+  });
+  it('recognises throwaway inboxes, including subdomains', () => {
+    expect(isDisposableEmail('x@mailinator.com')).toBe(true);
+    expect(isDisposableEmail('X@Mailinator.COM')).toBe(true);
+    expect(isDisposableEmail('x@mail.mailinator.com')).toBe(true);
+    expect(isDisposableEmail('x@gmail.com')).toBe(false);
+    expect(isDisposableEmail('nope')).toBe(false);
+  });
+  it('emailProblem: bad format always; throwaway only when the owner turned it on', () => {
+    expect(emailProblem({ EMAIL: 'not-an-email' })).toMatch(/valid email/i);
+    expect(emailProblem({ EMAIL: 'x@mailinator.com' })).toBe('');
+    expect(emailProblem({ EMAIL: 'x@mailinator.com' }, { blockDisposable: true })).toMatch(/permanent/i);
+    expect(emailProblem({ 'FIRST NAME': 'Ann', EMAIL: 'ann@gmail.com' }, { blockDisposable: true })).toBe('');
+    expect(emailProblem({ PHONE: '555' })).toBe('');
+  });
+});
+
+describe('lead-capture A/B version', () => {
+  it('keeps A or B in the stored source and nothing else', () => {
+    expect(sanitizeSource({ page: 'https://x/watch/Abc', variant: 'B' }).variant).toBe('B');
+    expect(sanitizeSource({ variant: 'A' }).variant).toBe('A');
+    for (const bad of ['C', 'b', 1, null, { x: 1 }]) expect(sanitizeSource({ variant: bad })).not.toHaveProperty('variant');
+  });
+});
+
+describe('lead-capture chat alert presets', () => {
+  const slack = 'https://hooks.slack.com/services/T000/B000/XXXX';
+  const discord = 'https://discord.com/api/webhooks/123456/abcdef';
+  const teams = 'https://contoso.webhook.office.com/webhookb2/abc/IncomingWebhook/def/ghi';
+  it('recognises Slack, Discord and Teams webhook URLs and nothing else', () => {
+    expect(chatPreset(slack)).toBe('slack');
+    expect(chatPreset(discord)).toBe('discord');
+    expect(chatPreset('https://canary.discord.com/api/webhooks/1/x')).toBe('discord');
+    expect(chatPreset(teams)).toBe('teams');
+    expect(chatPreset('https://outlook.office.com/webhook/abc')).toBe('teams');
+    for (const other of ['https://example.com/hook', 'https://hooks.slack.com/other/path', 'https://evil.com/api/webhooks/1/x', 'https://discord.com/channels/1', 'http://hooks.slack.com/services/a/b/c', 'https://hooks.slack.com.evil.com/services/a', 'not a url', '']) {
+      expect(chatPreset(other)).toBeNull();
+    }
+  });
+  const alert = leadAlertText('lead-form', { EMAIL: 'ann@x.co', 'FIRST NAME': 'Ann' }, { utm: { source: 'newsletter', campaign: 'spring' } });
+  it('words the alert: a title, the answers and where it came from', () => {
+    expect(alert.title).toBe('New lead');
+    expect(alert.lines).toEqual(['EMAIL: ann@x.co', 'FIRST NAME: Ann', 'Came from: newsletter / spring']);
+    expect(leadAlertText('list-builder', {}).title).toBe('New List Builder sign-up');
+    expect(leadAlertText('call-attempt', {}).title).toBe('Someone tried to call you');
+    expect(leadAlertText('lead-form', { A: 'x' }, { referrer: 'https://news.example.org/post' }).lines.at(-1)).toBe('Came from: news.example.org');
+  });
+  it('limits what an alert carries', () => {
+    const many = Object.fromEntries(Array.from({ length: 30 }, (_, i) => [`K${i}`, 'v'.repeat(500)]));
+    const { lines } = leadAlertText('lead-form', many);
+    expect(lines).toHaveLength(10);
+    expect(lines[0].length).toBeLessThanOrEqual(250);
+  });
+  it('shapes each app\'s body', () => {
+    expect(chatBody('slack', alert)).toEqual({ text: '*New lead*\nEMAIL: ann@x.co\nFIRST NAME: Ann\nCame from: newsletter / spring' });
+    const d = chatBody('discord', alert);
+    expect(d.content).toContain('**New lead**'); expect(d.allowed_mentions).toEqual({ parse: [] });
+    const t = chatBody('teams', alert);
+    expect(t['@type']).toBe('MessageCard'); expect(t.title).toBe('New lead'); expect(String(t.text)).toContain('EMAIL: ann@x.co');
+  });
+  it('treats viewer-supplied text as data: escapes Slack markup and defuses mentions', () => {
+    const evil = leadAlertText('lead-form', { NAME: '<!channel> & <https://evil.test|click> @everyone' });
+    const s = String(chatBody('slack', evil).text);
+    expect(s).not.toContain('<!channel>'); expect(s).toContain('&lt;!channel&gt;'); expect(s).toContain('&amp;'); expect(s).not.toContain('@everyone'); expect(s).toContain('@\u200beveryone');
+    expect(String(chatBody('slack', leadAlertText('lead-form', { EMAIL: 'ann@x.co' })).text)).toContain('ann@x.co'); // emails are left alone
+    const d = String(chatBody('discord', evil).content);
+    expect(d).not.toContain('@everyone');
+    expect(String(chatBody('teams', evil).text)).not.toContain('@everyone');
+  });
+  it('keeps a Discord message under its 2,000 character limit', () => {
+    const big = { title: 'x'.repeat(1500), lines: ['y'.repeat(1500)] };
+    expect(String(chatBody('discord', big).content).length).toBeLessThanOrEqual(2000);
+  });
+});
+
+describe('lead-capture auto-reply', () => {
+  it('is off unless the owner switched it on, and defaults the wording', () => {
+    expect(autoReplySettings(null)).toBeNull();
+    expect(autoReplySettings({})).toBeNull();
+    expect(autoReplySettings({ autoReplyEnabled: 'yes' })).toBeNull(); // only a real true
+    const on = autoReplySettings({ autoReplyEnabled: true });
+    expect(on.subject).toBe(AUTO_REPLY_DEFAULT_SUBJECT); expect(on.body).toContain('{{video_link}}');
+  });
+  it('caps and cleans the owner text', () => {
+    const s = autoReplySettings({ autoReplyEnabled: true, autoReplySubject: 'Hello\r\nBcc: spam@x.co', autoReplyBody: 'b'.repeat(5000) });
+    expect(s.subject).not.toMatch(/[\r\n]/); expect(s.body).toHaveLength(1000);
+  });
+  const s = { subject: 'Hi {{first_name}}', body: 'Hi {{first_name}}, watch: {{video_link}}' };
+  it('fills only the first name and the video link', () => {
+    const m = buildAutoReply(s, { firstName: 'Ann Lee', videoUrl: 'https://app.test/watch/Abc123XyZ9' });
+    expect(m.text).toBe('Hi Ann, watch: https://app.test/watch/Abc123XyZ9');
+    expect(m.subject).toBe('Hi Ann');
+    expect(m.html).toContain('https://app.test/watch/Abc123XyZ9');
+    expect(buildAutoReply(s, { videoUrl: 'https://app.test/watch/x' }).text).toBe('Hi there, watch: https://app.test/watch/x');
+  });
+  it('a name a viewer typed cannot add markup, links or extra headers', () => {
+    const m = buildAutoReply({ subject: 'Hi {{first_name}}', body: 'Hi {{first_name}}' }, { firstName: '<img src=x onerror=alert(1)>\r\nBcc: a@b.co http://evil.test', videoUrl: 'https://app.test/watch/x' });
+    expect(m.html).not.toContain('<img'); expect(m.html).toContain('&lt;img');
+    expect(m.subject).not.toMatch(/[\r\n]/);
+    expect(m.text).not.toContain('http://evil.test'); // only the first word of the name is used
+  });
+  it('escapes the owner body in HTML too, and drops unknown tokens from the subject', () => {
+    const m = buildAutoReply({ subject: 'Hi {{unknown}} there', body: '<b>Hi</b> & {{video_link}}' }, { videoUrl: 'https://app.test/watch/x' });
+    expect(m.html).toContain('&lt;b&gt;Hi&lt;/b&gt; &amp; https://app.test/watch/x');
+    expect(m.subject).toBe('Hi  there');
+  });
+});
+
+describe('lead-capture viewing session', () => {
+  it('keeps only a well-formed session id', () => {
+    expect(sanitizeSource({ session: 'abcDEF1234567890abcd' }).session).toBe('abcDEF1234567890abcd');
+    for (const bad of ['short', 'has spaces in it 1234567890', 'x'.repeat(65), 12345, null, { a: 1 }]) expect(sanitizeSource({ session: bad })).not.toHaveProperty('session');
+  });
+});
+
+describe('lead-capture email checks follow the declared field types', () => {
+  const lb = { elements: [{ label: 'Email', token: 'EMAIL', type: 'email' }, { label: 'Email me updates', token: 'EMAIL ME UPDATES', type: 'checkbox' }, { label: 'Preferred email frequency', token: 'PREFERRED EMAIL FREQUENCY', type: 'select' }, { label: 'Work contact', token: 'WORK CONTACT', type: 'email' }] };
+  it('finds the email fields of a List Builder', () => {
+    expect([...declaredEmailKeys(lb)].sort()).toEqual(['EMAIL', 'WORK CONTACT']);
+  });
+  it('finds the email fields of a Lead Generator clip (label keys, duplicates numbered)', () => {
+    const lg = { fields: [{ id: 'a', type: 'email', label: 'Email' }, { id: 'b', type: 'email', label: 'Email' }, { id: 'c', type: 'checkbox', label: 'Email me updates' }] };
+    expect([...declaredEmailKeys(lg)].sort()).toEqual(['EMAIL', 'EMAIL_2']);
+  });
+  it('is null when the field types are not known, so the name check still applies', () => {
+    expect(declaredEmailKeys(null)).toBeNull(); expect(declaredEmailKeys({})).toBeNull();
+  });
+  it('a checkbox or dropdown whose label mentions email is not rejected', () => {
+    const emailKeys = declaredEmailKeys(lb);
+    const data = { EMAIL: 'ann@x.co', 'EMAIL ME UPDATES': 'Yes', 'PREFERRED EMAIL FREQUENCY': 'Weekly' };
+    expect(emailProblem(data, { emailKeys })).toBe('');
+    expect(emailProblem(data)).toMatch(/valid email/i); // the old name check would have rejected it
+  });
+  it('still rejects a bad real email, and throwaway ones when switched on', () => {
+    const emailKeys = declaredEmailKeys(lb);
+    expect(emailProblem({ EMAIL: 'nope', 'EMAIL ME UPDATES': 'Yes' }, { emailKeys })).toMatch(/valid email/i);
+    expect(emailProblem({ 'WORK CONTACT': 'x@mailinator.com' }, { emailKeys, blockDisposable: true })).toMatch(/permanent/i);
+    expect(emailProblem({ EMAIL: 'x@mailinator.com' }, { emailKeys })).toBe('');
+  });
+  it('a form with no email field accepts whatever the other fields say', () => {
+    expect(emailProblem({ NAME: 'Ann', 'EMAIL ME': 'Yes' }, { emailKeys: new Set() })).toBe('');
+  });
+});
+
+describe('lead-capture auto-reply reply-to', () => {
+  it('uses the owner\'s address, then the first notification address, then none', () => {
+    expect(autoReplyReplyTo({ autoReplyReplyTo: ' me@x.co ' }, ['n@x.co'])).toBe('me@x.co');
+    expect(autoReplyReplyTo({ autoReplyReplyTo: 'not an email' }, ['n@x.co'])).toBe('n@x.co');
+    expect(autoReplyReplyTo({}, ['n@x.co', 'm@x.co'])).toBe('n@x.co');
+    expect(autoReplyReplyTo({}, [])).toBe('');
+    expect(autoReplyReplyTo(null)).toBe('');
+    expect(autoReplyReplyTo({ autoReplyReplyTo: 'a@b.co\r\nBcc: x@y.co' }, [])).toBe(''); // no header injection
+  });
+});
+
+describe('lead-capture Teams Workflows alerts', () => {
+  const wf = 'https://prod-12.westus.logic.azure.com:443/workflows/abc123/triggers/manual/paths/invoke?api-version=2016-06-01&sig=x';
+  it('recognises Workflows URLs (and keeps the legacy connector)', () => {
+    expect(chatPreset(wf)).toBe('teams-workflow');
+    expect(chatPreset('https://default1234.12.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/abc/triggers/manual/paths/invoke')).toBe('teams-workflow');
+    expect(chatPreset('https://contoso.webhook.office.com/webhookb2/abc/IncomingWebhook/d/e')).toBe('teams');
+    for (const other of ['https://logic.azure.com.evil.com/workflows/abc', 'https://prod-1.logic.azure.com/other/path', 'http://prod-1.logic.azure.com/workflows/a']) expect(chatPreset(other)).toBeNull();
+  });
+  it('sends a message with an Adaptive Card, title first, one block per line, pings defused', () => {
+    const body = chatBody('teams-workflow', { title: 'New lead', lines: ['EMAIL: ann@x.co', 'NOTE: hi @everyone'] });
+    expect(body.type).toBe('message');
+    const card = body.attachments[0];
+    expect(card.contentType).toBe('application/vnd.microsoft.card.adaptive');
+    expect(card.content.type).toBe('AdaptiveCard');
+    expect(card.content.body.map((b) => b.text)).toEqual(['New lead', 'EMAIL: ann@x.co', 'NOTE: hi @\u200beveryone']);
+    expect(card.content.body[0].weight).toBe('Bolder');
   });
 });

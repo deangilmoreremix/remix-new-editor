@@ -28,7 +28,7 @@ import {
   submitLead, leadNotifyEmails, fetchLeads, postWebhooksDirect, runWebhookTest, webhookTestMessage, fetchDeliveries, deliveriesSummary, fetchSigningSecret, AFTER_SUBMIT_ACTIONS, ESP_PROVIDERS, espName, espListLabel, fetchIntegrations, saveIntegration, integrationStatusText, leadsToCsv, mergeLeads, webhookUrlsFor, leadFieldTokens,
   OVERLAY_ADDONS, STICKER_LIBRARY, ANIMATED_EMOJI, OVERLAY_TAG, buildOverlayElement, finishOverlayElement, destroyOverlayElement,
   setOverlayPlaying, syncOverlayTime, playInAnimation,
-  createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, attachDragResize,
+  createStockSearch, STOCK_SOURCES, renderStockBrowser, capturePreset, presetToClips, loadPresets, savePresets, playOutAndRemove, activeOverlays, isEditorOverlay, attachDragResize,
   OVERLAY_FONTS, CTA_ANIMATIONS, buildCtaLottie, CTA_ASPECT, CTA_COLOR_THEMES, ctaColorParts,
   BLEND_CATEGORIES, blendItemToAddon, getBlendItem, blendThumbStyle,
   openTemplateWindow, templateToPreset, templateStart, TEMPLATE_LIBRARIES, resolveOverlayText,
@@ -38,6 +38,8 @@ import { openSmartSpeechModal } from '../lib/editor/agent/smartSpeechModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import * as contactStore from '../lib/contactStore.js';
 import { PERSONALIZED_LAYOUTS, assetForImageToken, buildLayoutPlan, imageTokenChoices, imageTokenOf, listTimelineImageAssets } from '../lib/personalization/timelineAssets.js';
+import { studioLayersToPlan } from '../lib/editor/personalize/studioLayers.js';
+import { defaultStudioDesignOptions, switchDesignOptions } from '../lib/editor/addons/studioDesignAddon.js';
 import { measureImageLuminance } from '../lib/personalization/imageStyle.js';
 import { AI_FILLABLE, describeUnreviewed, markAiGenerated, planAiImages, unreviewedAiImages } from '../lib/personalization/aiContactImages.js';
 import { AI_CLIP_MODELS, CLIP_IMAGE_SLOTS, aiClipConfig, clipSrcFor, describeClipGaps, planClipJobs } from '../lib/personalization/aiContactClips.js';
@@ -49,7 +51,7 @@ import { importDiscoveredAsset } from '../lib/personalization/assetDiscoveryServ
 import { addPersonalizationAsset, createPersonalizationAsset, removePersonalizationAsset, setDiscoveredPersonalizationAssets, updatePersonalizationAsset } from '../lib/personalization/personalizationProfile.js';
 import { createContactSync } from '../lib/editor/personalize/clientSync.js';
 import { renderPersonalizationPanel, renderPersonalizationEditor, renderTokenEditor, renderBatchHub } from '../lib/editor/panels/personalPanels.js';
-import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
+import { profileWithAnswers, listContactProfiles, contactName, contactEmail, personalLink, personalVariables, personalLinkIssues, projectTokens, linksCsv } from '../lib/editor/personalize/perContact.js';
 import { searchPixabayImages, searchPixabayVideos } from '../lib/pixabayApi.js';
 import { timelineToComposition } from '../lib/editor/remotion/timelineToComposition.js';
 import { setKeyframe } from '../lib/editor/remotion/keyframes.js';
@@ -83,7 +85,6 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 // Subtitle system integration
 import { SubtitleTimeline } from '../lib/editor/subtitleTimeline.js';
-import { whisperService } from '../services/whisper-client.js';
 
 // Modal imports - these are vanilla JS modal implementations
 import { EndScreenModal } from './modals/EndScreenModal.jsx';
@@ -663,7 +664,7 @@ export function TimelineEditorPage() {
         <div class="card-title">📊 Color Scopes</div><div id="colorScopesContainer"></div>
       </aside>
       <aside class="side-card" id="tokenEditorPanel" hidden data-tooltip="Token editor"><div class="card-title">🏷️ Token Editor</div><div id="tokenEditorContainer"></div></aside>
-      <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Batch generator"><div class="card-title">📦 Batch Generator</div><div id="batchGeneratorContainer"></div></aside>
+      <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Personalized output"><div class="card-title">📦 Personalized output</div><div id="batchGeneratorContainer"></div></aside>
       <aside class="side-card" id="personalizationPanel" hidden data-tooltip="Personalization"><div class="card-title">👤 Personalization</div><div id="personalizationContainer"></div></aside>
       <aside class="side-card" id="personalizationEditorPanel" hidden data-tooltip="Personalization editor"><div class="card-title">✏️ Personalization Editor</div><div id="personalizationEditorContainer"></div></aside>
     </div>
@@ -1623,7 +1624,7 @@ export function TimelineEditorPage() {
       // Overlays (Smart Text, Image, Stickers, ...) are drawn by the overlay
       // compositor on top of the video, so selecting one shows the video
       // clip under the playhead rather than replacing it.
-      if (getAddon(selected.type)?.category === 'overlay') {
+      if (isEditorOverlay(getAddon(selected.type))) {
         const base = findBaseClipAtPlayhead();
         if (base) renderPreviewAsset(base);
         else if (!els.previewStage.firstElementChild) els.previewEmpty.style.display = 'none';
@@ -5359,6 +5360,13 @@ export function TimelineEditorPage() {
     function renderSchemaAddonEditor(clip) {
       const addon = getAddon(clip.type);
       clip.addon = addonOptions(clip);
+      // A design clip's settings offer a picker of designs: load the catalog once, then redraw with it.
+      if (clip.type === 'overlay-studio-design' && studioDesignChoices === null) {
+        studioDesignChoices = []; // placeholder while loading (and if it fails): the form falls back to a plain id field
+        listStudioDesigns().catch(() => { studioDesignChoices = []; }).then(() => {
+          if (state.selectedClipId === clip.id) renderSchemaAddonEditor(clip);
+        });
+      }
       const T = state.timelineSeconds || 60;
       const { start, end } = clipTimeRange(clip, T);
       const timing = addon.timing || ['start', 'end'];
@@ -5406,10 +5414,14 @@ export function TimelineEditorPage() {
       activeAddonEditor?.destroy();
       activeAddonEditor = renderAddonEditor(els.clipEditorContainer.querySelector('#addonOptionsForm'), {
         fields: addon.fields,
-        options: clip.addon,
+        fieldsFor: addon.fieldsFor ? (o) => addon.fieldsFor(o, { designs: studioDesignChoices || [] }) : undefined,
+        options: addonOptions(clip),
         idPrefix: `addon-${clip.id}`,
         services: addonEditorServices,
-        onFieldChange: addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined,
+        onFieldChange: clip.type === 'overlay-studio-design'
+          // Choosing another design resets its text slots to that design's own (the place, size and opacity stay).
+          ? (key, next) => (key === 'designId' && studioDesignMap.get(next.designId) ? switchDesignOptions(next, studioDesignMap.get(next.designId)) : next)
+          : (addon.onFieldChange ? (key, next) => addon.onFieldChange(key, next) : undefined),
         onChange: (next) => {
           const prevDuration = clip.addon?.durationSec;
           clip.addon = next;
@@ -5420,7 +5432,8 @@ export function TimelineEditorPage() {
             clip.width = Math.min(100 - clip.left, (next.durationSec / T) * 100);
           }
           renderTracks();
-          if (addon.category !== 'overlay') updatePreview(clip);
+          if (!isEditorOverlay(addon)) updatePreview(clip);
+          else renderOverlayLayer();
           debouncedSave();
         },
       });
@@ -5700,7 +5713,6 @@ export function TimelineEditorPage() {
     // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
     var activeCaptionsPanel = null;
     // eslint-disable-next-line no-var -- read by updatePlaybackUI before this line runs
-    var pendingAutoCaptions = null;
     // eslint-disable-next-line no-var -- background-removal jobs outlive the clip editor
     var bgJobs = new Map();
     // eslint-disable-next-line no-var
@@ -6230,12 +6242,36 @@ export function TimelineEditorPage() {
     // Share: publish the timeline as an interactive video (/watch/<id>).
     // eslint-disable-next-line no-var -- created on first open
     var sharePanel = null;
+    // Signed in: the account's client. Signed out: a private guest identity (lib/guestIdentity.js), so publishing,
+    // personal links and lead lists work without an account. Cloud projects and thumbnails stay signed-in only.
+    const isGuest = () => !window.Clerk?.user;
     async function publishOwnerClient() {
-      if (!window.Clerk?.user) throw new Error('Sign in to publish videos');
+      if (isGuest()) return (await import('../lib/guestIdentity.js')).getGuestOwnerClient();
       await supabase.refreshUserHeader?.();
       if (!supabase.supabase) throw new Error('The video service is unavailable — check your connection');
       return supabase.supabase;
     }
+    // After signing in: offer to move what this browser published as a guest into the account (asked once per page load).
+    let guestClaimAsked = false;
+    async function offerGuestClaim() {
+      if (guestClaimAsked || !window.Clerk?.user) return;
+      try {
+        const guest = await import('../lib/guestIdentity.js');
+        if (!guest.hasGuestIdentity()) return;
+        guestClaimAsked = true;
+        if (!window.confirm('Videos and links you published without an account are still in this browser. Move them to your account so you keep them?')) return;
+        const token = await window.Clerk.session?.getToken?.();
+        if (!token) throw new Error('Please try again in a moment.');
+        const { moved } = await guest.claimGuestContent(token);
+        showToast(`Moved ${moved.videos} video${moved.videos === 1 ? '' : 's'} and ${moved.links} link${moved.links === 1 ? '' : 's'} to your account`, 'success');
+        sharePanel?.refresh?.();
+      } catch (err) {
+        guestClaimAsked = false;
+        showToast(err?.message || 'Could not move your videos to your account', 'error');
+      }
+    }
+    cleanup.addTimer(setTimeout(offerGuestClaim, 2500));
+    cleanup.addTimer(setTimeout(offerGuestClaim, 9000));
     const publishedKey = () => String(currentTimelineId(state) || 'default');
     let scopesMounted = null;
     async function mountColorScopesPanel() {
@@ -6267,8 +6303,14 @@ export function TimelineEditorPage() {
       sharePanel = await createSharePanel(host);
     }
     // Builds the Share panel in any host: the rail panel, or the open project's "Publish & Share" tab.
+    // What each contact's stored personal link holds (see lib/editor/publish/personalLinksClient.js).
+    function personalLinkItems(contacts) {
+      const tokens = projectTokens(state.tracks);
+      return contacts.map((p) => ({ contactId: String(p.id), name: contactName(p), variables: personalVariables(p, tokens, { maxLength: 500 }) }));
+    }
     async function createSharePanel(host) {
       const pub = await import('../lib/editor/publish/publishClient.js');
+      const pl = await import('../lib/editor/publish/personalLinksClient.js');
       const { renderSharePanel } = await import('../lib/editor/publish/sharePanel.js');
       const { localMediaBlob } = await import('../lib/editor/remotion/localMedia.js');
       const videoId = () => (state.publishedVideos || {})[publishedKey()] || null;
@@ -6276,7 +6318,7 @@ export function TimelineEditorPage() {
         defaultTitle: state.projectTitle || 'Untitled video',
         async getInfo() {
           const id = videoId();
-          if (!id || !window.Clerk?.user) return null;
+          if (!id) return null;
           return pub.getMyVideo(await publishOwnerClient(), id);
         },
         async publish({ title }) {
@@ -6310,6 +6352,7 @@ export function TimelineEditorPage() {
           captureProjectThumbnail();
           return { ...(await pub.getMyVideo(client, id).catch(() => info)), published: true };
         },
+        guest: isGuest,
         async saveLink({ business, slug }) {
           const client = await publishOwnerClient();
           if (business) await pub.claimBusinessSlug(client, business);
@@ -6341,6 +6384,20 @@ export function TimelineEditorPage() {
             missing: gaps.get(p.id) || [],
             localImages: personalLinkIssues(p, tokens),
           }));
+        },
+        // Stored personal links (?p=<id>): one per contact; the owner can edit, renew, turn off or remove each.
+        links: {
+          list: async () => pl.listPersonalLinks(await publishOwnerClient(), videoId()),
+          sync: async () => pl.syncPersonalLinks(await publishOwnerClient(), videoId(), personalLinkItems(listContactProfiles(contactStore))),
+          update: async (id, patch) => pl.updatePersonalLink(await publishOwnerClient(), id, patch),
+          regenerate: async (id) => pl.regeneratePersonalLink(await publishOwnerClient(), id),
+          remove: async (id) => pl.deletePersonalLink(await publishOwnerClient(), id),
+          tokens: () => projectTokens(state.tracks),
+          label: (key) => TOKEN_DEFS.find((d) => d.key === key)?.label || key,
+          contact: (contactId) => {
+            const p = contactStore.getProfile?.(contactId);
+            return p ? { name: contactName(p), email: contactEmail(p), company: p?.contact?.company || p?.personalization?.business?.businessName || '' } : {};
+          },
         },
         // Views / plays / finishes / CTA clicks / leads per contact.
         fetchStats: async () => pub.fetchVideoStats(await publishOwnerClient(), videoId()),
@@ -6660,44 +6717,12 @@ export function TimelineEditorPage() {
 
       if (clip.type === 'captions') {
         const host = editorSection('clip-captions', 'Captions');
-        const auto = pendingAutoCaptions === clip.id;
-        pendingAutoCaptions = null;
         import('../lib/editor/remotion/captionsPanel.js').then(({ renderCaptionsPanel }) => {
           if (!host.isConnected) return;
           activeCaptionsPanel = renderCaptionsPanel(host, {
             captions: clip.captions || [],
             style: clip.captionStyle,
-            sources: mediaSourcesForCaptions(),
-            selectedSource: clip.sourceClipId ? String(clip.sourceClipId) : undefined,
-            autoTranscribe: auto,
-            currentMs: () => Math.max(0, (playheadSec() - clipStartSec(clip)) * 1000),
-            onSeek: (ms) => seekToSeconds(clipStartSec(clip) + ms / 1000),
-            onDownload: (name, text, mime) => downloadText(`${(clip.name || 'captions').replace(/[^\w-]+/g, '_')}.${name.split('.').pop()}`, text, mime),
-            onError: (err) => showToast(err?.message || 'Captions error', 'error'),
-            onTranscribe: async ({ sourceId, model, language, onProgress, signal }) => {
-              const source = allClips().find((c) => String(c.id) === sourceId);
-              if (!source?.src) throw new Error('That clip has no media to transcribe');
-              const { transcribeInBrowser } = await import('../lib/editor/remotion/transcribe.js');
-              const fromSec = Number(source.trimIn ?? source.sourceStart ?? 0) || 0;
-              const { captions } = await transcribeInBrowser(source.src, { fromSec, toSec: fromSec + clipDurationSec(source), model, language, onProgress, signal });
-              if (!captions.length) throw new Error('No speech was found in that clip');
-              // Line the captions clip up with the clip it was made from.
-              saveStateSnapshot(state);
-              clip.left = source.left;
-              clip.width = source.width;
-              clip.sourceClipId = source.id;
-              renderTracks();
-              showToast(`${captions.length} words transcribed`, 'success');
-              return captions;
-            },
-            onChange: ({ captions, captionStyle }) => {
-              clip.captions = captions;
-              clip.captionStyle = captionStyle;
-              const first = captions.slice(0, 5).map((c) => c.text).join('').trim();
-              clip.name = first ? `Captions: ${first}${captions.length > 5 ? '…' : ''}` : 'Captions';
-              scheduleEngineUpdate();
-              debouncedSave();
-            },
+            onOpenStudio: () => openCaptionStudio(allClips().find((c) => String(c.id) === String(clip.sourceClipId)), clip),
           });
         });
       }
@@ -7503,31 +7528,61 @@ export function TimelineEditorPage() {
 
     renderTracks();
 
-    /** Captions: add a captions clip and transcribe the selected (or first) media clip in the browser. */
+    /**
+     * Captions: open the free Caption Studio (on-device Whisper, editable lines, 32 looks, SRT/VTT) on the selected (or first) media clip,
+     * then add its result as a captions clip — or update the one being edited. Times in the studio are source-file times; the clip's
+     * times start at the clip's own start, so the trim-in is subtracted/added on the way through.
+     */
+    async function openCaptionStudio(source, existing) {
+      const { addCaptionButton } = await import('../lib/editor/captionActions.js');
+      const { shiftCaptions, defaultCaptionStyle } = await import('../lib/editor/remotion/captions.js');
+      const fromSec = source ? (Number(source.trimIn ?? source.sourceStart ?? 0) || 0) : 0;
+      addCaptionButton({
+        videoUrl: source?.src,
+        appTheme: 'timeline-editor',
+        captions: existing?.captions?.length ? shiftCaptions(existing.captions, fromSec * 1000) : undefined,
+        style: existing?.captionStyle,
+        onError: (err) => showToast(err?.message || 'Captions error', 'error'),
+        onApply: ({ captions, captionStyle }) => {
+          const rel = shiftCaptions(captions, -fromSec * 1000);
+          const first = rel.slice(0, 5).map((c) => c.text).join('').trim();
+          const name = first ? `Captions: ${first}${rel.length > 5 ? '…' : ''}` : 'Captions';
+          saveStateSnapshot(state);
+          if (existing) {
+            existing.captions = rel;
+            existing.captionStyle = captionStyle;
+            existing.name = name;
+            scheduleEngineUpdate();
+            renderTracks();
+            showClipEditor(existing.id);
+          } else {
+            const startSec = source ? clipStartSec(source) : playheadSec();
+            const clip = {
+              id: `captions-${Date.now()}`,
+              type: 'captions',
+              name,
+              captions: rel,
+              captionStyle: { ...defaultCaptionStyle('tiktok'), ...captionStyle },
+              sourceClipId: source?.id ?? null,
+              start: startSec,
+              end: startSec + (source ? clipDurationSec(source) : Math.max(1, Math.min(timelineSec() - startSec, (rel[rel.length - 1]?.endMs || 10000) / 1000))),
+            };
+            const textTrack = state.tracks.find((t) => (t.type || '').toLowerCase() === 'text') || state.tracks.find((t) => t.name === 'Text');
+            insertClipIntoTrack(clip, textTrack?.name || 'Text');
+            showClipEditor(clip.id);
+          }
+          showToast(`${rel.length} caption words added`, 'success');
+          debouncedSave();
+        },
+      });
+    }
+
     async function generateSubtitles() {
       const selected = findSelectedClip();
       if (selected?.type === 'captions') { showClipEditor(selected.id); return; }
       const media = allClips().filter((c) => (c.type === 'video' || c.type === 'audio') && c.src);
       const source = selected && media.includes(selected) ? selected : media.sort((a, b) => (a.left || 0) - (b.left || 0))[0];
-      const { defaultCaptionStyle } = await import('../lib/editor/remotion/captions.js');
-      saveStateSnapshot(state);
-      const startSec = source ? clipStartSec(source) : playheadSec();
-      const clip = {
-        id: `captions-${Date.now()}`,
-        type: 'captions',
-        name: 'Captions',
-        captions: [],
-        captionStyle: defaultCaptionStyle('tiktok'),
-        sourceClipId: source?.id ?? null,
-        start: startSec,
-        end: startSec + (source ? clipDurationSec(source) : Math.min(10, timelineSec() - startSec)),
-      };
-      const textTrack = state.tracks.find((t) => (t.type || '').toLowerCase() === 'text') || state.tracks.find((t) => t.name === 'Text');
-      insertClipIntoTrack(clip, textTrack?.name || 'Text');
-      if (source) pendingAutoCaptions = clip.id;
-      else showToast('Captions added — import an SRT/VTT file or type captions in its settings', 'info');
-      showClipEditor(clip.id);
-      debouncedSave();
+      openCaptionStudio(source, null);
     }
 
     async function suggestBRoll() {
@@ -8276,7 +8331,7 @@ export function TimelineEditorPage() {
         'Media': 'Media - Your media library: upload or drag clips onto the timeline',
         'AI Animation': 'AI Animation - Ask the AI Agent to build an animation, with starter ideas',
         'Token Editor': 'Token editor - Create and manage personalization tokens',
-        'Batch Generator': 'Batch generation - Generate multiple videos at once',
+        'Batch Generator': 'Personalized output - MP4s and links for each contact',
         'Personalization': 'Personalization - Add dynamic content for different viewers',
         'Personalization Editor': 'Personalization editor - Advanced personalization settings',
         'Personalization Suite': 'Personalization suite - Complete video personalization workflow',
@@ -8530,7 +8585,7 @@ export function TimelineEditorPage() {
       cleanup.addDocumentListener('keydown', handleModalKeydown);
     }
 
-    function openExportModal(state, showToast) {
+    function openExportModal(state, showToast, { contactIds = null } = {}) {
       // Remotion web renderer (in-browser, sandboxed runner). The previous
       // ExportPipeline stays available as "Basic export".
       const content = `
@@ -8557,6 +8612,13 @@ export function TimelineEditorPage() {
               <option value="one">One video${getActivePersonalizationProfile() ? ` (for ${escapeHtml(contactName(getActivePersonalizationProfile()))})` : ''}</option>
               <option value="each"${listContactProfiles(contactStore).length ? '' : ' disabled'}>One video per contact (${listContactProfiles(contactStore).length} in Personalization Studio)</option>
             </select>
+          </div>
+          <div class="form-group" id="exportContactsBox" hidden>
+            <label>Contacts to export</label>
+            <div class="export-contacts-actions"><button type="button" class="mini-btn" id="exportContactsAll">All</button> <button type="button" class="mini-btn" id="exportContactsNone">None</button> <span id="exportContactsCount" class="pz-hint"></span></div>
+            <ul id="exportContactsList" class="export-contacts" style="max-height:180px;overflow:auto;list-style:none;margin:6px 0;padding:0">
+              ${listContactProfiles(contactStore).map((p) => `<li><label><input type="checkbox" data-export-contact value="${escapeHtml(String(p.id))}" checked /> ${escapeHtml(contactName(p))}</label></li>`).join('')}
+            </ul>
           </div>
           <ul id="exportWarnings" class="export-warnings"></ul>
           <button class="primary-btn" id="startExportBtn">Start Export</button>
@@ -8592,10 +8654,23 @@ export function TimelineEditorPage() {
         return timelineToComposition(state, { quality, profile });
       };
 
-      // Contacts the export covers (one = the selected contact).
-      const exportContacts = () => (q('#exportFor')?.value === 'each'
-        ? listContactProfiles(contactStore)
-        : [getActivePersonalizationProfile()].filter(Boolean));
+      // Contacts the export covers (one = the selected contact; each = the ticked ones).
+      const pickedIds = () => new Set([...els.modalBody.querySelectorAll('[data-export-contact]:checked')].map((i) => i.value));
+      const exportContacts = () => {
+        if (q('#exportFor')?.value !== 'each') return [getActivePersonalizationProfile()].filter(Boolean);
+        const picked = pickedIds();
+        return listContactProfiles(contactStore).filter((p) => picked.has(String(p.id)));
+      };
+      const syncContactsBox = () => {
+        const each = q('#exportFor')?.value === 'each';
+        const box = q('#exportContactsBox');
+        if (box) box.hidden = !each;
+        const count = q('#exportContactsCount');
+        if (count) count.textContent = `${pickedIds().size} of ${listContactProfiles(contactStore).length} selected`;
+      };
+      q('#exportContactsAll')?.addEventListener('click', () => { els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = true; }); syncContactsBox(); refreshWarnings(); });
+      q('#exportContactsNone')?.addEventListener('click', () => { els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = false; }); syncContactsBox(); refreshWarnings(); });
+      q('#exportContactsList')?.addEventListener('change', () => { syncContactsBox(); refreshWarnings(); });
       let warningsRun = 0;
       const refreshWarnings = async () => {
         const run = ++warningsRun;
@@ -8625,7 +8700,15 @@ export function TimelineEditorPage() {
         warningsList.insertAdjacentHTML('beforeend', describeBrokenImages(broken).map(imageItem).join(''));
       };
       q('#exportQuality')?.addEventListener('change', refreshWarnings);
-      q('#exportFor')?.addEventListener('change', refreshWarnings);
+      q('#exportFor')?.addEventListener('change', () => { syncContactsBox(); refreshWarnings(); });
+      // Opened from Personalized output with a chosen set of contacts: render exactly those.
+      if (contactIds) {
+        const chosen = new Set(contactIds.map(String));
+        const sel = q('#exportFor');
+        if (sel && !sel.disabled) sel.value = 'each';
+        els.modalBody.querySelectorAll('[data-export-contact]').forEach((i) => { i.checked = chosen.has(i.value); });
+      }
+      syncContactsBox();
       refreshWarnings();
 
       const doExport = async () => {
@@ -8643,20 +8726,36 @@ export function TimelineEditorPage() {
           // One video per Personalization Studio contact: their details fill
           // the text and their own Smart Speech line plays.
           if (q('#exportFor')?.value === 'each') {
-            const contacts = listContactProfiles(contactStore);
+            const contacts = exportContacts();
+            if (!contacts.length) throw new Error('Tick at least one contact');
+            const used = new Set();
+            const failed = [];
+            let done = 0;
             for (let i = 0; i < contacts.length; i += 1) {
               if (abort.signal.aborted) throw new Error('Cancelled');
               const who = contactName(contacts[i]);
-              const part = await exportModel(await buildModel(quality, contacts[i]), {
-                container,
-                quality,
-                signal: abort.signal,
-                onProgress: (p) => setProgress(((i + p) / contacts.length) * 100, `Video ${i + 1} of ${contacts.length} · ${who} · ${Math.round(p * 100)}%`),
-              });
-              downloadBlob(part, `${name} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || contacts[i].id}.${EXTENSIONS[container] || 'mp4'}`);
+              try {
+                const part = await exportModel(await buildModel(quality, contacts[i]), {
+                  container,
+                  quality,
+                  signal: abort.signal,
+                  onProgress: (p) => setProgress(((i + p) / contacts.length) * 100, `Video ${i + 1} of ${contacts.length} · ${who} · ${Math.round(p * 100)}%`),
+                });
+                // Two contacts can share a name: add the id so no file overwrites another.
+                let base = `${name} - ${who.replace(/[^a-z0-9 _-]+/gi, '').trim() || contacts[i].id}`;
+                if (used.has(base.toLowerCase())) base = `${base} (${String(contacts[i].id).slice(0, 8)})`;
+                used.add(base.toLowerCase());
+                downloadBlob(part, `${base}.${EXTENSIONS[container] || 'mp4'}`);
+                done += 1;
+              } catch (err) {
+                if (abort.signal.aborted || /cancel/i.test(err?.message || '')) throw err;
+                // One contact's video failing must not lose the rest.
+                failed.push(`${who}: ${err?.message || err}`);
+              }
             }
-            setProgress(100, `Done: ${contacts.length} videos downloaded`);
-            showToast(`Exported ${contacts.length} personalized videos`, 'success');
+            setProgress(100, failed.length ? `Done: ${done} of ${contacts.length} videos downloaded` : `Done: ${done} videos downloaded`);
+            if (failed.length) showToast(`${failed.length} video${failed.length === 1 ? '' : 's'} could not be made — ${failed[0]}`, 'error');
+            else showToast(`Exported ${done} personalized videos`, 'success');
             return;
           }
           const model = await buildModel(quality);
@@ -8929,15 +9028,80 @@ export function TimelineEditorPage() {
           active: activeContact,
           select: (id) => contactStore.selectContact(id),
           addText: addSmartText,
+          loadDesigns: listStudioDesigns,
+          addDesign: addStudioDesign,
           openPersonalize: () => import('../features/personalization/mount.jsx').then((m) => m.openPersonalization({
             studioId: 'timeline', studioName: 'Timeline Editor', appId: 'ai-video-agent',
-            onComplete: () => { contactSync.run({ leads: true }).catch(() => {}); renderContactSwitcher(); panel.redraw(); },
+            onComplete: (completion) => {
+              contactSync.run({ leads: true }).catch(() => {});
+              renderContactSwitcher();
+              panel.redraw();
+              addStudioLayers(completion?.overlay);
+            },
           })),
         });
         window.addEventListener('remix:contact-changed', panel.redraw);
         return panel;
       });
     }
+
+    // The Personalization Studio's approved layers as token-based overlay
+    // clips (logo, business name, CTA ... resolve per contact), placed at the
+    // playhead. Only a branded render carries layers; AI runs hand back media.
+    const studioTemplates = () => import('../features/personalization/shared/personalization/templates/index');
+    // Studio designs the timeline can draw (they must preview and export in the browser).
+    // Loaded once: the picker list, and the templates themselves (to reset a clip's slots when its design changes).
+    let studioDesignChoices = null;
+    let studioDesignMap = new Map();
+    async function listStudioDesigns() {
+      const { listRemotionDesignTemplates } = await studioTemplates();
+      const usable = listRemotionDesignTemplates().filter((d) => d.previewCompatible !== false && d.capabilities?.browserExport);
+      studioDesignMap = new Map(usable.map((d) => [d.id, d]));
+      studioDesignChoices = usable.map((d) => ({ id: d.id, name: d.name, category: d.category, description: d.description || '' }));
+      return studioDesignChoices;
+    }
+    async function addStudioDesign(designId) {
+      const { getRemotionDesignTemplate } = await studioTemplates();
+      const design = getRemotionDesignTemplate(designId);
+      if (!design) { showToast('That design is not available', 'info'); return; }
+      const T = state.timelineSeconds || 60;
+      saveStateSnapshot(state);
+      const clip = createAddonClip('overlay-studio-design', { startSec: (state.playheadPercent / 100) * T, timelineSeconds: T });
+      clip.addon = { ...clip.addon, ...defaultStudioDesignOptions(design) };
+      clip.name = design.name;
+      insertClipIntoTrack(clip, getAddon('overlay-studio-design')?.track || 'Text');
+      showClipEditor(clip.id);
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Added ${design.name}`, 'success');
+    }
+
+    async function addStudioLayers(overlay) {
+      if (!overlay?.layers?.length) return;
+      const T = state.timelineSeconds || 60;
+      let designFor;
+      try { const { getRemotionDesignTemplate } = await studioTemplates(); designFor = getRemotionDesignTemplate; } catch { /* designs unavailable: layers keep their overrides only */ }
+      const plan = studioLayersToPlan(overlay.layers, {
+        fps: overlay.fps, durationInFrames: overlay.durationInFrames, timelineSeconds: T,
+        startSec: (state.playheadPercent / 100) * T, brand: overlay.brand, designFor,
+      });
+      if (!plan.length) return;
+      saveStateSnapshot(state);
+      plan.forEach((item) => {
+        const clip = createAddonClip(item.type, { startSec: item.startSec, timelineSeconds: T });
+        clip.start = item.startSec;
+        clip.end = item.endSec;
+        clip.addon = { ...clip.addon, ...item.addon };
+        clip.name = item.name;
+        insertClipIntoTrack(clip, getAddon(item.type)?.track || 'Text');
+      });
+      if (plan.some((i) => i.addon?.plate === 'auto')) measureLogos();
+      scheduleEngineUpdate();
+      debouncedSave();
+      showToast(`Added ${plan.length} Studio layer${plan.length === 1 ? '' : 's'} to the timeline`, 'success');
+    }
+    // The "AI Personalizer" rail action fires this event.
+    cleanup.addWindowListener('open-personalizer', () => showPersonalizationPanel());
 
     function showPersonalizationEditorPanel() {
       openPanel('personalizationEditorPanel');
@@ -8963,10 +9127,62 @@ export function TimelineEditorPage() {
       mountRailPanel('batch', els.batchGeneratorContainer, (el) => renderBatchHub(el, {
         contacts: () => listContactProfiles(contactStore),
         tokensUsed: () => projectTokens(state.tracks),
+        // Things that would leave a contact's video or link with a blank: no image in a slot, a clip with no
+        // video for them yet, or an image that exists only in this browser (a link cannot carry it).
+        issues: (p) => {
+          const tokens = projectTokens(state.tracks);
+          return [
+            ...(contactImageGaps(state, [p])[0]?.missing || []).map((m) => `no ${m}`),
+            ...(personalLinkIssues(p, tokens).length ? ['image only in this browser (links)'] : []),
+          ];
+        },
         exportEach: () => {
           openExportModal(state, showToast);
           const sel = els.modalBody.querySelector('#exportFor');
           if (sel && !sel.disabled) sel.value = 'each';
+        },
+        exportSelected: (ids) => openExportModal(state, showToast, { contactIds: ids }),
+        // Links for the chosen contacts, for the published video. Stored links when the database has them,
+        // otherwise the older links that carry the details in the address.
+        guest: isGuest,
+        createLinks: async (ids) => {
+          const pub = await import('../lib/editor/publish/publishClient.js');
+          const pl = await import('../lib/editor/publish/personalLinksClient.js');
+          const client = await publishOwnerClient();
+          const id = (state.publishedVideos || {})[publishedKey()] || null;
+          const info = id ? await pub.getMyVideo(client, id).catch(() => null) : null;
+          if (!info?.published) throw Object.assign(new Error('Publish the video first: personal links open the published version.'), { code: 'not_published' });
+          const picked = new Set((ids || []).map(String));
+          const contacts = listContactProfiles(contactStore).filter((p) => picked.has(String(p.id)));
+          const describe = (p) => ({ name: contactName(p), email: contactEmail(p), company: p?.contact?.company || p?.personalization?.business?.businessName || '' });
+          try {
+            const r = await pl.syncPersonalLinks(client, id, personalLinkItems(contacts));
+            const byContact = new Map(r.links.map((l) => [l.contactId, l]));
+            return {
+              rows: contacts.map((p) => {
+                const l = byContact.get(String(p.id));
+                return { ...describe(p), link: l && !l.revoked ? pub.personalizedUrl(info, l.id) : '', note: l?.revoked ? 'link is turned off' : '' };
+              }),
+              notice: r.created || r.updated ? `${r.created} new, ${r.updated} refreshed.` : '',
+            };
+          } catch (err) {
+            if (err?.code !== 'links_unavailable') throw err;
+            const tokens = projectTokens(state.tracks);
+            const base = pub.canonicalUrl(info);
+            return {
+              rows: contacts.map((p) => ({ ...describe(p), link: personalLink(base, p, tokens), note: '' })),
+              notice: 'Saved links turn on once the database update is installed; these links carry the details in the address.',
+            };
+          }
+        },
+        copy: (text) => navigator.clipboard.writeText(text),
+        downloadCsv: (rows) => {
+          const blob = new Blob([linksCsv(rows)], { type: 'text/csv' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `${String(state.projectTitle || 'video').replace(/[^\w-]+/g, '_')}-personal-links.csv`;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 2000);
         },
         openShare: () => openPanel('sharePanel'),
       }));

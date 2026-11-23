@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from '../../../../shims/next-server';
 import {
   isProxiableRemoteMediaHost,
+  remoteMediaRefererFor,
   parseProxiableRemoteMediaUrl,
 } from '../../../../src/shared/personalization/preview/remoteMedia';
 
@@ -20,6 +21,9 @@ import {
  */
 
 const MAX_UPSTREAM_REDIRECTS = 3;
+// Hosts with hotlink protection (see REMOTE_MEDIA_REFERER_BY_HOST) also expect an ordinary browser.
+const BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,7 +91,11 @@ async function fetchUpstream(
   let currentUrl = initialUrl;
 
   for (let hop = 0; hop <= MAX_UPSTREAM_REDIRECTS; hop += 1) {
-    const response = await fetch(currentUrl, { headers, redirect: 'manual', signal });
+    const referer = remoteMediaRefererFor(currentUrl.hostname);
+    const hopHeaders = referer
+      ? { ...headers, Referer: referer, Origin: new URL(referer).origin, 'User-Agent': BROWSER_USER_AGENT }
+      : headers;
+    const response = await fetch(currentUrl, { headers: hopHeaders, redirect: 'manual', signal });
     const isRedirect = response.status >= 300 && response.status < 400;
     if (!isRedirect) return response;
 

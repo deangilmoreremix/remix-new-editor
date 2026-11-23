@@ -4,9 +4,12 @@ import { useState, useCallback, useRef, useMemo, useEffect, useLayoutEffect } fr
 import { createPortal } from 'react-dom';
 import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/workspace-shell';
 import { OverlayLane } from './overlay-lane';
-import { decodeLibraryDrag, hasLibraryDrag, LIBRARY_DND, type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
+import { type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 import { CaptionLane } from './caption-lane';
-import { createOverlay, createTemplateOverlays, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, createStudioDesignOverlay, createTemplateOverlays, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
+import { presetOverlays } from '@cinegen/lib/overlays/overlay-presets';
+import { createLayoutOverlays } from '@cinegen/lib/overlays/personalized-layouts';
+import { measureActiveLogo, makeAllVideoReady } from '@cinegen/lib/personalize/contact-image-services';
 import { selectOverlay, getSelectedOverlay } from '@cinegen/lib/overlays/selection';
 import { TrackRow } from './track-row';
 import { formatTimecode } from './time-ruler';
@@ -45,10 +48,10 @@ import unlinkSvg from '@cinegen/assets/unlink.svg';
 import type { Timeline, Clip as TimelineClip, ToolType, Keyframe, TimelineMarker } from '@cinegen/types/timeline';
 import type { Asset } from '@cinegen/types/project';
 import type { WorkflowNodeData } from '@cinegen/types/workflow';
-import { applyComposition, type Composition } from '@cinegen/lib/occ/template-composition';
-import { openSmartSpeech } from '@cinegen/lib/occ/smart-speech';
+import { useHostTimelineActions, libraryDropHandlers } from './timeline-host-actions';
 import { AddToTimelineModal } from './add-to-timeline-modal';
 import { OPEN_ADD_MODAL_EVENT } from './add-to-timeline-registry';
+import { OPEN_GENERATOR_EVENT } from './start-events';
 // [hyperframes] flag-gated library for verified HyperFrames animations
 import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
 // @ts-expect-error plain JS flag from the main app's lib
@@ -60,7 +63,7 @@ import { clipEffectiveDuration, clipEndTime, DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_
 const LABEL_WIDTH = 150;
 const FPS = 24; // assumed frame rate for snap-to-frame grid
 
-const DEFAULT_TRACK_HEIGHT = 110; // [remix] was 80
+const DEFAULT_TRACK_HEIGHT = 80; // same as CineGen upstream
 
 
 interface TimelineEditorProps {
@@ -528,34 +531,8 @@ export function TimelineEditor({
     [setTimeline, snapTime, probeAssetDuration],
   );
 
-  // [remix] Files dragged in from the desktop: import through the media pool, then place at the drop position.
-  const handleDesktopFilesDrop = useCallback((e: React.DragEvent) => {
-    const files = Array.from(e.dataTransfer.files).filter((f) => /^(video|audio|image)\//.test(f.type));
-    e.preventDefault(); e.stopPropagation();
-    if (files.length === 0) return;
-    const target = e.target as Element;
-    const trackEl = target.closest?.('.track-row[data-track-id]') as HTMLElement | null;
-    const clipsEl = trackEl?.querySelector('.track-row__clips') as HTMLElement | null;
-    let time = clipsEl ? Math.max(0, (e.clientX - clipsEl.getBoundingClientRect().left) / pxPerSecondRef.current) : currentTimeRef.current;
-    let trackId = trackEl?.getAttribute('data-track-id') ?? undefined;
-    void (async () => {
-      const assets = await new Promise<Asset[]>((resolve) => {
-        window.dispatchEvent(new CustomEvent('remix:import-files', { detail: { files, resolve } }));
-        setTimeout(() => resolve([]), 60_000);
-      });
-      for (const asset of assets) {
-        // wait until the new asset reaches this editor's state
-        for (let i = 0; i < 60 && !assetsRef.current.some((a) => a.id === asset.id); i += 1) await new Promise((r) => setTimeout(r, 50));
-        const tl = timelineRef.current;
-        const wantKind = asset.type === 'audio' ? 'audio' : 'video';
-        const track = tl.tracks.find((t) => t.id === trackId && !t.locked) ?? tl.tracks.find((t) => t.kind === wantKind && !t.locked);
-        if (!track) continue;
-        handleDropAsset(track.id, asset.id, time);
-        time += asset.duration && asset.duration > 0 ? asset.duration : 5;
-        trackId = track.id;
-      }
-    })();
-  }, [handleDropAsset]);
+  // [remix] host-only handlers (desktop drop, rate stretch, Smart Speech, generator, personalization) live in timeline-host-actions.ts
+  const { handleDesktopFilesDrop, handleRateStretch, handleOpenSpeech, handleOpenGenerator, handleOpenPersonalization } = useHostTimelineActions({ dispatch, setTimeline, timelineRef, assetsRef, pxPerSecondRef, currentTimeRef, currentTime, assets, handleDropAsset });
 
   // Throttled move to avoid re-rendering on every pointer pixel
   const moveRafRef = useRef<number | null>(null);
@@ -903,58 +880,7 @@ export function TimelineEditor({
     };
   }, []);
 
-  // [remix] Alt-drag edge = OpenChatCut rate stretch: speed + start change, source span stays; keyframes/fades rescale with the new length.
-  const handleRateStretch = useCallback(
-    (clipId: string, speed: number, startTime: number) => {
-      const tl = timelineRef.current;
-      const clip = tl.clips.find((c) => c.id === clipId);
-      if (!clip) return;
-      const oldEff = clipEffectiveDuration(clip);
-      const sp = Math.max(0.1, Math.min(8, speed));
-      const newEff = (clip.duration - clip.trimStart - clip.trimEnd) / sp;
-      const ratio = oldEff > 0 ? newEff / oldEff : 1;
-      const linked = new Set([clipId, ...(clip.linkedClipIds ?? [])]);
-      const delta = startTime - clip.startTime;
-      setTimeline({
-        ...tl,
-        clips: tl.clips.map((c) => {
-          if (!linked.has(c.id)) return c;
-          const r = c.id === clipId ? ratio : (clipEffectiveDuration(c) > 0 ? (((c.duration - c.trimStart - c.trimEnd) / sp) / clipEffectiveDuration(c)) : 1);
-          return {
-            ...c,
-            speed: sp,
-            startTime: Math.max(0, c.startTime + delta),
-            keyframes: (c.keyframes ?? []).map((k) => ({ ...k, time: k.time * r })),
-            fadeIn: c.fadeIn !== undefined ? c.fadeIn * r : undefined,
-            fadeOut: c.fadeOut !== undefined ? c.fadeOut * r : undefined,
-          };
-        }),
-      });
-    },
-    [setTimeline],
-  );
-
-  // [remix] Smart Speech (classic editor's modal): generated audio → asset + audio clip at the playhead, settings kept on the clip
-  const handleOpenSpeech = useCallback(() => {
-    openSmartSpeech({
-      clips: () => timelineRef.current.clips,
-      add: ({ url, duration, tts, name }) => {
-        const asset: Asset = { id: generateId(), name, type: 'audio', url, duration, createdAt: new Date().toISOString() };
-        dispatch({ type: 'ADD_ASSET', asset });
-        let tl = timelineRef.current;
-        // a free audio track at the playhead (the narration must not sit on top of the footage's own audio); add one when none is free
-        const dur = asset.duration ?? 3;
-        const free = (t: { id: string; kind: string; locked?: boolean }) => t.kind === 'audio' && !t.locked && !tl.clips.some((c) => c.trackId === t.id && c.startTime < currentTime + dur && clipEndTime(c) > currentTime);
-        let track = tl.tracks.find(free);
-        if (!track) { tl = addTrack(tl, 'audio'); track = tl.tracks[tl.tracks.length - 1]; }
-        const next = addClipToTrack(tl, track.id, asset, currentTime);
-        const added = next.clips.find((c) => c.assetId === asset.id);
-        setTimeline({ ...next, clips: next.clips.map((c) => (c === added ? { ...c, tts } : c)) });
-      },
-    });
-  }, [dispatch, setTimeline, currentTime]);
-
-  const handlePickTemplateVideo = usePickTemplateVideo({ dispatch, setTimeline, timelineRef, currentTime }); // Template videos tab of the Add modal
+  const handlePickTemplateVideo = usePickTemplateVideo({ dispatch, setTimeline, timelineRef, currentTime, onPlaced: (id) => onSelectClips(new Set([id])) }); // [remix] the new clip is selected // Template videos tab of the Add modal
 
   // [remix] Landing pages tab: open the shared picker on the chosen design, with this project's first https video attached
   const handlePickLandingPage = useCallback(async (designId: string) => {
@@ -962,31 +888,7 @@ export function TimelineEditor({
     const { openLandingPagePicker } = await import('../../../lib/landingPages/pickerModal.js');
     openLandingPagePicker({ template: designId, video: clip ? { url: clip.url, name: clip.name, thumbnail_url: clip.thumbnailUrl, studio: 'timeline' } : null });
   }, [state.assets]);
-
-  // [remix] Template Generator (classic editor's wizard): its composition is placed on this timeline in one undo step
-  const handleOpenGenerator = useCallback(async () => {
-    const { TemplateGeneratorModal } = await import('../../../components/modals/TemplateGeneratorModal.jsx');
-    const modal = new TemplateGeneratorModal({
-      onConfirm: (result: { composition?: Composition }) => {
-        if (!result?.composition) return;
-        const applied = applyComposition(timelineRef.current, result.composition);
-        applied.assets.forEach((asset) => dispatch({ type: 'ADD_ASSET', asset }));
-        applied.overlays.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
-        setTimeline(applied.timeline);
-      },
-    });
-    // "My Media" in the wizard lists the project's own clips and images (as it listed the classic editor's media)
-    (modal as unknown as { data: { media: unknown[] } }).data.media = state.assets
-      .filter((x) => x.type === 'video' || x.type === 'image')
-      .map((x) => ({ id: x.id, assetId: x.id, type: x.type, name: x.name, url: x.url, duration: x.duration, thumbnail: x.thumbnailUrl ?? x.url, width: x.width, height: x.height }));
-    modal.open();
-  }, [dispatch, setTimeline, state.assets]);
-
-  // [remix] Personalization hub (contacts, tokens, per-contact generation) — the classic editor's own window
-  const handleOpenPersonalization = useCallback(async () => {
-    const { VideoPersonalizationHub } = await import('../../../components/modals/VideoPersonalizationHub.jsx');
-    new VideoPersonalizationHub({ onComplete: () => {}, onError: (e: unknown) => console.warn('Personalization error', e) }).open();
-  }, []);
+  useEffect(() => { const go = () => { void handleOpenGenerator(); }; window.addEventListener(OPEN_GENERATOR_EVENT, go); return () => window.removeEventListener(OPEN_GENERATOR_EVENT, go); }, [handleOpenGenerator]);
 
   // Throttled trim
   const trimRafRef = useRef<number | null>(null);
@@ -2089,7 +1991,7 @@ export function TimelineEditor({
   useLayoutEffect(() => {
     const el = videoScrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [trackHeight]);
+  }, [trackHeight, state.overlays.length]); // [remix] the Overlays lane grows with each overlay and shrinks this section
 
   // Default video section scroll to the bottom so V1 is fully visible on first open/layout change.
   useLayoutEffect(() => {
@@ -3246,35 +3148,7 @@ export function TimelineEditor({
     : null;
 
   return (
-    <div className="timeline-editor" ref={editorRef}
-      onDragOverCapture={(e) => {
-        if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; return; } // [remix] desktop files
-        if (!hasLibraryDrag(e.dataTransfer.types)) return;
-        if ((e.target as Element).closest?.('.overlay-track')) return; // the Overlays row handles its own drops
-        e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
-        const el = (e.target as Element).closest?.('.clip-card, .track-row[data-track-id]') as HTMLElement | null;
-        editorRef.current?.querySelectorAll('.lib-drop-target').forEach((n) => { if (n !== el) n.classList.remove('lib-drop-target'); });
-        el?.classList.add('lib-drop-target');
-      }}
-      onDragLeaveCapture={(e) => { if (!editorRef.current?.contains(e.relatedTarget as Node | null)) editorRef.current?.querySelectorAll('.lib-drop-target').forEach((n) => n.classList.remove('lib-drop-target')); }}
-      onDropCapture={(e) => {
-        if (e.dataTransfer.files.length > 0 && !hasLibraryDrag(e.dataTransfer.types)) { handleDesktopFilesDrop(e); return; } // [remix]
-        if (!hasLibraryDrag(e.dataTransfer.types)) return;
-        const target = e.target as Element;
-        editorRef.current?.querySelectorAll('.lib-drop-target').forEach((n) => n.classList.remove('lib-drop-target'));
-        if (target.closest?.('.overlay-track')) return;
-        const drag = decodeLibraryDrag(e.dataTransfer.getData(LIBRARY_DND));
-        if (!drag || !onLibraryDrop) return;
-        e.preventDefault(); e.stopPropagation(); // not an asset / clip drop: keep CineGen's own drop handler out of it
-        const trackEl = target.closest('.track-row[data-track-id]') as HTMLElement | null;
-        const trackId = trackEl?.getAttribute('data-track-id') ?? undefined;
-        const clipEl = target.closest('.clip-card') as HTMLElement | null;
-        const clipId = clipEl?.getAttribute('data-clip-id') ?? undefined;
-        const clipsEl = trackEl?.querySelector('.track-row__clips') as HTMLElement | null;
-        const time = clipsEl ? Math.max(0, (e.clientX - clipsEl.getBoundingClientRect().left) / pxPerSecondRef.current) : currentTime;
-        const trackKind = trackId ? timelineRef.current.tracks.find((t) => t.id === trackId)?.kind : undefined;
-        onLibraryDrop(drag, { time, clipId, trackId, trackKind });
-      }}>
+    <div className="timeline-editor" ref={editorRef} {...libraryDropHandlers({ editorRef, timelineRef, pxPerSecondRef, currentTime, onLibraryDrop, handleDesktopFilesDrop })}>
       {/* Ruler row — sticky, shared across both sections */}
       <div className="timeline-editor__ruler-wrapper">
         <div className="timeline-editor__scroll timeline-editor__scroll--ruler" ref={scrollRef} onScroll={handleRulerScroll}>
@@ -3341,6 +3215,20 @@ export function TimelineEditor({
       {/* [remix] Overlays lane: Lead Generator, List Builder, CTA drawn over the video */}
       <OverlayLane
         onLibraryDrop={onLibraryDrop}
+        onAssetDrop={(assetId, ctx) => {
+          // a picture from the Media pool dropped on the Overlays lane becomes an Image overlay showing that picture
+          const asset = assetsRef.current.find((a) => a.id === assetId);
+          if (!asset || asset.type !== 'image' || !asset.url) return;
+          const base = createOverlay('overlay-image', startAfterGate(state.overlays, ctx.time), Math.max(sequenceDuration, 10));
+          const overlay = {
+            ...base,
+            ...(typeof ctx.row === 'number' ? { row: ctx.row } : {}),
+            name: asset.name || base.name,
+            addon: { ...((base.addon as Record<string, unknown> | undefined) ?? {}), src: asset.url },
+          };
+          dispatch({ type: 'ADD_OVERLAY', overlay });
+          selectOverlay(overlay.id);
+        }}
         overlays={state.overlays}
         pxPerSecond={pxPerSecond}
         scrollLeft={Math.max(0, rulerScrollLeft)}
@@ -3364,12 +3252,34 @@ export function TimelineEditor({
               // one List Builder per video: open the one that is there
               const gate = kind === 'list-builder' ? findGate(state.overlays) : undefined;
               if (gate) { selectOverlay(gate.id); return; }
-              const overlay = createOverlay(kind, kind === 'list-builder' ? currentTime : startAfterGate(state.overlays, currentTime), Math.max(sequenceDuration, 10));
+              const at = kind === 'list-builder' ? currentTime : startAfterGate(state.overlays, currentTime);
+              // A Studio design starts with a design chosen, so it shows something straight away.
+              if (kind === 'overlay-studio-design') {
+                void createStudioDesignOverlay(at, Math.max(sequenceDuration, 10)).then((overlay) => { dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); });
+                return;
+              }
+              const overlay = createOverlay(kind, at, Math.max(sequenceDuration, 10));
               dispatch({ type: 'ADD_OVERLAY', overlay });
               selectOverlay(overlay.id);
             },
             onPickTemplateVideo: handlePickTemplateVideo, // Template videos tab
             onPickLandingPage: handlePickLandingPage, // Landing pages tab
+            getOverlays: () => state.overlays ?? [],
+            onMakeAllVideoReady: (h) => makeAllVideoReady(state.overlays ?? [], h), // the images this video's Personalized Images use, for every contact
+            onAddLayout: (layoutId) => { // Personalized layouts tab: logo + CTA end card, presenter intro, product spotlight, opening frame
+              const r = createLayoutOverlays(layoutId, currentTime, Math.max(sequenceDuration, 10));
+              if (r.ok) {
+                r.overlays.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
+                if (r.overlays.length) selectOverlay(r.overlays[r.overlays.length - 1].id);
+                if (r.measureLogo) void measureActiveLogo();
+              }
+              return { ok: r.ok, message: r.message };
+            },
+            onPickPreset: (preset) => { // My presets tab
+              const made = presetOverlays(preset, startAfterGate(state.overlays, currentTime), Math.max(sequenceDuration, 10)); // not over a List Builder gate marker
+              made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));
+              if (made.length) selectOverlay(made[made.length - 1].id);
+            },
             onAddTemplate: (templateId, phone) => {
               const made = createTemplateOverlays(templateId, currentTime, Math.max(sequenceDuration, 10), phone ? { phone } : undefined);
               made.forEach((overlay) => dispatch({ type: 'ADD_OVERLAY', overlay }));

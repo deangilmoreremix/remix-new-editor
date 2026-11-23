@@ -1,0 +1,215 @@
+{
+  "id": "video-pages",
+  "name": "Video Pages",
+  "route": "#/video-pages",
+  "description": "Video Pages turns a generated or uploaded video into a branded landing page with a call to action, a lead form and analytics. The page is public at /p/<slug>.",
+  "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
+  "fullDescription": "In Video Pages you pick a video (one you generated, one from your library, or a file you upload), pick a page design, and the studio builds a landing page around it. You can edit the page sections, apply your brand, add a call to action and a lead form, and attach a customer so the page is personalised with tokens such as the first name and company. Pages are published at /p/<slug>; you can copy the link or an embed code, view page statistics, and manage the contacts collected. An AI rewrite option proposes new copy for the page sections that you can accept or reject.",
+  "bestFor": "Creators and agencies who want a shareable page around a video, with a lead form and basic analytics, without building a website.",
+  "whenToUse": [
+    "You have a finished video and want a page you can send or embed.",
+    "You want to collect leads (name, email) next to a video.",
+    "You want a page personalised for one customer using tokens like first name and company.",
+    "You want to see how many people viewed a page."
+  ],
+  "whenToUseAnother": [
+    "Use Website Builder (#/website-builder) when you need a full multi-page website.",
+    "Use Timeline (#/timeline) to edit the video itself before publishing.",
+    "Use Personalizer (#/personalizer) to generate one video per contact."
+  ],
+  "keyFeatures": [
+    "Page designs (templates) with a live preview.",
+    "Video from your library, from generated videos, or uploaded from your computer.",
+    "Brand styling from your saved brands.",
+    "Call to action and lead form on the page.",
+    "Customer panel: personalise the page for one customer with tokens such as first name and company.",
+    "Public link at /p/<slug> and an embed code.",
+    "Page statistics and a contacts list (CSV import).",
+    "AI copy rewrite for page sections with accept or reject."
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Page design",
+      "explanation": "Choose a template; the preview shows how your video and sections look.",
+      "whyToUse": "Start from a layout instead of a blank page.",
+      "inputRequired": "A video."
+    },
+    {
+      "feature": "Customer personalisation",
+      "explanation": "Attach a customer so tokens in the page text are replaced with that customer's details.",
+      "whyToUse": "Send one page per prospect.",
+      "inputRequired": "Customer details."
+    },
+    {
+      "feature": "Lead form",
+      "explanation": "Visitors can leave their details next to the video; they show up in your contacts.",
+      "whyToUse": "Collect leads from a video.",
+      "inputRequired": "None."
+    }
+  ],
+  "howToUse": "1. Open Video Pages from the side menu (#/video-pages). 2. Choose a video: from your library, a generated video, or upload one. 3. Pick a page design. 4. Edit the sections, add your call to action and lead form, and apply a brand if you want one. 5. Optionally attach a customer to personalise the page. 6. Publish, then copy the page link (/p/<slug>) or the embed code. 7. Open the page statistics and contacts to see views and leads.",
+  "howToSteps": [
+    "Choose or upload a video.",
+    "Pick a page design.",
+    "Edit sections, CTA and lead form.",
+    "Publish the page.",
+    "Copy the link or embed code.",
+    "Check statistics and contacts."
+  ],
+  "gettingStarted": [
+    "Start with a short video from your library.",
+    "Use a design preview to compare layouts before editing.",
+    "Publish, then open the public link in a private window to see what visitors see."
+  ],
+  "inputs": [
+    "Video",
+    "Page design",
+    "Page text and sections",
+    "Call to action",
+    "Brand (optional)",
+    "Customer (optional)"
+  ],
+  "requiredInputs": [
+    "Video",
+    "Page design"
+  ],
+  "optionalInputs": [
+    "Brand",
+    "Customer",
+    "Lead form settings",
+    "AI rewrite"
+  ],
+  "inputDetails": [
+    {
+      "name": "Video",
+      "description": "The video the page is built around.",
+      "required": true,
+      "whenToUse": "Always.",
+      "restrictions": "Uploaded files are limited in size; very large files are rejected."
+    }
+  ],
+  "generationModes": [
+    "Page from a video"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Page from a video",
+      "description": "Builds a landing page from one video and a design.",
+      "useCase": "Share or embed a video with a lead form."
+    }
+  ],
+  "modelCapabilities": "The AI rewrite proposes copy changes for page sections. Which model is used is not described here.",
+  "outputs": [
+    "A public landing page at /p/<slug>",
+    "An embed code",
+    "Page statistics",
+    "A contacts list"
+  ],
+  "limitations": [
+    "Uploaded video files have a maximum size.",
+    "Statistics depend on visitors loading the public page."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Video size",
+      "impact": "Files over the limit are rejected.",
+      "workaround": "Compress or trim the video first."
+    }
+  ],
+  "troubleshooting": [
+    "The page does not show a video: check that the video has a public https link.",
+    "No statistics yet: share the public link and open it, then refresh."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Upload fails",
+      "steps": [
+        "Check the file size.",
+        "Try a smaller or compressed file.",
+        "Upload again."
+      ]
+    }
+  ],
+  "commonProblems": [
+    {
+      "problem": "My page link does not open",
+      "whyItHappens": "The page may not be published yet.",
+      "howToFix": "Publish the page, then copy its link again."
+    }
+  ],
+  "exampleWorkflows": [
+    {
+      "title": "A landing page for a sales video",
+      "steps": [
+        "Pick the video.",
+        "Choose a design.",
+        "Add the CTA and lead form.",
+        "Publish and send the link."
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "title": "Video lead page",
+      "description": "A page with your video and a form to capture leads.",
+      "steps": [
+        "Choose a video.",
+        "Add the lead form.",
+        "Publish."
+      ],
+      "expectedOutput": "A public page that collects contacts."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Where is my page published?",
+      "answer": "At /p/<slug> on your site; copy the link from the studio."
+    },
+    {
+      "question": "Can I personalise a page for one customer?",
+      "answer": "Yes, attach a customer and tokens such as first name and company are filled in."
+    }
+  ],
+  "glossary": {
+    "Slug": "The last part of the page address.",
+    "CTA": "Call to action: the button or message that tells the viewer what to do next.",
+    "Token": "A placeholder such as the first name that is replaced for each customer."
+  },
+  "tips": [
+    "Keep the CTA to one clear action.",
+    "Preview as a customer before sending."
+  ],
+  "bestPractices": [
+    "Publish, then test the public link yourself before sharing."
+  ],
+  "relatedStudios": [
+    "timeline",
+    "personalizer",
+    "website-builder",
+    "library"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "timeline",
+      "relationship": "Edit the video before building a page.",
+      "whenToMove": "When the video needs changes.",
+      "why": "The page uses the finished video."
+    }
+  ],
+  "notConfirmed": [
+    "Maximum upload size.",
+    "Which AI model writes the copy rewrite."
+  ],
+  "sourceFiles": [
+    "src/components/LandingPagesStudio.js",
+    "src/lib/landingPages/ingest.js",
+    "src/lib/landingPages/client.js",
+    "src/pages/VideoPage.jsx"
+  ],
+  "verification": {
+    "status": "code-review",
+    "evidence": "Read the header and imports of LandingPagesStudio.js and the landingPages library file names.",
+    "verifiedAt": "2026-11-17",
+    "verifiedBy": "Code review (LLM-assisted)"
+  }
+}

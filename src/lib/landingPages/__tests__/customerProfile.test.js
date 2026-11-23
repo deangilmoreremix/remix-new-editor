@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeCustomer, mergeCustomer, dedupeCustomers, customerTokens, toContactFields, applyCustomerToPuck, brandForConfig, websiteUrl, httpsUrl, hexColor } from '../customerProfile.js';
-import { PUCK_TEMPLATES } from '../puck/designs.js';
+import { normalizeCustomer, mergeCustomer, dedupeCustomers, customerTokens, toContactFields, applyCustomerToEditor, brandForConfig, websiteUrl, httpsUrl, hexColor } from '../customerProfile.js';
+import { EDITABLE_TEMPLATES } from '../editor/designs.js';
 
 const CLIENT = { id: 'c1', name: 'Dana Whitfield', businessName: 'Riverside Plumbing', industry: 'Plumbing', location: 'Austin, TX', phone: '(512) 555-0142', website: 'riversideplumbing.com', offer: 'Free quote', callToAction: 'Book now', ctaHeadline: 'Fast fixes', email: 'dana@riversideplumbing.com', brandDescription: 'Family plumbers since 1999' };
 const ASSETS = { primaryLogo: { url: 'blob:x', uploadedUrl: 'https://cdn.test/logo.png' } };
@@ -76,7 +76,7 @@ describe('dedupe keeps distinct people', () => {
 describe('tokens and contact row', () => {
   const c = normalizeCustomer(CLIENT, 'client', { assets: ASSETS });
   it('customerTokens only returns the public page tokens', () => {
-    expect(Object.keys(customerTokens(c)).sort()).toEqual(['city', 'company', 'companylogo', 'firstname', 'lastname']);
+    expect(Object.keys(customerTokens(c)).sort()).toEqual(['city', 'company', 'companylogo', 'custom1', 'custom2', 'firstname', 'lastname']); // custom1/custom2 = city / the person, for designs that read those
   });
   it('toContactFields keeps the email (owner only) and skips customers with nothing to personalize', () => {
     expect(toContactFields(c).email).toBe('dana@riversideplumbing.com');
@@ -87,29 +87,29 @@ describe('tokens and contact row', () => {
   });
 });
 
-describe('applyCustomerToPuck on every design', () => {
+describe('applyCustomerToEditor on every design', () => {
   const c = normalizeCustomer(CLIENT, 'client', { assets: ASSETS, brandColors: { primary: '#ff8a1f' } });
   it('writes only brand slots and keeps every section, copy and token', () => {
-    PUCK_TEMPLATES.forEach((t) => {
-      const { data, applied } = applyCustomerToPuck(t.puckData, c);
-      expect(data.content.map((x) => x.type)).toEqual(t.puckData.content.map((x) => x.type));
+    EDITABLE_TEMPLATES.forEach((t) => {
+      const { data, applied } = applyCustomerToEditor(t.editorData, c);
+      expect(data.content.map((x) => x.type)).toEqual(t.editorData.content.map((x) => x.type));
       expect(data.root.props.accent).toBe('#ff8a1f');
       expect(applied).toContain('page colour');
-      const nav = data.content.find((x) => x.type === 'NavBar');
+      const nav = data.content.find((x) => /Nav(Bar)?$/.test(x.type));
       if (nav) { expect(nav.props.brand).toBe('Riverside Plumbing'); expect(nav.props.logo).toBe('https://cdn.test/logo.png'); }
       // everything except the brand slots is untouched
-      const strip = (d) => JSON.stringify(d.content.map((x) => (x.type === 'NavBar' || x.type === 'Footer' ? { type: x.type } : x)));
-      expect(strip(data)).toBe(strip(t.puckData));
+      const strip = (d) => JSON.stringify(d.content.map((x) => (/Nav(Bar)?$/.test(x.type) || x.type === 'Footer' ? { type: x.type } : x)));
+      expect(strip(data)).toBe(strip(t.editorData));
     });
   });
   it('does not mutate its input and does nothing without a customer', () => {
-    const t = PUCK_TEMPLATES[1]; const before = JSON.stringify(t.puckData);
-    applyCustomerToPuck(t.puckData, c); expect(JSON.stringify(t.puckData)).toBe(before);
-    expect(applyCustomerToPuck(t.puckData, null).applied).toEqual([]);
+    const t = EDITABLE_TEMPLATES[1]; const before = JSON.stringify(t.editorData);
+    applyCustomerToEditor(t.editorData, c); expect(JSON.stringify(t.editorData)).toBe(before);
+    expect(applyCustomerToEditor(t.editorData, null).applied).toEqual([]);
   });
   it('keeps the default footer wording out of a real business footer', () => {
-    const t = PUCK_TEMPLATES.find((x) => x.puckData.content.some((y) => y.type === 'Footer'));
-    const { data } = applyCustomerToPuck(t.puckData, c);
+    const t = EDITABLE_TEMPLATES.find((x) => x.editorData.content.some((y) => y.type === 'Footer'));
+    const { data } = applyCustomerToEditor(t.editorData, c);
     expect(data.content.find((x) => x.type === 'Footer').props.text).toContain('Riverside Plumbing');
   });
 });
@@ -120,5 +120,84 @@ describe('contacts imported in the Personalize hub', () => {
     expect(c.tokens).toMatchObject({ firstname: 'Ana', lastname: 'Ruiz', company: 'Peak Gym', role: 'Owner', city: 'Reno' });
     expect(toContactFields(c)).toMatchObject({ firstname: 'Ana', email: 'ana@x.co' });
     expect(normalizeCustomer({ phone: '123' }, 'contact')).toBeNull();
+  });
+});
+
+import { personalImagesFromProjects, attachPersonalImages } from '../customerProfile.js';
+
+describe('the customer\'s personalized picture', () => {
+  const PROJECTS = [
+    { updated_at: '2026-11-10T00:00:00Z', client: { id: 'c1', businessName: 'Riverside Plumbing' }, output_type: 'image', generation: { outputUrls: ['https://cdn.test/old.png'] } },
+    { updated_at: '2026-11-15T00:00:00Z', client: { id: 'c1', businessName: 'Riverside Plumbing' }, output_type: 'video', generation: { outputUrls: ['https://cdn.test/clip.mp4', 'blob:xyz', 'https://cdn.test/new.webp'] } },
+    { updated_at: '2026-11-12T00:00:00Z', client: { businessName: 'Acme Roofing' }, output_type: 'image', generation: { outputUrls: ['https://cdn.test/acme-image'] } },
+    { updated_at: '2026-11-12T00:00:00Z', client: { id: 'c9' }, generation: { outputUrls: ['http://insecure/x.png'] } },
+  ];
+  it('takes the newest https picture per customer (id first, then business name), never videos, blob: or http', () => {
+    const { byId, byName } = personalImagesFromProjects(PROJECTS);
+    expect(byId.c1).toBe('https://cdn.test/new.webp');
+    expect(byName.acmeroofing).toBe('https://cdn.test/acme-image');
+    expect(byId.c9).toBeUndefined();
+  });
+  it('attaches it to the customers and keeps one they already have', () => {
+    const list = attachPersonalImages([normalizeCustomer({ id: 'c1', businessName: 'Riverside Plumbing' }, 'client'), normalizeCustomer({ id: 'x', businessName: 'Acme Roofing' }, 'client'), { ...normalizeCustomer({ id: 'y', businessName: 'Mine' }, 'client'), image: 'https://cdn.test/mine.png' }], PROJECTS);
+    expect(list.map((c) => c.image)).toEqual(['https://cdn.test/new.webp', 'https://cdn.test/acme-image', 'https://cdn.test/mine.png']);
+  });
+  it('applyCustomerToEditor puts it in every design\'s video slot when asked, and not when switched off', () => {
+    const c = { ...normalizeCustomer(CLIENT, 'client'), image: 'https://cdn.test/personal.png' };
+    EDITABLE_TEMPLATES.forEach((t) => {
+      const hasSlot = t.editorData.content.some((x) => /Hero|VideoSection/.test(x.type));
+      const on = applyCustomerToEditor(t.editorData, c);
+      const off = applyCustomerToEditor(t.editorData, c, { useImage: false });
+      const slots = (d) => JSON.stringify(d).match(/"slotImage":"https:\/\/cdn\.test\/personal\.png"/g) || [];
+      expect(off.data && slots(off.data).length).toBe(0);
+      if (hasSlot) { expect(slots(on.data).length).toBeGreaterThan(0); expect(on.applied).toContain('personalized image'); } else expect(slots(on.data).length).toBe(0);
+    });
+  });
+});
+
+describe('personalized picture without the brand option', () => {
+  const c = { ...normalizeCustomer(CLIENT, 'client', { assets: ASSETS, brandColors: { primary: '#ff8a1f' } }), image: 'https://cdn.test/me.png' };
+  it('fills only the video slot picture when the brand option is off', () => {
+    const t = EDITABLE_TEMPLATES.find((x) => x.id === 'editable-pc-roofing');
+    const { data, applied } = applyCustomerToEditor(t.editorData, c, { useImage: true, brand: false });
+    expect(data.content.find((x) => x.type === 'Hero').props.slotImage).toBe('https://cdn.test/me.png');
+    expect(data.root.props.accent).toBe(t.editorData.root.props.accent);
+    expect(data.content.find((x) => x.type === 'NavBar').props.brand).toBe(t.editorData.content.find((x) => x.type === 'NavBar').props.brand);
+    expect(applied).toEqual(['personalized image']);
+  });
+});
+
+describe('personal image lookup', () => {
+  it('ignores inherited object keys such as "constructor"', async () => {
+    const { attachPersonalImages } = await import('../customerProfile.js');
+    const out = attachPersonalImages([{ id: 'constructor', business: { name: 'Constructor' }, image: '' }], []);
+    expect(out[0].image).toBe('');
+  });
+});
+
+describe('personal image from a saved project that only has client.clientId', () => {
+  it('attaches the picture by the persisted clientId', async () => {
+    const { attachPersonalImages } = await import('../customerProfile.js');
+    const c = normalizeCustomer(CLIENT, 'client');
+    const out = attachPersonalImages([c], [{ client: { clientId: c.id }, generation: { outputUrls: ['https://cdn.test/p.png'] }, output_type: 'image', updated_at: '2026-01-01' }]);
+    expect(out[0].image).toBe('https://cdn.test/p.png');
+  });
+});
+
+describe('personal image ordering', () => {
+  const row = (clientId, url, saved, generated) => ({ client: { clientId }, output_type: 'image', updated_at: saved, generation: { outputUrls: [url], ...(generated ? { outputGeneratedAt: generated } : {}) } });
+  it('picks the newest generated picture, not the most recently saved project', () => {
+    const { byId } = personalImagesFromProjects([
+      row('c1', 'https://cdn.test/older-generation.png', '2026-11-16T00:00:00Z', '2026-11-01T00:00:00Z'), // saved again later by an unrelated edit
+      row('c1', 'https://cdn.test/newer-generation.png', '2026-11-10T00:00:00Z', '2026-11-09T00:00:00Z'),
+    ]);
+    expect(byId.c1).toBe('https://cdn.test/newer-generation.png');
+  });
+  it('still orders older rows (no generation stamp) by when they were saved', () => {
+    const { byId } = personalImagesFromProjects([
+      row('c2', 'https://cdn.test/a.png', '2026-11-01T00:00:00Z'),
+      row('c2', 'https://cdn.test/b.png', '2026-11-05T00:00:00Z'),
+    ]);
+    expect(byId.c2).toBe('https://cdn.test/b.png');
   });
 });
