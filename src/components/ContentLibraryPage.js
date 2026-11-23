@@ -71,6 +71,7 @@ export function ContentLibraryPage() {
     const btn = document.createElement('button');
     btn.className = 'px-4 py-2 rounded-full text-xs font-bold transition-all';
     safeSetText(btn, f === 'pdfs' ? 'PDFs' : f.charAt(0).toUpperCase() + f.slice(1));
+    btn.dataset.helpText = { all: 'Show every item in your library.', saved: 'Show only items you saved.', images: 'Show only images.', videos: 'Show only videos.', audio: 'Show only audio.', pdfs: 'Show only PDF files.' }[f];
     btn.onclick = () => { activeFilter = f; updateFilters(); renderGrid(); };
     filterBtns[f] = btn;
     controls.appendChild(btn);

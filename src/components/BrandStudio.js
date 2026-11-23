@@ -63,6 +63,7 @@ export function BrandStudio() {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'text-left rounded-xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 transition-colors';
+    btn.dataset.help = `brand tool ${route}`;
     const title = document.createElement('div');
     title.className = 'text-sm font-bold text-white';
     title.textContent = label;

@@ -616,6 +616,8 @@ function Hub({ onOpenTrack, bookmarks, onToggleBookmark, onOpenLesson, progressA
             <button
               key={t.slug}
               onClick={() => onOpenTrack(t.slug)}
+              data-help-name={t.title}
+              data-help-text={tp.total > 0 ? `Open this track. ${tp.completed} of ${tp.total} lessons done.` : 'Open this track.'}
               className={cardCls + ' text-left hover:border-white/25 transition'}
             >
               <div className="flex items-center justify-between mb-1">
@@ -787,6 +789,8 @@ function AcademyApp() {
             window.history.pushState({}, '', newUrl);
             setSelection({ type: 'hub' });
           }}
+          data-help-name="Academy home"
+          data-help-text="Go back to all Academy tracks."
           className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white"
         >
           <Icon name="GraduationCap" size={18} /> Smart Video Academy
@@ -800,6 +804,7 @@ function AcademyApp() {
         <div className="ml-auto">
           <button
             onClick={() => navigate('apps')}
+            data-help-text="Leave the Academy and go to Apps."
             className="text-sm text-white/50 hover:text-white inline-flex items-center gap-1"
           >
             <Icon name="X" size={16} /> Exit

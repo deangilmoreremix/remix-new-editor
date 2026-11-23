@@ -98,7 +98,10 @@ export function InfluencerPage() {
   container.appendChild(contentWrapper);
 
   container.querySelector('.start-btn').onclick = () => navigate('influencer');
+
+  container.querySelector('.start-btn').dataset.helpText = 'Open AI Influencer.';
   container.querySelector('.cta-btn').onclick = () => navigate('influencer');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open AI Influencer.';
 
   return container;
 }

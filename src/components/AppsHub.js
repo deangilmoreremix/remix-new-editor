@@ -152,6 +152,7 @@ function createSection(title, items, isStudio = false) {
     const card = document.createElement('div');
     card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group overflow-hidden';
     card.dataset.searchable = `${item.name} ${item.description || ''}`;
+    if (item.id) card.dataset.studio = item.id; // hover help: the studio-level description (components/studio/tooltipLayer.js)
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
 

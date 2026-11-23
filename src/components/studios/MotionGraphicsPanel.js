@@ -77,7 +77,7 @@ export function MotionGraphicsPanel() {
   });
 
   // Generate | Edit
-  const modeToggle = createSegmented([{ value: 'generate', label: 'Generate' }, { value: 'edit', label: 'Edit' }], 'generate', (v) => {
+  const modeToggle = createSegmented([{ value: 'generate', label: 'Generate', help: 'motion graphics generate' }, { value: 'edit', label: 'Edit', help: 'motion graphics edit' }], 'generate', (v) => {
     if (v === 'edit') {
       const first = editSources()[0];
       if (!first) { modeToggle.setValue('generate'); showToast('Generate a motion graphic first, then you can edit it.', 'info'); return; }

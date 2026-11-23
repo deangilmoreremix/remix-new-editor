@@ -135,7 +135,9 @@ export function TextToImagePage() {
 
   // Event Listeners
   container.querySelector('.start-btn').onclick = () => navigate('image');
+  container.querySelector('.start-btn').dataset.helpText = 'Open Image Studio.';
   contentWrapper.querySelector('.cta-btn').onclick = () => navigate('image');
+  contentWrapper.querySelector('.cta-btn').dataset.helpText = 'Open Image Studio.';
 
   const gtmBoostBtn = contentWrapper.querySelector('.gtm-boost-btn');
   if (gtmBoostBtn) {

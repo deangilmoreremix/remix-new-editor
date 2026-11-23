@@ -1,6 +1,7 @@
 import './style.css';
 import './components/modals/modal-styles.css';
 import './styles/outline-buttons.css';
+import './styles/studio-tooltip.css';
 
 // Popcorn.JS — initialize as early as possible (ESM init replicating
 // lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
@@ -21,6 +22,7 @@ import { Sidebar } from './components/Sidebar.js';
 import { initRouter, navigate, getCurrentPage, isCurrentRoute } from './lib/router.js';
 import { mountAskSmartVideo } from './features/ask-smartvideo/AskSmartVideo.js';
 import { mountGenerationNotifications } from './components/studio/generationNotifications.js';
+import { mountStudioTooltips } from './components/studio/tooltipLayer.js';
 import { mountLandingPageButtons } from './components/studio/landingPageAttach.js';
 import { ensureClerkLoaded } from './lib/clerkInit.js';
 import { perfMonitor } from './lib/performance.js';
@@ -215,6 +217,7 @@ try {
   const { header: headerEl, headerAuthSlot } = Header((page) => navigate(page));
   app.appendChild(headerEl);
   mountGenerationNotifications((page) => navigate(page));
+  mountStudioTooltips();
   mountLandingPageButtons(); // "Create landing page" beside every studio's Download link, in that studio's own style
   mountAskSmartVideo({ navigate: (page) => navigate(page), getPage: () => getCurrentPage() || '' });
 

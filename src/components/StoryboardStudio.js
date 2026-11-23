@@ -1522,7 +1522,7 @@ export function StoryboardStudio(options = {}) {
     animateBtn.onclick = () => animateFrame(frame);
     const publishBtn = document.createElement('button');
     publishBtn.type = 'button';
-    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2 rounded-lg text-xs font-bold hover:shadow-glow transition-all';
+    publishBtn.className = 'bg-gradient-to-r from-(--publish-from) to-(--publish-to) text-white py-2 rounded-lg text-xs font-bold hover:shadow-glow transition-all';
     publishBtn.textContent = 'Publish';
     publishBtn.onclick = () => {
       if (!frame.imageUrl) { showToast('Generate this frame first.', 'warning'); return; }

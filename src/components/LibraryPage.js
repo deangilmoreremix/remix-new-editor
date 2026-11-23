@@ -50,6 +50,7 @@ export function LibraryPage() {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.dataset.libraryFilter = f;
+    btn.dataset.help = f === 'uploads' ? 'library uploads' : 'library filter';
     btn.className = 'px-4 py-2 rounded-full text-xs font-bold transition-all';
     btn.dataset.label = label;
     btn.textContent = label;
@@ -69,6 +70,7 @@ export function LibraryPage() {
   const right = document.createElement('div');
   right.className = 'ml-auto flex items-center gap-2';
   const sortSelect = document.createElement('select');
+  sortSelect.dataset.help = 'library sort';
   sortSelect.className = 'bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none';
   sortSelect.innerHTML = '<option value="newest">Newest first</option><option value="oldest">Oldest first</option>';
   sortSelect.onchange = () => { sortOrder = sortSelect.value; renderGrid(); };
