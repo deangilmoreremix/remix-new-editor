@@ -73,7 +73,7 @@ describe('published video: Lead Generator designs', () => {
 });
 
 describe('published video: a design in a colour scheme', () => {
-  it.each(['amber', 'cyan', 'pink'])('%s: the recoloured design is what the viewer sees (and it still sends the lead)', async (scheme) => {
+  it.each(['cyan', 'pink', 'lime'])('%s: the recoloured design is what the viewer sees (and it still sends the lead)', async (scheme) => {
     for (const id of ['aurora-glass', 'vip-access', 'editorial-minimalist', 'cosmic-portal']) {
       document.body.innerHTML = '';
       const frame = document.createElement('div');
