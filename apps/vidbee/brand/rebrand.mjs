@@ -58,6 +58,11 @@ const PATCHES = [
   { file: '/renderer/src/components/settings/SettingsSectionNav.tsx', find: "  { icon: KeyRound, labelKey: 'settings.providersTab', value: 'providers' },\n", replace: '' },
   { file: '/renderer/src/components/settings/SettingsSectionNav.tsx', find: "values: ['providers', 'prompts', 'transcribe']", replace: "values: ['prompts', 'transcribe']" },
   { file: '/renderer/src/components/transcript/TranscriptPromptGuidance.tsx', find: '{showProviderSettings ? (', replace: '{false ? (' },
+  // The built-in key must only ever reach api.openai.com through the AI runners. "List models", "Test connection" and
+  // "copy key from provider" accept a user-chosen Base URL, so they must never see it.
+  { file: '/main/lib/ai-store.ts', find: '  getProviderSecret(id: string): string {\n', replace: "  getProviderSecret(id: string): string {\n    if (id === 'smartvid-openai') return ''\n" },
+  { file: '/main/lib/ai-store.ts', find: 'state.providers.find((provider) => provider.id === input.copyApiKeyFromId)', replace: "state.providers.find((provider) => provider.id === input.copyApiKeyFromId && provider.id !== 'smartvid-openai')" },
+  { file: '/main/lib/ai-store.ts', find: '    const existing = input.id\n', replace: "    if (input.id === 'smartvid-openai') throw new Error('The built-in AI provider cannot be edited')\n    const existing = input.id\n" },
   { file: '/main/lib/ai-store.ts', find: '\nclass AiStore {', replace: `
 /** SmartVid: the one OpenAI provider backed by the server's key, or null when no key is configured (local dev). */
 const smartvidManagedProvider = (): StoredProvider | null => {
