@@ -94,7 +94,9 @@ function getFieldLabel(normalizedKey: string, rawKey: string, schema: Record<str
   return label || rawKey;
 }
 
-function getMediaKind(key: string): 'image' | 'video' | 'audio' | null {
+function getMediaKind(key: string, schema?: Record<string, unknown>): 'image' | 'video' | 'audio' | null {
+  // Explicit hint for media inputs whose key does not say so (e.g. face swap's swap_url).
+  if (schema && (schema.media === 'image' || schema.media === 'video' || schema.media === 'audio')) return schema.media;
   if (!/(_url|_urls|_list|^images?|^video|^audio)$/.test(key)) return null;
   if (key.includes('image') || key.includes('frame')) return 'image';
   if (key.includes('video')) return 'video';
@@ -102,9 +104,9 @@ function getMediaKind(key: string): 'image' | 'video' | 'audio' | null {
   return null;
 }
 
-function getFieldSection(normalizedKey: string, capabilities: { textInput?: boolean; imageInput?: boolean; videoInput?: boolean; audioInput?: boolean; }): string {
+function getFieldSection(normalizedKey: string, capabilities: { textInput?: boolean; imageInput?: boolean; videoInput?: boolean; audioInput?: boolean; }, schema?: Record<string, unknown>): string {
   if (['prompt', 'negative_prompt'].includes(normalizedKey)) return 'prompt';
-  if (['reference_image', 'first_frame', 'last_frame', 'mask', 'image', 'video', 'audio'].includes(normalizedKey) || getMediaKind(normalizedKey)) return 'media';
+  if (['reference_image', 'first_frame', 'last_frame', 'mask', 'image', 'video', 'audio'].includes(normalizedKey) || getMediaKind(normalizedKey, schema)) return 'media';
   if (['duration', 'resolution', 'aspect_ratio', 'fps', 'output_format', 'number_of_outputs', 'quality'].includes(normalizedKey)) return 'settings';
   return 'advanced';
 }
@@ -162,7 +164,7 @@ function inferSmartFieldType(
   }
 
   // Media inputs named like image_url / images_list / video_url / audio_url.
-  const mediaKind = getMediaKind(normalizedKey);
+  const mediaKind = getMediaKind(normalizedKey, schema);
   if (mediaKind && (schema.type === 'string' || schema.type === 'array' || schema.format === 'uri' || !schema.type) && !schema.enum) {
     if (mediaKind === 'image') return schema.type === 'array' && capabilities.multipleImages ? 'multi-image-upload' : 'image-upload';
     return mediaKind === 'video' ? 'video-upload' : 'audio-upload';
@@ -245,7 +247,7 @@ export function normalizeSchema(
     const normalizedKey = RAW_TO_NORMALIZED[rawKey] || rawKey;
     const type = inferSmartFieldType(rawKey, normalizedKey, schema as Record<string, unknown>, capabilities);
     const label = getFieldLabel(normalizedKey, rawKey, schema as Record<string, unknown>);
-    const section = getFieldSection(normalizedKey, capabilities);
+    const section = getFieldSection(normalizedKey, capabilities, schema as Record<string, unknown>);
     const advanced = section === 'advanced';
 
     if (type === 'unknown') {

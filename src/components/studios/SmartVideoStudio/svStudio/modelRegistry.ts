@@ -107,6 +107,7 @@ export interface ModelMeta {
 // ---------------------------------------------------------------------------
 
 const registry = new Map<string, ModelMeta>();
+// Keyed by registry id: several lists can share one model_name (e.g. avatar vs lip-sync entries).
 const schemaCache = new Map<string, Record<string, unknown>>();
 
 export async function loadModelSchema(modelId: string): Promise<Record<string, unknown>> {
@@ -115,8 +116,8 @@ export async function loadModelSchema(modelId: string): Promise<Record<string, u
     throw new Error(`Model "${modelId}" not found in registry. Run syncCatalog() first.`);
   }
 
-  if (schemaCache.has(meta.model_name)) {
-    return schemaCache.get(meta.model_name)!;
+  if (schemaCache.has(meta.id)) {
+    return schemaCache.get(meta.id)!;
   }
 
   if (meta.input_schema) return meta.input_schema;
@@ -126,7 +127,7 @@ export async function loadModelSchema(modelId: string): Promise<Record<string, u
     if (!response.ok) throw new Error(`Schema fetch failed: ${response.status}`);
     const data = await response.json();
     const schema = data.input_schema || data.input || {};
-    schemaCache.set(meta.model_name, schema);
+    schemaCache.set(meta.id, schema);
     return schema;
   } catch (e) {
     console.error(`[ModelRegistry] Failed to load schema for ${modelId}`, e);
@@ -258,7 +259,7 @@ function buildLocalSchema(m: LocalModel, generationType: string, category: strin
       ? { type: 'array', title: 'Images', items: { type: 'string' } }
       : { type: 'string', title: 'Image', format: 'uri' });
   }
-  if (m.swapField) add(m.swapField, { type: 'string', title: 'Face Image', format: 'uri' });
+  if (m.swapField) add(m.swapField, { type: 'string', title: 'Face Image', format: 'uri', media: 'image' });
   if (m.lastImageField) add(m.lastImageField, { type: 'string', title: 'Last Frame', format: 'uri' });
   if (category === 'video-to-video' || category === 'video-upscale' || m.hasVideo || (generationType === 'lipsync' && m.category === 'video')) {
     add((m.videoField as string) || 'video_url', { type: 'string', title: 'Video', format: 'uri' });
@@ -390,7 +391,7 @@ function storeModels(models: ModelMeta[]): void {
   schemaCache.clear();
   for (const meta of models) {
     registry.set(meta.id, meta);
-    if (meta.input_schema) schemaCache.set(meta.model_name, meta.input_schema);
+    if (meta.input_schema) schemaCache.set(meta.id, meta.input_schema);
   }
 }
 
