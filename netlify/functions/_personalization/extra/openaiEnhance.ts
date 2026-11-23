@@ -18,11 +18,12 @@
 import { NextResponse } from '../shims/next-server'
 import { auth } from '../shims/clerk-server'
 import { getOpenAiKeyForUser } from '../src/lib/openaiKeyServer'
+import { OPENAI_TEXT_MODEL } from '../../_shared/openaiModels.js'
 
 type Mode = 'enhance' | 'script' | 'campaign'
 type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string }
 
-const MODEL = process.env.OPENAI_MODEL || 'gpt-4o'
+const MODEL = process.env.OPENAI_MODEL || OPENAI_TEXT_MODEL
 const MAX_MESSAGES = 40
 const MAX_CHARS = 60_000
 
@@ -45,7 +46,8 @@ const SYSTEM_PROMPTS: Record<Mode, string> = {
     'Return ONLY the copy as plain text — no preamble, no markdown.',
 }
 
-const MAX_TOKENS: Record<Mode | 'chat', number> = { enhance: 500, script: 1200, campaign: 800, chat: 1200 }
+// Reasoning models count reasoning tokens against max_completion_tokens, so these leave headroom.
+const MAX_TOKENS: Record<Mode | 'chat', number> = { enhance: 2000, script: 4000, campaign: 3000, chat: 4000 }
 
 function normalizeMode(value: unknown): Mode {
   return value === 'script' || value === 'campaign' ? value : 'enhance'
@@ -97,7 +99,7 @@ export async function POST(req: Request) {
     const upstream = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ model: MODEL, messages, max_tokens: budget }),
+      body: JSON.stringify({ model: MODEL, messages, max_completion_tokens: budget }),
       signal: AbortSignal.timeout(60_000),
     })
     const data = (await upstream.json().catch(() => ({}))) as {

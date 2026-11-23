@@ -1,11 +1,15 @@
 import { navigate } from '../lib/router.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { storePrefillModel } from '../lib/prefillModel.js';
+import { v2vModels } from '../lib/models.js';
 
+// Each card opens Video Studio with a real video-to-video model (ids from v2vModels in models.js).
 const WATERMARK_TOOLS = [
-  { name: 'AI Video Watermark Remover', description: 'Remove watermarks from videos using AI', category: 'Watermark' },
-  { name: 'AI Video Object Remover', description: 'Remove unwanted objects from videos', category: 'Removal' },
-  { name: 'AI Video Logo Remover', description: 'Remove logos and branding from videos', category: 'Removal' },
+  { name: 'AI Video Watermark Remover', model: 'video-watermark-remover', description: 'Remove watermarks, captions and on-screen text from videos using AI', category: 'Watermark' },
+  { name: 'AI Video Logo Remover', model: 'video-watermark-remover', description: 'Remove logos and channel branding (uses the watermark remover, which also clears logos)', category: 'Removal' },
+  { name: 'Seedance 2 Watermark Remover', model: 'seedance-2-watermark-remover', description: 'Remove the Seedance 2.0 watermark from clips made with Seedance', category: 'Watermark' },
+  { name: 'Video Background Remover', model: 'video-background-remover', description: 'Cut the subject out and remove the whole background', category: 'Removal' },
 ];
 
 const FEATURES = [
@@ -90,9 +94,9 @@ export function VideoWatermarkPage() {
     <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-xl font-black text-white mb-1">Available Tools</h2>
       <p class="text-sm text-muted mb-6">Professional video cleaning tools</p>
-      <div class="grid md:grid-cols-3 gap-4">
+      <div class="grid md:grid-cols-2 gap-4">
         ${WATERMARK_TOOLS.map(m => `
-          <button class="model-card bg-white/[0.03] border border-white/5 rounded-xl p-4 hover:border-primary/20 transition-all duration-300 text-left cursor-pointer" data-model="${m.name}">
+          <button class="model-card bg-white/[0.03] border border-white/5 rounded-xl p-4 hover:border-primary/20 transition-all duration-300 text-left cursor-pointer" data-model="${m.model}">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-bold text-white">${m.name}</span>
               <span class="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">${m.category}</span>
@@ -121,8 +125,7 @@ export function VideoWatermarkPage() {
 
   container.querySelectorAll('.model-card').forEach(card => {
     card.onclick = () => {
-      const modelName = card.dataset.model;
-      localStorage.setItem('prefill_model', modelName);
+      storePrefillModel(v2vModels, card.dataset.model);
       navigate('video');
     };
   });

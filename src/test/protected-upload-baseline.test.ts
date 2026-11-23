@@ -662,11 +662,18 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/components/chat/ChatSidebar.jsx', '6bea82236dba0a41bbf9f5ef6ef5e58a97c2388820fd2b07f03842af89d14c49'],
     ['src/components/chat/AttachmentChips.jsx', '8731d3421f55883019a3f1e33bb9132777de9ab6ff38eeb53a335bc59d4dc104'],
     ['src/components/chat/AttachmentToolbar.jsx', '30bddd1f38b34f5d2056a5b3ebafa360e03f8858a6847a4cf69e3614f9e3e763'],
-    ['src/components/chat/ModelSelector.jsx', 'db0298741d663dad799003d3c6fb7227ceaa25b30ec1e94ca3d9d7c9b2a98f87'],
+    // Re-recorded deliberately for the approved GPT-6 text-model migration: the
+    // chat model picker lists the MuAPI GPT-6 ids (gpt-6-1-sol default,
+    // gpt-6-luna, gpt-6-astra). No upload code. Semantic coverage in section 5.
+    ['src/components/chat/ModelSelector.jsx', '22319a5534f395645893416183b31b042054596850baa229ddac304e0648ead1'],
     ['src/components/chat/ChatStudio.css', 'c2037cbf6e595c85926958f233bdd98d67de1d4da77cf904bf52d2041da61cf4'],
     ['src/hooks/useAttachmentState.js', '8e4bf9b95ddc0e4561a70a1688169a1e31a8d8be3481caf521123a8203f9bec2'],
     ['src/hooks/useChat.js', '0a48a4e58c7180de654c3ff9330f66b85b48b9d2635d6d56c1058dc748e16948'],
-    ['src/lib/chatApi.js', '277372658b0a9b978441ae747ef32960680505575178036d5f566c2be27f9a3c'],
+    // Re-recorded deliberately for the approved GPT-6 text-model migration: the
+    // default chat model is MuAPI gpt-6-1-sol and temperature is omitted for
+    // reasoning models. Still streams through muapi.generateTextStream; no
+    // upload code. Semantic coverage in section 5.
+    ['src/lib/chatApi.js', '70a094c62d93deeaa308ac8601e781602b8703df112230652977dcf6375c602e'],
     ['src/lib/chatStore.js', 'bf656c016fc8f4ca01ce5aaa6dd7261a0caa4a8693943335f47ca2b0afd86b77'],
     ['src/lib/chatPersistence.js', '2d81dd7bb1edc0298f61f111f1adc5cdf35d32eaa03e4800600852ff83e39bfe'],
     // Re-recorded deliberately after the intentional personalization
@@ -834,6 +841,17 @@ const SEMANTIC_GUARDED: Array<{ file: string; app: string; exports: string[] }> 
     file: 'src/lib/editor/dragDrop.js',
     app: 'Timeline Editor — drag & drop',
     exports: ['setupEnhancedTooltips', 'uploadFile', 'processMultipleFiles'],
+  },
+  // Re-recorded deliberately for the GPT-6 text-model migration.
+  {
+    file: 'src/lib/chatApi.js',
+    app: 'Chat — API client',
+    exports: ['sendChatMessage', 'createConversation', 'muapi.generateTextStream', 'muapi.generateText'],
+  },
+  {
+    file: 'src/components/chat/ModelSelector.jsx',
+    app: 'Chat — model picker',
+    exports: ['export default function ModelSelector'],
   },
 ];
 

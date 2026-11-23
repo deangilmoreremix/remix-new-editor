@@ -54,7 +54,11 @@ describe('model cards on the Text to Image / Video pages', () => {
     const img = fs.readFileSync('src/components/ImageStudio.js', 'utf8');
     const vid = fs.readFileSync('src/components/VideoStudio.js', 'utf8');
     expect(img).toMatch(/resolvePrefillModel\(t2iModels, takePrefillModelName\(\)\)/);
-    expect(vid).toMatch(/resolvePrefillModel\(t2vModels, takePrefillModelName\(\)\)/);
+    // Video Studio reads the key once and also accepts video-to-video tools (Watermark Remover cards).
+    expect(vid).toMatch(/const prefillName = takePrefillModelName\(\)/);
+    expect(vid).toMatch(/resolvePrefillModel\(t2vModels, prefillName\)/);
+    expect(vid).toMatch(/resolvePrefillModel\(v2vModels, prefillName\)/);
+    expect(vid).toMatch(/let v2vMode = !!prefillV2V/);
   });
   it('a real t2v model name is resolved for Video Studio', () => {
     const m = t2vModels[2];
