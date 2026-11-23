@@ -57,30 +57,30 @@
   "no editable field with a measured visible effect": 1,
   "export throughput 4.6 fps < 8.0": 1
  },
- "enabledCount": 139,
+ "enabledCount": 147,
  "items": {
   "ai-answer-rank": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "prodSsimMin": 0.997,
     "adapterErrors": [],
     "motion": 0.1053,
-    "export": null,
+    "export": {
+     "ok": true,
+     "fps": 14.4
+    },
     "kind": "animated",
-    "nonBlank": 1.0
+    "nonBlank": 0.4695
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "no real browser export run",
-    "no editable field with a measured visible effect"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "ai-chat-reveal": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -91,40 +91,32 @@
     "ssimMin": 0.985,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 5.1,
-     "bytes": 188918
-    }
+     "fps": 4.9
+    },
+    "prodSsimMin": 0.993,
+    "nonBlank": 0.1742,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 5.1 fps < 8.0",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "app-showcase": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "prodSsimMin": 0.981,
     "adapterErrors": [],
     "motion": 0.1023,
     "export": {
-     "id": "app-showcase",
      "ok": true,
-     "ms": 8997,
-     "bytes": 939447,
-     "fps": 6.7,
-     "hfErrors": {}
+     "fps": 6.7
     },
     "kind": "animated",
-    "nonBlank": 1.0
+    "nonBlank": 0.2801
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 6.7 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "apple-money-count": {
    "type": "block",
@@ -190,26 +182,20 @@
   "beat-freeze-cut": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "prodSsimMin": 0.989,
     "adapterErrors": [],
     "motion": 0.8807,
     "export": {
-     "id": "beat-freeze-cut",
      "ok": true,
-     "ms": 8643,
-     "bytes": 667174,
-     "fps": 6.9,
-     "hfErrors": {}
+     "fps": 3.2
     },
     "kind": "animated",
-    "nonBlank": 1.0
+    "nonBlank": 0.3248
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 6.9 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "blob": {
    "type": "block",
@@ -280,26 +266,20 @@
   "camera-dolly-zoom": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "prodSsimMin": 0.998,
     "adapterErrors": [],
     "motion": 0.2931,
     "export": {
-     "id": "camera-dolly-zoom",
      "ok": true,
-     "ms": 18951,
-     "bytes": 46841,
-     "fps": 3.2,
-     "hfErrors": {}
+     "fps": 3.6
     },
     "kind": "animated",
-    "nonBlank": 0.992
+    "nonBlank": 0.3625
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 3.2 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "canopy-part-title": {
    "type": "block",
@@ -1027,26 +1007,20 @@
   "code-scroll": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "prodSsimMin": 1.0,
     "adapterErrors": [],
     "motion": 0.1112,
     "export": {
-     "id": "code-scroll",
      "ok": true,
-     "ms": 13213,
-     "bytes": 716227,
-     "fps": 4.5,
-     "hfErrors": {}
+     "fps": 5
     },
     "kind": "animated",
-    "nonBlank": 0.3735
+    "nonBlank": 0.075
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 4.5 fps < 8"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "code-shader-dissolve": {
    "type": "block",
@@ -1639,7 +1613,7 @@
   "gooey-split": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -1650,17 +1624,14 @@
     "ssimMin": 0.98,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 5.9,
-     "bytes": 348568
-    }
+     "fps": 7.3
+    },
+    "prodSsimMin": 0.985,
+    "nonBlank": 0.2645,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "export throughput 5.9 fps < 8.0",
-    "no editable fields detected",
-    "not yet rendered through the production adapter path"
-   ]
+   "enabled": true,
+   "enabledBlockedBy": []
   },
   "gravitational-lens": {
    "type": "block",
@@ -1825,7 +1796,7 @@
   "hw-pipeline": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "shows built-in text and exposes no editable field with a visible effect (production-path run)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -2516,7 +2487,7 @@
   "message-thread-reveal": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)",
+   "reason": "browser export failed: Error: export timeout (production-path run)",
    "evidence": {
     "prodSsimMin": 0.994,
     "adapterErrors": [],
@@ -2534,7 +2505,7 @@
    },
    "enabled": false,
    "enabledBlockedBy": [
-    "export throughput 1.8 fps < 8"
+    "export timeout (long clip)"
    ]
   },
   "mk-background": {
@@ -2598,7 +2569,7 @@
   "mk-clone-wall-transition": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "worst-sample SSIM 0.806 (< 0.95) (production-path run)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -2623,7 +2594,7 @@
   "mk-line-graph": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "shows built-in text and exposes no editable field with a visible effect (production-path run)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -2702,7 +2673,7 @@
   "mk-specs-list": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "shows built-in text and exposes no editable field with a visible effect (production-path run)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -2784,7 +2755,7 @@
   "notes-reveal": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "browser export failed: Error: export timeout (production-path run)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -2802,8 +2773,7 @@
    },
    "enabled": false,
    "enabledBlockedBy": [
-    "export throughput 5.1 fps < 8.0",
-    "not yet rendered through the production adapter path"
+    "export timeout (long clip)"
    ]
   },
   "notification-cascade": {
@@ -3129,7 +3099,7 @@
   "share-sheet-carousel": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -3140,16 +3110,14 @@
     "ssimMin": 0.957,
     "export": {
      "ok": true,
-     "frames": 60,
-     "fps": 10.4,
-     "bytes": 615754
+     "fps": 17.6
     },
-    "prodSsimMin": 0.997
+    "prodSsimMin": 0.997,
+    "nonBlank": 0.6691,
+    "kind": "animated"
    },
-   "enabled": false,
-   "enabledBlockedBy": [
-    "shows built-in text that cannot be edited"
-   ],
+   "enabled": true,
+   "enabledBlockedBy": [],
    "droppedIneffective": [
     "t1",
     "t2",
@@ -3310,7 +3278,7 @@
   "split-flap-board": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "shows built-in text and exposes no editable field with a visible effect (production-path run)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -4374,7 +4342,7 @@
   "yt-comment-card": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "shows built-in text and exposes no editable field with a visible effect (production-path run)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [
@@ -4508,7 +4476,7 @@
   "yt-vertical-fill": {
    "type": "block",
    "status": "verified-export",
-   "reason": "SSIM >= 0.95 at all samples; MP4 export OK",
+   "reason": "shows built-in text and exposes no editable field with a visible effect (production-path run)",
    "evidence": {
     "stillsOk": "3/3",
     "ssim": [

@@ -10659,6 +10659,865 @@
     }
    },
    "motion": "animated"
+  },
+  {
+   "id": "ai-answer-rank",
+   "type": "block",
+   "title": "AI Answer Rank",
+   "description": "Is your brand in the AI answer? A question types into a chat card, the assistant answers with a ranked list of three picks, then re-ranks: the promoted brand slides into its slot, the picks below step down, and the brand row lands with the one accent highlight and a check. For answer-engine and AI-visibility marketing",
+   "tags": [
+    "mock-ui",
+    "ai",
+    "chat",
+    "ranking",
+    "list",
+    "marketing",
+    "ad-template",
+    "square"
+   ],
+   "category": "mock-ui",
+   "dimensions": {
+    "width": 1080,
+    "height": 1080
+   },
+   "duration": 9,
+   "sourceSha256": "2356710971ba7d4e565af910d362c70fae81dc75da678bd39619c239f2d53dce",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "ai-answer-rank.html",
+     "target": "compositions/ai-answer-rank.html",
+     "sha256": "2356710971ba7d4e565af910d362c70fae81dc75da678bd39619c239f2d53dce"
+    },
+    {
+     "path": "TEMPLATE.md",
+     "target": "TEMPLATE.md",
+     "sha256": "eab80aee07319a256acd549a791cf11161b44d261e475152ca8c53db3e5d83a9"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t5",
+     "label": "Text 1: What's the best CRM for a smal",
+     "defaultValue": "What's the best CRM for a small team?",
+     "type": "text",
+     "target": {
+      "hfId": "hf-5",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t24",
+     "label": "Text 3: BA",
+     "defaultValue": "BA",
+     "type": "text",
+     "target": {
+      "hfId": "hf-24",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t26",
+     "label": "Text 4: Brand A",
+     "defaultValue": "Brand A",
+     "type": "text",
+     "target": {
+      "hfId": "hf-26",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t30",
+     "label": "Text 5: BB",
+     "defaultValue": "BB",
+     "type": "text",
+     "target": {
+      "hfId": "hf-30",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t32",
+     "label": "Text 6: Brand B",
+     "defaultValue": "Brand B",
+     "type": "text",
+     "target": {
+      "hfId": "hf-32",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t44",
+     "label": "Text 9: YB",
+     "defaultValue": "YB",
+     "type": "text",
+     "target": {
+      "hfId": "hf-44",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t46",
+     "label": "Text 10: Your brand",
+     "defaultValue": "Your brand",
+     "type": "text",
+     "target": {
+      "hfId": "hf-46",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated"
+  },
+  {
+   "id": "ai-chat-reveal",
+   "type": "block",
+   "title": "AI Chat Reveal",
+   "description": "A question is typed on a rising keyboard, sent, and answered by an AI that streams its reply word by word on a measured token rhythm - thinking dot, uneven bursts, bulleted list - before the app cuts to a branded closing card",
+   "tags": [
+    "showcase",
+    "mock-ui",
+    "ai",
+    "chat",
+    "vertical",
+    "ad-template"
+   ],
+   "category": "showcase",
+   "dimensions": {
+    "width": 1080,
+    "height": 1920
+   },
+   "duration": 19.3333,
+   "sourceSha256": "b114399a570efe0dd5720bae3032f69b746965ebc9ec36040b19d694ef08ffe4",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "ai-chat-reveal.html",
+     "target": "compositions/ai-chat-reveal.html",
+     "sha256": "b114399a570efe0dd5720bae3032f69b746965ebc9ec36040b19d694ef08ffe4"
+    },
+    {
+     "path": "assets/hyperframes-logo-white.svg",
+     "target": "assets/hyperframes-logo-white.svg",
+     "sha256": "f9f942c43b465616c3af2fb8b07daf1cc05a4776903bbb27beb2bb608060e6c7"
+    },
+    {
+     "path": "TEMPLATE.md",
+     "target": "TEMPLATE.md",
+     "sha256": "de62e4f1777f21b203701c2efc82ef347b5a03292844b99bc1b0af788b5cb91b"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t6",
+     "label": "Text 1: 11:42",
+     "defaultValue": "11:42",
+     "type": "text",
+     "target": {
+      "hfId": "hf-6",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t25",
+     "label": "Text 2: Assistant",
+     "defaultValue": "Assistant",
+     "type": "text",
+     "target": {
+      "hfId": "hf-25",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t40",
+     "label": "Text 3: How do I turn my HTML into rea",
+     "defaultValue": "How do I turn my HTML into real video?",
+     "type": "text",
+     "target": {
+      "hfId": "hf-40",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t48",
+     "label": "Text 4: Ask anything",
+     "defaultValue": "Ask anything",
+     "type": "text",
+     "target": {
+      "hfId": "hf-48",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t66",
+     "label": "Text 5: How",
+     "defaultValue": "How",
+     "type": "text",
+     "target": {
+      "hfId": "hf-66",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t67",
+     "label": "Text 6: Can",
+     "defaultValue": "Can",
+     "type": "text",
+     "target": {
+      "hfId": "hf-67",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t68",
+     "label": "Text 7: My",
+     "defaultValue": "My",
+     "type": "text",
+     "target": {
+      "hfId": "hf-68",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t109",
+     "label": "Text 8: Try HyperFrames",
+     "defaultValue": "Try HyperFrames",
+     "type": "text",
+     "target": {
+      "hfId": "hf-109",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t112",
+     "label": "Text 9: HYPERFRAMES.HEYGEN.COM",
+     "defaultValue": "HYPERFRAMES.HEYGEN.COM",
+     "type": "text",
+     "target": {
+      "hfId": "hf-112",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "app-showcase",
+   "type": "block",
+   "title": "App Showcase",
+   "description": "Fitness app product showcase with three floating smartphone screens",
+   "tags": [
+    "showcase",
+    "app",
+    "3d"
+   ],
+   "category": "showcase",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 5.5,
+   "sourceSha256": "c7e1b4d8ec2a2c1f70a8ed67a147ba5c4985074eb475d611b2bec6d921b10ade",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "app-showcase.html",
+     "target": "compositions/app-showcase.html",
+     "sha256": "c7e1b4d8ec2a2c1f70a8ed67a147ba5c4985074eb475d611b2bec6d921b10ade"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t20",
+     "label": "Text 1: Unleash Full Potential",
+     "defaultValue": "Unleash Full Potential",
+     "type": "text",
+     "target": {
+      "hfId": "hf-20",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t21",
+     "label": "Text 2: START NOW",
+     "defaultValue": "START NOW",
+     "type": "text",
+     "target": {
+      "hfId": "hf-21",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t27",
+     "label": "Text 3: JM",
+     "defaultValue": "JM",
+     "type": "text",
+     "target": {
+      "hfId": "hf-27",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t29",
+     "label": "Text 4: James Medrano",
+     "defaultValue": "James Medrano",
+     "type": "text",
+     "target": {
+      "hfId": "hf-29",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t30",
+     "label": "Text 5: Premium Member",
+     "defaultValue": "Premium Member",
+     "type": "text",
+     "target": {
+      "hfId": "hf-30",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t37",
+     "label": "Text 6: Weekly Goal",
+     "defaultValue": "Weekly Goal",
+     "type": "text",
+     "target": {
+      "hfId": "hf-37",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t56",
+     "label": "Text 7: Your Progress",
+     "defaultValue": "Your Progress",
+     "type": "text",
+     "target": {
+      "hfId": "hf-56",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t57",
+     "label": "Text 8: See all",
+     "defaultValue": "See all",
+     "type": "text",
+     "target": {
+      "hfId": "hf-57",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t64",
+     "label": "Text 9: Running",
+     "defaultValue": "Running",
+     "type": "text",
+     "target": {
+      "hfId": "hf-64",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t73",
+     "label": "Text 11: Cycling",
+     "defaultValue": "Cycling",
+     "type": "text",
+     "target": {
+      "hfId": "hf-73",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t83",
+     "label": "Text 13: Strength",
+     "defaultValue": "Strength",
+     "type": "text",
+     "target": {
+      "hfId": "hf-83",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t92",
+     "label": "Text 15: Burned Calories",
+     "defaultValue": "Burned Calories",
+     "type": "text",
+     "target": {
+      "hfId": "hf-92",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t94",
+     "label": "Text 16: kcal",
+     "defaultValue": "kcal",
+     "type": "text",
+     "target": {
+      "hfId": "hf-94",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t111",
+     "label": "Text 17: Mon",
+     "defaultValue": "Mon",
+     "type": "text",
+     "target": {
+      "hfId": "hf-111",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t112",
+     "label": "Text 18: Tue",
+     "defaultValue": "Tue",
+     "type": "text",
+     "target": {
+      "hfId": "hf-112",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t113",
+     "label": "Text 19: Wed",
+     "defaultValue": "Wed",
+     "type": "text",
+     "target": {
+      "hfId": "hf-113",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t114",
+     "label": "Text 20: Thu",
+     "defaultValue": "Thu",
+     "type": "text",
+     "target": {
+      "hfId": "hf-114",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t115",
+     "label": "Text 21: Fri",
+     "defaultValue": "Fri",
+     "type": "text",
+     "target": {
+      "hfId": "hf-115",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t116",
+     "label": "Text 22: Sat",
+     "defaultValue": "Sat",
+     "type": "text",
+     "target": {
+      "hfId": "hf-116",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t117",
+     "label": "Text 23: Sun",
+     "defaultValue": "Sun",
+     "type": "text",
+     "target": {
+      "hfId": "hf-117",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t121",
+     "label": "Text 24: Active",
+     "defaultValue": "Active",
+     "type": "text",
+     "target": {
+      "hfId": "hf-121",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t122",
+     "label": "Text 25: 540",
+     "defaultValue": "540",
+     "type": "text",
+     "target": {
+      "hfId": "hf-122",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t125",
+     "label": "Text 26: Rest",
+     "defaultValue": "Rest",
+     "type": "text",
+     "target": {
+      "hfId": "hf-125",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t126",
+     "label": "Text 27: 200",
+     "defaultValue": "200",
+     "type": "text",
+     "target": {
+      "hfId": "hf-126",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "beat-freeze-cut",
+   "type": "block",
+   "title": "Beat Freeze Cut",
+   "description": "A beat-driven speed ramp, freeze-frame hit, and hard-cut sequence for music-led promos and montages.",
+   "tags": [
+    "transition",
+    "music",
+    "beat-driven",
+    "freeze-frame"
+   ],
+   "category": "transition",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "c1c62628b55f3a6b751b03459a2d714bdeb356cb6797195590dfcc0278c66788",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "beat-freeze-cut.html",
+     "target": "compositions/beat-freeze-cut.html",
+     "sha256": "c1c62628b55f3a6b751b03459a2d714bdeb356cb6797195590dfcc0278c66788"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t27",
+     "label": "Text 1: MUSIC PROMO",
+     "defaultValue": "MUSIC PROMO",
+     "type": "text",
+     "target": {
+      "hfId": "hf-27",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t28",
+     "label": "Text 2: LIVE",
+     "defaultValue": "LIVE",
+     "type": "text",
+     "target": {
+      "hfId": "hf-28",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t32",
+     "label": "Text 3: Next shot",
+     "defaultValue": "Next shot",
+     "type": "text",
+     "target": {
+      "hfId": "hf-32",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t39",
+     "label": "Text 4: Ramp",
+     "defaultValue": "Ramp",
+     "type": "text",
+     "target": {
+      "hfId": "hf-39",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t40",
+     "label": "Text 5: 1.35\u21922.2",
+     "defaultValue": "1.35\u21922.2",
+     "type": "text",
+     "target": {
+      "hfId": "hf-40",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t42",
+     "label": "Text 6: Freeze",
+     "defaultValue": "Freeze",
+     "type": "text",
+     "target": {
+      "hfId": "hf-42",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t43",
+     "label": "Text 7: 0.8s",
+     "defaultValue": "0.8s",
+     "type": "text",
+     "target": {
+      "hfId": "hf-43",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t45",
+     "label": "Text 8: Cut",
+     "defaultValue": "Cut",
+     "type": "text",
+     "target": {
+      "hfId": "hf-45",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t46",
+     "label": "Text 9: 3.00",
+     "defaultValue": "3.00",
+     "type": "text",
+     "target": {
+      "hfId": "hf-46",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t56",
+     "label": "Text 12: FREEZE",
+     "defaultValue": "FREEZE",
+     "type": "text",
+     "target": {
+      "hfId": "hf-56",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "camera-dolly-zoom",
+   "type": "block",
+   "title": "Dolly Zoom (Vertigo Shot)",
+   "description": "Camera tracks toward or away from the subject while the field of view changes the opposite way, so the subject holds its frame size while the background collapses behind it or rushes in. Focal length is solved from dolly distance every frame against d * tan(FOV/2) = const, not keyframed beside it. Requires depth: the subject sits on the z = 0 plane and the content behind it must be layered or genuinely 3D (translateZ at two or more distinct depths) -- a flat element gains nothing from this move.",
+   "tags": [
+    "camera",
+    "depth",
+    "3d",
+    "cinematic"
+   ],
+   "category": "camera",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4,
+   "sourceSha256": "5e101fbb8bad0181cc498013fd8805099c1f3fcc409e74f97ec62e88af61fff7",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "camera-dolly-zoom.html",
+     "target": "compositions/camera-dolly-zoom.html",
+     "sha256": "5e101fbb8bad0181cc498013fd8805099c1f3fcc409e74f97ec62e88af61fff7"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t14",
+     "label": "Text 1: Dolly zoom \u00b7 d \u00d7 tan(fov/2) = ",
+     "defaultValue": "Dolly zoom \u00b7 d \u00d7 tan(fov/2) = const",
+     "type": "text",
+     "target": {
+      "hfId": "hf-14",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "code-scroll",
+   "type": "block",
+   "title": "Code Scroll To Line",
+   "description": "The camera scrolls a long file to bring a target line to center and spotlights it \u2014 for walking through real modules.",
+   "tags": [
+    "code",
+    "code-animation",
+    "scroll",
+    "developer"
+   ],
+   "category": "code",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 6,
+   "sourceSha256": "29291ee000f1bef15e999314d112ea153f21da2618083852323b617fee9cae86",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "code-scroll.html",
+     "target": "compositions/code-scroll.html",
+     "sha256": "29291ee000f1bef15e999314d112ea153f21da2618083852323b617fee9cae86"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t13",
+     "label": "Text 1: fetchWithRetry.js",
+     "defaultValue": "fetchWithRetry.js",
+     "type": "text",
+     "target": {
+      "hfId": "hf-13",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "gooey-split",
+   "type": "block",
+   "title": "Gooey Split",
+   "description": "A dot splits into a three-dot menu with a gooey metaball neck, spins into a swirl mark under directional shutter motion blur, then breaks back into three dots and merges into one. The goo is an SVG blur-and-threshold filter on the dots; the blur integrates each part along its real trajectory, so the smear follows the direction and speed of the spin.",
+   "tags": [
+    "effect",
+    "gooey",
+    "metaball",
+    "motion-blur",
+    "morph",
+    "logo",
+    "icon"
+   ],
+   "category": "effect",
+   "dimensions": {
+    "width": 1920,
+    "height": 1080
+   },
+   "duration": 4.7,
+   "sourceSha256": "4752d7d73f59aa151105234531c913538481700166b74f1078beb3af71b27db2",
+   "readyToUse": true,
+   "files": [
+    {
+     "path": "gooey-split.html",
+     "target": "compositions/gooey-split.html",
+     "sha256": "4752d7d73f59aa151105234531c913538481700166b74f1078beb3af71b27db2"
+    }
+   ],
+   "editables": [],
+   "motion": "animated",
+   "slow": true
+  },
+  {
+   "id": "share-sheet-carousel",
+   "type": "block",
+   "title": "Share-Sheet Carousel",
+   "description": "A share sheet springs up from the bottom of the phone and cycles previews inside its card on a fast cut rhythm while the blurred ground swaps behind it, ending on an accept tap",
+   "tags": [
+    "showcase",
+    "mock-ui",
+    "share-sheet",
+    "vertical",
+    "ad-template"
+   ],
+   "category": "showcase",
+   "dimensions": {
+    "width": 1080,
+    "height": 1920
+   },
+   "duration": 7.2333,
+   "sourceSha256": "c51358e4dcfc77d61b79c4e72540f30d01104066a7b278d5bece98cb902ebea7",
+   "readyToUse": false,
+   "files": [
+    {
+     "path": "share-sheet-carousel.html",
+     "target": "compositions/share-sheet-carousel.html",
+     "sha256": "c51358e4dcfc77d61b79c4e72540f30d01104066a7b278d5bece98cb902ebea7"
+    },
+    {
+     "path": "assets/slide-01.jpg",
+     "target": "assets/slide-01.jpg",
+     "sha256": "b027e8df2ebc91b860b212d46ad7893454a2c875372455406ee1f974af483fb3"
+    },
+    {
+     "path": "assets/slide-02.jpg",
+     "target": "assets/slide-02.jpg",
+     "sha256": "e0afd7322aaec59a72d7424ac07659972471fb3eb63cbfbc4b8bc3fd76ef5c29"
+    },
+    {
+     "path": "assets/slide-03.jpg",
+     "target": "assets/slide-03.jpg",
+     "sha256": "cd908527295c4367e67690212848742d69f45b7d7934410ba8a3f79fbe8fd037"
+    },
+    {
+     "path": "assets/slide-04.jpg",
+     "target": "assets/slide-04.jpg",
+     "sha256": "734322e45db3b243fcc2e75aa1264bbbc122aa686ebde0d17b7a79f584078ad1"
+    },
+    {
+     "path": "assets/hyperframes-logo-black.svg",
+     "target": "assets/hyperframes-logo-black.svg",
+     "sha256": "dc156e7c21b474746c2ff3b651b96c90eb44745cc88252f0f36c140faf63cb59"
+    },
+    {
+     "path": "TEMPLATE.md",
+     "target": "TEMPLATE.md",
+     "sha256": "d9258bee9a425c2249c33255a020f78edcd6807f3a6a95692b76e004ea222f4d"
+    }
+   ],
+   "editables": [
+    {
+     "key": "t9",
+     "label": "Text 1: Share",
+     "defaultValue": "Share",
+     "type": "text",
+     "target": {
+      "hfId": "hf-9",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t19",
+     "label": "Text 2: OPEN-SOURCE VIDEO ENGINE \u00b7 SHI",
+     "defaultValue": "OPEN-SOURCE VIDEO ENGINE \u00b7 SHIP FROM HTML",
+     "type": "text",
+     "target": {
+      "hfId": "hf-19",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t23",
+     "label": "Text 3: Decline",
+     "defaultValue": "Decline",
+     "type": "text",
+     "target": {
+      "hfId": "hf-23",
+      "kind": "text"
+     }
+    },
+    {
+     "key": "t24",
+     "label": "Text 4: Accept",
+     "defaultValue": "Accept",
+     "type": "text",
+     "target": {
+      "hfId": "hf-24",
+      "kind": "text"
+     }
+    }
+   ],
+   "motion": "animated"
   }
  ]
 }

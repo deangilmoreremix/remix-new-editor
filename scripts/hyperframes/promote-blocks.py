@@ -42,8 +42,8 @@ for k in [x for x in a.ids.split(',') if x]:
     good = [x for x in ed.get(k, []) if eff.get(k, {}).get(x['key'], {}).get('effective')]
     leaves = r.get('leaves') or []; ready = False
     if not good:
-        ready = not leaves and onb >= 0.01
-        if not ready: blocked.append('shows built-in text and exposes no editable field with a visible effect' if leaves else 'barely visible output')
+        ready = not leaves and not (r.get('bodyText') or '').strip() and onb >= 0.01  # no visible text at all (the leaf probe alone misses SVG/generated text)
+        if not ready: blocked.append('shows built-in text and exposes no editable field with a visible effect' if (leaves or (r.get('bodyText') or '').strip()) else 'barely visible output')
     elif not any(x['type'] == 'text' for x in good) and leaves: blocked.append('shows built-in text that cannot be edited')
     if blocked: report[k] = '; '.join(blocked); continue
     isx = ev[k].get('type') == 'example'; rec = {kk: vv for kk, vv in ev[k].items() if isx or kk != 'project'}; rec['category'] = (rec.get('tags') or ['other'])[0]; rec['type'] = 'example' if isx else 'block'; rec['editables'] = good; rec['readyToUse'] = ready; rec['motion'] = 'static' if motion(ours) < 0.0005 else 'animated'

@@ -58,11 +58,11 @@ export const isCatalogDisabled = (id: string): boolean => catalogDisabled.has(id
 export const HF_GROUPS: Array<[string, string[]]> = [
   ['Lower thirds', ['lower-third', 'broadcast']],
   ['Titles & text', ['handwritten', 'typography', 'annotation', 'branding', 'logo']],
-  ['Social & UI', ['social', 'showcase', 'video-primitive']],
+  ['Social & UI', ['social', 'showcase', 'mock-ui', 'video-primitive']],
   ['Data & charts', ['data', 'data-viz', 'diagram', 'instrument']],
   ['Code', ['code']],
   ['Transitions', ['transition']],
-  ['Backgrounds & effects', ['background', 'webgl', 'hero', 'snow', 'starfield', 'vfx', 'camcorder', 'motion-primitive', 'placeholder']],
+  ['Backgrounds & effects', ['background', 'camera', 'effect', 'webgl', 'hero', 'snow', 'starfield', 'vfx', 'camcorder', 'motion-primitive', 'placeholder']],
 ];
 /** Customer-facing group of an item. RemotionUI items already carry friendly categories and are shown as they are. */
 export const hfGroupOf = (i: HfItem): string => (i.type === 'remotionui' ? i.category : (HF_GROUPS.find(([, cats]) => cats.includes(i.category))?.[0] ?? 'More'));
