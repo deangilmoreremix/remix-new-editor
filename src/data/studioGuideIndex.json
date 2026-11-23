@@ -53,6 +53,14 @@
         "thumbnail": "/guides/product-shot-studio/overview.webp"
       },
       {
+        "slug": "studio-muapi-studio",
+        "name": "Studio (Muapi Studio)",
+        "route": "muapi-studio",
+        "shortDescription": "One studio for every MuAPI model: images, video, audio, avatars, 3D and tools, on your own MuAPI key.",
+        "features": 5,
+        "thumbnail": "/thumbnails/pages/placeholder.webp"
+      },
+      {
         "slug": "upscale-suite",
         "name": "Upscale Suite",
         "route": "upscale",
