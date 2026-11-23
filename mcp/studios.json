@@ -364,6 +364,26 @@
     "i2v",
     "v2v"
    ]
+  },
+  "leadfinder": {
+   "tools": [
+    "leads_list",
+    "leads_save",
+    "leads_update",
+    "leads_delete",
+    "businesses_find",
+    "business_research",
+    "business_contact_enrich"
+   ],
+   "kinds": []
+  },
+  "find-my-brand": {
+   "tools": [
+    "find_my_brand",
+    "brand_assets_discover",
+    "brand_assets_status"
+   ],
+   "kinds": []
   }
  },
  "unsupported": {
@@ -376,9 +396,7 @@
   "timeline-iframe-warning": "Non-generative UI (browsing, learning or navigation).",
   "smart-video-scheduler": "A calendar UI with state kept in the browser; there is no scheduling backend to call.",
   "brightbean": "A calendar UI with state kept in the browser; there is no scheduling backend to call.",
-  "leadfinder": "Lists leads through /api/personalization/leads, a route that reads the signed-in Clerk session directly; exposing it needs that route refactored to accept an MCP key owner.",
-  "find-my-brand": "Runs the anonymous /api/demo/discover inside the personalization modal; brand_scrape covers website analysis. Discovery itself needs its route refactored to accept an MCP key owner.",
-  "personalizer": "Contact and token state lives in the browser; its generation goes through the image/video tools already available.",
+  "personalizer": "Its contacts and personalization tokens are kept in the browser. The server parts it uses (brand discovery, business research, lead search) are available as tools; the personalization itself is done by the image and video tools.",
   "brand-dna": "Edits brand data held in the browser; brand_scrape plus text_generate cover the analysis.",
   "motion-director": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",
   "motion-director/workbench": "Interactive editor or client-side renderer; not a single request, so permanently unsupported.",

@@ -139,3 +139,96 @@ customTools.push({
     return a.wait === false ? { status: 'processing', request_id: r.requestId } : audioWait(client, r.requestId, 300_000);
   },
 });
+
+// ── Lead Finder and website discovery (netlify/functions/_shared/personalizationRun.mts) ───────────────
+// The app's own route handlers run as the key's owner; the gateway allow-lists the paths (see ALLOWED_ROUTES there).
+const pz = (client, method, path, extra = {}) => client.studio('personalization', { method, path, ...extra });
+const STAGES = ['New', 'Qualified', 'Shortlisted', 'Demo Created', 'Contacted', 'Responded', 'Converted', 'Not Interested'];
+const ID80 = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/);
+
+async function discoverWait(client, jobId, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const r = await pz(client, 'GET', '/discover-assets/status', { query: { jobId } });
+    const st = String(r.status || '').toLowerCase();
+    if (['complete', 'completed', 'done', 'error', 'failed'].includes(st) || r.error) return { job_id: jobId, ...r };
+    if (Date.now() >= deadline) return { status: 'processing', job_id: jobId };
+    await client.sleep(3000);
+  }
+}
+
+customTools.push(
+  {
+    name: 'leads_list',
+    description: 'List your saved Lead Finder leads (business, pipeline stage, notes, starred).',
+    input: {},
+    run: (a, client) => pz(client, 'GET', '/leads'),
+  },
+  {
+    name: 'leads_save',
+    description: 'Save a business as a lead. `business` is a record from businesses_find (needs at least id and name).',
+    input: { business: z.record(z.any()).describe('A business record from businesses_find'), stage: z.enum(STAGES).optional(), notes: z.string().max(5000).optional() },
+    run: (a, client) => pz(client, 'POST', '/leads', { body: { business: a.business, stage: a.stage, notes: a.notes } }),
+  },
+  {
+    name: 'leads_update',
+    description: 'Change a lead\'s pipeline stage, notes or starred flag (at least one).',
+    input: { lead_id: ID80, stage: z.enum(STAGES).optional(), notes: z.string().max(5000).optional(), starred: z.boolean().optional() },
+    run: (a, client) => pz(client, 'PATCH', `/leads/${a.lead_id}`, { body: { stage: a.stage, notes: a.notes, starred: a.starred } }),
+  },
+  {
+    name: 'leads_delete',
+    description: 'Delete a saved lead.',
+    input: { lead_id: ID80 },
+    run: (a, client) => pz(client, 'DELETE', `/leads/${a.lead_id}`),
+  },
+  {
+    name: 'businesses_find',
+    description: 'Find local businesses of one niche near a location (Lead Finder search). If the niche is not supported the error lists the supported ones.',
+    input: { niche: z.string().min(1).max(60), location: z.string().min(2).max(120).describe('e.g. "Austin, TX"'), radius_miles: z.number().min(1).max(100).optional(), limit: z.number().int().min(1).max(50).optional(), include_chains: z.boolean().optional() },
+    run: (a, client) => pz(client, 'POST', '/find-businesses', { body: { niche: a.niche, location: a.location, radiusMiles: a.radius_miles, limit: a.limit, includeChains: a.include_chains } }),
+  },
+  {
+    name: 'business_research',
+    description: 'Research a business from its website: what it does, offers and contact details.',
+    input: { website_url: z.string().url() },
+    run: (a, client) => pz(client, 'POST', '/research-business', { body: { websiteUrl: a.website_url } }),
+  },
+  {
+    name: 'business_contact_enrich',
+    description: 'Find contact details for a business from its own website, or (with no website) find its website from its name and place.',
+    input: {
+      website_url: z.string().url().optional(),
+      name: z.string().max(200).optional().describe('Business name (to find its website)'), city: z.string().max(100).optional(), region: z.string().max(100).optional(),
+      postal_code: z.string().max(20).optional(), phone: z.string().max(40).optional(), email: z.string().max(200).optional(),
+    },
+    run: async (a, client) => {
+      if (a.website_url) return pz(client, 'POST', '/enrich-business', { body: { websiteUrl: a.website_url } });
+      if (!a.name) throw Object.assign(new Error('Provide website_url, or a business name to find its website.'), { code: 'BAD_INPUT' });
+      return pz(client, 'POST', '/resolve-website', { body: { name: a.name, city: a.city, region: a.region, postalCode: a.postal_code, phone: a.phone, email: a.email } });
+    },
+  },
+  {
+    name: 'brand_assets_discover',
+    description: 'Find a website\'s logo, brand colours, images and avatar (Brand discovery). Starts a job and waits for it unless wait=false.',
+    input: { website_url: z.string().url(), wait: z.boolean().optional().describe('Wait for the result (default true)') },
+    run: async (a, client) => {
+      const r = await pz(client, 'POST', '/discover-assets', { body: { websiteUrl: a.website_url } });
+      const id = r.jobId || r.job_id;
+      if (String(r.status).toLowerCase() === 'complete' || !id) return r;
+      return a.wait === false ? { status: 'processing', job_id: id } : discoverWait(client, id, 120_000);
+    },
+  },
+  {
+    name: 'brand_assets_status',
+    description: 'Check a brand discovery job started with brand_assets_discover.',
+    input: { job_id: ID80 },
+    run: (a, client) => discoverWait(client, a.job_id, 0),
+  },
+  {
+    name: 'find_my_brand',
+    description: 'Free brand discovery sample for a website (logo, colours, images). Lower limits than brand_assets_discover.',
+    input: { website_url: z.string().url() },
+    run: (a, client) => pz(client, 'POST', '/demo/discover', { body: { websiteUrl: a.website_url } }),
+  },
+);

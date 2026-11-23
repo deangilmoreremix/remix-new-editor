@@ -28,7 +28,7 @@ Run `npm --prefix packages/studio-mcp-core install --workspaces=false` once to i
 Discovery: `smartvid_list_studios`, `_search_models`, `_get_model`, `_estimate_cost`.
 Generation: `_image_generate`, `_image_edit`, `_video_generate`, `_video_from_image`, `_video_to_video`, `_lipsync`, `_audio_generate`, `_video_tool`, `_avatar_generate`, `_motion_control`, `_recast`, `_motion_graphics`, `_marketing_ad`, `_text_generate`, `_vision_describe`.
 Timeline AI: `_video_fill_gap`, `_video_extend`, `_video_remove_watermark`, `_image_layers`, `_music_create`.
-Voice: `_voiceover_create`. Zack D: `_zackd_trends`, `_zackd_script`, `_zackd_submit`, `_zackd_status`. Brand: `_brand_scrape`.
+Voice: `_voiceover_create`. Lead Finder and brand discovery: `_leads_list`, `_leads_save`, `_leads_update`, `_leads_delete`, `_businesses_find`, `_business_research`, `_business_contact_enrich`, `_brand_assets_discover`, `_brand_assets_status`, `_find_my_brand`. Zack D: `_zackd_trends`, `_zackd_script`, `_zackd_submit`, `_zackd_status`. Brand: `_brand_scrape`.
 Jobs and account: `_get_result`, `_upload_file`, `_account_balance`.
 
 Flow: `search_models` → `get_model` (exact fields) → a generation tool with `{ model, inputs }`. Media inputs are public https URLs; `upload_file` re-hosts a URL. Long jobs return a `request_id` for `get_result`.

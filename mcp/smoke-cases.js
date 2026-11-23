@@ -12,6 +12,9 @@ export const cases = [
   { id: 'tool:zackd_submit', tool: 'zackd_submit', estUsd: 0.1, args: () => ({ kind: 'image', prompt: PROMPT, aspect: '1:1' }) },
   { id: 'tool:zackd_trends', tool: 'zackd_trends', estUsd: 0.02, args: () => ({ query: 'space' }) },
   { id: 'tool:zackd_script', tool: 'zackd_script', estUsd: 0.03, args: () => ({ topic: 'why the sky is blue', max_beats: 3 }) },
+  { id: 'tool:leads_list', tool: 'leads_list', estUsd: 0, args: () => ({}) },
+  { id: 'tool:businesses_find', tool: 'businesses_find', estUsd: 0.02, args: () => ({ niche: 'dentist', location: 'Austin, TX', limit: 3 }) },
+  { id: 'tool:find_my_brand', tool: 'find_my_brand', needs: ['url'], estUsd: 0, args: (s) => ({ website_url: s.url }) },
   { id: 'tool:brand_scrape', tool: 'brand_scrape', needs: ['url'], estUsd: 0, args: (s) => ({ url: s.url }) },
 ];
 

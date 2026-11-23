@@ -5,7 +5,7 @@ The Live column comes from the smoke run against a deployed gateway with a real 
 
 No live run recorded yet.
 
-39 supported, 26 not exposed.
+41 supported, 24 not exposed.
 
 | Studio | Status | Tools / reason | Live |
 |---|---|---|---|
@@ -48,6 +48,8 @@ No live run recorded yet.
 | `asset-edit` | supported | `text_generate`, `image_generate`, `image_edit` | not run |
 | `ai-vfx` | supported | `video_from_image` | not run |
 | `smart-video-studio` | supported | `image_generate`, `image_edit`, `video_generate`, `video_from_image`, `video_to_video` | not run |
+| `leadfinder` | supported | `leads_list`, `leads_save`, `leads_update`, `leads_delete`, `businesses_find`, `business_research`, `business_contact_enrich` | not run |
+| `find-my-brand` | supported | `find_my_brand`, `brand_assets_discover`, `brand_assets_status` | not run |
 | `library` | not exposed | Non-generative UI (browsing, learning or navigation). | n/a |
 | `content-library` | not exposed | Non-generative UI (browsing, learning or navigation). | n/a |
 | `explore` | not exposed | Non-generative UI (browsing, learning or navigation). | n/a |
@@ -57,9 +59,7 @@ No live run recorded yet.
 | `timeline-iframe-warning` | not exposed | Non-generative UI (browsing, learning or navigation). | n/a |
 | `smart-video-scheduler` | not exposed | A calendar UI with state kept in the browser; there is no scheduling backend to call. | n/a |
 | `brightbean` | not exposed | A calendar UI with state kept in the browser; there is no scheduling backend to call. | n/a |
-| `leadfinder` | not exposed | Lists leads through /api/personalization/leads, a route that reads the signed-in Clerk session directly; exposing it needs that route refactored to accept an MCP key owner. | n/a |
-| `find-my-brand` | not exposed | Runs the anonymous /api/demo/discover inside the personalization modal; brand_scrape covers website analysis. Discovery itself needs its route refactored to accept an MCP key owner. | n/a |
-| `personalizer` | not exposed | Contact and token state lives in the browser; its generation goes through the image/video tools already available. | n/a |
+| `personalizer` | not exposed | Its contacts and personalization tokens are kept in the browser. The server parts it uses (brand discovery, business research, lead search) are available as tools; the personalization itself is done by the image and video tools. | n/a |
 | `brand-dna` | not exposed | Edits brand data held in the browser; brand_scrape plus text_generate cover the analysis. | n/a |
 | `motion-director` | not exposed | Interactive editor or client-side renderer; not a single request, so permanently unsupported. | n/a |
 | `motion-director/workbench` | not exposed | Interactive editor or client-side renderer; not a single request, so permanently unsupported. | n/a |

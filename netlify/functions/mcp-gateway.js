@@ -24,6 +24,13 @@ export const STUDIOS = {
   zackd: (body, who) => zackdHandle(body, who.userId, { keys: who.keys }),
   'agent-audio': (body, who) => agentAudioHandle(body, who.userId, { keys: who.keys }),
   cinegen: (body, who) => cinegenHandle(body, who.userId, { key: who.keys.muapi }),
+  // Lead Finder and website discovery: the app's own personalization route handlers, run as the key's owner.
+  // The user id is injected by the gateway from the verified MCP key, never taken from the request.
+  personalization: async (body, who) => {
+    if (!who?.userId || who.userId === 'byok') return { statusCode: 401, body: JSON.stringify({ error: { message: 'This needs a signed-in SmartVid MCP key.' } }) };
+    const { runPersonalizationRoute } = await import('./_shared/personalizationRun.mts');
+    return runPersonalizationRoute({ method: body?.method, path: body?.path, query: body?.query, body: body?.body }, { userId: who.userId });
+  },
   // Brand Studio's site scraper (headless browser, SSRF-guarded). Loaded on demand: it pulls in the browser tooling.
   'brand-scrape': async (body, who) => {
     const { default: scrape } = await import('./brand-scrape.mts');

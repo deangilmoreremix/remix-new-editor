@@ -183,7 +183,7 @@ export async function pollVerbProbe({ gatewayUrl, key, requestId, fetchImpl = fe
 }
 
 /** Offline stand-in for the gateway: balance, estimate, generate, result, upload and studio routes. */
-export function createFakeGateway({ costs = {}, failEndpoints = [], studios = ['zackd', 'agent-audio', 'brand-scrape', 'cinegen', 'demo'] } = {}) {
+export function createFakeGateway({ costs = {}, failEndpoints = [], studios = ['zackd', 'agent-audio', 'brand-scrape', 'cinegen', 'personalization', 'demo'] } = {}) {
   const calls = [];
   const fetchImpl = async (url, init = {}) => {
     const path = String(url).replace(/^https?:\/\/[^/]+/, '').replace(/^\/api\/mcp-gateway/, '');
