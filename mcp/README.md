@@ -6,7 +6,15 @@ Use SmartVid from Claude, Cursor or any MCP client: image, video, edit, effects,
 In SmartVid open **Settings → MCP access → Create MCP key**. First save your API keys in the same Settings screen: the key uses them. The key is shown once; revoke it there any time.
 
 ## 2. Install
-Claude Code:
+Hosted (nothing to install; needs the `/api/mcp` endpoint deployed, see DEPLOY.md):
+```bash
+claude mcp add --transport http smartvid https://<your-site>/api/mcp --header "Authorization: Bearer sv_live_..."
+```
+Via npx (once the `smartvid-mcp` package is published; build and check it locally with `npm --prefix packages/smartvid-mcp run build`):
+```bash
+claude mcp add smartvid -e SMARTVID_API_KEY=sv_live_... -- npx -y smartvid-mcp
+```
+From this repository, Claude Code:
 ```bash
 claude mcp add smartvid -e SMARTVID_API_KEY=sv_live_... -- node /path/to/remix-new-editor/mcp/index.js
 ```
@@ -23,6 +31,11 @@ Claude Desktop / Cursor:
 }
 ```
 Run `npm --prefix packages/studio-mcp-core install --workspaces=false` once to install the server's dependencies. Set `SMARTVID_API_URL` to point at a deploy preview.
+
+## Limits and key hygiene
+- Each key is limited to 120 requests a minute (`MCP_RATE_PER_MIN`, `0` turns it off). Past it the answer is 429 with `Retry-After`. Checking on a finished job is not counted.
+- Keys can expire (`MCP_KEY_MAX_DAYS` sets the default and the longest life; with it unset, keys do not expire). **Rotate** in Settings makes a new key and revokes the old one in one step.
+- Settings → MCP access shows when each key was last used and the last 50 things your keys did (tool, kind of action, outcome, time; never arguments or content).
 
 ## Tools
 Discovery: `smartvid_list_studios`, `_search_models`, `_get_model`, `_estimate_cost`.

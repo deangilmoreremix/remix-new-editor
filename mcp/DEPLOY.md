@@ -7,6 +7,7 @@ Apply these to the Supabase project the Netlify functions use (SQL editor, or `s
 1. `20261118000000_mcp_keys.sql`: `public.mcp_keys` (key hashes, encrypted upstream keys).
 2. `20261123000000_mcp_governor.sql`: `public.mcp_usage_daily` (per-key daily counts for delete and publish actions), `public.mcp_audit` (tool, risk, outcome, time; no arguments or content) and the `mcp_usage_incr` function.
 3. `20261123010000_mcp_bridge.sql`: `public.mcp_bridge_sessions` and `public.mcp_bridge_commands` (the live-tab bridge queue).
+4. `20261124000000_mcp_rate_expiry.sql`: `mcp_keys.expires_at` (optional key expiry) and `public.mcp_rate_window` with the `mcp_rate_hit` function (the per-key request limit). **Apply this before deploying this version**: the key list now reads `expires_at`, so it fails on a database without the column. Without the rate function the limiter quietly falls back to a per-instance counter.
 
 Check: in the SQL editor, `select count(*) from public.mcp_keys;` (and each other table) works with the service role and fails for the `anon` role.
 
@@ -20,6 +21,8 @@ Check: in the SQL editor, `select count(*) from public.mcp_keys;` (and each othe
 | `DIRECTOR_API_URL` | Address of your separately deployed Director backend (`apps/director/backend`), https only (`http://localhost` allowed for development). **Optional**: unset, every `director_*` tool except `director_health` answers "not configured" and `director_health` says so. | `_shared/mcpDirector.js` |
 | `DIRECTOR_API_TOKEN` | Optional. Sent as `Authorization: Bearer` to the Director backend if you put it behind a gateway that checks one (the backend itself has no auth). Backend-side keys (VideoDB, OpenAI, ...) are set on the backend's own host, never here. | `_shared/mcpDirector.js` |
 | `MCP_CAP_DESTRUCTIVE`, `MCP_CAP_PUBLISH` | Optional per-key daily limits for delete/overwrite and publish actions (defaults 50 and 20; they reset at midnight UTC). | `mcp-gateway.js` |
+| `MCP_RATE_PER_MIN` | Optional. Requests per key per minute (default 120; `0` turns the limit off). Counted in Supabase when configured, so it holds across function instances. | `mcp-gateway.js`, `mcp-http.js` |
+| `MCP_KEY_MAX_DAYS` | Optional. New keys expire after this many days (default for new keys, and the cap on what a user may ask for). Unset: keys do not expire. | `mcp-keys.js` |
 | `MCP_REQUIRE_ENTITLEMENT` | `1` to require the paid feature when a user creates a key. Optional. | `mcp-keys.js` |
 | `MCP_ALLOW_BYOK` | **leave unset in any deployed environment.** Local development only. | `mcp-gateway.js` |
 | `OPENAI_RESPONSES_TEXT_MODEL` etc. | existing; Zack D text steps use the user's own OpenAI key | `zackd.js` |
@@ -74,10 +77,14 @@ The Director backend has no accounts: its collections and sessions are shared by
 Limits to expect: a Netlify function answers within about 26 seconds, so the gateway gives the backend 25 seconds per call; long agent runs may come back as "could not be reached" even though the backend carries on. The collection and session response shapes are read from the backend's source (`routes.py`, `videodb_tool.py`), not from a running instance.
 Check after deploying: `director_health`, then create a collection with two different users' keys and confirm neither can see the other's.
 
+## Hosted endpoint and the npx package
+- **`/api/mcp`** (`netlify/functions/mcp-http.js`, redirect in `netlify.toml`): the MCP over streamable HTTP, stateless, POST only, `Authorization: Bearer sv_live_...`. It calls the gateway in the same function (no extra network hop), so the confirm rule, daily caps and audit log apply as they do for a local MCP. Netlify functions answer within about 26 seconds; long generations return a request id to poll, as they already do. Check after deploying: `claude mcp add --transport http smartvid https://<preview>/api/mcp --header "Authorization: Bearer <key>"`, then ask Claude to list studios. Nothing about this has run on Netlify yet: the tests call the handler directly with the MCP client library.
+- **`smartvid-mcp`** (`packages/smartvid-mcp`): `npm --prefix packages/smartvid-mcp run build` writes one bundled file; `npm pack --dry-run` in that folder lists exactly `dist/index.js`, `README.md` and `package.json`. **Publishing is yours**: it needs your npm account, a free package name and `npm publish`. Before publishing, set the real address in `mcp/brand.js` (`gatewayUrl` is still a guess) and re-run the build.
+
 ## Rollback
 1. Revoke keys: `update public.mcp_keys set revoked_at = now() where revoked_at is null;`
 2. Unset nothing else: with no valid keys the gateway answers 401 to everything.
-3. Remove completely: `drop table public.mcp_bridge_commands, public.mcp_bridge_sessions, public.mcp_audit, public.mcp_usage_daily, public.mcp_keys;` (and `drop function public.mcp_usage_incr(uuid, date, text);`), delete `netlify/functions/mcp-*.js` plus the redirects.
+3. Remove completely: `drop table public.mcp_bridge_commands, public.mcp_bridge_sessions, public.mcp_audit, public.mcp_usage_daily, public.mcp_rate_window, public.mcp_keys;` (and `drop function public.mcp_usage_incr(uuid, date, text); drop function public.mcp_rate_hit(uuid, timestamptz);`), delete `netlify/functions/mcp-*.js` plus the redirects.
 
 ## What a pass does and does not show
 A ✔ means the tool returned a finished result for one cheap input through the real gateway. It does not mean every model of that kind works, or that output quality is right.
