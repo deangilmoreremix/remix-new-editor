@@ -31,6 +31,7 @@ import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -343,6 +344,16 @@ async function EffectsCatalogStudio() {
     showToast('Download started', 'success');
   };
   outputActions.appendChild(downloadActionBtn);
+
+  // Create landing page: same look as the Download button beside it
+  const landingActionBtn = createLandingPageButton({ like: downloadActionBtn });
+  landingActionBtn.textContent = '▤ Landing page';
+  landingActionBtn.onclick = () => {
+    const url = outputPreview.getUrl();
+    if (!url) { showToast('No result yet', 'warning'); return; }
+    void openLandingPageFor({ url, type: lastResultType === 'video' ? 'video' : 'image', studio: 'effects' }, { toast: (m) => showToast(m, 'warning') });
+  };
+  outputActions.appendChild(landingActionBtn);
 
   const addToLibraryBtn = document.createElement('button');
   addToLibraryBtn.type = 'button';

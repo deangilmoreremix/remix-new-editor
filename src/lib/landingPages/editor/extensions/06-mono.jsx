@@ -8,7 +8,8 @@ const A = (label) => ({ type: 'textarea', label });
 const arr = (label, arrayFields, defaultItemProps, summary) => ({ type: 'array', label, arrayFields, defaultItemProps, getItemSummary: (i) => i[summary] || 'Item' });
 const img = (src) => safeImageUrl(src) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(src || '')) ? src : '');
 const list = (v) => (Array.isArray(v) ? v : []);
-const Img = ({ src, ...rest }) => (img(src) ? <img src={img(src)} alt="" aria-hidden="true" {...rest} /> : null);
+// Decorative by default (icons and marks beside their own text); a described picture (the chart) is exposed to screen readers.
+const Img = ({ src, alt, ...rest }) => (img(src) ? <img src={img(src)} alt={alt || ''} {...(alt ? {} : { 'aria-hidden': 'true' })} {...rest} /> : null);
 
 
 /** Headline whose [[marked]] words get a hand-drawn SVG underline. */
@@ -106,7 +107,7 @@ function Panels(p) {
           <div className="mn-main">
             <div className="mn-main-bar"><b>{t(p.dashHeading)}</b><span>{t(p.dashRange)}</span></div>
             <div className="mn-kpis">{list(p.kpis).map((k, i) => <div key={i}><small>{t(k.label)}</small><b>{t(k.value)}</b>{k.delta ? <em>{t(k.delta)}</em> : null}</div>)}</div>
-            <Img src={p.chart} className="mn-chart" />
+            <Img src={p.chart} alt={t(p.chartAlt)} className="mn-chart" />
           </div>
         </div>
       </article>
@@ -156,10 +157,11 @@ export const components = {
       dashMenu: arr('Dashboard menu', { label: T('Label'), icon: T('Icon (home, users, video, mail, gear, chart...)') }, { label: 'Item', icon: 'check' }, 'label'),
       kpis: arr('Dashboard numbers', { label: T('Label'), value: T('Number'), delta: T('Change') }, { label: 'Label', value: '0', delta: '' }, 'label'),
       chart: T('Chart image link'),
+      chartAlt: T('Screen-reader description of the chart (alt text)'),
       checkTitle: T('Checklist heading'),
       checks: arr('Checklist', { label: T('Text'), done: { type: 'radio', label: 'Ticked', options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }] } }, { label: 'Item', done: 'yes' }, 'label'),
     },
-    defaultProps: { quotesTitle: 'What our customers say', quotes: [], dashTitle: 'Your leads at a glance', dashBrand: 'Brand', dashLogo: '', dashHeading: 'Dashboard', dashRange: 'Last 30 days', dashMenu: [{ label: 'Dashboard', icon: 'home' }], kpis: [], chart: '', checkTitle: 'Checklist', checks: [] },
+    defaultProps: { quotesTitle: 'What our customers say', quotes: [], dashTitle: 'Your leads at a glance', dashBrand: 'Brand', chartAlt: '', dashLogo: '', dashHeading: 'Dashboard', dashRange: 'Last 30 days', dashMenu: [{ label: 'Dashboard', icon: 'home' }], kpis: [], chart: '', checkTitle: 'Checklist', checks: [] },
     render: (p) => <Panels {...p} />,
   },
 };

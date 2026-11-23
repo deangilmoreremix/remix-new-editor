@@ -18,6 +18,7 @@ import { notifyGeneration } from '../../studio/generationNotifications.js';
 import { call, runJob, pollJob, pool } from '../../../lib/zackd/api.js';
 import { runAssembly, buildSrt, DEFAULT_TRANSITION_SEC } from '../../../lib/zackd/assemble.js';
 import { TEMPLATES, TEMPLATE_ATTRIBUTION, templateToProject } from '../../../lib/zackd/templates.js';
+import { openLandingPageFor } from '../../studio/landingPageAction.js';
 import {
   SEED_TOPICS, LOOKS, DEFAULT_LOOK, TTS_VOICES, DEFAULT_VOICE, DEFAULT_TTS_SPEED, UPSTREAM_VOICE, DEFAULT_EXTRAS,
   characterSheetPrompt, keyframePrompt, clipPrompt, narrationText, allShots, totalDuration,
@@ -56,6 +57,7 @@ const CANVAS_BTN = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-x
 const GENERATE_BTN = 'btn-primary-modern px-[14px] py-2 min-h-[40px] text-[13px] font-bold rounded-2xl inline-flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto shadow-lg';
 const ICON = {
   download: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>',
+  page: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 8h18"/><path d="M10 12.5l4 2.5-4 2.5z"/></svg>',
   copy: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>',
   redo: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>',
   ratio: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><rect x="7" y="3" width="10" height="18" rx="2"/></svg>',
@@ -297,6 +299,7 @@ export function ZackDStudio() {
     const actions = [];
     if (url) {
       actions.push(['Download', ICON.download, () => { const a = el('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.download = `${key.replace(/[^a-z0-9]+/gi, '-')}.${kind === 'video' ? 'mp4' : 'png'}`; a.click(); }]);
+      if (/^https:\/\//i.test(String(url))) actions.push(['Landing page', ICON.page, () => { void openLandingPageFor({ url, type: kind === 'video' ? 'video' : 'image', prompt, studio: 'zackd' }); }]);
       if (prompt) actions.push(['Copy prompt', ICON.copy, () => { navigator.clipboard?.writeText(prompt).then(() => showToast('Prompt copied', 'success', 1800)).catch(() => {}); }]);
     }
     if (onRedo) actions.push([url ? 'Redo' : 'Generate', ICON.redo, onRedo]);
@@ -304,7 +307,7 @@ export function ZackDStudio() {
       const over = el('div', 'absolute top-2 right-2 hidden md:flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity');
       actions.forEach(([title, icon, fn]) => {
         const b = el('button', OVERLAY_BTN); b.type = 'button'; b.title = title; b.setAttribute('aria-label', `${title} ${label}`); b.innerHTML = icon;
-        b.disabled = busy && title !== 'Download' && title !== 'Copy prompt';
+        b.disabled = busy && title !== 'Download' && title !== 'Copy prompt' && title !== 'Landing page';
         b.onclick = (e) => { e.stopPropagation(); fn(); };
         over.appendChild(b);
       });
@@ -316,7 +319,7 @@ export function ZackDStudio() {
       const row = el('div', 'md:hidden flex gap-2'); // touch devices have no hover, so the actions sit in the footer
       actions.forEach(([title, icon, fn]) => {
         const b = el('button', 'px-3 py-1.5 bg-white/10 rounded-lg text-[11px] text-white flex items-center gap-1.5'); b.type = 'button'; b.innerHTML = `${icon}<span>${title}</span>`;
-        b.disabled = busy && title !== 'Download' && title !== 'Copy prompt'; b.onclick = (e) => { e.stopPropagation(); fn(); };
+        b.disabled = busy && title !== 'Download' && title !== 'Copy prompt' && title !== 'Landing page'; b.onclick = (e) => { e.stopPropagation(); fn(); };
         row.appendChild(b);
       });
       footer.appendChild(row);

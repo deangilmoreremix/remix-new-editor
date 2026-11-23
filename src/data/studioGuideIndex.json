@@ -353,14 +353,6 @@
         "thumbnail": "/guides/video-outreach/overview.webp"
       },
       {
-        "slug": "video-pages",
-        "name": "Video Pages",
-        "route": "video-pages",
-        "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
-        "features": 3,
-        "thumbnail": "/thumbnails/pages/placeholder.webp"
-      },
-      {
         "slug": "video-render",
         "name": "Video Render",
         "route": "render",
@@ -453,6 +445,14 @@
         "shortDescription": "Everything you generated and uploaded, in one place.",
         "features": 5,
         "thumbnail": "/guides/library/overview.webp"
+      },
+      {
+        "slug": "video-pages",
+        "name": "Video Pages",
+        "route": "video-pages",
+        "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
+        "features": 3,
+        "thumbnail": "/thumbnails/pages/placeholder.webp"
       }
     ]
   }
