@@ -156,7 +156,7 @@ export function PillButton({ active, onClick, children, tone = 'blue', title, te
 
 export function NewProjectTile({ onClick, label = 'New Project' }: { onClick: () => void; label?: string }) {
   return (
-    <button type="button" onClick={onClick} className="aspect-[4/3] rounded-xl flex flex-col items-center justify-center gap-2 transition-all hover:border-white/20" style={{ border: '1px dashed var(--border-color)', background: 'transparent' }}>
+    <button type="button" onClick={onClick} data-help-name={label} data-help-text="Start a new project." className="aspect-[4/3] rounded-xl flex flex-col items-center justify-center gap-2 transition-all hover:border-white/20" style={{ border: '1px dashed var(--border-color)', background: 'transparent' }}>
       <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--bg-card)' }}><Plus size={16} style={{ color: 'rgba(255,255,255,0.6)' }} /></div>
       <span className="text-xs" style={{ color: semantic.textSecondary }}>{label}</span>
     </button>

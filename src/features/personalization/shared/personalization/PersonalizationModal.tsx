@@ -355,6 +355,8 @@ function UploadZone({
         type="button"
         data-testid="pz-upload-collapsed"
         data-pz-upload-zone
+        data-help-name={addLabel}
+        data-help-text="Opens the upload area so you can add more files."
         onClick={() => setExpanded(true)}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -415,6 +417,8 @@ function UploadZone({
       )}
       <div
         data-pz-upload-zone
+        data-help-name={primary}
+        data-help-text="Drag files here or click to browse your computer."
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -462,7 +466,7 @@ function ThumbPlaceholder({ label, add = false, onClick, title }: { label: strin
   const Tag = onClick ? 'button' : 'div'
   return (
     <Tag
-      {...(onClick ? { type: 'button' as const, 'aria-label': title || (add ? 'Add' : `Add ${label.toLowerCase()} photo`), title: title || (add ? undefined : `Add a ${label.toLowerCase()} photo`) } : {})}
+      {...(onClick ? { type: 'button' as const, 'aria-label': title || (add ? 'Add' : `Add ${label.toLowerCase()} photo`), 'data-help-name': add ? 'Add' : `${label[0]}${label.slice(1).toLowerCase()} photo`, 'data-help-text': 'Opens the file picker to upload an image.', title: title || (add ? undefined : `Add a ${label.toLowerCase()} photo`) } : {})}
       onClick={onClick}
       className={classNames(
         'w-[82px] min-h-[86px] rounded-[9px] border overflow-hidden flex items-end justify-center p-1.5 text-[9px] font-extrabold',
@@ -2910,6 +2914,8 @@ function ConfigurationView(props: any) {
               <button
                 key={key}
                 onClick={() => updateClientForm({ ...clientForm, audience: key })}
+                data-help-name={label}
+                data-help-text={key === 'me' ? 'This video is for you.' : key === 'my-business' ? 'This video is for your own business.' : 'This video is for one of your clients.'}
                 className="rounded-lg text-[11px] font-extrabold uppercase tracking-wide"
                 style={{
                   minHeight: 38,
