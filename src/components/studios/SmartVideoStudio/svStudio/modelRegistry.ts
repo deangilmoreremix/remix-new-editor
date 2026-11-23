@@ -270,7 +270,10 @@ function buildLocalSchema(m: LocalModel, generationType: string, category: strin
   // models.js leaves some required inputs implicit (MiniMax Speech: voiceOptions, no voice_id).
   for (const f of live.get(String(m.endpoint || m.id)) || live.get(m.id) || []) {
     if (f.name === 'text' && schema.prompt) continue;
-    add(f.name, liveFieldSchema(f));
+    // Already inferred (e.g. a lip-sync image_url): keep its widget details but take the live "required" flag.
+    const existing = schema[f.name] as Record<string, unknown> | undefined;
+    if (existing && typeof existing === 'object') existing.required = true;
+    else add(f.name, liveFieldSchema(f));
   }
   return schema;
 }

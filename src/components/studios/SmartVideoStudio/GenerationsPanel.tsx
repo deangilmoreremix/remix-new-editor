@@ -116,8 +116,9 @@ export default function GenerationsPanel({ jobs, loading, onRetry, onDelete, onU
           </div>
         ) : (
           filteredJobs.map(job => {
-            const outputType = job.output ? detectOutputType(job.output, job.modelId) : 'unknown';
-            const shownType = outputType === 'unknown' && job.output ? (job.outputType || 'unknown') : outputType;
+            // The job's own type wins (it is what the Images/Video filters use); detect only when it has none.
+            const outputType = job.output ? (job.outputType || detectOutputType(job.output, job.modelId)) : 'unknown';
+            const shownType = outputType;
             const statusClass = job.status === 'completed' ? 'is-completed' :
                                job.status === 'failed' ? 'is-failed' : 'is-processing';
 
@@ -164,16 +165,18 @@ export default function GenerationsPanel({ jobs, loading, onRetry, onDelete, onU
 
                 {/* Actions */}
                 <div className="generation-card-actions">
+                  {(job.status === 'completed' || job.status === 'failed') && (
+                    <button
+                      type="button"
+                      onClick={() => handleRetry(job)}
+                      className="generation-action-btn"
+                      title="Retry"
+                    >
+                      🔄
+                    </button>
+                  )}
                   {job.status === 'completed' && (
                     <>
-                      <button
-                        type="button"
-                        onClick={() => handleRetry(job)}
-                        className="generation-action-btn"
-                        title="Retry"
-                      >
-                        🔄
-                      </button>
                       <button
                         type="button"
                         onClick={() => handleUseAsInput(job)}

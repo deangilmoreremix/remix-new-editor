@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { syncCatalog, getModelsForTab, getModelById, STUDIO_TABS } from './svStudio/modelRegistry';
+import { syncCatalog, getModelsForTab, getModelById, loadModelSchema, STUDIO_TABS } from './svStudio/modelRegistry';
 import ModeRail from './ModeRail';
 import ModelSelector from './ModelSelector';
 import DynamicModelForm from './DynamicModelForm';
@@ -65,10 +65,23 @@ export default function SmartVideoStudio() {
   // Only a model that belongs to the active tab can be generated with.
   const activeModel = selectedModel && tabModels.some(m => m.id === selectedModel.id) ? selectedModel : null;
   // Which key the bottom prompt bar fills: null for models with no prompt (lip-sync, upscale...).
-  const activeSchema = activeModel ? (getModelById(activeModel.id)?.input_schema || activeModel.input_schema) : null;
-  const promptKey = !activeModel ? null
-    : !activeSchema ? 'prompt'
-      : 'prompt' in activeSchema ? 'prompt' : 'text' in activeSchema ? 'text' : null;
+  // The schema the form actually loaded (inline, or fetched into the registry cache for remote models).
+  const [loadedSchema, setLoadedSchema] = useState<{ id: string; schema: Record<string, unknown> } | null>(null);
+  useEffect(() => {
+    if (!activeModel) return undefined;
+    let stale = false;
+    loadModelSchema(activeModel.id)
+      .then((schema) => { if (!stale) setLoadedSchema({ id: activeModel.id, schema: schema || {} }); })
+      .catch(() => { if (!stale) setLoadedSchema({ id: activeModel.id, schema: {} }); });
+    return () => { stale = true; };
+  }, [activeModel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const activeSchema = activeModel
+    ? (loadedSchema?.id === activeModel.id ? loadedSchema.schema : (getModelById(activeModel.id)?.input_schema || activeModel.input_schema || null))
+    : null;
+  const schemaReady = !!activeModel && !!activeSchema;
+  // undefined until the schema is known (Generate stays disabled); null when the model takes no prompt.
+  const promptKey = !activeModel || !activeSchema ? (activeModel ? undefined : null)
+    : 'prompt' in activeSchema ? 'prompt' : 'text' in activeSchema ? 'text' : null;
 
   useEffect(() => {
     if (tabModels.length > 0) {
@@ -115,6 +128,10 @@ export default function SmartVideoStudio() {
   const handleGenerate = useCallback(async (params) => {
     if (!activeModel || params.modelId !== activeModel.id) {
       setNotice('Pick a model in this mode before generating.');
+      return;
+    }
+    if (promptKey === undefined) {
+      setNotice('The model form is still loading. Try again in a moment.');
       return;
     }
     const values = { ...formValuesRef.current, ...params.values };
@@ -267,7 +284,7 @@ export default function SmartVideoStudio() {
         h('button', {
           type: 'button',
           onClick: submitFromBar,
-          disabled: generating || !activeModel,
+          disabled: generating || !activeModel || !schemaReady,
           title: !activeModel ? 'No model selected for this mode' : undefined,
           className: 'smart-video-prompt-submit'
         }, generating ? 'Generating...' : 'Generate')
