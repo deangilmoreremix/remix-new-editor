@@ -42,7 +42,6 @@ export function BrandStudio() {
   const toolsGrid = document.createElement('div');
   toolsGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
   const brandTools = [
-    { route: 'brand-kit', label: 'Brand Kit', description: 'Find a brand, then make a video' },
     { route: 'brand-dna', label: 'Brand DNA', description: 'Review and edit your brand identity' },
     { route: 'campaign', label: 'Campaigns', description: 'Create on-brand campaigns' },
     { route: 'asset-edit', label: 'Asset Editor', description: 'Edit campaign assets' },
@@ -71,10 +70,7 @@ export function BrandStudio() {
     detail.className = 'text-xs text-secondary mt-2';
     detail.textContent = description;
     btn.append(title, detail);
-    btn.addEventListener('click', () => {
-      if (route === 'brand-kit') return import('./modals/BrandKitModal.js').then((m) => m.openBrandKitModal({ url: state.url }));
-      return route === 'asset-edit' ? openLatestAsset() : navigate(route);
-    });
+    btn.addEventListener('click', () => (route === 'asset-edit' ? openLatestAsset() : navigate(route)));
     toolsGrid.appendChild(btn);
   });
   tools.appendChild(toolsGrid);
