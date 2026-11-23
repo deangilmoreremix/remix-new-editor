@@ -29,7 +29,7 @@ const CATEGORY_OVERRIDES = {
 // Knowledge files that get no public guide page (the in-app assistant still uses them).
 // smart-video-studio: the page does not open yet (missing stylesheet path, React mount, /api/model-registry).
 // smartwarmupai: assistant only until its public name is cleared (see apps/smartwarmupai-brand/README.md).
-export const UNLISTED_GUIDES = new Set(['smart-video-studio', 'smartwarmupai']);
+export const UNLISTED_GUIDES = new Set(['smart-video-studio']);
 
 // Slugs that should not just be the slugified studio name.
 const SLUG_OVERRIDES = {

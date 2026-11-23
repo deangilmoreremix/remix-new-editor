@@ -22,7 +22,7 @@
  *
  * Providers:
  *   OpenAI (default) — Responses API with function tools, OPENAI_API_KEY,
- *     model OPENAI_AGENT_MODEL || OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol'.
+ *     model OPENAI_AGENT_MODEL || OPENAI_RESPONSES_TEXT_MODEL || 'gpt-6.1-sol'.
  *   Anthropic (optional) — Messages API through @anthropic-ai/sdk when
  *     ANTHROPIC_API_KEY is set, model ANTHROPIC_AGENT_MODEL || 'claude-opus-5-5'.
  * Keys never leave the server.
@@ -31,8 +31,9 @@ import Anthropic from '@anthropic-ai/sdk';
 import { withClerkAuth } from './_shared/clerkAuth.js';
 import { userOpenAIKey, NEED_OPENAI_KEY, BAD_OPENAI_KEY, OPENAI_NO_CREDIT } from './_shared/byok.js';
 import { AGENT_SYSTEM_PROMPT } from './_shared/videoAgentPrompt.js';
+import { OPENAI_TEXT_MODEL } from './_shared/openaiModels.js';
 
-const OPENAI_MODEL = process.env.OPENAI_AGENT_MODEL || process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
+const OPENAI_MODEL = process.env.OPENAI_AGENT_MODEL || process.env.OPENAI_RESPONSES_TEXT_MODEL || OPENAI_TEXT_MODEL;
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_AGENT_MODEL || 'claude-opus-5-5';
 const ANTHROPIC_EFFORT = process.env.ANTHROPIC_AGENT_EFFORT || 'medium';
 const TIMEOUT_MS = 120_000;

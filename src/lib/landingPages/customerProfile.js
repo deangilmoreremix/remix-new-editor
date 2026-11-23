@@ -168,6 +168,16 @@ export function customerTokens(c) {
   // The industry designs read their city from {{custom1}} and the person's name from {{custom2}} (e.g. a pet owner).
   if (!t.custom1 && t.city) t.custom1 = t.city;
   if (!t.custom2 && t.firstname) t.custom2 = t.firstname;
+  // Per-person extras, so each personal link can show their own website, offer, colour, picture and video.
+  const b = c.business || {};
+  t.website = t.website || websiteUrl(b.website);
+  t.phone = t.phone || phoneNumber(b.phone);
+  t.offer = t.offer || clip(b.offer, 80);
+  t.cta = t.cta || httpsUrl(b.cta);
+  t.industry = t.industry || clip(b.industry, 80);
+  t.accent = t.accent || hexColor(c.brand?.accent);
+  t.image = t.image || httpsUrl(c.image);
+  t.video = t.video || httpsUrl(c.video);
   return Object.fromEntries(Object.entries(t).filter(([, v]) => v));
 }
 

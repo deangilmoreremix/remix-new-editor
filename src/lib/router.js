@@ -18,7 +18,6 @@ const ROUTE_MAP = {
   'Smart Video Scheduler': 'smart-video-scheduler',
 
   'Personalizer': 'personalizer',
-  'Video Pages': 'video-pages',
   'Contacts': 'contacts',
   'Social': 'social',
   'Landing': 'landing',
@@ -64,6 +63,7 @@ export const RETIRED_ROUTES = {
   assist: 'apps',
   community: 'explore',
   'pexels-media': 'library',
+  'video-pages': 'library',   // Video Pages is a modal now (Library > My Video Pages, the header button, or any studio's Create landing page)
 };
 
 const pageLoaders = {
@@ -84,7 +84,7 @@ const pageLoaders = {
   avatar: () => import('../components/AvatarStudio.js').then(m => m.AvatarStudio()),
   'smart-video-scheduler': () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
   brightbean: () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
-  'smart-video-studio': () => import('../components/studios/SmartVideoStudio/SmartVideoStudio.tsx').then(m => m.default || m.SmartVideoStudio),
+  'smart-video-studio': () => import('../components/studios/SmartVideoStudio/SmartVideoStudio.tsx').then(m => m.SmartVideoStudioPage()),
   audio: () => import('../components/AudioStudio.js').then(m => m.AudioStudio()),
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
@@ -96,8 +96,7 @@ const pageLoaders = {
   'motion-director': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   'motion-director/workbench': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   personalizer: () => import('../components/Personalizer.js').then(m => m.Personalizer()),
-  // Video landing pages (public pages live at /p/<slug>, mounted from main.js).
-  'video-pages': () => import('../components/LandingPagesStudio.js').then(m => m.LandingPagesStudio()),
+  // Video landing pages are a modal (components/modals/MyVideoPagesModal.js); public pages live at /p/<slug>, mounted from main.js.
   'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
@@ -158,7 +157,13 @@ const pageLoaders = {
 };
 
 // Sub-paths like 'academy/track/<t>/lesson/<id>' are handled by the Academy page itself.
-export const academyKey = (page) => (typeof page === 'string' && page.startsWith('academy/') ? 'academy' : page);
+export const academyKey = (page) => {
+  if (typeof page !== 'string') return page;
+  if (page.startsWith('academy/')) return 'academy';
+  // #/smartwarmupai/help/<docs path> and other studio deep links are parsed by the studio itself.
+  if (page.startsWith('smartwarmupai/')) return 'smartwarmupai';
+  return page;
+};
 
 /** True when navigate(page) opens a real page rather than the placeholder. */
 export const isKnownPage = (page) => typeof page === 'string' && (page.startsWith('template/') || Boolean(pageLoaders[academyKey(RETIRED_ROUTES[page] || page)]));

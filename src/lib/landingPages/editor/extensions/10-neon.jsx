@@ -58,7 +58,7 @@ function NeonHero(p) {
           </div>
         ) : null}
       </div>
-      <aside className="pk-neon-aside" aria-label="Highlights">
+      <aside className="pk-neon-aside" aria-label={t(p.highlightsLabel) || 'Highlights'}>
         <section className="pk-neon-kpi">
           <p className="pk-neon-kpi-title"><Icon name="users" className="pk-ico" />{t(p.kpiTitle)}</p>
           <b className="pk-neon-kpi-value">{t(p.kpiValue)}</b>
@@ -102,6 +102,7 @@ export const components = {
       kpiTitle: T('Counter title'),
       kpiValue: T('Counter number'),
       kpiBadge: T('Counter badge'),
+      highlightsLabel: T('Screen-reader name of the side panel'),
       giftTitle: T('Gift card title'),
       giftPlaceholder: T('Gift email box hint'),
       giftButton: T('Gift button text'),
@@ -118,7 +119,7 @@ export const components = {
       formTitle: 'Get Your Personalized Video & Grow Your Lead List', formFields: FORM_FIELDS, submitLabel: 'Create My Personalized Video', privacy: '',
       orLabel: 'or', buttons: [{ label: 'Book a Live Walkthrough', url: '#lead' }],
       kpiTitle: 'Leads Captured (All Time)', kpiValue: '128,349', kpiBadge: '+37% (Last 30 days)',
-      giftTitle: 'Join Our Insider List & Get a Free "Personalized Video Playbook"', giftPlaceholder: 'Enter your email', giftButton: 'Get the Free Playbook', giftCover: 'The Personalized Video Playbook', giftIcon: '/landing-art/10/gift.webp', giftBook: '/landing-art/10/book.webp',
+      highlightsLabel: 'Highlights', giftTitle: 'Join Our Insider List & Get a Free "Personalized Video Playbook"', giftPlaceholder: 'Enter your email', giftButton: 'Get the Free Playbook', giftCover: 'The Personalized Video Playbook', giftIcon: '/landing-art/10/gift.webp', giftBook: '/landing-art/10/book.webp',
     },
     render: (p) => <NeonHero {...p} />,
   },

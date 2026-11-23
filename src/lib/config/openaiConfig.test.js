@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { openaiConfig } from './openaiConfig.js';
+import { openaiConfig, extractResponsesOutputText } from './openaiConfig.js';
 
 /**
  * Regression guard for the "isOpenAIImageModel is not a function" bug.
@@ -23,5 +23,34 @@ describe('openaiConfig.isOpenAIImageModel', () => {
     expect(openaiConfig.isOpenAIImageModel('midjourney')).toBe(false);
     expect(openaiConfig.isOpenAIImageModel('unknown-model')).toBe(false);
     expect(openaiConfig.isOpenAIImageModel(undefined)).toBe(false);
+  });
+});
+
+describe('extractResponsesOutputText', () => {
+  const msg = (...content) => ({ type: 'message', content });
+  const text = (t) => ({ type: 'output_text', text: t });
+
+  it('returns a single text part unchanged', () => {
+    expect(extractResponsesOutputText({ output: [msg(text('Hello.'))] })).toBe('Hello.');
+  });
+
+  it('joins every text part across message items in order, skipping reasoning', () => {
+    const json = {
+      output: [
+        { type: 'reasoning', summary: [] },
+        msg(text('First. '), text('Second.')),
+        msg(text(' Third.')),
+      ],
+    };
+    expect(extractResponsesOutputText(json)).toBe('First. Second. Third.');
+  });
+
+  it('throws on a refusal', () => {
+    expect(() => extractResponsesOutputText({ output: [msg({ type: 'refusal', refusal: 'no' })] }))
+      .toThrow('Model refused: no');
+  });
+
+  it('returns an empty string when there is no text', () => {
+    expect(extractResponsesOutputText({ output: [{ type: 'reasoning' }] })).toBe('');
   });
 });

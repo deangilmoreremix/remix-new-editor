@@ -91,9 +91,13 @@ export function createMuapiStudioFetch({
     }
 
     // Bound the wait and turn network failures into a response the Studio can show.
+    // One controller carries both the caller's cancellation and the timeout (AbortSignal.any is not everywhere).
     const timeout = new AbortController();
-    const timer = setTimeout(() => timeout.abort(), PROXY_TIMEOUT_MS);
-    const signal = init.signal && typeof AbortSignal.any === 'function' ? AbortSignal.any([init.signal, timeout.signal]) : (init.signal || timeout.signal);
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; timeout.abort(); }, PROXY_TIMEOUT_MS);
+    const cancel = () => timeout.abort();
+    if (init.signal?.aborted) cancel(); else init.signal?.addEventListener('abort', cancel);
+    const signal = timeout.signal;
     try {
       return await fetchImpl(proxyUrl, {
         method: 'POST',
@@ -103,11 +107,12 @@ export function createMuapiStudioFetch({
       });
     } catch (err) {
       if (init.signal?.aborted) throw err; // caller cancelled: keep the abort semantics
-      return timeout.signal.aborted
+      return timedOut
         ? jsonResponse(504, { error: 'The MuAPI proxy timed out. Try again.' })
         : jsonResponse(502, { error: 'Could not reach the MuAPI proxy. Check your connection.' });
     } finally {
       clearTimeout(timer);
+      init.signal?.removeEventListener('abort', cancel);
     }
   };
 }

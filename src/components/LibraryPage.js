@@ -58,6 +58,14 @@ export function LibraryPage() {
     controls.appendChild(btn);
   });
 
+  const pagesLink = document.createElement('button');
+  pagesLink.type = 'button';
+  pagesLink.dataset.testid = 'library-video-pages';
+  pagesLink.className = 'px-4 py-2 rounded-full text-xs font-bold border border-white/10 text-secondary hover:text-white hover:border-primary/60 transition-colors';
+  pagesLink.textContent = 'My Video Pages';
+  pagesLink.onclick = async () => { const { openMyVideoPages } = await import('./modals/MyVideoPagesModal.js'); openMyVideoPages(); };
+  controls.appendChild(pagesLink);
+
   const right = document.createElement('div');
   right.className = 'ml-auto flex items-center gap-2';
   const sortSelect = document.createElement('select');

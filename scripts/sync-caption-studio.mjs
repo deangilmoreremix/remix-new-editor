@@ -6,6 +6,7 @@
  *   node scripts/sync-caption-studio.mjs <path-to-OpenHiggsBolt> --check   exit 1 if the checkout differs (CI / before a release)
  *
  * remix-new-editor src/lib/captionStudio/*.js                       -> OpenHiggsBolt src/shared/captionStudio/
+ * remix-new-editor src/lib/captionStudio/fonts/**                   -> OpenHiggsBolt src/shared/captionStudio/fonts/  (embedded font data)
  * remix-new-editor src/lib/captionStudio/hosts/openhiggsbolt/*.js   -> OpenHiggsBolt components/
  * Tests, README and the other host adapters are not copied. Each app's personalization editor is NOT synced: they have diverged (remix draws
  * the Studio's pages; OpenHiggsBolt maps the Studio's output onto its own caption cues and style), so each is maintained natively.
@@ -23,6 +24,7 @@ if (!existsSync(join(root, 'package.json'))) { console.error(`${root} does not l
 
 const jobs = [
   ...readdirSync(core).filter((f) => f.endsWith('.js') || f.endsWith('.d.ts')).map((f) => [join(core, f), join(root, 'src/shared/captionStudio', f)]),
+  ...[['fonts'], ['fonts', 'data']].flatMap(([...d]) => readdirSync(join(core, ...d)).filter((f) => f.endsWith('.js') || f.endsWith('.d.ts')).map((f) => [join(core, ...d, f), join(root, 'src/shared/captionStudio', ...d, f)])),
   ...readdirSync(join(core, 'hosts/openhiggsbolt')).filter((f) => f.endsWith('.js')).map((f) => [join(core, 'hosts/openhiggsbolt', f), join(root, 'components', f)]),
 ];
 let differs = 0;

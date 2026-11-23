@@ -4,6 +4,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { saveCustomThumbnailToCache, clearCustomThumbnailCache, createStudioHeader } from '../lib/thumbnails.js';
+import { consumeStudioPrefill } from '../lib/studioPrefill.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { t2iModels, getAspectRatiosForModel, getModelById } from '../lib/models.js';
@@ -253,6 +254,12 @@ export function StoryboardStudio(options = {}) {
       if (params.duration) deepLinkDuration = params.duration;
     }
   } catch { /* ignore bad deep-link params */ }
+  // A brief staged by another studio (e.g. a Brand Kit's "Make with Storyboard").
+  const stagedBrief = consumeStudioPrefill('storyboard');
+  if (stagedBrief?.prompt) {
+    deepLinkPrompt = stagedBrief.prompt;
+    if (STORY_ASPECT_RATIOS.includes(stagedBrief.params?.aspectRatio)) selectedAr = stagedBrief.params.aspectRatio;
+  }
   const selectedModelInfo = getModelById(selectedModel);
   if (selectedModelInfo) selectedModelName = selectedModelInfo.name;
 

@@ -17,6 +17,10 @@ import { TEMPLATES, defaultConfig, sanitizeEditorData, getTemplate } from './tem
 import { sampleSections } from './sampleContent.js';
 import { createPageFromVideo, MAX_VIDEO_BYTES } from './ingest.js';
 import { updatePage, pageUrl, addContacts, personalUrl } from './client.js';
+import { createAiRewritePanel } from './aiRewritePanel.js';
+import { lockScroll, unlockScroll } from './scrollLock.js';
+import { normalizeItems, routeContent, listSlots, slotsFor, setSlot, resolveSlot, persistTrayMedia, typeOfItem } from './contentTray.js';
+import { useTrayItem } from './trayUse.js';
 import { exportLinksCsv } from './csv.js';
 import { loadCustomers } from './customerSources.js';
 import { createCustomerPanel } from './customerPanel.js';
@@ -65,6 +69,7 @@ export function toPickerVideo(input) {
     duration: Number.isFinite(Number(input.duration)) ? Number(input.duration) : null,
     source: input.source && typeof input.source === 'object' ? input.source : { kind: isPicture(input) ? 'image' : 'video', studio: String(input.studio || '').slice(0, 40) },
     permanent: isPermanentUrl(url),
+    ...(isPicture(input) ? { isPicture: true } : {}),
     ...(input.file ? { file: input.file } : {}),
   };
 }
@@ -74,7 +79,7 @@ export function toPickerVideo(input) {
 const CSS = {
   // Never filled, like the studios' prompt bar: outlined; the main action has a lime left edge (like Generate).
   [BTN]: 'background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
-  [BTN_PRIMARY]: 'background:transparent;border:1px solid rgba(255,255,255,.14);border-left:2px solid #d9ff00;color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
+  [BTN_PRIMARY]: 'background:transparent;border:1px solid rgba(255,255,255,.14);border-left:2px solid var(--lp-accent, #d9ff00);color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer',
   [`${INPUT} max-w-sm`]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;min-width:220px',
   [INPUT]: 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;width:100%',
   card: 'background:#141414;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px;text-align:left;color:#fff;cursor:pointer',
@@ -100,14 +105,18 @@ const brandDefaults = () => {
   } catch { return {}; }
 };
 
-let openCount = 0;
+const MAX_IMAGE_MB = 15;
 
 /** `zIndex`: where the picker stacks (default 2000); a caller that is itself a full-screen window (the Template Generator, 9999) passes a higher one. */
-export function openLandingPagePicker({ video = null, template = null, data: startData = null, onEdit = null, saveLabel = 'Save page', customers = [], preselect = 'active', onPick, onClose, doneLabel = '', zIndex = 2000, deps = {} } = {}) {
-  let src = toPickerVideo(video);
-  const prevOverflow = document.body.style.overflow;
-  document.body.style.overflow = 'hidden';
-  openCount += 1;
+export function openLandingPagePicker({ video = null, items = [], template = null, data: startData = null, onEdit = null, saveLabel = 'Save page', customers = [], preselect = 'active', onPick, onClose, doneLabel = '', zIndex = 2000, deps = {} } = {}) {
+  // Everything the studio sent: the requested item fills the viewer; the rest wait in the tray (a video goes to the video
+  // viewer, a picture shows as a still; any item can also be placed in any picture or video slot of the page).
+  const routed = routeContent(normalizeItems([video, ...(Array.isArray(items) ? items : [])], toPickerVideo), { prefer: toPickerVideo(video)?.url });
+  const asked = toPickerVideo(video);
+  // the item the studio asked for stays the main one, even a local file (blob:) that the tray (https only) does not hold
+  let src = asked && /^blob:/i.test(asked.url) ? asked : (routed.main || asked);      // a local file (blob:) is not https, so it is not in the tray but still the main item
+  let tray = routed.all.length ? routed.all : (src ? [src] : []);
+  lockScroll();
 
   const overlay = el('div', 'fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-xl p-2 md:p-6');
   overlay.style.zIndex = String(zIndex);
@@ -156,8 +165,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     clearPreviews();
     overlay.remove();
     document.removeEventListener('keydown', onKey, true);
-    document.body.style.overflow = openCount > 1 ? 'hidden' : prevOverflow;
-    openCount -= 1;
+    unlockScroll();
     try { onClose?.(); } catch { /* caller bug must not leave the page locked */ }
   };
   const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select,textarea';
@@ -191,6 +199,13 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     }
     head.appendChild(el('h2', 'text-sm font-black uppercase tracking-widest', title));
     head.appendChild(el('div', 'flex-1'));
+    if (view === 'grid' && !onEdit) {
+      const mine = el('button', BTN, 'My pages');
+      mine.type = 'button';
+      mine.dataset.myPages = '';
+      mine.addEventListener('click', async () => { const { openMyVideoPages } = await import('../../components/modals/MyVideoPagesModal.js'); openMyVideoPages({ zIndex: zIndex + 100 }); });
+      head.appendChild(mine);
+    }
     extras.forEach((x) => head.appendChild(x));
     const x = el('button', BTN, '✕');
     x.type = 'button';
@@ -274,12 +289,14 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     bar.dataset.pickerVideo = '';
     const pic = el('div', 'shrink-0 overflow-hidden rounded-lg bg-black');
     pic.style.cssText = 'width:96px;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#000;flex-shrink:0';
-    if (src?.posterUrl) { const i = el('img'); i.src = src.posterUrl; i.alt = ''; i.style.cssText = 'width:100%;height:100%;object-fit:cover'; pic.appendChild(i); }
+    const isStill = !!src && (src.isPicture === true || src.source?.kind === 'image' || isPicture({ url: src.url }));
+    if (isStill && !src.posterUrl) { const i = el('img'); i.src = src.url; i.alt = ''; i.style.cssText = 'width:100%;height:100%;object-fit:cover'; pic.appendChild(i); }
+    else if (src?.posterUrl) { const i = el('img'); i.src = src.posterUrl; i.alt = ''; i.style.cssText = 'width:100%;height:100%;object-fit:cover'; pic.appendChild(i); }
     else if (src?.url) { const v = el('video'); v.muted = true; v.preload = 'metadata'; v.src = `${src.url}#t=0.5`; v.style.cssText = 'width:100%;height:100%;object-fit:cover'; pic.appendChild(v); }
     const words = el('div', 'min-w-0 flex-1');
     words.style.cssText = 'min-width:0;flex:1';
-    words.append(el('div', 'text-[11px] text-secondary', 'Video on the page'), el('div', 'text-sm font-bold truncate', src?.title || 'No video yet'));
-    const b = el('button', BTN, src ? 'Change video' : 'Choose a video');
+    words.append(el('div', 'text-[11px] text-secondary', isStill ? 'Picture on the page' : 'Video on the page'), el('div', 'text-sm font-bold truncate', src?.title || 'No video yet'));
+    const b = el('button', BTN, src ? (isStill ? 'Change picture' : 'Change video') : 'Choose a video');
     b.type = 'button';
     b.addEventListener('click', () => { back = returnTo; showVideos(); });
     bar.append(pic, words, b);
@@ -293,25 +310,27 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     view = 'video';
     msg.textContent = src ? '' : 'Choose a video first: upload one, pick one you made, or paste a link.';
     setHead('Choose a video');
-    const take = (v) => { if (!v) return; src = v; (back || showGrid)(); };
+    const take = (v) => { if (!v) return; src = v; tray = normalizeItems([v, ...tray]); if (!tray.length) tray = [v]; (back || showGrid)(); };
     const wrap = el('div', 'flex-1 min-h-0 overflow-y-auto p-4 md:p-6 flex flex-col gap-4');
     wrap.style.cssText = 'flex:1;min-height:0;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px';
     wrap.dataset.videoChooser = '';
 
     const drop = el('label', 'flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-white/20 p-6 text-center cursor-pointer hover:border-primary/60 transition-colors');
     drop.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;border:1px dashed rgba(255,255,255,.25);border-radius:16px;padding:22px;text-align:center;cursor:pointer';
-    drop.append(el('span', 'text-sm font-bold', 'Upload a video'), el('span', 'text-xs text-secondary', `Drop a video here or click to choose (up to ${MAX_VIDEO_BYTES / 1048576}MB)`));
+    drop.append(el('span', 'text-sm font-bold', 'Upload a video or picture'), el('span', 'text-xs text-secondary', `Drop a file here or click to choose (video up to ${MAX_VIDEO_BYTES / 1048576}MB, picture up to ${MAX_IMAGE_MB}MB)`));
     const file = el('input', 'sr-only');
     file.type = 'file';
-    file.accept = 'video/*';
-    file.setAttribute('aria-label', 'Upload a video');
+    file.accept = 'video/*,image/*';
+    file.setAttribute('aria-label', 'Upload a video or picture');
     file.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0';
     drop.appendChild(file);
     const takeFile = (f) => {
       if (!f) return;
-      if (f.size > MAX_VIDEO_BYTES) { msg.textContent = `This video is ${Math.round(f.size / 1048576)}MB; the limit is ${MAX_VIDEO_BYTES / 1048576}MB.`; return; }
+      const pic = String(f.type).startsWith('image/');
+      const limit = pic ? MAX_IMAGE_MB * 1048576 : MAX_VIDEO_BYTES;
+      if (f.size > limit) { msg.textContent = `This ${pic ? 'picture' : 'video'} is ${Math.round(f.size / 1048576)}MB; the limit is ${limit / 1048576}MB.`; return; }
       const v = fromFile(f, URL.createObjectURL(f));
-      if (!v) { msg.textContent = 'That is not a video file.'; return; }
+      if (!v) { msg.textContent = 'That is not a video or picture file.'; return; }
       take(toPickerVideo({ ...v, file: f }));
     };
     file.addEventListener('change', () => takeFile(file.files?.[0]));
@@ -401,7 +420,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     if (sel.length) {
       const note = el('div', 'px-4 md:px-6 pt-1 text-xs');
       note.dataset.personalizedNote = '';
-      note.style.cssText = 'color:#d9ff00;display:flex;gap:10px;align-items:center;flex-wrap:wrap';
+      note.style.cssText = 'color:var(--lp-accent, #d9ff00);display:flex;gap:10px;align-items:center;flex-wrap:wrap';
       note.appendChild(el('span', '', (withBrand || withImage)
         ? `Personalized for ${one.label}${applied.length ? `: ${applied.join(', ')} filled in` : ''}. Previewing as ${sel[0].label}.`
         : sel.length === 1 ? `Plain design. Previewing as ${sel[0].label}.` : `${sel.length} personal links will be made when you save. Previewing as ${sel[0].label}.`));
@@ -413,22 +432,100 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
       }
       noteEl = note;
     }
-    const host = el('div', 'flex-1 min-h-0 m-3 md:m-4 rounded-2xl border border-white/10 overflow-hidden bg-white');
+    const host = el('div', 'flex-1 min-h-0 m-3 md:m-4 rounded-2xl border border-white/10 overflow-hidden rx-editor');
     host.dataset.editorHost = '';
-    body.replaceChildren(...[hint, noteEl, host].filter(Boolean));
-    try {
-      const mount = deps.mountPageEditor || (await import('./editor/mount.jsx')).mountPageEditor;
-      if (view !== 'edit' || !overlay.isConnected) return;
-      editor = mount(host, {
-        page: { id: 'preview', title: src?.title || '', video_url: src?.url || '', poster_url: src?.posterUrl || null },
-        data,
-        tokens: previewTokens,
-        onPublish: () => saveBtn.click(),
-        onChange: (d) => { const n = sanitizeEditorData(d); if (n) data = n; },
+    // Write the whole page with AI from a few words about the business (the words only; you review every change).
+    const aiPanel = createAiRewritePanel({
+      getData: () => data,
+      setData: (d) => { data = d; startEditor(); },
+      context: `${src?.title || ''} (${chosen?.name || ''})`,
+      pageId: 'preview',
+    });
+    aiPanel.style.margin = '0 16px';
+    // The content tray: what the studio sent. Each item can become the main video / picture, or go into any picture or
+    // video slot on the page (it is saved to the account first if its link is temporary).
+    const trayHost = el('div');
+    trayHost.dataset.contentTrayHost = '';
+    body.replaceChildren(...[hint, noteEl, onEdit ? null : trayHost, aiPanel, host].filter(Boolean));
+    async function refreshTray() {
+      trayHost.replaceChildren();
+      if (onEdit || !tray.length || view !== 'edit') return;
+      let slots = [];
+      try { slots = listSlots(data, (await import('./editor/config.jsx')).editorConfig.components); } catch { /* no slot list: only "Make main" */ }
+      if (view !== 'edit') return;
+      // el() takes (tag, className, text): inline styles go through this helper
+      const box = (tag, css, text, cls = '') => {
+        const n = el(tag, cls, text);
+        css.split(';').forEach((d) => { const i = d.indexOf(':'); if (i > 0) n.style.setProperty(d.slice(0, i).trim(), d.slice(i + 1).trim()); });
+        return n;
+      };
+      const strip = box('div', 'margin:8px 16px 0;padding:8px 10px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.04);display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap');
+      strip.dataset.contentTray = '';
+      strip.appendChild(box('div', 'margin-top:2px;min-width:84px;font-size:12px;font-weight:800;color:var(--lp-accent, #d9ff00)', 'From your studio'));
+      tray.forEach((item) => {
+        const kind = typeOfItem(item);
+        const card = box('div', 'display:grid;gap:4px;width:150px');
+        card.dataset.trayCard = '';
+        const thumb = box('div', 'width:150px;height:84px;border-radius:8px;overflow:hidden;background:#000;position:relative');
+        if (kind === 'video' && !item.posterUrl) { const v = el('video'); v.muted = true; v.preload = 'metadata'; v.src = `${item.url}#t=0.5`; v.style.cssText = 'width:100%;height:100%;object-fit:cover'; thumb.appendChild(v); }
+        else { const i = el('img'); i.src = item.posterUrl || item.url; i.alt = ''; i.loading = 'lazy'; i.style.cssText = 'width:100%;height:100%;object-fit:cover'; thumb.appendChild(i); }
+        const badge = box('span', 'position:absolute;left:6px;top:6px;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800;background:rgba(0,0,0,.7);color:#fff', item.url === src?.url ? `Main ${kind === 'video' ? 'video' : 'picture'}` : (kind === 'video' ? 'Video' : 'Picture'));
+        thumb.appendChild(badge);
+        const sel = box('select', 'width:100%;font-size:12px;padding:6px 8px', undefined, INPUT);
+        sel.dataset.trayMenu = '';
+        sel.setAttribute('aria-label', `Use ${item.title || 'this item'}`);
+        const own = slotsFor(slots, kind);
+        const add = (v, label) => { const o = el('option', '', label); o.value = v; sel.appendChild(o); };
+        add('', 'Use in…');
+        if (item.url !== src?.url) add('__main', kind === 'video' ? 'Make main video (viewer)' : 'Make main picture (viewer still)');
+        own.forEach((sl, i) => add(String(i), sl.label.length > 60 ? `${sl.label.slice(0, 57)}…` : sl.label));
+        sel.addEventListener('change', async () => {
+          const v = sel.value;
+          sel.value = '';
+          if (!v || busy) return;
+          sel.disabled = true; msg.style.color = ''; msg.textContent = 'Saving to your account…';
+          try {
+            if (v === '__main') {
+              src = item;
+              tray = [item, ...tray.filter((t) => t !== item)];
+            } else {
+              const url = await useTrayItem(item, { upload });
+              // sections may have been moved or removed while this was saving: find the same section now, never a position
+              const now = resolveSlot((await import('./editor/config.jsx').then((m) => listSlots(data, m.editorConfig.components)).catch(() => slots)), own[Number(v)]);
+              if (!now) throw new Error('That place on the page has moved or was removed. Pick it again from the menu.');
+              data = setSlot(data, now.path, url);
+            }
+            msg.textContent = '';
+            await startEditor();
+          } catch (err) {
+            msg.textContent = err?.message || 'Could not place that.';
+            sel.disabled = false;
+          }
+        });
+        card.append(thumb, box('div', 'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px;opacity:.75', item.title || ''), sel);
+        strip.appendChild(card);
       });
-    } catch (err) {
-      msg.textContent = err?.message || 'Could not load the editor';
+      trayHost.appendChild(strip);
     }
+    async function startEditor() {
+      try {
+        const mount = deps.mountPageEditor || (await import('./editor/mount.jsx')).mountPageEditor;
+        if (view !== 'edit' || !overlay.isConnected) return;
+        destroyEditor();
+        editor = mount(host, {
+          page: { id: 'preview', title: src?.title || '', video_url: src?.url || '', poster_url: src?.posterUrl || null },
+          data,
+          tokens: previewTokens,
+          onPublish: () => saveBtn.click(),
+          onChange: (d) => { const n = sanitizeEditorData(d); if (n) data = n; },
+          getTray: () => tray,
+        });
+        void refreshTray();     // in the background: the editor and Save must not wait for the slot list
+      } catch (err) {
+        msg.textContent = err?.message || 'Could not load the editor';
+      }
+    }
+    await startEditor();
     saveBtn.addEventListener('click', async () => {
       if (onEdit) {
         if (busy) return;
@@ -444,8 +541,11 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
         await primeSupabaseIdentity();
         const create = deps.createPageFromVideo || createPageFromVideo;
         const row = await create(supabase, src, { template: chosen.id, brand: withBrand ? brandForConfig(one) : brandDefaults(), deps: { upload }, onStep: (l) => { saveBtn.textContent = `${l}…`; } });
-        const page = await (deps.updatePage || updatePage)(supabase, row.id, { config: { ...row.config, editor: sanitizeEditorData(data) || row.config?.editor } });
-        saved = { id: row.id, url: pageUrl(row.id), published: !!page.published, page, contacts: [], contactError: '' };
+        // Placed studio items still have temporary provider links: store them and swap the links before the page is saved.
+        saveBtn.textContent = 'Saving pictures…';
+        const persisted = await persistTrayMedia(sanitizeEditorData(data) || row.config?.editor, { tray, upload });
+        const page = await (deps.updatePage || updatePage)(supabase, row.id, { config: { ...row.config, editor: persisted.data } });
+        saved = { id: row.id, url: pageUrl(row.id), published: !!page.published, page, contacts: [], contactError: '', mediaWarning: persisted.failed.length ? `${persisted.failed.map((f) => f.title).join(', ')} could not be saved to your account, so ${persisted.failed.length === 1 ? 'it was' : 'they were'} left out of the page.` : '' };
         const contactRows = sel.map(toContactFields).filter(Boolean).map((fields) => ({ fields }));
         if (contactRows.length) {
           try { saved.contacts = await (deps.addContacts || addContacts)(supabase, row.id, contactRows); } catch (err) { saved.contactError = err?.message || 'Could not make the personal links'; }
@@ -469,6 +569,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     box.appendChild(el('div', 'rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200', `Saved to Video Pages with your video attached${saved.published ? ' and published.' : ' as a draft.'}`));
     box.appendChild(el('div', 'rounded-xl border border-white/10 bg-white/5 p-3 text-xs break-all', saved.url));
     const note = el('div', 'text-xs font-bold text-primary min-h-[1rem]');
+    if (saved.mediaWarning) box.appendChild(el('div', 'text-sm text-amber-300', saved.mediaWarning));
     if (saved.contactError) box.appendChild(el('div', 'text-sm text-amber-300', `The page is saved, but the personal links were not made: ${saved.contactError}. Add them from Video Pages > Personal links.`));
     if (saved.contacts?.length) {
       const links = el('div', ''); links.dataset.personalLinks = '';
@@ -507,7 +608,7 @@ export function openLandingPagePicker({ video = null, template = null, data: sta
     open.type = 'button';
     open.addEventListener('click', async () => {
       close();
-      try { const { navigate } = await import('../router.js'); navigate('video-pages'); } catch { showToast('Open Video Pages from the menu.', 'info', 3000); }
+      try { const { openMyVideoPages } = await import('../../components/modals/MyVideoPagesModal.js'); openMyVideoPages({ zIndex: zIndex + 100 }); } catch { showToast('Open My Video Pages from the Library.', 'info', 3000); }
     });
     const done = el('button', doneLabel ? BTN_PRIMARY : BTN, doneLabel || 'Done');
     done.type = 'button';
