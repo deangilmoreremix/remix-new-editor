@@ -8,7 +8,7 @@ export interface CaptionFrameStyle {
 }
 export interface FrameBox { x: number; y: number; w: number; h: number; r: number; color: string }
 export interface FrameWord {
-  text: string; width: number; cx: number; cy: number; scale: number
+  text: string; width: number; cx: number; cy: number; scale: number; rtl: boolean
   box: FrameBox | null; color: string; wipe: { fraction: number; color: string } | null
   outlinePx: number; outlineColor: string | null; shadow: { color: string; blur: number; offsetY: number } | null
 }

@@ -29,6 +29,10 @@ export function activePageAt(pages, ms, holdMs = 600) {
   return null;
 }
 
+const RTL_CHAR = /[\u0590-\u05ff\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb1d-\ufdff\ufe70-\ufeff]/;
+/** A line reads right-to-left when most of its words are Hebrew / Arabic script. */
+const isRtlLine = (line) => line.words.filter((w) => RTL_CHAR.test(w.text)).length * 2 > line.words.length;
+
 /** Word-wrap a page's tokens into lines that fit maxWidth. `measure(text) => width` is the only thing that touches a font. */
 export function layoutWords(tokens, measure, maxWidth, uppercase) {
   const words = tokens.map((t) => ({ token: t, text: uppercase ? t.text.trim().toUpperCase() : t.text.trim() })).filter((w) => w.text);
@@ -76,9 +80,14 @@ export function layoutCaptionFrame({ page, style = {}, ms, width: W, height: H, 
   const words = [];
   lines.forEach((line, li) => {
     const cy = top + li * lineH + lineH / 2;
-    let x = (W - line.width) / 2;
-    if (lineBgColor) lineBoxes.push({ x: x - fontPx * 0.35, y: cy - lineH / 2 + fontPx * 0.06, w: line.width + fontPx * 0.7, h: lineH - fontPx * 0.12, r: fontPx * 0.18, color: lineBgColor });
-    line.words.forEach((w) => {
+    const x0 = (W - line.width) / 2;
+    const rtl = isRtlLine(line);
+    const xs = [];
+    let cursor = x0;
+    (rtl ? line.words.map((_, i) => i).reverse() : line.words.map((_, i) => i)).forEach((i) => { xs[i] = cursor; cursor += line.words[i].width + space; });
+    if (lineBgColor) lineBoxes.push({ x: x0 - fontPx * 0.35, y: cy - lineH / 2 + fontPx * 0.06, w: line.width + fontPx * 0.7, h: lineH - fontPx * 0.12, r: fontPx * 0.18, color: lineBgColor });
+    line.words.forEach((w, wi) => {
+      const x = xs[wi];
       const { fromMs, toMs } = w.token;
       const active = style.highlightActive !== false && ms >= fromMs && ms < toMs;
       const spoken = anim === 'karaoke' && ms >= fromMs;
@@ -96,7 +105,7 @@ export function layoutCaptionFrame({ page, style = {}, ms, width: W, height: H, 
         if (f > 0) wipe = { fraction: f, color: hi };
       }
       words.push({
-        text: w.text, width: w.width, cx: x + w.width / 2, cy: cy + dy, scale,
+        text: w.text, width: w.width, cx: x + w.width / 2, cy: cy + dy, scale, rtl,
         // boxed words get a pill behind them, drawn relative to the word's centre
         box: boxed ? { x: -w.width / 2 - fontPx * 0.15, y: -lineH / 2 + fontPx * 0.1, w: w.width + fontPx * 0.3, h: lineH - fontPx * 0.2, r: fontPx * 0.15, color: active ? hi : (style.backgroundColor || 'rgba(0,0,0,0.6)') } : null,
         color: boxed ? '#FFFFFF' : anim === 'karaoke' ? base : ((active || spoken) ? hi : base),
@@ -105,7 +114,6 @@ export function layoutCaptionFrame({ page, style = {}, ms, width: W, height: H, 
         outlineColor: outlined ? (style.strokeColor || '#000000') : null,
         shadow: !lineBgColor && !boxed ? { color: glow ? hi : 'rgba(0,0,0,0.55)', blur: glow ? fontPx * 0.5 : fontPx * 0.2, offsetY: glow ? 0 : 2 } : null,
       });
-      x += w.width + space;
     });
   });
   return { fontPx, lineH, anim, lineBoxes, words };

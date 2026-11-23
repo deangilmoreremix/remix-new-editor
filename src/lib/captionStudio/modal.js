@@ -15,6 +15,7 @@ import {
   ENGINES, WHISPER_MODELS, CAPTION_LANGUAGES, detectCapabilities, recommendEngine, recommendModel, transcribeMedia,
 } from './engines.js';
 import { paintCaptions, ensureCaptionFont } from './painter.js';
+import { WEIGHTS, EMBEDDED_FONTS } from './fonts/captionFonts.js';
 import { captionLines, setLineText, removeLine, setLineTiming, nudgeLine, findReplace, changeCase, captionsToPlain } from './lines.js';
 import { captionsToTxt, captionsToAss } from './exports.js';
 import { burnCaptions } from './burn.js';
@@ -28,7 +29,7 @@ import { loadVideos, addVideo, subscribeNewVideos, captureFrame, announceVideo, 
 import { languageLabel } from './language.js';
 import { saveJob, updateJob, listJobs, getJob, deleteJob, clearJobs, formatBytes, formatDuration } from './history.js';
 
-const FONTS = [...new Set([...BASE_FONTS, ...Object.values(CAPITE_PRESETS).map((p) => p.fontFamily)])];
+const FONTS = [...new Set([...BASE_FONTS, ...EMBEDDED_FONTS.map((f) => f.name), ...Object.values(CAPITE_PRESETS).map((p) => p.fontFamily)])];
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const secs = (ms) => (Math.round(ms / 10) / 100).toFixed(2);
 const toHex = (c) => {
@@ -675,6 +676,7 @@ export class CaptionStudioModal extends ModalShell {
       <div class="csm-presets">${shown.map(card).join('')}</div>
       <h4>Customize</h4>
       <label class="csm-row"><span>Font</span><select data-style="fontFamily">${this.fontList().map((f) => `<option ${f === s.fontFamily ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select></label>
+      <label class="csm-row"><span>Weight</span><select data-style="weight"><option value="">Look default</option>${Object.keys(WEIGHTS).map((k) => `<option value="${k}" ${k === s.weight ? 'selected' : ''}>${k.replace('-', ' ').replace(/^./, (c) => c.toUpperCase())}</option>`).join('')}</select></label>
       ${this.opts.fonts?.length ? `<p class="csm-hint" style="margin:0">Captions here use the editor's built-in font (${esc(this.fontList().join(', '))}) so the preview and the exported video always match.</p>` : ''}
       <label class="csm-row"><span>Size</span><input type="range" min="2" max="14" step="0.5" value="${esc(s.fontSize)}" data-style="fontSize" data-kind="num" /></label>
       <label class="csm-row"><span>Position</span><select data-style="position">${CAPTION_POSITIONS.map((q) => `<option value="${q}" ${q === s.position && !Number.isFinite(s.positionY) ? 'selected' : ''}>${q[0].toUpperCase() + q.slice(1)}</option>`).join('')}${Number.isFinite(s.positionY) ? '<option value="custom" selected>Custom (dragged)</option>' : ''}</select></label>
@@ -890,7 +892,8 @@ export class CaptionStudioModal extends ModalShell {
       if (k === 'position' && t.value === 'custom') return;
       this.style = { ...this.style, [k]: kind === 'bool' ? t.checked : kind === 'num' ? Number(t.value) : kind === 'pct' ? Number(t.value) / 100 : kind === 'rgba' ? hexToRgba(t.value, 0.6) : t.value };
       if (k === 'position') { delete this.style.positionY; this.refresh(); }
-      if (k === 'fontFamily' || k === 'bold' || k === 'italic') ensureCaptionFont(this.style, this.fontText());
+      if (k === 'weight' && !this.style.weight) delete this.style.weight;
+      if (k === 'fontFamily' || k === 'bold' || k === 'italic' || k === 'weight') ensureCaptionFont(this.style, this.fontText());
       this.queueSave();
       return;
     }
