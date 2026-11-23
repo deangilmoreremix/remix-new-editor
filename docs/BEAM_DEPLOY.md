@@ -28,12 +28,13 @@ Run from the `apps/smartvid` folder:
 
 ```bash
 beam deploy --dockerfile Dockerfile.beam --name smartvid-downloader --port 3000 \
-  --cpu 1 --memory 2Gi \
+  --cpu 2 --memory 4Gi \
   --disk smartvid-data:/data:10Gi \
   --scale-to-zero --min-replicas 0 --max-replicas 1 \
   --keep-warm-seconds 300
 ```
 
+- **Size:** 2 CPU and 4 GB, enough for the server-side speech model. You are billed only for the time it is actually running (see the next point).
 - **Cost: it only runs while people use it.** `--scale-to-zero --min-replicas 0` stops it 5 minutes (`--keep-warm-seconds 300`) after the last request, so you pay only for active time. **Never use `--always-on` or `--min-replicas 1`**: that bills 24/7. `--max-replicas 1` means never two copies at once (SQLite, the task queue and live AI runs are in-process). The first visit after idle takes a few seconds longer while it starts.
 - `--disk … :/data` keeps downloads (`/data/downloads`) and the database and settings (`/data/smartvid`) across restarts. A Beam disk cannot be shrunk once created, so pick the size you want the first time.
 - **The URL** is printed when the deploy finishes, and it **changes with every deploy**. `beam deployment list` shows your deployments. Update `SMARTVID_WEB_URL` on the app backend after each deploy.
@@ -52,5 +53,6 @@ The page picks its palette from the address: `?brand=remix` (neon green, this re
 On the app backend set `SMARTVID_WEB_URL` to the Beam URL and `SMARTVID_ALLOWED_USERS` to the people allowed in. The web edition has no login of its own: keep the Beam URL private or behind this gate.
 
 ## What was and was not checked
-- **Checked on Beam:** the image builds, the deploy succeeds, the page loads, the AI settings endpoint reports a visitor's key (and only the last four characters), the Guide and About pages load, and the container shuts itself down after about 5 minutes idle.
-- **Not checked:** a real download, transcription or OpenAI call in the deployed container, and whether Beam cuts off long streams (`/stream`) or long video exports.
+- **Checked on Beam:** the image builds (Debian, because the speech library only ships glibc builds), the deploy succeeds, a real video download from Dailymotion completes, server-side speech recognition transcribes a speech clip correctly, the page loads, the AI settings endpoint reports a visitor's key (and only the last four characters), the Guide and About pages load, and the container shuts itself down after about 5 minutes idle.
+- **Known limits:** YouTube blocks downloads from cloud servers unless you add cookies (Settings, Cookies); Vimeo and some other sites need a login; plain direct file links (.mp4) are refused by upstream's rules. Speech recognition on music-only videos produces made-up text.
+- **Not checked:** an OpenAI call in the deployed container (it needs a visitor's key), and whether Beam cuts off long streams (`/stream`) or long video exports.
