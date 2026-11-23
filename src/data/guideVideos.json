@@ -79,6 +79,9 @@
     "motion-director": {
       "seconds": 124
     },
+    "muapi-studio": {
+      "seconds": 139
+    },
     "personalizer": {
       "seconds": 97
     },
@@ -102,6 +105,9 @@
     },
     "smartviddownloader": {
       "seconds": 151
+    },
+    "smartwarmupai": {
+      "seconds": 137
     },
     "storyboard-studio": {
       "seconds": 129
