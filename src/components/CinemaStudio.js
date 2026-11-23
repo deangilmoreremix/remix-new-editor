@@ -130,7 +130,13 @@ export function CinemaStudio() {
             currentSettings.prompt = tpl.basePrompt;
           } else if (tpl.slug) {
             loadTemplatePrompt(templateParam)
-              .then((prompt) => { if (prompt) currentSettings.prompt = prompt; })
+              .then((prompt) => {
+                if (!prompt) return;
+                currentSettings.prompt = prompt;
+                // The textarea is built before this async load resolves.
+                const ta = document.querySelector('textarea[aria-label="Cinema prompt"]');
+                if (ta && !ta.value) ta.value = prompt;
+              })
               .catch(() => {});
           }
         }
