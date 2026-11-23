@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import fs from 'node:fs';
 import { createStudioHeader, createEditorBanner, getHeroThumbnail, getBannerThumbnail, getStudioThumbnail } from '../lib/thumbnails.js';
 
@@ -72,6 +72,64 @@ describe('studio banners', () => {
     // no studio art of their own -> keep the hero picture
     for (const id of ['director', 'workbench', 'timeline', 'website-builder', 'viral', 'personalizer']) {
       expect(getBannerThumbnail(id), id).toBe(getHeroThumbnail(id));
+    }
+  });
+});
+
+describe('studio banner width and coverage', () => {
+  afterEach(() => { document.body.innerHTML = ''; });
+  const nextFrames = () => new Promise((r) => setTimeout(r, 60));
+  const mountIn = (wrapperClass, areaWidth) => {
+    let area = document.getElementById('content-area');
+    if (!area) {
+      area = document.createElement('div');
+      area.id = 'content-area';
+      Object.defineProperty(area, 'clientWidth', { value: areaWidth, configurable: true });
+      document.body.appendChild(area);
+    }
+    const wrap = document.createElement('div');
+    wrap.className = wrapperClass;
+    const banner = createStudioHeader('image', 'Image Studio', 'x');
+    wrap.appendChild(banner);
+    area.appendChild(wrap);
+    return banner;
+  };
+
+  it('is as wide as the content area minus a fixed gutter, whatever wrapper the page puts it in', async () => {
+    const narrow = mountIn('w-full max-w-4xl px-4', 1852);
+    const wide = mountIn('w-full max-w-7xl px-8', 1852);
+    const plain = mountIn('px-3', 1852);
+    await nextFrames();
+    for (const b of [narrow, wide, plain]) expect(b.style.width).toBe('1804px');
+  });
+
+  it('follows the content area width', async () => {
+    const b = mountIn('w-full max-w-4xl', 1000);
+    await nextFrames();
+    expect(b.style.width).toBe('952px');
+  });
+
+  it('a studio with no artwork yet still gets the same-size banner, with the title', () => {
+    const el = createStudioHeader('no-art-yet', 'Lead Finder', 'Find local businesses');
+    expect(el.className).toContain('md:h-[clamp(176px,14vw,264px)]');
+    expect(el.className).toContain('hero-banner');
+    expect(el.querySelector('img')).toBeNull();
+    expect(el.querySelector('h1').textContent).toBe('Lead Finder');
+  });
+
+  it('every studio page uses the shared banner, not the older createHeroSection one', () => {
+    const pages = ['TextToImagePage', 'ImageToImagePage', 'TextToVideoPage', 'ImageToVideoPage', 'VideoToVideoPage', 'VideoWatermarkPage', 'RenderPage'];
+    for (const f of pages) {
+      const src = fs.readFileSync(`src/components/${f}.js`, 'utf-8');
+      expect(src, f).not.toContain('createHeroSection');
+      expect(src, f).toContain('createStudioHeader(');
+    }
+  });
+
+  it('Photo Studio, Find My Brand, Lead Finder, Motion Director and Outreach have a banner', () => {
+    const expected = { PhotoStudioPage: "createStudioHeader('photo-studio'", FindMyBrandPage: "createStudioHeader('find-my-brand'", LeadFinderStudio: "createStudioHeader('leadfinder'", MotionDirectorPage: "createEditorBanner('motion-director'", OutreachStudio: "createEditorBanner('outreach'" };
+    for (const [f, call] of Object.entries(expected)) {
+      expect(fs.readFileSync(`src/components/${f}.js`, 'utf-8'), f).toContain(call);
     }
   });
 });

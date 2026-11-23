@@ -1,6 +1,6 @@
 import { navigate } from '../lib/router.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { i2vModels } from '../lib/models.js';
 import { storePrefillModel } from '../lib/prefillModel.js';
 
@@ -51,17 +51,7 @@ export function ImageToVideoPage() {
   // ==========================================
   const hero = document.createElement('div');
   hero.className = 'flex flex-col items-center mb-6 md:mb-8 animate-fade-in-up transition-all duration-700 w-full max-w-5xl';
-  const heroBanner = createHeroSection('video', 'h-32 md:h-44 mb-4');
-  if (heroBanner) {
-    const heroContent = document.createElement('div');
-    heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight mb-1">Image to Video</h1>
-      <p class="text-white/60 text-sm font-medium">Bring your static images to life with AI-powered animation</p>
-    `;
-    heroBanner.appendChild(heroContent);
-    hero.appendChild(heroBanner);
-  }
+  hero.appendChild(createStudioHeader('video', 'Image to Video', `Bring your static images to life with AI-powered animation`, 'mb-4'));
   container.appendChild(hero);
 
   // Main content wrapper
