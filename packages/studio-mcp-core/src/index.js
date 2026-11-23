@@ -7,7 +7,7 @@ export * from './catalog.js';
 export * from './client.js';
 export * from './server.js';
 export * from './sanitize.js';
-export { connectInMemory, connectOverHttp } from './memory.js';
+export { connectInMemory, connectOverHttp, connectStdio } from './memory.js';
 export * as smoke from './smoke.js';
 export { renderCoverage, liveStatus } from './coverage.js';
 export { z } from 'zod';

@@ -1,0 +1,16 @@
+{
+  "name": "smartvid-mcp",
+  "version": "0.1.0",
+  "description": "SmartVid for Claude, Cursor and other MCP apps: generate images, video, audio and more, and drive SmartVid studios.",
+  "type": "module",
+  "bin": { "smartvid-mcp": "dist/index.js" },
+  "files": ["dist/index.js", "README.md"],
+  "engines": { "node": ">=22" },
+  "keywords": ["mcp", "model-context-protocol", "smartvid", "video", "ai"],
+  "license": "UNLICENSED",
+  "private": false,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "prepack": "node scripts/build.mjs"
+  }
+}

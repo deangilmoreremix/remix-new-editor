@@ -17,3 +17,11 @@ export async function connectOverHttp({ url, fetchImpl, headers = {}, name = 'ht
   await mcp.connect(new StreamableHTTPClientTransport(new URL(url), { fetch: fetchImpl, requestInit: { headers } }));
   return mcp;
 }
+
+/** A real MCP client that starts a server as a child process and talks to it over stdio (used to check built packages). */
+export async function connectStdio({ command, args = [], env = {}, name = 'stdio-test', version = '1' }) {
+  const { StdioClientTransport } = await import('@modelcontextprotocol/sdk/client/stdio.js');
+  const mcp = new Client({ name, version });
+  await mcp.connect(new StdioClientTransport({ command, args, env: { PATH: process.env.PATH, ...env }, stderr: 'pipe' }));
+  return mcp;
+}

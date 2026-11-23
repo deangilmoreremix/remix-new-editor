@@ -178,3 +178,4 @@ public/motion-agent/
 
 # MCP smoke run: dry-run output is throwaway; the live smoke-results.json is committed on purpose
 mcp/smoke-results.dry-run.json
+packages/smartvid-mcp/dist/
