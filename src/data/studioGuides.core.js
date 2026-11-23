@@ -33,6 +33,7 @@ export const UNLISTED_GUIDES = new Set(['smart-video-studio', 'smartwarmupai']);
 
 // Slugs that should not just be the slugified studio name.
 const SLUG_OVERRIDES = {
+  'muapi-studio': 'muapi-studio',
   'content-library': 'content-library',
   academy: 'smart-video-academy',
 };

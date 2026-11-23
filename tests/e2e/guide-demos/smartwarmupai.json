@@ -10,10 +10,10 @@
     "steps": [
       {
         "text": "dan.okafor@sunrise.test",
-        "wait": 2500
+        "wait": 3000
       }
     ],
-    "text": "Warmup",
+    "selector": "xpath=//button[normalize-space()='Warmup']",
     "click": true,
     "hold": 3500
   },

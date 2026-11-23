@@ -1,0 +1,327 @@
+{
+  "id": "muapi-studio",
+  "name": "Studio",
+  "route": "#/muapi-studio",
+  "description": "Studio is a single workspace for generating with any model in the MuAPI catalog: images, video, audio, avatars, 3D, tools, text and more, each with its own model picker, parameters and price.",
+  "shortDescription": "Generate images, video, audio, avatars, 3D and more with any MuAPI model, with the price shown before you generate.",
+  "fullDescription": "Studio (#/muapi-studio, under Image in the side menu) is a full model workbench. A left rail switches between eight generators: Image, Video, Audio, Avatar, 3D, Tools, Text and More. Each shows its own model picker and the parameters that model accepts. Choose Models to pick a model, or Apps to start from a ready-made app. Fill in the form (or switch the Form menu to JSON), check the price on the Generate button, and choose how many results to make with the 1, 2, 4, 6 or 8 buttons above the results. Your results appear under My generations, where you can filter, search and hide previews. Studio uses your own MuAPI key: the Key button on the rail opens the key settings. Nothing is generated and no credits are used until you press Generate.",
+  "bestFor": "People who want to try any model in the catalog directly, compare prices before they generate, or run several results at once without leaving one page.",
+  "whenToUse": [
+    "You want a specific model that the focused studios do not offer.",
+    "You want to see the exact price of a run before you start it.",
+    "You want several results from one prompt at once.",
+    "You want to switch between image, video, audio, 3D and text generation in one place."
+  ],
+  "whenToUseAnother": [
+    "Use Image Studio (#/image) for a simpler prompt bar built around the most popular image models.",
+    "Use Video Studio (#/video) for video with start and end frames, references and the video helpers.",
+    "Use Audio Studio (#/audio) for music, speech and sound effects with a focused layout."
+  ],
+  "keyFeatures": [
+    "Eight generators in one rail: Image, Video, Audio, Avatar, 3D, Tools, Text and More",
+    "Models and Apps tabs",
+    "A model picker with provider filter, type tabs, search, sort and favourites, with the price beside each model",
+    "Form and JSON views of the parameters",
+    "Image URL fields with Upload file and drag and drop",
+    "A Generate button that shows how many results and what they will cost",
+    "Batch size of 1, 2, 4, 6 or 8 results per run",
+    "My generations with All, Approved, Rejected and Unlabeled filters, search and Hide previews",
+    "Uses your own MuAPI key"
+  ],
+  "featureExplanations": [
+    {
+      "feature": "Generator rail (Image, Video, Audio, Avatar, 3D, Tools, Text, More)",
+      "explanation": "The narrow rail beside the side menu switches the generator. Each one has its own heading (for example Image Generator, Video Generator, Audio Generator) and a model chosen for that job. Video offers parameters such as Aspect Ratio, Mode, Resolution and Duration. Audio offers Voice, Volume, Pitch, Emotion, Format, Speed and similar speech settings. Avatar takes an Audio URL and a Video URL. 3D takes an Image URL and quality settings. Tools runs utility models such as a background remover. Text runs text models. More holds extra tools such as company enrichment.",
+      "whyToUse": "Move between kinds of generation without leaving the page or losing your layout.",
+      "inputRequired": "Nothing to switch generators; only a model and its inputs to generate.",
+      "restrictions": "The models and parameters you see depend on the catalog and on the generator you chose."
+    },
+    {
+      "feature": "Models and Apps tabs",
+      "explanation": "Under the generator title, Models lets you pick a model and fill in its parameters. Apps shows 'Choose an app' so you can start from a ready-made app instead.",
+      "whyToUse": "Pick the way you want to work: choose a raw model, or start from an app that has the settings done for you.",
+      "inputRequired": "Nothing to switch tabs.",
+      "restrictions": "The Apps list depends on what is available for the generator you are in."
+    },
+    {
+      "feature": "Model picker",
+      "explanation": "Click the model name under Model. A panel opens with a provider rail (All, Favourites and providers such as Alibaba, Black Forest Labs, ByteDance, OpenAI, Google, Kling AI, MiniMax, xAI, Ideogram, Midjourney and Other), type tabs (All, Text to Image, Image to Image and Lora Support in the Image generator), a Search models box, a sort button and a heart on each model to add a favourite. The panel shows how many models there are (for example ALL MODELS · 165), and each model shows its provider, type and price, with a struck-through list price when a lower price applies.",
+      "whyToUse": "Compare models and their prices, then keep the ones you use most as favourites.",
+      "inputRequired": "Nothing to browse. To generate you need a MuAPI key.",
+      "restrictions": "The list is whatever the catalog offers at that moment, so it changes over time."
+    },
+    {
+      "feature": "Form and JSON views",
+      "explanation": "The Form menu at the top of the settings column switches between Form (labelled fields) and JSON (the same parameters as JSON).",
+      "whyToUse": "Use Form for everyday work and JSON when you want to copy, edit or reuse the exact parameters.",
+      "inputRequired": "Nothing.",
+      "restrictions": "JSON must stay valid for the run to use it."
+    },
+    {
+      "feature": "Prompt and parameters",
+      "explanation": "The Prompt box is marked required. Under it, a short description of the model explains what it does, then the model's own parameters appear, such as Resolution and Aspect Ratio. A Reference line such as @image1 lets the prompt refer to the first image you added. Reset clears the form.",
+      "whyToUse": "Describe what you want and tune the settings that model supports.",
+      "inputRequired": "A prompt (required for most models) and any required inputs the form marks.",
+      "restrictions": "Each model shows only the parameters it supports, so the form changes when you change the model."
+    },
+    {
+      "feature": "Image URLs and uploads",
+      "explanation": "Models that take images show an Image URLs field that counts items (for example 0/8). Paste a link, or click Upload file, or drag and drop a file onto the field. Audio and video fields work the same way (Audio URL, Video URL).",
+      "whyToUse": "Give the model a picture, video or audio file to edit, animate or follow.",
+      "inputRequired": "A public link or a file from your computer for models that need one.",
+      "restrictions": "The number of items allowed depends on the model. Links must be reachable."
+    },
+    {
+      "feature": "Generate button and price",
+      "explanation": "The bar at the bottom of the form has Reset and a Generate ×N button. It shows how many results will be made and what they will cost, for example Generate ×4 with the price beside it, and a struck-through list price when a discount applies. Press Generate to run.",
+      "whyToUse": "Know what a run costs before you spend anything.",
+      "inputRequired": "A MuAPI key with credit.",
+      "restrictions": "Each run uses credits from your MuAPI account. Studio never generates until you press Generate."
+    },
+    {
+      "feature": "Results per run (1, 2, 4, 6, 8)",
+      "explanation": "The row of numbers at the top right of My generations sets how many results one Generate makes: 1, 2, 4, 6 or 8. The Generate button's count and price follow it.",
+      "whyToUse": "Make several versions of a prompt at once and pick the best.",
+      "inputRequired": "Nothing.",
+      "restrictions": "More results cost more; the price on the Generate button updates to match."
+    },
+    {
+      "feature": "My generations",
+      "explanation": "The right-hand panel lists your results. Filters at the top are All, Approved, Rejected and Unlabeled. Search prompts or models finds earlier runs, and the eye button hides previews. Before your first run it shows 'No generations yet'.",
+      "whyToUse": "Find, review and sort the results you have made.",
+      "inputRequired": "Nothing.",
+      "restrictions": "This list is the history Studio keeps for your account; it is only as complete as what has been saved."
+    },
+    {
+      "feature": "MuAPI key",
+      "explanation": "The Key button at the bottom of the rail, and the 'Change your MuAPI key' button, open the key settings. Studio uses your own key and sends requests through the app's secure proxy. Without a key the studio asks you to connect one.",
+      "whyToUse": "Control which MuAPI account pays for your runs.",
+      "inputRequired": "Your own MuAPI key.",
+      "restrictions": "The key is stored in this browser and is never shared with other accounts."
+    }
+  ],
+  "howToUse": "1. Open Studio from the side menu (#/muapi-studio). 2. Pick a generator on the rail: Image, Video, Audio, Avatar, 3D, Tools, Text or More. 3. Choose Models, then open the model picker and pick a model (check its price). 4. Write the prompt and set the parameters, and add an image, video or audio file if the model needs one. 5. Choose how many results to make with 1, 2, 4, 6 or 8. 6. Check the price on the Generate button, then press Generate. 7. Review your results under My generations.",
+  "howToSteps": [
+    "Open #/muapi-studio.",
+    "Choose a generator on the rail.",
+    "Choose Models and pick a model in the model picker.",
+    "Write the prompt and set the parameters.",
+    "Add an image, video or audio file if the model needs one.",
+    "Choose how many results to make.",
+    "Check the price, then press Generate."
+  ],
+  "gettingStarted": [
+    "Add your MuAPI key from the Key button on the rail.",
+    "Start with the Image generator and a text to image model, and make one result to see the cost."
+  ],
+  "inputs": [
+    "Prompt",
+    "Image, video or audio link or file",
+    "Model parameters",
+    "Number of results"
+  ],
+  "requiredInputs": [
+    "A MuAPI key",
+    "A model and a prompt, plus any inputs that model marks as required"
+  ],
+  "optionalInputs": [
+    "A reference file",
+    "Resolution, aspect ratio and other model settings",
+    "Favourites"
+  ],
+  "inputDetails": [
+    {
+      "name": "Prompt",
+      "description": "The text that tells the model what to make.",
+      "required": true,
+      "whenToUse": "For almost every model.",
+      "restrictions": "Marked required in the form; some tools use links or files instead."
+    },
+    {
+      "name": "Image, video or audio input",
+      "description": "A link, an uploaded file or a dropped file for models that edit or follow media.",
+      "required": false,
+      "whenToUse": "Image to image, image to video, lip sync, 3D from an image and tools.",
+      "restrictions": "The count and file types depend on the model."
+    },
+    {
+      "name": "MuAPI key",
+      "description": "Your own key from muapi.ai, saved in this browser.",
+      "required": true,
+      "whenToUse": "Before any generation.",
+      "restrictions": "Credits are used from your own MuAPI account."
+    }
+  ],
+  "generationModes": [
+    "Models",
+    "Apps",
+    "Form",
+    "JSON"
+  ],
+  "modeExplanations": [
+    {
+      "mode": "Models",
+      "explanation": "Pick a model and fill in its parameters yourself."
+    },
+    {
+      "mode": "Apps",
+      "explanation": "Start from a ready-made app for the generator."
+    },
+    {
+      "mode": "Form",
+      "explanation": "Labelled fields for the parameters."
+    },
+    {
+      "mode": "JSON",
+      "explanation": "The same parameters as JSON that you can copy or edit."
+    }
+  ],
+  "modelCapabilities": "Studio can use any model in the MuAPI catalog. The model picker lists them with provider, type and price (the Image generator showed 165 models when this guide was written). Image models include text to image and image to image types, and some support LoRA. Video, audio, avatar, 3D, tools, text and more each list their own models.",
+  "outputs": [
+    "Images",
+    "Videos",
+    "Audio",
+    "Lip sync videos",
+    "3D models",
+    "Text and tool results"
+  ],
+  "limitations": [
+    "Every generation needs your own MuAPI key and uses its credits.",
+    "The model list, parameters and prices come from the MuAPI catalog and can change."
+  ],
+  "limitationDetails": [
+    {
+      "limitation": "Needs a MuAPI key",
+      "impact": "Without a key the studio asks you to connect one and cannot generate.",
+      "workaround": "Add your key with the Key button on the rail."
+    },
+    {
+      "limitation": "Credits are used per run",
+      "impact": "Each Generate costs credits from your MuAPI account, more for larger batches.",
+      "workaround": "Check the price on the Generate button and start with 1 result."
+    }
+  ],
+  "troubleshooting": [
+    "If the studio says it could not load, reload the page.",
+    "If Generate asks for a key, add it with the Key button."
+  ],
+  "troubleshootingSteps": [
+    {
+      "issue": "Studio does not load",
+      "steps": [
+        "Reload the page.",
+        "If it still does not load, ask whoever runs the app to rebuild it."
+      ]
+    },
+    {
+      "issue": "Generate asks for a key",
+      "steps": [
+        "Click the Key button on the rail.",
+        "Enter your MuAPI key and save it.",
+        "Press Generate again."
+      ]
+    }
+  ],
+  "commonProblems": [
+    "A model asks for an input I do not have: pick another model, or add the image, video or audio link it needs."
+  ],
+  "exampleWorkflows": [
+    "Compare two image models: pick the first, make one result, then pick the second and make one result with the same prompt, and compare them under My generations."
+  ],
+  "useCases": [
+    {
+      "title": "Try a model before using it elsewhere",
+      "description": "Test a new model on a prompt and see the cost first.",
+      "steps": [
+        "Pick the Image generator and open the model picker.",
+        "Choose a model and read its price.",
+        "Make one result."
+      ],
+      "expectedOutput": "One result and a clear idea of what the model costs."
+    },
+    {
+      "title": "Make several versions at once",
+      "description": "Produce a batch to pick from.",
+      "steps": [
+        "Write a prompt.",
+        "Choose 4 results.",
+        "Press Generate and review My generations."
+      ],
+      "expectedOutput": "Four results to choose from."
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Does Studio generate anything on its own?",
+      "answer": "No. Nothing is generated and no credits are used until you press Generate."
+    },
+    {
+      "question": "Which key does it use?",
+      "answer": "Your own MuAPI key, saved in this browser. Requests go through the app's secure proxy."
+    },
+    {
+      "question": "How do I see the price before I generate?",
+      "answer": "The Generate button shows the number of results and the cost, and each model in the picker shows its price."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "Model",
+      "definition": "The AI that makes the result. You pick one in the model picker."
+    },
+    {
+      "term": "App",
+      "definition": "A ready-made setup you can start from on the Apps tab."
+    },
+    {
+      "term": "Generation",
+      "definition": "One result made by pressing Generate. Results appear under My generations."
+    }
+  ],
+  "tips": [
+    "Check the price on the Generate button before you press it.",
+    "Start with one result when you try a new model.",
+    "Add favourites in the model picker for the models you use often."
+  ],
+  "bestPractices": [
+    "Change one setting at a time so you can see what it does.",
+    "Use the same prompt across models when you compare them."
+  ],
+  "relatedStudios": [
+    "image",
+    "video",
+    "audio"
+  ],
+  "relatedStudioGuidance": [
+    {
+      "studio": "Image Studio",
+      "relationship": "A simpler prompt bar for the most popular image models.",
+      "whenToMove": "You want a quick image without browsing the whole catalog.",
+      "why": "Image Studio is built around a single prompt bar."
+    },
+    {
+      "studio": "Video Studio",
+      "relationship": "Video with start frames, keyframes and references.",
+      "whenToMove": "You want more control over a video.",
+      "why": "Video Studio has workflows built for video."
+    }
+  ],
+  "notConfirmed": [
+    "Exactly what Apps lists for each generator.",
+    "Whether results can be approved or rejected from the result card, and how those labels are saved.",
+    "How many results are kept in My generations, and where.",
+    "Which models need extra inputs beyond those listed here."
+  ],
+  "sourceFiles": [
+    "src/components/MuapiStudioPage.js",
+    "src/lib/muapiStudioTransport.js",
+    "src/lib/studioRoutes.js",
+    "vendor/muapi-studio/README.md"
+  ],
+  "verification": {
+    "status": "browser-check",
+    "evidence": "Opened #/muapi-studio in a browser with a placeholder key and read the rail, Models and Apps tabs, the model picker, the Form menu, the parameters and the generations panel for every generator. No generation was run.",
+    "verifiedAt": "2026-11-23",
+    "verifiedBy": "Claude (browser check, no generations run)"
+  }
+}

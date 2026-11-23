@@ -420,15 +420,23 @@ for (const guide of GUIDES) {
       await segment(id, text, {
         route,
         prepare: async () => {
+          // A heavy studio can still be mounting after the page load: wait until this element exists.
+          if (target?.waitFor) await page.waitForSelector(target.waitFor, { timeout: 90000 }).catch(() => console.log(`    waitFor timed out: ${target.waitFor}`));
           if (target?.setup) {
             await page.evaluate(target.setup).catch(() => {});
             if (target.reload !== false) await open(page, route);
           }
           for (const step of target?.steps || []) {
-            const loc = step.selector
-              ? page.locator(step.selector).filter({ visible: true }).first()
-              : page.getByText(step.text, { exact: Boolean(step.exact) }).filter({ visible: true }).first();
-            await loc.click({ timeout: 4000 }).catch(() => console.log(`    step not found: ${step.text || step.selector}`));
+            // Look in the page and in any embedded studio frame (the dashboard studios live in iframes).
+            let loc = null;
+            for (const fr of page.frames()) {
+              const cand = step.selector
+                ? fr.locator(step.selector).filter({ visible: true }).first()
+                : fr.getByText(step.text, { exact: Boolean(step.exact) }).filter({ visible: true }).first();
+              if (await cand.count().catch(() => 0)) { loc = cand; break; }
+            }
+            if (loc) await loc.click({ timeout: 4000 }).catch(() => console.log(`    step not clickable: ${step.text || step.selector}`));
+            else console.log(`    step not found: ${step.text || step.selector}`);
             await page.waitForTimeout(step.wait || 1200);
             await closeApiModal(page);
           }

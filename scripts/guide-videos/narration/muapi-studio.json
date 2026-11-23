@@ -1,0 +1,16 @@
+{
+  "slug": "muapi-studio",
+  "name": "Studio",
+  "intro": "Studio is one workspace for generating with any model in the catalog: images, video, audio, avatars and more. You see the price before you generate. Here is a quick tour.",
+  "features": {
+    "generator-rail-image-video-audio-avatar-3d-tools-text-more": "The rail on the left switches the generator: image, video, audio, avatar, 3D, tools, text and more. Each one shows its own models and the settings that suit that job.",
+    "models-and-apps-tabs": "Under the title, the Models tab lets you pick a model and set every parameter yourself. The Apps tab starts you from a ready made app, with the settings already done.",
+    "model-picker": "Open the model picker to browse the whole catalog. Filter by provider or type, search by name, and mark favourites. Every model shows its price, so you can compare before you choose.",
+    "prompt-and-parameters": "Write your prompt in the prompt box. Below it, the model's own settings appear, such as resolution and aspect ratio, and they change whenever you pick a different model.",
+    "image-urls-and-uploads": "Models that edit pictures show an image field. Paste a link, click Upload file, or drag a file in. Video and audio models take their files the same way.",
+    "generate-button-and-price": "The Generate button shows how many results you will get and what they will cost, before you press it. Reset clears the form so you can start again.",
+    "results-per-run-1-2-4-6-8": "These numbers at the top choose how many results each run makes: one, two, four, six or eight. The Generate button updates its count and price to match.",
+    "my-generations": "Your results collect under My generations. Filter them by approved, rejected or unlabeled, search your earlier prompts and models, or hide the previews to see more at once."
+  },
+  "outro": "That's Studio. Pick a model, check the price, start with one result, and compare models using the same prompt."
+}

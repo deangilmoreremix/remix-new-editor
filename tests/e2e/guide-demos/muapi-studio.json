@@ -1,0 +1,63 @@
+{
+  "generator-rail-image-video-audio-avatar-3d-tools-text-more": {
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Video\")",
+    "click": true,
+    "hold": 3500,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "models-and-apps-tabs": {
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Apps\")",
+    "click": true,
+    "hold": 3500,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "model-picker": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"nano-banana-pro-edit\")",
+    "click": true,
+    "hold": 4500,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "prompt-and-parameters": {
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"nano-banana-pro-edit\")",
+        "wait": 1500
+      },
+      {
+        "text": "nano-banana-2",
+        "exact": true,
+        "wait": 1500
+      }
+    ],
+    "selector": "[data-studio=\"muapi-studio\"] textarea",
+    "click": true,
+    "type": "A cozy cabin at dusk, warm light in the windows, soft snow",
+    "hold": 3000,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "image-urls-and-uploads": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"Upload file\")",
+    "upload": true,
+    "file": "image",
+    "hold": 3500,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "generate-button-and-price": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")",
+    "click": false,
+    "hold": 3500,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "results-per-run-1-2-4-6-8": {
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"6\")",
+    "click": true,
+    "hold": 3500,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "my-generations": {
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Approved\")",
+    "click": true,
+    "hold": 3500,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  }
+}
