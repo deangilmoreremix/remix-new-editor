@@ -127,6 +127,19 @@ function videoMeta(url) {
   });
 }
 
+function ensureStepTransitionStyle(doc = globalThis.document) {
+  if (!doc || doc.getElementById('outreach-step-transition')) return;
+  const style = doc.createElement('style');
+  style.id = 'outreach-step-transition';
+  style.textContent = `
+::view-transition-old(outreach-step) { animation: 160ms ease-in both outreach-step-out; }
+::view-transition-new(outreach-step) { animation: 220ms ease-out both outreach-step-in; }
+@keyframes outreach-step-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes outreach-step-in { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) { ::view-transition-old(outreach-step), ::view-transition-new(outreach-step) { animation: none; } }`;
+  doc.head.appendChild(style);
+}
+
 export function OutreachStudio() {
   const container = el('div', 'relative w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
   mountStudioChrome(container, { title: 'Video Outreach', currentRoute: 'outreach' });
@@ -138,6 +151,16 @@ export function OutreachStudio() {
   let notice = '';
   // Like Sendspark, the studio opens on the Videos library; a draft in progress is one click away.
   let step = STEPS.length;
+  // Change step. Each change is a history entry, so the browser's Back and Forward move between
+  // steps (popstate below); user clicks animate with a View Transition where the browser has it.
+  function goStep(n, msg = '', { push = true, animate = false } = {}) {
+    const changed = n !== step;
+    step = n; notice = msg;
+    if (changed && push) { try { history.pushState({ ...(history.state || {}), outreachStep: n }, '', location.href); } catch { /* sandboxed */ } }
+    const motion = animate && changed && typeof document.startViewTransition === 'function' && container.isConnected
+      && !globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (motion) document.startViewTransition(() => render()); else render();
+  }
   const resumeStep = () => { for (let s = 1; s <= SETUP_STEPS + 1; s++) if (stepErrors(draft, s).length) return s; return SETUP_STEPS + 1; };
   // Generation progress per prospect: { total, done, phase }.
   let progress = null;
@@ -156,6 +179,9 @@ export function OutreachStudio() {
   const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 pt-6 pb-28 flex flex-col gap-5');
   scroll.appendChild(inner);
   container.append(stepper, scroll);
+  // The step's content slides in when the step changes (View Transitions; see goStep).
+  inner.style.viewTransitionName = 'outreach-step';
+  ensureStepTransitionStyle();
 
   // A generated campaign is also kept in the Videos library, so it can be opened again later.
   // The edit recipe (src/lib/outreach/editTools.js) is saved with the draft; clips added before/after are local files,
@@ -833,14 +859,14 @@ export function OutreachStudio() {
       try { await navigator.clipboard.writeText(live.pageLink || live.link); notice = 'Link copied.'; } catch { notice = 'Copy failed.'; }
       render();
     }, { disabled: !live });
-    tool('preview', 'eye', 'Preview the prospect page', () => { step = 3; notice = ''; render(); });
+    tool('preview', 'eye', 'Preview the prospect page', () => { goStep(3, ''); });
     const share = button('Share video', { primary: true, small: true });
     share.setAttribute('data-editor-share', '');
     share.disabled = !has || !!busy;
-    share.addEventListener('click', () => { step = draft.kind === 'same' ? 3 : 2; notice = ''; render(); });
+    share.addEventListener('click', () => { goStep(draft.kind === 'same' ? 3 : 2, ''); });
     const close = button('Close', { small: true });
     close.setAttribute('data-editor-close', '');
-    close.addEventListener('click', () => { step = STEPS.length; notice = ''; render(); });
+    close.addEventListener('click', () => { goStep(STEPS.length, ''); });
     bar.append(share, close);
 
     // ---- Left: the video, the template and what the page says.
@@ -1316,9 +1342,9 @@ export function OutreachStudio() {
   function goGenerate() {
     for (let s2 = 1; s2 <= SETUP_STEPS; s2 += 1) {
       const errs = stepErrors(draft, s2);
-      if (errs.length) { step = s2; notice = errs[0]; render(); return; }
+      if (errs.length) { goStep(s2, errs[0]); return; }
     }
-    step = SETUP_STEPS + 1; notice = ''; render();
+    goStep(SETUP_STEPS + 1, '');
   }
 
   // Error handling (Sendspark's settings wheel): a prospect without a working website gets the fallback, or stops Generate.
@@ -2170,7 +2196,7 @@ export function OutreachStudio() {
         links, contacts: draft.contacts, total: draft.contacts.length,
         stats: linkStats.byContact, filter: prospectFilter,
         setFilter: (k) => { prospectFilter = k; render(); },
-        onAddProspects: () => { step = 4; notice = ''; render(); },
+        onAddProspects: () => { goStep(4, ''); },
         share: (l) => openShare(l),
         remove: (l) => removeProspect(l),
         menu: (l) => {
@@ -2817,14 +2843,14 @@ export function OutreachStudio() {
     const inProgress = !draft.campaign && (draft.video || draft.contacts.length);
     if (inProgress && from === draft && !keepVideo && !window.confirm('Start a new dynamic video? The one you are setting up (not generated yet) will be replaced.')) return;
     replaceDraft(newDynamicVideo(from, { keepVideo }));
-    step = keepVideo ? 4 : 1; notice = keepVideo ? 'Same video, new prospects: add them below.' : ''; render();
+    goStep(keepVideo ? 4 : 1, keepVideo ? 'Same video, new prospects: add them below.' : '');
   }
 
   function openFromLibrary(id) {
     const saved = libraryDraft(id);
     if (!saved) return;
     replaceDraft(saved);
-    step = SETUP_STEPS + 1; notice = ''; render();
+    goStep(SETUP_STEPS + 1, '');
   }
 
   // The Videos home: your dynamic videos as cards (like Sendspark's library), then the results table.
@@ -2855,7 +2881,7 @@ export function OutreachStudio() {
       c.append(el('div', 'text-xs font-bold uppercase tracking-wider text-primary', 'In progress'), el('div', 'text-lg font-extrabold truncate', draft.name || 'Untitled dynamic video'),
         el('p', 'text-xs text-secondary', `${draft.video ? 'Video recorded' : 'No video yet'} \u00b7 ${draft.contacts.length} prospect${draft.contacts.length === 1 ? '' : 's'}`));
       const go = button('Continue', { primary: true, small: true });
-      go.addEventListener('click', () => { step = resumeStep(); notice = ''; render(); });
+      go.addEventListener('click', () => { goStep(resumeStep(), ''); });
       c.appendChild(go);
       grid.appendChild(c);
     }
@@ -2979,7 +3005,7 @@ export function OutreachStudio() {
       pill.disabled = !open || !!busy;
       pill.title = open ? name : `${name}: finish the earlier steps first.`;
       pill.append(el('span', 'grid h-5 w-5 place-items-center rounded-full bg-black/20 text-[10px]', n === STEPS.length ? '\u25a6' : done ? '✓' : String(n)), el('span', '', name));
-      pill.addEventListener('click', () => { step = n; notice = ''; render(); });
+      pill.addEventListener('click', () => goStep(n, '', { animate: true }));
       stepper.appendChild(pill);
     });
   }
@@ -3028,14 +3054,14 @@ export function OutreachStudio() {
     // Buttons sit on the left so the floating Ask SmartVideo button (bottom right) never covers them.
     if (step > 1 && step < STEPS.length) {
       const back = button('Back'); back.disabled = !!busy;
-      back.addEventListener('click', () => { step -= 1; notice = ''; render(); });
+      back.addEventListener('click', () => goStep(step - 1, '', { animate: true }));
       footer.appendChild(back);
     }
     if (step < STEPS.length) {
       const next = button(step === SETUP_STEPS + 1 ? 'Back to my videos' : 'Continue', { primary: true });
       next.setAttribute('data-outreach-continue-step', '');
       next.disabled = !!busy || errors.length > 0;
-      next.addEventListener('click', () => { step += 1; notice = ''; render(); });
+      next.addEventListener('click', () => goStep(step + 1, '', { animate: true }));
       footer.appendChild(next);
     }
     if (step <= SETUP_STEPS) {
@@ -3043,7 +3069,7 @@ export function OutreachStudio() {
       const close = button('Save & Close');
       close.setAttribute('data-outreach-save-close', '');
       close.disabled = !!busy;
-      close.addEventListener('click', () => { persist(); step = STEPS.length; notice = 'Saved. Pick it up any time from your videos.'; render(); });
+      close.addEventListener('click', () => { persist(); goStep(STEPS.length, 'Saved. Pick it up any time from your videos.'); });
       footer.appendChild(close);
     }
     footer.appendChild(status);
@@ -3118,7 +3144,7 @@ export function OutreachStudio() {
   // What the person picked first: personal videos open the recorder; dynamic videos the library.
   function openChoice(goal) {
     if (goal === 'personal') { startNew(); if (step === 1) openRecorder('both'); return; }
-    step = STEPS.length; notice = ''; render();
+    goStep(STEPS.length, '');
   }
   async function makeSample(d, presenter, onStage) {
     const keep = !draft.campaign && (draft.video || draft.contacts.length) ? JSON.parse(JSON.stringify(draft)) : null;
@@ -3165,7 +3191,7 @@ export function OutreachStudio() {
       // Same audio has no greeting at all.
       Object.assign(next, { name, kind, language: lang, greeting: k ? k.greeting : next.greeting });
       replaceDraft(next);
-      step = 1; notice = ''; render();
+      goStep(1, '');
     };
     openGuidelines({
       kind,
@@ -3249,6 +3275,21 @@ export function OutreachStudio() {
   }
 
   render();
+  // Back and Forward move between the studio's steps (each step change is a history entry).
+  try { history.replaceState({ ...(history.state || {}), outreachStep: step }, '', location.href); } catch { /* sandboxed */ }
+  const onPopState = (e) => {
+    const n = e.state?.outreachStep;
+    if (!container.isConnected || !Number.isInteger(n) || n < 1 || n > STEPS.length || n === step) return;
+    if (busy || !reachable(n)) {
+      // Generating or capturing: stay here (and put the entry back) rather than leave work half done.
+      try { history.pushState({ ...(e.state || {}), outreachStep: step }, '', location.href); } catch { /* sandboxed */ }
+      if (busy) { notice = ''; render(); }
+      return;
+    }
+    goStep(n, '', { push: false, animate: true });
+  };
+  window.addEventListener('popstate', onPopState);
+  cleanups.push(() => window.removeEventListener('popstate', onPopState));
   // Draw again when sign-in or the plan changes (the preview banner and locks follow it).
   let wasPaid = paid();
   try { globalThis.window?.Clerk?.addListener?.(() => { if (paid() !== wasPaid && container.isConnected) { wasPaid = paid(); render(); } }); } catch { /* Clerk not ready */ }
