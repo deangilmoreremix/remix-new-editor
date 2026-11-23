@@ -1,5 +1,7 @@
 import { BUILTIN_BACKGROUNDS, effectsActive, loadEffects, saveEffects, applyCameraEffects } from '../../lib/recorder/effects.js';
 import { BaseModal } from './BaseModal.jsx';
+import { keepAwake } from '../../lib/recorder/wakeLock.js';
+import { mediaPermissions, permissionMessage, watchMediaPermissions } from '../../lib/recorder/permissions.js';
 import { COLORS as DRAW_COLORS, pointOnPicture } from '../../lib/recorder/annotate.js';
 import { createTeleprompterClock, loadTeleprompter, readingPosition, saveTeleprompter, scriptLines, teleprompterSettings } from '../../lib/recorder/teleprompter.js';
 
@@ -545,10 +547,11 @@ export class RecorderModal extends BaseModal {
     this.overlay.querySelector('[data-tp-size]')?.addEventListener('change', (e) => this.setPrompter({ fontSize: Number(e.target.value) }, { rerender: true }));
     this.overlay.querySelector('[data-tp-practice]')?.addEventListener('click', () => {
       if (this.prompterRunning) { this.prompterClock.pause(); this.prompterRunning = false; this.stopFollowing(); } else { this.prompterClock.start(); this.prompterRunning = true; this.startFollowing(); }
+      this.syncWakeLock();
       this.rerender();
     });
     this.overlay.querySelector('[data-tp-popout]')?.addEventListener('click', () => (this.pipWin ? this.closePrompterWindow() : this.openPrompterWindow()));
-    this.overlay.querySelector('[data-tp-reset]')?.addEventListener('click', () => { this.prompterClock.reset(); this.prompterRunning = false; this.followAt = 0; this.stopFollowing(); this.rerender(); });
+    this.overlay.querySelector('[data-tp-reset]')?.addEventListener('click', () => { this.prompterClock.reset(); this.prompterRunning = false; this.followAt = 0; this.stopFollowing(); this.syncWakeLock(); this.rerender(); });
 
     this.overlay.querySelector('[data-action="toggle-effects"]')?.addEventListener('click', () => {
       this.showEffects = !this.showEffects;
@@ -646,7 +649,9 @@ export class RecorderModal extends BaseModal {
         this.previewCameraOnly = true;
       } catch (err) {
         console.error('Camera access denied:', err);
-        this.notice = 'Camera access was blocked. Allow it in your browser settings to record with your camera.';
+        this.notice = permissionMessage({ need: ['camera'], perms: await mediaPermissions(), err })
+          || 'Camera access was blocked. Allow it in your browser settings to record with your camera.';
+        this.watchPermissions();
         this.previewCameraOnly = false;
         this.updateBody(this.renderBody());
         return;
@@ -745,6 +750,23 @@ export class RecorderModal extends BaseModal {
     }
   }
 
+  // Once the user allows the camera or mic in the browser, clear the "blocked" message.
+  async watchPermissions() {
+    if (this.stopPermWatch) return;
+    this.stopPermWatch = await watchMediaPermissions((name, state) => {
+      if (state !== 'granted' || !this.notice) return;
+      this.notice = '';
+      this.rerender();
+    });
+  }
+
+  // Keep the screen awake while a take is running or the teleprompter is scrolling (Screen Wake Lock).
+  syncWakeLock() {
+    const want = !!(this.isRecording || this.prompterRunning);
+    if (want && !this.releaseWake) this.releaseWake = keepAwake();
+    if (!want && this.releaseWake) { this.releaseWake(); this.releaseWake = null; }
+  }
+
   async startRecording() {
     // One take at a time: a second start (double click, or a second click handler) would leave an
     // orphaned recorder holding the camera and its file.
@@ -770,6 +792,7 @@ export class RecorderModal extends BaseModal {
       this.prompterClock.reset();
       this.prompterClock.start();
       this.prompterRunning = true;
+      this.syncWakeLock();
       this.followAt = 0;
       this.stopFollowing();
       this.startFollowing();
@@ -788,9 +811,18 @@ export class RecorderModal extends BaseModal {
       console.error('Recording failed:', err);
       this.stopAllStreams();
       this.isRecording = false;
-      this.notice = err?.name === 'NotAllowedError'
+      this.prompterRunning = false;
+      this.syncWakeLock();
+      const need = [...(this.recordingType === 'camera' || this.recordingType === 'both' ? ['camera'] : []), ...(this.micEnabled || this.recordingType === 'audio' ? ['microphone'] : [])];
+      // A refused screen share is also NotAllowedError: only explain the camera/mic when they are
+      // actually blocked, missing or busy.
+      const perms = need.length ? await mediaPermissions() : {};
+      const blocked = need.some((n) => perms[n] === 'denied');
+      const help = need.length && (blocked || err?.name !== 'NotAllowedError') ? permissionMessage({ need, perms, err }) : '';
+      if (help) this.watchPermissions();
+      this.notice = help || (err?.name === 'NotAllowedError'
         ? 'Permission was denied. Allow screen, camera and microphone access to record.'
-        : `Recording could not start: ${err?.message || err}`;
+        : `Recording could not start: ${err?.message || err}`);
       this.rerender();
     } finally {
       this.starting = false;
@@ -827,6 +859,8 @@ export class RecorderModal extends BaseModal {
     this.prompterRunning = false;
     clearInterval(this.recordingInterval);
     const session = this.session;
+    this.releaseWake?.(); // the take is over: the screen may sleep again
+    this.releaseWake = null;
     try {
       const result = await session.stop();
       this.stopAllStreams();
@@ -901,6 +935,10 @@ export class RecorderModal extends BaseModal {
   // screen capture, otherwise the browser's recording indicators stay on.
   destroy() {
     clearInterval(this.recordingInterval);
+    this.releaseWake?.();
+    this.releaseWake = null;
+    this.stopPermWatch?.();
+    this.stopPermWatch = null;
     try { this.pipWin?.close(); } catch { /* gone */ }
     this.pipWin = null;
     this.prompterClock.reset();

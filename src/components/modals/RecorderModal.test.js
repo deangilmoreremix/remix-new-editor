@@ -127,6 +127,23 @@ describe('RecorderModal on the Remotion Recorder engine', () => {
     expect(modal.notice).toMatch(/Permission was denied/);
   });
 
+  test('a blocked camera says how to allow it, and the screen is kept awake only during the take', async () => {
+    installMedia();
+    const wake = { release: vi.fn(async () => {}) };
+    Object.defineProperty(navigator, 'wakeLock', { configurable: true, value: { request: vi.fn(async () => wake) } });
+    Object.defineProperty(navigator, 'permissions', { configurable: true, value: { query: async ({ name }) => ({ state: name === 'camera' ? 'denied' : 'granted', addEventListener() {}, removeEventListener() {} }) } });
+    const { modal } = makeModal('camera');
+    await modal.startRecording();
+    expect(navigator.wakeLock.request).toHaveBeenCalledWith('screen');
+    await modal.stopRecording();
+    expect(wake.release).toHaveBeenCalled();
+    navigator.mediaDevices.getUserMedia = () => Promise.reject(Object.assign(new Error('blocked'), { name: 'NotAllowedError' }));
+    const { modal: second } = makeModal('camera');
+    await second.startRecording();
+    expect(second.notice).toMatch(/^Camera is blocked for .*Click the camera or lock icon/);
+    delete navigator.wakeLock; delete navigator.permissions;
+  });
+
   test('closing mid-take stops every camera, screen and mic track', async () => {
     const { modal } = makeModal('both');
     await modal.startRecording();
