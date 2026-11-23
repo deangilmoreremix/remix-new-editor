@@ -311,6 +311,7 @@ const STUDIO_THUMBNAILS = {
   storyboard: '/thumbnails/studios/storyboard.webp',
   effects: '/thumbnails/studios/effects.webp',
   edit: '/thumbnails/studios/edit.webp',
+  'muapi-studio': '/thumbnails/studios/muapi-studio.webp',
   upscale: '/thumbnails/studios/upscale.webp',
   character: '/thumbnails/studios/character.webp',
   commercial: '/thumbnails/tools/product-shot.webp',
