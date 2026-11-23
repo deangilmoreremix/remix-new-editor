@@ -1,6 +1,6 @@
 // src/components/modals/BrandKitModal.js
 // A modal that is only the Brand Kit: paste a business website, review what was found (logo, colors, copy,
-// images), optionally scan its other pages for fonts / tone / offers, save it to Brand Studio, and start a
+// images), optionally scan its other pages for fonts / tone / offers, save it, and start a
 // video, Cinema, Storyboard or Video Agent project from it.
 //
 // It is NOT the personalization modal and shares no code or state with it. All logic lives in lib/brandKit.js.
@@ -287,7 +287,7 @@ export function openBrandKitModal({ url = '' } = {}) {
 
     // 3. Save and make
     const act = el('div', 'mt-4 flex items-center gap-2 flex-wrap');
-    const saveBtn = el('button', BTN, state.saved ? '✓ Saved to Brand Studio' : 'Save Brand Kit');
+    const saveBtn = el('button', BTN, state.saved ? '✓ Saved' : 'Save Brand Kit');
     saveBtn.type = 'button';
     saveBtn.setAttribute('data-testid', 'brand-kit-save');
     saveBtn.addEventListener('click', save);

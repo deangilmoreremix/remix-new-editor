@@ -88,8 +88,10 @@ describe('Brand Kit modal', () => {
     expect(document.body.textContent).toContain('Read 1 page');
 
     q('brand-kit-save').click();
-    expect(q('brand-kit-save').textContent).toContain('Saved');
-    const list = JSON.parse(localStorage.getItem('brand_dna_list'));
+    expect(q('brand-kit-save').textContent).toBe('✓ Saved');
+    expect(document.body.textContent).not.toContain('Brand Studio');
+    expect(localStorage.getItem('brand_dna_list')).toBeNull(); // Brand Studio's list is not touched
+    const list = JSON.parse(localStorage.getItem('sv_brand_kits'));
     expect(list).toHaveLength(1);
     expect(list[0].productImages).toEqual(['https://bluebird-bakery.com/b.jpg']); // the dropped image is not kept
     expect(list[0].fonts).toEqual(['Playfair Display']);
@@ -101,7 +103,7 @@ describe('Brand Kit modal', () => {
     expect(navigate).toHaveBeenCalledWith('storyboard');
     expect(consumeStudioPrefill('storyboard').prompt).toContain('Bluebird Bakery');
     expect(q('brand-kit-modal')).toBeNull();
-    expect(JSON.parse(localStorage.getItem('brand_dna_list'))).toHaveLength(1);
+    expect(JSON.parse(localStorage.getItem('sv_brand_kits'))).toHaveLength(1);
   });
 
   it('shows a readable error and no kit when the lookup fails', async () => {

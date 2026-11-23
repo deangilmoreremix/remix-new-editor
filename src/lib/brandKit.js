@@ -1,11 +1,11 @@
 // src/lib/brandKit.js
 // "Brand Kit": what Find My Brand found about a business (logo, palette, copy, socials, images),
-// saved once as a Brand DNA record (lib/brandStore.js) so every studio that reads brands can use it,
+// saved once in its own list (lib/brandKitStore.js; nothing is shared with Brand Studio's brands),
 // plus a one-click "make an ad" that turns the kit into a Video Studio brief.
 //
 // Pure, offline helpers: nothing here fetches. Nothing is invented: a field with no source stays empty.
 
-import { generateId, listBrands, saveBrand } from './brandStore.js';
+import { listBrandKits, putBrandKit, newKitId } from './brandKitStore.js';
 import { stageStudioPrefill } from './studioPrefill.js';
 import { navigate } from './router.js';
 
@@ -100,16 +100,16 @@ export function buildBrandKit({ research = {}, client = {}, assets = [] } = {}) 
   };
 }
 
-/** Save a kit as a Brand DNA record, reusing the record of the same website so re-running updates it. */
+/** Save a kit, reusing the saved kit of the same website so re-running updates it. */
 export function saveBrandKit(kit) {
   if (!kit) return null;
   const host = hostOf(kit.url);
-  const existing = host ? listBrands().find((b) => hostOf(b.url) === host) : null;
+  const existing = host ? listBrandKits().find((b) => hostOf(b.url) === host) : null;
   const now = new Date().toISOString();
   const merged = existing
     ? { ...existing, ...Object.fromEntries(Object.entries(kit).filter(([, v]) => !(v === '' || (Array.isArray(v) && v.length === 0)))), id: existing.id, createdAt: existing.createdAt }
-    : { ...kit, id: generateId(), createdAt: now };
-  return saveBrand(merged);
+    : { ...kit, id: newKitId(), createdAt: now };
+  return putBrandKit(merged);
 }
 
 /**
@@ -257,7 +257,7 @@ export async function enrichBrandKit(brand, fetchImpl = (typeof fetch === 'funct
 export async function scanAndSaveBrandKit(kit, fetchImpl) {
   const saved = saveBrandKit(kit);
   if (!saved) throw new Error('Nothing to save yet');
-  return saveBrand(await enrichBrandKit(saved, fetchImpl));
+  return putBrandKit(await enrichBrandKit(saved, fetchImpl));
 }
 
 const DEMO_KIND_TO_CATEGORY = { logo: 'logo', product: 'product', photo: 'person', brand: 'brand' };

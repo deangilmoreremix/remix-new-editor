@@ -49,10 +49,10 @@ describe('SmartVideo welcome', () => {
     await vi.waitFor(() => expect($('[data-welcome-brand-save]')).not.toBeNull(), { timeout: 5000 });
     expect(fetch).toHaveBeenCalledWith('/api/demo/discover', expect.objectContaining({ body: JSON.stringify({ websiteUrl: 'acme.com' }) }));
     expect($('[data-welcome-brand]').textContent).toContain('Acme');
-    expect(JSON.parse(localStorage.getItem('brand_dna_list') || '[]')).toHaveLength(0); // nothing saved until Save
+    expect(JSON.parse(localStorage.getItem('sv_brand_kits') || '[]')).toHaveLength(0); // nothing saved until Save
     $('[data-welcome-brand-save]').click();
     await vi.waitFor(() => expect(onFinish).toHaveBeenCalledTimes(1), { timeout: 5000 });
-    expect(JSON.parse(localStorage.getItem('brand_dna_list'))).toHaveLength(1);
+    expect(JSON.parse(localStorage.getItem('sv_brand_kits'))).toHaveLength(1);
     expect(onFinish.mock.calls[0][0]).toMatchObject({ goal: 'dynamic', team: '2-5', volume: '100+', company: 'Acme', website: 'acme.com', jobTitle: 'AE', heard: 'linkedin' });
     expect(onFinish.mock.calls[0][0].completedAt).toBeTruthy();
     expect($('[data-outreach-welcome]')).toBeNull();
@@ -76,7 +76,7 @@ describe('SmartVideo welcome', () => {
     await vi.waitFor(() => expect($('[data-welcome-brand-save]')).not.toBeNull(), { timeout: 5000 });
     $('[data-welcome-skip]').click(); // Skip on the last step finishes the welcome
     expect(onFinish.mock.calls[0][0]).toMatchObject({ heard: 'other', heardOther: 'A billboard' });
-    expect(JSON.parse(localStorage.getItem('brand_dna_list') || '[]')).toHaveLength(0); // skipped: nothing saved
+    expect(JSON.parse(localStorage.getItem('sv_brand_kits') || '[]')).toHaveLength(0); // skipped: nothing saved
   });
 
   it('Brand Kit step: asks for a website when there is none, shows a readable error, and can be retried', async () => {
