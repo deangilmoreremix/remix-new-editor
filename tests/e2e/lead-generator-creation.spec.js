@@ -11,6 +11,8 @@ const lane = (page) => page.locator('[data-testid="overlay-lane"] [role="button"
 const panelTab = (page, name) => page.locator('.addon-panel .addon-tab', { hasText: new RegExp(`^${name}$`) });
 const control = (page, key) => page.locator(`.addon-panel [data-key="${key}"]:not([data-kind="hex"])`).first();
 const dialog = (page) => page.getByRole('dialog', { name: 'Add to timeline' });
+// the search box is on the tabs that are a grid (not the Animations / Motion panels): open "Overlays & forms", where the design cards are
+const openOverlaysTab = () => dialog(page).getByRole('tablist', { name: 'Categories' }).first().getByRole('tab', { name: /Overlays & forms/ }).click();
 
 let page;
 const pageErrors = [];
@@ -127,8 +129,8 @@ test('Add to timeline: a card per design for both kinds, found by search, create
   // the editor is already on the EDIT tab (the previous test left a List Builder open there)
   await page.getByRole('button', { name: 'Add to timeline', exact: true }).click();
   await expect(dialog(page)).toBeVisible();
-  const search = dialog(page).getByRole('textbox', { name: 'Search', exact: true });
-  await search.fill('Ticket Invitation');
+  await openOverlaysTab();
+  await dialog(page).getByRole('textbox', { name: 'Search', exact: true }).fill('Ticket Invitation');
   await expect(page.getByTestId('design-lead-form-ticket-invitation')).toBeVisible();
   await expect(page.getByTestId('design-list-builder-ticket-invitation')).toBeVisible();
   // a Lead Generator with the design is added (a third one)
@@ -139,6 +141,7 @@ test('Add to timeline: a card per design for both kinds, found by search, create
   await expect(page.locator(`${VIEWER} form.retarget-form[data-design="ticket-invitation"]`)).toBeVisible();
   // the List Builder card applies the design to the existing List Builder, without adding another
   await page.getByRole('button', { name: 'Add to timeline', exact: true }).click();
+  await openOverlaysTab();
   await dialog(page).getByRole('textbox', { name: 'Search', exact: true }).fill('Ticket Invitation');
   await page.getByTestId('design-list-builder-ticket-invitation').click();
   await expect(lane(page).filter({ hasText: 'List Builder' })).toHaveCount(1);
