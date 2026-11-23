@@ -3,9 +3,12 @@
 Nothing here has been run against a real deployment yet. This is the checklist for doing that once, and for reading the result.
 
 ## 1. Database
-Apply `supabase/migrations/20261118000000_mcp_keys.sql` to the Supabase project the Netlify functions use (SQL editor, or `supabase db push`). It creates `public.mcp_keys` with row-level security on and no client grants.
+Apply these to the Supabase project the Netlify functions use (SQL editor, or `supabase db push`), in order. Each creates its tables with row-level security on and no client grants:
+1. `20261118000000_mcp_keys.sql`: `public.mcp_keys` (key hashes, encrypted upstream keys).
+2. `20261123000000_mcp_governor.sql`: `public.mcp_usage_daily` (per-key daily counts for delete and publish actions), `public.mcp_audit` (tool, risk, outcome, time; no arguments or content) and the `mcp_usage_incr` function.
+3. `20261123010000_mcp_bridge.sql`: `public.mcp_bridge_sessions` and `public.mcp_bridge_commands` (the live-tab bridge queue).
 
-Check: in the SQL editor, `select count(*) from public.mcp_keys;` works with the service role and fails for the `anon` role.
+Check: in the SQL editor, `select count(*) from public.mcp_keys;` (and each other table) works with the service role and fails for the `anon` role.
 
 ## 2. Environment (Netlify → Site settings → Environment variables)
 | Variable | Value | Read by |
@@ -13,6 +16,8 @@ Check: in the SQL editor, `select count(*) from public.mcp_keys;` works with the
 | `MCP_KEY_SECRET` | 32+ random characters, e.g. `openssl rand -base64 48`. **Required.** Changing it makes every stored MCP key unusable (users create new ones). | `_shared/mcpKeys.js` |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | already set for other functions | `_shared/mcpKeys.js` |
 | `CLERK_SECRET_KEY` / `CLERK_PUBLISHABLE_KEY` (or the existing `CLERK_*` settings) | already set | `_shared/clerkAuth.js` |
+| `SUPABASE_JWT_SECRET`, `SUPABASE_ANON_KEY` (or `VITE_SUPABASE_ANON_KEY`) | **Needed for Video Pages tools.** The gateway signs a 5-minute identity token for the key's owner (same claims as `supabase-token.js`) so the database's own row-level security applies. Without them `video_pages_*` answer "not configured". | `_shared/ownerSupabase.js` |
+| `MCP_CAP_DESTRUCTIVE`, `MCP_CAP_PUBLISH` | Optional per-key daily limits for delete/overwrite and publish actions (defaults 50 and 20; they reset at midnight UTC). | `mcp-gateway.js` |
 | `MCP_REQUIRE_ENTITLEMENT` | `1` to require the paid feature when a user creates a key. Optional. | `mcp-keys.js` |
 | `MCP_ALLOW_BYOK` | **leave unset in any deployed environment.** Local development only. | `mcp-gateway.js` |
 | `OPENAI_RESPONSES_TEXT_MODEL` etc. | existing; Zack D text steps use the user's own OpenAI key | `zackd.js` |
@@ -57,10 +62,15 @@ The run also reports which verb the upstream status route accepted (the gateway 
 - **Wrong secret:** with a different `MCP_KEY_SECRET`, existing keys return 401 (the stored API keys cannot be decrypted).
 - **Real MCP client:** `claude mcp add smartvid -e SMARTVID_API_KEY=sv_live_... -e SMARTVID_API_URL=... -- node mcp/index.js`, then ask Claude to list studios and make one image.
 
+## Safeguards and the live-tab bridge
+- Actions that delete, overwrite or publish (`leads_delete`, `video_pages_publish`/`_delete`, `social_publish`, ...) need `confirm: true` and count against the daily caps above. Every call is written to `mcp_audit`.
+- Tab tools (timeline, workbench, motion director, render queue, brand store, app navigation) need the studio open in a signed-in tab and the user to switch on "Let MCP control this tab". Read tools run silently; everything else asks in the page. Check this in a real browser: nothing in this repo has exercised it outside simulated tests.
+- Social publishing lists accounts connected in the app and publishes to them; connecting accounts stays in the app.
+
 ## Rollback
 1. Revoke keys: `update public.mcp_keys set revoked_at = now() where revoked_at is null;`
 2. Unset nothing else: with no valid keys the gateway answers 401 to everything.
-3. Remove completely: `drop table public.mcp_keys;` and delete `netlify/functions/mcp-*.js` plus the two redirects.
+3. Remove completely: `drop table public.mcp_bridge_commands, public.mcp_bridge_sessions, public.mcp_audit, public.mcp_usage_daily, public.mcp_keys;` (and `drop function public.mcp_usage_incr(uuid, date, text);`), delete `netlify/functions/mcp-*.js` plus the redirects.
 
 ## What a pass does and does not show
 A ✔ means the tool returned a finished result for one cheap input through the real gateway. It does not mean every model of that kind works, or that output quality is right.
