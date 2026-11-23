@@ -141,3 +141,49 @@ describe('Caption Studio — your videos and history in the window', () => {
     m.close();
   });
 });
+
+describe('review fixes: history jobs', () => {
+  const caps = [{ text: 'Hi', startMs: 0, endMs: 300, timestampMs: 150, confidence: null }, { text: ' there', startMs: 300, endMs: 600, timestampMs: 450, confidence: null }];
+  it('a job with no kept video does not stay attached to the video picked before', async () => {
+    await saveJob({ id: 'j9', title: 'gone.mp4', durationSec: 2, language: 'en', lookName: 'Hormozi', createdAt: 1, captions: caps, style: {} });
+    const m = open({ videoLibrary: async () => [V(1)] });
+    await flush(); await flush();
+    expect(m.srcUrl).toBe('https://cdn.test/1.mp4');
+    await m.openJob('j9'); await flush();
+    expect(m.srcUrl).toBe(''); expect(m.selectedUrl).toBe(''); expect(m.result).toBeNull();
+    expect(m.captions).toHaveLength(2); expect(m.jobId).toBe('j9');
+    m.close();
+  });
+  it('reopening a job restores the language code, not the display label, and the History shows the label', async () => {
+    await saveJob({ id: 'j8', title: 'a.mp4', durationSec: 2, language: 'auto', languageLabel: 'auto · en', lookName: 'Hormozi', createdAt: 1, captions: caps, style: {}, sourceUrl: 'https://cdn.test/a.mp4' });
+    await saveJob({ id: 'j7', title: 'old.mp4', durationSec: 2, language: 'auto · en', lookName: 'Hormozi', createdAt: 2, captions: caps, style: {}, sourceUrl: 'https://cdn.test/o.mp4' });   // saved before the fix
+    const m = open({});
+    await flush(); await flush();
+    document.querySelector('[data-act="tab"][data-tab="history"]').click(); await flush(); await flush();
+    expect(document.querySelector('[data-testid="csm-jobs"]').textContent).toContain('auto · en');
+    await m.openJob('j8'); expect(m.language).toBe('auto');
+    await m.openJob('j7'); expect(m.language).toBe('auto');
+    m.close();
+  });
+  it('edits to the words or the look reach the history job without rendering', async () => {
+    const m = open({ videoLibrary: async () => [V(1)] });
+    await flush(); await flush();
+    await m.generate(); await flush(); await flush();
+    const id = (await listJobs())[0].id;
+    m.captions = m.captions.map((c, i) => (i === 0 ? { ...c, text: 'Edited' } : c)); m.style = { ...m.style, color: '#ff0000' };
+    m.queueSave();
+    await new Promise((r) => setTimeout(r, 700)); await flush(); await flush();
+    const job = (await listJobs()).find((j) => j.id === id);
+    expect(job.captions[0].text).toBe('Edited'); expect(job.style.color).toBe('#ff0000');
+    expect(job.createdAt).toBeLessThanOrEqual(Date.now());
+    m.close();
+  });
+  it('a failed frame capture is not remembered, so the next try can succeed', async () => {
+    clearFrames();
+    const bad = { createElement: () => { const v = { removeAttribute() {}, load() {}, set src(_) { setTimeout(() => v.onerror?.(), 0); } }; return v; } };
+    expect(await captureFrame('https://cdn.test/retry.mp4', { doc: bad })).toBeNull();
+    const canvas = { width: 0, height: 0, getContext: () => ({ drawImage() {} }), toDataURL: () => 'data:image/jpeg;base64,OK' };
+    const good = { createElement: (t) => t === 'canvas' ? canvas : (() => { const v = { videoWidth: 640, videoHeight: 360, duration: 4, removeAttribute() {}, load() {}, set src(_) { setTimeout(() => { v.onloadedmetadata?.(); setTimeout(() => v.onseeked?.(), 0); }, 0); } }; return v; })() };
+    expect(await captureFrame('https://cdn.test/retry.mp4', { doc: good })).toBe('data:image/jpeg;base64,OK');
+  });
+});

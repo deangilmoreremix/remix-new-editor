@@ -81,7 +81,7 @@ export function captureFrame(url, { doc = globalThis.document, at = 0.5, timeout
   return new Promise((resolve) => {
     const v = doc.createElement('video');
     let done = false;
-    const finish = (val) => { if (done) return; done = true; clearTimeout(timer); v.removeAttribute('src'); try { v.load(); } catch { /* gone */ } frames.set(url, val); resolve(val); };
+    const finish = (val) => { if (done) return; done = true; clearTimeout(timer); v.removeAttribute('src'); try { v.load(); } catch { /* gone */ } if (val) frames.set(url, val); resolve(val); }; // a failure is not remembered: the next call tries again
     const timer = setTimeout(() => finish(null), timeoutMs);
     v.muted = true; v.preload = 'auto'; v.playsInline = true;
     if (!/^(blob|data):/.test(url)) v.crossOrigin = 'anonymous';

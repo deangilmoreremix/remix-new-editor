@@ -26,7 +26,7 @@ import {
 import { BASE_FONTS, capiteStyleById } from './styles.js';
 import { loadVideos, addVideo, subscribeNewVideos, captureFrame, announceVideo, filterVideos, studioCounts } from './videos.js';
 import { languageLabel } from './language.js';
-import { saveJob, listJobs, getJob, deleteJob, clearJobs, formatBytes, formatDuration } from './history.js';
+import { saveJob, updateJob, listJobs, getJob, deleteJob, clearJobs, formatBytes, formatDuration } from './history.js';
 
 const FONTS = [...new Set([...BASE_FONTS, ...Object.values(CAPITE_PRESETS).map((p) => p.fontFamily)])];
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -419,6 +419,8 @@ export class CaptionStudioModal extends ModalShell {
         const json = JSON.stringify({ captions: this.captions, style: this.style, savedAt: Date.now() });
         if (json.length < 1.5e6) localStorage.setItem(key, json);
       } catch { /* private mode or full storage: autosave is a convenience */ }
+      // the history job keeps the latest words and look too, not only the ones from the first transcription or the last render
+      if (this.jobId && this.captions.length) updateJob(this.jobId, { captions: this.captions, style: this.style, lookName: this.lookName() }).then((rec) => { if (rec) this.refreshJobs(); }).catch(() => {});
     }, 500);
   }
 
@@ -595,7 +597,7 @@ export class CaptionStudioModal extends ModalShell {
     const last = this.captions[this.captions.length - 1];
     const rec = await saveJob({
       id: this.jobId || undefined, title: this.srcName || 'Untitled video', durationSec: this.video?.duration > 0 && Number.isFinite(this.video.duration) ? this.video.duration : last.endMs / 1000,
-      language: languageLabel(this.language, this.captions.map((c) => c.text).join('')), lookName: this.lookName(), processingMs: this.processingMs || 0, fileSize: this.srcBlob?.size || 0,
+      language: this.language, languageLabel: languageLabel(this.language, this.captions.map((c) => c.text).join('')), lookName: this.lookName(), processingMs: this.processingMs || 0, fileSize: this.srcBlob?.size || 0,
       sourceUrl: this.srcBlob || /^blob:/.test(this.srcUrl) ? '' : this.srcUrl, captions: this.captions, style: this.style, ...(this.srcBlob ? { video: this.srcBlob } : {}), ...extra,
     });
     this.jobId = rec.id;
@@ -605,7 +607,7 @@ export class CaptionStudioModal extends ModalShell {
   renderHistory() {
     if (!this.jobs.length) return '<h3 class="csm-sec-title"><span class="glyph">🕘</span>Caption history</h3><div class="csm-vempty" data-testid="csm-history-empty">No caption jobs yet. They are kept in this browser only.</div>';
     const cards = this.jobs.map((j) => `<article class="csm-job" data-testid="csm-job"><h5>${esc(j.title || 'Untitled video')}</h5><dl>`
-      + `<div><dt>Duration</dt><dd>${formatDuration(j.durationSec)}</dd></div><div><dt>Language</dt><dd>${esc(j.language || '—')}</dd></div><div><dt>Caption style</dt><dd>${esc(j.lookName || '—')}</dd></div>`
+      + `<div><dt>Duration</dt><dd>${formatDuration(j.durationSec)}</dd></div><div><dt>Language</dt><dd>${esc(j.languageLabel || j.language || '—')}</dd></div><div><dt>Caption style</dt><dd>${esc(j.lookName || '—')}</dd></div>`
       + `<div><dt>Processing time</dt><dd>${j.processingMs ? `${(j.processingMs / 1000).toFixed(1)}s` : '—'}</dd></div><div><dt>File size</dt><dd>${formatBytes(j.fileSize)}</dd></div><div><dt>Created</dt><dd>${esc(new Date(j.createdAt).toLocaleString())}</dd></div></dl>`
       + `<div class="csm-chips"><button type="button" class="csm-btn primary" data-act="job-open" data-id="${esc(j.id)}">${j.hasVideo ? 'Open &amp; edit' : 'Open script'}</button><button type="button" class="csm-mini" data-act="job-srt" data-id="${esc(j.id)}">SRT</button><button type="button" class="csm-mini" data-act="job-del" data-id="${esc(j.id)}">Delete</button></div></article>`).join('');
     return `<h3 class="csm-sec-title"><span class="glyph">🕘</span>Caption history<span class="grow"></span><button type="button" class="csm-mini" data-act="job-clear">Clear all</button></h3><div class="csm-jobs" data-testid="csm-jobs">${cards}</div>`;
@@ -614,11 +616,12 @@ export class CaptionStudioModal extends ModalShell {
   async openJob(id) {
     const j = await getJob(id);
     if (!j) return;
-    if (j.video) this.setSource(j.video, j.title); else if (j.sourceUrl) this.setSource(j.sourceUrl, j.title);
+    // a job without a kept video must not stay attached to the video that was picked before: clear it (and any render) first
+    if (j.video) this.setSource(j.video, j.title); else if (j.sourceUrl) this.setSource(j.sourceUrl, j.title); else { this.setSource('', j.title); this.selectedUrl = ''; }
     this.captions = sortCaptions(j.captions || []);
     this.style = this.coerceFont({ ...this.style, ...(j.style || {}) });
     ensureCaptionFont(this.style, this.fontText());
-    this.jobId = j.id; this.processingMs = j.processingMs || 0; this.language = j.language || this.language;
+    this.jobId = j.id; this.processingMs = j.processingMs || 0; this.language = CAPTION_LANGUAGES.some(([v]) => v === j.language) ? j.language : 'auto'; // the code, never the display label
     this.note = `Opened “${j.title}” from your history.`;
     this.tab = 'edit'; this.refresh();
   }

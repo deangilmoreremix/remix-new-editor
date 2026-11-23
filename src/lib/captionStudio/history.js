@@ -52,6 +52,12 @@ export async function saveJob(job, { idb } = {}) {
   for (const old of jobs.slice(MAX_JOBS)) await deleteJob(old.id, { idb });
   return rec;
 }
+/** Change fields of a saved job (edits to its captions or look), keeping its id and date. Resolves the saved job, or null when it is gone. */
+export async function updateJob(id, patch, { idb } = {}) {
+  const cur = await getJob(id, { idb });
+  if (!cur) return null;
+  return saveJob({ ...cur, ...patch, id: cur.id, createdAt: cur.createdAt }, { idb });
+}
 export async function deleteJob(id, { idb } = {}) {
   memory.delete(id);
   const d = await db(idb);
