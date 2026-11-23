@@ -1509,6 +1509,8 @@ export function EditStudio() {
       const key = el.dataset.controlKey;
       if (el.tagName === 'BUTTON') {
         values[key] = el.getAttribute('aria-pressed') === 'true';
+      } else if (el.dataset.boolean) {
+        values[key] = el.value === 'true';
       } else if (el.type === 'number' || el.type === 'range' || el.dataset.numeric) {
         if (el.value !== '') values[key] = parseFloat(el.value);
       } else if (String(el.value).trim() !== '') {
@@ -1561,6 +1563,8 @@ export function EditStudio() {
     select.setAttribute('aria-label', control.label);
     // A list of numbers (e.g. upscale factor 2, 4, 8) is sent as a number.
     if (control.options.every(opt => typeof opt === 'number')) select.dataset.numeric = '1';
+    // A true/false choice (e.g. keep the audio track) is sent as a real boolean, not the text "true".
+    if (control.options.every(opt => typeof opt === 'boolean')) select.dataset.boolean = '1';
     control.options.forEach(opt => {
       const option = document.createElement('option');
       option.value = opt;

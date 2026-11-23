@@ -22,7 +22,10 @@ export function isAlreadyInThisRepo(app) {
 }
 
 const durationLabel = (v) => `${v}s`;
-const SELECT_LABELS = { duration: durationLabel };
+const SELECT_LABELS = {
+  duration: durationLabel,
+  preserve_audio: (v) => (v ? 'Keep the audio' : 'Remove the audio'),
+};
 
 function mediaSource(input, isPrimary) {
   const key = input.key;
@@ -88,7 +91,7 @@ export function buildEditApp(app, data = prompts) {
       label: p.label || p.key.replace(/_/g, ' '),
       options: p.options,
       default: p.default ?? p.options[0],
-      optionLabel: SELECT_LABELS[p.key],
+      optionLabel: SELECT_LABELS[p.key] || (p.options.every((o) => typeof o === 'boolean') ? (v) => (v ? 'Yes' : 'No') : undefined),
     });
   }
 

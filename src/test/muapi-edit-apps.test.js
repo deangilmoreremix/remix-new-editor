@@ -97,4 +97,11 @@ describe('muapi apps for the Edit Studio', () => {
       a.studio.presets.forEach((p) => expect(prompts.presets[a.id]?.[p.label], `${a.id}/${p.label}`).toBeTruthy());
     }
   });
+
+  it('labels the one true/false option readably', () => {
+    const audio = app('video-bg-remover').controls.find((c) => c.key === 'preserve_audio');
+    expect(audio.options).toEqual([true, false]);
+    expect(audio.optionLabel(true)).toBe('Keep the audio');
+    expect(audio.optionLabel(false)).toBe('Remove the audio');
+  });
 });

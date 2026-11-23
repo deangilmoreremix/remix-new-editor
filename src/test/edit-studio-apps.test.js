@@ -222,6 +222,14 @@ describe('Apps with extra inputs', () => {
     applyBtn(el).click();
     await vi.waitFor(() => expect(muapi.processV2V).toHaveBeenCalledTimes(1));
     expect(muapi.processV2V.mock.calls[0][0]).toMatchObject({ model: 'video-background-remover', video_url: 'https://x/clip.mp4' });
+    // The audio switch is sent as a real boolean, and shows a readable label.
+    expect(muapi.processV2V.mock.calls[0][0].preserve_audio).toBe(true);
+    const audio = el.querySelector('[data-control-key="preserve_audio"]');
+    expect(audio.options[0].textContent).toBe('Keep the audio');
+    audio.value = 'false';
+    applyBtn(el).click();
+    await vi.waitFor(() => expect(muapi.processV2V).toHaveBeenCalledTimes(2));
+    expect(muapi.processV2V.mock.calls[1][0].preserve_audio).toBe(false);
   });
 });
 
