@@ -1,0 +1,25 @@
+{
+  "name": "smartvideo-promo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "render:v1": "remotion render src/index.ts V1Hero out/v1-hero.mp4"
+  },
+  "dependencies": {
+    "@react-three/fiber": "9.3.0",
+    "@remotion/cli": "4.0.484",
+    "@remotion/motion-blur": "4.0.484",
+    "@remotion/three": "4.0.484",
+    "puppeteer-core": "24.10.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "remotion": "4.0.484",
+    "three": "0.178.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.17",
+    "@types/three": "0.178.0",
+    "typescript": "6.0.3"
+  }
+}

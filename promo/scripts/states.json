@@ -1,0 +1,152 @@
+[
+ {
+  "name": "video",
+  "route": "video",
+  "wait": 9000
+ },
+ {
+  "name": "apps",
+  "route": "apps",
+  "wait": 9000
+ },
+ {
+  "name": "image",
+  "route": "image",
+  "wait": 9000
+ },
+ {
+  "name": "cinema",
+  "route": "cinema",
+  "wait": 9000
+ },
+ {
+  "name": "director",
+  "route": "director",
+  "wait": 9000
+ },
+ {
+  "name": "storyboard",
+  "route": "storyboard",
+  "wait": 9000
+ },
+ {
+  "name": "edit",
+  "route": "edit",
+  "wait": 9000
+ },
+ {
+  "name": "character",
+  "route": "character",
+  "wait": 9000
+ },
+ {
+  "name": "influencer",
+  "route": "influencer",
+  "wait": 9000
+ },
+ {
+  "name": "upscale",
+  "route": "upscale",
+  "wait": 9000
+ },
+ {
+  "name": "ai-vfx",
+  "route": "ai-vfx",
+  "wait": 9000
+ },
+ {
+  "name": "effects",
+  "route": "effects",
+  "wait": 9000
+ },
+ {
+  "name": "avatar",
+  "route": "avatar",
+  "wait": 9000
+ },
+ {
+  "name": "lipsync",
+  "route": "lipsync",
+  "wait": 9000
+ },
+ {
+  "name": "videotools",
+  "route": "videotools",
+  "wait": 9000
+ },
+ {
+  "name": "timeline",
+  "route": "timeline",
+  "wait": 9000
+ },
+ {
+  "name": "render",
+  "route": "render",
+  "wait": 9000
+ },
+ {
+  "name": "templates",
+  "route": "templates",
+  "wait": 9000
+ },
+ {
+  "name": "commercial",
+  "route": "commercial",
+  "wait": 9000
+ },
+ {
+  "name": "video-agent",
+  "route": "video-agent",
+  "wait": 9000
+ },
+ {
+  "name": "library",
+  "route": "library",
+  "wait": 9000
+ },
+ {
+  "name": "media-hub",
+  "route": "media-hub",
+  "wait": 9000
+ },
+ {
+  "name": "brand",
+  "route": "brand",
+  "wait": 9000
+ },
+ {
+  "name": "campaign",
+  "route": "campaign",
+  "wait": 9000
+ },
+ {
+  "name": "audio",
+  "route": "audio",
+  "wait": 9000
+ },
+ {
+  "name": "animate",
+  "route": "animate",
+  "wait": 9000
+ },
+ {
+  "name": "explore",
+  "route": "explore",
+  "wait": 9000
+ },
+ {
+  "name": "workbench",
+  "route": "workbench",
+  "wait": 9000
+ },
+ {
+  "name": "cinema-template",
+  "route": "cinema-template",
+  "wait": 9000
+ },
+ {
+  "name": "viral",
+  "route": "viral",
+  "wait": 9000
+ }
+]
