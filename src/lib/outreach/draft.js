@@ -371,6 +371,26 @@ export function makeContact(input = {}, { rand } = {}) {
   return c;
 }
 
+/** Whether "Add from my contacts" can be offered (Contact Picker API: Android Chrome). */
+export const contactPickerSupported = (nav = globalThis.navigator) => !!(nav?.contacts?.select);
+
+/**
+ * Contacts picked on the phone (Contact Picker API: { name: [], email: [] } each) → { contacts, skipped }.
+ * A prospect needs an email for their link, so contacts without one are skipped.
+ */
+export function contactsFromPicker(picked = [], opts) {
+  const contacts = [];
+  let skipped = 0;
+  for (const p of Array.isArray(picked) ? picked : []) {
+    const email = (p?.email || []).map((e) => String(e || '').trim()).find((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e));
+    if (!email) { skipped += 1; continue; }
+    const [first = '', ...rest] = String((p?.name || [])[0] || '').trim().split(/\s+/).filter(Boolean);
+    const c = makeContact({ firstName: first, lastName: rest.join(' '), email }, opts);
+    if (c) contacts.push(c); else skipped += 1;
+  }
+  return { contacts, skipped };
+}
+
 /** CSV rows + column mapping → { contacts, skipped } (rows without a name or email are skipped). */
 export function contactsFromRows(rows, mapping, opts) {
   const contacts = [];

@@ -20,7 +20,7 @@ import { createTabGuard } from '../lib/outreach/tabGuard.js';
 const TRANSLATE_LANGS = [['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['it', 'Italian'], ['pt', 'Portuguese'], ['nl', 'Dutch'], ['pl', 'Polish'], ['ru', 'Russian'], ['tr', 'Turkish'], ['ar', 'Arabic'], ['hi', 'Hindi'], ['ja', 'Japanese'], ['ko', 'Korean'], ['zh', 'Chinese'], ['vi', 'Vietnamese'], ['id', 'Indonesian'], ['sv', 'Swedish'], ['en', 'English']];
 import {
   STEPS, SETUP_STEPS, STOCK_VOICES, FIRST_NAME_FALLBACKS, CONTACT_FIELDS, CSV_TEMPLATE, MAX_CONTACTS,
-  loadDraft, saveDraft, stepErrors, fillTemplate, speakRequest, tokensIn,
+  loadDraft, saveDraft, contactPickerSupported, contactsFromPicker, stepErrors, fillTemplate, speakRequest, tokensIn,
   parseCsv, guessMapping, contactsFromRows, contactsFromLeads, makeContact, mergeContacts, contactProfile, contactValues,
   buildCampaignProject, campaignLinks, siteKey, sitesToCapture, calendarEmbedUrl,
   SITE_ERROR, siteErrorFor, MISSING_MODES, onMissingOf, siteStatus, backgroundProblems,
@@ -1810,6 +1810,22 @@ export function OutreachStudio() {
     fromLeads.setAttribute('data-outreach-leads', '');
     fromLeads.addEventListener('click', loadLeads);
     csvRow.append(upload, template, fromLeads, file);
+    // On phones that support it (Android Chrome): pick people from the phone's contacts.
+    if (contactPickerSupported()) {
+      const fromPhone = button('Add from my contacts');
+      fromPhone.setAttribute('data-outreach-phone-contacts', '');
+      fromPhone.addEventListener('click', async () => {
+        try {
+          const picked = await navigator.contacts.select(['name', 'email'], { multiple: true });
+          if (!picked?.length) return;
+          const { contacts, skipped } = contactsFromPicker(picked);
+          if (!contacts.length) { notice = `None of the ${picked.length} picked had an email address, so none were added.`; render(); return; }
+          addContacts(contacts);
+          if (skipped) { notice += ` ${skipped} skipped (no email).`; render(); }
+        } catch (err) { if (err?.name !== 'AbortError') fail(err); }
+      });
+      csvRow.insertBefore(fromPhone, file);
+    }
     main.appendChild(csvRow);
 
     if (pendingLeads) main.appendChild(renderLeadPicker());
