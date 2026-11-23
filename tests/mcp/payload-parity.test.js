@@ -117,7 +117,7 @@ const APP_GAP_DECISIONS = {
   'ai-dress-change': { decision: 'app-candidate', why: 'The model lists a garment image; the app client does not send one.' },
   'ai-object-eraser': { decision: 'app-candidate', why: 'The model lists a mask image; the app client does not send one.' },
   'gpt4o-edit': { decision: 'mcp-only', why: 'Optional mask for targeted edits; the app edits the whole image.' },
-  'elevenlabs-text-to-dialogue-v3': { decision: 'app-candidate', why: 'The model's dialogue input is not sent by the app client.' },
+  'elevenlabs-text-to-dialogue-v3': { decision: 'app-candidate', why: 'The model dialogue input is not sent by the app client.' },
   'gemini-2-5-pro-tts': { decision: 'mcp-only', why: 'Multi-speaker turns and speaker voices are optional; the app sends one voice.' },
   'gemini-3-1-flash-tts': { decision: 'mcp-only', why: 'Multi-speaker turns and speaker voices are optional; the app sends one voice.' },
   'ltx-2.3-video-extend': { decision: 'mcp-only', why: 'Optional prompt to steer the extension; the app extends without one.' },
