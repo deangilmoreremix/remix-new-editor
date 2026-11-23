@@ -223,15 +223,19 @@ export function goToRoute(route, params = {}) {
 
   // On the standalone landing page the in-app router is not mounted, so
   // we fall back to a full page load so main.js can boot the app shell
-  // and route. Hash-only navigations can be treated as same-document
-  // by the browser and will not reload the page, leaving the landing
-  // page mounted. Detect that case and force a reload.
+  // and route.
+  //
+  // Only when the target differs from the current URL by hash alone does the
+  // browser treat it as same-document (the landing page would stay mounted), so
+  // only then do we force a reload. Reloading unconditionally cancelled the
+  // pending navigation and sent the visitor back to the landing page, so the
+  // studio never opened and the staged prompt was never used.
+  const next = new URL(target, window.location.origin);
+  const hashOnly = next.pathname === window.location.pathname && next.search === window.location.search;
   window.location.href = target;
-  setTimeout(() => {
-    if (document.readyState === 'complete' && !document.getElementById('content-area')) {
-      window.location.reload();
-    }
-  }, 0);
+  if (hashOnly) {
+    setTimeout(() => window.location.reload(), 0);
+  }
 }
 
 
@@ -244,9 +248,25 @@ export function goToRoute(route, params = {}) {
  * `/commercial` request would 404 on the server (hash router), and even within
  * the SPA the studio only reads the prefill we stage here.
  */
+/**
+ * These studios are landing pages that never read a staged prompt or the
+ * `template`/`prompt` URL params, so a demo sent there opened empty. Video
+ * Studio does read them, so send those demos there instead.
+ */
+const PROMPTLESS_STUDIOS = new Set(['commercial', 'influencer', 'ai-vfx']);
+
+function withPromptStudio(target) {
+  if (!target || !PROMPTLESS_STUDIOS.has(target.route)) return target;
+  return {
+    ...target,
+    route: 'video',
+    href: typeof target.href === 'string' ? target.href.replace(/#\/[^?#]*$/, '#/video') : target.href,
+  };
+}
+
 export function createStyleLink(demo, options = {}) {
   const { label = 'Create This Style', variant = 'primary', block = false, getTarget, loadPrompt, model, autoGenerate } = options;
-  const target = getTarget ? getTarget(demo) : getCreateTarget(demo);
+  const target = withPromptStudio(getTarget ? getTarget(demo) : getCreateTarget(demo));
 
   const link = document.createElement('a');
   link.href = target.href;

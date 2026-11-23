@@ -111,6 +111,9 @@ export function VideoStudio() {
 
     // Read gallery / deep-link params and apply them as studio defaults.
     // This lets "Create This Style" from ExampleGallery pre-fill the studio.
+    // The prompt textarea does not exist yet at this point, so the prompt is
+    // kept here and applied when the textarea is built (see videoPrefill below).
+    let deepLinkPrompt = '';
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const templateParam = urlParams.get('template');
@@ -147,10 +150,7 @@ export function VideoStudio() {
         // Academy / direct-studio deep-link.
         const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
         const params = target?.params || {};
-        if (params.prompt) {
-          const textarea = document.getElementById('v-v-prompt-textarea');
-          if (textarea) textarea.value = params.prompt;
-        }
+        deepLinkPrompt = params.prompt || promptParam || '';
         if (params.style) selectedStyle = params.style;
         if (params.aspect_ratio) selectedAr = params.aspect_ratio;
         if (params.duration) selectedDuration = params.duration;
@@ -590,6 +590,7 @@ export function VideoStudio() {
             stagedAspectRatio = staged.params?.aspectRatio || null;
         }
     }
+    if (!videoPrefill && deepLinkPrompt) videoPrefill = deepLinkPrompt;
     if (videoPrefill) {
         textarea.value = videoPrefill;
         requestAnimationFrame(() => {
