@@ -108,6 +108,21 @@ describe('Brand Kit modal', () => {
     expect(JSON.parse(localStorage.getItem('sv_brand_kits'))).toHaveLength(1);
   });
 
+  it('does not say Saved, and stays open, when the browser will not store the kit', async () => {
+    close = openBrandKitModal();
+    await findBrand();
+    const spy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('QuotaExceededError'); });
+    q('brand-kit-save').click();
+    expect(document.querySelector('[role="alert"]').textContent).toContain("Couldn't save");
+    expect(q('brand-kit-save').textContent).toBe('Save Brand Kit');
+    q('brand-kit-make').click();
+    expect(q('brand-kit-modal')).not.toBeNull(); // no studio opened without a saved kit
+    expect(navigate).not.toHaveBeenCalled();
+    spy.mockRestore();
+    q('brand-kit-save').click();
+    expect(q('brand-kit-save').textContent).toBe('✓ Saved');
+  });
+
   it('shows a readable error and no kit when the lookup fails', async () => {
     fetch.mockResolvedValueOnce({ ok: false, status: 429, json: async () => ({}) });
     close = openBrandKitModal();

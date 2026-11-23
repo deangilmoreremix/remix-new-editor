@@ -206,7 +206,7 @@ export function mountOutreachWelcome(host, { name = '', initial = null, onChange
   }
 
   // ---- Step 6 (last): the Brand Kit. Reads the website from step 4; nothing is saved until Save. ----
-  const brand = { status: 'idle', input: null, kit: null, url: '', error: '' };
+  const brand = { status: 'idle', input: null, kit: null, url: '', error: '', saveError: '' };
   const isHttp = (u) => { try { const p = new URL(u).protocol; return p === 'http:' || p === 'https:'; } catch { return false; } };
 
   async function findBrand(box) {
@@ -258,13 +258,25 @@ export function mountOutreachWelcome(host, { name = '', initial = null, onChange
       save.setAttribute('data-welcome-brand-save', '');
       save.addEventListener('click', async () => {
         save.disabled = true;
-        try { (await import('../../lib/brandKit.js')).saveBrandKit(brand.kit); } catch { /* the welcome still finishes */ }
+        try {
+          (await import('../../lib/brandKit.js')).saveBrandKit(brand.kit);
+        } catch (e) {
+          // Not saved: say so and stay here (Skip still finishes the welcome) instead of finishing as if it were.
+          brand.saveError = e?.message || "Couldn't save your Brand Kit.";
+          if (box.isConnected) paintBrand(box);
+          return;
+        }
         finish();
       });
       const more = el('button', 'rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-white/80 hover:border-primary/35', 'Review it in Find My Brand');
       more.type = 'button';
       more.setAttribute('data-welcome-brand-open', '');
       more.addEventListener('click', async () => { (await import('../modals/BrandKitModal.js')).openBrandKitModal({ url: brand.url }); });
+      if (brand.saveError) {
+        const err = el('p', 'text-sm text-amber-300', `${brand.saveError} You can skip this step and add it later in Find My Brand.`);
+        err.setAttribute('role', 'alert');
+        box.appendChild(err);
+      }
       box.append(save, more);
       return;
     }

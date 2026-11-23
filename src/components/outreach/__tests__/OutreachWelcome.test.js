@@ -96,6 +96,20 @@ describe('SmartVideo welcome', () => {
     expect(onFinish).not.toHaveBeenCalled();
   });
 
+  it('Brand Kit step: a failed save is reported and the welcome does not finish as if it had saved', async () => {
+    const onFinish = vi.fn();
+    mountOutreachWelcome($('#host'), { initial: { step: 6, company: 'Acme', website: 'acme.com' }, onFinish });
+    await vi.waitFor(() => expect($('[data-welcome-brand-save]')).not.toBeNull(), { timeout: 5000 });
+    const spy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('QuotaExceededError'); });
+    $('[data-welcome-brand-save]').click();
+    await vi.waitFor(() => expect($('[data-welcome-brand] [role="alert"]')).not.toBeNull(), { timeout: 5000 });
+    expect($('[data-welcome-brand] [role="alert"]').textContent).toContain("Couldn't save");
+    expect(onFinish).not.toHaveBeenCalled();
+    spy.mockRestore();
+    $('[data-welcome-skip]').click(); // Skip still finishes the welcome
+    expect(onFinish).toHaveBeenCalledTimes(1);
+  });
+
   it('does not look up a website for anyone who finished the welcome before (their step never reaches the Brand Kit)', () => {
     mountOutreachWelcome($('#host'), { initial: { step: 5, goal: 'dynamic' } });
     expect(document.body.textContent).toContain('how did you hear about us');

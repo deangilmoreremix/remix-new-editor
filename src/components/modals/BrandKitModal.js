@@ -111,14 +111,26 @@ export function openBrandKitModal({ url = '' } = {}) {
   function save() {
     const kit = currentKit();
     if (!kit) return;
-    state.saved = saveBrandKit(kit);
+    try {
+      state.saved = saveBrandKit(kit);
+      state.error = '';
+    } catch (e) {
+      state.error = e?.message || "Couldn't save your Brand Kit.";
+    }
     render();
   }
 
   function make() {
     const kit = currentKit();
     if (!kit) return;
-    const brand = saveBrandKit(kit);
+    let brand;
+    try {
+      brand = saveBrandKit(kit);
+    } catch (e) {
+      state.error = e?.message || "Couldn't save your Brand Kit.";
+      render();
+      return; // stay open: the studio would start without a saved kit
+    }
     state.saved = brand;
     makeBrandProject(brand, state.target, { duration: state.duration, aspectRatio: state.aspect });
     close();

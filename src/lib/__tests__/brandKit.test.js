@@ -47,6 +47,14 @@ describe('brand kit', () => {
     expect(JSON.parse(localStorage.getItem('sv_brand_kits'))).toHaveLength(1);
   });
 
+  it('throws instead of pretending to save when the browser will not store the kit', () => {
+    const kit = buildBrandKit({ research, client, assets });
+    const spy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('QuotaExceededError'); });
+    expect(() => saveBrandKit(kit)).toThrow("Couldn't save");
+    spy.mockRestore();
+    expect(saveBrandKit(kit).id).toBeTruthy(); // and works again once storage does
+  });
+
   it('returns null with nothing usable', () => {
     expect(buildBrandKit({})).toBeNull();
   });

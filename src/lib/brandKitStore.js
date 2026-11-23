@@ -23,9 +23,11 @@ export const listBrandKits = () => read();
 
 export const getBrandKit = (id) => read().find((k) => k.id === id) || null;
 
-/** Insert or replace by id; the kit moves to the top. Returns the saved record. */
+/** Insert or replace by id; the kit moves to the top. Returns the saved record; throws if the browser would not store it. */
 export function putBrandKit(kit) {
   const record = { ...kit, updatedAt: new Date().toISOString() };
-  write([record, ...read().filter((k) => k.id !== record.id)]);
+  if (!write([record, ...read().filter((k) => k.id !== record.id)])) {
+    throw new Error("Couldn't save: this browser's storage is full or blocked.");
+  }
   return record;
 }
