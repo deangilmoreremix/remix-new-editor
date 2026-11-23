@@ -102,6 +102,7 @@ describe('Unified Timeline Editor - Phase 4 Integration Testing', () => {
           'AIVideoCreator',
           'ConnectModal',
           'ContactImporterModal',
+          'EmailCampaignModal',
           'EndScreenModal',
           'EnhancedRecorderModal',
           'ImageCropperModal',
@@ -122,7 +123,7 @@ describe('Unified Timeline Editor - Phase 4 Integration Testing', () => {
           'VoiceModal'
         ];
 
-        expect(modalComponents.length).toBe(22);
+        expect(modalComponents.length).toBe(23);
         expect(modalComponents).toContain('SettingsModal');
         expect(modalComponents).toContain('AIVideoCreator');
       });

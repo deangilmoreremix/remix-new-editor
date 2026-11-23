@@ -98,6 +98,7 @@ import { EnhancedRecorderModal } from './modals/EnhancedRecorderModal.jsx';
 import { TemplateGeneratorModal } from './modals/TemplateGeneratorModal.jsx';
 import { TemplatePreviewModal } from './modals/TemplatePreviewModal.jsx';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import * as shareEmail from '../lib/editor/publish/shareEmailBridge.js';
 import { UrlVideoModal } from './modals/UrlVideoModal.jsx';
 import { PageShotModal } from './modals/PageShotModal.jsx';
 import { ContactImporterModal } from './modals/ContactImporterModal.jsx';
@@ -6154,17 +6155,13 @@ export function TimelineEditorPage() {
           } catch { /* the /watch/<id> link always works */ }
           showToast('Published — copy the link to share it', 'success');
           captureProjectThumbnail();
-          const latest = await pub.getMyVideo(client, id).catch(() => info);
-          pub.rememberPublishedLink(latest);
-          return { ...latest, published: true };
+          return { ...shareEmail.remember(pub, await pub.getMyVideo(client, id).catch(() => info)), published: true };
         },
         async saveLink({ business, slug }) {
           const client = await publishOwnerClient();
           if (business) await pub.claimBusinessSlug(client, business);
           await pub.setVideoSlug(client, videoId(), slug);
-          const renamed = await pub.getMyVideo(client, videoId());
-          pub.rememberPublishedLink(renamed);
-          return renamed;
+          return shareEmail.remember(pub, await pub.getMyVideo(client, videoId()));
         },
         async setPrivacy(privacy) { await pub.setVideoPrivacy(await publishOwnerClient(), videoId(), privacy); },
         async listRevisions() { return pub.listRevisions(await publishOwnerClient(), videoId()); },
@@ -6177,7 +6174,7 @@ export function TimelineEditorPage() {
           return Array.isArray(leads) ? leads.length : null;
         },
         copy: (text) => navigator.clipboard.writeText(text),
-        mergeTokens: () => projectTokens(state.tracks),
+        ...shareEmail.panelOptions({ pub, tokens: () => projectTokens(state.tracks), client: publishOwnerClient, videoId }),
         personalLinks: (link) => {
           const tokens = projectTokens(state.tracks);
           const contacts = listContactProfiles(contactStore);
@@ -7553,10 +7550,8 @@ export function TimelineEditorPage() {
       }
     }
 
-    // Email: the Share panel holds the email-ready links (one merge-tag link
-    // for any provider, plus one personal link per contact and a CSV).
     function openEmailCampaignModal() {
-      openPanel('sharePanel');
+      openPanel('sharePanel'); // the Share panel holds the email links (merge-tag link, recipient list, per-contact links)
     }
 
     function openUrlVideoModal(state, showToast) {
