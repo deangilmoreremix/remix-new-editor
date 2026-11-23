@@ -161,7 +161,7 @@ export async function sendTestNotification({ registration, env = globalThis } = 
   if (permissionState(env) !== 'granted') return { status: 'blocked', message: 'Allow notifications first.' };
   if (!registration?.showNotification) return { status: 'no-service-worker', message: 'Push works on the deployed site.' };
   try {
-    await registration.showNotification('Test notification', { body: 'Alerts will look like this on this device.', tag: 'smartvideo-test', icon: '/favicon.webp', badge: '/favicon.webp', data: { url: '/#/timeline', type: 'test' } });
+    await registration.showNotification('Test notification', { body: 'Alerts will look like this on this device.', tag: 'smartvideo-test', icon: '/favicon.webp', badge: '/favicon.webp', data: { url: '/timeline', type: 'test' } });
     return { status: 'sent', message: 'Test notification sent. If you did not see it, check your system notification settings.' };
   } catch (err) {
     return { status: 'error', message: err?.message || 'Could not show the test notification.' };

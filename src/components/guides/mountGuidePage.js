@@ -61,7 +61,7 @@ export function mountGuidePage(app, slug) {
   // Loaded after the page so it never delays the guide content.
   import('../../features/ask-smartvideo/AskSmartVideo.js')
     .then((m) => m.mountAskSmartVideo({
-      navigate: (page) => { window.location.href = `/#/${page}`; },
+      navigate: (page) => { window.location.href = `/${page}`; },
       getPage: () => (guide ? guide.route : ''),
       onGuidePage: true,
     }))

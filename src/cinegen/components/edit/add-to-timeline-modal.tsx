@@ -95,7 +95,7 @@ export function AddToTimelineModal({ onClose, actions }: { onClose: () => void; 
   // Focus moves into the window when it opens and goes back to what opened it (the + Add button) when it closes: both done by ModalShell.
   const done = () => latest.current.onClose();
   const fixed = useMemo(() => buildCatalog(
-    { onAddKind: (k) => latest.current.actions.onAddKind(k), onAddTemplate: (id, p) => latest.current.actions.onAddTemplate(id, p) },
+    { onAddKind: (k, d) => latest.current.actions.onAddKind(k, d), onAddTemplate: (id, p) => latest.current.actions.onAddTemplate(id, p) },
     { close: done, askPhone: (id) => { setConnect(id); setPhone(''); } },
   ), []); // eslint-disable-line react-hooks/exhaustive-deps
   const animations = useMemo(() => (hasAnimations ? hfEntries(hyperframesItems(), (i) => { latest.current.actions.onPickAnimation?.(i); done(); }) : []), [hasAnimations]); // eslint-disable-line react-hooks/exhaustive-deps

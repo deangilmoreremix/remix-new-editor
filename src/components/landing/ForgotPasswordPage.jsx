@@ -37,7 +37,7 @@ export function ForgotPasswordPage() {
       return;
     }
     if (isSignedIn) {
-      window.location.href = '/#/image';
+      window.location.href = '/image';
     }
   }, [userLoaded, isSignedIn, user]);
 

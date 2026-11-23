@@ -219,7 +219,7 @@ export function goToRoute(route, params = {}) {
     return;
   }
   const query = new URLSearchParams({ ...params, public: '1' }).toString();
-  const target = query ? `/?${query}#/${route}` : `/#/${route}`;
+  const target = query ? `/${route}?${query}` : `/${route}`;
 
   // On the standalone landing page the in-app router is not mounted, so
   // we fall back to a full page load so main.js can boot the app shell

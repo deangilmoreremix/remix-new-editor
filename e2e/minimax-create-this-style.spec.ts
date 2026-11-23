@@ -244,7 +244,7 @@ async function prefillEvidence(page: any) {
   const [staged, prompt, hash] = await Promise.all([
     readStagedPrefill(page),
     promptFieldValue(page),
-    page.evaluate(() => window.location.hash),
+    page.evaluate(() => window.location.pathname + window.location.hash),
   ]);
   const template = await page.evaluate(() => (window as any).__svActiveStyleTemplate || null);
   return { staged, prompt, hash, template };
@@ -323,9 +323,9 @@ for (const studio of STUDIO_NAMES) {
       // Route assertion: the hash must land on the mapped studio. Both the
       // router id ("video") and the raw targetStudio ("VideoStudio") are
       // accepted because createThisStyle() currently navigates with the latter.
-      const routePattern = new RegExp(`#/(${expectedRoute}|${expectedStudio})`, 'i');
+      const routePattern = new RegExp(`/(${expectedRoute}|${expectedStudio})`, 'i');
       await expect
-        .poll(async () => page.evaluate(() => window.location.hash), {
+        .poll(async () => page.evaluate(() => window.location.pathname + window.location.hash), {
           timeout: 15000,
           message: `CTA in ${studio} did not route to ${expectedStudio} (${expectedRoute})`,
         })

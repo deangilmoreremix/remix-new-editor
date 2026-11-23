@@ -302,7 +302,7 @@ function LessonView({ lesson, trackSlug, onOpenTemplate, onBackToTrack, isBookma
   const rich = RICH_LESSONS.find((l) => l.id === lesson.id);
   const relatedTemplates = lesson.relatedTemplateIds.map(getTemplateMeta).filter(Boolean);
   const lessonUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}${window.location.pathname}${window.location.search}#/academy/track/${trackSlug}/lesson/${lesson.id}`
+    ? `${window.location.origin}/academy/track/${trackSlug}/lesson/${lesson.id}`
     : '';
 
   return (
@@ -616,6 +616,8 @@ function Hub({ onOpenTrack, bookmarks, onToggleBookmark, onOpenLesson, progressA
             <button
               key={t.slug}
               onClick={() => onOpenTrack(t.slug)}
+              data-help-name={t.title}
+              data-help-text={tp.total > 0 ? `Open this track. ${tp.completed} of ${tp.total} lessons done.` : 'Open this track.'}
               className={cardCls + ' text-left hover:border-white/25 transition'}
             >
               <div className="flex items-center justify-between mb-1">
@@ -653,18 +655,18 @@ function parseAcademyHash() {
   return { type: 'track', slug: trackSlug };
 }
 
-function buildAcademyHash(selection) {
-  if (selection.type === 'hub') return '#/academy';
-  if (selection.type === 'track') return `#/academy/track/${selection.slug}`;
+function buildAcademyPath(selection) {
+  if (selection.type === 'hub') return '/academy';
+  if (selection.type === 'track') return `/academy/track/${selection.slug}`;
   if (selection.type === 'lesson') {
     const trackSlug = selection.trackSlug || getLessonById(selection.id)?.trackSlug;
-    return trackSlug ? `#/academy/track/${trackSlug}/lesson/${selection.id}` : '#/academy';
+    return trackSlug ? `/academy/track/${trackSlug}/lesson/${selection.id}` : '/academy';
   }
   if (selection.type === 'template') {
     const trackSlug = selection.trackSlug || getTemplateMeta(selection.id)?.trackSlug;
-    return trackSlug ? `#/academy/track/${trackSlug}/template/${selection.id}` : '#/academy';
+    return trackSlug ? `/academy/track/${trackSlug}/template/${selection.id}` : '/academy';
   }
-  return '#/academy';
+  return '/academy';
 }
 
 function validateSelection(selection) {
@@ -711,8 +713,7 @@ function AcademyApp() {
 
   const pushAcademyHash = useCallback((newSelection) => {
     setSelection(newSelection);
-    const hash = buildAcademyHash(newSelection);
-    const newUrl = `${window.location.pathname}${window.location.search}${hash}`;
+    const newUrl = `${buildAcademyPath(newSelection)}${window.location.search}`;
     window.history.pushState({}, '', newUrl);
   }, []);
 
@@ -783,10 +784,12 @@ function AcademyApp() {
       <div className="flex items-center gap-3 px-5 py-3 border-b border-white/10 sticky top-0 bg-app-bg/80 backdrop-blur z-10">
         <button
           onClick={() => {
-            const newUrl = `${window.location.pathname}${window.location.search}#/academy`;
+            const newUrl = `/academy${window.location.search}`;
             window.history.pushState({}, '', newUrl);
             setSelection({ type: 'hub' });
           }}
+          data-help-name="Academy home"
+          data-help-text="Go back to all Academy tracks."
           className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white"
         >
           <Icon name="GraduationCap" size={18} /> Smart Video Academy
@@ -800,6 +803,7 @@ function AcademyApp() {
         <div className="ml-auto">
           <button
             onClick={() => navigate('apps')}
+            data-help-text="Leave the Academy and go to Apps."
             className="text-sm text-white/50 hover:text-white inline-flex items-center gap-1"
           >
             <Icon name="X" size={16} /> Exit

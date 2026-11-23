@@ -131,7 +131,9 @@ export function ImageToImagePage() {
 
   // Event Listeners
   container.querySelector('.start-btn').onclick = () => navigate('edit');
+  container.querySelector('.start-btn').dataset.helpText = 'Open Edit Studio.';
   container.querySelector('.cta-btn').onclick = () => navigate('edit');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Edit Studio.';
 
   const gtmBoostBtn = contentWrapper.querySelector('.gtm-boost-btn');
   if (gtmBoostBtn) {

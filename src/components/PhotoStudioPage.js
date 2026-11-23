@@ -79,6 +79,7 @@ export function PhotoStudioPage() {
   if (brands.length > 0) {
     const brandSelect = document.createElement('select');
     brandSelect.className = 'bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
+    brandSelect.dataset.help = 'photo brand';
     brandSelect.innerHTML = `
       <option value="">No brand logo</option>
       ${brands.map(b => `<option value="${b.id}" ${b.id === selectedBrand?.id ? 'selected' : ''}>${b.brandName}</option>`).join('')}
@@ -136,6 +137,7 @@ export function PhotoStudioPage() {
   muapiModeRow.appendChild(muapiLabel);
 
   const modeToggle = document.createElement('button');
+  modeToggle.dataset.help = 'photo generation mode';
   modeToggle.type = 'button';
   modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
   modeToggle.textContent = state.muapiMode ? 'Direct MuAPI' : 'Brand API';
@@ -281,6 +283,7 @@ export function PhotoStudioPage() {
       all.type = 'button';
       all.className = 'text-[10px] font-bold text-primary hover:underline';
       all.textContent = allOn ? 'Clear' : 'Select all';
+      all.dataset.help = 'photo select all';
       all.onclick = () => {
         state.selectedPresets = allOn
           ? state.selectedPresets.filter((k) => !keys.includes(k))
@@ -300,6 +303,7 @@ export function PhotoStudioPage() {
         btn.type = 'button';
         btn.dataset.photoPreset = key;
         btn.title = st.prompt;
+        btn.dataset.helpName = st.label; btn.dataset.helpText = st.prompt; // the style's own prompt is its tooltip
         btn.className = `px-3 py-2 rounded-xl text-xs font-bold transition-all border ${on ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
         btn.textContent = `${st.label} · ${st.aspect}`;
         btn.onclick = () => {

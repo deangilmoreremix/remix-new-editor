@@ -56,9 +56,9 @@
         "slug": "studio-muapi-studio",
         "name": "Studio (Muapi Studio)",
         "route": "muapi-studio",
-        "shortDescription": "One studio for every MuAPI model: images, video, audio, avatars, 3D and tools, on your own MuAPI key.",
-        "features": 5,
-        "thumbnail": "/thumbnails/pages/placeholder.webp"
+        "shortDescription": "One workspace for hundreds of AI models across image, video, audio, avatar and 3D, using your own MuAPI key.",
+        "features": 11,
+        "thumbnail": "/thumbnails/studios/muapi-studio.webp"
       },
       {
         "slug": "upscale-suite",

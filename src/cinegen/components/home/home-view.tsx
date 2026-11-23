@@ -1,3 +1,4 @@
+import { goTo } from '../../../lib/routeUrl.js'
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ProjectCard } from './project-card';
 import type { ProjectMeta } from '../../electron.d';
@@ -91,7 +92,7 @@ export function HomeView({ onOpenProject }: HomeViewProps) {
             <div className="pm-titlebar__dots">
               <button
                 className="pm-titlebar__dot pm-titlebar__dot--close"
-                onClick={() => { window.location.hash = '#/home'; }} /* [remix] leaves the editor */
+                onClick={() => { goTo('home'); }} /* [remix] leaves the editor */
                 title="Close"
               />
               <div className="pm-titlebar__dot pm-titlebar__dot--min" />

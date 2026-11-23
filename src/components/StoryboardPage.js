@@ -101,5 +101,7 @@ export function StoryboardPage() {
 
   container.querySelector('.cta-btn').onclick = () => navigate('storyboard');
 
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Storyboard Studio.';
+
   return container;
 }

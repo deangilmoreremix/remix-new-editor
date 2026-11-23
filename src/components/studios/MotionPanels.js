@@ -141,7 +141,7 @@ export function createMotionPanel(kind) {
   const audioPill = createPill({ label: 'Audio: off', title: 'Generate audio' });
   const orientPill = createPill({ label: 'Orientation: video', title: 'Character orientation' });
   const modeToggle = createSegmented(
-    [{ value: 'motion_transfer', label: 'Motion transfer' }, { value: 'objects_swap', label: 'Objects swap' }],
+    [{ value: 'motion_transfer', label: 'Motion transfer', help: 'video tools motion transfer' }, { value: 'objects_swap', label: 'Objects swap' }],
     state.mode,
     (v) => { state.mode = v; },
   );

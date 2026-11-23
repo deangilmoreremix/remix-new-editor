@@ -349,6 +349,7 @@ export async function InfluencerStudio() {
 
   const modelSelectorContainer = document.createElement('div');
   modelSelectorContainer.className = 'w-full mb-6';
+  modelSelectorContainer.dataset.help = 'model';
   container.appendChild(modelSelectorContainer);
 
   mountModelSelector(modelSelectorContainer, {
@@ -426,6 +427,7 @@ export async function InfluencerStudio() {
   tabRow.className = 'flex gap-1';
   Object.keys(TABS_CONFIG).forEach((key) => {
     const tabBtn = document.createElement('button');
+    tabBtn.dataset.help = 'builder tab';
     tabBtn.type = 'button';
     tabBtn.textContent = TABS_CONFIG[key].label;
     tabBtn.dataset.tabKey = key;
@@ -488,6 +490,7 @@ export async function InfluencerStudio() {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.dataset.optId = opt.id;
+        btn.dataset.help = 'trait option';
         btn.className = isSelected
           ? 'group relative aspect-square rounded-xl overflow-hidden border-2 border-white/80 ring-1 ring-white/30 shadow-lg transition-all'
           : 'group relative aspect-square rounded-xl overflow-hidden border border-white/[0.08] hover:border-white/25 transition-all';
@@ -562,6 +565,7 @@ export async function InfluencerStudio() {
 
   const formatRow = document.createElement('div');
   formatRow.className = 'flex gap-2 flex-wrap';
+  formatRow.dataset.help = 'content format';
   FORMAT_PRESETS.forEach((f) => {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -639,6 +643,7 @@ export async function InfluencerStudio() {
   STYLE_PRESETS.forEach(style => {
     const btn = document.createElement('button');
     btn.type = 'button';
+    btn.dataset.help = 'style preset';
     btn.className = 'flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all border';
     const gradient = STYLE_GRADIENTS[style] || 'linear-gradient(135deg, #333, #666)';
     const isActive = style === selectedStyle;
@@ -842,6 +847,7 @@ export async function InfluencerStudio() {
 
   const arGroup = document.createElement('div');
   arGroup.className = 'flex gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1';
+  arGroup.dataset.help = 'aspect ratio';
   ['3:4', '1:1', '9:16', '16:9'].forEach((r) => {
     const arBtn = document.createElement('button');
     arBtn.type = 'button';
@@ -970,6 +976,7 @@ export async function InfluencerStudio() {
       pill.type = 'button';
       pill.className = 'h-[22px] px-2 rounded-md bg-white/[0.07] hover:bg-white/[0.13] border border-white/[0.10] text-[11px] font-medium text-gray-200 whitespace-nowrap transition-all cursor-pointer';
       pill.textContent = tag.label;
+      pill.dataset.help = 'trait tag';
 
       pillWrap.appendChild(tooltip);
       pillWrap.appendChild(pill);
@@ -983,6 +990,7 @@ export async function InfluencerStudio() {
       const moreBtn = document.createElement('button');
       moreBtn.type = 'button';
       moreBtn.textContent = showAllTags ? 'hide' : 'show more';
+      moreBtn.dataset.help = 'show more tags';
       moreBtn.className = 'h-[22px] px-2 rounded-md bg-white/[0.04] hover:bg-white/[0.09] border border-white/[0.08] text-[11px] text-gray-500 hover:text-gray-300 whitespace-nowrap transition-all cursor-pointer';
       moreBtn.onclick = () => {
         showAllTags = !showAllTags;

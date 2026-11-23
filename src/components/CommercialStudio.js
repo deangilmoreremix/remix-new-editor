@@ -202,6 +202,7 @@ const COMMERCIAL_MODELS = [
 
   const sceneGrid = document.createElement('div');
   sceneGrid.className = 'flex flex-wrap gap-2';
+  sceneGrid.dataset.help = 'scene preset';
   SCENE_PRESETS.forEach(s => {
     const chip = document.createElement('button');
     chip.className = s === selectedScene
@@ -227,6 +228,7 @@ const COMMERCIAL_MODELS = [
 
   const formatRow = document.createElement('div');
   formatRow.className = 'flex gap-2 flex-wrap';
+  formatRow.dataset.help = 'ad format';
   FORMAT_PRESETS.forEach(f => {
     const btn = document.createElement('button');
     btn.className = f.name === selectedFormat.name

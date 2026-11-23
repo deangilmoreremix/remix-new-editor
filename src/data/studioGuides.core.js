@@ -41,6 +41,7 @@ const SLUG_OVERRIDES = {
 const FALLBACK_IMAGES = {
   image: '/thumbnails/studios/image.webp',
   edit: '/thumbnails/studios/edit.webp',
+  'muapi-studio': '/thumbnails/studios/muapi-studio.webp',
   upscale: '/thumbnails/studios/upscale.webp',
   character: '/thumbnails/studios/character.webp',
   commercial: '/thumbnails/studios/commercial.webp',

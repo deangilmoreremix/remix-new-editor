@@ -118,7 +118,10 @@ export function CinemaPage() {
   container.appendChild(contentWrapper);
 
   container.querySelector('.start-btn').onclick = () => navigate('cinema');
+
+  container.querySelector('.start-btn').dataset.helpText = 'Open Cinema Studio.';
   container.querySelector('.cta-btn').onclick = () => navigate('cinema');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Cinema Studio.';
 
   return container;
 }

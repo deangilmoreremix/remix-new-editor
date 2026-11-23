@@ -1,3 +1,4 @@
+import { goTo } from '../lib/routeUrl.js';
 // SmartVideo Video Agent Studio 2 — integration shell.
 //
 // This module is the *only* SmartVideo-side surface for the new
@@ -232,7 +233,7 @@ export function VideoAgentStudioShell({ initialProjectId } = {}) {
 
   // ---- Back / Retry ----
   header.querySelector('#va-back')?.addEventListener('click', () => {
-    window.history.length > 1 ? window.history.back() : (window.location.hash = '#/');
+    window.history.length > 1 ? window.history.back() : goTo('apps');
   });
   errorSplash.querySelector('#va-retry')?.addEventListener('click', () => {
     revealed = false;
