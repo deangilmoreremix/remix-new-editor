@@ -24,6 +24,8 @@ const ALIASES = {
   academy: 'smart-video-academy',
   content: 'content-library',
   brightbean: 'smart-video-scheduler',
+  'media hub': 'smartviddownloader',
+  'video downloader': 'smartviddownloader',
   'brand photo studio': 'photo-studio',
   campaign: 'campaign-studio',
   'watermark remover': 'video-watermark-remover',

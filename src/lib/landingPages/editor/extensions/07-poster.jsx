@@ -8,7 +8,8 @@ const A = (label) => ({ type: 'textarea', label });
 const asList = (v) => (Array.isArray(v) ? v : []);
 const art = (src) => safeImageUrl(src) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(src || '')) ? String(src) : '');
 const iconField = { type: 'select', label: 'Icon', options: ['video', 'bolt', 'target', 'layers', 'users', 'play', 'send', 'calendar', 'chart', 'check', 'star', 'mail'].map((k) => ({ label: k, value: k })) };
-const Pic = ({ src, className }) => { const u = art(src); return u ? <img className={className} src={u} alt="" loading="lazy" /> : null; };
+// Decorative by default (logos and faces beside their own names); a described photo is exposed to screen readers.
+const Pic = ({ src, className, alt }) => { const u = art(src); return u ? <img className={className} src={u} alt={alt || ''} loading="lazy" /> : null; };
 
 export const components = {
   PosterNav: {
@@ -94,7 +95,7 @@ export const components = {
     fields: {
       casesTitle: T('Case studies heading'),
       casesText: T('Case studies text'),
-      cases: { type: 'array', label: 'Case studies', arrayFields: { photo: T('Photo (path or https link)'), brand: T('Agency name'), logo: T('Agency logo (path or https link)'), value1: T('Number 1'), label1: T('Label 1'), value2: T('Number 2'), label2: T('Label 2') }, getItemSummary: (i) => i.brand || 'Case', defaultItemProps: { photo: '', brand: 'Agency', logo: '', value1: '+100%', label1: 'Result', value2: '+2x', label2: 'Result' } },
+      cases: { type: 'array', label: 'Case studies', arrayFields: { photo: T('Photo (path or https link)'), photoAlt: T('Screen-reader description (alt text)'), brand: T('Agency name'), logo: T('Agency logo (path or https link)'), value1: T('Number 1'), label1: T('Label 1'), value2: T('Number 2'), label2: T('Label 2') }, getItemSummary: (i) => i.brand || 'Case', defaultItemProps: { photo: '', brand: 'Agency', logo: '', value1: '+100%', label1: 'Result', value2: '+2x', label2: 'Result' } },
       quote: A('Testimonial'),
       quoteName: T('Name'),
       quoteRole: T('Role / company'),
@@ -131,7 +132,7 @@ export const components = {
             <ul>
               {asList(p.cases).map((c, i) => (
                 <li key={i}>
-                  <Pic src={c.photo} className="pk-px-case-photo" />
+                  <Pic src={c.photo} alt={t(c.photoAlt)} className="pk-px-case-photo" />
                   <div className="pk-px-case-stats">
                     <span><b>{t(c.value1)}</b>{t(c.label1)}</span>
                     <span><b>{t(c.value2)}</b>{t(c.label2)}</span>

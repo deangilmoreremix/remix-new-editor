@@ -11,7 +11,7 @@ Supabase project or Netlify site. Tick items off in order; later steps depend on
 
 ## 1. Database migrations
 
-> **Applied on 2026-11-18** to the `VideoRemix Product` Supabase project (all five, plus a small `search_path` follow-up for the two lead helper functions). Skip this section for that project. It remains the reference if you set up another environment. Note the push table is `owner_push_subscriptions`: the project already had an unrelated `push_subscriptions` table owned by the personalization app, so the name was changed to avoid touching it.
+> **Applied on 2026-11-18** to the `VideoRemix Product` Supabase project (all five, plus a small `search_path` follow-up for the two lead helper functions). Skip migrations 1–5 for that project (migrations 6 and 7 below are optional and were not part of that run: check the Migrations list and apply them if you want those features). This section remains the reference if you set up another environment. Note the push table is `owner_push_subscriptions`: the project already had an unrelated `push_subscriptions` table owned by the personalization app, so the name was changed to avoid touching it.
 
 Apply **in this order**. Each is safe to re-run (`if not exists` / guarded), and the app degrades gracefully if one
 is missing, but features below stay off until it is applied.

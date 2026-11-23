@@ -97,7 +97,7 @@ export function retargetTab(deps) {
       });
       root.querySelectorAll('[data-rec]').forEach((b) => b.addEventListener('click', async () => {
         b.disabled = true;
-        try { await launchFollowup({ client, original, followup: recs[Number(b.dataset.rec)].followup, navigate: deps.navigate, videoUrl: url }); } catch (e) { b.disabled = false; deps.onToast?.(e.message, 'error'); }
+        try { await launchFollowup({ client, original, followup: recs[Number(b.dataset.rec)].followup, navigate: deps.navigate, videoUrl: url, openFollowup: deps.openFollowup }); } catch (e) { b.disabled = false; deps.onToast?.(e.message, 'error'); }
       }));
     });
     return () => { alive = false; };
@@ -139,10 +139,14 @@ export function notificationsTab(deps) {
               <div style="display:flex;flex-direction:column;gap:4px;margin:4px 0 0 24px">${g.types.map((k) => typeRow(k, typeLabel[k] || k)).join('')}</div></fieldset>`).join('')
           + NOTIFICATION_TYPES.filter(([k]) => !grouped.has(k)).map(([k, l]) => typeRow(k, l)).join('');
         const syncGroups = (form) => {
+          // Pushes and e-mails are made from the in-app alert itself: with In-app alerts off no alert is created, so neither is ever sent.
+          const inApp = form.querySelector('[name=inapp]')?.checked !== false;
+          const inAppHint = form.querySelector('[data-inapp-hint]');
+          if (inAppHint) inAppHint.textContent = !inApp && (pushUsable || form.querySelector('[name=email]')?.checked) ? 'In-app alerts is off, so no alerts are created and no push or e-mail is sent. Turn it on to receive them.' : '';
           form.querySelectorAll('[name=pushtype]').forEach((p) => {
             const alert = form.querySelector(`[name=type][value="${p.value}"]`);
             if (alert && !alert.checked) p.checked = false; // Push only exists for alerts that are on
-            p.disabled = !pushUsable || !alert?.checked;
+            p.disabled = !pushUsable || !inApp || !alert?.checked;
           });
           NOTIFICATION_GROUPS.forEach((g) => {
             const box = form.querySelector(`[data-group="${g.id}"]`); if (!box) return;
@@ -152,7 +156,7 @@ export function notificationsTab(deps) {
             const pkids = [...form.querySelectorAll(`[data-group-box="${g.id}"] [name=pushtype]`)].filter((k) => form.querySelector(`[name=type][value="${k.value}"]`)?.checked);
             const pn = pkids.filter((k) => k.checked).length;
             pbox.checked = pkids.length > 0 && pn === pkids.length; pbox.indeterminate = pn > 0 && pn < pkids.length;
-            pbox.disabled = !pushUsable || pkids.length === 0;
+            pbox.disabled = !pushUsable || !inApp || pkids.length === 0;
           });
         };
         const zoneNow = browserTimeZone();
@@ -199,6 +203,7 @@ export function notificationsTab(deps) {
               <div class="sv-custom-range"><label>High-interest threshold<input type="number" name="threshold" min="10" max="500" value="${esc(prefs.interest_threshold)}"/></label>
                 <label>Digest<select name="digest"><option value="off">Off</option><option value="daily" ${prefs.digest_frequency === 'daily' ? 'selected' : ''}>Daily</option><option value="weekly" ${prefs.digest_frequency === 'weekly' ? 'selected' : ''}>Weekly</option></select></label></div>
               <label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="inapp" ${prefs.in_app ? 'checked' : ''}/> In-app alerts</label>
+              <p class="sv-hint" data-inapp-hint role="status"></p>
               <label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" name="email" ${prefs.email ? 'checked' : ''}/> Email alerts</label>
               <p class="sv-hint">Email alerts go to the address on your account. Pushes and email follow the same quiet hours.</p>
               <button type="submit" class="sv-primary-btn">Save preferences</button> <span class="sv-hint" data-prefs-msg role="status"></span></form>`);

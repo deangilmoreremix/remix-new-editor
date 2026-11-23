@@ -325,6 +325,21 @@ describe('Notifications preferences: per-type push and quiet hours', () => {
     expect('push_types' in ups[1][2]).toBe(false);
     expect(panel.querySelector('[data-prefs-msg]').textContent).toMatch(/per-type push choices need a database update/i);
   });
+  it('with In-app alerts off the Push boxes are disabled and the form says no push or e-mail will be sent', async () => {
+    const { panel } = mount(notificationsTab, client({ prefs: { ...DEFAULT_PREFERENCES, push: true, in_app: true } }), usable());
+    await tick(12);
+    const inapp = panel.querySelector('[name=inapp]'); const hint = () => panel.querySelector('[data-inapp-hint]').textContent;
+    expect(row(panel, 'new_lead').push.disabled).toBe(false);
+    expect(panel.querySelector('[data-group-push]').disabled).toBe(false);
+    expect(hint()).toBe('');
+    change(inapp, false);
+    expect(row(panel, 'new_lead').push.disabled).toBe(true);
+    expect(panel.querySelector('[data-group-push]').disabled).toBe(true);
+    expect(hint()).toMatch(/In-app alerts is off.*no push or e-mail/);
+    change(inapp, true);
+    expect(row(panel, 'new_lead').push.disabled).toBe(false);
+    expect(hint()).toBe('');
+  });
   it('after saving, a redraw (Mark as read) shows the SAVED quiet hours and push choices, not the values from the first load', async () => {
     const unread = [{ id: 'n1', type: 'new_lead', title: 'New lead', summary: 's', interest: null, metrics: {}, read_at: null, created_at: '2026-11-10T10:00:00Z' }];
     const c = client({ notes: unread, prefs: { ...DEFAULT_PREFERENCES, push: true, enabled_types: ['new_lead', 'milestone'], push_types: null } });

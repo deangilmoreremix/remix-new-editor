@@ -36,11 +36,13 @@ import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
 import ExampleGallery from './studios/ExampleGallery.js';
 import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
-import { openSocialPublish } from '../lib/socialPublishHelpers.js';
+import { downloadMedia } from '../lib/resultActions/download.js';
+import { createResultBar } from './studio/resultBar.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
+import { openLandingPageFor } from './studio/landingPageAction.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -110,6 +112,9 @@ export function VideoStudio() {
 
     // Read gallery / deep-link params and apply them as studio defaults.
     // This lets "Create This Style" from ExampleGallery pre-fill the studio.
+    // The prompt textarea does not exist yet at this point, so the prompt is
+    // kept here and applied when the textarea is built (see videoPrefill below).
+    let deepLinkPrompt = '';
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const templateParam = urlParams.get('template');
@@ -146,10 +151,7 @@ export function VideoStudio() {
         // Academy / direct-studio deep-link.
         const target = academyParam ? getAcademyCreateTarget(academyParam) : null;
         const params = target?.params || {};
-        if (params.prompt) {
-          const textarea = document.getElementById('v-v-prompt-textarea');
-          if (textarea) textarea.value = params.prompt;
-        }
+        deepLinkPrompt = params.prompt || promptParam || '';
         if (params.style) selectedStyle = params.style;
         if (params.aspect_ratio) selectedAr = params.aspect_ratio;
         if (params.duration) selectedDuration = params.duration;
@@ -589,6 +591,7 @@ export function VideoStudio() {
             stagedAspectRatio = staged.params?.aspectRatio || null;
         }
     }
+    if (!videoPrefill && deepLinkPrompt) videoPrefill = deepLinkPrompt;
     if (videoPrefill) {
         textarea.value = videoPrefill;
         requestAnimationFrame(() => {
@@ -1619,15 +1622,11 @@ generateBtn.type = 'button';
 
     // Canvas Controls
     const canvasControls = document.createElement('div');
-    canvasControls.className = 'mt-6 flex gap-3 opacity-0 transition-opacity delay-500 duration-500 justify-center';
+    canvasControls.className = 'mt-6 flex flex-wrap gap-3 opacity-0 transition-opacity delay-500 duration-500 justify-center';
 
     const regenerateBtn = document.createElement('button');
     regenerateBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
     regenerateBtn.textContent = '↻ Regenerate';
-
-    const downloadBtn = document.createElement('button');
-    downloadBtn.className = 'btn-secondary-modern px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
-    downloadBtn.textContent = '↓ Download';
 
     const extendBtn = document.createElement('button');
     extendBtn.className = 'hidden bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-primary/30 text-primary backdrop-blur-lg';
@@ -1645,16 +1644,34 @@ generateBtn.type = 'button';
 
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(extendBtn);
-    canvasControls.appendChild(downloadBtn);
     canvasControls.appendChild(renderBtn);
     canvasControls.appendChild(newPromptBtn);
 
-    const publishBtn = document.createElement('button');
-    publishBtn.type = 'button';
-    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white px-6 py-2.5 rounded-2xl text-xs font-bold transition-all hover:shadow-glow';
-    publishBtn.textContent = 'Publish to Social';
+    // Shared result bar: Download MP4, Get link (file URL + /watch page) and Publish to Social. setUrl() keeps
+    // all three on the current video (including after captions).
+    const resultBar = createResultBar({ kind: 'video', filename: 'video', studio: 'video', extraActions: [{ id: 'video-landing-page', label: 'Create landing page', onClick: (url) => { if (url) void openLandingPageFor({ url, type: 'video', studio: 'video' }); } }] });
+    resultBar.el.classList.add('w-full');
+    canvasControls.appendChild(resultBar.el);
 
-    canvasControls.appendChild(publishBtn);
+    // The caption button is created once (it used to be added again on every result).
+    let captionSourceUrl = '';
+    const captionBtn = document.createElement('button');
+    captionBtn.type = 'button';
+    captionBtn.textContent = '💬 Add AI Captions';
+    captionBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
+    captionBtn.onclick = () => {
+        if (!captionSourceUrl) return;
+        addCaptionButton({
+            videoUrl: captionSourceUrl,
+            appTheme: 'video-studio',
+            onComplete: (captionedUrl) => {
+                resultVideo.src = captionedUrl;
+                resultBar.setUrl(captionedUrl);
+                showToast('Preview updated with captions');
+            },
+        });
+    };
+    canvasControls.insertBefore(captionBtn, resultBar.el);
 
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
@@ -1679,23 +1696,12 @@ generateBtn.type = 'button';
             canvasControls.classList.remove('opacity-0');
             canvasControls.classList.add('opacity-100');
         };
-        publishBtn.onclick = () => { const url = resultVideo.src; if (url) openSocialPublish({ mediaUrl: url, mediaType: 'video' }); };
-
-        const captionBtn = document.createElement('button');
-        captionBtn.type = 'button';
-        captionBtn.textContent = '💬 Add AI Captions';
-        captionBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
-        captionBtn.onclick = () => {
-          addCaptionButton({
-            videoUrl,
-            appTheme: 'video-studio',
-            onComplete: (captionedUrl) => {
-              resultVideo.src = captionedUrl;
-              showToast('Preview updated with captions');
-            },
-          });
-        };
-        canvasControls.appendChild(captionBtn);
+        captionSourceUrl = videoUrl;
+        const shownEntry = generationHistory.find((e) => e.url === videoUrl);
+        resultBar.setUrl(videoUrl, {
+            filename: `video-${shownEntry?.id || lastGenerationId || 'clip'}`,
+            title: String(shownEntry?.prompt || '').replace(/\s+/g, ' ').trim().slice(0, 80) || 'AI video',
+        });
     };
 
     // --- Helper: Add to history ---
@@ -1780,20 +1786,8 @@ generateBtn.type = 'button';
 
     // --- Helper: Download file ---
     const downloadFile = async (url, filename) => {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(blobUrl);
-        } catch (err) {
-            window.open(url, '_blank');
-        }
+        const result = await downloadMedia(url, { filename: String(filename || 'video').replace(/\.[a-z0-9]+$/i, ''), kind: 'video' });
+        if (!result.ok || result.method === 'tab') showToast(result.message);
     };
 
     // --- Load history from localStorage ---
@@ -1808,14 +1802,6 @@ generateBtn.type = 'button';
     } catch (e) { /* ignore */ }
 
     // --- Button Handlers ---
-    downloadBtn.onclick = () => {
-        const current = resultVideo.src;
-        if (current) {
-            const entry = generationHistory.find(e => e.url === current);
-            downloadFile(current, `video-${entry?.id || 'clip'}.mp4`);
-        }
-    };
-
     regenerateBtn.onclick = () => generateBtn.click();
 
     // Open in Render: persist the current generation to the asset store

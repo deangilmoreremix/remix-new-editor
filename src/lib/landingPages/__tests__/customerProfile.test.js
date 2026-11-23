@@ -1,3 +1,4 @@
+import { PUBLIC_TOKEN_KEYS } from '../templates.js';
 import { describe, it, expect } from 'vitest';
 import { normalizeCustomer, mergeCustomer, dedupeCustomers, customerTokens, toContactFields, applyCustomerToEditor, brandForConfig, websiteUrl, httpsUrl, hexColor } from '../customerProfile.js';
 import { EDITABLE_TEMPLATES } from '../editor/designs.js';
@@ -76,7 +77,9 @@ describe('dedupe keeps distinct people', () => {
 describe('tokens and contact row', () => {
   const c = normalizeCustomer(CLIENT, 'client', { assets: ASSETS });
   it('customerTokens only returns the public page tokens', () => {
-    expect(Object.keys(customerTokens(c)).sort()).toEqual(['city', 'company', 'companylogo', 'custom1', 'custom2', 'firstname', 'lastname']); // custom1/custom2 = city / the person, for designs that read those
+    const keys = Object.keys(customerTokens(c));
+    expect(keys.sort()).toEqual(expect.arrayContaining(['city', 'company', 'companylogo', 'custom1', 'custom2', 'firstname', 'lastname'])); // custom1/custom2 = city / the person, for designs that read them
+    keys.forEach((k) => expect(PUBLIC_TOKEN_KEYS).toContain(k)); // never anything a viewer may not see (no email)
   });
   it('toContactFields keeps the email (owner only) and skips customers with nothing to personalize', () => {
     expect(toContactFields(c).email).toBe('dana@riversideplumbing.com');

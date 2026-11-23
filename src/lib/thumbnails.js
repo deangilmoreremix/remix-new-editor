@@ -333,7 +333,7 @@ const STUDIO_THUMBNAILS = {
 };
 
 const HERO_THUMBNAILS = {
-  zackd: '/zackd/templates/swallow-gum/keyframes/beat_1_a.png', // a keyframe from the Zack D template (tracked in git; *.jpg is gitignored)
+  zackd: '/thumbnails/heroes/zackd.webp',
   image: '/thumbnails/heroes/image.webp',
   video: '/thumbnails/heroes/video.webp',
   videoagent: '/thumbnails/heroes/videoagent.webp.png',
@@ -372,6 +372,7 @@ const HERO_THUMBNAILS = {
 // Where to aim the banner crop (CSS object-position) per page. The default is the
 // centre; pages whose picture has its subject elsewhere are listed here.
 const BANNER_FOCUS = {
+  zackd: '50% 19%', // portrait 9:16 keyframe in a wide banner: frame the head and the title card, not the torso
   // Apps-page (studios/) pictures are ~1.8:1 and the banner box ~2.4:1, so only a
   // little is cropped; aim at the subject.
   character: '50% 25%', // faces are in the upper half
@@ -719,13 +720,17 @@ export function createStudioHeader(studioId, title, subtitle = '', className = '
     const img = createThumbnailImg(src, '', 'absolute inset-0 w-full h-full object-cover');
     img.style.objectPosition = BANNER_FOCUS[studioId] || '50% 50%';
     pic.appendChild(img);
-    const seam = document.createElement('div');
-    seam.className = 'absolute inset-y-0 left-0 w-20 hidden md:block pointer-events-none bg-gradient-to-r from-[#0d0d10]/90 to-transparent';
-    pic.appendChild(seam);
+    // Fade the picture's left edge to transparent so it dissolves into the blurred backdrop
+    // (a solid dark overlay showed as a hard edge against the lighter backdrop). md+ only.
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 768px)').matches) {
+      const fade = 'linear-gradient(to right, transparent 0, #000 140px)';
+      pic.style.webkitMaskImage = fade;
+      pic.style.maskImage = fade;
+    }
     wrapper.appendChild(pic);
   }
-  // Mobile: lift the title off the picture. Desktop: only a short fade at the picture's
-  // left edge (the seam above), nothing over the picture itself.
+  // Mobile: lift the title off the picture. Desktop: the picture's left edge is masked to
+  // transparent (above), nothing over the picture itself.
   const shade = document.createElement('div');
   shade.className = 'absolute inset-0 pointer-events-none bg-gradient-to-t from-black/80 via-black/30 to-transparent md:hidden';
   wrapper.appendChild(shade);

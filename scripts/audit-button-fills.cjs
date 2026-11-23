@@ -14,7 +14,7 @@ try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require(
 const fs = require('fs');
 const BASE = process.env.BASE || 'http://127.0.0.1:5197/';
 const OUT = process.env.OUT || 'button-fill-audit.json';
-const NAV = (process.env.NAV || 'explore,image,video,cinema,storyboard,edit,upscale,character,commercial,apps,templates,brand,viral,avatar,audio,lipsync,photo-studio,personalizer,contacts,social').split(',');
+const NAV = (process.env.NAV || 'explore,image,video,cinema,storyboard,edit,upscale,character,commercial,apps,templates,brand,muapi-studio,viral,avatar,audio,lipsync,photo-studio,personalizer,contacts,social').split(',');
 const probeInline = () => {
   const out = [];
   for (const el of document.querySelectorAll('button[style*="background"], [role=button][style*="background"]')) {
