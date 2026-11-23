@@ -3,12 +3,12 @@
 # Mount ONE persistent disk at /data (downloads in /data/downloads, database and settings in /data/smartvid).
 # Run exactly one instance: SQLite, the task queue and live AI runs are in-process.
 
-FROM node:22-alpine AS api-builder
+FROM node:22-bookworm AS api-builder
 ENV PNPM_HOME=/pnpm
 ENV PATH=${PNPM_HOME}:${PATH}
 ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
 ENV HUSKY=0
-RUN apk add --no-cache python3 make g++ && corepack enable
+RUN corepack enable
 WORKDIR /app
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY patches patches
@@ -32,7 +32,7 @@ COPY packages/transcription packages/transcription
 RUN pnpm --filter ./apps/api run build
 RUN pnpm --filter ./apps/api deploy --prod --legacy --config.allowUnusedPatches=true /prod/api
 
-FROM node:22-alpine AS web-builder
+FROM node:22-bookworm AS web-builder
 ENV PNPM_HOME=/pnpm
 ENV PATH=${PNPM_HOME}:${PATH}
 RUN corepack enable
@@ -55,9 +55,9 @@ COPY packages/ui packages/ui
 RUN pnpm --filter ./apps/web run build
 RUN mkdir -p /prod/web/node_modules/@smartvid && cp -RL packages/logger /prod/web/node_modules/@smartvid/logger
 
-FROM node:22-alpine AS runner
+FROM node:22-bookworm-slim AS runner
 ENV NODE_ENV=production
-ENV YTDLP_PATH=/usr/bin/yt-dlp
+ENV YTDLP_PATH=/usr/local/bin/yt-dlp
 ENV FFMPEG_PATH=/usr/bin/ffmpeg
 ENV SMARTVID_API_HOST=127.0.0.1
 ENV SMARTVID_API_PORT=3100
@@ -74,8 +74,14 @@ ENV SMARTVID_WEB_PORT=3000
 # Behind a platform URL the host name is not localhost: do not reject it.
 ENV SMARTVID_ALLOWED_HOSTS=*
 
-RUN apk add --no-cache yt-dlp ffmpeg wget
-RUN apk add --no-cache fontconfig font-dejavu || apk add --no-cache fontconfig ttf-dejavu
+# Debian (glibc) on purpose: the server-side speech recognition library only ships glibc builds, and yt-dlp's
+# standalone build runs here, so it can also update itself. Fonts let ffmpeg's subtitles filter draw burned-in subtitles.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ffmpeg fontconfig fonts-dejavu-core wget ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && wget -q -O /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux \
+ && chmod 755 /usr/local/bin/yt-dlp \
+ && /usr/local/bin/yt-dlp --version
 
 WORKDIR /app
 COPY --from=api-builder /prod/api/node_modules ./api/node_modules
