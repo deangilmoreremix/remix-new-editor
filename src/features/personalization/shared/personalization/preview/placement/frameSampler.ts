@@ -7,6 +7,7 @@
  * codec, timeout) the sampler returns `null`, and the quality check reports
  * "readability not verified" instead of guessing.
  */
+import { toPlayablePreviewMediaUrl } from '../remoteMedia'
 import type { LumaSample } from './types'
 
 /** sRGB luma (Rec. 709 weights) of an RGBA buffer, as a cols×rows grid in 0..1. */
@@ -108,7 +109,8 @@ export async function sampleFrames(
   video.muted = true
   video.preload = 'auto'
   video.playsInline = true
-  video.src = url
+  // Same-origin proxy for hosts that refuse cross-site reads (e.g. video.twimg.com); other URLs are unchanged.
+  video.src = toPlayablePreviewMediaUrl(url)
   try {
     const ready = await new Promise<boolean>((resolve) => {
       const timer = setTimeout(() => resolve(false), timeoutMs)

@@ -143,6 +143,10 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
             const w = Math.max(24, (o.end - o.start) * pxPerSecond);
             const thumb = overlayThumb(o);
             const text = overlayText(o, contact.profile);
+            // what fits in the block: a picture + text when wide, text alone when medium, just an icon when narrow (the title still says everything)
+            const glyph = o.type === ('overlay-image' as OverlayKind) && thumb ? undefined : GLYPHS[o.type as string];
+            const roomy = w >= 190;
+            const showText = w >= 90;
             return (
               <div key={o.id} role="button" tabIndex={0} data-testid={`overlay-card-${o.id}`}
                 className={`overlay-lane__item overlay-card${on ? ' overlay-lane__item--selected overlay-card--selected' : ''}${open ? '' : ' overlay-card--compact'}`}
@@ -151,13 +155,17 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
                 onKeyDown={(e) => { if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); onRemove(o.id); } }}
                 style={{ left: o.start * pxPerSecond, width: w, top: 4 + row * rowH, height: rowH - 6, bottom: 'auto' }}>
                 {!gate && <span className="overlay-card__handle overlay-card__handle--start" onPointerDown={(e) => begin(e, o, 'start')} />}
-                {open && o.type === ('overlay-lower-third' as OverlayKind) && <LowerThirdThumb clip={o} profile={contact.profile} version={contact.version} />}
-                {open && !thumb && o.type !== ('overlay-lower-third' as OverlayKind) && <OverlayStill clip={o} profile={contact.profile} version={contact.version} />}
-                {open && thumb && <img className="overlay-card__thumb" src={thumb} alt="" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
-                <span className="overlay-card__body">
-                  <span className="overlay-card__name">{gate ? `🔒 ${o.name}` : o.name}</span>
-                  {open && <span className="overlay-card__meta">{text || `${o.start.toFixed(1)}s – ${o.end.toFixed(1)}s`}</span>}
-                </span>
+                {open && roomy && o.type === ('overlay-lower-third' as OverlayKind) && <LowerThirdThumb clip={o} profile={contact.profile} version={contact.version} />}
+                {open && roomy && glyph && <span className="overlay-card__thumb" aria-hidden="true" style={GLYPH_BOX}>{glyph}</span>}
+                {open && roomy && !glyph && !thumb && o.type !== ('overlay-lower-third' as OverlayKind) && <OverlayStill clip={o} profile={contact.profile} version={contact.version} />}
+                {open && roomy && !glyph && thumb && <img className="overlay-card__thumb" src={thumb} alt="" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
+                {open && !roomy && !showText && <span className="overlay-card__thumb" aria-hidden="true" style={{ ...GLYPH_BOX, aspectRatio: '1 / 1' }}>{glyph ?? '▭'}</span>}
+                {showText && (
+                  <span className="overlay-card__body">
+                    <span className="overlay-card__name">{gate ? `🔒 ${o.name}` : o.name}</span>
+                    {open && <span className="overlay-card__meta">{text || `${o.start.toFixed(1)}s – ${o.end.toFixed(1)}s`}</span>}
+                  </span>
+                )}
                 {!gate && (
                   <button type="button" className="overlay-lane__remove" title="Remove overlay" aria-label="Remove overlay"
                     onPointerDown={(e) => e.stopPropagation()}
@@ -173,11 +181,15 @@ export function OverlayLane({ overlays, pxPerSecond, scrollLeft, labelWidth, seq
   );
 }
 
-/** A small still of an overlay that ships no thumbnail (lead form, list builder, call-to-action, text, stickers, end screens...), drawn
- *  with the same live renderer as the Add window's cards. Only drawn while on screen, and from a shared pool, so a long lane stays cheap. */
+/** Overlays with nothing meaningful to draw as a still (playback controls, a full-frame colour, see-through text, an Image with no picture yet) get an icon instead of a blank picture. */
+const GLYPHS: Record<string, string> = { 'addon-pause': '⏸', 'addon-skip': '⏭', 'addon-loop': '🔁', 'overlay-text-mask': '🔠', 'overlay-background': '🟪', 'overlay-image': '🖼️' };
+const GLYPH_BOX = { display: 'grid', placeItems: 'center', fontSize: 20, lineHeight: 1, background: STAGE_BG } as const;
+
 /** The live stage is drawn at a normal card size and scaled down to fit the block: drawn directly into the small box it was cropped to a corner of the form. */
 const STILL_W = 480;
 const STILL_H = 270;
+/** A small still of an overlay that ships no thumbnail (lead form, list builder, call-to-action, text, stickers, end screens...), drawn
+ *  with the same live renderer as the Add window's cards. Only drawn while on screen, and from a shared pool, so a long lane stays cheap. */
 function OverlayStill({ clip, profile = null, version = 0 }: { clip: OverlayClip; profile?: ContactProfile | null; version?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const visible = useInView(ref);
@@ -251,8 +263,9 @@ function overlayThumb(o: OverlayClip): string | null {
 function overlayText(o: OverlayClip, profile: ContactProfile | null = null): string {
   const props = (o.props && typeof o.props === 'object' ? (o.props as Record<string, unknown>) : {});
   const addon = (o.addon && typeof o.addon === 'object' ? (o.addon as Record<string, unknown>) : {}); // Smart Text and the other add-ons keep their options here
-  for (const src of [o, props, addon]) {
-    for (const k of ['text', 'title', 'headline', 'heading', 'label', 'buttonText', 'name1', 'line1']) {
+  const config = (o.config && typeof o.config === 'object' ? (o.config as Record<string, unknown>) : {}); // the List Builder keeps its options here
+  for (const src of [o, props, addon, config]) {
+    for (const k of ['text', 'title', 'headline', 'heading', 'caption', 'label', 'buttonText', 'name1', 'line1']) {
       const v = (src as Record<string, unknown>)[k];
       if (typeof v === 'string' && v.trim() && v !== o.name) return String(resolveOverlayText(v.trim(), profile)).slice(0, 80);
     }

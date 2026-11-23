@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 const live = vi.hoisted(() => ({ start: null }));
 vi.mock('../live.js', async (orig) => ({ ...(await orig()), liveSpeechSupported: () => true, startLiveCaptions: (...a) => live.start(...a) }));
 
-import { CaptionStudioModal } from '../modal.js';
+import { CaptionStudioModal, surfaceTheme } from '../modal.js';
 import { burnWithRecorder } from '../burn.js';
 
 const words = (...t) => t.map((text, i) => ({ text: (i ? ' ' : '') + text, startMs: i * 400, endMs: i * 400 + 400, timestampMs: i * 400 + 200, confidence: null }));
@@ -116,5 +116,21 @@ describe('rendering by recording: the wait for the video to open', () => {
     await vi.advanceTimersByTimeAsync(20001);
     await assertion;
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test');
+  });
+});
+
+describe('host surface theme', () => {
+  it('applies the host surfaces to the dialog and keeps defaults otherwise', () => {
+    const m = open({ accentColor: '#22d3ee', theme: { bg: '#0a0a0a', card: 'rgba(17, 17, 17, 1)', line: 'rgba(255,255,255,0.08)' } });
+    const style = document.querySelector('.csm-dialog').getAttribute('style');
+    expect(style).toContain('--app-primary:#22d3ee');
+    expect(style).toContain('--bg:#0a0a0a');
+    expect(style).toContain('--card:rgba(17, 17, 17, 1)');
+    expect(style).not.toContain('--ink');
+    m.close?.();
+  });
+  it('drops anything that is not a plain colour', () => {
+    expect(surfaceTheme({ bg: 'red;background:url(x)', card: 'url(javascript:1)', ink: '#fff', mute: '"><script>', nope: '#000', line: 'var(--x)' })).toEqual({ ink: '#fff' });
+    expect(surfaceTheme(null)).toEqual({});
   });
 });

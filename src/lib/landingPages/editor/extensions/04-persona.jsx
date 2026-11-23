@@ -78,7 +78,7 @@ function PersonaTestimonials({ eyebrow, title, quotes }) {
         const img = art(q.photo);
         return (
           <figure key={i} className="ps-quote">
-            {img ? <img src={img} alt="" width="87" height="87" loading="lazy" /> : null}
+            {img ? <img src={img} alt={t(q.photoAlt) || ''} width="87" height="87" loading="lazy" /> : null}
             <div>
               <blockquote>{`“${t(q.text)}”`}</blockquote>
               <figcaption><b>{t(q.name)}</b><span>{t(q.role)}</span></figcaption>
@@ -125,7 +125,7 @@ function PersonaResources({ cards }) {
         const signup = c.action === 'signup';
         return (
           <article key={i} className="ps-card">
-            {img ? <img className="ps-card-img" src={img} alt="" loading="lazy" /> : <span className="ps-card-img" />}
+            {img ? <img className="ps-card-img" src={img} alt={t(c.imageAlt) || ''} loading="lazy" /> : <span className="ps-card-img" />}
             <div className="ps-card-body">
               {c.eyebrow ? <span className="ps-eyebrow">{t(c.eyebrow)}</span> : null}
               <h3>{t(c.title)}</h3>
@@ -183,7 +183,7 @@ export const components = {
     fields: {
       eyebrow: T('Small label'),
       title: T('Heading'),
-      quotes: { type: 'array', label: 'Testimonials', arrayFields: { photo: T('Portrait (https link or /landing-art path)'), text: A('Quote'), name: T('Name'), role: T('Role / company') }, getItemSummary: (i) => i.name || 'Testimonial', defaultItemProps: { photo: '', text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company' } },
+      quotes: { type: 'array', label: 'Testimonials', arrayFields: { photo: T('Portrait (https link or /landing-art path)'), photoAlt: T('Screen-reader description (alt text)'), text: A('Quote'), name: T('Name'), role: T('Role / company') }, getItemSummary: (i) => i.name || 'Testimonial', defaultItemProps: { photo: '', text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company' } },
     },
     defaultProps: {
       eyebrow: 'RESULTS OUR CLIENTS LOVE',
@@ -218,7 +218,7 @@ export const components = {
   PersonaResources: {
     label: 'Persona: two photo cards',
     fields: {
-      cards: { type: 'array', label: 'Cards', arrayFields: { image: T('Photo (https link or /landing-art path)'), eyebrow: T('Small label'), title: T('Title'), text: A('Text'), buttonLabel: T('Button text'), buttonUrl: T('Button link (https, mailto:, tel: or #lead)'), action: { type: 'radio', label: 'Button does', options: [{ label: 'Open a link', value: 'link' }, { label: 'Email sign-up (box + button)', value: 'signup' }] }, icon: { type: 'radio', label: 'Button icon', options: [{ label: 'Download', value: 'download' }, { label: 'Envelope', value: 'mail' }] }, placeholder: T('Email box hint (sign-up only)') }, getItemSummary: (i) => i.title || 'Card', defaultItemProps: { image: '', eyebrow: '', title: 'Title', text: '', buttonLabel: 'Learn more', buttonUrl: '#lead', action: 'link', icon: 'mail', placeholder: 'Your email address' } },
+      cards: { type: 'array', label: 'Cards', arrayFields: { image: T('Photo (https link or /landing-art path)'), imageAlt: T('Screen-reader description (alt text)'), eyebrow: T('Small label'), title: T('Title'), text: A('Text'), buttonLabel: T('Button text'), buttonUrl: T('Button link (https, mailto:, tel: or #lead)'), action: { type: 'radio', label: 'Button does', options: [{ label: 'Open a link', value: 'link' }, { label: 'Email sign-up (box + button)', value: 'signup' }] }, icon: { type: 'radio', label: 'Button icon', options: [{ label: 'Download', value: 'download' }, { label: 'Envelope', value: 'mail' }] }, placeholder: T('Email box hint (sign-up only)') }, getItemSummary: (i) => i.title || 'Card', defaultItemProps: { image: '', eyebrow: '', title: 'Title', text: '', buttonLabel: 'Learn more', buttonUrl: '#lead', action: 'link', icon: 'mail', placeholder: 'Your email address' } },
     },
     defaultProps: {
       cards: [

@@ -2,6 +2,17 @@
 import { getStudioLabel, getNavItemForRoute } from '../../lib/studioRoutes.js';
 import { STUDIO_ACADEMY, TRACK_TITLES } from '../../data/askAcademyMap.js';
 import JOURNEYS from '../../data/askJourneyList.json';
+import GUIDE_INDEX from '../../data/studioGuideIndex.json';
+
+// Every studio knowledge file (askKb/<route>.json) by route, name only (tree-shaken), so the
+// assistant knows each page's studio even when it has no public guide page.
+const KB_NAMES = Object.fromEntries(Object.entries(import.meta.glob(['../../data/askKb/*.json', '!../../data/askKb/_*.json'], { eager: true, import: 'name' }))
+  .map(([file, name]) => [file.split('/').pop().replace(/\.json$/, ''), name])
+  .filter(([route]) => !route.startsWith('_')));
+// App routes that have their own studio guide or knowledge file.
+const GUIDE_ROUTES = new Set([...Object.keys(KB_NAMES), ...GUIDE_INDEX.flatMap((c) => c.guides.map((g) => g.route))]);
+/** Studio name for a route: the app menu label, else the knowledge file's name. */
+export const studioLabel = (id) => { const l = getStudioLabel(id); return l !== id ? l : KB_NAMES[id] || id; };
 
 export const ENDPOINT = '/api/ask-smartvideo';
 
@@ -64,7 +75,12 @@ export function parseSSE(buffer) {
 }
 
 // Pages that belong to a studio's guide without being a side-menu item or having the studio's own id.
-const GUIDE_ALIASES = { 'timeline-classic': 'timeline', openthorn: 'website-builder' };
+const GUIDE_ALIASES = {
+  'timeline-classic': 'timeline', openthorn: 'website-builder',
+  brightbean: 'smart-video-scheduler', 'brand-photo-studio': 'photo-studio',
+  'video-agent-studio': 'video-agent', 'zackd-studio': 'zackd', 'campaign-page': 'campaign',
+  smartviddownloader: 'media-hub',
+};
 
 /**
  * Which studio guide applies to the page the user is on. The side menu knows most studios, but
@@ -72,10 +88,13 @@ const GUIDE_ALIASES = { 'timeline-classic': 'timeline', openthorn: 'website-buil
  * menu items, so fall back to any studio that has a guide.
  */
 export function studioForRoute(route) {
-  const nav = getNavItemForRoute(route);
-  if (nav) return nav;
   const page = String(route || '').replace(/^#?\/?/, '').split('?')[0];
   const first = page.split('/')[0];
+  // A page with its own guide uses it, even if the side menu files it under another studio.
+  const own = GUIDE_ALIASES[first] || first;
+  if (GUIDE_ROUTES.has(own) && own !== 'apps') return own;
+  const nav = getNavItemForRoute(route);
+  if (nav) return nav;
   const id = GUIDE_ALIASES[first] || first.replace(/-page$/, '');
   return Object.prototype.hasOwnProperty.call(STUDIO_ACADEMY, id) ? id : null;
 }
@@ -89,7 +108,7 @@ export const journeyPrompts = () => JOURNEYS.map((j) => ({ id: j.id, title: j.ti
 export function starterPrompts(studioId) {
   if (!studioId || studioId === 'apps') return GENERIC;
   if (studioId === 'academy') return ['How do the Academy tracks work?', 'Which Academy track should I start with?', 'How do I save my progress in a lesson?'];
-  const label = getStudioLabel(studioId);
+  const label = studioLabel(studioId);
   if (label === studioId) return GENERIC;
   const out = [`How do I use ${label} step by step?`, `What inputs does ${label} need?`];
   out.push(STUDIO_ACADEMY[studioId]?.lessons?.length ? `Which Academy lessons cover ${label}?` : `What should I do if ${label} fails?`);
@@ -100,7 +119,7 @@ export function starterPrompts(studioId) {
 export function chipFor(s) {
   if (String(s.url).startsWith('#/academy')) return { label: 'Academy: ' + String(s.title).split(' — ')[0], url: s.url };
   if (s.kind === 'model') return { label: 'Models', url: s.url };
-  if (s.kind === 'studio' && s.studioId) return { label: `Open ${getStudioLabel(s.studioId)}`, url: s.url };
+  if (s.kind === 'studio' && s.studioId) return { label: `Open ${studioLabel(s.studioId)}`, url: s.url };
   return { label: String(s.title).split(' — ')[0], url: s.url };
 }
 
@@ -116,13 +135,19 @@ export function pickChips(answer, sources) {
       // A walkthrough: one chip per studio on the path (in order), then its Academy course.
       for (const id of (s.studios || []).slice(0, 5)) {
         const url = `#/${id}`;
-        if (!seen.has(url)) { seen.add(url); chips.push({ label: `Open ${getStudioLabel(id)}`, url }); }
+        if (!seen.has(url)) { seen.add(url); chips.push({ label: `Open ${studioLabel(id)}`, url }); }
       }
       if (s.guideUrl && !seen.has(s.guideUrl)) { seen.add(s.guideUrl); chips.push({ label: 'Academy course', url: s.guideUrl, academy: true }); }
       continue;
     }
     const c = chipFor(s);
     if (!seen.has(c.url)) { seen.add(c.url); chips.push(c); }
+    // The public feature guide (or the exact feature section of it) for this source.
+    if (s.kind === 'studio' && String(s.guideUrl || '').startsWith('/studios/')) {
+      const url = s.guideUrl;
+      const base = url.split('#')[0];
+      if (!seen.has(url) && !seen.has(base)) { seen.add(url); chips.push({ label: url.includes('#feature-') ? 'Feature guide' : 'Studio guide', url, guide: true }); }
+    }
     const g = s.studioId && STUDIO_ACADEMY[s.studioId]?.lessons?.[0];
     if (s.kind === 'studio' && g) {
       const url = '#/academy/track/' + g.track;

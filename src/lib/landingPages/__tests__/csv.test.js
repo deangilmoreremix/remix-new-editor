@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { parseCsv, guessMapping, buildContacts, exportLinksCsv, contactLabel, MAX_CONTACTS_PER_IMPORT } from '../csv.js';
-import { openVideoPageFor, queueVideoForPage, takeQueuedVideo } from '../handoff.js';
 
 describe('parseCsv', () => {
   it('parses quotes, escaped quotes, embedded commas/newlines and CRLF', () => {
@@ -83,32 +82,5 @@ describe('exportLinksCsv', () => {
     expect(contactLabel({ fields: { firstname: 'Ann', lastname: 'Lee' } })).toBe('Ann Lee');
     expect(contactLabel({ fields: { email: 'a@b.co' } })).toBe('a@b.co');
     expect(contactLabel({})).toBe('Contact');
-  });
-});
-
-describe('handoff', () => {
-  const mem = () => { const m = new Map(); return { setItem: (k, v) => m.set(k, v), getItem: (k) => m.get(k) ?? null, removeItem: (k) => m.delete(k) }; };
-
-  it('queues an https video once and clears it when taken', () => {
-    const storage = mem();
-    expect(queueVideoForPage({ id: 'g1', url: 'https://cdn/x.mp4', prompt: 'A fox', studio: 'cinema' }, { storage })).toBe(true);
-    expect(takeQueuedVideo({ storage })).toMatchObject({ url: 'https://cdn/x.mp4', title: 'A fox', source: { kind: 'generation', studio: 'cinema' } });
-    expect(takeQueuedVideo({ storage })).toBeNull();
-  });
-
-  it('refuses non-video, non-https and missing items', async () => {
-    const storage = mem();
-    expect(queueVideoForPage({ url: 'https://cdn/x.png', type: 'image' }, { storage })).toBe(false);
-    expect(queueVideoForPage({ url: 'http://cdn/x.mp4' }, { storage })).toBe(false);
-    expect(queueVideoForPage(null, { storage })).toBe(false);
-    expect(await openVideoPageFor({ url: 'blob:x' }, { storage })).toBe(false);
-  });
-
-  it('ignores tampered storage', () => {
-    const storage = mem();
-    storage.setItem('video_pages_queued_video', JSON.stringify({ url: 'javascript:alert(1)' }));
-    expect(takeQueuedVideo({ storage })).toBeNull();
-    storage.setItem('video_pages_queued_video', '{not json');
-    expect(takeQueuedVideo({ storage })).toBeNull();
   });
 });

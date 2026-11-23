@@ -1,0 +1,80 @@
+/* Accent used by the Video Pages picker and editor chrome. This is the ONLY place a repo sets its accent:
+   remix-new-editor = lime; OpenHiggsBolt sets its own cyan / purple in its copy of this file. */
+:root {
+  --lp-accent: #d9ff00;
+  --lp-accent-hover: #c4e600;
+  --lp-on-accent: #050505;
+}
+
+/* Dark remix-new-editor skin for the page editor's own chrome (sidebars, fields, buttons).
+   Scoped to .rx-editor so it never touches the landing pages themselves (they keep their own designs). */
+.rx-editor {
+  /* Our own names for the few colors the editor's custom fields use (so no component code needs the library's variable names). */
+  --lp-field-border: #232326;
+  --lp-field-bg: #0f0f10;
+  --lp-field-bg-alt: #141414;
+  --lp-field-text: #fafafa;
+  --puck-color-white: #0a0a0a;
+  --puck-color-black: #ffffff;
+  --puck-color-grey-01: #fafafa;
+  --puck-color-grey-02: #e4e4e7;
+  --puck-color-grey-03: #d4d4d8;
+  --puck-color-grey-04: #a1a1aa;
+  --puck-color-grey-05: #71717a;
+  --puck-color-grey-06: #52525b;
+  --puck-color-grey-07: #3f3f46;
+  --puck-color-grey-08: #2a2a2e;
+  --puck-color-grey-09: #232326;
+  --puck-color-grey-10: #1a1a1d;
+  --puck-color-grey-11: #141414;
+  --puck-color-grey-12: #0f0f10;
+  --puck-color-azure-01: #f7ffcc;
+  --puck-color-azure-02: #efff99;
+  --puck-color-azure-03: #e6ff66;
+  --puck-color-azure-04: #d9ff00;
+  --puck-color-azure-05: #c4e600;
+  --puck-color-azure-06: #a8c400;
+  --puck-color-azure-07: #8aa300;
+  --puck-color-azure-08: #6b7d00;
+  --puck-color-azure-09: #4d5a00;
+  --puck-color-azure-10: #353e00;
+  --puck-color-azure-11: #252c00;
+  --puck-color-azure-12: #1a1f00;
+  --puck-color-interactive: var(--lp-accent);
+  --puck-color-interactive-hover: #e6ff66;
+  --puck-color-interactive-active: #efff99;
+  --puck-color-focus-ring: var(--lp-accent);
+  --puck-color-rose-07: var(--lp-accent-hover);
+  --puck-color-highlight: var(--lp-accent-hover);
+  /* Puck resolves its semantic tokens at :root, so they are set here directly. */
+  --puck-color-surface: #0a0a0a;
+  --puck-color-surface-muted: #141414;
+  --puck-color-surface-subtle: #0f0f10;
+  --puck-color-surface-inverse: #fafafa;
+  --puck-color-border: #232326;
+  --puck-color-border-hover: #52525b;
+  --puck-color-border-muted: #1a1a1d;
+  --puck-color-border-inverse: #52525b;
+  --puck-color-text: #fafafa;
+  --puck-color-text-primary: var(--lp-accent);
+  --puck-color-text-secondary: #a1a1aa;
+  --puck-color-text-muted: #71717a;
+  --puck-color-text-subtle: #52525b;
+  --puck-color-text-inverse: #050505;
+  --puck-color-text-disabled: #52525b;
+  --puck-color-bg-disabled: #27272a;
+  --puck-color-interactive-subtle: rgba(217, 255, 0, 0.15);
+  --puck-color-interactive-soft: rgba(217, 255, 0, 0.08);
+  --puck-color-interactive-soft-hover: rgba(217, 255, 0, 0.14);
+  --puck-color-interactive-neutral-hover: #1a1a1d;
+  --puck-color-interactive-inverse-hover: var(--lp-accent-hover);
+  --puck-color-interactive-inverse-active: #8aa300;
+  --puck-color-selection-bg: rgba(217, 255, 0, 0.18);
+  --puck-color-selection-border: var(--lp-accent);
+  --puck-color-line-placeholder: var(--lp-accent);
+  --puck-color-overlay-backdrop: rgba(0, 0, 0, 0.75);
+  --puck-font-family: 'Inter', system-ui, sans-serif;
+  color: #fafafa;
+  background: #0a0a0a;
+}
+.rx-editor button[type="submit"], .rx-editor [class*="Button--primary"] { color: var(--lp-on-accent); font-weight: 800; }

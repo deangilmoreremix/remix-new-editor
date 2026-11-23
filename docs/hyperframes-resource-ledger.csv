@@ -81,18 +81,18 @@ chat-message,component,verified-export,yes,yes,no,0.974,4,SSIM >= 0.95 at all sa
 chat-thread,component,specialized,no,no,no,0.615,,worst-sample SSIM 0.615: content differs from native
 chatgpt-exchange,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.894; exports, with visible differences"
 chromatic-aberration-wipe,component,verified-export,yes,no,no,1.0,,export throughput 4.4 fps < 8
-chromatic-radial-split,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+chromatic-radial-split,block,verified-export,yes,yes,no,0.979,2,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 chrome-orb,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline chrome-orb: no __timelines entry (data-no-timeline block)
 cinemagraph,block,verified-export,yes,no,no,,,video element; unseeded Math.random; no editable fields detected; not yet rendered through the production adapter path
-cinematic-zoom,block,verified-export,yes,no,no,,,WebGL; export throughput 5.6 fps < 8.0; no editable fields detected; not yet rendered through the production adapter path
+cinematic-zoom,block,verified-export,yes,yes,no,0.978,4,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 claude-exchange,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.900; exports, with visible differences"
-code-3d-extrude,block,verified-export,yes,no,no,,,WebGL; three.js; no editable fields detected; not yet rendered through the production adapter path
+code-3d-extrude,block,verified-export,yes,yes,no,1.0,0,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 code-diff,block,verified-export,yes,yes,no,0.995,1,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
 code-highlight,block,verified-export,yes,yes,no,1.0,1,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
 code-morph,block,verified-export,yes,yes,no,0.999,1,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
 code-particle-assemble,block,verified-export,yes,no,no,,,WebGL; three.js; no editable fields detected; not yet rendered through the production adapter path
 code-scroll,block,verified-export,yes,no,no,1.0,,export throughput 4.5 fps < 8
-code-shader-dissolve,block,verified-export,yes,no,no,,,WebGL; three.js; no editable fields detected; not yet rendered through the production adapter path
+code-shader-dissolve,block,verified-export,yes,yes,no,0.999,0,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 code-slice-hero,block,verified-export,yes,yes,no,,6,SSIM >= 0.95 at all samples against native HyperFrames (block loaded from its own pinned folder); real 1080p browser export OK
 code-snippet-apple-terminal-pro,block,verified-export,yes,yes,no,0.974,6,SSIM >= 0.95 at all samples; MP4 export OK
 code-snippet-dark-2026,block,adapter-compatible,no,no,no,,,"renders and animates correctly (visual review) and 3 of 4 title fields are editable, but the real 1080p browser export runs at 1.6 fps (< 3 fps minimum), so it stays held back; the earlier ""no timeline"" reason was wrong"
@@ -105,9 +105,9 @@ comparison-split,component,specialized,no,no,no,0.537,,worst-sample SSIM 0.537: 
 confetti,component,verified-export,yes,no,no,1.0,,export throughput 4.1 fps < 8
 conic-progress-ring,component,verified-export,yes,yes,no,0.963,2,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
 constellation-hub,component,specialized,no,no,no,0.802,,worst-sample SSIM 0.802: content differs from native
-cosmic-orb,block,verified-export,yes,no,no,,,WebGL; export throughput 2.9 fps < 8.0; not yet rendered through the production adapter path
+cosmic-orb,block,verified-export,yes,no,no,,,export too slow (2.9 fps)
 count-up,component,adapter-compatible,no,no,no,0.948,,worst-sample SSIM 0.948
-cross-warp-morph,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+cross-warp-morph,block,verified-export,yes,yes,no,0.98,4,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 cta-close,component,adapter-compatible,no,no,no,0.907,,worst-sample SSIM 0.907
 cta-lockup,component,specialized,no,no,no,0.841,,worst-sample SSIM 0.841: content differs from native
 cuboid-carousel,block,unsupported,no,no,no,,,a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'
@@ -126,7 +126,7 @@ decision-tree,example,verified-export,yes,no,no,0.995,,export throughput 6.7 fps
 decline-chart,component,specialized,no,no,no,0.564,,worst-sample SSIM 0.564: content differs from native
 device-frame-stage,component,adapter-compatible,no,no,no,0.892,,worst-sample SSIM 0.892
 directional-wipe,component,verified-export,yes,no,no,1.0,,export throughput 4.4 fps < 8
-domain-warp-dissolve,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+domain-warp-dissolve,block,verified-export,yes,yes,no,0.975,4,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 drift-hold,component,adapter-compatible,no,no,no,0.944,,worst-sample SSIM 0.944
 dynamic-grid,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 echo-smear,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
@@ -139,7 +139,7 @@ facet-morph,component,adapter-compatible,no,no,no,0.926,,worst-sample SSIM 0.926
 fade-through,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 falling-lines,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline falling-lines: no __timelines entry (data-no-timeline block)
 filmed-screen,component,specialized,no,no,no,0.622,,worst-sample SSIM 0.622: content differs from native
-flash-through-white,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+flash-through-white,block,verified-export,yes,yes,no,0.973,4,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 flowchart,block,verified-export,yes,yes,no,0.995,6,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
 flowchart-vertical,block,verified-export,yes,yes,no,0.998,4,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
 flowing-gradient,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline flowing-gradient: no __timelines entry (data-no-timeline block)
@@ -151,11 +151,11 @@ freeze-frame-dressing,block,specialized,no,no,no,0.823,,production adapter path 
 frost,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline frost: no __timelines entry (data-no-timeline block)
 frost-sequence-camera-orbit,block,unsupported,no,no,no,,,a block script failed to run: script assets/gsap-3.14.2.min.js: Unexpected token '<'
 gabor-noise,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline gabor-noise: no __timelines entry (data-no-timeline block)
-gallery-tunnel,block,verified-export,yes,no,no,,,WebGL; three.js; sub-composition; not yet rendered through the production adapter path
+gallery-tunnel,block,verified-export,yes,yes,no,1.0,0,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 gesture-tap,component,specialized,no,no,no,0.725,,worst-sample SSIM 0.725: content differs from native
 glass-hero,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.838: content differs from native (export not attempted)"
 glass-shard-title,block,unsupported,no,no,no,,,a block script failed to run: script assets/glass-main.js: Unexpected token '<'
-glitch,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+glitch,block,verified-export,yes,yes,no,0.987,2,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 gloss-sweep,component,adapter-compatible,no,no,no,0.89,,worst-sample SSIM 0.890
 godrays,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline godrays: no __timelines entry (data-no-timeline block)
 goo,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline goo: no __timelines entry (data-no-timeline block)
@@ -167,7 +167,7 @@ gravitational-lens,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.898;
 grid-card-assemble,component,specialized,no,no,no,0.464,,worst-sample SSIM 0.464: content differs from native
 grid-pixelate-wipe,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 halftone-dissolve,component,verified-export,yes,no,no,0.388,,shows built-in text that cannot be edited
-halftone-field,block,verified-export,yes,no,no,,,WebGL; not yet rendered through the production adapter path
+halftone-field,block,verified-export,yes,yes,no,1.0,0,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 headline-slam,component,verified-export,yes,no,no,0.971,,standalone output is (nearly) blank; export throughput 7.8 fps < 8; no editable field with a measured visible effect
 heatmap,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline heatmap: no __timelines entry (data-no-timeline block)
 heygen-avatar-promo-card,block,verified-export,yes,no,no,,,video element; audio element; asset files hosted remotely (not pinned/vendored); export throughput 7.8 fps < 8.0; not yet rendered through the production adapter path
@@ -300,12 +300,12 @@ product-turntable,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.906; 
 pull-back-reveal,component,specialized,no,no,no,0.727,,worst-sample SSIM 0.727: content differs from native
 pull-to-refresh,component,specialized,no,no,no,0.765,,worst-sample SSIM 0.765: content differs from native
 push-in,component,verified-export,yes,yes,no,0.975,1,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (animated)
-rack-focus,block,verified-export,yes,no,no,,,WebGL; export throughput 7.8 fps < 8.0; not yet rendered through the production adapter path
+rack-focus,block,verified-export,yes,yes,no,1.0,0,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 radial-surround,component,specialized,no,no,no,0.613,,worst-sample SSIM 0.613: content differs from native
 reddit-post,block,verified-export,yes,yes,no,0.998,6,SSIM >= 0.95 at all samples; MP4 export OK
 rgb-glitch-text,component,verified-export,yes,yes,no,0.998,2,SSIM >= 0.95 at all samples against native HyperFrames; no adapter errors (static)
-ridged-burn,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
-ripple-waves,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+ridged-burn,block,verified-export,yes,yes,no,0.979,4,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
+ripple-waves,block,verified-export,yes,yes,no,0.984,4,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 ripples,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline ripples: no __timelines entry (data-no-timeline block)
 rubber-band-bumper,component,adapter-compatible,no,no,no,0.9,,worst-sample SSIM 0.900
 scan-band,component,verified-export,yes,no,no,0.951,,standalone output is (nearly) blank; no real browser export run; no editable field with a measured visible effect
@@ -335,7 +335,7 @@ soft-blob-touch,component,specialized,no,no,no,0.806,,worst-sample SSIM 0.806: c
 soft-blur-in,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
 spain-map,block,verified-export,yes,yes,no,1.0,5,SSIM >= 0.95 at all samples; MP4 export OK
 spiral,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline spiral: no __timelines entry (data-no-timeline block)
-spiral-galaxy,block,verified-export,yes,no,no,,,WebGL; three.js; not yet rendered through the production adapter path
+spiral-galaxy,block,verified-export,yes,yes,no,0.996,0,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 split-flap-board,block,verified-export,yes,no,no,0.995,,no editable field with a measured visible effect
 split-tilt-cards,component,adapter-compatible,no,no,no,0.868,,worst-sample SSIM 0.868
 spotify-card,block,adapter-compatible,no,no,no,0.929,,production adapter path worst-sample SSIM 0.929 (research harness reached 0.986)
@@ -363,7 +363,7 @@ svg-mask-reveal,component,adapter-compatible,no,no,no,0.91,,worst-sample SSIM 0.
 svg-stroke-trace,component,adapter-compatible,no,no,no,0.867,,worst-sample SSIM 0.867
 swipe-rail,component,specialized,no,no,no,0.595,,worst-sample SSIM 0.595: content differs from native
 swirl,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline swirl: no __timelines entry (data-no-timeline block)
-swirl-vortex,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+swirl-vortex,block,verified-export,yes,yes,no,0.984,4,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 swiss-grid,example,adapter-compatible,no,no,no,0.876,,worst-sample SSIM 0.876
 tabs-slide-indicator,component,verified-export,yes,yes,no,1.0,3,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 telemetry-hud,component,adapter-compatible,no,no,no,0.891,,worst-sample SSIM 0.891
@@ -375,7 +375,7 @@ text-shimmer,component,verified-export,yes,yes,no,0.993,1,SSIM >= 0.95 at all sa
 text-stagger,component,verified-export,yes,no,no,1.0,,browser export failed: Error: page.evaluate: Page crashed
 text-state-swap,component,verified-export,yes,yes,no,1.0,4,SSIM >= 0.95 at all samples against native HyperFrames when shown through the component's own demo composition; real 1080p browser export OK
 texture-mask-text,component,host-dependent,no,no,no,1.0,,"native standalone reference is blank at every sample: this component only shows inside a host scene (e.g. transitions, captions fed by a transcript); not verified standalone"
-thermal-distortion,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+thermal-distortion,block,verified-export,yes,yes,no,0.986,2,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 thin-film,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline thin-film: no __timelines entry (data-no-timeline block)
 thread-message-stack,block,verified-export,yes,yes,no,,7,"Visually verified (no SSIM: the native HyperFrames renderer produces a blank reference for this block); production render shows the full animation, 7 editable fields measured visible, real 1080p browser MP4 export OK"
 three-orbiting-cards,component,adapter-compatible,no,no,no,0.937,,worst-sample SSIM 0.937
@@ -419,7 +419,7 @@ variable-font-flex,component,verified-export,yes,no,no,0.952,,standalone output 
 vector-editor-rig,component,specialized,no,no,no,0.837,,worst-sample SSIM 0.837: content differs from native
 velocity-throw-snap,component,specialized,no,no,no,0.0,,worst-sample SSIM 0.000: content differs from native
 vfx-anamorphic-flare,block,verified-export,yes,yes,no,1.0,7,SSIM >= 0.95 at all samples; MP4 export OK
-vfx-iphone-device,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline vfx-iphone-device: no __timelines entry
+vfx-iphone-device,block,unsupported,no,no,no,,,"needs the experimental Chrome html-in-canvas API (drawElementImage); the native HyperFrames render is blank too. Its model files now load, but the page never draws"
 vfx-liquid-background,block,unsupported,no,no,no,,,needs a resource from a host that is not allow-listed: blocked-url src: host not allow-listed: cdn.jsdelivr.net: https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.m
 vfx-liquid-glass,block,specialized,no,no,no,,,"renders, but worst-sample SSIM 0.744: content differs from native (export not attempted)"
 vfx-magnetic,block,verified-export,yes,no,no,,,WebGL; HTML-in-canvas API; no editable fields detected; not yet rendered through the production adapter path
@@ -436,7 +436,7 @@ water,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. sh
 waveform,block,unsupported,no,no,no,,,no seekable GSAP timeline registered (e.g. shader-driven blocks without a timeline): timeline waveform: no __timelines entry (data-no-timeline block)
 week-in-merges,block,verified-export,yes,yes,no,0.991,7,SSIM >= 0.95 at all samples; MP4 export OK
 weight-wave,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.927; exports, with visible differences"
-whip-pan,block,verified-export,yes,no,no,,,WebGL; no editable fields detected; not yet rendered through the production adapter path
+whip-pan,block,verified-export,yes,yes,no,0.979,4,"SSIM >= 0.95 at all samples against native HyperFrames (production path, software WebGL where used); real 1080p browser MP4 export OK"
 whip-pan-cut,component,adapter-compatible,no,no,no,0.891,,worst-sample SSIM 0.891
 whiteboard-ink,component,verified-export,yes,no,no,0.97,,no real browser export run; no editable field with a measured visible effect
 wireframe-portal-title,block,adapter-compatible,no,no,no,,,"worst-sample SSIM 0.930; exports, with visible differences"

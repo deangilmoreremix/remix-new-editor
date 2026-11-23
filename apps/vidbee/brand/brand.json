@@ -1,0 +1,7 @@
+{
+  "name": "SmartVidDownloader",
+  "sidebarName": "SmartVid​Downloader",
+  "host": "SmartVid",
+  "upstream": { "name": "VidBee", "repo": "https://github.com/nexmoe/VidBee", "commit": "6542ebd", "license": "MIT" },
+  "notes": "Change `name` and rebuild (npm run vidbee:build). The vendored VidBee sources are never edited; brand/rebrand.mjs rewrites user-facing text while Vite (renderer) and esbuild (host/main process) read them. VIDBEE_BRAND=off builds pristine upstream text."
+}

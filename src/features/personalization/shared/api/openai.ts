@@ -83,9 +83,10 @@ export async function callOpenAIResponses(input: any[], apiKey?: string): Promis
       'Authorization': `Bearer ${key}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o',
+      model: 'gpt-6.1-sol',
       input,
-      max_output_tokens: 3000,
+      // GPT-6 reasoning tokens count against this budget.
+      max_output_tokens: 6000,
     }),
   })
 
@@ -95,7 +96,16 @@ export async function callOpenAIResponses(input: any[], apiKey?: string): Promis
   }
 
   const result = await response.json()
-  return result.output?.[0]?.content?.[0]?.text || result.output_text || ''
+  // Reasoning models emit a `reasoning` item before the message, so
+  // output[0] is not necessarily the assistant text.
+  if (typeof result.output_text === 'string' && result.output_text) return result.output_text
+  for (const item of result.output || []) {
+    if (item?.type !== 'message') continue
+    for (const part of item.content || []) {
+      if (part?.type === 'output_text' && part.text) return part.text
+    }
+  }
+  return ''
 }
 
 /**

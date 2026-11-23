@@ -1,3 +1,4 @@
+import { routeHash } from '../routeUrl.js';
 /**
  * Page side of a notification click. The service worker cannot touch sessionStorage, so it either
  * posts { type: 'remix:open-alerts' } to an open window or opens `/?alerts=1#/timeline`. Both end up doing
@@ -8,7 +9,7 @@ const OPEN_FLAG = 'remix_open_projects';
 
 export function openAlerts({ win = globalThis } = {}) {
   try { win.sessionStorage.setItem(OPEN_FLAG, '1'); } catch { /* the event below still works on the editor page */ }
-  const hash = win.location?.hash || '';
+  const hash = routeHash(win.location);
   if (/^#\/timeline(?![-\w])|^#\/timeline-classic/.test(hash)) {
     if (/^#\/timeline-classic/.test(hash)) { try { win.sessionStorage.removeItem(OPEN_FLAG); } catch { /* ignore */ } }
     win.dispatchEvent(new CustomEvent('remix:open-projects'));

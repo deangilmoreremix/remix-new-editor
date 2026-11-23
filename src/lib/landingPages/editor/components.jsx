@@ -6,7 +6,7 @@
 import { outreachPlayerSrc } from '../../outreach/landingPage.js';
 import { useEffect, useRef, useState } from 'react';
 import { fillTokens, splitAccent, prefillFor, safeUrl, safeImageUrl } from '../templates.js';
-import { usePage, useThanks, useAfterSubmit } from './context.js';
+import { usePage, useThanks, useAfterSubmit, useViewer } from './context.js';
 import { resolveAfterSubmit, scheduleRedirect, linkTarget } from '../afterSubmit.js';
 import { ICON_PATHS } from '../siteIcons.js';
 
@@ -48,7 +48,12 @@ export const isPlayableVideo = (u) => !!httpsMedia(u) && !IMAGE_PATH.test(pathOf
  * picture already draws a play button, so the overlay is only added over the user's own pictures.
  */
 export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', bakedPlay = '' }) {
-  const { page, handlers, preview } = usePage();
+  const { page, handlers, preview, tokens } = usePage();
+  const viewer = useViewer();
+  const t = useTokens();
+  // A personal link can carry the contact's own video / picture ({{video}}, {{image}}): they beat the slot and the page's.
+  const contactVideo = isPlayableVideo(tokens?.video) ? httpsMedia(tokens.video) : '';
+  const contactImage = safeImageUrl(tokens?.image) || '';
   const fired = useRef(new Set());
   const ref = useRef(null);
   const [started, setStarted] = useState(false);
@@ -58,7 +63,7 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
     fn?.(kind);
   };
   // A Video Outreach campaign plays its personal player (each contact's greeting) here.
-  const outreachSrc = preview ? null : outreachPlayerSrc(page?.video_url);
+  const outreachSrc = preview || viewer.type === 'still' ? null : outreachPlayerSrc(page?.video_url);   // "still only" never plays a video, personal player included
   if (outreachSrc) {
     return (
       <div className="pk-video">
@@ -70,27 +75,34 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
   // which "Save as my page" uploads before the page is stored.
   const blobPreview = preview && /^blob:/i.test(String(page?.video_url || '')) ? String(page.video_url) : '';
   const pageVideo = isPlayableVideo(page?.video_url) ? page.video_url : blobPreview;
-  const src = (isPlayableVideo(slotVideo) ? httpsMedia(slotVideo) : '') || pageVideo;
+  // "Still only" shows the picture and never plays the video, even when the page has one.
+  const stillOnly = viewer.type === 'still';
+  const src = stillOnly ? '' : contactVideo || (isPlayableVideo(slotVideo) ? httpsMedia(slotVideo) : '') || pageVideo;
   const pageImage = !pageVideo && httpsMedia(page?.video_url) && IMAGE_PATH.test(pathOf(page.video_url)) ? httpsMedia(page.video_url) : '';
-  const userImage = safeImageUrl(slotImage) || pageImage;
+  const userImage = contactImage || safeImageUrl(slotImage) || pageImage;
   const designPoster = safeImageUrl(poster) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(poster) ? poster : '');
   const posterUrl = userImage || safeImageUrl(page?.poster_url) || designPoster;
   const ownPicture = !!(userImage || safeImageUrl(page?.poster_url));
-  const still = !src && !!userImage;
+  const still = !src && (!!userImage || (stillOnly && !!posterUrl));
   const baked = bakedPlay === true || bakedPlay === 'yes';
   const showPlay = !started && !still && (!baked || ownPicture);
-  const mock = !src && !userImage;
+  const mock = !src && !userImage && !still;
+  const autoplay = viewer.autoplay === 'yes' && !preview && !!src;
+  const aspect = ['16 / 9', '4 / 3', '1 / 1', '9 / 16'].includes(viewer.aspect) ? viewer.aspect : '';
   const play = () => { const v = ref.current; if (v && src) { void v.play?.(); } };
   return (
     <div className={`pk-video${mock ? ' pk-video--mock' : ''}${still ? ' pk-video--still' : ''}`}>
       <video
         ref={ref}
-        controls={!!src}
+        controls={!!src && viewer.controls !== 'no'}
+        {...(autoplay ? { autoPlay: true, muted: true } : {})}
+        loop={viewer.loop === 'yes'}
+        style={aspect ? { aspectRatio: aspect } : undefined}
         playsInline
         preload="metadata"
         src={src || undefined}
         poster={posterUrl || undefined}
-        aria-label={still || mock ? (page?.title ? `Picture for ${page.title}` : 'Video placeholder') : (page?.title || 'Video')}
+        aria-label={viewer.alt ? t(viewer.alt) : still || mock ? (page?.title ? `Picture for ${page.title}` : 'Video placeholder') : (page?.title || 'Video')}
         onPlay={() => { setStarted(true); once('play', () => handlers.onPlay?.()); }}
         onTimeUpdate={(e) => {
           const v = e.currentTarget;
@@ -101,6 +113,7 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
       />
       {showPlay ? <button type="button" className="pk-video-play" aria-label={src ? 'Play video' : 'Video placeholder: your video goes here'} onClick={play} tabIndex={src ? 0 : -1} /> : null}
       {mock && preview ? <span className="pk-video-label">Your video goes here</span> : null}
+      {viewer.caption ? <p className="pk-video-caption">{t(viewer.caption)}</p> : null}
     </div>
   );
 }
@@ -126,6 +139,8 @@ export function LeadForm({ title, subtitle, submitLabel = 'Send', successMessage
   const { handlers, preview, tokens } = usePage();
   const t = useTokens();
   const [state, setState] = useState({ status: 'idle', error: '' });
+  const formError = useAfterSubmit().formError;
+  const failText = formError ? t(formError) : 'Could not send. Please try again.';
   const after = useAfterSubmitFlow(state.status === 'done');
   if (state.status === 'done') return <div className="pk-form pk-form--done"><p className="pk-thanks">{t(successMessage) || 'Thanks!'}</p><AfterButton after={after} /></div>;
   const onSubmit = async (e) => {
@@ -135,7 +150,7 @@ export function LeadForm({ title, subtitle, submitLabel = 'Send', successMessage
     new FormData(e.currentTarget).forEach((v, k) => { data[k] = String(v); });
     setState({ status: 'sending', error: '' });
     const res = await (handlers.onLead?.(data) ?? { error: 'Form is not available' });
-    if (res?.error) setState({ status: 'idle', error: 'Could not send. Please try again.' });
+    if (res?.error) setState({ status: 'idle', error: failText });
     else setState({ status: 'done', error: '' });
   };
   return (
@@ -191,6 +206,8 @@ export function EmailSignup({ placeholder = 'Enter your email', label = 'Subscri
   const t = useTokens();
   const thanks = useThanks();
   const [state, setState] = useState({ status: 'idle', error: '' });
+  const formError = useAfterSubmit().formError;
+  const failText = formError ? t(formError) : 'Could not send. Please try again.';
   const after = useAfterSubmitFlow(state.status === 'done');
   if (state.status === 'done') return <><p className="pk-thanks">{t(thanks) || 'Thanks!'}</p><AfterButton after={after} /></>;
   const onSubmit = async (e) => {
@@ -199,7 +216,7 @@ export function EmailSignup({ placeholder = 'Enter your email', label = 'Subscri
     const email = new FormData(e.currentTarget).get('email');
     setState({ status: 'sending', error: '' });
     const res = await (handlers.onLead?.({ email: String(email || ''), message: `Signed up: ${source}` }) ?? { error: 'Form is not available' });
-    setState(res?.error ? { status: 'idle', error: 'Could not send. Please try again.' } : { status: 'done', error: '' });
+    setState(res?.error ? { status: 'idle', error: failText } : { status: 'done', error: '' });
   };
   return (
     <form className={`pk-mini ${className}`} onSubmit={onSubmit}>
@@ -212,12 +229,12 @@ export function EmailSignup({ placeholder = 'Enter your email', label = 'Subscri
 
 /* ---------- page sections ---------- */
 
-export function NavBar({ brand, logo, links, loginLabel, loginUrl, ctaLabel }) {
+export function NavBar({ brand, logo, logoAlt, links, loginLabel, loginUrl, ctaLabel, ctaUrl }) {
   const t = useTokens();
   const logoUrl = safeImageUrl(logo) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(logo || '')) ? logo : '');
   return (
     <nav className="pk-nav" aria-label="Site">
-      <a className="pk-brand" href="#top">{logoUrl ? <img src={logoUrl} alt="" width="34" height="34" /> : null}<span>{t(brand)}</span></a>
+      <a className="pk-brand" href="#top">{logoUrl ? <img src={logoUrl} alt={t(logoAlt) || ''} width="34" height="34" /> : null}<span>{t(brand)}</span></a>
       <ul className="pk-nav-links">
         {asList(links).map((l, i) => (
           <li key={i}>{safeUrl(l.url) ? <SafeLink href={l.url}>{t(l.label)}</SafeLink> : <span>{t(l.label)}</span>}</li>
@@ -225,7 +242,7 @@ export function NavBar({ brand, logo, links, loginLabel, loginUrl, ctaLabel }) {
       </ul>
       <div className="pk-nav-right">
         {loginLabel ? (safeUrl(loginUrl) ? <SafeLink className="pk-nav-login" href={loginUrl}>{t(loginLabel)}</SafeLink> : <span className="pk-nav-login">{t(loginLabel)}</span>) : null}
-        {ctaLabel ? <a className="pk-btn pk-btn--primary pk-nav-cta" href="#lead">{t(ctaLabel)}</a> : null}
+        {ctaLabel ? <a className="pk-btn pk-btn--primary pk-nav-cta" href={safeUrl(ctaUrl) || anchor(ctaUrl) || '#lead'} {...linkTarget(safeUrl(ctaUrl) || '')}>{t(ctaLabel)}</a> : null}
       </div>
     </nav>
   );
@@ -266,7 +283,7 @@ export function Strip({ kind = 'logos', title, items }) {
       <ul className="pk-strip-row">
         {asList(items).map((it, i) => (
           <li key={i} className="pk-strip-item">
-            {kind === 'benefits' ? <>{imgUrl(it.image) ? <img className="pk-strip-photo" src={imgUrl(it.image)} alt="" loading="lazy" /> : null}<Icon name={it.icon} className="pk-ico pk-ico--lg" /><span><b>{t(it.title)}</b>{it.text ? <small>{t(it.text)}</small> : null}</span></>
+            {kind === 'benefits' ? <>{imgUrl(it.image) ? <img className="pk-strip-photo" src={imgUrl(it.image)} alt={t(it.alt) || ''} loading="lazy" /> : null}<Icon name={it.icon} className="pk-ico pk-ico--lg" /><span><b>{t(it.title)}</b>{it.text ? <small>{t(it.text)}</small> : null}</span></>
               : kind === 'stats' ? <><b className="pk-stat-value">{t(it.value)}</b><span>{t(it.title)}</span></>
                 : <span className="pk-logo-word">{t(it.title)}</span>}
           </li>
@@ -303,11 +320,13 @@ export function ContactBand({ eyebrow, title, text, fields, submitLabel, success
   );
 }
 
-export function Footer({ text, links }) {
+export function Footer({ text, links, logo, logoAlt, social }) {
   const t = useTokens();
   return (
     <footer className="pk-footer">
+      {imgUrl(logo) ? <img className="pk-footer-logo" src={imgUrl(logo)} alt={t(logoAlt) || ''} height="28" loading="lazy" /> : null}
       {text ? <p>{t(text)}</p> : null}
+      {asList(social).filter((i) => i && ICON_PATHS[i.icon] && (safeUrl(i.url) || anchor(i.url))).length ? <div className="pk-footer-social">{asList(social).filter((i) => i && ICON_PATHS[i.icon] && (safeUrl(i.url) || anchor(i.url))).slice(0, 8).map((i, n) => <SafeLink key={n} className="pk-ctabar-social" href={i.url}><Icon name={i.icon} /><span className="pk-sr">{i.icon}</span></SafeLink>)}</div> : null}
       <ul>{asList(links).map((l, i) => <li key={i}>{safeUrl(l.url) ? <SafeLink href={l.url}>{t(l.label)}</SafeLink> : <span>{t(l.label)}</span>}</li>)}</ul>
     </footer>
   );
@@ -411,7 +430,7 @@ export function QuoteCard({ columns, heading, quotes }) {
       {asList(quotes).map((q, i) => (
         <figure key={i} className="pk-quote">
           <blockquote>{`\u201C${t(q.text)}\u201D`}</blockquote>
-          <figcaption>{imgUrl(q.avatar) ? <img className="pk-avatar" src={imgUrl(q.avatar)} alt="" loading="lazy" width="46" height="46" /> : <i className="pk-dot pk-dot--lg">{String(q.name || '?').slice(0, 1).toUpperCase()}</i>}<span><b>{t(q.name)}</b><small>{t(q.role)}</small></span></figcaption>
+          <figcaption>{imgUrl(q.avatar) ? <img className="pk-avatar" src={imgUrl(q.avatar)} alt={t(q.avatarAlt) || ''} loading="lazy" width="46" height="46" /> : <i className="pk-dot pk-dot--lg">{String(q.name || '?').slice(0, 1).toUpperCase()}</i>}<span><b>{t(q.name)}</b><small>{t(q.role)}</small></span></figcaption>
         </figure>
       ))}
     </CardShell>
@@ -494,7 +513,7 @@ export function PageImage({ src, alt, rounded = 'yes' }) {
 }
 
 /** Text with a tick list and a button next to a picture (e.g. "See it in action" with a laptop mock-up), or a banner with a photo behind it. */
-export function Showcase({ variant = 'split', title, text, bullets, buttonLabel, buttonUrl, image, imageAlt, background, side = 'right', points }) {
+export function Showcase({ variant = 'split', title, text, bullets, buttonLabel, buttonUrl, button2Label, button2Url, image, imageAlt, background, side = 'right', points }) {
   const t = useTokens();
   const img = safeImageUrl(image) || (/^\/landing-art\/[a-z0-9/_-]+\.(webp|png|jpe?g)$/i.test(String(image || '')) ? image : '');
   return (
@@ -504,6 +523,7 @@ export function Showcase({ variant = 'split', title, text, bullets, buttonLabel,
         {text ? <p className="pk-showcase-text">{t(text)}</p> : null}
         {asList(bullets).length ? <ul className="pk-bullets">{asList(bullets).map((b, i) => <li key={i}>{t(b.text)}</li>)}</ul> : null}
         {buttonLabel ? <SafeLink className="pk-btn pk-btn--primary pk-showcase-btn" href={buttonUrl || '#video'}>{t(buttonLabel)}</SafeLink> : null}
+        {button2Label ? <SafeLink className="pk-btn pk-btn--secondary pk-showcase-btn" href={button2Url || '#lead'}>{t(button2Label)}</SafeLink> : null}
       </div>
       {variant === 'band' ? (
         asList(points).length ? <ul className="pk-showcase-points">{asList(points).map((b, i) => <li key={i}>{t(b.text)}</li>)}</ul> : null
@@ -513,14 +533,15 @@ export function Showcase({ variant = 'split', title, text, bullets, buttonLabel,
 }
 
 /** A full-width button bar (usually the last thing on a phone-style page). */
-export function CtaBar({ text, label, url, icon, icons }) {
+export function CtaBar({ text, label, url, label2, url2, icon, icons }) {
   const t = useTokens();
   const href = safeUrl(url) || anchor(url) || '#lead';
   const ext = /^https?:/i.test(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {};
   const social = (Array.isArray(icons) ? icons : []).filter((i) => i && ICON_PATHS[i.icon] && (safeUrl(i.url) || anchor(i.url))).slice(0, 6);
   if (!text) {
     const bar = <a className="pk-ctabar" href={href} {...ext}>{icon ? <Icon name={icon} /> : null}<span>{t(label)}</span></a>;
-    if (!social.length) return bar;
+    const second = label2 ? <SafeLink className="pk-ctabar pk-ctabar--second" href={url2 || '#lead'}><span>{t(label2)}</span></SafeLink> : null;
+    if (!social.length) return second ? <>{bar}{second}</> : bar;
     return (
       <div className="pk-ctabar pk-ctabar--social">
         <span>{t(label)}</span>
@@ -533,6 +554,7 @@ export function CtaBar({ text, label, url, icon, icons }) {
       {icon ? <Icon name={icon} className="pk-ico pk-ico--lg" /> : null}
       <p>{t(text)}</p>
       <a className="pk-btn pk-btn--cta" href={href} {...ext}>{t(label)}</a>
+      {label2 ? <SafeLink className="pk-btn pk-btn--secondary" href={url2 || '#lead'}>{t(label2)}</SafeLink> : null}
     </section>
   );
 }
@@ -542,7 +564,7 @@ export function CtaBar({ text, label, url, icon, icons }) {
  * and the booking calendar embedded on the page. The button scrolls to the calendar when there
  * is one, else opens the link.
  */
-export function OutreachActions({ senderName, senderTitle, senderPhoto, like = 'yes', ctaLabel, ctaUrl, calendarUrl, calendarTitle }) {
+export function OutreachActions({ senderName, senderTitle, senderPhoto, senderPhotoAlt, like = 'yes', likeLabel = 'Like', likedLabel = 'Liked', ctaLabel, ctaUrl, calendarUrl, calendarTitle }) {
   const t = useTokens();
   const { handlers, preview } = usePage();
   const [liked, setLiked] = useState(false);
@@ -556,14 +578,14 @@ export function OutreachActions({ senderName, senderTitle, senderPhoto, like = '
       <div className="pk-outreach-row">
         {name ? (
           <div className="pk-outreach-sender">
-            {photo ? <img src={photo} alt="" width="48" height="48" /> : <span className="pk-outreach-initial" aria-hidden="true">{name.slice(0, 1)}</span>}
+            {photo ? <img src={photo} alt={t(senderPhotoAlt) || ''} width="48" height="48" /> : <span className="pk-outreach-initial" aria-hidden="true">{name.slice(0, 1)}</span>}
             <div><strong>{name}</strong>{senderTitle ? <span>{t(senderTitle)}</span> : null}</div>
           </div>
         ) : null}
         <div className="pk-outreach-buttons">
           {like === 'yes' ? (
             <button type="button" className={`pk-btn pk-btn--secondary pk-like${liked ? ' is-liked' : ''}`} aria-pressed={liked} onClick={() => { if (liked) return; setLiked(true); if (!preview) handlers.onLike?.(); }}>
-              <span aria-hidden="true">{liked ? '♥' : '♡'}</span> {liked ? 'Liked' : 'Like'}
+              <span aria-hidden="true">{liked ? '♥' : '♡'}</span> {liked ? (t(likedLabel) || 'Liked') : (t(likeLabel) || 'Like')}
             </button>
           ) : null}
           {ctaLabel && cal ? (

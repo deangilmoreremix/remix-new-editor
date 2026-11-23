@@ -107,9 +107,9 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
       // [remix] the Personalize menu of Smart Text / Text Mask (the old editor passed the same token list)
       services: {
         tokens: (TOKEN_DEFS as Array<{ key: string; label: string }>).map((d) => [d.key, d.label]),
-        // the same font import the captions have: the Font list then includes what was imported (stored in this browser)
         ...overlayMediaServices({ notify: (m) => setNote(m), assets: () => assetsRef.current }), // upload, project images, Pixabay / Pexels, stickers
         ...contactImageServices({ notify: (m) => setNote(m) }), // Personalized Image: the contact's pictures, image finder, crop focus, Make Video Ready
+        // the same font import the captions have: the Font list then includes what was imported (stored in this browser)
         extraFonts: CAPTION_FONT_FAMILIES,
         userFonts: userFontFamilies,
         systemFonts: systemFontFamilies,

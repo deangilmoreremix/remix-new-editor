@@ -20,6 +20,7 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -970,6 +971,8 @@ export function LipSyncStudio() {
     publishBtn.textContent = 'Publish to Social';
 
     canvasControls.appendChild(publishBtn);
+    const landingBtn = createLandingPageButton({ like: downloadBtn });
+    canvasControls.appendChild(landingBtn);
 
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
@@ -986,6 +989,7 @@ export function LipSyncStudio() {
             canvasControls.classList.add('opacity-100');
         };
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: videoUrl, mediaType: 'video' });
+        landingBtn.onclick = () => { void openLandingPageFor({ url: resultVideo.src || videoUrl, type: 'video', studio: 'lipsync' }); };
 
         const captionBtn = document.createElement('button');
         captionBtn.type = 'button';

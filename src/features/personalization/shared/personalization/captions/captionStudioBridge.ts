@@ -3,6 +3,8 @@
  * remix-new-editor and OpenHiggsBolt), so the host registers a function here at startup; this shared code only calls it.
  * With nothing registered the editor keeps its own simple captions panel.
  */
+import type { StudioCaptionStyle } from './studioCaptions'
+
 export interface CaptionStudioWord { text: string; startMs: number; endMs: number }
 
 export interface CaptionStudioRequest {
@@ -11,7 +13,7 @@ export interface CaptionStudioRequest {
   /** Existing captions to start from, word by word. */
   words?: CaptionStudioWord[]
   /** The look to start from (a StudioCaptionStyle, or part of one). */
-  style?: Record<string, unknown>
+  style?: Partial<StudioCaptionStyle>
   /** Fonts the editor can draw and export offline; the Studio limits its font menu to these. */
   fonts?: readonly string[]
   /** Called with `{ pages, style }` (see captions/studioCaptions.ts) when the person applies their captions. */

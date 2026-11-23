@@ -22,6 +22,7 @@
  *     → { ok, status: 'pending' | 'done' | 'failed', url?, error? }
  */
 import { withClerkAuth } from './_shared/clerkAuth.js';
+import { OPENAI_TEXT_MODEL } from './_shared/openaiModels.js';
 import { muapiPost, extractRealUrl, musicPayload } from './cinegenProviders.js';
 import {
   userMuapiKey, userOpenAIKey, NEED_MUAPI_KEY, NEED_OPENAI_KEY, BAD_MUAPI_KEY, openAIKeyError,
@@ -30,7 +31,7 @@ import {
   ASPECT_RATIO, MODELS, CAPTION_LANGUAGES, CAPTION_THEMES, DEFAULT_CAPTION_LANGUAGE, DEFAULT_CAPTION_THEME, scriptInstructions, trendInstructions, parseJsonLoose, normalizeBeats, ttsPayload,
 } from './_shared/zackdPrompts.js';
 
-const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || 'gpt-5.6-sol';
+const RESPONSES_MODEL = process.env.OPENAI_RESPONSES_TEXT_MODEL || OPENAI_TEXT_MODEL;
 const TIMEOUT_MS = 90_000;
 // Status polls (one every 4 s per running job) must not eat the quota for paid generation requests, so they get their own bucket.
 const RATE = { windowMs: 10 * 60_000, max: 150 };

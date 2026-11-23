@@ -12,7 +12,7 @@ export const maxDuration = 120
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses'
 const VISION_MODEL = process.env.SMARTVIDEO_VISION_MODEL || 'gpt-6-astra'
-const ALLOWED_VISION_MODELS = new Set(['gpt-6-astra', 'gpt-4o', 'gpt-4o-mini'])
+const ALLOWED_VISION_MODELS = new Set(['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-luna', 'gpt-4o', 'gpt-4o-mini'])
 if (!ALLOWED_VISION_MODELS.has(VISION_MODEL)) {
   throw new Error(
     `Invalid SMARTVIDEO_VISION_MODEL "${VISION_MODEL}". Allowed values: ${Array.from(ALLOWED_VISION_MODELS).join(', ')}`,
@@ -89,7 +89,7 @@ function detailFor(categoryHint?: DiscoveredAssetCategory, validation = false): 
 }
 
 function extractOutputText(payload: any): string {
-  if (typeof payload?.output_text === 'string') return payload.output_text
+  if (typeof payload?.output_text === 'string' && payload.output_text) return payload.output_text
   if (!Array.isArray(payload?.output)) return ''
   for (const item of payload.output) {
     if (item?.type !== 'message' || !Array.isArray(item?.content)) continue

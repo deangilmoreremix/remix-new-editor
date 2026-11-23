@@ -1,3 +1,4 @@
+import { routeHash } from './routeUrl.js';
 /**
  * Header notification bell: unread count for the signed-in owner's video alerts (owner_notifications).
  * Counts come from the owner-only RPC (row-level security), refreshed on load, when the tab regains focus and
@@ -25,6 +26,7 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
 
   let count = 0; let last = 0; let alive = true; let timer = null;
   let lastReconnect = 0; // when the identity timer last tried to open a missing channel
+  let lastReconnectFor = null; // the owner that attempt was for: a different owner is never held back by the cooldown
   let refreshSeq = 0; // generation counter: a refresh answer is discarded if a newer refresh or an owner change started meanwhile
   const draw = () => {
     btn.classList.toggle('hidden', !isSignedIn());
@@ -48,7 +50,7 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   }
   btn.addEventListener('click', () => {
     try { sessionStorage.setItem(OPEN_FLAG, '1'); } catch { /* the event below still works on the editor page */ }
-    const hash = globalThis.location?.hash || '';
+    const hash = routeHash(globalThis.location);
     if (/^#\/timeline-classic/.test(hash)) { try { sessionStorage.removeItem(OPEN_FLAG); } catch { /* ignore */ } globalThis.dispatchEvent(new CustomEvent('remix:open-projects')); }
     else if (/^#\/timeline(?![-\w])/.test(hash)) globalThis.dispatchEvent(new CustomEvent('remix:open-projects')); // the new editor listens too
     else navigate?.('timeline'); // opens the editor; its Analytics tab reads the flag and shows the alerts
@@ -87,9 +89,10 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
   const ownerChanged = (mine) => {
     try { return typeof getCurrentUserId === 'function' && (getCurrentUserId() || '') !== mine.userId; } catch { return false; } // a throwing host callback never breaks the bell
   };
+  const currentOwner = () => { try { return getCurrentUserId() || ''; } catch { return null; } }; // null = unknown (the host callback threw): never mistaken for an owner change
   // Removes the channel AND the previous owner's unread number, so a stale badge is never shown to someone else.
   // (guardedInsert reconnects for whoever is signed in now; the identity timer only watches a channel that still exists.)
-  const dropChannel = () => { ++refreshSeq; last = 0; lastReconnect = 0; count = 0; draw(); return stopRealtime(); };
+  const dropChannel = () => { ++refreshSeq; last = 0; lastReconnect = 0; lastReconnectFor = null; count = 0; draw(); return stopRealtime(); };
   async function guardedInsert(payload, mine) {
     if (!alive || rt !== mine) return;
     if (!isSignedIn() || ownerChanged(mine)) { dropChannel().then(() => ensureRealtime()); return; }               // signed out or another account: drop the channel now
@@ -136,7 +139,12 @@ export function createNotificationsBell({ getClient, isSignedIn = () => !!global
     ? setInterval(() => {
       const cur = rt;
       if (cur) { if (!isSignedIn() || ownerChanged(cur)) dropChannel().then(() => ensureRealtime()); }
-      else if (isSignedIn() && Date.now() - lastReconnect >= reconnectCooldownMs) { lastReconnect = Date.now(); ensureRealtime(); } // signed in but no channel (e.g. after a sign-out and a different sign-in): reconnect, but a failing setup is retried at most once per cooldown
+      else if (isSignedIn() && !rtBusy) {                 // signed in but no channel (e.g. after a sign-out and a different sign-in): reconnect, but a failing setup is retried at most once per cooldown
+        // Only an attempt that can actually start is recorded (while a setup is pending ensureRealtime() does nothing, and the next tick must still be free to try).
+        const who = currentOwner();
+        const ownerSwitched = who !== null && lastReconnectFor !== null && who !== lastReconnectFor; // both known and different
+        if (ownerSwitched || Date.now() - lastReconnect >= reconnectCooldownMs) { lastReconnect = Date.now(); lastReconnectFor = who; ensureRealtime(); }
+      }
     }, identityCheckMs)
     : null;
   refresh(true); ensureRealtime();

@@ -3,6 +3,7 @@
  * UI Component for the Cinematic Template System
  */
 
+import { parseLocation } from '../lib/routeUrl.js';
 import { showToast } from '../lib/loading.js';
 import { createTemplateCost } from '../lib/templateCost.js';
 import { formatActualCost } from '../lib/templateUx.js';
@@ -38,6 +39,8 @@ import { AuthModal } from './AuthModal.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
+import { loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
+import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { selectScenes } from '../lib/sceneSelector.js';
@@ -51,6 +54,7 @@ import { createTemplateVideoTools } from '../lib/templateVideoTools.js';
 import { createResultHistory, createResultActions, createFrameScrubber, buildExtendParams, canExtend, snapshotGenerationParams, snapshotFormInputs } from '../lib/templateResultTools.js';
 import { createAbortAwareGenerateButton, startGenerationProgress } from '../lib/studioHelpers.js';
 import { createPendingJobTracker, resumePendingJobs } from '../lib/pendingJobs.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 /**
  * Resolve the `W:H` aspect ratio for a generation request.
@@ -205,7 +209,41 @@ export function CinemaTemplateStudio() {
     const q = new URLSearchParams(window.location.search);
     const sharedTemplate = q.get('fill') && q.get('template') ? registry.get(q.get('template')) : null;
     if (sharedTemplate) selectTemplate(sharedTemplate);
+    else openLandingDemoHandoff(q);
   } catch { /* ignore malformed links */ }
+
+  // Landing-page demo hand-off ("C" icon): instead of the generic gallery, open a
+  // cinematic template's create view with the demo's prompt already filled in,
+  // like the other studios do.
+  function openLandingDemoHandoff(q) {
+    const academyId = q.get('academy-template');
+    const promptParam = q.get('prompt');
+    const demoParam = q.get('template');
+    if (!academyId && !promptParam && !demoParam) return;
+    const fillPrompt = (text) => {
+      if (!text || !currentTemplate) return;
+      const schema = new TemplateInputBuilder(currentTemplate, currentMode).buildFormSchema();
+      const field = schema.find((i) => i && i.name === 'prompt' && (i.type === 'text' || i.type === 'textarea'))
+        || schema.find((i) => i && (i.type === 'text' || i.type === 'textarea'));
+      const form = container.querySelector('#inputs-form');
+      if (!field || !form) return;
+      const values = { [field.name]: text };
+      applyValuesToForm(form, values);
+      markFieldsEdited(values);
+    };
+    const template = registry.get('cinematic_short_film') || registry.getAll()[0];
+    if (!template) return;
+    selectTemplate(template);
+    const target = academyId ? getAcademyCreateTarget(academyId) : null;
+    const direct = target?.params?.prompt || promptParam || '';
+    if (direct) {
+      fillPrompt(direct);
+    } else if (demoParam && resolveTemplate(demoParam)) {
+      const tpl = resolveTemplate(demoParam);
+      if (tpl.basePrompt) fillPrompt(tpl.basePrompt);
+      else loadTemplatePrompt(demoParam).then(fillPrompt).catch(() => {});
+    }
+  }
 
   function render() {
     container.innerHTML = '';
@@ -468,7 +506,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
     incomingStoryboard = null;
     storyboardProjectId = null;
     try {
-      const params = new URLSearchParams(window.location.hash.split('?')[1] || window.location.search);
+      const params = new URLSearchParams({ ...parseLocation().params });
       const storyboardParam = params.get('storyboard');
       const cinemaTemplateParam = params.get('template');
       if (storyboardParam) {
@@ -3239,6 +3277,10 @@ const firstChild = storyboardRoot.firstElementChild;
       if (target) openSocialPublish({ mediaUrl: target, mediaType });
     };
     actions.appendChild(publishBtn);
+    // Create landing page: same look as this row's Download button
+    const landingBtn = createLandingPageButton({ like: downloadBtn });
+    landingBtn.onclick = () => { const url = generationResult || resultMedia.src || ''; if (url) void openLandingPageFor({ url, type: isVideoOutput ? 'video' : 'image', studio: 'cinema-template' }); };
+    actions.appendChild(landingBtn);
 
     preview.appendChild(resultMedia);
     // Frame scrubber (Video Studio).

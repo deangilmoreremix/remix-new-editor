@@ -8,7 +8,7 @@ import { captionAnimation } from './painter.js';
 
 /** Style fields that cross the boundary. Everything else in a Studio style is editor-only state. */
 export const STUDIO_STYLE_KEYS = ['preset', 'fontFamily', 'fontSize', 'position', 'positionY', 'color', 'highlightColor', 'strokeColor', 'backgroundColor',
-  'bold', 'italic', 'uppercase', 'stroke', 'background', 'highlightActive', 'combineMs'];
+  'weight', 'bold', 'italic', 'uppercase', 'stroke', 'background', 'highlightActive', 'combineMs'];
 
 /** @returns {{ pages: { startMs: number, durationMs: number, tokens: { text: string, fromMs: number, toMs: number }[] }[], style: object }} */
 export function studioPayload(captions, style = {}) {

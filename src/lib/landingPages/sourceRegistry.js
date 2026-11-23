@@ -81,14 +81,17 @@ export function fromRender(r, projectId = '') {
 
 /** A File the user just picked/dropped. `url` is a blob: URL until ingested. */
 export function fromFile(file, objectUrl) {
-  if (!file || !String(file.type || '').startsWith('video/')) return null;
+  const ftype = String(file?.type || '');
+  if (!file || !(ftype.startsWith('video/') || ftype.startsWith('image/'))) return null;
+  const picture = ftype.startsWith('image/');
   return {
     key: `file:${file.name}:${file.size}:${file.lastModified || 0}`,
     url: objectUrl,
     posterUrl: null,
-    title: clip(file.name.replace(/\.[^.]+$/, ''), 80) || 'Uploaded video',
+    title: clip(file.name.replace(/\.[^.]+$/, ''), 80) || (picture ? 'Uploaded picture' : 'Uploaded video'),
     duration: null,
     source: { kind: 'upload' },
+    ...(picture ? { type: 'image' } : {}),
     createdAt: new Date().toISOString(),
     permanent: false,
     file,
