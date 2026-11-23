@@ -1481,6 +1481,9 @@ export function EditStudio() {
       const { resolveMuapiMediaRef } = await import('../lib/muapiStudioMedia.js');
       const { style_preset, adjustments, params: controlParams } = splitAppControlValues(readControlValues());
       const params = { model: tool.model, ...controlParams };
+      // The app's own settings. Some models' bundled schemas do not list them, so they are also passed
+      // explicitly; the client only uses them for fields it has not already set.
+      params.extraParams = { ...controlParams };
       params[tool.primary.param] = await resolveMuapiMediaRef({ url: source.url, assetId: source.assetId });
       if (tool.secondary && secondary?.url) {
         params[tool.secondary.param] = await resolveMuapiMediaRef({ url: secondary.url, assetId: secondary.assetId });

@@ -224,6 +224,8 @@ describe('Apps with extra inputs', () => {
     expect(muapi.processV2V.mock.calls[0][0]).toMatchObject({ model: 'video-background-remover', video_url: 'https://x/clip.mp4' });
     // The audio switch is sent as a real boolean, and shows a readable label.
     expect(muapi.processV2V.mock.calls[0][0].preserve_audio).toBe(true);
+    // The settings are also passed explicitly, for models whose bundled schema does not list them.
+    expect(muapi.processV2V.mock.calls[0][0].extraParams).toMatchObject({ preserve_audio: true });
     const audio = el.querySelector('[data-control-key="preserve_audio"]');
     expect(audio.options[0].textContent).toBe('Keep the audio');
     audio.value = 'false';

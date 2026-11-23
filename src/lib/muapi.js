@@ -116,6 +116,22 @@ function checkOutputIntegrity(result) {
   }
 }
 
+/**
+ * Settings an app passes explicitly (`params.extraParams`) for a model whose bundled schema does not
+ * list them (e.g. Video Background Remover's background colour). They only fill keys the client has not
+ * already set, and only plain string / number / boolean values under simple names, so they can never
+ * replace a validated field or smuggle in nested data.
+ */
+function mergeExtraParams(finalPayload, extra) {
+    if (!extra || typeof extra !== 'object' || Array.isArray(extra)) return finalPayload;
+    for (const [key, value] of Object.entries(extra)) {
+        if (key in finalPayload || value === undefined || value === null || value === '') continue;
+        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(key)) continue;
+        if (['string', 'number', 'boolean'].includes(typeof value)) finalPayload[key] = value;
+    }
+    return finalPayload;
+}
+
 export class MuapiClient {
     constructor() {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -855,6 +871,8 @@ export class MuapiClient {
             finalPayload[key] = value;
         }
 
+        mergeExtraParams(finalPayload, params.extraParams);
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -998,6 +1016,8 @@ export class MuapiClient {
 
         // Native audio (Phase 7)
         if (params.native_audio) finalPayload.native_audio = params.native_audio;
+
+        mergeExtraParams(finalPayload, params.extraParams);
 
         try {
              const response = await fetch(this.proxyUrl, {
@@ -1180,6 +1200,8 @@ export class MuapiClient {
             if (value === undefined || value === null || value === '') continue;
             finalPayload[key] = value;
         }
+
+        mergeExtraParams(finalPayload, params.extraParams);
 
         try {
              const response = await fetch(this.proxyUrl, {
