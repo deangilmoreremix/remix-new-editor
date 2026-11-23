@@ -35,6 +35,11 @@ describe('brand kit', () => {
     expect(kit.tagline).toBe('');
   });
 
+  it('ignores a one-word description fragment', () => {
+    expect(buildBrandKit({ research: { ...research, description: 'We' }, client: { businessName: 'Acme' } }).valueProposition).toBe('');
+    expect(buildBrandKit({ research: { ...research, description: 'Fast, friendly plumbers serving all of Austin.' }, client }).valueProposition).toBe('Fast, friendly plumbers serving all of Austin.');
+  });
+
   it('returns null with nothing usable', () => {
     expect(buildBrandKit({})).toBeNull();
   });

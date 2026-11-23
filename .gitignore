@@ -137,6 +137,8 @@ debug_signin.cjs
 !/public/landing-previews/*.jpg
 # poster stills for the local demo-library videos (extracted from public/media/promptfeed/videos; the demo library references them)
 !/public/media/promptfeed/previews/*.jpg
+# poster still for the Video Outreach sample presenter video (extracted from public/media/outreach-sample/presenter.mp4)
+!/public/media/outreach-sample/presenter.jpg
 
 # Logs
 logs

@@ -56,7 +56,9 @@ export function buildBrandKit({ research = {}, client = {}, assets = [] } = {}) 
   const siteImages = uniq([...productImages, ...placeImages, ...peopleImages,
     ...(research.brandingAssets?.imageUrls || []).map(httpUrl)]).slice(0, MAX_IMAGES * 2);
 
-  const description = str(client.brandDescription) || str(research.description) || str(research.openGraph?.['og:description']);
+  // A fragment (one real site's description came back as just "We") is not a description.
+  const sentence = (v) => { const t = str(v); return t.split(' ').length >= 4 && t.length >= 20 ? t : ''; };
+  const description = sentence(client.brandDescription) || sentence(research.description) || sentence(research.openGraph?.['og:description']);
   const socials = {};
   for (const k of ['facebook', 'instagram', 'linkedin', 'youtube', 'tiktok', 'x', 'pinterest']) {
     const v = httpUrl(client[k] || research.socialLinks?.[k]);

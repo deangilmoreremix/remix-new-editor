@@ -1,6 +1,6 @@
 // src/components/outreach/OutreachWelcome.js
 //
-// The SmartVideo welcome in Video Outreach: five short questions, one per screen, with a progress bar,
+// The SmartVideo welcome in Video Outreach: five short questions and then your Brand Kit, one per screen, with a progress bar,
 // Back and Skip. Every answer is handed to onChange (saved straight away by the caller), so leaving
 // half-way picks up at the same question next time. Answers and options: src/lib/outreach/onboarding.js.
 import { GOALS, TEAM_SIZES, VOLUMES, SOURCES, ONBOARDING_STEPS, cleanOnboarding, workReady, normalizeWebsite } from '../../lib/outreach/onboarding.js';
@@ -180,14 +180,14 @@ export function mountOutreachWelcome(host, { name = '', initial = null, onChange
   }
 
   function step5() {
-    titles('Finally, how did you hear about us?', 'It helps us find more teams like yours. One click and you are in. Your first video is next.');
+    titles('Finally, how did you hear about us?', 'It helps us find more teams like yours. One click, then the last step: your Brand Kit.');
     const wrap = el('div', 'mt-10 flex w-full max-w-4xl flex-wrap justify-center gap-3');
     SOURCES.forEach((s) => {
       const on = a.heard === s.id;
       const b = el('button', `rounded-full border px-5 py-3 text-[15px] font-semibold transition-colors ${on ? 'border-primary/45 bg-primary/[0.08]' : 'border-white/10 hover:border-primary/35 hover:bg-white/[0.04]'}`, s.label);
       b.type = 'button';
       b.setAttribute('data-welcome-heard', s.id);
-      b.addEventListener('click', () => { change({ heard: s.id, heardOther: '' }); finish(); });
+      b.addEventListener('click', () => { change({ heard: s.id, heardOther: '' }); next(); });
       wrap.appendChild(b);
     });
     const other = el('form', 'flex items-center gap-2 rounded-full border border-dashed border-white/20 py-1.5 pl-5 pr-1.5 focus-within:border-primary/50');
@@ -200,12 +200,102 @@ export function mountOutreachWelcome(host, { name = '', initial = null, onChange
     send.setAttribute('aria-label', 'Send');
     send.innerHTML = svg(ICONS.arrow, 16);
     other.append(i, send);
-    other.addEventListener('submit', (e) => { e.preventDefault(); if (!i.value.trim()) { i.focus(); return; } change({ heard: 'other', heardOther: i.value }); finish(); });
+    other.addEventListener('submit', (e) => { e.preventDefault(); if (!i.value.trim()) { i.focus(); return; } change({ heard: 'other', heardOther: i.value }); next(); });
     wrap.appendChild(other);
     body.appendChild(wrap);
   }
 
-  const STEP_VIEWS = { 1: step1, 2: step2, 3: step3, 4: step4, 5: step5 };
+  // ---- Step 6 (last): the Brand Kit. Reads the website from step 4; nothing is saved until Save. ----
+  const brand = { status: 'idle', input: null, kit: null, url: '', error: '' };
+  const isHttp = (u) => { try { const p = new URL(u).protocol; return p === 'http:' || p === 'https:'; } catch { return false; } };
+
+  async function findBrand(box) {
+    brand.status = 'finding'; brand.error = '';
+    paintBrand(box);
+    try {
+      const m = await import('../../lib/brandKit.js');
+      brand.input = await m.discoverBrand(brand.url);
+      brand.kit = m.buildBrandKit({ research: brand.input.research, client: { businessName: a.company, website: brand.url }, assets: brand.input.assets });
+      if (!brand.kit) throw new Error('Nothing usable was found on that website.');
+      brand.status = 'found';
+    } catch (e) {
+      brand.status = 'error';
+      brand.error = e?.message || 'Could not read that website.';
+    }
+    if (box.isConnected) paintBrand(box);
+  }
+
+  function paintBrand(box) {
+    box.replaceChildren();
+    if (brand.status === 'finding') {
+      const p = el('p', 'text-center text-[15px] text-white/70', `Reading ${normalizeWebsite(brand.url) || 'your website'}…`);
+      p.setAttribute('role', 'status');
+      box.appendChild(p);
+      return;
+    }
+    if (brand.status === 'found' && brand.kit) {
+      const k = brand.kit;
+      const top = el('div', 'flex items-center gap-4');
+      if (isHttp(k.logoUrl)) {
+        const logo = el('img', 'h-12 max-w-[120px] rounded bg-white object-contain p-1');
+        logo.src = k.logoUrl; logo.alt = `${k.brandName} logo`; logo.referrerPolicy = 'no-referrer';
+        logo.onerror = () => { logo.style.display = 'none'; };
+        top.appendChild(logo);
+      }
+      const names = el('div', 'min-w-0 flex-1');
+      names.append(el('div', 'truncate text-lg font-bold', k.brandName), el('div', 'text-xs text-white/50', normalizeWebsite(brand.url)));
+      top.appendChild(names);
+      const sw = el('div', 'flex gap-1.5');
+      sw.setAttribute('aria-label', 'Brand colors');
+      [...k.primaryColors, ...k.secondaryColors].forEach((c) => { const d = el('span', 'inline-block h-5 w-5 rounded-full border border-white/25'); d.style.background = c; d.title = c; sw.appendChild(d); });
+      top.appendChild(sw);
+      box.appendChild(top);
+      if (k.valueProposition) box.appendChild(el('p', 'text-sm leading-relaxed text-white/60', k.valueProposition.slice(0, 220)));
+      const n = (k.siteImages || []).length;
+      box.appendChild(el('p', 'text-xs text-white/50', `${n} image${n === 1 ? '' : 's'} found. You can add fonts, tone and offers later with the full Brand Kit.`));
+      const save = el('button', 'rounded-xl border border-white/[0.12] border-l-2 border-l-primary bg-transparent px-5 py-3.5 text-[15px] font-bold text-white hover:bg-white/[0.05]', 'Save my Brand Kit and finish');
+      save.type = 'button';
+      save.setAttribute('data-welcome-brand-save', '');
+      save.addEventListener('click', async () => {
+        save.disabled = true;
+        try { (await import('../../lib/brandKit.js')).saveBrandKit(brand.kit); } catch { /* the welcome still finishes */ }
+        finish();
+      });
+      const more = el('button', 'rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-white/80 hover:border-primary/35', 'Review it in the full Brand Kit');
+      more.type = 'button';
+      more.setAttribute('data-welcome-brand-open', '');
+      more.addEventListener('click', async () => { (await import('../modals/BrandKitModal.js')).openBrandKitModal({ url: brand.url }); });
+      box.append(save, more);
+      return;
+    }
+    // idle (no website yet) or error: a website field and a button
+    if (brand.status === 'error') {
+      const err = el('p', 'text-sm text-amber-300', brand.error);
+      err.setAttribute('role', 'alert');
+      box.appendChild(err);
+    }
+    const form = el('form', 'flex flex-col gap-3');
+    const i = el('input', INPUT);
+    i.type = 'text'; i.name = 'brandWebsite'; i.placeholder = 'For example: acme.com'; i.value = brand.url; i.setAttribute('aria-label', 'Your website');
+    i.addEventListener('input', () => { brand.url = i.value; });
+    const go = el('button', 'rounded-xl border border-white/[0.12] border-l-2 border-l-primary bg-transparent px-5 py-3.5 text-[15px] font-bold text-white hover:bg-white/[0.05]', brand.status === 'error' ? 'Try again' : 'Find my brand');
+    go.type = 'submit';
+    form.append(i, go);
+    form.addEventListener('submit', (e) => { e.preventDefault(); if (!normalizeWebsite(brand.url)) { i.focus(); return; } findBrand(box); });
+    box.appendChild(form);
+  }
+
+  function step6() {
+    titles('Last step: your Brand Kit', 'We read your website for your logo, colors, words and images, so your videos look like you. Nothing is saved until you press Save. You can skip this.');
+    const box = el('div', 'mt-10 flex w-full max-w-xl flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-7');
+    box.setAttribute('data-welcome-brand', '');
+    body.appendChild(box);
+    if (!brand.url) brand.url = a.website || '';
+    paintBrand(box);
+    if (brand.status === 'idle' && normalizeWebsite(brand.url)) findBrand(box);
+  }
+
+  const STEP_VIEWS = { 1: step1, 2: step2, 3: step3, 4: step4, 5: step5, 6: step6 };
   function paint() { header(); body.replaceChildren(); STEP_VIEWS[a.step](); }
   function destroy() { root.remove(); }
   paint();

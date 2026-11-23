@@ -509,7 +509,15 @@ export class VideoPersonalizationHub extends BaseModal {
       const { openLandingPagePicker } = await import('../../lib/landingPages/pickerModal.js');
       const { normalizeCustomer } = await import('../../lib/landingPages/customerProfile.js');
       // the contacts imported in this window become the customers: one page, one personal link each
-      const customers = (this.contacts || []).map((c, i) => normalizeCustomer({ id: c.id || `hub-${i}`, ...c }, 'contact')).filter(Boolean);
+      const { httpsUrl } = await import('../../lib/landingPages/customerProfile.js');
+      // a contact that already has its own video or picture keeps it: their personal link shows theirs, the page's is the default
+      const customers = (this.contacts || []).map((c, i) => {
+        const cust = normalizeCustomer({ id: c.id || `hub-${i}`, ...c }, 'contact');
+        if (!cust) return null;
+        cust.video = httpsUrl(c.videoUrl || c.video);
+        cust.image = cust.image || httpsUrl(c.imageUrl || c.image);
+        return cust;
+      }).filter(Boolean);
       openLandingPagePicker({ video: { url: v.url || v.src || v.videoUrl, name: v.name || v.title, thumbnail_url: v.thumbnail || v.poster, studio: 'personalization' }, customers, preselect: customers.length ? 'all' : 'active' });
     });
 
