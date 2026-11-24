@@ -1,0 +1,4376 @@
+{
+ "video": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Reference media",
+   "x": 121,
+   "y": 387,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock photos for i2v reference",
+   "x": 181,
+   "y": 381,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "⏱",
+   "x": 241,
+   "y": 387,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "⏮",
+   "x": 301,
+   "y": 387,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Upload video to remove watermark",
+   "x": 361,
+   "y": 387,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock videos for v2v input",
+   "x": 421,
+   "y": 381,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Start f...",
+   "x": 521,
+   "y": 385,
+   "w": 61,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "End f...",
+   "x": 590,
+   "y": 385,
+   "w": 57,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "IMAGE",
+   "x": 655,
+   "y": 385,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "VIDEO",
+   "x": 719,
+   "y": 385,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "v-workflow-btn",
+   "txt": "Source",
+   "x": 795,
+   "y": 394,
+   "w": 122,
+   "h": 38
+  },
+  {
+   "t": "textarea",
+   "id": "v-v-prompt-textarea",
+   "txt": "Video prompt",
+   "x": 937,
+   "y": 381,
+   "w": 862,
+   "h": 43
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "More enhancement tools",
+   "x": 1824,
+   "y": 386,
+   "w": 38,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "v-model-btn",
+   "txt": "Seedance Lite",
+   "x": 121,
+   "y": 481,
+   "w": 167,
+   "h": 42
+  },
+  {
+   "t": "button",
+   "id": "v-ar-btn",
+   "txt": "16:9",
+   "x": 298,
+   "y": 483,
+   "w": 105,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "v-duration-btn",
+   "txt": "5s",
+   "x": 412,
+   "y": 483,
+   "w": 94,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "v-resolution-btn",
+   "txt": "480p",
+   "x": 517,
+   "y": 483,
+   "w": 112,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "v-motion-style-btn",
+   "txt": "Motion & Style",
+   "x": 638,
+   "y": 483,
+   "w": 165,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🖼 Thumbnail",
+   "x": 813,
+   "y": 488,
+   "w": 93,
+   "h": 27
+  },
+  {
+   "t": "button",
+   "id": "v-advanced-btn",
+   "txt": "Advanced",
+   "x": 916,
+   "y": 483,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "v-contact-btn",
+   "txt": "Personalize",
+   "x": 1066,
+   "y": 487,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Generate ✨",
+   "x": 1779,
+   "y": 482,
+   "w": 88,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Quick Tips",
+   "x": 92,
+   "y": 740,
+   "w": 77,
+   "h": 17
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "↻ Regenerate",
+   "x": 721,
+   "y": 647,
+   "w": 125,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🎬 Open in Render",
+   "x": 857,
+   "y": 647,
+   "w": 150,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "+ New",
+   "x": 1019,
+   "y": 647,
+   "w": 83,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "💬 Add AI Captions",
+   "x": 1113,
+   "y": 647,
+   "w": 154,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "video-landing-page",
+   "txt": "Create landing page",
+   "x": 734,
+   "y": 695,
+   "w": 159,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Download MP4",
+   "x": 904,
+   "y": 699,
+   "w": 98,
+   "h": 28
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Get link",
+   "x": 1014,
+   "y": 695,
+   "w": 90,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Publish to Social",
+   "x": 1115,
+   "y": 695,
+   "w": 139,
+   "h": 36
+  },
+  {
+   "t": "select",
+   "id": "",
+   "txt": "Default Title A-Z Title Z-A Duration (sh",
+   "x": 155,
+   "y": 846,
+   "w": 163,
+   "h": 22
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "All",
+   "x": 96,
+   "y": 869,
+   "w": 45,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "comedy",
+   "x": 149,
+   "y": 869,
+   "w": 77,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "retro",
+   "x": 234,
+   "y": 869,
+   "w": 58,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "skit",
+   "x": 300,
+   "y": 869,
+   "w": 51,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "social",
+   "x": 359,
+   "y": 869,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "ugc",
+   "x": 431,
+   "y": 869,
+   "w": 52,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "food",
+   "x": 491,
+   "y": 869,
+   "w": 56,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "restaurant",
+   "x": 555,
+   "y": 869,
+   "w": 90,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "taste-test",
+   "x": 653,
+   "y": 869,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "product",
+   "x": 748,
+   "y": 869,
+   "w": 75,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "commercial",
+   "x": 831,
+   "y": 869,
+   "w": 98,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "local-business",
+   "x": 937,
+   "y": 869,
+   "w": 115,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "music-video",
+   "x": 1060,
+   "y": 869,
+   "w": 103,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "y2k",
+   "x": 1171,
+   "y": 869,
+   "w": 51,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "typography",
+   "x": 1230,
+   "y": 869,
+   "w": 97,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "gameplay",
+   "x": 1335,
+   "y": 869,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "beverage",
+   "x": 1430,
+   "y": 869,
+   "w": 84,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "vlog",
+   "x": 1522,
+   "y": 869,
+   "w": 55,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "beauty",
+   "x": 1585,
+   "y": 869,
+   "w": 71,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "testimonial",
+   "x": 1664,
+   "y": 869,
+   "w": 94,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "image-to-video",
+   "x": 1766,
+   "y": 869,
+   "w": 120,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "opening-frame-reference",
+   "x": 1894,
+   "y": 869,
+   "w": 179,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "text-to-video",
+   "x": 2080,
+   "y": 869,
+   "w": 107,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "text-prompt",
+   "x": 2195,
+   "y": 869,
+   "w": 99,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "reference-to-video",
+   "x": 2302,
+   "y": 869,
+   "w": 141,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "style-reference-images",
+   "x": 2451,
+   "y": 869,
+   "w": 168,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "image": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Reference media",
+   "x": 121,
+   "y": 387,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock photos from Pexels",
+   "x": 181,
+   "y": 381,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Start f...",
+   "x": 261,
+   "y": 385,
+   "w": 61,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "End f...",
+   "x": 330,
+   "y": 385,
+   "w": 57,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "IMAGE",
+   "x": 395,
+   "y": 385,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "textarea",
+   "id": "i-prompt-textarea",
+   "txt": "Image prompt",
+   "x": 471,
+   "y": 381,
+   "w": 1328,
+   "h": 43
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "More enhancement tools",
+   "x": 1824,
+   "y": 386,
+   "w": 38,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "model-btn",
+   "txt": "Nano Banana",
+   "x": 121,
+   "y": 481,
+   "w": 162,
+   "h": 42
+  },
+  {
+   "t": "button",
+   "id": "ar-btn",
+   "txt": "1:1",
+   "x": 293,
+   "y": 483,
+   "w": 94,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🖼 Thumbnail",
+   "x": 397,
+   "y": 488,
+   "w": 93,
+   "h": 27
+  },
+  {
+   "t": "button",
+   "id": "advanced-btn",
+   "txt": "Advanced",
+   "x": 500,
+   "y": 483,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Tools",
+   "x": 649,
+   "y": 487,
+   "w": 76,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Draw",
+   "x": 735,
+   "y": 487,
+   "w": 73,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "v-contact-btn",
+   "txt": "Personalize",
+   "x": 818,
+   "y": 487,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Generate ✨",
+   "x": 1779,
+   "y": 482,
+   "w": 88,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Quick Tips",
+   "x": 92,
+   "y": 740,
+   "w": 77,
+   "h": 17
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "↻ Regenerate",
+   "x": 694,
+   "y": 602,
+   "w": 125,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "↓ Download",
+   "x": 830,
+   "y": 602,
+   "w": 84,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "+ New",
+   "x": 926,
+   "y": 602,
+   "w": 83,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Publish to Social",
+   "x": 1020,
+   "y": 602,
+   "w": 139,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Create landing page",
+   "x": 1171,
+   "y": 602,
+   "w": 123,
+   "h": 36
+  },
+  {
+   "t": "select",
+   "id": "",
+   "txt": "Default Title A-Z Title Z-A Duration (sh",
+   "x": 155,
+   "y": 846,
+   "w": 163,
+   "h": 22
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "All",
+   "x": 96,
+   "y": 869,
+   "w": 45,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "product-marketing",
+   "x": 149,
+   "y": 869,
+   "w": 139,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "3d",
+   "x": 297,
+   "y": 869,
+   "w": 45,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "product",
+   "x": 350,
+   "y": 869,
+   "w": 75,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "food",
+   "x": 433,
+   "y": 869,
+   "w": 56,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "landscape",
+   "x": 498,
+   "y": 869,
+   "w": 90,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "infographic-/-edu",
+   "x": 596,
+   "y": 869,
+   "w": 134,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "watercolor",
+   "x": 738,
+   "y": 869,
+   "w": 92,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "infographic",
+   "x": 838,
+   "y": 869,
+   "w": 96,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "app-/-web-design",
+   "x": 942,
+   "y": 869,
+   "w": 137,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "social-media",
+   "x": 1087,
+   "y": 869,
+   "w": 105,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "character",
+   "x": 1200,
+   "y": 869,
+   "w": 86,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "poster",
+   "x": 1294,
+   "y": 869,
+   "w": 67,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "profile-/-avatar",
+   "x": 1369,
+   "y": 869,
+   "w": 120,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "portrait",
+   "x": 1497,
+   "y": 869,
+   "w": 73,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "photorealistic",
+   "x": 1578,
+   "y": 869,
+   "w": 109,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "cinematic",
+   "x": 1695,
+   "y": 869,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "interior",
+   "x": 1790,
+   "y": 869,
+   "w": 72,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "selfie",
+   "x": 1869,
+   "y": 869,
+   "w": 62,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "minimalist",
+   "x": 1939,
+   "y": 869,
+   "w": 89,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "render",
+   "x": 2036,
+   "y": 869,
+   "w": 68,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "fashion",
+   "x": 2113,
+   "y": 869,
+   "w": 73,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "social",
+   "x": 2194,
+   "y": 869,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "cinema": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Start f...",
+   "x": 97,
+   "y": 361,
+   "w": 61,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "End f...",
+   "x": 166,
+   "y": 361,
+   "w": 57,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "IMAGE",
+   "x": 231,
+   "y": 361,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "VIDEO",
+   "x": 295,
+   "y": 361,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AUDIO",
+   "x": 359,
+   "y": 361,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "textarea",
+   "id": "",
+   "txt": "Cinema prompt",
+   "x": 435,
+   "y": 357,
+   "w": 1456,
+   "h": 43
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video",
+   "x": 92,
+   "y": 548,
+   "w": 60,
+   "h": 28
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Image",
+   "x": 156,
+   "y": 548,
+   "w": 60,
+   "h": 28
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "More enhancement tools",
+   "x": 228,
+   "y": 547,
+   "w": 38,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "V Seedance Lite",
+   "x": 276,
+   "y": 539,
+   "w": 167,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "16:9",
+   "x": 454,
+   "y": 539,
+   "w": 87,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "2K",
+   "x": 551,
+   "y": 539,
+   "w": 77,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Builder",
+   "x": 637,
+   "y": 539,
+   "w": 109,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "cs-character-lock-btn",
+   "txt": "",
+   "x": 846,
+   "y": 550,
+   "w": 44,
+   "h": 24
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🖼 Thumbnail",
+   "x": 900,
+   "y": 548,
+   "w": 93,
+   "h": 27
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Advanced",
+   "x": 1002,
+   "y": 543,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "v-contact-btn",
+   "txt": "Personalize",
+   "x": 1152,
+   "y": 547,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "MODULAR 8K DIGITAL Static • Natural",
+   "x": 1267,
+   "y": 534,
+   "w": 147,
+   "h": 56
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "GENERATE ✨",
+   "x": 1422,
+   "y": 542,
+   "w": 97,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "All",
+   "x": 505,
+   "y": 314,
+   "w": 47,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "close-overlay-btn",
+   "txt": "",
+   "x": 1392,
+   "y": 319,
+   "w": 23,
+   "h": 23
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "↻ REGENERATE",
+   "x": 495,
+   "y": 606,
+   "w": 140,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "↓ DOWNLOAD",
+   "x": 646,
+   "y": 606,
+   "w": 98,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "⧉ COPY PROMPT",
+   "x": 756,
+   "y": 606,
+   "w": 147,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "⧉ COPY IMAGE",
+   "x": 914,
+   "y": 606,
+   "w": 135,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "+ NEW SHOT",
+   "x": 1060,
+   "y": 606,
+   "w": 123,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Publish to Social",
+   "x": 1195,
+   "y": 606,
+   "w": 139,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "CREATE LANDING PAGE",
+   "x": 1345,
+   "y": 606,
+   "w": 147,
+   "h": 36
+  },
+  {
+   "t": "select",
+   "id": "",
+   "txt": "Default Title A-Z Title Z-A Duration (sh",
+   "x": 131,
+   "y": 1002,
+   "w": 163,
+   "h": 22
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "gameplay",
+   "x": 125,
+   "y": 1025,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "fps",
+   "x": 220,
+   "y": 1025,
+   "w": 49,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "trailer",
+   "x": 277,
+   "y": 1025,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "action",
+   "x": 349,
+   "y": 1025,
+   "w": 66,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "story",
+   "x": 423,
+   "y": 1025,
+   "w": 60,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "drama",
+   "x": 491,
+   "y": 1025,
+   "w": 67,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "period",
+   "x": 566,
+   "y": 1025,
+   "w": 67,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "cinematic",
+   "x": 641,
+   "y": 1025,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "cinema",
+   "x": 736,
+   "y": 1025,
+   "w": 72,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "anime",
+   "x": 816,
+   "y": 1025,
+   "w": 65,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "isekai",
+   "x": 889,
+   "y": 1025,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "stylized",
+   "x": 961,
+   "y": 1025,
+   "w": 76,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "animation",
+   "x": 1044,
+   "y": 1025,
+   "w": 87,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "battle",
+   "x": 1139,
+   "y": 1025,
+   "w": 63,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "storm",
+   "x": 1211,
+   "y": 1025,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "claymation",
+   "x": 1282,
+   "y": 1025,
+   "w": 94,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "stop-motion",
+   "x": 1384,
+   "y": 1025,
+   "w": 101,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "texture",
+   "x": 1493,
+   "y": 1025,
+   "w": 71,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "chase",
+   "x": 1572,
+   "y": 1025,
+   "w": 65,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "music-sync",
+   "x": 1645,
+   "y": 1025,
+   "w": 98,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "night",
+   "x": 1752,
+   "y": 1025,
+   "w": 60,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "wuxia",
+   "x": 1819,
+   "y": 1025,
+   "w": 64,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "atmosphere",
+   "x": 1892,
+   "y": 1025,
+   "w": 99,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "mystery",
+   "x": 1999,
+   "y": 1025,
+   "w": 78,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "product",
+   "x": 2084,
+   "y": 1025,
+   "w": 75,
+   "h": 32
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "edit": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → Remove Object Erase unwant",
+   "x": 100,
+   "y": 364,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → Remove Background Clean ba",
+   "x": 551,
+   "y": 364,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → Extend Image AI outpaintin",
+   "x": 1002,
+   "y": 364,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → AI Edit Instruction-based ",
+   "x": 1453,
+   "y": 364,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → Reframe Change aspect rati",
+   "x": 100,
+   "y": 688,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → Change Dress AI outfit and",
+   "x": 551,
+   "y": 688,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → Enhance Skin Professional ",
+   "x": 1002,
+   "y": 688,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → Colorize Add color to B&W ",
+   "x": 1453,
+   "y": 688,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → Add Watermark Overlay wate",
+   "x": 100,
+   "y": 1012,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → Upscale AI image upscaling",
+   "x": 551,
+   "y": 1012,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → Face Swap Swap faces in im",
+   "x": 1002,
+   "y": 1012,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Open studio → Product Shot Create profes",
+   "x": 1453,
+   "y": 1012,
+   "w": 435,
+   "h": 308
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "upscale": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Upscaler",
+   "x": 922,
+   "y": 360,
+   "w": 144,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Reference media",
+   "x": 141,
+   "y": 461,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock photos from Pexels",
+   "x": 197,
+   "y": 458,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "IMAGE",
+   "x": 141,
+   "y": 525,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "VIDEO",
+   "x": 205,
+   "y": 525,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🖼 Thumbnail",
+   "x": 141,
+   "y": 651,
+   "w": 93,
+   "h": 27
+  },
+  {
+   "t": "button",
+   "id": "upscale-advanced-btn",
+   "txt": "Advanced",
+   "x": 244,
+   "y": 646,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Upscale Image",
+   "x": 1746,
+   "y": 645,
+   "w": 101,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "More enhancement tools",
+   "x": 141,
+   "y": 705,
+   "w": 38,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Quick Tips",
+   "x": 108,
+   "y": 956,
+   "w": 77,
+   "h": 17
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "character": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Flux PuLID",
+   "x": 925,
+   "y": 429,
+   "w": 138,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Reference media",
+   "x": 141,
+   "y": 529,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock photos from Pexels",
+   "x": 442,
+   "y": 526,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "textarea",
+   "id": "character-prompt-input",
+   "txt": "Character description",
+   "x": 141,
+   "y": 625,
+   "w": 1706,
+   "h": 86
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "More enhancement tools",
+   "x": 141,
+   "y": 731,
+   "w": 38,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🖼 Thumbnail",
+   "x": 141,
+   "y": 804,
+   "w": 93,
+   "h": 27
+  },
+  {
+   "t": "button",
+   "id": "char-advanced-btn",
+   "txt": "Advanced",
+   "x": 244,
+   "y": 799,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "v-contact-btn",
+   "txt": "Personalize",
+   "x": 393,
+   "y": 803,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Generate Character",
+   "x": 1719,
+   "y": 798,
+   "w": 128,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Quick Tips",
+   "x": 108,
+   "y": 1059,
+   "w": 77,
+   "h": 17
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "commercial": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Product shot",
+   "x": 144,
+   "y": 396,
+   "w": 100,
+   "h": 28
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ad video",
+   "x": 248,
+   "y": 396,
+   "w": 75,
+   "h": 28
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Product Shot",
+   "x": 918,
+   "y": 483,
+   "w": 152,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Reference media",
+   "x": 141,
+   "y": 583,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock photos from Pexels",
+   "x": 418,
+   "y": 580,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Studio white background",
+   "x": 141,
+   "y": 679,
+   "w": 156,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Luxury marble surface",
+   "x": 305,
+   "y": 679,
+   "w": 159,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Outdoor natural light",
+   "x": 472,
+   "y": 679,
+   "w": 147,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Lifestyle kitchen counter",
+   "x": 627,
+   "y": 679,
+   "w": 172,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Neon tech showroom",
+   "x": 807,
+   "y": 679,
+   "w": 151,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Wooden table cozy",
+   "x": 965,
+   "y": 679,
+   "w": 138,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Minimalist gradient",
+   "x": 1111,
+   "y": 679,
+   "w": 139,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Beach sand and waves",
+   "x": 1258,
+   "y": 679,
+   "w": 160,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Office desk setup",
+   "x": 1426,
+   "y": 679,
+   "w": 129,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ad Banner (16:9)",
+   "x": 141,
+   "y": 765,
+   "w": 112,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Social Post (1:1)",
+   "x": 261,
+   "y": 765,
+   "w": 125,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Story (9:16)",
+   "x": 393,
+   "y": 765,
+   "w": 102,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Billboard (21:9)",
+   "x": 504,
+   "y": 765,
+   "w": 122,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "commercial-advanced-btn",
+   "txt": "Advanced",
+   "x": 141,
+   "y": 837,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Generate Product Shot",
+   "x": 1703,
+   "y": 836,
+   "w": 144,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "More enhancement tools",
+   "x": 141,
+   "y": 896,
+   "w": 38,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "avatar": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "LT LTX LipSync",
+   "x": 920,
+   "y": 360,
+   "w": 149,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Reference media",
+   "x": 141,
+   "y": 489,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock videos/images from Pexels",
+   "x": 141,
+   "y": 537,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Upload audio",
+   "x": 141,
+   "y": 631,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🖼 Thumbnail",
+   "x": 141,
+   "y": 714,
+   "w": 93,
+   "h": 27
+  },
+  {
+   "t": "button",
+   "id": "avatar-advanced-btn",
+   "txt": "Advanced",
+   "x": 244,
+   "y": 709,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "v-contact-btn",
+   "txt": "Personalize",
+   "x": 393,
+   "y": 713,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Generate Avatar Video",
+   "x": 1704,
+   "y": 708,
+   "w": 143,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Quick Tips",
+   "x": 108,
+   "y": 969,
+   "w": 77,
+   "h": 17
+  },
+  {
+   "t": "select",
+   "id": "",
+   "txt": "Default Title A-Z Title Z-A Duration (sh",
+   "x": 171,
+   "y": 1075,
+   "w": 163,
+   "h": 22
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "lipsync": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🖼 Portrait Image",
+   "x": 185,
+   "y": 389,
+   "w": 132,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🎬 Video",
+   "x": 324,
+   "y": 389,
+   "w": 86,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "IMAGE",
+   "x": 121,
+   "y": 439,
+   "w": 56,
+   "h": 56
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock photos from Pexels",
+   "x": 189,
+   "y": 439,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock videos from Pexels",
+   "x": 241,
+   "y": 439,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AUDIO",
+   "x": 293,
+   "y": 439,
+   "w": 56,
+   "h": 56
+  },
+  {
+   "t": "textarea",
+   "id": "",
+   "txt": "Lip sync prompt",
+   "x": 361,
+   "y": 439,
+   "w": 1446,
+   "h": 75
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "More enhancement tools",
+   "x": 1824,
+   "y": 444,
+   "w": 38,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "ls-model-btn",
+   "txt": "Infinite Talk",
+   "x": 121,
+   "y": 594,
+   "w": 152,
+   "h": 42
+  },
+  {
+   "t": "button",
+   "id": "ls-resolution-btn",
+   "txt": "480p",
+   "x": 285,
+   "y": 596,
+   "w": 108,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🖼 Thumbnail",
+   "x": 405,
+   "y": 601,
+   "w": 93,
+   "h": 27
+  },
+  {
+   "t": "button",
+   "id": "ls-advanced-btn",
+   "txt": "Advanced",
+   "x": 510,
+   "y": 596,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "v-contact-btn",
+   "txt": "Personalize",
+   "x": 661,
+   "y": 600,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "ls-generate-btn",
+   "txt": "Generate ✨",
+   "x": 1779,
+   "y": 595,
+   "w": 88,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "↻ Regenerate",
+   "x": 694,
+   "y": 674,
+   "w": 125,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "↓ Download",
+   "x": 830,
+   "y": 674,
+   "w": 84,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "+ New",
+   "x": 926,
+   "y": 674,
+   "w": 83,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Publish to Social",
+   "x": 1020,
+   "y": 674,
+   "w": 139,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Create landing page",
+   "x": 1171,
+   "y": 674,
+   "w": 123,
+   "h": 36
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "ai-vfx": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Add image",
+   "x": 403,
+   "y": 357,
+   "w": 112,
+   "h": 112
+  },
+  {
+   "t": "textarea",
+   "id": "",
+   "txt": "Optional: describe the subject (e.g. \"a ",
+   "x": 527,
+   "y": 381,
+   "w": 1058,
+   "h": 48
+  },
+  {
+   "t": "input",
+   "id": "",
+   "txt": "…or paste an image URL (https://)",
+   "x": 527,
+   "y": 437,
+   "w": 1058,
+   "h": 34
+  },
+  {
+   "t": "select",
+   "id": "",
+   "txt": "9:16 Portrait 16:9 Landscape 1:1 Square",
+   "x": 403,
+   "y": 515,
+   "w": 153,
+   "h": 37
+  },
+  {
+   "t": "select",
+   "id": "",
+   "txt": "5s 10s",
+   "x": 564,
+   "y": 515,
+   "w": 96,
+   "h": 37
+  },
+  {
+   "t": "select",
+   "id": "",
+   "txt": "480p 720p",
+   "x": 668,
+   "y": 515,
+   "w": 96,
+   "h": 37
+  },
+  {
+   "t": "select",
+   "id": "",
+   "txt": "Medium High",
+   "x": 772,
+   "y": 515,
+   "w": 101,
+   "h": 37
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Generate ✨",
+   "x": 1443,
+   "y": 506,
+   "w": 142,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "⭐ AI Effects · 64",
+   "x": 386,
+   "y": 589,
+   "w": 134,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🎬 Motion Controls · 47",
+   "x": 528,
+   "y": 589,
+   "w": 170,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "💥 VFX · 9",
+   "x": 706,
+   "y": 589,
+   "w": 94,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "360 Rotation",
+   "x": 386,
+   "y": 643,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Abandoned Places",
+   "x": 591,
+   "y": 643,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Angry",
+   "x": 795,
+   "y": 643,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Animal Documentary",
+   "x": 1000,
+   "y": 643,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Assassin It",
+   "x": 1205,
+   "y": 643,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Baby It",
+   "x": 1409,
+   "y": 643,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Boxing",
+   "x": 386,
+   "y": 912,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Bride It",
+   "x": 591,
+   "y": 912,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Cakeify",
+   "x": 795,
+   "y": 912,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Cartoon Jaw Drop",
+   "x": 1000,
+   "y": 912,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Cats",
+   "x": 1205,
+   "y": 912,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Crush It",
+   "x": 1409,
+   "y": 912,
+   "w": 193,
+   "h": 257
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "effects": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Effects",
+   "x": 900,
+   "y": 67,
+   "w": 67,
+   "h": 28
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Motion graphics",
+   "x": 970,
+   "y": 67,
+   "w": 118,
+   "h": 28
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Image Effects (18)",
+   "x": 100,
+   "y": 411,
+   "w": 118,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Nano Banana (17)",
+   "x": 226,
+   "y": 411,
+   "w": 136,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Kontext Effects (13)",
+   "x": 370,
+   "y": 411,
+   "w": 149,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Effects (64)",
+   "x": 527,
+   "y": 411,
+   "w": 140,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Motion Controls (47)",
+   "x": 675,
+   "y": 411,
+   "w": 155,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video FX v2 (41)",
+   "x": 838,
+   "y": 411,
+   "w": 129,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Quick Tips",
+   "x": 100,
+   "y": 625,
+   "w": 77,
+   "h": 17
+  },
+  {
+   "t": "input",
+   "id": "",
+   "txt": "Search effects...",
+   "x": 92,
+   "y": 657,
+   "w": 351,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "⟺ Compare",
+   "x": 1127,
+   "y": 681,
+   "w": 87,
+   "h": 25
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Reference media",
+   "x": 492,
+   "y": 921,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock photos from Pexels",
+   "x": 544,
+   "y": 918,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "↓ Download",
+   "x": 1202,
+   "y": 917,
+   "w": 166,
+   "h": 29
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "▤ Landing page",
+   "x": 1376,
+   "y": 917,
+   "w": 166,
+   "h": 29
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "＋ Add to Library",
+   "x": 1549,
+   "y": 915,
+   "w": 170,
+   "h": 33
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "⏱ Insert into Timeline",
+   "x": 1727,
+   "y": 915,
+   "w": 170,
+   "h": 33
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "IMAGE",
+   "x": 492,
+   "y": 997,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "VIDEO",
+   "x": 556,
+   "y": 997,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "input",
+   "id": "fx-prompt-input",
+   "txt": "Effect prompt",
+   "x": 624,
+   "y": 1004,
+   "w": 889,
+   "h": 42
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Generate",
+   "x": 1525,
+   "y": 1002,
+   "w": 143,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Publish to Social",
+   "x": 1680,
+   "y": 1004,
+   "w": 166,
+   "h": 42
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "More enhancement tools",
+   "x": 1858,
+   "y": 1010,
+   "w": 38,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🖼 Thumbnail",
+   "x": 492,
+   "y": 1078,
+   "w": 93,
+   "h": 27
+  },
+  {
+   "t": "button",
+   "id": "fx-advanced-btn",
+   "txt": "Advanced",
+   "x": 595,
+   "y": 1072,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "v-contact-btn",
+   "txt": "Personalize",
+   "x": 744,
+   "y": 1076,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "storyboard": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "IMAGE",
+   "x": 125,
+   "y": 483,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "VIDEO",
+   "x": 189,
+   "y": 483,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AUDIO",
+   "x": 253,
+   "y": 483,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "textarea",
+   "id": "vi-premise",
+   "txt": "e.g. A 30-second launch ad for a trail-r",
+   "x": 125,
+   "y": 542,
+   "w": 1738,
+   "h": 82
+  },
+  {
+   "t": "button",
+   "id": "vi-generate-btn",
+   "txt": "Generate storyboard",
+   "x": 125,
+   "y": 646,
+   "w": 133,
+   "h": 40
+  },
+  {
+   "t": "input",
+   "id": "vi-with-images",
+   "txt": "",
+   "x": 270,
+   "y": 659,
+   "w": 13,
+   "h": 13
+  },
+  {
+   "t": "button",
+   "id": "video-intent-toggle",
+   "txt": "Customize (type, tone, length, frames, c",
+   "x": 125,
+   "y": 702,
+   "w": 323,
+   "h": 17
+  },
+  {
+   "t": "button",
+   "id": "start-blank",
+   "txt": "or build the frames by hand",
+   "x": 125,
+   "y": 734,
+   "w": 143,
+   "h": 17
+  },
+  {
+   "t": "summary",
+   "id": "",
+   "txt": "How it works",
+   "x": 100,
+   "y": 792,
+   "w": 1788,
+   "h": 17
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "",
+   "x": 100,
+   "y": 984,
+   "w": 77,
+   "h": 17
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "templates": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "input",
+   "id": "",
+   "txt": "Search templates",
+   "x": 100,
+   "y": 368,
+   "w": 448,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "All",
+   "x": 560,
+   "y": 368,
+   "w": 41,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "★ Favorites",
+   "x": 609,
+   "y": 368,
+   "w": 96,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🕒 Recent",
+   "x": 713,
+   "y": 368,
+   "w": 85,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Standard",
+   "x": 806,
+   "y": 368,
+   "w": 79,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Social Media",
+   "x": 893,
+   "y": 368,
+   "w": 101,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Style Transfer",
+   "x": 1002,
+   "y": 368,
+   "w": 109,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Entertainment",
+   "x": 1119,
+   "y": 368,
+   "w": 109,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Commercial",
+   "x": 1236,
+   "y": 368,
+   "w": 96,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "VFX & Action",
+   "x": 1341,
+   "y": 368,
+   "w": 103,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Portrait & Creator",
+   "x": 1452,
+   "y": 368,
+   "w": 128,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Decade & Era",
+   "x": 1587,
+   "y": 368,
+   "w": 103,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Camera & Cinematic",
+   "x": 1699,
+   "y": 368,
+   "w": 145,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Industry Specific",
+   "x": 1852,
+   "y": 368,
+   "w": 126,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Personal Story",
+   "x": 1986,
+   "y": 368,
+   "w": 112,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Law Firm & Legal",
+   "x": 2106,
+   "y": 368,
+   "w": 125,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Automotive",
+   "x": 2238,
+   "y": 368,
+   "w": 94,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Fashion & Lifestyle",
+   "x": 2341,
+   "y": 368,
+   "w": 137,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Luxury Brand",
+   "x": 2485,
+   "y": 368,
+   "w": 105,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Restaurant & Cafe",
+   "x": 2626,
+   "y": 368,
+   "w": 131,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Med Spa & Beauty",
+   "x": 2765,
+   "y": 368,
+   "w": 133,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Salon & Barbershop",
+   "x": 2905,
+   "y": 368,
+   "w": 141,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Gym & Fitness",
+   "x": 3055,
+   "y": 368,
+   "w": 110,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Real Estate",
+   "x": 3173,
+   "y": 368,
+   "w": 91,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Dental Office",
+   "x": 3271,
+   "y": 368,
+   "w": 103,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Chiropractic & Wellness",
+   "x": 3382,
+   "y": 368,
+   "w": 166,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Legal & Attorney",
+   "x": 3556,
+   "y": 368,
+   "w": 123,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Automotive & Car",
+   "x": 3687,
+   "y": 368,
+   "w": 129,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Fashion & Style",
+   "x": 3823,
+   "y": 368,
+   "w": 116,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Events & Celebrations",
+   "x": 3947,
+   "y": 368,
+   "w": 155,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Luxury & Premium",
+   "x": 4110,
+   "y": 368,
+   "w": 133,
+   "h": 46
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Quick Tips",
+   "x": 100,
+   "y": 610,
+   "w": 77,
+   "h": 17
+  },
+  {
+   "t": "div",
+   "id": "",
+   "txt": "🎵 TikTok Video Creator Create viral 9:1",
+   "x": 100,
+   "y": 702,
+   "w": 348,
+   "h": 212
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "☆",
+   "x": 411,
+   "y": 711,
+   "w": 28,
+   "h": 28
+  },
+  {
+   "t": "div",
+   "id": "",
+   "txt": "📸 Instagram Reel Generator Aesthetic re",
+   "x": 460,
+   "y": 702,
+   "w": 348,
+   "h": 212
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "☆",
+   "x": 771,
+   "y": 711,
+   "w": 28,
+   "h": 28
+  },
+  {
+   "t": "div",
+   "id": "",
+   "txt": "▶️ YouTube Thumbnail Bold, eye-catching ",
+   "x": 820,
+   "y": 702,
+   "w": 348,
+   "h": 212
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "☆",
+   "x": 1131,
+   "y": 711,
+   "w": 28,
+   "h": 28
+  },
+  {
+   "t": "div",
+   "id": "",
+   "txt": "😱 Reaction Thumbnail Expressive reactio",
+   "x": 1180,
+   "y": 702,
+   "w": 348,
+   "h": 212
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "☆",
+   "x": 1491,
+   "y": 711,
+   "w": 28,
+   "h": 28
+  },
+  {
+   "t": "div",
+   "id": "",
+   "txt": "📢 Short-Form Ad Product promo videos fo",
+   "x": 1540,
+   "y": 702,
+   "w": 348,
+   "h": 212
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "☆",
+   "x": 1851,
+   "y": 711,
+   "w": 28,
+   "h": 28
+  },
+  {
+   "t": "div",
+   "id": "",
+   "txt": "⭐ Story Highlight Cover Minimalist icon-",
+   "x": 100,
+   "y": 926,
+   "w": 348,
+   "h": 212
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "☆",
+   "x": 411,
+   "y": 935,
+   "w": 28,
+   "h": 28
+  },
+  {
+   "t": "div",
+   "id": "",
+   "txt": "👤 Profile Picture Generator Professiona",
+   "x": 460,
+   "y": 926,
+   "w": 348,
+   "h": 212
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "☆",
+   "x": 771,
+   "y": 935,
+   "w": 28,
+   "h": 28
+  },
+  {
+   "t": "div",
+   "id": "",
+   "txt": "🖼️ Banner Creator Wide cinematic banner",
+   "x": 820,
+   "y": 926,
+   "w": 348,
+   "h": 212
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "☆",
+   "x": 1131,
+   "y": 935,
+   "w": 28,
+   "h": 28
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "video-agent": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "audio": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Minimax Speech Turbo MiniMax",
+   "x": 116,
+   "y": 368,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Minimax Speech HD MiniMax",
+   "x": 116,
+   "y": 406,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Minimax Voice Clone MiniMax",
+   "x": 116,
+   "y": 443,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Suno Create Music Suno",
+   "x": 116,
+   "y": 481,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Suno Extend Music Suno",
+   "x": 116,
+   "y": 518,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Suno Remix Music Suno",
+   "x": 116,
+   "y": 556,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "FLUX 3 Audio",
+   "x": 116,
+   "y": 593,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Suno Generate Sounds",
+   "x": 116,
+   "y": 631,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Suno Add Vocals",
+   "x": 116,
+   "y": 668,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Suno Geneate Mashup",
+   "x": 116,
+   "y": 706,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Suno Add Instrumental",
+   "x": 116,
+   "y": 743,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Suno Voice Cloning",
+   "x": 116,
+   "y": 781,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "MM Audio V2",
+   "x": 116,
+   "y": 818,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "ElevenLabs Text to Dialogue V3",
+   "x": 116,
+   "y": 856,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Suno Convert to WAV",
+   "x": 116,
+   "y": 893,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Gemini 3.1 Flash TTS",
+   "x": 116,
+   "y": 931,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Gemini 2.5 Pro TTS",
+   "x": 116,
+   "y": 968,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "ElevenLabs TTS Turbo 2.5",
+   "x": 116,
+   "y": 1006,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "MiniMax Music 3.0",
+   "x": 116,
+   "y": 1043,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "IMAGE",
+   "x": 141,
+   "y": 765,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "VIDEO",
+   "x": 205,
+   "y": 765,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AUDIO",
+   "x": 269,
+   "y": 765,
+   "w": 56,
+   "h": 47
+  },
+  {
+   "t": "textarea",
+   "id": "",
+   "txt": "Audio prompt",
+   "x": 141,
+   "y": 832,
+   "w": 1706,
+   "h": 98
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "More enhancement tools",
+   "x": 141,
+   "y": 938,
+   "w": 38,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "15s",
+   "x": 141,
+   "y": 1036,
+   "w": 53,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "30s",
+   "x": 202,
+   "y": 1036,
+   "w": 57,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "60s",
+   "x": 267,
+   "y": 1036,
+   "w": 57,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "120s",
+   "x": 332,
+   "y": 1036,
+   "w": 62,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "videotools": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Tools",
+   "x": 875,
+   "y": 67,
+   "w": 57,
+   "h": 28
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Recast",
+   "x": 937,
+   "y": 67,
+   "w": 64,
+   "h": 28
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Motion control",
+   "x": 1004,
+   "y": 67,
+   "w": 108,
+   "h": 28
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Video Upscaler",
+   "x": 904,
+   "y": 411,
+   "w": 181,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Reference media",
+   "x": 635,
+   "y": 524,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock videos from Pexels",
+   "x": 683,
+   "y": 521,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "🖼 Thumbnail",
+   "x": 635,
+   "y": 623,
+   "w": 93,
+   "h": 27
+  },
+  {
+   "t": "button",
+   "id": "vt-advanced-btn",
+   "txt": "Advanced",
+   "x": 738,
+   "y": 618,
+   "w": 140,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "v-contact-btn",
+   "txt": "Personalize",
+   "x": 887,
+   "y": 622,
+   "w": 107,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Process Video",
+   "x": 1254,
+   "y": 617,
+   "w": 99,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Quick Tips",
+   "x": 92,
+   "y": 888,
+   "w": 77,
+   "h": 17
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "influencer": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Image Upscaler",
+   "x": 116,
+   "y": 368,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Image Face Swap",
+   "x": 116,
+   "y": 406,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Dress Change",
+   "x": 116,
+   "y": 443,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Background Remover",
+   "x": 116,
+   "y": 481,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Product Shot",
+   "x": 116,
+   "y": 518,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Skin Enhancer",
+   "x": 116,
+   "y": 556,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Color Photo",
+   "x": 116,
+   "y": 593,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Flux Kontext Dev I2I",
+   "x": 116,
+   "y": 631,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Product Photography",
+   "x": 116,
+   "y": 668,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Ghibli Style",
+   "x": 116,
+   "y": 706,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Image Extension",
+   "x": 116,
+   "y": 743,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "AI Object Eraser",
+   "x": 116,
+   "y": 781,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Flux Kontext Pro I2I",
+   "x": 116,
+   "y": 818,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Flux Kontext Max I2I",
+   "x": 116,
+   "y": 856,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "GPT-4o Image To Image",
+   "x": 116,
+   "y": 893,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "GPT-4o Edit",
+   "x": 116,
+   "y": 931,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Midjourney v7 Image To Image",
+   "x": 116,
+   "y": 968,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Bytedance Seededit v3",
+   "x": 116,
+   "y": 1006,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Midjourney v7 Style Reference",
+   "x": 116,
+   "y": 1043,
+   "w": 1756,
+   "h": 38
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Reference media",
+   "x": 141,
+   "y": 763,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Browse stock photos from Pexels",
+   "x": 197,
+   "y": 760,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Face",
+   "x": 141,
+   "y": 859,
+   "w": 566,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Body",
+   "x": 711,
+   "y": 859,
+   "w": 566,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Style",
+   "x": 1281,
+   "y": 859,
+   "w": 566,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Shuffle",
+   "x": 141,
+   "y": 913,
+   "w": 1706,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Human",
+   "x": 141,
+   "y": 996,
+   "w": 563,
+   "h": 563
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Elf",
+   "x": 710,
+   "y": 996,
+   "w": 563,
+   "h": 563
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Alien",
+   "x": 1280,
+   "y": 996,
+   "w": 563,
+   "h": 563
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ],
+ "animate": [
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Video Pages",
+   "x": 1715,
+   "y": 13,
+   "w": 123,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Update API Key",
+   "x": 1850,
+   "y": 11,
+   "w": 34,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Upload image",
+   "x": 562,
+   "y": 344,
+   "w": 114,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "From Photo Studio",
+   "x": 684,
+   "y": 344,
+   "w": 142,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "From campaign asset",
+   "x": 834,
+   "y": 344,
+   "w": 159,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Reference media",
+   "x": 562,
+   "y": 394,
+   "w": 40,
+   "h": 40
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Connect Personalization",
+   "x": 1255,
+   "y": 474,
+   "w": 154,
+   "h": 29
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Slow pan across the scene …",
+   "x": 562,
+   "y": 555,
+   "w": 160,
+   "h": 25
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Zoom into the subject with…",
+   "x": 726,
+   "y": 555,
+   "w": 158,
+   "h": 25
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Drift camera to the right …",
+   "x": 888,
+   "y": 555,
+   "w": 146,
+   "h": 25
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Fade in from black with so…",
+   "x": 1038,
+   "y": 555,
+   "w": 155,
+   "h": 25
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Particle dust floating in …",
+   "x": 1197,
+   "y": 555,
+   "w": 143,
+   "h": 25
+  },
+  {
+   "t": "textarea",
+   "id": "",
+   "txt": "Describe the motion or effect (optional)",
+   "x": 562,
+   "y": 588,
+   "w": 864,
+   "h": 66
+  },
+  {
+   "t": "select",
+   "id": "",
+   "txt": "3 5 10 12",
+   "x": 562,
+   "y": 695,
+   "w": 426,
+   "h": 34
+  },
+  {
+   "t": "select",
+   "id": "",
+   "txt": "480p 720p 1080p",
+   "x": 1000,
+   "y": 695,
+   "w": 426,
+   "h": 34
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Seedance Lite (default)",
+   "x": 620,
+   "y": 745,
+   "w": 162,
+   "h": 30
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Animate",
+   "x": 562,
+   "y": 799,
+   "w": 864,
+   "h": 29
+  },
+  {
+   "t": "button",
+   "id": "",
+   "txt": "Ask SmartVideo",
+   "x": 1731,
+   "y": 1014,
+   "w": 169,
+   "h": 46
+  }
+ ]
+}
