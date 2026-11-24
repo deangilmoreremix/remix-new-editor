@@ -19,7 +19,7 @@ export function createOverviewDeps(o: { onOpenProject: (cinegenProjectId: string
   const toast = o.onToast ?? (() => {});
   const open = (row?: Row) => {
     const id = row?.settings?.cinegenProjectId;
-    if (id) o.onOpenProject(id); else toast('Open this project from the Projects list', 'info');
+    if (id) o.onOpenProject(id); else toast(row?.settings?.source === 'external' ? 'This video was not made in the editor, so it has no timeline to open. Its Analytics, Audience and Retarget are on this card.' : 'Open this project from the Projects list', 'info');
   };
   const tabDeps = {
     getClient,
@@ -30,7 +30,7 @@ export function createOverviewDeps(o: { onOpenProject: (cinegenProjectId: string
   return {
     getClient,
     getCurrentProjectId: () => null,
-    filterRows: (rows: Row[]) => rows.filter((r) => r.settings?.source === 'cinegen'),
+    filterRows: (rows: Row[]) => rows.filter((r) => r.settings?.source === 'cinegen' || r.settings?.source === 'external'),
     async getPublished(ids: string[]) {
       if (!ids.length) return {};
       const client = await getClient();
