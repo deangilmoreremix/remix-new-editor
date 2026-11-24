@@ -52,7 +52,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 for (const st of STATES) {
   if (ONLY.length && !ONLY.includes(st.name)) continue;
   const page = await browser.newPage();
-  await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 2 });
+  await page.setViewport({ width: 1920, height: st.vh || 1080, deviceScaleFactor: 2 });
   await page.evaluateOnNewDocument(() => { try { sessionStorage.setItem('setup_popup_shown', '1'); } catch { /* ignore */ } });
   await page.evaluateOnNewDocument(HIDE);
   const entry = { route: st.route, boxes: {}, cutouts: [] };
@@ -99,7 +99,7 @@ for (const st of STATES) {
       }, st.measure.selector, st.measure.text);
     }
     entry.pageH = await page.evaluate(() => document.documentElement.scrollHeight);
-    await page.screenshot({ path: `${OUT}/${st.name}-full.png` });
+    await page.screenshot({ path: `${OUT}/${st.name}-full.png`, fullPage: !!st.vh });
     for (const b of st.boxes || []) {
       entry.boxes[b.key] = await page.evaluate((sel, all) => {
         const m = (e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; };
@@ -108,7 +108,15 @@ for (const st of STATES) {
       }, b.selector, !!b.all);
     }
     for (const c of st.cutouts || []) {
-      const els = await page.$$(c.selector);
+      let els = await page.$$(c.selector);
+      for (let u = 0; u < (c.up || 0); u++) {
+        const parents = [];
+        for (const e of els) {
+          const h = await e.evaluateHandle((n) => n.parentElement);
+          if (h.asElement()) parents.push(h.asElement());
+        }
+        els = parents;
+      }
       const vis = [];
       for (const e of els) { const bb = await e.boundingBox(); if (bb && bb.width > 20 && bb.height > 20) vis.push(e); }
       const picked = c.all ? vis.slice(0, c.max ?? 12) : vis.slice(0, 1);

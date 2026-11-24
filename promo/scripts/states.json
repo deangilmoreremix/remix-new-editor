@@ -27,7 +27,16 @@
  {
   "name": "edit",
   "route": "edit",
-  "wait": 9000
+  "wait": 9000,
+  "cutouts": [
+   {
+    "name": "tool",
+    "selector": "img[src*='thumbnails/tools']",
+    "up": 2,
+    "all": true,
+    "max": 12
+   }
+  ]
  },
  {
   "name": "character",
@@ -137,7 +146,16 @@
  {
   "name": "cinema-template",
   "route": "cinema-template",
-  "wait": 9000
+  "wait": 9000,
+  "cutouts": [
+   {
+    "name": "tpl",
+    "selector": "img[src*='thumbnails']",
+    "up": 1,
+    "all": true,
+    "max": 14
+   }
+  ]
  },
  {
   "name": "viral",
@@ -209,6 +227,100 @@
    {
     "eval": "document.getElementById('v-v-prompt-textarea').placeholder=''",
     "wait": 800
+   }
+  ]
+ },
+ {
+  "name": "storyboard-seeded",
+  "route": "storyboard",
+  "seed": "storyboard",
+  "wait": 9000,
+  "steps": [
+   {
+    "click": "text:Open",
+    "wait": 3500
+   }
+  ]
+ },
+ {
+  "name": "image-ar",
+  "route": "image",
+  "wait": 10000,
+  "steps": [
+   {
+    "click": "#ar-btn",
+    "wait": 2000
+   }
+  ],
+  "boxes": [
+   {
+    "key": "ar",
+    "selector": "#ar-btn"
+   },
+   {
+    "key": "model",
+    "selector": "#model-btn"
+   },
+   {
+    "key": "prompt",
+    "selector": "textarea"
+   },
+   {
+    "key": "menu",
+    "selector": "#ar-btn + div, [role=listbox], [class*=dropdown]",
+    "all": true
+   }
+  ]
+ },
+ {
+  "name": "apps-tall",
+  "route": "apps",
+  "wait": 16000,
+  "vh": 2600,
+  "cutouts": [
+   {
+    "name": "card",
+    "selector": "[data-searchable]",
+    "all": true,
+    "max": 27
+   }
+  ]
+ },
+ {
+  "name": "cinema-tall",
+  "route": "cinema",
+  "wait": 10000,
+  "vh": 1700
+ },
+ {
+  "name": "video-typed2",
+  "route": "video",
+  "wait": 10000,
+  "steps": [
+   {
+    "type": "#v-v-prompt-textarea",
+    "text": "Product shot on a marble pedestal, soft studio light",
+    "wait": 1200
+   }
+  ],
+  "measure": {
+   "selector": "#v-v-prompt-textarea",
+   "text": "Product shot on a marble pedestal, soft studio light"
+  }
+ },
+ {
+  "name": "video-typed2-model",
+  "route": "video",
+  "wait": 10000,
+  "steps": [
+   {
+    "type": "#v-v-prompt-textarea",
+    "text": "Product shot on a marble pedestal, soft studio light",
+    "wait": 800
+   },
+   {
+    "click": "#v-model-btn",
+    "wait": 2500
    }
   ]
  }
