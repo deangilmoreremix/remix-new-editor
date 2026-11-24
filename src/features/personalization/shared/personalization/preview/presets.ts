@@ -6,7 +6,7 @@
  * every x/y pair describes the CENTER of a layer box.
  */
 
-import { normalizeCaptions } from '../captions/captionStyle'
+import { normalizeCaptions } from './captions'
 import { normalizeTextStyles } from './textStyles'
 import { normalizeAudioTracks, normalizeVideoVolume } from './audioMix'
 import { normalizeKeyframes } from './keyframes'

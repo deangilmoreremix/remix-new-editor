@@ -808,7 +808,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
             </React.Fragment>
           )
         })()))}
-        <CaptionsLayer captions={settings.captions} videoUrl={videoUrl ?? null} settings={settings} width={compW} height={compH} />
+        <CaptionsLayer captions={settings.captions} compH={compH} />
         {settings.showEndCard ? (
           // zIndex: layers are stacked up to stackOrder 65 * 100 + 99 (see layerZIndex), so
           // the end card needs a higher level to stay on top of layers that run to the end.

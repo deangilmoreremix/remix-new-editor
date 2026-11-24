@@ -27,6 +27,7 @@ import { NEUTRAL_KEYFRAME_STATE, keyframeStateFor, keyframeTransformParts } from
 import { lookFilter, lookOverlays, vignetteStops } from '../preview/effects'
 import { LookPanel } from './LookPanel'
 import { AudioPanel } from './AudioPanel'
+import { CaptionsPanel } from './CaptionsPanel'
 import { LayerEffectsControls } from './editor/LayerEffectsControls'
 import { CutoutPanel } from './CutoutPanel'
 import { HANDLES, cursorForHandle, resizeFromHandle, rotationFromPointer, type HandleId, type TransformBox } from './editor/transform'
@@ -668,19 +669,19 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
               {/* Shield: clicks on empty stage must not reach the Player (it would toggle play). Layers sit above it. */}
               <div aria-hidden data-testid="editor-live-shield" style={{ position: 'absolute', inset: 0 }} />
               {/* Captions made in the Caption Studio: a grip level with them, to drag them up or down (saved as their height). */}
-              {ctx.previewSettings.captions?.enabled && ctx.previewSettings.captions.studio && ctx.previewSettings.captions.forUrl === inputProps.videoUrl && (() => {
+              {ctx.previewSettings.captions?.enabled && ctx.previewSettings.captions.studio && (() => {
                 const studio = ctx.previewSettings.captions.studio
                 const band = studioBandRect(studio, compW, compH)
                 return (
                   <CaptionDragHandle
                     y={(band.top + band.bottom) / 2}
-                    onChange={(y) => ctx.updatePreviewCaptions({ studio: withPositionY(studio, y) })}
+                    onChange={(y) => { const c = ctx.previewSettings.captions; if (c?.studio) ctx.updatePreviewComposition({ captions: { ...c, studio: withPositionY(c.studio, y) } }) }}
                     // Let go over other text and the captions stop just short of it.
                     onRelease={() => {
+                      const c = ctx.previewSettings.captions
                       const a = captionAvoid(ctx.previewSettings, inputProps.brand)
                       const out = a ? clearOf(a) : null
-                      const current = ctx.previewSettings.captions?.studio
-                      if (current && out?.overlapped && out.cleared) ctx.updatePreviewCaptions({ studio: withPositionY(current, out.positionY) })
+                      if (c?.studio && out?.overlapped && out.cleared) ctx.updatePreviewComposition({ captions: { ...c, studio: withPositionY(c.studio, out.positionY) } })
                     }}
                   />
                 )
@@ -1081,6 +1082,7 @@ export function OverlayEditor({ inputProps, belowStage, liveStage = false, addDe
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
           <LookPanel inputProps={inputProps} />
           <AudioPanel />
+          <CaptionsPanel inputProps={inputProps} />
           <CutoutPanel inputProps={inputProps} />
           <div style={labelStyle}>Layers</div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onReorderEnd}>
