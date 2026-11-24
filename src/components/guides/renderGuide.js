@@ -119,6 +119,36 @@ export const GUIDE_CSS = `
 .sg-foot a:hover{color:var(--accent)}
 .sg-cat{margin:0 0 48px;scroll-margin-top:80px}
 .sg-note{border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.08);border-radius:12px;padding:12px 16px;margin:20px 0 0;font-size:14px}
+.sg-appbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 20px}
+.sg-appsearch{flex:1 1 220px;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--text);padding:10px 14px;font:inherit;font-size:14px}
+.sg-appsearch:focus{outline:none;border-color:var(--accent)}
+.sg-appchips{display:flex;flex-wrap:wrap;gap:8px}
+.sg-chip{background:var(--panel2);border:1px solid var(--line);color:#d4d7de;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.sg-chip:hover{border-color:var(--accent);color:var(--accent)}
+.sg-chip[aria-pressed="true"]{background:rgba(217,255,0,.15);border-color:var(--accent);color:var(--accent)}
+.sg-appgrp{margin:0 0 32px}
+.sg-appgrp h3{display:flex;align-items:baseline;gap:8px}
+.sg-appgrp h3 span{font-size:13px;font-weight:600;color:var(--mute)}
+.sg-apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.sg-app{position:relative;display:block;text-align:left;width:100%;padding:0;font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:14px;overflow:hidden;transition:.2s}
+.sg-app:hover,.sg-app:focus-visible{border-color:rgba(217,255,0,.6);transform:translateY(-2px);outline:none}
+.sg-app img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--panel2)}
+.sg-app div{padding:10px 12px 12px}
+.sg-app strong{display:block;font-size:14px;margin-bottom:2px}
+.sg-app p{margin:0;font-size:12px;color:var(--mute);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sg-kind{position:absolute;top:8px;left:8px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,.7);color:var(--accent);border:1px solid rgba(217,255,0,.35)}
+.sg-app[hidden],.sg-appgrp[hidden]{display:none}
+.sg-noapps{color:var(--mute);margin:0}
+.sg-pv{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:rgba(0,0,0,.78);padding:16px}
+.sg-pv[hidden]{display:none}
+.sg-pv-box{display:flex;flex-direction:column;width:min(1180px,100%);height:min(860px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.sg-pv-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.sg-pv-head strong{font-size:16px}
+.sg-pv-count{font-size:12px;color:var(--mute);margin-right:auto}
+.sg-pv-head button{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:6px 12px;font:inherit;font-size:14px;cursor:pointer}
+.sg-pv-head button:hover{border-color:var(--accent);color:var(--accent)}
+.sg-pv-head .sg-btn{padding:6px 12px;font-size:13px}
+.sg-pv-frame{flex:1;width:100%;border:0;background:#050505}
 @media (max-width:860px){
   .sg-hero,.sg-feature{grid-template-columns:1fr;gap:20px}
   .sg-feature{padding:18px}
@@ -168,6 +198,25 @@ function featureCard(g, f, i) {
   <p class="sg-def"><strong>What it is:</strong> ${esc(f.definition)}</p><dl class="sg-dl">${rows}</dl></div></article>`;
 }
 
+/** The Edit Studio's apps: filterable cards (plain HTML so it prerenders) plus the preview dialog the page script opens. */
+function appsShowcase(g) {
+  const sc = g.appsShowcase;
+  if (!sc || !sc.total) return '';
+  const chips = [`<button type="button" class="sg-chip" data-app-cat="all" aria-pressed="true">All (${sc.total})</button>`]
+    .concat(sc.groups.map((c) => `<button type="button" class="sg-chip" data-app-cat="${esc(c.key)}" aria-pressed="false">${esc(c.label)} (${c.apps.length})</button>`)).join('');
+  const groups = sc.groups.map((c) => `<div class="sg-appgrp" data-app-group="${esc(c.key)}"><h3>${esc(c.label)} <span>${c.apps.length} apps</span></h3><div class="sg-apps">${c.apps.map((a) =>
+    `<button type="button" class="sg-app" data-app-slug="${esc(a.slug)}" data-app-name="${esc(a.name)}" data-app-text="${esc((a.name + ' ' + a.description).toLowerCase())}" aria-label="Preview ${esc(a.name)}">${a.thumbnail ? `<img src="${esc(a.thumbnail)}" alt="" width="400" height="300" loading="lazy" decoding="async">` : ''}<span class="sg-kind">${a.kind === 'video' ? 'Video' : 'Image'}</span><div><strong>${esc(a.name)}</strong><p>${esc(a.description)}</p></div></button>`).join('')}</div></div>`).join('');
+  return section('apps', `All ${sc.total} apps in ${g.name}`,
+    'One-click looks and effects for photos and video. Pick any app to open a live preview of its real controls, prompt box and price. Nothing is generated in the preview.',
+    `<div class="sg-appbar"><input class="sg-appsearch" type="search" data-app-search placeholder="Search ${sc.total} apps" aria-label="Search apps"><div class="sg-appchips" role="group" aria-label="App categories">${chips}</div></div>
+    ${groups}<p class="sg-noapps" data-app-empty hidden>No apps match that search.</p>
+    <div class="sg-pv" data-app-preview hidden role="dialog" aria-modal="true" aria-labelledby="app-preview-title"><div class="sg-pv-box"><div class="sg-pv-head">
+      <strong id="app-preview-title" data-pv-title></strong><span class="sg-pv-count" data-pv-count></span>
+      <button type="button" data-pv-prev aria-label="Previous app">←</button><button type="button" data-pv-next aria-label="Next app">→</button>
+      <a class="sg-btn ghost" data-pv-open href="/edit" target="_top">Open in Edit Studio</a><button type="button" data-pv-close aria-label="Close preview">✕</button></div>
+      <iframe class="sg-pv-frame" data-pv-frame title="Live app preview" loading="lazy"></iframe></div></div>`);
+}
+
 /**
  * Make the tour video's play button work. The events are bound here, not as inline attributes, because the dev server's
  * content security policy blocks inline handlers. Call it after the guide HTML is in the page. Safe to call twice.
@@ -208,6 +257,8 @@ export function renderGuideHtml(g, allCount) {
   add('features', `Features (${g.features.length})`, g.features.length && section('features', `Every ${g.name} feature, explained`,
     `${g.features.length} features, each with a definition, why you would use it, what it needs and its limits.`,
     g.features.map((f, i) => featureCard(g, f, i)).join('')));
+
+  add('apps', `Apps (${g.appsShowcase?.total || 0})`, appsShowcase(g));
 
   add('how-it-works', 'How it works', g.steps.length && section('how-it-works', `How to use ${g.name}`, g.howToUse ? '' : '',
     `<ol class="sg-steps">${g.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>`));

@@ -301,8 +301,11 @@ const BTN_GHOST = 'text-xs font-bold px-3 py-2 rounded-xl border border-white/10
 const PANEL = 'bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex flex-col gap-3';
 const LABEL = 'text-[11px] font-bold text-secondary uppercase tracking-wider';
 
-export function EditStudio() {
+// `embed` is the no-spend preview shown inside the Edit Studio guide page (/edit-preview?tool=app-...):
+// the real tool UI, but no sign-in, no price lookups and no generation.
+export function EditStudio({ embed = false } = {}) {
   const container = document.createElement('div');
+  if (embed) container.dataset.embed = 'true';
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative';
   mountStudioChrome(container, { currentRoute: 'edit' });
 
@@ -510,6 +513,7 @@ export function EditStudio() {
   toolSwitch.onchange = () => openTool(getEditToolBySlug(toolSwitch.value) || getEditAppBySlug(toolSwitch.value));
   switchLabel.appendChild(toolSwitch);
   studioTop.append(backBtn, titleWrap, switchLabel);
+  if (embed) { backBtn.classList.add('hidden'); switchLabel.classList.add('hidden'); }
   studioView.appendChild(studioTop);
 
   const studioGrid = document.createElement('div');
@@ -776,7 +780,18 @@ export function EditStudio() {
   cancelBtn.type = 'button';
   cancelBtn.className = 'hidden w-full bg-white/5 border border-white/10 text-red-400 font-bold py-2 rounded-xl hover:bg-white/10 transition-all';
   cancelBtn.textContent = 'Cancel';
-  leftCol.append(formError, editBtn, progressContainer, cancelBtn);
+  // Preview only: says why Generate does nothing here and links to the real studio.
+  const embedNote = document.createElement('div');
+  embedNote.dataset.embedNote = 'true';
+  embedNote.className = 'rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-white/90';
+  embedNote.innerHTML = 'Live preview: nothing is generated here. <a data-embed-open class="font-bold underline text-primary" target="_top" rel="noopener">Open this in Edit Studio</a> to try it.';
+  function flashEmbedNote(scroll = false) {
+    embedNote.classList.remove('hidden');
+    const link = embedNote.querySelector('[data-embed-open]');
+    if (link && activeTool) link.href = `/?tool=${encodeURIComponent(activeTool.slug)}#/edit`;
+    if (scroll) embedNote.scrollIntoView?.({ block: 'nearest' }); // only after a click, never on load
+  }
+  leftCol.append(formError, editBtn, ...(embed ? [embedNote] : []), progressContainer, cancelBtn);
 
   // ── Preview ────────────────────────────────────────────────────────────
   const previewPanel = document.createElement('div');
@@ -1156,6 +1171,7 @@ export function EditStudio() {
     const tool = activeTool;
     if (!tool?.isApp) return;
     setApplyLabel(tool, tool.defaultCostUsd, true);
+    if (embed) return; // preview: the default price only, no request to the pricing proxy
     clearTimeout(costTimer);
     if (typeof muapi.calculateDynamicCost !== 'function') return;
     costTimer = setTimeout(async () => {
@@ -1352,6 +1368,7 @@ export function EditStudio() {
   };
 
   editBtn.onclick = async () => {
+    if (embed) { flashEmbedNote(true); return; } // preview: never generate, never ask to sign in
     if (!activeTool || inFlight) return;
     const tool = activeTool;
     if (tool.isApp) return runApp(tool);
@@ -1703,6 +1720,7 @@ export function EditStudio() {
   // Deep link: /?tool=<slug>#/edit opens that tool straight away.
   const initialTool = readToolFromUrl();
   if (initialTool) showTool(initialTool);
+  if (embed) flashEmbedNote(); // sets the 'Open in Edit Studio' link for the tool in the URL
 
   return container;
 }
