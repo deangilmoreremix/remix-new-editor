@@ -8,7 +8,7 @@
     "character-description": "Character Description is where you describe clothes, place, lighting and mood. Leave the face to your reference, so only the scene changes between images.",
     "expression-presets": "Expression Presets give you Happy, Sad, Angry, Surprised and Neutral. Click one and matching words are added to your description for you.",
     "advanced-panel": "The Advanced button reveals extra options for the model you chose, such as aspect ratio, when that model offers them.",
-    "three-dot-tools-menu": "The three-dot menu holds GTM Boost, Recipes, Monetize and Prompts, which help you write prompts or find ideas for your character content.",
+    "three-dot-tools-menu": "The three-dot menu holds GTM Boost, Recipes and Prompts, which help you write prompts or find ideas for your character content.",
     "saved-characters": "Saved Characters lists characters stored in your browser. Click one to load its image and description straight back into the form."
   },
   "outro": "That's Character Studio. Start with a sharp reference, describe a new scene, and change one thing at a time to see what works best."
