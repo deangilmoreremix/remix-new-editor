@@ -32,7 +32,7 @@ export function SignUpPage() {
       return;
     }
     if (isSignedIn) {
-      window.location.href = '/#/image';
+      window.location.href = '/image';
     }
   }, [userLoaded, isSignedIn, user]);
 
@@ -60,8 +60,8 @@ export function SignUpPage() {
     if (signUp.status === 'complete') {
       await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
-          const url = decorateUrl('/#/image');
-          window.location.href = url.startsWith('http') ? url : '/#/image';
+          const url = decorateUrl('/image');
+          window.location.href = url.startsWith('http') ? url : '/image';
         },
       });
       return;
@@ -95,8 +95,8 @@ export function SignUpPage() {
     if (signUp.status === 'complete') {
       await signUp.finalize({
         navigate: async ({ decorateUrl }) => {
-          const url = decorateUrl('/#/image');
-          window.location.href = url.startsWith('http') ? url : '/#/image';
+          const url = decorateUrl('/image');
+          window.location.href = url.startsWith('http') ? url : '/image';
         },
       });
       return;
@@ -124,10 +124,10 @@ export function SignUpPage() {
           </a>
 
           <div className="hidden md:flex items-center gap-6">
-            <a href="#/explore" onClick={(e) => handleNavClick(e, 'explore')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Explore</a>
-            <a href="#/image" onClick={(e) => handleNavClick(e, 'image')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Image</a>
-            <a href="#/video" onClick={(e) => handleNavClick(e, 'video')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Video</a>
-            <a href="#/timeline" onClick={(e) => handleNavClick(e, 'timeline')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Timeline</a>
+            <a href="/explore" onClick={(e) => handleNavClick(e, 'explore')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Explore</a>
+            <a href="/image" onClick={(e) => handleNavClick(e, 'image')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Image</a>
+            <a href="/video" onClick={(e) => handleNavClick(e, 'video')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Video</a>
+            <a href="/timeline" onClick={(e) => handleNavClick(e, 'timeline')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Timeline</a>
           </div>
 
           <div className="shrink-0 flex items-center gap-3">

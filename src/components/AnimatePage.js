@@ -251,6 +251,7 @@ export function AnimatePage() {
   promptSuggestions.className = 'flex flex-wrap gap-1 mb-2';
   DEFAULT_PROMPTS.forEach((p, idx) => {
     const chip = document.createElement('button');
+    chip.dataset.help = 'motion idea';
     chip.type = 'button';
     chip.className = `px-2 py-1 rounded-lg text-[10px] font-bold transition-all border ${state.promptIndex === idx ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
     chip.textContent = p.length > 28 ? `${p.slice(0, 26)}…` : p;
@@ -322,6 +323,7 @@ export function AnimatePage() {
   muapiModeRow.appendChild(muapiLabel);
 
   const modeToggle = document.createElement('button');
+  modeToggle.dataset.help = 'model';
   modeToggle.type = 'button';
   modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
   modeToggle.textContent = state.muapiMode ? 'Choose a model' : 'Seedance Lite (default)';
@@ -586,9 +588,10 @@ export function AnimatePage() {
         <a href="${state.result.videoUrl}" download class="btn-secondary-modern text-xs">Download</a>
       </div>
     `;
+    let captionedPrev = null; // the earlier captioned render (a blob: URL), freed when a new one replaces it
     meta.querySelector('.caption-studio-btn').onclick = () => addCaptionButton({
       videoUrl: state.result.videoUrl, appTheme: 'animate',
-      onComplete: (captionedUrl) => { video.src = captionedUrl; meta.querySelector('a[download]').href = captionedUrl; showToast('Preview updated with captions'); },
+      onComplete: (captionedUrl) => { if (captionedPrev) URL.revokeObjectURL(captionedPrev); captionedPrev = captionedUrl; video.src = captionedUrl; meta.querySelector('a[download]').href = captionedUrl; showToast('Preview updated with captions'); },
       onError: (err) => showToast(err?.message || 'Captions failed'),
     });
     card.appendChild(meta);

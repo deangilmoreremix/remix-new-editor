@@ -4,10 +4,11 @@
 // user's own OpenAI key). Source chips navigate with the SPA router, so the
 // conversation survives moving between studios; history is kept in
 // sessionStorage for the tab.
+import { onRouteChange, goTo } from '../../lib/routeUrl.js';
 import { apiKeyManager } from '../../lib/apiKeyManager.js';
 import { openaiKeyHeader } from '../../lib/openaiKeyHeader.js';
-import { getStudioLabel } from '../../lib/studioRoutes.js';
-import { ENDPOINT, studioForRoute, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
+import { ENDPOINT, studioLabel, studioForRoute, renderAnswer, parseSSE, starterPrompts, pickChips, pageOf, isAcademyUrl, journeyPrompts } from './askCore.js';
+import { guideForStudio, searchGuides, guideUrl } from './askGuides.js';
 
 const STORE = 'askSmartVideo:v1';
 const MAX_LEN = 1500;
@@ -23,9 +24,10 @@ async function authHeader() {
 }
 
 /**
- * @param {{ navigate: (page: string) => void, getPage: () => string }} deps
+ * @param {{ navigate: (page: string) => void, getPage: () => string, onGuidePage?: boolean }} deps
+ *   onGuidePage: mounted on a public /studios guide page (guide links open in the same tab)
  */
-export function mountAskSmartVideo({ navigate, getPage }) {
+export function mountAskSmartVideo({ navigate, getPage, onGuidePage = false }) {
   if (document.getElementById('ask-smartvideo-root')) return;
   let messages = load(); // { role, content, sources? }
   let busy = false;
@@ -58,7 +60,7 @@ export function mountAskSmartVideo({ navigate, getPage }) {
       </header>
       <div data-ask="log" class="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar" aria-live="polite"></div>
       <div data-ask="keycard" hidden class="mx-4 mb-2 rounded-xl border border-primary/30 bg-primary/10 p-3 text-xs text-white">
-        <strong>Add your OpenAI key to get an answer.</strong> Ask SmartVideo uses your own OpenAI key. <button type="button" data-ask="settings" class="underline text-primary">Open API keys</button>
+        <strong>Add your OpenAI key for full AI answers.</strong> Without it, answers come from the studio guides. Ask SmartVideo uses your own OpenAI key. <button type="button" data-ask="settings" class="underline text-primary">Open API keys</button>
       </div>
       <form data-ask="form" class="flex items-end gap-2 border-t border-white/10 p-3">
         <textarea data-ask="input" rows="1" maxlength="${MAX_LEN}" placeholder="Ask about any studio…" aria-label="Your question"
@@ -73,7 +75,7 @@ export function mountAskSmartVideo({ navigate, getPage }) {
   const panel = $('panel'); const log = $('log'); const input = $('input'); const sendBtn = $('send'); const keycard = $('keycard');
 
   const studioId = () => studioForRoute(getPage());
-  const ctx = () => (studioId() ? `Help for ${getStudioLabel(studioId())} and the whole app` : 'Help for every studio, the Academy and more');
+  const ctx = () => (studioId() ? `Help for ${studioLabel(studioId())} and the whole app` : 'Help for every studio, the Academy and more');
   const bubble = (role, html) => {
     const d = document.createElement('div');
     d.className = role === 'user' ? 'ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary/90 text-black px-3 py-2 text-sm whitespace-pre-wrap' : 'ask-body max-w-[95%] rounded-2xl rounded-bl-sm bg-white/5 text-white px-3 py-2 text-sm';
@@ -93,11 +95,73 @@ export function mountAskSmartVideo({ navigate, getPage }) {
       b.type = 'button'; b.dataset.askUrl = c.url;
       b.className = c.academy || isAcademyUrl(c.url)
         ? 'rounded-full border border-purple-400/40 bg-purple-500/10 px-2.5 py-1 text-xs text-purple-200 hover:border-purple-300'
-        : 'rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white hover:border-primary/50';
+        : c.guide
+          ? 'rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs text-primary hover:border-primary'
+          : 'rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white hover:border-primary/50';
       b.textContent = c.label;
       wrap.appendChild(b);
     });
     return wrap;
+  };
+
+  // ── Studio feature guides (no OpenAI key needed) ─────────────────────────────
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  /** One feature: name, definition, why / needs / limits, screenshot, links to its guide section and the studio. */
+  const featureCard = (g, f, { open = false, showStudio = false } = {}) => {
+    const d = el('details', 'rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2');
+    d.open = open;
+    const sum = el('summary', 'cursor-pointer text-xs font-semibold text-white');
+    sum.textContent = showStudio ? `${f.name} · ${g.name}` : f.name;
+    d.appendChild(sum);
+    const body = el('div', 'pt-2 space-y-1.5 text-xs text-secondary');
+    if (f.definition) body.appendChild(el('p', 'text-white/90', f.definition));
+    [['Why use it', f.whyToUse], ['What you need', f.inputRequired], ['Limits', f.restrictions]].forEach(([k, v]) => {
+      if (!v) return;
+      const p = el('p'); p.appendChild(el('span', 'font-semibold text-primary', `${k}: `)); p.appendChild(document.createTextNode(v)); body.appendChild(p);
+    });
+    if (f.screenshot) {
+      const a = el('a', 'block overflow-hidden rounded-lg border border-white/10');
+      if (!g.unlisted) { a.href = guideUrl(g, f); a.dataset.askUrl = guideUrl(g, f); }
+      const img = el('img', 'w-full'); img.src = f.screenshot; img.alt = `${f.name} in ${g.name}`; img.loading = 'lazy';
+      a.appendChild(img); body.appendChild(a);
+    }
+    const links = el('div', 'flex flex-wrap gap-1.5 pt-1');
+    const link = (label, url, guide) => { const b = el('button', guide ? 'rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] text-primary hover:border-primary' : 'rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white hover:border-primary/50', label); b.type = 'button'; b.dataset.askUrl = url; links.appendChild(b); };
+    if (!g.unlisted) link('Feature guide', guideUrl(g, f), true);
+    link(`Open ${g.name}`, `#/${g.route}`, false);
+    body.appendChild(links);
+    d.appendChild(body);
+    return d;
+  };
+  /** The active studio's guide: every feature, collapsed, plus a link to the full guide page. */
+  const renderStudioGuide = async (into) => {
+    const id = studioId();
+    let g = null;
+    try { g = await guideForStudio(id); } catch { /* guide chunk failed to load; the chat still works */ }
+    if (!g || !into.isConnected || studioId() !== id) return;
+    const box = el('div', 'pt-3');
+    const head = el('div', 'flex items-center justify-between gap-2');
+    head.appendChild(el('div', 'text-[11px] font-semibold uppercase tracking-wide text-muted', `${g.name} guide · ${g.features.length} features`));
+    const all = el('button', 'text-[11px] text-primary hover:underline', 'Full guide ↗'); all.type = 'button'; all.dataset.askUrl = guideUrl(g);
+    if (!g.unlisted) head.appendChild(all);
+    box.appendChild(head);
+    if (g.shortDescription) box.appendChild(el('p', 'pt-1 text-xs text-secondary', g.shortDescription));
+    const list = el('div', 'flex flex-col gap-1.5 pt-2');
+    g.features.forEach((f) => list.appendChild(featureCard(g, f)));
+    box.appendChild(list);
+    into.appendChild(box);
+  };
+  /** Without an OpenAI key: answer from the guides with a local search. */
+  const answerFromGuides = async (text) => {
+    const out = bubble('assistant', '');
+    out.appendChild(el('p', 'text-xs text-secondary', 'Matching features from the studio guides:'));
+    let hits = [];
+    try { hits = await searchGuides(text, { studioId: studioId(), limit: 5 }); } catch { /* ignore */ }
+    if (!hits.length) out.appendChild(el('p', 'text-xs text-white', 'No feature matched. Try other words, or add your OpenAI key for a full answer.'));
+    const list = el('div', 'flex flex-col gap-1.5 pt-1');
+    hits.forEach((h, i) => list.appendChild(featureCard(h.guide, h.feature, { open: i === 0, showStudio: true })));
+    out.appendChild(list);
+    log.scrollTop = log.scrollHeight;
   };
 
   function renderAll() {
@@ -113,6 +177,8 @@ export function mountAskSmartVideo({ navigate, getPage }) {
         w.appendChild(b);
       });
       intro.appendChild(w);
+      const guideSlot = document.createElement('div'); intro.appendChild(guideSlot); // keeps the guide above the walkthroughs
+      renderStudioGuide(guideSlot);
       // Guided walkthroughs that chain studios into a finished video.
       const journeys = journeyPrompts();
       if (journeys.length) {
@@ -141,7 +207,13 @@ export function mountAskSmartVideo({ navigate, getPage }) {
   async function ask(text) {
     text = String(text || '').trim().slice(0, MAX_LEN);
     if (!text || busy) return;
-    if (!apiKeyManager.hasOpenAIKey()) { keycard.hidden = false; return; }
+    if (!apiKeyManager.hasOpenAIKey()) {
+      // No key: still answer from the studio guides, and offer the key for full AI answers.
+      keycard.hidden = false;
+      bubble('user', text);
+      answerFromGuides(text);
+      return;
+    }
     busy = true; sendBtn.disabled = true;
     messages.push({ role: 'user', content: text });
     const turn = { role: 'assistant', content: '', sources: [] };
@@ -193,7 +265,14 @@ export function mountAskSmartVideo({ navigate, getPage }) {
     if (open) { renderAll(); input.focus(); }
   };
   const go = (url) => {
-    if (isAcademyUrl(url)) window.location.hash = url; // the Academy page parses its own hash path
+    // Public feature guides: same tab when already on a guide page, else a new tab so the app stays open.
+    if (String(url).startsWith('/studios')) {
+      if (onGuidePage) window.location.href = url; else window.open(url, '_blank', 'noopener');
+      return;
+    }
+    // On a public guide page there is no app shell: go to the app page itself.
+    if (onGuidePage) { window.location.href = `/${String(url).replace(/^#?\/?/, '')}`; return; }
+    if (isAcademyUrl(url)) goTo(String(url).replace(/^#?\/?/, '')); // the Academy page parses its own path
     else if (pageOf(url) === 'settings') window.dispatchEvent(new CustomEvent('navigate', { detail: { page: 'settings' } }));
     else navigate(pageOf(url));
     if (window.matchMedia('(max-width: 639px)').matches) setOpen(false);
@@ -215,5 +294,5 @@ export function mountAskSmartVideo({ navigate, getPage }) {
   input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(input.scrollHeight, 112)}px`; });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) setOpen(false); });
   // Keep "You're in <studio>" and the starters current as the user moves around.
-  window.addEventListener('hashchange', () => { if (!panel.hidden && !busy && !messages.length) renderAll(); else if (!panel.hidden) $('context').textContent = ctx(); });
+  onRouteChange(() => { if (!panel.hidden && !busy && !messages.length) renderAll(); else if (!panel.hidden) $('context').textContent = ctx(); });
 }

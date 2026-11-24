@@ -4,6 +4,8 @@
  */
 import * as C from './components.jsx';
 import { withImagePickers } from './ImageField.jsx';
+import { withAltFill } from './altFill.js';
+import { withTokenPickers, withTokenUrls, withViewerOptions, withSectionStyle, ContactAccent } from './tokenFields.jsx';
 import { FONT_OPTIONS, fontStack } from './fontChoices.js';
 import { ICON_KEYS } from '../siteIcons.js';
 import { EDITABLE_TEMPLATES } from './designs.js';
@@ -21,7 +23,7 @@ const iconField = { type: 'select', label: 'Icon', options: [{ label: 'None', va
 const cols = { type: 'select', label: 'Width (grid columns)', options: [1, 2, 3, 4, 5, 6].map((n) => ({ label: `${n}`, value: n })) };
 const buttonArray = { type: 'array', label: 'Buttons', arrayFields: { label: T('Text'), url: T('Link (https, mailto: or tel:)'), style: { type: 'radio', label: 'Style', options: [{ label: 'Primary', value: 'primary' }, { label: 'Secondary', value: 'secondary' }] } }, getItemSummary: (i) => i.label || 'Button', defaultItemProps: { label: 'Button', url: '', style: 'secondary' } };
 const linkArray = (label) => ({ type: 'array', label, arrayFields: { label: T('Text'), url: T('Link (optional)') }, getItemSummary: (i) => i.label || 'Link', defaultItemProps: { label: 'Link', url: '' } });
-const formFieldArray = { type: 'array', label: 'Form fields', arrayFields: { key: T('Field name (a-z)'), label: T('Label / placeholder'), type: { type: 'select', label: 'Type', options: ['text', 'email', 'tel', 'textarea', 'select'].map((v) => ({ label: v === 'select' ? 'dropdown' : v, value: v })) }, options: T('Dropdown choices (comma separated)'), required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, getItemSummary: (i) => i.label || 'Field', defaultItemProps: { key: 'name', label: 'Name', type: 'text', required: true } };
+const formFieldArray = { type: 'array', label: 'Form fields', arrayFields: { key: T('Field name (a-z)'), placeholder: T('Placeholder (empty = the label)'), label: T('Label / placeholder'), type: { type: 'select', label: 'Type', options: ['text', 'email', 'tel', 'textarea', 'select'].map((v) => ({ label: v === 'select' ? 'dropdown' : v, value: v })) }, options: T('Dropdown choices (comma separated)'), required: { type: 'radio', label: 'Required', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] } }, getItemSummary: (i) => i.label || 'Field', defaultItemProps: { key: 'name', label: 'Name', type: 'text', required: true } };
 
 const HERO_FIELDS = [{ key: 'name', label: 'Your Name', type: 'text', required: true }, { key: 'email', label: 'Your Email', type: 'email', required: true }, { key: 'company', label: 'Your Company', type: 'text', required: false }];
 
@@ -39,10 +41,11 @@ export const editorConfig = {
       afterSubmitAction: { type: 'select', label: 'After the form is sent', options: AFTER_SUBMIT_OPTIONS.map(([value, label]) => ({ label, value })) },
       afterSubmitUrl: T('Button / redirect link (https, mailto: or tel:)'),
       afterSubmitButtonText: T('Button text (for "Show a button")'),
+      formError: T('Message when a form cannot send'),
       greeting: T('Greeting strip shown only on a personal link (e.g. "A personal video for {{firstname|you}}"; empty = none)'),
     },
-    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '', headingFont: '', bodyFont: '', thanks: 'Thanks! Check your inbox.', afterSubmitAction: 'message', afterSubmitUrl: '', afterSubmitButtonText: '', greeting: '' },
-    render: ({ children, design, accent, background, text, surface, headingFont, bodyFont, thanks, greeting, afterSubmitAction, afterSubmitUrl, afterSubmitButtonText }) => {
+    defaultProps: { design: 'clean', accent: '#2563eb', background: '#ffffff', text: '#0f172a', surface: '', headingFont: '', bodyFont: '', thanks: 'Thanks! Check your inbox.', afterSubmitAction: 'message', afterSubmitUrl: '', afterSubmitButtonText: '', greeting: '', formError: 'Could not send. Please try again.' },
+    render: ({ children, design, accent, background, text, surface, headingFont, bodyFont, thanks, greeting, formError, afterSubmitAction, afterSubmitUrl, afterSubmitButtonText }) => {
       const ok = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? v : d);
       const acc = ok(accent, '#2563eb');
       // Button text: white on dark accents, near-black on light ones, so every accent stays readable.
@@ -53,7 +56,7 @@ export const editorConfig = {
       const fh = fontStack(headingFont); const fb = fontStack(bodyFont);
       if (fh) style['--pk-fh'] = fh;
       if (fb) style['--pk-fb'] = fb;
-      return <div className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}><ThanksContext.Provider value={thanks || 'Thanks! Check your inbox.'}><AfterSubmitContext.Provider value={{ afterSubmitAction, afterSubmitUrl, afterSubmitButtonText }}><C.LeadAnchorFallback /><C.PersonalGreeting text={greeting} />{children}</AfterSubmitContext.Provider></ThanksContext.Provider></div>;
+      return <ContactAccent className={`pk-page pk-d-${String(design || 'clean').replace(/[^a-z0-9-]/gi, '')}`} style={style} {...(fh ? { 'data-fh': '' } : {})} {...(fb ? { 'data-fb': '' } : {})}><ThanksContext.Provider value={thanks || 'Thanks! Check your inbox.'}><AfterSubmitContext.Provider value={{ afterSubmitAction, afterSubmitUrl, afterSubmitButtonText, formError }}><C.LeadAnchorFallback /><C.PersonalGreeting text={greeting} />{children}</AfterSubmitContext.Provider></ThanksContext.Provider></ContactAccent>;
     },
   },
   categories: {
@@ -65,8 +68,8 @@ export const editorConfig = {
     ...EXT_COMPONENTS,
     NavBar: {
       label: 'Menu bar',
-      fields: { brand: T('Brand name'), logo: T('Logo image (https link)'), links: linkArray('Menu links'), loginLabel: T('Log-in text (empty = none)'), loginUrl: T('Log-in link'), ctaLabel: T('Button text (scrolls to the form)') },
-      defaultProps: { brand: 'Your brand', logo: '', links: [{ label: 'Product', url: '' }, { label: 'Pricing', url: '' }], loginLabel: 'Log In', loginUrl: '', ctaLabel: 'Book a Demo' },
+      fields: { brand: T('Brand name'), logo: T('Logo image (https link)'), logoAlt: T('Screen-reader description of the brand mark (alt text)'), links: linkArray('Menu links'), loginLabel: T('Log-in text (empty = none)'), loginUrl: T('Log-in link'), ctaLabel: T('Button text'), ctaUrl: T('Button link (empty = scrolls to the form)') },
+      defaultProps: { brand: 'Your brand', logo: '', links: [{ label: 'Product', url: '' }, { label: 'Pricing', url: '' }], loginLabel: 'Log In', loginUrl: '', ctaLabel: 'Book a Demo', logoAlt: '', ctaUrl: '' },
       render: (p) => <C.NavBar {...p} />,
     },
     Hero: {
@@ -99,7 +102,7 @@ export const editorConfig = {
     },
     Strip: {
       label: 'Strip (logos, icons or numbers)',
-      fields: { kind: { type: 'radio', label: 'Style', options: [{ label: 'Company names', value: 'logos' }, { label: 'Icons with text', value: 'benefits' }, { label: 'Big numbers', value: 'stats' }] }, title: T('Heading (optional)'), items: { type: 'array', label: 'Items', arrayFields: { title: T('Title / name'), text: T('Short text (icons style)'), value: T('Number (numbers style)'), icon: iconField, image: T('Small picture (icons style; https link)') }, getItemSummary: (i) => i.title || i.value || 'Item', defaultItemProps: { title: 'Item', text: '', value: '', icon: 'check', image: '' } } },
+      fields: { kind: { type: 'radio', label: 'Style', options: [{ label: 'Company names', value: 'logos' }, { label: 'Icons with text', value: 'benefits' }, { label: 'Big numbers', value: 'stats' }] }, title: T('Heading (optional)'), items: { type: 'array', label: 'Items', arrayFields: { title: T('Title / name'), alt: T('Screen-reader description of the small picture (alt text)'), text: T('Short text (icons style)'), value: T('Number (numbers style)'), icon: iconField, image: T('Small picture (icons style; https link)') }, getItemSummary: (i) => i.title || i.value || 'Item', defaultItemProps: { title: 'Item', text: '', value: '', icon: 'check', image: '' } } },
       defaultProps: { kind: 'logos', title: 'Trusted by growth-focused teams', items: [{ title: 'Acme', text: '', value: '', icon: '' }, { title: 'Globex', text: '', value: '', icon: '' }, { title: 'Initech', text: '', value: '', icon: '' }] },
       render: (p) => <C.Strip {...p} />,
     },
@@ -127,12 +130,12 @@ export const editorConfig = {
       defaultProps: { eyebrow: "Let's talk", title: 'Ready to get started?', text: 'Tell us a little about your team and we will get back to you.', fields: [{ key: 'name', label: 'Name', type: 'text', required: true }, { key: 'email', label: 'Work email', type: 'email', required: true }, { key: 'message', label: 'How can we help?', type: 'textarea', required: false }], submitLabel: 'Contact us', successMessage: 'Thanks! We will be in touch.' },
       render: (p) => <C.ContactBand {...p} />,
     },
-    CtaBar: { label: 'Bottom button bar', fields: { text: T('Text beside the button (empty = button only)'), label: T('Button text'), url: T('Link (https, mailto:, tel: or #lead)'), icon: iconField, icons: { type: 'array', label: 'Social icons (button-only bar)', arrayFields: { icon: iconField, url: T('Link (https)') }, getItemSummary: (i) => i.icon || 'Icon', defaultItemProps: { icon: 'facebook', url: '' } } }, defaultProps: { text: '', label: 'Book a Free Consultation', url: '#lead', icon: 'calendar', icons: [] }, render: (p) => <C.CtaBar {...p} /> },
-    Footer: { label: 'Footer', fields: { text: T('Footer text'), links: linkArray('Footer links') }, defaultProps: { text: 'Sent by {{sender|us}} · {{brand|your brand}}', links: [] }, render: (p) => <C.Footer {...p} /> },
+    CtaBar: { label: 'Bottom button bar', fields: { text: T('Text beside the button (empty = button only)'), label: T('Button text'), url: T('Link (https, mailto:, tel: or #lead)'), label2: T('Second button text (empty = none)'), url2: T('Second button link'), icon: iconField, icons: { type: 'array', label: 'Social icons (button-only bar)', arrayFields: { icon: iconField, url: T('Link (https)') }, getItemSummary: (i) => i.icon || 'Icon', defaultItemProps: { icon: 'facebook', url: '' } } }, defaultProps: { text: '', label: 'Book a Free Consultation', url: '#lead', label2: '', url2: '', icon: 'calendar', icons: [] }, render: (p) => <C.CtaBar {...p} /> },
+    Footer: { label: 'Footer', fields: { logo: T('Footer logo (https link)'), logoAlt: T('Screen-reader description of the footer mark (alt text)'), text: T('Footer text'), links: linkArray('Footer links'), social: { type: 'array', label: 'Social icons', arrayFields: { icon: iconField, url: T('Link (https)') }, getItemSummary: (i) => i.icon || 'Icon', defaultItemProps: { icon: 'facebook', url: '' } } }, defaultProps: { logo: '', logoAlt: '', text: 'Sent by {{sender|us}} · {{brand|your brand}}', links: [], social: [] }, render: (p) => <C.Footer {...p} /> },
     OutreachActions: {
       label: 'Video outreach: sender, Like, booking',
-      fields: { senderName: T('Your name'), senderTitle: T('Your title and company'), senderPhoto: T('Your photo (https link)'), like: { type: 'radio', label: 'Like button', options: [{ label: 'Show', value: 'yes' }, { label: 'Hide', value: 'no' }] }, ctaLabel: T('Button text'), ctaUrl: T('Button link (https)'), calendarUrl: T('Booking calendar to embed (https, empty = none)'), calendarTitle: T('Calendar heading') },
-      defaultProps: { senderName: '{{sender|}}', senderTitle: '', senderPhoto: '', like: 'yes', ctaLabel: 'Book a call', ctaUrl: '', calendarUrl: '', calendarTitle: 'Pick a time that works for you' },
+      fields: { senderName: T('Your name'), senderTitle: T('Your title and company'), senderPhoto: T('Your photo (https link)'), senderPhotoAlt: T('Screen-reader description of you (alt text)'), likeLabel: T('Like button text'), likedLabel: T('Text after it is pressed'), like: { type: 'radio', label: 'Like button', options: [{ label: 'Show', value: 'yes' }, { label: 'Hide', value: 'no' }] }, ctaLabel: T('Button text'), ctaUrl: T('Button link (https)'), calendarUrl: T('Booking calendar to embed (https, empty = none)'), calendarTitle: T('Calendar heading') },
+      defaultProps: { senderName: '{{sender|}}', senderTitle: '', senderPhoto: '', senderPhotoAlt: '', likeLabel: 'Like', likedLabel: 'Liked', like: 'yes', ctaLabel: 'Book a call', ctaUrl: '', calendarUrl: '', calendarTitle: 'Pick a time that works for you' },
       render: (p) => <C.OutreachActions {...p} />,
     },
     Showcase: {
@@ -145,12 +148,14 @@ export const editorConfig = {
         bullets: { type: 'array', label: 'Tick list', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Item', defaultItemProps: { text: 'New point' } },
         buttonLabel: T('Button text'),
         buttonUrl: T('Button link (https, mailto:, tel: or #video / #lead)'),
+        button2Label: T('Second button text (empty = none)'),
+        button2Url: T('Second button link'),
         image: T('Picture (https link)'),
         imageAlt: T('Picture description for screen readers'),
         background: T('Banner photo (https link)'),
         points: { type: 'array', label: 'Points beside a banner', arrayFields: { text: T('Text') }, getItemSummary: (i) => i.text || 'Point', defaultItemProps: { text: 'New point' } },
       },
-      defaultProps: { variant: 'split', side: 'right', title: 'See it in [[action]]', text: 'Say what the picture shows in a sentence or two.', bullets: [{ text: 'First point' }, { text: 'Second point' }], buttonLabel: 'Watch the demo video', buttonUrl: '#video', image: '', imageAlt: '', background: '', points: [] },
+      defaultProps: { variant: 'split', side: 'right', title: 'See it in [[action]]', text: 'Say what the picture shows in a sentence or two.', bullets: [{ text: 'First point' }, { text: 'Second point' }], buttonLabel: 'Watch the demo video', buttonUrl: '#video', button2Label: '', button2Url: '', image: '', imageAlt: '', background: '', points: [] },
       render: (p) => <C.Showcase {...p} />,
     },
     PageImage: { label: 'Image', fields: { src: T('Image link (https)'), alt: T('Description for screen readers'), rounded: { type: 'radio', label: 'Rounded corners', options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }] } }, defaultProps: { src: '', alt: '', rounded: 'yes' }, render: (p) => <C.PageImage {...p} /> },
@@ -159,7 +164,7 @@ export const editorConfig = {
     TableCard: { label: 'Table (e.g. leads)', fields: { columns: cols, title: T('Title'), windowTitle: T('Window title (shows a product window)'), windowSubtitle: T('Window subtitle'), sidebar: { type: 'array', label: 'Window sidebar', arrayFields: { label: T('Label') }, getItemSummary: (i) => i.label || 'Item', defaultItemProps: { label: 'Item' } }, kpis: { type: 'array', label: 'Numbers above the table', arrayFields: { value: T('Number'), label: T('Label') }, getItemSummary: (i) => i.value || 'KPI', defaultItemProps: { value: '0', label: 'Label' } }, headings: T('Column headings (comma separated)'), rows: { type: 'array', label: 'Rows', arrayFields: { name: T('Name'), col2: T('Column 2'), col3: T('Column 3'), tag: T('Status') }, getItemSummary: (i) => i.name || 'Row', defaultItemProps: { name: 'Name', col2: '', col3: '', tag: '' } } }, defaultProps: { columns: 2, title: 'Lead tracker', windowTitle: '', windowSubtitle: '', sidebar: [], kpis: [], headings: 'Lead, Company, Status', rows: [{ name: 'Sarah Chen', col2: 'Acme Co.', col3: '', tag: 'Hot lead' }, { name: 'James Miller', col2: 'BrightTech', col3: '', tag: 'New' }] }, render: (p) => <C.TableCard {...p} /> },
     StatsCard: { label: 'Big numbers card', fields: { columns: cols, title: T('Title'), items: { type: 'array', label: 'Numbers', arrayFields: { value: T('Number'), label: T('Label'), icon: iconField }, getItemSummary: (i) => i.value || 'Number', defaultItemProps: { value: '0%', label: 'Label', icon: '' } } }, defaultProps: { columns: 2, title: 'Real results', items: [{ value: '+317%', label: 'Lead conversion', icon: 'target' }, { value: '4.2x', label: 'List growth', icon: 'users' }] }, render: (p) => <C.StatsCard {...p} /> },
     ChecklistCard: { label: 'Checklist card', fields: { columns: cols, title: T('Title'), text: A('Text'), items: { type: 'array', label: 'Items', arrayFields: { label: T('Text'), value: T('Number (optional)') }, getItemSummary: (i) => i.label || 'Item', defaultItemProps: { label: 'Item', value: '' } } }, defaultProps: { columns: 1, title: 'Why teams love it', text: '', items: [{ label: 'Easy to set up', value: '' }, { label: 'Works with your tools', value: '' }] }, render: (p) => <C.ChecklistCard {...p} /> },
-    QuoteCard: { label: 'Testimonial card', fields: { columns: cols, heading: T('Heading (optional)'), quotes: { type: 'array', label: 'Testimonials', arrayFields: { text: A('Quote'), name: T('Name'), role: T('Role / company'), avatar: T('Photo (https link)') }, getItemSummary: (i) => i.name || 'Quote', defaultItemProps: { text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company' } } }, defaultProps: { columns: 1, heading: '', quotes: [{ text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company' }] }, render: (p) => <C.QuoteCard {...p} /> },
+    QuoteCard: { label: 'Testimonial card', fields: { columns: cols, heading: T('Heading (optional)'), quotes: { type: 'array', label: 'Testimonials', arrayFields: { text: A('Quote'), avatarAlt: T('Screen-reader description of the face (alt text)'), name: T('Name'), role: T('Role / company'), avatar: T('Photo (https link)') }, getItemSummary: (i) => i.name || 'Quote', defaultItemProps: { text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company' } } }, defaultProps: { columns: 1, heading: '', quotes: [{ text: 'Add a quote you have permission to use.', name: 'Name', role: 'Role, Company' }] }, render: (p) => <C.QuoteCard {...p} /> },
     StepsCard: { label: 'Steps card', fields: { columns: cols, title: T('Title'), layout: { type: 'radio', label: 'Layout', options: [{ label: 'List', value: 'list' }, { label: 'Row', value: 'row' }] }, items: { type: 'array', label: 'Steps', arrayFields: { title: T('Title'), text: T('Text'), icon: iconField }, getItemSummary: (i) => i.title || 'Step', defaultItemProps: { title: 'Step', text: '', icon: '' } } }, defaultProps: { columns: 2, title: 'Get started in 3 steps', layout: 'row', items: [{ title: 'Connect', text: 'Add your brand.', icon: 'video' }, { title: 'Import', text: 'Add your list.', icon: 'users' }, { title: 'Send', text: 'Watch it grow.', icon: 'send' }] }, render: (p) => <C.StepsCard {...p} /> },
     FeaturesCard: { label: 'Feature list card', fields: { columns: cols, title: T('Title'), items: { type: 'array', label: 'Features', arrayFields: { icon: iconField, title: T('Title'), text: T('Text') }, getItemSummary: (i) => i.title || 'Feature', defaultItemProps: { icon: 'check', title: 'Feature', text: '' } } }, defaultProps: { columns: 2, title: 'Key features', items: [{ icon: 'video', title: 'Personalized video', text: 'One-to-one videos in minutes.' }, { icon: 'chart', title: 'Insights', text: 'Track views and replies.' }] }, render: (p) => <C.FeaturesCard {...p} /> },
     FaqCard: { label: 'Questions card', fields: { columns: cols, title: T('Title'), items: { type: 'array', label: 'Questions', arrayFields: { q: T('Question'), a: A('Answer') }, getItemSummary: (i) => i.q || 'Question', defaultItemProps: { q: 'Question?', a: 'Answer.' } } }, defaultProps: { columns: 2, title: 'Frequently asked questions', items: [{ q: 'Is there a free trial?', a: 'Add your answer here.' }] }, render: (p) => <C.FaqCard {...p} /> },
@@ -169,5 +174,14 @@ export const editorConfig = {
   },
 };
 
+// Every section gets its own background / text colour and photo; video slots get viewer options.
+withSectionStyle(editorConfig.components, editorConfig.categories.sections.components);
+// The design-specific sections too (the *Card ones are dropped into a Grid, so they are not sections of their own).
+withSectionStyle(editorConfig.components, Object.keys(EXT_COMPONENTS).filter((n) => !/Card$/.test(n)));
+withViewerOptions(editorConfig.components);
 // Every image-link field also offers "Choose from my library" (images made in any studio).
 withImagePickers(editorConfig.components);
+withAltFill(editorConfig.components);
+// Every text and link field gets an "Insert field" menu, and links / pictures accept {{tokens}} (filled per contact).
+withTokenPickers(editorConfig.components);
+withTokenUrls(editorConfig.components);

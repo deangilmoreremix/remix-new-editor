@@ -200,10 +200,6 @@ vi.mock('../../src/lib/recipeIntegration.js', () => ({
   openRecipeModal: vi.fn(() => Promise.resolve()),
 }));
 
-vi.mock('../../src/lib/monetizationIntegration.js', () => ({
-  openMonetizationHub: vi.fn(() => Promise.resolve()),
-}));
-
 vi.mock('../../src/lib/uiIntegration.js', () => ({
   fetchGTMTemplateContext: vi.fn(() => null),
   openGTMPromptModal: vi.fn(() => {}),

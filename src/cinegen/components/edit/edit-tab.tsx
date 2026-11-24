@@ -16,7 +16,7 @@ import { SoundLibraryPopup } from './sound-library-popup';
 import { StockMediaPopup } from './stock-media-popup';
 import { useMediaBrowser } from './use-media-browser';
 import { LibraryPanel, type LibraryActions } from './library-panel'; // [remix] one Library for animations, effects, transitions, looks, overlays & forms, sounds
-import { createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, applyDesignToOverlay, findGate, startAfterGate, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
 import { createHyperframesOverlay, hyperframesItem } from '@cinegen/lib/hyperframes/overlay';
 import { decodeLibraryDrag, type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 import { loadMgTemplates } from '@cinegen/lib/occ/mg-templates';
@@ -741,7 +741,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [sourceViewerEntry, state.assets]);
   const stage1 = useStage1Editing({
     timeline, dispatch, selectedClipIds, setSelectedClipIds, currentTime, seek, isPlaying, play, pause, setSpeed,
-    sourceAsset: sourceViewerEntry && !sourceViewerEntry.clip ? resolvedSourceViewerAsset : null, sourceVisible: layout.sourceViewerVisible,
+    sourceAsset: sourceViewerEntry ? resolvedSourceViewerAsset : null, sourceVisible: layout.sourceViewerVisible,
   });
   const sourceViewerNativeVideoEnabled = nativeVideoAvailable
     && activeTool !== 'mask'
@@ -964,8 +964,16 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     const withRow = <T extends { [k: string]: unknown }>(o: T, ctx?: LibraryDropCtx): T => (typeof ctx?.row === 'number' ? { ...o, row: ctx.row } : o);
     const needClip = (what: string) => `Select a clip on the timeline first, then click ${what}.`;
     return {
-      onAddOverlay: (kind, ctx) => {
-        const overlay = withRow(createOverlay(kind, ctx?.time ?? currentTime, Math.max(sequenceDuration, 10)), ctx);
+      onAddOverlay: (kind, ctx, designId) => {
+        // a design on a List Builder: one per video, so a design picked for it goes to the one that is there
+        const gate = kind === 'list-builder' && designId ? findGate(state.overlays) : undefined;
+        if (gate && designId) {
+          dispatch({ type: 'UPDATE_OVERLAY', overlayId: gate.id, updates: { config: (applyDesignToOverlay(gate, designId) as { config?: object }).config } });
+          selectOverlay(gate.id);
+          return `Applied the design to your List Builder (a video has one).`;
+        }
+        const at = ctx?.time ?? (designId ? (kind === 'list-builder' ? currentTime : startAfterGate(state.overlays, currentTime)) : currentTime);
+        const overlay = withRow(createOverlay(kind, at, Math.max(sequenceDuration, 10), designId), ctx);
         dispatch({ type: 'ADD_OVERLAY', overlay });
         selectOverlay(overlay.id);
         return `Added ${overlay.name} ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}. Remove it with the × on the Overlays lane.`;

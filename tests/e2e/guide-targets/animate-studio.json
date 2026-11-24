@@ -1,0 +1,10 @@
+{
+  "advanced-model-fields": {
+    "steps": [{ "text": "Seedance Lite (default)", "exact": true }],
+    "selector": "#animate-advanced-muapi"
+  },
+  "use-my-brand": {
+    "selector": "xpath=//button[normalize-space(.)=\"Connect Personalization\"]/..",
+    "click": false
+  }
+}

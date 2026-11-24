@@ -1,0 +1,80 @@
+{
+  "quick-mode-vs-advanced": {
+    "steps": [
+      {
+        "text": "Cinematic Short Film",
+        "exact": true,
+        "wait": 3000
+      }
+    ],
+    "selector": "xpath=//button[@id='quick-mode-btn']/..",
+    "click": false
+  },
+  "video-intent-panel": {
+    "steps": [
+      {
+        "text": "Cinematic Short Film",
+        "exact": true,
+        "wait": 3000
+      }
+    ],
+    "selector": "#video-intent-section",
+    "click": false
+  },
+  "ai-enhancer": {
+    "steps": [
+      {
+        "text": "Cinematic Short Film",
+        "exact": true,
+        "wait": 3000
+      }
+    ],
+    "selector": "xpath=//button[@id='enhancerToggle']/../..",
+    "click": false
+  },
+  "editable-output-tabs": {
+    "steps": [
+      {
+        "text": "Cinematic Short Film",
+        "exact": true,
+        "wait": 3000
+      }
+    ],
+    "selector": "xpath=//div[@id='outputTabs']/..",
+    "click": false
+  },
+  "media-sources-and-routing": {
+    "steps": [
+      {
+        "text": "Cinematic Short Film",
+        "exact": true,
+        "wait": 3000
+      }
+    ],
+    "selector": "xpath=//label[contains(translate(normalize-space(.),'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ'),'MEDIA SOURCES')]/../..",
+    "click": false
+  },
+  "scene-timeline-and-scene-builder": {
+    "steps": [
+      {
+        "text": "Cinematic Short Film",
+        "exact": true,
+        "wait": 3000
+      }
+    ],
+    "selector": "xpath=//div[@id='scenes-list']/..",
+    "click": false
+  },
+  "storyboard-hand-off": {
+    "setup": "new Promise((done) => { const h = [...document.querySelectorAll('h3')].find((x) => x.textContent.trim() === 'Cinematic Short Film'); if (h) h.click(); setTimeout(() => { if (window.useStoryboardInTemplate) window.useStoryboardInTemplate({\"id\": \"sb-neon-heist\", \"projectName\": \"Neon Heist\", \"frames\": [{\"sceneNumber\": 1, \"description\": \"Wide establishing shot of a rain-soaked neon city at night\", \"shotType\": \"Wide\", \"cameraMovement\": \"Crane Down\", \"duration\": 4}, {\"sceneNumber\": 2, \"description\": \"The thief slips through a crowded night market\", \"shotType\": \"Medium\", \"cameraMovement\": \"Tracking\", \"duration\": 4}, {\"sceneNumber\": 3, \"description\": \"Close-up as she cracks the vault keypad\", \"shotType\": \"Close-up\", \"cameraMovement\": \"Dolly In\", \"duration\": 3}]}); setTimeout(done, 2000); }, 3000); })",
+    "reload": false,
+    "selector": "xpath=//div[normalize-space(text())='Storyboard Loaded']/ancestor::div[contains(@class,'justify-between')][1]",
+    "click": false
+  },
+  "result-preview": {
+    "setup": "new Promise((done) => { localStorage.setItem('cinema_template_history', JSON.stringify([{\"id\": \"g1\", \"url\": \"/media/awesome-seedance/videos/john1.mp4\", \"prompt\": \"Cinematic short film: a lone rider at dusk\", \"model\": \"kling-v2.6-pro-i2v\", \"type\": \"video\", \"templateId\": \"cinematic_short_film\"}, {\"id\": \"g2\", \"url\": \"/media/awesome-seedance/videos/vicky.mp4\", \"prompt\": \"Cinematic short film: night market chase\", \"model\": \"kling-v2.6-pro-i2v\", \"type\": \"video\", \"templateId\": \"cinematic_short_film\"}, {\"id\": \"g3\", \"url\": \"/media/awesome-seedance/videos/john4.mp4\", \"prompt\": \"Cinematic short film: vault scene\", \"model\": \"kling-v2.6-pro-i2v\", \"type\": \"video\", \"templateId\": \"cinematic_short_film\"}])); location.hash = '#/apps'; setTimeout(() => { location.hash = '#/cinema-template'; setTimeout(() => { const h = [...document.querySelectorAll('h3')].find((x) => x.textContent.trim() === 'Cinematic Short Film'); if (h) h.click(); setTimeout(() => { const t = document.querySelector('[data-history-url]'); if (t) t.click(); setTimeout(done, 3000); }, 3000); }, 5000); }, 1500); })",
+    "reload": false,
+    "selector": "xpath=//button[contains(@class,'publish-social-btn') and normalize-space(.)='Publish to Social']/..",
+    "click": false
+  }
+}

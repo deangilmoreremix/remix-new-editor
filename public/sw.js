@@ -184,7 +184,7 @@ self.addEventListener('message', (event) => {
 // the tested code and the shipped code cannot drift apart. Keep them free of
 // `self`/`event` access: only the handlers underneath touch the worker globals.
 // <push-logic>
-const PUSH_DEFAULT_URL = '/#/timeline';
+const PUSH_DEFAULT_URL = '/timeline'; // notifications sent before the clean-URL move carry '/#/timeline'; the app still opens those
 const PUSH_ICON = '/favicon.webp';
 
 // Tolerates empty, non-JSON and non-object payloads; every field is optional.
@@ -234,9 +234,10 @@ function coldOpenUrl(url) {
   return path + (path.includes('?') ? '&' : '?') + 'alerts=1' + hash;
 }
 
-// Prefer a focused/visible window, otherwise any window of this origin.
+// Prefer a focused/visible window, otherwise any window of this origin. The workbench (/workbench-app/) and the motion agent (/motion-agent/)
+// are different apps on the same origin with no alerts listener, so they are never chosen (a click would focus them and do nothing).
 function pickAppWindow(windows, origin) {
-  const own = (windows || []).filter((w) => { try { return new URL(w.url).origin === origin; } catch { return false; } });
+  const own = (windows || []).filter((w) => { try { const u = new URL(w.url); return u.origin === origin && !u.pathname.startsWith('/workbench-app/') && !u.pathname.startsWith('/motion-agent/'); } catch { return false; } });
   return own.find((w) => w.focused) || own.find((w) => w.visibilityState === 'visible') || own[0] || null;
 }
 // </push-logic>

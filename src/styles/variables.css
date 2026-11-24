@@ -13,6 +13,13 @@
   --color-success: #22c55e;
   --color-warning: #f59e0b;
 
+  /* Cinema-family surface and the shared "publish" gradient, as tokens so
+     CinemaStudio / CinemaTemplateStudio / StoryboardStudio carry no raw hex
+     utilities (enforced by `npm run lint:cinema-hex`). */
+  --bg-cinema-panel: #111;
+  --publish-from: #6d5efc;
+  --publish-to: #a855f7;
+
   /* ------------------------------------------------------------------
      Shared modal theme tokens.
 

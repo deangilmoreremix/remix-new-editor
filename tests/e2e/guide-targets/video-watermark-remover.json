@@ -1,0 +1,29 @@
+{
+  "remove-watermarks-free-button": {
+    "selector": ".start-btn",
+    "click": false
+  },
+  "powerful-removal-tools-section": {
+    "selector": "xpath=//h2[normalize-space()=\"Powerful Removal Tools\"]/.."
+  },
+  "how-it-works-steps": {
+    "selector": "xpath=//h2[normalize-space()=\"How It Works\"]/.."
+  },
+  "ai-video-watermark-remover-card": {
+    "selector": "[data-model=\"video-watermark-remover\"]",
+    "click": false
+  },
+  "get-started-free-button": {
+    "selector": ".cta-btn",
+    "click": false
+  },
+  "removing-a-watermark-in-video-studio": {
+    "route": "video",
+    "selector": "button[title=\"Upload video to remove watermark\"]",
+    "click": false
+  },
+  "logo-seedance-and-background-remover-cards": {
+    "selector": "[data-model=\"seedance-2-watermark-remover\"]",
+    "click": false
+  }
+}

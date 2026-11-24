@@ -1,3 +1,4 @@
+import { goTo } from '../lib/routeUrl.js';
 // src/components/OutreachStudio.js
 //
 // Video Outreach studio (route: #/outreach), a standalone studio: record one
@@ -9,6 +10,7 @@
 // each contact's link (?c=<id>&firstName=…) picks their voiced greeting and
 // fills the landing text. The logic lives in src/lib/outreach/draft.js.
 
+import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, linkedinMessage } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
@@ -125,7 +127,7 @@ function videoMeta(url) {
 
 export function OutreachStudio() {
   const container = el('div', 'relative w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
-  mountStudioChrome(container, { title: 'Video Outreach', currentRoute: 'outreach' });
+  mountStudioChrome(container, { currentRoute: 'outreach' });
 
   const draft = loadDraft();
   // The last recording stays in memory so its sound can become the voice sample.
@@ -150,7 +152,7 @@ export function OutreachStudio() {
   // Bottom padding keeps the footer buttons clear of the floating Ask SmartVideo button.
   const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 pt-6 pb-28 flex flex-col gap-5');
   scroll.appendChild(inner);
-  container.append(stepper, scroll);
+  container.append(demoteBannerHeading(createEditorBanner('outreach', 'Video Outreach', 'Personalized videos for every prospect')), stepper, scroll);
 
   // A generated campaign is also kept in the Videos library, so it can be opened again later.
   // The edit recipe (src/lib/outreach/editTools.js) is saved with the draft; clips added before/after are local files,
@@ -1297,7 +1299,7 @@ export function OutreachStudio() {
       box.appendChild(el('p', 'text-sm text-secondary', pendingLeads.error || 'No saved leads yet. Find businesses in Lead Finder and save them first.'));
       const row = el('div', 'flex gap-2');
       const go = button('Open Lead Finder', { small: true });
-      go.addEventListener('click', () => { window.location.hash = '#/leadfinder'; });
+      go.addEventListener('click', () => { goTo('leadfinder'); });
       const cancel = button('Close', { small: true });
       cancel.addEventListener('click', close);
       row.append(go, cancel); box.appendChild(row);
@@ -2508,7 +2510,7 @@ export function OutreachStudio() {
       name: String(user?.firstName || '').trim().slice(0, 40),
       initial: best,
       onChange: (a) => { ob.saveLocalOnboarding(uid, a); clearTimeout(timer); timer = setTimeout(() => saveWelcome(a), 500); },
-      onAcademy: () => { globalThis.location.hash = '#/academy'; },
+      onAcademy: () => { goTo('academy'); },
       onFinish: (a) => {
         clearTimeout(timer);
         saveWelcome(a);
@@ -2562,7 +2564,7 @@ export function OutreachStudio() {
       fallbacks: { ...next.fallbacks, firstname: 'there' },
       header: 'Hi {{firstname}}, I made this for you',
       message: 'A personal video for {{company}}, made with SmartVideo.',
-      cta: { enabled: true, label: 'Make my first campaign', url: `${origin}/#/outreach`, embed: false },
+      cta: { enabled: true, label: 'Make my first campaign', url: `${origin}/outreach`, embed: false },
       contacts: [me],
       background: { ...next.background, mode: 'website', fallbackSite: d.website, cursor: true },
       page: { template: SAMPLE_PAGE, editor: null },

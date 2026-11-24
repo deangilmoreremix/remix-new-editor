@@ -25,7 +25,7 @@
     "'Native Audio' toggle (shown only for models that support it).",
     "Advanced panel for model-specific options, and a Thumbnail button for a custom thumbnail.",
     "Result card with video player, 'Download Video', 'Publish to Social' and '💬 Add AI Captions'.",
-    "More-tools menu: GTM Boost, Recipes, Monetize, Prompts; Personalize trigger.",
+    "More-tools menu: GTM Boost, Recipes, Prompts; Personalize trigger.",
     "Example gallery of sample avatar assets at the bottom of the page."
   ],
   "featureExplanations": [
@@ -54,8 +54,8 @@
       "feature": "Prompt (optional)",
       "explanation": "A text box to describe the animation. It only appears for models that accept a prompt.",
       "whyToUse": "To steer the performance on models that support it.",
-      "inputRequired": "If the box is shown and empty, Generate shows 'Please enter a prompt for this avatar model.'",
-      "restrictions": "None of the currently listed standard models show the prompt box; it appears only if a model supports a prompt."
+      "inputRequired": "Nothing: the box is optional. Leave it empty and the model animates from the image and audio alone.",
+      "restrictions": "It appears only for models that accept a prompt. Today that is FLUX 3 Avatar; the lip sync models (LTX, VEED, Creatify, LatentSync, Kling, WAN, InfiniteTalk) hide it."
     },
     {
       "feature": "Native Audio toggle",
@@ -84,7 +84,7 @@
     "Choose a model with the model button.",
     "Upload the source video or image.",
     "Upload the audio file.",
-    "Fill the prompt if the box is shown.",
+    "Optionally describe the animation if the prompt box is shown (FLUX 3 Avatar).",
     "Click Generate Avatar Video.",
     "Download, publish or caption the result."
   ],
@@ -116,8 +116,8 @@
       "name": "Prompt (optional)",
       "description": "Text describing the animation. Placeholder: 'Describe the animation you want...'.",
       "required": false,
-      "whenToUse": "Only when the selected model shows the box.",
-      "restrictions": "If shown, it must not be empty."
+      "whenToUse": "With FLUX 3 Avatar, the model that shows this box.",
+      "restrictions": "Optional; it can be left empty."
     },
     {
       "name": "Native Audio",
@@ -169,7 +169,6 @@
   ],
   "troubleshooting": [
     "Toast 'Upload a source video or image first': upload media under 'Source Video/Image', then click Generate again.",
-    "Toast 'Please enter a prompt for this avatar model.': the selected model shows a prompt box that must be filled.",
     "Toast 'Audio upload failed: ...': check the audio file type and size and try again; sign in if asked.",
     "Alert 'Please sign in and add api credits.': sign in and add credits, then retry.",
     "Toast 'Error: ...' after Generate: read the message, check your files, and try again or choose another model.",
@@ -180,7 +179,7 @@
   "troubleshootingSteps": [
     {
       "issue": "Generate shows an error toast",
-      "steps": ["Read the exact text.", "Upload any missing source or fill the prompt.", "Sign in or add credits if asked.", "Click Generate Avatar Video again."]
+      "steps": ["Read the exact text.", "Upload any missing source.", "Sign in or add credits if asked.", "Click Generate Avatar Video again."]
     },
     {
       "issue": "Video is generated but the avatar is not speaking",
@@ -195,7 +194,7 @@
     {
       "problem": "I cannot see the audio upload or prompt box",
       "whyItHappens": "The form shows only what the selected model needs.",
-      "howToFix": "Choose a different model from the model button."
+      "howToFix": "Choose a different model from the model button. The prompt box shows with FLUX 3 Avatar."
     },
     {
       "problem": "Where do I choose resolution?",
@@ -283,8 +282,7 @@
     "Per-model price, speed, quality or maximum duration: not in the code or comparison data.",
     "Whether FLUX 3 Avatar can be used end to end: it is not flagged as needing a source video or audio, so the Source and Audio uploaders may not appear for it.",
     "Exact audio file formats and the exact audio size limit for this studio's uploader (it uses a generic audio/* picker and the shared limits).",
-    "Which Advanced options each model exposes.",
-    "Whether the Prompt box appears for any model in practice (all standard listed models are flagged without prompt)."
+    "Which Advanced options each model exposes."
   ],
   "sourceFiles": [
     "src/components/AvatarStudio.js",

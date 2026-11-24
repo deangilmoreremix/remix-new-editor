@@ -13,10 +13,10 @@ const clip = (s, n) => {
 };
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-/** `${APP_URL or https://smartvid.app}/#/timeline`; APP_URL must be http(s), anything else falls back to the default. */
+/** `${APP_URL or https://smartvid.app}/timeline?alerts=1` (the marker makes the app open the alerts panel, like a push click); APP_URL must be http(s), anything else falls back to the default. */
 export function alertsUrl(env = process.env) {
   const raw = String(env?.APP_URL || '').trim().replace(/\/+$/, '');
-  return `${/^https?:\/\/[^\s"'<>]+$/i.test(raw) ? raw : DEFAULT_APP_URL}/#/timeline`;
+  return `${/^https?:\/\/[^\s"'<>]+$/i.test(raw) ? raw : DEFAULT_APP_URL}/timeline?alerts=1`;
 }
 
 export function buildAlertEmail(note, { url = alertsUrl() } = {}) {

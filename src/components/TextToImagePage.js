@@ -1,6 +1,8 @@
 import { navigate } from '../lib/router.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
+import { t2iModels } from '../lib/models.js';
+import { storePrefillModel } from '../lib/prefillModel.js';
 
 const TEXT_TO_IMAGE_MODELS = [
   { name: 'Flux Dev', description: 'High-quality text-to-image generation', category: 'Flux' },
@@ -42,7 +44,7 @@ const EXAMPLE_PROMPTS = [
 
 const FEATURES = [
   { icon: '⚡', title: 'Lightning Fast', description: 'Generate images in seconds with our optimized AI infrastructure' },
-  { icon: '🎨', title: '50+ Models', description: 'Access the latest and most powerful image generation models' },
+  { icon: '🎨', title: `${t2iModels.length} Models`, description: 'Access the latest and most powerful image generation models' },
   { icon: '🔄', title: 'Multiple Ratios', description: 'Support for all aspect ratios from square to ultrawide' },
   { icon: '🌐', title: 'High Resolution', description: 'Generate images up to 4K resolution' },
 ];
@@ -55,18 +57,12 @@ export function TextToImagePage() {
   // Hero Section
   const hero = document.createElement('div');
   hero.className = 'flex flex-col items-center mb-8 md:mb-12 animate-fade-in-up w-full max-w-5xl';
-  const heroBanner = createHeroSection('image', 'h-32 md:h-44 mb-4');
-  if (heroBanner) {
-    const heroContent = document.createElement('div');
-    heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight mb-1">Text to Image</h1>
-      <p class="text-white/60 text-sm font-medium">Transform your ideas into stunning, professional-quality images with 27 AI models</p>
-      <button class="start-btn btn-primary-modern">Start Creating Free</button>
-    `;
-    heroBanner.appendChild(heroContent);
-    hero.appendChild(heroBanner);
-  }
+  hero.appendChild(createStudioHeader('image', 'Text to Image', `Transform your ideas into stunning, professional-quality images with ${t2iModels.length} AI models`, 'mb-4'));
+  // The hero's Start button stays on the page, just under the banner.
+  const startRow = document.createElement('div');
+  startRow.className = 'mb-4';
+  startRow.innerHTML = `<button class="start-btn btn-primary-modern">Start Creating Free</button>`;
+  hero.appendChild(startRow);
   container.appendChild(hero);
 
   // Main content wrapper
@@ -93,7 +89,7 @@ export function TextToImagePage() {
     <!-- Models Section -->
     <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-8">
       <h2 class="text-xl font-bold text-white mb-2">Available Models</h2>
-      <p class="text-sm text-secondary mb-6">Choose from ${TEXT_TO_IMAGE_MODELS.length}+ powerful image generation models</p>
+      <p class="text-sm text-secondary mb-6">${TEXT_TO_IMAGE_MODELS.length} featured models out of ${t2iModels.length} text-to-image models in Image Studio</p>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         ${TEXT_TO_IMAGE_MODELS.map(m => `
           <button class="model-card bg-white/[0.03] border border-white/5 rounded-xl p-4 hover:border-primary/20 transition-all duration-300 text-left" data-model="${m.name}">
@@ -139,7 +135,9 @@ export function TextToImagePage() {
 
   // Event Listeners
   container.querySelector('.start-btn').onclick = () => navigate('image');
+  container.querySelector('.start-btn').dataset.helpText = 'Open Image Studio.';
   contentWrapper.querySelector('.cta-btn').onclick = () => navigate('image');
+  contentWrapper.querySelector('.cta-btn').dataset.helpText = 'Open Image Studio.';
 
   const gtmBoostBtn = contentWrapper.querySelector('.gtm-boost-btn');
   if (gtmBoostBtn) {
@@ -156,7 +154,7 @@ export function TextToImagePage() {
   contentWrapper.querySelectorAll('.model-card').forEach(card => {
     card.onclick = () => {
       const modelName = card.dataset.model;
-      localStorage.setItem('prefill_model', modelName);
+      storePrefillModel(t2iModels, modelName);
       navigate('image');
     };
   });
@@ -165,7 +163,7 @@ export function TextToImagePage() {
     card.onclick = () => {
       const prompt = EXAMPLE_PROMPTS[i];
       localStorage.setItem('prefill_prompt', prompt.prompt);
-      localStorage.setItem('prefill_model', prompt.model);
+      storePrefillModel(t2iModels, prompt.model);
       navigate('image');
     };
   });
@@ -175,7 +173,7 @@ export function TextToImagePage() {
       e.stopPropagation();
       const prompt = EXAMPLE_PROMPTS[i];
       localStorage.setItem('prefill_prompt', prompt.prompt);
-      localStorage.setItem('prefill_model', prompt.model);
+      storePrefillModel(t2iModels, prompt.model);
       navigate('image');
     };
   });

@@ -1,12 +1,14 @@
 // [remix] Media browser for the Edit tab: AI-generated media first, then Pexels + Pixabay stock (videos and photos),
 // all organised by category. Stock search/normalising/caching is shared with the classic timeline editor
 // (lib/editor/addons/stockMedia.js); API keys stay on the server proxies (/api/pexels, /api/pixabay).
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { createStockSearch, STOCK_HOME } from '../../../lib/editor/addons/stockMedia.js';
 import { searchPixabayImages, searchPixabayVideos } from '../../../lib/pixabayApi.js';
 import { searchPhotos as searchPexelsPhotos, searchVideos as searchPexelsVideos } from '../../../lib/pexelsApi.js';
 import type { Asset } from '@cinegen/types/project';
 import { toFileUrl } from '@cinegen/lib/utils/file-url';
+import { ModalShell } from '../ui/modal-shell';
+import '../../styles/edit-modal-stock-sound.css';
 import { MEDIA_CATEGORIES, MEDIA_GROUPS, aiPrompt, topicLabel } from './stock-categories';
 
 export type StockKind = 'videos' | 'images';
@@ -61,25 +63,19 @@ interface Props {
   onAddAsset: (asset: Asset) => void;
 }
 
-const INK = 'rgba(229,237,245,.9)';
-const field: CSSProperties = { width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', color: 'inherit', border: '1px solid var(--border-medium)', borderRadius: 10, padding: '11px 12px', fontSize: 13 };
-const label: CSSProperties = { fontSize: 11, letterSpacing: '.06em', fontWeight: 600, textTransform: 'uppercase', opacity: 0.75, marginBottom: 6 };
+const MODAL_TITLE = 'Add media to timeline';
 const SOURCE_NOTE: Record<MediaSource, string> = {
   ai: 'Describe it and generate, or pick one you already made. Click a card to add it at the playhead.',
   pixabay: 'Free stock footage and photos. Click a card to add it at the playhead.',
   pexels: 'Free stock footage and photos. Click a card to add it at the playhead.',
 };
 
-/** Pill: monochrome glyph, label and a count badge (the same pill the Animations / Add to timeline libraries use). */
-function Pill({ on, glyph, text, count, onClick, testId, title, role = 'tab', size = 'md' }: { on: boolean; glyph: string; text: string; count?: number; onClick: () => void; testId?: string; title?: string; role?: string; size?: 'md' | 'lg' }) {
+/** Pill: monochrome glyph, label and a count badge. `seg` pills sit in the segmented header; the rest are shell chips. */
+function Pill({ on, glyph, text, count, onClick, testId, title, role = 'tab', seg = false }: { on: boolean; glyph: string; text: string; count?: number; onClick: () => void; testId?: string; title?: string; role?: string; seg?: boolean }) {
   return (
-    <button role={role} aria-selected={role === 'tab' ? on : undefined} aria-pressed={role === 'tab' ? undefined : on} data-testid={testId} title={title} onClick={onClick}
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: size === 'lg' ? '10px 16px' : '8px 12px', borderRadius: 999, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
-        border: `1px solid ${on ? 'var(--accent)' : 'var(--border-medium)'}`, color: on ? 'var(--accent)' : 'inherit', background: on ? 'var(--accent-dim)' : 'var(--bg-elevated)' }}>
-      <span aria-hidden style={{ opacity: on ? 1 : 0.8, fontSize: 12 }}>{glyph}{'\uFE0E'}</span>{text}
-      {count !== undefined && (
-        <span style={{ minWidth: 22, height: 20, padding: '0 6px', borderRadius: 999, boxSizing: 'border-box', display: 'inline-grid', placeItems: 'center', fontSize: 11, background: on ? 'var(--accent-dim)' : 'var(--bg-overlay)' }}>{count}</span>
-      )}
+    <button type="button" role={role} className={seg ? 'cg-seg__btn' : 'cg-chip'} aria-selected={role === 'tab' ? on : undefined} aria-pressed={role === 'tab' ? undefined : on} data-testid={testId} title={title} onClick={onClick}>
+      <span aria-hidden="true">{glyph}{'\uFE0E'}</span>{text}
+      {count !== undefined && <span className="cg-count">{count}</span>}
     </button>
   );
 }
@@ -105,22 +101,17 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
   const [aspect, setAspect] = useState<AiAspect>('16:9');
   const [gen, setGen] = useState<{ busy: boolean; msg: string; error: string | null }>({ busy: false, msg: '', error: null });
   const seq = useRef(0);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
-  // Move focus into the dialog on open (so Escape / Delete are handled here, not by timeline shortcuts) and give it back on close.
-  useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null;
-    panelRef.current?.focus();
-    return () => { if (opener && typeof opener.focus === 'function') opener.focus(); };
-  }, []);
-  // Keep Tab inside the dialog.
+  // ModalShell moves focus into the dialog on open, restores it on close and handles Escape. Keep Tab inside the dialog.
   const trapTab = (e: KeyboardEvent) => {
-    if (e.key !== 'Tab' || !panelRef.current) return;
-    const items = [...panelRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), input, select, textarea, a[href]')].filter((el) => el.offsetParent !== null || el === document.activeElement);
+    const panel = wrapRef.current?.querySelector<HTMLElement>('.cg-modal');
+    if (e.key !== 'Tab' || !panel) return;
+    const items = [...panel.querySelectorAll<HTMLElement>('button:not([disabled]), input, select, textarea, a[href]')].filter((el) => el.offsetParent !== null || el === document.activeElement);
     if (!items.length) { e.preventDefault(); return; }
     const first = items[0]; const last = items[items.length - 1];
     const active = document.activeElement;
-    if (e.shiftKey && (active === first || active === panelRef.current)) { e.preventDefault(); last.focus(); }
+    if (e.shiftKey && (active === first || active === panel)) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
   };
 
@@ -185,109 +176,112 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
     }
   };
 
+
   const sourceLabel = SOURCES.find(([id]) => id === source)?.[1] ?? source;
   const noun = kind === 'videos' ? 'videos' : 'images';
   const shown = source === 'ai' ? aiAssets.length : state.items.length;
   const sourceText: Record<MediaSource, string> = { ai: 'AI', pexels: 'Pexels', pixabay: 'Pixabay' };
-  // Layout follows the Add to timeline / Animations libraries: header, source tabs, rounded panel, group + category pills, labelled filters, cards.
+  // Layout follows the Effects library: shell header, segmented source tabs, then chip filters, labelled fields and cards.
   return (
-    <div role="dialog" aria-modal="true" aria-label="AI and stock media" data-testid="stock-media-popup" onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Escape') onClose(); trapTab(e); }} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', display: 'grid', placeItems: 'center', padding: 16 }} onClick={onClose}>
-      <style>{'.media-card:hover{border-color:var(--accent)!important}.media-card:disabled{opacity:.55;cursor:progress}'}</style>
-      <div ref={panelRef} tabIndex={-1} style={{ width: 'min(1480px, 96vw)', height: 'min(900px, 94vh)', display: 'flex', flexDirection: 'column', background: 'var(--bg-raised)', border: '1px solid var(--border-medium)', borderRadius: 26, color: INK, overflow: 'hidden', outline: 'none' }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: '22px 28px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <div style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--accent-dim)', color: 'var(--accent)', display: 'grid', placeItems: 'center', fontSize: 20 }}>＋</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>Add media to timeline</div>
-            <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4, maxWidth: 760 }}>Generate AI videos and images, or add free Pexels and Pixabay footage and photos. Click one to place it at the playhead.</div>
+    <div ref={wrapRef} style={{ display: 'contents' }} onKeyDown={(e) => { e.stopPropagation(); trapTab(e); }}>
+      <ModalShell
+        title={MODAL_TITLE}
+        subtitle="Generate AI videos and images, or add free Pexels and Pixabay footage and photos. Click one to place it at the playhead."
+        icon="＋"
+        ariaLabel="AI and stock media"
+        closeLabel="Close media browser"
+        width="min(1480px, 96vw)"
+        height="min(900px, 94vh)"
+        testId="stock-media-popup"
+        onClose={onClose}
+        toolbar={(
+          <div className="cg-seg cg-seg--wrap" role="tablist" aria-label="Media">
+            {TABS.map(([id, k], i) => (
+              <span key={`${id}-${k}`} style={{ display: 'contents' }}>
+                {k === 'videos' && i > 0 && <span aria-hidden="true" className="cg-seg__sep" />}
+                <Pill seg on={source === id && kind === k} glyph={k === 'videos' ? '▶' : '▦'} text={`${sourceText[id]} ${k}`} testId={`tab-${id}-${k}`}
+                  title={`${sourceText[id]} ${k}`} onClick={() => openTab(id, k)} />
+              </span>
+            ))}
           </div>
-          <button aria-label="Close media browser" onClick={onClose} style={{ background: 'transparent', border: 0, color: 'inherit', fontSize: 22, cursor: 'pointer', padding: 6 }}>×</button>
-        </div>
-
-        <div role="tablist" aria-label="Media" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, padding: '16px 20px 0' }}>
-          {TABS.map(([id, k], i) => (
-            <span key={`${id}-${k}`} style={{ display: 'contents' }}>
-              {k === 'videos' && i > 0 && <span aria-hidden style={{ width: 1, height: 26, background: 'var(--border-medium)', margin: '0 4px' }} />}
-              <Pill size="lg" on={source === id && kind === k} glyph={k === 'videos' ? '▶' : '▦'} text={`${sourceText[id]} ${k}`} testId={`tab-${id}-${k}`}
-                title={`${sourceText[id]} ${k}`} onClick={() => openTab(id, k)} />
-            </span>
-          ))}
-        </div>
-
-        <div style={{ margin: '14px 20px 20px', border: '1px solid var(--border-subtle)', borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1, background: 'var(--bg-base)' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-            <strong style={{ fontSize: 13, letterSpacing: '.06em', textTransform: 'uppercase' }}>▣ Choose {sourceText[source]} {kind}</strong>
-            <span style={{ flex: 1 }} />
-            <span style={{ fontSize: 12, opacity: 0.6 }}>{MEDIA_CATEGORIES.length} categories</span>
+        )}
+        footer={(
+          <>
+            <span>{SOURCE_NOTE[source]}</span>
+            {source !== 'ai' && <span className="cg-stock__credit">{kind === 'videos' ? 'Videos' : 'Photos'} from <a href={home[source] || '#'} target="_blank" rel="noopener noreferrer">{sourceLabel}</a>.</span>}
+            <span className="cg-modal__footer-spacer" />
+            <span className="cg-kbd" aria-hidden="true">Esc</span>
+          </>
+        )}
+      >
+        <div className="cg-stock">
+          <div className="cg-stock__head">
+            <span className="cg-label">▣ Choose {sourceText[source]} {kind}</span>
+            <span className="cg-note">{MEDIA_CATEGORIES.length} categories</span>
           </div>
-          <div style={{ fontSize: 12, opacity: 0.65, margin: '4px 0 12px' }}>{SOURCE_NOTE[source]}</div>
 
-          <div role="tablist" aria-label="Groups" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+          <div role="tablist" aria-label="Groups" className="cg-chips">
             {(['videos', 'images'] as StockKind[]).map((k) => (
               <Pill key={`ai-${k}`} on={source === 'ai' && kind === k} glyph="✦" text={`AI ${k}`} testId={`pill-ai-${k}`} title={`Generate or reuse AI ${k}`}
                 count={aiAll.filter((a) => a.type === (k === 'videos' ? 'video' : 'image')).length} onClick={() => openTab('ai', k)} />
             ))}
-            <span aria-hidden style={{ width: 1, alignSelf: 'stretch', background: 'var(--border-medium)', margin: '0 4px' }} />
+            <span aria-hidden="true" className="cg-chips__sep" />
             <Pill on={groupId === 'all'} glyph="▦" text="All" count={MEDIA_CATEGORIES.length} testId="group-all" onClick={() => pickGroup('all')} />
             {MEDIA_GROUPS.map((g) => <Pill key={g.id} on={groupId === g.id} glyph={g.glyph} text={g.label} count={g.categories.length} testId={`group-${g.id}`} onClick={() => pickGroup(g.id)} />)}
           </div>
-          <div role="group" aria-label="Categories" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12, maxHeight: 130, overflowY: 'auto', paddingRight: 4 }}>
+          <div role="group" aria-label="Categories" className="cg-chips cg-stock__cats">
             {cats.map((c) => <Pill key={c.id} role="button" on={catId === c.id} glyph={c.glyph} text={c.label} count={c.topics.length} testId={`cat-${c.id}`} title={`${c.topics.length} topics`} onClick={() => pickCategory(c.id)} />)}
           </div>
           {cat && (
-            <div role="group" aria-label="Topics" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-              <span style={{ ...label, margin: '0 6px 0 2px' }}>{source === 'ai' ? 'Ideas' : 'Refine'}</span>
+            <div role="group" aria-label="Topics" className="cg-chips" style={{ alignItems: 'center' }}>
+              <span className="cg-label" style={{ margin: '0 6px 0 2px' }}>{source === 'ai' ? 'Ideas' : 'Refine'}</span>
               {cat.topics.map((t) => (
-                <button key={t} data-testid={`topic-${t.replace(/\s+/g, '-')}`} aria-pressed={topic === t} onClick={() => applyTopic(t)}
-                  style={{ padding: '5px 11px', borderRadius: 999, cursor: 'pointer', fontSize: 12, fontWeight: 600, border: `1px solid ${topic === t ? 'var(--accent)' : 'var(--border-subtle)'}`, color: topic === t ? 'var(--accent)' : 'inherit', background: topic === t ? 'var(--accent-dim)' : 'transparent' }}>{topicLabel(t)}</button>
+                <button key={t} type="button" className="cg-chip" data-testid={`topic-${t.replace(/\s+/g, '-')}`} aria-pressed={topic === t} onClick={() => applyTopic(t)}>{topicLabel(t)}</button>
               ))}
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: source === 'ai' ? '3fr 1fr' : '1fr', gap: 18, marginBottom: 10 }}>
+          <div className={`cg-stock__form ${source === 'ai' ? 'cg-stock__form--ai' : 'cg-stock__form--one'}`}>
             {source === 'ai' ? (
-              <div><div style={label}>Describe it</div>
-                <textarea aria-label={`Describe the AI ${kind === 'videos' ? 'video' : 'image'}`} data-testid="ai-prompt" rows={2} placeholder={`Describe the ${kind === 'videos' ? 'video' : 'image'} you want, or pick a category for an idea…`} value={prompt} onChange={(e) => { setPrompt(e.target.value); setTopic(null); }} style={{ ...field, resize: 'vertical', fontFamily: 'inherit' }} /></div>
+              <div><div className="cg-label">Describe it</div>
+                <textarea className="cg-field cg-stock__prompt" aria-label={`Describe the AI ${kind === 'videos' ? 'video' : 'image'}`} data-testid="ai-prompt" rows={2} placeholder={`Describe the ${kind === 'videos' ? 'video' : 'image'} you want, or pick a category for an idea…`} value={prompt} onChange={(e) => { setPrompt(e.target.value); setTopic(null); }} /></div>
             ) : (
-              <form onSubmit={(e) => { e.preventDefault(); setCatId(null); setTopic(null); setQuery(draft.trim()); }}><div style={label}>Search</div>
-                <input type="text" placeholder={`⌕  Search ${sourceLabel} ${noun}…`} aria-label={`Search stock ${noun}`} value={draft} onChange={(e) => setDraft(e.target.value)} style={field} /></form>
+              <form onSubmit={(e) => { e.preventDefault(); setCatId(null); setTopic(null); setQuery(draft.trim()); }}><div className="cg-label">Search</div>
+                <input type="text" className="cg-field" placeholder={`⌕  Search ${sourceLabel} ${noun}…`} aria-label={`Search stock ${noun}`} value={draft} onChange={(e) => setDraft(e.target.value)} /></form>
             )}
             {source === 'ai' && (
-              <div><div style={label}>Aspect ratio</div>
-                <select aria-label="Aspect ratio" value={aspect} onChange={(e) => setAspect(e.target.value as AiAspect)} style={field}><option value="16:9">16:9 landscape</option><option value="9:16">9:16 portrait</option><option value="1:1">1:1 square</option></select></div>
+              <div><div className="cg-label">Aspect ratio</div>
+                <select className="cg-field" aria-label="Aspect ratio" value={aspect} onChange={(e) => setAspect(e.target.value as AiAspect)}><option value="16:9">16:9 landscape</option><option value="9:16">9:16 portrait</option><option value="1:1">1:1 square</option></select></div>
             )}
           </div>
           {source === 'ai' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '2px 0 6px' }}>
-              <button data-testid="ai-generate" disabled={gen.busy || !prompt.trim()} onClick={() => void generate()}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 999, fontSize: 13, fontWeight: 700, border: '1px solid var(--accent)', color: 'var(--accent)', background: 'var(--accent-dim)', opacity: gen.busy || !prompt.trim() ? 0.55 : 1, cursor: gen.busy ? 'progress' : 'pointer' }}>{gen.busy ? 'Generating…' : `✦ Generate ${kind === 'videos' ? 'video' : 'image'}`}</button>
-              {gen.busy && <span role="status" style={{ fontSize: 12, color: 'var(--accent)' }}>{gen.msg} {kind === 'videos' ? 'Videos can take a minute or two.' : ''}</span>}
-              {!gen.busy && gen.msg && <span role="status" style={{ fontSize: 12, color: '#34d399' }}>{gen.msg}</span>}
-              {gen.error && <span role="alert" style={{ fontSize: 12, color: '#f87171' }}>{gen.error}</span>}
+            <div className="cg-stock__actions">
+              <button type="button" className="cg-btn cg-btn--primary" data-testid="ai-generate" disabled={gen.busy || !prompt.trim()} style={gen.busy ? { cursor: 'progress' } : undefined} onClick={() => void generate()}>{gen.busy ? 'Generating…' : `✦ Generate ${kind === 'videos' ? 'video' : 'image'}`}</button>
+              {gen.busy && <span role="status" className="cg-stock__status">{gen.msg} {kind === 'videos' ? 'Videos can take a minute or two.' : ''}</span>}
+              {!gen.busy && gen.msg && <span role="status" className="cg-ok">{gen.msg}</span>}
+              {gen.error && <span role="alert" className="cg-error">{gen.error}</span>}
             </div>
           )}
-          {addError && <div role="alert" data-testid="add-error" style={{ fontSize: 12, color: '#f87171', margin: '4px 0' }}>{addError}</div>}
-          <div style={{ fontSize: 12, opacity: 0.6, margin: '6px 0 10px' }}>
+          {addError && <div role="alert" data-testid="add-error" className="cg-error">{addError}</div>}
+          <div className="cg-note">
             {source === 'ai' ? `Your AI ${noun} in this project: ${shown}` : state.loading ? 'Loading…' : state.error ? '' : `Showing ${shown} ${noun} from ${sourceLabel}`}
           </div>
 
-          <div style={{ overflow: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, alignContent: 'start', paddingRight: 4, minHeight: 0, flex: 1 }}>
+          <div className="cg-grid cg-stock__grid">
             {source === 'ai' ? (
               aiAssets.length ? aiAssets.map((a) => (
                 <Card key={a.id} testId={`ai-${a.id}`} badge={`AI ${a.type}`} title={a.name} meta={`${a.type === 'video' ? `${Math.round(a.duration || 0)}s · ` : ''}${String((a.metadata as Record<string, unknown> | undefined)?.aspect ?? '16:9')}`} thumb={a.thumbnailUrl || (a.type === 'image' ? a.url : '')} onClick={() => onAddAsset(a)} />
-              )) : <span style={{ fontSize: 13, opacity: 0.7, gridColumn: '1 / -1' }}>Nothing generated yet. Describe something above and press Generate. Anything you create in Spaces, Studio or the Director also shows up here.</span>
-            ) : state.error ? <span role="alert" style={{ color: '#f87171', fontSize: 13, gridColumn: '1 / -1' }}>{state.error}</span>
-              : !state.loading && !state.items.length ? <span style={{ fontSize: 13, opacity: 0.7, gridColumn: '1 / -1' }}>{query ? 'Nothing found. Try another search or category.' : 'Pick a category or search above.'}</span>
+              )) : <span className="cg-empty cg-stock__wide">Nothing generated yet. Describe something above and press Generate. Anything you create in Spaces, Studio or the Director also shows up here.</span>
+            ) : state.error ? <span role="alert" className="cg-error cg-stock__wide">{state.error}</span>
+              : !state.loading && !state.items.length ? <span className="cg-empty cg-stock__wide">{query ? 'Nothing found. Try another search or category.' : 'Pick a category or search above.'}</span>
               : state.items.map((it) => (
                 <Card key={it.id} testId={`stock-${it.id}`} disabled={busyId !== null} badge={`${it.source} ${kind === 'videos' ? 'video' : 'photo'}`} title={it.name}
                   meta={`${kind === 'videos' ? `${Math.round(it.duration || 0)}s` : it.width && it.height ? `${it.width}×${it.height}` : 'photo'}${it.user ? ` · by ${it.user}` : ''}${added === it.id ? ' · ✓ added' : busyId === it.id ? ' · adding…' : ''}`}
                   thumb={it.thumbnail || it.preview || ''} onClick={() => void pick(it)} />
               ))}
           </div>
-          {source !== 'ai' && (
-            <div style={{ fontSize: 11, opacity: 0.6, marginTop: 10 }}>{kind === 'videos' ? 'Videos' : 'Photos'} from <a href={home[source] || '#'} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>{sourceLabel}</a>.</div>
-          )}
         </div>
-      </div>
+      </ModalShell>
     </div>
   );
 }
@@ -295,15 +289,13 @@ export function StockMediaPopup({ onClose, onAdd, onGenerate, assets, onAddAsset
 function Card({ testId, title, meta, badge, thumb, onClick, disabled }: { testId: string; title: string; meta: string; badge: string; thumb: string; onClick: () => void; disabled?: boolean }) {
   const url = thumb ? toFileUrl(thumb) : '';
   return (
-    <button className="media-card" data-testid={testId} aria-label={title} disabled={disabled} onClick={onClick}
-      style={{ textAlign: 'left', padding: 12, borderRadius: 14, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer' }}>
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, overflow: 'hidden', background: '#000' }}>
-        {url ? <img src={url} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 26, opacity: 0.5 }}>🎬</span>}
-        <span style={{ position: 'absolute', left: 8, top: 8, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,.55)' }}>{badge}</span>
+    <button type="button" className="cg-card cg-media-card" data-testid={testId} aria-label={title} disabled={disabled} onClick={onClick}>
+      <div className="cg-card__thumb">
+        {url ? <img className="cg-media-card__img" src={url} alt="" loading="lazy" /> : <span className="cg-media-card__ph">🎬</span>}
+        <span className="cg-media-card__badge">{badge}</span>
       </div>
-      <div style={{ fontSize: 14, fontWeight: 700, marginTop: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
-      <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{meta}</div>
+      <div className="cg-media-card__title">{title}</div>
+      <div className="cg-media-card__meta">{meta}</div>
     </button>
   );
 }

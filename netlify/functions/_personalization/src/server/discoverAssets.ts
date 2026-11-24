@@ -340,6 +340,40 @@ export async function fetchPageWithFinalUrl(
   }
 }
 
+/** Largest stylesheet read for font names; a bigger one is cut off by axios rather than buffered. */
+export const MAX_STYLESHEET_BYTES = 400 * 1024
+
+/**
+ * Fetches one stylesheet as text (same SSRF validation of the destination and every redirect hop as `fetchPage`).
+ * Returns null for anything that is not CSS, is too large, or is refused.
+ */
+export async function fetchStylesheet(url: string, deadlineAt?: number): Promise<string | null> {
+  const timeout = remainingBudgetMs(deadlineAt)
+  if (timeout <= 0) return null
+  try {
+    const response = await requestWithValidatedRedirects(
+      url,
+      (target, config) =>
+        axios.get(target, {
+          ...config,
+          responseType: 'arraybuffer',
+          headers: { ...PAGE_HEADERS, Accept: 'text/css,*/*;q=0.1' },
+          maxContentLength: MAX_STYLESHEET_BYTES,
+          maxBodyLength: MAX_STYLESHEET_BYTES,
+          validateStatus: (s: number) => s >= 200 && s < 400,
+        }),
+      REDIRECT_LIMIT,
+      timeout,
+      deadlineAt,
+    )
+    const contentType = String(response.headers['content-type'] || '')
+    if (!contentType.includes('text/css')) return null
+    return Buffer.from(response.data as ArrayBuffer).toString('utf-8')
+  } catch {
+    return null
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Link extraction
 // ---------------------------------------------------------------------------
@@ -702,8 +736,8 @@ Categories:
           ],
         },
       ],
-      max_tokens: 100,
-      temperature: 0,
+      // Reasoning model: no temperature; reasoning tokens count against this cap.
+      max_completion_tokens: 1000,
     })
 
     const text = response.choices[0]?.message?.content?.trim() || ''

@@ -17,7 +17,27 @@ import {
 import {
   injectMinimaxStyles,
   escapeHtml,
+  metaPill,
+  categoryBadge,
+  createViewPromptButton,
+  createPersonalizeButton,
+  createStyleLink,
+  createStudioIcon,
 } from './minimax/ui.js';
+import { handleViewPrompt } from './minimax/DemoPromptModal.js';
+import { ACADEMY_STUDIO_ADAPTERS } from '../../../data/academyStudioAdapters.js';
+
+const ACADEMY_MODEL = 'SmartVideo Academy';
+
+/** Studio used for "Create This Type of Video" when an asset has no adapter. */
+const TRACK_ROUTES = {
+  '01-ai-video-ads-ugc': 'commercial',
+  '02-ai-filmmaking': 'cinema',
+  '05-ai-avatars-and-influencers': 'influencer',
+  '07-ai-product-photography': 'commercial',
+  '08-ai-fashion-and-virtual-tryon': 'influencer',
+  '10-ai-headshots-and-portraits': 'image',
+};
 
 /** Only assets that have an actual video or gif source. */
 const VIDEO_ASSETS = ACADEMY_ASSETS.filter(
@@ -49,38 +69,75 @@ function groupByTrack() {
   return groups;
 }
 
+/** Hide a card whose media is missing (and its whole track block if none remain). */
+function hideUnavailableCard(card) {
+  card.classList.add('hidden');
+  const block = card.closest('[data-academy-track]');
+  if (block && !block.querySelector('article:not(.hidden)')) block.classList.add('hidden');
+}
+
+/**
+ * Studio prefill for an Academy asset: the curated adapter when one exists
+ * (same data the Academy studio uses), otherwise a prompt built from the card.
+ */
+function buildAcademyDemo(asset) {
+  const adapter = ACADEMY_STUDIO_ADAPTERS.find((a) => a.id === asset.id);
+  const track = TRACK_MAP.get(asset.category);
+  const trackTitle = cleanTrackTitle(track?.title || asset.category);
+  const prompt =
+    adapter?.prompt ||
+    [asset.title, asset.description && asset.description !== asset.title ? asset.description : '', `${trackTitle} example from the AI Creator Academy.`]
+      .filter(Boolean)
+      .join('. ');
+  const route = adapter?.studio || TRACK_ROUTES[asset.category] || 'video';
+  const params = { 'academy-template': asset.id, prompt };
+  if (adapter?.stylePreset) params.style = adapter.stylePreset;
+  if (adapter?.aspectRatio) params.aspect_ratio = adapter.aspectRatio;
+  if (adapter?.duration) params.duration = adapter.duration;
+  const query = new URLSearchParams(params).toString();
+
+  return {
+    demo: {
+      slug: asset.id,
+      title: asset.title,
+      category: trackTitle,
+      useCase: asset.description && asset.description !== asset.title ? asset.description : `${trackTitle} example from the AI Creator Academy.`,
+      duration: adapter?.duration || null,
+      aspectRatio: adapter?.aspectRatio || '16:9',
+      prompt,
+      videoSrc: asset.videoSrc || asset.src,
+      posterSrc: asset.gifSrc || asset.src,
+    },
+    target: { route, params, href: `/?${query}#/${route}` },
+    params,
+  };
+}
+
 function createAcademyCard(asset) {
   const card = document.createElement('article');
   card.className =
     'mmx-card mmx-reveal group flex flex-col overflow-hidden rounded-xl border border-white/8 bg-white/[0.025]';
 
-  // Use the GIF as poster; fall back to the primary src if no gifSrc.
-  const posterSrc = asset.gifSrc || asset.src;
-  const videoSrc = asset.videoSrc || asset.src;
-
-  // Build a minimal demo-like object for createMediaFrame.
-  const demo = {
-    slug: asset.id,
-    videoSrc,
-    posterSrc,
-  };
+  const { demo, target, params } = buildAcademyDemo(asset);
+  const loadPrompt = async () => demo.prompt;
 
   card.innerHTML = `
     <div class="relative" data-academy-card-media>
-      <div class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-end p-2.5">
-        <span class="inline-flex items-center rounded-md bg-black/50 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-white/80 backdrop-blur-sm">
-          ${asset.type === 'gif' ? 'GIF' : 'Video'}
-        </span>
+      <div class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-end gap-1.5 p-2.5">
+        ${demo.duration ? metaPill(demo.duration + 's') : ''}
+        ${categoryBadge(ACADEMY_MODEL, { tone: 'neutral' })}
       </div>
       <div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12 bg-gradient-to-t from-[#05070b] to-transparent"></div>
     </div>
 
     <div class="flex flex-1 flex-col p-4">
-      <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400/80">
-        ${escapeHtml(asset.category)}
-      </span>
-      <h3 class="mt-1.5 text-sm font-bold leading-snug text-white">${escapeHtml(asset.title)}</h3>
-      ${asset.description ? `<p class="mt-1 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(asset.description)}</p>` : ''}
+      <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400/80">${escapeHtml(demo.category)}</span>
+      <h3 class="mt-1.5 line-clamp-2 break-words text-sm font-bold leading-snug text-white" title="${escapeHtml(demo.title)}">${escapeHtml(demo.title)}</h3>
+      <p class="mt-1 line-clamp-2 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(demo.useCase)}</p>
+      <div class="mt-4 flex flex-col items-center gap-2">
+        <div class="flex flex-wrap items-center justify-center gap-2" data-academy-primary-actions></div>
+        <div class="flex items-center justify-center gap-1.5" data-mmx-studio-icons></div>
+      </div>
     </div>
   `;
 
@@ -89,7 +146,8 @@ function createAcademyCard(asset) {
     mode: 'hover',
     ratio: 16 / 9,
     className: 'w-full',
-    ariaLabel: `${asset.title} — ${asset.category} ${asset.type}`,
+    ariaLabel: `${asset.title} — ${demo.category} ${asset.type}`,
+    onUnavailable: () => hideUnavailableCard(card),
   });
   mediaHost.insertBefore(frame, mediaHost.firstChild);
 
@@ -99,6 +157,48 @@ function createAcademyCard(asset) {
   cue.setAttribute('aria-hidden', 'true');
   cue.innerHTML = `<svg class="ml-0.5 h-3.5 w-3.5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
   mediaHost.appendChild(cue);
+
+  const primaryActions = card.querySelector('[data-academy-primary-actions]');
+  const studioIconsHost = card.querySelector('[data-mmx-studio-icons]');
+  const getTarget = () => target;
+
+  primaryActions.appendChild(
+    createViewPromptButton(demo, handleViewPrompt, {
+      label: 'View Prompt',
+      loadPrompt,
+      model: ACADEMY_MODEL,
+      getTarget,
+    })
+  );
+  primaryActions.appendChild(createPersonalizeButton(demo, { loadPrompt }));
+  primaryActions.appendChild(
+    createStyleLink(demo, {
+      label: 'Create This Type of Video',
+      variant: 'ghost',
+      getTarget,
+      loadPrompt,
+      model: ACADEMY_MODEL,
+    })
+  );
+
+  [
+    { route: 'templates', label: 'T', title: 'Open in Template Studio' },
+    { route: 'cinema-template', label: 'C', title: 'Open in Cinema Template Studio' },
+    { route: 'cinema', label: 'F', title: 'Open in Cinema Studio' },
+    { route: 'video', label: 'V', title: 'Open in Video Studio' },
+    { route: 'image', label: 'I', title: 'Open in Image Studio' },
+    { route: 'personalize', label: 'P', title: 'Personalize this demo', loadPrompt },
+  ].forEach((icon) => {
+    studioIconsHost.appendChild(
+      createStudioIcon(demo, {
+        route: icon.route,
+        params: icon.route === 'personalize' ? {} : params,
+        label: icon.label,
+        title: icon.title,
+        loadPrompt: icon.loadPrompt || loadPrompt,
+      })
+    );
+  });
 
   return card;
 }
@@ -133,6 +233,7 @@ export function AcademyVideoShowcase() {
 
     const trackBlock = document.createElement('div');
     trackBlock.className = 'mb-16 last:mb-0';
+    trackBlock.dataset.academyTrack = trackSlug;
 
     const heading = document.createElement('div');
     heading.className = 'mb-6';

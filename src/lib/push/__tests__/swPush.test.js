@@ -28,22 +28,22 @@ describe('sw.js push payload handling', () => {
   });
   it('builds options: icon/badge, not sticky, click data', () => {
     const o = sw.buildNotificationOptions(sw.parsePushPayload(JSON.stringify({ title: 'a', tag: 'k', type: 'milestone', notificationId: 'n', videoId: 'v' })));
-    expect(o).toMatchObject({ tag: 'k', icon: '/favicon.webp', badge: '/favicon.webp', requireInteraction: false, data: { url: '/#/timeline', type: 'milestone', notificationId: 'n', videoId: 'v' } });
+    expect(o).toMatchObject({ tag: 'k', icon: '/favicon.webp', badge: '/favicon.webp', requireInteraction: false, data: { url: '/timeline', type: 'milestone', notificationId: 'n', videoId: 'v' } });
   });
 });
 
 describe('sw.js click routing', () => {
   it('only follows same-origin paths', () => {
     expect(sw.resolvePushUrl('/#/timeline')).toBe('/#/timeline');
-    expect(sw.resolvePushUrl('https://evil.example/')).toBe('/#/timeline');
-    expect(sw.resolvePushUrl('//evil.example')).toBe('/#/timeline');
-    expect(sw.resolvePushUrl('javascript:alert(1)')).toBe('/#/timeline');
-    expect(sw.resolvePushUrl(undefined)).toBe('/#/timeline');
+    expect(sw.resolvePushUrl('https://evil.example/')).toBe('/timeline');
+    expect(sw.resolvePushUrl('//evil.example')).toBe('/timeline');
+    expect(sw.resolvePushUrl('javascript:alert(1)')).toBe('/timeline');
+    expect(sw.resolvePushUrl(undefined)).toBe('/timeline');
   });
   it('cold open adds the alerts marker before the hash', () => {
     expect(sw.coldOpenUrl('/#/timeline')).toBe('/?alerts=1#/timeline');
     expect(sw.coldOpenUrl('/app?x=1#/timeline')).toBe('/app?x=1&alerts=1#/timeline');
-    expect(sw.coldOpenUrl('https://evil.example')).toBe('/?alerts=1#/timeline');
+    expect(sw.coldOpenUrl('https://evil.example')).toBe('/timeline?alerts=1');
   });
   it('prefers a focused window of this origin and ignores foreign origins', () => {
     const a = { url: 'https://app.test/', focused: false, visibilityState: 'hidden' };
@@ -52,6 +52,18 @@ describe('sw.js click routing', () => {
     expect(sw.pickAppWindow([a, x, b], 'https://app.test')).toBe(b);
     expect(sw.pickAppWindow([x], 'https://app.test')).toBeNull();
     expect(sw.pickAppWindow([], 'https://app.test')).toBeNull();
+  });
+  it('never picks a motion-agent window either', () => {
+    const agent = { url: 'https://app.test/motion-agent/', focused: true, visibilityState: 'visible' };
+    const editor = { url: 'https://app.test/#/timeline', focused: false, visibilityState: 'hidden' };
+    expect(sw.pickAppWindow([agent, editor], 'https://app.test')).toBe(editor);
+    expect(sw.pickAppWindow([agent], 'https://app.test')).toBeNull();
+  });
+  it('never picks a workbench window: it has no alerts listener, so the click would do nothing', () => {
+    const bench = { url: 'https://app.test/workbench-app/index.html#/x', focused: true, visibilityState: 'visible' };
+    const editor = { url: 'https://app.test/#/timeline', focused: false, visibilityState: 'hidden' };
+    expect(sw.pickAppWindow([bench, editor], 'https://app.test')).toBe(editor);
+    expect(sw.pickAppWindow([bench], 'https://app.test')).toBeNull();   // only a workbench is open: the caller opens a new window
   });
   it('registers the push and notificationclick handlers and keeps the caching handlers', () => {
     for (const ev of ['install', 'activate', 'fetch', 'message', 'push', 'notificationclick']) expect(swSource).toContain(`addEventListener('${ev}'`);
@@ -62,13 +74,17 @@ describe('page side of a notification click', () => {
   const win = (hash = '') => {
     const store = new Map();
     const w = new globalThis.EventTarget();
-    Object.assign(w, { sessionStorage: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) }, location: { hash, href: `https://app.test/?alerts=1${hash}` }, history: { replaceState: vi.fn() }, navigator: {} });
+    Object.assign(w, { sessionStorage: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) }, location: { hash, href: `https://app.test/?alerts=1${hash}` }, history: { replaceState: vi.fn() }, navigator: {}, navigate: vi.fn() });
     return w;
   };
   it('from another page: sets the flag and navigates to the editor', () => {
     const w = win('#/home'); openAlerts({ win: w });
     expect(w.sessionStorage.getItem('remix_open_projects')).toBe('1');
-    expect(w.location.hash).toBe('#/timeline');
+    expect(w.navigate).toHaveBeenCalledWith('timeline');
+  });
+  it('without the app router (page still loading): loads the clean editor URL', () => {
+    const w = win('#/home'); delete w.navigate; w.location.assign = vi.fn(); openAlerts({ win: w });
+    expect(w.location.assign).toHaveBeenCalledWith('/timeline');
   });
   it('inside the editor: dispatches remix:open-projects', () => {
     const w = win('#/timeline'); const seen = vi.fn(); w.addEventListener('remix:open-projects', seen);

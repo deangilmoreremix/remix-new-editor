@@ -20,7 +20,6 @@ import ExampleGallery from './studios/ExampleGallery.js';
 import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { createAttachmentToolbar } from '../lib/attachmentToolbar.js';
 import { createActionRow, arrangeActionRow, styleThumbnailButton, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 
@@ -308,6 +307,7 @@ function renderSchemaControls(selectedModel, schemaParams, setSchemaParams, cont
         optionBtn.type = 'button';
         optionBtn.className = `w-full text-left px-4 py-2.5 rounded text-xs font-bold transition-all border ${schemaParams[key] === optionValue ? 'text-primary bg-primary/10 border-primary/20' : 'text-zinc-200 border-transparent hover:bg-zinc-900 hover:text-white'}`;
         optionBtn.textContent = optionLabel;
+        optionBtn.dataset.help = 'option';
         optionBtn.addEventListener('click', () => {
           setSchemaParams(prev => ({ ...prev, [key]: optionValue }));
           optionsList.classList.add('hidden');
@@ -425,6 +425,7 @@ function renderSchemaControls(selectedModel, schemaParams, setSchemaParams, cont
           chip.type = 'button';
           chip.className = 'text-[11px] px-3 py-1 bg-zinc-800/80 border border-zinc-700 hover:bg-primary/20 hover:border-primary/45 hover:text-white rounded-full transition-all font-semibold text-zinc-100';
           chip.textContent = `"${ex.slice(0, 35)}${ex.length > 35 ? '...' : ''}"`;
+          chip.dataset.help = 'example prompt';
           chip.addEventListener('click', () => {
             setSchemaParams(prev => ({ ...prev, [key]: ex }));
             textarea.value = ex;
@@ -600,6 +601,7 @@ export function AudioStudio() {
   // Model selector
   const modelWrapper = document.createElement('div');
   modelWrapper.className = 'w-full mb-6 animate-fade-in-up';
+  modelWrapper.dataset.help = 'model';
   modelWrapper.style.animationDelay = '0.1s';
   container.appendChild(modelWrapper);
 
@@ -727,7 +729,6 @@ export function AudioStudio() {
     <div class="overflow-menu__panel">
       <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
       <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-      <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
       <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
     </div>
   `;
@@ -757,9 +758,7 @@ export function AudioStudio() {
           }, { basePrompt: promptInput.value });
         }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
       } else if (action === 'recipe') {
-        openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
-      } else if (action === 'monetize') {
-        openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+        openRecipeModal({ studio: 'audio' }).catch((err) => console.error('[Recipe] open failed:', err));
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'audio-studio',
@@ -827,6 +826,7 @@ export function AudioStudio() {
   durationGroup.appendChild(durationLabel);
   const durationRow = document.createElement('div');
   durationRow.className = 'flex gap-2';
+  durationRow.dataset.help = 'duration';
   ['15', '30', '60', '120'].forEach(d => {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -853,6 +853,7 @@ export function AudioStudio() {
   voiceGroup.appendChild(voiceLabel);
   const voiceSelect = document.createElement('select');
   voiceSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-primary focus:outline-none';
+  voiceSelect.dataset.help = 'voice';
   voiceSelect.innerHTML = `
     <option value="female-1">Female 1</option>
     <option value="male-qn-qingse">Male Qingse</option>

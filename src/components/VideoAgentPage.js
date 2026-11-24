@@ -8,6 +8,7 @@ import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { saveGeneration } from '../lib/generationHistory.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 // Backend wiring
 function getBackendBase() {
@@ -1090,6 +1091,13 @@ export function VideoAgentPage() {
                 } catch (_) {}
             };
             resultEl.appendChild(dlBtn);
+            // Create landing page: the same text-link look as "Download result" (videos only)
+            if (!isAudio && /^https:\/\//i.test(String(videoUrl))) {
+                const lpBtn = createLandingPageButton({ like: dlBtn });
+                lpBtn.textContent = '▤ Create landing page';
+                lpBtn.onclick = () => { void openLandingPageFor({ url: String(videoUrl), type: 'video', studio: 'video-agent' }); };
+                resultEl.appendChild(lpBtn);
+            }
         }
 
         // TTS that was spoken live in the browser (no downloadable file).

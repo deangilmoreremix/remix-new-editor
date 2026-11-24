@@ -26,7 +26,7 @@
     "Character Description text box with an example placeholder.",
     "Five Expression Presets that add wording to your description: Happy, Sad, Angry, Surprised, Neutral.",
     "Model-specific Advanced controls (shown when the chosen model defines extra options such as aspect ratio).",
-    "Action row with Thumbnail, Advanced and Personalize buttons, plus a three-dot tools menu (GTM Boost, Recipes, Monetize, Prompts).",
+    "Action row with Thumbnail, Advanced and Personalize buttons, plus a three-dot tools menu (GTM Boost, Recipes, Prompts).",
     "Saved Characters list that can reload a stored character's image and description into the form.",
     "Result card with Download, Generate Again and Publish to Social.",
     "Every successful image is saved to your generation history under the character studio.",
@@ -84,7 +84,7 @@
     },
     {
       "feature": "Three-dot tools menu",
-      "explanation": "A small menu with GTM Boost (opens a prompt-builder modal and puts the result in the description), Recipes, Monetize and Prompts (a prompt gallery that inserts a prompt).",
+      "explanation": "A small menu with GTM Boost (opens a prompt-builder modal and puts the result in the description), Recipes and Prompts (a prompt gallery that inserts a prompt).",
       "whyToUse": "Help writing prompts or ideas for selling character content.",
       "inputRequired": "None.",
       "restrictions": "Prompts inserts into the first text area on the page."

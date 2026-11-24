@@ -35,9 +35,9 @@ export const STAGES = Object.freeze([
 ]);
 
 const WAIT_CARDS = [
-  { title: 'Record in your browser', text: 'Camera, screen or both. Nothing to install.', action: 'Open the recorder', href: '#/recorder' },
-  { title: 'Find your prospects', text: 'Lead Finder builds the list you send it to.', action: 'Open Lead Finder', href: '#/leadfinder' },
-  { title: 'SmartVideo Academy', text: 'Short lessons on personalized video outreach.', action: 'Start learning', href: '#/academy', accent: true },
+  { title: 'Record in your browser', text: 'Camera, screen or both. Nothing to install.', action: 'Open the recorder', href: '/recorder' },
+  { title: 'Find your prospects', text: 'Lead Finder builds the list you send it to.', action: 'Open Lead Finder', href: '/leadfinder' },
+  { title: 'SmartVideo Academy', text: 'Short lessons on personalized video outreach.', action: 'Start learning', href: '/academy', accent: true },
 ];
 
 /**

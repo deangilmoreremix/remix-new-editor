@@ -66,6 +66,20 @@ describe('push card', () => {
     expect(host.querySelector('[data-push-status]').textContent).toMatch(/site settings/);
     expect(host.querySelector('[data-push-toggle]')).toBeNull();
   });
+  it('while a preference save is pending the checkbox stays disabled, even if another click redraws the card', async () => {
+    const { host, card, onPushPref } = setup();
+    let release; const gate = new Promise((r) => { release = r; });
+    onPushPref.mockImplementation(() => gate);                         // the save is slow
+    await card.ready;
+    const box = host.querySelector('[name=push]');
+    box.checked = true; box.dispatchEvent(new Event('change', { bubbles: true }));
+    await tick();
+    expect(host.querySelector('[name=push]').disabled).toBe(true);
+    host.querySelector('[data-push-toggle]').click();                  // redraws the card (busy) while the save is still pending
+    expect(host.querySelector('[name=push]').disabled).toBe(true);     // not enabled again by the redraw
+    release(); await tick(); await tick(); await tick();
+    expect(host.querySelector('[name=push]').disabled).toBe(false);    // enabled once the save is done
+  });
   it('the preference toggle saves retarget_preferences.push and the buttons are labelled', async () => {
     const { host, card, onPushPref } = setup();
     await card.ready;

@@ -219,6 +219,15 @@ export class MuapiClient {
         return { ...result, id: result.id || requestId, request_id: requestId, url };
     }
 
+    /**
+     * Public wrapper around _submitAndPoll for callers that build their own payload.
+     * opts: { signal, onRequestId, generationType, studioType, maxAttempts, interval }
+     */
+    submitAndPoll(endpoint, payload, opts = {}) {
+        const { signal, onRequestId, ...pollOpts } = opts;
+        return this._submitAndPoll(endpoint, payload, { onRequestId }, signal, pollOpts);
+    }
+
     /** Vibe Motion: generate a motion-graphics clip from a prompt. */
     async runMotionGraphics(params, signal) {
         if (!params?.prompt?.trim()) throw new Error('Describe the motion graphic you want first.');
@@ -1254,6 +1263,7 @@ export class MuapiClient {
 
         if (params.model) finalPayload.model = params.model;
         if (params.video_url) finalPayload.video_url = params.video_url;
+        if (params.image_url) finalPayload.image_url = params.image_url;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
         // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
@@ -1634,11 +1644,13 @@ export class MuapiClient {
         return null;
     }
 
-    async text(prompt, model = 'gpt-5-nano', signal) {
+    // MuAPI dashed GPT-6 ids: gpt-6-luna is the cheap text model (no image
+    // input); gpt-6-1-sol accepts `image_url`, so vision defaults to it.
+    async text(prompt, model = 'gpt-6-luna', signal) {
         return MuapiClient.extractText(await this._runPrediction(model, { prompt }, signal));
     }
 
-    async vision(prompt, imageUrl, model = 'gpt-5-nano', signal) {
+    async vision(prompt, imageUrl, model = 'gpt-6-1-sol', signal) {
         return MuapiClient.extractText(await this._runPrediction(model, { prompt, image_url: imageUrl }, signal));
     }
 

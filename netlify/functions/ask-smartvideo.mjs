@@ -8,9 +8,10 @@
  */
 import { verifyClerkToken } from './_shared/clerkAuth.js';
 import { userOpenAIKey, NEED_OPENAI_KEY, openAIKeyError } from './_shared/byok.js';
+import { OPENAI_TEXT_MODEL } from './_shared/openaiModels.js';
 import { search, hasWalkthroughSteps, sanitizeMessages, retrievalQuery, buildSourcesBlock, SYSTEM_PROMPT, NO_ANSWER } from './_shared/askSearch.js';
 
-const MODEL = () => process.env.ASK_SMARTVIDEO_MODEL || 'gpt-4o-mini';
+const MODEL = () => process.env.ASK_SMARTVIDEO_MODEL || OPENAI_TEXT_MODEL;
 const TIMEOUT_MS = 45_000;
 
 // Best-effort limiter. State is per function instance, so the real ceiling is
@@ -37,8 +38,11 @@ const publicSource = (r, i) => ({
   ...(r.chunk.studios ? { studios: r.chunk.studios } : {}), ...(r.chunk.guideUrl ? { guideUrl: r.chunk.guideUrl } : {}),
 });
 
-/** Parse OpenAI's SSE stream, tolerating `data:` lines split across network chunks. */
-export async function* openAIDeltas(body) {
+/**
+ * Parse OpenAI's SSE stream, tolerating `data:` lines split across network chunks.
+ * The last `finish_reason` seen is stored on `meta.finishReason`.
+ */
+export async function* openAIDeltas(body, meta = {}) {
   const reader = body.getReader();
   const dec = new TextDecoder();
   let buf = '';
@@ -53,7 +57,9 @@ export async function* openAIDeltas(body) {
       const payload = line.slice(5).trim();
       if (payload === '[DONE]') return;
       try {
-        const delta = JSON.parse(payload).choices?.[0]?.delta?.content;
+        const choice = JSON.parse(payload).choices?.[0];
+        if (choice?.finish_reason) meta.finishReason = choice.finish_reason;
+        const delta = choice?.delta?.content;
         if (delta) yield delta;
       } catch { /* incomplete JSON can't happen here: lines are only parsed once complete */ }
     }
@@ -84,7 +90,8 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
   const sources = results.map(publicSource);
   const enc = new TextEncoder();
   // A whole walkthrough (many steps with exact button names) needs more room than a short answer.
-  const maxTokens = hasWalkthroughSteps(results) ? 1400 : 700;
+  // Reasoning models count reasoning tokens against this cap, so leave headroom over the visible answer.
+  const maxTokens = hasWalkthroughSteps(results) ? 4000 : 2000;
   let upstreamAbort = null;
 
   const stream = new ReadableStream({
@@ -110,8 +117,7 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
             body: JSON.stringify({
               model: MODEL(),
               stream: true,
-              temperature: 0.2,
-              max_tokens: maxTokens,
+              max_completion_tokens: maxTokens,
               messages: [{ role: 'system', content: `${SYSTEM_PROMPT}\n\nSOURCES:\n${buildSourcesBlock(results)}` }, ...messages],
             }),
           });
@@ -119,7 +125,19 @@ export async function handle(req, { fetchImpl = fetch, verify = verifyClerkToken
             send('error', { message: openAIKeyError(res.status) || 'The assistant is unavailable right now. Try again in a moment.', code: res.status === 401 ? 'bad_key' : 'upstream' });
             return;
           }
-          for await (const text of openAIDeltas(res.body)) send('delta', { text });
+          const meta = {};
+          let answered = false;
+          for await (const text of openAIDeltas(res.body, meta)) { answered = true; send('delta', { text }); }
+          // Reasoning tokens count against max_completion_tokens, so the budget can run out before any visible text.
+          if (!answered) {
+            send('error', {
+              message: meta.finishReason === 'length'
+                ? 'The assistant ran out of room before answering. Try a shorter or more specific question.'
+                : 'The assistant returned no answer. Try again.',
+              code: 'upstream',
+            });
+            return;
+          }
           send('done', { grounded: true });
         } finally {
           clearTimeout(timer);

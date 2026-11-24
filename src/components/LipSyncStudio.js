@@ -20,7 +20,7 @@ import { openSocialPublish } from '../lib/socialPublishHelpers.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -85,6 +85,7 @@ export function LipSyncStudio() {
     videoModeBtn.type = 'button';
     videoModeBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10 text-muted hover:border-white/30 hover:text-white';
     videoModeBtn.textContent = '🎬 Video';
+    videoModeBtn.dataset.help = 'video source';
 
     modeToggleRow.appendChild(modeLabel);
     modeToggleRow.appendChild(imageModeBtn);
@@ -224,7 +225,7 @@ export function LipSyncStudio() {
     uploadsRow.appendChild(audioUploadBtn);
     uploadsRow.appendChild(textarea);
 
-    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -234,7 +235,6 @@ export function LipSyncStudio() {
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -265,11 +265,8 @@ export function LipSyncStudio() {
           }).catch(() => {});
         } else if (action === 'recipe') {
           openRecipeModal({
-            onRunRecipe: (url) => {
-            }
+            studio: 'lipsync'
           }).catch(() => {});
-        } else if (action === 'monetize') {
-          openMonetizationHub().catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'lip-sync-studio',
@@ -975,6 +972,8 @@ export function LipSyncStudio() {
     publishBtn.textContent = 'Publish to Social';
 
     canvasControls.appendChild(publishBtn);
+    const landingBtn = createLandingPageButton({ like: downloadBtn });
+    canvasControls.appendChild(landingBtn);
 
     canvas.appendChild(videoContainer);
     canvas.appendChild(canvasControls);
@@ -991,6 +990,7 @@ export function LipSyncStudio() {
             canvasControls.classList.add('opacity-100');
         };
         publishBtn.onclick = () => openSocialPublish({ mediaUrl: videoUrl, mediaType: 'video' });
+        landingBtn.onclick = () => { void openLandingPageFor({ url: resultVideo.src || videoUrl, type: 'video', studio: 'lipsync' }); };
 
         const captionBtn = document.createElement('button');
         captionBtn.type = 'button';

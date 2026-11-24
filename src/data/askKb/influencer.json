@@ -31,7 +31,7 @@
     "Optional 'Additional instructions' text box.",
     "Model selector listing the app's image-to-image models.",
     "History strip of up to 50 generated characters with download and delete.",
-    "Thumbnail, Personalize, GTM Boost, Recipes, Monetize and Prompts helpers.",
+    "Thumbnail, Personalize, GTM Boost, Recipes and Prompts helpers.",
     "Example Gallery at the bottom."
   ],
   "featureExplanations": [

@@ -17,9 +17,9 @@ import { createMarketingAdMode, validateAd, buildAdParams } from './studios/Mark
 import { createPendingJobTracker } from '../lib/pendingJobs.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
+import { uploadFileToSupabase } from '../lib/uploadService.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -202,6 +202,7 @@ const COMMERCIAL_MODELS = [
 
   const sceneGrid = document.createElement('div');
   sceneGrid.className = 'flex flex-wrap gap-2';
+  sceneGrid.dataset.help = 'scene preset';
   SCENE_PRESETS.forEach(s => {
     const chip = document.createElement('button');
     chip.className = s === selectedScene
@@ -227,6 +228,7 @@ const COMMERCIAL_MODELS = [
 
   const formatRow = document.createElement('div');
   formatRow.className = 'flex gap-2 flex-wrap';
+  formatRow.dataset.help = 'ad format';
   FORMAT_PRESETS.forEach(f => {
     const btn = document.createElement('button');
     btn.className = f.name === selectedFormat.name
@@ -310,7 +312,7 @@ const COMMERCIAL_MODELS = [
   formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
   formCard.appendChild(advanced.panel);
 
-  // Enhancement tools overflow menu (Recipes, Monetize, Prompts)
+  // Enhancement tools overflow menu (Recipes, Prompts)
   const enhanceMenu = document.createElement('div');
   enhanceMenu.className = 'overflow-menu shrink-0';
   enhanceMenu.innerHTML = `
@@ -319,7 +321,6 @@ const COMMERCIAL_MODELS = [
     </button>
     <div class="overflow-menu__panel">
       <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-      <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
       <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
     </div>
   `;
@@ -342,11 +343,8 @@ const COMMERCIAL_MODELS = [
       const action = item.dataset.enhance;
       if (action === 'recipe') {
         openRecipeModal({
-          onRunRecipe: (url) => {
-          }
+          studio: 'commercial'
         }).catch(() => {});
-      } else if (action === 'monetize') {
-        openMonetizationHub().catch(() => {});
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'commercial-studio',
@@ -419,12 +417,34 @@ const COMMERCIAL_MODELS = [
       resultArea.querySelector('video').src = res.url;
       resultArea.querySelector('a[download]').href = res.url;
       resultArea.querySelector('.regen-btn').onclick = () => genBtn.click();
+      // What the preview shows: the generated ad, or the captioned version (a blob: URL on this device) after Free Captions.
+      let shownUrl = res.url;
+      let captionedPublicUrl = null; // the captioned video once uploaded, so Publish needs one upload only
       resultArea.querySelector('.caption-studio-btn').onclick = () => addCaptionButton({
-        videoUrl: res.url, appTheme: 'commercial-studio',
-        onComplete: (captionedUrl) => { resultArea.querySelector('video').src = captionedUrl; resultArea.querySelector('a[download]').href = captionedUrl; showToast('Preview updated with captions'); },
+        videoUrl: shownUrl, appTheme: 'commercial-studio',
+        onComplete: (captionedUrl) => {
+          if (shownUrl !== res.url && shownUrl.startsWith('blob:')) URL.revokeObjectURL(shownUrl); // the earlier captioned render
+          shownUrl = captionedUrl; captionedPublicUrl = null;
+          resultArea.querySelector('video').src = captionedUrl; resultArea.querySelector('a[download]').href = captionedUrl; showToast('Preview updated with captions');
+        },
         onError: (err) => showToast(err?.message || 'Captions failed'),
       });
-      resultArea.querySelector('.publish-social-btn').onclick = () => openSocialPublish({ mediaUrl: res.url, mediaType: 'video' });
+      resultArea.querySelector('.publish-social-btn').onclick = async () => {
+        let mediaUrl = res.url;
+        if (shownUrl !== res.url) {
+          // The captioned video only exists on this device and the publisher needs a public URL: upload it first, never publish the uncaptioned ad instead.
+          try {
+            if (!captionedPublicUrl) {
+              showToast('Uploading the captioned video…');
+              const blob = await (await fetch(shownUrl)).blob();
+              const file = new File([blob], `commercial-captioned.${/webm/.test(blob.type) ? 'webm' : 'mp4'}`, { type: blob.type || 'video/mp4' });
+              captionedPublicUrl = (await uploadFileToSupabase(file, { category: 'video' })).url;
+            }
+            mediaUrl = captionedPublicUrl;
+          } catch (err) { showToast(`Couldn't upload the captioned video (${err?.message || 'upload failed'}). Download it instead.`, 'error', 5000); return; }
+        }
+        openSocialPublish({ mediaUrl, mediaType: 'video' });
+      };
       saveGeneration({
         studio: 'commercial', type: 'video', url: res.url, prompt: script, model: 'seedance-2-vip-omni-reference',
         parameters: { format: adMode.state.format.name, aspect_ratio: adMode.state.ratio, resolution: adMode.state.res, duration: adMode.state.duration },

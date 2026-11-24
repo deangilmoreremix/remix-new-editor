@@ -30,7 +30,8 @@ import {
   POINTER_DESIGNS, POINTER_THEMES, POINTER_CATEGORIES, POINTER_MOTIONS, TARGET_MOTIONS, HINT_STYLES, HINT_POSITIONS, pointerSvg, isTargetDesign,
 } from './pointerDesigns.js';
 import { leadFieldTokens, ESP_PROVIDERS, espName, espListLabel } from './leadClient.js';
-import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS } from './addonOverlay.js';
+import { FIELD_LAYOUTS, AFTER_SUBMIT_ACTIONS, buildOptinForm, backdropStyle } from './addonOverlay.js';
+import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, BADGE_ICONS, BUTTON_ICONS, DESIGN_BASE, COLOR_SCHEMES, applyOptinDesign, recolorOptin, schemeSwatch } from './optinDesigns.js';
 
 export const LIST_BUILDER_KINDS = {
   'list-builder': 'List Builder',
@@ -92,7 +93,7 @@ export const FORM_TRANSITIONS = [
 ];
 
 // Upstream form fonts list (subset of the Google Fonts it offered).
-export const FORM_FONTS = ['Raleway', 'Anton', 'Bevan', 'Roboto', 'Open Sans', 'Montserrat', 'Lato', 'Oswald', 'Poppins', 'Playfair Display']
+export const FORM_FONTS = ['Raleway', 'Anton', 'Bevan', 'Roboto', 'Open Sans', 'Montserrat', 'Lato', 'Oswald', 'Poppins', 'Playfair Display', 'Inter', 'Cinzel', 'Share Tech Mono', 'Rajdhani']
   .map((f) => [f, f]);
 
 /** Upstream token: label upper-cased (used as the submitted field name). */
@@ -224,6 +225,38 @@ export function defaultOptin(kind = 'list-builder') {
     pointerEnabled: !lead, // upstream only showed the arrow on the List Builder
     // List Builder only: skip the form for viewers who already filled it in.
     askEveryVisit: false,
+    // Design presets (./optinDesigns.js): '' = the classic look above. Everything below is editable.
+    designPreset: '',
+    designLayout: 'center',
+    backgroundColor2: '',
+    bgAngle: 135,
+    cardRadius: 0,
+    cardBorderColor: '',
+    cardBorderWidth: 0,
+    cardGlow: '',
+    cardBlur: 0,
+    inputOpacity: 100,
+    inputIcons: false,
+    inputChevron: false,
+    buttonBackground2: '',
+    eyebrow: '',
+    subtitle: '',
+    sideQuote: '',
+    sideAuthor: '',
+    sideStats: '',
+    sideRating: '',
+    brandName: '',
+    brandIcon: true,
+    badgeIcon: 'none',
+    btnIcon: 'none',
+    stepLabels: '',
+    stepQuestions: '',
+    choiceStyle: 'dropdown',
+    panelTitle: '',
+    panelHint: '',
+    designAccent: '',
+    decorEnabled: true,
+    colorScheme: '',
   };
 }
 
@@ -301,14 +334,74 @@ const TEXT_FIELDS = (personalizer) => [
   { key: 'privacyDisclaimer', label: 'Privacy text', type: 'textarea', showIf: () => !personalizer },
   { key: 'privacyPolicyCaption', label: 'Privacy policy link text', type: 'text' },
   { key: 'privacyPolicyLink', label: 'Privacy policy link (URL)', type: 'url' },
+  { key: 'panelTitle', label: 'Heading over the boxes (e.g. "Your Details")', type: 'text' },
+  { key: 'panelHint', label: 'Hint under that heading', type: 'text' },
+  { key: 'stepLabels', label: 'Step names, comma separated (e.g. Details, Confirm, Watch) — needs "Split the boxes into steps"', type: 'text' },
+  { key: 'stepQuestions', label: 'Chat layout: one question per line, one per box (empty = "What\'s your …?")', type: 'textarea', rows: 3, showIf: (o) => o.designLayout === 'chat' },
+  { key: 'eyebrow', label: 'Small label above the caption (design extra, optional)', type: 'text' },
+  { key: 'subtitle', label: 'Sub-title under the caption (design extra, optional)', type: 'textarea', rows: 2 },
+  { key: 'sideQuote', label: 'Testimonial quote (Social proof design)', type: 'textarea', rows: 2, showIf: (o) => o.designLayout === 'split' },
+  { key: 'sideAuthor', label: 'Testimonial author', type: 'text', showIf: (o) => o.designLayout === 'split' },
+  { key: 'sideRating', label: 'Star rating line (e.g. 4.9/5 (2,847 reviews))', type: 'text', showIf: (o) => o.designLayout === 'split' },
+  { key: 'sideStats', label: 'Stats, separated by ; ("50,000+ Creators; 5M+ Videos")', type: 'text', showIf: (o) => o.designLayout === 'split' },
   { key: 'popupHeaderText', label: 'Pointer bubble: title', type: 'text', showIf: (o) => o.pointerEnabled },
   { key: 'popupFillOutText', label: 'Pointer bubble: "Fill out your" line', type: 'text', showIf: (o) => o.pointerEnabled },
   { key: 'popupClickText', label: 'Pointer bubble: "Click" line', type: 'text', showIf: (o) => o.pointerEnabled },
   { key: 'popupDescriptionText', label: 'Pointer bubble: description', type: 'text', showIf: (o) => o.pointerEnabled },
 ];
 
+// Picker tile: a real, scaled-down render of the design with its own wording and three boxes (cached: it never changes).
+const thumbCache = new Map();
+export function liveDesignThumb(design, schemeId = '') {
+  if (typeof document === 'undefined') return '';
+  const cacheKey = `${design.id}|${schemeId}`;
+  if (thumbCache.has(cacheKey)) return thumbCache.get(cacheKey);
+  const base = defaultOptin('list-builder');
+  const cfg = { ...base, ...applyOptinDesign(base, design, schemeId), enabled: true, pointerEnabled: false, privacyDisclaimer: '' };
+  const form = buildOptinForm(cfg);
+  form.querySelectorAll('[data-step]').forEach((n) => { if (n.dataset.step !== '0') n.hidden = true; }); // first step of a stepped design
+  const wrap = document.createElement('div');
+  wrap.className = 'addon-overlay addon-overlay--optin';
+  wrap.style.background = backdropStyle(cfg, { preview: true });
+  wrap.appendChild(form);
+  const stage = document.createElement('div');
+  stage.className = 'addon-overlay-layer optin-mini';
+  stage.setAttribute('inert', '');
+  stage.setAttribute('aria-hidden', 'true');
+  stage.style.setProperty('--ovl-w', '640px');
+  stage.appendChild(wrap);
+  const html = `<span class="optin-mini-frame">${stage.outerHTML}</span>`;
+  thumbCache.set(cacheKey, html);
+  return html;
+}
+
+// 30 one-click designs, then every look option they set (all stay editable).
+const DESIGN_FIELDS = [
+  { key: 'designPreset', label: 'Design (one click sets colours, card, layout and steps — then tweak anything)', type: 'designPicker', designs: OPTIN_DESIGNS, categories: OPTIN_DESIGN_CATEGORIES, thumb: liveDesignThumb, livePreview: true, applyDesign: applyOptinDesign },
+  { key: 'brandName', label: 'Brand name next to the logo mark (empty = none)', type: 'text' },
+  { key: 'brandIcon', label: 'Show the logo mark beside the brand name', type: 'toggle', showIf: (o) => !!o.brandName },
+  { key: 'badgeIcon', label: 'Badge icon above the title', type: 'select', options: BADGE_ICONS },
+  { key: 'btnIcon', label: 'Icon on the Play button', type: 'select', options: BUTTON_ICONS },
+  { key: 'choiceStyle', label: 'Dropdown fields look like', type: 'select', options: [['dropdown', 'A dropdown'], ['list', 'A list of choices (quiz)']] },
+  { key: 'designAccent', label: 'Decoration color (lines, frames, glow accents; empty = the design\'s own)', type: 'color' },
+  { key: 'decorEnabled', label: 'Show the design\'s decoration (glow, grid, frames, stripes)', type: 'toggle' },
+  { key: 'colorScheme', label: 'Color scheme (one click recolors the whole design; every color can still be changed below)', type: 'colorSchemes', schemes: COLOR_SCHEMES, applyScheme: recolorOptin, swatch: schemeSwatch },
+  { key: 'designLayout', label: 'Layout', type: 'select', options: DESIGN_LAYOUTS },
+  { key: 'backgroundColor2', label: 'Background gradient: second color (empty = solid)', type: 'color' },
+  { key: 'bgAngle', label: 'Background gradient angle', type: 'range', min: 0, max: 360, showIf: (o) => !!o.backgroundColor2 },
+  { key: 'cardRadius', label: 'Card corner radius (200 = oval)', type: 'range', min: 0, max: 200 },
+  { key: 'cardBorderWidth', label: 'Card border width', type: 'range', min: 0, max: 8 },
+  { key: 'cardBorderColor', label: 'Card border color', type: 'color', showIf: (o) => Number(o.cardBorderWidth) > 0 },
+  { key: 'cardGlow', label: 'Card glow color (empty = none)', type: 'color' },
+  { key: 'cardBlur', label: 'Frosted-glass blur behind the card', type: 'range', min: 0, max: 40 },
+  { key: 'inputOpacity', label: 'Input background opacity', type: 'range', min: 0, max: 100 },
+  { key: 'inputIcons', label: 'Show icons in the boxes', type: 'toggle' },
+  { key: 'inputChevron', label: 'Show a dropdown arrow at the end of the boxes', type: 'toggle' },
+  { key: 'buttonBackground2', label: 'Play Button gradient: second color (empty = solid)', type: 'color' },
+];
+
 const LAYOUT_FIELDS = [
-  { key: 'fieldLayout', label: 'Box layout', type: 'select', options: FIELD_LAYOUTS },
+  { key: 'fieldLayout', label: 'Box layout (uses fewer columns when a smaller video would cut off the labels)', type: 'select', options: FIELD_LAYOUTS },
   { key: 'fieldWidth', label: 'Boxes width (% of the form)', type: 'range', min: 30, max: 100 },
   { key: 'fieldGap', label: 'Space between boxes', type: 'range', min: 0, max: 20 },
   { key: 'fieldAlign', label: 'Align boxes', type: 'select', options: [['center', 'Center'], ['left', 'Left']] },
@@ -338,6 +431,7 @@ export function listBuilderFields(config) {
   const lead = config?.kind === 'lead-generator';
   const fields = [
     ...TEXT_FIELDS(personalizer).map((f) => ({ ...f, tab: 'Text' })),
+    ...DESIGN_FIELDS.map((f) => ({ ...f, tab: 'Design' })),
     ...STYLE_FIELDS.map((f) => ({ ...f, tab: 'Styles' })),
     { key: 'elements', label: lead ? 'Form boxes (1–5)' : 'Form boxes (1–5, required)', type: 'fieldList', min: 1, max: 5, placeholders: true, fieldTypes: lead ? LEAD_FIELD_TYPES : FORM_FIELD_TYPES, tab: 'Fields' },
     { key: 'trigger', label: 'When it appears (published video)', type: 'select', options: LEAD_TRIGGERS, tab: 'Fields', showIf: (o) => o.kind === 'lead-generator' },
@@ -393,7 +487,10 @@ export function listBuilderWebhookConfig(config) {
  * own field set and colours), keeping the enabled flag.
  */
 export function switchListBuilderKind(config, kind) {
-  return { ...defaultListBuilder(kind), enabled: !!config?.enabled };
+  const next = { ...defaultListBuilder(kind), enabled: !!config?.enabled };
+  // A picked design is the form's look, not the kind's wording: it stays (the kind's own caption, boxes and privacy text still switch).
+  if (config?.designPreset) Object.keys(DESIGN_BASE).forEach((k) => { if (k in config) next[k] = config[k]; });
+  return next;
 }
 
 // ------------------------------------------------- Lead Generator clip adapter
@@ -469,7 +566,8 @@ export function leadFormToOptin(clip) {
     if (clip?.[key] !== undefined) out[opt] = clip[key];
   }
   for (const [opt, key] of Object.entries(STYLE_KEYS)) {
-    if (style[key] !== undefined && style[key] !== '') out[opt] = style[key];
+    // an empty background is meaningful for designs that let the video show through
+    if (style[key] !== undefined && (style[key] !== '' || opt === 'backgroundColor')) out[opt] = style[key];
   }
   out.transition = toOptinTransition(out.transition);
   // A legacy clip saved a 'none' bottom border as ''/undefined: keep the default look.

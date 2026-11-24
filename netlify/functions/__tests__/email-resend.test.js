@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { NOOP_ADAPTER, getEmailAdapter } from '../_shared/emailAdapter.js';
-import { createResendAdapter, lookupClerkEmail } from '../_shared/resendAdapter.js';
+import { createResendAdapter, lookupClerkEmail, RECIPIENT_TRANSIENT } from '../_shared/resendAdapter.js';
 import { buildAlertEmail, alertsUrl, FOOTER } from '../_shared/alertEmail.js';
 
 const ENV = { RESEND_API_KEY: 're_secret_key', ALERT_EMAIL_FROM: 'SmartVideo Alerts <alerts@smartvid.app>', CLERK_SECRET_KEY: 'sk_clerk_secret' };
@@ -89,16 +89,27 @@ describe('Clerk recipient lookup', () => {
     expect(await lookup(user)).toBeNull();
     expect(await lookup(clerkUser({ email_addresses: [{ id: 'idn_2', email_address: ADDRESS, verification: null }] }))).toBeNull();
   });
-  it('returns null with no email, no primary id, an unknown user, a failing API, a thrown error or no key', async () => {
+  it('returns null with no email, no primary id, an unknown user, a rejected request or no key', async () => {
     expect(await lookup(clerkUser({ email_addresses: [] }))).toBeNull();
     expect(await lookup(clerkUser({ primary_email_address_id: null }))).toBeNull();
     expect(await lookup({})).toBeNull();
     expect(await lookup(null)).toBeNull();
-    expect(await lookupClerkEmail({ ownerId: 'user_1', secret: 'sk', fetchImpl: async () => { throw new Error('down'); } })).toBeNull();
+    for (const status of [400, 401, 403, 404]) expect(await lookupClerkEmail({ ownerId: 'user_1', secret: 'sk', fetchImpl: async () => json(status, {}) })).toBeNull();
     const f = vi.fn();
     expect(await lookupClerkEmail({ ownerId: 'user_1', secret: '', fetchImpl: f })).toBeNull();
     expect(await lookupClerkEmail({ ownerId: '../x?y', secret: 'sk', fetchImpl: f })).toBeNull();
     expect(f).not.toHaveBeenCalled();
+  });
+  it('reports RECIPIENT_TRANSIENT (not null) when Clerk cannot be asked right now: 429, 5xx, a network error or an unreadable body', async () => {
+    for (const status of [429, 500, 502, 503]) expect(await lookupClerkEmail({ ownerId: 'user_1', secret: 'sk', fetchImpl: async () => json(status, {}) })).toBe(RECIPIENT_TRANSIENT);
+    expect(await lookupClerkEmail({ ownerId: 'user_1', secret: 'sk', fetchImpl: async () => { throw new Error('down'); } })).toBe(RECIPIENT_TRANSIENT);
+    expect(await lookupClerkEmail({ ownerId: 'user_1', secret: 'sk', fetchImpl: async () => ({ ok: true, status: 200, json: async () => { throw new SyntaxError('bad json'); } }) })).toBe(RECIPIENT_TRANSIENT);
+  });
+  it('the deadline also covers reading the response body: a stalled body is aborted and reported as transient', async () => {
+    const stalled = async (url, init) => ({ ok: true, status: 200, json: () => new Promise((_, reject) => { init.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' }))); }) });
+    const started = Date.now();
+    expect(await lookupClerkEmail({ ownerId: 'user_1', secret: 'sk', fetchImpl: stalled, timeoutMs: 40 })).toBe(RECIPIENT_TRANSIENT);
+    expect(Date.now() - started).toBeLessThan(2000);
   });
   it('caches within one adapter (one invocation) only', async () => {
     const f = vi.fn(async () => json(200, clerkUser()));
@@ -117,8 +128,8 @@ describe('alert e-mail content', () => {
   it('has a category prefix, the title, summary and suggestion, the Open alerts link and the footer', () => {
     const m = buildAlertEmail(note);
     expect(m.subject).toBe('New lead: Ana <b>signed</b> up');
-    expect(m.text).toBe(['Ana <b>signed</b> up', 'A "new" lead & more', 'Reply today.', 'Open alerts: https://smartvid.app/#/timeline', FOOTER].join('\n\n'));
-    expect(m.html).toContain('href="https://smartvid.app/#/timeline"');
+    expect(m.text).toBe(['Ana <b>signed</b> up', 'A "new" lead & more', 'Reply today.', 'Open alerts: https://smartvid.app/timeline?alerts=1', FOOTER].join('\n\n'));
+    expect(m.html).toContain('href="https://smartvid.app/timeline?alerts=1"');
     expect(m.html).toContain('Open alerts');
     expect(m.html).toContain(FOOTER.replace('>', '&gt;'));
   });
@@ -132,8 +143,8 @@ describe('alert e-mail content', () => {
     expect(buildAlertEmail({ ...note, type }).subject.startsWith(prefix)).toBe(true);
   });
   it('APP_URL is used when it is http(s); anything else falls back to the default', () => {
-    expect(alertsUrl({ APP_URL: 'https://app.example.test/' })).toBe('https://app.example.test/#/timeline');
-    expect(alertsUrl({ APP_URL: 'javascript:alert(1)' })).toBe('https://smartvid.app/#/timeline');
-    expect(alertsUrl({})).toBe('https://smartvid.app/#/timeline');
+    expect(alertsUrl({ APP_URL: 'https://app.example.test/' })).toBe('https://app.example.test/timeline?alerts=1');
+    expect(alertsUrl({ APP_URL: 'javascript:alert(1)' })).toBe('https://smartvid.app/timeline?alerts=1');
+    expect(alertsUrl({})).toBe('https://smartvid.app/timeline?alerts=1');
   });
 });

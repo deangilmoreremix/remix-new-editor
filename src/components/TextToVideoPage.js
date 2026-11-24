@@ -1,6 +1,8 @@
 import { navigate } from '../lib/router.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
+import { t2vModels } from '../lib/models.js';
+import { storePrefillModel } from '../lib/prefillModel.js';
 
 const TEXT_TO_VIDEO_MODELS = [
   { name: 'Kling v2.1', description: 'Kling v2.1 text-to-video', category: 'Kling' },
@@ -43,7 +45,7 @@ const EXAMPLE_PROMPTS = [
 
 const FEATURES = [
   { icon: '🎬', title: 'Cinematic Quality', description: 'Generate professional-grade videos with stunning visuals' },
-  { icon: '⏱️', title: '40+ Models', description: 'Access the latest video generation models from top AI labs' },
+  { icon: '⏱️', title: `${t2vModels.length} Models`, description: 'Access the latest video generation models from top AI labs' },
   { icon: '📹', title: 'Multiple Durations', description: 'Create videos from seconds to minutes in length' },
   { icon: '🎥', title: 'HD & 4K Support', description: 'Export videos in high definition up to 4K resolution' },
 ];
@@ -56,17 +58,7 @@ export function TextToVideoPage() {
   // Hero
   const hero = document.createElement('div');
   hero.className = 'flex flex-col items-center mb-8 md:mb-12 animate-fade-in-up transition-all duration-700 w-full max-w-5xl';
-  const heroBanner = createHeroSection('video', 'h-32 md:h-44 mb-4');
-  if (heroBanner) {
-    const heroContent = document.createElement('div');
-    heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight mb-1">Text to Video</h1>
-      <p class="text-white/60 text-sm font-medium">Create stunning, professional-quality videos from simple text descriptions</p>
-    `;
-    heroBanner.appendChild(heroContent);
-    hero.appendChild(heroBanner);
-  }
+  hero.appendChild(createStudioHeader('video', 'Text to Video', `Create stunning, professional-quality videos from simple text descriptions`, 'mb-4'));
   container.appendChild(hero);
 
   // Content wrapper
@@ -95,7 +87,7 @@ export function TextToVideoPage() {
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h2 class="text-lg font-black text-white mb-1">Ready to Create Videos?</h2>
-          <p class="text-sm text-muted">Start generating amazing videos with 40+ AI models</p>
+          <p class="text-sm text-muted">Start generating amazing videos with ${t2vModels.length} AI models</p>
         </div>
         <div class="flex flex-col sm:flex-row items-center gap-3">
           <button class="cta-btn btn-primary-modern">
@@ -109,7 +101,7 @@ export function TextToVideoPage() {
     <!-- Models -->
     <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
       <h2 class="text-lg font-black text-white mb-1">Available Models</h2>
-      <p class="text-sm text-muted mb-6">Choose from ${TEXT_TO_VIDEO_MODELS.length} powerful video generation models</p>
+      <p class="text-sm text-muted mb-6">${TEXT_TO_VIDEO_MODELS.length} featured models out of ${t2vModels.length} text-to-video models in Video Studio</p>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         ${TEXT_TO_VIDEO_MODELS.map(m => `
           <button class="model-card bg-white/[0.03] border border-white/5 rounded-xl p-4 hover:border-primary/20 transition-all duration-300 text-left" data-model="${m.name}">
@@ -158,7 +150,9 @@ export function TextToVideoPage() {
 
   // Event Listeners
   container.querySelector('.start-btn').onclick = () => navigate('video');
+  container.querySelector('.start-btn').dataset.helpText = 'Open Video Studio.';
   container.querySelector('.cta-btn').onclick = () => navigate('video');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Video Studio.';
 
   const gtmBoostBtn = contentWrapper.querySelector('.gtm-boost-btn');
   if (gtmBoostBtn) {
@@ -175,7 +169,7 @@ export function TextToVideoPage() {
   container.querySelectorAll('.model-card').forEach(card => {
     card.onclick = () => {
       const modelName = card.dataset.model;
-      localStorage.setItem('prefill_model', modelName);
+      storePrefillModel(t2vModels, modelName);
       navigate('video');
     };
   });
@@ -184,7 +178,7 @@ export function TextToVideoPage() {
     card.onclick = () => {
       const prompt = EXAMPLE_PROMPTS[i];
       localStorage.setItem('prefill_prompt', prompt.prompt);
-      localStorage.setItem('prefill_model', prompt.model);
+      storePrefillModel(t2vModels, prompt.model);
       navigate('video');
     };
   });
@@ -194,7 +188,7 @@ export function TextToVideoPage() {
       e.stopPropagation();
       const prompt = EXAMPLE_PROMPTS[i];
       localStorage.setItem('prefill_prompt', prompt.prompt);
-      localStorage.setItem('prefill_model', prompt.model);
+      storePrefillModel(t2vModels, prompt.model);
       navigate('video');
     };
   });

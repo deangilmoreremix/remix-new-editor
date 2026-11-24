@@ -25,9 +25,12 @@ export function audienceRows(rows) {
     if (!by[r?.dimension]) continue;
     by[r.dimension].push({ key: r.key ?? null, sessions: num(r.sessions), completed: num(r.completed_sessions), leads: num(r.lead_sessions) });
   }
+  // The database returns only the top ten referrers and countries, so their own sum can be far below the real number of
+  // sessions. Every viewing session has a device class, so the device sum is the all-sessions total and the denominator for all three lists.
+  const allSessions = by.device.filter((x) => x.sessions > 0).reduce((s, x) => s + x.sessions, 0);
   const shape = (dimension) => {
     const list = by[dimension].filter((x) => x.sessions > 0).sort((a, b) => b.sessions - a.sessions);
-    const total = list.reduce((s, x) => s + x.sessions, 0);
+    const total = Math.max(allSessions, list.reduce((s, x) => s + x.sessions, 0));
     return list.map((x) => ({
       key: x.key, label: labelFor(dimension, x.key), sessions: x.sessions,
       sharePercent: pctOf(x.sessions, total), completionRate: pctOf(x.completed, x.sessions), leadRate: pctOf(x.leads, x.sessions),

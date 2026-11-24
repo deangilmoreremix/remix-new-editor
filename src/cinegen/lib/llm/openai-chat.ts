@@ -1,9 +1,9 @@
-/** OpenAI Chat Completions helper for Director JSON jobs (GPT-5.6 Luna). */
+/** OpenAI Chat Completions helper for Director JSON jobs (GPT-6 Luna). */
 
 import { parseOpenAiUsage, priceOpenAiUsage, type OpenAiPricedUsage } from './openai-usage';
 
 export const OPENAI_CHAT_COMPLETIONS_URL = 'https://api.openai.com/v1/chat/completions';
-export const DEFAULT_OPENAI_DIRECTOR_MODEL = 'gpt-5.6-luna';
+export const DEFAULT_OPENAI_DIRECTOR_MODEL = 'gpt-6-luna';
 export const DEFAULT_OPENAI_MAX_COMPLETION_TOKENS = 60_000;
 
 export type OpenAiReasoningEffort = 'none' | 'low' | 'medium' | 'high';

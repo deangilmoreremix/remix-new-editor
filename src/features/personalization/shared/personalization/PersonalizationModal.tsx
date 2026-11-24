@@ -355,6 +355,8 @@ function UploadZone({
         type="button"
         data-testid="pz-upload-collapsed"
         data-pz-upload-zone
+        data-help-name={addLabel}
+        data-help-text="Opens the upload area so you can add more files."
         onClick={() => setExpanded(true)}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -415,6 +417,8 @@ function UploadZone({
       )}
       <div
         data-pz-upload-zone
+        data-help-name={primary}
+        data-help-text="Drag files here or click to browse your computer."
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -462,7 +466,7 @@ function ThumbPlaceholder({ label, add = false, onClick, title }: { label: strin
   const Tag = onClick ? 'button' : 'div'
   return (
     <Tag
-      {...(onClick ? { type: 'button' as const, 'aria-label': title || (add ? 'Add' : `Add ${label.toLowerCase()} photo`), title: title || (add ? undefined : `Add a ${label.toLowerCase()} photo`) } : {})}
+      {...(onClick ? { type: 'button' as const, 'aria-label': title || (add ? 'Add' : `Add ${label.toLowerCase()} photo`), 'data-help-name': add ? 'Add' : `${label[0]}${label.slice(1).toLowerCase()} photo`, 'data-help-text': 'Opens the file picker to upload an image.', title: title || (add ? undefined : `Add a ${label.toLowerCase()} photo`) } : {})}
       onClick={onClick}
       className={classNames(
         'w-[82px] min-h-[86px] rounded-[9px] border overflow-hidden flex items-end justify-center p-1.5 text-[9px] font-extrabold',
@@ -1421,8 +1425,17 @@ export default function PersonalizationModal() {
     : '✦ Generate Everything'
 
   // What is still missing, shown before the click (checklist, step bar, footer).
-  const projectRequirements = validateProjectRequirements(ctx)
+  // A signed-out visitor only sees the business name; the other requirements belong to controls they never get.
+  const allProjectRequirements = validateProjectRequirements(ctx)
+  const projectRequirements = isAnonymous ? allProjectRequirements.filter((r) => r.field === 'client.businessName') : allProjectRequirements
+  // The free Find My Brand tool has no create step, so it keeps the plain view without the bar.
+  const showCreateBar = !(isAnonymous && source?.sourceMetadata?.freeDiscovery === true)
   const blockingRequirement = projectRequirements.find((r) => r.severity === 'error' && requirementLocation(r.field))
+  /** Signed-out visitors can preview for free; creating the final result needs an account. */
+  const signInToCreate = () => {
+    closePersonalize()
+    try { window.location.hash = '#/signin' } catch { /* no window */ }
+  }
   const fixRequirement = (field: string) => {
     const location = requirementLocation(field)
     if (!location) return
@@ -1504,7 +1517,7 @@ export default function PersonalizationModal() {
                     className={`${advancedFrame ? 'hidden' : 'hidden md:block'} mt-1.5 max-w-[900px] text-[13px] leading-[1.55]`}
                     style={{ color: C.muted }}
                   >
-                    {isAnonymous
+                    {isAnonymous && source?.sourceMetadata?.freeDiscovery === true
                       ? 'Find My Brand: paste your business website — or search for a business — and we surface the logos, photos, products and branding its page already has, for you to review and arrange below. Nothing is generated and nothing is charged.'
                       : 'Turn this demo into a custom version for yourself, your business, or a customer. Personalize the person, branding, products, prompt, offer and CTA.'}
                   </p>
@@ -1687,7 +1700,7 @@ export default function PersonalizationModal() {
                generate={generate}
                closePersonalize={closePersonalize}
                isReadyToGenerate={Boolean((clientForm.businessName || clientForm.name) && (outputType === 'prompt' || mode || creationMethod === 'browser')) && !blockingRequirement}
-               requirements={projectRequirements}
+               requirements={showCreateBar ? projectRequirements : []}
                effectiveModelId={effectiveModelId}
                recommendedModelId={recommendedModelId}
                recommendedModel={recommendedModel}
@@ -1749,9 +1762,9 @@ export default function PersonalizationModal() {
         </main>
 
         {/* ── STICKY FOOTER ────────────────────────────────────────── */}
-        {/* Anonymous sessions never generate: no footer action is offered. */}
+        {/* Signed-out visitors get the same bar; its main button asks them to sign in (nothing is generated without an account). */}
         {/* Simple Mode replaces the footer with the wizard's own step navigation. */}
-        {!isAnonymous && !personalizationInProgress && !simpleModeActive && generation.status !== 'complete' && generation.status !== 'error' && (
+        {showCreateBar && !personalizationInProgress && !simpleModeActive && generation.status !== 'complete' && generation.status !== 'error' && (
           <footer
             className="flex flex-wrap items-center justify-end gap-2.5 flex-shrink-0"
             style={{
@@ -1788,8 +1801,8 @@ export default function PersonalizationModal() {
             <button
               // Videos go through createFinalVideo, so the on-video layers from
               // Create › Overlays end up in the file (not only in the preview).
-              onClick={outputType === 'prompt' ? handlePersonalize : outputType === 'image' || !isVideo ? generate : () => { void ctx.createFinalVideo({ approveNow: true }) }}
-              disabled={!((clientForm.businessName || clientForm.name) && (outputType === 'prompt' || mode || creationMethod === 'browser')) || Boolean(blockingRequirement) || personalizationInProgress}
+              onClick={isAnonymous ? signInToCreate : outputType === 'prompt' ? handlePersonalize : outputType === 'image' || !isVideo ? generate : () => { void ctx.createFinalVideo({ approveNow: true }) }}
+              disabled={(isAnonymous ? !(clientForm.businessName || clientForm.name) : !((clientForm.businessName || clientForm.name) && (outputType === 'prompt' || mode || creationMethod === 'browser'))) || Boolean(blockingRequirement) || personalizationInProgress}
               title={blockingRequirement ? blockingRequirement.message : undefined}
               className="rounded-[10px] text-[11px] font-extrabold uppercase tracking-wide disabled:opacity-50"
               style={{
@@ -1802,7 +1815,7 @@ export default function PersonalizationModal() {
                 boxShadow: '0 8px 26px rgba(217,255,0,.18)',
               }}
             >
-              {generateLabel}
+              {isAnonymous ? '✦ Sign in to create' : generateLabel}
             </button>
           </footer>
         )}
@@ -2727,7 +2740,7 @@ function ConfigurationView(props: any) {
         active={advancedTab}
         onSelect={selectAdvancedTab}
         done={advancedTabsDone}
-        issues={isAnonymous ? {} : blockingByTab(requirements)}
+        issues={blockingByTab(requirements)}
       />
       <AdvancedSectionPills
         tab={advancedTab}
@@ -2910,6 +2923,8 @@ function ConfigurationView(props: any) {
               <button
                 key={key}
                 onClick={() => updateClientForm({ ...clientForm, audience: key })}
+                data-help-name={label}
+                data-help-text={key === 'me' ? 'This video is for you.' : key === 'my-business' ? 'This video is for your own business.' : 'This video is for one of your clients.'}
                 className="rounded-lg text-[11px] font-extrabold uppercase tracking-wide"
                 style={{
                   minHeight: 38,
@@ -5238,7 +5253,7 @@ function ConfigurationView(props: any) {
 
         <div className={`order-first xl:order-last xl:h-full xl:min-h-0 ${mobilePreviewOpen ? '' : 'hidden xl:block'}`}>
           <AdvancedPreviewColumn>
-            {!isAnonymous && <ReadinessChecklist requirements={requirements} onFix={fixRequirement} />}
+            {!isFreeDiscovery && <ReadinessChecklist requirements={requirements} onFix={fixRequirement} />}
             {/* The source demo shows here whenever the live preview cannot. */}
             {!((source?.mediaType === 'video' || source?.mediaType === 'image') && ctxPreviewSettings) && (
               <>

@@ -77,4 +77,24 @@ describe('launchFollowup uses the existing personalization handoff', () => {
     expect(a.fields.find((x) => x.id === 'product').value).toBe('X');
     expect(JSON.stringify(a)).not.toContain('function');
   });
+  it('createFollowupProject can take the new row id and settings (CineGen links the row to the new project)', async () => {
+    const c = db({ settings: { source: 'cinegen', cinegenProjectId: 'cg1', timelineId: 'tl1' } });
+    const p = await createFollowupProject(c, 'orig', { interest: 'Pricing' }, { id: 'row-new', settings: { source: 'cinegen', cinegenProjectId: 'cg2', timelineId: 'tl1' } });
+    expect(p.id).toBe('row-new');
+    expect(p.settings).toMatchObject({ cinegenProjectId: 'cg2', timelineId: 'tl1' });
+    expect(p.parent_project_id).toBe('orig');
+    const plain = await createFollowupProject(c, 'orig', { interest: 'Pricing' });   // no overrides: the original's settings are copied as before
+    expect(plain.settings).toMatchObject({ cinegenProjectId: 'cg1' });
+  });
+  it('an injected opener replaces the Personalizer handoff (CineGen); nothing else is created or navigated', async () => {
+    const c = db();
+    const navigate = vi.fn();
+    const openFollowup = vi.fn(async () => ({ id: 'cg-new' }));
+    const out = await launchFollowup({ client: c, original: { id: 'orig', name: 'Roofing promo' }, followup: { interest: 'Roof repair' }, navigate, openFollowup });
+    expect(out).toEqual({ id: 'cg-new' });
+    expect(openFollowup).toHaveBeenCalledWith(expect.objectContaining({ client: c, original: { id: 'orig', name: 'Roofing promo' }, followup: { interest: 'Roof repair' } }));
+    expect(navigate).not.toHaveBeenCalled();
+    expect(consumePersonalizerHandoff()).toBeNull();
+    expect(c.rows).toHaveLength(1);                       // the opener owns creating the row
+  });
 });

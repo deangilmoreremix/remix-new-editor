@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
 import { NOOP_ADAPTER, getEmailAdapter, inQuietHours, backoffMs, MAX_ATTEMPTS, enqueueNotificationEmails, drainEmailQueue } from '../_shared/emailAdapter.js';
-import { run } from '../digest-daily.mjs';
+import { run, RECOVERY_LOOKBACK_HOURS, RECOVERY_MIN_AGE_MINUTES } from '../digest-daily.mjs';
 
 const NOW = new Date('2026-11-11T12:00:00Z');
 const fake = (over = {}) => ({ name: 'fake', configured: true, resolveRecipient: vi.fn(async () => 'owner@example.test'), send: vi.fn(async () => ({ ok: true })), ...over });
@@ -78,6 +78,16 @@ describe('enqueue (configured adapter)', () => {
     expect(r.queued).toBe(1);
     expect(db.enqueue).toHaveBeenCalledWith([{ notification_id: 'n1', clerk_user_id: 'u1' }]);
   });
+  it('minAgeMinutes leaves young notifications to the immediate path and picks up older ones that were never queued', async () => {
+    const mk = (id, minutesAgo) => ({ id, clerk_user_id: 'u1', type: 'new_lead', created_at: new Date(NOW.getTime() - minutesAgo * 60_000).toISOString() });
+    const digest = { ...mk('fresh-digest', 1), type: 'daily_digest' };   // built moments ago by the same job: no immediate path, so never held back
+    const db = { recentNotifications: async () => [mk('young', 3), mk('edge', 15), mk('old', 120), { id: 'nodate', clerk_user_id: 'u1', type: 'new_lead' }, digest], preferences: async () => ({ u1: { email: true } }), queuedIds: async () => [], enqueue: vi.fn(async () => {}) };
+    const r = await enqueueNotificationEmails({ adapter: fake(), db, now: NOW, minAgeMinutes: 15 });
+    expect(db.enqueue.mock.calls[0][0].map((x) => x.notification_id)).toEqual(['edge', 'old', 'nodate', 'fresh-digest']);
+    expect(r.queued).toBe(4);
+    const all = { ...db, enqueue: vi.fn(async () => {}) };
+    expect((await enqueueNotificationEmails({ adapter: fake(), db: all, now: NOW })).queued).toBe(5); // no minimum: everything recent, as before
+  });
 });
 
 describe('drain', () => {
@@ -97,7 +107,7 @@ describe('drain', () => {
     expect(await drainEmailQueue({ adapter: a, db, now: NOW })).toMatchObject({ sent: 1, failed: 0 });
     expect(a.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'owner@example.test', subject: 'New lead captured', idempotencyKey: 'n1', html: expect.stringContaining('Open alerts') }));
     const { text } = a.send.mock.calls[0][0];
-    expect(text.startsWith('New lead captured\n\nA viewer submitted a form.\n\nReview it.\n\nOpen alerts: https://smartvid.app/#/timeline')).toBe(true);
+    expect(text.startsWith('New lead captured\n\nA viewer submitted a form.\n\nReview it.\n\nOpen alerts: https://smartvid.app/timeline?alerts=1')).toBe(true);
     expect(db.marks[0][1]).toMatchObject({ status: 'sent', attempts: 1 });
   });
   it('retries a failure with backoff, then fails permanently after the attempt limit', async () => {
@@ -132,6 +142,39 @@ describe('drain', () => {
     const db3 = mkdb([{ id: 'q3', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 }]);
     await drainEmailQueue({ adapter: noRecipient, db: db3, now: NOW });
     expect(db3.marks[0][1]).toMatchObject({ status: 'skipped', last_error: 'no_recipient' });
+  });
+  it('re-checks the CURRENT preferences before sending a queued row: e-mail off, the alert type off, or digests off skip it', async () => {
+    const row = { id: 'q1', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 };
+    const cases = [
+      [{ u1: { email: false } }, undefined],
+      [{ u1: { email: true, enabled_types: ['milestone'] } }, undefined],
+      [{ u1: { email: true, enabled_types: ['daily_digest'], digest_frequency: 'off' } }, 'daily_digest'],
+    ];
+    for (const [prefs, type] of cases) {
+      const a = fake();
+      const db = { ...mkdb([row], prefs), notification: async (id) => ({ id, type: type || 'new_lead', title: 'T', summary: 'S' }) };
+      const r = await drainEmailQueue({ adapter: a, db, now: NOW });
+      expect(r.skipped).toBe(1);
+      expect(a.send).not.toHaveBeenCalled();
+      expect(a.resolveRecipient).not.toHaveBeenCalled();
+      expect(db.marks[0][1]).toEqual({ status: 'skipped', last_error: 'pref_off' });
+    }
+    // still on (or no preferences row to compare with): sent as before
+    for (const prefs of [{ u1: { email: true, enabled_types: ['new_lead'] } }, {}]) {
+      const a = fake();
+      expect((await drainEmailQueue({ adapter: a, db: { ...mkdb([row], prefs), notification: async (id) => ({ id, type: 'new_lead', title: 'T', summary: 'S' }) }, now: NOW })).sent).toBe(1);
+    }
+  });
+  it('a transient recipient lookup failure is retried with backoff (and fails for good after the attempt limit); only a real "no address" is skipped', async () => {
+    const a = fake({ resolveRecipient: vi.fn(async () => ({ transient: true })) });
+    const db = mkdb([{ id: 'q1', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 }, { id: 'q2', notification_id: 'n2', clerk_user_id: 'u1', attempts: MAX_ATTEMPTS - 1 }]);
+    const r = await drainEmailQueue({ adapter: a, db, now: NOW });
+    expect(r).toMatchObject({ failed: 2, skipped: 0, outcomes: { q1: 'retry', q2: 'failed' } });
+    expect(a.send).not.toHaveBeenCalled();
+    expect(db.marks[0][1]).toMatchObject({ attempts: 1, last_error: 'recipient_lookup_failed' });
+    expect(db.marks[0][1].status).toBeUndefined();
+    expect(new Date(db.marks[0][1].next_attempt_at).getTime()).toBe(NOW.getTime() + 60_000);
+    expect(db.marks[1][1]).toMatchObject({ status: 'failed', attempts: MAX_ATTEMPTS });
   });
 });
 
@@ -168,12 +211,35 @@ describe('scheduled job', () => {
     expect(r.jobs.prune).toBe(2);
     expect(await run({ env: {}, fetchImpl: mkFetch() })).toEqual({ ok: false, error: 'not_configured' });
   });
+  it('an alert the immediate path missed just before one sweep is recovered by the NEXT daily sweep (the windows overlap by the minimum age)', async () => {
+    const sweep1 = new Date('2026-11-11T06:17:00Z');
+    const sweep2 = new Date('2026-11-12T06:17:00Z');
+    const missed = { id: 'missed', clerk_user_id: 'u1', type: 'new_lead', created_at: new Date(sweep1.getTime() - 5 * 60_000).toISOString() }; // 06:12: too young for sweep 1
+    const queued = new Set();
+    const f = vi.fn(async (url, init) => {
+      const name = url.split('/rest/v1/')[1];
+      let data = [];
+      if (name.startsWith('owner_notifications?select=id,clerk_user_id')) { const since = decodeURIComponent(name.match(/created_at=gte\.([^&]+)/)[1]); data = missed.created_at >= since ? [missed] : []; }   // like the real query: only rows newer than the window start
+      if (name.startsWith('retarget_preferences')) data = [{ clerk_user_id: 'u1', email: true }];
+      if (name.startsWith('notification_email_queue?select=notification_id')) data = [...queued].map((notification_id) => ({ notification_id }));
+      if (name.startsWith('notification_email_queue?on_conflict') && init.method === 'POST') JSON.parse(init.body).forEach((r) => queued.add(r.notification_id));
+      if (name.startsWith('rpc/')) data = 0;
+      return { ok: true, status: 200, text: async () => JSON.stringify(data) };
+    });
+    const first = await run({ env, fetchImpl: f, adapter: fake(), now: sweep1 });
+    expect(first.jobs.email_enqueue.queued).toBe(0);                    // 5 minutes old: left to the immediate path
+    expect(queued.has('missed')).toBe(false);
+    const second = await run({ env, fetchImpl: f, adapter: fake(), now: sweep2 });   // 24 h 5 min old now: still inside the window
+    expect(second.jobs.email_enqueue.queued).toBe(1);
+    expect(queued.has('missed')).toBe(true);
+    expect(RECOVERY_LOOKBACK_HOURS * 60).toBeGreaterThanOrEqual(24 * 60 + RECOVERY_MIN_AGE_MINUTES);
+  });
   it('drains a configured adapter end to end against the REST shape', async () => {
     const calls = [];
     const f = vi.fn(async (url, init) => {
       const name = url.split('/rest/v1/')[1]; calls.push([name, init.method]);
       let data = [];
-      if (name.startsWith('owner_notifications?select=id,clerk_user_id')) data = [{ id: 'n1', clerk_user_id: 'u1', type: 'daily_digest' }, { id: 'n2', clerk_user_id: 'u1', type: 'new_lead' }]; // alerts are e-mailed right away, the daily sweep only queues digests
+      if (name.startsWith('owner_notifications?select=id,clerk_user_id')) data = [{ id: 'n1', clerk_user_id: 'u1', type: 'daily_digest', created_at: new Date(NOW.getTime() - 60_000).toISOString() }, { id: 'n2', clerk_user_id: 'u1', type: 'new_lead', created_at: new Date(NOW.getTime() - 5 * 60_000).toISOString() }, { id: 'n3', clerk_user_id: 'u1', type: 'new_lead', created_at: new Date(NOW.getTime() - 3 * 3600_000).toISOString() }]; // a digest built a minute ago, a 5-minute-old alert (left to the immediate path) and a 3-hour-old alert that was never queued
       if (name.startsWith('retarget_preferences')) data = [{ clerk_user_id: 'u1', email: true, digest_frequency: 'daily' }];
       if (name.startsWith('notification_email_queue?select=*')) data = [{ id: 'q1', notification_id: 'n1', clerk_user_id: 'u1', attempts: 0 }];
       if (name.startsWith('notification_email_queue?id=eq.q1') && init.method === 'PATCH') data = [{ id: 'q1' }]; // the lease claim succeeds
@@ -183,7 +249,7 @@ describe('scheduled job', () => {
     });
     const a = fake();
     const r = await run({ env, fetchImpl: f, adapter: a, now: NOW });
-    expect(r.jobs.email_enqueue.queued).toBe(1);
+    expect(r.jobs.email_enqueue.queued).toBe(2); // the digest and the missed older alert, not the 5-minute-old one
     expect(r.jobs.email_drain.sent).toBe(1);
     expect(a.send).toHaveBeenCalledTimes(1);
     expect(calls.some(([n, m]) => n.startsWith('notification_email_queue?id=eq.q1') && m === 'PATCH')).toBe(true);

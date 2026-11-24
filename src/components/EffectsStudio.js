@@ -30,7 +30,7 @@ import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateReso
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -344,6 +344,16 @@ async function EffectsCatalogStudio() {
   };
   outputActions.appendChild(downloadActionBtn);
 
+  // Create landing page: same look as the Download button beside it
+  const landingActionBtn = createLandingPageButton({ like: downloadActionBtn });
+  landingActionBtn.textContent = '▤ Landing page';
+  landingActionBtn.onclick = () => {
+    const url = outputPreview.getUrl();
+    if (!url) { showToast('No result yet', 'warning'); return; }
+    void openLandingPageFor({ url, type: lastResultType === 'video' ? 'video' : 'image', studio: 'effects' }, { toast: (m) => showToast(m, 'warning') });
+  };
+  outputActions.appendChild(landingActionBtn);
+
   const addToLibraryBtn = document.createElement('button');
   addToLibraryBtn.type = 'button';
   addToLibraryBtn.className = 'flex-1 min-w-[100px] bg-white/10 hover:bg-white/20 border border-white/10 text-white px-3 py-2 rounded-xl text-[10px] font-bold transition-all active:scale-95';
@@ -495,7 +505,7 @@ generateBtn.type = 'button';
     promptRow.appendChild(effectsPublishBtn);
     const actionRow = createActionRow();
     const personalizeHandle = mountPersonalizeTrigger({ controlsContainer: actionRow, getTextarea: () => promptInput, appId: 'effects-studio' });
-    // Enhancement tools overflow menu (Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -504,7 +514,6 @@ generateBtn.type = 'button';
       </button>
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -527,11 +536,8 @@ generateBtn.type = 'button';
         const action = item.dataset.enhance;
         if (action === 'recipe') {
           openRecipeModal({
-            onRunRecipe: (url) => {
-            }
+            studio: 'effects'
           }).catch((err) => console.error('[Recipe] open failed:', err));
-        } else if (action === 'monetize') {
-          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-studio',

@@ -52,6 +52,11 @@ export async function updatePage(client, id, patch = {}) {
   const row = {};
   if ('title' in patch) row.title = String(patch.title || 'Untitled page').slice(0, 200);
   if ('config' in patch) row.config = sanitizeConfig(patch.config);
+  // The page's video (or, for a picture-only page, its picture): https only, like the table's own check.
+  if ('videoUrl' in patch) {
+    const u = String(patch.videoUrl || '').trim();
+    if (/^https:\/\/[^\s"'<>()\\]+$/i.test(u) && u.length <= 2048) row.video_url = u;
+  }
   if ('posterUrl' in patch) row.poster_url = safeImageUrl(patch.posterUrl) || null;
   if ('published' in patch) row.published = !!patch.published;
   const { data, error } = await client.from('landing_pages').update(row).eq('id', id).select(PAGE_COLUMNS).single();

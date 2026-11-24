@@ -108,7 +108,7 @@ describe('payload', () => {
   ])('%s -> %s', (type, prefix) => {
     const p = buildPayload({ ...NOTE, type });
     expect(p.title.startsWith(prefix)).toBe(true);
-    expect(p).toMatchObject({ type, notificationId: ID, videoId: 'vid12345', url: '/#/timeline', tag: 'lead:1' });
+    expect(p).toMatchObject({ type, notificationId: ID, videoId: 'vid12345', url: '/timeline', tag: 'lead:1' });
   });
   it('trims, falls back to type for tag, stays under 3KB', () => {
     const p = buildPayload({ ...NOTE, dedupe_key: '', summary: 'x'.repeat(600), title: 't'.repeat(200) });

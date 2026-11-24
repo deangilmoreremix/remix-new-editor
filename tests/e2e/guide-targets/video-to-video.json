@@ -1,0 +1,21 @@
+{
+  "title-banner": {
+    "selector": ".hero-banner"
+  },
+  "get-started-free": {
+    "selector": ".cta-btn"
+  },
+  "gtm-boost": {
+    "steps": [
+      {
+        "selector": ".gtm-boost-btn",
+        "wait": 2000
+      }
+    ]
+  },
+  "video-to-video-in-video-studio": {
+    "route": "video",
+    "selector": "button[title=\"Upload video to remove watermark\"]",
+    "click": false
+  }
+}

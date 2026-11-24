@@ -142,6 +142,20 @@ describe('LibraryPanel', () => {
     cleanup();
   });
 
+  it('overlays & forms: a card per design for Lead Generator and List Builder, each adds with its design', async () => {
+    const { host, actions, cleanup } = mount();
+    click(host.querySelector('[data-testid="library-cat-overlays"]'));
+    const cards = host.querySelectorAll('[data-testid^="library-design-"]:not([data-testid$="-add"]):not([data-testid$="-star"])');
+    expect(cards.length).toBe(60);
+    click(host.querySelector('[data-testid="library-design-list-builder-glass-split-add"]'));
+    await flush();
+    expect(actions.onAddOverlay).toHaveBeenCalledWith('list-builder', undefined, 'glass-split');
+    click(host.querySelector('[data-testid="library-design-lead-form-vip-access-add"]'));
+    await flush();
+    expect(actions.onAddOverlay).toHaveBeenCalledWith('lead-form', undefined, 'vip-access');
+    cleanup();
+  });
+
   it('search filters the overlay cards', () => {
     const { host, cleanup } = mount();
     click(host.querySelector('[data-testid="library-cat-overlays"]'));
