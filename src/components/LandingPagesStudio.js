@@ -78,7 +78,16 @@ export function LandingPagesStudio({ embedded = false } = {}) {
       const clerk = await ensureClerkLoaded();
       if (signedIn()) { showList(); return; }
       // Still no account: open the list as soon as one appears (signing in from the app header).
-      clerk?.addListener?.(({ user }) => { if (user?.id && inner.isConnected) showList(); });
+      // One-shot: stop listening once connected, so a later Clerk update can never reopen the list over the editor.
+      const sub = { done: false, stop: null };
+      sub.stop = clerk?.addListener?.(({ user }) => {
+        if (sub.done || !user?.id) return;
+        sub.done = true;
+        if (typeof sub.stop === 'function') sub.stop();
+        if (inner.isConnected) showList();
+      });
+      // Clerk may call the listener synchronously (before `sub.stop` is set): unsubscribe now in that case.
+      if (sub.done && typeof sub.stop === 'function') sub.stop();
     } catch { /* Clerk unavailable: stay on the connecting message */ }
   };
   const guard = () => {
