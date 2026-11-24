@@ -79,6 +79,8 @@ for (const guide of GUIDES) {
     const dir = path.join(OUT, guide.slug);
     fs.rmSync(dir, { recursive: true, force: true });
     fs.mkdirSync(dir, { recursive: true });
+    // A placeholder key, stored the way the app reads it, so studios that need a key show their real form. It is never valid.
+    await page.addInitScript(() => { try { const v = btoa('muapi_2024_tour-placeholder-key'); for (const k of ['muapi_key', 'openai_key']) if (!localStorage.getItem(k)) localStorage.setItem(k, v); } catch {} });
     const shot = { features: {} };
     // Every image is taken with the API-key modal closed via its X; never save one with it open.
     const save = async (name) => {
@@ -93,6 +95,8 @@ for (const guide of GUIDES) {
     await open(page, guide.route);
     // Optional "__overview": { "setup": "..." } seeds state (e.g. skip a welcome wizard) before the overview shot.
     const ov = (TARGETS[guide.slug] || {}).__overview;
+    // A heavy studio can still be mounting after the page load: wait until this element exists.
+    if (ov?.waitFor) await page.waitForSelector(ov.waitFor, { timeout: 90000 }).catch(() => console.log(`    waitFor timed out: ${ov.waitFor}`));
     if (ov?.setup) {
       await page.evaluate(ov.setup).catch((e) => console.log(`    overview setup error: ${e.message.split('\n')[0]}`));
       if (ov.reload !== false) await open(page, guide.route);
@@ -113,6 +117,7 @@ for (const guide of GUIDES) {
         await page.evaluate(target.setup).catch((e) => console.log(`    setup error: ${e.message.split('\n')[0]}`));
         if (target.reload !== false) await open(page, route);
       }
+      if (target?.waitFor) await page.waitForSelector(target.waitFor, { timeout: 90000 }).catch(() => console.log(`    waitFor timed out: ${target.waitFor}`));
       // Optional steps: clicks (text or selector) to reach the feature (menus, sub-tabs, wizard steps).
       for (const step of target?.steps || []) {
         const loc = step.selector
@@ -161,7 +166,7 @@ for (const guide of GUIDES) {
         if (needsKey) await closeApiModal(page);
       }
       // A click that navigated away: reload the studio and move on.
-      if (page.url() !== urlBefore) {
+      if (page.url() !== urlBefore && !target?.hashOk) { // hashOk: the studio changes its own URL hash for a tab, which is not leaving the page
         console.log(`  - ${guide.slug}/${f.id}: "${label.slice(0, 30)}" navigates away, uses overview`);
         here = null;
         continue;

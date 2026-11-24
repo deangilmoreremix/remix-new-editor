@@ -14,7 +14,9 @@ for (const [path, mod] of Object.entries(modules)) {
 
 export const GUIDES = buildGuides(kbByRoute, screenshots, {}, videos, appsMap);
 export const GUIDES_BY_CATEGORY = groupByCategory(GUIDES);
-export const getGuide = (slug) => GUIDES.find((g) => g.slug === slug) || null;
+// Old guide addresses that still work after a rename (old slug -> current slug).
+export const GUIDE_SLUG_ALIASES = { 'muapi-studio': 'smartvid-studio' };
+export const getGuide = (slug) => GUIDES.find((g) => g.slug === (GUIDE_SLUG_ALIASES[slug] || slug)) || null;
 
 // Every guide including unlisted ones (no public page), for the in-app assistant panel.
 export const ALL_GUIDES = buildGuides(kbByRoute, screenshots, { includeUnlisted: true }, videos, appsMap);

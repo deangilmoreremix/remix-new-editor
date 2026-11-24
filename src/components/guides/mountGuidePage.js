@@ -2,7 +2,7 @@
 // No app shell, no sign-in. The same HTML is prerendered at build time by
 // scripts/build-studio-guides.mjs so search engines see the full content.
 import { GUIDES, GUIDES_BY_CATEGORY, getGuide } from '../../data/studioGuides.js';
-import { GUIDE_CSS, renderGuideHtml, renderHubHtml, guideHead } from './renderGuide.js';
+import { GUIDE_CSS, renderGuideHtml, renderHubHtml, guideHead, wireTourVideo } from './renderGuide.js';
 import { wireAppShowcase } from './appShowcase.js';
 
 function setMeta(attr, key, value) {
@@ -51,7 +51,10 @@ export function mountGuidePage(app, slug) {
   if (slug && !guide && window.location.pathname !== '/studios/') {
     window.history.replaceState(null, '', '/studios/');
   }
+  // A renamed guide keeps its old address working: show the new one in the address bar.
+  if (guide && slug && guide.slug !== slug) window.history.replaceState(null, '', `/studios/${guide.slug}/`);
   app.innerHTML = guide ? renderGuideHtml(guide, GUIDES.length) : renderHubHtml(GUIDES_BY_CATEGORY, GUIDES.length, slug && !guide ? slug : '');
+  if (guide) wireTourVideo(app);
   applyHead(guideHead(guide, window.location.origin, GUIDES_BY_CATEGORY));
   if (guide?.appsShowcase) wireAppShowcase(app); // the Edit Studio guide: app search, filters and the live preview
 

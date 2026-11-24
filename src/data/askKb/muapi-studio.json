@@ -1,10 +1,10 @@
 {
   "id": "muapi-studio",
-  "name": "Studio (Muapi Studio)",
+  "name": "SmartVid Studio",
   "route": "#/muapi-studio",
-  "description": "Studio (the page itself calls it Muapi Studio) is one workspace for generating images, video, audio, avatars, 3D models and more with hundreds of AI models. Pick a model, fill in the form that model needs, see the price, and generate. You use your own MuAPI key.",
+  "description": "SmartVid Studio is one workspace for generating images, video, audio, avatars, 3D models and more with hundreds of AI models. Pick a model, fill in the form that model needs, see the price, and generate. You use your own MuAPI key.",
   "shortDescription": "One workspace for hundreds of AI models across image, video, audio, avatar and 3D, using your own MuAPI key.",
-  "fullDescription": "Studio (the side menu calls it 'Studio', in the Image group; the page itself calls it Muapi Studio; address #/muapi-studio) is opened from the side menu. It has a left rail of eight modes: Image, Video, Audio, Avatar, 3D, Tools, Text and More. Each mode lists the models of that kind from the live MuAPI catalog (more than 800 in total, and the list changes as models are added). Choose a model and the studio builds the form that model needs: a prompt, reference images or videos, aspect ratio, resolution, duration and other options. The price for your exact settings is shown on the Generate button before you spend anything, and a batch of 1, 2, 4, 6 or 8 can be run in one click. In Image and Video modes a Models / Apps switch lets you pick one of 76 ready-made apps (such as camera angles, face swap, product shots and transitions) instead of a raw model. Results appear in My Generations on the right with download, approve, reject, reuse, re-run and copy-link actions. Everything runs with your own MuAPI API key, which you add in Settings; the studio asks for it the first time you open it.",
+  "fullDescription": "SmartVid Studio (in the Image group of the side menu; address #/muapi-studio) is opened from the side menu. It has a left rail of eight modes: Image, Video, Audio, Avatar, 3D, Tools, Text and More. Each mode lists the models of that kind from the live MuAPI catalog (more than 800 in total, and the list changes as models are added). Choose a model and the studio builds the form that model needs: a prompt, reference images or videos, aspect ratio, resolution, duration and other options. The price for your exact settings is shown on the Generate button before you spend anything, and a batch of 1, 2, 4, 6 or 8 can be run in one click. In Image and Video modes a Models / Apps switch lets you pick one of 76 ready-made apps (such as camera angles, face swap, product shots and transitions) instead of a raw model. Results appear in My Generations on the right with download, approve, reject, reuse, re-run and copy-link actions. Everything runs with your own MuAPI API key, which you add in Settings; the studio asks for it the first time you open it.",
   "bestFor": "Creators and teams who want to try many different AI models in one place, compare results side by side, and pay per generation with their own MuAPI account.",
   "whenToUse": [
     "You want to try or compare many AI models (image, video, audio, avatar, 3D) from one screen.",
@@ -108,9 +108,9 @@
       "explanation": "Your saved generations are stored per key. If you change to a different MuAPI key the studio reloads and shows that account's generations instead."
     }
   ],
-  "howToUse": "Open Studio from the Image group in the side menu. If asked, add your MuAPI key in Settings. Pick a mode in the left rail, choose a model, fill in the form, check the price on the Generate button, and click Generate. Your results appear in My Generations on the right.",
+  "howToUse": "Open SmartVid Studio from the Image group in the side menu. If asked, add your MuAPI key in Settings. Pick a mode in the left rail, choose a model, fill in the form, check the price on the Generate button, and click Generate. Your results appear in My Generations on the right.",
   "howToSteps": [
-    "Open 'Studio' in the Image group of the side menu (#/muapi-studio).",
+    "Open 'SmartVid Studio' in the Image group of the side menu (#/muapi-studio).",
     "If you see 'Connect your MuAPI key', click Add API key and paste your key into Settings, then close Settings.",
     "Pick a mode in the left rail (Image, Video, Audio, Avatar, 3D, Tools, Text or More).",
     "Choose a model with the model button, or in Image / Video switch to Apps to pick a ready-made app.",
@@ -312,7 +312,7 @@
     {
       "title": "Compare three image models on one prompt",
       "steps": [
-        "Open Studio in Image mode and set the batch to 1.",
+        "Open SmartVid Studio in Image mode and set the batch to 1.",
         "Pick the first model, type the prompt and Generate.",
         "Click Reuse on the result, then switch the model and Generate again.",
         "Compare the results in My Generations and approve the best one."
@@ -369,7 +369,7 @@
   "faqs": [
     {
       "question": "Where do I find it?",
-      "answer": "In the side menu under Image, labelled 'Studio'. It opens at #/muapi-studio."
+      "answer": "In the side menu under Image, labelled 'SmartVid Studio'. It opens at #/muapi-studio."
     },
     {
       "question": "Do I need an account or key?",
@@ -438,7 +438,7 @@
       "studio": "image",
       "relationship": "Guided image generation",
       "whenToMove": "When you want a simple prompt bar and a curated model list.",
-      "why": "Image Studio is a lighter way to make images; Studio is for exploring the full catalog."
+      "why": "Image Studio is a lighter way to make images; SmartVid Studio is for exploring the full catalog."
     },
     {
       "studio": "video",

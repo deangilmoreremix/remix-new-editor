@@ -79,7 +79,7 @@ export const STUDIO_ROUTES = {
   templates: { label: 'Templates', category: 'Home' },
   image: { label: 'Image Studio', category: 'Image' },
   edit: { label: 'Edit Studio', category: 'Image' },
-  'muapi-studio': { label: 'Studio', category: 'Image' },
+  'muapi-studio': { label: 'SmartVid Studio', category: 'Image' },
   upscale: { label: 'Upscale Suite', category: 'Image' },
   character: { label: 'Character Studio', category: 'Image' },
   commercial: { label: 'Product Shot Studio', category: 'Image' },
@@ -178,7 +178,7 @@ export const NAV_GROUPS = [
   ] },
   { title: 'Image', items: [
     { id: 'image', label: 'Image' },
-    { id: 'muapi-studio', label: 'Studio' },
+    { id: 'muapi-studio', label: 'SmartVid Studio' },
     { id: 'edit', label: 'Edit' },
     { id: 'upscale', label: 'Upscale' },
     { id: 'character', label: 'Character' },

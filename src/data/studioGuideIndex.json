@@ -53,12 +53,12 @@
         "thumbnail": "/guides/product-shot-studio/overview.webp"
       },
       {
-        "slug": "muapi-studio",
-        "name": "Studio (Muapi Studio)",
+        "slug": "smartvid-studio",
+        "name": "SmartVid Studio",
         "route": "muapi-studio",
         "shortDescription": "One workspace for hundreds of AI models across image, video, audio, avatar and 3D, using your own MuAPI key.",
         "features": 11,
-        "thumbnail": "/thumbnails/studios/muapi-studio.webp"
+        "thumbnail": "/guides/smartvid-studio/overview.webp"
       },
       {
         "slug": "upscale-suite",
