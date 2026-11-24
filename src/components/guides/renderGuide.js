@@ -169,6 +169,22 @@ function featureCard(g, f, i) {
 }
 
 /** Full HTML (inside #app) for one studio guide. */
+/**
+ * Make the tour video's play button work. The events are bound here, not as inline attributes, because the dev server's
+ * content security policy blocks inline handlers. Call it after the guide HTML is in the page. Safe to call twice.
+ */
+export function wireTourVideo(root = document) {
+  root.querySelectorAll('.sg-tour').forEach((box) => {
+    const video = box.querySelector('video');
+    const play = box.querySelector('.sg-play');
+    if (!video || !play || box.dataset.wired) return;
+    box.dataset.wired = '1';
+    play.addEventListener('click', () => { video.play().catch(() => {}); });
+    video.addEventListener('play', () => { play.hidden = true; });
+    video.addEventListener('ended', () => { play.hidden = false; });
+  });
+}
+
 export function renderGuideHtml(g, allCount) {
   const toc = [];
   const parts = [];
@@ -176,7 +192,7 @@ export function renderGuideHtml(g, allCount) {
 
   const mm = g.tour ? `${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}` : '';
   add('tour', 'Video tour', g.tour && section('tour', `Watch the ${g.name} tour`, `A ${mm} captioned walkthrough of the studio, with a sample file and prompt.`,
-    `<div class="sg-tour"><video controls preload="none" playsinline poster="${esc(/^\/guides\//.test(g.overview || '') ? g.overview : g.tour.poster)}" src="${esc(g.tour.video)}" aria-label="${esc(g.name)} tour video" onplay="this.parentNode.querySelector('.sg-play').hidden=true" onended="this.parentNode.querySelector('.sg-play').hidden=false"></video><button type="button" class="sg-play" aria-label="Play the ${esc(g.name)} tour video, ${mm}" onclick="this.parentNode.querySelector('video').play()"></button><span class="sg-tour-len">VIDEO · ${mm}</span></div>`));
+    `<div class="sg-tour"><video controls preload="none" playsinline poster="${esc(/^\/guides\//.test(g.overview || '') ? g.overview : g.tour.poster)}" src="${esc(g.tour.video)}" aria-label="${esc(g.name)} tour video"></video><button type="button" class="sg-play" aria-label="Play the ${esc(g.name)} tour video, ${mm}"></button><span class="sg-tour-len">VIDEO · ${mm}</span></div>`));
 
   add('overview', 'Overview', section('overview', `What is ${g.name}?`, '', `<div class="sg-overview">
     <p>${esc(g.fullDescription || g.description)}</p>
