@@ -34,7 +34,7 @@
     "Waveform player with Play, Mute, Volume, time display and 'Download Audio'.",
     "Audio Editor with Trim and End sliders, Fade In, Fade Out, Apply Edits and Reset.",
     "History grid of your last 30 results and recovery of jobs still running after a page reload.",
-    "Thumbnail button (square cover art), more-tools menu (GTM Boost, Recipes, Monetize, Prompts) and Personalize."
+    "Thumbnail button (square cover art), more-tools menu (GTM Boost, Recipes, Prompts) and Personalize."
   ],
   "featureExplanations": [
     {

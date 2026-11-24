@@ -11,12 +11,16 @@
 /* global URL */
 import crypto from 'node:crypto';
 import http from 'node:http';
+import https from 'node:https';
 import cors from 'cors';
 import express from 'express';
 
 const COOKIE = 'vidbee_session';
 const TTL_MS = 8 * 3600 * 1000;
 const secret = process.env.VIDBEE_SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+if (!process.env.VIDBEE_SESSION_SECRET && process.env.NODE_ENV === 'production') {
+  console.warn('[vidbee gate] VIDBEE_SESSION_SECRET is not set: sessions will end on every restart. Set it to a long random value.');
+}
 const target = () => new URL(process.env.VIDBEE_WEB_URL || 'http://127.0.0.1:3300');
 
 const sign = (v) => crypto.createHmac('sha256', secret).update(v).digest('hex');
@@ -104,14 +108,25 @@ export function createVidBeeRouters({ auth }) {
   const proxy = (req, res) => {
     if (!verify(readCookie(req, COOKIE))) return fail(req, res, 401, 'Open SmartVidDownloader from the app to start a session.', 'Your session has ended', 'SmartVidDownloader sessions last 8 hours. Reconnect to keep downloading.', { reconnect: true });
     if (!isSameOriginMutation(req)) return res.status(403).type('text').send('Cross-site request blocked.');
+    if (process.env.NODE_ENV === 'production' && !process.env.VIDBEE_WEB_URL) {
+      return fail(req, res, 503, 'SmartVidDownloader is not configured (VIDBEE_WEB_URL).', 'SmartVidDownloader is not set up', 'The service address has not been configured on the server.', {});
+    }
     const t = target();
+    const secure = t.protocol === 'https:';
     const headers = { ...req.headers, host: t.host };
     delete headers.cookie; // never forward host-app credentials upstream
     delete headers.authorization;
-    const up = http.request({ hostname: t.hostname, port: t.port, method: req.method, path: req.originalUrl, headers }, (r) => {
+    delete headers['x-vidbee-gate'];
+    delete headers['x-smartvid-gate'];
+    // Shared secret: the web edition refuses requests that do not come through this gate (VIDBEE_GATE_TOKEN, same value
+    // on both sides). Sent under both header names so either build of the web edition accepts it.
+    if (process.env.VIDBEE_GATE_TOKEN) { headers['x-vidbee-gate'] = process.env.VIDBEE_GATE_TOKEN; headers['x-smartvid-gate'] = process.env.VIDBEE_GATE_TOKEN; }
+    const up = (secure ? https : http).request({ hostname: t.hostname, port: t.port || (secure ? 443 : 80), method: req.method, path: req.originalUrl, headers }, (r) => {
       res.writeHead(r.statusCode || 502, r.headers);
       r.pipe(res);
     });
+    // Give up on an upstream that has gone silent (live streams send keep-alives well inside this window).
+    up.setTimeout(10 * 60 * 1000, () => up.destroy(new Error('upstream timeout')));
     up.on('error', () => { if (!res.headersSent) fail(req, res, 502, 'SmartVidDownloader service is not running.', 'SmartVidDownloader is not available', 'The download service is not responding right now. Try again in a minute.', { reconnect: true }); else res.destroy(); });
     res.on('close', () => up.destroy());
     req.pipe(up);

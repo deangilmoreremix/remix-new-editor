@@ -184,6 +184,7 @@ export function createSegmented(options, value, onChange) {
         opt.value === current ? 'bg-primary text-black shadow-md shadow-primary/20' : 'text-white/40 hover:text-white/70',
       );
       b.textContent = opt.label;
+      if (opt.help) b.dataset.help = opt.help;
       b.addEventListener('click', () => {
         if (opt.value === track.value) return;
         track.value = opt.value;

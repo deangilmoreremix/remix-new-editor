@@ -1,0 +1,40 @@
+{
+  "source-upload-image": {
+    "selector": "xpath=//button[@aria-label=\"Reference media\" or @title=\"Reference media\"]",
+    "click": true,
+    "then": [
+      {
+        "upload": true,
+        "file": "image",
+        "hold": 3000,
+        "selector": "xpath=(//*[normalize-space(text())='Pick a file'] | //button[contains(.,'Upload new') or contains(.,'Upload files')])[1]"
+      }
+    ]
+  },
+  "motion-prompt-and-suggestion-chips": {
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Slow pan across')]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//button[starts-with(normalize-space(.),'Drift camera')]",
+        "hold": 2500
+      }
+    ]
+  },
+  "duration-and-resolution": {
+    "selector": "xpath=//select[option[@value='12']]",
+    "click": true,
+    "hold": 1200,
+    "then": [
+      {
+        "selector": "xpath=//select[option[@value='1080p']]",
+        "hold": 1500
+      }
+    ]
+  },
+  "model-seedance-lite-default-choose-a-model": {
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Seedance Lite')]",
+    "click": true,
+    "hold": 2500
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "model-picker": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"nano-banana-pro-edit\")",
+    "click": true,
+    "hold": 4500,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "uploading-files": {
+    "selector": "[data-studio=\"muapi-studio\"] button[aria-label=\"Upload file\"]",
+    "upload": true,
+    "file": "image",
+    "hold": 3500,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "form-and-json-input": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"Form\")",
+    "click": true,
+    "hold": 3500,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "apps": {
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Apps\")",
+    "click": true,
+    "hold": 3500,
+    "then": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "hold": 1500
+      }
+    ],
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "live-price-and-batch": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")",
+    "click": false,
+    "hold": 3000,
+    "then": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"6\")",
+        "hold": 2500
+      }
+    ],
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "my-generations": {
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Approved\")",
+    "click": true,
+    "hold": 3500,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  }
+}

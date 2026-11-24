@@ -1,0 +1,48 @@
+{
+  "portrait-image-mode": {
+    "selector": "xpath=//button[contains(normalize-space(.),'Portrait Image')]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//button[@aria-label='Upload portrait image' or @title='Upload portrait image']",
+        "upload": true,
+        "file": "image",
+        "hold": 2500
+      },
+      {
+        "selector": "xpath=//button[@aria-label='Upload audio file' or @title='Upload audio file']",
+        "upload": true,
+        "file": "audio",
+        "hold": 2500
+      }
+    ]
+  },
+  "video-mode": {
+    "selector": "xpath=//button[contains(normalize-space(.),'Video') and contains(.,'\ud83c\udfac')]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//button[contains(@aria-label,'Upload') and contains(@aria-label,'video') or contains(@title,'Upload') and contains(@title,'video')]",
+        "upload": true,
+        "file": "video",
+        "hold": 2500
+      }
+    ]
+  },
+  "model-selector": {
+    "selector": "#ls-model-btn",
+    "click": true,
+    "hold": 2500
+  },
+  "resolution-picker": {
+    "selector": "#ls-resolution-btn",
+    "click": true,
+    "hold": 2500
+  },
+  "optional-prompt": {
+    "selector": "xpath=//textarea",
+    "type": "Speaks calmly with a gentle smile and natural head movement",
+    "hold": 1500,
+    "click": true
+  }
+}

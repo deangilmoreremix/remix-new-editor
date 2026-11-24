@@ -73,7 +73,7 @@ describe('clicking the button opens the studio with the right URL', () => {
     [...area.querySelectorAll('button')].find((b) => b.textContent.trim() === 'See').click();
     await vi.waitFor(() => expect(area.textContent).toContain('Open Edit Studio (Change Dress)'));
     [...area.querySelectorAll('button')].find((b) => b.textContent.includes('Open Edit Studio')).click();
-    expect(window.location.hash).toBe('#/edit');
+    expect(window.location.pathname).toBe('/edit');
     expect(new URLSearchParams(window.location.search).get('tool')).toBe('change-dress');
   });
 });

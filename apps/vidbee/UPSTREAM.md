@@ -38,6 +38,9 @@ Shown in SmartVid as **SmartVidDownloader**. `brand/rebrand.mjs` rewrites user-f
 - `apps/web/server.mjs`: `/export` and `/stream` are added to the paths proxied to the API (needed by video export and live AI streaming).
 - `pnpm-workspace.yaml`: `onnxruntime-node: false` (the Node binding is not used; browser Whisper uses onnxruntime-web).
 
+## Changed in the web client
+- `apps/web/src/components/pages/download-page.tsx`: the cookies banner button asked for `history.cookiesTipAction`, which no locale defines (they define `history.cookiesTipCta`), so it showed the raw key. It now uses `history.cookiesTipCta`.
+
 ## Added for the web edition (not upstream)
 Transcripts, AI summaries, chat, translation and `GET /stream` in `apps/api` and `apps/web` (see `docs/VIDBEE_WEB_TRANSCRIPTS_AI.md`),
 plus `packages/transcription/src/web-contract.ts`.

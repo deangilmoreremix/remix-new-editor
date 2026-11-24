@@ -1,0 +1,16 @@
+{
+  "slug": "workbench",
+  "name": "Workbench",
+  "intro": "Workbench is SmartVideo's multi-track editor for the things you generate. Bring clips, images and audio onto a timeline, add motion cards and sound, and export a finished video.",
+  "features": {
+    "add-your-generations": "The Add your generations button opens a picker with your recent videos, images and audio. Select the tiles you want and add them to the timeline in one step.",
+    "library-media-motion-sound-themes": "The library has four tabs: Media, Motion, Sound and Themes. Click an item to preview it, then drag it onto the timeline. Hover motion thumbnails to see them animate.",
+    "upload-from-computer": "In the Media tab, you can drop in your own video, image or audio file from your computer, so your footage and music sit beside your generations.",
+    "timeline": "The timeline stacks tracks, and upper tracks cover lower ones. Split clips at the playhead, duplicate them, drag the edges to trim, and use Fit to see everything.",
+    "properties-inspector": "Select a clip and the inspector shows its controls. Edit its text and style, set start, duration and speed, and adjust opacity, scale and position.",
+    "edit-with-ai-chat": "Edit with AI lets you describe a change in plain words, like trimming a clip or adding a title card. Every change it makes can be undone.",
+    "export-video": "Export video renders your project to an MP4 right in your browser, and saves a copy to your library, so keep the tab open while it works.",
+    "project-tools": "Along the top you can rename your project, undo and redo, export or import the project file, and reset to the sample. Your changes autosave in the browser."
+  },
+  "outro": "That's Workbench. Gather your clips, arrange them on the timeline, polish each one, and export. Back up your project file before any big experiment."
+}

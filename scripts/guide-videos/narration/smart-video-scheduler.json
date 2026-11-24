@@ -1,0 +1,11 @@
+{
+  "slug": "smart-video-scheduler",
+  "name": "Smart Video Scheduler",
+  "intro": "Smart Video Scheduler is an early preview of a content calendar page, showing where scheduling and performance tracking are planned to live.",
+  "features": {
+    "calendar-tab": "The Calendar tab is open when the page loads. It marks the spot where your scheduled posts will appear.",
+    "schedule-tab": "The Schedule tab previews the area where you'll plan your content for the best posting times.",
+    "analytics-tab": "The Analytics tab previews the area where you'll track how your posts perform across platforms."
+  },
+  "outro": "That's the preview. For now, publish from the studio where you made your video, and check back as scheduling grows."
+}

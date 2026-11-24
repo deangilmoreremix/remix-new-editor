@@ -1,6 +1,7 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import type { ContractRouterClient } from "@orpc/contract";
+import { openAiHeaders } from "./byok-key";
 import type { downloaderContract } from "@vidbee/downloader-core";
 import type { subscriptionContract } from "@vidbee/subscriptions-core/contract";
 import type {
@@ -14,10 +15,12 @@ const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 const normalizedApiUrl = configuredApiUrl
 	? configuredApiUrl.replace(/\/+$/, "")
 	: "";
+// The page may be mounted under a sub-path (VIDBEE_BASE_PATH); the API is reached through the same prefix.
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 const defaultOrigin =
 	typeof window === "undefined"
 		? process.env.VIDBEE_API_URL_INTERNAL?.trim() || "http://api:3100"
-		: window.location.origin;
+		: `${window.location.origin}${basePath}`;
 export const apiUrl = normalizedApiUrl || defaultOrigin;
 
 export const eventsUrl = `${apiUrl}/events`;
@@ -53,6 +56,7 @@ export const aiClient: ContractRouterClient<typeof aiContract> =
 	createORPCClient(
 		new RPCLink({
 			url: `${rpcUrl}/ai`,
+			headers: () => openAiHeaders(),
 		}),
 	);
 
@@ -60,6 +64,7 @@ export const chatClient: ContractRouterClient<typeof chatContract> =
 	createORPCClient(
 		new RPCLink({
 			url: `${rpcUrl}/chat`,
+			headers: () => openAiHeaders(),
 		}),
 	);
 
@@ -67,5 +72,6 @@ export const translateClient: ContractRouterClient<typeof translateContract> =
 	createORPCClient(
 		new RPCLink({
 			url: `${rpcUrl}/translate`,
+			headers: () => openAiHeaders(),
 		}),
 	);

@@ -8,6 +8,7 @@
  * rest of the session. Every studio's Personalize button and the Lead Finder
  * page go through `openPersonalization()`, which opens the same modal.
  */
+import { onRouteChange as watchRouteChange } from '../../lib/routeUrl.js'
 import React, { useEffect, useSyncExternalStore } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createPortal } from 'react-dom'
@@ -156,8 +157,7 @@ function Bridge() {
   useEffect(() => {
     if (!isOpen || typeof closePersonalize !== 'function') return undefined
     const onRouteChange = () => closePersonalize()
-    window.addEventListener('hashchange', onRouteChange)
-    return () => window.removeEventListener('hashchange', onRouteChange)
+    return watchRouteChange(onRouteChange)
   }, [isOpen, closePersonalize])
   return null
 }

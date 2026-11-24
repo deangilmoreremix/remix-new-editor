@@ -59,6 +59,12 @@ Checked against the documentation page, item by item:
 | Share card has a cover image | **Not included** (title, prompt and result only). |
 | Prompt titles follow the interface language | **Not localised:** the titles are English. |
 
+## More Responses API features
+- **Web search** (OpenAI's built-in `web_search` tool): tick *Let the assistant search the web* in the chat panel, and the model can look up facts the transcript lacks. It says what came from the web and the answer ends with a **Sources** list.
+- **New prompts** (hidden by default; turn on *Show as tab* in the prompt manager, and edit them like any other): **Key moments** (clip suggestions with start and end times), **Quiz** (questions plus an answer key with timestamps), **Show notes**, **Social posts** (X, LinkedIn, short-video caption) and **Fact-check (web)**, which uses web search and lists the pages it relied on.
+- Web search sends the claims being checked, or your chat question, to OpenAI's search; it needs a model and account that support the tool. With the default `gpt-4.1-mini` it does; some other models do not.
+- Tested with a local stand-in server (citations are collected, de-duplicated and only `http(s)` links are kept). **Not tested** against the real OpenAI web search.
+
 ## Licences and choices
 Mediabunny is MPL-2.0, Transformers.js Apache-2.0, react-easy-crop and html-to-image MIT. **ffmpeg.wasm is not bundled**: the standard `@ffmpeg/core` build is GPL-2.0-or-later,
 so features that need ffmpeg run on the server instead. Whisper.cpp WASM is not used; Transformers.js is the one in-browser recognizer. The production build bundles the ONNX runtime

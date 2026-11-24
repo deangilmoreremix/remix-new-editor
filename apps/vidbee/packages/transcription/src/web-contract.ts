@@ -76,6 +76,8 @@ export interface WebAiSettings {
   model: string
   /** True when the server owner has disabled changing these settings from the browser. */
   locked: boolean
+  /** True when each visitor brings their own key: it lives in their browser and is sent with each request. */
+  byok?: boolean
 }
 
 export interface WebAiSkill {
@@ -175,7 +177,7 @@ export interface WebChat {
 export const chatContract = {
   get: oc.input(type<{ downloadId: string }>()).output(type<WebChat>()),
   /** Adds a user message and runs the model (with tools) in the background. */
-  send: oc.input(type<{ downloadId: string; message: string }>()).output(type<WebChat>()),
+  send: oc.input(type<{ downloadId: string; message: string; webSearch?: boolean }>()).output(type<WebChat>()),
   cancel: oc.input(type<{ downloadId: string }>()).output(type<WebChat>()),
   reset: oc.input(type<{ downloadId: string }>()).output(type<WebChat>())
 }

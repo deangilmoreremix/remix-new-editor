@@ -28,7 +28,7 @@
     "Ad video: script with @image1 / @image2 references, avatar presets, extra reference images, six video format presets, five aspect ratios, 720p/1080p, durations 4-15 seconds.",
     "Result card with Download, Generate Again and Publish to Social.",
     "Saved to generation history under the commercial studio.",
-    "Three-dot tools menu with Recipes, Monetize and Prompts."
+    "Three-dot tools menu with Recipes and Prompts."
   ],
   "featureExplanations": [
     {
@@ -96,7 +96,7 @@
     },
     {
       "feature": "Three-dot tools menu",
-      "explanation": "Recipes, Monetize and Prompts. Choosing a prompt from the gallery silently stores it and adds it to the end of your scene text on the next product shot.",
+      "explanation": "Recipes and Prompts. Choosing a prompt from the gallery silently stores it and adds it to the end of your scene text on the next product shot.",
       "whyToUse": "Extra prompt ideas and business ideas.",
       "inputRequired": "None.",
       "restrictions": "The chosen prompt is not shown anywhere on screen after you pick it."

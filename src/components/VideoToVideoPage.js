@@ -1,6 +1,6 @@
 import { navigate } from '../lib/router.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createStudioHeader } from '../lib/thumbnails.js';
 
 export function VideoToVideoPage() {
   const container = document.createElement('div');
@@ -9,17 +9,7 @@ export function VideoToVideoPage() {
 
   const hero = document.createElement('div');
   hero.className = 'flex flex-col items-center mb-2 md:mb-4 animate-fade-in-up transition-all duration-700 w-full';
-  const heroBanner = createHeroSection('video', 'h-32 md:h-44 mb-3');
-  if (heroBanner) {
-    const heroContent = document.createElement('div');
-    heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `
-      <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Video to Video</h1>
-      <p class="text-white/60 text-sm font-medium">Transform and enhance your videos with AI-powered tools</p>
-    `;
-    heroBanner.appendChild(heroContent);
-    hero.appendChild(heroBanner);
-  }
+  hero.appendChild(createStudioHeader('video', 'Video to Video', `Transform and enhance your videos with AI-powered tools`, 'mb-3'));
   container.appendChild(hero);
 
   const ctaSection = document.createElement('div');

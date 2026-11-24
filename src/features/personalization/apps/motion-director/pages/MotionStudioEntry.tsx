@@ -531,6 +531,8 @@ export default function MotionStudioEntry() {
                 key={example}
                 type="button"
                 onClick={() => { setDescription(example); promptRef.current?.focus(); }}
+                data-help-name="Example prompt"
+                data-help-text="Fills the prompt box with this example."
                 className="max-w-full truncate px-3 py-1.5 rounded-full text-[11px] transition-all hover:text-white"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: semantic.textSecondary }}
               >

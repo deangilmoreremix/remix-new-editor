@@ -78,6 +78,7 @@ function selectControl(key, label, value, onChange) {
   const sel = document.createElement('select');
   sel.className = 'bg-[#0d0d10] border border-white/10 rounded-xl px-3 py-2 text-sm font-semibold text-white focus:outline-none focus:border-primary/60';
   sel.dataset.vfxControl = key;
+  sel.dataset.help = key;
   OPTIONS[key].forEach(([v, l]) => {
     const o = document.createElement('option');
     o.value = v;
@@ -133,6 +134,7 @@ export function AIVFXPage() {
   const drop = document.createElement('button');
   drop.type = 'button';
   drop.dataset.vfxImage = '';
+  drop.dataset.help = 'vfx add image';
   drop.className = 'relative shrink-0 w-full md:w-28 h-28 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] hover:border-primary/60 hover:bg-white/[0.05] transition-colors overflow-hidden flex flex-col items-center justify-center gap-1 text-white/50 text-[11px] font-semibold';
   const dropIdle = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Add image</span>';
   drop.innerHTML = dropIdle;
@@ -210,6 +212,7 @@ export function AIVFXPage() {
     const b = document.createElement('button');
     b.type = 'button';
     b.dataset.vfxTab = g.id;
+    b.dataset.help = 'vfx effect group';
     b.textContent = `${g.icon} ${g.label} · ${g.effects.length}`;
     b.onclick = () => { state.category = g.id; renderTabs(); renderGrid(); };
     tabButtons[g.id] = b;
@@ -237,6 +240,7 @@ export function AIVFXPage() {
       const card = document.createElement('button');
       card.type = 'button';
       card.dataset.vfxEffect = fx.name;
+      card.dataset.help = 'vfx effect';
       const active = state.effect?.name === fx.name;
       card.className = `group relative aspect-[3/4] rounded-2xl overflow-hidden border text-left transition-all ${active ? 'border-primary shadow-[0_0_20px_rgba(217,255,0,0.25)]' : 'border-white/10 hover:border-white/30'} bg-card-bg`;
       card.appendChild(thumbImg(fx.thumbs, fx.name));

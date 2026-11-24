@@ -28,3 +28,7 @@ Scripts 10-41 are independent: re-create the database between them.
 (default privileges revoked from PUBLIC/anon/authenticated for new tables, functions and sequences, RLS enabled on every existing table), so the migration must work with only its own
 explicit GRANT / REVOKE / ENABLE ROW LEVEL SECURITY. The heatmap assertions end with ACL checks (no PUBLIC/anon execute, authenticated-only owner RPCs, service_role-only writer, no table privileges).
 Both scripts need a Postgres role that can `createdb` (e.g. run them as the `postgres` OS user).
+
+## Template favorites and popularity
+`53_template_favorites_assertions.sql` checks `template_favorites` (owner isolation, forged owner, bad ids, anonymous) and `template_events` / `template_popularity()` (signed-in only, one signal per user per day, aggregates only, 30-day window).
+Build a database with `00_shim_local_postgres.sql`, `05_hardening_preamble.sql` and `supabase/migrations/20261120090000_template_favorites_and_popularity.sql`, then run the assertions; it prints `template favorites + popularity assertions passed`.

@@ -2,9 +2,15 @@
 // These keep the Timeline Editor's EXISTING designs and logic: the Elements tab only lists and launches them.
 //  - List Builder  -> the shared opt-in form settings (Styles / Fields / Pointer / Integrations): one per video, a locked gate at 0s
 //  - Lead Generator -> the editor's Lead Generator add-on (Interactive panel, `lead-form`: the form overlay + Fields/Style/Integrations settings)
+import { useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import type { OverlayKind } from '@cinegen/types/workspace';
-import { createOverlay, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, applyDesignToOverlay, findGate, startAfterGate, FORM_DESIGNS, FORM_COLOR_SCHEMES } from '@cinegen/lib/overlays/overlays';
+// @ts-expect-error plain JS: the opt-in form designs + a real scaled-down render of one (shared with the Design tab)
+import { OPTIN_DESIGN_CATEGORIES, getOptinDesign } from '../../../lib/editor/addons/optinDesigns.js';
+// @ts-expect-error plain JS
+import { liveDesignThumb } from '../../../lib/editor/addons/listBuilder.js';
+import '../../../../styles/timeline-addons.css'; // the preview tiles are drawn with the form's own styles
 import { selectOverlay } from '@cinegen/lib/overlays/selection';
 export type WebKind = 'list-builder' | 'lead-generator';
 export interface WebKindItem { id: string; kind: WebKind }
@@ -30,6 +36,7 @@ export function openWebKind(kind: WebKind, dispatch: (a: { type: 'ADD_OVERLAY'; 
 export function WebKindsPanel({ kind, onEdit }: { kind: WebKind; editing?: WebKindItem | null; onEdit: (item: WebKindItem | null) => void }) {
   const meta = WEB_KINDS.find((k) => k.id === kind)!;
   const { state, dispatch } = useWorkspace();
+  const [scheme, setScheme] = useState(''); // colour the designs below are previewed in, and created with ('' = each design's own)
   const type = OVERLAY_TYPE[kind];
   const mine = state.overlays.filter((o) => o.type === type);
   const open = (id: string) => { selectOverlay(id); dispatch({ type: 'SET_TAB', tab: 'edit' }); };
@@ -42,7 +49,23 @@ export function WebKindsPanel({ kind, onEdit }: { kind: WebKind; editing?: WebKi
     onEdit(null);
     open(overlay.id);
   };
+  // A design card creates the overlay WITH that design, through the same createOverlay as the card above (a List Builder is still one per video:
+  // when it is already there the design is applied to it).
+  const addDesign = (designId: string) => {
+    const gate = type === 'list-builder' ? findGate(state.overlays) : undefined;
+    if (gate) {
+      dispatch({ type: 'UPDATE_OVERLAY', overlayId: gate.id, updates: { config: (applyDesignToOverlay(gate, designId, scheme) as { config?: object }).config } } as never);
+      onEdit(null);
+      open(gate.id);
+      return;
+    }
+    const overlay = createOverlay(type, startAfterGate(state.overlays, 0), 10, designId, scheme);
+    dispatch({ type: 'ADD_OVERLAY', overlay });
+    onEdit(null);
+    open(overlay.id);
+  };
   return (
+    <>
     <div className="elements-tab__grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
       {mine.map((o) => (
         <button key={o.id} type="button" className="element-card" onClick={() => open(o.id)}
@@ -63,5 +86,42 @@ export function WebKindsPanel({ kind, onEdit }: { kind: WebKind; editing?: WebKi
         <div style={{ marginTop: 10, color: 'var(--text-secondary)', fontSize: 12 }}>{meta.blurb} Click to add it as an overlay on the video.</div>
       </button>
     </div>
+    <section data-testid="form-designs" aria-label={`${meta.label} designs`} style={{ marginTop: 28 }}>
+      <h3 style={{ margin: '0 0 4px', fontSize: 16 }}>Start from a design</h3>
+      <p style={{ margin: '0 0 14px', color: 'var(--text-secondary)', fontSize: 12 }}>
+        {type === 'list-builder'
+          ? 'One click puts the design on your List Builder (it is added if there is none). Everything stays editable afterwards, in the Design tab and the other settings.'
+          : 'One click adds a Lead Generator with that design. Everything stays editable afterwards, in the Design tab and the other settings.'}
+      </p>
+      <div role="group" aria-label="Color" data-testid="design-colors" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, margin: '0 0 16px' }}>
+        <span style={{ fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Color</span>
+        {FORM_COLOR_SCHEMES.map((sc) => (
+          <button key={sc.id || 'own'} type="button" title={sc.label} aria-label={`Color: ${sc.label}`} aria-pressed={scheme === sc.id} data-testid={`design-color-${sc.id || 'own'}`} onClick={() => setScheme(sc.id)}
+            style={{ width: 22, height: 22, borderRadius: '50%', cursor: 'pointer', border: scheme === sc.id ? '2px solid var(--accent)' : '2px solid rgba(255,255,255,.3)', outline: scheme === sc.id ? '2px solid rgba(255,255,255,.4)' : 'none', outlineOffset: 1,
+              background: sc.hue == null ? 'conic-gradient(#f43f5e,#f59e0b,#22c55e,#06b6d4,#6366f1,#d946ef,#f43f5e)' : `hsl(${sc.hue} 75% 52%)` }} />
+        ))}
+        <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{FORM_COLOR_SCHEMES.find((s) => s.id === scheme)?.label}</span>
+      </div>
+      {(OPTIN_DESIGN_CATEGORIES as Array<[string, string]>).map(([cid, clabel]) => {
+        const items = FORM_DESIGNS.filter((d) => d.category === cid);
+        if (!items.length) return null;
+        return (
+          <div key={cid} style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-secondary)', margin: '0 0 8px' }}>{clabel}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 12 }}>
+              {items.map((d) => (
+                <button key={d.id} type="button" className="element-card" data-testid={`design-card-${d.id}`} aria-label={`${meta.label}: ${d.label}`} onClick={() => addDesign(d.id)}
+                  style={{ textAlign: 'left', padding: 10, border: '1px solid var(--border-medium)', borderRadius: 'var(--radius-lg)', background: 'var(--bg-raised)', color: 'inherit', cursor: 'pointer' }}>
+                  <span dangerouslySetInnerHTML={{ __html: liveDesignThumb(getOptinDesign(d.id), scheme) }} />
+                  <div style={{ fontWeight: 600, margin: '8px 0 2px', textAlign: 'center' }}>{d.label}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 11, textAlign: 'center' }}>{d.layout}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </section>
+    </>
   );
 }

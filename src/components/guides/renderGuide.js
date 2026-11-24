@@ -9,7 +9,7 @@ const esc = (s) =>
 
 // Slugs and routes are URL-safe by construction (see studioGuides.test.js); escaped anyway.
 const guideHref = (slug) => esc(`/studios/${encodeURIComponent(slug)}/`);
-const studioHref = (route) => esc(`/#/${route}`);
+const studioHref = (route) => esc(`/${route}`);
 
 export const GUIDE_CSS = `
 .sg{--bg:#050505;--panel:#0a0a0a;--panel2:#141414;--line:rgba(255,255,255,.09);--text:#e7e9ee;--mute:#9aa1ae;--accent:#d9ff00;--accent2:#c4e600;
@@ -52,6 +52,7 @@ export const GUIDE_CSS = `
 .sg h2{font-size:clamp(24px,3.2vw,34px);margin:0 0 8px;font-weight:800;letter-spacing:-.01em}
 .sg-sub{color:var(--mute);margin:0 0 28px;max-width:760px}
 .sg h3{font-size:20px;margin:0 0 10px;font-weight:700}
+.sg-tour video{display:block;width:100%;max-width:960px;aspect-ratio:16/10;border-radius:16px;border:1px solid var(--line);background:#000;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .sg-overview p{color:#c7cbd3;max-width:860px}
 .sg-chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
 .sg-chips li{font-size:13px;padding:6px 12px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);color:#d4d7de}
@@ -126,7 +127,7 @@ function topBar() {
   <a class="sg-logo" href="/">Smart Video <span>AI Studio</span></a>
   <nav aria-label="Main">
     <a href="/studios/" class="hide-sm">All studio guides</a>
-    <a href="/#/apps" class="hide-sm">Open the app</a>
+    <a href="/apps" class="hide-sm">Open the app</a>
     <a href="/signup" class="sg-btn primary">Get started</a>
   </nav></div></header>`;
 }
@@ -165,6 +166,10 @@ export function renderGuideHtml(g, allCount) {
   const toc = [];
   const parts = [];
   const add = (id, label, html) => { if (html) { toc.push([id, label]); parts.push(html); } };
+
+  const mm = g.tour ? `${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}` : '';
+  add('tour', 'Video tour', g.tour && section('tour', `Watch the ${g.name} tour`, `A ${mm} captioned walkthrough of the studio, with a sample file and prompt.`,
+    `<div class="sg-tour"><video controls preload="none" playsinline poster="${esc(g.tour.poster)}" src="${esc(g.tour.video)}" aria-label="${esc(g.name)} tour video"></video></div>`));
 
   add('overview', 'Overview', section('overview', `What is ${g.name}?`, '', `<div class="sg-overview">
     <p>${esc(g.fullDescription || g.description)}</p>
@@ -234,7 +239,7 @@ export function renderHubHtml(groups, total, notFound = '') {
     <span class="sg-eyebrow">Feature guides</span>
     <h1>Every studio in ${esc(SITE_NAME)}, <em>explained</em></h1>
     <p class="sg-lead">${total} studios and ${featureTotal} features. Each guide covers what the studio does, every feature with a definition and screenshot, how to use it, inputs and outputs, limits, a glossary and FAQs.</p>
-    <div class="sg-cta"><a class="sg-btn primary" href="/#/apps">Open the app</a><a class="sg-btn ghost" href="/signup">Get started</a></div>
+    <div class="sg-cta"><a class="sg-btn primary" href="/apps">Open the app</a><a class="sg-btn ghost" href="/signup">Get started</a></div>
   </div></section>
   <nav class="sg-toc" aria-label="Categories"><strong>Categories</strong><ul>${groups.map((c) => `<li><a href="#${slugCat(c.id)}">${esc(c.title)} (${c.guides.length})</a></li>`).join('')}</ul></nav>
   ${groups.map((c) => `<section class="sg-cat" id="${slugCat(c.id)}" aria-labelledby="${slugCat(c.id)}-h"><h2 id="${slugCat(c.id)}-h">${esc(c.title)}</h2><p class="sg-sub">${esc(c.blurb)}</p>

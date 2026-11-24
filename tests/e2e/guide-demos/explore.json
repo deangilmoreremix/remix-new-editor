@@ -1,0 +1,24 @@
+{
+  "trending-templates": {
+    "selector": "xpath=//h2[normalize-space()='Trending Templates']/following-sibling::div[1]/div[1]",
+    "click": true,
+    "then": [
+      {
+        "wait": 2000
+      }
+    ]
+  },
+  "prompt-library": {
+    "text": "Try this prompt",
+    "click": true,
+    "then": [
+      {
+        "wait": 4000
+      }
+    ]
+  },
+  "browse-by-category": {
+    "selector": "xpath=//h2[normalize-space()='Browse by Category']/following-sibling::div[1]/div[1]",
+    "click": false
+  }
+}

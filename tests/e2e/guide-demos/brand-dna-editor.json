@@ -1,0 +1,36 @@
+{
+  "brand-details-fields": {
+    "selector": "xpath=//label[normalize-space()=\"Tagline\"]/following::input[1]",
+    "click": true,
+    "type": " - now in gift sets",
+    "hold": 1000
+  },
+  "tone-of-voice-brand-personality-and-key-messages": {
+    "selector": "input[placeholder=\"Add tone of voice...\"]",
+    "click": true,
+    "type": "Refined",
+    "then": [
+      {
+        "selector": "xpath=//label[normalize-space()=\"Tone of Voice\"]/../..//button[normalize-space()=\"Add\"]",
+        "hold": 1200
+      }
+    ]
+  },
+  "detected-fonts": {
+    "selector": "input[placeholder=\"Add detected fonts...\"]",
+    "click": true,
+    "type": "Playfair Display",
+    "then": [
+      {
+        "selector": "xpath=//input[@placeholder=\"Add detected fonts...\"]/following-sibling::button",
+        "hold": 1200
+      }
+    ]
+  },
+  "colors": {
+    "click": false
+  },
+  "save": {
+    "click": true
+  }
+}

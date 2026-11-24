@@ -155,3 +155,63 @@ describe('vidbee gate error responses', () => {
     assert.equal(parentOriginOf({ query: {} }), null);
   });
 });
+
+describe('vidbee proxy upstream secret', () => {
+  it('sends the shared secret upstream, drops a visitor-supplied one, and keeps blocking users without a session', async () => {
+    const seen = [];
+    const upstream = http.createServer((req, res) => { seen.push(req.headers); res.end('ok'); });
+    await new Promise((resolve) => upstream.listen(0, '127.0.0.1', resolve));
+    process.env.VIDBEE_WEB_URL = `http://127.0.0.1:${upstream.address().port}`;
+    process.env.VIDBEE_GATE_TOKEN = 'gate-secret-xyz';
+    try {
+      const app = express();
+      installVidBee(app, { auth: (req, _res, next) => { req.user = { id: 'u1' }; next(); }, cors: cors() });
+      const get = (path, headers) => new Promise((resolve, reject) => {
+        const server = http.createServer(app).listen(0, '127.0.0.1', () => {
+          http.request({ host: '127.0.0.1', port: server.address().port, method: path === '/api/vidbee/session' ? 'POST' : 'GET', path, headers }, (res) => {
+            res.resume(); res.on('end', () => server.close(() => resolve(res)));
+          }).on('error', reject).end();
+        });
+      });
+      const noSession = await get('/vidbee/', {});
+      assert.equal(noSession.statusCode, 401);
+      assert.equal(seen.length, 0);
+      const session = await get('/api/vidbee/session', {});
+      const cookie = String(session.headers['set-cookie']).split(';')[0];
+      const ok = await get('/vidbee/transcripts', { cookie, 'x-vidbee-gate': 'attacker-value' });
+      assert.equal(ok.statusCode, 200);
+      assert.equal(seen[0]['x-vidbee-gate'], 'gate-secret-xyz');
+      assert.equal(seen[0].cookie, undefined);
+    } finally {
+      upstream.close();
+      delete process.env.VIDBEE_GATE_TOKEN;
+      delete process.env.VIDBEE_WEB_URL;
+    }
+  });
+});
+
+describe('vidbee proxy configuration', () => {
+  it('refuses to guess the upstream address in production', async () => {
+    const before = { env: process.env.NODE_ENV, url: process.env.VIDBEE_WEB_URL };
+    process.env.NODE_ENV = 'production';
+    delete process.env.VIDBEE_WEB_URL;
+    try {
+      const app = express();
+      installVidBee(app, { auth: (req, _res, next) => { req.user = { id: 'u1' }; next(); }, cors: cors() });
+      const call = (path, headers, method = 'GET') => new Promise((resolve, reject) => {
+        const server = http.createServer(app).listen(0, '127.0.0.1', () => {
+          http.request({ host: '127.0.0.1', port: server.address().port, method, path, headers }, (res) => { res.resume(); res.on('end', () => server.close(() => resolve(res))); }).on('error', reject).end();
+        });
+      });
+      process.env.VIDBEE_ALLOWED_USERS = 'u1';
+      const session = await call('/api/vidbee/session', {}, 'POST');
+      const cookie = String(session.headers['set-cookie']).split(';')[0];
+      const res = await call('/vidbee/', { cookie });
+      assert.equal(res.statusCode, 503);
+    } finally {
+      process.env.NODE_ENV = before.env;
+      if (before.url) process.env.VIDBEE_WEB_URL = before.url;
+      delete process.env.VIDBEE_ALLOWED_USERS;
+    }
+  });
+});

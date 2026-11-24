@@ -17,7 +17,6 @@ import { createMarketingAdMode, validateAd, buildAdParams } from './studios/Mark
 import { createPendingJobTracker } from '../lib/pendingJobs.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { uploadFileToSupabase } from '../lib/uploadService.js';
@@ -203,6 +202,7 @@ const COMMERCIAL_MODELS = [
 
   const sceneGrid = document.createElement('div');
   sceneGrid.className = 'flex flex-wrap gap-2';
+  sceneGrid.dataset.help = 'scene preset';
   SCENE_PRESETS.forEach(s => {
     const chip = document.createElement('button');
     chip.className = s === selectedScene
@@ -228,6 +228,7 @@ const COMMERCIAL_MODELS = [
 
   const formatRow = document.createElement('div');
   formatRow.className = 'flex gap-2 flex-wrap';
+  formatRow.dataset.help = 'ad format';
   FORMAT_PRESETS.forEach(f => {
     const btn = document.createElement('button');
     btn.className = f.name === selectedFormat.name
@@ -311,7 +312,7 @@ const COMMERCIAL_MODELS = [
   formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
   formCard.appendChild(advanced.panel);
 
-  // Enhancement tools overflow menu (Recipes, Monetize, Prompts)
+  // Enhancement tools overflow menu (Recipes, Prompts)
   const enhanceMenu = document.createElement('div');
   enhanceMenu.className = 'overflow-menu shrink-0';
   enhanceMenu.innerHTML = `
@@ -320,7 +321,6 @@ const COMMERCIAL_MODELS = [
     </button>
     <div class="overflow-menu__panel">
       <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-      <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
       <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
     </div>
   `;
@@ -343,11 +343,8 @@ const COMMERCIAL_MODELS = [
       const action = item.dataset.enhance;
       if (action === 'recipe') {
         openRecipeModal({
-          onRunRecipe: (url) => {
-          }
+          studio: 'commercial'
         }).catch(() => {});
-      } else if (action === 'monetize') {
-        openMonetizationHub().catch(() => {});
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'commercial-studio',

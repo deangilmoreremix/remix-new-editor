@@ -1,0 +1,74 @@
+{
+ "record": {
+  "selector": "button[data-editor-upload]",
+  "click": false
+ },
+ "script-and-teleprompter": {
+  "selector": "xpath=//textarea[contains(@placeholder,'[pause]')]",
+  "click": true,
+  "type": "Hi {{firstname}}, I noticed {{company}} is growing fast, so I made you a quick video."
+ },
+ "clone-your-voice": {
+  "selector": "button:text-is('Stock voice')",
+  "click": true,
+  "then": [
+   {
+    "selector": "button:text-is('My cloned voice')",
+    "hold": 1800
+   },
+   {
+    "selector": "label:has-text('This is my own voice') input[type=checkbox]",
+    "hold": 1200
+   }
+  ]
+ },
+ "greeting-and-fallback": {
+  "selector": "button[data-variable='{{company}}']",
+  "click": true,
+  "then": [
+   {
+    "selector": "button:text-is('friend')",
+    "hold": 1800
+   }
+  ]
+ },
+ "customize-the-landing-page": {
+  "selector": "button[data-variable='{{company}}']",
+  "click": true,
+  "then": [
+   {
+    "selector": "xpath=(//button[@data-variable='{{company}}'])[2]",
+    "hold": 900
+   },
+   {
+    "selector": "button[data-bg-mode='website']",
+    "hold": 1500
+   }
+  ]
+ },
+ "contacts": {
+  "selector": "input[placeholder='First name']",
+  "click": true,
+  "type": "Ava",
+  "then": [
+   {
+    "selector": "input[placeholder='Email']",
+    "type": "ava@brightco.com"
+   },
+   {
+    "selector": "input[placeholder='Company']",
+    "type": "BrightCo"
+   },
+   {
+    "selector": "button:text-is('Add contact')",
+    "hold": 1500
+   }
+  ]
+ },
+ "generate-campaign": {
+  "click": false
+ },
+ "campaigns": {
+  "click": false
+ }
+}

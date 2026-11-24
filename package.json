@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "dev": "vite --port 3100",
+    "dev:ui-check": "node scripts/dev-ui-check.mjs",
     "dev:all": "concurrently -n root,video-agent-studio -c magenta,cyan \"npm run dev\" \"npm run dev:video-agent-studio\"",
     "build": "npm run build:openthorn && npm run build:workbench && npm run build:smartwarmupai && npm run build:motion-agent && rm -rf dist && node scripts/build-studio-guides.mjs --index-only && npm run gen:motion-sources && npm run sync:mg-thumbs && node --max-old-space-size=6144 node_modules/vite/bin/vite.js build && node scripts/build-studio-guides.mjs",
     "build:ai-vfx": "npm run build --workspace apps/ai-vfx",
@@ -59,6 +60,9 @@
     "sync:mg-thumbs": "node scripts/sync-mg-thumbs.mjs",
     "predev": "npm run gen:motion-sources && npm run sync:mg-thumbs",
     "build:studio-guides": "node scripts/build-studio-guides.mjs",
+    "capture:videos": "playwright test --config=playwright.guide-videos.config.js --trace off --output=node_modules/.cache/guide-video-capture",
+    "assemble:videos": "node scripts/guide-videos/assemble.mjs",
+    "check:narration": "node scripts/guide-videos/validate-narration.mjs",
     "capture:guides": "playwright test tests/e2e/guide-screenshots.spec.js --config=playwright.screenshots.config.js --trace off --output=node_modules/.cache/guide-capture"
   },
   "devDependencies": {

@@ -1,0 +1,16 @@
+{
+  "slug": "cinema-studio",
+  "name": "Cinema Studio",
+  "intro": "This is Cinema Studio in SmartVideo, where you turn a scene description into cinematic shots using real camera, lens and film look controls.",
+  "features": {
+    "video-image-switch": "The switch at the start of the toolbar sets Video or Image. Try a look as a still first, then move to video once you like it.",
+    "camera-and-lens-controls": "Click the summary card to open the camera overlay. Choose a camera, lens and focal length, and each choice becomes plain wording in your prompt.",
+    "camera-movement": "Under Movement in the quick camera builder you can pick moves like dolly in, orbit or handheld to add motion to your shot.",
+    "film-look": "Film Look sets the color and mood in one choice, from natural to moody noir or golden hour.",
+    "cinema-prompt-builder": "The Cinema Prompt Builder lets you type a base scene and read the full compiled wording, so you can edit it before you go further.",
+    "start-frame-and-end-frame": "Attach a start frame to begin from your own picture, and add an end frame too to control exactly how the shot finishes.",
+    "character-lock": "Switch on Character Lock to reuse a stored character reference, which helps keep the same character across your shots.",
+    "result-screen": "On the result screen you can regenerate, download, copy your prompt or link, and finish your shot."
+  },
+  "outro": "Describe a scene, dial in the camera, and Cinema Studio helps you shape shots that feel like a real production."
+}

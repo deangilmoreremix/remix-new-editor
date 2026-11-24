@@ -1,0 +1,15 @@
+{
+  "slug": "brand-studio",
+  "name": "Brand Studio",
+  "intro": "Brand Studio turns a website address into a saved Brand DNA, then gives you linked tools for on-brand campaigns, edited assets, product photos and animation.",
+  "features": {
+    "analyze-website-to-brand-dna": "Paste your website address into the box and press Analyze. SmartVideo reads the page and builds your Brand DNA, which every other tool here uses.",
+    "brand-tools-grid": "The Brand tools grid has five cards, Brand DNA, Campaigns, Asset Editor, Photo Studio and Animate. Use them to jump straight into whichever step you need.",
+    "recent-brands": "Recent Brands lists the brands you've already analysed, so you can open one again and carry on where you left off.",
+    "brand-dna-editor": "The Brand DNA editor shows your tagline, tone, audience, fonts and colors. Fix anything the AI got wrong, then click Save, because edits only stick after you do.",
+    "campaign-studio": "In Campaign Studio you pick a goal such as Product Launch, get four on-brand concepts, then choose platforms for matching creatives with ready-made copy.",
+    "asset-editor": "The Asset Editor lets you place a headline, body text and call to action on your picture. Adjust position, size, color and font to finish the creative.",
+    "photo-studio": "Photo Studio takes one product photo and offers presets across six categories, from beauty to tech. Choose a resolution, select styles, and get many product visuals from a single upload."
+  },
+  "outro": "With your Brand DNA saved, every campaign and photo starts on brand. Analyze your homepage first, and the rest of Brand Studio falls into place."
+}

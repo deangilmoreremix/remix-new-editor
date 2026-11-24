@@ -1,0 +1,68 @@
+{
+ "choosing-a-video": {
+  "setup": "(async()=>{const O=location.origin;const r=await import('/src/lib/router.js');await r.navigate('render',{videoId:'vid_demo',videoUrl:O+'/media/awesome-seedance/videos/vicky.mp4',prompt:'Chef plating a dessert in a warm kitchen'});await new Promise(r=>setTimeout(r,5000));})()",
+  "reload": false,
+  "selector": "text=Chef plating a dessert in a warm kitchen",
+  "click": false
+ },
+ "presets": {
+  "setup": "(async()=>{const O=location.origin;const r=await import('/src/lib/router.js');await r.navigate('render',{videoId:'vid_demo',videoUrl:O+'/media/awesome-seedance/videos/vicky.mp4',prompt:'Chef plating a dessert in a warm kitchen'});await new Promise(r=>setTimeout(r,5000));})()",
+  "reload": false,
+  "selector": "button:text-is('Film Trailer Punch')",
+  "click": true,
+  "then": [
+   {
+    "selector": "button:text-is('Documentary Contrast')",
+    "hold": 1500
+   }
+  ]
+ },
+ "output-settings": {
+  "setup": "(async()=>{const O=location.origin;const r=await import('/src/lib/router.js');await r.navigate('render',{videoId:'vid_demo',videoUrl:O+'/media/awesome-seedance/videos/vicky.mp4',prompt:'Chef plating a dessert in a warm kitchen'});await new Promise(r=>setTimeout(r,5000));})()",
+  "reload": false,
+  "selector": "select#outputFormat",
+  "click": true,
+  "then": [
+   {
+    "selector": "select#frameRate",
+    "hold": 1500
+   }
+  ]
+ },
+ "export-video": {
+  "setup": "(async()=>{const O=location.origin;const r=await import('/src/lib/router.js');await r.navigate('render',{videoId:'vid_demo',videoUrl:O+'/media/awesome-seedance/videos/vicky.mp4',prompt:'Chef plating a dessert in a warm kitchen'});await new Promise(r=>setTimeout(r,5000));})()",
+  "reload": false,
+  "selector": "button:text-is('Export Video')",
+  "click": false
+ },
+ "queue-render": {
+  "setup": "(async()=>{const O=location.origin;const r=await import('/src/lib/router.js');await r.navigate('render',{videoId:'vid_demo',videoUrl:O+'/media/awesome-seedance/videos/vicky.mp4',prompt:'Chef plating a dessert in a warm kitchen'});await new Promise(r=>setTimeout(r,5000));})()",
+  "reload": false,
+  "selector": "button:text-is('Queue Render')",
+  "click": false
+ },
+ "download-frame": {
+  "setup": "(async()=>{const O=location.origin;const r=await import('/src/lib/router.js');await r.navigate('render',{videoId:'vid_demo',videoUrl:O+'/media/awesome-seedance/videos/vicky.mp4',prompt:'Chef plating a dessert in a warm kitchen'});await new Promise(r=>setTimeout(r,5000));})()",
+  "reload": false,
+  "selector": "button:text-is('Download Frame')",
+  "click": false
+ },
+ "trailer-cut-social-resize-remix-scene": {
+  "setup": "(async()=>{const O=location.origin;const r=await import('/src/lib/router.js');await r.navigate('render',{videoId:'vid_demo',videoUrl:O+'/media/awesome-seedance/videos/vicky.mp4',prompt:'Chef plating a dessert in a warm kitchen'});await new Promise(r=>setTimeout(r,5000));})()",
+  "reload": false,
+  "selector": "button:text-is('Trailer Cut')",
+  "click": false
+ },
+ "drafts-templates-and-saved-items": {
+  "setup": "(async()=>{const O=location.origin;const r=await import('/src/lib/router.js');await r.navigate('render',{videoId:'vid_demo',videoUrl:O+'/media/awesome-seedance/videos/vicky.mp4',prompt:'Chef plating a dessert in a warm kitchen'});await new Promise(r=>setTimeout(r,5000));})()",
+  "reload": false,
+  "selector": "button#saveDraftBtn",
+  "click": true,
+  "then": [
+   {
+    "selector": "button#savedToggleBtn",
+    "hold": 1800
+   }
+  ]
+ }
+}

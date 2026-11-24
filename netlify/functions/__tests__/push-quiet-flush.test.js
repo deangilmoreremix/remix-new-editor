@@ -26,7 +26,7 @@ function setup({ deferred = ROWS, prefs = PREFS, subs = [sub('s1')], send, sbOpt
 describe('summary text', () => {
   it('counts by category and pluralises', () => {
     expect(summaryCounts(['new_lead', 'new_lead', 'new_lead', 'high_interest', 'followup_opportunity', 'milestone', 'daily_digest', 'weird'])).toEqual({ 'New lead': 3, Retarget: 2, Video: 1 });
-    expect(buildSummaryPayload({ 'New lead': 3, Retarget: 2, Video: 1 })).toEqual({ title: 'While you were away', body: '3 new leads, 2 retarget alerts, 1 video update', tag: 'quiet-summary', type: 'quiet_summary', url: '/#/timeline' });
+    expect(buildSummaryPayload({ 'New lead': 3, Retarget: 2, Video: 1 })).toEqual({ title: 'While you were away', body: '3 new leads, 2 retarget alerts, 1 video update', tag: 'quiet-summary', type: 'quiet_summary', url: '/timeline' });
     expect(buildSummaryPayload({ 'New lead': 1 }).body).toBe('1 new lead');
     expect(buildSummaryPayload({ Video: 2, Retarget: 1 }).body).toBe('1 retarget alert, 2 video updates');
     expect(SUMMARY_TAG).toBe('quiet-summary');
@@ -92,7 +92,7 @@ describe('flush', () => {
     expect(r).toMatchObject({ ok: true, owners: 1, sent: 1, held: 0, dropped: 0 });
     expect(s.webpush.sendNotification).toHaveBeenCalledTimes(1);
     expect(s.webpush.setVapidDetails).toHaveBeenCalledWith('mailto:ops@example.com', 'pub', 'priv');
-    expect(payloadOf(s.webpush.sendNotification.mock.calls[0])).toEqual({ title: 'While you were away', body: '2 new leads, 1 retarget alert, 1 video update', tag: 'quiet-summary', type: 'quiet_summary', url: '/#/timeline' });
+    expect(payloadOf(s.webpush.sendNotification.mock.calls[0])).toEqual({ title: 'While you were away', body: '2 new leads, 1 retarget alert, 1 video update', tag: 'quiet-summary', type: 'quiet_summary', url: '/timeline' });
     expect(s.sb.db.owner_push_deferred).toHaveLength(0);
   });
   it('sends one push per device (not one per held alert) and marks success on the subscription', async () => {
