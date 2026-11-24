@@ -100,15 +100,17 @@ export function OpenThornStudio() {
   container.appendChild(loading);
 
   const open = () => { if (loading.isConnected) loading.replaceWith(createIframe()); };
+  let cancelWait = null;
   resolveAccess().then(async (access) => {
     if (access !== 'signed_out') { open(); return; }
     try {
-      const { ensureClerkLoaded } = await import('../lib/clerkInit.js');
-      const clerk = (await ensureClerkLoaded()) || window.Clerk;
-      if (builderAccess(clerk) !== 'signed_out') { open(); return; }
-      clerk?.addListener?.(() => { if (builderAccess(clerk) !== 'signed_out') open(); });
+      const { whenClerkUser } = await import('../lib/clerkInit.js');
+      if (!loading.isConnected) return;
+      // One-shot, with a bounded retry if Clerk is unavailable; removed when the page closes.
+      cancelWait = whenClerkUser(() => open());
     } catch { /* Clerk unavailable: stay on the connecting message */ }
   });
+  container.cleanup = () => { if (cancelWait) cancelWait(); };
 
   return container;
 }

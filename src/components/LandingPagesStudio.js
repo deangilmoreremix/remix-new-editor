@@ -69,27 +69,18 @@ export function LandingPagesStudio({ embedded = false } = {}) {
 
   const signedIn = () => !!getClerkUserId();
   // No separate sign-in here: wait for the SmartVid account (Clerk) to load, then carry on automatically.
-  let waitingForAccount = false;
+  // One-shot, with a bounded retry if Clerk is unavailable; removed when the page closes (container.cleanup).
+  let cancelWait = null;
   const waitForAccount = async () => {
-    if (waitingForAccount) return;
-    waitingForAccount = true;
+    if (cancelWait) return;
     try {
-      const { ensureClerkLoaded } = await import('../lib/clerkInit.js');
-      const clerk = await ensureClerkLoaded();
-      if (signedIn()) { showList(); return; }
-      // Still no account: open the list as soon as one appears (signing in from the app header).
-      // One-shot: stop listening once connected, so a later Clerk update can never reopen the list over the editor.
-      const sub = { done: false, stop: null };
-      sub.stop = clerk?.addListener?.(({ user }) => {
-        if (sub.done || !user?.id) return;
-        sub.done = true;
-        if (typeof sub.stop === 'function') sub.stop();
-        if (inner.isConnected) showList();
-      });
-      // Clerk may call the listener synchronously (before `sub.stop` is set): unsubscribe now in that case.
-      if (sub.done && typeof sub.stop === 'function') sub.stop();
+      const { whenClerkUser } = await import('../lib/clerkInit.js');
+      if (cancelWait) return;
+      cancelWait = whenClerkUser(() => { if (inner.isConnected) showList(); });
     } catch { /* Clerk unavailable: stay on the connecting message */ }
   };
+  const prevCleanup = container.cleanup;
+  container.cleanup = () => { if (cancelWait) cancelWait(); if (typeof prevCleanup === 'function') prevCleanup(); };
   const guard = () => {
     if (!isSupabaseConfigured()) { inner.replaceChildren(el('p', 'text-sm text-secondary', 'Video pages need the Supabase connection, which is not configured here.')); return false; }
     if (!signedIn()) {

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { getErrorMessage, logError } from './errors'
@@ -66,6 +66,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [ssoStatus, setSsoStatus] = useState<SsoStatus>('connecting')
   const [ssoError, setSsoError] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
+  const missingClerkRetries = useRef(0)
   const loading = ssoStatus === 'connecting'
 
   useEffect(() => {
@@ -104,8 +105,10 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         setSsoStatus('signed_out')
         // Connect automatically when the SmartVid account appears (no separate sign-in in the builder).
         unlisten = clerk?.addListener?.(({ user: u }) => { if (u?.id) setAttempt((n) => n + 1) })
-        if (!clerk) {
-          // Clerk not on the parent yet: look again shortly.
+        // Embedded but Clerk not on the parent yet: look again shortly, a bounded number of times.
+        // Opened on its own (no parent page) there is nothing to wait for, so no retry.
+        if (!clerk && window.parent !== window && missingClerkRetries.current < 10) {
+          missingClerkRetries.current += 1
           const t = window.setTimeout(() => setAttempt((n) => n + 1), 3000)
           unlisten = () => window.clearTimeout(t)
         }
