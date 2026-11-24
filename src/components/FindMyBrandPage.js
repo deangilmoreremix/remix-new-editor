@@ -9,7 +9,7 @@
 // anonymous mode, where "Find My Brand" runs the free POST /api/demo/discover
 // pipeline. The modal opens automatically on arrival, as in OpenHiggsBolt.
 
-import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
+import { createStudioHeader, demoteBannerHeading } from '../lib/thumbnails.js';
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -19,10 +19,13 @@ function el(tag, className, text) {
 }
 
 export function FindMyBrandPage() {
-  const container = el('main', 'w-full min-h-full flex flex-col bg-app-bg text-white');
-  container.appendChild(demoteBannerHeading(createEditorBanner('find-my-brand', 'Find My Brand', 'Paste a business website to pull its logo, photos and branding')));
-  const body = el('div', 'flex-1 flex flex-col items-center justify-center text-center px-5 py-12');
-  container.appendChild(body);
+  const page = el('main', 'w-full min-h-full flex flex-col bg-app-bg text-white');
+  const bannerRow = el('div', 'px-3 pt-3 shrink-0');
+  // The page keeps its own centred heading, so the banner's title is demoted to keep a single h1.
+  bannerRow.appendChild(demoteBannerHeading(createStudioHeader('find-my-brand', 'Find My Brand', 'Paste a business website to see the logo, photos and branding found on it', '')));
+  page.appendChild(bannerRow);
+  const container = el('div', 'w-full flex-1 flex flex-col items-center justify-center text-center px-5 py-12');
+  page.appendChild(container);
 
   container.appendChild(el('span', 'text-[11px] font-extrabold uppercase tracking-[0.14em] text-primary mb-3.5', 'SmartVideo — Free Discovery'));
   container.appendChild(el('h1', 'm-0 mb-3.5 text-[clamp(28px,5vw,46px)] leading-[1.1] font-black', 'Find My Brand'));
@@ -37,10 +40,10 @@ export function FindMyBrandPage() {
     openBrandKitModal();
   };
   button.addEventListener('click', open);
-  body.appendChild(button);
+  container.appendChild(button);
 
   // Auto-open once on arrival.
   requestAnimationFrame(() => { open().catch((err) => console.error('[FindMyBrand] could not open', err)); });
 
-  return container;
+  return page;
 }

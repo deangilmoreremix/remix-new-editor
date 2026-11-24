@@ -4,12 +4,15 @@ import {
 	type AppSidebarItem,
 } from "@vidbee/ui/components/ui/app-sidebar";
 import { appSidebarIcons } from "@vidbee/ui/components/ui/app-sidebar-icons";
+import BookFill from "~icons/mingcute/book-2-fill";
+import BookLine from "~icons/mingcute/book-2-line";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 type AppPage =
 	| "about"
 	| "download"
+	| "guide"
 	| "settings"
 	| "subscriptions"
 	| "tools"
@@ -76,6 +79,17 @@ export const AppShell = ({ children, page }: AppShellProps) => {
 			},
 		},
 		{
+			id: "guide",
+			active: page === "guide",
+			icon: { active: BookFill, inactive: BookLine },
+			label: t("webTranscripts.guide.menu", { defaultValue: "Guide" }),
+			onClick: () => {
+				void navigate({ to: "/guide" });
+			},
+			showLabel: false,
+			showTooltip: true,
+		},
+		{
 			id: "about",
 			active: page === "about",
 			icon: appSidebarIcons.about,
@@ -91,11 +105,11 @@ export const AppShell = ({ children, page }: AppShellProps) => {
 	return (
 		<div className="flex h-screen flex-row">
 			<AppSidebar
-				appName="VidBee"
+				appName={"SmartVid\u200BDownloader"}
 				bottomItems={bottomItems}
 				items={items}
 				logoAlt="VidBee"
-				logoSrc="/app-icon.png"
+				logoSrc={`${import.meta.env.BASE_URL}app-icon.png`}
 			/>
 
 			<main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">

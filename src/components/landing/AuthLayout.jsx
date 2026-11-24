@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { navigate } from '../../lib/router.js';
 
 // In-app nav handler used by every <a> in the auth header. We keep the
-// hrefs as `href="#/<route>"` so the links remain valid and bookmarkable,
+// hrefs as `href="/<route>"` so the links remain valid and bookmarkable,
 // but intercept the click to route through the hash router — a real
 // `href="/image"` would 404 in production because Netlify has no file or
 // SPA fallback for those paths.
@@ -16,7 +16,7 @@ export function handleNavClick(e, route) {
   // contentArea is never initialized and navigate() would be a no-op.
   // Fall back to a full page load so the SPA boots and routes correctly.
   if (!document.getElementById('content-area')) {
-    window.location.href = `/#/${route}`;
+    window.location.href = `/${route}`;
     return;
   }
   navigate(route);
@@ -39,10 +39,10 @@ export function AuthHeader() {
         </a>
 
         <div className="hidden md:flex items-center gap-6">
-          <a href="#/explore" onClick={(e) => handleNavClick(e, 'explore')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Explore</a>
-          <a href="#/image" onClick={(e) => handleNavClick(e, 'image')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Image</a>
-          <a href="#/video" onClick={(e) => handleNavClick(e, 'video')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Video</a>
-          <a href="#/timeline" onClick={(e) => handleNavClick(e, 'timeline')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Timeline</a>
+          <a href="/explore" onClick={(e) => handleNavClick(e, 'explore')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Explore</a>
+          <a href="/image" onClick={(e) => handleNavClick(e, 'image')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Image</a>
+          <a href="/video" onClick={(e) => handleNavClick(e, 'video')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Video</a>
+          <a href="/timeline" onClick={(e) => handleNavClick(e, 'timeline')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Timeline</a>
         </div>
 
         <div className="shrink-0 flex items-center gap-3">

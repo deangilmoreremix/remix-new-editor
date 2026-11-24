@@ -25,7 +25,7 @@
     "'Upscale Image' button that shows 'Upscaling...' while it works.",
     "Result card with the enlarged image, a Download link and a Publish to Social button.",
     "Thumbnail button to generate a custom studio thumbnail.",
-    "Tools menu (three dots) with Recipes, Monetize and Prompts.",
+    "Tools menu (three dots) with Recipes and Prompts.",
     "Every upscale is added to your generation history so you can find it in the Library."
   ],
   "featureExplanations": [
@@ -66,7 +66,7 @@
     },
     {
       "feature": "Thumbnail, Tools menu and attachments",
-      "explanation": "Thumbnail opens a generator for a custom studio thumbnail. The three-dots menu has Recipes, Monetize and Prompts. An attachment toolbar in the form lets you add reference images or videos.",
+      "explanation": "Thumbnail opens a generator for a custom studio thumbnail. The three-dots menu has Recipes and Prompts. An attachment toolbar in the form lets you add reference images or videos.",
       "whyToUse": "Optional extras shared with other studios.",
       "inputRequired": "None.",
       "restrictions": "These do not change how the upscale looks in a way confirmed by the code; reference files are passed along with the request but the effect on an upscaler is not confirmed."

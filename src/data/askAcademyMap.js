@@ -61,6 +61,14 @@ export const STUDIO_ACADEMY = {
       { track: T10, lesson: '01-consistent-headshot-generation', why: 'Prompting for consistent, realistic portraits.' },
     ],
   },
+  'muapi-studio': {
+    tracks: [T13],
+    lessons: [
+      { track: T13, lesson: '01-image-models-which-one-for-which-use-case', why: 'Pick the right image model when the catalog has hundreds.' },
+      { track: T13, lesson: '02-video-models-which-one-for-which-use-case', why: 'Pick the right video model for your goal and budget.' },
+      { track: T13, lesson: '03-voice-audio-models-which-one-for-which-use-case', why: 'Pick the right voice or audio model.' },
+    ],
+  },
   edit: {
     tracks: [T08, T09],
     lessons: [
@@ -238,7 +246,7 @@ export const STUDIO_ACADEMY = {
 const SAME_LESSONS_AS = {
   'text-to-image': 'image', 'image-to-image': 'edit', 'text-to-video': 'video', 'image-to-video': 'video',
   'video-to-video': 'video', 'video-watermark': 'video', 'smart-video-studio': 'image',
-  'photo-studio': 'brand', campaign: 'brand', 'brand-dna': 'brand', 'asset-edit': 'brand',
+  'photo-studio': 'brand', campaign: 'brand', 'brand-dna': 'brand', 'asset-edit': 'brand', 'muapi-studio': 'image',
 };
 for (const [page, studio] of Object.entries(SAME_LESSONS_AS)) STUDIO_ACADEMY[page] = STUDIO_ACADEMY[studio];
 STUDIO_ACADEMY['smart-video-scheduler'] = { tracks: [], lessons: [] };

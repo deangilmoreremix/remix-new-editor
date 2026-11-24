@@ -40,7 +40,6 @@ import { resolveTemplate, loadTemplatePrompt } from '../lib/showcaseTemplateReso
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 
 const SHOT_PRESETS = {
   'Wide Shot': 'Establishing shot, wide angle, epic landscape, professional cinematography',
@@ -679,8 +678,7 @@ export function StoryboardStudio(options = {}) {
 
   const moreMenu = makeMenu('⋮ Tools', [
     { id: 'gtm', label: '🎯 GTM Boost', attrs: 'data-enhance="gtm"', run: () => openGtmForStoryboard() },
-    { id: 'recipe', label: '📋 Recipes', run: () => openRecipeModal({ onRunRecipe: () => {} }).catch((err) => console.error('[Recipe] open failed:', err)) },
-    { id: 'monetize', label: '💼 Monetize', run: () => openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err)) },
+    { id: 'recipe', label: '📋 Recipes', run: () => openRecipeModal({ studio: 'storyboard' }).catch((err) => console.error('[Recipe] open failed:', err)) },
     { id: 'prompts', label: '📚 Prompts', run: () => openPromptGallery({ appTheme: 'storyboard-studio', onSelect: (prompt) => { premiseEl.value = prompt; premiseEl.dispatchEvent(new Event('input', { bubbles: true })); premiseEl.focus(); } }).catch((err) => console.error('[PromptGallery] open failed:', err)) },
     { id: 'compare', label: '⚖ Compare frames', run: () => openComparison() },
   ]);
@@ -1522,7 +1520,7 @@ export function StoryboardStudio(options = {}) {
     animateBtn.onclick = () => animateFrame(frame);
     const publishBtn = document.createElement('button');
     publishBtn.type = 'button';
-    publishBtn.className = 'bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2 rounded-lg text-xs font-bold hover:shadow-glow transition-all';
+    publishBtn.className = 'bg-gradient-to-r from-(--publish-from) to-(--publish-to) text-white py-2 rounded-lg text-xs font-bold hover:shadow-glow transition-all';
     publishBtn.textContent = 'Publish';
     publishBtn.onclick = () => {
       if (!frame.imageUrl) { showToast('Generate this frame first.', 'warning'); return; }

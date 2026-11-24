@@ -104,6 +104,8 @@ const clean = (s: string) => s.replace(/\s+/g, ' ').trim()
 const GENERIC_HEADING = /^(home|menu|about( us)?|contact( us)?|services?|products?|shop|search|cart|login|sign in|subscribe|newsletter|follow us|our (services|products|team|story)|reviews?|testimonials?|faq|footer)$/i
 /** Calls to action, utility links and site chrome that are not something the business offers. */
 const CTA_HEADING = /^(get|download|receive|subscribe|sign|join|follow|view|see|learn|read|find|call|email|book|request|contact|visit|shop all|start|try|watch|explore|discover|connect|stay|store locator|our social|social communities|help|support|privacy|terms|cookie|accessibility|careers?)\b|\b(store locator|social communities|get in touch|newsletter|special offers|recipe app|back to top)\b/i
+/** Account, cart and corporate-section headings ("My Account", "Industry Involvement") are not products or services. */
+const NOT_AN_OFFER = /^(my |your )?(account|orders?|order status|wish ?list|cart|basket|checkout|log ?in|register)\b|\b(involvement|sustainability|investors?|newsroom|governance|corporate responsibility|diversity)\b/i
 /** A business talking about itself is not a customer testimonial. */
 const SELF_VOICE = /^(we|our|at [A-Z])\b|\b(our mission|we['’]re (on|here|a)|we believe|we are)\b/i
 /** Parts of a page that are navigation and chrome, not the business's own content. */
@@ -139,7 +141,7 @@ export function extractPageFacts(html: string, pageUrl: string, kind: PageKind):
   const headings: string[] = []
   $('h1, h2, h3').each((_i, el) => {
     const t = clean($(el).text())
-    if (t.length >= 3 && t.length <= 90 && !GENERIC_HEADING.test(t) && !CTA_HEADING.test(t) && !headings.includes(t)) headings.push(t)
+    if (t.length >= 3 && t.length <= 90 && !GENERIC_HEADING.test(t) && !CTA_HEADING.test(t) && !NOT_AN_OFFER.test(t) && !headings.includes(t)) headings.push(t)
   })
   return { url: pageUrl, kind, title: parsed.title, headings: headings.slice(0, 30), quotes: quotes.slice(0, 8), text: parsed.bodyText, images: parsed.images, fonts: parsed.fonts, styleLinks: styleLinks.slice(0, 12) }
 }
@@ -157,11 +159,18 @@ export interface BrandProfile {
   inferred: string[]
 }
 
-const GENERIC_FONT = /^(serif|sans-serif|monospace|cursive|system-ui|ui-sans-serif|ui-serif|-apple-system|blinkmacsystemfont|segoe ui|helvetica( neue)?|arial|times( new roman)?|georgia|verdana|tahoma|courier( new)?|roboto|inherit)$/i
+const GENERIC_FONT = /^(serif|sans[- ]serif|monospace|cursive|system-ui|ui[- ]sans[- ]serif|ui[- ]serif|-apple-system|blinkmacsystemfont|segoe ui|helvetica( neue)?|arial|times( new roman)?|georgia|verdana|tahoma|courier( new)?|roboto|inherit)$/i
 
 /** Icon, symbol and UI-widget fonts are not brand typography. */
 const ICON_FONT = /(awesome|icon|glyph|symbol|dashicons|material|\bfa\b|fa-|slick|swiper|emoji|genericons|ionicons|bootstrap)/i
-const cleanFontName = (raw: string) => raw.trim().replace(/^['"]|['"]$/g, '').replace(/\s+/g, ' ')
+const rawFontName = (raw: string) => raw.trim().replace(/^['"]|['"]$/g, '').replace(/\s+/g, ' ')
+/** A lowercase code slug ("brandon-grotesque") becomes a name ("Brandon Grotesque"); real names are left alone. */
+const prettyFont = (name: string) =>
+  /^[a-z][a-z0-9]*([-_][a-z0-9]+)+$/.test(name)
+    ? name.split(/[-_]/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    : name
+/** Same font however it is spelled: brandon-grotesque, Brandon Grotesque. */
+const fontKey = (name: string) => name.toLowerCase().replace(/[-_\s]+/g, ' ').trim()
 const usableFont = (name: string) => name.length >= 2 && name.length <= 40 && !/^(inherit|initial|unset|var\(|-)/i.test(name) && !GENERIC_FONT.test(name) && !ICON_FONT.test(name)
 
 /**
@@ -171,13 +180,18 @@ const usableFont = (name: string) => name.length >= 2 && name.length <= 40 && !/
 export function fontsFromCss(css: string): string[] {
   const text = String(css || '').slice(0, 800_000)
   const out: string[] = []
-  const add = (n: string) => { const name = cleanFontName(n); if (usableFont(name) && !out.some((o) => o.toLowerCase() === name.toLowerCase())) out.push(name) }
+  const add = (n: string) => {
+    const raw = rawFontName(n)
+    if (!usableFont(raw)) return // judged on the original name: a prettified "sans-serif" would slip through
+    const name = prettyFont(raw)
+    if (!out.some((o) => fontKey(o) === fontKey(name))) out.push(name)
+  }
   for (const m of text.matchAll(/@font-face\s*\{[^}]*?font-family\s*:\s*([^;}]+)/gi)) add(m[1])
   for (const m of text.matchAll(/@import[^;]*fonts\.googleapis\.com[^;]*family=([^&;'")]+)/gi)) add(decodeURIComponent(m[1].split(':')[0]).replace(/\+/g, ' '))
   const counts = new Map<string, number>()
   for (const m of text.replace(/@font-face\s*\{[^}]*\}/gi, '').matchAll(/font-family\s*:\s*([^;}{]+)/gi)) {
     for (const part of m[1].split(',').slice(0, 2)) {
-      const name = cleanFontName(part)
+      const name = rawFontName(part)
       if (usableFont(name)) counts.set(name, (counts.get(name) || 0) + 1)
     }
   }
@@ -208,7 +222,14 @@ export function pickStylesheets(links: string[], siteUrl: string): string[] {
 
 /** Pure: merge the facts of every page read into one profile. */
 export function buildBrandProfile(pages: PageFacts[], cssFonts: string[] = []): BrandProfile {
-  const fonts = [...new Set([...cssFonts, ...pages.flatMap((p) => p.fonts)].filter(usableFont))].slice(0, 6)
+  const fonts: string[] = []
+  for (const f of [...cssFonts, ...pages.flatMap((p) => p.fonts)]) {
+    const raw = rawFontName(f)
+    if (!usableFont(raw)) continue
+    const name = prettyFont(raw)
+    if (!fonts.some((o) => fontKey(o) === fontKey(name))) fonts.push(name)
+  }
+  fonts.splice(6)
   const copy = pages.map((p) => p.text).join(' ')
   const tone = inferTone(copy)
   const about = pages.find((p) => p.kind === 'about')

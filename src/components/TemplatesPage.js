@@ -38,6 +38,7 @@ export function TemplatesPage() {
 
   const filterRow = document.createElement('div');
   filterRow.className = 'flex gap-2 overflow-x-auto no-scrollbar';
+  filterRow.dataset.help = 'category filter';
 
   // Get all categories and niches for filtering
   const categories = (() => {

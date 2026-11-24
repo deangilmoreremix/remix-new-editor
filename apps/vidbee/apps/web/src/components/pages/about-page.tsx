@@ -293,6 +293,18 @@ export const AboutPage = () => {
 		<AppShell page="about">
 			<div className="h-full bg-background">
 				<div className="container mx-auto max-w-5xl space-y-6 p-6">
+					<p className="text-muted-foreground text-sm">
+						SmartVidDownloader is built on{" "}
+						<a
+							className="underline"
+							href="https://github.com/nexmoe/VidBee"
+							rel="noreferrer"
+							target="_blank"
+						>
+							nexmoe/VidBee
+						</a>
+						, an open-source app (MIT licence).
+					</p>
 					<Card>
 						<CardContent className="p-0">
 							<div className="space-y-4 px-6 pt-6 pb-4">
@@ -300,7 +312,7 @@ export const AboutPage = () => {
 									<img
 										alt="VidBee"
 										className="h-18 w-18 rounded-2xl"
-										src="/app-icon.png"
+										src={`${import.meta.env.BASE_URL}app-icon.png`}
 									/>
 									<div className="flex-1 space-y-2">
 										<div className="flex items-center justify-between gap-4">

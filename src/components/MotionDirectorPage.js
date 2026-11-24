@@ -11,8 +11,8 @@
 // personalization React tree (see src/features/personalization/mount.jsx) so
 // "Use My Brand" shares the personalization modal's clients and assets.
 
-import { createEditorBanner } from '../lib/thumbnails.js';
 import { installPersonalizationApiAuth } from '../features/personalization/lib/apiAuth.ts';
+import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 
 export function MotionDirectorPage() {
   installPersonalizationApiAuth();
@@ -20,7 +20,8 @@ export function MotionDirectorPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col overflow-hidden bg-app-bg text-white';
   container.dataset.studio = 'motion-director';
-  container.appendChild(createEditorBanner('motion-director', 'Motion Director', 'Chat with an AI to plan and build motion-graphics films from your website'));
+  // The app below has its own heading, so the banner's title is demoted to keep a single h1.
+  container.appendChild(demoteBannerHeading(createEditorBanner('motion-director', 'Motion Director', 'Plan a film from a prompt and your website')));
 
   const host = document.createElement('div');
   host.className = 'w-full flex-1 min-h-0';

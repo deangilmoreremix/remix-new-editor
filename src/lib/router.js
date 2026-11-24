@@ -1,3 +1,5 @@
+import { buildUrl } from './routeUrl.js';
+
 const ROUTE_MAP = {
   'Explore': 'explore',
   'Image': 'image',
@@ -18,7 +20,6 @@ const ROUTE_MAP = {
   'Smart Video Scheduler': 'smart-video-scheduler',
 
   'Personalizer': 'personalizer',
-  'Video Pages': 'video-pages',
   'Contacts': 'contacts',
   'Social': 'social',
   'Landing': 'landing',
@@ -64,6 +65,7 @@ export const RETIRED_ROUTES = {
   assist: 'apps',
   community: 'explore',
   'pexels-media': 'library',
+  'video-pages': 'library',   // Video Pages is a modal now (Library > My Video Pages, the header button, or any studio's Create landing page)
 };
 
 const pageLoaders = {
@@ -96,8 +98,7 @@ const pageLoaders = {
   'motion-director': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   'motion-director/workbench': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   personalizer: () => import('../components/Personalizer.js').then(m => m.Personalizer()),
-  // Video landing pages (public pages live at /p/<slug>, mounted from main.js).
-  'video-pages': () => import('../components/LandingPagesStudio.js').then(m => m.LandingPagesStudio()),
+  // Video landing pages are a modal (components/modals/MyVideoPagesModal.js); public pages live at /p/<slug>, mounted from main.js.
   'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
@@ -131,7 +132,7 @@ const pageLoaders = {
     .map(v => [`smartwarmupai/${v}`, () => import('../components/studios/SmartWarmupAIStudio/SmartWarmupAIStudio.js').then(m => m.SmartWarmupAIStudio())])),
   // CineGen Studio was replaced by the Workbench; keep old links working.
   cinegen: () => {
-    try { window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/workbench`); } catch { /* ignore */ }
+    try { window.history.replaceState(null, '', `/workbench${window.location.search}`); } catch { /* ignore */ }
     return import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio());
   },
   // The Timeline Editor is CineGen's workspace (vendored in src/cinegen, our colours + features). The unmodified clone can still be shown
@@ -176,6 +177,12 @@ let currentPageEl = null;
 let contentArea = null;
 let onNavigateCallback = null;
 let isNavigating = false;
+let currentSearch = '';
+
+/** True when `page` (with the current query string) is already the page on screen. */
+export function isCurrentRoute(page) {
+  return currentPage === (RETIRED_ROUTES[page] || page) && currentSearch === (window.location.search || '');
+}
 
 export function getQueryParam(name) {
   if (typeof window === 'undefined') return '';
@@ -188,7 +195,12 @@ export function initRouter(container, callback) {
   onNavigateCallback = callback;
 }
 
-export async function navigate(page, params = {}) {
+/**
+ * Opens a page. `opts.history` controls the address bar: 'push' (default) adds an entry,
+ * 'replace' swaps the current one (first load), 'none' leaves it alone (Back/Forward and
+ * hand-edited URLs, where the browser already moved the URL).
+ */
+export async function navigate(page, params = {}, opts = {}) {
   if (!contentArea) return;
 
   // Prevent concurrent navigation to avoid infinite loops
@@ -200,11 +212,15 @@ export async function navigate(page, params = {}) {
 
   isNavigating = true;
   currentPage = page;
+  // Lets the hover-help layer (components/studio/tooltipLayer.js) tint its cards with this studio's accent; no per-studio wiring needed.
+  contentArea.dataset.studioTheme = page;
 
   // Update URL with params so components can read them via URLSearchParams
-  const searchParams = new URLSearchParams(params).toString();
-  const newUrl = searchParams ? `/?${searchParams}#/${page}` : `/#/${page}`;
-  window.history.pushState({}, '', newUrl);
+  const newUrl = buildUrl(page, params);
+  const mode = opts.history || 'push';
+  if (mode === 'push') window.history.pushState({}, '', newUrl);
+  else if (mode === 'replace') window.history.replaceState({}, '', newUrl);
+  currentSearch = window.location.search || '';
 
   currentPageEl?.cleanup?.();
   currentPageEl = null;

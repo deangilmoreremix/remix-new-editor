@@ -107,7 +107,7 @@ describe('drain', () => {
     expect(await drainEmailQueue({ adapter: a, db, now: NOW })).toMatchObject({ sent: 1, failed: 0 });
     expect(a.send).toHaveBeenCalledWith(expect.objectContaining({ to: 'owner@example.test', subject: 'New lead captured', idempotencyKey: 'n1', html: expect.stringContaining('Open alerts') }));
     const { text } = a.send.mock.calls[0][0];
-    expect(text.startsWith('New lead captured\n\nA viewer submitted a form.\n\nReview it.\n\nOpen alerts: https://smartvid.app/?alerts=1#/timeline')).toBe(true);
+    expect(text.startsWith('New lead captured\n\nA viewer submitted a form.\n\nReview it.\n\nOpen alerts: https://smartvid.app/timeline?alerts=1')).toBe(true);
     expect(db.marks[0][1]).toMatchObject({ status: 'sent', attempts: 1 });
   });
   it('retries a failure with backoff, then fails permanently after the attempt limit', async () => {

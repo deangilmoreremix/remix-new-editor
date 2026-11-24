@@ -86,7 +86,7 @@ When neither push nor e-mail is configured the answer is still `{"sent":0,"reaso
   - `summary !== false`: the push is **held**. `push-dispatch` records a row in `public.owner_push_deferred`
     (service role only; unique per notification) and answers `reason: "quiet_hours_deferred"`. The scheduled function
     `push-quiet-flush` (every 15 minutes) sends ONE "While you were away" push per device once quiet hours are over:
-    body such as "3 new leads, 2 retarget alerts, 1 video update", tag `quiet-summary`, link `/#/timeline`.
+    body such as "3 new leads, 2 retarget alerts, 1 video update", tag `quiet-summary`, link `/timeline`.
   - `summary === false`: the push is dropped, as before (`reason: "quiet_hours"`).
   - If the `owner_push_deferred` table does not exist yet (migration not applied), recording fails silently and the old
     drop behaviour and `quiet_hours` reason apply; `push-quiet-flush` reports `table_unavailable` and does nothing.
@@ -117,7 +117,7 @@ no-op one: nothing is queued or sent, and the Email alerts checkbox only stores 
   verified** address (`primary_email_address_id` + `verification.status === 'verified'`). No key, unknown user, no primary or an
   unverified one means no e-mail (the queue row is marked `skipped`, `no_recipient`). Results are cached for one invocation only.
 - **Content:** subject `New lead: <title>` / `Retarget: ...` / `Video: ...`; the title, summary and suggestion; an "Open alerts"
-  button to `${APP_URL or https://smartvid.app}/#/timeline`; footer "You get this because Email alerts is on in Notifications > Preferences."
+  button to `${APP_URL or https://smartvid.app}/timeline`; footer "You get this because Email alerts is on in Notifications > Preferences."
   Plain text plus escaped HTML.
 - **Errors:** Resend 429, 5xx, timeouts (8 s) and network errors are retried; other 4xx are final. Addresses, keys and bodies are never logged.
 - The lead form's own owner notification (`lead-capture` edge function, `RESEND_API_KEY` + `LEAD_EMAIL_FROM` secrets, owner-chosen
@@ -177,7 +177,7 @@ Additive: nothing else changes. Without it pushes in quiet hours are dropped as 
 ## Privacy
 
 - The payload contains only the notification title and summary (trimmed), the type, ids and the in-app link
-  (`/#/timeline`); no viewer identity beyond what the owner's own alert already shows.
+  (`/timeline`); no viewer identity beyond what the owner's own alert already shows.
 - Endpoints, keys, e-mail addresses and message bodies are never logged. The e-mail recipient is always looked up server side from the owner's Clerk account.
 - Endpoints and keys are never logged. Subscriptions are per device and owner-deletable (RLS); dead or failing
   subscriptions are removed automatically.

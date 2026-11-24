@@ -29,7 +29,7 @@
     "Result canvas with Download, Regenerate, New, Publish to Social, and Add AI Captions buttons.",
     "History panel of recent generations (stored in your browser, up to 30 entries).",
     "Resumes generations that were still running if you refresh the page (banner: 'Resuming N pending generation(s)...').",
-    "Extra tools menu with GTM Boost, Recipes, Monetize, Prompts; a Thumbnail button; and a Personalize trigger."
+    "Extra tools menu with GTM Boost, Recipes, Prompts; a Thumbnail button; and a Personalize trigger."
   ],
   "featureExplanations": [
     {

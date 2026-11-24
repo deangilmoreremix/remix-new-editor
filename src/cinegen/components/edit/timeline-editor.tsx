@@ -6,7 +6,7 @@ import { useWorkspace, getActiveTimeline } from '@cinegen/components/workspace/w
 import { OverlayLane } from './overlay-lane';
 import { type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 import { CaptionLane } from './caption-lane';
-import { createOverlay, createStudioDesignOverlay, createTemplateOverlays, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, applyDesignToOverlay, createStudioDesignOverlay, createTemplateOverlays, findGate, startAfterGate } from '@cinegen/lib/overlays/overlays';
 import { presetOverlays } from '@cinegen/lib/overlays/overlay-presets';
 import { createLayoutOverlays } from '@cinegen/lib/overlays/personalized-layouts';
 import { measureActiveLogo, makeAllVideoReady } from '@cinegen/lib/personalize/contact-image-services';
@@ -3248,17 +3248,21 @@ export function TimelineEditor({
           actions={{
             onPickAnimation: isHyperframesEnabled() ? (item) => { const overlay = createHyperframesOverlay(item, currentTime); dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); } : undefined,
             onPickMotion: (t) => { const overlay = createMgOverlay(t, currentTime); dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); },
-            onAddKind: (kind) => {
-              // one List Builder per video: open the one that is there
+            onAddKind: (kind, designId) => {
+              // one List Builder per video: open the one that is there (a design picked for it is applied to that one)
               const gate = kind === 'list-builder' ? findGate(state.overlays) : undefined;
-              if (gate) { selectOverlay(gate.id); return; }
+              if (gate) {
+                if (designId) dispatch({ type: 'UPDATE_OVERLAY', overlayId: gate.id, updates: { config: (applyDesignToOverlay(gate, designId) as { config?: object }).config } });
+                selectOverlay(gate.id);
+                return;
+              }
               const at = kind === 'list-builder' ? currentTime : startAfterGate(state.overlays, currentTime);
               // A Studio design starts with a design chosen, so it shows something straight away.
               if (kind === 'overlay-studio-design') {
                 void createStudioDesignOverlay(at, Math.max(sequenceDuration, 10)).then((overlay) => { dispatch({ type: 'ADD_OVERLAY', overlay }); selectOverlay(overlay.id); });
                 return;
               }
-              const overlay = createOverlay(kind, at, Math.max(sequenceDuration, 10));
+              const overlay = createOverlay(kind, at, Math.max(sequenceDuration, 10), designId);
               dispatch({ type: 'ADD_OVERLAY', overlay });
               selectOverlay(overlay.id);
             },

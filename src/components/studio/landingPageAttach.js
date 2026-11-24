@@ -7,6 +7,7 @@
 //
 // Only https images and videos get one. Audio, zips, CSV, blob: and data: links are left alone, as is anything in the
 // landing page picker/editor, the media preview window (it has its own button) or marked data-lp-skip.
+import { routeHash } from '../../lib/routeUrl.js';
 import { createLandingPageButton, openLandingPageFor, canMakeLandingPage } from './landingPageAction.js';
 
 const VIDEO = /\.(mp4|webm|mov|m4v)(?:[?#]|$)/i;
@@ -70,7 +71,7 @@ export function scan(root, opts) {
  */
 export function mountLandingPageButtons({ root = document.body, observerClass = globalThis.MutationObserver } = {}) {
   if (!root || !observerClass) return { stop() {} };
-  const route = () => String((globalThis.location?.hash || '').replace(/^#\/?/, '').split(/[/?]/)[0] || '');
+  const route = () => String(routeHash(globalThis.location).replace(/^#\/?/, '').split(/[/?]/)[0] || '');
   const obs = new observerClass((records) => {
     for (const r of records) {
       if (r.type === 'attributes') { if (r.target.matches?.('a[download]')) attachTo(r.target, { studio: route() }); continue; }

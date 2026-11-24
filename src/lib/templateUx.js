@@ -186,7 +186,7 @@ export function addRecentTemplate(id) {
 }
 
 // ---------------------------------------------------------------------------
-// Shareable links: ?fill=<base64url JSON of text / select values>#/template/<id>
+// Shareable links: /template/<id>?fill=<base64url JSON of text / select values>
 // ---------------------------------------------------------------------------
 const MAX_SHARED_VALUE = 500;
 
@@ -234,18 +234,18 @@ export function decodeShareValues(encoded, inputs = []) {
 
 /** Full URL a user can send to someone else. */
 export function buildShareUrl(templateId, inputs, values, loc = (typeof window !== 'undefined' ? window.location : null)) {
-  const base = loc ? `${loc.origin}${loc.pathname}` : '';
+  const base = loc ? loc.origin : '';
   const fill = encodeShareValues(inputs, values);
-  return `${base}${fill ? `?fill=${fill}` : ''}#/template/${templateId}`;
+  return `${base}/template/${templateId}${fill ? `?fill=${fill}` : ''}`;
 }
 
-/** Share link for a Cinema template: `/?template=<id>&fill=<values>#/cinema-template`. */
+/** Share link for a Cinema template: `/cinema-template?template=<id>&fill=<values>`. */
 export function buildCinemaShareUrl(templateId, inputs, values, loc = (typeof window !== 'undefined' ? window.location : null)) {
-  const base = loc ? `${loc.origin}${loc.pathname}` : '';
+  const base = loc ? loc.origin : '';
   const params = new URLSearchParams({ template: String(templateId) });
   const fill = encodeShareValues(inputs, values);
   if (fill) params.set('fill', fill);
-  return `${base}?${params.toString()}#/cinema-template`;
+  return `${base}/cinema-template?${params.toString()}`;
 }
 
 // ---------------------------------------------------------------------------

@@ -40,7 +40,6 @@ import { downloadMedia } from '../lib/resultActions/download.js';
 import { createResultBar } from './studio/resultBar.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { getCharacterReference, saveCharacterReference } from '../lib/characterConsistency.js';
 import { openLandingPageFor } from './studio/landingPageAction.js';
 
@@ -669,7 +668,7 @@ export function VideoStudio() {
       },
     });
 
-    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -679,7 +678,6 @@ export function VideoStudio() {
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -711,9 +709,7 @@ export function VideoStudio() {
             }, { basePrompt: textarea.value });
           }).catch(() => {});
         } else if (action === 'recipe') {
-          openRecipeModal().catch(() => {});
-        } else if (action === 'monetize') {
-          openMonetizationHub().catch(() => {});
+          openRecipeModal({ studio: 'video' }).catch(() => {});
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-studio',
@@ -1675,7 +1671,7 @@ generateBtn.type = 'button';
             appTheme: 'video-studio',
             onComplete: (captionedUrl) => {
                 resultVideo.src = captionedUrl;
-                resultBar.setUrl(captionedUrl);
+                resultBar.setUrl(captionedUrl, { filenameSuffix: '-captioned' });
                 showToast('Preview updated with captions');
             },
         });
@@ -1715,7 +1711,7 @@ generateBtn.type = 'button';
         const shownEntry = generationHistory.find((e) => e.url === videoUrl);
         resultBar.setUrl(videoUrl, {
             filename: `video-${shownEntry?.id || lastGenerationId || 'clip'}`,
-            title: String(shownEntry?.prompt || '').replace(/\s+/g, ' ').trim().slice(0, 80) || 'AI video',
+            title: 'AI video', // never the prompt: the title is public (page title and /v/<business>/<slug> address)
         });
     };
 
@@ -1800,9 +1796,15 @@ generateBtn.type = 'button';
     };
 
     // --- Helper: Download file ---
+    const downloadsRunning = new Set();
     const downloadFile = async (url, filename) => {
-        const result = await downloadMedia(url, { filename: String(filename || 'video').replace(/\.[a-z0-9]+$/i, ''), kind: 'video' });
-        if (!result.ok || result.method === 'tab') showToast(result.message);
+        if (downloadsRunning.has(url)) return; // a double click would start two full downloads
+        downloadsRunning.add(url);
+        try {
+            const result = await downloadMedia(url, { filename: String(filename || 'video').replace(/\.[a-z0-9]+$/i, ''), kind: 'video' });
+            if (result.method === 'manual') showToast('The browser would not save this video directly. Click the video to open it, then use Download MP4 there.');
+            else if (!result.ok || result.method === 'tab') showToast(result.message);
+        } finally { downloadsRunning.delete(url); }
     };
 
     // --- Load history from localStorage ---

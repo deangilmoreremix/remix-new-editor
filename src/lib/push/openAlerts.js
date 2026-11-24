@@ -1,6 +1,7 @@
+import { routeHash } from '../routeUrl.js';
 /**
  * Page side of a notification click. The service worker cannot touch sessionStorage, so it either
- * posts { type: 'remix:open-alerts' } to an open window or opens `/?alerts=1#/timeline`. Both end up doing
+ * posts { type: 'remix:open-alerts' } to an open window or opens `/timeline?alerts=1`. Both end up doing
  * exactly what the header bell does: leave the `remix_open_projects` flag and open the Timeline Editor
  * (or tell it to show the alerts when it is already open).
  */
@@ -8,12 +9,14 @@ const OPEN_FLAG = 'remix_open_projects';
 
 export function openAlerts({ win = globalThis } = {}) {
   try { win.sessionStorage.setItem(OPEN_FLAG, '1'); } catch { /* the event below still works on the editor page */ }
-  const hash = win.location?.hash || '';
+  const hash = routeHash(win.location);
   if (/^#\/timeline(?![-\w])|^#\/timeline-classic/.test(hash)) {
     if (/^#\/timeline-classic/.test(hash)) { try { win.sessionStorage.removeItem(OPEN_FLAG); } catch { /* ignore */ } }
     win.dispatchEvent(new CustomEvent('remix:open-projects'));
   } else if (win.location) {
-    win.location.hash = '#/timeline'; // the editor's Analytics tab reads the flag on mount
+    // the editor's Analytics tab reads the flag on mount
+    if (typeof win.navigate === 'function') win.navigate('timeline');
+    else win.location.assign?.('/timeline');
   }
 }
 

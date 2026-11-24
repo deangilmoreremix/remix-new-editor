@@ -53,6 +53,14 @@
         "thumbnail": "/guides/product-shot-studio/overview.webp"
       },
       {
+        "slug": "studio-muapi-studio",
+        "name": "Studio (Muapi Studio)",
+        "route": "muapi-studio",
+        "shortDescription": "One workspace for hundreds of AI models across image, video, audio, avatar and 3D, using your own MuAPI key.",
+        "features": 11,
+        "thumbnail": "/thumbnails/studios/muapi-studio.webp"
+      },
+      {
         "slug": "upscale-suite",
         "name": "Upscale Suite",
         "route": "upscale",
@@ -361,6 +369,14 @@
         "thumbnail": "/guides/video-outreach/overview.webp"
       },
       {
+        "slug": "video-pages",
+        "name": "Video Pages",
+        "route": "video-pages",
+        "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
+        "features": 3,
+        "thumbnail": "/thumbnails/pages/placeholder.webp"
+      },
+      {
         "slug": "video-render",
         "name": "Video Render",
         "route": "render",
@@ -453,14 +469,6 @@
         "shortDescription": "Everything you generated and uploaded, in one place.",
         "features": 5,
         "thumbnail": "/guides/library/overview.webp"
-      },
-      {
-        "slug": "video-pages",
-        "name": "Video Pages",
-        "route": "video-pages",
-        "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
-        "features": 3,
-        "thumbnail": "/thumbnails/pages/placeholder.webp"
       }
     ]
   }

@@ -91,6 +91,32 @@ const REAL_WORLD = `<html><head><link rel="stylesheet" href="/themes/site.css"><
 <blockquote>The flour is consistently excellent and my sourdough has never risen better, thank you so much!<cite>Maria T.</cite></blockquote></main>
 <footer><h3>Receive Recipes &amp; Special Offers</h3><h3>Our Social Communities</h3></footer></body></html>`
 
+const OFFER_PAGE = `<html><body><main><h2>Social Media Management</h2><h2>Corporate Events</h2><h2>Water heater repair</h2>
+<h2>My Account</h2><h2>Order Status</h2><h2>Industry Involvement</h2><h2>Our Sustainability Goals</h2><h2>Investor Relations</h2><h2>Wish List</h2></main></body></html>`
+
+describe('offers and font names', () => {
+  it('drops account, cart and corporate-section headings but keeps real services (even ones with words like Media or Events)', () => {
+    expect(extractPageFacts(OFFER_PAGE, 'https://shop.example/services', 'services').headings)
+      .toEqual(['Social Media Management', 'Corporate Events', 'Water heater repair'])
+  })
+  it('shows a lowercase code slug as a proper font name, and leaves real names alone', () => {
+    expect(fontsFromCss('@font-face{font-family:brandon-grotesque} @font-face{font-family:"Para Supreme"} @font-face{font-family:open_sans_condensed} body{font-family:Playfair Display}'))
+      .toEqual(['Brandon Grotesque', 'Para Supreme', 'Open Sans Condensed', 'Playfair Display'])
+  })
+})
+
+describe('font names, generic and duplicate spellings', () => {
+  it('never turns a generic family into a brand font (sans-serif must not become "Sans Serif")', () => {
+    expect(fontsFromCss('body{font-family:sans-serif} h1{font-family:ui-sans-serif,system-ui} p{font-family:serif} code{font-family:monospace}')).toEqual([])
+  })
+  it('lists one font once however it is spelled, across stylesheets and the page', () => {
+    expect(fontsFromCss('@font-face{font-family:brandon-grotesque} h1{font-family:"Brandon Grotesque",sans-serif}')).toEqual(['Brandon Grotesque'])
+    const page = `<html><head><style>body{font-family:brandon-grotesque,sans-serif}</style></head><body><h1>Hi</h1></body></html>`
+    const profile = buildBrandProfile([extractPageFacts(page, 'https://shop.example/', 'home')], ['Brandon Grotesque', 'Para Supreme'])
+    expect(profile.fonts).toEqual(['Brandon Grotesque', 'Para Supreme'])
+  })
+})
+
 describe('real-world cleanup', () => {
   it('lists only what is sold, not menu, footer or call-to-action headings', () => {
     expect(extractPageFacts(REAL_WORLD, 'https://shop.example/shop', 'products').headings).toEqual(['Bread flour', 'Baking mixes'])
