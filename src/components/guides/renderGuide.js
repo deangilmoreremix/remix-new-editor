@@ -168,7 +168,6 @@ function featureCard(g, f, i) {
   <p class="sg-def"><strong>What it is:</strong> ${esc(f.definition)}</p><dl class="sg-dl">${rows}</dl></div></article>`;
 }
 
-/** Full HTML (inside #app) for one studio guide. */
 /**
  * Make the tour video's play button work. The events are bound here, not as inline attributes, because the dev server's
  * content security policy blocks inline handlers. Call it after the guide HTML is in the page. Safe to call twice.
@@ -179,12 +178,17 @@ export function wireTourVideo(root = document) {
     const play = box.querySelector('.sg-play');
     if (!video || !play || box.dataset.wired) return;
     box.dataset.wired = '1';
-    play.addEventListener('click', () => { video.play().catch(() => {}); });
+    // If playback cannot start (for example the file failed to load), uncover the player so its own controls and
+    // error message are visible and the viewer can retry, instead of leaving the big button over a dead video.
+    play.addEventListener('click', () => {
+      video.play().catch((err) => { play.hidden = true; console.warn('[guide] tour video could not start:', err && err.message); });
+    });
     video.addEventListener('play', () => { play.hidden = true; });
     video.addEventListener('ended', () => { play.hidden = false; });
   });
 }
 
+/** Full HTML (inside #app) for one studio guide. */
 export function renderGuideHtml(g, allCount) {
   const toc = [];
   const parts = [];
@@ -192,6 +196,8 @@ export function renderGuideHtml(g, allCount) {
 
   const mm = g.tour ? `${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}` : '';
   add('tour', 'Video tour', g.tour && section('tour', `Watch the ${g.name} tour`, `A ${mm} captioned walkthrough of the studio, with a sample file and prompt.`,
+    // The poster is the guide's own overview screenshot (a /guides/<slug>/ file); a guide without one has a generic fallback
+    // thumbnail elsewhere, so use the tour's own frame instead.
     `<div class="sg-tour"><video controls preload="none" playsinline poster="${esc(/^\/guides\//.test(g.overview || '') ? g.overview : g.tour.poster)}" src="${esc(g.tour.video)}" aria-label="${esc(g.name)} tour video"></video><button type="button" class="sg-play" aria-label="Play the ${esc(g.name)} tour video, ${mm}"></button><span class="sg-tour-len">VIDEO · ${mm}</span></div>`));
 
   add('overview', 'Overview', section('overview', `What is ${g.name}?`, '', `<div class="sg-overview">
@@ -240,7 +246,7 @@ export function renderGuideHtml(g, allCount) {
     ${g.shortDescription ? `<p class="sg-tag">${esc(g.shortDescription)}</p>` : ''}
     <p class="sg-lead">${esc(g.description)}</p>
     ${g.bestFor ? `<p class="sg-best"><strong>Best for:</strong> ${esc(g.bestFor)}</p>` : ''}
-    <div class="sg-cta"><a class="sg-btn primary" href="${studioHref(g.route)}">Open ${esc(g.name)} →</a>${g.tour ? `<a class="sg-btn ghost" href="#tour">▶ Watch the tour · ${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}</a>` : ''}<a class="sg-btn ghost" href="#features">See all ${g.features.length} features</a></div>
+    <div class="sg-cta"><a class="sg-btn primary" href="${studioHref(g.route)}">Open ${esc(g.name)} →</a>${g.tour ? `<a class="sg-btn ghost" href="#tour"><span aria-hidden="true">▶</span> Watch the tour · ${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}</a>` : ''}<a class="sg-btn ghost" href="#features">See all ${g.features.length} features</a></div>
   </div><figure class="sg-shot" style="margin:0">${img(g.overview, `${g.name} screenshot`, true)}</figure></section>
   <nav class="sg-toc" aria-label="On this page"><strong>On this page</strong><ul>${toc.map(([id, l]) => `<li><a href="#${id}">${esc(l)}</a></li>`).join('')}</ul></nav>
   ${parts.join('')}
