@@ -36,6 +36,14 @@ type AuthConfig struct {
 	AppleIOSBundleID  string
 	GoogleIOSClientID string
 
+	// Single sign-on with a host app's Clerk session (SmartVideo): the Clerk
+	// Frontend API URL that issues the session tokens (empty disables it), the
+	// Backend API secret key that reads the person's verified email, and the
+	// origins allowed to have minted the token.
+	ClerkIssuer            string
+	ClerkSecretKey         string
+	ClerkAuthorizedParties []string
+
 	AuthSecret               string
 	UnsubscribeSigningSecret string
 	UnsubscribeReadSecrets   []string
@@ -94,6 +102,15 @@ func (c *Config) LoadAuthConfig(ctx context.Context) (*AuthConfig, error) {
 
 	appleIOSBundleID := c.GetStringOptional(ctx, "APPLE_IOS_BUNDLE_ID", "apple-auth/ios_bundle_id", "com.warmbly.app")
 	googleIOSClientID := c.GetStringOptional(ctx, "GOOGLE_IOS_CLIENT_ID", "google-auth/ios_client_id", "")
+
+	clerkIssuer := c.GetStringOptional(ctx, "CLERK_ISSUER", "clerk/issuer", "")
+	clerkSecretKey := c.GetSecretOptional(ctx, "CLERK_SECRET_KEY", "clerk/secret_key", "")
+	var clerkParties []string
+	for _, p := range strings.Split(c.GetStringOptional(ctx, "CLERK_AUTHORIZED_PARTIES", "clerk/authorized_parties", ""), ",") {
+		if p = strings.TrimSpace(p); p != "" {
+			clerkParties = append(clerkParties, p)
+		}
+	}
 
 	authSecret, err := c.GetSecret(ctx, "AUTH_SECRET", "auth_secret")
 	if err != nil {
@@ -173,6 +190,10 @@ func (c *Config) LoadAuthConfig(ctx context.Context) (*AuthConfig, error) {
 
 		AppleIOSBundleID:  appleIOSBundleID,
 		GoogleIOSClientID: googleIOSClientID,
+
+		ClerkIssuer:            clerkIssuer,
+		ClerkSecretKey:         clerkSecretKey,
+		ClerkAuthorizedParties: clerkParties,
 
 		AuthSecret:               authSecret,
 		UnsubscribeSigningSecret: unsubscribeSigningSecret,

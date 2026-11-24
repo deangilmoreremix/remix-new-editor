@@ -81,3 +81,29 @@ func (h *Handler) AuthProviders(c *gin.Context) {
 		},
 	})
 }
+
+type clerkTokenLoginRequest struct {
+	Token string `json:"token" binding:"required"`
+}
+
+// ClerkTokenLogin exchanges the Clerk session token of a person already signed
+// in to the host app for a session here, so there is one login. Public like the
+// other token exchanges: the Clerk-signed token is the protection.
+func (h *Handler) ClerkTokenLogin(c *gin.Context) {
+	var data clerkTokenLoginRequest
+	if err := c.ShouldBindJSON(&data); err != nil {
+		errx.Handle(c, errx.InvalidBody(err))
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), authRequestTimeout)
+	defer cancel()
+
+	session, err := h.AuthService.ClerkTokenAuth(ctx, data.Token, c.ClientIP(), c.Request.UserAgent())
+	if err != nil {
+		errx.Handle(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, session)
+}

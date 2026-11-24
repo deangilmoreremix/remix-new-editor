@@ -55,6 +55,13 @@ type Verifier struct {
 	// without it the same person becomes two accounts depending on which form
 	// the token happened to carry.
 	canonical string
+	// noAudience is for a provider whose tokens carry no aud claim (Clerk
+	// session tokens). The issuer is then the only trust anchor, so the
+	// authorized parties below are the audience check.
+	noAudience bool
+	// authorizedParties, when set, limits which origins may have minted the
+	// token: the azp claim must be one of them when the token carries one.
+	authorizedParties []string
 
 	mu      sync.Mutex
 	keys    map[string]*rsa.PublicKey
@@ -121,8 +128,11 @@ func (v *Verifier) Verify(ctx context.Context, raw string) (*Claims, error) {
 	if !contains(v.issuers, iss) {
 		return nil, fmt.Errorf("idtoken: issuer %q not allowed", iss)
 	}
-	if !v.audienceAllowed(mc["aud"]) {
+	if !v.noAudience && !v.audienceAllowed(mc["aud"]) {
 		return nil, errors.New("idtoken: audience not allowed")
+	}
+	if azp, _ := mc["azp"].(string); azp != "" && len(v.authorizedParties) > 0 && !contains(v.authorizedParties, azp) {
+		return nil, fmt.Errorf("idtoken: authorized party %q not allowed", azp)
 	}
 
 	if v.canonical != "" {

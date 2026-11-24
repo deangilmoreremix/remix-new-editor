@@ -23,7 +23,7 @@ npm run verify:upstream -- /tmp/upstream
 | `src/lib/api/client/Client.ts` | axios uses the fetch adapter in demo mode |
 | `src/main.tsx` | `installDemo()` before the first render in demo mode |
 | `src/lib/demo/*` | added: recorded-data server, fake Phoenix socket, installer, `fixtures.json`, tests |
-| `src/lib/hostSession.ts` | added: one login. Reads the host app's Clerk session (`window.top.Clerk`, same-origin iframe) into the dashboard token; sign-in/out and expiry follow the host. Tests in `hostSession.test.ts` |
+| `src/lib/hostSession.ts`, `src/lib/api/client/auth/exchangeClerk.ts` | added: one login. Reads the host app's Clerk session (`window.top.Clerk`, same-origin iframe) and exchanges it at `POST /auth/clerk` (see `../warmbly-server/UPSTREAM.md`) for a Warmbly session; sign-out follows the host. Tests in `hostSession.test.ts` |
 | `src/lib/information.ts` | `HOST_SESSION` flag (`VITE_HOST_SESSION=1`, off in demo) |
 | `src/main.tsx` | `bootHostSession()` before the first render when `HOST_SESSION` |
 | `src/router.tsx` | with `HOST_SESSION`, every `/auth/*` route goes to the host sign-in |
@@ -51,5 +51,5 @@ Warmbly is a trademark of its owners; the Apache licence does not grant trademar
 ## One login (real backend)
 
 Build with `VITE_HOST_SESSION=1` (and no `VITE_DEMO`) and the dashboard has no sign-in of its own: it takes the host app's Clerk
-session. The Warmbly API must accept (or exchange) the Clerk JWT and map it to a Warmbly user and workspace; that is not done yet,
-so the shipped demo build is unchanged.
+session, exchanged once at startup and again only when the dashboard needs a fresh token. The backend side is `POST /auth/clerk`
+(set `CLERK_ISSUER`, `CLERK_SECRET_KEY`, `CLERK_AUTHORIZED_PARTIES` there). The shipped demo build is unchanged.
