@@ -6,6 +6,7 @@
 
 import { STUDIO_ROUTES } from '../lib/studioRoutes.js';
 import { STUDIO_LANDING_PAGES } from './studioLandingPages.js';
+import { buildAppsShowcase } from './editAppsShowcase.js';
 
 export const SITE_NAME = 'Smart Video AI Studio';
 
@@ -117,8 +118,9 @@ function uniqueIds(names) {
  * @param {Record<string, object>} kbByRoute  askKb JSON keyed by route (e.g. "image")
  * @param {Record<string, {overview?: string, features?: Record<string,string>}>} shots
  *        captured screenshots keyed by slug (src/data/guideScreenshots.json)
+ * @param {object|null} appsMap  src/data/muapiStudioAppsMap.json: the Edit Studio guide lists its apps
  */
-export function buildGuides(kbByRoute, shots = {}, { includeUnlisted = false } = {}, videos = null) {
+export function buildGuides(kbByRoute, shots = {}, { includeUnlisted = false } = {}, videos = null, appsMap = null) {
   const routes = Object.keys(kbByRoute).filter((r) => !r.startsWith('_') && (includeUnlisted || !UNLISTED_GUIDES.has(r))).sort();
   const slugOf = {};
   for (const route of routes) slugOf[route] = SLUG_OVERRIDES[route] || slugify(kbByRoute[route].name || route);
@@ -187,6 +189,8 @@ export function buildGuides(kbByRoute, shots = {}, { includeUnlisted = false } =
       tips: [...strs(kb.tips), ...strs(kb.bestPractices)],
       faqs: arr(kb.faqs).filter((q) => q && q.question && q.answer),
       glossary: glossaryList(kb.glossary),
+      // The Edit Studio's muapi apps (a gallery with a live preview of each); only the edit guide has one.
+      appsShowcase: route === 'edit' && appsMap ? buildAppsShowcase(appsMap) : null,
       relatedRoutes: strs(kb.relatedStudios),
       relatedGuidance: arr(kb.relatedStudioGuidance).filter((x) => x && x.studio),
       thumbnail: shot.overview || thumbnail,

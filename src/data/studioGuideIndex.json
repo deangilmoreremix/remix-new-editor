@@ -32,7 +32,7 @@
         "slug": "edit-studio",
         "name": "Edit Studio",
         "route": "edit",
-        "shortDescription": "16 AI photo tools: remove objects and backgrounds, extend, reframe, effects, face swap and more.",
+        "shortDescription": "16 AI photo tools plus 72 one-click apps: remove objects and backgrounds, reframe, ad shots, video effects and more.",
         "features": 16,
         "thumbnail": "/guides/edit-studio/overview.webp"
       },

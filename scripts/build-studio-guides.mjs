@@ -27,7 +27,8 @@ for (const f of fs.readdirSync(kbDir)) {
 }
 const shots = JSON.parse(fs.readFileSync(path.join(root, 'src/data/guideScreenshots.json'), 'utf8'));
 const videos = JSON.parse(fs.readFileSync(path.join(root, 'src/data/guideVideos.json'), 'utf8'));
-const guides = buildGuides(kb, shots, {}, videos);
+const appsMap = JSON.parse(fs.readFileSync(path.join(root, 'src/data/muapiStudioAppsMap.json'), 'utf8'));
+const guides = buildGuides(kb, shots, {}, videos, appsMap);
 const groups = groupByCategory(guides);
 
 // Small index for the landing page section (the full guide data is ~1MB).

@@ -153,6 +153,21 @@ try {
     return;
   }
 
+  // No-spend preview of one Edit Studio app (/edit-preview?tool=app-<id>), shown in an iframe on the
+  // Edit Studio guide page: the real tool UI with no app shell, no sign-in and nothing generated.
+  if (initialPage.split(/[?#]/)[0].replace(/\/+$/, '') === 'edit-preview') {
+    const { EditStudio } = await import('./components/EditStudio.js');
+    const holder = document.createElement('div');
+    holder.style.cssText = 'height:100vh;overflow:hidden';
+    holder.appendChild(EditStudio({ embed: true }));
+    app.appendChild(holder);
+    // Esc inside the preview frame never reaches the guide page, so ask the page to close the dialog.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && window.parent !== window) window.parent.postMessage({ source: 'sv-edit-preview', type: 'close' }, window.location.origin);
+    });
+    return;
+  }
+
   // Public studio feature guides (/studios, /studios/<slug>): no app shell,
   // no sign-in. Prerendered to static HTML at build time for SEO.
   const guidePath = initialPage.split(/[?#]/)[0].replace(/\/+$/, '');

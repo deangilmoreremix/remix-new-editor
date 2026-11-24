@@ -3,6 +3,7 @@
 // scripts/build-studio-guides.mjs so search engines see the full content.
 import { GUIDES, GUIDES_BY_CATEGORY, getGuide } from '../../data/studioGuides.js';
 import { GUIDE_CSS, renderGuideHtml, renderHubHtml, guideHead } from './renderGuide.js';
+import { wireAppShowcase } from './appShowcase.js';
 
 function setMeta(attr, key, value) {
   let el = document.head.querySelector(`meta[${attr}="${key}"]`);
@@ -52,6 +53,7 @@ export function mountGuidePage(app, slug) {
   }
   app.innerHTML = guide ? renderGuideHtml(guide, GUIDES.length) : renderHubHtml(GUIDES_BY_CATEGORY, GUIDES.length, slug && !guide ? slug : '');
   applyHead(guideHead(guide, window.location.origin, GUIDES_BY_CATEGORY));
+  if (guide?.appsShowcase) wireAppShowcase(app); // the Edit Studio guide: app search, filters and the live preview
 
   const hash = window.location.hash.slice(1); // an in-page anchor; `#/route` hashes are routes, not anchors
   if (hash && !hash.startsWith('/')) document.getElementById(hash)?.scrollIntoView();

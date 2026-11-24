@@ -9,18 +9,11 @@
 import appsMap from '../data/muapiStudioAppsMap.json';
 import prompts from '../data/muapiAppPrompts.json';
 
-export const APP_CATEGORY_ORDER = [
-  'professional', 'enhance-style', 'face-identity', 'video-editing', 'ads', 'games-characters', 'trending-templates',
-];
+import { APP_CATEGORY_ORDER, isAlreadyInThisRepo } from '../data/editAppsShowcase.js';
+
+export { APP_CATEGORY_ORDER, isAlreadyInThisRepo };
 
 const V2V_MODELS = new Set(['ai-video-face-swap', 'video-background-remover']);
-const THIS_REPO = 'remix-new-editor';
-
-/** True when the same tool already exists in this repo (so we do not add a second copy). */
-export function isAlreadyInThisRepo(app) {
-  return (app.existingIn || []).some((x) => x.repo === THIS_REPO && x.match !== 'similar');
-}
-
 const durationLabel = (v) => `${v}s`;
 const SELECT_LABELS = {
   duration: durationLabel,
