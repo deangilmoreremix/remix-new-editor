@@ -42,7 +42,6 @@ import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { loadTemplatePrompt } from '../lib/showcaseTemplateResolver.js';
 import { getAcademyCreateTarget } from '../data/academyStudioAdapters.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
@@ -1706,7 +1705,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
       ${showTextButtons ? `
         <div class="flex items-center gap-2">
           <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>
-           ${isPrimaryPromptField ? '<div class="overflow-menu shrink-0" data-gtm-menu="primary"><button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button><div class="overflow-menu__panel"><button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button><button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button><button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button><button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button></div></div>' : ''}
+           ${isPrimaryPromptField ? '<div class="overflow-menu shrink-0" data-gtm-menu="primary"><button type="button" class="overflow-menu__trigger" data-tooltip="More tools" aria-label="More enhancement tools"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button><div class="overflow-menu__panel"><button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button><button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button><button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button></div></div>' : ''}
         </div>
       ` : ''}
     `;
@@ -1883,9 +1882,7 @@ container.querySelector('#favorites-btn').onclick = () => { browseFilter = 'favo
                 openGTMPromptModal('cinema-template-studio', { onPromptGenerated, templateContext });
               }).catch((err) => console.error('[CinemaTemplateStudio] GTM Boost failed:', err));
             } else if (action === 'recipe') {
-              openRecipeModal().catch((err) => console.error('[Recipe] open failed:', err));
-            } else if (action === 'monetize') {
-              openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
+              openRecipeModal({ studio: 'cinema' }).catch((err) => console.error('[Recipe] open failed:', err));
             } else if (action === 'prompts') {
               openPromptGallery({
                 appTheme: 'cinema-template-studio',

@@ -29,4 +29,19 @@ describe('Add to timeline: Template videos tab', () => {
     expect((onPickTemplateVideo.mock.calls[0][0] as TemplateVideo).videoSrc).toMatch(/^https:\/\//);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('uses the shared modal shell and closes from the × button, Escape and a backdrop press, but not from a press inside', () => {
+    const onClose = vi.fn();
+    render(<AddToTimelineModal onClose={onClose} actions={actions()} />);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.querySelector('.cg-modal__title')?.textContent).toBe('Add to timeline');
+    fireEvent.mouseDown(screen.getByRole('tablist', { name: 'Categories' }));
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByLabelText('Close'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    fireEvent.keyDown(document.body, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(2);
+    fireEvent.mouseDown(dialog);
+    expect(onClose).toHaveBeenCalledTimes(3);
+  });
 });

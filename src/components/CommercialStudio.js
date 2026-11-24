@@ -17,7 +17,6 @@ import { createMarketingAdMode, validateAd, buildAdParams } from './studios/Mark
 import { createPendingJobTracker } from '../lib/pendingJobs.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { uploadFileToSupabase } from '../lib/uploadService.js';
@@ -313,7 +312,7 @@ const COMMERCIAL_MODELS = [
   formCard.appendChild(createStudioActionBar({ row: actionRow, generate: genBtn }));
   formCard.appendChild(advanced.panel);
 
-  // Enhancement tools overflow menu (Recipes, Monetize, Prompts)
+  // Enhancement tools overflow menu (Recipes, Prompts)
   const enhanceMenu = document.createElement('div');
   enhanceMenu.className = 'overflow-menu shrink-0';
   enhanceMenu.innerHTML = `
@@ -322,7 +321,6 @@ const COMMERCIAL_MODELS = [
     </button>
     <div class="overflow-menu__panel">
       <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-      <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
       <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
     </div>
   `;
@@ -345,11 +343,8 @@ const COMMERCIAL_MODELS = [
       const action = item.dataset.enhance;
       if (action === 'recipe') {
         openRecipeModal({
-          onRunRecipe: (url) => {
-          }
+          studio: 'commercial'
         }).catch(() => {});
-      } else if (action === 'monetize') {
-        openMonetizationHub().catch(() => {});
       } else if (action === 'prompts') {
         openPromptGallery({
           appTheme: 'commercial-studio',
