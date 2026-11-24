@@ -6,6 +6,7 @@ const ROUTE_MAP = {
   'Video': 'video',
   'Storyboard': 'storyboard',
   'Studio': 'muapi-studio',
+  'SmartVid Studio': 'muapi-studio',
   'Edit': 'edit',
   'Character': 'character',
   'Commercial': 'commercial',

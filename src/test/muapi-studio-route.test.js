@@ -12,7 +12,7 @@ describe('Studio registration', () => {
     const { NAV_GROUPS, STUDIO_ROUTES, getStudioIcon } = await import('../lib/studioRoutes.js');
     const ids = NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id));
     expect(ids.filter((id) => id === 'muapi-studio')).toHaveLength(1);
-    expect(STUDIO_ROUTES['muapi-studio']).toMatchObject({ label: 'Studio' });
+    expect(STUDIO_ROUTES['muapi-studio']).toMatchObject({ label: 'SmartVid Studio' });
     expect(getStudioIcon('muapi-studio')).toContain('<svg');
   });
 
