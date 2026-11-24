@@ -6,7 +6,7 @@ Secrets must exist first; see README.md. Every name below is taken from Beam's P
 """
 from beam import DurableDisk, Image, Pod
 
-SECRETS = ["KMS_LOCAL_MASTER_KEY", "CREDENTIALS_ENCRYPTION_KEY", "AUTH_SECRET", "PORTAL_EDGE_TOKEN", "INTERNAL_API_TOKEN", "STUDIO_ORIGINS", "APP_URL"]
+SECRETS = ["KMS_LOCAL_MASTER_KEY", "CREDENTIALS_ENCRYPTION_KEY", "AUTH_SECRET", "PORTAL_EDGE_TOKEN", "INTERNAL_API_TOKEN", "STUDIO_ORIGINS", "APP_URL", "CLERK_ISSUER", "CLERK_SECRET_KEY", "CLERK_AUTHORIZED_PARTIES"]
 
 pod = Pod(
     name="smartwarmupai-backend",

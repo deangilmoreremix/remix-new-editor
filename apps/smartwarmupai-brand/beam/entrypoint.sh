@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Boots Postgres, Redis, NATS and the backend inside one Beam Pod. Data lives on the durable disk (DATA, default /data).
 # Mail settings (MAIL_TRANSPORT, SMTP_*, EMAIL_*) supplied by the caller override env.sh. Required secrets (set them as Beam secrets, see README.md): KMS_LOCAL_MASTER_KEY CREDENTIALS_ENCRYPTION_KEY AUTH_SECRET
-# PORTAL_EDGE_TOKEN INTERNAL_API_TOKEN. Optional: STUDIO_ORIGINS (comma separated origins allowed to call the API), APP_URL.
+# PORTAL_EDGE_TOKEN INTERNAL_API_TOKEN. Optional: STUDIO_ORIGINS (comma separated origins allowed to call the API), APP_URL, and CLERK_ISSUER / CLERK_SECRET_KEY / CLERK_AUTHORIZED_PARTIES (one login with the host app's Clerk session; off without CLERK_ISSUER).
 set -euo pipefail
 DATA="${DATA:-/data}"; PGBIN=/usr/lib/postgresql/16/bin; RUN=/tmp/run
 for v in KMS_LOCAL_MASTER_KEY CREDENTIALS_ENCRYPTION_KEY AUTH_SECRET PORTAL_EDGE_TOKEN INTERNAL_API_TOKEN; do
   [ -n "${!v:-}" ] || { echo "missing required secret $v" >&2; exit 1; }
 done
 # Keep what the caller supplied: env.sh holds upstream's published dev defaults, which must never win.
-keep=(KMS_LOCAL_MASTER_KEY CREDENTIALS_ENCRYPTION_KEY AUTH_SECRET PORTAL_EDGE_TOKEN INTERNAL_API_TOKEN STUDIO_ORIGINS APP_URL MAIL_TRANSPORT EMAIL_NAME EMAIL_ADDRESS EMAIL_BRAND_NAME SMTP_HOST SMTP_PORT SMTP_SECURITY SMTP_USERNAME SMTP_PASSWORD SMTP_AUTH SMTP_EHLO_NAME)
+keep=(KMS_LOCAL_MASTER_KEY CREDENTIALS_ENCRYPTION_KEY AUTH_SECRET PORTAL_EDGE_TOKEN INTERNAL_API_TOKEN STUDIO_ORIGINS APP_URL CLERK_ISSUER CLERK_SECRET_KEY CLERK_AUTHORIZED_PARTIES MAIL_TRANSPORT EMAIL_NAME EMAIL_ADDRESS EMAIL_BRAND_NAME SMTP_HOST SMTP_PORT SMTP_SECURITY SMTP_USERNAME SMTP_PASSWORD SMTP_AUTH SMTP_EHLO_NAME)
 declare -A saved; for v in "${keep[@]}"; do saved[$v]="${!v:-}"; done
 mkdir -p "$RUN/nats" "$DATA/pg" "$DATA/blobs" "$DATA/redis"
 chown -R postgres:postgres "$DATA/pg"
