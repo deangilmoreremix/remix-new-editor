@@ -9,3 +9,7 @@
 
 # SmartWarmupAI studio (embedded dashboard): client-side routes fall back to its index.html. Real files win (non-forced).
 /smartwarmupai-app/*  /smartwarmupai-app/index.html  200
+
+# The Studio guide was renamed SmartVid Studio: keep the old public address working
+/studios/muapi-studio    /studios/smartvid-studio/  301
+/studios/muapi-studio/   /studios/smartvid-studio/  301
