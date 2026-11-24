@@ -184,6 +184,7 @@ export const NAV_GROUPS = [
     { id: 'edit', label: 'Edit' },
     { id: 'upscale', label: 'Upscale' },
     { id: 'character', label: 'Character' },
+    { id: 'influencer', label: 'AI Influencer' },
     { id: 'commercial', label: 'Product Shot' },
     { id: 'brand', label: 'Brand' },
   ] },
@@ -204,6 +205,7 @@ export const NAV_GROUPS = [
   { title: 'Agents', items: [
     { id: 'video-agent', label: 'Video Agent' },
     { id: 'zackd', label: 'Zack D' },
+    { id: 'motion-director', label: 'Motion Director' },
     { id: 'director', label: 'Director' },
     { id: 'timeline', label: 'Timeline' },
     { id: 'workbench', label: 'Workbench' },

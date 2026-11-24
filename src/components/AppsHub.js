@@ -2,6 +2,7 @@ import { navigate } from '../lib/router.js';
 import { getStudioThumbnail, getHeroThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 import { NAV_GROUPS } from '../lib/studioRoutes.js';
 import { COLLAB_APPS } from '../lib/collabSuite.js';
+import { getStudioIcon } from '../lib/studioRoutes.js';
 
 const CORE_STUDIOS = [
   { id: 'image', name: 'Image Studio', description: 'Generate images with 20+ AI models', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', badge: '20+ models', color: 'bg-primary/10 text-primary border-primary/20' },
@@ -33,6 +34,12 @@ const AI_APPS = [
 
 // Side-menu apps that have no studio card above.
 const MENU_APPS = [
+  { id: 'influencer', name: 'AI Influencer', description: 'Create a consistent AI persona and post-ready content', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', badge: 'Influencer', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20' },
+  { id: 'motion-director', name: 'Motion Director', description: 'Chat with an AI to build motion graphics', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>', badge: 'Motion', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
+  { id: 'leadfinder', name: 'Lead Finder', description: 'Find prospects to send personalized videos to', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>', badge: 'Leads', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+  { id: 'outreach', name: 'Video Outreach', description: 'Send personalized video outreach campaigns', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16v12H5.17L4 17.17V4z"/></svg>', badge: 'Outreach', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
+  { id: 'recorder', name: 'Recorder', description: 'Record your screen and camera', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>', badge: 'Record', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
+  { id: 'find-my-brand', name: 'Find My Brand', description: 'Discover and capture your brand style', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.4 5.7 20.8 8 13.6 2 9.2h7.6z"/></svg>', badge: 'Brand', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
   { id: 'cinema-template', name: 'Cinema Templates', description: 'Ready-made cinematic templates: add your media and generate', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>', badge: 'Templates', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
   { id: 'director', name: 'Director', description: 'AI editor that cuts and directs your footage', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6l4-4h4l4 4"/><path d="M2 6h20v14a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>', badge: 'AI Editor', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
   { id: 'timeline', name: 'Timeline Editor', description: 'Multi-track timeline for editing and rendering', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="2" y1="15" x2="22" y2="15"/></svg>', badge: 'Editor', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
@@ -43,14 +50,37 @@ const MENU_APPS = [
   { id: 'content-library', name: 'Content', description: 'Browse and reuse your saved content', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>', badge: 'My work', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
 ];
 
-const ALL_APPS = Object.fromEntries([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS, ...MENU_APPS].map((a) => [a.id, a]));
+// Studios that had no card: Zack D, plus Templates, Academy and Video Render (listed here, not in the menu groups).
+const icon24 = (route) => getStudioIcon(route).replace(/width="18" height="18"/, 'width="24" height="24"');
+const MORE_APPS = [
+  { id: 'zackd', name: 'Zack D Studio', description: 'Turn one question into a 3D animated explainer short', icon: icon24('zackd'), badge: 'Explainers', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+  { id: 'templates', name: 'Templates', description: 'Ready-to-use image and video templates: pick one, add your media, generate', icon: icon24('templates'), badge: 'Templates', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
+  { id: 'academy', name: 'Academy', description: 'Courses and guides for making AI video, with templates to try', icon: icon24('academy'), badge: 'Learn', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+  { id: 'render', name: 'Video Render', description: 'Export, queue and publish finished videos', icon: icon24('render'), badge: 'Render', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' },
+];
+
+const ALL_APPS = Object.fromEntries([...CORE_STUDIOS, ...TOOL_STUDIOS, ...AI_APPS, ...MENU_APPS, ...MORE_APPS].map((a) => [a.id, a]));
 const pick = (ids) => ids.map((id) => ALL_APPS[id]).filter(Boolean);
 
 // Built from the side menu itself (NAV_GROUPS) so the two can't drift apart.
 // The first group (Apps / Explore / Templates) is navigation, not an app.
 const APP_SECTIONS = NAV_GROUPS.slice(1).map((g) => [`${g.title} apps`.replace('My Work apps', 'My Work'), pick(g.items.map((it) => it.id))]);
 
+// Templates and Academy sit at the top of the side menu (no heading), so they get their own section;
+// Video Render has a guide but is not in the menu, so it joins the Video apps.
+APP_SECTIONS.unshift(['Start here', pick(['templates', 'academy'])]);
+APP_SECTIONS.find(([title]) => title === 'Video apps')?.[1].push(ALL_APPS.render);
+
 if (COLLAB_APPS.length) APP_SECTIONS.push(['Collaboration apps', COLLAB_APPS]);
+
+/** Every studio as a card (thumbnail + click target), shared with the Explore page. */
+export function studioCards() {
+  return APP_SECTIONS.flatMap(([, apps]) => apps).filter((s) => !s.href).map((s) => ({
+    ...s,
+    thumbnail: getStudioThumbnail(s.id) || getHeroThumbnail(s.id),
+    onClick: () => { saveRecent(s.id, s.name); navigate(s.id); },
+  }));
+}
 
 export function AppsHub() {
   const container = document.createElement('div');
@@ -133,7 +163,7 @@ export function AppsHub() {
   return container;
 }
 
-function createSection(title, items, isStudio = false) {
+export function createSection(title, items, isStudio = false) {
   const section = document.createElement('div');
   section.className = 'mb-10 animate-fade-in-up';
 

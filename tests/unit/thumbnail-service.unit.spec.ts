@@ -23,16 +23,16 @@ describe('thumbnail service', () => {
   describe('createHeroSection', () => {
     it('returns a DOM element with correct structure for a valid studio', async () => {
       const { createHeroSection } = await import('../../src/lib/thumbnails.js');
-      const result = createHeroSection('video', 'my-class');
+      const result = createHeroSection('video', 'my-class h-32 md:h-44');
 
       expect(result).not.toBeNull();
       expect(result.tagName).toBe('DIV');
       expect(result.className).toContain('hero-banner');
       expect(result.className).toContain('my-class');
-      expect(result.children.length).toBe(3);
-      expect(result.children[0].className).toContain('thumb-skeleton');
-      expect(result.children[1].tagName).toBe('IMG');
-      expect(result.children[2].className).toContain('bg-gradient-to-t');
+      // Unified with createStudioHeader: standard height, caller's height classes are ignored.
+      expect(result.className).toContain('h-32 md:h-[clamp(176px,14vw,264px)]');
+      expect(result.querySelector('.thumb-skeleton')).not.toBeNull();
+      expect(result.querySelector('img')).not.toBeNull();
     });
 
     it('returns null for an unknown studio id', async () => {
@@ -45,7 +45,8 @@ describe('thumbnail service', () => {
       const { createHeroSection } = await import('../../src/lib/thumbnails.js');
       const result = createHeroSection('video');
       expect(result).not.toBeNull();
-      expect(result.className).toBe('hero-banner relative w-full overflow-hidden rounded-2xl ');
+      expect(result.className).toContain('hero-banner');
+      expect(result.className).toContain('h-32 md:h-[clamp(176px,14vw,264px)]');
     });
   });
 

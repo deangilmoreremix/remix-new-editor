@@ -10,6 +10,7 @@
 // fills the landing text. The logic lives in src/lib/outreach/draft.js.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { createEditorBanner } from '../lib/thumbnails.js';
 import { emailFor, mailtoUrl, mailMergeCsv, gmailUrl, linkedinMessage } from '../lib/outreach/email.js';
 import { WRITER_LANGUAGES } from '../lib/outreach/aiWriter.js';
 import { hasPaidAccess } from '../lib/clerkEntitlements.js';
@@ -126,6 +127,7 @@ function videoMeta(url) {
 export function OutreachStudio() {
   const container = el('div', 'relative w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
   mountStudioChrome(container, { title: 'Video Outreach', currentRoute: 'outreach' });
+  container.appendChild(createEditorBanner('outreach', 'Video Outreach', 'Record once, greet every contact by name, and track who watched'));
 
   const draft = loadDraft();
   // The last recording stays in memory so its sound can become the voice sample.

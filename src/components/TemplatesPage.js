@@ -1,13 +1,17 @@
 import { allTemplates, getAllCategories } from '../lib/templates.js';
-import { getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
+import { FAVORITE_STAR_CLASS, paintFavoriteStar, cssEscape, getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
-import { navigate } from '../lib/router.js';
+import { navigate, getQueryParam } from '../lib/router.js';
+import { syncFavorites } from '../lib/templateCloud.js';
+import { nicheLabel as nicheName } from '../lib/templateCategories.js';
 import { getTemplateThumbnail, createThumbnailImg, createStudioHeader } from '../lib/thumbnails.js';
+import { CURATED_PROMPTS } from '../data/curatedPrompts.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 
 const FAVORITES_FILTER = '★ Favorites';
 const RECENT_FILTER = '🕒 Recent';
+const PROMPTS_FILTER = '✨ Prompts';
 
 export function TemplatesPage() {
   const container = document.createElement('div');
@@ -45,9 +49,11 @@ export function TemplatesPage() {
     }
   })();
   const niches = Object.values(NICHE_LABELS_MAP || {});
-  const allFilters = ['All', FAVORITES_FILTER, RECENT_FILTER, 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
+  const allFilters = ['All', FAVORITES_FILTER, RECENT_FILTER, PROMPTS_FILTER, 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
   
-  let activeFilter = null;
+  // Opened from an Explore category card: #/templates with ?category=<chip name>.
+  const requested = getQueryParam('category');
+  let activeFilter = requested && requested !== 'All' && allFilters.includes(requested) ? requested : null;
 
   allFilters.forEach(filter => {
     if (filter === '--- Niches ---') {
@@ -58,7 +64,7 @@ export function TemplatesPage() {
       return;
     }
     
-    const isActive = filter === 'All';
+    const isActive = filter === (activeFilter ?? 'All');
     const btn = createFilterChip(filter, isActive);
     btn.onclick = () => {
       activeFilter = filter === 'All' ? null : filter;
@@ -141,11 +147,17 @@ export function TemplatesPage() {
     // Group niche templates by their niche
     const nicheGroups = {};
     nicheTemplates.forEach(t => {
-      if (!nicheGroups[t.niche]) {
-        nicheGroups[t.niche] = [];
+      const label = nicheName(t.niche);
+      if (!nicheGroups[label]) {
+        nicheGroups[label] = [];
       }
-      nicheGroups[t.niche].push(t);
+      nicheGroups[label].push(t);
     });
+
+    if (activeFilter === PROMPTS_FILTER) {
+      sectionsContainer.appendChild(createPromptsSection());
+      return;
+    }
 
     if (activeFilter === FAVORITES_FILTER || activeFilter === RECENT_FILTER) {
       const ids = activeFilter === FAVORITES_FILTER ? getFavoriteTemplateIds() : getRecentTemplateIds();
@@ -198,7 +210,7 @@ export function TemplatesPage() {
         }
       });
     } else if (niches.includes(activeFilter)) {
-      const nicheTemplatesFiltered = nicheTemplates.filter(t => t.niche === activeFilter);
+      const nicheTemplatesFiltered = nicheTemplates.filter(t => nicheName(t.niche) === activeFilter);
       if (nicheTemplatesFiltered.length > 0) {
         const section = createTemplateSection(activeFilter, nicheTemplatesFiltered, true);
         sectionsContainer.appendChild(section);
@@ -230,6 +242,11 @@ export function TemplatesPage() {
 
   renderCategories();
   container.appendChild(inner);
+  if (activeFilter) setTimeout(() => filterRow.querySelector(`[data-filter="${cssEscape(activeFilter)}"]`)?.scrollIntoView?.({ block: 'nearest', inline: 'center' }), 0);
+
+  // Favorites saved to the account on another device show up here too.
+  const favoritesBefore = JSON.stringify(getFavoriteTemplateIds());
+  syncFavorites().then((ids) => { if (JSON.stringify(ids) !== favoritesBefore) renderCategories(); });
 
   // Debounced: filtering hundreds of cards on every keystroke is wasteful.
   searchInput.oninput = () => {
@@ -273,7 +290,7 @@ function createTemplateSection(category, catTemplates, isNiche) {
         ? 'bg-[#0a1628]/80 border-cyan-500/20 hover:bg-cyan-900/20 hover:border-cyan-400/40' 
         : 'bg-card-bg/90 border-white/10 hover:bg-white/[0.06] hover:border-white/10'
     }`;
-    card.dataset.searchable = `${t.name} ${t.description || ''} ${category} ${t.outputType} ${t.niche || ''}`;
+    card.dataset.searchable = `${t.name} ${t.description || ''} ${category} ${t.outputType} ${nicheName(t.niche)}`;
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
 
@@ -345,13 +362,14 @@ function createTemplateSection(category, catTemplates, isNiche) {
     const heart = document.createElement('button');
     heart.type = 'button';
     heart.dataset.favorite = t.id;
-    heart.className = 'absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/70 text-sm text-zinc-300 transition hover:bg-black/90';
+    heart.className = FAVORITE_STAR_CLASS;
+    heart.setAttribute('data-keep-fill', ''); // outline-buttons.css would otherwise make the dark disc transparent
     const paintHeart = () => {
       const on = isFavoriteTemplate(t.id);
       heart.textContent = on ? '★' : '☆';
       heart.setAttribute('aria-pressed', String(on));
       heart.setAttribute('aria-label', on ? `Remove ${t.name} from favorites` : `Add ${t.name} to favorites`);
-      heart.classList.toggle('text-yellow-300', on);
+      paintFavoriteStar(heart, on);
     };
     paintHeart();
     heart.onclick = (e) => {
@@ -375,6 +393,37 @@ function createTemplateSection(category, catTemplates, isNiche) {
     grid.appendChild(card);
   });
 
+  section.appendChild(grid);
+  return section;
+}
+
+// Curated prompts (formerly the Explore page): "Try this prompt" opens Image Studio prefilled.
+function createPromptsSection() {
+  const section = document.createElement('div');
+  section.className = 'mb-10 animate-fade-in-up';
+  section.innerHTML = `<h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">Prompt Library <span class="text-xs font-medium text-muted">${CURATED_PROMPTS.length}</span></h2>`;
+  const grid = document.createElement('div');
+  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
+  CURATED_PROMPTS.forEach((p) => {
+    const card = document.createElement('div');
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 hover:bg-white/[0.06] transition-all';
+    card.dataset.searchable = `${p.prompt} ${p.category} ${p.model}`;
+    const meta = document.createElement('div');
+    meta.className = 'text-xs text-muted mb-2';
+    meta.textContent = `${p.category} / ${p.model}`;
+    const text = document.createElement('div');
+    text.className = 'text-sm text-white leading-relaxed mb-3';
+    text.textContent = p.prompt;
+    const btn = document.createElement('button');
+    btn.className = 'text-xs font-bold text-primary hover:underline';
+    btn.textContent = 'Try this prompt';
+    btn.onclick = () => {
+      try { localStorage.setItem('prefill_prompt', p.prompt); } catch { /* storage blocked */ }
+      navigate('image');
+    };
+    card.append(meta, text, btn);
+    grid.appendChild(card);
+  });
   section.appendChild(grid);
   return section;
 }
