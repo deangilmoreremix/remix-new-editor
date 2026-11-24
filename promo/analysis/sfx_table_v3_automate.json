@@ -2,7 +2,7 @@
  {
   "from": 35,
   "src": "click-camera.mp3",
-  "volume": 0.8,
+  "volume": 1,
   "note": "click into the agent input"
  },
  {
@@ -13,9 +13,9 @@
   "note": "typing window (94f)"
  },
  {
-  "from": 155,
+  "from": 141,
   "src": "transition-snap.mp3",
   "volume": 1,
-  "note": "pull-back / title"
+  "note": "typing complete"
  }
 ]

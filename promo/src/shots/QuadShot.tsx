@@ -9,12 +9,14 @@ import React from 'react';
 import { AbsoluteFill, Img, staticFile, useCurrentFrame } from 'remotion';
 import { EASE, mix, ramp } from '../lib/polish';
 import { INTER, T } from '../lib/tokens';
+import { EngineTitle, EngineTitleProps } from '../lib/EngineTitle';
 
 export const QUAD_DURATION = 89;
 const G = 8, QW = (1920 - 3 * G) / 2, QH = (1080 - 3 * G) / 2;
 const QUADS = [{ x: G, y: G }, { x: 2 * G + QW, y: G }, { x: G, y: 2 * G + QH }, { x: 2 * G + QW, y: 2 * G + QH }];
 // events (local frames): name pop, description rise, outline pulse. TR also carries the whip.
-const CELLS = [
+export type QuadCell = { tex: string; right: number; name: string; desc: string; pop: number; descAt: number; pulse: number; whip?: number };
+export const QUAD_CELLS: QuadCell[] = [
   { tex: 'character', right: 1880, name: 'Character Studio', desc: 'Consistent character generation', pop: 6, descAt: 11, pulse: 38 },
   { tex: 'avatar', right: 1880, name: 'Avatar Studio', desc: 'AI avatars and lip sync video', pop: 14, descAt: 19, pulse: 44, whip: 30 },
   { tex: 'lipsync', right: 1880, name: 'Lip Sync Studio', desc: 'Animate portraits or sync lips to audio', pop: 22, descAt: 27, pulse: 50 },
@@ -23,16 +25,16 @@ const CELLS = [
 const REGION = { y: 70, h: 400 }; // banner/top of the page only: keeps prompt-bar fragments out of the cells
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
-const Cell: React.FC<{ i: number; f: number }> = ({ i, f }) => {
-  const c = CELLS[i];
+const Cell: React.FC<{ i: number; f: number; cells: QuadCell[] }> = ({ i, f, cells }) => {
+  const c = cells[i];
   const push = mix(1, 1.1, Math.pow(clamp01(Math.min(f, 62) / 89), 2)); // push stops at 62 so the last 27f are a true still
   const whip = c.whip ? ramp(f, c.whip, 10, EASE.smooth) : 0;
   const blur = 5 * Math.sin(Math.PI * whip);
   const scale = push * mix(1, 1.85, whip);
-  const k = CELLS[i].pop;
+  const k = c.pop;
   const pop = ramp(f, k, 9, EASE.overshoot);
   const d = ramp(f, c.descAt, 10, EASE.out);
-  const pulse = ramp(f, c.pulse, 6, EASE.snappy) * (1 - ramp(f, c.pulse + 6, 10, EASE.out));
+  const pulse = Math.max(ramp(f, c.pulse, 6, EASE.snappy) * (1 - ramp(f, c.pulse + 6, 10, EASE.out)), ramp(f, c.pulse + 52, 6, EASE.snappy) * (1 - ramp(f, c.pulse + 58, 10, EASE.out)));
   const s = QH / REGION.h;
   const left = -((c as { right: number }).right - QW / s) * s;
   return (
@@ -48,14 +50,15 @@ const Cell: React.FC<{ i: number; f: number }> = ({ i, f }) => {
   );
 };
 
-export const QuadShot: React.FC = () => {
+export const QuadShot: React.FC<{ cells?: QuadCell[]; title?: EngineTitleProps; pill?: boolean }> = ({ cells = QUAD_CELLS, title, pill = true }) => {
   const f = useCurrentFrame();
   return (
     <AbsoluteFill style={{ background: T.bg, overflow: 'hidden' }}>
-      {CELLS.map((_, i) => <Cell key={i} i={i} f={f} />)}
-      <div style={{ position: 'absolute', left: 0, right: 0, top: 40, display: 'flex', justifyContent: 'center', opacity: ramp(f, 52, 10, EASE.out) }}>
+      {cells.map((_, i) => <Cell key={i} i={i} f={f} cells={cells} />)}
+      {pill && <div style={{ position: 'absolute', left: 0, right: 0, top: 40, display: 'flex', justifyContent: 'center', opacity: ramp(f, 52, 10, EASE.out) }}>
         <div style={{ padding: '14px 44px', borderRadius: 56, background: 'rgba(5,5,5,0.9)', border: '1px solid rgba(255,255,255,0.14)', fontFamily: INTER, fontSize: 64, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff' }}>People, voices, motion.</div>
-      </div>
+      </div>}
+      {title && <><div style={{ position: 'absolute', left: 0, top: 0, width: 1100, height: 420, background: 'linear-gradient(90deg, rgba(5,5,5,0.9) 0%, rgba(5,5,5,0.6) 55%, rgba(5,5,5,0) 100%)' }} /><EngineTitle {...title} /></>}
     </AbsoluteFill>
   );
 };

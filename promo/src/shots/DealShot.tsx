@@ -4,7 +4,7 @@
 // peak, 4f settle bezier(0.3,0,0.25,1.15), 2f press 0.996, ghost trail (6% path lag, blur 7px, opacity 0.28(1-t)), lamp-style board light-up from the pile,
 // monotone Hermite camera through anchors (orbit on the pile -> pull-back to the board -> runway overview), perspective growing with the tilt,
 // landed cards forced to identity, depth fog on the far end, true stillness at the end, title rising word by word.
-// Changed: 12 REAL Edit Studio tool cards (cut out of the real Edit page: image + app label) instead of 26 project cards; board is a dark panel with
+// Changed: REAL cards passed in as `files` (V2: 9 Edit Studio tool cards cut from the real Edit page; V3 Scale: 9 Cinema Templates previews) instead of 26 project cards; board is a dark panel with
 // slot outlines (3 cols x 4 rows) instead of the demo's paper board; no brushed-graphite table texture (decorative); lime/black tokens; no live counter
 // (a count of 12 cards would be a claim-like number).
 import React from 'react';
@@ -72,7 +72,7 @@ const CURVES = Object.fromEntries(PARAMS.map((p) => [p, hermite(ANCHORS.map((k) 
 const camAt = (f: number): Cam => Object.fromEntries(PARAMS.map((p) => [p, CURVES[p](f)])) as Cam;
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 
-export const DealShot: React.FC<{ files?: string[]; title?: EngineTitleProps; chip?: string | null }> = ({ files = DEAL_DEFAULT_FILES, title, chip = 'BUILT-IN EXAMPLE IMAGES' }) => {
+export const DealShot: React.FC<{ files?: string[]; title?: EngineTitleProps; chip?: string | null; shiftX?: number }> = ({ files = DEAL_DEFAULT_FILES, title, chip = 'BUILT-IN EXAMPLE IMAGES', shiftX = 0 }) => {
   const frame = useCurrentFrame();
   const grid = makeGrid(files);
   const cam = camAt(frame);
@@ -88,7 +88,7 @@ export const DealShot: React.FC<{ files?: string[]; title?: EngineTitleProps; ch
   const t1 = ramp(frame, 100, 18, EASE.out), t2 = ramp(frame, 108, 18, EASE.out);
   return (
     <AbsoluteFill style={{ fontFamily: INTER, overflow: 'hidden', background: T.bg }}>
-      <AbsoluteFill style={{ transform: `translateX(${cam.sx.toFixed(2)}px)` }}>
+      <AbsoluteFill style={{ transform: `translateX(${(cam.sx + shiftX).toFixed(2)}px)` }}>
         <div style={{ position: 'absolute', inset: 0, perspective: `${persp.toFixed(2)}px`, perspectiveOrigin: '960px 540px' }}>
           <div style={{ position: 'absolute', width: 1920, height: BOARD.h, zoom: cam.zoom, transform: `translate(${(960 / cam.zoom - cam.cx).toFixed(3)}px, ${(540 / cam.zoom - cam.cy).toFixed(3)}px) rotateY(${cam.rotY.toFixed(3)}deg) rotateX(${cam.rotX.toFixed(3)}deg) rotateZ(${cam.rotZ.toFixed(3)}deg)`, transformOrigin: `${cam.cx.toFixed(2)}px ${cam.cy.toFixed(2)}px`, transformStyle: 'preserve-3d' }}>
             <div style={{ position: 'absolute', left: -TBL, top: -TBL, width: 1920 + 2 * TBL, height: BOARD.h + 2 * TBL, background: tableBg, WebkitMaskImage: `radial-gradient(ellipse 2600px 3600px at ${TBL + 960}px ${TBL + BOARD.h / 2}px, #000 40%, transparent 100%)` }} />

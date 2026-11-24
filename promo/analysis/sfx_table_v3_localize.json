@@ -1,14 +1,20 @@
 [
  {
-  "from": 17,
-  "src": "whoosh-big.mp3",
-  "volume": 0.5,
-  "note": "page lifts"
+  "from": 1,
+  "src": "transition-snap.mp3",
+  "volume": 0.7,
+  "note": "first pane pops"
  },
  {
-  "from": 57,
-  "src": "transition-snap.mp3",
-  "volume": 1,
-  "note": "page settles"
+  "from": 11,
+  "src": "swoosh-quick.mp3",
+  "volume": 0.7,
+  "note": "third pane pops"
+ },
+ {
+  "from": 15,
+  "src": "whoosh-fast.mp3",
+  "volume": 0.5,
+  "note": "whip push in the second pane"
  }
 ]

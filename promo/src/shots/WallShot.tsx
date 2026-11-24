@@ -29,11 +29,12 @@ export const STUDIOS: WallStudio[] = [
   { name: 'Character Studio', tex: 'character' },
   { name: 'Lip Sync Studio', tex: 'lipsync' },
 ];
-const REGION = { right: 1880, y: 70, h: 270 }; // banner art only: no UI fragments inside the cells // page region cropped into each cell (top of the studio: banner + prompt bar)
+const DEFAULT_REGION = { right: 1880, y: 70, h: 270 }; // banner art only: no UI fragments inside the cells // page region cropped into each cell (top of the studio: banner + prompt bar)
 const START = (i: number) => beatF(i + 1) - 2; // one cell per beat, local to the shot
 export const WALL_PUSH_START = START(5) + 24;
 
-const Cell: React.FC<{ i: number; frame: number; studios: WallStudio[] }> = ({ i, frame, studios }) => {
+type Region = { right: number; y: number; h: number };
+const Cell: React.FC<{ i: number; frame: number; studios: WallStudio[]; region: Region }> = ({ i, frame, studios, region: REGION }) => {
   const start = START(i);
   const { x, y, w } = CELLS[i];
   const draw = interpolate(frame, [start, start + 8], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
@@ -71,7 +72,7 @@ const Cell: React.FC<{ i: number; frame: number; studios: WallStudio[] }> = ({ i
   );
 };
 
-export const WallShot: React.FC<{ studios?: WallStudio[]; title?: EngineTitleProps }> = ({ studios = STUDIOS, title }) => {
+export const WallShot: React.FC<{ studios?: WallStudio[]; title?: EngineTitleProps; dy?: number; region?: Region }> = ({ studios = STUDIOS, title, dy = 0, region = DEFAULT_REGION }) => {
   const frame = useCurrentFrame();
   const push = interpolate(frame, [WALL_PUSH_START, WALL_PUSH_START + 25], [1, 1.04], { ...clamp, easing: Easing.bezier(0.33, 0, 0.2, 1) });
   const cap = CAPTIONS[1];
@@ -79,13 +80,13 @@ export const WallShot: React.FC<{ studios?: WallStudio[]; title?: EngineTitlePro
   return (
     <AbsoluteFill style={{ background: T.bg, overflow: 'hidden' }}>
       <AbsoluteFill style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 12%, rgba(217,255,0,0.07), rgba(217,255,0,0) 70%)' }} />
-      <div style={{ position: 'absolute', inset: 0, transform: `scale(${push.toFixed(5)})`, transformOrigin: '960px 540px' }}>
+      <div style={{ position: 'absolute', inset: 0, transform: `translateY(${dy}px) scale(${push.toFixed(5)})`, transformOrigin: '960px 540px' }}>
         {!title && (
           <div style={{ position: 'absolute', left: LEFT, top: TOP - 150, fontFamily: INTER, fontSize: 80, fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1, opacity: capO }}>
             {cap.text}
           </div>
         )}
-        {CELLS.map((_, i) => <Cell key={i} i={i} frame={frame} studios={studios} />)}
+        {CELLS.map((_, i) => <Cell key={i} i={i} frame={frame} studios={studios} region={region} />)}
       </div>
       {title && <EngineTitle {...title} />}
     </AbsoluteFill>

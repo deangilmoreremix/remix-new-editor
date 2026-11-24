@@ -1,20 +1,20 @@
 [
  {
-  "from": 11,
-  "src": "whoosh-big.mp3",
-  "volume": 0.5,
-  "note": "pull-back / first deals"
+  "from": 19,
+  "src": "swoosh-quick.mp3",
+  "volume": 0.7,
+  "note": "first cards dealt"
  },
  {
   "from": 39,
   "src": "whoosh-fast.mp3",
-  "volume": 0.6,
+  "volume": 0.5,
   "note": "fast deal run"
  },
  {
   "from": 103,
   "src": "transition-snap.mp3",
-  "volume": 1,
+  "volume": 0.7,
   "note": "board settles"
  }
 ]

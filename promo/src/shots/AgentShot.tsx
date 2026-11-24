@@ -15,7 +15,7 @@ const M = layout['video-agent-typed'].measure as { x0: number; y: number; h: num
 const N_CH = M.offsets.length;
 const PER_CHAR = 2;
 const CLICK = 42, TYPE_START = 50, TYPE_END = TYPE_START + N_CH * PER_CHAR;
-const BACK = 164;
+const BACK = 9999; // no pull-back: the clip ends on the zoomed, readable typed prompt (the title sits below it)
 const CAM_EASE = bezier(0.55, 0, 0.18, 1);
 const IN = { x: 1000, y: 650, s: 1.9 };
 const camAt = (f: number) => {
@@ -56,13 +56,15 @@ export const AgentShot: React.FC<{ title?: EngineTitleProps }> = ({ title }) => 
           <div style={{ position: 'absolute', inset: 0, clipPath: typedDone ? undefined : `polygon(${M.x0 - 6}px ${M.y - 4}px, ${revealX}px ${M.y - 4}px, ${revealX}px ${M.y + M.h * 0.62}px, ${M.x0 - 6}px ${M.y + M.h * 0.62}px)` }}>
             <Img src={staticFile('textures/live/video-agent-typed-full.png')} style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080 }} />
           </div>
+          {/* the app shows a third-party model name in a dropdown under the input: blurred out (decision recorded in V3-STORYBOARD.md) */}
+          <div style={{ position: 'absolute', left: 620, top: 712, width: 262, height: 52, borderRadius: 14, backdropFilter: 'blur(16px)', background: 'rgba(24,24,24,0.55)' }} />
           {caretOn && <div style={{ position: 'absolute', left: caretX, top: M.y + 12, width: 2, height: 30, background: '#fff' }} />}
         </div>
       </SpeedBlur>
       {ripple >= 0 && <div style={{ position: 'absolute', left: cx - 40, top: cy - 40, width: 80, height: 80, borderRadius: 40, border: `3px solid rgba(217,255,0,${((1 - ripple) * 0.9).toFixed(3)})`, background: `rgba(217,255,0,${((1 - ripple) * 0.12).toFixed(3)})`, transform: `scale(${(0.3 + EASE.out(ripple) * 1.2).toFixed(3)})` }} />}
       <div style={{ position: 'absolute', left: cx, top: cy, opacity: intro * (1 - ramp(f, BACK + 10, 12, EASE.exit)) }}><Cursor press={press} /></div>
-      <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(5,5,5,0) 76%, rgba(5,5,5,0.92) 100%)' }} />
-      {title && <EngineTitle {...title} pos="bc" at={150} />}
+      <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(5,5,5,0) 70%, rgba(5,5,5,0.94) 100%)' }} />
+      {title && <EngineTitle {...title} pos="bc" at={14} />}
     </AbsoluteFill>
   );
 };

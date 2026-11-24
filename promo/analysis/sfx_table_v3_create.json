@@ -1,20 +1,20 @@
 [
  {
-  "from": 0,
-  "src": "whoosh-big.mp3",
-  "volume": 0.5,
+  "from": 7,
+  "src": "swoosh-quick.mp3",
+  "volume": 0.7,
   "note": "first studio cell lights"
  },
  {
-  "from": 49,
-  "src": "swoosh-quick.mp3",
-  "volume": 0.65,
+  "from": 55,
+  "src": "transition-snap.mp3",
+  "volume": 0.7,
   "note": "mid cascade"
  },
  {
   "from": 99,
   "src": "transition-snap.mp3",
-  "volume": 0.75,
+  "volume": 0.7,
   "note": "last cell lit"
  }
 ]
