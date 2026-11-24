@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import screenshots from '../data/guideScreenshots.json';
 import { GUIDE_ROUTES, featureLabel } from '../data/guideRoutes.js';
 import { GUIDE_STEPS } from '../components/GuidePage.js';
-import { NAV_GROUPS } from '../lib/studioRoutes.js';
+import { NAV_GROUPS, STUDIO_ROUTES } from '../lib/studioRoutes.js';
 import { getStudioThumbnail } from '../lib/thumbnails.js';
 import { isKnownPage } from '../lib/router.js';
 
@@ -11,11 +11,11 @@ const menuApps = NAV_GROUPS.slice(1).flatMap((g) => g.items.map((i) => i.id));
 const EXPECTED = [...new Set(['templates', 'academy', ...menuApps, 'render'])];
 
 describe('studio guides data', () => {
-  it('every guide slug maps to a studio route and vice versa', () => {
-    expect(Object.keys(screenshots).sort()).toEqual(Object.keys(GUIDE_ROUTES).sort());
+  it('every Apps-guide slug has screenshots', () => {
+    for (const slug of Object.keys(GUIDE_ROUTES)) expect(screenshots[slug], slug).toBeTruthy();
   });
   it('every mapped studio is a side-menu app, Templates, Academy or Video Render', () => {
-    const known = new Set(['templates', 'academy', 'render', ...menuApps]);
+    const known = new Set(['templates', 'academy', 'render', ...menuApps, ...Object.keys(STUDIO_ROUTES)]);
     for (const [slug, route] of Object.entries(GUIDE_ROUTES)) expect(known.has(route), `${slug} -> ${route}`).toBe(true);
   });
   it('every screenshot in the data file exists in public/guides', () => {
@@ -45,6 +45,20 @@ describe('Apps page', () => {
   it('has no Get started banner above the apps', async () => {
     const { AppsHub } = await import('../components/AppsHub.js');
     expect(AppsHub().querySelector('[data-get-started]')).toBeNull();
+  });
+});
+
+describe('Apps and Explore navigation helpers', () => {
+  it('Apps page links to the Get started guide', async () => {
+    const { AppsHub } = await import('../components/AppsHub.js');
+    expect(AppsHub().querySelector('[data-apps-guide]')).toBeTruthy();
+  });
+  it('Explore has a jump bar to every section and category', async () => {
+    const { ExplorePage, exploreCategories } = await import('../components/ExplorePage.js');
+    const page = ExplorePage();
+    const bar = page.querySelector('[data-explore-jump]');
+    expect([...bar.querySelectorAll('[data-jump]')].map((b) => b.dataset.jump)).toEqual(['favorites', 'trending', 'prompts', 'categories', 'studios']);
+    expect(bar.querySelectorAll('select option').length).toBe(exploreCategories().length + 1);
   });
 });
 

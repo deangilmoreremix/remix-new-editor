@@ -336,6 +336,9 @@ const STUDIO_THUMBNAILS = {
   academy: '/thumbnails/studios/academy.webp',
   'cinema-template': '/thumbnails/studios/cinema-template.webp',
   zackd: '/thumbnails/studios/zackd.webp',
+  'muapi-studio': '/thumbnails/studios/muapi-studio.webp',
+  'media-hub': '/guides/smartviddownloader/overview.webp',
+  smartwarmupai: '/guides/smartwarmupai/overview.webp',
   director: '/thumbnails/studios/director.webp',
   timeline: '/thumbnails/studios/timeline.webp',
   workbench: '/thumbnails/studios/workbench.webp',
@@ -445,6 +448,8 @@ const PAGE_THUMBNAILS = {
 // photo-style art with no baked-in captions. Hero pictures (heroes/*) are only a fallback
 // for pages that have no studio art.
 export function getBannerThumbnail(studioId) {
+  // Zack D keeps its own landscape banner picture (the studio card art is a portrait keyframe).
+  if (studioId === 'zackd') return getHeroThumbnail('zackd');
   return getStudioThumbnail(studioId) || getHeroThumbnail(studioId) || null;
 }
 

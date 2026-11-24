@@ -56,6 +56,8 @@ const MORE_APPS = [
   { id: 'zackd', name: 'Zack D Studio', description: 'Turn one question into a 3D animated explainer short', icon: icon24('zackd'), badge: 'Explainers', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
   { id: 'templates', name: 'Templates', description: 'Ready-to-use image and video templates: pick one, add your media, generate', icon: icon24('templates'), badge: 'Templates', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
   { id: 'academy', name: 'Academy', description: 'Courses and guides for making AI video, with templates to try', icon: icon24('academy'), badge: 'Learn', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+  { id: 'muapi-studio', name: 'Studio', description: 'Every model in one studio: pick a model or app, fill the form and generate', icon: icon24('muapi-studio'), badge: 'All models', color: 'bg-primary/10 text-primary border-primary/20' },
+  { id: 'media-hub', name: 'SmartVidDownloader', description: 'Download videos and audio from links, with transcripts and AI tools', icon: icon24('media-hub'), badge: 'Download', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
   { id: 'render', name: 'Video Render', description: 'Export, queue and publish finished videos', icon: icon24('render'), badge: 'Render', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' },
 ];
 
@@ -98,6 +100,7 @@ export function AppsHub() {
     </span>
     <h1 class="text-4xl md:text-5xl font-black text-white tracking-tight mb-3">Every creative tool, one place</h1>
     <p class="text-white/50 text-sm md:text-base max-w-xl mb-8">Studios, effects, editors and AI apps. Pick one and start creating.</p>
+    <button type="button" data-apps-guide class="mb-8 text-sm font-bold text-primary hover:underline">New here? Open the Get started guide &rarr;</button>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-4xl text-left">
       ${[
         ['1', 'Choose an app', 'Image, video, cinema, audio and more — each studio is tuned for one job.'],
@@ -111,6 +114,7 @@ export function AppsHub() {
         </div>`).join('')}
     </div>
   `;
+  heroSection.querySelector('[data-apps-guide]').onclick = () => navigate('guide');
   inner.appendChild(heroSection);
 
   const searchWrapper = document.createElement('div');

@@ -256,6 +256,40 @@ export function ExplorePage() {
   studiosSection.dataset.exploreStudios = String(cards.length);
   inner.appendChild(studiosSection);
 
+  // ---- Jump bar: the page is long, so link to each section and category ----
+  const jumpTargets = [
+    ['Favorites', favoritesSection], ['Trending', trendingSection], ['Prompts', promptsSection],
+    ['Categories', categoriesSection], ['Studios', studiosSection],
+  ];
+  const jumpBar = document.createElement('nav');
+  jumpBar.setAttribute('aria-label', 'Jump to a section');
+  jumpBar.dataset.exploreJump = '';
+  jumpBar.className = 'sticky top-0 z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-2 mb-6 flex items-center gap-2 overflow-x-auto no-scrollbar bg-app-bg/90 backdrop-blur border-b border-white/10';
+  const scrollToEl = (target) => target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  jumpTargets.forEach(([label, target]) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.dataset.jump = label.toLowerCase();
+    chip.className = 'px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-xs font-bold text-white hover:bg-white/10 whitespace-nowrap';
+    chip.textContent = label;
+    chip.onclick = () => scrollToEl(target);
+    jumpBar.appendChild(chip);
+  });
+  const catSelect = document.createElement('select');
+  catSelect.setAttribute('aria-label', 'Jump to a category');
+  catSelect.dataset.jumpCategory = '';
+  catSelect.className = 'ml-auto shrink-0 max-w-[12rem] rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-white';
+  const addOption = (text, value) => { const o = document.createElement('option'); o.value = value; o.textContent = text; catSelect.appendChild(o); };
+  addOption('Category…', '');
+  categories.forEach(({ label }) => addOption(label, label));
+  catSelect.onchange = () => {
+    const row = [...categoriesSection.querySelectorAll('[data-category]')].find((r) => r.dataset.category === catSelect.value);
+    if (row) scrollToEl(row);
+    catSelect.value = '';
+  };
+  jumpBar.appendChild(catSelect);
+  inner.insertBefore(jumpBar, favoritesSection);
+
   container.appendChild(inner);
 
   // First paint from this browser, then bring in the account's favorites and the usage ranking.

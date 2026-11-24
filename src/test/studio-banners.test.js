@@ -63,7 +63,7 @@ describe('studio banners', () => {
   });
 
   it('every side-menu studio banner uses its generated studio art at the standard size', () => {
-    const ids = NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id)).filter((id) => !['apps', 'explore'].includes(id));
+    const ids = NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id)).filter((id) => !['apps', 'explore', 'zackd'].includes(id));
     for (const id of ids) {
       expect(getBannerThumbnail(id), id).toBe(getStudioThumbnail(id));
       expect(createStudioHeader(id, 'x').className, id).toContain(STUDIO_BANNER_HEIGHT);
