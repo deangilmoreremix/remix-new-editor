@@ -337,7 +337,6 @@ const STUDIO_THUMBNAILS = {
   academy: '/thumbnails/studios/academy.webp',
   'cinema-template': '/thumbnails/studios/cinema-template.webp',
   zackd: '/thumbnails/studios/zackd.webp',
-  'muapi-studio': '/thumbnails/studios/muapi-studio.webp',
   'media-hub': '/guides/smartviddownloader/overview.webp',
   smartwarmupai: '/guides/smartwarmupai/overview.webp',
   director: '/thumbnails/studios/director.webp',
