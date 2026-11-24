@@ -1,6 +1,7 @@
 // [remix] Inspector for the selected overlay. The fields are drawn by the old editor's settings renderer (`renderAddonEditor`),
 // so Lead Generator / List Builder / CTA have the same Basic / Style / Fields / Integrations tabs as before.
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import '../../styles/edit-panels.css';
 import type { OverlayClip } from '@cinegen/types/workspace';
 // @ts-expect-error plain JS settings renderer from the main app
 import { renderAddonEditor } from '../../../lib/editor/addons/addonEditor.js';
@@ -33,7 +34,7 @@ function MgPropsEditor({ overlay, onUpdate }: { overlay: OverlayClip; onUpdate: 
   const props = (overlay.props as Record<string, unknown>) ?? {};
   const set = (key: string, v: unknown) => onUpdate({ props: { ...props, [key]: v } });
   return (
-    <div style={{ padding: '0 12px 16px' }}>
+    <div className="cg-panel-pad--end">
       {schema.map((f) => {
         const v = props[f.key] ?? f.defaultValue;
         const label = <span>{f.label ?? f.key}</span>;
@@ -55,10 +56,9 @@ function HfPlacementControls({ overlay, duration, onUpdate }: { overlay: Overlay
   const g = normalizeGeom(overlay.geom, fitDefault) as { x: number; y: number; scale: number; fit: string };
   const set = (patch: Record<string, unknown>) => onUpdate({ geom: { ...((overlay.geom as Record<string, unknown>) ?? {}), fit: g.fit, ...patch } });
   const num = (v: string, d: number) => (Number.isFinite(Number(v)) && v.trim() !== '' ? Number(v) : d);
-  const btn: CSSProperties = { fontSize: 11, padding: '5px 9px', borderRadius: 6, border: '1px solid var(--border-medium)', background: 'var(--bg-elevated)', color: 'inherit', cursor: 'pointer' };
   return (
-    <div data-testid="hf-placement" style={{ padding: '0 12px 8px' }}>
-      <div style={{ fontSize: 11, opacity: 0.7, margin: '4px 0 6px', textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 600 }}>Placement</div>
+    <div data-testid="hf-placement" className="cg-panel-pad">
+      <div className="cg-label" style={{ margin: '4px 0 6px' }}>Placement</div>
       {!isRui && (
         <label className="addon-field"><span>Fit</span>
           <select aria-label="Fit" value={g.fit} onChange={(e) => set({ fit: e.target.value })}>{(HF_FITS as string[]).map((f) => <option key={f} value={f}>{(HF_FIT_LABELS as Record<string, string>)[f]}</option>)}</select>
@@ -70,10 +70,10 @@ function HfPlacementControls({ overlay, duration, onUpdate }: { overlay: Overlay
         <label className="addon-field" style={{ flex: 1 }}><span>Size (%)</span><input aria-label="Size" type="number" min={10} max={400} step={5} value={Math.round(g.scale * 100)} onChange={(e) => set({ scale: Math.min(4, Math.max(0.1, num(e.target.value, 100) / 100)) })} /></label>
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-        <button type="button" style={btn} onClick={() => onUpdate({ geom: { fit: fitDefault } })}>Reset position</button>
-        <button type="button" style={btn} disabled={duration <= overlay.start + 0.5} onClick={() => onUpdate({ end: Math.max(overlay.start + 0.5, duration) })}>Extend to end of video</button>
+        <button type="button" className="cg-btn cg-btn--sm" onClick={() => onUpdate({ geom: { fit: fitDefault } })}>Reset position</button>
+        <button type="button" className="cg-btn cg-btn--sm" disabled={duration <= overlay.start + 0.5} onClick={() => onUpdate({ end: Math.max(overlay.start + 0.5, duration) })}>Extend to end of video</button>
       </div>
-      <div style={{ fontSize: 11, opacity: 0.6, marginTop: 6 }}>Tip: select it, then drag the "Move" handle on the video, or the corner square to resize.</div>
+      <div className="cg-note" style={{ marginTop: 6 }}>Tip: select it, then drag the "Move" handle on the video, or the corner square to resize.</div>
     </div>
   );
 }
@@ -169,46 +169,37 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
 
   const num = (v: string, fallback: number) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
   return (
-    <aside className="clip-properties-panel addon-panel" style={{ overflow: 'auto' }}>
-      <style>{`
-        .addon-panel .addon-tabs{display:flex;gap:6px;margin:6px 0 10px;flex-wrap:wrap}
-        .addon-panel .addon-tab{border:1px solid var(--border-medium,rgba(255,255,255,.18));background:transparent;color:var(--text-secondary);border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer}
-        .addon-panel .addon-tab.active{border-color:rgba(217,255,0,.25);color:#fff;background:rgba(217,255,0,.08)}
-        .addon-panel .addon-field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:11px;color:var(--text-secondary)}
-        .addon-panel .addon-field input[type=text],.addon-panel .addon-field input[type=url],.addon-panel .addon-field textarea,.addon-panel .addon-field select{width:100%;box-sizing:border-box;background:var(--bg-raised,#10141c);color:var(--text-primary,#fff);border:1px solid var(--border-medium,rgba(255,255,255,.18));border-radius:6px;padding:6px 8px;font:inherit}
-        .addon-panel .addon-fieldlist__row{display:flex;gap:4px;align-items:center;margin-bottom:4px}
-        .addon-panel .mini-btn{border:1px solid var(--border-medium,rgba(255,255,255,.18));background:transparent;color:inherit;border-radius:6px;padding:2px 6px;cursor:pointer}
-      `}</style>
+    <aside className="clip-properties-panel addon-panel">
       <div className="clip-properties-panel__header">
-        <span className="clip-properties-panel__title" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{overlay.name} overlay</span>
+        <span className="clip-properties-panel__title cg-title-ellipsis">{overlay.name} overlay</span>
         <span style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-          <button type="button" className="mini-btn" onClick={onRemove}>Delete</button>
-          <button type="button" className="mini-btn" onClick={onClose} aria-label="Close">✕</button>
+          <button type="button" className="cg-btn cg-btn--sm" onClick={onRemove}>Delete</button>
+          <button type="button" className="cg-btn cg-btn--sm" onClick={onClose} aria-label="Close">✕</button>
         </span>
       </div>
       {(overlay.type === 'list-builder' || overlay.type === 'lead-form') && <FormLeadsButton overlayId={overlay.id} type={overlay.type} />}
       {overlay.type === 'lead-form' && !gatesOnTimeline(overlay) && (
-        <p data-testid="trigger-note" style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '0 12px 8px' }}>On the published page this form appears {overlay.trigger === 'end' ? 'at the end of the video' : overlay.trigger === 'pause' ? 'when the viewer pauses' : 'when the viewer is about to leave'}. Here it shows while the video is stopped inside this time range, and does not pause playback.</p>
+        <p data-testid="trigger-note" className="cg-note cg-panel-note">On the published page this form appears {overlay.trigger === 'end' ? 'at the end of the video' : overlay.trigger === 'pause' ? 'when the viewer pauses' : 'when the viewer is about to leave'}. Here it shows while the video is stopped inside this time range, and does not pause playback.</p>
       )}
       {overlay.type === 'list-builder' ? (
-        <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '0 12px 8px' }}>Viewers fill this out before the video plays. It sits at the start of the timeline and takes no video time.</p>
+        <p className="cg-note cg-panel-note">Viewers fill this out before the video plays. It sits at the start of the timeline and takes no video time.</p>
       ) : (
-      <div style={{ display: 'flex', gap: 8, padding: '0 12px 8px' }}>
-        <label style={{ fontSize: 11 }}>Start (s)<br />
+      <div className="cg-panel-pad" style={{ display: 'flex', gap: 8 }}>
+        <label className="cg-time-label">Start (s)<br />
           <input type="number" min={0} max={Math.max(0, overlay.end - 0.5)} step={0.1} value={Number(overlay.start.toFixed(2))}
-            onChange={(e) => onUpdate({ start: Math.max(0, Math.min(num(e.target.value, overlay.start), overlay.end - 0.5)) })} style={{ width: 80 }} />
+            onChange={(e) => onUpdate({ start: Math.max(0, Math.min(num(e.target.value, overlay.start), overlay.end - 0.5)) })} className="cg-field cg-time-field" />
         </label>
-        <label style={{ fontSize: 11 }}>End (s)<br />
+        <label className="cg-time-label">End (s)<br />
           <input type="number" min={overlay.start + 0.5} max={Math.max(duration, overlay.end)} step={0.1} value={Number(overlay.end.toFixed(2))}
-            onChange={(e) => onUpdate({ end: Math.max(overlay.start + 0.5, num(e.target.value, overlay.end)) })} style={{ width: 80 }} />
+            onChange={(e) => onUpdate({ end: Math.max(overlay.start + 0.5, num(e.target.value, overlay.end)) })} className="cg-field cg-time-field" />
         </label>
       </div>
       )}
       {isRegistryOverlay(overlay.type) && <SavePresetRow overlay={overlay} />}
-      {note && <p role="status" data-testid="overlay-note" style={{ fontSize: 11, margin: '0 12px 8px', color: 'var(--text-secondary)' }}>{note}</p>}
+      {note && <p role="status" data-testid="overlay-note" className="cg-note cg-panel-note">{note}</p>}
       {overlay.type === 'overlay-personalized-image' && contact.profiles.length > 0 && (
-        <div style={{ padding: '0 12px 8px' }}>
-          <button type="button" className="mini-btn" data-testid="all-video-ready" disabled={allBusy} style={{ width: '100%', padding: '5px 8px' }}
+        <div className="cg-panel-pad">
+          <button type="button" className="cg-btn cg-btn--sm cg-btn--block" data-testid="all-video-ready" disabled={allBusy}
             title="Make all Video Ready"
             onClick={async () => {
               setAllBusy(true);
@@ -220,12 +211,12 @@ export function OverlaySettingsPanel({ overlay, duration, onUpdate, onRemove, on
         </div>
       )}
       {overlay.type === 'overlay-personalized-image' && !contact.profiles.length && (
-        <p data-testid="no-contacts-hint" style={{ fontSize: 11, margin: '0 12px 8px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+        <p data-testid="no-contacts-hint" className="cg-note cg-panel-note">
           No contacts yet, so this shows a grey placeholder. Make one with the <strong>Personalization</strong> button on the Overlays lane: their logo and photo then appear here, and each contact gets their own picture in the video.
         </p>
       )}
       {overlay.type === 'hyperframes' && <HfPlacementControls overlay={overlay} duration={duration} onUpdate={onUpdate} />}
-      {overlay.type === 'mg-template' || overlay.type === 'hyperframes' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} style={{ padding: '0 12px 16px' }} />}
+      {overlay.type === 'mg-template' || overlay.type === 'hyperframes' ? <MgPropsEditor overlay={overlay} onUpdate={onUpdate} /> : <div ref={box} className="cg-panel-pad--end" />}
       {overlay.type === 'overlay-sticker' && (overlay.addon as { kind?: string } | undefined)?.kind === 'lottie' && <LottieEditSection addon={overlay.addon as never} onChange={(next) => onUpdate({ addon: next })} />}
     </aside>
   );

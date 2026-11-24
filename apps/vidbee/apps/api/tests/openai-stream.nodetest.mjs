@@ -42,3 +42,34 @@ test('accepts a completed stream', async () => {
   ])
   assert.equal(out.text, 'ok')
 })
+
+test('collects web-search citations and renders a Sources list', async () => {
+  const { sourcesMarkdown } = await import('../src/lib/openai-responses.ts')
+  const out = await run([
+    {
+      type: 'response.completed',
+      response: {
+        output: [
+          { type: 'web_search_call', id: 'ws_1', status: 'completed' },
+          {
+            type: 'message',
+            content: [
+              {
+                type: 'output_text',
+                text: 'Paris is the capital.',
+                annotations: [
+                  { type: 'url_citation', url: 'https://example.org/a', title: 'Atlas [1]' },
+                  { type: 'url_citation', url: 'https://example.org/a', title: 'dup' },
+                  { type: 'url_citation', url: 'javascript:alert(1)', title: 'bad' }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ])
+  assert.deepEqual(out.sources, [{ title: 'Atlas [1]', url: 'https://example.org/a' }])
+  assert.equal(sourcesMarkdown(out.sources), '\n\n**Sources**\n- [Atlas 1](https://example.org/a)')
+  assert.equal(sourcesMarkdown([]), '')
+})

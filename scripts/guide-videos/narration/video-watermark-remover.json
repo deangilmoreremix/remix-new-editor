@@ -7,7 +7,7 @@
     "powerful-removal-tools-section": "The Powerful Removal Tools cards give a quick summary of what the remover is for. They're information only, so just skim them.",
     "how-it-works-steps": "How It Works breaks the process into three simple steps: upload your video, let the AI process it, then download. It's a handy preview before you begin.",
     "ai-video-watermark-remover-card": "In Available Tools, the Watermark card opens Video Studio. The right model is chosen for you automatically when you upload a video there.",
-    "ai-video-object-remover-and-logo-remover-cards": "The object remover and logo remover cards also open Video Studio. They're handy shortcuts when you want to clear unwanted elements or branding from a clip.",
+    "logo-seedance-and-background-remover-cards": "Three more cards are shortcuts to the right model: a logo remover, a Seedance watermark remover and a background remover. Each opens Video Studio with that model already selected.",
     "removing-a-watermark-in-video-studio": "In Video Studio, the video button next to the prompt uploads your clip. The studio switches to the watermark remover model, and no prompt is needed."
   },
   "outro": "Only remove watermarks from footage you own or are licensed to edit. Keep the original, and you're all set."

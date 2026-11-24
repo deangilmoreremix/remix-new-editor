@@ -1,0 +1,72 @@
+{
+  "connect-mailboxes-accounts": {
+    "route": "smartwarmupai/mailboxes"
+  },
+  "warmup": {
+    "route": "smartwarmupai/mailboxes",
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartWarmupAI\"] >> internal:control=enter-frame >> text=dan.okafor@sunrise.test",
+        "wait": 2500
+      },
+      {
+        "selector": "iframe[title=\"SmartWarmupAI\"] >> internal:control=enter-frame >> text=\"Warmup\" >> nth=-1",
+        "wait": 2500
+      }
+    ]
+  },
+  "campaigns-and-sequences": {
+    "route": "smartwarmupai/campaigns"
+  },
+  "inbox": {
+    "route": "smartwarmupai/inbox"
+  },
+  "contacts": {
+    "route": "smartwarmupai/contacts"
+  },
+  "lead-finder": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartWarmupAI\"] >> internal:control=enter-frame >> nav >> text=\"Lead finder\"",
+        "wait": 2500
+      }
+    ]
+  },
+  "crm-pipelines-deals-tasks-meetings": {
+    "route": "smartwarmupai/pipeline"
+  },
+  "templates-and-forms": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartWarmupAI\"] >> internal:control=enter-frame >> nav >> text=\"Forms\"",
+        "wait": 2500
+      }
+    ]
+  },
+  "automations": {
+    "route": "smartwarmupai/automations"
+  },
+  "integrations": {
+    "route": "smartwarmupai/integrations"
+  },
+  "analytics-and-reports": {
+    "route": "smartwarmupai/dashboard"
+  },
+  "deliverability-and-placement-tests": {
+    "route": "smartwarmupai/deliverability"
+  },
+  "settings": {
+    "route": "smartwarmupai/settings"
+  },
+  "ask-remie-ai-assistant": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartWarmupAI\"] >> internal:control=enter-frame >> [aria-label*=\"Remie\" i], [title*=\"Remie\" i]",
+        "wait": 3000
+      }
+    ]
+  },
+  "help": {
+    "route": "smartwarmupai/help"
+  }
+}

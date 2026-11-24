@@ -282,7 +282,8 @@ function setToolInUrl(tool) {
     if (tool) params.set('tool', tool.slug);
     else params.delete('tool');
     const query = params.toString();
-    const next = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash || '#/edit'}`;
+    const legacyHash = window.location.hash.startsWith('#/') ? window.location.hash : '';
+    const next = `${window.location.pathname}${query ? `?${query}` : ''}${legacyHash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       window.history.pushState({ editTool: tool?.slug || null }, '', next);
     }

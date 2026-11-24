@@ -9,7 +9,7 @@ const esc = (s) =>
 
 // Slugs and routes are URL-safe by construction (see studioGuides.test.js); escaped anyway.
 const guideHref = (slug) => esc(`/studios/${encodeURIComponent(slug)}/`);
-const studioHref = (route) => esc(`/#/${route}`);
+const studioHref = (route) => esc(`/${route}`);
 
 export const GUIDE_CSS = `
 .sg{--bg:#050505;--panel:#0a0a0a;--panel2:#141414;--line:rgba(255,255,255,.09);--text:#e7e9ee;--mute:#9aa1ae;--accent:#d9ff00;--accent2:#c4e600;
@@ -127,7 +127,7 @@ function topBar() {
   <a class="sg-logo" href="/">Smart Video <span>AI Studio</span></a>
   <nav aria-label="Main">
     <a href="/studios/" class="hide-sm">All studio guides</a>
-    <a href="/#/apps" class="hide-sm">Open the app</a>
+    <a href="/apps" class="hide-sm">Open the app</a>
     <a href="/signup" class="sg-btn primary">Get started</a>
   </nav></div></header>`;
 }
@@ -239,7 +239,7 @@ export function renderHubHtml(groups, total, notFound = '') {
     <span class="sg-eyebrow">Feature guides</span>
     <h1>Every studio in ${esc(SITE_NAME)}, <em>explained</em></h1>
     <p class="sg-lead">${total} studios and ${featureTotal} features. Each guide covers what the studio does, every feature with a definition and screenshot, how to use it, inputs and outputs, limits, a glossary and FAQs.</p>
-    <div class="sg-cta"><a class="sg-btn primary" href="/#/apps">Open the app</a><a class="sg-btn ghost" href="/signup">Get started</a></div>
+    <div class="sg-cta"><a class="sg-btn primary" href="/apps">Open the app</a><a class="sg-btn ghost" href="/signup">Get started</a></div>
   </div></section>
   <nav class="sg-toc" aria-label="Categories"><strong>Categories</strong><ul>${groups.map((c) => `<li><a href="#${slugCat(c.id)}">${esc(c.title)} (${c.guides.length})</a></li>`).join('')}</ul></nav>
   ${groups.map((c) => `<section class="sg-cat" id="${slugCat(c.id)}" aria-labelledby="${slugCat(c.id)}-h"><h2 id="${slugCat(c.id)}-h">${esc(c.title)}</h2><p class="sg-sub">${esc(c.blurb)}</p>

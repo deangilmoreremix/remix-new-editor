@@ -1498,3 +1498,231 @@
 .addon-font-import { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
 .addon-font-import .mini-btn { align-self: flex-start; }
 .addon-font-error { font-size: 11px; color: #ff6b6b; }
+
+/* ==== Opt-in designs (src/lib/editor/addons/optinDesigns.js) ============== */
+/* Each design is a preset of ordinary options; this block only adds the layouts
+   (data-dlayout) and the decoration that cannot be expressed as an option
+   (data-design). Colours, radius, card, fields and button all still come from the
+   options, so everything stays editable. */
+.addon-overlay-layer .retarget-form .optin-eyebrow { width: 100%; font-size: 50%; letter-spacing: .2em; text-transform: uppercase; opacity: .85; margin-bottom: .7em; }
+.addon-overlay-layer .retarget-form .optin-subtitle { width: 100%; font-size: 58%; opacity: .8; margin: 0 0 1.4em; line-height: 1.4; }
+.addon-overlay-layer .retarget-form .form-inner::before,
+.addon-overlay-layer .retarget-form .form-inner::after { content: none; position: absolute; pointer-events: none; }
+.addon-overlay-layer .retarget-form .form-scrollable { z-index: 1; }
+
+/* ---- layouts ---- */
+.addon-overlay-layer .retarget-form[data-dlayout="split"] .form-scrollable-inner { flex-direction: row; align-items: center; gap: 6%; padding: 4%; }
+.addon-overlay-layer .retarget-form .optin-side { flex: 1 1 42%; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+.addon-overlay-layer .retarget-form .optin-main { flex: 1 1 54%; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.addon-overlay-layer .retarget-form .optin-main .input-wrapper-container { width: 100%; }
+.addon-overlay-layer .retarget-form[data-dlayout="side-card"] .form-inner { margin: auto 4% auto auto !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="sheet"] .form-inner { margin: auto auto 3% !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="sheet"] .form-inner::before { content: ""; left: 50%; top: 5px; width: 8%; height: 3px; border-radius: 3px; background: rgba(255,255,255,.35); transform: translateX(-50%); }
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .retarget-caption,
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .optin-subtitle { box-sizing: border-box; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); border-radius: 14px 14px 14px 4px; padding: .7em 1em; text-align: left !important; width: 88%; align-self: flex-start; margin-bottom: .9em; }
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .optin-subtitle { order: -1; font-size: 46%; }
+
+/* testimonial + stats (side panel) */
+.addon-overlay-layer .retarget-form .optin-proof { text-align: left; font-size: 74%; width: 100%; }
+.addon-overlay-layer .retarget-form .optin-proof blockquote { margin: 0 0 .6em; font-size: 140%; line-height: 1.35; font-weight: 700; }
+.addon-overlay-layer .retarget-form .optin-proof blockquote::before { content: "\201C"; }
+.addon-overlay-layer .retarget-form .optin-proof blockquote::after { content: "\201D"; }
+.addon-overlay-layer .retarget-form .optin-proof cite { display: block; font-style: normal; opacity: .7; margin-bottom: 1em; }
+.addon-overlay-layer .retarget-form .optin-proof cite::before { content: "\2014\00a0"; }
+.addon-overlay-layer .retarget-form .optin-stats { display: flex; gap: .8em; flex-wrap: wrap; }
+.addon-overlay-layer .retarget-form .optin-stats span { display: flex; flex-direction: column; font-size: 70%; opacity: .85; }
+.addon-overlay-layer .retarget-form .optin-stats b { font-size: 170%; line-height: 1.1; }
+
+/* ---- decoration per design ---- */
+.addon-overlay-layer .retarget-form[data-design]::before { content: ""; position: absolute; inset: 0; pointer-events: none; }
+.addon-overlay-layer .retarget-form[data-design="aurora-glass"]::before { background: radial-gradient(ellipse 45% 30% at 12% 40%, rgba(52,211,153,.85), transparent 72%), radial-gradient(ellipse 40% 35% at 92% 25%, rgba(34,211,238,.8), transparent 72%), radial-gradient(ellipse 50% 25% at 70% 100%, rgba(163,230,53,.5), transparent 72%); }
+.addon-overlay-layer .retarget-form[data-design="holographic-card"] .form-inner::before { content: ""; inset: -3px; padding: 3px; border-radius: inherit; background: conic-gradient(#22d3ee, #a855f7, #f472b6, #facc15, #22d3ee); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); opacity: .95; filter: drop-shadow(0 0 6px rgba(126,231,255,.7)); }
+.addon-overlay-layer .retarget-form[data-design="neon-floating-card"] .form-inner::before { content: ""; inset: -12px; border-radius: inherit; border: 2px solid var(--od-accent, #22d3ee); opacity: .75; box-shadow: 0 0 18px var(--od-accent, #22d3ee); }
+.addon-overlay-layer .retarget-form[data-design="neon-spotlight"]::before { background: radial-gradient(ellipse 60% 55% at 30% 45%, rgba(109,76,255,.28), transparent 70%); }
+.addon-overlay-layer .retarget-form[data-design="gradient-mesh"]::before { background: radial-gradient(circle at 90% 85%, rgba(251,146,60,.85), transparent 45%), radial-gradient(circle at 8% 10%, rgba(244,114,182,.55), transparent 40%); }
+.addon-overlay-layer .retarget-form[data-design="floating-pill-inputs"]::before { background: radial-gradient(circle at 9% 18%, #a78bfa 0 4%, transparent 4.3%), radial-gradient(circle at 96% 55%, #6d4cff 0 6%, transparent 6.3%); }
+.addon-overlay-layer .retarget-form[data-design="soft-pastel-frost"]::before { background: radial-gradient(circle at 15% 85%, rgba(255,255,255,.7), transparent 35%), radial-gradient(circle at 85% 15%, rgba(255,255,255,.6), transparent 30%); }
+.addon-overlay-layer .retarget-form[data-design="cosmic-portal"]::before { background: radial-gradient(1.5px 1.5px at 10% 20%, #fff 50%, transparent), radial-gradient(1.5px 1.5px at 30% 80%, #fff 50%, transparent), radial-gradient(1px 1px at 55% 12%, #fff 50%, transparent), radial-gradient(1.5px 1.5px at 80% 70%, #fff 50%, transparent), radial-gradient(1px 1px at 92% 25%, #fff 50%, transparent), radial-gradient(1px 1px at 18% 55%, #e9d5ff 50%, transparent), radial-gradient(ellipse 40% 55% at 50% 50%, rgba(217,70,239,.35), transparent 70%); }
+.addon-overlay-layer .retarget-form[data-design="geometric-frames"] .form-inner::before,
+.addon-overlay-layer .retarget-form[data-design="geometric-frames"] .form-inner::after { content: ""; inset: 0; clip-path: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%); background: var(--od-accent, #22d3ee); }
+.addon-overlay-layer .retarget-form[data-design="geometric-frames"] .form-inner::after { inset: 3px; background: #170f03; }
+.addon-overlay-layer .retarget-form[data-design="geometric-frames"]::before { background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(251,191,36,.16), transparent 70%); }
+.addon-overlay-layer .retarget-form[data-design="blueprint-grid"]::before { background: linear-gradient(rgba(147,197,253,.16) 1px, transparent 1px) 0 0 / 5% 8.9%, linear-gradient(90deg, rgba(147,197,253,.16) 1px, transparent 1px) 0 0 / 5% 8.9%; }
+.addon-overlay-layer .retarget-form[data-design="blueprint-grid"] .form-inner::before { content: ""; inset: -2%; border: 0; background:
+  linear-gradient(var(--od-accent, #93c5fd), var(--od-accent, #93c5fd)) top left / 7% 2px no-repeat, linear-gradient(var(--od-accent, #93c5fd), var(--od-accent, #93c5fd)) top left / 2px 12% no-repeat,
+  linear-gradient(var(--od-accent, #93c5fd), var(--od-accent, #93c5fd)) top right / 7% 2px no-repeat, linear-gradient(var(--od-accent, #93c5fd), var(--od-accent, #93c5fd)) top right / 2px 12% no-repeat,
+  linear-gradient(var(--od-accent, #93c5fd), var(--od-accent, #93c5fd)) bottom left / 7% 2px no-repeat, linear-gradient(var(--od-accent, #93c5fd), var(--od-accent, #93c5fd)) bottom left / 2px 12% no-repeat,
+  linear-gradient(var(--od-accent, #93c5fd), var(--od-accent, #93c5fd)) bottom right / 7% 2px no-repeat, linear-gradient(var(--od-accent, #93c5fd), var(--od-accent, #93c5fd)) bottom right / 2px 12% no-repeat; }
+.addon-overlay-layer .retarget-form[data-design="retro-terminal"]::before { background: repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 2px, transparent 2px 4px); z-index: 2; }
+.addon-overlay-layer .retarget-form[data-design="retro-terminal"] .retarget-caption::before { content: "> "; }
+.addon-overlay-layer .retarget-form[data-design="retro-terminal"] .form-inner::after { content: ""; right: 4%; top: 3%; width: 1.6em; height: .4em; background: radial-gradient(circle, var(--od-accent, #22c55e) 45%, transparent 50%) 0 0 / 33% 100%; }
+.addon-overlay-layer .retarget-form[data-design="modular-bento"] .form-scrollable { margin-left: 32%; height: 100%; }
+.addon-overlay-layer .retarget-form[data-design="modular-bento"] .form-inner::before { content: ""; left: 3%; top: 8%; bottom: 8%; width: 27%; border-radius: 14px; border: 1px solid rgba(255,255,255,.25); background: linear-gradient(135deg, rgba(168,85,247,.55), rgba(79,70,229,.35)); }
+.addon-overlay-layer .retarget-form[data-design="modular-bento"] .form-inner::after { content: ""; left: 11%; top: 50%; width: 0; height: 0; transform: translateY(-50%); border-style: solid; border-width: 1.1em 0 1.1em 1.8em; border-color: transparent transparent transparent #fff; }
+.addon-overlay-layer .retarget-form[data-design="spotlight-theater"]::before { background: linear-gradient(90deg, #7f1d1d 0, rgba(127,29,29,.0) 13%, rgba(127,29,29,0) 87%, #7f1d1d 100%), radial-gradient(ellipse 28% 80% at 22% 0, rgba(255,255,255,.28), transparent 70%), radial-gradient(ellipse 28% 80% at 78% 0, rgba(255,255,255,.28), transparent 70%), radial-gradient(ellipse 45% 10% at 50% 94%, rgba(239,68,68,.55), transparent 70%); }
+.addon-overlay-layer .retarget-form[data-design="high-contrast-monochrome"]::before { background: linear-gradient(115deg, #fff 0 8%, transparent 8% 11%, #fff 11% 13%, transparent 13%); }
+.addon-overlay-layer .retarget-form[data-design="high-contrast-monochrome"] .retarget-caption { text-transform: uppercase; letter-spacing: .02em; }
+.addon-overlay-layer .retarget-form[data-design="horizontal-ribbon"]::before { background: radial-gradient(circle at 100% 100%, rgba(251,146,60,.7), transparent 40%); }
+.addon-overlay-layer .retarget-form[data-design="horizontal-ribbon"] .buttons-inner button { clip-path: polygon(0 0, 100% 0, 96% 50%, 100% 100%, 0 100%, 4% 50%); }
+.addon-overlay-layer .retarget-form[data-design="ticket-invitation"] .optin-side { border-right: 2px dashed var(--od-accent, rgba(245,184,58,.65)); padding-right: 5%; }
+.addon-overlay-layer .retarget-form[data-design="dark-brutalist"]::before { background: linear-gradient(135deg, #dc2626 0 12%, transparent 12%), linear-gradient(315deg, #dc2626 0 4%, transparent 4%); }
+.addon-overlay-layer .retarget-form[data-design="dark-brutalist"] .retarget-caption { text-transform: uppercase; line-height: .98; font-weight: 400; }
+.addon-overlay-layer .retarget-form[data-design="dark-brutalist"] .buttons-inner button { text-transform: uppercase; letter-spacing: .05em; }
+.addon-overlay-layer .retarget-form[data-design="luxe-platinum"]::before { background: linear-gradient(118deg, transparent 56%, var(--od-accent, #c9a24a) 56% 58%, transparent 58% 61%, color-mix(in srgb, var(--od-accent, #e7d08a) 60%, #fff) 61% 62.5%, transparent 62.5%); opacity: .8; }
+.addon-overlay-layer .retarget-form[data-design="vip-access"] .form-inner::before { content: ""; inset: 5px; border: 1px solid var(--od-accent, rgba(201,162,74,.6)); }
+.addon-overlay-layer .retarget-form[data-design="vip-access"] .retarget-caption { letter-spacing: .08em; text-transform: uppercase; }
+.addon-overlay-layer .retarget-form[data-design="vip-access"] .optin-eyebrow::before,
+.addon-overlay-layer .retarget-form[data-design="vip-access"] .optin-eyebrow::after { content: "\25C6"; margin: 0 .6em; font-size: 70%; color: #c9a24a; }
+.addon-overlay-layer .retarget-form[data-design="editorial-minimalist"] .form-inner::before { content: ""; left: 0; top: 6%; bottom: 6%; width: 2px; background: #111; }
+.addon-overlay-layer .retarget-form[data-design="editorial-minimalist"] .form-scrollable { padding-left: 4%; }
+.addon-overlay-layer .retarget-form[data-design="left-rail"] .optin-side { flex: 0 0 28%; }
+.addon-overlay-layer .retarget-form[data-design="left-rail"] .optin-main { flex: 1 1 66%; background: #fff; color: #1f2937; border-radius: 16px; padding: 4%; box-sizing: border-box; }
+.addon-overlay-layer .retarget-form[data-design="social-proof"] .optin-side { flex: 0 0 40%; align-self: stretch; background: #fff; color: #1f2937; border-radius: 12px; padding: 5%; box-sizing: border-box; }
+.addon-overlay-layer .retarget-form[data-design="social-proof"] .optin-main { align-items: center; }
+.addon-overlay-layer .retarget-form[data-design="accordion-form"] .input-wrapper > * { min-height: 2.9em; }
+.addon-overlay-layer .retarget-form[data-design="progress-milestones"] .optin-steps { counter-reset: s; gap: .8em; }
+.addon-overlay-layer .retarget-form[data-design="progress-milestones"] .optin-steps span { counter-increment: s; width: 1.5em; height: 1.5em; opacity: .35; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 70%; font-weight: 700; }
+.addon-overlay-layer .retarget-form[data-design="progress-milestones"] .optin-steps span::before { content: counter(s); }
+.addon-overlay-layer .retarget-form[data-design="progress-milestones"] .optin-steps span.on { opacity: 1; }
+.addon-overlay-layer .retarget-form[data-design="two-step-wizard"] .optin-steps span { width: 1.2em; height: 1.2em; opacity: .3; }
+.addon-overlay-layer .retarget-form[data-design="two-step-wizard"] .optin-steps span.on { opacity: 1; }
+
+/* ---- design pieces from the board (all editable: Text / Design tabs) ---- */
+.addon-overlay-layer .retarget-form[data-decor="off"]::before,
+.addon-overlay-layer .retarget-form[data-decor="off"] .form-inner::before,
+.addon-overlay-layer .retarget-form[data-decor="off"] .form-inner::after { display: none !important; }
+.addon-overlay-layer .retarget-form[data-decor="off"] .optin-side { border-right: 0 !important; }
+.addon-overlay-layer .retarget-form .optin-brand { display: inline-flex; align-items: center; gap: .45em; font-size: 74%; font-weight: 700; letter-spacing: .01em; margin-bottom: 1.4em; align-self: inherit; }
+.addon-overlay-layer .retarget-form .optin-brand svg { width: 1.7em; height: 1.7em; color: var(--od-accent, var(--optin-btn-bg, #8b5cf6)); }
+.addon-overlay-layer .retarget-form[data-dlayout="center"] .optin-brand,
+.addon-overlay-layer .retarget-form[data-dlayout="sheet"] .optin-brand,
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .optin-brand { align-self: center; }
+.addon-overlay-layer .retarget-form .optin-badge { width: 100%; display: flex; justify-content: center; margin-bottom: .5em; color: var(--od-accent, var(--optin-btn-bg, #f2c14e)); }
+.addon-overlay-layer .retarget-form .optin-side .optin-badge { justify-content: flex-start; }
+.addon-overlay-layer .retarget-form .optin-badge svg { width: 2.4em; height: 2.4em; }
+.addon-overlay-layer .retarget-form[data-design="vip-access"] .optin-badge svg { width: 2em; height: 2em; }
+.addon-overlay-layer .retarget-form .optin-paneltitle { width: var(--field-w, 70%); text-align: left; font-weight: 700; font-size: 80%; margin-bottom: .2em; }
+.addon-overlay-layer .retarget-form .optin-panelhint { width: var(--field-w, 70%); text-align: left; font-size: 56%; opacity: .75; margin-bottom: 1em; }
+.addon-overlay-layer .retarget-form .optin-main .optin-paneltitle,
+.addon-overlay-layer .retarget-form .optin-main .optin-panelhint { width: 100%; }
+
+/* labelled stepper: 1 ── 2 ── 3 */
+.addon-overlay-layer .retarget-form .optin-stepper { display: flex; justify-content: center; align-items: flex-start; width: var(--field-w, 70%); margin: 0 0 1.2em; font-size: 58%; }
+.addon-overlay-layer .retarget-form .optin-stepper span { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: .4em; opacity: .65; }
+.addon-overlay-layer .retarget-form .optin-stepper span::before { content: ""; position: absolute; top: 1.2em; right: 50%; width: 100%; height: 2px; background: currentColor; opacity: .3; }
+.addon-overlay-layer .retarget-form .optin-stepper span:first-child::before { display: none; }
+.addon-overlay-layer .retarget-form .optin-stepper i { position: relative; z-index: 1; font-style: normal; font-weight: 700; width: 2.4em; height: 2.4em; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: currentColor; }
+.addon-overlay-layer .retarget-form .optin-stepper i { color: inherit; }
+.addon-overlay-layer .retarget-form .optin-stepper span.on, .addon-overlay-layer .retarget-form .optin-stepper span.done { opacity: 1; }
+.addon-overlay-layer .retarget-form .optin-stepper span.on i, .addon-overlay-layer .retarget-form .optin-stepper span.done i { background: var(--optin-btn-bg, #6d4cff); color: #fff; }
+.addon-overlay-layer .retarget-form .optin-stepper span:not(.on):not(.done) i { background: rgba(127,127,160,.35); color: inherit; }
+.addon-overlay-layer .retarget-form.has-stepper .optin-steps { display: none; }
+
+/* chat question bubbles */
+.addon-overlay-layer .retarget-form .optin-bubble { box-sizing: border-box; align-self: flex-start; width: 88%; text-align: left; font-size: 70%; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); border-radius: 14px 14px 14px 4px; padding: .7em 1em; margin-bottom: .8em; }
+
+/* quiz: dropdown shown as a list of choices */
+.addon-overlay-layer .retarget-form fieldset.optin-choice { border: 0; margin: 0; padding: 0; text-align: left; width: 100%; min-width: 0; }
+.addon-overlay-layer .retarget-form .optin-choice legend { padding: 0; font-weight: 700; font-size: 90%; margin-bottom: .6em; }
+.addon-overlay-layer .retarget-form .optin-choice label { display: flex; align-items: center; gap: .6em; box-sizing: border-box; padding: .55em .8em; margin-bottom: .45em; font-size: 66%; border: 1px solid rgba(255,255,255,.2); border-radius: var(--optin-in-radius, 6px); background: rgba(255,255,255,.05); cursor: pointer; }
+.addon-overlay-layer .retarget-form .optin-choice label:has(input:checked) { border-color: var(--optin-btn-bg, #6d4cff); background: rgba(109,76,255,.25); }
+.addon-overlay-layer .retarget-form .optin-choice input { width: 1.2em; height: 1.2em; flex: 0 0 auto; padding: 0; margin: 0; accent-color: var(--optin-btn-bg, #6d4cff); }
+.addon-overlay-layer .retarget-form .optin-choice input[type="radio"] { background-image: none !important; padding: 0 !important; }
+
+/* Play button icons */
+.addon-overlay-layer .retarget-form .buttons-inner button[data-icon="play"]::before { content: ""; display: inline-block; vertical-align: -.1em; margin-right: .5em; border-style: solid; border-width: .45em 0 .45em .75em; border-color: transparent transparent transparent currentColor; }
+.addon-overlay-layer .retarget-form .buttons-inner button[data-icon="arrow"]::after { content: "\2192"; margin-left: .55em; }
+
+/* box layouts: "cols" = boxes side by side with Play below; "row" reuses inline */
+.addon-overlay-layer .retarget-form .input-wrapper-container[data-layout="cols"] .input-wrapper { grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); }
+.addon-overlay-layer .retarget-form .optin-bubble::before { content: "\2726"; display: inline-flex; width: 1.6em; height: 1.6em; align-items: center; justify-content: center; margin-right: .6em; border-radius: 5px; background: rgba(139,92,246,.35); font-size: 80%; vertical-align: middle; }
+.addon-overlay-layer .retarget-form .optin-bubble { margin-bottom: .1em; }
+.addon-overlay-layer .retarget-form .input-wrapper-container[data-layout="inline"] .optin-bubble { display: none; }
+
+.addon-overlay-layer .retarget-form .optin-rating { display: flex; align-items: center; gap: .5em; margin-bottom: .7em; font-size: 80%; }
+.addon-overlay-layer .retarget-form .optin-rating b { color: #f5b83a; letter-spacing: .08em; }
+.addon-overlay-layer .retarget-form .optin-stats span + span { border-left: 1px solid rgba(127,127,160,.35); padding-left: .8em; }
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .optin-bubble { font-size: 58%; }
+.addon-overlay-layer .retarget-form .optin-choice label { font-size: 56%; }
+
+.addon-overlay-layer .retarget-form .optin-side .optin-badge svg { width: 3.4em; height: 3.4em; }
+.addon-overlay-layer .retarget-form .optin-stats { flex-wrap: nowrap; }
+.addon-overlay-layer .retarget-form .optin-stats span { font-size: 54%; white-space: nowrap; }
+.addon-overlay-layer .retarget-form .optin-stats span + span { padding-left: .6em; }
+
+/* ---- more layouts: a panel down a side, a card on the left, a corner pop-up, a wide banner ---- */
+.addon-overlay-layer .retarget-form[data-dlayout="drawer-right"] .form-inner { margin: 0 0 0 auto !important; height: 100% !important; border-radius: 0 !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="drawer-left"] .form-inner { margin: 0 auto 0 0 !important; height: 100% !important; border-radius: 0 !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="card-left"] .form-inner { margin: auto auto auto 4% !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="corner"] .form-inner { margin: auto 3% 4% auto !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="banner"] .form-inner { margin: auto !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="drawer-left"] .retarget-caption,
+.addon-overlay-layer .retarget-form[data-dlayout="drawer-right"] .retarget-caption { margin-bottom: .6em; }
+/* the editorial rule runs down the panel's inner edge */
+.addon-overlay-layer .retarget-form[data-design="editorial-minimalist"] .form-inner::before { left: auto; right: 0; top: 0; bottom: 0; width: 3px; }
+
+/* picker tile = a real scaled-down render of the design */
+.addon-designs--live { grid-template-columns: 1fr; gap: 8px; }
+.addon-designs--live .addon-design { padding: 6px; align-items: stretch; }
+.optin-mini-frame { display: block; position: relative; width: 230px; max-width: 100%; height: 129px; margin: 0 auto; overflow: hidden; border-radius: 6px; background: linear-gradient(120deg, #1c2b46, #7a4a2b 60%, #162036); }
+.optin-mini-frame .optin-mini { position: absolute; inset: auto; left: 0; top: 0; width: 640px; height: 360px; zoom: .36; pointer-events: none; }
+.addon-designs--live .addon-design > span:last-child { text-align: center; font-weight: 600; }
+
+/* chat: a question bubble before each box, kept tight so the whole conversation fits */
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .input-wrapper { gap: .35em; }
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .optin-bubble { font-size: 50%; padding: .45em .8em; width: 80%; }
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .optin-brand { margin-bottom: .6em; }
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .privacy-disclaimer { font-size: 30%; }
+
+/* hero: big title, all boxes in one row, no card; scrim-left: left-aligned form over a dark fade */
+.addon-overlay-layer .retarget-form[data-dlayout="hero"] .form-inner { margin: auto !important; }
+.addon-overlay-layer .retarget-form[data-dlayout="scrim-left"] .form-inner { margin: 0 auto 0 0 !important; height: 100% !important; background: linear-gradient(90deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.6) 65%, rgba(0,0,0,0) 100%); }
+.addon-overlay-layer .retarget-form[data-dlayout="scrim-left"] .form-scrollable-inner { align-items: flex-start; padding-left: 8%; }
+.addon-overlay-layer .retarget-form[data-dlayout="scrim-left"] .input-wrapper-container { align-items: flex-start; margin-inline: 0; }
+
+/* ---- fit work: nothing crosses an oval; chat shows a question beside its box; quiz choices in two columns ---- */
+.addon-overlay-layer .retarget-form[data-shape="oval"] .form-scrollable { height: 74%; margin: 13% 14.5% 0; }
+.addon-overlay-layer .retarget-form[data-design="cosmic-portal"] .form-inner::before { content: ""; inset: -9px; border-radius: 50%; border: 2px solid rgba(251,113,133,.7); box-shadow: 0 0 20px rgba(251,113,133,.5); }
+.addon-overlay-layer .retarget-form[data-design="cosmic-portal"] .form-inner::after { content: ""; inset: -19px; border-radius: 50%; border: 1px solid rgba(217,70,239,.55); box-shadow: 0 0 28px rgba(217,70,239,.5); }
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .input-wrapper-container .input-wrapper { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr) !important; gap: .35em .6em; align-items: center; }
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .optin-bubble { width: auto; align-self: auto; margin: 0; }
+.addon-overlay-layer .retarget-form[data-design="qualifying-quiz"] fieldset.optin-choice { display: grid; grid-template-columns: 1fr 1fr; gap: .3em .4em; }
+.addon-overlay-layer .retarget-form[data-design="qualifying-quiz"] .optin-choice legend { grid-column: 1 / -1; }
+.addon-overlay-layer .retarget-form[data-design="qualifying-quiz"] .optin-choice label { margin: 0; }
+.addon-overlay-layer .retarget-form .optin-proof blockquote { font-size: 118%; }
+/* ticket: the stub is punched out at both sides */
+.addon-overlay-layer .retarget-form[data-design="ticket-invitation"] .form-inner {
+  -webkit-mask: radial-gradient(circle .95em at 0 50%, #0000 96%, #000) left / 51% 100% no-repeat, radial-gradient(circle .95em at 100% 50%, #0000 96%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle .95em at 0 50%, #0000 96%, #000) left / 51% 100% no-repeat, radial-gradient(circle .95em at 100% 50%, #0000 96%, #000) right / 51% 100% no-repeat;
+}
+
+/* ---- compact vertical rhythm for the designs, so more of the card is content and the text can stay larger ---- */
+.addon-overlay-layer .retarget-form[data-design] .form-scrollable-inner { padding: 2%; }
+.addon-overlay-layer .retarget-form[data-design] .input-wrapper input,
+.addon-overlay-layer .retarget-form[data-design] .buttons-inner button { height: 2.25em; }
+.addon-overlay-layer .retarget-form[data-design] .retarget-caption { margin-bottom: .3em !important; padding-bottom: 0; line-height: 1.15; }
+.addon-overlay-layer .retarget-form[data-design] .optin-subtitle { margin-bottom: .8em; line-height: 1.3; }
+.addon-overlay-layer .retarget-form[data-design] .optin-brand { margin-bottom: .7em; }
+.addon-overlay-layer .retarget-form[data-design] .optin-eyebrow { margin-bottom: .45em; }
+.addon-overlay-layer .retarget-form[data-design] .optin-stepper { margin-bottom: .7em; }
+.addon-overlay-layer .retarget-form[data-design] .optin-badge { margin-bottom: .3em; }
+.addon-overlay-layer .retarget-form[data-design] .privacy-disclaimer { line-height: 1.25; margin-top: .3em; }
+.addon-overlay-layer .retarget-form[data-design] .optin-steps { margin-top: .3em; }
+/* keep the ticket's punched notches clear of the content */
+.addon-overlay-layer .retarget-form[data-design="ticket-invitation"] .optin-side { padding-left: 1.6em; }
+.addon-overlay-layer .retarget-form[data-design="ticket-invitation"] .optin-main { padding-right: 1.6em; box-sizing: border-box; }
+
+/* chat: a light assistant widget docked in the corner */
+.addon-overlay-layer .retarget-form[data-dlayout="chat"] .form-inner { margin: auto 3% 3% auto !important; }
+.addon-overlay-layer .retarget-form[data-design="conversational-setup"] .optin-bubble,
+.addon-overlay-layer .retarget-form[data-design="conversational-setup"] .retarget-caption { background: #eef0ff; border-color: #dfe3ff; color: #1f2340; }
+.addon-overlay-layer .retarget-form[data-design="conversational-setup"] .optin-bubble::before { background: rgba(109,76,255,.2); color: #6d4cff; }
+/* split + stepper: the steps run down the left column */
+.addon-overlay-layer .retarget-form[data-dlayout="split"] .optin-side .optin-stepper { flex-direction: column; align-items: flex-start; width: 100%; gap: .7em; margin: .8em 0 0; font-size: 70%; }
+.addon-overlay-layer .retarget-form[data-dlayout="split"] .optin-side .optin-stepper span { flex-direction: row; align-items: center; gap: .6em; }
+.addon-overlay-layer .retarget-form[data-dlayout="split"] .optin-side .optin-stepper span::before { top: auto; right: auto; left: 1.2em; bottom: 100%; width: 2px; height: .8em; }
+.addon-overlay-layer .retarget-form[data-dlayout="split"] .optin-side .optin-stepper span:first-child::before { display: none; }
+
+/* colour scheme tiles (a hue each) */
+.addon-scheme__swatch { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 2px solid rgba(255,255,255,.35); flex: 0 0 auto; }
+.addon-scheme.active { border-color: var(--cyan, #22d3ee); background: rgba(34, 211, 238, 0.1); }

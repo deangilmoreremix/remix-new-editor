@@ -37,7 +37,7 @@ describe('overlays', () => {
   it('the Lead Generator and List Builder share one settings schema (Styles / Fields / Pointer / Integrations)', () => {
     const lead = overlaySchema(createOverlay('lead-form', 2, 30));
     const tabs = (kind: Record<string, unknown>) => new Set((lead.fieldsFor as (o: unknown) => Array<{ tab: string }>)(kind).map((f) => f.tab));
-    expect(tabs(lead.options)).toEqual(new Set(['Text', 'Styles', 'Fields', 'Pointer', 'Integrations']));
+    expect(tabs(lead.options)).toEqual(new Set(['Text', 'Design', 'Styles', 'Fields', 'Pointer', 'Integrations']));
     expect(lead.options).toMatchObject({ kind: 'lead-generator', btnText: 'Play', buttonBackground: '#eb5054', pointerEnabled: false });
     const lb = overlaySchema(createOverlay('list-builder', 0, 30));
     expect(lb.options).toMatchObject({ kind: 'list-builder', pointerEnabled: true });

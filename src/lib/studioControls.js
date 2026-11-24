@@ -24,7 +24,17 @@ export function createAdvancedControls({ model, state, container, extraInputs = 
     inputs: { ...model.inputs, ...extraInputs },
   };
 
-  const rendered = generator.renderInto(patchedModel, panelState, container, {
+  // `exclude` names model inputs the studio owns (drawn by its own UI or set
+  // from its own state): don't render them here either, only strip them from
+  // the payload. Inputs the studio passes in `extraInputs` are its own on
+  // purpose, so they still render even when excluded from the payload.
+  const renderInputs = {};
+  for (const [key, schema] of Object.entries(model.inputs || {})) {
+    if (!exclude.has(key)) renderInputs[key] = schema;
+  }
+  const renderModel = { ...model, inputs: { ...renderInputs, ...extraInputs } };
+
+  const rendered = generator.renderInto(renderModel, panelState, container, {
     onChange: (key, value) => {
       onChange?.(key, value);
     },

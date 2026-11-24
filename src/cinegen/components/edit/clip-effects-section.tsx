@@ -99,7 +99,7 @@ export function ClipEffectsSection({ clip, currentTime = 0, onUpdate }: Props) {
       <div className="clip-properties-panel__row">
         <button className="clip-properties-panel__toggle-btn" onClick={() => setLibrary(true)}>Browse library…</button>
       </div>
-      {library && <OccLibraryModal onClose={() => setLibrary(false)} onPickFx={(id) => { void addFx(id); setLibrary(false); }} onPickLut={(id) => { void setLut(id); setLibrary(false); }} />}
+      {library && <OccLibraryModal onClose={() => setLibrary(false)} appliedFx={fx.map((f) => f.id)} appliedLut={clip.lut?.id} clipName={clip.name} onPickFx={(id) => { void addFx(id); setLibrary(false); }} onPickLut={(id) => { void setLut(id); setLibrary(false); }} />}
       <div className="clip-properties-panel__row">
         <select aria-label="Add effect" style={selectStyle} value="" onChange={(e) => { if (e.target.value) { setFx([...fx, { id: e.target.value, props: {} }]); setOpen(fx.length); } }}>
           <option value="">+ Add effect…</option>

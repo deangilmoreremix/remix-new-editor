@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { kindFromUrl, kindFromContentType, resolveKind, isNonMediaContentType, downloadLabel } from '../mediaKind.js';
 import { extFromContentType, extFromUrl, sniffType, safeBase, buildFilename, mimeFromExt } from '../filenames.js';
-import { downloadMedia, MESSAGES } from '../download.js';
+import { downloadMedia, MESSAGES, LARGE_DOWNLOAD_BYTES } from '../download.js';
 import { stableId, canonicalSource } from '../ids.js';
 import { buildMinimalProject, aspectFromSize } from '../minimalProject.js';
 import { createLinkCache } from '../linkCache.js';
@@ -98,12 +98,46 @@ describe('downloadMedia', () => {
     expect(win.open).not.toHaveBeenCalled();
   });
   it('opens a tab AND says so when the browser cannot read the file (CORS)', async () => {
-    const win = { open: vi.fn() };
+    const tab = {};
+    const win = { open: vi.fn(() => tab) };
     const status = vi.fn();
     const out = await downloadMedia('https://cdn.x/a', { fetchImpl: async () => { throw new TypeError('Failed to fetch'); }, win, onStatus: status });
     expect(out).toMatchObject({ ok: true, method: 'tab', message: MESSAGES.tab });
-    expect(win.open).toHaveBeenCalledWith('https://cdn.x/a', '_blank', 'noopener');
+    expect(win.open).toHaveBeenCalledWith('https://cdn.x/a', '_blank');
+    expect(tab.opener).toBeNull();
     expect(status).toHaveBeenLastCalledWith(MESSAGES.tab);
+  });
+  it('does NOT claim a tab opened when the browser blocked it: gives a link to click instead', async () => {
+    const win = { open: vi.fn(() => null) };
+    const out = await downloadMedia('https://cdn.x/a', { fetchImpl: async () => { throw new TypeError('Failed to fetch'); }, win });
+    expect(out).toMatchObject({ ok: false, method: 'manual', openUrl: 'https://cdn.x/a', message: MESSAGES.popup });
+  });
+  it('a stalled download gets its own message and a link, not a new tab', async () => {
+    const win = { open: vi.fn(() => ({})) };
+    const out = await downloadMedia('https://cdn.x/a', { fetchImpl: async () => { throw Object.assign(new Error('aborted'), { name: 'AbortError' }); }, win });
+    expect(out).toMatchObject({ ok: false, method: 'manual', message: MESSAGES.timeout });
+    expect(win.open).not.toHaveBeenCalled();
+  });
+  it('a provider error (5xx, 400) is reported as such and the error page is not opened', async () => {
+    const win = { open: vi.fn(() => ({})) };
+    for (const status of [500, 502, 503, 400, 405]) {
+      const out = await downloadMedia('https://cdn.x/a', { fetchImpl: async () => resp('', { status }), win });
+      expect(out).toMatchObject({ ok: false, method: 'none', message: MESSAGES.provider(status) });
+    }
+    expect(win.open).not.toHaveBeenCalled();
+  });
+  it('a very large file is not buffered: the person gets a link to open', async () => {
+    const out = await downloadMedia('https://cdn.x/a', { fetchImpl: async () => resp(ftyp('isom'), { length: LARGE_DOWNLOAD_BYTES + 1 }) });
+    expect(out).toMatchObject({ ok: false, method: 'manual', openUrl: 'https://cdn.x/a' });
+    expect(out.message).toMatch(/large/);
+  });
+  it('only http(s), blob: and data: addresses are used', async () => {
+    const fetchImpl = vi.fn(); const win = { open: vi.fn() };
+    for (const bad of ['javascript:alert(1)', 'file:///etc/passwd', 'ftp://x/y', 'vbscript:x']) {
+      expect(await downloadMedia(bad, { fetchImpl, win })).toMatchObject({ ok: false, message: MESSAGES.badAddress });
+    }
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(win.open).not.toHaveBeenCalled();
   });
   it('has no tab fallback for local blob: results and for an empty address', async () => {
     const win = { open: vi.fn() };
@@ -178,9 +212,39 @@ describe('copyToStorage', () => {
   it('does not copy what is already in our storage', async () => {
     const mine = 'https://x.supabase.co/storage/v1/object/public/uploads/smartvideo/u/a.mp4';
     const fetchImpl = vi.fn();
-    expect(await copyToStorage(mine, { fetchImpl, upload })).toMatchObject({ fileUrl: mine, reused: true });
+    expect(await copyToStorage(mine, { fetchImpl, upload, supabaseUrl: 'https://x.supabase.co' })).toMatchObject({ fileUrl: mine, reused: true });
     expect(fetchImpl).not.toHaveBeenCalled();
     expect(upload).not.toHaveBeenCalled();
+  });
+  it('an address that only CONTAINS the storage path (another host, a query string) is still copied', async () => {
+    const lookalikes = [
+      'https://evil.example/storage/v1/object/public/uploads/a.mp4',
+      'https://x.supabase.co.evil.example/storage/v1/object/public/uploads/a.mp4',
+      'https://cdn.x/out/a.mp4?next=/storage/v1/object/public/',
+    ];
+    for (const url of lookalikes) {
+      const fetchImpl = vi.fn(async () => resp(ftyp('isom')));
+      const out = await copyToStorage(url, { kind: 'video', ownerKey: 'u', fetchImpl, upload, supabaseUrl: 'https://x.supabase.co' });
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+      expect(out.reused).toBe(false);
+    }
+  });
+  it('refuses sources that are not https (and not this page\'s own blob/data results)', async () => {
+    const fetchImpl = vi.fn(async () => resp(ftyp('isom')));
+    for (const bad of ['http://cdn.x/a.mp4', 'javascript:alert(1)', 'file:///etc/passwd', 'ftp://x/a.mp4', '//cdn.x/a.mp4']) {
+      expect(await copyToStorage(bad, { kind: 'video', ownerKey: 'u', fetchImpl, upload }).catch((e) => e)).toMatchObject({ code: 'bad_source' });
+    }
+    expect(fetchImpl).not.toHaveBeenCalled();
+    const ok = await copyToStorage('blob:https://smartvid.app/1234', { kind: 'video', ownerKey: 'u', fetchImpl, upload });
+    expect(ok.kind).toBe('video');
+  });
+  it('signed-out people share the folder but not the file name (the scope keeps them apart)', async () => {
+    const run = (scope) => copyToStorage('https://cdn.x/same', { kind: 'video', ownerKey: 'anonymous', scope, fetchImpl: async () => resp(ftyp('isom')), upload });
+    await run('anonymous:salt-a'); await run('anonymous:salt-b'); await run('anonymous:salt-a');
+    const paths = upload.mock.calls.map((c) => c[0]);
+    expect(paths.every((p) => p.startsWith('smartvideo/anonymous/copies/'))).toBe(true);
+    expect(paths[0]).not.toBe(paths[1]);
+    expect(paths[0]).toBe(paths[2]);
   });
   it('maps the failures a user can hit to clear errors', async () => {
     const run = (fetchImpl, o = {}) => copyToStorage('https://cdn.x/a', { kind: 'video', ownerKey: 'u', fetchImpl, upload, ...o }).catch((e) => e);
@@ -193,6 +257,24 @@ describe('copyToStorage', () => {
     expect(await run(async () => resp(ftyp('isom')), { upload: async () => { throw Object.assign(new Error('slow'), { code: 'timeout' }); } })).toMatchObject({ code: 'timeout' });
     expect(new CopyError('x', 'y').code).toBe('x');
     expect(upload).not.toHaveBeenCalled();
+  });
+  it('stops reading as soon as the cap is passed when no length is declared (a server cannot stream past it)', async () => {
+    const reads = []; let cancelled = false;
+    const chunk = (mb) => ({ byteLength: mb * 1024 * 1024 });
+    const parts = [chunk(60), chunk(60), chunk(60)];
+    const body = { getReader: () => ({ read: async () => { const value = parts.shift(); reads.push(value); return value ? { done: false, value } : { done: true }; }, cancel: async () => { cancelled = true; } }) };
+    const res = { ok: true, status: 200, headers: { get: (h) => (h === 'content-type' ? 'video/mp4' : null) }, body };
+    expect(await copyToStorage('https://cdn.x/a', { kind: 'video', ownerKey: 'u', fetchImpl: async () => res, upload }).catch((e) => e)).toMatchObject({ code: 'too_large' });
+    expect(reads.length).toBe(2);
+    expect(cancelled).toBe(true);
+    expect(upload).not.toHaveBeenCalled();
+  });
+  it('reads a streamed body into one file', async () => {
+    const data = ftyp('isom'); let sent = false;
+    const body = { getReader: () => ({ read: async () => (sent ? { done: true } : (sent = true, { done: false, value: data })), cancel: async () => {} }) };
+    const res = { ok: true, status: 200, headers: { get: (h) => (h === 'content-type' ? 'video/mp4' : null) }, body };
+    const out = await copyToStorage('https://cdn.x/a', { kind: 'video', ownerKey: 'u', fetchImpl: async () => res, upload });
+    expect(out).toMatchObject({ ext: 'mp4', bytes: data.length });
   });
   it('enforces the size cap on the real bytes even when no length is declared', async () => {
     const big = { ok: true, status: 200, headers: { get: (h) => (h === 'content-type' ? 'image/png' : null) }, blob: async () => ({ size: COPY_LIMITS.image + 1, slice: () => blobOf(bytes(0x89, 0x50, 0x4e, 0x47)) }) };

@@ -1,3 +1,4 @@
+import { routeHash } from '../../../lib/routeUrl.js';
 // SmartWarmupAI studio: email warmup, cold outreach, unified inbox, CRM and automations.
 //
 // Hosts the vendored upstream dashboard (apps/warmbly-web, rebranded at build time and built to public/smartwarmupai-app by
@@ -88,7 +89,7 @@ export function SmartWarmupAIStudio() {
   tabApp.onclick = () => show('app');
   tabHelp.onclick = () => show('help');
 
-  const hash = window.location.hash.match(/#\/smartwarmupai\/([\w/-]+)/)?.[1] || '';
+  const hash = routeHash().match(/#\/smartwarmupai\/([\w/-]+)/)?.[1] || '';
   const wantsHelp = hash === 'help' || hash.startsWith('help/');
   (async () => {
     const [appBuilt, helpBuilt] = await Promise.all([isBuilt(APP), isBuilt(HELP)]);
@@ -100,7 +101,9 @@ export function SmartWarmupAIStudio() {
     }
     const appFrame = makeFrame('app', `${APP}${VIEW_ROUTES[hash] || '/app/emails'}`, 'SmartWarmupAI');
     if (helpBuilt) {
-      makeFrame('help', `${HELP}/${wantsHelp ? hash.slice(5).replace(/^\//, '') : ''}`, 'SmartWarmupAI Help');
+      // Help pages are folders (getting-started/index.html): keep the trailing slash so their relative links resolve.
+      const helpPage = wantsHelp ? hash.slice(5).replace(/^\//, '').replace(/([^/])$/, '$1/') : '';
+      makeFrame('help', `${HELP}/${helpPage}`, 'SmartWarmupAI Help');
       // A help link clicked inside the dashboard opens the Help tab instead of a new browser tab.
       appFrame.addEventListener('load', () => {
         try {

@@ -1,0 +1,98 @@
+{
+  "opening-smartviddownloader": {
+    "route": "media-hub"
+  },
+  "download-by-link": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> role=button[name=\"Add URL\"]",
+        "wait": 2500
+      }
+    ]
+  },
+  "formats-and-quality": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> [aria-label=\"Preferences\"]",
+        "wait": 2500
+      },
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> text=/^Download$/",
+        "wait": 2500
+      }
+    ]
+  },
+  "one-click-download": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> [aria-label=\"Preferences\"]",
+        "wait": 2500
+      }
+    ]
+  },
+  "download-playlist": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> [aria-label=\"More ways to add\"]",
+        "wait": 2500
+      }
+    ]
+  },
+  "download-queue": {
+    "route": "media-hub"
+  },
+  "download-history": {
+    "route": "media-hub"
+  },
+  "cookies-for-sign-in-only-videos": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> role=button[name=\"Set up cookies\"]",
+        "wait": 2500
+      }
+    ]
+  },
+  "subscriptions": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> [aria-label=\"Subscribe\"]",
+        "wait": 2500
+      }
+    ]
+  },
+  "transcripts": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> [aria-label=\"Tools\"]",
+        "wait": 2500
+      }
+    ]
+  },
+  "chat-and-agent": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> [aria-label=\"Chat\"]",
+        "wait": 2500
+      }
+    ]
+  },
+  "settings": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> [aria-label=\"Preferences\"]",
+        "wait": 2500
+      }
+    ]
+  },
+  "supported-sites": {
+    "skip": true
+  },
+  "built-in-ai-openai": {
+    "steps": [
+      {
+        "selector": "iframe[title=\"SmartVidDownloader\"] >> internal:control=enter-frame >> [aria-label=\"Chat\"]",
+        "wait": 2500
+      }
+    ]
+  }
+}

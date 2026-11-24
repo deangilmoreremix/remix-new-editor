@@ -1,6 +1,7 @@
 // [remix] "Landing pages" tab of the Add to timeline window: every editable landing page design as a button. Clicking one
 // opens the full page with its editor (the shared picker modal) with this project's video attached.
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import '../../styles/edit-panels.css';
 
 type Design = { id: string; name: string; description: string; theme?: { bg?: string; accent?: string }; editable?: unknown; editorData?: unknown };
 
@@ -18,10 +19,8 @@ function DesignThumb({ data }: { data: unknown }) {
     });
     return () => { gone = true; handle?.destroy(); };
   }, [data]);
-  return <div ref={ref} style={{ marginBottom: 10 }} />;
+  return <div ref={ref} className="cg-landing-thumb" />;
 }
-
-const field: CSSProperties = { width: '100%', boxSizing: 'border-box', background: 'var(--bg-input)', color: 'inherit', border: '1px solid var(--border-medium)', borderRadius: 10, padding: '11px 12px', fontSize: 13, marginBottom: 12 };
 
 /** Pure: designs matching a search text. */
 export function searchDesigns<T extends { name: string; description: string }>(items: T[], q: string): T[] {
@@ -41,17 +40,16 @@ export function LandingPagesPanel({ onPick }: { onPick: (designId: string) => vo
   const shown = useMemo(() => searchDesigns(all ?? [], q), [all, q]);
   return (
     <>
-      <input type="text" placeholder="Search landing pages…" aria-label="Search landing pages" value={q} onChange={(e) => setQ(e.target.value)} style={field} />
-      <div style={{ fontSize: 12.5, opacity: 0.7, marginBottom: 12 }}>Click a design to see the full page with your video in it and edit every word. Saving puts it in Video Pages.</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, overflowY: 'auto', alignContent: 'start' }}>
-        {all === null && <div style={{ opacity: 0.7 }}>Loading…</div>}
-        {all !== null && !shown.length && <div style={{ opacity: 0.7 }}>No landing pages match.</div>}
+      <input type="text" placeholder="Search landing pages…" aria-label="Search landing pages" value={q} onChange={(e) => setQ(e.target.value)} className="cg-field" style={{ marginBottom: 12 }} />
+      <div className="cg-note" style={{ marginBottom: 12 }}>Click a design to see the full page with your video in it and edit every word. Saving puts it in Video Pages.</div>
+      <div className="cg-landing-grid">
+        {all === null && <div className="cg-note">Loading…</div>}
+        {all !== null && !shown.length && <div className="cg-empty">No landing pages match.</div>}
         {shown.map((d) => (
-          <button key={d.id} type="button" data-testid={`landing-design-${d.id}`} onClick={() => onPick(d.id)}
-            style={{ textAlign: 'left', cursor: 'pointer', color: 'inherit', background: 'var(--bg-elevated)', border: '1px solid var(--border-medium)', borderRadius: 14, padding: 12 }}>
+          <button key={d.id} type="button" className="cg-card" data-testid={`landing-design-${d.id}`} onClick={() => onPick(d.id)}>
             <DesignThumb data={d.editorData} />
-            <div style={{ fontSize: 13, fontWeight: 700 }}>{d.name}</div>
-            <div style={{ fontSize: 11.5, opacity: 0.7, marginTop: 4 }}>{d.description}</div>
+            <div className="cg-card__name">{d.name}</div>
+            <div className="cg-landing-desc">{d.description}</div>
           </button>
         ))}
       </div>

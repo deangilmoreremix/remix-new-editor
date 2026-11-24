@@ -292,14 +292,22 @@ function renderField(field, options, idPrefix, ui = {}, services = {}) {
     case 'designPicker': {
       // A grid of design thumbnails (field.designs, field.thumb(design, options) → markup),
       // grouped under field.categories headings when given.
-      const tile = (d) => `<button type="button" class="addon-design${d.id === value ? ' active' : ''}" data-design-pick="${esc(d.id)}" data-pick-key="${esc(field.key)}" aria-pressed="${d.id === value}" title="${esc(d.label)}">${field.thumb ? field.thumb(d, options) : ''}<span>${esc(d.label)}</span></button>`;
+      // field.livePreview: each tile shows a real, scaled-down render of the design (markup that contains a form, so the tile is a div, not a button)
+      const tag = field.livePreview ? 'div role="button" tabindex="0"' : 'button type="button"';
+      const end = field.livePreview ? 'div' : 'button';
+      const tile = (d) => `<${tag} class="addon-design${d.id === value ? ' active' : ''}" data-design-pick="${esc(d.id)}" data-pick-key="${esc(field.key)}" aria-pressed="${d.id === value}" title="${esc(d.label)}">${field.thumb ? field.thumb(d, options) : ''}<span>${esc(d.label)}</span></${end}>`;
       const groups = field.categories
         ? field.categories.map(([cid, clabel]) => {
           const items = (field.designs || []).filter((d) => (d.category || 'arrow') === cid);
-          return items.length ? `<div class="addon-designs__heading">${esc(clabel)}</div><div class="addon-designs" role="group" aria-label="${esc(clabel)}">${items.map(tile).join('')}</div>` : '';
+          return items.length ? `<div class="addon-designs__heading">${esc(clabel)}</div><div class="addon-designs${field.livePreview ? ' addon-designs--live' : ''}" role="group" aria-label="${esc(clabel)}">${items.map(tile).join('')}</div>` : '';
         }).join('')
         : `<div class="addon-designs" role="group" aria-label="${esc(field.label)}">${(field.designs || []).map(tile).join('')}</div>`;
       return `<div class="clip-editor__field addon-field addon-field--designs"><label>${esc(field.label)}</label>${groups}</div>`;
+    }
+    case 'colorSchemes': {
+      // One-click colour schemes: each tile is a hue; field.applyScheme(current, scheme) returns every colour key to set.
+      const tiles = (field.schemes || []).map((sc) => `<button type="button" class="addon-theme addon-scheme${String(value || '') === sc.id ? ' active' : ''}" data-scheme-pick="${esc(sc.id)}" data-scheme-key="${esc(field.key)}" aria-pressed="${String(value || '') === sc.id}" title="${esc(sc.label)}"><span class="addon-scheme__swatch" style="background:${esc(field.swatch ? field.swatch(sc) : '#888')}"></span><span>${esc(sc.label)}</span></button>`).join('');
+      return `<div class="clip-editor__field addon-field addon-field--schemes"><label>${esc(field.label)}</label><div class="addon-themes" role="group" aria-label="${esc(field.label)}">${tiles}</div></div>`;
     }
     case 'themePicker': {
       // One-click colour schemes: each theme sets several keys at once.
@@ -451,7 +459,7 @@ export function renderAddonEditor(container, {
     }
     // ---- richer field types
     if (e.type === 'click') {
-      const btn = el.closest('button');
+      const btn = el.closest('button, [role="button"][data-design-pick]');
       if (btn?.dataset.fieldAction) {
         const out = btn.parentElement.querySelector('.addon-action-result');
         const setResult = (text) => { if (out) out.textContent = text; };
@@ -564,7 +572,23 @@ export function renderAddonEditor(container, {
         return;
       }
       if (btn?.dataset.designPick) {
-        setAndEmit(btn.dataset.pickKey, btn.dataset.designPick);
+        // A design that carries a `patch` (the opt-in form's 30 designs) sets all its options at once; plain designs (pointer arrows) set just their id.
+        const field = drawnFields.find((f) => f.key === btn.dataset.pickKey);
+        const design = (field?.designs || []).find((x) => x.id === btn.dataset.designPick);
+        if (design?.patch) {
+          const patch = field?.applyDesign ? field.applyDesign(current, design) : design.patch;
+          Object.entries(patch).forEach(([k, v]) => setPath(current, k, v));
+          emit(true, btn.dataset.pickKey);
+        } else setAndEmit(btn.dataset.pickKey, btn.dataset.designPick);
+        return;
+      }
+      if (btn?.hasAttribute('data-scheme-pick')) {
+        const field = drawnFields.find((f) => f.key === btn.dataset.schemeKey);
+        const scheme = (field?.schemes || []).find((sc) => sc.id === btn.dataset.schemePick);
+        if (scheme && field?.applyScheme) {
+          Object.entries(field.applyScheme(current, scheme)).forEach(([k, v]) => setPath(current, k, v));
+          emit(true, field.key);
+        }
         return;
       }
       if (btn?.dataset.themePick) {
@@ -796,7 +820,12 @@ export function renderAddonEditor(container, {
     e.target.ownerDocument.execCommand?.('insertText', false, text);
   };
   // Typing must not reach the editor's global shortcuts (Space = play, E / V / B = tools, Backspace = delete clip): they only skip input / textarea.
-  const stopKeys = (e) => { if (e.target.closest?.('.addon-rich')) e.stopPropagation(); };
+  const stopKeys = (e) => {
+    if (e.target.closest?.('.addon-rich')) e.stopPropagation();
+    // a design tile that is a div (it holds a live preview) works from the keyboard like a button
+    const tile = e.target.closest?.('[role="button"][data-design-pick]');
+    if (tile && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); tile.click(); }
+  };
   // Effect tiles play their effect while hovered / focused (Animate.css classes, like the editor preview)
   const playTile = (e) => {
     const tile = e.target.closest?.('.addon-anim-tile');

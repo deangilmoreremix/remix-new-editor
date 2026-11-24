@@ -1,5 +1,6 @@
 'use client';
 
+import { parseLocation, onRouteChange } from '../../../../lib/routeUrl.js'
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { MemoryRouter, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { applyLocaleToDocument, localeTitle, useLocale } from './i18n';
@@ -54,15 +55,14 @@ const WORKBENCH_PATH_RE = /\/motion-director\/workbench\/?$/;
 const isWorkbenchPath = (pathname: string | null | undefined) => WORKBENCH_PATH_RE.test(pathname ?? '');
 
 /** The hash route as a path (`#/motion-director/workbench` → `/motion-director/workbench`). */
-const hashPath = () => (typeof window === 'undefined' ? '' : window.location.hash.replace(/^#/, '').split('?')[0]);
+const hashPath = () => (typeof window === 'undefined' ? '' : `/${parseLocation().page}`);
 
 /** remix stand-in for `next/navigation`'s usePathname: follows the hash route. */
 const usePathname = () => {
   const [path, setPath] = useState(hashPath);
   useEffect(() => {
     const update = () => setPath(hashPath());
-    window.addEventListener('hashchange', update);
-    return () => window.removeEventListener('hashchange', update);
+    return onRouteChange(update);
   }, []);
   return path;
 };
@@ -88,9 +88,9 @@ const RouteSync = () => {
     const current = hashPath();
     if (!current.startsWith(STUDIO_ROOT_PATH)) return;
     const want = inEditor ? WORKBENCH_PATH : STUDIO_ROOT_PATH;
-    // replaceState does not fire `hashchange`, so the shell router does not remount the studio.
+    // replaceState fires no event, so the shell router does not remount the studio.
     if (current.replace(/\/$/, '') !== want) {
-      window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}#${want}`);
+      window.history.replaceState(window.history.state, '', `${want}${window.location.search}`);
     }
     // Only the internal route drives this direction.
     // eslint-disable-next-line react-hooks/exhaustive-deps

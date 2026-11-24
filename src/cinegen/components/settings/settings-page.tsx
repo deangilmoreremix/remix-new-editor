@@ -105,8 +105,8 @@ const DEFAULT_SETTINGS: Settings = {
   defaultTranscriptionEngine: 'faster-whisper-local',
   autoVisualIndexing: true,
   analyzeVisionOnImport: true,
-  backgroundVisionModel: 'openai/gpt-5.6-sol',
-  cutVisionModel: 'openai/gpt-5.6-sol',
+  backgroundVisionModel: 'openai/gpt-6.1-sol',
+  cutVisionModel: 'openai/gpt-6.1-sol',
   maxConcurrentVisionJobs: 2,
   reduceMotion: false,
   resolutionWidth: 1920,
@@ -128,7 +128,7 @@ const TRANSCRIPTION_ENGINES: Array<{ value: DefaultTranscriptionEngine; label: s
 ];
 
 const VISION_MODEL_OPTIONS = [
-  { value: 'openai/gpt-5.6-sol', label: 'OpenAI (your key)' }, // [remix]
+  { value: 'openai/gpt-6.1-sol', label: 'OpenAI (your key)' }, // [remix]
 ];
 
 const RESOLUTION_PRESETS = [

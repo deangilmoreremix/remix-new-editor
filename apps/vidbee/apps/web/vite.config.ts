@@ -1,3 +1,5 @@
+// @ts-expect-error plain ESM module shared with the desktop build
+import { vitePlugin as brandPlugin } from "../../brand/rebrand.mjs";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -28,6 +30,15 @@ function resolveAllowedHosts(): true | string[] | undefined {
 		.filter(Boolean);
 }
 
+/**
+ * Where the app is mounted. Set VIDBEE_BASE_PATH=/vidbee when it is served behind another app's sub-path
+ * (the host app proxies /vidbee/* to it); leave it unset to serve from the site root.
+ */
+const normalizeBasePath = (raw: string | undefined): string => {
+	const trimmed = (raw ?? "").trim().replace(/^\/+|\/+$/g, "");
+	return trimmed ? `/${trimmed}/` : "/";
+};
+
 const reactSsrDeps = [
 	"react",
 	"react-dom",
@@ -37,6 +48,7 @@ const reactSsrDeps = [
 ];
 
 const config = defineConfig(({ command }) => ({
+	base: normalizeBasePath(process.env.VIDBEE_BASE_PATH),
 	define: {
 		__APP_VERSION__: JSON.stringify(packageJson.version),
 	},
@@ -47,6 +59,7 @@ const config = defineConfig(({ command }) => ({
 		include: reactSsrDeps,
 	},
 	plugins: [
+		brandPlugin(),
 		devtools({
 			eventBusConfig: {
 				enabled: false,

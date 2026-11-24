@@ -122,13 +122,13 @@ describe('director CLI picker', () => {
     expect(params.userMessage).not.toContain('sys');
   });
 
-  it('runs Luna jobs on Codex CLI with gpt-5.6-luna', async () => {
+  it('runs Luna jobs on Codex CLI with gpt-6-luna', async () => {
     vi.mocked(invokeCliCopilotChat).mockClear();
     await expect(runDirectorJsonJob('sys', 'user', 'luna')).resolves.toEqual({ ok: true });
     expect(vi.mocked(invokeCliCopilotChat)).toHaveBeenCalledWith(
       'codex',
       expect.objectContaining({
-        model: 'gpt-5.6-luna',
+        model: 'gpt-6-luna',
         purpose: 'json-job',
         injectProjectContext: false,
       }),
@@ -159,7 +159,7 @@ describe('director CLI picker', () => {
       expect(vi.mocked(invokeCliCopilotChat)).not.toHaveBeenCalled();
       expect(openaiChat).toHaveBeenCalledWith(expect.objectContaining({
         apiKey: 'sk-test',
-        model: 'gpt-5.6-luna',
+        model: 'gpt-6-luna',
         systemPrompt: expect.stringContaining('sys'),
         userMessage: 'user',
       }));

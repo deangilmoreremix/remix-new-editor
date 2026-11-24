@@ -14,7 +14,7 @@ test.describe('Smart Website Builder navigation', () => {
     await websiteBuilder.click();
     await page.waitForTimeout(400);
 
-    await expect(page).toHaveURL(/#\/website-builder/);
+    await expect(page).toHaveURL(/\/website-builder/);
   });
 
   test('website-builder route renders the Smart Website Builder iframe on its dashboard', async ({ page }) => {

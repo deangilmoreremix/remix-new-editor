@@ -54,11 +54,11 @@
       },
       {
         "slug": "muapi-studio",
-        "name": "Studio",
+        "name": "Studio (Muapi Studio)",
         "route": "muapi-studio",
-        "shortDescription": "Generate images, video, audio, avatars, 3D and more with any MuAPI model, with the price shown before you generate.",
-        "features": 10,
-        "thumbnail": "/thumbnails/pages/placeholder.webp"
+        "shortDescription": "One workspace for hundreds of AI models across image, video, audio, avatar and 3D, using your own MuAPI key.",
+        "features": 11,
+        "thumbnail": "/thumbnails/studios/muapi-studio.webp"
       },
       {
         "slug": "upscale-suite",
@@ -145,7 +145,7 @@
         "route": "media-hub",
         "shortDescription": "Download videos and audio from links, then transcribe them and ask AI about them.",
         "features": 18,
-        "thumbnail": "/thumbnails/pages/placeholder.webp"
+        "thumbnail": "/guides/smartviddownloader/overview.webp"
       },
       {
         "slug": "storyboard-studio",
@@ -342,7 +342,7 @@
         "route": "smartwarmupai",
         "shortDescription": "Warm up mailboxes, send cold email sequences and handle replies.",
         "features": 15,
-        "thumbnail": "/thumbnails/pages/placeholder.webp"
+        "thumbnail": "/guides/smartwarmupai/overview.webp"
       },
       {
         "slug": "timeline-editor",
@@ -367,6 +367,14 @@
         "shortDescription": "Record once, greet every contact by name in your own voice, and add a booking button.",
         "features": 24,
         "thumbnail": "/guides/video-outreach/overview.webp"
+      },
+      {
+        "slug": "video-pages",
+        "name": "Video Pages",
+        "route": "video-pages",
+        "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
+        "features": 3,
+        "thumbnail": "/thumbnails/pages/placeholder.webp"
       },
       {
         "slug": "video-render",
@@ -461,14 +469,6 @@
         "shortDescription": "Everything you generated and uploaded, in one place.",
         "features": 5,
         "thumbnail": "/guides/library/overview.webp"
-      },
-      {
-        "slug": "video-pages",
-        "name": "Video Pages",
-        "route": "video-pages",
-        "shortDescription": "Turn any video into a branded landing page with a CTA, lead form and analytics.",
-        "features": 3,
-        "thumbnail": "/thumbnails/pages/placeholder.webp"
       }
     ]
   }

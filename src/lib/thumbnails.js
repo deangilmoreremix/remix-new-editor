@@ -311,6 +311,7 @@ const STUDIO_THUMBNAILS = {
   storyboard: '/thumbnails/studios/storyboard.webp',
   effects: '/thumbnails/studios/effects.webp',
   edit: '/thumbnails/studios/edit.webp',
+  'muapi-studio': '/thumbnails/studios/muapi-studio.webp',
   upscale: '/thumbnails/studios/upscale.webp',
   character: '/thumbnails/studios/character.webp',
   commercial: '/thumbnails/tools/product-shot.webp',
@@ -371,6 +372,9 @@ const HERO_THUMBNAILS = {
 
 // Where to aim the banner crop (CSS object-position) per page. The default is the
 // centre; pages whose picture has its subject elsewhere are listed here.
+// Studios whose banner picture is a finished composition: skip the left-edge fade in createStudioHeader.
+const NO_EDGE_FADE = new Set(['zackd']);
+
 const BANNER_FOCUS = {
   zackd: '50% 19%', // portrait 9:16 keyframe in a wide banner: frame the head and the title card, not the torso
   // Apps-page (studios/) pictures are ~1.8:1 and the banner box ~2.4:1, so only a
@@ -689,6 +693,41 @@ export function createHeroSection(studioId, className = '') {
 }
 
 /**
+ * Every studio banner is exactly as wide as the app's content area minus a fixed gutter, whatever
+ * max-width / padding / centring wrapper its page puts it in. Each page wraps the banner in its own
+ * container, which used to make banners anywhere from 864px to 1828px wide at the same screen size.
+ * The banner is measured from #content-area (not from its parent) and shifted into place, and it
+ * follows the content area when the window or sidebar resizes.
+ */
+const BANNER_GUTTER = { wide: 24, narrow: 12 };
+function alignBannerToContentArea(el) {
+  if (typeof window === 'undefined' || typeof requestAnimationFrame === 'undefined') return;
+  let observer = null;
+  const sync = () => {
+    if (!el.isConnected) { if (observer) { observer.disconnect(); observer = null; } return; }
+    const area = document.getElementById('content-area');
+    if (!area || !area.contains(el)) return;
+    const gutter = window.innerWidth >= 768 ? BANNER_GUTTER.wide : BANNER_GUTTER.narrow;
+    el.style.maxWidth = 'none';
+    el.style.width = `${Math.max(0, area.clientWidth - 2 * gutter)}px`;
+    el.style.left = '0px';
+    const wantLeft = area.getBoundingClientRect().left + area.clientLeft + gutter;
+    el.style.left = `${Math.round(wantLeft - el.getBoundingClientRect().left)}px`;
+  };
+  let tries = 0;
+  const start = () => {
+    if (el.isConnected) {
+      sync();
+      const area = document.getElementById('content-area');
+      if (area && typeof window.ResizeObserver !== 'undefined') { observer = new window.ResizeObserver(sync); observer.observe(area); }
+      return;
+    }
+    if (tries++ < 180) requestAnimationFrame(start);
+  };
+  requestAnimationFrame(start);
+}
+
+/**
  * Compact AI-image header shown at the top of every studio: the studio's AI
  * artwork as a banner with the title and one line of description. It is
  * 128px tall on phones and 176px on desktop: tall enough that the picture is
@@ -705,6 +744,8 @@ export function createStudioHeader(studioId, title, subtitle = '', className = '
   const height = size === 'compact' ? 'h-20 md:h-24' : 'h-32 md:h-[clamp(176px,14vw,264px)]';
   wrapper.className = `hero-banner studio-header relative w-full ${height} overflow-hidden rounded-2xl border border-white/10 bg-[#0d0d10] shrink-0 ${className}`;
   wrapper.dataset.studioHeader = studioId;
+  // A studio without its own artwork yet still gets the same-size banner: a quiet gradient with the title.
+  if (!src) wrapper.classList.add('bg-gradient-to-br', 'from-[#171b24]', 'to-[#0d0d10]');
   if (src) {
     wrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
     // Ambient backdrop: the same picture, blurred and dimmed, fills the width so the
@@ -722,7 +763,8 @@ export function createStudioHeader(studioId, title, subtitle = '', className = '
     pic.appendChild(img);
     // Fade the picture's left edge to transparent so it dissolves into the blurred backdrop
     // (a solid dark overlay showed as a hard edge against the lighter backdrop). md+ only.
-    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 768px)').matches) {
+    // Banners that ship as a finished composition (a strip of frames) keep their own edge, so no fade.
+    if (!NO_EDGE_FADE.has(studioId) && typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 768px)').matches) {
       const fade = 'linear-gradient(to right, transparent 0, #000 140px)';
       pic.style.webkitMaskImage = fade;
       pic.style.maskImage = fade;
@@ -735,7 +777,7 @@ export function createStudioHeader(studioId, title, subtitle = '', className = '
   shade.className = 'absolute inset-0 pointer-events-none bg-gradient-to-t from-black/80 via-black/30 to-transparent md:hidden';
   wrapper.appendChild(shade);
   const text = document.createElement('div');
-  text.className = 'absolute z-10 flex flex-col justify-end md:justify-center inset-x-0 bottom-0 md:inset-y-0 md:right-auto px-5 md:px-7 pb-3 md:pb-0 text-left md:max-w-[34%]';
+  text.className = `absolute z-10 flex flex-col justify-end md:justify-center inset-x-0 bottom-0 md:inset-y-0 md:right-auto px-5 md:px-7 pb-3 md:pb-0 text-left ${src ? 'md:max-w-[34%]' : 'md:max-w-[70%]'}`;
   const h1 = document.createElement('h1');
   h1.className = 'text-xl md:text-2xl font-black text-white tracking-tight leading-tight';
   h1.textContent = title;
@@ -747,6 +789,7 @@ export function createStudioHeader(studioId, title, subtitle = '', className = '
     text.appendChild(p);
   }
   wrapper.appendChild(text);
+  alignBannerToContentArea(wrapper);
   return wrapper;
 }
 

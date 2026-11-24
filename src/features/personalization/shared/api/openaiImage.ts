@@ -280,7 +280,7 @@ export async function generateWithResponses(params: {
   action?: 'auto' | 'generate' | 'edit'
 }): Promise<{ b64: string; revisedPrompt?: string; responseId: string }> {
   const body: Record<string, any> = {
-    model: 'gpt-4o',
+    model: 'gpt-6.1-sol',
     input: params.prompt,
     tools: [{
       type: 'image_generation',

@@ -52,8 +52,8 @@ function SignInCard() {
         routing="path"
         path="/signin"
         signUpUrl="/signup"
-        afterSignInUrl="/#/image"
-        afterSignUpUrl="/#/image"
+        afterSignInUrl="/image"
+        afterSignUpUrl="/image"
       />
     </div>
   );
@@ -66,8 +66,8 @@ function SignUpCard() {
         routing="path"
         path="/signup"
         signInUrl="/signin"
-        afterSignInUrl="/#/image"
-        afterSignUpUrl="/#/image"
+        afterSignInUrl="/image"
+        afterSignUpUrl="/image"
       />
     </div>
   );

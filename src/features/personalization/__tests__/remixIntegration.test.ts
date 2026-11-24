@@ -18,7 +18,7 @@ import { installPersonalizationApiAuth } from '../lib/apiAuth'
 import { writeHandoff } from '../shared/crossStudio'
 
 describe('navigation shim', () => {
-  it('maps OpenHiggsBolt studio paths onto remix hash routes', () => {
+  it('maps OpenHiggsBolt studio paths onto remix routes', () => {
     expect(toRemixRoute('/studio/image')).toBe('#/image')
     expect(toRemixRoute('/studio/video')).toBe('#/video')
     expect(toRemixRoute('/studio/vfx-studio')).toBe('#/effects')
@@ -30,8 +30,16 @@ describe('navigation shim', () => {
   it('forwards the handoff prompt through prefill_prompt for prompt-only studios', () => {
     localStorage.removeItem('prefill_prompt')
     writeHandoff({ version: 1, target: 'cinema', from: 'demo-personalization', combinedPrompt: 'Acme Roofing hero shot' } as any)
-    navigate('/studio/cinema')
-    expect(window.location.hash).toBe('#/cinema')
+    // Outside the app shell a studio hand-off is a page load of the clean URL.
+    const assign = vi.fn()
+    const realLocation = window.location
+    Object.defineProperty(window, 'location', { configurable: true, value: { ...realLocation, assign } })
+    try {
+      navigate('/studio/cinema')
+    } finally {
+      Object.defineProperty(window, 'location', { configurable: true, value: realLocation })
+    }
+    expect(assign).toHaveBeenCalledWith('/cinema')
     expect(localStorage.getItem('prefill_prompt')).toBe('Acme Roofing hero shot')
   })
 
@@ -46,7 +54,7 @@ describe('navigation shim', () => {
       navigate('/studio/motion-studio?template=a%7Cb')
       // The router looks the page up by bare name and puts params in the query.
       expect(router.getCurrentPage()).toBe('motion-director/workbench')
-      expect(pushState).toHaveBeenLastCalledWith({}, '', '/?template=a%7Cb#/motion-director/workbench')
+      expect(pushState).toHaveBeenLastCalledWith({}, '', '/motion-director/workbench?template=a%7Cb')
     } finally {
       pushState.mockRestore()
       content.remove()
