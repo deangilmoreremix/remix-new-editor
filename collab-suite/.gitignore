@@ -1,2 +1,5 @@
 node_modules
 dist
+apps/shell/public/teamchat
+apps/shell/public/meetings
+vendor/everything/src/teamchat/public/worker
