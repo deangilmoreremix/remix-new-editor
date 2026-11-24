@@ -8,7 +8,8 @@
  * Overlay for the whole clip: the sample content is dropped and the root is
  * transparent, so only the breathing vignette (0.3..0.8 strength, one pulse
  * per second — the upstream curve) darkens the edges of the customer's
- * video. The vignette is a near-black shade of the brand primary.
+ * video. The vignette is a near-black shade of the brand primary. It starts darkening at 25 % of the radius (the upstream's
+ * 40 %), because on dark footage — whose edges are already black — the upstream setting is barely visible.
  */
 
 import React from 'react'
@@ -25,6 +26,7 @@ export const RveVignettePulseDesign: React.FC<RemotionDesignComponentProps> = (p
         backgroundColor="transparent"
         showSample={false}
         vignetteRgb={rgbTriplet(palette.deep, '0, 0, 0')}
+        innerStop="25%"
       />
     </RveDesignStage>
   )

@@ -73,6 +73,7 @@ import { BATCH_3E_FIXED_SVG_IDS, BATCH_3E_TEMPLATES } from './designs/batch3e/en
 import { BATCH_3F_FIXED_SVG_IDS, BATCH_3F_TEMPLATES } from './designs/batch3f/entries'
 import { BATCH_3G_FIXED_SVG_IDS, BATCH_3G_TEMPLATES } from './designs/batch3g/entries'
 import { BATCH_3H_FIXED_SVG_IDS, BATCH_3H_TEMPLATES } from './designs/batch3h/entries'
+import { SCENE_CATALOG_ENTRIES } from './designs/sceneCatalogEntries'
 import { DESIGN_FONT_ALIAS_NOTE, DESIGN_FONT_ATTRIBUTION, DESIGN_FONT_LICENSE_FILE } from './typography'
 
 // The typeface constants are re-exported from the catalog lane (like the
@@ -1002,6 +1003,8 @@ export const REMOTION_DESIGN_PHASE4_TEMPLATES: RemotionDesignTemplate[] = [
   ...BATCH_3G_TEMPLATES,
   ...BATCH_3H_TEMPLATES,
 ]
+/** The full-screen opening/closing scenes (`role: 'scene'`). */
+export const REMOTION_DESIGN_SCENE_TEMPLATES: RemotionDesignTemplate[] = [...SCENE_CATALOG_ENTRIES]
 
 /** Every design, in registration order. */
 export const REMOTION_DESIGN_TEMPLATES: RemotionDesignTemplate[] = [
@@ -1009,6 +1012,7 @@ export const REMOTION_DESIGN_TEMPLATES: RemotionDesignTemplate[] = [
   ...REMOTION_DESIGN_BATCH1_TEMPLATES,
   ...REMOTION_DESIGN_BATCH2_TEMPLATES,
   ...REMOTION_DESIGN_PHASE4_TEMPLATES,
+  ...REMOTION_DESIGN_SCENE_TEMPLATES,
 ]
 
 // The catalog registers itself on import, so the designs exist before the

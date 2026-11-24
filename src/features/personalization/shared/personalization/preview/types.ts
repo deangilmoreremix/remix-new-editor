@@ -249,6 +249,21 @@ export interface PersonalizationPreviewSettings {
    * Settings only: the measured masks live in memory (preview/cutout/maskStore.ts), never in the project.
    */
   cutout?: import('./cutout/cutoutSettings').CutoutSettings
+  /**
+   * Ids of the full-frame scenes that open and close the video, or null.
+   * Optional so older projects restore; the normalizer falls back to nulls.
+   */
+  remotionSceneIds?: { intro: string | null; outro: string | null }
+}
+
+/** Where a design sits: on top of the video, or as an opening/closing scene. */
+export type DesignSlot = 'overlay' | 'intro' | 'outro'
+
+/** Layer id each design slot uses. */
+export const DESIGN_SLOT_LAYER_IDS: Record<DesignSlot, string> = {
+  overlay: 'design',
+  intro: 'design-intro',
+  outro: 'design-outro',
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */

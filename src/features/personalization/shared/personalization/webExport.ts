@@ -29,6 +29,7 @@ import type {
 import type React from 'react'
 import type { PreviewInputProps } from './preview/types'
 import { PersonalizationComposition } from './preview/PersonalizationComposition'
+import { totalDurationInFrames } from './preview/presets'
 import {
   PERSONALIZATION_COMPOSITION_ID,
   WEB_RENDER_EXTENSION,
@@ -144,6 +145,81 @@ let cancelRequestedAt = 0
  */
 export const CANCEL_SETTLE_GRACE_MS = 5_000
 
+/** True for an SVG file or data URL, the format the web renderer cannot draw. */
+export function isSvgImageUrl(url: string | null | undefined): boolean {
+  if (typeof url !== 'string' || !url) return false
+  if (/^data:image\/svg\+xml/i.test(url)) return true
+  return /\.svg(?:$|[?#])/i.test(url)
+}
+
+/** Longest side of the PNG an SVG is drawn into. */
+const SVG_RASTER_SIZE = 1024
+
+/** Draws an SVG into a PNG data URL, or returns null when it cannot be read. */
+async function svgToPng(url: string): Promise<string | null> {
+  if (typeof document === 'undefined' || typeof Image === 'undefined') return null
+  return new Promise((resolve) => {
+    const image = new Image()
+    image.crossOrigin = 'anonymous'
+    image.onload = () => {
+      try {
+        const w = image.naturalWidth || SVG_RASTER_SIZE
+        const h = image.naturalHeight || SVG_RASTER_SIZE
+        const k = SVG_RASTER_SIZE / Math.max(w, h)
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.max(1, Math.round(w * k))
+        canvas.height = Math.max(1, Math.round(h * k))
+        canvas.getContext('2d')?.drawImage(image, 0, 0, canvas.width, canvas.height)
+        resolve(canvas.toDataURL('image/png'))
+      } catch {
+        resolve(null)
+      }
+    }
+    image.onerror = () => resolve(null)
+    image.src = url
+  })
+}
+
+/**
+ * Returns input props whose SVG images (brand logo/photos and layer images)
+ * are PNG data URLs. Anything that cannot be converted is left as it was.
+ */
+export async function rasterizeSvgImages(inputProps: PreviewInputProps): Promise<PreviewInputProps> {
+  const urls = new Set<string>()
+  const add = (url: string | null | undefined) => {
+    if (isSvgImageUrl(url)) urls.add(url as string)
+  }
+  add(inputProps.brand?.logoUrl)
+  add(inputProps.brand?.productUrl)
+  add(inputProps.brand?.serviceUrl)
+  for (const layer of inputProps.settings?.layers ?? []) add(layer.imageUrl)
+  if (urls.size === 0) return inputProps
+  const converted = new Map<string, string>()
+  await Promise.all(
+    [...urls].map(async (url) => {
+      const png = await svgToPng(url)
+      if (png) converted.set(url, png)
+    }),
+  )
+  if (converted.size === 0) return inputProps
+  const swap = (url: string | null | undefined) => (url && converted.get(url)) || url
+  return {
+    ...inputProps,
+    brand: {
+      ...inputProps.brand,
+      logoUrl: swap(inputProps.brand.logoUrl) ?? null,
+      productUrl: swap(inputProps.brand.productUrl) ?? null,
+      serviceUrl: swap(inputProps.brand.serviceUrl) ?? null,
+    },
+    settings: {
+      ...inputProps.settings,
+      layers: inputProps.settings.layers.map((layer) =>
+        layer.imageUrl && converted.has(layer.imageUrl) ? { ...layer, imageUrl: converted.get(layer.imageUrl) } : layer,
+      ),
+    },
+  }
+}
+
 /** Cancel the in-flight export, if any. Returns true when one was running. */
 export function cancelActiveExport(): boolean {
   if (!activeController) return false
@@ -246,7 +322,7 @@ async function detectCodecSupport(renderer: LoadedWebRenderer): Promise<{
 export async function exportPersonalizedVideo(
   options: WebExportOptions,
 ): Promise<WebExportResult> {
-  const { inputProps, onProgress, signal } = options
+  const { inputProps: rawInputProps, onProgress, signal } = options
 
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return {
@@ -259,11 +335,15 @@ export async function exportPersonalizedVideo(
     return { ok: false, reason: 'cancelled', error: 'Render cancelled before it started.' }
   }
 
+  // The web renderer cannot draw SVG images, so SVG logos and photos are
+  // turned into PNGs first; the preview already shows them either way.
+  const inputProps = await rasterizeSvgImages(rawInputProps)
   const settings = inputProps.settings
   const width = evenDimension(settings?.width ?? 0)
   const height = evenDimension(settings?.height ?? 0)
   const fps = settings?.fps && settings.fps > 0 ? settings.fps : 30
-  const durationInFrames = Math.max(1, Math.round(settings?.durationInFrames ?? 1))
+  // The export includes the opening and closing scenes around the video.
+  const durationInFrames = Math.max(1, settings ? totalDurationInFrames(settings) : 1)
 
   // Background removal: the export draws the presenter from measured masks. If this page does not have them
   // yet (for example the project was just reopened), measure them first rather than exporting the original

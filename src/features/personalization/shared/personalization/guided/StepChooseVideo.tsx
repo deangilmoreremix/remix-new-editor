@@ -149,6 +149,10 @@ function brandingBackground(branding: 'none' | 'logo' | 'unreviewed' | undefined
 export function StepChooseVideo(): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const { source, previewVideo, setPreviewVideo, previewSettings, updatePreviewComposition, sharedMediaEntries = [] } = ctx
+  // Older or partial contexts (and tests) may not provide it.
+  const fitPreviewToVideo =
+    (ctx as { fitPreviewToVideo?: (url: string, fallback?: { durationSec?: number; aspectRatio?: string }) => void })
+      .fitPreviewToVideo
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadNote, setUploadNote] = useState(false)
   const [hoveredDemoKey, setHoveredDemoKey] = useState<string | null>(null)
@@ -188,14 +192,19 @@ export function StepChooseVideo(): React.JSX.Element {
       title: source.title || 'Your video',
       kind: 'source',
     })
-  }, [source?.sourceMedia, source?.poster, source?.title, previewVideo?.url, setPreviewVideo])
+    fitPreviewToVideo?.(url, { durationSec: source.duration, aspectRatio: source.aspectRatio })
+  }, [source?.sourceMedia, source?.poster, source?.title, previewVideo?.url, setPreviewVideo, fitPreviewToVideo])
 
   const savedVideos = sharedMediaEntries
     .map((entry) => ({ entry, url: savedVideoUrl(entry) }))
     .filter((item): item is { entry: SharedMediaEntry; url: string } => Boolean(item.url))
     .slice(0, 8)
 
-  const pick = (video: PreviewVideoRef) => setPreviewVideo(video)
+  // Every pick sets the preview to that video's own length and shape.
+  const pick = (video: PreviewVideoRef, fallback?: { durationSec?: number; aspectRatio?: string }) => {
+    setPreviewVideo(video)
+    fitPreviewToVideo?.(video.url, fallback)
+  }
 
   const pickDemo = (demo: DemoLibraryEntry) => {
     // A demo without a playable videoSrc must not be selected and must never
@@ -206,9 +215,14 @@ export function StepChooseVideo(): React.JSX.Element {
     // `demoId` is the registry's source-qualified id ("<collection>:<slug>").
     // The source catalogs reuse numeric ids across libraries, so a bare
     // number would point at a different video in another collection.
-    pick({ url: demo.videoSrc, poster: demo.posterSrc || null, title: demo.title, kind: 'demo', demoId: demo.id })
     const videoDemo = DEMO_VIDEO_BY_ENTRY_ID.get(demo.id) ?? toVideoDemo(demo)
-    updatePreviewComposition({ durationInFrames: demoDurationInFrames(videoDemo, fps) })
+    const video: PreviewVideoRef = { url: demo.videoSrc, poster: demo.posterSrc || null, title: demo.title, kind: 'demo', demoId: demo.id }
+    if (fitPreviewToVideo) {
+      pick(video, { durationSec: videoDemo.duration, aspectRatio: videoDemo.aspectRatio ?? demo.aspectRatio })
+    } else {
+      setPreviewVideo(video)
+      updatePreviewComposition({ durationInFrames: demoDurationInFrames(videoDemo, fps) })
+    }
   }
 
   const handleUpload = (file: File | undefined) => {

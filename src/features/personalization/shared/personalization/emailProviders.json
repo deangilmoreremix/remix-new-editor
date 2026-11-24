@@ -1,0 +1,1699 @@
+[
+  {
+    "key": "mailchimp",
+    "label": "Mailchimp",
+    "open": "*|",
+    "close": "|*",
+    "fields": {
+      "firstName": "FNAME",
+      "lastName": "LNAME",
+      "email": "EMAIL",
+      "phone": "PHONE",
+      "businessPhone": "PHONE"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    },
+    "recipientId": "UNIQID",
+    "recipientUnverified": true
+  },
+  {
+    "key": "activecampaign",
+    "label": "ActiveCampaign",
+    "open": "%",
+    "close": "%",
+    "fields": {
+      "firstName": "FIRSTNAME",
+      "lastName": "LASTNAME",
+      "email": "EMAIL",
+      "fullName": "FULLNAME",
+      "company": "ORGNAME"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "klaviyo",
+    "label": "Klaviyo",
+    "open": "{{ ",
+    "close": " }}",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email",
+      "company": "person.organization",
+      "title": "person.title",
+      "phone": "person.phone_number",
+      "businessPhone": "person.phone_number"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": "person."
+    }
+  },
+  {
+    "key": "hubspot",
+    "label": "HubSpot",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "contact.firstname",
+      "lastName": "contact.lastname",
+      "email": "contact.email",
+      "company": "contact.company",
+      "title": "contact.jobtitle"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": "contact."
+    }
+  },
+  {
+    "key": "constantcontact",
+    "label": "Constant Contact",
+    "open": "[[",
+    "close": "]]",
+    "fields": {
+      "firstName": "FirstName",
+      "lastName": "LastName",
+      "email": "EmailAddress",
+      "company": "CompanyName",
+      "title": "JobTitle",
+      "location": "City",
+      "phone": "CellPhone",
+      "businessPhone": "CellPhone"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": "Custom."
+    }
+  },
+  {
+    "key": "brevo",
+    "label": "Brevo (Sendinblue)",
+    "open": "{{ contact.",
+    "close": " }}",
+    "fields": {
+      "firstName": "FIRSTNAME",
+      "lastName": "LASTNAME",
+      "email": "EMAIL"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "mailerlite",
+    "label": "MailerLite",
+    "open": "{$",
+    "close": "}",
+    "fields": {
+      "firstName": "name",
+      "lastName": "last_name",
+      "email": "email",
+      "company": "company",
+      "phone": "phone",
+      "businessPhone": "phone"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "kit",
+    "label": "Kit (ConvertKit)",
+    "open": "{{ subscriber.",
+    "close": " }}",
+    "fields": {
+      "firstName": "first_name",
+      "email": "email_address"
+    },
+    "custom": {
+      "case": "snake",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "getresponse",
+    "label": "GetResponse",
+    "open": "[[",
+    "close": "]]",
+    "fields": {
+      "firstName": "firstname",
+      "lastName": "lastname",
+      "email": "email",
+      "fullName": "name"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "campaignmonitor",
+    "label": "Campaign Monitor",
+    "open": "[",
+    "close": ",fallback=]",
+    "fields": {
+      "firstName": "firstname",
+      "lastName": "lastname",
+      "fullName": "fullname"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    },
+    "tags": {
+      "email": "[email]"
+    }
+  },
+  {
+    "key": "salesforcemc",
+    "label": "Salesforce Marketing Cloud",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "FirstName",
+      "lastName": "LastName",
+      "email": "emailaddr"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "recipientId": "_subscriberkey"
+  },
+  {
+    "key": "aweber",
+    "label": "AWeber",
+    "open": "{{ subscriber.",
+    "close": " }}",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email",
+      "fullName": "name"
+    },
+    "recipientId": "id",
+    "custom": {
+      "case": "as-is",
+      "prefix": "custom_field['",
+      "suffix": "']"
+    }
+  },
+  {
+    "key": "drip",
+    "label": "Drip",
+    "open": "{{ subscriber.",
+    "close": " }}",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email"
+    },
+    "custom": {
+      "case": "snake",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "zoho",
+    "label": "Zoho Campaigns",
+    "open": "$[",
+    "close": "]$",
+    "fields": {
+      "firstName": "FNAME",
+      "lastName": "LNAME",
+      "email": "UD:CONTACT_EMAIL"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": "UD:"
+    }
+  },
+  {
+    "key": "custom",
+    "label": "Custom (your own format)",
+    "open": "{{",
+    "close": "}}",
+    "fields": {},
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    }
+  },
+  {
+    "key": "1shoppingcart",
+    "label": "1ShoppingCart",
+    "open": "%$",
+    "close": "$%",
+    "fields": {
+      "firstName": "firstname"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "acton",
+    "label": "Act-On",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "E-mail Address"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "adestra",
+    "label": "Adestra",
+    "open": "$",
+    "close": "$",
+    "fields": {
+      "firstName": "data('firstname')",
+      "email": "data('email')"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "adobecampaign",
+    "label": "Adobe Campaign",
+    "open": "<%=",
+    "close": "%>",
+    "fields": {
+      "firstName": "recipient.FirstName",
+      "lastName": "recipient.LastName",
+      "email": "recipient.Email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "agilecrm",
+    "label": "Agile CRM",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "autopilothq",
+    "label": "AutoPilotHQ",
+    "open": "--",
+    "close": "--",
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "campaigner",
+    "label": "Campaigner",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "Contact.First Name",
+      "lastName": "Contact.Last Name",
+      "email": "Contact.Email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "cordial",
+    "label": "Cordial",
+    "open": "{",
+    "close": "}",
+    "fields": {
+      "firstName": "$contact.firstName",
+      "lastName": "$contact.lastName",
+      "email": "$contact.channels.email.address"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "customerio",
+    "label": "Customer.io",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "customer.first_name",
+      "lastName": "customer.last_name",
+      "email": "customer.email",
+      "fullName": "customer.full_name"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "databank",
+    "label": "Databank",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "fname"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "delivra",
+    "label": "Delivra",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "FirstName_",
+      "lastName": "LastName_",
+      "fullName": "FullName_"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "dialoginsight",
+    "label": "Dialog Insight",
+    "open": "[[=",
+    "close": "]]",
+    "fields": {
+      "firstName": "Contact.f_FirstName;",
+      "email": "Contact.f_EMail;"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "dotmailer",
+    "label": "DotMailer",
+    "open": "@",
+    "close": "@",
+    "fields": {
+      "firstName": "FIRSTNAME",
+      "lastName": "LASTNAME",
+      "email": "EMAIL",
+      "fullName": "FULLNAME"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "easysendy",
+    "label": "EasySendy",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "FNAME",
+      "lastName": "LNAME",
+      "email": "EMAIL"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "eflyermaker",
+    "label": "eflyermaker",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "dyn.firstname",
+      "lastName": "dyn.lastname",
+      "email": "dyn.email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "elasticemail",
+    "label": "Elastic Email",
+    "open": "{",
+    "close": "}",
+    "fields": {
+      "firstName": "firstname",
+      "lastName": "lastname",
+      "email": "email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "eloqua",
+    "label": "Eloqua",
+    "open": "<span class='eloquaemail'>",
+    "close": "</span>",
+    "fields": {
+      "firstName": "FirstName",
+      "lastName": "LastName",
+      "email": "EmailAddress",
+      "fullName": "Name"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "emarsys",
+    "label": "Emarsys",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "contact.1",
+      "lastName": "contact.2",
+      "email": "contact.3"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "emma",
+    "label": "Emma",
+    "open": "[%",
+    "close": "%]",
+    "fields": {
+      "firstName": "member:first_name",
+      "lastName": "member:last_name",
+      "email": "member:email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "esputnik",
+    "label": "eSputnik",
+    "open": "%",
+    "close": "%",
+    "fields": {
+      "firstName": "FIRSTNAME|",
+      "lastName": "LASTNAME|",
+      "email": "EMAIL|"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": "",
+      "suffix": "|"
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "exacttarget",
+    "label": "ExactTarget",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "experian",
+    "label": "Experian",
+    "open": "##",
+    "close": "##",
+    "fields": {
+      "firstName": "Field_username"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "expertsender",
+    "label": "ExpertSender",
+    "open": "*[",
+    "close": "]*",
+    "fields": {
+      "firstName": "subscriber_firstname",
+      "lastName": "subscriber_lastname",
+      "email": "subscriber_email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "flexie",
+    "label": "Flexie",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "first_name"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "icommkt",
+    "label": "iCommkt",
+    "open": "<*",
+    "close": "*>",
+    "fields": {
+      "firstName": "nombre"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "icontact",
+    "label": "iContact",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "fname",
+      "lastName": "lname",
+      "email": "email"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "informz",
+    "label": "Informz",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "infusionsoft",
+    "label": "InfusionSoft",
+    "open": "~",
+    "close": "~",
+    "fields": {
+      "firstName": "Contact.FirstName",
+      "lastName": "Contact.LastName",
+      "email": "Contact.Email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "instiller",
+    "label": "Instiller",
+    "open": "{?",
+    "close": "?}",
+    "fields": {
+      "firstName": "$contacts_first_name",
+      "lastName": "$contacts_last_name",
+      "email": "$contacts_email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "intercom",
+    "label": "Intercom",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email",
+      "fullName": "name"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "interspire",
+    "label": "Interspire",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "emailaddress"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "iterable",
+    "label": "Iterable",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "firstName",
+      "lastName": "lastName",
+      "email": "email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "jangomail",
+    "label": "JangoMail",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "FirstName",
+      "lastName": "LastName",
+      "email": "EmailAddress"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "leanplum",
+    "label": "Leanplum",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "'first_name' value",
+      "lastName": "'last_name' value",
+      "email": "'email' value"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "listrak",
+    "label": "Listrak",
+    "open": "<<",
+    "close": ">>",
+    "fields": {
+      "firstName": "Customer Information\\First Name",
+      "lastName": "Customer Information\\Last Name",
+      "email": "Customer Information\\Email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "luminate",
+    "label": "Luminate",
+    "open": "[[",
+    "close": "]]",
+    "fields": {
+      "firstName": "S1.first_name",
+      "lastName": "S1.last_name",
+      "email": "S1.email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "lyris",
+    "label": "Lyris",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "firstname",
+      "email": "emailaddr",
+      "fullName": "fullname"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "madmimi",
+    "label": "Mad Mimi",
+    "open": "(",
+    "close": ")",
+    "fields": {
+      "firstName": "firstname",
+      "lastName": "lastname",
+      "email": "email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mail2easy",
+    "label": "Mail2Easy",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "cmp2|1"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mailcamp",
+    "label": "MailCamp",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "Voornaam",
+      "email": "email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mailganer",
+    "label": "MailGaner",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "name",
+      "lastName": "lastname",
+      "email": "email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mailigen",
+    "label": "Mailigen",
+    "open": "#[",
+    "close": "]#",
+    "fields": {
+      "firstName": "FNAME",
+      "lastName": "LNAME",
+      "email": "EMAIL"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mailjet",
+    "label": "MailJet",
+    "open": "[[",
+    "close": "]]",
+    "fields": {
+      "firstName": "firstname",
+      "email": "email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mailplus",
+    "label": "MailPlus",
+    "open": "",
+    "close": "",
+    "fields": {
+      "firstName": "vNaam"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mailpoet",
+    "label": "MailPoet",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "user:firstname",
+      "lastName": "user:lastname",
+      "email": "user:email",
+      "fullName": "user:firstname | user:lastname"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mailrelay",
+    "label": "MailRelay",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "subscriber.first_name",
+      "lastName": "subscriber.last_name",
+      "email": "subscriber.email",
+      "fullName": "subscriber.name"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mailshake",
+    "label": "MailShake",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "first",
+      "lastName": "last",
+      "email": "email",
+      "fullName": "name"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mailup",
+    "label": "MailUp",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "firstname",
+      "lastName": "lastname",
+      "email": "email"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mailwizz",
+    "label": "MailWizz",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "FNAME",
+      "lastName": "LNAME",
+      "email": "EMAIL"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mailzingo",
+    "label": "Mailzingo",
+    "open": "[[",
+    "close": "]]",
+    "fields": {
+      "firstName": "firstname",
+      "lastName": "lastname",
+      "email": "email",
+      "fullName": "name"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "marketo",
+    "label": "Marketo",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "lead.Email Address"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "mindbody",
+    "label": "MindBody",
+    "open": "<",
+    "close": ">",
+    "fields": {
+      "firstName": "CLIENTFIRSTNAME",
+      "lastName": "CLIENTLASTNAME",
+      "fullName": "CLIENTNAME"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "moosend",
+    "label": "MooSend",
+    "open": "#",
+    "close": "#",
+    "fields": {
+      "firstName": "recipient:name",
+      "email": "recipient:email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "newzapp",
+    "label": "NewZapp",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "firstname",
+      "lastName": "lastname",
+      "email": "emailaddress"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "ongage",
+    "label": "Ongage",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "ontraport",
+    "label": "Ontraport",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "pardot",
+    "label": "Pardot",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "pipelinedeals",
+    "label": "PipelineDeals",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "first name",
+      "lastName": "last name",
+      "email": "email"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "postup",
+    "label": "PostUp",
+    "open": "[-",
+    "close": "-]",
+    "fields": {
+      "firstName": "FIRSTNAME",
+      "email": "EMAIL",
+      "fullName": "NAME"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "pure360",
+    "label": "Pure360",
+    "open": "{~",
+    "close": "~}",
+    "fields": {
+      "firstName": "First_Name",
+      "email": "email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "quickmail",
+    "label": "Quickmail",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "prospect.first_name",
+      "lastName": "prospect.last_name",
+      "email": "prospect.email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "rdstation",
+    "label": "RD Station",
+    "open": "|*",
+    "close": "|*",
+    "fields": {
+      "firstName": "PRIMEIRO_NOME",
+      "email": "EMAIL",
+      "fullName": "NOME"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "remarkety",
+    "label": "Remarkety",
+    "open": "{",
+    "close": "}",
+    "fields": {
+      "firstName": "$shopper.firstName",
+      "lastName": "$shopper.lastName",
+      "email": "$shopper.email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "responsys",
+    "label": "ResponSys (Oracle Marketing Cloud)",
+    "open": "${",
+    "close": "}",
+    "fields": {
+      "firstName": "FIRSTNAME",
+      "lastName": "LASTNAME",
+      "email": "EMAIL_ADDRESS"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "retentionscience",
+    "label": "Retention Science",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "fname",
+      "lastName": "lname",
+      "email": "email",
+      "fullName": "full_name"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "robly",
+    "label": "Robly",
+    "open": "--",
+    "close": "--",
+    "fields": {
+      "firstName": "FNAME",
+      "lastName": "LNAME",
+      "email": "EMAIL"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "sailthru",
+    "label": "Sailthru",
+    "open": "{",
+    "close": "}",
+    "fields": {
+      "firstName": "name",
+      "email": "email",
+      "fullName": "name"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "salesloft",
+    "label": "SalesLoft",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "first_name",
+      "lastName": "last_name",
+      "email": "email",
+      "fullName": "name"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "salsa",
+    "label": "Salsa",
+    "open": "[[",
+    "close": "]]",
+    "fields": {
+      "firstName": "First_Name",
+      "lastName": "Last_Name",
+      "email": "Email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "selligent",
+    "label": "Selligent",
+    "open": "",
+    "close": "",
+    "fields": {
+      "firstName": "{firstname}",
+      "email": "~MAIL~"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "sendgrind",
+    "label": "SendGrind",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "%first_name%",
+      "lastName": "%last_name%",
+      "email": "%email%",
+      "fullName": "Sender_Name"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "sendlane",
+    "label": "Sendlane",
+    "open": "",
+    "close": "",
+    "fields": {
+      "firstName": "VAR_FIRST_NAME",
+      "lastName": "VAR_LAST_NAME",
+      "email": "VAR_EMAIL",
+      "fullName": "VAR_FULL_NAME"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "sendpulse",
+    "label": "SendPulse",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "Name",
+      "email": "Email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "sendreach",
+    "label": "SendReach",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "FNAME",
+      "lastName": "LNAME",
+      "email": "EMAIL"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "sendyco",
+    "label": "Sendy.co",
+    "open": "[",
+    "close": "]",
+    "fields": {
+      "firstName": "FNAME",
+      "lastName": "LNAME",
+      "email": "EMAIL"
+    },
+    "custom": {
+      "case": "upper",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "sharpspring",
+    "label": "SharpSpring",
+    "open": "{",
+    "close": "}",
+    "fields": {
+      "firstName": "$firstname",
+      "lastName": "$lastname",
+      "email": "$email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "silverpop",
+    "label": "Silverpop",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "FirstName",
+      "email": "Email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "simplero",
+    "label": "Simplero",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "firstname",
+      "lastName": "lastname",
+      "email": "email",
+      "fullName": "fullname"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "sitecore",
+    "label": "Sitecore",
+    "open": "$",
+    "close": "$",
+    "fields": {
+      "firstName": "firstname",
+      "lastName": "lastname",
+      "email": "email",
+      "fullName": "name"
+    },
+    "custom": {
+      "case": "lower",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "sparkpost",
+    "label": "SparkPost",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "address.name",
+      "email": "address.email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "tractionnext",
+    "label": "Traction Next",
+    "open": "[!",
+    "close": "!]",
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "fullName": "Name"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "verticalresponse",
+    "label": "Vertical Response",
+    "open": "{",
+    "close": "}",
+    "fields": {
+      "firstName": "FIRST_NAME",
+      "lastName": "LAST_NAME",
+      "email": "EMAIL_ADDRESS"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "vision6",
+    "label": "Vision6",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "First_Name",
+      "email": "recipient_email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "webpower",
+    "label": "Webpower",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "contact.name"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "whatcounts",
+    "label": "WhatCounts",
+    "open": "%%",
+    "close": "%%",
+    "fields": {
+      "firstName": "$first",
+      "email": "$email"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  },
+  {
+    "key": "yamm",
+    "label": "YAMM",
+    "open": "{{",
+    "close": "}}",
+    "fields": {
+      "firstName": "First Name",
+      "email": "Email Address"
+    },
+    "custom": {
+      "case": "as-is",
+      "prefix": ""
+    },
+    "unverified": true,
+    "source": "upstream"
+  }
+]

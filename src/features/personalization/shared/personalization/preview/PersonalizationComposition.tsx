@@ -17,7 +17,8 @@ import {
   useVideoConfig,
 } from 'remotion'
 import { Video, Audio } from '@remotion/media'
-import { fontStackById, isImageLayerKind, toBox } from './presets'
+import { designSlotOf, fontStackById, isImageLayerKind, isSceneLayer, sceneLengths, toBox } from './presets'
+import { darkenColor } from '../templates/designs/shared'
 import { entranceFor, exitFor, itemEntrance, usesWordEntrance, wordEntrance } from './motion'
 import { rotateCss, rotatedExtent } from './rotation'
 import { isNeutralKeyframeState, keyframeStateFor, keyframeTransformParts } from './keyframes'
@@ -286,7 +287,13 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
   brand,
   lumaSamples,
 }) => {
-  const frame = useCurrentFrame()
+  const compFrame = useCurrentFrame()
+  // Timeline: opening scene, then the video, then the closing scene. `frame` is the VIDEO's own clock (0 when the video
+  // starts), so every overlay, keyframe, caption and entrance below runs on it; the video's content sits in one Sequence
+  // shifted by the opening scene's length, which also gives child hooks (captions, cutout) the same clock.
+  const { intro: introLen, outro: outroLen } = sceneLengths(settings)
+  const mainLen = Math.max(1, Math.round(settings.durationInFrames))
+  const frame = compFrame - introLen
   const videoConfig = useVideoConfig()
   const compW = settings.width > 0 ? settings.width : videoConfig.width
   const compH = settings.height > 0 ? settings.height : videoConfig.height
@@ -452,6 +459,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
     (layer) =>
       layer.visible &&
       layer.kind !== 'endCard' &&
+      !isSceneLayer(layer) &&
       frame >= layer.startFrame &&
       (layer.endFrame === undefined || frame <= layer.endFrame),
   )
@@ -464,6 +472,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
       resolveLayerText(layer, brand).trim().toLowerCase() === brandName &&
       layer.opacity * entranceFor(layer, frame, settings.fps).opacity > 0,
   )
+  const sceneLayers = settings.layers.filter((layer) => layer.visible && isSceneLayer(layer))
 
   const drawnFallbackText = new Set<string>()
   // Text the customer (or the layout seed) set on a layer explicitly. A layer
@@ -478,6 +487,8 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
   return (
     <MaybeSequenceManager>
     <AbsoluteFill style={{ background: '#05070a' }}>
+      {/* The opening scene plays first; the video and everything on it live on the video's own clock, which starts after it. */}
+      <Sequence from={introLen} durationInFrames={mainLen} layout="none" name="Your video">
       {renderBackground()}
       <LookLayers look={settings.look} />
       {mixTracks.map((track) => {
@@ -619,6 +630,7 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
                     opacity={layer.opacity}
                     color={textColor}
                     fontFamily={layer.fontFamily}
+                    logoIsLight={Boolean(brand.logoUrl && settings.imageHints?.[brand.logoUrl]?.lightLogo)}
                   />
                 </Sequence>
               </AbsoluteFill>
@@ -804,6 +816,65 @@ export const PersonalizationComposition: React.FC<PreviewInputProps> = ({
             <EndCard settings={settings} brand={brand} />
           </Sequence>
         ) : null}
+      </Sequence>
+        {sceneLayers.map((layer) => {
+          const design = layer.designId ? getRemotionDesignTemplate(layer.designId) : undefined
+          if (!design) {
+            warnMissingDesignOnce(layer.designId)
+            return null
+          }
+          const isIntro = designSlotOf(layer) === 'intro'
+          const length = isIntro ? introLen : outroLen
+          const from = isIntro ? 0 : introLen + mainLen
+          if (length <= 0) return null
+          const DesignComponent = design.component
+          const slots = resolveDesignTextSlots(design, layer, brand)
+          const primarySlot =
+            (Array.isArray(design.textSlots) ? design.textSlots : []).find((slot) => slot && slot.primary) ??
+            (Array.isArray(design.textSlots) ? design.textSlots : [])[0]
+          const designProps = (design.defaultProps ?? {}) as Partial<RemotionDesignComponentProps>
+          // A full-screen scene fills the frame; any other design keeps its own
+          // box and plays on a full-frame backdrop in the brand colour.
+          const isFullScene = design.role === 'scene'
+          const box = isFullScene
+            ? { leftPx: 0, topPx: 0, widthPx: compW, heightPx: compH, fontSizePx: 0 }
+            : toBox(layer, compW, compH)
+          return (
+            <Sequence key={layer.id} from={from} durationInFrames={length} name={isIntro ? 'Opening scene' : 'Closing scene'}>
+              <AbsoluteFill
+                data-remotion-scene={isIntro ? 'intro' : 'outro'}
+                style={{ background: isFullScene ? '#05070a' : darkenColor(settings.brandColors.primary, 0.14) }}
+              >
+                <AbsoluteFill
+                  data-remotion-design-id={design.id}
+                  style={{ left: box.leftPx, top: box.topPx, width: box.widthPx, height: box.heightPx ?? compH, pointerEvents: 'none' }}
+                >
+                  <DesignComponent
+                    {...designProps}
+                    text={primarySlot ? (slots[primarySlot.key] ?? '') : ''}
+                    textSlots={slots}
+                    colors={{
+                      primary: settings.brandColors.primary,
+                      accent: settings.brandColors.accent,
+                      text: settings.brandColors.text,
+                      backgroundDim: settings.brandColors.backgroundDim,
+                    }}
+                    media={resolveDesignMedia(design, layer, brand)}
+                    box={{ leftPx: box.leftPx, topPx: box.topPx, widthPx: box.widthPx, heightPx: box.heightPx ?? compH }}
+                    width={compW}
+                    height={compH}
+                    frame={Math.max(0, compFrame - from)}
+                    fps={settings.fps}
+                    opacity={1}
+                    color={layer.color ?? settings.brandColors.text}
+                    fontFamily={layer.fontFamily}
+                    logoIsLight={Boolean(brand.logoUrl && settings.imageHints?.[brand.logoUrl]?.lightLogo)}
+                  />
+                </AbsoluteFill>
+              </AbsoluteFill>
+            </Sequence>
+          )
+        })}
       </AbsoluteFill>
     </MaybeSequenceManager>
   )
