@@ -52,7 +52,14 @@ export const GUIDE_CSS = `
 .sg h2{font-size:clamp(24px,3.2vw,34px);margin:0 0 8px;font-weight:800;letter-spacing:-.01em}
 .sg-sub{color:var(--mute);margin:0 0 28px;max-width:760px}
 .sg h3{font-size:20px;margin:0 0 10px;font-weight:700}
+.sg-tour{position:relative;max-width:960px}
 .sg-tour video{display:block;width:100%;max-width:960px;aspect-ratio:16/10;border-radius:16px;border:1px solid var(--line);background:#000;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.sg-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:96px;height:96px;border-radius:50%;border:0;background:var(--accent);cursor:pointer;display:grid;place-items:center;box-shadow:0 12px 44px rgba(0,0,0,.65),0 0 0 8px rgba(217,255,0,.18);transition:transform .2s,box-shadow .2s}
+.sg-play::before{content:"";width:0;height:0;border-style:solid;border-width:17px 0 17px 28px;border-color:transparent transparent transparent #0a0a0c;margin-left:7px}
+.sg-play:hover,.sg-play:focus-visible{transform:translate(-50%,-50%) scale(1.07);box-shadow:0 12px 44px rgba(0,0,0,.65),0 0 0 10px rgba(217,255,0,.3)}
+.sg-play[hidden]{display:none}
+.sg-tour-len{position:absolute;left:16px;top:16px;padding:6px 12px;border-radius:999px;background:rgba(10,10,12,.82);border:1px solid rgba(217,255,0,.45);color:#f4ffcc;font-size:13px;font-weight:700;letter-spacing:.04em;pointer-events:none}
+.sg-play[hidden]~.sg-tour-len{display:none}
 .sg-overview p{color:#c7cbd3;max-width:860px}
 .sg-chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
 .sg-chips li{font-size:13px;padding:6px 12px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);color:#d4d7de}
@@ -169,7 +176,7 @@ export function renderGuideHtml(g, allCount) {
 
   const mm = g.tour ? `${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}` : '';
   add('tour', 'Video tour', g.tour && section('tour', `Watch the ${g.name} tour`, `A ${mm} captioned walkthrough of the studio, with a sample file and prompt.`,
-    `<div class="sg-tour"><video controls preload="none" playsinline poster="${esc(g.tour.poster)}" src="${esc(g.tour.video)}" aria-label="${esc(g.name)} tour video"></video></div>`));
+    `<div class="sg-tour"><video controls preload="none" playsinline poster="${esc(/^\/guides\//.test(g.overview || '') ? g.overview : g.tour.poster)}" src="${esc(g.tour.video)}" aria-label="${esc(g.name)} tour video" onplay="this.parentNode.querySelector('.sg-play').hidden=true" onended="this.parentNode.querySelector('.sg-play').hidden=false"></video><button type="button" class="sg-play" aria-label="Play the ${esc(g.name)} tour video, ${mm}" onclick="this.parentNode.querySelector('video').play()"></button><span class="sg-tour-len">VIDEO · ${mm}</span></div>`));
 
   add('overview', 'Overview', section('overview', `What is ${g.name}?`, '', `<div class="sg-overview">
     <p>${esc(g.fullDescription || g.description)}</p>
@@ -217,7 +224,7 @@ export function renderGuideHtml(g, allCount) {
     ${g.shortDescription ? `<p class="sg-tag">${esc(g.shortDescription)}</p>` : ''}
     <p class="sg-lead">${esc(g.description)}</p>
     ${g.bestFor ? `<p class="sg-best"><strong>Best for:</strong> ${esc(g.bestFor)}</p>` : ''}
-    <div class="sg-cta"><a class="sg-btn primary" href="${studioHref(g.route)}">Open ${esc(g.name)} →</a><a class="sg-btn ghost" href="#features">See all ${g.features.length} features</a></div>
+    <div class="sg-cta"><a class="sg-btn primary" href="${studioHref(g.route)}">Open ${esc(g.name)} →</a>${g.tour ? `<a class="sg-btn ghost" href="#tour">▶ Watch the tour · ${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}</a>` : ''}<a class="sg-btn ghost" href="#features">See all ${g.features.length} features</a></div>
   </div><figure class="sg-shot" style="margin:0">${img(g.overview, `${g.name} screenshot`, true)}</figure></section>
   <nav class="sg-toc" aria-label="On this page"><strong>On this page</strong><ul>${toc.map(([id, l]) => `<li><a href="#${id}">${esc(l)}</a></li>`).join('')}</ul></nav>
   ${parts.join('')}
