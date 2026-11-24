@@ -2,6 +2,7 @@
 // editor. It is the same panel the classic editor uses; this only supplies CineGen's wiring: which rows to list
 // (projects published from this editor), how to open one, and the owner-only Supabase queries behind the numbers.
 import { getClient } from '@cinegen/components/leads/use-publish';
+import { openCinegenFollowup } from './followup-project';
 // @ts-expect-error plain JS
 import { audienceTab, retargetTab, notificationsTab } from '../../../lib/editor/projectLibrary/projectTabs.js';
 // @ts-expect-error plain JS
@@ -26,6 +27,7 @@ export function createOverviewDeps(o: { onOpenProject: (cinegenProjectId: string
     navigate: (page: string) => import('../../../lib/router.js').then((m) => m.navigate(page)),
     onToast: toast,
     onUnreadChanged: () => window.dispatchEvent(new Event('remix:notifications-changed')),
+    openFollowup: openCinegenFollowup, // Create follow-up builds a CineGen project (also for videos made elsewhere)
   };
   return {
     getClient,

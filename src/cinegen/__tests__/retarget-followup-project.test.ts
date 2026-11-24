@@ -85,6 +85,40 @@ describe('Create follow-up in CineGen', () => {
   });
 });
 
+describe('Create follow-up for a video made elsewhere', () => {
+  const external = { id: 'row-ext', name: 'Webinar', settings: { source: 'external' }, data: { timelineSeconds: 90, tracks: [{ id: 'v', items: [{ src: 'https://cdn/webinar.mp4' }] }] } };
+  const fresh = () => ({ project: { id: 'cloud_new' }, assets: [], timelines: [{ id: 'tl-new', project_id: 'cloud_new', clips: [], duration: 0, tracks: [{ id: 'trk-a', kind: 'audio' }, { id: 'trk-v', kind: 'video' }] }] });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    projects.createAvailableProject.mockResolvedValue({ project: { id: 'cloud_new' } });
+    projects.loadAvailableProject.mockResolvedValue(fresh());
+    projects.saveAvailableProject.mockResolvedValue(undefined);
+    store.createFollowupProject.mockResolvedValue({ id: 'row-new' });
+  });
+
+  it('starts a new project with the original video as one clip, and links the follow-up to it as a normal CineGen video', async () => {
+    const opened = vi.fn();
+    window.addEventListener(OPEN_PROJECT_EVENT, opened as EventListener);
+    const out = await openCinegenFollowup({ client: {}, original: external, followup: { interest: 'Pricing' } });
+    window.removeEventListener(OPEN_PROJECT_EVENT, opened as EventListener);
+    expect(out).toEqual({ id: 'cloud_new' });
+    const [, state] = projects.saveAvailableProject.mock.calls[0];
+    expect(state.assets[0]).toMatchObject({ type: 'video', url: 'https://cdn/webinar.mp4', duration: 90 });
+    expect(state.timelines[0].duration).toBe(90);
+    expect(state.timelines[0].clips[0]).toMatchObject({ assetId: state.assets[0].id, trackId: 'trk-v', startTime: 0, duration: 90, trimStart: 0, trimEnd: 0, speed: 1 });
+    expect(store.createFollowupProject).toHaveBeenCalledWith({}, 'row-ext', { interest: 'Pricing' }, {
+      id: await linkedProjectId('cloud_new', 'tl-new'),
+      settings: { source: 'cinegen', cinegenProjectId: 'cloud_new', timelineId: 'tl-new' },
+    });
+    expect(opened).toHaveBeenCalledTimes(1);
+  });
+
+  it('says so when the stored video has no media, and creates nothing', async () => {
+    await expect(openCinegenFollowup({ client: {}, original: { ...external, data: { timelineSeconds: 0, tracks: [] } }, followup: { interest: 'Pricing' } })).rejects.toThrow(/no media/);
+    expect(projects.createAvailableProject).not.toHaveBeenCalled();
+  });
+});
+
 describe('interest-map sections for a CineGen video', () => {
   it('carry the clip names, so the mapping reads "Opening" and "Offer" instead of Scene 1 and Scene 2', () => {
     const clip = (id: string, name: string, startTime: number) => ({ id, assetId: 'a', trackId: 'tv', name, startTime, duration: 5, trimStart: 0, trimEnd: 0, speed: 1, opacity: 1, volume: 1, flipH: false, flipV: false, keyframes: [] });

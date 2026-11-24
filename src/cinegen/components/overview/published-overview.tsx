@@ -3,6 +3,7 @@
 // Same panel as the Timeline Editor's Projects section, fed by this editor's projects.
 import { useEffect, useRef, useState } from 'react';
 import { UnlinkedVideos } from './unlinked-videos';
+import { ExternalVideoCard } from './external-video-card';
 import { createOverviewDeps, OPEN_PROJECT_EVENT } from '@cinegen/lib/leads/overview-deps';
 // @ts-expect-error plain JS
 import { renderProjectsPanel } from '../../../lib/editor/projectLibrary/projectsPanel.js';
@@ -26,5 +27,5 @@ export function PublishedOverview({ onOpenProject, onPublish }: { onOpenProject?
     window.addEventListener('remix:open-projects', showAlerts);
     return () => { window.removeEventListener('remix:open-projects', showAlerts); panel.destroy?.(); };
   }, [onOpenProject, onPublish, refresh]);
-  return <div className="cg-analytics cg-analytics--embedded" data-testid="published-overview"><UnlinkedVideos onEnabled={() => setRefresh((n) => n + 1)} /><div ref={hostRef} className="prj-root-host" /></div>;
+  return <div className="cg-analytics cg-analytics--embedded" data-testid="published-overview"><ExternalVideoCard onAdded={() => setRefresh((n) => n + 1)} /><UnlinkedVideos onEnabled={() => setRefresh((n) => n + 1)} /><div ref={hostRef} className="prj-root-host" /></div>;
 }
