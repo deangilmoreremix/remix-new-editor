@@ -52,6 +52,7 @@ export const GUIDE_CSS = `
 .sg h2{font-size:clamp(24px,3.2vw,34px);margin:0 0 8px;font-weight:800;letter-spacing:-.01em}
 .sg-sub{color:var(--mute);margin:0 0 28px;max-width:760px}
 .sg h3{font-size:20px;margin:0 0 10px;font-weight:700}
+.sg-tour video{display:block;width:100%;max-width:960px;aspect-ratio:16/10;border-radius:16px;border:1px solid var(--line);background:#000;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .sg-overview p{color:#c7cbd3;max-width:860px}
 .sg-chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
 .sg-chips li{font-size:13px;padding:6px 12px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);color:#d4d7de}
@@ -165,6 +166,10 @@ export function renderGuideHtml(g, allCount) {
   const toc = [];
   const parts = [];
   const add = (id, label, html) => { if (html) { toc.push([id, label]); parts.push(html); } };
+
+  const mm = g.tour ? `${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}` : '';
+  add('tour', 'Video tour', g.tour && section('tour', `Watch the ${g.name} tour`, `A ${mm} captioned walkthrough of the studio, with a sample file and prompt.`,
+    `<div class="sg-tour"><video controls preload="none" playsinline poster="${esc(g.tour.poster)}" src="${esc(g.tour.video)}" aria-label="${esc(g.name)} tour video"></video></div>`));
 
   add('overview', 'Overview', section('overview', `What is ${g.name}?`, '', `<div class="sg-overview">
     <p>${esc(g.fullDescription || g.description)}</p>

@@ -1,0 +1,94 @@
+{
+  "image-effects-tab": {
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Image Effects')]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=(//div[contains(@class,'cursor-pointer')][.//img or .//video])[1]",
+        "hold": 1500
+      },
+      {
+        "selector": "xpath=//button[@aria-label=\"Reference media\" or @title=\"Reference media\"]",
+        "hold": 1000
+      },
+      {
+        "upload": true,
+        "file": "image",
+        "hold": 2500,
+        "selector": "xpath=(//*[normalize-space(text())='Pick a file'] | //button[contains(.,'Upload new') or contains(.,'Upload files')])[1]"
+      }
+    ]
+  },
+  "nano-banana-tab": {
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Nano Banana')]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=(//div[contains(@class,'cursor-pointer')][.//img or .//video])[1]",
+        "hold": 2500
+      }
+    ]
+  },
+  "kontext-effects-tab": {
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Kontext Effects')]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=(//div[contains(@class,'cursor-pointer')][.//img or .//video])[1]",
+        "hold": 1200
+      },
+      {
+        "selector": "#fx-prompt-input",
+        "type": "Change the jacket to red leather",
+        "hold": 2000
+      }
+    ]
+  },
+  "video-effects-tab": {
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Video Effects')]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=(//div[contains(@class,'cursor-pointer')][.//img or .//video])[1]",
+        "hold": 2500
+      }
+    ]
+  },
+  "motion-controls-tab": {
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Motion Controls')]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=(//div[contains(@class,'cursor-pointer')][.//img or .//video])[1]",
+        "hold": 2500
+      }
+    ]
+  },
+  "advanced-panel": {
+    "steps": [
+      {
+        "selector": "xpath=(//div[contains(@class,'cursor-pointer')][.//img or .//video])[1]",
+        "wait": 1500
+      }
+    ],
+    "selector": "#fx-advanced-btn",
+    "click": true,
+    "hold": 2500
+  },
+  "compare": {
+    "selector": "xpath=//button[@aria-label='Toggle side-by-side comparison' or @title='Toggle side-by-side comparison']",
+    "click": true,
+    "hold": 2500
+  },
+  "motion-graphics-vibe-motion-mode": {
+    "selector": "xpath=//button[normalize-space(.)='Motion graphics']",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//textarea[contains(@placeholder,'Describe the motion graphic')]",
+        "type": "Animated logo reveal with glowing neon lines",
+        "hold": 2500
+      }
+    ]
+  }
+}

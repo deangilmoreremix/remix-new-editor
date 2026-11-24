@@ -1,0 +1,12 @@
+{
+  "slug": "find-my-brand",
+  "name": "Find My Brand",
+  "intro": "Find My Brand is a free discovery tool. Paste a business website, and SmartVideo shows the logo, photos and branding it finds on the page.",
+  "features": {
+    "find-my-brand-button": "The big Find My Brand button opens the discovery window. It also opens by itself the first time you land here, and you can reopen it anytime.",
+    "website-url-discovery": "Paste your website into the field and click Find My Brand. The button reads Finding while it works, and the assets it discovers appear for you to review.",
+    "search-for-a-business-instead": "No website handy? Search for the business by name instead, then use its website for discovery. It's useful when you only know the name and place.",
+    "review-and-arrange": "Review and arrange is where you tidy up. Drag discovered images into sections, open the viewer, and remove anything you don't want to keep."
+  },
+  "outro": "Start with a home page, review what turns up, and you'll have a clear picture of any brand."
+}

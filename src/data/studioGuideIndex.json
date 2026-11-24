@@ -53,7 +53,7 @@
         "thumbnail": "/guides/product-shot-studio/overview.webp"
       },
       {
-        "slug": "studio-muapi-studio",
+        "slug": "muapi-studio",
         "name": "Studio (Muapi Studio)",
         "route": "muapi-studio",
         "shortDescription": "One workspace for hundreds of AI models across image, video, audio, avatar and 3D, using your own MuAPI key.",

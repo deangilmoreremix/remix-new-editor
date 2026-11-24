@@ -1,0 +1,27 @@
+{
+  "campaign-goal": {
+    "selector": "[data-goal=\"product-launch\"]",
+    "click": true,
+    "hold": 1500
+  },
+  "optional-direction-or-theme": {
+    "click": true,
+    "type": "Holiday gifts",
+    "hold": 1200,
+    "selector": "xpath=//input[contains(@placeholder,\"Optional direction\")]"
+  },
+  "platform-chips": {
+    "selector": "button:text-is(\"Instagram Story\")",
+    "click": true,
+    "then": [
+      {
+        "selector": "button:text-is(\"Web Banner\")",
+        "hold": 600
+      },
+      {
+        "selector": "button:text-is(\"Instagram Feed\")",
+        "hold": 1200
+      }
+    ]
+  }
+}

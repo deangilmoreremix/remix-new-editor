@@ -1,0 +1,16 @@
+{
+  "slug": "campaign-studio",
+  "name": "Campaign Studio",
+  "intro": "Campaign Studio turns your saved brand and a goal into on-brand campaign concepts, then builds creatives sized for the platforms where you'll publish them.",
+  "features": {
+    "campaign-goal": "Start with Campaign Goal. Pick a card such as Product Launch or Brand Awareness, and that goal steers what your concepts are about.",
+    "optional-direction-or-theme": "The direction box is optional. Type a season, offer or angle, like holiday gifting, and your concepts will lean that way.",
+    "generate-concepts": "Generate Concepts asks the AI for four distinct ideas written from your Brand DNA. Each card shows a title, key message, call to action and tone notes.",
+    "select-a-concept": "Click Select on the concept you like. That opens the Assets step, and the creatives are built from the idea you chose.",
+    "platform-chips": "Platform chips let you choose where your creatives will run, from Instagram Feed to YouTube Thumbnail. Each has its own picture shape and copy limits.",
+    "generate-assets": "Generate Assets makes one creative for each platform you picked. You'll see a status row per platform as each one finishes.",
+    "asset-cards-edit-and-animate": "Every finished asset becomes a card with its picture and copy. Edit opens the Asset Editor, and Animate sends the picture on to Animate Studio.",
+    "view-campaign": "View campaign opens a page with the goal, concepts and all your assets together, so you can come back to the whole campaign later."
+  },
+  "outro": "That's Campaign Studio. Choose a goal, pick a concept, and your platform creatives take shape from there."
+}

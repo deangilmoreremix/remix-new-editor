@@ -1,0 +1,11 @@
+{
+  "command-box-ai-chat": { "selector": "#command-input", "click": true, "type": "Summarize this video", "hold": 1500 },
+  "ai-agents-panel": {
+    "selector": "#category-filter",
+    "click": true,
+    "then": [{ "selector": "xpath=//button[contains(.,\"Video Summarizer\")]", "hold": 1500 }]
+  },
+  "quick-actions": { "selector": "xpath=//button[contains(.,\"Detect Scenes\")]", "click": false },
+  "browse-b-roll-from-pexels": { "selector": "#pexels-director-btn", "click": true, "hold": 2500 },
+  "clear-chat-and-back": { "selector": "#clear-chat-btn", "click": true, "hold": 1500 }
+}

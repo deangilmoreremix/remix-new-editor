@@ -1,0 +1,80 @@
+{
+  "element-palette": {
+    "selector": "button.dom-palette-item:has-text('Heading')",
+    "click": true,
+    "then": [
+      {
+        "selector": "button.dom-palette-item:has-text('Text')",
+        "hold": 700
+      },
+      {
+        "selector": "button.dom-palette-item:has-text('Button')",
+        "hold": 700
+      }
+    ]
+  },
+  "canvas-size": {
+    "selector": "button.dom-preset-btn:has-text('Social Post')",
+    "click": true,
+    "then": [
+      {
+        "selector": "button.dom-preset-btn:has-text('Story')",
+        "hold": 900
+      }
+    ]
+  },
+  "tokens": {
+    "steps": [
+      {
+        "selector": "button.dom-palette-item:has-text('Text')",
+        "wait": 1200
+      }
+    ],
+    "selector": "button.dom-token-chip:has-text('{{firstName}}')",
+    "click": true,
+    "then": [
+      {
+        "selector": "button.dom-token-chip:has-text('{{company}}')",
+        "hold": 900
+      }
+    ]
+  },
+  "active-contact-and-preview": {
+    "steps": [
+      {
+        "selector": "button.dom-palette-item:has-text('Heading')",
+        "wait": 1200
+      },
+      {
+        "selector": "button.dom-token-chip:text-is('First Name')",
+        "wait": 800
+      }
+    ],
+    "selector": "button:text-is('Preview Personalized')",
+    "click": true,
+    "hold": 1500
+  },
+  "personalization-hub": {
+    "selector": "input.pzh-input[placeholder='Business name']",
+    "click": true,
+    "type": "Bella Cucina",
+    "then": [
+      {
+        "selector": "input.pzh-input[placeholder='Industry']",
+        "type": "Restaurant",
+        "hold": 900
+      }
+    ]
+  },
+  "export-html": {
+    "steps": [
+      {
+        "selector": "button.dom-palette-item:has-text('Heading')",
+        "wait": 1200
+      }
+    ],
+    "selector": "button:text-is('Export HTML')",
+    "click": true,
+    "hold": 1500
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "slug": "effects-studio",
+  "name": "Effects Studio",
+  "intro": "Effects Studio in SmartVideo applies ready made visual and motion effects to your photo or video, with a big catalogue of presets to choose from.",
+  "features": {
+    "image-effects-tab": "The Image Effects tab holds still image presets for fast stylized portraits, figurine looks and comic styles from just one photo.",
+    "nano-banana-tab": "The Nano Banana tab has presets for placing yourself in famous scenes, restyling a photo as a decade look, or making a collectible figure.",
+    "kontext-effects-tab": "Kontext Effects are instruction style edits for targeted changes, where you add a short instruction to guide the edit.",
+    "video-effects-tab": "The Video Effects tab turns one photo into a short viral style effect clip using image to video presets.",
+    "motion-controls-tab": "Motion Controls gives a still photo a cinematic camera move, like an orbit or a crash zoom, without describing it in words.",
+    "advanced-panel": "Press Advanced to open options like guidance, steps, seed and negative prompt, so you can fix a seed to reproduce a result or steer away from unwanted looks.",
+    "compare": "After a result exists, the Compare button shows your input and output side by side, so you can judge how strongly the effect changed your photo.",
+    "motion-graphics-vibe-motion-mode": "Switch the top toggle to Motion graphics to describe animated titles, charts or logo reveals, with no source photo needed."
+  },
+  "outro": "Browse the tabs, upload your media, and let Effects Studio do the heavy lifting on your next creative idea."
+}

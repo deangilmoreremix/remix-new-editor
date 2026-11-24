@@ -2,6 +2,7 @@
 // All logic lives in studioGuides.core.js so the build-time prerender uses it too.
 import { buildGuides, groupByCategory } from './studioGuides.core.js';
 import screenshots from './guideScreenshots.json';
+import videos from './guideVideos.json';
 
 const modules = import.meta.glob('./askKb/*.json', { eager: true });
 const kbByRoute = {};
@@ -10,9 +11,9 @@ for (const [path, mod] of Object.entries(modules)) {
   if (!route.startsWith('_')) kbByRoute[route] = mod.default || mod;
 }
 
-export const GUIDES = buildGuides(kbByRoute, screenshots);
+export const GUIDES = buildGuides(kbByRoute, screenshots, {}, videos);
 export const GUIDES_BY_CATEGORY = groupByCategory(GUIDES);
 export const getGuide = (slug) => GUIDES.find((g) => g.slug === slug) || null;
 
 // Every guide including unlisted ones (no public page), for the in-app assistant panel.
-export const ALL_GUIDES = buildGuides(kbByRoute, screenshots, { includeUnlisted: true });
+export const ALL_GUIDES = buildGuides(kbByRoute, screenshots, { includeUnlisted: true }, videos);

@@ -1,0 +1,12 @@
+{
+  "slug": "video-to-video",
+  "name": "Video to Video",
+  "intro": "Video to Video is where you start when you want to transform a clip you already have. This short page points you to Video Studio, where the real work happens.",
+  "features": {
+    "title-banner": "The banner at the top simply confirms you're on the Video to Video page. It's information only, so there's nothing to click here.",
+    "get-started-free": "In the Transform Your Videos section, Get Started Free opens Video Studio. It's the quickest way to reach the tools for restyling, extending or cleaning up your footage.",
+    "gtm-boost": "Next to it, GTM Boost helps you word your edit prompt. Describe your idea, pick an angle, audience and goal, and apply it to open Video Studio with the prompt filled in.",
+    "video-to-video-in-video-studio": "Once in Video Studio, the video button attaches your clip and switches the studio to its video to video models. Keep your clip under fifty megabytes."
+  },
+  "outro": "That's Video to Video. Open Video Studio, attach your clip, and you're ready to transform it."
+}

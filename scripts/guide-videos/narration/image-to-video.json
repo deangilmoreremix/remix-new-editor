@@ -1,0 +1,14 @@
+{
+  "slug": "image-to-video",
+  "name": "Image to Video",
+  "intro": "Image to Video in SmartVideo is an overview page where you can explore animation models and example motions before opening Video Studio.",
+  "features": {
+    "highlight-cards": "Four highlight cards summarize what animating an image can do, from motion effects to smooth animation. They are information only, not buttons.",
+    "available-models": "The models grid shows featured animation model families, so you can see what is available before you start.",
+    "example-animations": "Example cards pair a motion idea with a model. Click Try this to open Video Studio with ready made motion wording.",
+    "gtm-boost": "The GTM Boost button opens a window where you describe your idea, pick an angle, audience and goal, and get a ready to use prompt.",
+    "animate-your-images": "The Animate Your Images button opens Video Studio, which is the fastest way to start animating your own pictures.",
+    "get-started-free": "Get Started Free also opens Video Studio, so you can move on once you have finished browsing."
+  },
+  "outro": "Look through the examples, pick a motion idea, and bring your first still image to life."
+}
