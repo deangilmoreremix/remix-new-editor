@@ -265,7 +265,11 @@ export function ExplorePage() {
   jumpBar.setAttribute('aria-label', 'Jump to a section');
   jumpBar.dataset.exploreJump = '';
   jumpBar.className = 'sticky top-0 z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-2 mb-6 flex items-center gap-2 overflow-x-auto no-scrollbar bg-app-bg/90 backdrop-blur border-b border-white/10';
-  const scrollToEl = (target) => target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Leave room for the sticky bar so the section heading is not hidden behind it.
+  const scrollToEl = (target) => {
+    target.style.scrollMarginTop = '4.5rem';
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
   jumpTargets.forEach(([label, target]) => {
     const chip = document.createElement('button');
     chip.type = 'button';

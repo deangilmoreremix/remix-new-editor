@@ -59,6 +59,11 @@ describe('Apps and Explore navigation helpers', () => {
     const bar = page.querySelector('[data-explore-jump]');
     expect([...bar.querySelectorAll('[data-jump]')].map((b) => b.dataset.jump)).toEqual(['favorites', 'trending', 'prompts', 'categories', 'studios']);
     expect(bar.querySelectorAll('select option').length).toBe(exploreCategories().length + 1);
+    // Jumping leaves room for the sticky bar, so a section heading is never hidden behind it.
+    const studios = page.querySelector('[data-explore-studios]');
+    studios.scrollIntoView = () => {};
+    bar.querySelector('[data-jump="studios"]').click();
+    expect(studios.style.scrollMarginTop).toBe('4.5rem');
   });
 });
 
