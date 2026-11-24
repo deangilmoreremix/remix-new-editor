@@ -1,21 +1,93 @@
 import { navigate } from '../lib/router.js';
-import { templates, TEMPLATE_CATEGORIES } from '../lib/templates.js';
-import { getTemplateThumbnail, getCategoryThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { templates, allTemplates } from '../lib/templates.js';
+import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
+import { templatesForNiche } from '../lib/templateCategories.js';
+import { getTemplateThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { FAVORITE_STAR_CLASS, paintFavoriteStar, getFavoriteTemplateIds, getRecentTemplateIds, isFavoriteTemplate, toggleFavoriteTemplate } from '../lib/templateUx.js';
+import { syncFavorites, fetchTrendingTemplateIds, isCloudReady, TRENDING_WINDOW_DAYS } from '../lib/templateCloud.js';
+import { CURATED_PROMPTS } from '../data/curatedPrompts.js';
+import { studioCards, createSection } from './AppsHub.js';
 
-const CURATED_PROMPTS = [
-  { prompt: 'A samurai standing in cherry blossom rain, cinematic lighting, epic composition', model: 'nano-banana', category: 'Cinematic' },
-  { prompt: 'Cyberpunk street market at night, neon signs, rain reflections, detailed', model: 'flux-dev', category: 'Sci-Fi' },
-  { prompt: 'Oil painting of a lighthouse in a storm, dramatic waves, Turner style', model: 'nano-banana', category: 'Art' },
-  { prompt: 'Cozy cabin interior with fireplace, snow outside window, warm lighting', model: 'nano-banana', category: 'Lifestyle' },
-  { prompt: 'Astronaut floating in space with Earth reflection in visor, photorealistic', model: 'flux-dev', category: 'Sci-Fi' },
-  { prompt: 'Fashion editorial, model in avant-garde geometric dress, studio lighting', model: 'nano-banana', category: 'Fashion' },
-  { prompt: 'Ancient temple ruins overgrown with jungle, volumetric light rays', model: 'nano-banana', category: 'Fantasy' },
-  { prompt: 'Product photo of luxury perfume bottle on marble, golden hour light', model: 'nano-banana', category: 'Commercial' },
-  { prompt: 'Underwater coral reef with tropical fish, crystal clear water, natural light', model: 'flux-dev', category: 'Nature' },
-  { prompt: 'Steampunk clockwork city with airships, brass and copper tones, detailed', model: 'nano-banana', category: 'Sci-Fi' },
-  { prompt: 'Minimalist Japanese garden, zen stones, morning mist, peaceful atmosphere', model: 'nano-banana', category: 'Nature' },
-  { prompt: 'GTA V loading screen style illustration of a man with sunglasses in Miami', model: 'nano-banana', category: 'Style' },
-];
+const TRENDING_COUNT = 8;
+const RECENT_COUNT = 4;
+const CATEGORY_ROW_COUNT = 4;
+
+/** Every template category with its real size: the 8 standard ones plus the industry (niche) ones, as on the Templates page. */
+export function exploreCategories() {
+  const all = Array.isArray(allTemplates) ? allTemplates.filter(Boolean) : [];
+  const standard = [...new Set(all.filter((t) => !t.niche).map((t) => t.category).filter(Boolean))]
+    .map((label) => ({ label, niche: false, count: all.filter((t) => !t.niche && t.category === label).length }));
+  const niches = Object.values(NICHE_LABELS_MAP || {})
+    .map((label) => ({ label, niche: true, count: templatesForNiche(all, label).length }))
+    .filter((c) => c.count > 0);
+  return [...standard, ...niches];
+}
+
+function templateCard(t) {
+  const card = document.createElement('div');
+  card.className = 'relative bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group';
+  card.dataset.templateId = t.id;
+  card.setAttribute('role', 'button');
+  card.setAttribute('tabindex', '0');
+  const thumbSrc = getTemplateThumbnail(t.id);
+  const heroWrapper = document.createElement('div');
+  heroWrapper.className = 'thumb-hero h-36 relative';
+  heroWrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
+  heroWrapper.appendChild(createThumbnailImg(thumbSrc, t.name, 'w-full h-full object-cover', t));
+  card.appendChild(heroWrapper);
+
+  const info = document.createElement('div');
+  info.className = 'p-3';
+  const name = document.createElement('div');
+  name.className = 'text-sm font-bold text-white group-hover:text-primary transition-colors';
+  name.textContent = t.name;
+  const desc = document.createElement('div');
+  desc.className = 'text-xs text-muted mt-0.5';
+  desc.textContent = t.description || '';
+  info.append(name, desc);
+  card.appendChild(info);
+
+  const star = document.createElement('button');
+  star.type = 'button';
+  star.dataset.favorite = t.id;
+  star.className = FAVORITE_STAR_CLASS;
+  star.setAttribute('data-keep-fill', ''); // outline-buttons.css would otherwise make the dark disc transparent
+  star.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); toggleFavoriteTemplate(t.id); });
+  card.appendChild(star);
+
+  const open = () => navigate(`template/${t.id}`);
+  card.onclick = open;
+  card.onkeydown = (e) => { if (e.target === card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(); } };
+  return card;
+}
+
+function paintStars(root) {
+  root.querySelectorAll('[data-favorite]').forEach((star) => {
+    const id = star.dataset.favorite;
+    const on = isFavoriteTemplate(id);
+    const name = star.closest('[data-template-id]')?.querySelector('.font-bold')?.textContent || 'template';
+    star.textContent = on ? '★' : '☆';
+    star.setAttribute('aria-pressed', String(on));
+    paintFavoriteStar(star, on);
+    star.setAttribute('aria-label', on ? `Remove ${name} from favorites` : `Add ${name} to favorites`);
+  });
+}
+
+function sectionHeading(text, hint) {
+  const wrap = document.createElement('div');
+  wrap.className = 'mb-4';
+  const h2 = document.createElement('h2');
+  h2.className = 'text-lg font-bold text-white';
+  h2.textContent = text;
+  wrap.appendChild(h2);
+  if (hint) {
+    const p = document.createElement('p');
+    p.className = 'text-xs text-muted mt-1';
+    p.textContent = hint;
+    wrap.appendChild(p);
+  }
+  return wrap;
+}
 
 export function ExplorePage() {
   const container = document.createElement('div');
@@ -27,101 +99,214 @@ export function ExplorePage() {
   inner.innerHTML = `
     <div class="mb-10 animate-fade-in-up">
       <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-3">Explore</h1>
-      <p class="text-secondary text-sm md:text-base max-w-xl">Discover curated prompts, trending templates, and creative inspiration</p>
+      <p class="text-secondary text-sm md:text-base max-w-xl">Discover curated prompts, trending templates, every studio, and creative inspiration</p>
     </div>
   `;
 
+  const byId = new Map((Array.isArray(allTemplates) ? allTemplates : []).filter(Boolean).map((t) => [t.id, t]));
+
+  // ---- Your favorites (and recently opened) ------------------------------
+  const favoritesSection = document.createElement('div');
+  favoritesSection.className = 'mb-12 animate-fade-in-up';
+  favoritesSection.dataset.exploreFavorites = '';
+  inner.appendChild(favoritesSection);
+
+  function renderFavorites() {
+    favoritesSection.innerHTML = '';
+    const favorites = getFavoriteTemplateIds().map((id) => byId.get(id)).filter(Boolean);
+    const recent = getRecentTemplateIds().filter((id) => !isFavoriteTemplate(id)).map((id) => byId.get(id)).filter(Boolean).slice(0, RECENT_COUNT);
+    favoritesSection.appendChild(sectionHeading('Your favorites', isCloudReady()
+      ? 'Saved to your account, so they follow you to any device.'
+      : 'Star a template to keep it here. Sign in to have your favorites on every device.'));
+    if (favorites.length) {
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3';
+      favorites.forEach((t) => grid.appendChild(templateCard(t)));
+      favoritesSection.appendChild(grid);
+    } else {
+      const empty = document.createElement('p');
+      empty.className = 'text-sm text-muted';
+      empty.textContent = 'No favorites yet. Tap the ☆ on any template below.';
+      favoritesSection.appendChild(empty);
+    }
+    if (recent.length) {
+      const h = document.createElement('h3');
+      h.className = 'text-sm font-bold text-muted uppercase tracking-wider mt-6 mb-3';
+      h.textContent = 'Recently opened';
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3';
+      recent.forEach((t) => grid.appendChild(templateCard(t)));
+      favoritesSection.append(h, grid);
+    }
+    paintStars(favoritesSection);
+  }
+
+  // ---- Trending: real usage when there is some, else the default order ----
   const trendingSection = document.createElement('div');
   trendingSection.className = 'mb-12 animate-fade-in-up';
+  trendingSection.dataset.exploreTrending = 'default';
   trendingSection.style.animationDelay = '0.1s';
-  trendingSection.innerHTML = '<h2 class="text-lg font-bold text-white mb-4">Trending Templates</h2>';
-
-  const trendingGrid = document.createElement('div');
-  trendingGrid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3';
-
-  const trending = templates.slice(0, 8);
-  trending.forEach(t => {
-    const card = document.createElement('div');
-    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group';
-    const thumbSrc = getTemplateThumbnail(t.id);
-    const heroWrapper = document.createElement('div');
-    heroWrapper.className = 'thumb-hero h-36 relative';
-    heroWrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
-    const img = createThumbnailImg(thumbSrc, t.name, 'w-full h-full object-cover', t);
-    heroWrapper.appendChild(img);
-    card.appendChild(heroWrapper);
-    const info = document.createElement('div');
-    info.className = 'p-3';
-    info.innerHTML = `
-      <div class="text-sm font-bold text-white group-hover:text-primary transition-colors">${t.name}</div>
-      <div class="text-xs text-muted mt-0.5">${t.description}</div>
-    `;
-    card.appendChild(info);
-    card.onclick = () => navigate(`template/${t.id}`);
-    trendingGrid.appendChild(card);
-  });
-  trendingSection.appendChild(trendingGrid);
   inner.appendChild(trendingSection);
 
+  function renderTrending(rankedIds = []) {
+    const ranked = rankedIds.map((id) => byId.get(id)).filter(Boolean);
+    const picked = [...ranked];
+    for (const t of templates) {
+      if (picked.length >= TRENDING_COUNT) break;
+      if (!picked.includes(t)) picked.push(t);
+    }
+    const live = ranked.length > 0;
+    trendingSection.dataset.exploreTrending = live ? 'live' : 'default';
+    trendingSection.innerHTML = '';
+    trendingSection.appendChild(sectionHeading('Trending Templates', live
+      ? `Most opened and favorited in the last ${TRENDING_WINDOW_DAYS} days.`
+      : null));
+    const grid = document.createElement('div');
+    grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3';
+    picked.slice(0, TRENDING_COUNT).forEach((t) => grid.appendChild(templateCard(t)));
+    trendingSection.appendChild(grid);
+    paintStars(trendingSection);
+  }
+
+  // ---- Prompt library ------------------------------------------------------
   const promptsSection = document.createElement('div');
   promptsSection.className = 'mb-12 animate-fade-in-up';
   promptsSection.style.animationDelay = '0.2s';
-  promptsSection.innerHTML = '<h2 class="text-lg font-bold text-white mb-4">Prompt Library</h2>';
-
+  promptsSection.appendChild(sectionHeading('Prompt Library'));
   const promptsGrid = document.createElement('div');
   promptsGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
-
-  CURATED_PROMPTS.forEach(p => {
+  CURATED_PROMPTS.forEach((p) => {
     const card = document.createElement('div');
     card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 hover:bg-white/[0.06] hover:border-white/10 transition-all group';
-    card.innerHTML = `
-      <div class="text-xs text-muted mb-2">${p.category} / ${p.model}</div>
-      <div class="text-sm text-white leading-relaxed mb-3">${p.prompt}</div>
-      <button class="text-xs font-bold text-primary hover:underline try-btn">Try this prompt</button>
-    `;
-    card.querySelector('.try-btn').onclick = () => {
-      localStorage.setItem('prefill_prompt', p.prompt);
+    const meta = document.createElement('div');
+    meta.className = 'text-xs text-muted mb-2';
+    meta.textContent = `${p.category} / ${p.model}`;
+    const text = document.createElement('div');
+    text.className = 'text-sm text-white leading-relaxed mb-3';
+    text.textContent = p.prompt;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'text-xs font-bold text-primary hover:underline try-btn';
+    btn.textContent = 'Try this prompt';
+    btn.onclick = () => {
+      try { localStorage.setItem('prefill_prompt', p.prompt); } catch { /* storage blocked */ }
       navigate('image');
     };
+    card.append(meta, text, btn);
     promptsGrid.appendChild(card);
   });
   promptsSection.appendChild(promptsGrid);
   inner.appendChild(promptsSection);
 
+  // ---- Browse by category: a row of real templates per category, "See all" opens Templates on it ----
   const categoriesSection = document.createElement('div');
   categoriesSection.className = 'animate-fade-in-up';
   categoriesSection.style.animationDelay = '0.3s';
-  categoriesSection.innerHTML = '<h2 class="text-lg font-bold text-white mb-4">Browse by Category</h2>';
+  categoriesSection.dataset.exploreCategories = '';
+  const categories = exploreCategories();
+  categoriesSection.appendChild(sectionHeading('Browse by Category', `${allTemplates.length} templates in ${categories.length} categories`));
+  const allList = (Array.isArray(allTemplates) ? allTemplates : []).filter(Boolean);
+  categories.forEach(({ label, count, niche }) => {
+    const row = document.createElement('div');
+    row.className = 'mb-10';
+    row.dataset.category = label;
 
-  const catGrid = document.createElement('div');
-  catGrid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3';
-
-  Object.values(TEMPLATE_CATEGORIES).forEach(cat => {
-    const count = templates.filter(t => t.category === cat).length;
-    const card = document.createElement('div');
-    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-white/10 transition-all group';
-    const catThumb = getCategoryThumbnail(cat);
-    if (catThumb) {
-      const heroWrapper = document.createElement('div');
-      heroWrapper.className = 'thumb-hero h-24 relative';
-      heroWrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
-      const img = createThumbnailImg(catThumb, cat, 'w-full h-full object-cover');
-      heroWrapper.appendChild(img);
-      card.appendChild(heroWrapper);
+    const head = document.createElement('div');
+    head.className = 'flex items-center justify-between gap-3 mb-3';
+    const title = document.createElement('div');
+    title.className = 'min-w-0 flex items-baseline gap-2 flex-wrap';
+    const name = document.createElement('h3');
+    name.className = `text-base font-bold ${niche ? 'text-cyan-400' : 'text-white'}`;
+    name.textContent = label;
+    title.appendChild(name);
+    if (niche) {
+      const tag = document.createElement('span');
+      tag.className = 'text-[10px] font-medium text-cyan-500/70 uppercase tracking-wider';
+      tag.textContent = 'Industry';
+      title.appendChild(tag);
     }
-    const info = document.createElement('div');
-    info.className = 'p-3';
-    info.innerHTML = `
-      <div class="text-sm font-bold text-white group-hover:text-primary transition-colors">${cat}</div>
-      <div class="text-xs text-muted mt-1">${count} templates</div>
-    `;
-    card.appendChild(info);
-    card.onclick = () => navigate('apps');
-    catGrid.appendChild(card);
+    const n = document.createElement('span');
+    n.className = 'text-xs text-muted';
+    n.dataset.categoryCount = String(count);
+    n.textContent = `${count} ${count === 1 ? 'template' : 'templates'}`;
+    title.appendChild(n);
+    const seeAll = document.createElement('button');
+    seeAll.type = 'button';
+    seeAll.dataset.seeAll = label;
+    seeAll.className = 'shrink-0 text-xs font-bold text-primary hover:underline';
+    seeAll.textContent = `See all ${count} \u2192`;
+    seeAll.onclick = () => navigate('templates', { category: label });
+    head.append(title, seeAll);
+    row.appendChild(head);
+
+    const inCategory = niche ? templatesForNiche(allList, label) : allList.filter((t) => !t.niche && t.category === label);
+    const grid = document.createElement('div');
+    grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3';
+    inCategory.slice(0, CATEGORY_ROW_COUNT).forEach((t) => grid.appendChild(templateCard(t)));
+    row.appendChild(grid);
+    categoriesSection.appendChild(row);
   });
-  categoriesSection.appendChild(catGrid);
+  paintStars(categoriesSection);
   inner.appendChild(categoriesSection);
 
+  // ---- All studios ----------------------------------------------------------
+  const cards = studioCards();
+  const studiosSection = createSection('All studios', cards, true);
+  studiosSection.style.marginTop = '3rem';
+  studiosSection.dataset.exploreStudios = String(cards.length);
+  inner.appendChild(studiosSection);
+
+  // ---- Jump bar: the page is long, so link to each section and category ----
+  const jumpTargets = [
+    ['Favorites', favoritesSection], ['Trending', trendingSection], ['Prompts', promptsSection],
+    ['Categories', categoriesSection], ['Studios', studiosSection],
+  ];
+  const jumpBar = document.createElement('nav');
+  jumpBar.setAttribute('aria-label', 'Jump to a section');
+  jumpBar.dataset.exploreJump = '';
+  jumpBar.className = 'sticky top-0 z-20 -mx-4 md:-mx-8 px-4 md:px-8 py-2 mb-6 flex items-center gap-2 overflow-x-auto no-scrollbar bg-app-bg/90 backdrop-blur border-b border-white/10';
+  const scrollToEl = (target) => target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  jumpTargets.forEach(([label, target]) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.dataset.jump = label.toLowerCase();
+    chip.className = 'px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-xs font-bold text-white hover:bg-white/10 whitespace-nowrap';
+    chip.textContent = label;
+    chip.onclick = () => scrollToEl(target);
+    jumpBar.appendChild(chip);
+  });
+  const catSelect = document.createElement('select');
+  catSelect.setAttribute('aria-label', 'Jump to a category');
+  catSelect.dataset.jumpCategory = '';
+  catSelect.className = 'ml-auto shrink-0 max-w-[12rem] rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-white';
+  const addOption = (text, value) => { const o = document.createElement('option'); o.value = value; o.textContent = text; catSelect.appendChild(o); };
+  addOption('Category…', '');
+  categories.forEach(({ label }) => addOption(label, label));
+  catSelect.onchange = () => {
+    const row = [...categoriesSection.querySelectorAll('[data-category]')].find((r) => r.dataset.category === catSelect.value);
+    if (row) scrollToEl(row);
+    catSelect.value = '';
+  };
+  jumpBar.appendChild(catSelect);
+  inner.insertBefore(jumpBar, favoritesSection);
+
   container.appendChild(inner);
+
+  // First paint from this browser, then bring in the account's favorites and the usage ranking.
+  renderFavorites();
+  renderTrending();
+  let disposed = false;
+  syncFavorites().then(() => { if (!disposed) { renderFavorites(); paintStars(container); } });
+  fetchTrendingTemplateIds(TRENDING_COUNT).then((ids) => { if (!disposed && ids.length) renderTrending(ids); });
+
+  // A star toggled anywhere on this page (or merged in from the account) refreshes every copy of it.
+  const refresh = () => { renderFavorites(); paintStars(container); };
+  window.addEventListener('template-favorite-toggled', refresh);
+  window.addEventListener('template-favorites-changed', refresh);
+  container.cleanup = () => {
+    disposed = true;
+    window.removeEventListener('template-favorite-toggled', refresh);
+    window.removeEventListener('template-favorites-changed', refresh);
+  };
   return container;
 }

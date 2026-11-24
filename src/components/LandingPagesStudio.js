@@ -6,6 +6,7 @@
 // src/pages/VideoPage.jsx.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
 import { listBrands } from '../lib/brandStore.js';
