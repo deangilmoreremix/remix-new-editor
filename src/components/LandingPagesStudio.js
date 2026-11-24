@@ -68,9 +68,26 @@ export function LandingPagesStudio({ embedded = false } = {}) {
   const state = { pages: [], sources: null };
 
   const signedIn = () => !!getClerkUserId();
+  // No separate sign-in here: wait for the SmartVid account (Clerk) to load, then carry on automatically.
+  let waitingForAccount = false;
+  const waitForAccount = async () => {
+    if (waitingForAccount) return;
+    waitingForAccount = true;
+    try {
+      const { ensureClerkLoaded } = await import('../lib/clerkInit.js');
+      const clerk = await ensureClerkLoaded();
+      if (signedIn()) { showList(); return; }
+      // Still no account: open the list as soon as one appears (signing in from the app header).
+      clerk?.addListener?.(({ user }) => { if (user?.id && inner.isConnected) showList(); });
+    } catch { /* Clerk unavailable: stay on the connecting message */ }
+  };
   const guard = () => {
     if (!isSupabaseConfigured()) { inner.replaceChildren(el('p', 'text-sm text-secondary', 'Video pages need the Supabase connection, which is not configured here.')); return false; }
-    if (!signedIn()) { inner.replaceChildren(el('p', 'text-sm text-secondary', 'Sign in to create and manage video landing pages.')); return false; }
+    if (!signedIn()) {
+      inner.replaceChildren(el('p', 'text-sm text-secondary', 'Connecting your SmartVid account…'));
+      waitForAccount();
+      return false;
+    }
     return true;
   };
 

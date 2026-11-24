@@ -100,7 +100,15 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       if (cancelled) return
       if (!clerk?.user || !clerk.session) {
         await clearBuilderSession()
-        if (!cancelled) setSsoStatus('signed_out')
+        if (cancelled) return
+        setSsoStatus('signed_out')
+        // Connect automatically when the SmartVid account appears (no separate sign-in in the builder).
+        unlisten = clerk?.addListener?.(({ user: u }) => { if (u?.id) setAttempt((n) => n + 1) })
+        if (!clerk) {
+          // Clerk not on the parent yet: look again shortly.
+          const t = window.setTimeout(() => setAttempt((n) => n + 1), 3000)
+          unlisten = () => window.clearTimeout(t)
+        }
         return
       }
 
