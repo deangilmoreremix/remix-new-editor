@@ -785,7 +785,10 @@ export default function PersonalizationModal() {
     guidedApiAvailable && ctx.setViewMode ? ctx.setViewMode : setLocalViewMode
   // Simple Mode shows the four guided steps; prompt-only sources keep the
   // existing configuration view (there is no video to preview or brand).
-  const simpleModeActive = viewMode === 'simple' && guidedApiAvailable && source?.mediaType !== 'prompt-only'
+  // A studio's Personalize button (sourceType 'studio-project') starts without a video but still gets the wizard:
+  // step 2 lets the person pick one.
+  const hasGuidedWizard = source?.mediaType !== 'prompt-only' || source?.sourceType === 'studio-project'
+  const simpleModeActive = viewMode === 'simple' && guidedApiAvailable && hasGuidedWizard
 
   // Access mode for this session ('anonymous' on the free landing surface).
   // The server remains the authority; this decides which paid/AI affordances
@@ -1526,8 +1529,8 @@ export default function PersonalizationModal() {
           </div>
           {/* Actions stay together on the right, so the title never runs under them. */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            {/* Prompt-only sources have no Simple Mode, so no toggle. */}
-            {guidedApiAvailable && source.mediaType !== 'prompt-only' && (
+            {/* Prompt-only sources (other than a studio's Personalize button) have no Simple Mode, so no toggle. */}
+            {guidedApiAvailable && hasGuidedWizard && (
               <button
                 type="button"
                 onClick={() => setViewMode(viewMode === 'simple' ? 'advanced' : 'simple')}

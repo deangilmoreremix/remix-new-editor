@@ -26,43 +26,134 @@ if (!MUAPI_KEY) {
 
 const OUTPUT_DIR = path.join(REPO_ROOT, 'public', 'thumbnails', 'studios');
 
-const STUDIOS = [
+const SUFFIX = ", professional photography, warm cinematic lighting, shallow depth of field, photorealistic, blank screens without readable text, no lettering, no logos, no watermark";
+
+const ALL_STUDIOS = [
   {
-    id: 'audio',
-    prompt: 'Sound engineer mixing music on a large audio console with glowing VU meters and studio monitors, professional recording studio',
-    filename: 'audio.webp',
+    id: "cinema-template",
+    prompt: "Filmmaker choosing a cinematic look from a wall of film-style template frames on a large monitor in a dim colour-grading suite" + SUFFIX,
+    filename: "cinema-template.webp",
   },
   {
-    id: 'avatar',
-    prompt: 'AI avatar presenter speaking to camera in a modern virtual studio with green screen backdrop, professional broadcast quality',
-    filename: 'avatar.webp',
+    id: "zackd",
+    prompt: "Creative director storyboarding a stylised keyframe sequence on an ultrawide monitor, printed keyframes pinned on a board behind, moody studio" + SUFFIX,
+    filename: "zackd.webp",
   },
   {
-    id: 'training',
-    prompt: 'AI training dashboard showing loss curves converging over epochs with GPU server rack in background, data center aesthetic',
-    filename: 'training.webp',
+    id: "director",
+    prompt: "Film editor directing an AI assisted rough cut on a large monitor with a footage bin and multi-clip timeline, director chair beside the desk" + SUFFIX,
+    filename: "director.webp",
   },
   {
-    id: 'videotools',
-    prompt: 'Video editor enhancing footage with AI tools showing before/after split on ultrawide monitor, professional video editing suite',
-    filename: 'videotools.webp',
+    id: "timeline",
+    prompt: "Video editor at a multi-track timeline editing suite with waveforms and clips on two ultrawide monitors, mixing console on the desk" + SUFFIX,
+    filename: "timeline.webp",
   },
   {
-    id: 'chat',
-    prompt: 'Developer coding with AI assistant in split-screen conversation on ultrawide monitor, modern development environment',
-    filename: 'chat.webp',
+    id: "workbench",
+    prompt: "Creator building a node based workflow connecting image and video generation blocks on a huge monitor, whiteboard of sketched pipelines behind" + SUFFIX,
+    filename: "workbench.webp",
   },
   {
-    id: 'lipsync',
-    prompt: 'Portrait animation showing side-by-side comparison of static photo and animated lip-synced video, AI animation studio',
-    filename: 'lipsync.webp',
+    id: "website-builder",
+    prompt: "Web designer reviewing a responsive website layout on desktop, tablet and phone at once on an ultrawide monitor, bright modern studio" + SUFFIX,
+    filename: "website-builder.webp",
   },
   {
-    id: 'render',
-    prompt: 'Video render farm with multiple monitors showing different export formats and progress bars, professional post-production studio',
-    filename: 'render.webp',
+    id: "video-pages",
+    prompt: "Marketer previewing a video web page on a large monitor showing a big round play icon over a smiling presenter photo, an orange rounded bar below it, laptop showing the same page beside it" + SUFFIX,
+    filename: "video-pages.webp",
+  },
+  {
+    id: "motion-director",
+    prompt: "Motion designer directing animated graphics made of flowing colourful ribbons and geometric shapes on an ultrawide monitor, graphics tablet on a clean empty desk, plain wall behind" + SUFFIX,
+    filename: "motion-director.webp",
+  },
+  {
+    id: "leadfinder",
+    prompt: "Sales researcher browsing a map and list of local business prospects on a large monitor, notebook and coffee on the desk" + SUFFIX,
+    filename: "leadfinder.webp",
+  },
+  {
+    id: "outreach",
+    prompt: "Sales rep recording a personal video message to camera with a ring light and mirrorless camera on a tripod, a video call preview of a smiling prospect on the monitor behind" + SUFFIX,
+    filename: "outreach.webp",
+  },
+  {
+    id: "recorder",
+    prompt: "Creator recording a screen tutorial with webcam, ring light and condenser microphone on a boom arm, screen capture preview on the monitor" + SUFFIX,
+    filename: "recorder.webp",
+  },
+  {
+    id: "find-my-brand",
+    prompt: "Brand strategist extracting colour palette and style from a website on a large monitor, swatches and mood board pinned on the wall" + SUFFIX,
+    filename: "find-my-brand.webp",
+  },
+  {
+    id: "animate",
+    prompt: "Animator bringing a still illustration to life, frame by frame motion preview on a large monitor, drawing tablet and keyframe sketches" + SUFFIX,
+    filename: "animate.webp",
+  },
+  {
+    id: "brand",
+    prompt: "Brand designer arranging colour swatches, packaging mockups and an abstract geometric mark across a large monitor and desk, warm desk lamp" + SUFFIX,
+    filename: "brand.webp",
+  },
+  {
+    id: "viral",
+    prompt: "Social media creator producing short vertical videos, three phones showing trending clips on stands beside a monitor with an analytics graph" + SUFFIX,
+    filename: "viral.webp",
+  },
+  {
+    id: "personalizer",
+    prompt: "Marketer personalising one video template into many versions with different names on a large monitor, spreadsheet of contacts beside it" + SUFFIX,
+    filename: "personalizer.webp",
+  },
+  {
+    id: "video-agent",
+    prompt: "Producer directing an AI video assistant through a chat panel next to a video preview on an ultrawide monitor, modern editing studio" + SUFFIX,
+    filename: "video-agent.webp",
+  },
+  {
+    id: "ai-vfx",
+    prompt: "VFX artist adding fire, energy and camera move effects to a single still image on an ultrawide monitor, dramatic coloured studio lighting" + SUFFIX,
+    filename: "ai-vfx.webp",
+  },
+  {
+    id: "influencer",
+    prompt: "Fashion influencer in a bright studio with ring light and camera, consistent AI portrait variations shown on the monitor behind" + SUFFIX,
+    filename: "influencer.webp",
+  },
+  {
+    id: "commercial",
+    prompt: "Product photographer shooting a perfume bottle on a lit white sweep with softboxes, polished product shots on the monitor" + SUFFIX,
+    filename: "commercial.webp",
+  },
+  {
+    id: "library",
+    prompt: "Creator browsing a neat grid of thumbnails of landscapes and portraits on a large monitor, organised shelves of media drives behind" + SUFFIX,
+    filename: "library.webp",
+  },
+  {
+    id: "content-library",
+    prompt: "Content manager organising saved assets and folders on a large monitor, filing shelves and labelled boxes in a bright office" + SUFFIX,
+    filename: "content-library.webp",
+  },
+  {
+    id: "templates",
+    prompt: "Designer browsing a gallery of ready made video and image templates on an ultrawide monitor, swatches and print proofs on the desk" + SUFFIX,
+    filename: "templates.webp",
+  },
+  {
+    id: "academy",
+    prompt: "Instructor teaching filmmaking to students in a modern classroom with a large screen showing a lesson, laptops on desks" + SUFFIX,
+    filename: "academy.webp",
   },
 ];
+
+// Optional batch filter: node scripts/generate-missing-studio-thumbnails.mjs id1 id2 ...
+const ONLY = process.argv.slice(2);
+const STUDIOS = ONLY.length ? ALL_STUDIOS.filter((x) => ONLY.includes(x.id)) : ALL_STUDIOS;
 
 function httpsRequest(options, body = null) {
   return new Promise((resolve, reject) => {
@@ -243,7 +334,10 @@ async function main() {
   }
 
   const metadataPath = path.join(OUTPUT_DIR, 'generation-metadata.json');
-  fs.writeFileSync(metadataPath, JSON.stringify({ generated: new Date().toISOString(), results }, null, 2));
+  let previous = [];
+  try { previous = JSON.parse(fs.readFileSync(metadataPath, 'utf8')).results || []; } catch { /* first run */ }
+  const merged = [...previous.filter((r) => !results.some((n) => n.id === r.id)), ...results.map((r) => ({ ...r, path: r.path && path.relative(REPO_ROOT, r.path) }))];
+  fs.writeFileSync(metadataPath, JSON.stringify({ generated: new Date().toISOString(), results: merged }, null, 2));
   console.log(`\nMetadata saved to: ${metadataPath}`);
 }
 

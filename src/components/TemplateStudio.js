@@ -1,6 +1,7 @@
 import { getTemplateById } from '../lib/templates.js';
 import { showToast } from '../lib/loading.js';
 import { createTemplateCost } from '../lib/templateCost.js';
+import '../lib/templateCloud.js'; // records opened templates for the Explore ranking
 import { formatActualCost } from '../lib/templateUx.js';
 import { createPresetsControl, createTipStrip, buildShareUrl, decodeShareValues, addRecentTemplate, buildExampleValues, saveTemplateInputs, loadTemplateInputs, missingRequiredInputs, applyValuesToForm, cssEscape, setFieldInvalid, isGenerateShortcut } from '../lib/templateUx.js';
 import { normalizeTemplate } from '../lib/templateAdapter.js';

@@ -30,7 +30,8 @@ async function isBuilt(base) {
 // a theme the viewer picked themselves ('theme') always wins, so this never overrides their choice.
 function defaultToDarkTheme() {
   try {
-    if (!localStorage.getItem('theme')) localStorage.setItem('theme-default', 'dark');
+    // Only when nothing is set: never replace a default the dashboard or a brand already stored.
+    if (!localStorage.getItem('theme') && !localStorage.getItem('theme-default')) localStorage.setItem('theme-default', 'dark');
   } catch {
     // No storage: the dashboard keeps its own default.
   }

@@ -1,0 +1,6388 @@
+{
+  "meta": {
+    "description": "What each tool on muapi's Studio 'Apps' tab calls, read from the Studio's public JavaScript and validated against the OpenAPI spec.",
+    "source": "https://muapi.ai/studio?tab=apps (lazy-loaded Apps chunk); spec: https://api.muapi.ai/openapi.json",
+    "apiBase": "https://api.muapi.ai",
+    "auth": "x-api-key header",
+    "generatedBy": "scripts/build-muapi-apps-map.mjs",
+    "statuses": {
+      "endpoint": "A dedicated muapi tool endpoint; call it directly.",
+      "preset": "A generic muapi model driven by a muapi-written prompt template (not copied here). The endpoint is public and callable; you supply the prompt."
+    },
+    "howItWorks": {
+      "source": "Read from the Studio's JavaScript (Apps runner chunk) and confirmed by opening all 78 app screens in a browser.",
+      "steps": [
+        "1. The user uploads the media in mediaInputs (image/video/audio); the Studio uploads it and keeps the returned URL.",
+        "2. prompt = promptTemplate (or the chosen preset's prompt) + for each slider moved off its default: \" <label>: <value><unit>.\" + the user's optional custom prompt. Apps with requiresPrompt=false send no prompt.",
+        "3. payload = { prompt, ...each entry of parameters (aspect_ratio, resolution, duration, ...), mediaInputs }. A media input named images_list is sent as an array [url]; any other key is sent as a string URL.",
+        "4. POST https://api.muapi.ai/api/v1<endpoint>  (the site proxies it as /api/api/v1<endpoint>; optional ?team_id=). Response carries request_id.",
+        "5. Poll GET /api/v1/predictions/{request_id}/result until it completes.",
+        "6. Cost shown on the button comes from POST /api/app/calculate_dynamic_cost {task_name: targetModel, payload}, falling back to defaultCostUsd.",
+        "Generate requires sign-in; signed-out users are redirected to /login."
+      ]
+    },
+    "checked": [
+      "Studio page and its lazy-loaded Apps chunk (the full 78-app catalog)",
+      "Public OpenAPI spec, /api/v1/models, /api/v1/get-template-workflows",
+      "All 78 app screens opened in a headless browser (signed out); controls matched the catalog",
+      "Docs pages incl. introduction, specialized-apps, white-label, embedding, cli, mcp, workflows, agents, design-agent-api"
+    ],
+    "notChecked": [
+      "The logged-in dashboard pages",
+      "A real signed-in generation (requires login and spends credits); the request shape comes from the Studio code, not from a captured call"
+    ],
+    "caveats": [
+      "Prompt templates, presets and sliders are muapi's content; they were read for analysis but not stored. Check muapi's terms before reusing them.",
+      "Some presets/sliders add inputs beyond mediaInputs; verify by running an app.",
+      "similarWorkflow is a name-based guess, not the app itself."
+    ],
+    "counts": {
+      "total": 78,
+      "preset": 74,
+      "endpoint": 4
+    },
+    "endpoints": {
+      "/api/v1/seedream-5.0-pro-edit": 29,
+      "/api/v1/ai-skin-enhancer": 1,
+      "/api/v1/seedance-2-image-to-video": 41,
+      "/api/v1/wan2.2-image-to-video": 1,
+      "/api/v1/ai-image-face-swap": 1,
+      "/api/v1/ai-video-face-swap": 1,
+      "/api/v1/minimax-h3-image-to-video": 3,
+      "/api/v1/video-background-remover": 1
+    }
+  },
+  "apps": [
+    {
+      "id": "ai-stylist",
+      "name": "AI Stylist",
+      "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
+      "mediaType": "image",
+      "description": "Your AI fitting room — try on outfits, change poses, and swap backgrounds instantly.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "Casual"
+          },
+          {
+            "label": "Formal"
+          },
+          {
+            "label": "Streetwear"
+          },
+          {
+            "label": "Athletic"
+          },
+          {
+            "label": "Evening"
+          },
+          {
+            "label": "Vintage"
+          }
+        ]
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/ai-stylist.webp"
+    },
+    {
+      "id": "relight",
+      "name": "Relight",
+      "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
+      "mediaType": "image",
+      "description": "Adjust lighting position, color temperature, and brightness to perfect any photo.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "direction": 0,
+          "temperature": 0,
+          "brightness": 0,
+          "contrast": 0,
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [
+          {
+            "key": "direction",
+            "label": "Light Direction",
+            "min": -180,
+            "max": 180,
+            "step": 15,
+            "default": 0,
+            "unit": "°"
+          },
+          {
+            "key": "temperature",
+            "label": "Color Temperature",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "brightness",
+            "label": "Brightness",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "contrast",
+            "label": "Contrast",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          }
+        ],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/relight.webp",
+      "existingIn": [
+        {
+          "repo": "OpenHiggsBolt",
+          "file": "packages/studio/src/components/LayersStudio.jsx",
+          "item": "relight",
+          "match": "same-function"
+        },
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/personalization/imageEditRegistry.js",
+          "item": "relight",
+          "match": "same-function"
+        }
+      ]
+    },
+    {
+      "id": "skin-enhancer",
+      "name": "Skin Enhancer",
+      "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
+      "mediaType": "image",
+      "description": "Smooth skin and remove blur from portraits — natural, realistic skin textures.",
+      "status": "endpoint",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/ai-skin-enhancer",
+        "model": "ai-skin-enhancer",
+        "targetModel": "ai-skin-enhancer",
+        "requiredFields": [
+          "image_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.01,
+        "imageField": "image_url",
+        "requiresPrompt": false,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Portrait photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {},
+        "hasPromptTemplate": true,
+        "parameters": [],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "API test 2026-11-20: two calls to POST /api/v1/ai-skin-enhancer with {image_url} (the exact payload the Studio sends; WebP and PNG inputs) were accepted but the result failed with 'Application \"retoucher\" not found' (request ids 296c7a99-26ab-47a5-a117-8af01665b84f, a7138132-4298-4462-9369-84d26c5686f8). No credits were charged. Re-test before relying on it.",
+      "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/skin-enhancer.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/components/EditStudio.js",
+          "item": "Enhance Skin",
+          "match": "same-endpoint"
+        }
+      ]
+    },
+    {
+      "id": "outfit-swap",
+      "name": "Outfit Swap",
+      "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
+      "mediaType": "image",
+      "description": "Try on any outfit with a single photo — transfer clothing from a reference image.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Outfit reference",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/outfit-swap.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/components/EditStudio.js",
+          "item": "Change Dress",
+          "match": "similar",
+          "note": "uses ai-dress-change, not the same preset"
+        }
+      ]
+    },
+    {
+      "id": "style-snap",
+      "name": "Style Snap",
+      "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
+      "mediaType": "image",
+      "description": "Transform your look with instant style variations — swap outfits while keeping your pose.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "Boho Chic"
+          },
+          {
+            "label": "Minimalist"
+          },
+          {
+            "label": "Punk Rock"
+          },
+          {
+            "label": "Preppy"
+          },
+          {
+            "label": "Y2K"
+          },
+          {
+            "label": "Cottagecore"
+          }
+        ]
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/style-snap.webp"
+    },
+    {
+      "id": "outfit-vending",
+      "name": "Outfit Vending",
+      "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
+      "mediaType": "image",
+      "description": "Display your outfit breakdown in an illuminated vending machine — AI deconstructs every item.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your outfit photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/outfit-vending.webp"
+    },
+    {
+      "id": "glitter-sticker",
+      "name": "Glitter Sticker",
+      "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
+      "mediaType": "image",
+      "description": "Turn your portrait into a sparkling holographic sticker on a gritty urban surface.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Portrait photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/glitter-sticker.webp"
+    },
+    {
+      "id": "outfit-shot",
+      "name": "Outfit Shot",
+      "studioTab": "Enhance & Style",
+      "studioCategoryKey": "enhance-style",
+      "mediaType": "video",
+      "description": "Transform outfits into a professional AI avatar photoshoot with natural poses.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Clothing image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/outfit-shot.webp",
+      "similarWorkflow": {
+        "slug": "fashion-video-generator-qwen-image-seedance-v1-5",
+        "id": "f9d988cf-00e5-49eb-9bdf-d34c7967274d",
+        "run": "POST /workflow/f9d988cf-00e5-49eb-9bdf-d34c7967274d/api-execute"
+      }
+    },
+    {
+      "id": "game-dump",
+      "name": "Game Dump",
+      "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
+      "mediaType": "image",
+      "description": "Transform yourself into iconic video game styles — become a gaming hero with in-game UI overlays.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "FPS Shooter"
+          },
+          {
+            "label": "RPG Fantasy"
+          },
+          {
+            "label": "Racing"
+          },
+          {
+            "label": "Fighting"
+          },
+          {
+            "label": "Survival Horror"
+          },
+          {
+            "label": "Sports"
+          },
+          {
+            "label": "Open World"
+          },
+          {
+            "label": "Platformer"
+          }
+        ]
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/game-dump.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "gta-loading-screen",
+          "match": "similar"
+        }
+      ]
+    },
+    {
+      "id": "nano-strike",
+      "name": "Nano Strike",
+      "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
+      "mediaType": "image",
+      "description": "AI tactical shooter character — transform into a battle-ready operator with full gear.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/nano-strike.webp"
+    },
+    {
+      "id": "nano-theft",
+      "name": "Nano Theft",
+      "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
+      "mediaType": "image",
+      "description": "See yourself in a realistic open-world crime game style — GTA-inspired character art.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/nano-theft.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "gta-loading-screen",
+          "match": "similar"
+        }
+      ]
+    },
+    {
+      "id": "simlife",
+      "name": "Simlife",
+      "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
+      "mediaType": "image",
+      "description": "Transform into a stylized life simulation character — The Sims-inspired avatar.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/simlife.webp"
+    },
+    {
+      "id": "plushies",
+      "name": "Plushies",
+      "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
+      "mediaType": "image",
+      "description": "Transform any photo into an adorable plushie-style character — soft toy animation.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/plushies.webp"
+    },
+    {
+      "id": "3d-render",
+      "name": "3D Render",
+      "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
+      "mediaType": "image",
+      "description": "Turn any photo into a stunning 3D rendered object with professional lighting.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/3d-render.webp"
+    },
+    {
+      "id": "3d-figure",
+      "name": "3D Figure",
+      "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
+      "mediaType": "image",
+      "description": "Transform your photo into a detailed 3D collectible figure — action figure style.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/3d-figure.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "3d-figurine",
+          "match": "similar"
+        },
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "action-figure",
+          "match": "similar"
+        }
+      ],
+      "similarWorkflow": {
+        "slug": "ai-action-figure-generator-nano-banana-2",
+        "id": "0849ffba-248d-4608-b480-d0a7958d825f",
+        "run": "POST /workflow/0849ffba-248d-4608-b480-d0a7958d825f/api-execute"
+      }
+    },
+    {
+      "id": "pixel-game",
+      "name": "Pixel Game",
+      "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
+      "mediaType": "image",
+      "description": "Turn your photo into retro pixel game graphics — 8-bit and 16-bit art styles.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "8-bit"
+          },
+          {
+            "label": "16-bit"
+          },
+          {
+            "label": "32-bit"
+          },
+          {
+            "label": "Game Boy"
+          }
+        ]
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/pixel-game.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "pixel-art",
+          "match": "similar"
+        }
+      ]
+    },
+    {
+      "id": "brick-cube",
+      "name": "Brick Cube",
+      "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
+      "mediaType": "image",
+      "description": "Transform your photo into a brick cube toy — LEGO-inspired block figure.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/brick-cube.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "lego-style",
+          "match": "similar"
+        }
+      ]
+    },
+    {
+      "id": "sketch-to-real",
+      "name": "Sketch to Real",
+      "studioTab": "Games & Characters",
+      "studioCategoryKey": "games-characters",
+      "mediaType": "video",
+      "description": "Turn your sketch into a realistic video scene — hand-drawn doodles come to life.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your sketch",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/sketch-to-real.webp"
+    },
+    {
+      "id": "click-to-ad",
+      "name": "Click to Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Character interacts with your product in a dynamic video ad.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/click-to-ad.webp",
+      "similarWorkflow": {
+        "slug": "ugc-ads-workflow-seedance-2-omni",
+        "id": "0e4042ae-4628-487f-b571-5dd9d598df22",
+        "run": "POST /workflow/0e4042ae-4628-487f-b571-5dd9d598df22/api-execute"
+      }
+    },
+    {
+      "id": "asmr-add-on",
+      "name": "ASMR Add-On",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Character whispers about your product in an intimate ASMR video.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/asmr-add-on.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "asmr-video",
+          "match": "similar"
+        }
+      ]
+    },
+    {
+      "id": "asmr-classic",
+      "name": "ASMR Classic",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Classic ASMR product video — gentle touching, tapping, and rotating.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/asmr-classic.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "asmr-video",
+          "match": "similar"
+        }
+      ]
+    },
+    {
+      "id": "poster",
+      "name": "Poster",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "image",
+      "description": "Generate a professional marketing poster for your product.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/poster.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "movie-poster",
+          "match": "similar",
+          "note": "movie poster, not a product marketing poster"
+        }
+      ],
+      "similarWorkflow": {
+        "slug": "product-advertisement-wan2-6-image-edit",
+        "id": "a4cc68cb-5870-4f2d-86f5-82a53fbd10b4",
+        "run": "POST /workflow/a4cc68cb-5870-4f2d-86f5-82a53fbd10b4/api-execute"
+      }
+    },
+    {
+      "id": "bullet-time-scene",
+      "name": "Bullet Time Scene",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Freeze-frame bullet-time effect with character and product.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/bullet-time-scene.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "bullet-time",
+          "match": "same-function",
+          "note": "template \"Bullet Time Scene\""
+        },
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "matrix-shot",
+          "match": "similar"
+        }
+      ]
+    },
+    {
+      "id": "chameleon",
+      "name": "Chameleon",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Character transforms to match your product's brand aesthetic.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/chameleon.webp"
+    },
+    {
+      "id": "asmr-host",
+      "name": "ASMR Host",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Hosted ASMR product presentation with whispering narration.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/asmr-host.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "asmr-video",
+          "match": "similar"
+        }
+      ]
+    },
+    {
+      "id": "packshot",
+      "name": "Packshot",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Polished product showcase with smooth rotation and studio lighting.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/packshot.webp",
+      "similarWorkflow": {
+        "slug": "product-360-video-flux-2-flex-wan2-5",
+        "id": "1734b542-6ecd-4eee-9e28-582fa79c227e",
+        "run": "POST /workflow/1734b542-6ecd-4eee-9e28-582fa79c227e/api-execute"
+      }
+    },
+    {
+      "id": "macro-scene",
+      "name": "Macro Scene",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Extreme close-up revealing product details and textures.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/macro-scene.webp"
+    },
+    {
+      "id": "magic-button",
+      "name": "Magic Button",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Product appears magically with a burst of light and particles.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/magic-button.webp"
+    },
+    {
+      "id": "truck-ad",
+      "name": "Truck Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Your product displayed on a moving truck driving through the city.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/truck-ad.webp"
+    },
+    {
+      "id": "giant-product",
+      "name": "Giant Product",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Surreal scene with a building-sized product towering over a person.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/giant-product.webp",
+      "similarWorkflow": {
+        "slug": "giant-product-vfx-ad-nano-banana-2",
+        "id": "0fb56847-2334-44d7-ab93-d2318cf3cc28",
+        "run": "POST /workflow/0fb56847-2334-44d7-ab93-d2318cf3cc28/api-execute"
+      }
+    },
+    {
+      "id": "bullet-time-white",
+      "name": "Bullet Time White",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Bullet-time 360° rotation on clean white background.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/bullet-time-white.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "bullet-time",
+          "match": "similar"
+        }
+      ],
+      "similarWorkflow": {
+        "slug": "product-360-video-flux-2-flex-wan2-5",
+        "id": "1734b542-6ecd-4eee-9e28-582fa79c227e",
+        "run": "POST /workflow/1734b542-6ecd-4eee-9e28-582fa79c227e/api-execute"
+      }
+    },
+    {
+      "id": "kick-ad",
+      "name": "Kick Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Dynamic action ad — character kicks product into frame.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/kick-ad.webp"
+    },
+    {
+      "id": "billboard-ad",
+      "name": "Billboard Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Your product on a glowing billboard in a bustling city at night.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/billboard-ad.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "billboard-ad",
+          "match": "similar",
+          "note": "existing one is a design template, muapi's is a video"
+        }
+      ]
+    },
+    {
+      "id": "graffiti-ad",
+      "name": "Graffiti Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "image",
+      "description": "Your product as vibrant street art graffiti on a brick wall.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/graffiti-ad.webp"
+    },
+    {
+      "id": "bullet-time-splash",
+      "name": "Bullet Time Splash",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Bullet-time rotation with dramatic liquid splash effects.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/bullet-time-splash.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "bullet-time",
+          "match": "similar"
+        }
+      ]
+    },
+    {
+      "id": "fridge-ad",
+      "name": "Fridge Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Product revealed inside an opening fridge — cool mist, fresh vibes.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/fridge-ad.webp"
+    },
+    {
+      "id": "volcano-ad",
+      "name": "Volcano Ad",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "video",
+      "description": "Product emerging dramatically from a volcanic eruption.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 2,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 8,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 8,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/volcano-ad.webp"
+    },
+    {
+      "id": "macroshot-product",
+      "name": "Macroshot Product",
+      "studioTab": "Ads & Products",
+      "studioCategoryKey": "ads",
+      "mediaType": "image",
+      "description": "Professional macro photography with shallow depth of field.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/macroshot-product.webp"
+    },
+    {
+      "id": "recast",
+      "name": "Recast",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "video",
+      "description": "Industry-leading character swap for any video — replace the entire persona including body and motion.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/wan2.2-image-to-video",
+        "model": "wan2.2-image-to-video",
+        "targetModel": "wan2.2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "image_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.3,
+        "imageField": "image_url",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Character Persona Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "last_image",
+            "label": "Ending Frame Image (Optional)",
+            "type": "image",
+            "required": false
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "resolution": "480p",
+          "quality": "medium",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": false,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Resolution",
+            "type": "dropdown",
+            "default": "480p",
+            "options": [
+              "480p",
+              "720p"
+            ]
+          },
+          {
+            "key": "quality",
+            "label": "Quality Level",
+            "type": "dropdown",
+            "default": "medium",
+            "options": [
+              "medium",
+              "high"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              5,
+              8
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/recast.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/components/VideoToolsStudio.js",
+          "item": "recast",
+          "match": "same-function",
+          "note": "Video Tools \"Recast\" tab"
+        },
+        {
+          "repo": "OpenHiggsBolt",
+          "file": "packages/studio/src/components/RecastStudio.jsx",
+          "item": "recast",
+          "match": "same-function",
+          "note": "shown as \"Body Swap\""
+        }
+      ]
+    },
+    {
+      "id": "character-swap",
+      "name": "Character Swap",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "image",
+      "description": "Seamlessly place a new character into any scene — maintain identity across different poses and settings.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Target scene",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/character-swap.webp"
+    },
+    {
+      "id": "face-swap",
+      "name": "Face Swap",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "image",
+      "description": "Instant AI face swap for photos — seamlessly integrate new faces into any image.",
+      "status": "endpoint",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/ai-image-face-swap",
+        "model": "ai-image-face-swap",
+        "targetModel": "ai-image-face-swap",
+        "requiredFields": [
+          "image_url",
+          "swap_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.02,
+        "imageField": "image_url",
+        "requiresPrompt": false,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Target Base Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "swap_url",
+            "label": "New Face Image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "target_index": 0
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "target_index",
+            "label": "Target Face Index",
+            "type": "dropdown",
+            "default": 0,
+            "options": [
+              0,
+              1,
+              2,
+              3
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/face-swap.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/components/EditStudio.js",
+          "item": "Face Swap",
+          "match": "same-endpoint"
+        },
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "face-swap",
+          "match": "same-endpoint"
+        },
+        {
+          "repo": "OpenHiggsBolt",
+          "file": "packages/studio/src/editTools.js",
+          "item": "Face Swap",
+          "match": "same-endpoint"
+        }
+      ]
+    },
+    {
+      "id": "commercial-faces",
+      "name": "Commercial Faces",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "image",
+      "description": "Generate ad-ready spokesperson imagery — professional face transformations for marketing.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your selfie",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/commercial-faces.webp"
+    },
+    {
+      "id": "video-face-swap",
+      "name": "Video Face Swap",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "video",
+      "description": "Best-in-class face swapping for any video — frame-by-frame accuracy with natural blending.",
+      "status": "endpoint",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/ai-video-face-swap",
+        "model": "ai-video-face-swap",
+        "targetModel": "ai-video-face-swap",
+        "requiredFields": [
+          "image_url",
+          "video_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.1,
+        "imageField": "image_url",
+        "requiresPrompt": false,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Face / Identity Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "video_url",
+            "label": "Target Video",
+            "type": "video",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "target_gender": "All",
+          "target_index": 0
+        },
+        "hasPromptTemplate": false,
+        "parameters": [
+          {
+            "key": "target_gender",
+            "label": "Target Gender Filter",
+            "type": "dropdown",
+            "default": "All",
+            "options": [
+              "All",
+              "Female",
+              "Male"
+            ]
+          },
+          {
+            "key": "target_index",
+            "label": "Target Face Index",
+            "type": "dropdown",
+            "default": 0,
+            "options": [
+              0,
+              1,
+              2,
+              3
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/video-face-swap.webp",
+      "existingIn": [
+        {
+          "repo": "OpenHiggsBolt",
+          "file": "packages/studio/src/editTools.js",
+          "item": "Face Swap",
+          "match": "same-endpoint",
+          "note": "OpenHiggsBolt Face Swap includes the video model; remix-new-editor only references it in personalize/modelCapabilityResolver.js"
+        }
+      ]
+    },
+    {
+      "id": "headshot-generator",
+      "name": "Headshot Generator",
+      "studioTab": "Face & Identity",
+      "studioCategoryKey": "face-identity",
+      "mediaType": "image",
+      "description": "Studio-quality professional headshots in seconds — no photoshoot needed.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your selfie",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "Corporate"
+          },
+          {
+            "label": "Creative"
+          },
+          {
+            "label": "LinkedIn"
+          },
+          {
+            "label": "Executive"
+          }
+        ]
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/headshot-generator.webp",
+      "similarWorkflow": {
+        "slug": "professional-fashion-headshots-flux-2-pro",
+        "id": "6b41af09-a40f-459f-8179-7ee3a90d300b",
+        "run": "POST /workflow/6b41af09-a40f-459f-8179-7ee3a90d300b/api-execute"
+      }
+    },
+    {
+      "id": "clipcut",
+      "name": "ClipCut",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "video",
+      "description": "Turn one selfie into an instant outfit reel — AI-generated fashion montage synced to music.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/minimax-h3-image-to-video",
+        "model": "minimax-h3-image-to-video",
+        "targetModel": "minimax-h3-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "image_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.825,
+        "imageField": "image_url",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Starting Frame Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "last_image_url",
+            "label": "Ending Frame Image (Optional)",
+            "type": "image",
+            "required": false
+          }
+        ],
+        "defaultParams": {
+          "duration": 10,
+          "resolution": "2k",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 10,
+            "options": [
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Resolution",
+            "type": "dropdown",
+            "default": "2k",
+            "options": [
+              "2k"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/clipcut.webp"
+    },
+    {
+      "id": "urban-cuts",
+      "name": "Urban Cuts",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "video",
+      "description": "Next-gen beat-synced AI outfit videos — dynamic cuts perfectly timed to music.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/minimax-h3-image-to-video",
+        "model": "minimax-h3-image-to-video",
+        "targetModel": "minimax-h3-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "image_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.825,
+        "imageField": "image_url",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Starting Frame Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "last_image_url",
+            "label": "Ending Frame Image (Optional)",
+            "type": "image",
+            "required": false
+          }
+        ],
+        "defaultParams": {
+          "duration": 10,
+          "resolution": "2k",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 10,
+            "options": [
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Resolution",
+            "type": "dropdown",
+            "default": "2k",
+            "options": [
+              "2k"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/urban-cuts.webp"
+    },
+    {
+      "id": "sticker-matchcut",
+      "name": "Sticker Match Cut",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "video",
+      "description": "Turn any clip into a sparkling sticker animation — glittering holographic sticker frames.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/minimax-h3-image-to-video",
+        "model": "minimax-h3-image-to-video",
+        "targetModel": "minimax-h3-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "image_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.912,
+        "imageField": "image_url",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "image_url",
+            "label": "Starting Frame Image",
+            "type": "image",
+            "required": true
+          },
+          {
+            "key": "last_image_url",
+            "label": "Ending Frame Image (Optional)",
+            "type": "image",
+            "required": false
+          }
+        ],
+        "defaultParams": {
+          "duration": 5,
+          "resolution": "2k",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Resolution",
+            "type": "dropdown",
+            "default": "2k",
+            "options": [
+              "2k"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/sticker-matchcut.webp"
+    },
+    {
+      "id": "breakdown",
+      "name": "Breakdown",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "image",
+      "description": "Split any image into its individual components — AI identifies objects, brands, and items.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/breakdown.webp"
+    },
+    {
+      "id": "japanese-show",
+      "name": "Japanese Show",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "image",
+      "description": "Turn your photo into a retro 2000s Japanese variety show scene — CRT scanlines and broadcast effects.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/japanese-show.webp"
+    },
+    {
+      "id": "video-bg-remover",
+      "name": "Video Background Remover",
+      "studioTab": "Video Editing",
+      "studioCategoryKey": "video-editing",
+      "mediaType": "video",
+      "description": "Upload any video and instantly strip the background — clean, frame-perfect results.",
+      "status": "endpoint",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/video-background-remover",
+        "model": "video-background-remover",
+        "targetModel": "video-background-remover",
+        "requiredFields": [
+          "video_url"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.05,
+        "imageField": null,
+        "requiresPrompt": false,
+        "mediaInputs": [
+          {
+            "key": "video_url",
+            "label": "Source Video",
+            "type": "video",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "background_color": "Transparent",
+          "output_container_and_codec": "webm_vp9",
+          "preserve_audio": true
+        },
+        "hasPromptTemplate": false,
+        "parameters": [
+          {
+            "key": "background_color",
+            "label": "Background Color",
+            "type": "dropdown",
+            "default": "Transparent",
+            "options": [
+              "Transparent",
+              "Black",
+              "White",
+              "Gray",
+              "Green",
+              "Blue",
+              "Red",
+              "Yellow",
+              "Cyan",
+              "Magenta",
+              "Orange"
+            ]
+          },
+          {
+            "key": "output_container_and_codec",
+            "label": "Output Container & Codec",
+            "type": "dropdown",
+            "default": "webm_vp9",
+            "options": [
+              "webm_vp9",
+              "mp4_h264",
+              "mp4_h265",
+              "mov_proresks",
+              "gif"
+            ]
+          },
+          {
+            "key": "preserve_audio",
+            "label": "Audio Track",
+            "type": "dropdown",
+            "default": true,
+            "options": [
+              true,
+              false
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/video-bg-remover.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/models.js",
+          "item": "video-background-remover",
+          "match": "similar",
+          "note": "model is in the catalog; no dedicated screen found"
+        }
+      ]
+    },
+    {
+      "id": "yes-kiss",
+      "name": "Yes Kiss",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Your photo gets kissed in a surreal, meme-style moment.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/yes-kiss.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/components/EffectsStudio.js",
+          "item": "kiss cam",
+          "match": "similar"
+        }
+      ]
+    },
+    {
+      "id": "latex",
+      "name": "Latex",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Transform your photo into a sleek black latex style.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/latex.webp"
+    },
+    {
+      "id": "j-magazine",
+      "name": "J-Magazine",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Turn your photo into a Japanese magazine cover.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/j-magazine.webp"
+    },
+    {
+      "id": "roller-coaster",
+      "name": "Roller Coaster",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Put your photo on a thrilling roller coaster ride.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/roller-coaster.webp"
+    },
+    {
+      "id": "60s-cafe",
+      "name": "60s Cafe",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Turn your photo into a vintage 60s cafe scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/60s-cafe.webp"
+    },
+    {
+      "id": "victory-card",
+      "name": "Victory Card",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Turn your photo into a poker winning card.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/victory-card.webp"
+    },
+    {
+      "id": "sand-worm",
+      "name": "Sand Worm",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Transform into a sand world character in an epic desert scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/sand-worm.webp"
+    },
+    {
+      "id": "skibidi",
+      "name": "Skibidi",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Turn your photo into the Skibidi toilet meme.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/skibidi.webp"
+    },
+    {
+      "id": "j-poster",
+      "name": "J-Poster",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Turn your photo into a Japanese style poster.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/j-poster.webp"
+    },
+    {
+      "id": "mascot",
+      "name": "Mascot",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Transform your photo into a football mascot character.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/mascot.webp"
+    },
+    {
+      "id": "storm-creature",
+      "name": "Storm Creature",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Turn your photo into an epic storm creature scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/storm-creature.webp"
+    },
+    {
+      "id": "burning-sunset",
+      "name": "Burning Sunset",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Transform your photo into an epic burning sunset scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/burning-sunset.webp"
+    },
+    {
+      "id": "on-fire",
+      "name": "On Fire",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Turn your photo into the iconic 'This is Fine' meme scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/on-fire.webp"
+    },
+    {
+      "id": "comic-book",
+      "name": "Comic Book",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Transform your photo into comic book art style.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/comic-book.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/templates.js",
+          "item": "comic-book",
+          "match": "similar"
+        }
+      ]
+    },
+    {
+      "id": "cloud-surf",
+      "name": "Cloud Surf",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Turn your photo into a dreamy pink cloud surfing scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/cloud-surf.webp"
+    },
+    {
+      "id": "mukbang",
+      "name": "Mukbang",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Transform your photo into a viral eating show.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/mukbang.webp"
+    },
+    {
+      "id": "melting-doodle",
+      "name": "Melting Doodle",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Turn your photo into mesmerizing melting doodle art.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/melting-doodle.webp"
+    },
+    {
+      "id": "giallo-horror",
+      "name": "Giallo Horror",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Transform your photo into a giallo horror scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/giallo-horror.webp"
+    },
+    {
+      "id": "renaissance",
+      "name": "Renaissance",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Turn your photo into a classical gallery painting.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/renaissance.webp"
+    },
+    {
+      "id": "rap-god",
+      "name": "Rap God",
+      "studioTab": "Trending",
+      "studioCategoryKey": "trending-templates",
+      "mediaType": "video",
+      "description": "Transform your photo into a rap music video clip.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Your photo",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/rap-god.webp"
+    },
+    {
+      "id": "angles",
+      "name": "Angles",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Generate new camera angles from a single photo — rotate, tilt, and shift perspective.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "rotation": 0,
+          "tilt": 0,
+          "zoom": 0,
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [
+          {
+            "key": "rotation",
+            "label": "Rotation",
+            "min": -180,
+            "max": 180,
+            "step": 5,
+            "default": 0,
+            "unit": "°"
+          },
+          {
+            "key": "tilt",
+            "label": "Tilt",
+            "min": -90,
+            "max": 90,
+            "step": 5,
+            "default": 0,
+            "unit": "°"
+          },
+          {
+            "key": "zoom",
+            "label": "Zoom",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          }
+        ],
+        "presets": [
+          {
+            "label": "Front View (0°)",
+            "values": {
+              "rotation": 0,
+              "tilt": 0,
+              "zoom": 0
+            }
+          },
+          {
+            "label": "Right 45° Front-Quarter",
+            "values": {
+              "rotation": 45,
+              "tilt": 0,
+              "zoom": 0
+            }
+          },
+          {
+            "label": "Left 45° Front-Quarter",
+            "values": {
+              "rotation": -45,
+              "tilt": 0,
+              "zoom": 0
+            }
+          },
+          {
+            "label": "Right Side Profile (+90°)",
+            "values": {
+              "rotation": 90,
+              "tilt": 0,
+              "zoom": 0
+            }
+          },
+          {
+            "label": "Top-Down Overhead",
+            "values": {
+              "rotation": 0,
+              "tilt": 40,
+              "zoom": 10
+            }
+          },
+          {
+            "label": "Low Hero Angle",
+            "values": {
+              "rotation": 0,
+              "tilt": -30,
+              "zoom": 0
+            }
+          },
+          {
+            "label": "Close-up Zoom",
+            "values": {
+              "rotation": 20,
+              "tilt": -10,
+              "zoom": 40
+            }
+          }
+        ]
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/angles.webp",
+      "existingIn": [
+        {
+          "repo": "OpenHiggsBolt",
+          "file": "packages/studio/src/components/LayersStudio.jsx",
+          "item": "angles",
+          "match": "same-function"
+        },
+        {
+          "repo": "remix-new-editor",
+          "file": "src/components/EditStudio.js",
+          "item": "Change Angle",
+          "match": "similar"
+        }
+      ],
+      "similarWorkflow": {
+        "slug": "multi-angle-photo-reshoot-nano-banana-2",
+        "id": "77013608-2c1d-4fa3-865c-c7a667f62c8b",
+        "run": "POST /workflow/77013608-2c1d-4fa3-865c-c7a667f62c8b/api-execute"
+      }
+    },
+    {
+      "id": "whats-next",
+      "name": "What's Next",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Explore what happens next in your scene — AI generates narrative continuations from a single image.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/whats-next.webp"
+    },
+    {
+      "id": "shots",
+      "name": "Shots",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Transform one photo into unique cinematic shots — different compositions and camera positions.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "Wide"
+          },
+          {
+            "label": "Medium"
+          },
+          {
+            "label": "Close-up"
+          },
+          {
+            "label": "Extreme close-up"
+          },
+          {
+            "label": "Over-the-shoulder"
+          },
+          {
+            "label": "Low angle"
+          },
+          {
+            "label": "High angle"
+          },
+          {
+            "label": "Dutch angle"
+          }
+        ]
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/shots.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/cinematicTemplates.js",
+          "item": "Shots",
+          "match": "similar",
+          "note": "Cinema Template Studio"
+        }
+      ]
+    },
+    {
+      "id": "zooms",
+      "name": "Zooms",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Create dynamic zoom variations — from macro close-ups to wide-angle perspectives, all from one image.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "zoom": 0,
+          "tilt": 0,
+          "rotation": 0,
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [
+          {
+            "key": "zoom",
+            "label": "Zoom",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "tilt",
+            "label": "Vertical angle",
+            "min": -90,
+            "max": 90,
+            "step": 5,
+            "default": 0,
+            "unit": "°"
+          },
+          {
+            "key": "rotation",
+            "label": "Rotation",
+            "min": -180,
+            "max": 180,
+            "step": 5,
+            "default": 0,
+            "unit": "°"
+          }
+        ],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/zooms.webp"
+    },
+    {
+      "id": "behind-the-scenes",
+      "name": "Behind the Scenes",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "video",
+      "description": "Turn any photo into a behind-the-scenes film set reveal — cameras, crew, and the magic of filmmaking.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "new",
+      "thumbnail": "/thumbnails/muapi-apps/behind-the-scenes.webp"
+    },
+    {
+      "id": "transitions",
+      "name": "Transitions",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "video",
+      "description": "Create seamless transitions between two images — smooth morphs, wipes, and cinematic scene changes.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedance-2-image-to-video",
+        "model": "seedance-2-image-to-video",
+        "targetModel": "seedance-2-image-to-video",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 1.25,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "End frame",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "16:9",
+          "duration": 5,
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "16:9",
+            "options": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9"
+            ]
+          },
+          {
+            "key": "duration",
+            "label": "Duration",
+            "type": "dropdown",
+            "default": 5,
+            "options": [
+              4,
+              5,
+              6,
+              8,
+              10,
+              12,
+              15
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": [
+          {
+            "label": "Morph"
+          },
+          {
+            "label": "Dissolve"
+          },
+          {
+            "label": "Zoom through"
+          },
+          {
+            "label": "Whip pan"
+          },
+          {
+            "label": "Match cut"
+          }
+        ]
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "similar",
+      "thumbnail": "/thumbnails/muapi-apps/transitions.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/lib/cinematicTemplates.js",
+          "item": "Transitions",
+          "match": "similar",
+          "note": "Cinema Template Studio and the timeline editor"
+        }
+      ]
+    },
+    {
+      "id": "expand-image",
+      "name": "Expand Image",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Expand any image beyond its edges — AI outpainting that seamlessly extends your scene.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [],
+        "presets": []
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/expand-image.webp",
+      "existingIn": [
+        {
+          "repo": "remix-new-editor",
+          "file": "src/components/EditStudio.js",
+          "item": "Extend Image",
+          "match": "same-endpoint"
+        }
+      ]
+    },
+    {
+      "id": "color-grading",
+      "name": "Color Grading",
+      "studioTab": "Professional",
+      "studioCategoryKey": "professional",
+      "mediaType": "image",
+      "description": "Apply professional cinematic color grading — film-quality tones, moods, and atmospheres.",
+      "status": "preset",
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/v1/seedream-5.0-pro-edit",
+        "model": "seedream-5.0-pro-edit",
+        "targetModel": "bytedance-seedream-5.0-pro-edit",
+        "requiredFields": [
+          "prompt",
+          "images_list"
+        ]
+      },
+      "studio": {
+        "defaultCostUsd": 0.045,
+        "imageField": "images_list",
+        "requiresPrompt": true,
+        "mediaInputs": [
+          {
+            "key": "images_list",
+            "label": "Source image",
+            "type": "image",
+            "required": true
+          }
+        ],
+        "defaultParams": {
+          "temperature": 0,
+          "contrast": 0,
+          "saturation": 0,
+          "highlights": 0,
+          "exposure": 0,
+          "sharpness": 0,
+          "grain": 0,
+          "aspect_ratio": "1:1",
+          "resolution": "1K",
+          "custom_prompt": ""
+        },
+        "hasPromptTemplate": true,
+        "parameters": [
+          {
+            "key": "aspect_ratio",
+            "label": "Aspect Ratio",
+            "type": "dropdown",
+            "default": "1:1",
+            "options": [
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "2:3",
+              "3:2"
+            ]
+          },
+          {
+            "key": "resolution",
+            "label": "Output Resolution",
+            "type": "dropdown",
+            "default": "1K",
+            "options": [
+              "1K",
+              "2K"
+            ]
+          }
+        ],
+        "sliders": [
+          {
+            "key": "temperature",
+            "label": "Temperature",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "contrast",
+            "label": "Contrast",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "saturation",
+            "label": "Saturation",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "highlights",
+            "label": "Highlights",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "exposure",
+            "label": "Exposure",
+            "min": -100,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "sharpness",
+            "label": "Sharpness",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          },
+          {
+            "key": "grain",
+            "label": "Film Grain",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "default": 0,
+            "unit": ""
+          }
+        ],
+        "presets": [
+          {
+            "label": "Natural"
+          },
+          {
+            "label": "Cinematic"
+          },
+          {
+            "label": "Split Tone"
+          },
+          {
+            "label": "Soft Skin"
+          },
+          {
+            "label": "Old Lens"
+          },
+          {
+            "label": "16mm Film"
+          },
+          {
+            "label": "Moody"
+          }
+        ]
+      },
+      "notes": "Studio app = muapi's prompt template over a generic model. The prompt text is not copied here; write your own for this endpoint.",
+      "overlap": "duplicate",
+      "thumbnail": "/thumbnails/muapi-apps/color-grading.webp",
+      "existingIn": [
+        {
+          "repo": "OpenHiggsBolt",
+          "file": "packages/studio/src/components/LayersStudio.jsx",
+          "item": "Color Grading",
+          "match": "same-function"
+        }
+      ]
+    }
+  ]
+}

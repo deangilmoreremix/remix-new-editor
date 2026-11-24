@@ -62,7 +62,8 @@ function createNotice({ title, text, actionLabel, onAction }) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.textContent = actionLabel;
-    btn.style.cssText = 'width:100%;padding:11px 16px;border:none;border-radius:8px;background:#d9ff00;color:#050505;font-weight:600;font-size:14px;cursor:pointer;';
+    // App buttons are outline-only (outline-buttons.css clears fills), so use lime border + lime text, never dark text.
+    btn.style.cssText = 'width:100%;padding:11px 16px;border:1px solid #d9ff00;border-radius:8px;background:transparent;color:#d9ff00;font-weight:600;font-size:14px;cursor:pointer;';
     btn.addEventListener('click', onAction);
     card.appendChild(btn);
   }
