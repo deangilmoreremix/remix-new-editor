@@ -13,11 +13,14 @@ import { initProductAnalytics } from "@/lib/productAnalytics";
 import { installDomMutationGuard } from "@/lib/domGuard";
 import { queryClient } from "@/lib/queryClient";
 import { dashboardPages, router } from "./router";
-import { DEMO } from "@/lib/information";
+import { DEMO, HOST_SESSION } from "@/lib/information";
+import { bootHostSession } from "@/lib/hostSession";
 import { installDemo } from "@/lib/demo/install";
 
 // Before anything requests data, so demo mode answers every call.
 if (DEMO) installDemo();
+// One login: the host app's session replaces Warmbly's own sign-in.
+if (HOST_SESSION) await bootHostSession();
 
 // Before the first render, so a translated page never commits unguarded.
 installDomMutationGuard();

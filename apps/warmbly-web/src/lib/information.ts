@@ -9,6 +9,8 @@ export const API_URL = runtimeEnv("API_URL", import.meta.env.VITE_API_URL);
 export const API_BASE_URL = `${API_URL}/v1`;
 // Serves the dashboard from recorded data with no backend (see lib/demo).
 export const DEMO = runtimeEnv("DEMO", import.meta.env.VITE_DEMO) === "1";
+// Uses the host app's sign-in (lib/hostSession) instead of Warmbly's own, so there is one login.
+export const HOST_SESSION = !DEMO && runtimeEnv("HOST_SESSION", import.meta.env.VITE_HOST_SESSION) === "1";
 export const TURNSTILE_KEY = runtimeEnv("TURNSTILE_KEY", import.meta.env.VITE_TURNSTILE_KEY);
 
 // Shown once in a dialog and then as a header pill. Empty means this is not a

@@ -23,6 +23,12 @@ npm run verify:upstream -- /tmp/upstream
 | `src/lib/api/client/Client.ts` | axios uses the fetch adapter in demo mode |
 | `src/main.tsx` | `installDemo()` before the first render in demo mode |
 | `src/lib/demo/*` | added: recorded-data server, fake Phoenix socket, installer, `fixtures.json`, tests |
+| `src/lib/hostSession.ts` | added: one login. Reads the host app's Clerk session (`window.top.Clerk`, same-origin iframe) into the dashboard token; sign-in/out and expiry follow the host. Tests in `hostSession.test.ts` |
+| `src/lib/information.ts` | `HOST_SESSION` flag (`VITE_HOST_SESSION=1`, off in demo) |
+| `src/main.tsx` | `bootHostSession()` before the first render when `HOST_SESSION` |
+| `src/router.tsx` | with `HOST_SESSION`, every `/auth/*` route goes to the host sign-in |
+| `src/lib/api/client/auth/refreshToken.ts` | with `HOST_SESSION`, refreshing re-reads the host token |
+| `src/lib/api/hooks/auth/useLogout.ts` | with `HOST_SESSION`, logout also signs out of the host |
 | `UPSTREAM.md` | added: this file |
 
 ## Demo mode (no backend)
@@ -41,3 +47,9 @@ manifest. Lowercase identifiers (storage keys, `data-warmbly-*` attributes, API 
 touched, because a real backend depends on them. See `../smartwarmupai-brand/README.md`.
 
 Warmbly is a trademark of its owners; the Apache licence does not grant trademark rights, which is why the product is rebranded.
+
+## One login (real backend)
+
+Build with `VITE_HOST_SESSION=1` (and no `VITE_DEMO`) and the dashboard has no sign-in of its own: it takes the host app's Clerk
+session. The Warmbly API must accept (or exchange) the Clerk JWT and map it to a Warmbly user and workspace; that is not done yet,
+so the shipped demo build is unchanged.
