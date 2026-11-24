@@ -12,14 +12,13 @@ const OUT = path.join(ROOT, '_combined');
 const FONT = process.env.GUIDE_FONT || '/usr/share/fonts/opentype/inter/Inter-Bold.otf';
 const CARD_SECONDS = 3;
 
-// smartwarmupai has a tour but is not in any topic video: its guide is unlisted (see UNLISTED_GUIDES).
 // website-builder and smartviddownloader are caption-only tours (their pages cannot run on the capture machine).
 export const GROUPS = [
   { id: '1-getting-started', title: 'Getting started', studios: ['apps', 'explore', 'templates', 'smart-video-academy'] },
   { id: '2-images', title: 'Images', studios: ['image-studio', 'muapi-studio', 'text-to-image', 'image-to-image', 'edit-studio', 'photo-studio', 'upscale-suite', 'character-studio', 'product-shot-studio', 'asset-editor', 'ai-influencer'] },
   { id: '3-video-creation', title: 'Video creation', studios: ['video-studio', 'text-to-video', 'image-to-video', 'video-to-video', 'cinema-studio', 'cinema-templates', 'storyboard-studio', 'effects-studio', 'ai-vfx-studio', 'animate-studio', 'avatar-studio', 'lip-sync-studio', 'audio-studio', 'smartviddownloader'] },
   { id: '4-editing-and-agents', title: 'Editing and agents', studios: ['video-tools', 'video-watermark-remover', 'timeline-editor', 'video-render', 'recorder', 'workbench', 'director', 'motion-director', 'video-agent', 'zack-d-studio'] },
-  { id: '5-brand-and-marketing', title: 'Brand and marketing', studios: ['brand-studio', 'brand-dna-editor', 'find-my-brand', 'campaign-studio', 'lead-finder', 'video-outreach', 'video-pages', 'smart-video-viral', 'smart-video-scheduler', 'personalizer', 'website-builder'] },
+  { id: '5-brand-and-marketing', title: 'Brand and marketing', studios: ['brand-studio', 'brand-dna-editor', 'find-my-brand', 'campaign-studio', 'lead-finder', 'video-outreach', 'video-pages', 'smart-video-viral', 'smart-video-scheduler', 'personalizer', 'smartwarmupai', 'website-builder'] },
   { id: '6-your-work', title: 'Your work', studios: ['library', 'content-library'] },
 ];
 

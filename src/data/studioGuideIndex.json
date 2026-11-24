@@ -337,6 +337,14 @@
         "thumbnail": "/guides/smart-video-viral/overview.webp"
       },
       {
+        "slug": "smartwarmupai",
+        "name": "SmartWarmupAI",
+        "route": "smartwarmupai",
+        "shortDescription": "Warm up mailboxes, send cold email sequences and handle replies.",
+        "features": 15,
+        "thumbnail": "/thumbnails/pages/placeholder.webp"
+      },
+      {
         "slug": "timeline-editor",
         "name": "Timeline Editor",
         "route": "timeline",
