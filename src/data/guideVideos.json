@@ -32,7 +32,7 @@
       "seconds": 113
     },
     "character-studio": {
-      "seconds": 118
+      "seconds": 113
     },
     "cinema-studio": {
       "seconds": 112
@@ -80,7 +80,7 @@
       "seconds": 124
     },
     "muapi-studio": {
-      "seconds": 139
+      "seconds": 125
     },
     "personalizer": {
       "seconds": 97
@@ -125,7 +125,7 @@
       "seconds": 122
     },
     "upscale-suite": {
-      "seconds": 98
+      "seconds": 100
     },
     "video-agent": {
       "seconds": 106
@@ -149,7 +149,7 @@
       "seconds": 184
     },
     "video-watermark-remover": {
-      "seconds": 94
+      "seconds": 95
     },
     "website-builder": {
       "seconds": 112
