@@ -11,11 +11,11 @@ import layout from '../live-layout.json';
 import { bezier } from '../lib/motion';
 import { EASE, SpeedBlur, mix, ramp } from '../lib/polish';
 import { AppMark, INTER, T } from '../lib/tokens';
+import { EngineTitle, EngineTitleProps } from '../lib/EngineTitle';
 
 export const HUB_DURATION = 148;
 const CUTS = layout['apps-tall'].cutouts; // 27 real hub cards (order = DOM order: Image apps, Video apps, ...)
-const PICK = [0, 1, 2, 6, 7, 11]; // Image, Edit, Upscale, Video, Cinema, AI VFX (hub order)
-const CARDS = PICK.map((i) => CUTS[i]);
+export const HUB_PICK = [0, 1, 2, 6, 7, 11]; // Image, Edit, Upscale, Video, Cinema, AI VFX (hub order)
 const HERO = 3;
 const MID_W = 760, GAP = 820, ROW_X = 200, ROW_Y = 400;
 const DRIVE_EASE = bezier(0.45, 0, 0.18, 1);
@@ -23,16 +23,18 @@ const MID_END = 960 - (ROW_X + HERO * GAP + MID_W / 2);
 const DRIVE = -MID_END / 0.7;
 const driveAt = (f: number) => DRIVE * ramp(f, 6, 112, DRIVE_EASE) + 4 * ramp(f, 120, 28, EASE.smooth);
 const velocity = (f: (x: number) => number, x: number) => f(x + 0.5) - f(x - 0.5);
-const PILLS = [
+type Pill = { t: string; x: number; y: number; tone: 'accent' | 'card' };
+const PILLS: Pill[] = [
   { t: 'Image Studio', x: 1100, y: 900, tone: 'accent' },
   { t: 'Cinema Studio', x: 1650, y: 880, tone: 'card' },
   { t: 'Lip Sync Studio', x: 2500, y: 905, tone: 'card' },
   { t: 'Character Studio', x: 3500, y: 890, tone: 'accent' },
-] as const;
+];
 const softShadow = (e: number) => `0 ${e * 0.6}px ${e * 1.6}px rgba(0,0,0,0.55), 0 ${e * 0.2}px ${e * 0.5}px rgba(0,0,0,0.6)`;
 
-export const HubShot: React.FC = () => {
+export const HubShot: React.FC<{ pick?: number[]; title?: EngineTitleProps; pillNames?: string[] }> = ({ pick = HUB_PICK, title, pillNames }) => {
   const frame = useCurrentFrame();
+  const CARDS = pick.map((i) => CUTS[i]);
   const drive = driveAt(frame);
   const vFg = -1.4 * velocity(driveAt, frame);
   const lift = ramp(frame, 100, 20, EASE.out);
@@ -59,18 +61,19 @@ export const HubShot: React.FC = () => {
       </div>
       <SpeedBlur vx={vFg} amount={0.2} max={10}>
         <div style={{ position: 'absolute', inset: 0, transform: `translateX(${(-drive * 1.4).toFixed(2)}px)` }}>
-          {PILLS.map((p) => (
+          {PILLS.map((p, pi) => ({ ...p, t: pillNames?.[pi] ?? p.t })).map((p) => (
             <div key={p.t} style={{ position: 'absolute', left: p.x, top: p.y, height: 128, padding: '0 56px', borderRadius: 64, display: 'flex', alignItems: 'center', background: p.tone === 'accent' ? T.accent : T.card, color: p.tone === 'accent' ? '#050505' : '#fff', fontFamily: INTER, fontSize: 60, fontWeight: 650, whiteSpace: 'nowrap', filter: 'blur(7px)', opacity: 0.92, boxShadow: '0 40px 70px -10px rgba(0,0,0,0.6)' }}>{p.t}</div>
           ))}
         </div>
       </SpeedBlur>
-      <div style={{ position: 'absolute', left: 120, top: 96, opacity: kick }}>
+      {title && <EngineTitle {...title} />}
+      {!title && <div style={{ position: 'absolute', left: 120, top: 96, opacity: kick }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <AppMark size={48} style={{ boxShadow: 'none' }} />
           <span style={{ fontFamily: INTER, fontSize: 36, fontWeight: 700, color: T.secondary }}>SmartVideo</span>
         </div>
         <div style={{ marginTop: 20, fontFamily: INTER, fontSize: 112, fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1.02, opacity: kick, transform: `translateY(${(1 - kick) * 28}px)` }}>Start at the app hub.</div>
-      </div>
+      </div>}
     </AbsoluteFill>
   );
 };

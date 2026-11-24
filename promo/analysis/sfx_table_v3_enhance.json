@@ -1,0 +1,14 @@
+[
+ {
+  "from": 0,
+  "src": "whoosh-big.mp3",
+  "volume": 0.5,
+  "note": "parallax drive starts"
+ },
+ {
+  "from": 103,
+  "src": "transition-snap.mp3",
+  "volume": 1,
+  "note": "hero card lifts"
+ }
+]

@@ -11,6 +11,7 @@ import React from 'react';
 import { AbsoluteFill, Easing, Img, interpolate, spring, staticFile, useCurrentFrame } from 'remotion';
 import { INTER, T } from '../lib/tokens';
 import { SpeedBlur } from '../lib/polish';
+import { EngineTitle, EngineTitleProps } from '../lib/EngineTitle';
 
 export const BACKLOT_DURATION = 148;
 const NODES = [355, 529, 700, 873, 1046, 1218, 1393, 1565]; // node centres in page px (measured on the capture, 1.28 x the 1500px preview)
@@ -29,7 +30,7 @@ const popFrameOf = (nodeX: number) => {
   return TRAVEL_END;
 };
 
-export const BacklotShot: React.FC = () => {
+export const BacklotShot: React.FC<{ title?: EngineTitleProps }> = ({ title }) => {
   const frame = useCurrentFrame();
   const camX = camXAt(frame);
   const push = interpolate(frame, [TRAVEL_END, TRAVEL_END + 10], [1, 1.18], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.out(Easing.cubic) });
@@ -50,8 +51,8 @@ export const BacklotShot: React.FC = () => {
           })}
         </div>
       </SpeedBlur>
-      <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(11,11,13,0) 70%, rgba(11,11,13,0.96) 100%)' }} />
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 58, textAlign: 'center', fontFamily: INTER, fontSize: 68, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff', opacity: cap }}>Eight steps, one board.</div>
+      <AbsoluteFill style={{ background: title ? 'linear-gradient(180deg, rgba(11,11,13,0) 50%, rgba(11,11,13,0.9) 74%, rgba(11,11,13,0.98) 100%)' : 'linear-gradient(180deg, rgba(11,11,13,0) 70%, rgba(11,11,13,0.96) 100%)' }} />
+      {title ? <EngineTitle {...title} /> : <div style={{ position: 'absolute', left: 0, right: 0, bottom: 58, textAlign: 'center', fontFamily: INTER, fontSize: 68, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff', opacity: cap }}>Eight steps, one board.</div>}
     </AbsoluteFill>
   );
 };

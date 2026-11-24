@@ -350,5 +350,28 @@
     "wait": 2500
    }
   ]
+ },
+ {
+  "name": "video-agent-typed",
+  "route": "video-agent",
+  "wait": 12000,
+  "steps": [
+   {
+    "frameType": "textarea, input[type=text]",
+    "text": "Make a 15 second teaser for a trail running shoe",
+    "wait": 1500
+   }
+  ]
+ },
+ {
+  "name": "video-agent-blank",
+  "route": "video-agent",
+  "wait": 12000,
+  "steps": [
+   {
+    "frameEval": "document.querySelectorAll('textarea,input').forEach(e=>{e.placeholder=''})",
+    "wait": 800
+   }
+  ]
  }
 ]

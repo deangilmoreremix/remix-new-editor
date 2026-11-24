@@ -1,0 +1,14 @@
+[
+ {
+  "from": 7,
+  "src": "whoosh-fast.mp3",
+  "volume": 0.6,
+  "note": "travel accelerates"
+ },
+ {
+  "from": 84,
+  "src": "impact-cine.mp3",
+  "volume": 0.55,
+  "note": "travel brake"
+ }
+]

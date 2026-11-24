@@ -67,6 +67,30 @@ for (const st of STATES) {
     await sleep(st.wait ?? 9000);
     for (const step of st.steps || []) {
       if (step.eval) await page.evaluate(new Function(step.eval));
+      if (step.frameEval) {
+        for (const fr of page.frames()) { try { await fr.evaluate(new Function(step.frameEval)); } catch { /* frame not ready */ } }
+      }
+      if (step.frameType) {
+        // input lives inside an iframe (Video Agent): find it in any frame, type with the keyboard, and measure glyph widths in that frame
+        let done = false;
+        for (const fr of page.frames()) {
+          const h = await fr.$(step.frameType);
+          if (!h) continue;
+          const bb = await h.boundingBox();
+          if (!bb || bb.width < 50) continue;
+          await h.click();
+          await page.keyboard.type(step.text || PROMPT, { delay: 4 });
+          entry.measure = await fr.evaluate((sel, text, bx, by, bh, bw) => {
+            const t = document.querySelector(sel); const cs = getComputedStyle(t);
+            const c = document.createElement('canvas').getContext('2d'); c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+            return { x0: bx + parseFloat(cs.paddingLeft || '0'), y: by, h: bh, w: bw, font: c.font, offsets: [...text].map((_, i) => c.measureText(text.slice(0, i + 1)).width) };
+          }, step.frameType, step.text, bb.x, bb.y, bb.height, bb.width);
+          console.log('  frame input found', Math.round(bb.x), Math.round(bb.y), Math.round(bb.width), Math.round(bb.height));
+          done = true;
+          break;
+        }
+        if (!done) console.log('  frameType miss', step.frameType);
+      }
       if (step.type) {
         const h = await page.$(step.type);
         if (h) { await h.click(); await page.keyboard.type(step.text || PROMPT, { delay: 4 }); } else console.log('  type miss', step.type);

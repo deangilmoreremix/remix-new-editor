@@ -8,6 +8,7 @@ import React from 'react';
 import { AbsoluteFill, Easing, Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
 import { INTER, T } from '../lib/tokens';
 import { CAPTIONS, SHOTS, beatF } from '../timeline';
+import { EngineTitle, EngineTitleProps } from '../lib/EngineTitle';
 
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 const CELL_H = 330, GUT = 44, U = 480, RADIUS = 16;
@@ -19,7 +20,8 @@ const CELLS = WIDTHS.flatMap((row, r) => {
   let x = LEFT;
   return row.map((k) => { const w = k * U; const c = { x, y: TOP + r * (CELL_H + GUT), w }; x += w + GUT; return c; });
 });
-const STUDIOS = [
+export type WallStudio = { name: string; tex: string };
+export const STUDIOS: WallStudio[] = [
   { name: 'Video Studio', tex: 'video-empty' },
   { name: 'Image Studio', tex: 'image' },
   { name: 'Cinema Studio', tex: 'cinema' },
@@ -31,7 +33,7 @@ const REGION = { right: 1880, y: 70, h: 270 }; // banner art only: no UI fragmen
 const START = (i: number) => beatF(i + 1) - 2; // one cell per beat, local to the shot
 export const WALL_PUSH_START = START(5) + 24;
 
-const Cell: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
+const Cell: React.FC<{ i: number; frame: number; studios: WallStudio[] }> = ({ i, frame, studios }) => {
   const start = START(i);
   const { x, y, w } = CELLS[i];
   const draw = interpolate(frame, [start, start + 8], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
@@ -47,9 +49,9 @@ const Cell: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
   return (
     <div style={{ position: 'absolute', left: x, top: y, width: w, height: CELL_H }}>
       <div style={{ opacity: 0.18 + 0.82 * lit, transform: `translateY(${ty}px)`, borderRadius: RADIUS, width: w, height: CELL_H, overflow: 'hidden', background: T.card, position: 'relative', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <Img src={staticFile(`textures/live/${STUDIOS[i].tex}-full.png`)} style={{ position: 'absolute', left: -(REGION.right - w / scale) * scale, top: -REGION.y * scale, width: 1920 * scale, height: 1080 * scale }} />
+        <Img src={staticFile(`textures/live/${studios[i].tex}-full.png`)} style={{ position: 'absolute', left: -(REGION.right - w / scale) * scale, top: -REGION.y * scale, width: 1920 * scale, height: 1080 * scale }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(5,5,5,0) 55%, rgba(5,5,5,0.88) 100%)' }} />
-        <div style={{ position: 'absolute', left: 22, bottom: 18, fontFamily: INTER, fontWeight: 700, fontSize: 34, color: '#fff', letterSpacing: '-0.01em' }}>{STUDIOS[i].name}</div>
+        <div style={{ position: 'absolute', left: 22, bottom: 18, fontFamily: INTER, fontWeight: 700, fontSize: 34, color: '#fff', letterSpacing: '-0.01em' }}>{studios[i].name}</div>
         <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(90% 70% at 50% 0%, rgba(217,255,0,${(0.16 * pulse * (0.8 + jitter * 0.4)).toFixed(3)}), rgba(217,255,0,0) 70%)` }} />
       </div>
       {draw > 0 && (
@@ -69,7 +71,7 @@ const Cell: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
   );
 };
 
-export const WallShot: React.FC = () => {
+export const WallShot: React.FC<{ studios?: WallStudio[]; title?: EngineTitleProps }> = ({ studios = STUDIOS, title }) => {
   const frame = useCurrentFrame();
   const push = interpolate(frame, [WALL_PUSH_START, WALL_PUSH_START + 25], [1, 1.04], { ...clamp, easing: Easing.bezier(0.33, 0, 0.2, 1) });
   const cap = CAPTIONS[1];
@@ -78,11 +80,14 @@ export const WallShot: React.FC = () => {
     <AbsoluteFill style={{ background: T.bg, overflow: 'hidden' }}>
       <AbsoluteFill style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 12%, rgba(217,255,0,0.07), rgba(217,255,0,0) 70%)' }} />
       <div style={{ position: 'absolute', inset: 0, transform: `scale(${push.toFixed(5)})`, transformOrigin: '960px 540px' }}>
-        <div style={{ position: 'absolute', left: LEFT, top: TOP - 150, fontFamily: INTER, fontSize: 80, fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1, opacity: capO }}>
-          {cap.text}
-        </div>
-        {CELLS.map((_, i) => <Cell key={i} i={i} frame={frame} />)}
+        {!title && (
+          <div style={{ position: 'absolute', left: LEFT, top: TOP - 150, fontFamily: INTER, fontSize: 80, fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1, opacity: capO }}>
+            {cap.text}
+          </div>
+        )}
+        {CELLS.map((_, i) => <Cell key={i} i={i} frame={frame} studios={studios} />)}
       </div>
+      {title && <EngineTitle {...title} />}
     </AbsoluteFill>
   );
 };

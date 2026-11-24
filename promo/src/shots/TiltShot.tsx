@@ -10,6 +10,7 @@ import React from 'react';
 import { AbsoluteFill, Img, staticFile, useCurrentFrame } from 'remotion';
 import { INTER, T } from '../lib/tokens';
 import { EASE, SpeedBlur, mix, ramp } from '../lib/polish';
+import { EngineTitle, EngineTitleProps } from '../lib/EngineTitle';
 
 export const TILT_DURATION = 148;
 const HOLD = 20, MOVE = 40, SETTLE = 10, FROM = 86;
@@ -26,7 +27,7 @@ const poseAt = (f: number) => {
   return { p, rotX: FROM * (1 - q), scale: mix(S0, S1, p), bot: mix(BOT0, BOT1, p), eye: mix(BOT0 - 300, 520, p), persp: mix(700, 1500, p) };
 };
 
-export const TiltShot: React.FC = () => {
+export const TiltShot: React.FC<{ tex?: string; builderTex?: string | null; title?: EngineTitleProps }> = ({ tex = 'cinema', builderTex = 'cinema-builder', title }) => {
   const f = useCurrentFrame();
   const { p, rotX, scale: s0, bot, eye, persp } = poseAt(f);
   const push = mix(1, 1.018, ramp(f, 70, 78, EASE.smooth));
@@ -63,8 +64,8 @@ export const TiltShot: React.FC = () => {
               </svg>
             )}
             <div style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, zoom: scale, filter: sigma > 0.5 ? 'url(#tilt-aa)' : undefined }}>
-              <Img src={staticFile('textures/live/cinema-full.png')} style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, borderRadius: PAGE_R }} />
-              <Img src={staticFile('textures/live/cinema-builder-full.png')} style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, borderRadius: PAGE_R, opacity: builder }} />
+              <Img src={staticFile(`textures/live/${tex}-full.png`)} style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, borderRadius: PAGE_R }} />
+              {builderTex && <Img src={staticFile(`textures/live/${builderTex}-full.png`)} style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, borderRadius: PAGE_R, opacity: builder }} />}
             </div>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: `linear-gradient(0deg, rgba(5,5,5,${0.1 * flat}) 0%, rgba(5,5,5,${0.5 * flat}) 45%, rgba(5,5,5,${0.9 * flat ** 1.5}) 100%)` }} />
             {sheen > 0 && sheen < 1 && (
@@ -79,7 +80,7 @@ export const TiltShot: React.FC = () => {
           <div style={{ position: 'absolute', left: 0, right: 0, top: farY - 1.5, height: 3, opacity: rim, pointerEvents: 'none', background: 'linear-gradient(90deg, rgba(244,255,176,0) 4%, #f4ffb0 32%, #ffffff 50%, #f4ffb0 68%, rgba(244,255,176,0) 96%)', boxShadow: `0 0 14px ${rgba(T.accent, 0.9)}, 0 0 40px ${rgba(T.accent, 0.6)}` }} />
         </>
       )}
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 52, textAlign: 'center', fontFamily: INTER, fontSize: 72, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff', opacity: cap, transform: `translateY(${(1 - cap) * 20}px)` }}>Pick the camera and lens.</div>
+      {title ? <EngineTitle {...title} /> : <div style={{ position: 'absolute', left: 0, right: 0, bottom: 52, textAlign: 'center', fontFamily: INTER, fontSize: 72, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff', opacity: cap, transform: `translateY(${(1 - cap) * 20}px)` }}>Pick the camera and lens.</div>}
     </AbsoluteFill>
   );
 };

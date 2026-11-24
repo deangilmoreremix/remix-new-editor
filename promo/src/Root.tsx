@@ -10,6 +10,8 @@ import { BacklotShot, BACKLOT_DURATION } from './shots/BacklotShot';
 import { QuadShot, QUAD_DURATION } from './shots/QuadShot';
 import { CarouselShot, CAROUSEL_DURATION } from './shots/CarouselShot';
 import { V2Feature, V2_TOTAL } from './V2Feature';
+import { V3Clip } from './V3Clips';
+import { V3_DURATION, EngineId } from './timeline3';
 
 export const Root: React.FC = () => (
   <>
@@ -23,5 +25,11 @@ export const Root: React.FC = () => (
     <Composition id="S-Quad" component={QuadShot} durationInFrames={QUAD_DURATION} fps={30} width={1920} height={1080} />
     <Composition id="S-Carousel" component={CarouselShot} durationInFrames={CAROUSEL_DURATION} fps={30} width={1920} height={1080} />
     <Composition id="V2Feature" component={V2Feature} durationInFrames={V2_TOTAL} fps={30} width={1920} height={1080} defaultProps={{ bgm: true }} />
+    <Composition id="V3-create" component={V3Clip} durationInFrames={V3_DURATION} fps={30} width={1920} height={1080} defaultProps={{ id: 'create' as EngineId, bgm: true }} />
+    <Composition id="V3-enhance" component={V3Clip} durationInFrames={V3_DURATION} fps={30} width={1920} height={1080} defaultProps={{ id: 'enhance' as EngineId, bgm: true }} />
+    <Composition id="V3-produce" component={V3Clip} durationInFrames={V3_DURATION} fps={30} width={1920} height={1080} defaultProps={{ id: 'produce' as EngineId, bgm: true }} />
+    <Composition id="V3-localize" component={V3Clip} durationInFrames={V3_DURATION} fps={30} width={1920} height={1080} defaultProps={{ id: 'localize' as EngineId, bgm: true }} />
+    <Composition id="V3-automate" component={V3Clip} durationInFrames={V3_DURATION} fps={30} width={1920} height={1080} defaultProps={{ id: 'automate' as EngineId, bgm: true }} />
+    <Composition id="V3-scale" component={V3Clip} durationInFrames={V3_DURATION} fps={30} width={1920} height={1080} defaultProps={{ id: 'scale' as EngineId, bgm: true }} />
   </>
 );

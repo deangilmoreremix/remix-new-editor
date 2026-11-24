@@ -1,0 +1,14 @@
+[
+ {
+  "from": 17,
+  "src": "whoosh-big.mp3",
+  "volume": 0.5,
+  "note": "page lifts"
+ },
+ {
+  "from": 57,
+  "src": "transition-snap.mp3",
+  "volume": 1,
+  "note": "page settles"
+ }
+]

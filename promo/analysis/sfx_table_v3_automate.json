@@ -1,0 +1,21 @@
+[
+ {
+  "from": 35,
+  "src": "click-camera.mp3",
+  "volume": 0.8,
+  "note": "click into the agent input"
+ },
+ {
+  "from": 49,
+  "src": "keyboard.mp3",
+  "volume": 0.6,
+  "durationInFrames": 94,
+  "note": "typing window (94f)"
+ },
+ {
+  "from": 155,
+  "src": "transition-snap.mp3",
+  "volume": 1,
+  "note": "pull-back / title"
+ }
+]

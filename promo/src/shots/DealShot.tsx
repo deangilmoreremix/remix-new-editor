@@ -12,6 +12,7 @@ import { AbsoluteFill, Easing, Img, interpolate, staticFile, useCurrentFrame } f
 import layout from '../live-layout.json';
 import { EASE, ramp } from '../lib/polish';
 import { INTER, T } from '../lib/tokens';
+import { EngineTitle, EngineTitleProps } from '../lib/EngineTitle';
 
 export const DEAL_DURATION = 177;
 const N = 9;
@@ -30,12 +31,13 @@ const TBL = 4000;
 // The face-swap card is left out on purpose: its baked-in example image carries the text "AI Deepfake Technology".
 const CUTS = [0, 1, 2, 4, 5, 6, 7, 9, 11].map((i) => layout.edit.cutouts[i]);
 
-const grid = CUTS.slice(0, N).map((c, k) => ({
-  file: c.file,
+export const DEAL_DEFAULT_FILES = CUTS.map((c) => c.file);
+const makeGrid = (files: string[]) => files.map((file, k) => ({
+  file,
   x: COLS[k % 3], y: ROWS[Math.floor(k / 3)],
   cue: DEAL_START + 4 * k - 0.0792 * k * (k - 1),
   px: PILE.x + (((k * 7) % 9) - 4) * 2, py: PILE.y + (((k * 5) % 7) - 3) * 2,
-  protZ: ((k * 11) % 7) - 3, pz: (N - k) * STACK_STEP,
+  protZ: ((k * 11) % 7) - 3, pz: (files.length - k) * STACK_STEP,
 }));
 
 type Cam = { cx: number; cy: number; zoom: number; rotX: number; rotY: number; rotZ: number; persp: number; sx: number };
@@ -70,8 +72,9 @@ const CURVES = Object.fromEntries(PARAMS.map((p) => [p, hermite(ANCHORS.map((k) 
 const camAt = (f: number): Cam => Object.fromEntries(PARAMS.map((p) => [p, CURVES[p](f)])) as Cam;
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 
-export const DealShot: React.FC = () => {
+export const DealShot: React.FC<{ files?: string[]; title?: EngineTitleProps; chip?: string | null }> = ({ files = DEAL_DEFAULT_FILES, title, chip = 'BUILT-IN EXAMPLE IMAGES' }) => {
   const frame = useCurrentFrame();
+  const grid = makeGrid(files);
   const cam = camAt(frame);
   const lightUp = interpolate(frame, [34, 64], [0, 1], { ...clamp, easing: Easing.bezier(0.5, 0, 0.6, 1) });
   const holeR = 4200 * lightUp, feather = 600 + 1000 * lightUp;
@@ -112,7 +115,7 @@ export const DealShot: React.FC = () => {
               const antPull = i === 0 && inPile ? ANT.topPull * antT : 0;
               const transform = isLanded ? 'translate3d(0px, 0px, 0px)' : inPile ? `translate3d(${c.px - c.x - antPull}px, ${c.py - c.y + antDy}px, ${c.pz}px) rotateZ(${c.protZ}deg)` : `translate3d(${dx}px, ${dy}px, ${z}px) rotateZ(${rotFlight}deg) scale(${scale})`;
               const shadowLag = interpolate(frame, [cue + 8, cue + 15], [0, 1], { ...clamp, easing: EASE.out });
-              const shadow = isLanded ? `0 ${(2 + 14 * (1 - shadowLag)).toFixed(1)}px ${(6 + 30 * (1 - shadowLag)).toFixed(1)}px rgba(0,0,0,${(0.3 + 0.2 * (1 - shadowLag)).toFixed(3)})` : inPile ? (i === N - 1 ? '0 1px 3px rgba(0,0,0,.4), 0 26px 60px rgba(0,0,0,0.75)' : '0 1px 2px rgba(0,0,0,.35)') : `0 ${36 - 24 * settleT}px ${70 - 50 * settleT}px rgba(0,0,0,${(0.55 - 0.25 * settleT).toFixed(3)})`;
+              const shadow = isLanded ? `0 ${(2 + 14 * (1 - shadowLag)).toFixed(1)}px ${(6 + 30 * (1 - shadowLag)).toFixed(1)}px rgba(0,0,0,${(0.3 + 0.2 * (1 - shadowLag)).toFixed(3)})` : inPile ? (i === grid.length - 1 ? '0 1px 3px rgba(0,0,0,.4), 0 26px 60px rgba(0,0,0,0.75)' : '0 1px 2px rgba(0,0,0,.35)') : `0 ${36 - 24 * settleT}px ${70 - 50 * settleT}px rgba(0,0,0,${(0.55 - 0.25 * settleT).toFixed(3)})`;
               const showGhost = diveT > 0.02 && diveT < 0.98;
               const gx = (c.px - c.x) * 0.06, gy = (c.py - c.y) * 0.06;
               const src = staticFile(`textures/live/${c.file}`);
@@ -120,11 +123,11 @@ export const DealShot: React.FC = () => {
                 <div key={c.file} style={{ transformStyle: 'preserve-3d' }}>
                   {showGhost && (
                     <div style={{ position: 'absolute', left: c.x, top: c.y, width: CARD_W, height: CARD_H, transform: `translate3d(${dx + gx}px, ${dy + gy}px, ${z}px) rotateZ(${rotFlight}deg) scale(${scale})`, opacity: 0.28 * (1 - diveT), filter: 'blur(7px)', borderRadius: 16, overflow: 'hidden' }}>
-                      <Img src={src} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
+                      <Img src={src} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                   )}
                   <div style={{ position: 'absolute', left: c.x, top: c.y, width: CARD_W, height: CARD_H, transform, boxShadow: shadow, borderRadius: 16, overflow: 'hidden' }}>
-                    <Img src={src} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
+                    <Img src={src} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 </div>
               );
@@ -134,11 +137,13 @@ export const DealShot: React.FC = () => {
         </div>
       </AbsoluteFill>
       <AbsoluteFill style={{ pointerEvents: 'none', background: 'radial-gradient(ellipse 75% 75% at 58% 46%, transparent 45%, rgba(5,5,6,0.55) 100%)' }} />
-      <div style={{ position: 'absolute', left: 114, top: 330, padding: '10px 22px', borderRadius: 999, border: `2px solid ${T.accent}`, background: 'rgba(5,5,5,0.85)', color: T.accent, fontFamily: INTER, fontWeight: 700, fontSize: 36, letterSpacing: '0.06em', opacity: t2 }}>BUILT-IN EXAMPLE IMAGES</div>
+      {chip && <div style={{ position: 'absolute', left: 114, top: 330, padding: '10px 22px', borderRadius: 999, border: `2px solid ${T.accent}`, background: 'rgba(5,5,5,0.85)', color: T.accent, fontFamily: INTER, fontWeight: 700, fontSize: 36, letterSpacing: '0.06em', opacity: t2 }}>{chip}</div>}
+      {title ? <EngineTitle {...title} /> : (
       <div style={{ position: 'absolute', left: 110, top: 80, color: '#fff' }}>
         <div style={{ fontSize: 112, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.04, opacity: t1, transform: `translateY(${(1 - t1) * 30}px)` }}>Edit tools,</div>
         <div style={{ fontSize: 112, fontWeight: 400, letterSpacing: '-0.03em', lineHeight: 1.04, color: T.accent, opacity: t2, transform: `translateY(${(1 - t2) * 30}px)` }}>in one grid.</div>
       </div>
+      )}
     </AbsoluteFill>
   );
 };
