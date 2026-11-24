@@ -94,21 +94,25 @@ export function OpenThornStudio() {
     return container;
   }
 
-  const loading = createNotice({ title: 'Loading Website Builder…' });
+  // No separate sign-in: free and paid SmartVid accounts both get the builder, which signs itself in with
+  // the SmartVid account. Until that account is loaded we only show a connecting message.
+  const loading = createNotice({ title: 'Connecting your SmartVid account…' });
   container.appendChild(loading);
 
-  resolveAccess().then((access) => {
-    // Free and paid SmartVideo accounts both get the builder.
-    const next = access === 'signed_out'
-      ? createNotice({
-          title: 'Sign in to use Smart Website Builder',
-          text: 'Smart Website Builder uses your SmartVideo account.',
-          actionLabel: 'Sign in',
-          onAction: () => { window.location.href = '/signin'; },
-        })
-      : createIframe();
-    loading.replaceWith(next);
+  const open = () => { if (loading.isConnected) loading.replaceWith(createIframe()); };
+  let cancelWait = null;
+  let closed = false;
+  resolveAccess().then(async (access) => {
+    if (closed) return;
+    if (access !== 'signed_out') { open(); return; }
+    try {
+      const { whenClerkUser } = await import('../lib/clerkInit.js');
+      if (closed || !loading.isConnected) return;
+      // One-shot, with a bounded retry if Clerk is unavailable; removed when the page closes.
+      cancelWait = whenClerkUser(() => open());
+    } catch { /* Clerk unavailable: stay on the connecting message */ }
   });
+  container.cleanup = () => { closed = true; if (cancelWait) cancelWait(); };
 
   return container;
 }
