@@ -24,7 +24,6 @@ vi.mock('remotion', async () => ({
   AbsoluteFill: ({ children, ...rest }: { children?: React.ReactNode } & Record<string, unknown>) => (
     <div data-scene={rest['data-remotion-scene'] as string | undefined}>{children}</div>
   ),
-  // eslint-disable-next-line @next/next/no-img-element
   Img: ({ src }: { src: string }) => <img src={src} alt="" />,
   // Records where each Sequence sits, and only mounts it while it is on screen.
   Sequence: ({ children, from = 0, durationInFrames = Infinity, name }: { children?: React.ReactNode; from?: number; durationInFrames?: number; name?: string }) =>
