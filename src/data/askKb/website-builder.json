@@ -4,7 +4,7 @@
   "route": "#/website-builder",
   "description": "Website Builder (branded Smart Website Builder) lets you describe a website in plain language and have an AI agent write the code, preview it live in your browser and deploy it to a public address. You bring your own AI provider key.",
   "shortDescription": "Build and publish a full website from a prompt using your own AI key.",
-  "fullDescription": "Website Builder is an embedded app (the OpenThorn builder, shown as Smart Website Builder) inside SmartVideo. You sign in with your normal SmartVideo account, land on the builder Dashboard, type what you want in the prompt box ('What do you want to build?'), choose an AI model from a provider you have a key for, and the agent writes the site, previews it live in the browser and lets you keep chatting to change it. When you are happy you click Deploy to publish it to a public address (Cloudflare Pages), or download the code as a ZIP. Both free and paid SmartVideo accounts can use it. The builder manages its own provider keys inside the studio (Settings, Providers), so you pay your AI provider directly at their normal rates; it does not use SmartVideo credits for the AI. It builds websites, not videos.",
+  "fullDescription": "Website Builder is an embedded app (the OpenThorn builder, shown as Smart Website Builder) inside SmartVideo. It uses your normal SmartVid account automatically (there is no separate sign-in), land on the builder Dashboard, type what you want in the prompt box ('What do you want to build?'), choose an AI model from a provider you have a key for, and the agent writes the site, previews it live in the browser and lets you keep chatting to change it. When you are happy you click Deploy to publish it to a public address (Cloudflare Pages), or download the code as a ZIP. Both free and paid SmartVideo accounts can use it. The builder manages its own provider keys inside the studio (Settings, Providers), so you pay your AI provider directly at their normal rates; it does not use SmartVideo credits for the AI. It builds websites, not videos.",
   "bestFor": "Founders, creators and small businesses who want a landing page, portfolio or small website built by AI quickly, are comfortable bringing their own AI provider API key, and want to download or publish the result.",
   "whenToUse": [
     "You want a landing page, portfolio or small website generated from a description.",
@@ -38,7 +38,7 @@
   "featureExplanations": [
     {
       "feature": "Sign-in and access",
-      "explanation": "In SmartVideo, anyone signed in gets in automatically, paid or not, and lands on the builder Dashboard. While it checks you see 'Loading Website Builder...'. If you are signed out you see 'Sign in to use Smart Website Builder - Smart Website Builder uses your SmartVideo account.' with a Sign in button that goes to the sign-in page.",
+      "explanation": "In SmartVideo, anyone signed in gets in automatically, paid or not, and lands on the builder Dashboard. While it connects you see 'Connecting your SmartVid account…', and the builder opens by itself a moment later. There is no separate sign-in or Sign in button.",
       "whyToUse": "No separate account is needed.",
       "inputRequired": "A SmartVideo account.",
       "restrictions": "The builder links your account by your verified primary email address; an unverified email is not linked."
@@ -93,9 +93,9 @@
       "restrictions": "Community content may be moderated; details were not confirmed."
     }
   ],
-  "howToUse": "1. Open Website Builder from the Agents group in the side menu (#/website-builder). 2. If you see 'Sign in to use Smart Website Builder', click Sign in with your SmartVideo account. 3. On the Dashboard, open Settings, then Providers, and add an API key for the AI provider you want to use. 4. Back on the Dashboard, type your idea into the box labelled 'Describe your website idea' under 'What do you want to build?'. 5. Choose a model in the model selector (otherwise you get 'Please select a model first.'), optionally set the agent thinking level and attach files. 6. Send it and watch the agent write the site and show a live preview. 7. Keep chatting to change things. 8. Click Deploy to publish and open the public address, or download the code as a ZIP.",
+  "howToUse": "1. Open Website Builder from the Agents group in the side menu (#/website-builder). 2. Wait a moment while it connects your SmartVid account (it opens by itself). 3. On the Dashboard, open Settings, then Providers, and add an API key for the AI provider you want to use. 4. Back on the Dashboard, type your idea into the box labelled 'Describe your website idea' under 'What do you want to build?'. 5. Choose a model in the model selector (otherwise you get 'Please select a model first.'), optionally set the agent thinking level and attach files. 6. Send it and watch the agent write the site and show a live preview. 7. Keep chatting to change things. 8. Click Deploy to publish and open the public address, or download the code as a ZIP.",
   "howToSteps": [
-    "Open Website Builder; sign in if asked.",
+    "Open Website Builder; it connects your SmartVid account by itself.",
     "Add your AI provider key in Settings, Providers.",
     "Describe your website in the prompt box and pick a model.",
     "Send and review the live preview.",
@@ -108,9 +108,25 @@
     "Start with a small site and add pages later.",
     "Check the preview before you deploy."
   ],
-  "inputs": ["Website idea (prompt)", "Model and provider key", "Agent thinking level", "Attached files", "Follow-up chat messages", "Community description"],
-  "requiredInputs": ["Website idea (prompt)", "A selected model with a saved provider API key", "SmartVideo sign-in"],
-  "optionalInputs": ["Agent thinking level", "Attached files", "Follow-up chat messages", "Community description"],
+  "inputs": [
+    "Website idea (prompt)",
+    "Model and provider key",
+    "Agent thinking level",
+    "Attached files",
+    "Follow-up chat messages",
+    "Community description"
+  ],
+  "requiredInputs": [
+    "Website idea (prompt)",
+    "A selected model with a saved provider API key",
+    "SmartVideo sign-in"
+  ],
+  "optionalInputs": [
+    "Agent thinking level",
+    "Attached files",
+    "Follow-up chat messages",
+    "Community description"
+  ],
   "inputDetails": [
     {
       "name": "Website idea (prompt)",
@@ -141,7 +157,11 @@
       "restrictions": "Available levels depend on the chosen provider and were not confirmed."
     }
   ],
-  "generationModes": ["Prompt to site", "Chat iteration", "Template start"],
+  "generationModes": [
+    "Prompt to site",
+    "Chat iteration",
+    "Template start"
+  ],
   "modeExplanations": [
     {
       "mode": "Prompt to site",
@@ -184,7 +204,7 @@
     {
       "limitation": "Sign-in required",
       "impact": "Signed-out visitors see a sign-in card instead of the builder.",
-      "workaround": "Click Sign in and use your SmartVideo account."
+      "workaround": "It connects with your SmartVid account automatically; if it keeps showing 'Connecting your SmartVid account…', reload the page."
     },
     {
       "limitation": "Preview restrictions",
@@ -194,7 +214,7 @@
   ],
   "troubleshooting": [
     "Stuck on 'Loading Website Builder...': reload the page; check your connection.",
-    "'Sign in to use Smart Website Builder': click Sign in and use your SmartVideo account.",
+    "'Connecting your SmartVid account…' stays on screen: reload the page; the builder opens by itself once your SmartVid account has loaded.",
     "'Please select a model first.': pick a model in the model selector; if none appear add a provider key in Settings, Providers.",
     "The agent does not respond or errors: check the provider key is valid, has credit and is not rate limited; try another provider or model.",
     "Blank iframe or content fails to load: reload; if you are on a local development setup the builder runs on a separate dev server.",
@@ -223,7 +243,7 @@
     {
       "issue": "I cannot get in",
       "steps": [
-        "Sign in to SmartVideo.",
+        "Reload the page and wait a few seconds for it to connect.",
         "Ensure your primary email is verified.",
         "Reload #/website-builder."
       ]
@@ -334,7 +354,15 @@
     "Check on a phone-size window in the preview.",
     "Use Starred projects to keep your best builds handy."
   ],
-  "relatedStudios": ["brand", "find-my-brand", "video-agent", "motion-director", "commercial", "image", "viral"],
+  "relatedStudios": [
+    "brand",
+    "find-my-brand",
+    "video-agent",
+    "motion-director",
+    "commercial",
+    "image",
+    "viral"
+  ],
   "relatedStudioGuidance": [
     {
       "studio": "motion-director",
