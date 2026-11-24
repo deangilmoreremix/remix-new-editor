@@ -41,3 +41,9 @@ re-check its notices and keep any required attribution and distribution terms.
   Media tools > Local AI (name, size, licence and source URL are shown there). Verified licences: Whisper (Apache-2.0 on the model card of
   `openai/whisper-*`), CLIP ViT-B/32 (`Xenova/clip-vit-base-patch32`, MIT), SmolVLM-256M-Instruct (Apache-2.0). FreeCut's LFM2.5-VL captioner
   (LFM Open License v1.0, revenue-limited commercial use) is listed but disabled. Details: `docs/stage-11/PORT_I1_REPORT.md`.
+
+## Collab Suite: Teamchat and Meetings
+
+- **HeyPuter/everything** (<https://github.com/HeyPuter/everything>, commit `95cf576a8efc3f9719483f87301efa87d81b1d1b`) — MIT, Copyright (c) 2026 Puter Technologies Inc.
+  `collab-suite/vendor/everything/` is an unmodified copy of the upstream Teamchat and Meetings apps (see `VENDORED.md` and `LICENSE` there).
+  They load Puter.js from `js.puter.com` at runtime, so people using them need a Puter account.

@@ -704,5 +704,11 @@
       "removing-a-watermark-in-video-studio": "/guides/video-watermark-remover/removing-a-watermark-in-video-studio.webp"
     },
     "overview": "/guides/video-watermark-remover/overview.webp"
+  },
+  "muapi-studio": {
+    "overview": "/thumbnails/studios/muapi-studio.webp",
+    "features": {
+      "your-own-muapi-key": "/guides/muapi-studio/your-own-muapi-key.webp"
+    }
   }
 }
