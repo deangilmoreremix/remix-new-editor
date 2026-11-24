@@ -6,6 +6,7 @@
 // Changed: the "world" is the real Video Studio capture (1920x1080 page, 2x texture) instead of the demo's drawn dashboard;
 // 3 stations (prompt: click + typing, model button: click opens the picker, settings chips: point only) instead of 4;
 // the typing reveal uses canvas-measured glyph widths of the real text; UI "responses" are texture swaps of REAL captures.
+// The third click opens the REAL Advanced Options panel (capture video-typed2-adv); the picker stays open ~1.3 s before it closes.
 // Typing runs at 2f/char (V1's 3f/char did not fit this beat); recorded as a deviation in DESIGN-SPEC.
 import React from 'react';
 import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
@@ -18,19 +19,19 @@ const M = layout['video-typed2'].measure as { x0: number; y: number; h: number; 
 export const PROMPT2 = 'Product shot on a marble pedestal, soft studio light';
 export const CURSOR_TOUR_DURATION = 295;
 const PER_CHAR = 2;
-const CLICK = [42, 182];
+const CLICK = [42, 182, 232];
 const TYPE_START = CLICK[0] + 8;
 export const CURSOR_TYPE_END = TYPE_START + PROMPT2.length * PER_CHAR;
 
 const CAMS = [
   { x: 960, y: 540, s: 1.0 },
   { x: 1330, y: 402, s: 1.8 }, // prompt
-  { x: 600, y: 330, s: 1.6 }, // model button + picker
-  { x: 900, y: 500, s: 1.5 }, // settings chips
+  { x: 520, y: 330, s: 2.2 }, // model button + picker (bigger so the model names are readable)
+  { x: 600, y: 700, s: 1.6 }, // Advanced chip + the left half of the panel it opens (title + option labels)
 ];
-const TARGETS = [{ x: 1010, y: 402 }, { x: 204, y: 502 }, { x: 1000, y: 502 }];
-const LEG = [20, 160, 204];
-const BACK = 244;
+const TARGETS = [{ x: 1010, y: 402 }, { x: 204, y: 502 }, { x: 990, y: 505 }];
+const LEG = [20, 160, 222];
+const BACK = 262;
 const CAM_EASE = bezier(0.55, 0, 0.18, 1);
 
 const camAt = (f: number) => {
@@ -45,7 +46,7 @@ const camAt = (f: number) => {
   }
   const b = ramp(f, BACK, 24, EASE.smooth);
   x = mix(x, CAMS[0].x, b); y = mix(y, CAMS[0].y, b); s = mix(s, CAMS[0].s, b);
-  s *= (1 - hop) * (1 + 0.01 * ramp(f, 268, 27, EASE.smooth));
+  s *= (1 - hop) * (1 + 0.01 * ramp(f, 276, 19, EASE.smooth));
   return { x, y, s };
 };
 const cursorAt = (f: number) => {
@@ -64,7 +65,7 @@ const cursorAt = (f: number) => {
 const CAPS = [
   { text: 'Type the prompt.', a: 34, b: 162 },
   { text: 'Pick a model.', a: 176, b: 236 },
-  { text: 'Tune the settings.', a: 246, b: 295 },
+  { text: 'Tune the settings.', a: 240, b: 295 },
 ];
 
 export const CursorTour: React.FC = () => {
@@ -89,6 +90,7 @@ export const CursorTour: React.FC = () => {
   const typedDone = frame >= CURSOR_TYPE_END;
   // picker opens on the model click (cross-fade of two real captures), closes when the cursor leaves for the settings row
   const picker = ramp(frame, CLICK[1] + 2, 6, EASE.out) - ramp(frame, LEG[2] + 2, 6, EASE.out);
+  const adv = ramp(frame, CLICK[2] + 2, 6, EASE.out); // Advanced Options panel (real capture) opens on the third click
 
   return (
     <AbsoluteFill style={{ background: T.bg }}>
@@ -101,6 +103,7 @@ export const CursorTour: React.FC = () => {
           {caretOn && <div style={{ position: 'absolute', left: caretX, top: M.y + 8, width: 2, height: 26, background: '#fff' }} />}
           <div style={{ position: 'absolute', left: 0, top: 860, width: 1920, height: 220, background: `linear-gradient(180deg, rgba(5,5,5,0) 0%, ${T.bg} 35%)` }} />
           <Img src={staticFile('textures/live/video-typed2-model-full.png')} style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, opacity: picker }} />
+          <Img src={staticFile('textures/live/video-typed2-adv-full.png')} style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, opacity: adv }} />
         </div>
       </SpeedBlur>
       {ripple >= 0 && (

@@ -14,10 +14,10 @@ import { INTER, T } from '../lib/tokens';
 import { EASE, mix, ramp } from '../lib/polish';
 
 export const ZOOM_DURATION = 148;
-const R = { x: 285, y: 85, w: 303, h: 440 }; // aspect-ratio menu + its button, page px (measured on the capture)
+const R = { x: 285, y: 85, w: 303, h: 390 }; // aspect-ratio menu + its button, page px (measured on the capture)
 const TARGET = { cx: R.x + R.w / 2, cy: R.y + R.h / 2 };
 const PUSH = 40, HIT = 46, SHIFT = 56;
-const PEAK = 2.12, REST = PEAK / 1.06;
+const PEAK = 2.3, REST = PEAK / 1.06;
 const CARD_X_END = 600;
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 

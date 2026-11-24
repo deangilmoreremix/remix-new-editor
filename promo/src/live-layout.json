@@ -607,5 +607,19 @@
   ],
   "pageH": 1080,
   "countText": []
+ },
+ "video-typed2-adv": {
+  "route": "video",
+  "boxes": {},
+  "cutouts": [],
+  "pageH": 1080,
+  "countText": []
+ },
+ "cinema-builder": {
+  "route": "cinema",
+  "boxes": {},
+  "cutouts": [],
+  "pageH": 1080,
+  "countText": []
  }
 }

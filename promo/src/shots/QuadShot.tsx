@@ -15,17 +15,17 @@ const G = 8, QW = (1920 - 3 * G) / 2, QH = (1080 - 3 * G) / 2;
 const QUADS = [{ x: G, y: G }, { x: 2 * G + QW, y: G }, { x: G, y: 2 * G + QH }, { x: 2 * G + QW, y: 2 * G + QH }];
 // events (local frames): name pop, description rise, outline pulse. TR also carries the whip.
 const CELLS = [
-  { tex: 'character', name: 'Character Studio', desc: 'Consistent character generation', pop: 6, descAt: 11, pulse: 44 },
-  { tex: 'avatar', name: 'Avatar Studio', desc: 'AI avatars and lip sync video', pop: 14, descAt: 19, pulse: 50, whip: 37 },
-  { tex: 'lipsync', name: 'Lip Sync Studio', desc: 'Animate portraits or sync lips to audio', pop: 22, descAt: 27, pulse: 56 },
-  { tex: 'ai-vfx', name: 'AI VFX Studio', desc: 'Camera moves, VFX and AI effects', pop: 30, descAt: 35, pulse: 62 },
+  { tex: 'character', right: 1880, name: 'Character Studio', desc: 'Consistent character generation', pop: 6, descAt: 11, pulse: 38 },
+  { tex: 'avatar', right: 1880, name: 'Avatar Studio', desc: 'AI avatars and lip sync video', pop: 14, descAt: 19, pulse: 44, whip: 30 },
+  { tex: 'lipsync', right: 1880, name: 'Lip Sync Studio', desc: 'Animate portraits or sync lips to audio', pop: 22, descAt: 27, pulse: 50 },
+  { tex: 'ai-vfx', right: 1618, name: 'AI VFX Studio', desc: 'Camera moves, VFX and AI effects', pop: 30, descAt: 35, pulse: 56 },
 ];
-const REGION = { right: 1880, y: 60, h: 500 };
+const REGION = { y: 70, h: 400 }; // banner/top of the page only: keeps prompt-bar fragments out of the cells
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
 const Cell: React.FC<{ i: number; f: number }> = ({ i, f }) => {
   const c = CELLS[i];
-  const push = mix(1, 1.1, Math.pow(clamp01(f / 89), 2));
+  const push = mix(1, 1.1, Math.pow(clamp01(Math.min(f, 62) / 89), 2)); // push stops at 62 so the last 27f are a true still
   const whip = c.whip ? ramp(f, c.whip, 10, EASE.smooth) : 0;
   const blur = 5 * Math.sin(Math.PI * whip);
   const scale = push * mix(1, 1.85, whip);
@@ -34,7 +34,7 @@ const Cell: React.FC<{ i: number; f: number }> = ({ i, f }) => {
   const d = ramp(f, c.descAt, 10, EASE.out);
   const pulse = ramp(f, c.pulse, 6, EASE.snappy) * (1 - ramp(f, c.pulse + 6, 10, EASE.out));
   const s = QH / REGION.h;
-  const left = -(REGION.right - QW / s) * s;
+  const left = -((c as { right: number }).right - QW / s) * s;
   return (
     <div style={{ position: 'absolute', left: QUADS[i].x, top: QUADS[i].y, width: QW, height: QH, borderRadius: 20, overflow: 'hidden', background: T.card }}>
       <div style={{ position: 'absolute', inset: 0, transform: `scale(${scale})`, transformOrigin: '70% 40%', filter: blur > 0.2 ? `blur(${blur.toFixed(2)}px)` : undefined }}>
@@ -53,6 +53,9 @@ export const QuadShot: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: T.bg, overflow: 'hidden' }}>
       {CELLS.map((_, i) => <Cell key={i} i={i} f={f} />)}
+      <div style={{ position: 'absolute', left: 0, right: 0, top: 40, display: 'flex', justifyContent: 'center', opacity: ramp(f, 52, 10, EASE.out) }}>
+        <div style={{ padding: '14px 44px', borderRadius: 56, background: 'rgba(5,5,5,0.9)', border: '1px solid rgba(255,255,255,0.14)', fontFamily: INTER, fontSize: 64, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff' }}>People, voices, motion.</div>
+      </div>
     </AbsoluteFill>
   );
 };

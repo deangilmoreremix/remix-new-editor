@@ -8,7 +8,7 @@
  {
   "from": 153,
   "src": "click-camera.mp3",
-  "volume": 0.5,
+  "volume": 0.8,
   "note": "click 1: prompt field"
  },
  {
@@ -21,8 +21,14 @@
  {
   "from": 293,
   "src": "click-camera.mp3",
-  "volume": 0.5,
+  "volume": 0.8,
   "note": "click 2: model button opens the picker"
+ },
+ {
+  "from": 343,
+  "src": "click-camera.mp3",
+  "volume": 0.8,
+  "note": "click 3: Advanced chip opens the real Advanced Options panel"
  },
  {
   "from": 270,
@@ -39,7 +45,7 @@
  {
   "from": 516,
   "src": "transition-snap.mp3",
-  "volume": 0.7,
+  "volume": 1,
   "note": "hero card lifts"
  },
  {
@@ -63,7 +69,7 @@
  {
   "from": 763,
   "src": "transition-snap.mp3",
-  "volume": 0.7,
+  "volume": 1,
   "note": "camera settles"
  },
  {
@@ -87,13 +93,13 @@
  {
   "from": 1106,
   "src": "transition-snap.mp3",
-  "volume": 0.7,
+  "volume": 1,
   "note": "board settles"
  },
  {
   "from": 1181,
   "src": "transition-snap.mp3",
-  "volume": 0.7,
+  "volume": 1,
   "note": "quad pop 1"
  },
  {

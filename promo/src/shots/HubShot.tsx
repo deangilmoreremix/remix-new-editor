@@ -17,17 +17,17 @@ const CUTS = layout['apps-tall'].cutouts; // 27 real hub cards (order = DOM orde
 const PICK = [0, 1, 2, 6, 7, 11]; // Image, Edit, Upscale, Video, Cinema, AI VFX (hub order)
 const CARDS = PICK.map((i) => CUTS[i]);
 const HERO = 3;
-const MID_W = 520, GAP = 580, ROW_X = 260, ROW_Y = 440;
+const MID_W = 760, GAP = 820, ROW_X = 200, ROW_Y = 400;
 const DRIVE_EASE = bezier(0.45, 0, 0.18, 1);
 const MID_END = 960 - (ROW_X + HERO * GAP + MID_W / 2);
 const DRIVE = -MID_END / 0.7;
 const driveAt = (f: number) => DRIVE * ramp(f, 6, 112, DRIVE_EASE) + 4 * ramp(f, 120, 28, EASE.smooth);
 const velocity = (f: (x: number) => number, x: number) => f(x + 0.5) - f(x - 0.5);
 const PILLS = [
-  { t: 'Image Studio', x: 1100, y: 870, tone: 'accent' },
-  { t: 'Cinema Studio', x: 1650, y: 790, tone: 'card' },
-  { t: 'Lip Sync Studio', x: 2500, y: 880, tone: 'card' },
-  { t: 'Character Studio', x: 3500, y: 830, tone: 'accent' },
+  { t: 'Image Studio', x: 1100, y: 900, tone: 'accent' },
+  { t: 'Cinema Studio', x: 1650, y: 880, tone: 'card' },
+  { t: 'Lip Sync Studio', x: 2500, y: 905, tone: 'card' },
+  { t: 'Character Studio', x: 3500, y: 890, tone: 'accent' },
 ] as const;
 const softShadow = (e: number) => `0 ${e * 0.6}px ${e * 1.6}px rgba(0,0,0,0.55), 0 ${e * 0.2}px ${e * 0.5}px rgba(0,0,0,0.6)`;
 

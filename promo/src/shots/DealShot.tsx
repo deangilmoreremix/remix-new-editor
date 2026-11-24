@@ -14,11 +14,11 @@ import { EASE, ramp } from '../lib/polish';
 import { INTER, T } from '../lib/tokens';
 
 export const DEAL_DURATION = 177;
-const N = 12;
+const N = 9;
 const CARD_W = 435, CARD_H = 308;
 const COLS = [100, 551, 1002];
-const ROWS = [100, 424, 748, 1072];
-const BOARD = { x: 40, w: 1480, h: 1500 };
+const ROWS = [100, 424, 748];
+const BOARD = { x: 40, w: 1480, h: 1130 };
 const PILE = { x: 1640, y: 300 };
 const PILE_CX = PILE.x + CARD_W / 2, PILE_CY = PILE.y + CARD_H / 2;
 const DEAL_START = 36, STACK_STEP = 3, HOVER_H = 40;
@@ -26,7 +26,9 @@ const SETTLE_EASE = Easing.bezier(0.3, 0, 0.25, 1.15);
 const DIVE_EASE = Easing.bezier(0.3, 0, 0.2, 1);
 const ANT = { from: 26, to: 36, pileDown: 48, topPull: 30 };
 const TBL = 4000;
-const CUTS = layout.edit.cutouts; // 12 real tool cards in DOM order
+// 9 of the 12 real tool cards (indices: remove object, remove background, extend, reframe, change dress, skin enhance, colorize, upscale, product shot).
+// The face-swap card is left out on purpose: its baked-in example image carries the text "AI Deepfake Technology".
+const CUTS = [0, 1, 2, 4, 5, 6, 7, 9, 11].map((i) => layout.edit.cutouts[i]);
 
 const grid = CUTS.slice(0, N).map((c, k) => ({
   file: c.file,
@@ -40,10 +42,10 @@ type Cam = { cx: number; cy: number; zoom: number; rotX: number; rotY: number; r
 const ANCHORS: (Cam & { frame: number })[] = [
   { frame: 0, cx: PILE_CX - 40, cy: PILE_CY + 60, zoom: 1.7, rotX: 46, rotY: -28, rotZ: 8, persp: 1100, sx: 0 },
   { frame: 30, cx: PILE_CX + 20, cy: PILE_CY + 40, zoom: 1.6, rotX: 40, rotY: 22, rotZ: -6, persp: 1100, sx: 0 },
-  { frame: 62, cx: 1000, cy: 560, zoom: 0.78, rotX: 20, rotY: 0, rotZ: 2, persp: 1700, sx: 0 },
-  { frame: 86, cx: 980, cy: 780, zoom: 0.64, rotX: 32, rotY: -4, rotZ: -8, persp: 2500, sx: 100 },
-  { frame: 110, cx: 960, cy: 860, zoom: 0.7, rotX: 40, rotY: -4, rotZ: -16, persp: 3000, sx: 210 },
-  { frame: 177, cx: 960, cy: 860, zoom: 0.708, rotX: 40, rotY: -4, rotZ: -16, persp: 3000, sx: 210 },
+  { frame: 62, cx: 1000, cy: 480, zoom: 0.78, rotX: 20, rotY: 0, rotZ: 2, persp: 1700, sx: 0 },
+  { frame: 86, cx: 980, cy: 600, zoom: 0.64, rotX: 32, rotY: -4, rotZ: -8, persp: 2500, sx: 100 },
+  { frame: 110, cx: 960, cy: 640, zoom: 0.82, rotX: 40, rotY: -4, rotZ: -16, persp: 3000, sx: 210 },
+  { frame: 177, cx: 960, cy: 640, zoom: 0.828, rotX: 40, rotY: -4, rotZ: -16, persp: 3000, sx: 210 },
 ];
 const PARAMS: (keyof Cam)[] = ['cx', 'cy', 'zoom', 'rotX', 'rotY', 'rotZ', 'persp', 'sx'];
 const hermite = (xs: number[], ys: number[]) => {
@@ -132,6 +134,7 @@ export const DealShot: React.FC = () => {
         </div>
       </AbsoluteFill>
       <AbsoluteFill style={{ pointerEvents: 'none', background: 'radial-gradient(ellipse 75% 75% at 58% 46%, transparent 45%, rgba(5,5,6,0.55) 100%)' }} />
+      <div style={{ position: 'absolute', left: 114, top: 330, padding: '10px 22px', borderRadius: 999, border: `2px solid ${T.accent}`, background: 'rgba(5,5,5,0.85)', color: T.accent, fontFamily: INTER, fontWeight: 700, fontSize: 36, letterSpacing: '0.06em', opacity: t2 }}>BUILT-IN EXAMPLE IMAGES</div>
       <div style={{ position: 'absolute', left: 110, top: 80, color: '#fff' }}>
         <div style={{ fontSize: 112, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.04, opacity: t1, transform: `translateY(${(1 - t1) * 30}px)` }}>Edit tools,</div>
         <div style={{ fontSize: 112, fontWeight: 400, letterSpacing: '-0.03em', lineHeight: 1.04, color: T.accent, opacity: t2, transform: `translateY(${(1 - t2) * 30}px)` }}>in one grid.</div>

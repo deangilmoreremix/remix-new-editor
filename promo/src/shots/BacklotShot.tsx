@@ -16,8 +16,8 @@ export const BACKLOT_DURATION = 148;
 const NODES = [355, 529, 700, 873, 1046, 1218, 1393, 1565]; // node centres in page px (measured on the capture, 1.28 x the 1500px preview)
 const NODE_Y = 132;
 const APPROVED = 5; // research, proposal, script, scene_plan, assets
-const ZOOM = 1.5;
-const CX0 = 760, CX1 = 1250, CY = 400;
+const ZOOM = 1.9;
+const CX0 = 700, CX1 = 1090, CY = 360;
 const TRAVEL_START = 12, TRAVEL_END = 104;
 const camXAt = (f: number) => {
   const t = interpolate(f, [TRAVEL_START, TRAVEL_END], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
@@ -51,7 +51,7 @@ export const BacklotShot: React.FC = () => {
         </div>
       </SpeedBlur>
       <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(11,11,13,0) 70%, rgba(11,11,13,0.96) 100%)' }} />
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 58, textAlign: 'center', fontFamily: INTER, fontSize: 68, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff', opacity: cap }}>Research to publish, on one board.</div>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 58, textAlign: 'center', fontFamily: INTER, fontSize: 68, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff', opacity: cap }}>Eight steps, one board.</div>
     </AbsoluteFill>
   );
 };

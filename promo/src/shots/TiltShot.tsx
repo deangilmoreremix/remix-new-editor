@@ -49,6 +49,7 @@ export const TiltShot: React.FC = () => {
   const sheen = ramp(f, 32, 30, EASE.swift);
   const rim = glowUp * Math.pow(flat, 3);
   const cap = ramp(f, 74, 18, EASE.out);
+  const builder = ramp(f, 92, 10, EASE.out); // real Cinema Prompt Builder (camera + lens fields) opens
   return (
     <AbsoluteFill style={{ overflow: 'hidden', background: T.bg }}>
       <AbsoluteFill style={{ transform: `translateY(${bgShift}px)`, background: `radial-gradient(60% 50% at 50% 38%, ${rgba(T.accent, 0.10 * (0.75 + 0.25 * glowUp))}, rgba(5,5,5,0) 70%)` }} />
@@ -63,6 +64,7 @@ export const TiltShot: React.FC = () => {
             )}
             <div style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, zoom: scale, filter: sigma > 0.5 ? 'url(#tilt-aa)' : undefined }}>
               <Img src={staticFile('textures/live/cinema-full.png')} style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, borderRadius: PAGE_R }} />
+              <Img src={staticFile('textures/live/cinema-builder-full.png')} style={{ position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, borderRadius: PAGE_R, opacity: builder }} />
             </div>
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: `linear-gradient(0deg, rgba(5,5,5,${0.1 * flat}) 0%, rgba(5,5,5,${0.5 * flat}) 45%, rgba(5,5,5,${0.9 * flat ** 1.5}) 100%)` }} />
             {sheen > 0 && sheen < 1 && (
@@ -77,7 +79,7 @@ export const TiltShot: React.FC = () => {
           <div style={{ position: 'absolute', left: 0, right: 0, top: farY - 1.5, height: 3, opacity: rim, pointerEvents: 'none', background: 'linear-gradient(90deg, rgba(244,255,176,0) 4%, #f4ffb0 32%, #ffffff 50%, #f4ffb0 68%, rgba(244,255,176,0) 96%)', boxShadow: `0 0 14px ${rgba(T.accent, 0.9)}, 0 0 40px ${rgba(T.accent, 0.6)}` }} />
         </>
       )}
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 52, textAlign: 'center', fontFamily: INTER, fontSize: 72, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff', opacity: cap, transform: `translateY(${(1 - cap) * 20}px)` }}>Direct the camera.</div>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 52, textAlign: 'center', fontFamily: INTER, fontSize: 72, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff', opacity: cap, transform: `translateY(${(1 - cap) * 20}px)` }}>Pick the camera and lens.</div>
     </AbsoluteFill>
   );
 };

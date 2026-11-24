@@ -323,5 +323,32 @@
     "wait": 2500
    }
   ]
+ },
+ {
+  "name": "video-typed2-adv",
+  "route": "video",
+  "wait": 10000,
+  "steps": [
+   {
+    "type": "#v-v-prompt-textarea",
+    "text": "Product shot on a marble pedestal, soft studio light",
+    "wait": 800
+   },
+   {
+    "click": "#v-advanced-btn",
+    "wait": 2500
+   }
+  ]
+ },
+ {
+  "name": "cinema-builder",
+  "route": "cinema",
+  "wait": 10000,
+  "steps": [
+   {
+    "click": "text:Cinema Prompt Builder",
+    "wait": 2500
+   }
+  ]
  }
 ]

@@ -20,6 +20,17 @@ await p.evaluate(() => {
   hideAt(1450, 380, 280, 450, 200);
   hideAt(700, 980, 600, 1900, 100);
 });
+// hide the LIVE badge and the simulator's wall-clock timestamps ("10:49:25 AM"): they would read as a real production in progress
+await p.evaluate(() => {
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (w.nextNode()) nodes.push(w.currentNode);
+  nodes.forEach((n) => {
+    const t = n.textContent || '';
+    if (/^\s*(LIVE|IDLE)\b/.test(t)) n.parentElement.style.visibility = 'hidden';
+    if (/\d{1,2}:\d{2}:\d{2}\s*[AP]M/.test(t)) n.textContent = t.replace(/\d{1,2}:\d{2}:\d{2}\s*[AP]M\s*(·\s*)?/, '');
+  });
+});
 const txt = await p.evaluate(() => document.body.innerText.slice(0, 1500));
 console.log(txt);
 await p.screenshot({ path: 'public/textures/live/backlot-full.png' });
