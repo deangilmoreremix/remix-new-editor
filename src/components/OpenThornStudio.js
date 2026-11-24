@@ -101,16 +101,18 @@ export function OpenThornStudio() {
 
   const open = () => { if (loading.isConnected) loading.replaceWith(createIframe()); };
   let cancelWait = null;
+  let closed = false;
   resolveAccess().then(async (access) => {
+    if (closed) return;
     if (access !== 'signed_out') { open(); return; }
     try {
       const { whenClerkUser } = await import('../lib/clerkInit.js');
-      if (!loading.isConnected) return;
+      if (closed || !loading.isConnected) return;
       // One-shot, with a bounded retry if Clerk is unavailable; removed when the page closes.
       cancelWait = whenClerkUser(() => open());
     } catch { /* Clerk unavailable: stay on the connecting message */ }
   });
-  container.cleanup = () => { if (cancelWait) cancelWait(); };
+  container.cleanup = () => { closed = true; if (cancelWait) cancelWait(); };
 
   return container;
 }
