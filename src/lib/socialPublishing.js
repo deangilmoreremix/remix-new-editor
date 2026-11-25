@@ -152,15 +152,9 @@ function getResult(requestId, signal) {
 }
 
 // --- high level helpers ----------------------------------------------------
-async function publishAndPoll(platform, payload, { onStatus, signal, intervalMs = 2000, maxAttempts = 90 } = {}) {
-  const submit = await publish(platform, payload, signal);
-  const requestId = submit?.request_id || submit?.id;
-  if (!requestId) {
-    throw new Error('Publish did not return a request_id');
-  }
-
+async function pollResult(requestId, { onStatus, signal, intervalMs = 2000, maxAttempts = 90 } = {}) {
   let attempts = 0;
-   
+
   while (true) {
     if (signal?.aborted) throw new Error('Request cancelled by user');
     // First poll slightly sooner so quick publishes feel responsive.
@@ -180,6 +174,30 @@ async function publishAndPoll(platform, payload, { onStatus, signal, intervalMs 
   }
 }
 
+async function publishAndPoll(platform, payload, opts = {}) {
+  const submit = await publish(platform, payload, opts.signal);
+  const requestId = submit?.request_id || submit?.id;
+  if (!requestId) {
+    throw new Error('Publish did not return a request_id');
+  }
+  return pollResult(requestId, opts);
+}
+
+// Replace the thumbnail of an already-published YouTube video.
+// muapi: POST youtube-set-thumbnail { account_id, video_id, thumbnail_url } (public JPEG/PNG, under 2 MB).
+async function setYouTubeThumbnail(payload, opts = {}) {
+  const submit = await muapi.proxyJson(
+    'youtube-set-thumbnail',
+    { method: 'POST', params: payload, generationType: 'social' },
+    opts.signal,
+  );
+  const requestId = submit?.request_id || submit?.id;
+  if (!requestId) {
+    throw new Error('Setting the thumbnail did not return a request_id');
+  }
+  return pollResult(requestId, opts);
+}
+
 const socialPublishing = {
   SOCIAL_PLATFORMS,
   YOUTUBE_CATEGORIES,
@@ -193,6 +211,7 @@ const socialPublishing = {
   publish,
   getResult,
   publishAndPoll,
+  setYouTubeThumbnail,
 };
 
 export default socialPublishing;

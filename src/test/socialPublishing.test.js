@@ -221,4 +221,30 @@ describe('socialPublishing', () => {
       await expect(promise).rejects.toThrow('Request cancelled by user');
     });
   });
+
+  describe('setYouTubeThumbnail', () => {
+    test('submits to youtube-set-thumbnail and polls to completion', async () => {
+      vi.useFakeTimers();
+      mockProxyJson
+        .mockResolvedValueOnce({ request_id: 'req_thumb' })
+        .mockResolvedValueOnce({ status: 'completed' });
+      const payload = { account_id: 12, video_id: 'abc123', thumbnail_url: 'https://cdn.example.com/t.jpg' };
+
+      const promise = socialPublishing.setYouTubeThumbnail(payload);
+      await vi.advanceTimersByTimeAsync(800);
+      await expect(promise).resolves.toEqual({ status: 'completed' });
+      expect(mockProxyJson).toHaveBeenNthCalledWith(
+        1,
+        'youtube-set-thumbnail',
+        { method: 'POST', params: payload, generationType: 'social' },
+        undefined
+      );
+    });
+
+    test('throws when no request_id comes back', async () => {
+      mockProxyJson.mockResolvedValueOnce({});
+      await expect(socialPublishing.setYouTubeThumbnail({ account_id: 1, video_id: 'v', thumbnail_url: 'https://x/t.png' }))
+        .rejects.toThrow('did not return a request_id');
+    });
+  });
 });
