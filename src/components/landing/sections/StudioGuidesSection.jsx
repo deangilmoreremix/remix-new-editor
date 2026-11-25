@@ -2,6 +2,7 @@
 // Data is the small generated index (scripts/build-studio-guides.mjs --index-only),
 // not the full guide content, so this stays light on the landing page.
 import GUIDE_INDEX from '../../../data/studioGuideIndex.json';
+import { tourFor, formatDuration } from '../common/demoPlayer.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -35,7 +36,7 @@ export function StudioGuidesSection() {
               ${c.guides.map((g) => `
                 <li><a href="/studios/${esc(g.slug)}/" class="group flex items-baseline justify-between gap-3 text-gray-200 hover:text-primary transition-colors">
                   <span class="font-medium">${esc(g.name)}</span>
-                  <span class="text-xs text-gray-500 group-hover:text-primary/80 whitespace-nowrap">${g.features} features</span>
+                  <span class="text-xs text-gray-500 group-hover:text-primary/80 whitespace-nowrap">${g.features} features${tourFor(g.slug) ? ` · ▶ ${formatDuration(tourFor(g.slug).seconds)} tour` : ''}</span>
                 </a></li>`).join('')}
             </ul>
           </div>`).join('')}
