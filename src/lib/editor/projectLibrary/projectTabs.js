@@ -112,7 +112,7 @@ export function notificationsTab(deps) {
     (async () => {
       try {
         const client = await deps.getClient();
-        const [page, loadedPrefs] = await Promise.all([listNotifications(client, ctx.project.id), loadPreferences(client)]); let prefs = loadedPrefs;
+        const [page, loadedPrefs] = await Promise.all([listNotifications(client, ctx.project?.id), loadPreferences(client)]); let prefs = loadedPrefs;
         let notes = page.rows; let hasMore = page.hasMore; let pushCard = null;
         if (!alive) return;
         const typeLabel = Object.fromEntries(NOTIFICATION_TYPES);
@@ -212,14 +212,14 @@ export function notificationsTab(deps) {
             el.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => ctx.openTab(b.dataset.go)));
             el.querySelector('[data-read]')?.addEventListener('click', async () => { await markRead(client, [n.id]); n.read_at = new Date().toISOString(); deps.onUnreadChanged?.(); draw(); });
             el.querySelector('[data-follow]')?.addEventListener('click', async () => {
-              try { await launchFollowup({ client, original: ctx.project, followup: { interest: n.interest, interestType: n.metrics?.type || 'topic', ctaPurpose: 'learn_more', suggestedMessage: `Follow up on ${n.interest}.` }, navigate: deps.navigate }); } catch (e) { deps.onToast?.(e.message, 'error'); }
+              try { if (!ctx.project) { deps.onToast?.('Open the published video to create a follow-up.', 'error'); return; } await launchFollowup({ client, original: ctx.project, followup: { interest: n.interest, interestType: n.metrics?.type || 'topic', ctaPurpose: 'learn_more', suggestedMessage: `Follow up on ${n.interest}.` }, navigate: deps.navigate }); } catch (e) { deps.onToast?.(e.message, 'error'); }
             });
             if (opts.focusId === n.id) { el.scrollIntoView?.({ block: 'center' }); if (!n.read_at) markRead(client, [n.id]).then(() => { n.read_at = new Date().toISOString(); deps.onUnreadChanged?.(); draw(); }).catch(() => {}); }
           });
           root.querySelector('[data-more]')?.addEventListener('click', async (e) => {
             const btn = e.currentTarget; // currentTarget is null after an await
             btn.disabled = true;
-            try { const next = await listNotifications(client, ctx.project.id, { offset: notes.length }); notes = [...notes, ...next.rows]; hasMore = next.hasMore; draw(); } catch (err) { btn.disabled = false; btn.textContent = err.message || 'Could not load more'; }
+            try { const next = await listNotifications(client, ctx.project?.id, { offset: notes.length }); notes = [...notes, ...next.rows]; hasMore = next.hasMore; draw(); } catch (err) { btn.disabled = false; btn.textContent = err.message || 'Could not load more'; }
           });
           root.querySelector('[data-read-all]')?.addEventListener('click', async () => {
             try {

@@ -41,16 +41,16 @@ describe('timeline-ai (MuAPI only)', () => {
   });
 
   it('polls status → done with real urls (static demo assets filtered out)', async () => {
-    const post = vi.fn(async () => ({ status: 'completed', outputs: ['https://cdn.muapi.ai/muapi/demo/x.mp4', 'https://cdn.example.com/out.mp4'] }));
-    const res = await handle({ action: 'status', requestId: 'req_1234' }, 'u5', { keys: { muapi: KEY }, post });
+    const result = vi.fn(async () => ({ status: 'completed', outputs: ['https://cdn.muapi.ai/muapi/demo/x.mp4', 'https://cdn.example.com/out.mp4'] }));
+    const res = await handle({ action: 'status', requestId: 'req_1234' }, 'u5', { keys: { muapi: KEY }, result });
     expect(body(res)).toEqual({ ok: true, status: 'done', urls: ['https://cdn.example.com/out.mp4'], url: 'https://cdn.example.com/out.mp4' });
-    expect(post).toHaveBeenCalledWith('/predictions/req_1234/result', {}, undefined, KEY);
+    expect(result).toHaveBeenCalledWith('req_1234', undefined, KEY);
   });
 
   it('reports pending and failed states', async () => {
-    const pending = await handle({ action: 'status', requestId: 'req_1234' }, 'u6', { keys: { muapi: KEY }, post: async () => ({ status: 'processing' }) });
+    const pending = await handle({ action: 'status', requestId: 'req_1234' }, 'u6', { keys: { muapi: KEY }, result: async () => ({ status: 'processing' }) });
     expect(body(pending).status).toBe('pending');
-    const failed = await handle({ action: 'status', requestId: 'req_1234' }, 'u6', { keys: { muapi: KEY }, post: async () => ({ status: 'failed', error: 'nsfw' }) });
+    const failed = await handle({ action: 'status', requestId: 'req_1234' }, 'u6', { keys: { muapi: KEY }, result: async () => ({ status: 'failed', error: 'nsfw' }) });
     expect(body(failed)).toMatchObject({ status: 'failed', error: 'nsfw' });
     const bad = await handle({ action: 'status', requestId: '../etc' }, 'u6', { keys: { muapi: KEY }, post: vi.fn() });
     expect(bad.statusCode).toBe(400);

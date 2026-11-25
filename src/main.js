@@ -370,6 +370,8 @@ function showSetupModalOnce() {
     window.__setupPopupShown = true;
   }
   import('./components/SettingsModal.js').then(({ SettingsModal }) => {
+    // A studio (e.g. MuAPI Studio) may already have opened the same window: never stack a second one.
+    if (document.querySelector('[data-api-keys-modal]')) return;
     document.body.appendChild(SettingsModal());
   }).catch((err) => {
     console.warn('[App] Failed to open setup popup', err);

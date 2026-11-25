@@ -13,6 +13,8 @@
  */
 export const MULTICAM_MODES = ['single', 'pip', 'split'];
 export const PIP_CORNERS = [['top-left', 'Top left'], ['top-right', 'Top right'], ['bottom-left', 'Bottom left'], ['bottom-right', 'Bottom right']];
+// Also accepted (not offered in the editor's list): a bubble centred at the bottom, Video Outreach's "Spotlight".
+const EXTRA_CORNERS = ['bottom-center'];
 
 export const DEFAULT_MULTICAM = {
   mode: 'single', mainTrackId: null, secondTrackId: null,
@@ -29,7 +31,7 @@ export function normalizeMultiCam(mc) {
     mainTrackId: m.mainTrackId || null,
     secondTrackId: m.secondTrackId || null,
     pip: {
-      corner: PIP_CORNERS.some(([c]) => c === m.pip?.corner) ? m.pip.corner : 'bottom-right',
+      corner: PIP_CORNERS.some(([c]) => c === m.pip?.corner) || EXTRA_CORNERS.includes(m.pip?.corner) ? m.pip.corner : 'bottom-right',
       size: clamp(m.pip?.size, 15, 60, 30),
       shape: m.pip?.shape === 'circle' ? 'circle' : 'rect',
     },
@@ -47,7 +49,7 @@ export function multiCamBox(mc, role) {
     // The frame is 16:9: a 16:9 window has equal % width and height; a round (square) one is 16/9 taller in %.
     const h = circle ? Math.min(100, w * (16 / 9)) : w;
     const margin = 3;
-    const left = m.pip.corner.endsWith('left') ? margin : 100 - w - margin;
+    const left = m.pip.corner.endsWith('center') ? (100 - w) / 2 : m.pip.corner.endsWith('left') ? margin : 100 - w - margin;
     const top = m.pip.corner.startsWith('top') ? margin * 1.8 : 100 - h - margin * 1.8;
     return { left, top, width: w, height: h, radius: circle ? '50%' : 10, border: 3 };
   }

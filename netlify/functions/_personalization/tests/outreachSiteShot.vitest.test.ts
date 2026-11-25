@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { normalizeSite, shotPath, siteShot, SITE_SHOT_OPTIONS, mapShot, mapPath, normalizeAddress, osmEmbedUrl, geocodeAddress } from '../app/api/outreach/site-shot/route'
+import { normalizeSite, isRestricted, isSocialPage, shotPath, siteShot, SITE_SHOT_OPTIONS, mapShot, mapPath, normalizeAddress, osmEmbedUrl, geocodeAddress } from '../app/api/outreach/site-shot/route'
 import { BrowserSsrfError } from '../src/server/browserDiscovery'
 
 function storage(existing = new Set<string>()) {
@@ -97,5 +97,48 @@ describe('outreach site shot', () => {
   it('a lookup that fails or times out gives no map instead of an error', async () => {
     const fetchImpl = vi.fn(async () => { throw new DOMException('The operation timed out.', 'TimeoutError') })
     expect(await geocodeAddress('1 market st', fetchImpl as unknown as typeof fetch)).toBeNull()
+  })
+})
+
+describe('outreach site shot: social pages', () => {
+  it('keeps the profile page of social links', () => {
+    expect(normalizeSite('youtube.com/@NASA/videos?x=1')).toBe('https://www.youtube.com/@NASA')
+    expect(normalizeSite('https://m.youtube.com/channel/UC123/about')).toBe('https://www.youtube.com/channel/UC123')
+    expect(normalizeSite('https://www.tiktok.com/@nasa?lang=en')).toBe('https://www.tiktok.com/@nasa')
+    expect(normalizeSite('facebook.com/AcmePizza/about')).toBe('https://www.facebook.com/AcmePizza')
+    expect(normalizeSite('https://www.facebook.com/profile.php?id=1000123&sk=about')).toBe('https://www.facebook.com/profile.php?id=1000123')
+    expect(normalizeSite('https://www.facebook.com/people/Jane-Doe/100012345/')).toBe('https://www.facebook.com/people/Jane-Doe/100012345')
+    expect(normalizeSite('instagram.com/acme/')).toBe('https://www.instagram.com/acme')
+    expect(normalizeSite('https://twitter.com/acme/status/1')).toBe('https://x.com/acme')
+    expect(isSocialPage('https://www.youtube.com/@NASA')).toBe(true)
+    expect(isSocialPage('https://acme.com/')).toBe(false)
+  })
+
+  it('refuses social links without a profile, and LinkedIn', async () => {
+    for (const bad of ['youtube.com', 'https://www.tiktok.com/explore', 'facebook.com/', 'https://www.youtube.com/channel', 'linkedin.com/in/jane']) expect(normalizeSite(bad)).toBeNull()
+    const capture = vi.fn()
+    expect(await siteShot('u', 'https://www.linkedin.com/in/jane', false, { capture, storage: storage() })).toMatchObject({ ok: false, code: 'LINKEDIN_NOT_SUPPORTED' })
+    expect(capture).not.toHaveBeenCalled()
+  })
+
+  it('reports a login wall or block instead of saving it', async () => {
+    expect(isRestricted({ url: 'https://www.facebook.com/login/?next=x', status: 200 })).toBe(true)
+    expect(isRestricted({ url: 'https://www.instagram.com/accounts/login/', status: 200 })).toBe(true)
+    expect(isRestricted({ url: 'https://x.com/NASA', status: 403 })).toBe(true)
+    expect(isRestricted({ url: 'https://www.youtube.com/@NASA', status: 200 })).toBe(false)
+    expect(isRestricted({ url: 'https://acme.com/blog/login-tips', status: 200 })).toBe(false)
+    const s = storage()
+    const r = await siteShot('u', 'facebook.com/NASA', false, { capture: async () => ({ page, url: 'https://www.facebook.com/login/?next=x', status: 200 }), storage: s })
+    expect(r).toMatchObject({ ok: false, status: 422, code: 'CONTENT_RESTRICTED', error: 'Page is content restricted. Please try a different page.' })
+    expect(s.uploads).toEqual([])
+  })
+
+  it('captures a public social page without keeping the network logo', async () => {
+    const s = storage()
+    const capture = vi.fn(async () => ({ page, logo: Buffer.from('png'), url: 'https://www.youtube.com/@NASA', status: 200 }))
+    const r = await siteShot('u', 'https://youtube.com/@NASA', false, { capture, storage: s })
+    expect(capture).toHaveBeenCalledWith('https://www.youtube.com/@NASA', SITE_SHOT_OPTIONS)
+    expect(r).toMatchObject({ ok: true, url: 'https://www.youtube.com/@NASA', logoUrl: null })
+    expect(s.uploads.length).toBe(1)
   })
 })

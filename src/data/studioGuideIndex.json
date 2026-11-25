@@ -365,7 +365,7 @@
         "name": "Video Outreach",
         "route": "outreach",
         "shortDescription": "Record once, greet every contact by name in your own voice, and add a booking button.",
-        "features": 24,
+        "features": 30,
         "thumbnail": "/guides/video-outreach/overview.webp"
       },
       {
