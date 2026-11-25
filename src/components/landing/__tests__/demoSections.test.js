@@ -48,7 +48,7 @@ describe('landing demo sections', () => {
     expect(picks()[2].getAttribute('aria-pressed')).toBe('true');
     expect(picks()[0].getAttribute('aria-pressed')).toBe('false');
     expect(s.querySelector('[data-demo-guide]').getAttribute('href')).toMatch(/^\/studios\/.+\/$/);
-    expect(s.querySelector('video')).toBeNull();
+    expect(s.querySelector('[data-demo-player] video')).toBeNull();
   });
 
   it('Studio Demos makes every tour reachable through the All and category tabs', () => {

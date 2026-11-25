@@ -4,6 +4,7 @@
 // A tour only downloads when its play button is clicked.
 import GUIDE_INDEX from '../../../data/studioGuideIndex.json';
 import { createDemoPlayer, tourFor, formatDuration } from '../common/demoPlayer.js';
+import { attachClipPreviews, startClip, stopClip } from '../common/clipPreview.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -99,6 +100,7 @@ export function StudioDemosSection() {
       b.setAttribute('aria-pressed', String(on));
       b.classList.toggle('ring-2', on);
       b.classList.toggle('ring-cyan-400', on);
+      if (on) startClip(b); else stopClip(b);
     });
   };
 
@@ -138,6 +140,7 @@ export function StudioDemosSection() {
           class="demo-pick group w-full text-left rounded-xl border border-white/10 bg-white/5 overflow-hidden hover:border-cyan-400/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">
           <span class="relative block aspect-video bg-black">
             <img src="${esc(guide.thumbnail)}" alt="" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
+            <span data-clip-frame class="absolute inset-0 block"></span>
             <span class="absolute bottom-1.5 right-1.5 rounded bg-black/75 px-1.5 py-0.5 text-[11px] font-semibold text-white">${formatDuration(tour.seconds)}</span>
           </span>
           <span class="block px-3 py-2 text-sm font-semibold text-gray-200 group-hover:text-white">${esc(guide.name)}</span>
@@ -152,10 +155,15 @@ export function StudioDemosSection() {
     if (b) select(b.getAttribute('data-demo-slug'));
   });
 
+  attachClipPreviews(picker, (tile) => tile.getAttribute('data-demo-slug') === currentSlug);
+
   showTab(tabs[0].key);
   select(tabs[0].items[0].guide.slug);
 
-  section.cleanup = () => { if (current) current.stop(); };
+  section.cleanup = () => {
+    if (current) current.stop();
+    picker.querySelectorAll('[data-demo-slug]').forEach(stopClip);
+  };
   return section;
 }
 

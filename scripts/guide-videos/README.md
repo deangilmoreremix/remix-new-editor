@@ -96,3 +96,16 @@ Put one MP3 per line in `scripts/guide-videos/audio/<slug>/` named `intro.mp3`, 
 Then record again (`FORCE=1`) so each feature is held for exactly as long as its line is spoken, and
 assemble: `assemble.mjs` places each MP3 at the start of its segment automatically.
 Re-recording is only needed when durations change.
+
+## Studio preview clips (landing page hover previews)
+
+The Studio Demos tiles on the landing page play a short silent clip on hover. The studios that have one are
+listed in `src/data/studioClips.json`; the files live in the public `tour-videos` bucket as `clips/<slug>.mp4`.
+A listed studio whose file is not uploaded yet simply keeps its still thumbnail.
+
+```bash
+node scripts/guide-videos/upload-clips.mjs --dir <folder of <slug>.mp4> --dry-run   # checks every file is there
+SUPABASE_SERVICE_ROLE_KEY=... node scripts/guide-videos/upload-clips.mjs --dir <folder of <slug>.mp4>
+```
+
+Or with the Supabase CLI (signed in and linked): `supabase storage cp <folder>/<slug>.mp4 ss:///tour-videos/clips/<slug>.mp4 --linked --experimental` for each file.
