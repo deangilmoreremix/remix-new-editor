@@ -35,7 +35,15 @@
     "waitFor": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")"
   },
   "recent-uploads": {
-    "skip": true
+    "setup": "(() => { const now = Date.now(); const rows = [{url:'/media/recast-example/character.jpg',name:'portrait-front.jpg',type:'image',at:now-60000},{url:'/media/recast-example/character.jpg?v=2',name:'product-shot.png',type:'image',at:now-3600000},{url:'/media/recast-example/character.jpg?v=3',name:'reference-pose.jpg',type:'image',at:now-86400000}]; localStorage.setItem('muapi-studio:uploads:v1:1cvf5l9dj9omz', JSON.stringify(rows)); })()",
+    "selector": "[data-studio=\"muapi-studio\"] ul[role=\"listbox\"][aria-label=\"Recent uploads\"]",
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button[aria-label=\"Recent uploads\"]",
+        "wait": 700
+      }
+    ],
+    "waitFor": "[data-studio=\"muapi-studio\"] button[aria-label=\"Upload file\"]"
   },
   "my-generations": {
     "steps": [
