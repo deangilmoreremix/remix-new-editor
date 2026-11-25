@@ -1,6 +1,7 @@
 // Product Demo: the full SmartVideo walkthrough reel, click to play with controls.
 // Sits right after the Hook so the pitch is followed straight away by proof.
 import { createDemoPlayer, formatDuration } from '../common/demoPlayer.js';
+import { prefersReducedMotion } from '../common/landingVideo.js';
 
 const REEL = '/landing-videos/b-feature-reel';
 const REEL_SECONDS = 50;
@@ -36,6 +37,20 @@ export function ProductDemoSection() {
     className: 'rounded-2xl border border-cyan-400/20 shadow-2xl shadow-cyan-400/10',
   });
   section.querySelector('[data-demo-slot]').replaceWith(player);
+
+  // Studio Demos is lazy-loaded, so its #studio-demos target may not exist yet. Scroll to the
+  // section if it is there, otherwise to its placeholder, and again once it has loaded.
+  const toStudioDemos = section.querySelector('a[href="#studio-demos"]');
+  toStudioDemos.addEventListener('click', (e) => {
+    e.preventDefault();
+    const go = () => {
+      const target = document.getElementById('studio-demos') || document.getElementById('section-studio-demos');
+      if (target) target.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+    };
+    go();
+    setTimeout(go, 500);
+    setTimeout(go, 1400);
+  });
 
   section.cleanup = () => player.stop();
   return section;

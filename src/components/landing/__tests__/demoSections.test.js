@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { createDemoPlayer, tourFor, formatDuration } from '../common/demoPlayer.js';
 import { ProductDemoSection } from '../sections/ProductDemoSection.jsx';
 import { StudioDemosSection } from '../sections/StudioDemosSection.jsx';
@@ -21,6 +21,7 @@ describe('demo player', () => {
     const v = el.querySelector('video');
     expect(v.controls).toBe(true);
     expect(v.getAttribute('src')).toBe('/v.mp4');
+    expect(v.crossOrigin).toBe('anonymous'); // needed for cross-origin caption tracks
     expect(v.querySelector('track[kind="captions"]').getAttribute('src')).toBe('/c.vtt');
   });
 
@@ -37,6 +38,21 @@ describe('landing demo sections', () => {
     expect(s.querySelector('h2').textContent).toMatch(/whole platform/);
     expect(s.querySelector('button[aria-label^="Play video"]')).not.toBeNull();
     expect(s.querySelector('video')).toBeNull();
+  });
+
+  it('the Product Demo link reaches Studio Demos even before that section has lazy-loaded', () => {
+    vi.useFakeTimers();
+    const placeholder = document.createElement('div');
+    placeholder.id = 'section-studio-demos';
+    placeholder.scrollIntoView = vi.fn();
+    document.body.appendChild(placeholder);
+    const s = ProductDemoSection();
+    document.body.appendChild(s);
+    s.querySelector('a[href="#studio-demos"]').click();
+    expect(placeholder.scrollIntoView).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(2000);
+    expect(placeholder.scrollIntoView).toHaveBeenCalledTimes(3);
+    vi.useRealTimers();
   });
 
   it('Studio Demos shows the featured picker and switches the featured tour', () => {

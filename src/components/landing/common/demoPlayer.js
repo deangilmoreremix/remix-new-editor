@@ -68,6 +68,8 @@ export function createDemoPlayer({ label, poster, fallbackPoster, src, captions,
     video.setAttribute('playsinline', '');
     video.setAttribute('aria-label', label);
     video.className = 'absolute inset-0 w-full h-full bg-black';
+    // Cross-origin caption tracks are ignored unless the video itself opts in to CORS.
+    if (captions) video.crossOrigin = 'anonymous';
     video.src = src;
     if (captions) {
       const track = document.createElement('track');
