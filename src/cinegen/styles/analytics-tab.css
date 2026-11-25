@@ -93,3 +93,6 @@
 :root .cinegen-root .cg-analytics .cg-demos .mini-btn:hover:not(:disabled){
   border:1px solid rgba(217,255,0,.5);border-left:1px solid rgba(217,255,0,.5);box-shadow:none;transform:none;color:#fff;
 }
+.cg-analytics__account{max-width:720px;margin:24px auto;padding:0 16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.cg-analytics__hint{margin:0;font-size:12px;color:var(--text-muted)}
+.cg-analytics__account .cg-analytics__host{width:100%}

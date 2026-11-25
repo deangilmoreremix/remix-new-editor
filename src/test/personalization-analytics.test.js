@@ -7,9 +7,26 @@ describe('fetchVideoStats', () => {
   it('maps per-contact totals', async () => {
     const client = { rpc: vi.fn(async () => ({ data: [{ contact_id: 'c_acme', views: '3', plays: 2, completes: 1, cta_clicks: 1, leads: 0, last_seen: '2026-11-05T10:00:00Z' }, { contact_id: null, views: 5, plays: 1, completes: 0, cta_clicks: 0, leads: 0 }], error: null })) };
     const rows = await fetchVideoStats(client, 'abcdefgh12');
-    expect(client.rpc).toHaveBeenCalledWith('video_events_by_contact', { video_id: 'abcdefgh12' });
-    expect(rows[0]).toEqual({ contactId: 'c_acme', views: 3, plays: 2, completes: 1, ctaClicks: 1, leads: 0, lastSeen: '2026-11-05T10:00:00Z' });
+    expect(client.rpc).toHaveBeenCalledWith('video_events_by_contact_v2', { video_id: 'abcdefgh12' });
+    expect(client.rpc).toHaveBeenCalledTimes(1);
+    expect(rows[0]).toEqual({ contactId: 'c_acme', views: 3, plays: 2, completes: 1, ctaClicks: 1, leads: 0, progress: 0, watchSeconds: 0, lastSeen: '2026-11-05T10:00:00Z' });
     expect(rows[1].contactId).toBeNull();
+  });
+
+  it('falls back to the first totals function on databases without v2', async () => {
+    const client = { rpc: vi.fn(async (name) => (name === 'video_events_by_contact_v2'
+      ? { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.video_events_by_contact_v2' } }
+      : { data: [{ contact_id: 'c1', views: 1, plays: 1, completes: 0, cta_clicks: 0, leads: 0 }], error: null })) };
+    const rows = await fetchVideoStats(client, 'abcdefgh12');
+    expect(client.rpc).toHaveBeenLastCalledWith('video_events_by_contact', { video_id: 'abcdefgh12' });
+    expect(rows).toHaveLength(1);
+    expect(rows[0].contactId).toBe('c1');
+  });
+
+  it('passes other errors through without falling back', async () => {
+    const client = { rpc: vi.fn(async () => ({ data: null, error: { code: '42501', message: 'permission denied' } })) };
+    await expect(fetchVideoStats(client, 'abcdefgh12')).rejects.toMatchObject({ code: '42501' });
+    expect(client.rpc).toHaveBeenCalledTimes(1);
   });
 });
 

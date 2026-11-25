@@ -12,7 +12,7 @@ FROM nats:2-alpine AS nats
 FROM postgres:16-bookworm
 RUN apt-get update && apt-get install -y --no-install-recommends redis-server curl ca-certificates tini \
     && rm -rf /var/lib/apt/lists/*
-COPY --from=nats /nats-server /usr/local/bin/nats-server
+COPY --from=nats /usr/local/bin/nats-server /usr/local/bin/nats-server
 COPY --from=build /out/ /app/bin/
 # Migrations and templates the backend reads relative to its working directory.
 COPY apps/warmbly-server/ /app/src/

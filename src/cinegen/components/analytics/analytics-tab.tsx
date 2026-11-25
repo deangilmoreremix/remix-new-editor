@@ -8,6 +8,7 @@ import { usePublished, getClient } from '@cinegen/components/leads/use-publish';
 import { buildPublishState } from '@cinegen/lib/leads/publish-state';
 import { PublishedOverview } from '@cinegen/components/overview/published-overview';
 import { SampleAnalytics } from './sample-analytics';
+import { AccountAlerts } from './account-alerts';
 import { DemoVideos, DemoRestore, useDemosHidden } from './demo-videos';
 import { captureRowThumbnail } from '@cinegen/lib/leads/thumbnail';
 import { ensureProjectRow, linkVideoToProject, linkedProjectId, rowName } from '@cinegen/lib/leads/project-link';
@@ -128,6 +129,8 @@ export function AnalyticsTab() {
         <button type="button" className="cg-analytics__btn" onClick={() => dispatch({ type: 'SET_TAB', tab: 'leads' })}>Open Publish &amp; Leads</button></div>
       {/* Nothing to measure yet: show what this tab will look like, clearly labelled as sample data. */}
       {sample && <SampleAnalytics />}
+      {/* Alert preferences and push belong to the account: reachable before anything is published. */}
+      {pub.signedIn && <AccountAlerts />}
       {/* Not published yet: still show how all your published videos are doing. */}
       {pub.signedIn && <PublishedOverview onPublish={() => dispatch({ type: 'SET_TAB', tab: 'leads' })} />}
     </>

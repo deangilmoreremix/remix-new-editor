@@ -89,11 +89,15 @@ export const NOTIFICATION_TYPES = Object.freeze([
 
 export const NOTIFICATION_PAGE = 20;
 
-/** One page of a project's alerts, newest first. `hasMore` tells whether another page exists. */
+/**
+ * One page of a project's alerts, newest first. `hasMore` tells whether another page exists.
+ * With no project (the account-level Notification settings) every alert of the signed-in owner is listed (row security limits it to them).
+ */
 export async function listNotifications(client, projectId, { limit = NOTIFICATION_PAGE, offset = 0 } = {}) {
-  const { data, error } = await client.from('owner_notifications')
-    .select('id, video_id, project_id, type, title, summary, suggestion, interest, metrics, read_at, created_at')
-    .or(`project_id.eq.${projectId},project_id.is.null`).order('created_at', { ascending: false }).range(offset, offset + limit);
+  let q = client.from('owner_notifications')
+    .select('id, video_id, project_id, type, title, summary, suggestion, interest, metrics, read_at, created_at');
+  if (projectId) q = q.or(`project_id.eq.${projectId},project_id.is.null`);
+  const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + limit);
   if (error) throw new Error(error.message || 'Could not load notifications');
   const rows = data || [];
   return { rows: rows.slice(0, limit), hasMore: rows.length > limit };

@@ -281,31 +281,39 @@ export async function videoFrame(src, at = 1) {
   return v;
 }
 
-/** Encode RGBA frames as an animated GIF (gifenc, a palette per frame). */
+// GIFs are encoded in a Web Worker (gif.worker.js) so generating a campaign doesn't freeze the page.
+let gifWorker = null;
+async function gifClient() {
+  if (gifWorker !== null) return gifWorker;
+  try {
+    if (typeof Worker !== 'function') throw new Error('no workers');
+    const { createWorkerClient } = await import('../editor/ml/mlClient.js');
+    gifWorker = createWorkerClient(() => new Worker(new URL('./gif.worker.js', import.meta.url), { type: 'module' }));
+  } catch { gifWorker = false; }
+  return gifWorker;
+}
+/** Test hook: use (or stop using) a worker client. */
+export function _setGifWorker(client) { gifWorker = client; }
+
 /**
  * Encode RGBA frames as an animated GIF that loops forever (gifenc, a palette per frame). If it is bigger than
  * `maxBytes` it is made again at 8 frames a second, then with 128 colours, so email apps can show it.
+ * Runs in a worker where possible, else here; `signal` stops it.
  */
-export async function encodeGif(frames, width, height, fps = GIF_FPS, { maxBytes = GIF_MAX_BYTES } = {}) {
-  const { GIFEncoder, quantize, applyPalette } = await import('gifenc');
-  const encode = (list, rate, colors) => {
-    const gif = GIFEncoder();
-    const delay = Math.round(1000 / rate);
-    list.forEach((rgba, i) => {
-      const palette = quantize(rgba, colors);
-      gif.writeFrame(applyPalette(rgba, palette), width, height, { palette, delay, ...(i === 0 ? { repeat: 0 } : {}) });
-    });
-    gif.finish();
-    return gif.bytes();
-  };
-  let bytes = encode(frames, fps, 256);
-  if (bytes.length > maxBytes && frames.length > 2) {
-    // 12 -> 8 frames a second: keep two frames in every three (the first frame always stays).
-    const fewer = frames.filter((_, i) => i % 3 !== 2);
-    const rate = fps * (2 / 3);
-    bytes = encode(fewer, rate, 256);
-    if (bytes.length > maxBytes) bytes = encode(fewer, rate, 128);
+export async function encodeGif(frames, width, height, fps = GIF_FPS, { maxBytes = GIF_MAX_BYTES, signal } = {}) {
+  const client = await gifClient();
+  if (client) {
+    try {
+      // Frames are copied (not transferred) so the inline fallback below still has them.
+      const bytes = await client.run('gif', { frames, width, height, fps, maxBytes }, { signal });
+      return new Blob([bytes], { type: 'image/gif' });
+    } catch (err) {
+      if (err?.name === 'AbortError') throw err;
+      gifWorker = false; // the worker failed (e.g. a strict content policy): encode here from now on
+    }
   }
+  const { encodeGifBytes } = await import('./gifEncode.js');
+  const bytes = await encodeGifBytes(frames, width, height, fps, { maxBytes });
   return new Blob([bytes], { type: 'image/gif' });
 }
 
@@ -317,14 +325,14 @@ export async function encodeGif(frames, width, height, fps = GIF_FPS, { maxBytes
  * One contact's thumbnail(s). For a GIF also the first frame as a JPEG (`still`), for Outlook on Windows, which
  * shows only a GIF's first frame. Returns { main, still } (still is null for a still thumbnail).
  */
-export async function renderThumbnailSet({ frames, siteUrl, logoUrl, text, settings = thumbSettings(), seconds = 0 }) {
-  const main = await renderThumbnail({ frames, siteUrl, logoUrl, text, settings, seconds });
+export async function renderThumbnailSet({ frames, siteUrl, logoUrl, text, settings = thumbSettings(), seconds = 0, signal }) {
+  const main = await renderThumbnail({ frames, siteUrl, logoUrl, text, settings, seconds, signal });
   if (settings.type === 'static') return { main, still: null };
   const still = await renderThumbnail({ frames: frames.slice(0, 1), siteUrl, logoUrl, text, settings: { ...settings, type: 'static' }, seconds });
   return { main, still };
 }
 
-export async function renderThumbnail({ frames, siteUrl, logoUrl, text, settings = thumbSettings(), seconds = 0 }) {
+export async function renderThumbnail({ frames, siteUrl, logoUrl, text, settings = thumbSettings(), seconds = 0, signal }) {
   const [site, logo] = await Promise.all([
     siteUrl ? loadImage(siteUrl).catch(() => null) : null,
     settings.logo && logoUrl ? loadImage(logoUrl).catch(() => null) : null,
@@ -344,5 +352,5 @@ export async function renderThumbnail({ frames, siteUrl, logoUrl, text, settings
     draw(f, frames.length > 1 ? i / (frames.length - 1) : 0);
     return ctx.getImageData(0, 0, width, height).data;
   });
-  return encodeGif(rgba, width, height);
+  return encodeGif(rgba, width, height, GIF_FPS, { signal });
 }

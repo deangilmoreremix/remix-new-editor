@@ -108,6 +108,13 @@ type AuthService interface {
 	// a nil verifier disables that provider).
 	WireExternalIDTokens(apple, google IDTokenVerifier)
 
+	// ClerkTokenAuth signs in a person who is already signed in to the host
+	// app through Clerk, from their Clerk session token: one login for the
+	// whole product. First sign-in provisions the account like registration.
+	ClerkTokenAuth(ctx context.Context, rawToken, ipaddr, userAgent string) (*models.LoginResult, *errx.Error)
+	// WireClerk attaches the Clerk session-token verifier (nil disables it).
+	WireClerk(verifier IDTokenVerifier)
+
 	ResetPasswordStart(ctx context.Context, data *ResetPasswordStart, ipaddr string) *errx.Error
 	// ResetPasswordSession opens a reset session for an emailed link token,
 	// which the confirm step takes in place of the link token itself.
@@ -211,6 +218,7 @@ type authService struct {
 	// appAttest takes the native app's proof in place of Turnstile. Nil turns it off.
 	appAttest      *appattest.Service
 	appleIDTokens  IDTokenVerifier
+	clerkTokens    IDTokenVerifier
 	googleIDTokens IDTokenVerifier
 	twofa          TwoFAChallenger
 	// acquisition records the signup's channel on the new org. Nil-safe.

@@ -4,6 +4,7 @@ import getToken from "@/lib/helper/getToken"
 import isExpired from "@/lib/helper/isExpired";
 import { AuthError, noToken, sessionExpired } from "@/lib/errors/auth";
 import refreshTokenFn from "./auth/refreshToken";
+import { HOST_SESSION } from "@/lib/information";
 import setToken from "@/lib/helper/setToken";
 import reviveDates from "@/lib/helper/reviveDates";
 import { isRequestCancelled, type AppError } from "./normalizeError";
@@ -189,7 +190,14 @@ export default async function Request<T>(config: AuthRequestConfig): Promise<T> 
             !config.skipReauthPrompt &&
             typeof window !== "undefined"
         ) {
-            await promptForReauth();
+            if (HOST_SESSION) {
+                // One login: the person has no Warmbly password to confirm with, and the host (SmartVideo) session is
+                // the proof. Taking it again starts a fresh session, so the change can go through without a prompt.
+                const fresh = await refreshTokenFn("");
+                config.headers = { ...config.headers, Authorization: `Bearer ${fresh.access_token}` };
+            } else {
+                await promptForReauth();
+            }
             const res = await Client.request(config);
             return reviveDates(res.data);
         }

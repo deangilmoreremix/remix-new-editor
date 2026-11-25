@@ -1151,6 +1151,9 @@ func main() {
 			googleIDTokens = idtoken.GoogleVerifier(authCfg.GoogleIOSClientID)
 		}
 		authService.WireExternalIDTokens(appleIDTokens, googleIDTokens)
+		if authCfg.ClerkIssuer != "" {
+			authService.WireClerk(idtoken.NewClerkVerifier(authCfg.ClerkIssuer, authCfg.ClerkSecretKey, authCfg.ClerkAuthorizedParties...))
+		}
 
 		// Federated identities keyed on (issuer, subject). Without this,
 		// external sign-in resolves accounts by email alone, which is only safe

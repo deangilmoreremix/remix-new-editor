@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import logout from "../../client/auth/logout";
 import { clearClientSession } from "@/lib/session";
+import { HOST_SESSION } from "@/lib/information";
+import { signOutOfHost } from "@/lib/hostSession";
 import { allTrustedDevices, forgetAllTrustedDevices } from "@/lib/trustedDevice";
 
 // Single source of truth for "log this user out fully". Order matters:
@@ -37,6 +39,7 @@ export default function useLogout() {
         onSettled: () => {
             forgetAllTrustedDevices();
             clearClientSession(queryClient);
+            if (HOST_SESSION) void signOutOfHost();
         },
     });
 }
