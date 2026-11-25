@@ -28,6 +28,7 @@ npm run verify:upstream -- /tmp/upstream
 | `src/main.tsx` | `bootHostSession()` before the first render when `HOST_SESSION` |
 | `src/router.tsx` | with `HOST_SESSION`, every `/auth/*` route goes to the host sign-in |
 | `src/lib/api/client/auth/refreshToken.ts` | with `HOST_SESSION`, refreshing re-reads the host token |
+| `src/lib/api/client/Request.ts` | with `HOST_SESSION`, a "confirm it is you" demand is met by taking the host session again (no dialog); tests in `Request.hostReauth.test.ts` |
 | `src/lib/api/hooks/auth/useLogout.ts` | with `HOST_SESSION`, logout also signs out of the host |
 | `UPSTREAM.md` | added: this file |
 

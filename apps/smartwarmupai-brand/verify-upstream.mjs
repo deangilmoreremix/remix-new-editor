@@ -22,8 +22,8 @@ const hash = (f) => crypto.createHash("sha1").update(fs.readFileSync(f)).digest(
 
 // Documented local changes (apps/warmbly-web/UPSTREAM.md). Anything else must be byte-identical.
 const dashboard = {
-  modified: ["vite.config.ts", "src/router.tsx", "src/lib/information.ts", "src/lib/api/client/Client.ts", "src/main.tsx"],
-  addedPrefixes: ["UPSTREAM.md", "src/lib/demo/"],
+  modified: ["vite.config.ts", "src/router.tsx", "src/lib/information.ts", "src/lib/api/client/Client.ts", "src/main.tsx", "src/lib/api/client/Request.ts", "src/lib/api/client/auth/refreshToken.ts", "src/lib/api/hooks/auth/useLogout.ts"],
+  addedPrefixes: ["UPSTREAM.md", "src/lib/demo/", "src/lib/hostSession", "src/lib/api/client/auth/exchangeClerk.ts", "src/lib/api/client/auth/refreshToken.test.ts", "src/lib/api/client/Request.hostReauth.test.ts"],
 };
 const checks = [
   { name: "dashboard (web/)", ours: path.join(root, "apps/warmbly-web"), theirs: path.join(upstream, "web"), allowModified: dashboard.modified, allowAdded: dashboard.addedPrefixes },
@@ -32,7 +32,9 @@ const checks = [
   { name: "documentation assets (docs/public)", ours: path.join(root, "apps/smartwarmupai-help/assets"), theirs: path.join(upstream, "docs/public"), allowModified: [/^guides\//, "dashboard-campaigns.png"].map(String), allowAdded: [], regexModified: [/^guides\//, /^dashboard-campaigns\.png$/], ignoreMissing: [/^_headers$/, /^logo\.svg$/] },
   { name: "backend and services (cmd, internal, deploy, tracking, realtime, forms, portal, admin, ...)", ours: path.join(root, "apps/warmbly-server"), theirs: upstream,
     include: ["cmd", "internal", "deploy", "tracking", "realtime", "forms", "portal", "admin", "scripts", "resources", "integrations", "hubspot-app", "pipedrive-app", "site", "qa", "ios", "skills", ".github", ".greptile", "go.mod", "go.sum", "tools.go", "Makefile", "docker-compose.yml", "docker-compose.dev.yml", ".env.example", ".golangci.yml", ".dockerignore", ".gitignore", ".trivyignore", "LICENSE"],
-    allowAdded: ["UPSTREAM.md", "docs/", "bin/"] },
+    // The Clerk single-sign-on exchange (apps/warmbly-server/UPSTREAM.md): the only edits to the vendored backend.
+    allowModified: ["cmd/backend/main.go", "internal/api/handler/auth_external.go", "internal/api/routes.go", "internal/app/auth/external_idtoken.go", "internal/app/auth/service.go", "internal/app/opsnotify/signin.go", "internal/app/token/config.go", "internal/config/config_auth.go", "internal/pkg/idtoken/idtoken.go"],
+    allowAdded: ["UPSTREAM.md", "docs/", "bin/", "internal/pkg/idtoken/clerk.go", "internal/pkg/idtoken/clerk_test.go", "internal/app/auth/clerk_test.go"] },
   { name: "docs app (Fumadocs source, embed.go, content, OpenAPI)", ours: path.join(root, "apps/warmbly-server/docs"), theirs: path.join(upstream, "docs") },
   { name: "agent and contributor originals", ours: path.join(root, "apps/smartwarmupai-help/upstream"), theirs: upstream, only: ["README.md", "CONTRIBUTING.md", "AGENTS.md", "skills/warmbly-cli/SKILL.md", "skills/warmbly-ops/SKILL.md", "skills/warmbly-api/SKILL.md", "skills/warmbly-install/SKILL.md"] },
 ];
