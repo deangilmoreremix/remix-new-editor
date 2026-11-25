@@ -28,7 +28,7 @@ export function createVideoPagesButton({ target = window } = {}) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.dataset.videoPagesButton = '';
-  btn.className = 'relative inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-white hover:border-primary/60 hover:text-primary transition-colors whitespace-nowrap';
+  btn.className = 'relative inline-flex items-center gap-2 rounded-full border border-primary/70 bg-transparent px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/10 hover:border-primary transition-colors whitespace-nowrap';
   btn.innerHTML = `${ICON}<span class="hidden md:inline">Video Pages</span><span data-latest-dot class="hidden absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary"></span>`;
   const dot = btn.querySelector('[data-latest-dot]');
   const sync = () => {
