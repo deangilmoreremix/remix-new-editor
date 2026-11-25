@@ -18,17 +18,13 @@ import { muapi } from './muapi';
 // id). muapi stores the OAuth token against it; we look accounts up by it.
 // ---------------------------------------------------------------------------
 
-// `connectable`: muapi has a connect-url route for these, so the app can start the OAuth popup.
-// The others are connected in the muapi dashboard; their accounts still appear in listAccounts.
+// Platforms muapi lets us connect from the app (they have a connect-url route).
+// LinkedIn, Pinterest, Threads and X are connected in the muapi dashboard, so they are not offered here.
 export const SOCIAL_PLATFORMS = [
-  { id: 'youtube', label: 'YouTube', mediaKinds: ['video'], color: '#FF0000', note: 'Video only', connectable: true },
-  { id: 'tiktok', label: 'TikTok', mediaKinds: ['video'], color: '#00F2EA', note: 'Video only', connectable: true },
-  { id: 'instagram', label: 'Instagram', mediaKinds: ['image', 'video'], color: '#E1306C', note: 'Image (feed) or video (Reel)', connectable: true },
-  { id: 'facebook', label: 'Facebook', mediaKinds: ['image', 'video'], color: '#1877F2', note: 'Image or video', connectable: true },
-  { id: 'linkedin', label: 'LinkedIn', mediaKinds: ['image', 'video'], color: '#0A66C2', note: 'Image or video', connectable: false },
-  { id: 'pinterest', label: 'Pinterest', mediaKinds: ['image', 'video'], color: '#E60023', note: 'Image or video Pin', connectable: false },
-  { id: 'threads', label: 'Threads', mediaKinds: ['image', 'video'], color: '#B3B3B3', note: 'Image or video', connectable: false },
-  { id: 'x', label: 'X', mediaKinds: ['image', 'video'], color: '#E7E9EA', note: 'Image or video', connectable: false },
+  { id: 'youtube', label: 'YouTube', mediaKinds: ['video'], color: '#FF0000', note: 'Video only' },
+  { id: 'tiktok', label: 'TikTok', mediaKinds: ['video'], color: '#00F2EA', note: 'Video only' },
+  { id: 'instagram', label: 'Instagram', mediaKinds: ['image', 'video'], color: '#E1306C', note: 'Image (feed) or video (Reel)' },
+  { id: 'facebook', label: 'Facebook', mediaKinds: ['image', 'video'], color: '#1877F2', note: 'Image or video' },
 ];
 
 export const YOUTUBE_CATEGORIES = [

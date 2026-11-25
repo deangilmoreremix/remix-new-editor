@@ -36,12 +36,12 @@ describe('socialPublishing', () => {
     test('exports SOCIAL_PLATFORMS array with expected platforms', () => {
       expect(Array.isArray(SOCIAL_PLATFORMS)).toBe(true);
       expect(SOCIAL_PLATFORMS.map(p => p.id)).toEqual(
-        expect.arrayContaining(['youtube', 'tiktok', 'instagram', 'facebook', 'linkedin', 'pinterest', 'threads', 'x'])
+        expect.arrayContaining(['youtube', 'tiktok', 'instagram', 'facebook'])
       );
     });
 
-    test('only platforms with a muapi connect-url route are connectable', () => {
-      expect(SOCIAL_PLATFORMS.filter(p => p.connectable).map(p => p.id)).toEqual(['youtube', 'tiktok', 'instagram', 'facebook']);
+    test('offers only platforms that can be connected from the app', () => {
+      expect(SOCIAL_PLATFORMS.map(p => p.id)).toEqual(['youtube', 'tiktok', 'instagram', 'facebook']);
     });
 
     test('exports YOUTUBE_CATEGORIES array', () => {

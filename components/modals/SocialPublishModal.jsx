@@ -48,8 +48,8 @@ async function toPublicThumbnailUrl(url) {
   return uploadFileToStorage(await prepareThumbnailFile(url));
 }
 
-// Platforms whose payload comes from the shared builder (caption-based posts; YouTube, TikTok and Instagram have their own forms).
-const NEW_PLATFORMS = ['facebook', 'linkedin', 'pinterest', 'threads', 'x'];
+// Platforms whose payload comes from the shared builder (YouTube, TikTok and Instagram have their own forms).
+const BUILDER_PLATFORMS = ['facebook'];
 
 const PLATFORM_BY_ID = Object.fromEntries(SOCIAL_PLATFORMS.map((p) => [p.id, p]));
 
@@ -554,10 +554,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     caption: '',
     media_type: initialType === 'image' ? 'IMAGE' : 'VIDEO',
     placement: 'reels',
-    alt_placement: 'timeline', // Facebook / Threads
-    board_id: '', // Pinterest
-    link: '', // Pinterest
-    reply_settings: 'everyone', // X
+    alt_placement: 'timeline', // Facebook
     share_to_feed: true,
     cover_url: '',
     thumb_offset: '',
@@ -576,7 +573,8 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     setAccountsError(null);
     try {
       const list = await socialPublishing.listAccounts(externalUserId);
-      setAccounts(Array.isArray(list) ? list : []);
+      // Only platforms this window can publish to; accounts for others (connected in the muapi dashboard) are left out.
+      setAccounts(Array.isArray(list) ? list.filter((a) => PLATFORM_BY_ID[a.platform_name]) : []);
     } catch (e) {
       setAccountsError(e.message || 'Could not load connected accounts.');
     } finally {
@@ -809,20 +807,20 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
 
   const updateForm = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
-  // Facebook, LinkedIn, Pinterest, Threads and X: build and validate with the shared per-platform builder.
+  // Facebook: build and validate with the shared per-platform builder.
   const buildNewPlatform = useMemo(() => (platform) => buildPublishPayload({
     platform,
     accountId: selectedAccountId,
     mediaUrl,
     mediaType: mediaType === 'image' ? 'image' : 'video',
     copy: { caption: form.caption, title: form.title, description: form.description },
-    settings: { placement: form.alt_placement, board_id: form.board_id, link: form.link, reply_settings: form.reply_settings },
+    settings: { placement: form.alt_placement },
   }), [selectedAccountId, mediaUrl, mediaType, form]);
 
   const buildPayload = useMemo(() => {
     const platform = platformOfSelected;
     return (platform, coverUrl = '') => {
-      if (NEW_PLATFORMS.includes(platform)) return buildNewPlatform(platform).payload || {};
+      if (BUILDER_PLATFORMS.includes(platform)) return buildNewPlatform(platform).payload || {};
       const base = { account_id: Number(selectedAccountId), media_url: mediaUrl };
       if (platform === 'youtube') {
         const tags = form.tags.split(',').map((t) => t.trim()).filter(Boolean);
@@ -882,7 +880,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       setErrorMsg('Add a thumbnail to make your post pop (your media preview still works without one).');
       return;
     }
-    if (NEW_PLATFORMS.includes(platform)) {
+    if (BUILDER_PLATFORMS.includes(platform)) {
       const built = buildNewPlatform(platform);
       if (built.errors.length) {
         setErrorMsg(built.errors.join(' '));
@@ -1226,53 +1224,23 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
             </>
           )}
 
-          {NEW_PLATFORMS.includes(platformOfSelected) && (
+          {platformOfSelected === 'facebook' && (
             <>
-              {platformOfSelected === 'pinterest' && (
-                <input
-                  style={{ ...inputStyle, marginTop: 10 }}
-                  placeholder="Pin title (optional)"
-                  value={form.title}
-                  onChange={(e) => updateForm('title', e.target.value)}
-                />
-              )}
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 10 }}>
                 <textarea
                   style={{ ...inputStyle, flex: 1, minHeight: 56, resize: 'vertical' }}
-                  placeholder={platformOfSelected === 'x' ? 'Post text (max 280)' : 'Caption (supports #hashtags)'}
-                  maxLength={platformOfSelected === 'x' ? 280 : undefined}
+                  placeholder="Caption (supports #hashtags)"
                   value={form.caption}
                   onChange={(e) => updateForm('caption', e.target.value)}
                 />
                 <EnhanceButton active={enhancing === 'caption'} disabled={!form.caption.trim()} onClick={() => handleEnhance('caption')} />
                 <RerollMenu field="caption" enhancing={enhancing} disabled={!form.caption.trim()} onReroll={handleReroll} currentText={form.caption} />
               </div>
-              {platformOfSelected === 'x' && (
-                <div style={{ fontSize: 12, opacity: 0.6, marginTop: 4 }}>{form.caption.length}/280</div>
-              )}
-              {(platformOfSelected === 'facebook' || platformOfSelected === 'threads') && (
-                <select style={{ ...inputStyle, marginTop: 10 }} value={form.alt_placement} onChange={(e) => updateForm('alt_placement', e.target.value)}>
-                  <option value="timeline">Timeline</option>
-                  <option value="reels">Reels</option>
-                  {platformOfSelected === 'facebook' && <option value="stories">Stories</option>}
-                </select>
-              )}
-              {platformOfSelected === 'pinterest' && (
-                <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                  <input style={{ ...inputStyle, flex: 1 }} placeholder="Board ID" value={form.board_id} onChange={(e) => updateForm('board_id', e.target.value)} />
-                  <input style={{ ...inputStyle, flex: 1 }} placeholder="Link (optional)" value={form.link} onChange={(e) => updateForm('link', e.target.value)} />
-                </div>
-              )}
-              {platformOfSelected === 'x' && (
-                <select style={{ ...inputStyle, marginTop: 10 }} value={form.reply_settings} onChange={(e) => updateForm('reply_settings', e.target.value)}>
-                  <option value="everyone">Anyone can reply</option>
-                  <option value="accounts_you_follow">Accounts you follow</option>
-                  <option value="followers_only">Followers only</option>
-                </select>
-              )}
-              <div style={{ fontSize: 12, opacity: 0.6, marginTop: 10 }}>
-                muapi documents only a few fields for {PLATFORM_BY_ID[platformOfSelected]?.label}, so only those are sent.
-              </div>
+              <select style={{ ...inputStyle, marginTop: 10 }} value={form.alt_placement} onChange={(e) => updateForm('alt_placement', e.target.value)}>
+                <option value="timeline">Timeline</option>
+                <option value="reels">Reels</option>
+                <option value="stories">Stories</option>
+              </select>
             </>
           )}
         </div>
@@ -1380,7 +1348,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
           <div style={{ ...labelStyle }}>Connect an account</div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {SOCIAL_PLATFORMS.map((p) => {
-              const enabled = p.mediaKinds.includes(mediaType) && p.connectable;
+              const enabled = p.mediaKinds.includes(mediaType);
               const isConnecting = connectingPlatform === p.id && status === 'connecting';
               return (
                 <button
@@ -1395,7 +1363,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
                     cursor: enabled && !isConnecting ? 'pointer' : 'not-allowed',
                     borderColor: enabled ? p.color : 'rgba(255,255,255,0.1)',
                   }}
-                  title={enabled ? `Connect ${p.label}` : (p.connectable ? `${p.label} supports ${p.note}` : `Connect ${p.label} in your muapi dashboard, then press Refresh`)}
+                  title={enabled ? `Connect ${p.label}` : `${p.label} supports ${p.note}`}
                 >
                   <span style={{ width: 9, height: 9, borderRadius: 99, background: p.color }} />
                   {isConnecting ? `Connecting ${p.label}…` : `Connect ${p.label}`}
@@ -1403,12 +1371,6 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
               );
             })}
           </div>
-          {SOCIAL_PLATFORMS.some((p) => !p.connectable) && (
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 10 }}>
-              {SOCIAL_PLATFORMS.filter((p) => !p.connectable).map((p) => p.label).join(', ')} are connected in your muapi dashboard.
-              Once connected, press Refresh and the account appears above.
-            </div>
-          )}
         </div>
       )}
 
