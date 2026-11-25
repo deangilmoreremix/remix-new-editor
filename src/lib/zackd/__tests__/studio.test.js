@@ -187,7 +187,9 @@ describe('ZackDStudio (built like the other video studios)', () => {
     typeTopic(root, 'Gum'); await step(root, 'Write script'); generate(root).click();
     await step(root, 'Approve script');
     runJob.mockRejectedValueOnce(new Error('The generation failed. Try again.'));
-    const scrollIntoView = vi.fn(); Element.prototype.scrollIntoView = scrollIntoView;
+    // src/test/setup.js polyfills HTMLElement.prototype.scrollIntoView, which shadows Element.prototype, so spy on that one.
+    const scrollIntoView = vi.fn(); const realScroll = HTMLElement.prototype.scrollIntoView; HTMLElement.prototype.scrollIntoView = scrollIntoView;
+    try {
     generate(root).click();
     await until(() => root.querySelector('[role=alert]:not(.hidden)'), 'error');
     const alert = root.querySelector('[role=alert]');
@@ -197,6 +199,7 @@ describe('ZackDStudio (built like the other video studios)', () => {
     expect(scrollIntoView).toHaveBeenCalled();
     expect(generate(root).textContent).toContain('Generate 1 character sheet'); // the failed sheet is retried from the same button
     expect(root.querySelector('button[aria-label^="Generate character sheet"], button[aria-label^="Redo"], button[aria-label^="Generate"]')).toBeTruthy();
+    } finally { HTMLElement.prototype.scrollIntoView = realScroll; }
   });
 
   it('drops a generated voice-over when the narration text it was made from is edited', async () => {
