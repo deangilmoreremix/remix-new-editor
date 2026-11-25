@@ -4,6 +4,14 @@ set -eu
 
 mkdir -p "$VIDBEE_DOWNLOAD_DIR" "$VIDBEE_DATA_DIR"
 
+# One private API per user: the web server (user-apis.mjs) starts and stops each user's API itself, with its own data and
+# download folders under /data/users. There is no shared API in this mode, so only the web server runs here.
+if [ "${VIDBEE_PER_USER:-}" = "1" ]; then
+  : "${VIDBEE_GATE_TOKEN:?VIDBEE_PER_USER=1 requires VIDBEE_GATE_TOKEN}"
+  mkdir -p "${VIDBEE_USERS_DIR:-/data/users}"
+  cd /app/web && exec node server.mjs
+fi
+
 (cd /app/api && node dist/migrate-history.js && exec node dist/index.js) &
 API_PID=$!
 

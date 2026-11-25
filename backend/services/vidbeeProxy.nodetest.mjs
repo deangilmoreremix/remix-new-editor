@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import cors from 'cors';
 import express from 'express';
-import { installVidBee, isAllowed, isSameOriginMutation } from './vidbeeProxy.js';
+import { installVidBee, isAllowed, isSameOriginMutation, userKey } from './vidbeeProxy.js';
 
 describe('vidbee gate allowlist', () => {
-  it('denies everyone outside development when unset', () => {
-    assert.equal(isAllowed({ id: 'u1' }, { NODE_ENV: 'production' }), false);
+  it('lets every signed-in user in when no allowlist is set (each gets a private library)', () => {
+    assert.equal(isAllowed({ id: 'u1' }, { NODE_ENV: 'production' }), true);
     assert.equal(isAllowed({ id: 'u1' }, { NODE_ENV: 'development' }), true);
   });
   it('matches user id or email case-insensitively', () => {
@@ -212,6 +212,47 @@ describe('vidbee proxy configuration', () => {
       process.env.NODE_ENV = before.env;
       if (before.url) process.env.VIDBEE_WEB_URL = before.url;
       delete process.env.VIDBEE_ALLOWED_USERS;
+    }
+  });
+});
+
+describe('vidbee per-user library id', () => {
+  const env = { VIDBEE_GATE_TOKEN: 'k' };
+  it('is a stable opaque 32-hex id that differs per user and hides the account id', () => {
+    assert.match(userKey('u1', env), /^[a-f0-9]{32}$/);
+    assert.equal(userKey('u1', env), userKey('u1', env));
+    assert.notEqual(userKey('u1', env), userKey('u2', env));
+    assert.ok(!userKey('u1', env).includes('u1'));
+  });
+  it('tells the web edition who is asking, ignoring a header the visitor made up', async () => {
+    const seen = [];
+    const upstream = http.createServer((req, res) => { seen.push(req.headers); res.end('ok'); });
+    await new Promise((resolve) => upstream.listen(0, '127.0.0.1', resolve));
+    process.env.VIDBEE_WEB_URL = `http://127.0.0.1:${upstream.address().port}`;
+    process.env.VIDBEE_GATE_TOKEN = 'k';
+    try {
+      const callAs = async (id, extra) => {
+        const app = express();
+        installVidBee(app, { auth: (req, _res, next) => { req.user = { id }; next(); }, cors: cors() });
+        const send = (path, headers) => new Promise((resolve, reject) => {
+          const server = http.createServer(app).listen(0, '127.0.0.1', () => {
+            http.request({ host: '127.0.0.1', port: server.address().port, method: path.includes('session') ? 'POST' : 'GET', path, headers }, (res) => {
+              res.resume(); res.on('end', () => server.close(() => resolve(res)));
+            }).on('error', reject).end();
+          });
+        });
+        const session = await send('/api/vidbee/session', {});
+        await send('/vidbee/', { cookie: String(session.headers['set-cookie']).split(';')[0], ...extra });
+      };
+      await callAs('alice', { 'x-smartvid-user': 'f'.repeat(32) });
+      await callAs('bob', {});
+      assert.equal(seen[0]['x-smartvid-user'], userKey('alice', process.env));
+      assert.equal(seen[1]['x-smartvid-user'], userKey('bob', process.env));
+      assert.notEqual(seen[0]['x-smartvid-user'], seen[1]['x-smartvid-user']);
+    } finally {
+      upstream.close();
+      delete process.env.VIDBEE_GATE_TOKEN;
+      delete process.env.VIDBEE_WEB_URL;
     }
   });
 });

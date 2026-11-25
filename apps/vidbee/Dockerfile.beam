@@ -93,10 +93,11 @@ COPY apps/desktop/resources/drizzle ./api/resources/drizzle
 COPY skills ./api/skills
 COPY --from=web-builder /app/apps/web/dist ./web/dist
 COPY --from=web-builder /app/apps/web/server.mjs ./web/server.mjs
+COPY --from=web-builder /app/apps/web/user-apis.mjs ./web/user-apis.mjs
 COPY --from=web-builder /prod/web/node_modules ./web/node_modules
 COPY beam/start.sh /app/start.sh
 
 # Runs as root on purpose: a platform-mounted disk is usually root-owned, and a non-root user could not write to it.
-RUN mkdir -p /data/downloads /data/vidbee
+RUN mkdir -p /data/downloads /data/vidbee /data/users
 EXPOSE 3000
 CMD ["/app/start.sh"]
