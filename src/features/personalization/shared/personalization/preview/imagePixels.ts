@@ -6,7 +6,7 @@
  */
 import type { ImageHints } from './imageStyle'
 
-export interface PixelAnalysis extends Pick<ImageHints, 'transparentCorners' | 'alreadyFramed' | 'hasTransparency'> {
+export interface PixelAnalysis extends Pick<ImageHints, 'transparentCorners' | 'alreadyFramed' | 'hasTransparency' | 'lightLogo'> {
   /** Fraction of pixels that are (mostly) transparent. */
   transparentFraction: number
 }
@@ -15,7 +15,7 @@ const lumaAt = (d: ArrayLike<number>, i: number) => 0.2126 * d[i] + 0.7152 * d[i
 
 export function analyzeImagePixels(data: ArrayLike<number>, width: number, height: number): PixelAnalysis {
   if (!(width > 2) || !(height > 2) || data.length < width * height * 4) {
-    return { transparentCorners: false, alreadyFramed: false, hasTransparency: false, transparentFraction: 0 }
+    return { transparentCorners: false, alreadyFramed: false, hasTransparency: false, lightLogo: false, transparentFraction: 0 }
   }
   const at = (x: number, y: number) => (y * width + x) * 4
 
@@ -56,7 +56,16 @@ export function analyzeImagePixels(data: ArrayLike<number>, width: number, heigh
     const im = mean(inner)
     alreadyFramed = rstd < 6 && rm < 235 && Math.abs(rm - im) > 40
   }
-  return { transparentCorners, alreadyFramed, hasTransparency: transparentFraction > 0.02, transparentFraction }
+  // A LIGHT logo: a cut-out (it has transparency) whose visible pixels are mostly very light. An opaque picture is never
+  // called light, because its white background would dominate the average.
+  const hasTransparency = transparentFraction > 0.02
+  let lightLogo = false
+  if (hasTransparency) {
+    let sum = 0, n = 0
+    for (let i = 0; i + 3 < width * height * 4; i += 4) if (data[i + 3] > 128) { sum += lumaAt(data, i); n++ }
+    lightLogo = n > 20 && sum / n >= 190
+  }
+  return { transparentCorners, alreadyFramed, hasTransparency, lightLogo, transparentFraction }
 }
 
 export interface ContentBox {

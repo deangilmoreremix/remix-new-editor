@@ -129,7 +129,7 @@ const ALL_CATEGORIES: RemotionDesignCategory[] = [
  * The exact size of the catalog: five Phase 1 designs + ten batch-1 designs
  * + four batch-2 designs.
  */
-const EXPECTED_TOTAL = 124
+const EXPECTED_TOTAL = 137 // 124 designs + 13 full-screen opening/closing scenes
 
 const VALID_TEXT_FIELDS: RemotionDesignTextField[] = [
   'businessName',
@@ -217,7 +217,7 @@ describe('Remotion design catalog', () => {
     }
   })
 
-  it('registers exactly 124 designs under unique ids', () => {
+  it('registers exactly 137 designs under unique ids', () => {
     const ids = listRemotionDesignTemplates().map((template) => template.id)
     expect(ids).toHaveLength(EXPECTED_TOTAL)
     expect(REMOTION_DESIGN_TEMPLATES).toHaveLength(EXPECTED_TOTAL)
@@ -401,6 +401,8 @@ describe('Remotion design catalog', () => {
   it('bounds every other design so it cannot cover the whole frame', () => {
     for (const template of REMOTION_DESIGN_TEMPLATES) {
       const scale = template.placement?.scale ?? 1
+      // Opening/closing scenes own the whole frame while they play, before or after the video.
+      if (template.role === 'scene') continue
       if (scale >= 1) {
         // A full-frame effect (the bokeh loop, the starfield) covers the frame
         // on purpose — it has to be marked as such.

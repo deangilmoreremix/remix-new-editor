@@ -37,6 +37,7 @@ export function measureImageHints(urls: string[]): Promise<Record<string, ImageH
                 if (a.transparentCorners) hint.transparentCorners = true
                 if (a.alreadyFramed) hint.alreadyFramed = true
                 if (a.hasTransparency) hint.hasTransparency = true
+                if (a.lightLogo) hint.lightLogo = true
               }
             } catch {
               /* tainted canvas: aspect only */
