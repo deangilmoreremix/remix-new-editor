@@ -155,6 +155,7 @@ class ChatHandler:
         from videodb import connect
 
         session.state["conn"] = connect(
+            api_key=get_key("VIDEO_DB_API_KEY"),
             base_url=os.getenv("VIDEO_DB_BASE_URL", "https://api.videodb.io")
         )
         session.state["collection"] = session.state["conn"].get_collection(
