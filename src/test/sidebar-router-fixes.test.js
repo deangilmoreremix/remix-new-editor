@@ -68,7 +68,8 @@ describe('Sidebar fixes', () => {
     const ids = (title) => NAV_GROUPS.find((g) => g.title === title).items.map((i) => i.id);
     expect(NAV_GROUPS[0].items.map((i) => i.id)).toEqual(['explore', 'apps', 'smart-video-studio', 'academy']);
     expect(ids('Video')).toContain('templates');
-    expect(ids('Audio & Avatars')).toEqual(expect.arrayContaining(['character', 'influencer']));
+    expect(ids('Audio & Avatars')).toEqual(expect.arrayContaining(['character', 'influencer', 'zackd']));
+    expect(ids('AI Agents')).toEqual(['video-agent', 'motion-director', 'director']);
     expect(ids('Utilities')).toContain('viral');
   });
 

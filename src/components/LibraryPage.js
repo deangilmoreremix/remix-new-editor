@@ -1,9 +1,7 @@
 import { createStudioHeader } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { loadGenerationHistory, confirmDeleteGeneration } from '../lib/generationHistory.js';
-import { showToast } from '../lib/loading.js';
-import { navigate } from '../lib/router.js';
-import { createSafeImage, createSafeVideo, safeSetText } from '../lib/security.js';
+import { showToast } from '../lib/loading.js';import { createSafeImage, createSafeVideo, safeSetText } from '../lib/security.js';
 import { MediaDetailView } from './MediaDetailView.js';
 import { queueAssetForStudio } from './UploadPicker.js';
 
@@ -67,15 +65,6 @@ export function LibraryPage() {
   pagesLink.textContent = 'My Video Pages';
   pagesLink.onclick = async () => { const { openMyVideoPages } = await import('./modals/MyVideoPagesModal.js'); openMyVideoPages(); };
   controls.appendChild(pagesLink);
-
-  // The scheduler is part of publishing your work, so it opens from here (it is not a side-menu app).
-  const scheduleLink = document.createElement('button');
-  scheduleLink.type = 'button';
-  scheduleLink.dataset.testid = 'library-schedule';
-  scheduleLink.className = pagesLink.className;
-  scheduleLink.textContent = 'Schedule posts';
-  scheduleLink.onclick = () => navigate('smart-video-scheduler');
-  controls.appendChild(scheduleLink);
 
   const right = document.createElement('div');
   right.className = 'ml-auto flex items-center gap-2';

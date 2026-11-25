@@ -206,11 +206,11 @@ export const NAV_GROUPS = [
     { id: 'avatar', label: 'Avatar' },
     { id: 'character', label: 'Character' },
     { id: 'influencer', label: 'AI Influencer' },
+    { id: 'zackd', label: 'Zack D' },
   ] },
   { title: 'AI Agents', items: [
     { id: 'video-agent', label: 'Video Agent' },
     { id: 'motion-director', label: 'Motion Director' },
-    { id: 'zackd', label: 'Zack D' },
     { id: 'director', label: 'Director' },
   ] },
   { title: 'Editors', items: [

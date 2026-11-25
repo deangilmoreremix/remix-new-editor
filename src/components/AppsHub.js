@@ -69,8 +69,9 @@ const pick = (ids) => ids.map((id) => ALL_APPS[id]).filter(Boolean);
 // The first group (Apps / Explore / Templates) is navigation, not an app.
 const APP_SECTIONS = NAV_GROUPS.slice(1).map((g) => [['Image', 'Video'].includes(g.title) ? `${g.title} apps` : g.title, pick(g.items.map((it) => it.id))]);
 
-// Smart Video Studio and Academy sit at the top of the side menu (no heading), so they get their own section.
-APP_SECTIONS.unshift(['Start here', pick(['smart-video-studio', 'academy'])]);
+// The side menu's first group (no name) is Explore, Apps, Smart Video Studio and Academy. Explore and Apps are
+// navigation, so the hub shows the other two first, with no section name.
+APP_SECTIONS.unshift(['', pick(['smart-video-studio', 'academy'])]);
 
 if (COLLAB_APPS.length) APP_SECTIONS.push(['Collaboration apps', COLLAB_APPS]);
 
@@ -170,11 +171,14 @@ export function createSection(title, items, isStudio = false) {
   const section = document.createElement('div');
   section.className = 'mb-10 animate-fade-in-up';
 
-  const heading = document.createElement('h2');
-  heading.className = 'text-lg font-bold text-white mb-4 flex items-center gap-2';
-  heading.innerHTML = `${title} <span class="text-xs font-medium text-muted" data-app-count>${items.length}</span>`;
   section.dataset.appSection = '';
-  section.appendChild(heading);
+  // The first group of the side menu has no name, so its section has no heading either.
+  if (title) {
+    const heading = document.createElement('h2');
+    heading.className = 'text-lg font-bold text-white mb-4 flex items-center gap-2';
+    heading.innerHTML = `${title} <span class="text-xs font-medium text-muted" data-app-count>${items.length}</span>`;
+    section.appendChild(heading);
+  }
 
   const grid = document.createElement('div');
   grid.className = isStudio
