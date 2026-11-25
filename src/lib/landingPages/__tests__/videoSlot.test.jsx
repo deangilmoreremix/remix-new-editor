@@ -153,3 +153,29 @@ describe('viewer extras at play time', () => {
     expect(v.currentTime).toBe(2); expect(v.play).toHaveBeenCalled();
   });
 });
+
+describe('playing again, and the start frame', () => {
+  const mountLive2 = (viewer) => {
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers: {}, preview: false }}><ViewerContext.Provider value={viewer}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    const v = host.querySelector('video'); v.pause = vi.fn(); v.play = vi.fn(() => Promise.resolve());
+    return v;
+  };
+  const set = (v, t) => { Object.defineProperty(v, 'currentTime', { value: t, writable: true, configurable: true }); };
+  it('after the stop time, pressing play starts again from the start time', () => {
+    const v = mountLive2({ start: 2, end: 12 });
+    set(v, 12.1); act(() => { v.dispatchEvent(new Event('play')); });
+    expect(v.currentTime).toBe(2);
+  });
+  it('pause and resume inside the range keeps the position', () => {
+    const v = mountLive2({ start: 2, end: 12 });
+    set(v, 5); act(() => { v.dispatchEvent(new Event('play')); });   // first play from a position in range
+    set(v, 8); act(() => { v.dispatchEvent(new Event('play')); });
+    expect(v.currentTime).toBe(8);
+  });
+  it('a chosen start frame does not skip the intro: play starts at the start time, even 0', () => {
+    const v = mountLive2({ posterAt: 30, start: 0 });
+    set(v, 30); act(() => { v.dispatchEvent(new Event('play')); });
+    expect(v.currentTime).toBe(0);
+  });
+});
