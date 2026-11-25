@@ -299,4 +299,19 @@ export default [
       'no-useless-escape': 'off',
     },
   },
+  {
+    // One publish modal. Studios open it with openSocialPublish() (src/lib/socialPublishHelpers.js); they must not import or
+    // re-implement a publish modal. components/modals/SocialPublishModal.jsx is the live modal (registered in
+    // lib/constants/modals.js) and components/modals/SocialPublisherModal.jsx is the unrelated legacy campaign tool.
+    // Static imports only: ESLint's no-restricted-imports does not see dynamic import().
+    files: ['src/**/*.{js,jsx,ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          group: ['**/modals/SocialPublishModal', '**/modals/SocialPublishModal.*', '**/modals/SocialPublisherModal', '**/modals/SocialPublisherModal.*'],
+          message: 'Do not import a publish modal directly. Call openSocialPublish() from src/lib/socialPublishHelpers.js.',
+        }],
+      }],
+    },
+  },
 ];

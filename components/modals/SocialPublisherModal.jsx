@@ -1,3 +1,6 @@
+// Legacy social *campaign* tool (iframe-based Facebook / LinkedIn campaigns, opened as SOCIAL_CAMPAIGN_MODAL).
+// It is NOT the "Publish to Social" modal. To publish or schedule a post from a studio, call openSocialPublish()
+// (src/lib/socialPublishHelpers.js), which opens components/modals/SocialPublishModal.jsx.
 import React, { Component } from 'react';
 import { observer, inject } from 'mobx-react';
 
