@@ -11,6 +11,7 @@
 import { clearTokens, saveTokens } from "./auth";
 import type Token from "./api/models/auth/Token";
 import exchangeClerk from "./api/client/auth/exchangeClerk";
+import type { LoginResult } from "./api/models/auth/LoginResult";
 
 export const HOST_SIGN_IN_URL = (import.meta.env.VITE_HOST_SIGN_IN_URL as string | undefined) || "/signin";
 const WAIT_FOR_CLERK_MS = 10_000;
@@ -23,6 +24,9 @@ type HostClerk = {
 };
 
 let unlisten: (() => void) | undefined;
+// The waiting screen replaces #root, which is only safe before the app has mounted. After that (a token refresh
+// while the person is using the dashboard) a retry stays silent.
+let booting = false;
 
 /** The host app's window when embedded in one (same origin), else this window. */
 function hostWindow(): Window {
@@ -51,18 +55,41 @@ async function clerkReady(): Promise<HostClerk | undefined> {
     }
 }
 
+// The backend scales to zero when idle and takes a while to wake, so the first sign-in after a quiet
+// spell can be answered with a gateway timeout. That is not a refusal: wait for it and ask again.
+const WAKE_RETRY_DELAYS_MS = [4_000, 8_000, 12_000];
+const isStillWaking = (err: unknown) => {
+    const status = (err as { status?: number } | null)?.status;
+    return status === undefined || status >= 500;
+};
+
+async function exchangeWhenAwake(): Promise<LoginResult | null> {
+    for (let attempt = 0; ; attempt++) {
+        // Read the token again on every attempt: a Clerk session token lives about a minute, and the waits below
+        // can outlast it. Signed out while waiting means there is nothing left to exchange.
+        const jwt = await hostClerk()?.session?.getToken();
+        if (!jwt) return null;
+        try {
+            return await exchangeClerk(jwt);
+        } catch (err) {
+            if (attempt >= WAKE_RETRY_DELAYS_MS.length || !isStillWaking(err)) throw err;
+            if (attempt === 0 && booting) showHostSessionWaiting();
+            await new Promise((resolve) => setTimeout(resolve, WAKE_RETRY_DELAYS_MS[attempt]));
+        }
+    }
+}
+
 /**
  * Exchanges a fresh host Clerk token for a Warmbly session and stores it. Returns it, or null when
  * the host is signed out. Throws when the account needs a step this dashboard has no screen for
  * (two-factor, or linking a password account), since there is no second login to fall back to.
  */
 export async function syncHostToken(): Promise<Token | null> {
-    const jwt = await hostClerk()?.session?.getToken();
-    if (!jwt) {
+    const res = await exchangeWhenAwake();
+    if (!res) {
         clearTokens();
         return null;
     }
-    const res = await exchangeClerk(jwt);
     if (!res.access_token || !res.access_token_expires_at || !res.refresh_token || !res.refresh_token_expires_at) {
         clearTokens();
         throw new Error("This account needs extra sign-in steps that the host app's sign-in does not cover.");
@@ -83,9 +110,18 @@ function toHostSignIn(): Promise<never> {
  * sign-in and this never resolves, so no Warmbly sign-in screen ever shows.
  */
 export async function bootHostSession(): Promise<void> {
-    const clerk = await clerkReady();
-    if (!clerk?.session) await toHostSignIn();
-    await syncHostToken();
+    booting = true;
+    try {
+        const clerk = await clerkReady();
+        if (!clerk?.session) await toHostSignIn();
+        await syncHostToken();
+        listenForHostSignOut(clerk);
+    } finally {
+        booting = false;
+    }
+}
+
+function listenForHostSignOut(clerk: HostClerk | undefined): void {
     // Signed out of the host (here or in another tab): this session ends with it.
     unlisten?.();
     unlisten = clerk?.addListener?.(({ session }) => {
@@ -134,4 +170,16 @@ export function showHostSessionFailure(err: unknown): void {
  */
 export function isHostSessionExempt(pathname: string): boolean {
     return /\/(oauth-return|cloud-oauth\/done|reauth\/complete)\/?$/.test(pathname);
+}
+
+/** Shown while the backend wakes from idle; the app replaces it when it mounts. */
+export function showHostSessionWaiting(): void {
+    const root = document.getElementById("root") ?? document.body;
+    root.replaceChildren();
+    root.classList.add("app-ready"); // the page keeps #root invisible until the app is ready
+    const box = document.createElement("div");
+    box.setAttribute("role", "status");
+    box.style.cssText = "font:14px system-ui,sans-serif;max-width:28rem;margin:20vh auto;padding:0 1rem;text-align:center";
+    box.textContent = "Starting SmartWarmupAI… this can take up to a minute after a quiet period.";
+    root.append(box);
 }
