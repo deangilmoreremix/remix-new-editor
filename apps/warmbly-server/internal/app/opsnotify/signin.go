@@ -90,6 +90,8 @@ func signInMethod(provider string) string {
 		return "Google"
 	case token.AuthProviderApple:
 		return "Apple"
+	case token.AuthProviderClerk:
+		return "SmartVideo account"
 	case token.AuthProviderWebAuthn:
 		return "Passkey"
 	case token.AuthProviderOIDC:

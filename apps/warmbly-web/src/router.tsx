@@ -17,12 +17,13 @@ import RootLayout from "./app/layout";
 import NotFound from "./app/not-found";
 import { BlankPending, RouteFallback, RouteError, ShellSkeleton } from "./components/layout/RouteStates";
 import getToken from "./lib/helper/getToken";
+import { HOST_SIGN_IN_URL } from "./lib/hostSession";
 import { bootDashboard, requireDashboardToken } from "./lib/boot";
 import { queryClient } from "./lib/queryClient";
 import { parseSearch, stringifySearch, type SearchParams } from "./lib/routerSearch";
 import { acquisitionSearch } from "./lib/acquisition";
 import { currentPortal, mainSignInURL, resolvePortal, signsInOnMain } from "./lib/portal";
-import { API_BASE_URL, APP_URL } from "./lib/information";
+import { API_BASE_URL, APP_URL, HOST_SESSION } from "./lib/information";
 import * as loaders from "./routeLoaders";
 import type { PageLoader } from "./routeLoaders";
 
@@ -172,6 +173,12 @@ const authRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "auth",
     pendingComponent: BlankPending,
+    // One login: with the host session on, no Warmbly sign-in, register or reset screen is reachable.
+    beforeLoad: async () => {
+        if (!HOST_SESSION) return;
+        window.top!.location.replace(HOST_SIGN_IN_URL);
+        await new Promise<never>(() => {});
+    },
     component: lazyRouteComponent(() => import("./app/auth/layout")),
 });
 // A portal whose agency signs clients in on the main address sends its sign-in there.
