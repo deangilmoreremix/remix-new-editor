@@ -226,3 +226,35 @@ describe('watch progress over the trimmed part', () => {
     expect(run({ end: 120 }, [15.1, 30.1, 45.1], 60)).toEqual(['progress_25', 'progress_50', 'progress_75']);
   });
 });
+
+const withViewerHtml = (viewer, props = {}, extra = {}) => renderToString(<PageContext.Provider value={ctx({ video_url: VIDEO }, extra)}><ViewerContext.Provider value={viewer}><VideoPlayer {...props} /></ViewerContext.Provider></PageContext.Provider>);
+describe('viewer extras: hosts without CORS, a start-frame range, replays, button clicks', () => {
+  const live = (viewer, handlers = {}) => {
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers, preview: false }}><ViewerContext.Provider value={viewer}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    const v = host.querySelector('video'); v.pause = vi.fn(); v.play = vi.fn(() => Promise.resolve());
+    return { host, v };
+  };
+  const set = (v, t) => { Object.defineProperty(v, 'currentTime', { value: t, writable: true, configurable: true }); };
+  it('subtitles never change how the video itself is fetched (videos on hosts without CORS keep playing)', () => {
+    const out = withViewerHtml({ subtitles: 'https://cdn.test/subs.vtt' });
+    expect(out).not.toContain('crossorigin'); expect(out).toContain('<track');
+  });
+  it('a start frame with a stop time makes a valid start-only fragment', () => {
+    expect(attr(withViewerHtml({ posterAt: 30, start: 2, end: 12 }), 'src')).toBe(`${VIDEO}#t=30`);
+  });
+  it('replaying after the video ended starts at the start time, also with no stop time; a seek before the start is undone', () => {
+    const { v } = live({ start: 10 });
+    set(v, 12); act(() => { v.dispatchEvent(new Event('play')); });   // first play inside the range
+    set(v, 0); act(() => { v.dispatchEvent(new Event('play')); });    // native replay seeks to 0 first
+    expect(v.currentTime).toBe(10);
+  });
+  it('clicking the button on the video is recorded as a button click on a live page', () => {
+    const onCta = vi.fn();
+    const { host, v } = live({ ctaAt: 3, ctaLabel: 'Book', ctaUrl: 'https://cal.test/me' }, { onCta });
+    act(() => { v.dispatchEvent(new Event('play')); });
+    set(v, 4); Object.defineProperty(v, 'duration', { value: 60, configurable: true }); act(() => { v.dispatchEvent(new Event('timeupdate')); });
+    act(() => { host.querySelector('.pk-video-cta').click(); });
+    expect(onCta).toHaveBeenCalledTimes(1);
+  });
+});

@@ -94,7 +94,8 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
   const startAt = secs(viewer.start);
   const endAt = secs(viewer.end) > startAt ? secs(viewer.end) : 0;
   const frameAt = !ownPicture && !designPoster ? secs(viewer.posterAt) : 0;   // no picture: show this frame of the video
-  const fragment = src && (startAt || endAt || frameAt) ? `#t=${frameAt || startAt}${endAt ? `,${endAt}` : ''}` : '';
+  // A chosen start frame is a start-only fragment (an end before it would make the range invalid); the stop time is enforced while playing.
+  const fragment = src && (startAt || endAt || frameAt) ? (frameAt ? `#t=${frameAt}` : `#t=${startAt}${endAt ? `,${endAt}` : ''}`) : '';
   const subtitles = safeUrl(viewer.subtitles) && /^https:/i.test(safeUrl(viewer.subtitles)) ? safeUrl(viewer.subtitles) : '';
   const ctaAt = secs(viewer.ctaAt);
   const ctaOn = ctaAt > 0 && !!t(viewer.ctaLabel) && !!(safeUrl(viewer.ctaUrl) || anchor(viewer.ctaUrl));
@@ -102,7 +103,7 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
   const overlay = viewer.overlay ? t(viewer.overlay) : '';
   // Before the first play the video may sit on the chosen frame: playback starts at the start time (0 included). After it reached the stop time, playing again starts over.
   const seekToStart = (v) => {
-    if (!started && (frameAt || v.currentTime < startAt)) v.currentTime = startAt;
+    if ((!started && frameAt) || v.currentTime < startAt) v.currentTime = startAt;   // every play stays inside the range, replays and seeks before the start too
     if (endAt && v.currentTime >= endAt - 0.05) v.currentTime = startAt;
   };
   const play = () => { const v = ref.current; if (v && src) { seekToStart(v); void v.play?.(); } };
@@ -117,7 +118,6 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
         playsInline
         preload="metadata"
         src={src ? `${src}${fragment}` : undefined}
-        {...(subtitles ? { crossOrigin: 'anonymous' } : {})}
         poster={posterUrl || undefined}
         aria-label={viewer.alt ? t(viewer.alt) : still || mock ? (page?.title ? `Picture for ${page.title}` : 'Video placeholder') : (page?.title || 'Video')}
         onPlay={(e) => { seekToStart(e.currentTarget); setStarted(true); once('play', () => handlers.onPlay?.()); }}
@@ -136,7 +136,7 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
         {subtitles ? <track kind="subtitles" src={subtitles} srcLang="en" label="Captions" default /> : null}
       </video>
       {overlay ? <span className="pk-video-overlay">{overlay}</span> : null}
-      {ctaOn && (preview || ctaShown) ? <SafeLink className="pk-btn pk-btn--primary pk-video-cta" href={viewer.ctaUrl}>{t(viewer.ctaLabel)}</SafeLink> : null}
+      {ctaOn && (preview || ctaShown) ? <SafeLink className="pk-btn pk-btn--primary pk-video-cta" href={viewer.ctaUrl} onClick={() => { if (!preview) handlers.onCta?.(); }}>{t(viewer.ctaLabel)}</SafeLink> : null}
       {showPlay ? <button type="button" className="pk-video-play" aria-label={src ? 'Play video' : 'Video placeholder: your video goes here'} onClick={play} tabIndex={src ? 0 : -1} /> : null}
       {mock && preview ? <span className="pk-video-label">Your video goes here</span> : null}
       {viewer.caption ? <p className="pk-video-caption">{t(viewer.caption)}</p> : null}
@@ -208,11 +208,11 @@ export function LeadForm({ title, subtitle, submitLabel = 'Send', successMessage
 // In-page anchors (#lead, #contact...) are safe and let buttons scroll to a section.
 const anchor = (v) => (/^#[a-z0-9_-]{1,40}$/i.test(String(v || '').trim()) ? String(v).trim() : '');
 
-export function SafeLink({ href, children, className }) {
+export function SafeLink({ href, children, className, onClick }) {
   const url = safeUrl(href) || anchor(href);
   if (!url) return null;
   const external = /^https?:/i.test(url);
-  return <a className={className} href={url} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{children}</a>;
+  return <a className={className} href={url} onClick={onClick} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{children}</a>;
 }
 
 export function Icon({ name, className = 'pk-ico' }) {
