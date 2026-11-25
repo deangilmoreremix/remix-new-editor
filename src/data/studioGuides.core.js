@@ -28,7 +28,7 @@ const CATEGORY_OVERRIDES = {
 };
 
 // Knowledge files that get no public guide page (the in-app assistant still uses them).
-// smart-video-studio: the page does not open yet (missing stylesheet path, React mount, /api/model-registry).
+// smart-video-studio: the same studio as the public 'smartvid-studio' guide (one side-menu entry), so it gets no second public page.
 // smartwarmupai is public (the owner chose to publish it; its brand README still notes a trademark check for the name).
 export const UNLISTED_GUIDES = new Set(['smart-video-studio']);
 

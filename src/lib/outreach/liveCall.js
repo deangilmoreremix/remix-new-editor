@@ -1,3 +1,4 @@
+/* global RTCPeerConnection */
 // src/lib/outreach/liveCall.js
 //
 // "Talk live" on a Video Outreach landing page (WebRTC). A prospect watching their video can call you

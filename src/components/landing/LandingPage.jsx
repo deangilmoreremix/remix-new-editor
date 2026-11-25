@@ -217,11 +217,16 @@ export default async function LandingPage() {
     const videoGallery = createLazySection(() => import('./sections/AIVideoGallery.jsx'), 'gallery', {}, 6);
     const academyShowcase = createLazySection(() => import('./sections/AcademyVideoShowcase.jsx'), 'academy', {}, 7);
     const repoVideoShowcase = createLazySection(() => import('./sections/ShowcaseRepoVideo.jsx'), 'repo-video', {}, 8);
+    // NEW: product demo + studio demos (click-to-play, additive).
+    const productDemo = createLazySection(() => import('./sections/ProductDemoSection.jsx'), 'product-demo', {}, 1);
+    const studioDemos = createLazySection(() => import('./sections/StudioDemosSection.jsx'), 'studio-demos', {}, 3);
     container.appendChild(scrollingStrip);
     container.appendChild(hookSection);
+    container.appendChild(productDemo);     // NEW
     container.appendChild(aiWorkflow);      // NEW
     container.appendChild(sixEngines);
     container.appendChild(appsGrid);
+    container.appendChild(studioDemos);     // NEW
     container.appendChild(madeWith);        // NEW
     container.appendChild(ugcShowcase);     // NEW
     container.appendChild(features);
