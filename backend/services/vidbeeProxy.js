@@ -5,8 +5,7 @@
  * download directory), so it is only reachable through this gate:
  *   POST /api/vidbee/session  (Bearer auth + allowlist)  → sets a short-lived HttpOnly cookie
  *   ANY  /vidbee/*            (cookie required)          → streams to the VidBee web server
- * Allowlist: VIDBEE_ALLOWED_USERS="id1,email@x.com" (user id or email). Unset = everyone in
- * NODE_ENV=development, nobody otherwise.
+ * Open to everyone by default (no sign-in). Optional restriction: VIDBEE_ALLOWED_USERS="id1,email@x.com" (user id or email).
  */
 /* global URL */
 import crypto from 'node:crypto';
@@ -34,9 +33,13 @@ const verify = (token) => {
 };
 const readCookie = (req, name) => (req.headers.cookie || '').split(/;\s*/).map((c) => c.split('=')).find(([k]) => k === name)?.[1];
 
+/** Open to everyone, signed in or not, like the other studios. Setting VIDBEE_ALLOWED_USERS restricts it to that list. All visitors share one queue and library. */
+const allowList = (env) => (env.VIDBEE_ALLOWED_USERS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+export const isPublic = (env = process.env) => allowList(env).length === 0;
+
 export const isAllowed = (user, env = process.env) => {
-  const list = (env.VIDBEE_ALLOWED_USERS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-  if (!list.length) return (env.NODE_ENV || 'development') === 'development';
+  const list = allowList(env);
+  if (!list.length) return true;
   return [user?.id, user?.email].filter(Boolean).some((v) => list.includes(String(v).toLowerCase()));
 };
 
@@ -98,10 +101,12 @@ export function createVidBeeRouters({ auth }) {
   // Credentialed CORS for this one endpoint only (the cookie is scoped to /vidbee and is HttpOnly).
   const sessionCors = cors({ origin: true, credentials: true });
   session.options('/session', sessionCors);
-  session.post('/session', sessionCors, auth, (req, res) => {
+  const authUnlessPublic = (req, res, next) => (isPublic() ? next() : auth(req, res, next));
+  session.post('/session', sessionCors, authUnlessPublic, (req, res) => {
+    if (!req.user && !isPublic()) return res.status(401).json({ error: 'Sign in to use SmartVidDownloader.' });
     if (!isAllowed(req.user)) return res.status(403).json({ error: 'SmartVidDownloader is not enabled for your account. Ask an admin to give you access.' });
     const secure = req.secure || req.headers['x-forwarded-proto'] === 'https';
-    res.setHeader('Set-Cookie', `${COOKIE}=${issue(req.user.id)}; Path=/vidbee; HttpOnly; Max-Age=${TTL_MS / 1000}; SameSite=${secure ? 'None; Secure' : 'Lax'}`);
+    res.setHeader('Set-Cookie', `${COOKIE}=${issue(req.user?.id || 'public')}; Path=/vidbee; HttpOnly; Max-Age=${TTL_MS / 1000}; SameSite=${secure ? 'None; Secure' : 'Lax'}`);
     res.json({ ok: true, path: '/vidbee/' });
   });
 

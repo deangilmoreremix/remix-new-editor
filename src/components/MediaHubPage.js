@@ -81,8 +81,8 @@ export function MediaHubPage() {
         note.textContent = 'Starting SmartVidDownloader…';
       }
       const token = await accessToken();
-      if (!token) throw new Error('Sign in to use SmartVidDownloader.');
-      const res = await fetch(`${base}/api/vidbee/session`, { method: 'POST', credentials: 'include', headers: { Authorization: `Bearer ${token}` } });
+      // Signed-out visitors still try: the server lets them in when VIDBEE_PUBLIC is on, and answers 401 otherwise.
+      const res = await fetch(`${base}/api/vidbee/session`, { method: 'POST', credentials: 'include', headers: token ? { Authorization: `Bearer ${token}` } : {} });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `SmartVidDownloader unavailable (${res.status})`);
       if (iframe) { iframe.src = frameUrl(`${base}/vidbee/?brand=remix`); return; }
       // Light / Dark / System is switched inside VidBee itself (title-bar button, or Settings → Theme).
