@@ -14,7 +14,6 @@ const MODAL_FILES = [
   { name: 'RecorderModal', path: './RecorderModal.jsx', exportName: 'RecorderModal' },
   { name: 'SaveProjectModal', path: './SaveProjectModal.jsx', exportName: 'SaveProjectModal' },
   { name: 'SettingsModal (jsx)', path: './SettingsModal.jsx', exportName: 'SettingsModal' },
-  { name: 'SocialPublisherModal', path: './SocialPublisherModal.jsx', exportName: 'SocialPublisherModal' },
   { name: 'TemplateGeneratorModal', path: './TemplateGeneratorModal.jsx', exportName: 'TemplateGeneratorModal' },
   { name: 'TemplatePreviewModal (jsx)', path: './TemplatePreviewModal.jsx', exportName: 'TemplatePreviewModal' },
   { name: 'TemplateThumbnailModal', path: './TemplateThumbnailModal.jsx', exportName: 'TemplateThumbnailModal' },
