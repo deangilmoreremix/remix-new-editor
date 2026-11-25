@@ -7,10 +7,13 @@ import path from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { createUserApiPoolFromEnv, isUserId, PoolBusyError } from './user-apis.mjs'
 
 const DEFAULT_CLIENT_DIRECTORY = fileURLToPath(new URL('./dist/client/', import.meta.url))
 const DEFAULT_SERVER_ENTRY_URL = new URL('./dist/server/server.js', import.meta.url)
 const DEFAULT_API_URL = 'http://api:3100'
+/** [host patch] Set by the host app's gate; names the user whose private API should answer (VIDBEE_PER_USER=1). */
+const USER_HEADER = 'x-smartvid-user'
 const PROXY_PATH_PREFIXES = ['/events', '/export', '/files', '/images', '/rpc', '/stream']
 const HOP_BY_HOP_HEADERS = new Set([
   'connection',
@@ -179,7 +182,32 @@ const handleRequest = async (request, response, options) => {
       return
     }
     if (isProxyPath(innerPath)) {
-      await proxyApiRequest(request, response, new URL(`${innerPath}${requestUrl.search}`, requestUrl), options.apiUrl)
+      const apiTarget = new URL(`${innerPath}${requestUrl.search}`, requestUrl)
+      if (!options.pool) {
+        await proxyApiRequest(request, response, apiTarget, options.apiUrl)
+        return
+      }
+      // Per-user mode: never fall back to a shared API. No valid user means no answer.
+      const sent = request.headers[USER_HEADER]
+      const userId = Array.isArray(sent) ? sent[0] : sent
+      if (!isUserId(userId)) {
+        response.statusCode = 400
+        response.setHeader('content-type', 'text/plain; charset=utf-8')
+        response.end('Open this app from the host app.')
+        return
+      }
+      let lease
+      try {
+        lease = await options.pool.acquire(userId)
+      } catch (error) {
+        response.statusCode = error instanceof PoolBusyError ? 503 : 502
+        response.setHeader('content-type', 'text/plain; charset=utf-8')
+        if (error instanceof PoolBusyError) response.setHeader('retry-after', '30')
+        response.end(error instanceof PoolBusyError ? 'SmartVidDownloader is busy. Try again in a minute.' : 'Request failed.')
+        return
+      }
+      response.once('close', lease.release)
+      await proxyApiRequest(request, response, apiTarget, new URL(lease.url))
       return
     }
     if (await serveStaticFile(request, response, options.clientDirectory, innerPath)) {
@@ -204,12 +232,18 @@ const handleRequest = async (request, response, options) => {
 
 /** Create the production web server with injectable paths. */
 export const createWebServer = (options = {}) => {
+  const pool = options.pool ?? (process.env.VIDBEE_PER_USER === '1' ? createUserApiPoolFromEnv() : null)
   const resolvedOptions = {
+    pool,
     apiUrl: new URL(options.apiUrl ?? process.env.VIDBEE_API_URL_INTERNAL ?? DEFAULT_API_URL),
     basePath: normalizeBasePath(options.basePath ?? process.env.VIDBEE_BASE_PATH),
     clientDirectory: options.clientDirectory ?? DEFAULT_CLIENT_DIRECTORY,
     gateToken: options.gateToken ?? process.env.VIDBEE_GATE_TOKEN?.trim() ?? '',
     serverEntry: options.serverEntry
+  }
+  if (pool && !resolvedOptions.gateToken) {
+    // Without the shared secret anyone could send the user header themselves and read another user's library.
+    throw new Error('VIDBEE_PER_USER=1 requires VIDBEE_GATE_TOKEN.')
   }
   return createServer((request, response) => {
     void handleRequest(request, response, resolvedOptions)

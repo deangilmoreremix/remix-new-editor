@@ -40,6 +40,7 @@ WORKDIR /app
 
 COPY --from=builder --chown=node:node /app/apps/web/dist ./dist
 COPY --from=builder --chown=node:node /app/apps/web/server.mjs ./server.mjs
+COPY --from=builder --chown=node:node /app/apps/web/user-apis.mjs ./user-apis.mjs
 COPY --from=builder --chown=node:node /prod/web/node_modules ./node_modules
 
 USER node
