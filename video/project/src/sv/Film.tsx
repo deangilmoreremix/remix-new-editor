@@ -84,6 +84,13 @@ const cin05 = halves(
   withChip(cam('cap/s05b.png', 's05b', '', [flat(960, 540, 1), flat(1300, 520, 1.4, 1)]), 'Director'),
 );
 
+const dir05: ShotFn = (D) => (
+  <>
+    <Cam D={D} src="cap/s05b.png" masks={M.s05b} keys={[flat(960, 540, 1), flat(800, 520, 1.2, 0.5), flat(1300, 520, 1.35, 1)]} />
+    <Chip text="Director" D={D} />
+  </>
+);
+
 const sb06: ShotFn = (D) => (
   <>
     <Cam D={D} src="cap/s06.png" masks={M.s06} keys={[flat(960, 540, 1, 0, 4, 0), flat(800, 640, 1.2, 0.5), flat(800, 450, 1.2, 1)]} />
@@ -226,7 +233,7 @@ export const SHOTS: Record<string, ShotFn> = {
   open: (D) => <Open D={D} />, lockup: (D) => <Lockup D={D} />, lockupV: (D) => <LockupV D={D} />,
   title1: (D) => <TitleCard D={D} words={['Edit.', 'Animate.', 'Finish.']} accent={[2]} />,
   title2: (D) => <TitleCard D={D} words={['From', 'idea', 'to', 'timeline.']} accent={[3]} />,
-  spot01, wall02, picker03, img04, cin05, sb06, edit07, char08, quad09, vfx10, wb11, tpl12, va13, com15, v01, v07, v09, v06,
+  spot01, wall02, picker03, img04, cin05, dir05, sb06, edit07, char08, quad09, vfx10, wb11, tpl12, va13, com15, v01, v07, v09, v06,
 };
 
 // frames at which a shot wants extra one-shot sounds (relative to shot start)
@@ -277,6 +284,7 @@ export const REEL: Item[] = [
 export const SOCIAL: Item[] = [{ shot: 'v01', beats: 9 }, { shot: 'v07', beats: 10 }, { shot: 'v09', beats: 9 }, { shot: 'v06', beats: 6 }, { shot: 'lockupV', beats: 6 }];
 // per-feature clips: 14 beats (6.8s) each
 export const CLIPS: { id: string; item: Item }[] = [
+  { id: 'c06-director', item: { shot: 'dir05', beats: 14 } },
   { id: 'c01-video', item: { shot: 'spot01', beats: 14 } }, { id: 'c02-apps', item: { shot: 'wall02', beats: 14 } },
   { id: 'c03-models', item: { shot: 'picker03', beats: 14 } }, { id: 'c04-image', item: { shot: 'img04', beats: 14 } },
   { id: 'c05-cinema-director', item: { shot: 'cin05', beats: 14 } }, { id: 'c06-storyboard', item: { shot: 'sb06', beats: 14 } },
