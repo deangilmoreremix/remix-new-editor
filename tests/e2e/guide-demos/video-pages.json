@@ -1,0 +1,40 @@
+{
+  "page-design": {
+    "selector": "xpath=//label[starts-with(normalize-space(),'Template')]//select",
+    "steps": [
+      {
+        "selector": "xpath=(//button[normalize-space()='Edit'])[last()]",
+        "wait": 3500
+      }
+    ],
+    "hold": 3500
+  },
+  "customer-personalisation": {
+    "selector": "xpath=//label[starts-with(normalize-space(),'Headline')]//input",
+    "type": "Hi {{firstname|there}}, here is your demo",
+    "steps": [
+      {
+        "selector": "xpath=(//button[normalize-space()='Edit'])[last()]",
+        "wait": 3500
+      }
+    ],
+    "hold": 3000,
+    "then": [
+      {
+        "selector": "xpath=//select[@aria-label='Preview as contact']",
+        "hold": 2500
+      }
+    ]
+  },
+  "lead-form": {
+    "selector": "xpath=//summary[contains(translate(normalize-space(),'LEADFORM','leadform'),'lead form')]",
+    "click": true,
+    "steps": [
+      {
+        "selector": "xpath=(//button[normalize-space()='Edit'])[last()]",
+        "wait": 3500
+      }
+    ],
+    "hold": 3500
+  }
+}

@@ -6,6 +6,7 @@ const ROUTE_MAP = {
   'Video': 'video',
   'Storyboard': 'storyboard',
   'Studio': 'muapi-studio',
+  'SmartVid Studio': 'muapi-studio',
   'Edit': 'edit',
   'Character': 'character',
   'Commercial': 'commercial',
@@ -74,6 +75,7 @@ const pageLoaders = {
   cinema: () => import('../components/CinemaStudio.js').then(m => m.CinemaStudio()),
   'cinema-template': () => import('../components/CinemaTemplateStudio.js').then(m => m.CinemaTemplateStudio()),
   apps: () => import('../components/AppsHub.js').then(m => m.AppsHub()),
+  explore: () => import('../components/ExplorePage.js').then(m => m.ExplorePage()),
   templates: () => import('../components/TemplatesPage.js').then(m => m.TemplatesPage()),
   effects: () => import('../components/EffectsStudio.js').then(m => m.EffectsStudio()),
   edit: () => import('../components/EditStudio.js').then(m => m.EditStudio()),
@@ -82,7 +84,6 @@ const pageLoaders = {
   character: () => import('../components/CharacterStudio.js').then(m => m.CharacterStudio()),
   influencer: () => import('../components/InfluencerStudio.js').then(m => m.InfluencerStudio()),
   commercial: () => import('../components/CommercialStudio.js').then(m => m.CommercialStudio()),
-  explore: () => import('../components/ExplorePage.js').then(m => m.ExplorePage()),
   avatar: () => import('../components/AvatarStudio.js').then(m => m.AvatarStudio()),
   'smart-video-scheduler': () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
   brightbean: () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
@@ -156,6 +157,7 @@ const pageLoaders = {
   smartviddownloader: () => import('../components/MediaHubPage.js').then(m => m.MediaHubPage()),
   // Academy: the page parses its own #/academy/track/<track>[/lesson|template/<id>] hash.
   academy: () => import('../components/academy/AcademyPage.jsx').then(m => m.AcademyPage()),
+  guide: () => import('../components/GuidePage.js').then(m => m.GuidePage()),
 };
 
 // Sub-paths like 'academy/track/<t>/lesson/<id>' are handled by the Academy page itself.
@@ -164,6 +166,7 @@ export const academyKey = (page) => {
   if (page.startsWith('academy/')) return 'academy';
   // #/smartwarmupai/help/<docs path> and other studio deep links are parsed by the studio itself.
   if (page.startsWith('smartwarmupai/')) return 'smartwarmupai';
+  if (page.startsWith('guide/')) return 'guide';
   return page;
 };
 

@@ -1,0 +1,16 @@
+{
+  "slug": "edit-studio",
+  "name": "Edit Studio",
+  "intro": "Edit Studio is a gallery of sixteen focused AI photo tools. Pick one, upload a photo, adjust a few settings, and apply the edit.",
+  "features": {
+    "remove-object": "Remove Object lets you paint over anything unwanted with the brush, then erase or clear if you slip. Paint a little beyond the object so the AI sees the surroundings.",
+    "remove-background": "Remove Background gives you a clean cut-out with a transparent background. It has no settings, and it's great for product shots, profile pictures and stickers.",
+    "extend-image": "Extend Image paints in more scene around the edges of your photo, so you can widen a crop or add breathing room around a subject.",
+    "ai-edit": "AI Edit is the most flexible tool. Upload a photo and describe the change you want, like making it night time, then pick an aspect ratio and quality.",
+    "reframe": "Reframe changes the shape of your photo. Choose a new aspect ratio and the AI fills the new space, handy for turning landscape into vertical.",
+    "change-dress": "Change Dress is a virtual try-on. Upload a photo of a person and a photo of the outfit, and the outfit goes onto them.",
+    "add-watermark": "Add Watermark overlays your logo on a photo. Choose its position, opacity and size to brand or protect your pictures.",
+    "photo-effects": "Photo Effects offers one-click looks from a grid of presets, across three models, so you get creative styles without writing a prompt."
+  },
+  "outro": "Those are the essentials of Edit Studio. Pick the tool that fits the job, and chain edits together to get exactly the photo you want."
+}

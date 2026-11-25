@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { isRemotionDesignTemplateSupported } from '../templates'
 import { DESIGN_GOALS, recommendDesigns, type DesignGoalId, type GoalSuggestion, type RecommendContext } from '../templates/recommendations'
+import { designDescription } from '../templates/designDescription'
 import type { RemotionDesignTemplate } from '../templates/types'
 import type { PreviewAspectRatio, PreviewLayoutId } from '../preview/types'
 import { PersonalizationTemplateBrowser } from './PersonalizationTemplateBrowser'
@@ -92,12 +93,12 @@ export function DesignRecommendations({
               data-testid={`design-rec-${design.id}`}
               aria-pressed={active}
               disabled={!refusal.ok}
-              title={refusal.ok ? design.description : refusal.reason}
+              title={refusal.ok ? designDescription(design) : refusal.reason}
               onClick={() => choose(design.id, active)}
               style={{ ...softPanelStyle, textAlign: 'left', cursor: refusal.ok ? 'pointer' : 'not-allowed', opacity: refusal.ok ? 1 : 0.55, border: `1px solid ${active ? C.cyanBorder : C.border}`, background: active ? 'transparent' : undefined }}
             >
               <div style={{ color: C.text, fontSize: 12, fontWeight: 700 }}>{design.name}</div>
-              <div style={{ ...hintStyle, margin: '2px 0 0' }}>{refusal.ok ? design.description : refusal.reason}</div>
+              <div style={{ ...hintStyle, margin: '2px 0 0' }}>{refusal.ok ? designDescription(design) : refusal.reason}</div>
               {reasons.length > 1 && <div data-testid={`design-why-${design.id}`} style={{ ...hintStyle, margin: '4px 0 0', color: C.cyan }}>Why: {reasons.slice(1).join(' · ')}</div>}
             </button>
           )

@@ -1,0 +1,16 @@
+{
+  "slug": "smart-video-academy",
+  "name": "Academy",
+  "intro": "Academy is SmartVideo's learning area, with fifteen tracks, sixty six lessons and seventy seven templates. Learn a skill here, then jump into a studio to make something.",
+  "features": {
+    "hub-all-tracks": "The hub is your starting point. It shows your overall progress, your bookmarks, and a grid of tracks. Click any track card to open it and see its lessons.",
+    "track-page": "A track page lists its lessons on one side and its templates on the other, with a progress bar on top, so you can pick up right where you left off.",
+    "lesson-page-learn-tab": "Every lesson opens on the Learn tab. Read the summary, or choose Read full lesson to load the whole text and the steps before you start creating.",
+    "lesson-page-see-tab": "The See tab shows example images and videos from the lesson. Open one for a larger view and use the Try this button to send it to the right studio.",
+    "lesson-page-create-tab": "The Create tab turns a lesson into something real. Open a linked template to build your deliverable, or launch a linked SmartVideo recipe where one is offered.",
+    "progress-tracking": "Use the round check button on a lesson to mark it complete. Click it again to clear it. Your progress is saved in this browser.",
+    "bookmarks": "Tap the star on a lesson to bookmark it for later. Bookmarked lessons are collected on the hub, ready whenever you want to return.",
+    "template-editor": "Templates open in an editor with Create, See and Learn tabs. Show an example to see a good answer, then use Use Template to copy your work."
+  },
+  "outro": "That's Academy. Pick a track that matches your goal, work through a lesson, and turn it into a deliverable with a template."
+}

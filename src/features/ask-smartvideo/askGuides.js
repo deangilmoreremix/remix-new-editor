@@ -25,6 +25,18 @@ export async function guideForStudio(studioId) {
   return guides.find((g) => g.route === studioId) || null;
 }
 
+let videosPromise = null;
+
+/** The studio's tour video ({ video, captions, poster, seconds }), or null when it has none. Lazy chunk. */
+export async function tourVideoFor(slug) {
+  if (!slug) return null;
+  if (!videosPromise) videosPromise = import('../../data/guideVideos.json').then((m) => m.default || m).catch(() => null);
+  const data = await videosPromise;
+  const v = data?.studios?.[slug];
+  if (!v) return null;
+  return { video: `${data.base}/${slug}/tour.mp4`, captions: `${data.base}/${slug}/captions.vtt`, poster: `${data.base}/${slug}/poster.webp`, seconds: v.seconds };
+}
+
 export const guideUrl = (g, f) => `/studios/${g.slug}/${f ? `#feature-${f.id}` : ''}`;
 
 const STOP = new Set(('the and for with how can what does that this from into your you are use using about which when where why who '

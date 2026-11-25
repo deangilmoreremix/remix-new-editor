@@ -1,0 +1,16 @@
+{
+  "slug": "timeline-editor",
+  "name": "Timeline Editor",
+  "intro": "Timeline Editor is a multi track video editor in your browser, with a media pool, trim tools, AI helpers and export, all in one place.",
+  "features": {
+    "project-manager": "The Project Manager is your starting point. Create a new project, give it a name, and each edit stays neatly separate.",
+    "import-media-files": "The import button in the media pool brings in your clips, music and voice-overs, ready to drag onto the timeline.",
+    "edit-tab-media-pool-and-viewers": "The Edit tab pairs a source viewer for a single clip with a timeline viewer that plays your whole edit as you build it.",
+    "tool-sidebar-and-shortcuts": "The tool sidebar holds the Selection tool, Blade, Ripple Trim and more, each with its own keyboard shortcut for fast cutting.",
+    "tracks": "Tracks let you layer b-roll, music and voice. Each track can be locked, muted or soloed, and you can add more at any time.",
+    "clip-properties-panel": "Select a clip and the properties panel opens, with controls for transform, effects, transitions, captions and fades.",
+    "fill-gap": "Fill Gap uses AI to bridge a gap between two clips, from a prompt you write, so you can smooth a jump cut.",
+    "export-tab": "The Export tab sets your preset, frame rate and aspect ratio, then renders the final MP4."
+  },
+  "outro": "That's Timeline Editor. Import, cut, polish and export, with AI close at hand whenever the edit needs a little help."
+}

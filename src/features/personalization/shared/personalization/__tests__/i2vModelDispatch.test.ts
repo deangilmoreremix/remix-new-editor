@@ -47,7 +47,7 @@ describe('image-to-video source models', () => {
   })
 
   it('prefers the first frame over the poster as the start image', async () => {
-    await run('seedance-2-i2v', { video_url: 'v.mp4', first_image_url: 'https://cdn.example/first.jpg' }, 'https://cdn.example/poster.jpg')
+    await run('seedance-2-i2v', { video_url: 'https://cdn.example/v.mp4', first_image_url: 'https://cdn.example/first.jpg' }, 'https://cdn.example/poster.jpg')
     expect((muapi.generateI2V.mock.calls[0] as any)[1].image_url).toBe('https://cdn.example/first.jpg')
   })
 

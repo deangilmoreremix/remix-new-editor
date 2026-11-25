@@ -52,6 +52,14 @@ export const GUIDE_CSS = `
 .sg h2{font-size:clamp(24px,3.2vw,34px);margin:0 0 8px;font-weight:800;letter-spacing:-.01em}
 .sg-sub{color:var(--mute);margin:0 0 28px;max-width:760px}
 .sg h3{font-size:20px;margin:0 0 10px;font-weight:700}
+.sg-tour{position:relative;max-width:960px}
+.sg-tour video{display:block;width:100%;max-width:960px;aspect-ratio:16/10;border-radius:16px;border:1px solid var(--line);background:#000;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.sg-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:96px;height:96px;border-radius:50%;border:0;background:var(--accent);cursor:pointer;display:grid;place-items:center;box-shadow:0 12px 44px rgba(0,0,0,.65),0 0 0 8px rgba(217,255,0,.18);transition:transform .2s,box-shadow .2s}
+.sg-play::before{content:"";width:0;height:0;border-style:solid;border-width:17px 0 17px 28px;border-color:transparent transparent transparent #0a0a0c;margin-left:7px}
+.sg-play:hover,.sg-play:focus-visible{transform:translate(-50%,-50%) scale(1.07);box-shadow:0 12px 44px rgba(0,0,0,.65),0 0 0 10px rgba(217,255,0,.3)}
+.sg-play[hidden]{display:none}
+.sg-tour-len{position:absolute;left:16px;top:16px;padding:6px 12px;border-radius:999px;background:rgba(10,10,12,.82);border:1px solid rgba(217,255,0,.45);color:#f4ffcc;font-size:13px;font-weight:700;letter-spacing:.04em;pointer-events:none}
+.sg-play[hidden]~.sg-tour-len{display:none}
 .sg-overview p{color:#c7cbd3;max-width:860px}
 .sg-chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
 .sg-chips li{font-size:13px;padding:6px 12px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);color:#d4d7de}
@@ -111,6 +119,36 @@ export const GUIDE_CSS = `
 .sg-foot a:hover{color:var(--accent)}
 .sg-cat{margin:0 0 48px;scroll-margin-top:80px}
 .sg-note{border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.08);border-radius:12px;padding:12px 16px;margin:20px 0 0;font-size:14px}
+.sg-appbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 20px}
+.sg-appsearch{flex:1 1 220px;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--text);padding:10px 14px;font:inherit;font-size:14px}
+.sg-appsearch:focus{outline:none;border-color:var(--accent)}
+.sg-appchips{display:flex;flex-wrap:wrap;gap:8px}
+.sg-chip{background:var(--panel2);border:1px solid var(--line);color:#d4d7de;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.sg-chip:hover{border-color:var(--accent);color:var(--accent)}
+.sg-chip[aria-pressed="true"]{background:rgba(217,255,0,.15);border-color:var(--accent);color:var(--accent)}
+.sg-appgrp{margin:0 0 32px}
+.sg-appgrp h3{display:flex;align-items:baseline;gap:8px}
+.sg-appgrp h3 span{font-size:13px;font-weight:600;color:var(--mute)}
+.sg-apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.sg-app{position:relative;display:block;text-align:left;width:100%;padding:0;font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:14px;overflow:hidden;transition:.2s}
+.sg-app:hover,.sg-app:focus-visible{border-color:rgba(217,255,0,.6);transform:translateY(-2px);outline:none}
+.sg-app img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--panel2)}
+.sg-app div{padding:10px 12px 12px}
+.sg-app strong{display:block;font-size:14px;margin-bottom:2px}
+.sg-app p{margin:0;font-size:12px;color:var(--mute);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sg-kind{position:absolute;top:8px;left:8px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,.7);color:var(--accent);border:1px solid rgba(217,255,0,.35)}
+.sg-app[hidden],.sg-appgrp[hidden]{display:none}
+.sg-noapps{color:var(--mute);margin:0}
+.sg-pv{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:rgba(0,0,0,.78);padding:16px}
+.sg-pv[hidden]{display:none}
+.sg-pv-box{display:flex;flex-direction:column;width:min(1180px,100%);height:min(860px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.sg-pv-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.sg-pv-head strong{font-size:16px}
+.sg-pv-count{font-size:12px;color:var(--mute);margin-right:auto}
+.sg-pv-head button{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:6px 12px;font:inherit;font-size:14px;cursor:pointer}
+.sg-pv-head button:hover{border-color:var(--accent);color:var(--accent)}
+.sg-pv-head .sg-btn{padding:6px 12px;font-size:13px}
+.sg-pv-frame{flex:1;width:100%;border:0;background:#050505}
 @media (max-width:860px){
   .sg-hero,.sg-feature{grid-template-columns:1fr;gap:20px}
   .sg-feature{padding:18px}
@@ -160,11 +198,56 @@ function featureCard(g, f, i) {
   <p class="sg-def"><strong>What it is:</strong> ${esc(f.definition)}</p><dl class="sg-dl">${rows}</dl></div></article>`;
 }
 
+/** The Edit Studio's apps: filterable cards (plain HTML so it prerenders) plus the preview dialog the page script opens. */
+function appsShowcase(g) {
+  const sc = g.appsShowcase;
+  if (!sc || !sc.total) return '';
+  const chips = [`<button type="button" class="sg-chip" data-app-cat="all" aria-pressed="true">All (${sc.total})</button>`]
+    .concat(sc.groups.map((c) => `<button type="button" class="sg-chip" data-app-cat="${esc(c.key)}" aria-pressed="false">${esc(c.label)} (${c.apps.length})</button>`)).join('');
+  const groups = sc.groups.map((c) => `<div class="sg-appgrp" data-app-group="${esc(c.key)}"><h3>${esc(c.label)} <span>${c.apps.length} apps</span></h3><div class="sg-apps">${c.apps.map((a) =>
+    `<button type="button" class="sg-app" data-app-slug="${esc(a.slug)}" data-app-name="${esc(a.name)}" data-app-text="${esc((a.name + ' ' + a.description).toLowerCase())}" aria-label="Preview ${esc(a.name)}">${a.thumbnail ? `<img src="${esc(a.thumbnail)}" alt="" width="400" height="300" loading="lazy" decoding="async">` : ''}<span class="sg-kind">${a.kind === 'video' ? 'Video' : 'Image'}</span><div><strong>${esc(a.name)}</strong><p>${esc(a.description)}</p></div></button>`).join('')}</div></div>`).join('');
+  return section('apps', `All ${sc.total} apps in ${g.name}`,
+    'One-click looks and effects for photos and video. Pick any app to open a live preview of its real controls, prompt box and price. Nothing is generated in the preview.',
+    `<div class="sg-appbar"><input class="sg-appsearch" type="search" data-app-search placeholder="Search ${sc.total} apps" aria-label="Search apps"><div class="sg-appchips" role="group" aria-label="App categories">${chips}</div></div>
+    ${groups}<p class="sg-noapps" data-app-empty hidden>No apps match that search.</p>
+    <div class="sg-pv" data-app-preview hidden role="dialog" aria-modal="true" aria-labelledby="app-preview-title"><div class="sg-pv-box"><div class="sg-pv-head">
+      <strong id="app-preview-title" data-pv-title></strong><span class="sg-pv-count" data-pv-count></span>
+      <button type="button" data-pv-prev aria-label="Previous app">←</button><button type="button" data-pv-next aria-label="Next app">→</button>
+      <a class="sg-btn ghost" data-pv-open href="/edit" target="_top">Open in Edit Studio</a><button type="button" data-pv-close aria-label="Close preview">✕</button></div>
+      <iframe class="sg-pv-frame" data-pv-frame title="Live app preview" loading="lazy"></iframe></div></div>`);
+}
+
+/**
+ * Make the tour video's play button work. The events are bound here, not as inline attributes, because the dev server's
+ * content security policy blocks inline handlers. Call it after the guide HTML is in the page. Safe to call twice.
+ */
+export function wireTourVideo(root = document) {
+  root.querySelectorAll('.sg-tour').forEach((box) => {
+    const video = box.querySelector('video');
+    const play = box.querySelector('.sg-play');
+    if (!video || !play || box.dataset.wired) return;
+    box.dataset.wired = '1';
+    // If playback cannot start (for example the file failed to load), uncover the player so its own controls and
+    // error message are visible and the viewer can retry, instead of leaving the big button over a dead video.
+    play.addEventListener('click', () => {
+      video.play().catch((err) => { play.hidden = true; console.warn('[guide] tour video could not start:', err && err.message); });
+    });
+    video.addEventListener('play', () => { play.hidden = true; });
+    video.addEventListener('ended', () => { play.hidden = false; });
+  });
+}
+
 /** Full HTML (inside #app) for one studio guide. */
 export function renderGuideHtml(g, allCount) {
   const toc = [];
   const parts = [];
   const add = (id, label, html) => { if (html) { toc.push([id, label]); parts.push(html); } };
+
+  const mm = g.tour ? `${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}` : '';
+  add('tour', 'Video tour', g.tour && section('tour', `Watch the ${g.name} tour`, `A ${mm} captioned walkthrough of the studio, with a sample file and prompt.`,
+    // The poster is the guide's own overview screenshot (a /guides/<slug>/ file); a guide without one has a generic fallback
+    // thumbnail elsewhere, so use the tour's own frame instead.
+    `<div class="sg-tour"><video controls preload="none" playsinline poster="${esc(/^\/guides\//.test(g.overview || '') ? g.overview : g.tour.poster)}" src="${esc(g.tour.video)}" aria-label="${esc(g.name)} tour video"></video><button type="button" class="sg-play" aria-label="Play the ${esc(g.name)} tour video, ${mm}"></button><span class="sg-tour-len">VIDEO · ${mm}</span></div>`));
 
   add('overview', 'Overview', section('overview', `What is ${g.name}?`, '', `<div class="sg-overview">
     <p>${esc(g.fullDescription || g.description)}</p>
@@ -174,6 +257,8 @@ export function renderGuideHtml(g, allCount) {
   add('features', `Features (${g.features.length})`, g.features.length && section('features', `Every ${g.name} feature, explained`,
     `${g.features.length} features, each with a definition, why you would use it, what it needs and its limits.`,
     g.features.map((f, i) => featureCard(g, f, i)).join('')));
+
+  add('apps', `Apps (${g.appsShowcase?.total || 0})`, appsShowcase(g));
 
   add('how-it-works', 'How it works', g.steps.length && section('how-it-works', `How to use ${g.name}`, g.howToUse ? '' : '',
     `<ol class="sg-steps">${g.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>`));
@@ -212,7 +297,7 @@ export function renderGuideHtml(g, allCount) {
     ${g.shortDescription ? `<p class="sg-tag">${esc(g.shortDescription)}</p>` : ''}
     <p class="sg-lead">${esc(g.description)}</p>
     ${g.bestFor ? `<p class="sg-best"><strong>Best for:</strong> ${esc(g.bestFor)}</p>` : ''}
-    <div class="sg-cta"><a class="sg-btn primary" href="${studioHref(g.route)}">Open ${esc(g.name)} →</a><a class="sg-btn ghost" href="#features">See all ${g.features.length} features</a></div>
+    <div class="sg-cta"><a class="sg-btn primary" href="${studioHref(g.route)}">Open ${esc(g.name)} →</a>${g.tour ? `<a class="sg-btn ghost" href="#tour"><span aria-hidden="true">▶</span> Watch the tour · ${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}</a>` : ''}<a class="sg-btn ghost" href="#features">See all ${g.features.length} features</a></div>
   </div><figure class="sg-shot" style="margin:0">${img(g.overview, `${g.name} screenshot`, true)}</figure></section>
   <nav class="sg-toc" aria-label="On this page"><strong>On this page</strong><ul>${toc.map(([id, l]) => `<li><a href="#${id}">${esc(l)}</a></li>`).join('')}</ul></nav>
   ${parts.join('')}

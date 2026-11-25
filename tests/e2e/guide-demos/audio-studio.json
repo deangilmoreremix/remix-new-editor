@@ -1,0 +1,55 @@
+{
+  "model-selector": {
+    "selector": "xpath=//button[starts-with(normalize-space(.),'Minimax Speech Turbo')]",
+    "click": true,
+    "then": [
+      {
+        "text": "Suno Create Music",
+        "hold": 2500
+      }
+    ]
+  },
+  "prompt": {
+    "selector": "xpath=//textarea",
+    "type": "Welcome to our spring collection. Fresh styles, made for you.",
+    "hold": 1500,
+    "click": true
+  },
+  "style-music": {
+    "setup": "(() => { Object.keys(localStorage).filter((k) => k.startsWith('hg_audio_studio_persistent')).forEach((k) => localStorage.removeItem(k)); localStorage.setItem('hg_audio_studio_persistent', JSON.stringify({\"selectedModelId\": \"suno-create-music\", \"params\": {}})); })()",
+    "selector": "xpath=//select[option[@value='hip-hop']]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//textarea",
+        "type": "Upbeat summer pop with bright synths",
+        "hold": 1500
+      }
+    ]
+  },
+  "duration": {
+    "setup": "(() => { Object.keys(localStorage).filter((k) => k.startsWith('hg_audio_studio_persistent')).forEach((k) => localStorage.removeItem(k)); localStorage.setItem('hg_audio_studio_persistent', JSON.stringify({\"selectedModelId\": \"suno-create-music\", \"params\": {}})); })()",
+    "selector": "xpath=//button[normalize-space(.)='60s']",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//textarea",
+        "type": "Calm ambient track for a travel vlog",
+        "hold": 1500
+      }
+    ]
+  },
+  "audio-upload-and-drag-and-drop": {
+    "setup": "(() => { Object.keys(localStorage).filter((k) => k.startsWith('hg_audio_studio_persistent')).forEach((k) => localStorage.removeItem(k)); localStorage.setItem('hg_audio_studio_persistent', JSON.stringify({\"selectedModelId\": \"suno-add-vocals\", \"params\": {}})); })()",
+    "selector": "xpath=//div[normalize-space(text())='Upload audio track']/ancestor::div[contains(@class,'cursor-pointer')][1]",
+    "click": true,
+    "upload": true,
+    "file": "audio",
+    "hold": 3000
+  },
+  "model-specific-controls": {
+    "selector": "xpath=//div[@id='schema-controls']//*[self::select or self::button or self::input][1]",
+    "click": true,
+    "hold": 2500
+  }
+}

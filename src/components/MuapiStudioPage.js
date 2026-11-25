@@ -83,7 +83,7 @@ export function MuapiStudioPage() {
       });
     } catch (err) {
       console.error('[muapi-studio] failed to load', err);
-      host.innerHTML = '<div class="w-full h-full flex items-center justify-center text-sm text-red-400">Could not load Muapi Studio. Please reload the page.</div>';
+      host.innerHTML = '<div class="w-full h-full flex items-center justify-center text-sm text-red-400">Could not load SmartVid Studio. Please reload the page.</div>';
     }
   })();
 

@@ -1,0 +1,17 @@
+{
+  "slug": "asset-editor",
+  "name": "Asset Editor",
+  "intro": "The Asset Editor is where you place, style and save the text on a campaign creative. It puts your headline, body and call to action over the picture.",
+  "features": {
+    "canvas": "The canvas shows your asset in its platform's shape, with live text over the picture. Click any text block to select it and see a dashed outline.",
+    "headline-body-and-cta-tabs": "The Headline, Body and CTA tabs choose which block you're editing. Clicking a block on the canvas does the same, so you can style each one separately.",
+    "text": "The Text box holds the words of the selected block, and the canvas updates as you type. Use it to reword the AI copy or fix a typo.",
+    "position": "Position gives you nine spots on a three by three grid. Choose one to place the block where your picture has empty space.",
+    "size": "Size offers small, medium, large and huge. Use it to set the hierarchy, so the headline stands out and the body stays supportive.",
+    "color": "Color sets the text color. You get swatches for white, black and your brand colors, plus a picker and a box for a hex code.",
+    "background": "Background puts a color behind the text. It helps text stand out on a busy picture, or gives your call to action a button shape.",
+    "font": "The Font list shows your brand fonts first, then clean fallbacks. Each option previews in its own typeface so you can choose at a glance.",
+    "save": "Save stores your text, picture and layout with the asset. There's no undo, so save often to keep your edits."
+  },
+  "outro": "That's the Asset Editor. Style each block, save your work, and your creative is ready for the campaign."
+}

@@ -5,10 +5,10 @@ import { createRoot } from 'react-dom/client'
 import { StudioCaptionLine } from '../StudioCaptionLine'
 import { CaptionsLayer } from '../CaptionsLayer'
 import { cleanStudioCaptions } from '../../captions/studioCaptions'
-import type { PreviewCaptions, PersonalizationPreviewSettings } from '../types'
+import { normalizeCaptions, type CaptionSettings } from '../captions'
 
 const frame = vi.hoisted(() => ({ current: 0 }))
-vi.mock('remotion', async (orig) => ({ ...(await orig<typeof import('remotion')>()), useCurrentFrame: () => frame.current }))
+vi.mock('remotion', async (orig) => ({ ...(await orig<typeof import('remotion')>()), useCurrentFrame: () => frame.current, useVideoConfig: () => ({ fps: 30, width: 1000, height: 1000, durationInFrames: 900 }) }))
 
 beforeAll(() => {
   ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -79,11 +79,10 @@ describe('StudioCaptionLine: the Caption Studio look, drawn as DOM', () => {
 })
 
 describe('CaptionsLayer chooses the Studio drawing when the project has one', () => {
-  const settings = { fps: 30, showEndCard: false, durationInFrames: 900, brandColors: { accent: '#00ff00' } } as unknown as PersonalizationPreviewSettings
-  const cues = [{ startMs: 0, endMs: 1600, text: 'legacy line' }]
-  const base: PreviewCaptions = { enabled: true, forUrl: 'https://x/v.mp4', style: 'bold', position: 'bottom', cues }
-  beforeEach(() => { frame.current = 15 }) // 500 ms
-  const layer = (c: PreviewCaptions, url = 'https://x/v.mp4') => draw(<CaptionsLayer captions={c} videoUrl={url} settings={settings} width={1000} height={1000} />)
+  const cues = [{ id: 'c1', start: 0, end: 1.6, text: 'legacy line' }]
+  const base = normalizeCaptions({ enabled: true, cues, style: {} })!
+  beforeEach(() => { frame.current = 15 }) // 0.5 s at 30 fps
+  const layer = (c: CaptionSettings) => draw(<CaptionsLayer captions={c} compH={1000} />)
 
   it('draws the studio pages', () => {
     const el = layer({ ...base, studio: studio() })
@@ -93,10 +92,9 @@ describe('CaptionsLayer chooses the Studio drawing when the project has one', ()
   it('keeps drawing the ordinary line when there is no studio data', () => {
     const el = layer(base)
     expect(el.querySelector('[data-caption-source]')).toBeNull()
-    expect(el.querySelector('[data-testid="captions-layer"]')?.getAttribute('data-caption-text')).toBe('legacy line')
+    expect(el.textContent).toContain('legacy line')
   })
-  it('still only draws over its own video, while switched on', () => {
-    expect(layer({ ...base, studio: studio() }, 'https://x/other.mp4').querySelector('[data-testid="captions-layer"]')).toBeNull()
+  it('draws nothing while switched off', () => {
     expect(layer({ ...base, enabled: false, studio: studio() }).querySelector('[data-testid="captions-layer"]')).toBeNull()
   })
 })

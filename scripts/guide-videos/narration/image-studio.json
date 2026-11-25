@@ -1,0 +1,16 @@
+{
+  "slug": "image-studio",
+  "name": "Image Studio",
+  "intro": "Image Studio is where you create AI images from a text description, or transform photos you upload, all from one prompt bar.",
+  "features": {
+    "text-to-image": "Type what you want into the prompt bar and generate. It's the fastest way to create something from nothing, and a sentence is enough to begin.",
+    "image-to-image-reference-images": "Add a reference image with the picker, the Pexels button or the attachment toolbar. The studio switches to image-to-image, so you can restyle or transform a photo.",
+    "model-picker": "The model picker opens a searchable list grouped by provider. Different models suit speed, photorealism, text inside images or anime, so try a few.",
+    "aspect-ratio-and-resolution": "Aspect Ratio matches the picture to where it's used, like nine by sixteen for stories. Resolution appears only for models that offer quality options.",
+    "advanced-panel": "The Advanced panel adds a Style Preset, Batch Count and model-specific controls, such as a seed for repeatable results.",
+    "tools-panel-quick-starters-and-prompt-enhancer": "The Tools button opens Quick Starters and a Prompt Enhancer. They help beginners write richer prompts, with one click to use them in the generator.",
+    "draw-sketch-a-reference": "Draw opens a sketch pad. Rough out shapes to control the composition, then add your sketch as a reference for the model to follow.",
+    "result-canvas-history-and-publish": "After generating, the result canvas offers Regenerate, Download and Publish to Social. The History strip keeps earlier images to restore, download or delete."
+  },
+  "outro": "That's Image Studio. Be specific, change one thing at a time, and use Regenerate to explore variations until the image feels right."
+}

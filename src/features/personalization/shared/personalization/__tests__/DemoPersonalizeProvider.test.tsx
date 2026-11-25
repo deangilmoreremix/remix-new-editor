@@ -1224,6 +1224,110 @@ describe('DemoPersonalizeProvider generation flows', () => {
   })
 })
 
+describe('DemoPersonalizeProvider AI-failure recovery (S2)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.resetModules()
+    URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test')
+    URL.revokeObjectURL = vi.fn()
+    generationPromiseResolvers.length = 0
+  })
+
+  const renderProvider = async () => {
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const root = createRoot(container)
+    await act(async () => { root.render(<DemoPersonalizeProvider><TestOpener /></DemoPersonalizeProvider>) })
+    return container
+  }
+
+  const openAndFail = async () => {
+    ;(runGeneration as any).mockRejectedValue(new Error('MuAPI is unavailable'))
+    await renderProvider()
+    await act(async () => {
+      ;(window as any).__personalizationCtx.openPersonalize({
+        source: { id: 'demo-1', title: 'Test', mediaType: 'video', originalPrompt: 'test', sourceMedia: null, poster: null, fullPrompt: 'test', shortPrompt: 'test', sourceType: 'landing-demo', model: 'kling-o1-video-edit', sourceMetadata: {} },
+      })
+    })
+    await act(async () => {
+      ;(window as any).__personalizationCtx.updateClientForm({ businessName: 'Kept Co', phone: '555-0100' })
+      ;(window as any).__personalizationCtx.setOutputType('video')
+      ;(window as any).__personalizationCtx.setMode('recreate')
+    })
+    await act(async () => { ;(window as any).__personalizationCtx.generate() })
+    await act(async () => { await new Promise((r) => setTimeout(r, 150)) })
+  }
+
+  it('a failed generation keeps everything and Return to editing sends nothing', async () => {
+    await openAndFail()
+    let ctx = (window as any).__personalizationCtx
+    expect(ctx.generation.status).toBe('error')
+    expect(ctx.generation.failedStage).toBe('generation')
+    expect(runGeneration).toHaveBeenCalledTimes(1)
+
+    await act(async () => { ctx.returnToEditing() })
+    await act(async () => { await new Promise((r) => setTimeout(r, 50)) })
+    ctx = (window as any).__personalizationCtx
+    expect(ctx.generation.status).toBe('idle')
+    expect(ctx.generation.errorMessage).toBeNull()
+    expect(ctx.clientForm.businessName).toBe('Kept Co')
+    expect(ctx.clientForm.phone).toBe('555-0100')
+    expect(ctx.mode).toBe('recreate')
+    expect(runGeneration, 'returning to editing must not start anything').toHaveBeenCalledTimes(1)
+  })
+
+  it('Retry repeats the same operation once per click', async () => {
+    await openAndFail()
+    let ctx = (window as any).__personalizationCtx
+    await act(async () => { await ctx.retry() })
+    expect(runGeneration).toHaveBeenCalledTimes(2)
+    ctx = (window as any).__personalizationCtx
+    expect(ctx.generation.status).toBe('error')
+    await act(async () => { await ctx.retry() })
+    expect(runGeneration).toHaveBeenCalledTimes(3)
+  })
+
+  it('a second Retry while one is running is ignored (a failed paid operation is never started twice)', async () => {
+    await openAndFail()
+    let release: () => void = () => {}
+    ;(runGeneration as any).mockImplementation(() => new Promise((_, reject) => { release = () => reject(new Error('still failing')) }))
+    const ctx = (window as any).__personalizationCtx
+    await act(async () => {
+      const first = ctx.retry()
+      const second = ctx.retry()
+      await Promise.resolve()
+      release()
+      await Promise.allSettled([first, second])
+    })
+    expect(runGeneration).toHaveBeenCalledTimes(2) // the original failure + exactly one retry
+  })
+
+  it('Return to editing is also available from a finished result and changes nothing else', async () => {
+    ;(runGeneration as any).mockResolvedValue({ type: 'video', url: 'https://example.com/v.mp4', metadata: { model: 'm' } })
+    ;(applyPostProcessing as any).mockResolvedValue({ finalUrl: 'https://example.com/v-final.mp4', originalUrl: 'https://example.com/v.mp4', applied: [] })
+    await renderProvider()
+    await act(async () => {
+      ;(window as any).__personalizationCtx.openPersonalize({
+        source: { id: 'demo-1', title: 'Test', mediaType: 'video', originalPrompt: 'test', sourceMedia: null, poster: null, fullPrompt: 'test', shortPrompt: 'test', sourceType: 'landing-demo', model: 'kling-o1-video-edit', sourceMetadata: {} },
+      })
+    })
+    await act(async () => {
+      ;(window as any).__personalizationCtx.updateClientForm({ businessName: 'Done Co' })
+      ;(window as any).__personalizationCtx.setOutputType('video')
+      ;(window as any).__personalizationCtx.setMode('recreate')
+    })
+    await act(async () => { ;(window as any).__personalizationCtx.generate() })
+    await act(async () => { await new Promise((r) => setTimeout(r, 300)) })
+    let ctx = (window as any).__personalizationCtx
+    expect(ctx.generation.status).toBe('complete')
+    await act(async () => { ctx.returnToEditing() })
+    ctx = (window as any).__personalizationCtx
+    expect(ctx.generation.status).toBe('idle')
+    expect(ctx.clientForm.businessName).toBe('Done Co')
+    expect(runGeneration).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('DemoPersonalizeProvider asset import / durable upload', () => {
   beforeEach(() => {
     vi.clearAllMocks()

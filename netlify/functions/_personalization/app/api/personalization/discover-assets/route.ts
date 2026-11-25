@@ -225,7 +225,7 @@ export async function POST(req: NextRequest) {
         safeMessage: `Missing required env vars: ${envCheck.missingRequired.join(', ')}`,
         correlationId,
       })
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+      return NextResponse.json({ error: `Server configuration error (missing: ${envCheck.missingRequired.join(', ')})`, code: 'ENV_MISSING', missing: envCheck.missingRequired }, { status: 500 })
     }
 
     const { userId } = await auth()

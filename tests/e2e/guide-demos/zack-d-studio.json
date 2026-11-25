@@ -1,0 +1,29 @@
+{
+  "templates": {
+    "selector": "#z-templates-btn",
+    "click": true,
+    "then": [
+      {
+        "text": "Use as template",
+        "hold": 2500
+      }
+    ]
+  },
+  "approve-script": {
+    "steps": [
+      {
+        "text": "Use as template",
+        "wait": 2500
+      }
+    ],
+    "selector": "textarea >> nth=1",
+    "click": true,
+    "type": " Quick fix: keep it punchy.",
+    "then": [
+      {
+        "text": "Approve",
+        "hold": 800
+      }
+    ]
+  }
+}

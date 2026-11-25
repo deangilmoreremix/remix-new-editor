@@ -1,0 +1,16 @@
+{
+  "slug": "animate-studio",
+  "name": "Animate Studio",
+  "intro": "Animate Studio brings a single image to life as a short video with AI motion. You add a picture, describe the movement, and choose the length.",
+  "features": {
+    "source-upload-image": "Start with the source. Upload image adds one picture, and a small preview appears under the picker once you've chosen it.",
+    "source-from-photo-studio": "From Photo Studio lets you pick a photoshoot you already made there, so you can animate a branded product image without uploading again.",
+    "motion-prompt-and-suggestion-chips": "The Motion Prompt box is where you describe the movement. Five suggestion chips fill it for you, like a slow pan or a gentle zoom.",
+    "duration-and-resolution": "Two dropdowns set Duration, from three to twelve seconds, and Resolution, from 480p up to 1080p. Start small for quick tests.",
+    "model-seedance-lite-default-choose-a-model": "By default Animate Studio uses Seedance Lite. Switch to Choose a model to pick from a large list of image-to-video models for a different look.",
+    "advanced-model-fields": "When you choose a model, advanced fields appear, like Negative Prompt and Seed, for steering the result and repeating it.",
+    "use-my-brand": "Use My Brand lets you connect your business name, colors and logos through personalization, to keep your animations on brand.",
+    "result-and-animation-history": "Your result appears with a player and a Download button, and Animation History keeps your recent animations close by."
+  },
+  "outro": "That's Animate Studio. Describe one motion at a time, test at low resolution, and a still image becomes a moving scene."
+}

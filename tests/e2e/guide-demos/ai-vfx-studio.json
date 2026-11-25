@@ -1,0 +1,26 @@
+{
+  "ai-effects-tab": {
+    "selector": "[data-vfx-tab]:nth-of-type(1)",
+    "click": true,
+    "then": [{ "selector": "[data-vfx-effect=\"Cakeify\"]", "hold": 1500 }]
+  },
+  "motion-controls-tab": {
+    "selector": "xpath=//button[contains(normalize-space(.),\"Motion Controls\")]",
+    "click": true,
+    "then": [{ "selector": "[data-vfx-effect]", "hold": 1500 }]
+  },
+  "vfx-tab": {
+    "selector": "xpath=//button[contains(normalize-space(.),\"VFX\")]",
+    "click": true,
+    "then": [{ "selector": "[data-vfx-effect]", "hold": 1500 }]
+  },
+  "image-input-upload-or-url": {
+    "selector": "[data-vfx-image]",
+    "click": true,
+    "upload": true, "file": "image", "hold": 3000
+  },
+  "prompt-box": {
+    "selector": "textarea",
+    "type": "a red sports car"
+  }
+}

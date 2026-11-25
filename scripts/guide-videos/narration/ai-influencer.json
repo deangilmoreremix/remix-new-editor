@@ -1,0 +1,16 @@
+{
+  "slug": "ai-influencer",
+  "name": "AI Influencer",
+  "intro": "AI Influencer is the SmartVideo studio for designing a consistent virtual character, built from your reference photo, picture options and a style preset.",
+  "features": {
+    "your-photo-reference-upload": "Start with Your Photo. Upload a reference photo or video, or browse stock photos from Pexels. Your character is built from this image, so pick a clear one.",
+    "visual-attributes-face-body-style-tabs": "Visual Attributes has Face, Body and Style tabs full of picture cards. Click one option in each category to shape your character in detail, without writing a long prompt.",
+    "shuffle-and-reset": "Shuffle picks a random option in every category when you want ideas. Reset clears every choice, so your photo and text do the work alone.",
+    "style-preset": "Style Preset gives you twenty one-click looks, with Realistic as the default. Pick one chip to set the overall mood of your character.",
+    "output-format": "Output Format matches your portrait to the platform, from an Instagram post to a story, a YouTube thumbnail or a Pinterest pin. Quick ratio buttons sit above the preview.",
+    "style-intensity-and-seed-lock-advanced": "In the Advanced panel, Style Intensity strengthens or softens the style, and Seed lock helps you repeat a look you like.",
+    "additional-instructions": "Additional instructions is an optional text box where you add a pose, an outfit, a setting or a mood.",
+    "history-strip": "The history strip keeps your earlier characters, so you can compare them and download the ones you like."
+  },
+  "outro": "That's the tour of AI Influencer. Build a look from pictures, add your own touches, and keep one character consistent across everything you share."
+}

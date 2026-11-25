@@ -47,6 +47,81 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
+describe('branded render evidence — free for visitors', () => {
+  it('lets a visitor who is not signed in render the branded video', async () => {
+    const ref: HarnessRef = { current: null }
+    await renderProvider(ref, { access: 'anonymous' })
+    await openSource(ref)
+    expect(getCtx(ref).access).toBe('anonymous')
+
+    await act(async () => {
+      getCtx(ref).approvePersonalization()
+    })
+    await act(async () => {})
+    renderMediaOnWeb.mockImplementation(async () => ({
+      getBlob: async () => new Blob(['fake-branded-video-bytes'], { type: 'video/mp4' }),
+    }))
+    await act(async () => {
+      await getCtx(ref).createFinalVideo()
+    })
+
+    expect(renderMediaOnWeb).toHaveBeenCalledTimes(1)
+    expect(getCtx(ref).generation.status).toBe('complete')
+    expect(getCtx(ref).result.url).toMatch(/^blob:/)
+  })
+
+  it('runs AI generation for a visitor with their own key, even with no AI mode chosen', async () => {
+    const { runGeneration } = await import('../generationRouter')
+    vi.mocked(runGeneration).mockResolvedValue({ type: 'video', url: 'https://cdn.example.com/ai.mp4' } as never)
+    const ref: HarnessRef = { current: null }
+    await renderProvider(ref, { access: 'anonymous' })
+    await openSource(ref)
+    expect(getCtx(ref).mode).toBeNull()
+
+    await act(async () => {
+      await getCtx(ref).createFinalVideo({ path: 'ai-generation' })
+    })
+    await act(async () => {})
+
+    expect(runGeneration).toHaveBeenCalledTimes(1)
+    const input = vi.mocked(runGeneration).mock.calls[0][0] as { prompt: string }
+    // Never an empty prompt.
+    expect(input.prompt.trim().length).toBeGreaterThan(0)
+    expect(renderMediaOnWeb).not.toHaveBeenCalled()
+  })
+})
+
+describe('branded render evidence — opening and closing scenes', () => {
+  it('renders the opening scene, the whole video and the closing scene', async () => {
+    const ref: HarnessRef = { current: null }
+    await renderProvider(ref)
+    await openSource(ref)
+
+    await act(async () => {
+      getCtx(ref).setRemotionDesign('scene-gradient-text-sweep', 'intro')
+    })
+    await act(async () => {
+      getCtx(ref).setRemotionDesign('lower-third', 'outro')
+    })
+    const videoFrames = getCtx(ref).previewSettings.durationInFrames
+    await act(async () => {
+      getCtx(ref).approvePersonalization()
+    })
+    await act(async () => {})
+
+    renderMediaOnWeb.mockImplementation(async () => ({
+      getBlob: async () => new Blob(['fake-branded-video-bytes'], { type: 'video/mp4' }),
+    }))
+    await act(async () => {
+      await getCtx(ref).createFinalVideo()
+    })
+
+    const opts = renderMediaOnWeb.mock.calls[0][0] as any
+    // Gradient Sweep is 110 frames; any other design plays for 3s (90 frames).
+    expect(opts.composition.durationInFrames).toBe(110 + videoFrames + 90)
+  })
+})
+
 describe('branded render evidence — expected MP4 properties', () => {
   it('produces an H.264 / MP4 / AAC file with even dimensions', async () => {
     const ref: HarnessRef = { current: null }

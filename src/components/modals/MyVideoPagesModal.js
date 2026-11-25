@@ -34,13 +34,16 @@ export function openMyVideoPages({ zIndex = 2000 } = {}) {
   head.append(title, closeBtn);
   const body = document.createElement('div');
   body.className = 'flex-1 min-h-0';
-  body.appendChild(LandingPagesStudio({ embedded: true }));
+  const studio = LandingPagesStudio({ embedded: true });
+  body.appendChild(studio);
   dialog.append(head, body);
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
   const close = () => {
     if (!overlay.isConnected) return;   // Escape and the close button can both fire: unlock once
     document.removeEventListener('keydown', onKey);
+    // Let the studio drop its SmartVid-account listener (see LandingPagesStudio container.cleanup).
+    try { studio.cleanup?.(); } catch { /* ignore */ }
     overlay.remove();
     unlockScroll();   // the page stays locked while the picker is still open
     openOverlay = null;
