@@ -133,6 +133,27 @@ export function SocialPublishProvider({
     });
   }, []);
 
+  /** Studio: swap in a locally prepared media file. Publish results belong to the old file, so they reset. */
+  const replaceAsset = useCallback((asset: Asset) => {
+    setState((s) => ({ ...s, asset: { ...(s.asset ?? asset), ...asset }, publishResults: [] }));
+  }, []);
+
+  /** Studio: restore a locally saved draft. Starts a new session so late results of the previous post are dropped. */
+  const restoreDraft = useCallback((snap: Record<string, any>) => {
+    sessionRef.current += 1;
+    setState((s) => ({
+      ...s,
+      sessionId: sessionRef.current,
+      asset: snap.asset ?? s.asset,
+      writeCopy: snap.writeCopy ?? s.writeCopy,
+      socialCopy: snap.socialCopy ?? s.socialCopy,
+      thumbnail: snap.thumbnail ?? s.thumbnail,
+      destinations: snap.destinations ?? s.destinations,
+      // A restored draft never inherits publish results: it must be published (or not) on its own.
+      publishResults: [],
+    }));
+  }, []);
+
   const closePublish = useCallback(() => {
     setState((s) => ({ ...s, open: false }));
   }, []);
@@ -201,6 +222,8 @@ export function SocialPublishProvider({
         updateDestinations={updateDestinations}
         updatePublishResults={updatePublishResults}
         onRequestApiKey={onRequestApiKey}
+        onReplaceAsset={replaceAsset}
+        onRestoreDraft={restoreDraft}
       />
     </SocialPublishContext.Provider>
   );

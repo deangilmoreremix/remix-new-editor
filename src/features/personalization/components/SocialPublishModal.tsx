@@ -12,6 +12,7 @@ import { WriteStep } from './social-publishing/steps/WriteStep';
 import ThumbnailStep from './social-publishing/steps/ThumbnailStep';
 import DestinationsStep from './social-publishing/steps/DestinationsStep';
 import ReviewPublishStep from './social-publishing/steps/ReviewPublishStep';
+import { SocialStudioPanel } from './social-publishing/studio/SocialStudioPanel';
 import type {
   Asset,
   CopyState,
@@ -42,6 +43,10 @@ interface SocialPublishModalProps {
   updatePublishResults: (results: PublishResult[], forSession?: number) => void;
   /** Opens the API keys modal (AI writing uses the customer's own OpenAI key). */
   onRequestApiKey?: () => void;
+  /** Studio tools: swap the post media for a locally prepared file (reframed, trimmed, compressed). */
+  onReplaceAsset?: (asset: Asset) => void;
+  /** Studio tools: restore a locally saved draft into the modal. */
+  onRestoreDraft?: (snapshot: Record<string, any>) => void;
 }
 
 const TOTAL_STEPS = 4;
@@ -65,6 +70,8 @@ export default function SocialPublishModal({
   sessionId,
   updatePublishResults,
   onRequestApiKey,
+  onReplaceAsset,
+  onRestoreDraft,
 }: SocialPublishModalProps) {
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
@@ -371,43 +378,60 @@ export default function SocialPublishModal({
               )}
             </div>
 
-            {/* Live preview */}
+            {/* Live preview + studio tools (previews, optimize, media, plan). */}
             {showPreview && (
-              <div className="w-full lg:w-[340px] flex-shrink-0">
-                <div className="sticky top-0 p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)]">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wide text-white/40 mb-3">
-                    Preview
-                  </h3>
-                  <div className="aspect-video rounded-lg overflow-hidden bg-black/50 flex items-center justify-center">
-                    {safeAsset.type === 'image' ? (
-                      <img
-                        src={safeAsset.url}
-                        alt="Preview"
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <video
-                        src={safeAsset.url}
-                        controls
-                        className="w-full h-full object-contain"
-                      />
-                    )}
-                  </div>
-                  <div className="mt-3 space-y-1">
-                    <p className="text-xs text-white/50 truncate" title={safeAsset.url}>
-                      {safeAsset.url}
-                    </p>
-                    {copy.title && (
-                      <p className="text-xs text-[var(--text-primary)] font-medium truncate">
-                        {copy.title}
-                      </p>
-                    )}
-                    {(copy.caption || copy.master) && (
-                      <p className="text-xs text-white/60 line-clamp-2">
-                        {copy.caption || copy.master}
-                      </p>
-                    )}
-                  </div>
+              <div className="w-full lg:w-[420px] flex-shrink-0">
+                <div className="sticky top-0">
+                  <SocialStudioPanel
+                    asset={safeAsset}
+                    copy={copy}
+                    writeCopy={writeCopy}
+                    socialCopy={socialCopy}
+                    thumbnail={thumbnail}
+                    destinations={destinations}
+                    publishResults={publishResults}
+                    onUpdateWriteCopy={updateWriteCopy}
+                    onUpdateThumbnail={updateThumbnail}
+                    onReplaceAsset={onReplaceAsset}
+                    onRestoreDraft={onRestoreDraft}
+                    onRetry={handleRetry}
+                  >
+                    <div>
+                      <h3 className="text-[11px] font-bold uppercase tracking-wide text-white/40 mb-3">
+                        Preview
+                      </h3>
+                      <div className="aspect-video rounded-lg overflow-hidden bg-black/50 flex items-center justify-center">
+                        {safeAsset.type === 'image' ? (
+                          <img
+                            src={safeAsset.url}
+                            alt="Preview"
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <video
+                            src={safeAsset.url}
+                            controls
+                            className="w-full h-full object-contain"
+                          />
+                        )}
+                      </div>
+                      <div className="mt-3 space-y-1">
+                        <p className="text-xs text-white/50 truncate" title={safeAsset.url}>
+                          {safeAsset.url}
+                        </p>
+                        {copy.title && (
+                          <p className="text-xs text-[var(--text-primary)] font-medium truncate">
+                            {copy.title}
+                          </p>
+                        )}
+                        {(copy.caption || copy.master) && (
+                          <p className="text-xs text-white/60 line-clamp-2">
+                            {copy.caption || copy.master}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </SocialStudioPanel>
                 </div>
               </div>
             )}
