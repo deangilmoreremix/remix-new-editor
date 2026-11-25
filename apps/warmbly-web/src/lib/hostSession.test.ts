@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import getToken from "./helper/getToken";
 import exchangeClerk from "./api/client/auth/exchangeClerk";
@@ -104,5 +104,42 @@ describe("host session (one login)", () => {
         for (const p of ["/smartwarmupai-app/app/emails", "/smartwarmupai-app/oauth/authorize", "/smartwarmupai-app/auth/login"]) {
             expect(isHostSessionExempt(p)).toBe(false);
         }
+    });
+
+    describe("when the backend is waking from idle", () => {
+        afterEach(() => vi.useRealTimers());
+
+        it("asks again after a gateway timeout instead of failing, and says it is starting", async () => {
+            vi.useFakeTimers();
+            document.body.innerHTML = '<div id="root"></div>';
+            clerk(signedIn());
+            vi.mocked(exchangeClerk)
+                .mockRejectedValueOnce({ error: "Gateway Timeout", message: "x", status: 504 })
+                .mockRejectedValueOnce({ error: "Network Error", message: "x" })
+                .mockResolvedValue(warmblySession());
+            const done = syncHostToken();
+            await vi.advanceTimersByTimeAsync(4_000);
+            expect(document.getElementById("root")?.textContent).toMatch(/Starting SmartWarmupAI/);
+            await vi.advanceTimersByTimeAsync(8_000);
+            await expect(done).resolves.toMatchObject({ access_token: "warmbly-access" });
+            expect(exchangeClerk).toHaveBeenCalledTimes(3);
+        });
+
+        it("does not retry a refusal", async () => {
+            clerk(signedIn());
+            vi.mocked(exchangeClerk).mockRejectedValue({ error: "Bad Request", message: "x", status: 400 });
+            await expect(syncHostToken()).rejects.toMatchObject({ status: 400 });
+            expect(exchangeClerk).toHaveBeenCalledTimes(1);
+        });
+
+        it("gives up after the last retry", async () => {
+            vi.useFakeTimers();
+            clerk(signedIn());
+            vi.mocked(exchangeClerk).mockRejectedValue({ error: "Gateway Timeout", message: "x", status: 504 });
+            const done = syncHostToken().catch((e) => e);
+            await vi.advanceTimersByTimeAsync(30_000);
+            await expect(done).resolves.toMatchObject({ status: 504 });
+            expect(exchangeClerk).toHaveBeenCalledTimes(4);
+        });
     });
 });

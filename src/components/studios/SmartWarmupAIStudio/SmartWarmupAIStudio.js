@@ -46,6 +46,27 @@ function frameBackground() {
   }
 }
 
+// With the live backend (apps/smartwarmupai-brand/live-config.js turns demo off) the service scales to zero when idle and takes up to
+// a minute to wake. Wake it while the person watches, instead of letting their first sign-in time out. A demo build has no backend and
+// skips this. Gives up after `maxMs` and loads the dashboard anyway, which then shows its own retry message.
+export async function waitForBackend({ onWaiting, maxMs = 120000, stepMs = 3000, fetchImpl = fetch, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
+  let live = false;
+  try {
+    const res = await fetchImpl(`${APP}/config.js`, { cache: 'no-store' });
+    live = res.ok && /DEMO:\s*["']0["']/.test(await res.text());
+  } catch { /* no config: demo */ }
+  if (!live) return;
+  onWaiting?.();
+  const until = Date.now() + maxMs;
+  while (Date.now() < until) {
+    try {
+      const res = await fetchImpl('/smartwarmupai-api/health', { cache: 'no-store' });
+      if (res.ok) return;
+    } catch { /* still waking */ }
+    await sleep(stepMs);
+  }
+}
+
 export function SmartWarmupAIStudio() {
   defaultToDarkTheme();
   const container = document.createElement('div');
@@ -100,6 +121,9 @@ export function SmartWarmupAIStudio() {
       Object.assign(host.style, { padding: '24px' });
       return;
     }
+    if (!wantsHelp) await waitForBackend({ onWaiting: () => { host.textContent = 'Starting SmartWarmupAI… this can take up to a minute after a quiet period.'; Object.assign(host.style, { padding: '24px' }); } });
+    if (disposed) return;
+    host.textContent = ''; Object.assign(host.style, { padding: '' });
     const appFrame = makeFrame('app', `${APP}${VIEW_ROUTES[hash] || '/app/emails'}`, 'SmartWarmupAI');
     if (helpBuilt) {
       // Help pages are folders (getting-started/index.html): keep the trailing slash so their relative links resolve.
