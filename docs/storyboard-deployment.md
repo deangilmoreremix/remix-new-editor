@@ -110,21 +110,20 @@ PORT=4000 NODE_ENV=development node backend/server.js
 1. Connect the repo to Render and create a new **Web Service**.
 2. Set the root directory to `backend/`.
 3. Set the start command to `node server.js`.
-4. Add the environment variables from §2.1 via the Render dashboard or
-   `render env set`.
+4. Add the environment variables from §2.1 via the Beam dashboard or `beam deploy --env`.
 5. Ensure `NODE_ENV=production` is set.
 6. Deploy from your target branch (e.g. `main` or `staging`).
 
 ```bash
 # Verify health after deploy:
-curl -s https://your-backend.onrender.com/health
+curl -s https://<your-backend-beam-url>/health
 # Expected: HTTP 200, {"status":"ok",...}
 ```
 
 ### 3.3 Verify deployed backend
 
 ```bash
-BACKEND="https://your-backend.onrender.com"
+BACKEND="https://<your-backend-beam-url>"
 
 curl -s -o /dev/null -w "HTTP %{http_code}\n" "$BACKEND/health"
 # Expected: HTTP 200
@@ -228,7 +227,7 @@ VITE_BACKEND_URL=http://localhost:4000
 ```
 
 > In production, `VITE_BACKEND_URL` should point to your deployed backend URL
-> (e.g. `https://your-backend.onrender.com`).
+> (e.g. `https://<your-backend-beam-url>`).
 
 ### 5.3 Start the dev server
 

@@ -28,7 +28,7 @@ const GLOBAL_VIDEO_DB_KEY = process.env.VIDEO_DB_API_KEY || '';
 // Resolve the OpenAI key to use for a given job.
 // Users may supply their own key in the request body (`apiKey`); that takes
 // precedence over the server's global key (set via Render env). This lets the
-// backend run on Render without a global key — each user brings their own.
+// backend run on Beam without a global key — each user brings their own.
 function resolveApiKey(payload) {
   const fromBody = payload && (payload.apiKey || (payload.settings && payload.settings.apiKey));
   return (fromBody && String(fromBody).trim()) || GLOBAL_OPENAI_API_KEY || '';
