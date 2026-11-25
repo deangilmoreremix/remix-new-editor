@@ -15,7 +15,7 @@
 
 import { withClerkAuth } from './_shared/clerkAuth.js';
 import { userMuapiKey, NEED_MUAPI_KEY, BAD_MUAPI_KEY } from './_shared/byok.js';
-import { muapiPost } from './cinegenProviders.js';
+import { muapiPost, muapiResult } from './cinegenProviders.js';
 import { liveModel, buildLivePayload } from '../../src/lib/muapi/liveCatalog.js';
 import { findCatalogModel } from '../../src/lib/muapi/genericModels.js';
 import {
@@ -70,7 +70,7 @@ export function buildSubmit(body = {}) {
   }
 }
 
-export async function handle(body, userId, { keys = {}, post = muapiPost, fetchImpl } = {}) {
+export async function handle(body, userId, { keys = {}, post = muapiPost, result = muapiResult, fetchImpl } = {}) {
   if (!keys.muapi) return fail(401, 'need_key', NEED_MUAPI_KEY);
 
   if (body.action === 'submit') {
@@ -108,7 +108,7 @@ export async function handle(body, userId, { keys = {}, post = muapiPost, fetchI
     const id = String(body.requestId || '');
     if (!/^[A-Za-z0-9_-]{4,128}$/.test(id)) return fail(400, 'bad_request', 'Invalid requestId');
     try {
-      const data = await post(`/predictions/${encodeURIComponent(id)}/result`, {}, undefined, keys.muapi);
+      const data = await result(id, undefined, keys.muapi);
       const status = String(data.status || '').toLowerCase();
       if (['completed', 'succeeded', 'success'].includes(status)) {
         const urls = realUrls(data);

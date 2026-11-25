@@ -210,6 +210,7 @@ export const NAV_GROUPS = [
     { id: 'smartwarmupai', label: 'SmartWarmupAI' },
     { id: 'viral', label: 'Viral' },
     { id: 'personalizer', label: 'Personalizer' },
+    { id: 'outreach', label: 'Video Outreach' },
     { id: 'website-builder', label: 'Website' },
   ] },
   { title: 'My Work', items: [

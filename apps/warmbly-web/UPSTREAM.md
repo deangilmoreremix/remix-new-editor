@@ -23,6 +23,13 @@ npm run verify:upstream -- /tmp/upstream
 | `src/lib/api/client/Client.ts` | axios uses the fetch adapter in demo mode |
 | `src/main.tsx` | `installDemo()` before the first render in demo mode |
 | `src/lib/demo/*` | added: recorded-data server, fake Phoenix socket, installer, `fixtures.json`, tests |
+| `src/lib/hostSession.ts`, `src/lib/api/client/auth/exchangeClerk.ts` | added: one login. Reads the host app's Clerk session (`window.top.Clerk`, same-origin iframe) and exchanges it at `POST /auth/clerk` (see `../warmbly-server/UPSTREAM.md`) for a Warmbly session; sign-out follows the host. Tests in `hostSession.test.ts` |
+| `src/lib/information.ts` | `HOST_SESSION` flag (`VITE_HOST_SESSION=1`, off in demo) |
+| `src/main.tsx` | `bootHostSession()` before the first render when `HOST_SESSION`, except on the provider pop-up landing pages (`isHostSessionExempt`) |
+| `src/router.tsx` | with `HOST_SESSION`, every `/auth/*` route goes to the host sign-in |
+| `src/lib/api/client/auth/refreshToken.ts` | with `HOST_SESSION`, refreshing re-reads the host token |
+| `src/lib/api/client/Request.ts` | with `HOST_SESSION`, a "confirm it is you" demand is met by taking the host session again (no dialog); tests in `Request.hostReauth.test.ts` |
+| `src/lib/api/hooks/auth/useLogout.ts` | with `HOST_SESSION`, logout also signs out of the host |
 | `UPSTREAM.md` | added: this file |
 
 ## Demo mode (no backend)
@@ -41,3 +48,9 @@ manifest. Lowercase identifiers (storage keys, `data-warmbly-*` attributes, API 
 touched, because a real backend depends on them. See `../smartwarmupai-brand/README.md`.
 
 Warmbly is a trademark of its owners; the Apache licence does not grant trademark rights, which is why the product is rebranded.
+
+## One login (real backend)
+
+Build with `VITE_HOST_SESSION=1` (and no `VITE_DEMO`) and the dashboard has no sign-in of its own: it takes the host app's Clerk
+session, exchanged once at startup and again only when the dashboard needs a fresh token. The backend side is `POST /auth/clerk`
+(set `CLERK_ISSUER`, `CLERK_SECRET_KEY`, `CLERK_AUTHORIZED_PARTIES` there). The shipped demo build is unchanged.

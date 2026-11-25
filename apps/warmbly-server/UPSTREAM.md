@@ -46,3 +46,24 @@ and add the studio's origin to the backend's `CORS_ALLOW_ORIGINS`. No rebuild is
 - **Real sending and syncing** need real mailboxes: Google and Microsoft OAuth apps (`BOX_GOOGLE_*`, `BOX_OUTLOOK_*`), DNS (SPF, DKIM, DMARC) for your domains, and an SMTP relay for the app's own email.
 - **Not rebranded:** text produced by the backend itself (emails, API messages, the AI assistant's answers) comes from upstream's code and uses its own name unless set through the brand environment variables above. The dashboard and Help site are rebranded at build time.
 - Cloud-only upstream features (its hosted warmup pool, billing) are not available to a self-hosted backend.
+
+## One login with the host app (Clerk)
+
+Added, not rewritten: `POST /v1/auth/clerk` exchanges the Clerk session token of a person signed in to the host app for a normal
+Warmbly session, so SmartWarmupAI has no second login. It sits beside the native Apple/Google token sign-in and reuses its account
+logic (find by `(issuer, subject)`, else by verified email, else create the account and workspace).
+
+| File | Change |
+|---|---|
+| `internal/pkg/idtoken/clerk.go`, `clerk_test.go` | added: Clerk session-token verifier (JWKS, issuer, authorized parties); reads the verified email from the Clerk Backend API |
+| `internal/pkg/idtoken/idtoken.go` | optional `noAudience` and `authorizedParties` on `Verifier` (Clerk tokens carry no `aud`) |
+| `internal/app/auth/external_idtoken.go`, `service.go`, `clerk_test.go` | `ClerkTokenAuth`, `WireClerk`; the shared flow takes a separate session provider |
+| `internal/app/token/config.go`, `internal/app/opsnotify/signin.go` | `AuthProviderClerk` ("SmartVideo account") |
+| `internal/api/handler/auth_external.go`, `internal/api/routes.go` | `ClerkTokenLogin`, `POST /auth/clerk` |
+| `internal/config/config_auth.go`, `cmd/backend/main.go` | settings and wiring; off unless `CLERK_ISSUER` is set |
+
+Settings (environment or secret store): `CLERK_ISSUER` (the Clerk Frontend API URL, e.g. `https://clerk.example.com`),
+`CLERK_SECRET_KEY` (Backend API key; reads the verified email, optional only if the Clerk session token is customized to carry
+`email` and `email_verified`), `CLERK_AUTHORIZED_PARTIES` (comma-separated origins of the host app, e.g. `https://smartvid.app`).
+Identities are stored as provider `oidc` with the Clerk issuer, so no migration is needed. An account that needs two-factor or a
+password link has no screen in the embedded dashboard and is refused.

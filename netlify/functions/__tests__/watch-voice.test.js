@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const muapiPost = vi.fn();
-vi.mock('../cinegenProviders.js', async (orig) => ({ ...(await orig()), muapiPost: (...a) => muapiPost(...a) }));
+const muapiResult = vi.fn();
+vi.mock('../cinegenProviders.js', async (orig) => ({ ...(await orig()), muapiPost: (...a) => muapiPost(...a), muapiResult: (...a) => muapiResult(...a) }));
 const { handle, resolveLine, cleanTokenValue, findVoiceClip } = await import('../watch-voice.js');
 
 const project = {
@@ -42,7 +43,7 @@ describe('watch-voice', () => {
     expect(body.cacheKey).toMatch(/^[a-f0-9]{64}$/);
     expect(muapiPost).toHaveBeenCalledWith('/minimax-speech-2.6-hd', expect.objectContaining({ text: 'Hi Ann, welcome!', voice_id: 'Calm_Woman' }));
     // status → done is cached for the next viewer named Ann
-    muapiPost.mockResolvedValueOnce({ status: 'completed', outputs: ['https://cdn.muapi.ai/a.mp3'] });
+    muapiResult.mockResolvedValueOnce({ status: 'completed', outputs: ['https://cdn.muapi.ai/a.mp3'] });
     await handle({ action: 'status', requestId: 'req1', cacheKey: body.cacheKey }, {});
     const again = JSON.parse((await handle({ action: 'submit', publishedId: 'abcd1234', clipId: 'speech-1', tokens: { firstname: 'Ann' } }, { ip: '1.1.1.2', fetchImpl: supabase() })).body);
     expect(again).toMatchObject({ status: 'done', url: 'https://cdn.muapi.ai/a.mp3', cached: true });

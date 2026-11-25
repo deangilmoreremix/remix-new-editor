@@ -19,6 +19,8 @@
  * server.
  */
 
+import { cardDetails, cardKey, cardSideFor } from './profileCard.js';
+
 export const DRAFT_KEY = 'outreach-draft-v1';
 // Sendspark-style: record, the AI intro (voice + greeting), the page, prospects, then generate and
 // share; Videos is the library of dynamic videos (campaigns).
@@ -58,7 +60,8 @@ export function defaultDraft() {
     header: 'Hi {{firstname}}, I made this for you',
     message: 'Excited to show how we can help {{company}}.',
     fallbacks: { firstname: 'there', company: 'your company' },
-    cta: { enabled: true, label: 'Schedule a demo', url: '' },
+    // live: "Talk live" on the landing page (src/lib/outreach/liveCall.js) while you're available in the studio.
+    cta: { enabled: true, label: 'Schedule a demo', url: '', live: false },
     // Who sent it (Customize step): shown on the landing page and in the page's menu bar.
     sender: { name: '', title: '', company: '', logo: '', photo: '' },
     // The landing page of this dynamic video (like Sendspark, the page belongs to the video): null = the plain
@@ -75,11 +78,17 @@ export function defaultDraft() {
     // 'recording': the video as recorded. 'website': each contact's website behind the camera bubble.
     // 'recording': the video as recorded. 'website' | 'image' | 'map': a per-contact picture behind a
     // round camera bubble: their website, an image (theirs or yours), or a map of their address.
-    background: { mode: 'recording', fallbackSite: '', image: '' },
+    // bubble: where your camera sits over the background ('fixed' in a corner, or 'spotlight': larger, bottom centre).
+    // scroll / scrollBack: a website background scrolls down (and back up); cursor: a pointer moves over it.
+    background: { mode: 'recording', fallbackSite: '', image: '', bubble: { mode: 'fixed', corner: 'bottom-left' }, scroll: true, scrollBack: false, onMissing: 'fallback' },
     // Map captures during Generate: { [normalized address]: image URL }.
     mapShots: {},
+    // Profile cards drawn during Generate (src/lib/outreach/profileCard.js): { [card key]: image URL }.
+    profileShots: {},
     // Screenshots captured during Generate: { [site home page]: image URL }.
     siteShots: {},
+    // Websites that could not be captured: { [site home page]: message }.
+    siteErrors: {},
     // Company logos found while capturing websites: { [site home page]: image URL }.
     siteLogos: {},
     email: { ...DEFAULT_EMAIL },
@@ -119,9 +128,11 @@ export function loadDraft(storage = globalThis.localStorage) {
       cta: { ...base.cta, ...(saved.cta || {}) },
       sender: { ...base.sender, ...(saved.sender || {}) },
       contacts: Array.isArray(saved.contacts) ? saved.contacts : [],
-      background: { ...base.background, ...(saved.background || {}) },
+      background: { ...base.background, ...(saved.background || {}), bubble: { ...base.background.bubble, ...(saved.background?.bubble || {}) } },
       siteShots: saved.siteShots && typeof saved.siteShots === 'object' ? saved.siteShots : {},
+      siteErrors: saved.siteErrors && typeof saved.siteErrors === 'object' ? saved.siteErrors : {},
       mapShots: saved.mapShots && typeof saved.mapShots === 'object' ? saved.mapShots : {},
+      profileShots: saved.profileShots && typeof saved.profileShots === 'object' ? saved.profileShots : {},
       siteLogos: saved.siteLogos && typeof saved.siteLogos === 'object' ? saved.siteLogos : {},
       lipsyncCache: saved.lipsyncCache && typeof saved.lipsyncCache === 'object' ? saved.lipsyncCache : {},
       chapters: Array.isArray(saved.chapters) ? saved.chapters : [],
@@ -286,7 +297,7 @@ export const CONTACT_FIELDS = [
   ['email', 'Email'],
   ['company', 'Company'],
   ['jobTitle', 'Job title'],
-  ['website', 'Website'],
+  ['website', 'Website or social page'],
   ['address', 'Address'],
   ['backgroundImage', 'Background image'],
   ['linkedin', 'LinkedIn URL'],
@@ -299,7 +310,7 @@ const HEADER_ALIASES = {
   email: ['email', 'emailaddress', 'mail', 'workemail'],
   company: ['company', 'companyname', 'organization', 'organisation', 'business', 'account'],
   jobTitle: ['jobtitle', 'title', 'role', 'position', 'job'],
-  website: ['website', 'url', 'site', 'domain', 'companywebsite', 'web'],
+  website: ['website', 'url', 'site', 'domain', 'companywebsite', 'web', 'websiteorsocialpage', 'social', 'socialurl', 'socialpage', 'youtube', 'tiktok', 'facebook', 'instagram'],
   address: ['address', 'streetaddress', 'location', 'fulladdress', 'officeaddress'],
   backgroundImage: ['backgroundimage', 'background', 'backgroundurl', 'bgimage', 'image', 'imageurl'],
   linkedin: ['linkedin', 'linkedinurl', 'linkedinprofile', 'linkedinprofileurl', 'personlinkedinurl', 'profileurl'],
@@ -361,6 +372,26 @@ export function makeContact(input = {}, { rand } = {}) {
   return c;
 }
 
+/** Whether "Add from my contacts" can be offered (Contact Picker API: Android Chrome). */
+export const contactPickerSupported = (nav = globalThis.navigator) => !!(nav?.contacts?.select);
+
+/**
+ * Contacts picked on the phone (Contact Picker API: { name: [], email: [] } each) → { contacts, skipped }.
+ * A prospect needs an email for their link, so contacts without one are skipped.
+ */
+export function contactsFromPicker(picked = [], opts) {
+  const contacts = [];
+  let skipped = 0;
+  for (const p of Array.isArray(picked) ? picked : []) {
+    const email = (p?.email || []).map((e) => String(e || '').trim()).find((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e));
+    if (!email) { skipped += 1; continue; }
+    const [first = '', ...rest] = String((p?.name || [])[0] || '').trim().split(/\s+/).filter(Boolean);
+    const c = makeContact({ firstName: first, lastName: rest.join(' '), email }, opts);
+    if (c) contacts.push(c); else skipped += 1;
+  }
+  return { contacts, skipped };
+}
+
 /** CSV rows + column mapping → { contacts, skipped } (rows without a name or email are skipped). */
 export function contactsFromRows(rows, mapping, opts) {
   const contacts = [];
@@ -420,13 +451,42 @@ export function mergeContacts(existing, incoming) {
 
 export const CSV_TEMPLATE = 'First Name,Last Name,Email,Company,Job Title,Website,Address,Background Image,LinkedIn URL\r\nMike,Markovic,mike@example.com,Acme,Head of Sales,acme.com,"1 Market St, San Francisco, CA",,https://www.linkedin.com/in/example\r\n';
 
-/** A website's home page, the key its screenshot is stored under (same rule as /api/outreach/site-shot). */
+// Social pages a background can show: their public profile page (same rule as /api/outreach/site-shot normalizeSite).
+const SOCIAL_HOSTS = {
+  'youtube.com': 'www.youtube.com', 'm.youtube.com': 'www.youtube.com',
+  'tiktok.com': 'www.tiktok.com', 'm.tiktok.com': 'www.tiktok.com',
+  'facebook.com': 'www.facebook.com', 'm.facebook.com': 'www.facebook.com', 'fb.com': 'www.facebook.com',
+  'instagram.com': 'www.instagram.com',
+  'x.com': 'x.com', 'twitter.com': 'x.com', 'mobile.twitter.com': 'x.com',
+};
+const bareHost = (h) => h.toLowerCase().replace(/\.$/, '').replace(/^www\./, '');
+function socialProfile(host, u) {
+  const parts = u.pathname.split('/').filter(Boolean).map((p) => p.replace(/[^A-Za-z0-9@._%-]/g, '')).filter(Boolean);
+  if (!parts.length) return '';
+  let keep;
+  if (host === 'www.youtube.com') keep = ['channel', 'c', 'user'].includes(parts[0]) ? parts.slice(0, 2) : parts[0].startsWith('@') ? parts.slice(0, 1) : [];
+  else if (host === 'www.tiktok.com') keep = parts[0].startsWith('@') ? parts.slice(0, 1) : [];
+  else if (host === 'www.facebook.com') {
+    if (parts[0] === 'profile.php') { const id = (u.searchParams.get('id') || '').replace(/\D/g, ''); return id ? `https://${host}/profile.php?id=${id}` : ''; }
+    keep = parts[0] === 'people' ? parts.slice(0, 3) : parts.slice(0, parts[0] === 'p' ? 2 : 1);
+  } else keep = parts.slice(0, 1);
+  return keep.length && keep.length >= (['channel', 'c', 'user', 'p'].includes(keep[0]) ? 2 : 1) ? `https://${host}/${keep.join('/')}` : '';
+}
+
+/**
+ * The key a background screenshot is stored under: a website's home page, or a social profile's own page
+ * (YouTube, TikTok, Facebook, Instagram, X). A LinkedIn link keeps its address so the server can say it
+ * can't be captured. Null when it isn't a web address.
+ */
 export function siteKey(raw) {
   const value = String(raw || '').trim();
   if (!value) return null;
   try {
     const u = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
     if ((u.protocol !== 'https:' && u.protocol !== 'http:') || !u.hostname.includes('.')) return null;
+    const social = SOCIAL_HOSTS[bareHost(u.hostname)];
+    if (social) return socialProfile(social, u) || null;
+    if (bareHost(u.hostname) === 'linkedin.com') return `https://www.linkedin.com${u.pathname.replace(/\/+$/, '') || '/'}`;
     return `${u.protocol}//${u.hostname.toLowerCase()}${u.port ? `:${u.port}` : ''}/`;
   } catch {
     return null;
@@ -435,14 +495,55 @@ export function siteKey(raw) {
 
 /** Every website a campaign needs a screenshot of: each contact's site, then the fallback. */
 export function sitesToCapture(draft) {
-  const sites = new Set((draft.contacts || []).map((c) => siteKey(c.website)).filter(Boolean));
+  const sites = new Set((draft.contacts || []).filter((c) => !c.backgroundShot).map((c) => siteKey(c.website)).filter(Boolean));
   const fallback = siteKey(draft.background?.fallbackSite);
   if (fallback) sites.add(fallback);
   return [...sites];
 }
 
-export const BACKGROUND_MODES = ['recording', 'website', 'image', 'map'];
-export const usesBackground = (draft) => ['website', 'image', 'map'].includes(draft.background?.mode);
+// Error handling (Sendspark's dynamic-background settings): when a prospect has no website, or theirs can't be
+// captured, either make their video over the fallback website, or make nothing and show an error to fix first.
+export const SITE_ERROR = 'URL returned an error. Please use a different URL.';
+export const RESTRICTED_ERROR = 'Page is content restricted. Please try a different page.';
+/** The message for a website that could not be captured (the server's own, for a login wall or LinkedIn). */
+export const siteErrorFor = (draft, c) => draft.siteErrors?.[siteKey(c?.website)] || SITE_ERROR;
+export const MISSING_MODES = [['fallback', 'Generate video using fallback data'], ['error', 'Don\u2019t generate: show an error so I can update it']];
+export const onMissingOf = (draft) => (draft.background?.onMissing === 'error' ? 'error' : 'fallback');
+
+/** A contact's website background: 'uploaded' (their own screenshot), 'own' (captured), 'error' (could not be captured), 'none' (no website), 'pending' (not checked yet). */
+export function siteStatus(draft, c) {
+  if (/^https:\/\//i.test(String(c?.backgroundShot || ''))) return 'uploaded';
+  const key = siteKey(c?.website);
+  if (!key) return 'none';
+  if (draft.siteShots?.[key]) return 'own';
+  if (draft.siteErrors?.[key]) return 'error';
+  return 'pending';
+}
+
+/** Contacts that stop the campaign when Error handling is "show an error": no website, or one that failed. */
+export function backgroundProblems(draft) {
+  if (draft.background?.mode !== 'website' || onMissingOf(draft) !== 'error') return [];
+  return (draft.contacts || []).filter((c) => ['none', 'error'].includes(siteStatus(draft, c)));
+}
+
+export const BACKGROUND_MODES = ['recording', 'website', 'image', 'map', 'profile'];
+export const BUBBLE_CORNERS = [['bottom-left', 'Bottom left'], ['bottom-right', 'Bottom right'], ['top-left', 'Top left'], ['top-right', 'Top right']];
+
+/** The camera bubble setting with defaults: { mode: 'fixed' | 'spotlight', corner }. */
+export function bubbleOf(draft) {
+  const b = draft.background?.bubble || {};
+  return { mode: b.mode === 'spotlight' ? 'spotlight' : 'fixed', corner: BUBBLE_CORNERS.some(([k]) => k === b.corner) ? b.corner : 'bottom-left' };
+}
+
+/** The published picture-in-picture for the bubble: a corner at 26% of the frame, or Spotlight (40%, bottom centre). */
+export function bubblePip(draft) {
+  const b = bubbleOf(draft);
+  return b.mode === 'spotlight' ? { corner: 'bottom-center', size: 40, shape: 'circle' } : { corner: b.corner, size: 26, shape: 'circle' };
+}
+
+/** Which side of the frame a profile card goes, away from the bubble. */
+export const cardSide = (draft) => cardSideFor(bubbleOf(draft));
+export const usesBackground = (draft) => ['website', 'image', 'map', 'profile'].includes(draft.background?.mode);
 
 /** A contact's address as a cache key (lower-case, single spaces). '' when there is none. */
 export const mapKey = (address) => String(address || '').trim().replace(/\s+/g, ' ').toLowerCase().slice(0, 200);
@@ -455,9 +556,11 @@ export function addressesToCapture(draft) {
 /** The picture behind this contact's camera bubble, or '' (then the fallback shows). */
 export function backgroundShotFor(draft, c) {
   const mode = draft.background?.mode;
-  if (mode === 'website') return draft.siteShots?.[siteKey(c.website)] || '';
+  // An uploaded screenshot (Prospects → Upload screenshot) wins over the captured one.
+  if (mode === 'website') return (/^https:\/\//i.test(String(c.backgroundShot || '')) ? c.backgroundShot : '') || draft.siteShots?.[siteKey(c.website)] || '';
   if (mode === 'image') return c.backgroundImage || '';
   if (mode === 'map') return draft.mapShots?.[mapKey(c.address)] || '';
+  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails(c, draft.fallbacks), cardSide(draft))] || '';
   return '';
 }
 
@@ -466,6 +569,7 @@ export function fallbackShotFor(draft) {
   const mode = draft.background?.mode;
   if (mode === 'website') return draft.siteShots?.[siteKey(draft.background.fallbackSite)] || '';
   if (mode === 'image' || mode === 'map') return /^https:\/\//i.test(String(draft.background.image || '')) ? draft.background.image : '';
+  if (mode === 'profile') return draft.profileShots?.[cardKey(cardDetails({}, draft.fallbacks), cardSide(draft))] || '';
   return '';
 }
 
@@ -560,7 +664,7 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, ext
       { id: `track-bg-${id}`, type: 'video', name: 'Contact background', muted: true, solo: false,
         // scroll: a website moves from its top (header, logo) to its bottom over the video, with a
         // pointer moving over it; images and maps stay still.
-        items: [{ id: `outreach-site-${id}`, name: 'Contact background', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot, fit: 'cover', ...(draft.background.mode === 'website' ? { scroll: true, cursor: draft.background.cursor !== false } : {}), left: 0, width: 100 }] },
+        items: [{ id: `outreach-site-${id}`, name: 'Contact background', type: 'image', src: '{{websiteShotUrl}}', fallbackSrc: fallbackShot, fit: 'cover', ...(draft.background.mode === 'website' && draft.background.scroll !== false ? { scroll: true, ...(draft.background.scrollBack ? { scrollBack: true } : {}), cursor: draft.background.cursor !== false } : {}), left: 0, width: 100 }] },
       { id: `track-cam-${id}`, type: 'video', name: 'Camera', muted: false, solo: false, items: cameraItems },
       voiceTrack,
     ].filter(Boolean)
@@ -581,7 +685,7 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, ext
     // The video's own shape (a square or vertical recording plays uncropped); a website background stays 16:9.
     ...(aspect && !website && aspect !== '16:9' ? { aspect } : {}),
     ...(chapters.length > 1 ? { chapters } : {}),
-    ...(website ? { multiCam: { mode: 'pip', mainTrackId: `track-bg-${id}`, secondTrackId: `track-cam-${id}`, pip: { corner: 'bottom-left', size: 26, shape: 'circle' } } } : {}),
+    ...(website ? { multiCam: { mode: 'pip', mainTrackId: `track-bg-${id}`, secondTrackId: `track-cam-${id}`, pip: bubblePip(draft) } } : {}),
     kind: 'outreach',
     campaign: { name: name.slice(0, 120), contacts: (draft.contacts || []).length },
     // Captions made in the Record step: the landing page's transcript (times match the recording,
@@ -594,6 +698,8 @@ export function buildCampaignProject(draft, { variants = {}, lipsync = null, ext
       cta: draft.cta?.enabled
         ? { label: String(draft.cta.label).trim(), url: draft.cta.url, ...(draft.cta.embed && calendarEmbedUrl(draft.cta.url) ? { embed: true } : {}) }
         : null,
+      // "Talk live with Sam now" on the page while Sam is available (just the first name is shown).
+      ...(draft.cta?.live ? { live: { host: String(draft.sender?.name || '').trim().split(/\s+/)[0].slice(0, 40) } } : {}),
     },
   };
 }
@@ -610,6 +716,7 @@ export function campaignLinks(draft, watchUrl, personalLink, variants = {}) {
     voiced: !!variants[c.id]?.url,
     // Which background the contact sees: their own site, or the fallback.
     ...(website ? { site: backgroundShotFor(draft, c) ? 'own' : 'fallback' } : {}),
+    ...(website && draft.background?.mode === 'website' && siteStatus(draft, c) === 'error' ? { siteError: true } : {}),
     link: personalLink(watchUrl, website ? contactProfileFor(draft, c) : contactProfile(c), tokens),
   }));
 }
@@ -659,6 +766,15 @@ export function listLibrary(storage = globalThis.localStorage) {
       video: e.draft.video?.url || '',
       thumbnailUrl: e.draft.campaign.links?.find((l) => l.thumbnailUrl)?.thumbnailUrl || '',
     }));
+}
+
+/** Generated campaigns that let prospects call live: [{ videoId, name, contacts }] (for the studio's host line). */
+export function liveCampaigns(storage = globalThis.localStorage, extra = null) {
+  const out = new Map();
+  const add = (d) => { if (d?.cta?.live && d.campaign?.id) out.set(d.campaign.id, { videoId: d.campaign.id, name: d.name || 'Untitled campaign', contacts: (d.contacts || []).map((c) => ({ id: c.id, firstName: c.firstName, lastName: c.lastName, email: c.email })) }); };
+  for (const e of Object.values(readLibrary(storage))) add(e?.draft);
+  add(extra);
+  return [...out.values()].slice(0, 20);
 }
 
 /** A saved campaign's draft (merged over defaults like loadDraft), or null. */

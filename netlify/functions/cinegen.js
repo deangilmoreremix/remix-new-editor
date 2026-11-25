@@ -18,7 +18,7 @@
  */
 import { withClerkAuth } from './_shared/clerkAuth.js';
 import { userMuapiKey, NEED_MUAPI_KEY, BAD_MUAPI_KEY } from './_shared/byok.js';
-import { muapiPost, extractRealUrl } from './cinegenProviders.js';
+import { muapiPost, muapiResult, extractRealUrl } from './cinegenProviders.js';
 
 export const TOOLS = ['fill_gap', 'extend', 'element_create', 'shot_board', 'generate'];
 export const VIDEO_MODELS = ['seedance-lite-t2v', 'seedance-pro-t2v', 'seedance-pro-t2v-fast'];
@@ -116,7 +116,7 @@ export function normalizeResult(tool, data, p = {}) {
 
 const authFailure = (err) => (err?.status === 401 || err?.status === 402 || err?.status === 403) ? fail(401, 'bad_key', BAD_MUAPI_KEY) : null;
 
-export async function handle(body, userId, { key = null, post = muapiPost } = {}) {
+export async function handle(body, userId, { key = null, post = muapiPost, result = muapiResult } = {}) {
   if (!key) return fail(401, 'need_key', NEED_MUAPI_KEY);
   const tool = String(body.tool || '');
   if (!TOOLS.includes(tool)) return fail(400, 'bad_request', 'Unsupported tool');
@@ -143,7 +143,7 @@ export async function handle(body, userId, { key = null, post = muapiPost } = {}
     const id = String(body.requestId || '');
     if (!/^[A-Za-z0-9_-]{4,128}$/.test(id)) return fail(400, 'bad_request', 'Invalid requestId');
     try {
-      const data = await post(`/predictions/${encodeURIComponent(id)}/result`, {}, undefined, key);
+      const data = await result(id, undefined, key);
       const status = String(data.status || '').toLowerCase();
       if (['completed', 'succeeded', 'success'].includes(status)) return json(200, { ok: true, status: 'done', result: normalizeResult(tool, data, params) });
       if (['failed', 'error'].includes(status)) return json(200, { ok: true, status: 'failed', error: 'The AI service could not make this.' });
