@@ -23,7 +23,6 @@ import { PREVIEW_ASPECT_RATIOS } from '../preview/types'
 import { PREVIEW_LAYOUTS } from '../preview/presets'
 import { chooseFinalOutputPath } from '../finalOutput'
 import { ExtraFormatsExport } from './ExtraFormatsExport'
-import { CaptionsPanel } from './CaptionsPanel'
 
 /**
  * Simple Mode step 4 — free Before/After preview, direct on-video overlay
@@ -477,7 +476,6 @@ export function StepPreviewApprove(): React.JSX.Element {
             </div>
           )}
         </div>
-        {isBrandedPath && !inputProps.isImageSource && <CaptionsPanel videoUrl={inputProps.videoUrl} disabled={generating} brand={inputProps.brand} />}
         {isBrandedPath && previewApproved && (
           <>
             {/* Two free ways to export other shapes. They share one renderer, so each is disabled while the other runs. */}

@@ -5,7 +5,6 @@
  */
 
 import type { ImageHints, ImageRole, ImageStyle } from './imageStyle'
-import type { StudioCaptions } from '../captions/studioCaptions'
 
 export type PreviewLayoutId =
   | 'business-introduction'
@@ -169,35 +168,6 @@ export interface PreviewAudioSelection {
   name: string
 }
 
-/** Look of burned-in captions. */
-export type BuiltInCaptionStyleId = 'bold' | 'bar' | 'clean'
-/** A built-in look, or the id of one of the 27 Capite looks (captions/capiteStyles.ts). Checked when a project is read back. */
-export type CaptionStyleId = BuiltInCaptionStyleId | (string & {})
-export type CaptionPosition = 'bottom' | 'middle' | 'top'
-
-export interface PreviewCaptionWord { text: string; startMs: number; endMs: number }
-export interface PreviewCaptionCue { startMs: number; endMs: number; text: string; words?: PreviewCaptionWord[] }
-
-/**
- * Captions drawn INTO the video (preview and export), made on the customer's own device from the video's speech.
- * `forUrl` is the video they were written for: they are drawn only over that video, never over a different one.
- */
-export interface PreviewCaptions {
-  enabled: boolean
-  forUrl: string
-  style: CaptionStyleId
-  position: CaptionPosition
-  cues: PreviewCaptionCue[]
-  /**
-   * Captions made in the Caption Studio: ready-made pages plus the full style (font, colours, outline, height, motion). When present the
-   * preview and every export draw THESE, so what was designed in the Studio is what is exported; `cues` still carry the text for the list,
-   * SRT/VTT and as the fallback.
-   */
-  studio?: StudioCaptions
-  /** Language of the words (ISO code such as `es` or `pt-BR`), when known: sets the font fallback, size and reading direction. Absent = work it out from the text. */
-  language?: string
-}
-
 export interface PersonalizationPreviewSettings {
   layout: PreviewLayoutId
   layers: PreviewLayer[]
@@ -238,10 +208,10 @@ export interface PersonalizationPreviewSettings {
    * editor, preview and export — style the same image the same way.
    */
   imageHints?: Record<string, ImageHints>
-  /** Burned-in captions (optional: absent = none). */
-  captions?: PreviewCaptions
   /** A color and film look for the footage (not the brand overlays). Optional so saved projects restore unchanged. */
   look?: import('./effects').LookSettings
+  /** Timed captions over the video, with the spoken word highlighted. Optional so saved projects restore unchanged. */
+  captions?: import('./captions').CaptionSettings
   /** Named looks for text layers and captions, saved with the project. Optional so saved projects restore unchanged. */
   textStyles?: import('./textStyles').SavedTextStyle[]
   /**
