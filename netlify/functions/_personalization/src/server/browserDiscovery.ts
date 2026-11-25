@@ -1807,6 +1807,8 @@ const brandFrom = (styles: Record<string, string | null> | undefined): PageCaptu
 
 export interface PageCapture {
   url: string
+  /** The HTTP status of the page asked for (0 when unknown). A 401/403/429 is usually a login wall or a block. */
+  status?: number
   title: string
   /** JPEG of the page, CAPTURE_VIEWPORT.width CSS px wide at CAPTURE_DEVICE_SCALE. Null when the host ran out of time before a picture was taken: the words and colours are still returned. */
   page: Buffer | null
@@ -2445,7 +2447,7 @@ export async function capturePageScreenshots(
       let out: PageCapture | null = null
 
       const work = async (): Promise<PageCapture> => {
-        await page.goto(baseTarget.url, { waitUntil: 'domcontentloaded', timeout: options.navigationMs ?? CAPTURE_NAVIGATION_TIMEOUT })
+        const response = await page.goto(baseTarget.url, { waitUntil: 'domcontentloaded', timeout: options.navigationMs ?? CAPTURE_NAVIGATION_TIMEOUT })
         const finalTarget = await guard.validateNavigationTarget(page.url())
         if (!sameSiteHost(baseTarget.hostname, finalTarget.hostname)) {
           throw new BrowserSsrfError('Navigation left the validated origin', page.url(), finalTarget.hostname)
@@ -2460,6 +2462,7 @@ export async function capturePageScreenshots(
         const styles0 = await page.evaluate(readBrandStyles).catch((e) => warnStep('brand', e) ?? ({} as Record<string, string | null>))
         const snapshot: PageCapture = {
           url: page.url(),
+          status: response?.status() ?? 0,
           title: String((await page.title().catch(() => '')) ?? '').slice(0, 200),
           page: null,
           pageHeight: CAPTURE_VIEWPORT.height,
