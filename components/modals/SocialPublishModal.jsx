@@ -4,7 +4,14 @@ import socialPublishing, {
   SOCIAL_PLATFORMS,
   YOUTUBE_CATEGORIES,
   getExternalUserId,
+  extractYoutubeVideoId,
 } from '../../lib/socialPublishing';
+import {
+  SCHEDULE_PRESETS,
+  createScheduledPost,
+  resolveScheduleTime,
+  validateScheduleTime,
+} from '../../lib/socialSchedule';
 
 import { enhanceSocialPostText, TONALITIES } from '../../lib/socialPostEnhancer';
 import openaiConfig from '../../lib/config/openaiConfig.js';
@@ -516,6 +523,13 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   const [lastResponseIds, setLastResponseIds] = useState({}); // field -> responseId
   const [errorMsg, setErrorMsg] = useState(null);
   const [resultUrl, setResultUrl] = useState('');
+  const [thumbWarning, setThumbWarning] = useState('');
+
+  // When to publish: 'now' or a SCHEDULE_PRESETS id. Callers (e.g. the Smart
+  // Video Scheduler) open the modal with mode: 'schedule' to start on a preset.
+  const [scheduleMode, setScheduleMode] = useState(opts.mode === 'schedule' ? '1h' : 'now');
+  const [customWhen, setCustomWhen] = useState('');
+  const [scheduledFor, setScheduledFor] = useState(null);
 
   const [enhancing, setEnhancing] = useState(null); // field currently being AI-enhanced
   const [renamingId, setRenamingId] = useState(null); // account id being renamed
@@ -822,7 +836,12 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         share_to_feed: !!form.share_to_feed,
       };
       if (form.caption.trim()) payload.caption = form.caption.trim();
-      if (form.cover_url.trim()) payload.cover_url = form.cover_url.trim();
+      // The AI thumbnail is what the user picked in the Thumbnail step, so it is
+      // the Reel cover unless they typed a cover URL themselves. Instagram needs
+      // a public JPEG/PNG URL.
+      const aiThumb = form.thumbnail?.imageUrl;
+      const cover = form.cover_url.trim() || (/^https:\/\//.test(aiThumb || '') ? aiThumb : '');
+      if (cover) payload.cover_url = cover;
       if (form.thumb_offset !== '' && Number(form.thumb_offset) >= 0) {
         payload.thumb_offset = Number(form.thumb_offset);
       }
@@ -870,6 +889,27 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         result?.publish_id ||
         '';
       setResultUrl(typeof link === 'string' ? link : '');
+      setThumbWarning('');
+      // YouTube's publish call has no thumbnail field, so the chosen thumbnail
+      // is applied afterwards. The video is already live, so a failure here is
+      // a warning, not a publish error.
+      const aiThumb = form.thumbnail?.imageUrl;
+      if (platform === 'youtube' && aiThumb) {
+        const videoId = extractYoutubeVideoId(typeof link === 'string' ? link : '');
+        if (!videoId || !/^https:\/\//.test(aiThumb)) {
+          setThumbWarning('The video is live, but the thumbnail could not be applied. Set it in YouTube Studio.');
+        } else {
+          try {
+            setProgress('Applying thumbnail…');
+            await socialPublishing.setYoutubeThumbnail(
+              { accountId: selectedAccount.id, videoId, thumbnailUrl: aiThumb },
+              controller.signal,
+            );
+          } catch (thumbErr) {
+            setThumbWarning(`The video is live, but the thumbnail was not applied (${thumbErr?.message || 'unknown error'}). Set it in YouTube Studio.`);
+          }
+        }
+      }
       setStatus('success');
       if (typeof opts.onPublished === 'function') {
         opts.onPublished({ platform, url: typeof link === 'string' ? link : '', raw: result });
@@ -879,6 +919,59 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       setStatus('error');
     }
   }, [mediaUrl, selectedAccount, form, opts, buildPayload]);
+
+  const handleSchedule = useCallback(async () => {
+    if (!isValidMediaUrl(mediaUrl)) {
+      setErrorMsg('Enter a valid public http(s) media URL.');
+      return;
+    }
+    if (!/^https:\/\//.test(mediaUrl)) {
+      setErrorMsg('Scheduled posts need an https media URL.');
+      return;
+    }
+    if (!selectedAccount) {
+      setErrorMsg('Select a destination account.');
+      return;
+    }
+    const platform = selectedAccount.platform_name;
+    if ((platform === 'youtube' || platform === 'tiktok') && !form.title.trim()) {
+      setErrorMsg(`${PLATFORM_BY_ID[platform]?.label || platform} requires a title.`);
+      return;
+    }
+    const when = resolveScheduleTime(scheduleMode, customWhen);
+    const timeError = validateScheduleTime(when);
+    if (timeError) {
+      setErrorMsg(timeError);
+      return;
+    }
+
+    setStatus('publishing');
+    setErrorMsg(null);
+    setProgress('Scheduling…');
+    try {
+      // buildPayload also carries account_id/media_url; the server stores those
+      // as their own columns and rebuilds the call from them.
+      const { account_id: _a, media_url: _m, ...payload } = buildPayload(platform);
+      const thumb = form.thumbnail?.imageUrl;
+      const post = await createScheduledPost({
+        platform,
+        accountId: selectedAccount.id,
+        mediaUrl,
+        thumbnailUrl: /^https:\/\//.test(thumb || '') ? thumb : null,
+        runAt: when,
+        payload,
+      });
+      setScheduledFor(when);
+      setStatus('scheduled');
+      if (typeof opts.onScheduled === 'function') opts.onScheduled({ platform, post });
+    } catch (e) {
+      setErrorMsg(e.message || 'Could not schedule the post.');
+      setStatus('error');
+    }
+  }, [mediaUrl, selectedAccount, form, opts, buildPayload, scheduleMode, customWhen]);
+
+  const isScheduling = scheduleMode !== 'now';
+  const handlePrimary = isScheduling ? handleSchedule : handlePublish;
 
   // --- draft / preview helpers ----------------------------------------------
   const handleSaveDraft = () => {
@@ -931,7 +1024,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       }
       if (e.key === 'Enter' && mod && !publishDisabled) {
         e.preventDefault();
-        handlePublish();
+        handlePrimary();
       }
       if ((e.key === 'g' || e.key === 'G') && mod && selectedAccount) {
         e.preventDefault();
@@ -941,7 +1034,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form, enhancing, publishDisabled, selectedAccount]);
+  }, [form, enhancing, publishDisabled, selectedAccount, handlePrimary]);
 
   // --- render ---------------------------------------------------------------
 
@@ -1329,6 +1422,21 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         </div>
       )}
 
+      {status === 'success' && thumbWarning && (
+        <div role="status" style={{ color: '#fcd34d', fontSize: 13, margin: '0 0 12px', padding: '10px 12px', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)', borderRadius: 10 }}>
+          {thumbWarning}
+        </div>
+      )}
+
+      {status === 'scheduled' && scheduledFor && (
+        <div role="status" style={{ color: C.green, fontSize: 14, margin: '0 0 12px', padding: '12px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.35)', borderRadius: 10 }}>
+          🗓️ Scheduled for {scheduledFor.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}.
+          <div style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>
+            Your Muapi key is stored encrypted until this post has published, then removed.
+          </div>
+        </div>
+      )}
+
       {status === 'publishing' && (
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: 99, display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />
@@ -1337,6 +1445,43 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       )}
 
       </div>
+
+      {/* When to publish */}
+      {status !== 'success' && status !== 'scheduled' && (
+        <div style={{ padding: '10px 28px 0' }}>
+          <div style={{ ...labelStyle, margin: '0 0 8px' }}>When</div>
+          <div role="radiogroup" aria-label="When to publish" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {SCHEDULE_PRESETS.map((preset) => {
+              const active = scheduleMode === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setScheduleMode(preset.id)}
+                  style={{
+                    ...ghostBtn, minHeight: 34, padding: '0 12px', fontSize: 12,
+                    borderColor: active ? C.accent : undefined,
+                    color: active ? C.accent : undefined,
+                  }}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
+          </div>
+          {scheduleMode === 'custom' && (
+            <input
+              type="datetime-local"
+              aria-label="Publish date and time"
+              value={customWhen}
+              onChange={(e) => setCustomWhen(e.target.value)}
+              style={{ ...inputStyle, marginTop: 8, maxWidth: 260 }}
+            />
+          )}
+        </div>
+      )}
 
       {/* Footer actions: secondary buttons, then the lime Publish button */}
       <div style={{
@@ -1347,11 +1492,13 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         <button type="button" style={{ ...ghostBtn, minHeight: 40, padding: '0 16px' }} onClick={handleSaveDraft}>Save draft (⌘S)</button>
         <button type="button" style={{ ...ghostBtn, minHeight: 40, padding: '0 16px', opacity: canPreview ? 1 : 0.5 }} disabled={!canPreview} onClick={() => setActiveStep('preview')}>Preview</button>
         <button type="button" style={{ ...ghostBtn, minHeight: 40, padding: '0 16px' }} onClick={handleClose}>Close</button>
-        {status === 'success' ? (
+        {status === 'success' || status === 'scheduled' ? (
           <button type="button" style={primaryBtn(false)} onClick={handleClose}>Done</button>
         ) : (
-          <button type="button" style={primaryBtn(publishDisabled)} disabled={publishDisabled} onClick={handlePublish}>
-            {status === 'publishing' ? 'Publishing…' : 'Publish (⌘Enter)'}
+          <button type="button" style={primaryBtn(publishDisabled)} disabled={publishDisabled} onClick={handlePrimary}>
+            {status === 'publishing'
+              ? (isScheduling ? 'Scheduling…' : 'Publishing…')
+              : (isScheduling ? 'Schedule (⌘Enter)' : 'Publish (⌘Enter)')}
           </button>
         )}
       </div>

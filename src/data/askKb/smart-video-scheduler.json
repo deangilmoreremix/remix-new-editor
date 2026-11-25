@@ -2,122 +2,180 @@
   "id": "smart-video-scheduler",
   "name": "Smart Video Scheduler",
   "route": "#/smart-video-scheduler",
-  "description": "An early content-calendar page with Calendar, Schedule and Analytics tabs. Scheduling itself is not available yet.",
-  "shortDescription": "Content calendar page with Calendar, Schedule and Analytics tabs (preview).",
-  "fullDescription": "Smart Video Scheduler (#/smart-video-scheduler, also opened by #/brightbean) is a preview of a content calendar. The page title reads 'Smart Video Scheduler'. Three tabs switch the main area: Calendar shows 'Content Calendar - Your scheduled posts will appear here. Connect your social accounts to start scheduling.', Schedule shows 'Schedule Posts - Schedule your content for the best times. AI will suggest optimal posting times.' and Analytics shows 'Analytics - Track your post performance across all platforms.' Each tab is a placeholder message: there is no calendar grid, no way to add or schedule a post, no social account connection, no AI caption helper and no analytics data on this page yet.",
-  "bestFor": "People who want to see what the planned scheduling area will look like. For posting or scheduling content today, use the publishing options in the other studios.",
+  "description": "A content calendar for scheduled social posts. The Calendar tab lists posts you have scheduled to YouTube, TikTok and Instagram, Schedule opens the Publish to Social window ready to schedule, and Analytics shows counts of your scheduled, published and failed posts.",
+  "shortDescription": "Schedule posts to YouTube, TikTok and Instagram and see them on a calendar.",
+  "fullDescription": "Smart Video Scheduler (#/smart-video-scheduler, also opened by #/brightbean) lets you schedule social posts and follow them. Calendar (open by default) lists your scheduled posts grouped by day, each with its time, platform and status (Scheduled, Publishing, Published or Failed). A failed post shows the reason, a published post has a 'View post' link when the platform returned one, and a post that has not started publishing has a Cancel button. Cancelled posts are hidden. Schedule has a 'Schedule a post' button that opens the same Publish to Social window the studios use, set to schedule: you choose the media, thumbnail, copy, account and a time (1 hour, 3 hours, tomorrow 9 AM, or a date and time you pick up to 90 days ahead). Analytics shows counts of scheduled, published, failed and total posts, with a count per platform. It does not show views or engagement from the platforms. The page refreshes every 30 seconds while it is open. Scheduling needs you to be signed in with SmartVideo AI access, a Muapi key added in Settings, and a connected YouTube, TikTok or Instagram account.",
+  "bestFor": "Planning posts ahead for YouTube, TikTok and Instagram and checking whether they went out.",
   "whenToUse": [
-    "You want to look at the planned content calendar, scheduling and analytics areas.",
-    "You were sent a link to #/smart-video-scheduler or #/brightbean and want to know what it is."
+    "You want a post to go out later instead of now.",
+    "You want to see what is scheduled, published or failed.",
+    "You want to cancel a post that has not started publishing."
   ],
   "whenToUseAnother": [
-    "Use Video Studio (#/video) or Image Studio (#/image) to make the content you want to post; their results have publishing options.",
-    "Use Smart Video Viral (#/viral) for short-form social video ideas and clips.",
+    "Use the Publish to Social button in a studio (Video Studio, Image Studio and others) to publish right away.",
+    "Use Video Studio (#/video) or Image Studio (#/image) to make the content first.",
     "Use Library (#/library) to find content you already made."
   ],
   "keyFeatures": [
-    "Calendar tab: 'Content Calendar' placeholder",
-    "Schedule tab: 'Schedule Posts' placeholder",
-    "Analytics tab: 'Analytics' placeholder"
+    "Calendar tab: your scheduled posts grouped by day with status, errors and links",
+    "Schedule tab: opens the Publish to Social window in schedule mode",
+    "Analytics tab: counts of scheduled, published and failed posts",
+    "Cancel a post that has not started publishing",
+    "The AI thumbnail you pick is applied to the post (Instagram cover, or the YouTube thumbnail after upload)"
   ],
   "featureExplanations": [
     {
       "feature": "Calendar tab",
-      "explanation": "The tab that is open when the page loads. It shows 'Content Calendar' and the message 'Your scheduled posts will appear here. Connect your social accounts to start scheduling.'",
-      "whyToUse": "To see where scheduled posts are meant to appear.",
+      "explanation": "Opens by default. Lists your scheduled posts by day with time, platform and status. Failed posts show the reason; published posts link to the post when the platform gave a link.",
+      "whyToUse": "To see what is coming up and what happened to past posts.",
       "inputRequired": "None.",
-      "restrictions": "Placeholder only: no calendar grid or posts are shown, and there is no button on this page to connect social accounts."
+      "restrictions": "Shows only your own posts. Cancelled posts are hidden. There is no calendar grid or drag to reschedule; to change a time, cancel the post and schedule it again."
     },
     {
       "feature": "Schedule tab",
-      "explanation": "Click 'Schedule' to see 'Schedule Posts' and the message 'Schedule your content for the best times. AI will suggest optimal posting times.'",
-      "whyToUse": "To see the planned scheduling area.",
-      "inputRequired": "None.",
-      "restrictions": "Placeholder only: you cannot pick content, a date or a time, and no posting times are suggested yet."
+      "explanation": "Click 'Schedule a post' to open the Publish to Social window in schedule mode. Choose media, thumbnail, copy, an account and when to publish, then click Schedule.",
+      "whyToUse": "To queue a post for later.",
+      "inputRequired": "A public https media URL, a connected account, and a Muapi key added in Settings.",
+      "restrictions": "The time must be at least a minute away and within 90 days. You can have up to 100 pending posts. Your Muapi key is stored encrypted only until your posts have published, then removed."
     },
     {
       "feature": "Analytics tab",
-      "explanation": "Click 'Analytics' to see 'Analytics' and the message 'Track your post performance across all platforms.'",
-      "whyToUse": "To see the planned performance area.",
+      "explanation": "Shows counts of scheduled, published, failed and total posts and a count per platform.",
+      "whyToUse": "A quick view of how many posts are queued and how many went out.",
       "inputRequired": "None.",
-      "restrictions": "Placeholder only: no numbers or charts are shown."
+      "restrictions": "These are your own scheduling counts. Views, likes and other platform performance are not shown."
+    },
+    {
+      "feature": "Cancel",
+      "explanation": "Cancels a post that is still Scheduled. Once a post is Publishing it cannot be cancelled.",
+      "whyToUse": "To stop a post going out.",
+      "inputRequired": "Click Cancel on the post.",
+      "restrictions": "Only available before publishing starts."
     }
   ],
-  "howToUse": "1. Open #/smart-video-scheduler (or #/brightbean). 2. The Calendar tab is open by default. 3. Click Schedule or Analytics to switch tabs. 4. Each tab currently shows a short message only; scheduling and analytics are not working yet.",
+  "howToUse": "1. Open #/smart-video-scheduler (or #/brightbean). 2. Click 'Schedule' then 'Schedule a post' (or the button on an empty Calendar). 3. In the window, add your media, thumbnail and copy, pick an account on the Platform step, choose a time under 'When', and click Schedule. 4. Open Calendar to see the post and its status. 5. Click Cancel on a post that has not started publishing if you change your mind.",
   "howToSteps": [
     "Open #/smart-video-scheduler.",
-    "Read the Calendar tab message.",
-    "Click Schedule, then Analytics, to see the other tabs."
+    "Click 'Schedule a post'.",
+    "Add media, thumbnail and copy, and pick an account on the Platform step.",
+    "Choose a time under 'When' and click Schedule.",
+    "Open Calendar to follow the post's status."
   ],
   "gettingStarted": [
-    "Treat this page as a preview: nothing can be scheduled here yet.",
-    "Make your content in a studio such as Video Studio or Image Studio and publish it from there."
+    "Add your Muapi key in Settings.",
+    "Connect a YouTube, TikTok or Instagram account from the Platform step of the Publish to Social window.",
+    "Schedule a post a few hours out, then check it on the Calendar."
   ],
-  "inputs": [],
-  "requiredInputs": [],
-  "optionalInputs": [],
+  "inputs": [
+    "Media URL",
+    "Thumbnail (optional)",
+    "Title or caption",
+    "Destination account",
+    "Publish time"
+  ],
+  "requiredInputs": [
+    "Public https media URL",
+    "Destination account",
+    "Publish time",
+    "Title (YouTube and TikTok)"
+  ],
+  "optionalInputs": [
+    "Thumbnail",
+    "Description, tags and other platform options"
+  ],
   "inputDetails": [],
   "generationModes": [],
   "modeExplanations": [],
-  "modelCapabilities": "None. The page does not call any AI model.",
-  "outputs": [],
+  "modelCapabilities": "The page itself calls no AI model. The Publish to Social window can create a thumbnail and enhance copy with AI.",
+  "outputs": [
+    "A scheduled post that publishes at the chosen time",
+    "A status on the Calendar for each post"
+  ],
   "limitations": [
-    "No calendar, scheduling or analytics data: all three tabs are placeholder messages.",
-    "No social account connection on this page, although the Calendar message mentions it.",
+    "Only YouTube, TikTok and Instagram are supported.",
+    "Media must be a public https URL.",
+    "Posts can be scheduled from one minute to 90 days ahead, up to 100 pending at a time.",
+    "Posts cannot be edited or rescheduled; cancel and schedule again.",
+    "A post that is interrupted while publishing is marked Failed and is not retried automatically, so check the platform before scheduling it again.",
+    "TikTok has no thumbnail option; the thumbnail is applied to Instagram and YouTube only.",
+    "Analytics shows counts only, not views or engagement.",
     "The selected tab is not remembered; the page always opens on Calendar."
   ],
   "limitationDetails": [
     {
-      "limitation": "Tabs are placeholders",
-      "impact": "You cannot schedule, view or measure posts here.",
-      "workaround": "Create and publish content from the studios (for example Video Studio or Image Studio)."
+      "limitation": "No editing or rescheduling",
+      "impact": "You cannot change the time or copy of a scheduled post.",
+      "workaround": "Cancel the post and schedule it again."
+    },
+    {
+      "limitation": "Interrupted posts are not retried",
+      "impact": "A post marked Failed with 'Publishing was interrupted' may or may not have reached the platform.",
+      "workaround": "Check the platform, then schedule it again only if it is missing."
+    },
+    {
+      "limitation": "No platform analytics",
+      "impact": "You cannot see views or engagement here.",
+      "workaround": "Use each platform's own analytics."
     }
   ],
   "troubleshooting": [
-    "I see no posts in the Calendar: the calendar is not built yet; it always shows the 'Content Calendar' message.",
-    "I cannot find a caption helper: this page has none. Write captions in the studio you publish from."
+    "Schedule says to add a Muapi key: add it in Settings, then try again.",
+    "Schedule asks you to sign in or upgrade: scheduling needs a signed-in account with SmartVideo AI access.",
+    "A post shows Failed: the reason is shown under it; fix the cause and schedule it again.",
+    "I do not see a post: cancelled posts are hidden, and the list refreshes every 30 seconds."
   ],
   "troubleshootingSteps": [],
   "commonProblems": [
     {
-      "problem": "Cannot find a way to schedule a post",
-      "whyItHappens": "Scheduling is not built on this page yet; the Schedule tab is a message only.",
-      "howToFix": "Publish from the studio where you made the content."
+      "problem": "A scheduled post did not go out",
+      "whyItHappens": "The platform or Muapi rejected it, or publishing was interrupted.",
+      "howToFix": "Open Calendar and read the reason under the post, then schedule it again."
+    },
+    {
+      "problem": "Thumbnail not on my YouTube video",
+      "whyItHappens": "YouTube thumbnails are applied after the video is live and can fail separately.",
+      "howToFix": "The post still published; set the thumbnail in YouTube Studio."
     }
   ],
   "exampleWorkflows": [
     {
-      "title": "Look around the scheduler",
+      "title": "Schedule a video for tomorrow",
       "steps": [
         "Open #/smart-video-scheduler.",
-        "Read the Calendar message.",
-        "Click Schedule and Analytics."
+        "Click Schedule, then 'Schedule a post'.",
+        "Add your video URL, pick a thumbnail and write the title.",
+        "Pick your account, choose 'Tomorrow 9 AM', and click Schedule.",
+        "Open Calendar to confirm it is Scheduled."
       ]
     }
   ],
   "useCases": [
     {
-      "title": "Preview the planned scheduler",
-      "description": "See the three areas the scheduler will have.",
+      "title": "Queue posts ahead",
+      "description": "Line up posts for the week without publishing them one by one.",
       "steps": [
-        "Open the page",
-        "Switch between Calendar, Schedule and Analytics"
+        "Schedule each post with its own time",
+        "Check them on the Calendar"
       ],
-      "expectedOutput": "Three short placeholder messages; nothing is saved or posted."
+      "expectedOutput": "Posts publish at their times and show Published, or Failed with a reason."
     }
   ],
   "faqs": [
     {
       "question": "Can I schedule social posts here?",
-      "answer": "Not yet. The Schedule tab only shows 'Schedule Posts - Schedule your content for the best times. AI will suggest optimal posting times.' There are no date, time or content controls."
+      "answer": "Yes, for YouTube, TikTok and Instagram. Click 'Schedule a post', choose an account and a time, and click Schedule."
     },
     {
       "question": "How do I connect my social accounts?",
-      "answer": "There is no connect button on this page, even though the Calendar message mentions it."
+      "answer": "From the Platform step of the Publish to Social window, connect YouTube, TikTok or Instagram."
     },
     {
-      "question": "Can the scheduler write captions with AI?",
-      "answer": "Not on this page. It has no caption helper; write captions in the studio where you made and publish the content."
+      "question": "Do I need a Muapi key?",
+      "answer": "Yes. Add it in Settings. It is stored encrypted only until your scheduled posts have published, then removed."
+    },
+    {
+      "question": "Can I edit or reschedule a post?",
+      "answer": "Not yet. Cancel it and schedule it again."
     },
     {
       "question": "What is #/brightbean?",
@@ -129,11 +187,13 @@
     "Scheduling": "Choosing a future date and time for a post to be published."
   },
   "tips": [
-    "Use this page as a preview only.",
-    "Publish content from the studio where you made it."
+    "Schedule at least a few minutes ahead.",
+    "Pick a thumbnail before scheduling; it is applied when the post goes out.",
+    "Check the Calendar after the time passes to confirm it published."
   ],
   "bestPractices": [
-    "Do not rely on this page to post content; nothing is saved here."
+    "Use a public https media URL that will still exist at the scheduled time.",
+    "Check Failed posts on the platform before scheduling them again."
   ],
   "relatedStudios": [
     "video",
@@ -144,15 +204,15 @@
   "relatedStudioGuidance": [
     {
       "studio": "video",
-      "relationship": "Make the videos you want to post",
+      "relationship": "Make the videos you want to schedule",
       "whenToMove": "When you need content to publish.",
-      "why": "The scheduler cannot create or post content yet."
+      "why": "The scheduler publishes media; it does not create it."
     },
     {
       "studio": "image",
       "relationship": "Make images for posts",
-      "whenToMove": "When you need a picture for a post.",
-      "why": "Image results have their own publishing options."
+      "whenToMove": "When you need a picture for an Instagram post.",
+      "why": "Image results can be published or scheduled."
     },
     {
       "studio": "viral",
@@ -168,17 +228,21 @@
     }
   ],
   "notConfirmed": [
-    "Which social platforms the scheduler will support.",
-    "Whether the hero image for this page exists: the page asks for a 'smart-video-scheduler' hero, which did not render in testing."
+    "Posting end to end to a live YouTube, TikTok or Instagram account has not been tested.",
+    "Whether the hero image for this page exists: the page asks for a 'smart-video-scheduler' hero, which did not render in earlier testing."
   ],
   "sourceFiles": [
     "src/components/SmartVideoScheduler.js",
+    "src/lib/socialSchedule.js",
+    "components/modals/SocialPublishModal.jsx",
+    "supabase/functions/social-schedule/index.ts",
+    "supabase/functions/social-schedule-worker/index.ts",
     "src/lib/router.js"
   ],
   "verification": {
     "status": "code-review",
-    "verifiedAt": "2026-11-20",
+    "verifiedAt": "2026-11-25",
     "verifiedBy": "Code review (LLM-assisted)",
-    "evidence": "Read SmartVideoScheduler.js (hero, three tabs and their placeholder messages; no other controls) and the router (smart-video-scheduler and brightbean both load it). Loaded the page in the dev app to confirm the three tabs and messages."
+    "evidence": "Read the scheduler, scheduling client, publish modal and both edge functions. Rendered the page and the modal in jsdom tests (calendar, cancel, schedule button, analytics counts, HTML escaping). Not exercised against a live backend or real social accounts."
   }
 }

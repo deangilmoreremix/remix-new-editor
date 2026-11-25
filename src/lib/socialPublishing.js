@@ -5,8 +5,8 @@ import { muapi } from './muapi';
 //
 // Thin wrapper around the muapi "Publishing to your users' accounts" flow
 // (https://muapi.ai/docs/social-publishing). Everything is routed through the
-// existing Supabase `muapi-proxy` edge function (which attaches the server's
-// MUAPI_API_KEY), so the browser never sees a muapi key.
+// existing Supabase `muapi-proxy` edge function. The proxy has no server-side
+// key: it forwards the signed-in user's own Muapi key (see apiKeyManager).
 //
 // Flow:
 //   1. getConnectUrl(platform, externalUserId, redirectTo) -> OAuth popup URL
@@ -140,6 +140,36 @@ function publish(platform, payload, signal) {
   );
 }
 
+// The publish result only carries the watch URL, e.g.
+// https://youtube.com/watch?v=<id> (https://muapi.ai/docs/social-publishing).
+export function extractYoutubeVideoId(urlOrId) {
+  if (typeof urlOrId !== 'string' || !urlOrId) return null;
+  if (/^[A-Za-z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
+  try {
+    const u = new URL(urlOrId);
+    const v = u.searchParams.get('v');
+    if (v && /^[A-Za-z0-9_-]{11}$/.test(v)) return v;
+    const m = u.pathname.match(/\/(?:shorts|embed|live)\/([A-Za-z0-9_-]{11})/) || (u.hostname === 'youtu.be' ? u.pathname.match(/^\/([A-Za-z0-9_-]{11})/) : null);
+    return m ? m[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+// YouTube's publish endpoint has no thumbnail field; a separate call sets it
+// after upload. JPEG/PNG under 2 MB, 16:9 recommended, public URL.
+function setYoutubeThumbnail({ accountId, videoId, thumbnailUrl }, signal) {
+  return muapi.proxyJson(
+    'youtube-set-thumbnail',
+    {
+      method: 'POST',
+      params: { account_id: Number(accountId), video_id: videoId, thumbnail_url: thumbnailUrl },
+      generationType: 'social',
+    },
+    signal,
+  );
+}
+
 function getResult(requestId, signal) {
   return muapi.proxyJson(
     `predictions/${requestId}/result`,
@@ -191,6 +221,7 @@ const socialPublishing = {
   renameAccount,
   permanentDisconnect,
   publish,
+  setYoutubeThumbnail,
   getResult,
   publishAndPoll,
 };
