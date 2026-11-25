@@ -3,6 +3,7 @@ import { createDemoPlayer, tourFor, formatDuration } from '../common/demoPlayer.
 import { ProductDemoSection } from '../sections/ProductDemoSection.jsx';
 import { StudioDemosSection } from '../sections/StudioDemosSection.jsx';
 import { StudioGuidesSection } from '../sections/StudioGuidesSection.jsx';
+import GUIDE_VIDEOS from '../../../data/guideVideos.json';
 
 afterEach(() => { document.body.innerHTML = ''; });
 
@@ -38,16 +39,34 @@ describe('landing demo sections', () => {
     expect(s.querySelector('video')).toBeNull();
   });
 
-  it('Studio Demos shows the picker and switches the featured tour', () => {
+  it('Studio Demos shows the featured picker and switches the featured tour', () => {
     const s = StudioDemosSection();
-    const picks = s.querySelectorAll('[data-demo-slug]');
-    expect(picks.length).toBeGreaterThan(5);
-    expect(picks[0].getAttribute('aria-pressed')).toBe('true');
-    picks[2].click();
-    expect(picks[2].getAttribute('aria-pressed')).toBe('true');
-    expect(picks[0].getAttribute('aria-pressed')).toBe('false');
+    const picks = () => s.querySelectorAll('[data-demo-slug]');
+    expect(picks().length).toBe(12);
+    expect(picks()[0].getAttribute('aria-pressed')).toBe('true');
+    picks()[2].click();
+    expect(picks()[2].getAttribute('aria-pressed')).toBe('true');
+    expect(picks()[0].getAttribute('aria-pressed')).toBe('false');
     expect(s.querySelector('[data-demo-guide]').getAttribute('href')).toMatch(/^\/studios\/.+\/$/);
     expect(s.querySelector('video')).toBeNull();
+  });
+
+  it('Studio Demos makes every tour reachable through the All and category tabs', () => {
+    const s = StudioDemosSection();
+    const total = Object.keys(GUIDE_VIDEOS.studios).length;
+    const tab = (key) => s.querySelector(`[data-demo-tab="${key}"]`);
+    tab('all').click();
+    expect(s.querySelectorAll('[data-demo-slug]').length).toBe(total);
+    expect(tab('all').getAttribute('aria-pressed')).toBe('true');
+    // category tabs together cover every tour exactly once
+    const cats = Array.from(s.querySelectorAll('[data-demo-tab]')).map((b) => b.getAttribute('data-demo-tab')).filter((k) => k !== 'featured' && k !== 'all');
+    const seen = new Set();
+    cats.forEach((k) => { tab(k).click(); s.querySelectorAll('[data-demo-slug]').forEach((b) => seen.add(b.getAttribute('data-demo-slug'))); });
+    expect(seen.size).toBe(total);
+    // a tour picked from a non-featured tab still loads into the player
+    const last = Array.from(s.querySelectorAll('[data-demo-slug]')).pop();
+    last.click();
+    expect(s.querySelector('[data-demo-guide]').getAttribute('href')).toBe(`/studios/${last.getAttribute('data-demo-slug')}/`);
   });
 
   it('Studio Guides keeps every link and adds tour lengths', () => {
