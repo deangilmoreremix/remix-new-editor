@@ -285,3 +285,13 @@ describe('viewer extras: hosts without CORS, a start-frame range, replays, butto
     expect(onCta).toHaveBeenCalledTimes(1);
   });
 });
+
+import { fillPropTokens } from '../editor/tokenFields.jsx';
+describe('button text keeps its tokens as words', () => {
+  it('a token value with spaces and punctuation is not percent-encoded in a button label or description', () => {
+    const tokens = { company: 'Acme & Sons' };
+    const out = fillPropTokens({ viewerCtaLabel: 'Talk to {{company}}', ctaLabel: 'Book {{company}}', logoAlt: 'Logo of {{company}}', viewerCtaUrl: 'https://x.test/?c={{company}}' }, tokens);
+    expect(out.viewerCtaLabel).toBe('Talk to {{company}}'); expect(out.ctaLabel).toBe('Book {{company}}'); expect(out.logoAlt).toBe('Logo of {{company}}');
+    expect(out.viewerCtaUrl).toContain('Acme%20%26%20Sons');   // links are still encoded
+  });
+});
