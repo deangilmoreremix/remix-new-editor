@@ -126,3 +126,12 @@ export function showHostSessionFailure(err: unknown): void {
     box.append(msg, retry);
     root.append(box);
 }
+
+/**
+ * Provider pop-ups (mailbox connection, "confirm it is you") land on pages that only hand their result to the
+ * dashboard tab that opened them and close. Such a window has no host app around it to read a session from, so
+ * it must not wait for one or be sent to the sign-in page.
+ */
+export function isHostSessionExempt(pathname: string): boolean {
+    return /\/(oauth-return|cloud-oauth\/done|reauth\/complete)\/?$/.test(pathname);
+}

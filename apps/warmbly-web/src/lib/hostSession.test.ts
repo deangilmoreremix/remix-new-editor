@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import getToken from "./helper/getToken";
 import exchangeClerk from "./api/client/auth/exchangeClerk";
-import { bootHostSession, showHostSessionFailure, signOutOfHost, syncHostToken } from "./hostSession";
+import { bootHostSession, isHostSessionExempt, showHostSessionFailure, signOutOfHost, syncHostToken } from "./hostSession";
 
 vi.mock("./api/client/auth/exchangeClerk", () => ({ default: vi.fn() }));
 
@@ -95,5 +95,14 @@ describe("host session (one login)", () => {
         expect(root.querySelector('[role="alert"]')?.textContent).toMatch(/couldn't connect you/);
         expect(root.querySelector("button")?.textContent).toBe("Try again");
         expect(root.classList.contains("app-ready")).toBe(true); // visible, not left at opacity 0
+    });
+
+    it("leaves the provider pop-up landing pages alone (they have no host app to read a session from)", () => {
+        for (const p of ["/smartwarmupai-app/oauth-return", "/smartwarmupai-app/cloud-oauth/done", "/smartwarmupai-app/reauth/complete/"]) {
+            expect(isHostSessionExempt(p)).toBe(true);
+        }
+        for (const p of ["/smartwarmupai-app/app/emails", "/smartwarmupai-app/oauth/authorize", "/smartwarmupai-app/auth/login"]) {
+            expect(isHostSessionExempt(p)).toBe(false);
+        }
     });
 });

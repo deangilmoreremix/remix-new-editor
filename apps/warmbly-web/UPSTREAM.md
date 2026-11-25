@@ -25,7 +25,7 @@ npm run verify:upstream -- /tmp/upstream
 | `src/lib/demo/*` | added: recorded-data server, fake Phoenix socket, installer, `fixtures.json`, tests |
 | `src/lib/hostSession.ts`, `src/lib/api/client/auth/exchangeClerk.ts` | added: one login. Reads the host app's Clerk session (`window.top.Clerk`, same-origin iframe) and exchanges it at `POST /auth/clerk` (see `../warmbly-server/UPSTREAM.md`) for a Warmbly session; sign-out follows the host. Tests in `hostSession.test.ts` |
 | `src/lib/information.ts` | `HOST_SESSION` flag (`VITE_HOST_SESSION=1`, off in demo) |
-| `src/main.tsx` | `bootHostSession()` before the first render when `HOST_SESSION` |
+| `src/main.tsx` | `bootHostSession()` before the first render when `HOST_SESSION`, except on the provider pop-up landing pages (`isHostSessionExempt`) |
 | `src/router.tsx` | with `HOST_SESSION`, every `/auth/*` route goes to the host sign-in |
 | `src/lib/api/client/auth/refreshToken.ts` | with `HOST_SESSION`, refreshing re-reads the host token |
 | `src/lib/api/client/Request.ts` | with `HOST_SESSION`, a "confirm it is you" demand is met by taking the host session again (no dialog); tests in `Request.hostReauth.test.ts` |
