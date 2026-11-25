@@ -196,3 +196,25 @@ describe('looping with a start time', () => {
     expect(host.querySelector('video').loop).toBe(true);
   });
 });
+
+describe('watch progress over the trimmed part', () => {
+  const run = (viewer, times, duration = 120) => {
+    const marks = [];
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers: { onProgress: (k) => marks.push(k) }, preview: false }}><ViewerContext.Provider value={viewer}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    const v = host.querySelector('video'); v.pause = vi.fn(); v.play = vi.fn(() => Promise.resolve());
+    Object.defineProperty(v, 'duration', { value: duration, configurable: true });
+    for (const t of times) { Object.defineProperty(v, 'currentTime', { value: t, writable: true, configurable: true }); act(() => { v.dispatchEvent(new Event('timeupdate')); }); }
+    return marks;
+  };
+  it('playing seconds 90-100 of 120 does not record every milestone at once', () => {
+    expect(run({ start: 90, end: 100 }, [90.5])).toEqual([]);
+    expect(run({ start: 90, end: 100 }, [92.6, 95.1, 97.6])).toEqual(['progress_25', 'progress_50', 'progress_75']);
+  });
+  it('playing seconds 0-20 reaches the milestones, including at the stop', () => {
+    expect(run({ start: 0, end: 20 }, [5.1, 10.1, 15.1, 20])).toEqual(['progress_25', 'progress_50', 'progress_75']);
+  });
+  it('untrimmed video keeps counting over the whole video', () => {
+    expect(run({}, [31, 61, 91])).toEqual(['progress_25', 'progress_50', 'progress_75']);
+  });
+});
