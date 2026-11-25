@@ -62,6 +62,25 @@ describe('Sidebar fixes', () => {
     expect(getNavItemForRoute('settings')).toBeNull();
   });
 
+  it('groups the apps by purpose, with the start-here group first', async () => {
+    const { NAV_GROUPS } = await import('../lib/studioRoutes.js');
+    expect(NAV_GROUPS.map((g) => g.title)).toEqual(['', 'Image', 'Video', 'Audio & Avatars', 'AI Agents', 'Editors', 'Marketing & Outreach', 'Utilities', 'My Work']);
+    const ids = (title) => NAV_GROUPS.find((g) => g.title === title).items.map((i) => i.id);
+    expect(NAV_GROUPS[0].items.map((i) => i.id)).toEqual(['explore', 'apps', 'smart-video-studio', 'academy']);
+    expect(ids('Video')).toContain('templates');
+    expect(ids('Audio & Avatars')).toEqual(expect.arrayContaining(['character', 'influencer']));
+    expect(ids('Utilities')).toContain('viral');
+  });
+
+  it('keeps features of other apps (and modals) out of the menu but highlights their parent', async () => {
+    const { NAV_GROUPS, getNavItemForRoute } = await import('../lib/studioRoutes.js');
+    const all = NAV_GROUPS.flatMap((g) => g.items.map((i) => i.id));
+    for (const id of ['leadfinder', 'recorder', 'smart-video-scheduler', 'find-my-brand', 'render']) expect(all).not.toContain(id);
+    expect(getNavItemForRoute('leadfinder')).toBe('outreach');
+    expect(getNavItemForRoute('recorder')).toBe('outreach');
+    expect(getNavItemForRoute('smart-video-scheduler')).toBe('library');
+  });
+
   it('should not have separate brand-dna, brand-photo-studio navItems', async () => {
     const ids = await navIds();
     expect(ids).not.toContain('brand-dna');

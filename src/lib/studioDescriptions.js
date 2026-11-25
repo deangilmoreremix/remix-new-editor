@@ -6,6 +6,7 @@
 // (a test lists them), rather than a guessed description.
 
 export const STUDIO_DESCRIPTIONS = {
+  'smart-video-studio': { name: 'Smart Video Studio', text: 'Every model in one studio: pick a model or app, fill the form and generate' },
   image: { name: 'Image Studio', text: 'Generate images with 20+ AI models' },
   video: { name: 'Video Studio', text: 'Create AI videos from text and images' },
   cinema: { name: 'Cinema Studio', text: 'Cinematic shots with camera controls' },

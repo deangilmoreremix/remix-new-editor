@@ -15,6 +15,8 @@ const ICONS = {
   character: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
   influencer: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6v12a3 3 0 103 3V6a3 3 0 10-3 3z"/></svg>',
   landing: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  'smart-video-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>',
+  'smart-video-scheduler': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
   'muapi-studio': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>',
   storyboard: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="6" height="8" rx="1"/><rect x="9" y="3" width="6" height="8" rx="1"/><rect x="16" y="3" width="6" height="8" rx="1"/><rect x="2" y="13" width="6" height="8" rx="1"/><rect x="9" y="13" width="6" height="8" rx="1"/><rect x="16" y="13" width="6" height="8" rx="1"/></svg>',
   effects: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
@@ -74,12 +76,15 @@ const FALLBACK_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="non
 // Retired from the menus: Training, Chat, Assist, Stock Media, Community
 // (their routes redirect, see RETIRED_ROUTES in router.js).
 export const STUDIO_ROUTES = {
+  // 'category' here is the public guide category (/studios pages group by it), not the side-menu group:
+  // the menu's grouping lives in NAV_GROUPS below.
   apps: { label: 'Apps', category: 'Home' },
   explore: { label: 'Explore', category: 'Home' },
   templates: { label: 'Templates', category: 'Home' },
   image: { label: 'Image Studio', category: 'Image' },
   edit: { label: 'Edit Studio', category: 'Image' },
   'muapi-studio': { label: 'SmartVid Studio', category: 'Image' },
+  'smart-video-studio': { label: 'Smart Video Studio', category: 'Generate' },
   upscale: { label: 'Upscale Suite', category: 'Image' },
   character: { label: 'Character Studio', category: 'Image' },
   commercial: { label: 'Product Shot Studio', category: 'Image' },
@@ -106,10 +111,11 @@ export const STUDIO_ROUTES = {
   smartwarmupai: { label: 'SmartWarmupAI', category: 'Agents' },
   viral: { label: 'Smart Video Viral', category: 'Agents' },
   personalizer: { label: 'Personalizer', category: 'Agents' },
+  // Features of other apps, not menu entries: reached from Video Outreach / Library (see NAV_ALIASES).
   leadfinder: { label: 'Lead Finder', category: 'Agents' },
   outreach: { label: 'Video Outreach', category: 'Agents' },
   recorder: { label: 'Recorder', category: 'Agents' },
-  // Not an app: pages are made from a video ("Create landing page"); this route is where they are managed (linked from Library).
+  // Find My Brand is a modal; the route remains for links.
   'find-my-brand': { label: 'Find My Brand', category: 'Agents' },
   'website-builder': { label: 'Website Builder', category: 'Agents' },
   render: { label: 'Video Render', category: 'Agents' },
@@ -171,46 +177,55 @@ export function getGroupedStudioRoutes() {
 // studio pages no longer carry their own menus.
 export const NAV_GROUPS = [
   { title: '', items: [
-    { id: 'apps', label: 'Apps' },
     { id: 'explore', label: 'Explore' },
-    { id: 'templates', label: 'Templates' },
+    { id: 'apps', label: 'Apps' },
+    { id: 'smart-video-studio', label: 'Smart Video Studio' },
     { id: 'academy', label: 'Academy' },
   ] },
   { title: 'Image', items: [
     { id: 'image', label: 'Image' },
-    { id: 'muapi-studio', label: 'SmartVid Studio' },
     { id: 'edit', label: 'Edit' },
     { id: 'upscale', label: 'Upscale' },
-    { id: 'character', label: 'Character' },
-    { id: 'influencer', label: 'AI Influencer' },
     { id: 'commercial', label: 'Product Shot' },
     { id: 'brand', label: 'Brand' },
   ] },
   { title: 'Video', items: [
     { id: 'video', label: 'Video' },
     { id: 'cinema', label: 'Cinema' },
+    { id: 'templates', label: 'Templates' },
     { id: 'cinema-template', label: 'Cinema Templates' },
     { id: 'storyboard', label: 'Storyboard' },
+    { id: 'animate', label: 'Animate' },
     { id: 'effects', label: 'Effects' },
     { id: 'ai-vfx', label: 'AI VFX' },
-    { id: 'animate', label: 'Animate' },
-    { id: 'media-hub', label: 'SmartVidDownloader' },
-    { id: 'lipsync', label: 'Lip Sync' },
     { id: 'videotools', label: 'Video Tools' },
-    { id: 'avatar', label: 'Avatar' },
-    { id: 'audio', label: 'Audio' },
   ] },
-  { title: 'Agents', items: [
+  { title: 'Audio & Avatars', items: [
+    { id: 'audio', label: 'Audio' },
+    { id: 'lipsync', label: 'Lip Sync' },
+    { id: 'avatar', label: 'Avatar' },
+    { id: 'character', label: 'Character' },
+    { id: 'influencer', label: 'AI Influencer' },
+  ] },
+  { title: 'AI Agents', items: [
     { id: 'video-agent', label: 'Video Agent' },
-    { id: 'zackd', label: 'Zack D' },
     { id: 'motion-director', label: 'Motion Director' },
+    { id: 'zackd', label: 'Zack D' },
     { id: 'director', label: 'Director' },
+  ] },
+  { title: 'Editors', items: [
     { id: 'timeline', label: 'Timeline' },
     { id: 'workbench', label: 'Workbench' },
-    { id: 'smartwarmupai', label: 'SmartWarmupAI' },
-    { id: 'viral', label: 'Viral' },
+  ] },
+  { title: 'Marketing & Outreach', items: [
     { id: 'personalizer', label: 'Personalizer' },
+    { id: 'outreach', label: 'Video Outreach' },
+    { id: 'smartwarmupai', label: 'SmartWarmupAI' },
     { id: 'website-builder', label: 'Website' },
+  ] },
+  { title: 'Utilities', items: [
+    { id: 'viral', label: 'Viral' },
+    { id: 'media-hub', label: 'SmartVidDownloader' },
   ] },
   { title: 'My Work', items: [
     { id: 'library', label: 'Library' },
@@ -221,6 +236,13 @@ export const NAV_GROUPS = [
 // Routes that are part of a menu entry without being one themselves.
 const NAV_ALIASES = {
   smartviddownloader: 'media-hub',
+  'muapi-studio': 'smart-video-studio',
+  leadfinder: 'outreach',
+  recorder: 'outreach',
+  'find-my-brand': 'outreach',
+  'smart-video-scheduler': 'library',
+  brightbean: 'library',
+  render: 'library',
   cinegen: 'workbench',
   'video-agent-studio': 'video-agent',
   'zackd-studio': 'zackd',

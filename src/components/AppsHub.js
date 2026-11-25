@@ -56,6 +56,7 @@ const MORE_APPS = [
   { id: 'zackd', name: 'Zack D Studio', description: 'Turn one question into a 3D animated explainer short', icon: icon24('zackd'), badge: 'Explainers', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
   { id: 'templates', name: 'Templates', description: 'Ready-to-use image and video templates: pick one, add your media, generate', icon: icon24('templates'), badge: 'Templates', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
   { id: 'academy', name: 'Academy', description: 'Courses and guides for making AI video, with templates to try', icon: icon24('academy'), badge: 'Learn', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+  { id: 'smart-video-studio', name: 'Smart Video Studio', description: 'Every model in one studio: pick a model or app, fill the form and generate', icon: icon24('smart-video-studio'), badge: 'All models', color: 'bg-primary/10 text-primary border-primary/20' },
   { id: 'muapi-studio', name: 'SmartVid Studio', description: 'Every model in one studio: pick a model or app, fill the form and generate', icon: icon24('muapi-studio'), badge: 'All models', color: 'bg-primary/10 text-primary border-primary/20' },
   { id: 'media-hub', name: 'SmartVidDownloader', description: 'Download videos and audio from links, with transcripts and AI tools', icon: icon24('media-hub'), badge: 'Download', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
   { id: 'render', name: 'Video Render', description: 'Export, queue and publish finished videos', icon: icon24('render'), badge: 'Render', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' },
@@ -66,12 +67,10 @@ const pick = (ids) => ids.map((id) => ALL_APPS[id]).filter(Boolean);
 
 // Built from the side menu itself (NAV_GROUPS) so the two can't drift apart.
 // The first group (Apps / Explore / Templates) is navigation, not an app.
-const APP_SECTIONS = NAV_GROUPS.slice(1).map((g) => [`${g.title} apps`.replace('My Work apps', 'My Work'), pick(g.items.map((it) => it.id))]);
+const APP_SECTIONS = NAV_GROUPS.slice(1).map((g) => [['Image', 'Video'].includes(g.title) ? `${g.title} apps` : g.title, pick(g.items.map((it) => it.id))]);
 
-// Templates and Academy sit at the top of the side menu (no heading), so they get their own section;
-// Video Render has a guide but is not in the menu, so it joins the Video apps.
-APP_SECTIONS.unshift(['Start here', pick(['templates', 'academy'])]);
-APP_SECTIONS.find(([title]) => title === 'Video apps')?.[1].push(ALL_APPS.render);
+// Smart Video Studio and Academy sit at the top of the side menu (no heading), so they get their own section.
+APP_SECTIONS.unshift(['Start here', pick(['smart-video-studio', 'academy'])]);
 
 if (COLLAB_APPS.length) APP_SECTIONS.push(['Collaboration apps', COLLAB_APPS]);
 
