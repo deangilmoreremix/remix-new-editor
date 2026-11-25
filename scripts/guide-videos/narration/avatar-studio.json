@@ -1,0 +1,15 @@
+{
+  "slug": "avatar-studio",
+  "name": "Avatar Studio",
+  "intro": "Welcome to Avatar Studio in SmartVideo, where you make talking avatar and lip sync videos from a single simple form.",
+  "features": {
+    "model-selector": "The model selector at the top shows your current model. Open it to pick another, since different models offer different quality tiers.",
+    "source-video-image-upload": "Next comes the source upload. Add the image or video you want to animate, or browse stock media, because every model needs this starting point.",
+    "audio-for-lip-sync": "Here you upload the voice recording your avatar should speak. The audio drives the mouth movement, so a clean recording gives you better lip matching.",
+    "prompt-optional": "Some models also show an optional prompt box. Use it to describe the animation you want and steer the performance.",
+    "native-audio-toggle": "The Native Audio toggle appears on models that support it. It starts off, and turning it on lets the model generate its own audio.",
+    "advanced-options": "The Advanced panel holds extra options for the model you picked, so you can fine tune the result when the basics are not enough.",
+    "result-actions": "When your video is ready, the result card lets you download it, publish it to social, or add AI captions."
+  },
+  "outro": "That is Avatar Studio. Pick a model, add your media and voice, and you are ready to bring your first avatar to life."
+}

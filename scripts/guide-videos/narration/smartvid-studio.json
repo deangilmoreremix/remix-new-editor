@@ -1,0 +1,14 @@
+{
+  "slug": "smartvid-studio",
+  "name": "SmartVid Studio",
+  "intro": "SmartVid Studio is one workspace for generating with any model in the catalog: images, video, audio, avatars and 3D. You see the price before you generate. Here is a quick tour.",
+  "features": {
+    "model-picker": "Open the model picker to browse the whole catalog. Use the provider rail, category tabs, search and sort to find a model. The form below rebuilds itself to match whatever that model accepts.",
+    "uploading-files": "Any field that takes an image, video or audio file has an upload button next to the link box. Click it, drag a file in, or paste an image, and your file is uploaded for you.",
+    "form-and-json-input": "The Form and JSON menu next to the title switches between the labelled form and the raw request. JSON is handy when you want to copy exact settings or set a field the form does not show.",
+    "apps": "Switch from Models to Apps for ready made apps. Each one asks only for what it needs, like a source image and a preset, and builds the request for you, with no prompt writing.",
+    "live-price-and-batch": "The Generate button shows the price for your settings and the batch size, before you press it. The numbers above the results choose how many results each run makes.",
+    "my-generations": "Every result is added to My generations with its prompt, model, price and time. Filter by approved or rejected, search earlier runs, and reuse a result's settings to refine it."
+  },
+  "outro": "That's SmartVid Studio. Pick a model, check the price, start with one result, and compare models using the same prompt."
+}

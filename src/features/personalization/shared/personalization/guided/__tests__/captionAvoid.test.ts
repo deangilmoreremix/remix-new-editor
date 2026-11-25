@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { captionAvoid, clearOf, coveredNow } from '../captionAvoid'
 import { createDefaultPreviewSettings } from '../../preview/presets'
 import { cleanStudioCaptions } from '../../captions/studioCaptions'
-import type { PreviewCaptions } from '../../preview/types'
+import type { CaptionSettings } from '../../preview/captions'
 
 const brand = { businessName: 'Rascop And Associates LLC', headline: 'Call us today', offer: '10% off', cta: 'Book now' } as never
 const nameLayer = (y: number, over: object = {}) => ({ ...createDefaultPreviewSettings().layers.find((l) => l.kind === 'businessName')!, visible: true, opacity: 1, startFrame: 0, endFrame: undefined, x: 0.05, y, ...over })
 const tok = (text: string, i: number) => ({ text: (i ? ' ' : '') + text, fromMs: 500 + i * 400, toMs: 500 + i * 400 + 400 })
 const studio = (style: Record<string, unknown> = {}) => cleanStudioCaptions({ pages: [{ startMs: 500, durationMs: 1600, tokens: ['call', 'us', 'today', 'please'].map(tok) }], style: { fontSize: 6, position: 'bottom', ...style } })!
-const caps = (over: Partial<PreviewCaptions> = {}): PreviewCaptions => ({ enabled: true, forUrl: 'https://x/v.mp4', style: 'bold', position: 'bottom', cues: [{ startMs: 500, endMs: 2100, text: 'call us today please' }], studio: studio(), ...over })
-const settings = (captions: PreviewCaptions | undefined, layers: object[]) => ({ layers: layers as never, width: 1920, height: 1080, fps: 30, captions })
+const caps = (over: Partial<CaptionSettings> = {}): CaptionSettings => ({ enabled: true, cues: [], style: {} as never, studio: studio(), ...over })
+const settings = (captions: CaptionSettings | undefined, layers: object[]) => ({ layers: layers as never, width: 1920, height: 1080, fps: 30, captions })
 
 describe('captionAvoid (Caption Studio captions)', () => {
   it('is null without Studio captions, and with captions off', () => {

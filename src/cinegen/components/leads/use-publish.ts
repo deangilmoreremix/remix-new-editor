@@ -77,6 +77,8 @@ export function usePublished() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
+  // Whether the last publish tied the video to its project row (what Analytics / Retarget / Alerts read): on, guest (no account), or failed.
+  const [retarget, setRetarget] = useState<'on' | 'guest' | 'failed' | null>(null);
   const latest = useRef({ tl, state }); latest.current = { tl, state };
   const id = readIds()[key] || null;
 
@@ -118,6 +120,7 @@ export function usePublished() {
     const row = await pub.publishVideo(c, { id: vid, project, projectId: linked });
     localStorage.setItem(KEY, JSON.stringify({ ...readIds(), [key]: vid }));
     setInfo({ ...row, published: true });
+    setRetarget(linked ? 'on' : signedIn() ? 'failed' : 'guest');
     // A fresh frame for the video's card; best-effort and not awaited, so publishing never waits on or fails because of it.
     if (linked) void captureRowThumbnail(c, linked, built, { aspect: t?.aspect ?? null, force: true });
   });
@@ -135,5 +138,5 @@ export function usePublished() {
     setInfo(await pub.getMyVideo(c, id));
   });
   const setPrivacy = (privacy: 'public' | 'unlisted') => run(async () => { await pub.setVideoPrivacy(await getClient(), id, privacy); setInfo((i) => (i ? { ...i, privacy } : i)); });
-  return { id, info, busy, error, loaded, publish, setLive, saveLink, setDomain, setPrivacy, reload, title: tl?.name || 'Untitled video', signedIn: signedIn(), guest: !signedIn() };
+  return { id, info, busy, error, loaded, retarget, publish, setLive, saveLink, setDomain, setPrivacy, reload, title: tl?.name || 'Untitled video', signedIn: signedIn(), guest: !signedIn() };
 }

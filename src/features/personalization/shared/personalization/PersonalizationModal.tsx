@@ -22,6 +22,7 @@
 'use client'
 
 import { cutoutAssetIds } from './backgroundRemoval/useAutoCutout'
+import { ErrorView } from './RecoveryViews'
 import { RECAST_MAX_SECONDS } from './recast/recastJob'
 import { logoQualityNotes } from './logoScoring'
 import {
@@ -51,6 +52,8 @@ import { LeadInsightsPanel } from './LeadInsightsPanel'
 import { createSeenTracker, leadsToCsv } from './leadInsights'
 import { openStatus } from '../../../../../netlify/functions/_personalization/src/server/businessEnrichment/openingHours'
 import { useBusinessEnrichment, mergeCardContacts } from './useBusinessEnrichment'
+import EmailLinkPanel from './EmailLinkPanel'
+import { tokensInText, tokensWithoutDefault } from './emailMergeLink'
 import { DEFAULT_ADVANCED_SECTIONS, useDemoPersonalize } from './DemoPersonalizeProvider'
 import type { AutoFillKey } from './businessContentFromResearch'
 import type { AdvancedEditingSections, AdvancedEditingTab } from './types'
@@ -762,6 +765,7 @@ export default function PersonalizationModal() {
     generate,
     retry,
     generateAgain,
+    returnToEditing,
     retryBranding,
     result,
     resultTab,
@@ -785,7 +789,10 @@ export default function PersonalizationModal() {
     guidedApiAvailable && ctx.setViewMode ? ctx.setViewMode : setLocalViewMode
   // Simple Mode shows the four guided steps; prompt-only sources keep the
   // existing configuration view (there is no video to preview or brand).
-  const simpleModeActive = viewMode === 'simple' && guidedApiAvailable && source?.mediaType !== 'prompt-only'
+  // A studio's Personalize button (sourceType 'studio-project') starts without a video but still gets the wizard:
+  // step 2 lets the person pick one.
+  const hasGuidedWizard = source?.mediaType !== 'prompt-only' || source?.sourceType === 'studio-project'
+  const simpleModeActive = viewMode === 'simple' && guidedApiAvailable && hasGuidedWizard
 
   // Access mode for this session ('anonymous' on the free landing surface).
   // The server remains the authority; this decides which paid/AI affordances
@@ -1222,6 +1229,37 @@ export default function PersonalizationModal() {
             }
           : item
       )))
+      // An image already imported from this discovered one is what the video
+      // preview and the final render use: give it the edit too, or the AI
+      // edit would only ever show on the discovered card.
+      const allAssets = [
+        ...(assets?.identities ?? []),
+        ...(assets?.logos ?? []),
+        ...(assets?.products ?? []),
+        ...(assets?.brandReferences ?? []),
+        assets?.firstFrame,
+        assets?.lastFrame,
+        assets?.ctaGraphic,
+      ].filter(Boolean) as Array<{ id: string; sourceDiscoveredAssetId?: string }>
+      const imported = allAssets.filter((asset) => asset.sourceDiscoveredAssetId === imageEditorAsset.id)
+      for (const asset of imported) {
+        await applyEditedPersonalizationAsset(asset.id, result.dataUrl, {
+          operation: result.operation,
+          prompt: result.prompt,
+          model: result.model,
+          quality: result.quality,
+          transparent: result.transparent,
+          videoReady: result.videoReady,
+          responseId: result.responseId,
+          imageGenerationCallId: result.imageGenerationCallId,
+          revisedPrompt: result.revisedPrompt,
+          outputFormat: result.outputFormat,
+          outputCompression: result.outputCompression,
+          inputFidelity: result.inputFidelity,
+          visionAnalysis: result.visionAnalysis,
+          visionValidation: result.visionValidation,
+        })
+      }
       return
     }
 
@@ -1261,7 +1299,7 @@ export default function PersonalizationModal() {
       visionAnalysis: result.visionAnalysis,
       visionValidation: result.visionValidation,
     })
-  }, [applyEditedPersonalizationAsset, discoveredAssets, imageEditorAsset, setDiscoveredAssets])
+  }, [applyEditedPersonalizationAsset, assets, discoveredAssets, imageEditorAsset, setDiscoveredAssets])
 
   // NOTE: these memo hooks live ABOVE the early return below on purpose, so the
   // hook order is identical whether or not the modal is open. The provider
@@ -1526,8 +1564,8 @@ export default function PersonalizationModal() {
           </div>
           {/* Actions stay together on the right, so the title never runs under them. */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            {/* Prompt-only sources have no Simple Mode, so no toggle. */}
-            {guidedApiAvailable && source.mediaType !== 'prompt-only' && (
+            {/* Prompt-only sources (other than a studio's Personalize button) have no Simple Mode, so no toggle. */}
+            {guidedApiAvailable && hasGuidedWizard && (
               <button
                 type="button"
                 onClick={() => setViewMode(viewMode === 'simple' ? 'advanced' : 'simple')}
@@ -1597,6 +1635,7 @@ export default function PersonalizationModal() {
               source={source}
               promptState={promptState}
               generateAgain={generateAgain}
+              returnToEditing={returnToEditing}
               retryBranding={retryBranding}
               outputType={outputType}
               setOutputType={setOutputType}
@@ -1614,7 +1653,7 @@ export default function PersonalizationModal() {
             <ErrorView
               errorMessage={generation.errorMessage}
               retry={generation.failedStage === 'prompt' ? handlePersonalize : retry}
-              generate={generate}
+              returnToEditing={returnToEditing}
               stage={generation.failedStage}
             />
           ) : personalizationInProgress ? (
@@ -1849,44 +1888,17 @@ function ProgressView({ status, progress, message }: { status: string; progress:
   )
 }
 
-function ErrorView({ errorMessage, retry, generate, stage }: { errorMessage: string | null; retry: () => void; generate: () => void; stage?: 'prompt' | 'generation' | 'research' | 'discovery' | 'upload' }) {
-  const retryLabel = stage === 'prompt' ? 'Retry Personalization' : stage === 'generation' ? 'Retry Generation' : stage === 'research' ? 'Retry Research' : stage === 'discovery' ? 'Retry Discovery' : stage === 'upload' ? 'Retry Upload' : 'Retry'
-  return (
-    <div className="px-6 py-16 text-center space-y-4">
-      <AlertTriangle size={40} style={{ color: C.danger }} className="mx-auto" />
-      <h3 className="text-lg font-bold text-white">We Could Not Complete This Personalization</h3>
-      <p className="text-sm text-white/60 max-w-md mx-auto">{errorMessage || 'An unexpected error occurred.'}</p>
-      <p className="text-xs text-white/40">Your client, assets, and settings have been preserved.</p>
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        <button
-          onClick={retry}
-          className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-          style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}
-        >
-          <RefreshCw size={14} /> {retryLabel}
-        </button>
-        {stage !== 'prompt' && (
-          <button
-            onClick={generate}
-            className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold"
-            style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}
-          >
-            Try Again
-          </button>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function ResultView(props: any) {
+export function ResultView(props: any) {
   const {
     result, resultTab, setResultTab, source, promptState,
-    generateAgain, retryBranding, outputType, setOutputType, download,
+    generateAgain, returnToEditing, retryBranding, outputType, setOutputType, download,
     editInImageStudio, editInVideoStudio, publish,
     sharedMediaCount, isVideo, eligibleModes, mode, setMode,
     canPublish = true, canEditInVideoStudio = true, publishNote = '',
   } = props
+  const emailText = promptState?.edited || promptState?.personalized || promptState?.original || ''
+  const emailTokens = useMemo(() => tokensInText(emailText), [emailText])
+  const emailNoDefaults = useMemo(() => tokensWithoutDefault(emailText), [emailText])
 
   return (
     <div className="py-6 space-y-6">
@@ -1895,14 +1907,14 @@ function ResultView(props: any) {
         <p className="text-xs mt-1 text-white/40">Original on the left, personalized result on the right.</p>
       </div>
       <div className="flex gap-2 border-b border-white/10 pb-px">
-        {(result.type === 'prompt' ? ['prompt'] : result.type === 'image' ? ['prompt', 'images'] : ['prompt', 'videos']).map((tab: string) => (
+        {[...(result.type === 'prompt' ? ['prompt'] : result.type === 'image' ? ['prompt', 'images'] : ['prompt', 'videos']), ...(emailTokens.length ? ['email'] : [])].map((tab: string) => (
           <button
             key={tab}
             onClick={() => setResultTab(tab)}
             className={classNames('px-4 py-2 text-sm font-medium transition-colors', resultTab === tab ? 'text-primary' : 'text-white/50 hover:text-white/80')}
             style={{ borderBottom: resultTab === tab ? `2px solid ${C.cyan}` : '2px solid transparent' }}
           >
-            {tab === 'prompt' ? 'Prompt' : tab === 'images' ? 'Images' : 'Videos'}
+            {tab === 'prompt' ? 'Prompt' : tab === 'images' ? 'Images' : tab === 'email' ? 'Email' : 'Videos'}
           </button>
         ))}
       </div>
@@ -1931,9 +1943,14 @@ function ResultView(props: any) {
             <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold" style={{ background: 'transparent', border: `1px solid ${C.cyan}`, color: C.cyan }}>
               <RefreshCw size={14} /> Generate Again
             </button>
+            <button type="button" data-testid="pz-result-back-to-editing" onClick={returnToEditing} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
+              Back to editing
+            </button>
           </div>
         </div>
       )}
+
+      {resultTab === 'email' && <EmailLinkPanel tokens={emailTokens} noDefaults={emailNoDefaults} />}
 
       {resultTab === 'images' && result.type === 'image' && result.url && (
         <div className="space-y-4">
@@ -1965,6 +1982,9 @@ function ResultView(props: any) {
             )}
             <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
               <RefreshCw size={14} /> Generate Again
+            </button>
+            <button type="button" data-testid="pz-result-back-to-editing" onClick={returnToEditing} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
+              Back to editing
             </button>
           </div>
         </div>
@@ -2004,6 +2024,9 @@ function ResultView(props: any) {
             )}
             <button onClick={generateAgain} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
               <RefreshCw size={14} /> Generate Again
+            </button>
+            <button type="button" data-testid="pz-result-back-to-editing" onClick={returnToEditing} className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border border-white/10 text-white hover:bg-white/5">
+              Back to editing
             </button>
           </div>
         </div>

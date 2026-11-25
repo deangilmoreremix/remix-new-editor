@@ -1,0 +1,56 @@
+{
+  "video-image-switch": {
+    "selector": "xpath=//button[normalize-space(.)='Image']",
+    "click": true,
+    "hold": 1500,
+    "then": [
+      {
+        "selector": "xpath=//button[normalize-space(.)='Video']",
+        "hold": 1500
+      }
+    ]
+  },
+  "camera-and-lens-controls": {
+    "selector": "xpath=//*[normalize-space(text())='CAMERA' or normalize-space(text())='Camera'][ancestor::div[contains(@class,'fixed')]]/..",
+    "click": false
+  },
+  "camera-movement": {
+    "selector": "#builder-movement",
+    "click": true,
+    "hold": 2000
+  },
+  "film-look": {
+    "selector": "#builder-look",
+    "click": true,
+    "hold": 2000
+  },
+  "cinema-prompt-builder": {
+    "selector": "xpath=//button[.//div[normalize-space(.)='Cinema Prompt Builder']]",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//input[@placeholder='Base scene description...']",
+        "type": "A lone rider on a neon-lit desert highway at dusk",
+        "hold": 2500
+      }
+    ]
+  },
+  "start-frame-and-end-frame": {
+    "selector": "xpath=//button[starts-with(@aria-label,'Starting image for the video') or starts-with(@title,'Starting image for the video')]",
+    "click": true,
+    "upload": true,
+    "file": "image",
+    "hold": 3000,
+    "then": [
+      {
+        "selector": "xpath=//button[starts-with(@aria-label,'End frame') or starts-with(@title,'End frame')]",
+        "hold": 1500
+      }
+    ]
+  },
+  "character-lock": {
+    "selector": "#cs-character-lock-btn",
+    "click": true,
+    "hold": 2500
+  }
+}

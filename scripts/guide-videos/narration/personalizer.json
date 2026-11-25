@@ -1,0 +1,15 @@
+{
+  "slug": "personalizer",
+  "name": "Personalizer",
+  "intro": "Personalizer is a drag and drop canvas for building web pages and creatives, then filling each one with a contact's own name, company and offer.",
+  "features": {
+    "element-palette": "The element palette on the left adds headings, text, images, buttons, forms and videos to your canvas with a single click.",
+    "canvas-size": "Pick a canvas size preset, like landing page, email, social post or story, or type your own width and height to match where the page will live.",
+    "tokens": "Token chips insert placeholders such as first name or company into the selected element. One design can then speak to every contact.",
+    "active-contact-and-preview": "Choose an Active Contact, then press Preview Personalized to see the page exactly as that person would see it.",
+    "properties-panel": "Select any element and the Properties panel lets you fine tune its position, size, text, colors and fonts.",
+    "personalization-hub": "The Personalization hub holds your client profiles and asset library, and can discover images from a website, so your brand material is always at hand.",
+    "export-html": "Export HTML opens your personalized page as a standalone page, ready to share or host wherever you like."
+  },
+  "outro": "That's Personalizer. Design once, personalize for everyone, and save your canvas so you can pick up right where you left off."
+}

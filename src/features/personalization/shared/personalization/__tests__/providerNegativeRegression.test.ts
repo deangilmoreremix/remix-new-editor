@@ -243,7 +243,8 @@ describe('Phase 29 - Provider Negative Regression Tests', () => {
         prompt: 'A futuristic city at sunset',
         mode: 'recreate',
         options: baseOptions,
-        apiKey: 'sk-test',
+        apiKey: 'sk-mu-test',
+        openaiKey: 'sk-openai-test',
       })
 
       expect(result.type).toBe('image')
@@ -274,7 +275,8 @@ describe('Phase 29 - Provider Negative Regression Tests', () => {
         prompt: 'Replace the face with a professional headshot',
         mode: 'replace_face',
         options: baseOptions,
-        apiKey: 'sk-test',
+        apiKey: 'sk-mu-test',
+        openaiKey: 'sk-openai-test',
       })
 
       expect(result.type).toBe('image')
@@ -303,7 +305,8 @@ describe('Phase 29 - Provider Negative Regression Tests', () => {
         prompt: 'Keep the design but improve colors',
         mode: 'keep_design',
         options: baseOptions,
-        apiKey: 'sk-test',
+        apiKey: 'sk-mu-test',
+        openaiKey: 'sk-openai-test',
       })
 
       expect(result.type).toBe('image')
@@ -330,7 +333,8 @@ describe('Phase 29 - Provider Negative Regression Tests', () => {
         prompt: 'Replace the person with a professional presenter',
         mode: 'replace_person',
         options: baseOptions,
-        apiKey: 'sk-test',
+        apiKey: 'sk-mu-test',
+        openaiKey: 'sk-openai-test',
       })
 
       expect(result.type).toBe('image')

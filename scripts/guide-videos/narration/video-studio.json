@@ -1,0 +1,16 @@
+{
+  "slug": "video-studio",
+  "name": "Video Studio",
+  "intro": "Video Studio in SmartVideo makes AI videos from a text prompt, from an image you upload, or from a video you already have.",
+  "features": {
+    "text-to-video": "Type a description in the prompt box and press Generate. Text to video is the fastest way to get a clip when you have no source picture.",
+    "animate-image-image-to-video": "Attach a start frame image and the studio switches to image to video. Starting from your own picture gives more predictable results.",
+    "keyframes-start-end": "The keyframes workflow starts the clip on your start frame and ends it on your end frame, which is great for transformations and controlled transitions.",
+    "references": "The references workflow lets you guide the result with reference media, so the output can follow the look of your reference images.",
+    "edit-video-extend-uploaded-video-motion-transfer": "Three workflows work on footage you already have. You can edit a video, extend it, or transfer motion onto something new.",
+    "advanced-native-audio-and-character-lock": "Open Advanced for two toggles. Native Audio asks capable models to produce sound, and Character Lock helps keep the same character across clips.",
+    "motion-and-style-panel": "The motion and style panel has camera speed, guidance and style presets like cinematic or anime, for a quick style nudge without rewriting your prompt.",
+    "result-actions": "Once a clip is ready, you can regenerate, download it, open it in Render to keep editing, or publish it to social."
+  },
+  "outro": "Start with words or a picture, and Video Studio gives you plenty of ways to shape your next clip."
+}

@@ -426,6 +426,9 @@ export const rveSubscribeReminderTemplate: RemotionDesignTemplate = {
   textSlots: [
     { key: 'cta', field: 'cta', label: 'Call to action', primary: true, maxLength: 28 },
     { key: 'website', field: 'website', label: 'Handle / website' },
+    // Fallbacks the adapter reads when cta / website are empty; resolved but not shown as inputs.
+    { key: 'offer', field: 'offer', label: 'Offer', hidden: true },
+    { key: 'businessName', field: 'businessName', label: 'Business name', hidden: true },
   ],
   colors: [
     { role: 'primary', label: 'Bell colour' },
@@ -464,6 +467,10 @@ export const rveAnimatedListTemplate: RemotionDesignTemplate = {
     { key: 'offer', field: 'offer', label: 'First bullet', primary: true },
     { key: 'phone', field: 'phone', label: 'Second bullet' },
     { key: 'website', field: 'website', label: 'Third bullet' },
+    // Fallbacks the adapter tops the list up with when offer / phone / website are empty; resolved but not shown as inputs.
+    { key: 'cta', field: 'cta', label: 'Call to action', hidden: true },
+    { key: 'headline', field: 'headline', label: 'Headline', hidden: true },
+    { key: 'businessName', field: 'businessName', label: 'Business name', hidden: true },
   ],
   colors: [
     { role: 'primary', label: 'Bullet colours' },

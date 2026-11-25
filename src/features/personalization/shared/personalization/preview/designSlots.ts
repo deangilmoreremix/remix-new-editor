@@ -156,7 +156,9 @@ export function resolveDesignSlotValues(
     slots[slot.key] =
       typeof override === 'string' && override.trim()
         ? override
-        : brandSlotValue(slot.field, brand)
+        : slot.freeText
+          ? ''
+          : brandSlotValue(slot.field, brand)
   }
   return slots
 }

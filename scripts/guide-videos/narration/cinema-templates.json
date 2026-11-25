@@ -1,0 +1,16 @@
+{
+  "slug": "cinema-templates",
+  "name": "Cinema Templates",
+  "intro": "Cinema Templates in SmartVideo is a library of ready made cinematic templates, from short films and trailers to brand and ad films.",
+  "features": {
+    "template-browser": "Start in the template browser, a grid of cards with a thumbnail, name and description, grouped by category so you can pick the right structure.",
+    "quick-mode-vs-advanced": "Quick Mode asks only the essential questions for your template. Switch to Advanced when you want extra fields and more control.",
+    "video-intent-panel": "The video intent panel sets your creative direction once, including video type and aspect ratio, so you can reuse it across templates.",
+    "ai-enhancer": "The AI enhancer switch is on by default. It expands your simple input into a richer cinematic prompt, so you get better wording with no extra effort.",
+    "media-sources-and-routing": "Add a start or reference image, or a source video, to use your own media as the base. A badge shows which path your video will take.",
+    "scene-timeline-and-scene-builder": "Video templates list their scenes in a Scene Timeline. Use Refresh to re-pick them, or add scenes yourself to shape the story.",
+    "editable-output-tabs": "Under Output you can read and edit the enhanced prompt, scene beats, voiceover and negative prompt, so you can fine tune the wording first.",
+    "storyboard-hand-off": "If you arrive from Storyboard Studio, a Storyboard Loaded banner shows, and your planned shots become the template scenes."
+  },
+  "outro": "Choose a template, answer a few questions, and Cinema Templates gives your next film a strong start."
+}

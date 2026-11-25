@@ -60,6 +60,9 @@
     "sync:mg-thumbs": "node scripts/sync-mg-thumbs.mjs",
     "predev": "npm run gen:motion-sources && npm run sync:mg-thumbs",
     "build:studio-guides": "node scripts/build-studio-guides.mjs",
+    "capture:videos": "playwright test --config=playwright.guide-videos.config.js --trace off --output=node_modules/.cache/guide-video-capture",
+    "assemble:videos": "node scripts/guide-videos/assemble.mjs",
+    "check:narration": "node scripts/guide-videos/validate-narration.mjs",
     "capture:guides": "playwright test tests/e2e/guide-screenshots.spec.js --config=playwright.screenshots.config.js --trace off --output=node_modules/.cache/guide-capture"
   },
   "devDependencies": {

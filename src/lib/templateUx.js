@@ -151,7 +151,29 @@ export function toggleFavoriteTemplate(id) {
   const list = readList(FAVORITES_KEY);
   const next = list.includes(id) ? list.filter((x) => x !== id) : [id, ...list];
   writeList(FAVORITES_KEY, next);
-  return next.includes(id);
+  const on = next.includes(id);
+  emit('template-favorite-toggled', { id, on });
+  return on;
+}
+
+/** Replace the whole favorites list (used when the account's favorites are merged in). */
+export function setFavoriteTemplateIds(ids) {
+  const clean = [...new Set((ids || []).filter((id) => typeof id === 'string' && id))];
+  writeList(FAVORITES_KEY, clean);
+  emit('template-favorites-changed', { ids: clean });
+}
+
+// The favorite star on template cards. White on a dark disc with a ring, so it stays visible over both
+// dark and bright thumbnails; paintFavoriteStar() switches it to yellow when the template is a favorite.
+export const FAVORITE_STAR_CLASS = 'absolute top-2 right-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/50 bg-black/85 text-base text-white shadow-lg shadow-black/50 ring-1 ring-black/60 transition hover:bg-black hover:scale-110';
+export function paintFavoriteStar(star, on) {
+  star.classList.toggle('text-white', !on);
+  star.classList.toggle('text-yellow-300', on);
+}
+
+// Pages and the cloud sync listen to these (templateCloud.js); nothing here depends on them.
+function emit(name, detail) {
+  try { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(name, { detail })); } catch { /* optional */ }
 }
 
 export const getRecentTemplateIds = () => readList(RECENT_KEY);
@@ -160,6 +182,7 @@ export const getRecentTemplateIds = () => readList(RECENT_KEY);
 export function addRecentTemplate(id) {
   if (!id) return;
   writeList(RECENT_KEY, [id, ...readList(RECENT_KEY).filter((x) => x !== id)].slice(0, MAX_RECENT));
+  emit('template-opened', { id });
 }
 
 // ---------------------------------------------------------------------------

@@ -6,6 +6,7 @@
 // src/pages/VideoPage.jsx.
 
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { createEditorBanner, demoteBannerHeading } from '../lib/thumbnails.js';
 import { showToast } from '../lib/loading.js';
 import { supabase, primeSupabaseIdentity, getClerkUserId, isSupabaseConfigured } from '../lib/supabase.js';
 import { listBrands } from '../lib/brandStore.js';
@@ -67,9 +68,28 @@ export function LandingPagesStudio({ embedded = false } = {}) {
   const state = { pages: [], sources: null };
 
   const signedIn = () => !!getClerkUserId();
+  // No separate sign-in here: wait for the SmartVid account (Clerk) to load, then carry on automatically.
+  // One-shot, with a bounded retry if Clerk is unavailable; removed when the page closes (container.cleanup).
+  let cancelWait = null;
+  let closed = false;
+  const waitForAccount = async () => {
+    if (cancelWait || closed) return;
+    try {
+      const { whenClerkUser } = await import('../lib/clerkInit.js');
+      // Closed (or already waiting) while the import was pending: register nothing.
+      if (cancelWait || closed) return;
+      cancelWait = whenClerkUser(() => { if (inner.isConnected) showList(); });
+    } catch { /* Clerk unavailable: stay on the connecting message */ }
+  };
+  const prevCleanup = container.cleanup;
+  container.cleanup = () => { closed = true; if (cancelWait) cancelWait(); if (typeof prevCleanup === 'function') prevCleanup(); };
   const guard = () => {
     if (!isSupabaseConfigured()) { inner.replaceChildren(el('p', 'text-sm text-secondary', 'Video pages need the Supabase connection, which is not configured here.')); return false; }
-    if (!signedIn()) { inner.replaceChildren(el('p', 'text-sm text-secondary', 'Sign in to create and manage video landing pages.')); return false; }
+    if (!signedIn()) {
+      inner.replaceChildren(el('p', 'text-sm text-secondary', 'Connecting your SmartVid account…'));
+      waitForAccount();
+      return false;
+    }
     return true;
   };
 

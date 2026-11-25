@@ -83,6 +83,11 @@ export function buildPreviewInput(
   // consumer — gallery, editor, preview and export — draws the same cropped logo.
   const originalLogoUrl = firstUrl(assets.primaryLogo?.uploadedUrl, assets.primaryLogo?.url)
   const logoUrl = (originalLogoUrl && imageHints[originalLogoUrl]?.trimmedUrl) || originalLogoUrl
+  // The trimmed copy is a different URL, but it is the same pixels: carry the "light logo" measurement over to it so the
+  // designs (which look hints up by the URL they draw) still know a white logo needs a dark tile.
+  if (originalLogoUrl && logoUrl && logoUrl !== originalLogoUrl && imageHints[originalLogoUrl]?.lightLogo) {
+    imageHints[logoUrl] = { ...imageHints[logoUrl], lightLogo: true }
+  }
 
   const videoUrl = previewVideo?.url || (source?.mediaType === 'image' ? null : source?.sourceMedia) || null
   // Measured on the cover crop of this frame shape (see useLayoutQuality), so read it the same way.

@@ -1,0 +1,11 @@
+{
+  "slug": "explore",
+  "name": "Explore",
+  "intro": "Explore is SmartVideo's inspiration page. Look through trending templates, borrow a ready-made prompt, and see what kinds of templates are available when you need a fresh idea.",
+  "features": {
+    "trending-templates": "Trending Templates shows eight template cards, each with a thumbnail, name and short description. Click one to open it in the Template Studio and start from a popular format.",
+    "prompt-library": "The Prompt Library has twelve curated image prompts, each labeled with a category and model. Press Try this prompt to send it to Image Studio, then tweak the subject.",
+    "browse-by-category": "Browse by Category shows a card for each template category, with the number of templates inside. It's a quick way to see which kinds of templates exist."
+  },
+  "outro": "That's Explore. Pick a prompt or a template that sparks something, then make it your own."
+}

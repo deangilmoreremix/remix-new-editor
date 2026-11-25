@@ -19,8 +19,35 @@ export function cinegenSource(original: OriginalRow): { cinegenProjectId: string
   return cinegenProjectId && timelineId ? { cinegenProjectId, timelineId } : null;
 }
 
+/** A video made elsewhere (settings.source = 'external') has no timeline to copy: its follow-up starts from the video itself as one clip. */
+async function openExternalFollowup({ client, original, followup }: { client: unknown; original: OriginalRow & { data?: { timelineSeconds?: number; tracks?: Array<{ items?: Array<{ src?: string }> }> } }; followup: FollowupBrief }): Promise<{ id: string }> {
+  const src = original.data?.tracks?.find((t) => t.items?.length)?.items?.[0]?.src;
+  const duration = Number(original.data?.timelineSeconds) || 0;
+  if (!src || !duration) throw new Error('This video has no media to build a follow-up from.');
+  const topic = String(followup.interest || 'follow-up').slice(0, 60);
+  const name = `${original.name || 'Video'}: ${topic} follow-up`.slice(0, 120);
+  const created = await createAvailableProject(name);
+  const newId = created.project.id;
+  const state = JSON.parse(JSON.stringify(await loadAvailableProject<SavedProject & { assets?: unknown[] }>(newId, true))) as SavedProject & { assets?: unknown[] };
+  const timeline = (state.timelines ?? [])[0] as { id: string; duration?: number; clips?: unknown[]; tracks?: Array<{ id: string; kind: string }> } | undefined;
+  const track = timeline?.tracks?.find((t) => t.kind === 'video');
+  if (!timeline || !track) throw new Error('Could not set up the follow-up project.');
+  const now = new Date().toISOString();
+  const assetId = `asset-${newId}`;
+  state.assets = [...(state.assets ?? []), { id: assetId, name: original.name || 'Original video', type: 'video', url: src, duration, createdAt: now }];
+  timeline.clips = [{ id: `clip-${newId}`, assetId, trackId: track.id, name: original.name || 'Original video', startTime: 0, duration, trimStart: 0, trimEnd: 0, speed: 1, opacity: 1, volume: 1, flipH: false, flipV: false, keyframes: [] }];
+  timeline.duration = duration;
+  await saveAvailableProject(newId, state, true);
+  // From here on it is an ordinary CineGen video: it publishes, links and shows analytics like any other.
+  const rowId = await linkedProjectId(newId, timeline.id);
+  await createFollowupProject(client, original.id, followup, { id: rowId, settings: { source: 'cinegen', cinegenProjectId: newId, timelineId: timeline.id } });
+  window.dispatchEvent(new CustomEvent(OPEN_PROJECT_EVENT, { detail: { id: newId } }));
+  return { id: newId };
+}
+
 export async function openCinegenFollowup({ client, original, followup }: { client: unknown; original: OriginalRow; followup: FollowupBrief }): Promise<{ id: string }> {
   const source = cinegenSource(original);
+  if (!source && original.settings?.source === 'external') return openExternalFollowup({ client, original, followup });
   if (!source) throw new Error('This video was not made in the CineGen editor, so its follow-up cannot be opened here.');
   const topic = String(followup.interest || 'follow-up').slice(0, 60);
 

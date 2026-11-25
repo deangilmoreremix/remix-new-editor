@@ -5,7 +5,6 @@
  */
 import type { CaptionPage } from './studioLayout'
 import { WEIGHTS, type WeightName } from './studioFonts'
-import type { CaptionStyleId, PreviewCaptionCue, PreviewCaptionWord } from '../preview/types'
 
 export interface StudioCaptionStyle {
   /** The Studio look this came from (for reopening it), e.g. `capite-hormozi` or `tiktok`. */
@@ -88,27 +87,6 @@ export function cleanStudioCaptions(raw: unknown): StudioCaptions | undefined {
   if (!r || typeof r !== 'object' || !Array.isArray(r.pages)) return undefined
   const pages = r.pages.map(cleanPage).filter((p): p is CaptionPage => !!p).sort((a, b) => a.startMs - b.startMs).slice(0, MAX_STUDIO_PAGES)
   return pages.length ? { pages, style: cleanStyle(r.style) } : undefined
-}
-
-/** Cues (a line of up to 8 words each) for the list, SRT and VTT, and as the fallback when the Studio data is dropped. */
-export function studioToCues(studio: StudioCaptions, perCue = 8): PreviewCaptionCue[] {
-  const cues: PreviewCaptionCue[] = []
-  studio.pages.forEach((p) => {
-    for (let i = 0; i < p.tokens.length; i += perCue) {
-      const chunk = p.tokens.slice(i, i + perCue)
-      const words: PreviewCaptionWord[] = chunk.map((t) => ({ text: t.text.trim(), startMs: t.fromMs, endMs: t.toMs }))
-      cues.push({ startMs: chunk[0].fromMs, endMs: Math.max(chunk[chunk.length - 1].toMs, chunk[0].fromMs + 1), text: words.map((w) => w.text).join(' '), words })
-    }
-  })
-  return cues
-}
-
-/** The built-in look closest to a Studio look, for when the Studio data is dropped (an edit made outside the Studio). */
-export function studioFallbackStyle(style: StudioCaptionStyle): CaptionStyleId {
-  const p = style.preset || ''
-  if (p.startsWith('capite-')) return p.slice(7) as CaptionStyleId
-  if (style.background) return 'bar'
-  return style.stroke ? 'bold' : 'clean'
 }
 
 /** The captions at a dragged height (0..1 of the frame from the top), or back in their place with `undefined`. */

@@ -4,6 +4,7 @@ import {
   MAX_TEXT_STYLES, addStyle, applyCaptionStyle, applyTextStyle, captureCaptionStyle, captureTextStyle, deleteStyle, normalizeTextStyles,
   readBrowserStyles, renameStyle, rememberInBrowser, uniqueName, BROWSER_STYLES_KEY, type SavedTextStyle,
 } from '../textStyles'
+import { captionPreset } from '../captions'
 import { normalizePreviewSettings } from '../presets'
 import type { PreviewLayer } from '../types'
 
@@ -36,18 +37,13 @@ describe('captureTextStyle / applyTextStyle', () => {
 })
 
 describe('captions styles', () => {
-  it('keeps only the look (style and position), never the words or timing', () => {
-    const look = captureCaptionStyle({ style: 'bold', position: 'top', enabled: true, forUrl: 'x', cues: [{ startMs: 0, endMs: 1, text: 'hi' }] } as never)
-    expect(look).toEqual({ style: 'bold', position: 'top' })
-    expect(applyCaptionStyle(look)).toEqual({ style: 'bold', position: 'top' })
-  })
-  it('round-trips a Capite look id through normalizing', () => {
-    const [saved] = normalizeTextStyles([{ id: 'a', name: 'Mine', kind: 'captions', style: { style: 'hormozi', position: 'middle' } }]) ?? []
-    expect(saved?.kind === 'captions' && saved.style).toEqual({ style: 'hormozi', position: 'middle' })
-  })
-  it('drops a caption look with an unknown position or a junk id', () => {
-    expect(normalizeTextStyles([{ id: 'a', name: 'X', kind: 'captions', style: { style: 'bold', position: 'left' } }])).toBeUndefined()
-    expect(normalizeTextStyles([{ id: 'a', name: 'X', kind: 'captions', style: { style: '<b>', position: 'top' } }])).toBeUndefined()
+  it('round-trips and follows the new brand', () => {
+    const style = captionPreset('boxed', brand)!
+    const look = captureCaptionStyle({ ...style, boxColor: brand.primary }, brand)
+    expect(look.boxColor).toBe('@primary')
+    const back = applyCaptionStyle(look, other)
+    expect(back.boxColor).toBe('#aa0000')
+    expect(back.preset).toBe('custom')
   })
 })
 

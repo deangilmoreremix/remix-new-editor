@@ -1,0 +1,62 @@
+{
+  "connect-mailboxes-accounts": {
+    "route": "smartwarmupai/mailboxes",
+    "text": "Add account",
+    "click": false,
+    "hold": 3500
+  },
+  "warmup": {
+    "route": "smartwarmupai/mailboxes",
+    "steps": [
+      {
+        "text": "dan.okafor@sunrise.test",
+        "wait": 3000
+      }
+    ],
+    "selector": "xpath=//button[normalize-space()='Warmup']",
+    "click": true,
+    "hold": 3500
+  },
+  "campaigns-and-sequences": {
+    "route": "smartwarmupai/campaigns",
+    "text": "New campaign",
+    "click": false,
+    "hold": 3500
+  },
+  "inbox": {
+    "route": "smartwarmupai/inbox",
+    "text": "Awaiting reply",
+    "click": true,
+    "hold": 3500
+  },
+  "contacts": {
+    "route": "smartwarmupai/contacts",
+    "text": "Segments",
+    "click": true,
+    "hold": 3500
+  },
+  "crm-pipelines-deals-tasks-meetings": {
+    "route": "smartwarmupai/pipeline",
+    "text": "New deal",
+    "click": false,
+    "hold": 3500
+  },
+  "analytics-and-reports": {
+    "route": "smartwarmupai/dashboard",
+    "text": "30d",
+    "click": true,
+    "hold": 3500
+  },
+  "deliverability-and-placement-tests": {
+    "route": "smartwarmupai/deliverability",
+    "selector": "xpath=//*[normalize-space()='Bounce rate']",
+    "click": false,
+    "hold": 3500
+  },
+  "ask-remie-ai-assistant": {
+    "route": "smartwarmupai/dashboard",
+    "text": "Ask Remie",
+    "click": true,
+    "hold": 3500
+  }
+}

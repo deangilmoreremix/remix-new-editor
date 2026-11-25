@@ -1,0 +1,16 @@
+{
+  "slug": "video-outreach",
+  "name": "Video Outreach",
+  "intro": "Video Outreach lets you record one video and send it to many people, greeting each contact by name, then see who watched and who clicked.",
+  "features": {
+    "record": "Every campaign starts with one video. Click Record to capture your screen and camera, or upload a video you already have.",
+    "script-and-teleprompter": "The Script card holds what you'll say, and the teleprompter helps you keep eye contact. Write with AI can draft it for you.",
+    "clone-your-voice": "Clone your voice from your recording, so every contact hears their greeting in your own voice instead of a stock one.",
+    "greeting-and-fallback": "Type a greeting with a first name token, and pick a fallback for contacts missing a name, so everyone gets a warm hello.",
+    "customize-the-landing-page": "Customize the landing page header and message, plus the call to action button and booking link, to turn views into meetings.",
+    "contacts": "Upload a CSV and match your columns, or add contacts one at a time. Each person gets their own personal link.",
+    "generate-campaign": "Generate campaign voices every greeting, publishes your video page and lists every personal link in one go.",
+    "campaigns": "The Campaigns list shows how many contacts watched and clicked, so you know exactly who to follow up with."
+  },
+  "outro": "That's Video Outreach. One recording, a personal link for every contact, and clear results on who's interested."
+}

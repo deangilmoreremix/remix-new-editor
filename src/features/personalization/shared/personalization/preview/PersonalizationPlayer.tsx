@@ -5,6 +5,7 @@ import { Player } from '@remotion/player'
 import type { PlayerRef } from '@remotion/player'
 import { AlertTriangle, Pause, Play, RotateCcw, Volume2, VolumeX } from 'lucide-react'
 import { PersonalizationComposition } from './PersonalizationComposition'
+import { totalDurationInFrames } from './presets'
 import { previewPlayerRef } from './PreviewControls'
 import {
   isFailureForVideo,
@@ -13,6 +14,8 @@ import {
 } from './previewMediaEvents'
 import type { PreviewMediaFailure } from './previewMediaEvents'
 import type { PreviewInputProps } from './types'
+
+import { clampPlaybackRate } from './playbackRate'
 
 export interface PersonalizationPlayerProps {
   inputProps: PreviewInputProps
@@ -30,6 +33,8 @@ export interface PersonalizationPlayerProps {
   playerRefOverride?: React.RefObject<PlayerRef | null>
   onFrameChange?: (frame: number) => void
   onPlayingChange?: (playing: boolean) => void
+  /** Preview speed (0.25x to 2x). Preview only: the export is unaffected. Default 1. */
+  playbackRate?: number
   /** Controlled mute state; uncontrolled internal state when undefined. */
   muted?: boolean
   onMutedChange?: (muted: boolean) => void
@@ -63,12 +68,14 @@ export function PersonalizationPlayer(
     playerRefOverride,
     onFrameChange,
     onPlayingChange,
+    playbackRate,
     muted,
     onMutedChange,
   } = props
 
   const settings = inputProps.settings
-  const durationInFrames = Math.max(1, Math.round(settings.durationInFrames))
+  // Opening scene + the video itself + closing scene.
+  const durationInFrames = Math.max(1, totalDurationInFrames(settings))
   const compositionWidth = settings.width
   const compositionHeight = settings.height
   const fps = settings.fps
@@ -359,6 +366,7 @@ export function PersonalizationPlayer(
           autoPlay={autoPlay}
           style={{ width: '100%', height: '100%' }}
           initiallyMuted={muted ?? true}
+          playbackRate={clampPlaybackRate(playbackRate)}
         />
         {/* Follower players have no transport bar; keep the error visible as an
             overlay pinned to the bottom of the stage instead. */}

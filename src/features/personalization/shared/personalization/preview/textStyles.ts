@@ -4,8 +4,9 @@
  * Colors that equal a brand color are stored as a brand reference (`@primary`, `@accent`, `@text`), so applying a style
  * in another project uses THAT project's brand colors.
  */
+import { normalizeCaptions, type CaptionStyle } from './captions'
 import { normalizeLayerEffects, type LayerEffects } from './effects'
-import type { CaptionPosition, CaptionStyleId, PreviewAnimationId, PreviewBrandColors, PreviewLayer } from './types'
+import type { PreviewAnimationId, PreviewBrandColors, PreviewLayer } from './types'
 
 export const MAX_TEXT_STYLES = 30
 export const MAX_STYLE_NAME = 40
@@ -25,8 +26,7 @@ export interface TextLook {
   rotation?: number
   effects?: LayerEffects
 }
-/** A caption look in remix: which of the built-in or Capite looks, and where the lines sit. Colours come with the look itself. */
-export interface CaptionLook { style: CaptionStyleId; position: CaptionPosition }
+export type CaptionLook = Omit<CaptionStyle, 'preset'> & { preset?: string }
 
 export type SavedTextStyle =
   | { id: string; name: string; kind: 'text'; style: TextLook }
@@ -83,12 +83,23 @@ export function applyTextStyle(style: TextLook, brand: Brand): Partial<PreviewLa
   }
 }
 
-export function captureCaptionStyle(captions: { style: CaptionStyleId; position: CaptionPosition }): CaptionLook {
-  return { style: captions.style, position: captions.position }
+export function captureCaptionStyle(style: CaptionStyle, brand: Brand): CaptionLook {
+  const { preset: _p, ...rest } = style
+  return {
+    ...rest,
+    color: toBrandRef(rest.color, brand) ?? rest.color,
+    highlightColor: toBrandRef(rest.highlightColor, brand) ?? rest.highlightColor,
+    boxColor: toBrandRef(rest.boxColor, brand) ?? rest.boxColor,
+  }
 }
-/** The patch for the captions (style and position only; the words and timing are never touched). */
-export function applyCaptionStyle(look: CaptionLook): { style: CaptionStyleId; position: CaptionPosition } {
-  return { style: look.style, position: look.position }
+export function applyCaptionStyle(style: CaptionLook, brand: Brand): CaptionStyle {
+  return {
+    ...style,
+    preset: 'custom',
+    color: resolveBrandRef(style.color, brand) ?? style.color,
+    highlightColor: resolveBrandRef(style.highlightColor, brand) ?? style.highlightColor,
+    boxColor: resolveBrandRef(style.boxColor, brand) ?? style.boxColor,
+  }
 }
 
 // ── normalizing saved data ───────────────────────────────────────────────────────────────────────────────────────
@@ -111,9 +122,41 @@ function normalizeLook(raw: unknown): TextLook | undefined {
 function normalizeCaptionLook(raw: unknown): CaptionLook | undefined {
   if (!isRecord(raw)) return undefined
   const position = raw.position === 'top' || raw.position === 'middle' || raw.position === 'bottom' ? raw.position : undefined
-  const style = typeof raw.style === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(raw.style) ? raw.style : undefined
-  if (!position || !style) return undefined
-  return { style, position }
+  const color = colorOrRef(raw.color)
+  const highlightColor = colorOrRef(raw.highlightColor)
+  const boxColor = colorOrRef(raw.boxColor)
+  if (!position || !color || !highlightColor || !boxColor || !finite(raw.size) || !finite(raw.boxOpacity)) return undefined
+  return {
+    position, color, highlightColor, boxColor,
+    size: clamp(raw.size, 0.025, 0.14),
+    boxOpacity: clamp(raw.boxOpacity, 0, 1),
+    highlight: raw.highlight === 'word' ? 'word' : 'none',
+    box: raw.box === true,
+    uppercase: raw.uppercase === true,
+    bold: raw.bold !== false,
+    ...extraCaptionFields(raw),
+  }
+}
+
+/** The fields Capite's styles add, validated the same way as in captions.ts. */
+function extraCaptionFields(raw: Record<string, unknown>): Partial<CaptionLook> {
+  const n = normalizeCaptions({ enabled: false, cues: [], style: { ...raw, color: '#000000', highlightColor: '#000000', boxColor: '#000000' } })?.style
+  if (!n) return {}
+  const out: Partial<CaptionLook> = {}
+  if (n.animation) out.animation = n.animation
+  if (n.italic) out.italic = true
+  if (n.outline) out.outline = n.outline
+  if (n.shadow) out.shadow = n.shadow
+  if (n.letterSpacing !== undefined) out.letterSpacing = n.letterSpacing
+  if (n.wordSpacing !== undefined) out.wordSpacing = n.wordSpacing
+  if (n.windowed) out.windowed = true
+  if (n.category) out.category = n.category
+  if (n.fontFamily) out.fontFamily = n.fontFamily
+  if (n.weight) out.weight = n.weight
+  if (n.casing) out.casing = n.casing
+  if (n.offsetY !== undefined) out.offsetY = n.offsetY
+  if (n.keepClear === false) out.keepClear = false
+  return out
 }
 
 export function normalizeTextStyles(raw: unknown): SavedTextStyle[] | undefined {

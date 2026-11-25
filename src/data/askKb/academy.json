@@ -16,7 +16,7 @@
   "whenToUseAnother": [
     "Use Apps (#/apps) when you want to browse and open SmartVideo's tools and studios rather than read lessons.",
     "Use Templates (#/templates) when you want ready-made video/ad templates to generate from, not learning templates (checklists, scripts, worksheets).",
-    "Use Explore (#/explore) when you want to browse example outputs and styles for inspiration.",
+    "Use Templates (#/templates) and its Prompts filter when you want example prompts and styles for inspiration.",
     "Use Video Studio (#/video) when you want to actually generate a video clip.",
     "Use Cinema Studio (#/cinema) when you want to generate cinematic footage.",
     "Use Image Studio (#/image) when you want to generate images.",
@@ -513,7 +513,6 @@
   "relatedStudios": [
     "apps",
     "templates",
-    "explore",
     "image",
     "video",
     "cinema",

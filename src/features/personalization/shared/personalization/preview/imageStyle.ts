@@ -126,6 +126,8 @@ export interface ImageHints {
   hasTransparency?: boolean
   /** The asset was explicitly identified as a portrait/headshot. */
   isHeadshot?: boolean
+  /** The visible pixels are mostly very light (a white / pale logo): it vanishes on a white tile. */
+  lightLogo?: boolean
   /** The explicit role of this image (from the customer's assignment or the discovery category). */
   role?: ImageRole
   /**

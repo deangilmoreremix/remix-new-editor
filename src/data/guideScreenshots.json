@@ -449,6 +449,21 @@
     },
     "overview": "/guides/smart-video-viral/overview.webp"
   },
+  "smartvid-studio": {
+    "features": {
+      "model-picker": "/guides/smartvid-studio/model-picker.webp",
+      "live-price-and-batch": "/guides/smartvid-studio/live-price-and-batch.webp",
+      "form-and-json-input": "/guides/smartvid-studio/form-and-json-input.webp",
+      "apps": "/guides/smartvid-studio/apps.webp",
+      "uploading-files": "/guides/smartvid-studio/uploading-files.webp",
+      "recent-uploads": "/guides/smartvid-studio/recent-uploads.webp",
+      "my-generations": "/guides/smartvid-studio/my-generations.webp",
+      "your-own-muapi-key": "/guides/smartvid-studio/your-own-muapi-key.webp",
+      "your-own-key-and-a-secure-proxy": "/guides/smartvid-studio/your-own-key-and-a-secure-proxy.webp",
+      "per-account-history": "/guides/smartvid-studio/per-account-history.webp"
+    },
+    "overview": "/guides/smartvid-studio/overview.webp"
+  },
   "smartviddownloader": {
     "features": {
       "opening-smartviddownloader": "/guides/smartviddownloader/opening-smartviddownloader.webp",

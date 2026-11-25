@@ -1,0 +1,16 @@
+{
+  "record": {
+    "setup": "(async()=>{const v=document.createElement('video');v.src='/media/outreach-sample/presenter.mp4';v.muted=true;v.loop=true;v.playsInline=true;v.style.cssText='position:fixed;left:-9999px;top:0;width:640px';document.body.appendChild(v);await v.play().catch(()=>{});const mk=(id,kind,label)=>({deviceId:id,kind,label,groupId:'g-'+id,toJSON(){return {deviceId:id,kind,label,groupId:'g-'+id}}});const devs=[mk('fakecam','videoinput','FaceTime HD Camera'),mk('fakemic','audioinput','MacBook Pro Microphone')];localStorage.setItem('labels',JSON.stringify(devs.map(d=>({id:d.deviceId,label:d.label}))));const md=navigator.mediaDevices;md.enumerateDevices=async()=>devs;md.getUserMedia=async(c)=>{const s=v.captureStream();const out=new MediaStream();if(c&&c.video)s.getVideoTracks().forEach(t=>out.addTrack(t.clone()));if(c&&c.audio){const ac=new AudioContext();out.addTrack(ac.createMediaStreamDestination().stream.getAudioTracks()[0]);}return out};await new Promise(r=>setTimeout(r,500));const rs=[...document.querySelectorAll('*')].find(e=>e.children.length===0&&e.textContent.trim()==='Rescan devices');rs&&rs.click();await new Promise(r=>setTimeout(r,2000));})()",
+    "reload": false,
+    "selector": "text=FaceTime HD Camera",
+    "click": true,
+    "hold": 1500
+  },
+  "export": {
+    "setup": "(async()=>{const ps=await import('/src/features/recorder/studio/project-store.ts');await ps.loadProjectStore();const ts=1763540000000;const b=await (await fetch('/media/outreach-sample/presenter.mp4')).blob();await ps.writeStaticFile({filePath:'my-video/webcam'+ts+'.mp4',contents:b});const words='Hi there, this is a quick walkthrough of our new dashboard. In two minutes you will see how to set up your first report.'.split(' ');const caps=words.map((w,i)=>({text:(i?' ':'')+w,startMs:400+i*380,endMs:400+i*380+340,timestampMs:400+i*380+170,confidence:0.95}));await ps.writeStaticFile({filePath:'my-video/subs'+ts+'.json',contents:JSON.stringify(caps)});await ps.setProps('my-video',{theme:'dark',canvasLayout:'landscape',platform:'youtube',scenes:[{type:'title',title:'Dashboard walkthrough',subtitle:'Set up your first report',durationInFrames:50,music:'soft',transitionToNextScene:true},{type:'tableofcontents',durationInFrames:200,music:'previous',transitionToNextScene:true},{type:'videoscene',webcamPosition:'bottom-left',startOffset:0,endOffset:0,transitionToNextScene:true,newChapter:'Getting started',stopChapteringAfterThis:false,music:'previous',bRolls:[]},{type:'endcard',durationInFrames:200,channel:'custom',links:[],music:'previous',transitionToNextScene:true}],scenesAndMetadata:[]});await new Promise(r=>setTimeout(r,1000));})()",
+    "reload": false,
+    "selector": "[data-recorder-tab='export']",
+    "click": true,
+    "hold": 2000
+  }
+}

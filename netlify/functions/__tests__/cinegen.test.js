@@ -48,7 +48,7 @@ describe('cinegen function (AI Tools, BYOK)', () => {
   });
 
   it('polls status and normalizes each tool\'s result; drops placeholder assets', async () => {
-    const status = async (tool, data, params) => { post.mockResolvedValueOnce(data); return JSON.parse((await handle({ action: 'status', tool, requestId: 'req123', params }, 'u', { key, post })).body); };
+    const status = async (tool, data, params) => JSON.parse((await handle({ action: 'status', tool, requestId: 'req123', params }, 'u', { key, post, result: async () => data })).body);
     expect(await status('fill_gap', { status: 'processing' })).toEqual({ ok: true, status: 'pending' });
     expect(await status('fill_gap', { status: 'completed', outputs: ['https://cdn.muapi.ai/o.mp4'] }, { duration: 6 })).toMatchObject({ status: 'done', result: { success: true, tool: 'fill_gap', url: 'https://cdn.muapi.ai/o.mp4', duration: 6 } });
     expect(await status('extend', { status: 'success', outputs: ['https://cdn.muapi.ai/e.mp4'] })).toMatchObject({ result: { tool: 'extend', addedDuration: 5, direction: 'after' } });

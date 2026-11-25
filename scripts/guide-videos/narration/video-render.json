@@ -1,0 +1,16 @@
+{
+  "slug": "video-render",
+  "name": "Video Render",
+  "intro": "Video Render is the SmartVideo studio for finishing a video you already made. Pick a clip, choose a look, set your output, and export a polished version without building a timeline.",
+  "features": {
+    "choosing-a-video": "Start by choosing a video from the grid. Click a card to load it, and the header shows its title. Render always works on videos that already exist in your library.",
+    "presets": "Presets set the finishing style. Choose Luxury Brand Grade, Documentary Contrast, Film Trailer Punch or Emotional Story Tone, and you see its color profile and pacing right away.",
+    "output-settings": "Output settings control file type and size. Pick a format your browser can encode, choose twenty four, thirty or sixty frames per second, and drag the quality slider.",
+    "export-video": "Export Video is the main button. It runs the export in your browser, shows progress, and checks the file when it finishes, so you know you have a finished video.",
+    "queue-render": "Queue Render adds a job to the render queue instead of exporting right now. It's handy when you want to line up several exports and download each one when it's done.",
+    "download-frame": "Download Frame saves the current frame as a PNG. Use it when you need a quick thumbnail or a still image from your video.",
+    "trailer-cut-social-resize-remix-scene": "Trailer Cut builds a shorter trailer style export. Social Resize makes versions for nine by sixteen, square, four by five and sixteen by nine, so one video fits every platform.",
+    "drafts-templates-and-saved-items": "Save Draft stores your current setup, and Save as Template keeps it for later. The Saved button opens your list, so you can reuse settings you already like."
+  },
+  "outro": "That's the quick tour of Video Render. Choose a video, pick a look, and export the version you need. Start with a short test export to check your settings."
+}

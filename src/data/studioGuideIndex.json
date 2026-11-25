@@ -32,7 +32,7 @@
         "slug": "edit-studio",
         "name": "Edit Studio",
         "route": "edit",
-        "shortDescription": "16 AI photo tools: remove objects and backgrounds, extend, reframe, effects, face swap and more.",
+        "shortDescription": "16 AI photo tools plus 72 one-click apps: remove objects and backgrounds, reframe, ad shots, video effects and more.",
         "features": 16,
         "thumbnail": "/guides/edit-studio/overview.webp"
       },
@@ -53,12 +53,12 @@
         "thumbnail": "/guides/product-shot-studio/overview.webp"
       },
       {
-        "slug": "studio-muapi-studio",
-        "name": "Studio (Muapi Studio)",
+        "slug": "smartvid-studio",
+        "name": "SmartVid Studio",
         "route": "muapi-studio",
         "shortDescription": "One workspace for hundreds of AI models across image, video, audio, avatar and 3D, using your own MuAPI key.",
         "features": 11,
-        "thumbnail": "/thumbnails/studios/muapi-studio.webp"
+        "thumbnail": "/guides/smartvid-studio/overview.webp"
       },
       {
         "slug": "upscale-suite",
@@ -365,7 +365,7 @@
         "name": "Video Outreach",
         "route": "outreach",
         "shortDescription": "Record once, greet every contact by name in your own voice, and add a booking button.",
-        "features": 24,
+        "features": 30,
         "thumbnail": "/guides/video-outreach/overview.webp"
       },
       {
