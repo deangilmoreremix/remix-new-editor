@@ -87,3 +87,69 @@ describe('every design shows a video slot people can recognise', () => {
     });
   });
 });
+
+import { ViewerContext } from '../editor/context.js';
+describe('viewer extras: trim, subtitles, start frame, overlay, a button at a moment', () => {
+  const withViewer = (viewer, props = {}, extra = {}) => renderToString(
+    <PageContext.Provider value={ctx({ video_url: VIDEO }, extra)}><ViewerContext.Provider value={viewer}><VideoPlayer {...props} /></ViewerContext.Provider></PageContext.Provider>,
+  );
+  it('start and stop times become a media fragment on the video', () => {
+    expect(attr(withViewer({ start: 5, end: 20 }), 'src')).toBe(`${VIDEO}#t=5,20`);
+    expect(attr(withViewer({ start: 0, end: 0 }), 'src')).toBe(VIDEO);
+    expect(attr(withViewer({ start: 30, end: 10 }), 'src')).toBe(`${VIDEO}#t=30`);   // a stop before the start is ignored
+  });
+  it('shows the chosen frame as the picture only when no picture is set', () => {
+    expect(attr(withViewer({ posterAt: 7 }), 'src')).toBe(`${VIDEO}#t=7`);
+    expect(attr(withViewer({ posterAt: 7 }, { poster: '/landing-art/x/p.webp' }), 'src')).toBe(VIDEO);
+  });
+  it('subtitles need an https .vtt link and turn on by default', () => {
+    const out = withViewer({ subtitles: 'https://cdn.test/subs.vtt' });
+    expect(out).toContain('<track'); expect(out).toContain('kind="subtitles"'); expect(out).toContain('default');
+    expect(withViewer({ subtitles: 'http://cdn.test/subs.vtt' })).not.toContain('<track');
+    expect(withViewer({ subtitles: 'javascript:alert(1)' })).not.toContain('<track');
+  });
+  it('text on the video fills {{tokens}}', () => {
+    const out = renderToString(<PageContext.Provider value={ctx({ video_url: VIDEO }, { tokens: { firstname: 'Ann' } })}><ViewerContext.Provider value={{ overlay: 'Hi {{firstname|there}}, this is for you' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>);
+    expect(out).toContain('pk-video-overlay'); expect(out).toContain('Hi Ann, this is for you');
+  });
+  it('the video button shows in the editor, but on a live page only after its moment', () => {
+    const viewer = { ctaAt: 8, ctaLabel: 'Book a call', ctaUrl: 'https://cal.test/me' };
+    const edit = withViewer(viewer, {}, { preview: true }); const live = withViewer(viewer, {}, { preview: false });
+    expect(edit).toContain('pk-video-cta'); expect(edit).toContain('Book a call'); expect(edit).toContain('https://cal.test/me');
+    expect(live).not.toContain('pk-video-cta');
+    expect(withViewer({ ctaAt: 0, ctaLabel: 'x', ctaUrl: 'https://a.test' }, {}, { preview: true })).not.toContain('pk-video-cta');   // 0 = off
+    expect(withViewer({ ctaAt: 5, ctaLabel: 'x', ctaUrl: 'javascript:alert(1)' }, {}, { preview: true })).not.toContain('pk-video-cta');
+  });
+  it('every design with a video offers all of these fields', () => {
+    const withVideo = Object.entries(editorConfig.components).filter(([, c]) => c.fields?.slotImage);
+    expect(withVideo.length).toBeGreaterThan(5);
+    for (const [name, c] of withVideo) for (const k of ['viewerStart', 'viewerEnd', 'viewerPosterAt', 'viewerSubtitles', 'viewerOverlay', 'viewerCtaAt', 'viewerCtaLabel', 'viewerCtaUrl']) expect([name, k, !!c.fields[k]]).toEqual([name, k, true]);
+  });
+});
+
+describe('viewer extras at play time', () => {
+  const mountLive = (viewer, handlers = {}) => {
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers, preview: false }}><ViewerContext.Provider value={viewer}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    const v = host.querySelector('video');
+    v.pause = vi.fn(); v.play = vi.fn(() => Promise.resolve());
+    return { host, v };
+  };
+  const at = (v, t) => { Object.defineProperty(v, 'currentTime', { value: t, writable: true, configurable: true }); Object.defineProperty(v, 'duration', { value: 60, configurable: true }); act(() => { v.dispatchEvent(new Event('timeupdate')); }); };
+  it('the button appears when the video reaches its moment', () => {
+    const { host, v } = mountLive({ ctaAt: 10, ctaLabel: 'Book a call', ctaUrl: 'https://cal.test/me' });
+    at(v, 4); expect(host.querySelector('.pk-video-cta')).toBeNull();
+    at(v, 10.5); expect(host.querySelector('.pk-video-cta')?.textContent).toBe('Book a call');
+  });
+  it('the video stops at its stop time and counts as finished', () => {
+    const onComplete = vi.fn();
+    const { v } = mountLive({ start: 2, end: 12 }, { onComplete });
+    at(v, 12.2);
+    expect(v.pause).toHaveBeenCalled(); expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+  it('with "play again" it restarts from the start time instead', () => {
+    const { v } = mountLive({ start: 2, end: 12, loop: 'yes' });
+    at(v, 12.2);
+    expect(v.currentTime).toBe(2); expect(v.play).toHaveBeenCalled();
+  });
+});

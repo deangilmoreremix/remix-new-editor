@@ -89,7 +89,18 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
   const mock = !src && !userImage && !still;
   const autoplay = viewer.autoplay === 'yes' && !preview && !!src;
   const aspect = ['16 / 9', '4 / 3', '1 / 1', '9 / 16'].includes(viewer.aspect) ? viewer.aspect : '';
-  const play = () => { const v = ref.current; if (v && src) { void v.play?.(); } };
+  // Trim, start frame, subtitles, a button at a moment, and text on the video.
+  const secs = (v) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? Math.min(n, 86400) : 0; };
+  const startAt = secs(viewer.start);
+  const endAt = secs(viewer.end) > startAt ? secs(viewer.end) : 0;
+  const frameAt = !ownPicture && !designPoster ? secs(viewer.posterAt) : 0;   // no picture: show this frame of the video
+  const fragment = src && (startAt || endAt || frameAt) ? `#t=${frameAt || startAt}${endAt ? `,${endAt}` : ''}` : '';
+  const subtitles = safeUrl(viewer.subtitles) && /^https:/i.test(safeUrl(viewer.subtitles)) ? safeUrl(viewer.subtitles) : '';
+  const ctaAt = secs(viewer.ctaAt);
+  const ctaOn = ctaAt > 0 && !!t(viewer.ctaLabel) && !!(safeUrl(viewer.ctaUrl) || anchor(viewer.ctaUrl));
+  const [ctaShown, setCtaShown] = useState(false);
+  const overlay = viewer.overlay ? t(viewer.overlay) : '';
+  const play = () => { const v = ref.current; if (v && src) { if (startAt && v.currentTime < startAt) v.currentTime = startAt; void v.play?.(); } };
   return (
     <div className={`pk-video${mock ? ' pk-video--mock' : ''}${still ? ' pk-video--still' : ''}`}>
       <video
@@ -100,17 +111,24 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
         style={aspect ? { aspectRatio: aspect } : undefined}
         playsInline
         preload="metadata"
-        src={src || undefined}
+        src={src ? `${src}${fragment}` : undefined}
+        {...(subtitles ? { crossOrigin: 'anonymous' } : {})}
         poster={posterUrl || undefined}
         aria-label={viewer.alt ? t(viewer.alt) : still || mock ? (page?.title ? `Picture for ${page.title}` : 'Video placeholder') : (page?.title || 'Video')}
-        onPlay={() => { setStarted(true); once('play', () => handlers.onPlay?.()); }}
+        onPlay={(e) => { if (!started && startAt && e.currentTarget.currentTime < startAt) e.currentTarget.currentTime = startAt; setStarted(true); once('play', () => handlers.onPlay?.()); }}
         onTimeUpdate={(e) => {
           const v = e.currentTarget;
+          if (ctaOn && v.currentTime >= ctaAt) setCtaShown(true);
+          if (endAt && v.currentTime >= endAt) { v.pause(); once('complete', () => handlers.onComplete?.()); if (viewer.loop === 'yes') { v.currentTime = startAt; void v.play?.(); } return; }
           if (!v.duration || !Number.isFinite(v.duration)) return;
           MARKS.forEach((m) => { if (v.currentTime / v.duration >= m.at) once(m.kind, handlers.onProgress); });
         }}
-        onEnded={() => once('complete', () => handlers.onComplete?.())}
-      />
+        onEnded={() => { if (ctaOn) setCtaShown(true); once('complete', () => handlers.onComplete?.()); }}
+      >
+        {subtitles ? <track kind="subtitles" src={subtitles} srcLang="en" label="Captions" default /> : null}
+      </video>
+      {overlay ? <span className="pk-video-overlay">{overlay}</span> : null}
+      {ctaOn && (preview || ctaShown) ? <SafeLink className="pk-btn pk-btn--primary pk-video-cta" href={viewer.ctaUrl}>{t(viewer.ctaLabel)}</SafeLink> : null}
       {showPlay ? <button type="button" className="pk-video-play" aria-label={src ? 'Play video' : 'Video placeholder: your video goes here'} onClick={play} tabIndex={src ? 0 : -1} /> : null}
       {mock && preview ? <span className="pk-video-label">Your video goes here</span> : null}
       {viewer.caption ? <p className="pk-video-caption">{t(viewer.caption)}</p> : null}

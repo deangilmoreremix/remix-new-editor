@@ -16,7 +16,15 @@ export const slotFields = () => ({
   viewerAutoplay: { type: 'radio', label: 'Start playing by itself (muted, live page only)', options: [{ label: 'No', value: 'no' }, { label: 'Yes', value: 'yes' }] },
   viewerLoop: { type: 'radio', label: 'Play again when it ends', options: [{ label: 'No', value: 'no' }, { label: 'Yes', value: 'yes' }] },
   viewerCaption: { type: 'text', label: 'Caption under the viewer' },
+  viewerStart: { type: 'number', label: 'Start the video at (seconds)', min: 0 },
+  viewerEnd: { type: 'number', label: 'Stop the video at (seconds, 0 = the end)', min: 0 },
+  viewerPosterAt: { type: 'number', label: 'Show the frame at (seconds) as the picture, when no picture is set', min: 0 },
+  viewerSubtitles: { type: 'text', label: 'Subtitles file (.vtt link; your own uploads work best)' },
+  viewerOverlay: { type: 'text', label: 'Text on the video (e.g. Hi {{firstname|there}}, this is for you)' },
+  viewerCtaAt: { type: 'number', label: 'Show a button at (seconds, 0 = off; always shown here in the editor)', min: 0 },
+  viewerCtaLabel: { type: 'text', label: 'Button text on the video' },
+  viewerCtaUrl: { type: 'text', label: 'Button link on the video (https, mailto: or #lead)' },
   bakedPlay: { type: 'radio', label: "The design's picture already shows a play button", options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }] },
 });
 
-export const SLOT_DEFAULTS = { slotImage: '', slotVideo: '', bakedPlay: 'no', viewerType: 'auto', viewerAlt: '', viewerAspect: '', viewerControls: 'yes', viewerAutoplay: 'no', viewerLoop: 'no', viewerCaption: '' };
+export const SLOT_DEFAULTS = { slotImage: '', slotVideo: '', bakedPlay: 'no', viewerType: 'auto', viewerAlt: '', viewerAspect: '', viewerControls: 'yes', viewerAutoplay: 'no', viewerLoop: 'no', viewerCaption: '', viewerStart: 0, viewerEnd: 0, viewerPosterAt: 0, viewerSubtitles: '', viewerOverlay: '', viewerCtaAt: 0, viewerCtaLabel: '', viewerCtaUrl: '' };

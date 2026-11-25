@@ -179,7 +179,7 @@ export function ContactAccent({ style, children, ...rest }) {
   return <div style={{ ...style, ...accentOverride(tokens?.accent) }} {...rest}>{children}</div>;
 }
 
-const VIEWER_KEYS = ['viewerType', 'viewerAlt', 'viewerAspect', 'viewerControls', 'viewerAutoplay', 'viewerLoop', 'viewerCaption'];
+const VIEWER_KEYS = ['viewerType', 'viewerAlt', 'viewerAspect', 'viewerControls', 'viewerAutoplay', 'viewerLoop', 'viewerCaption', 'viewerStart', 'viewerEnd', 'viewerPosterAt', 'viewerSubtitles', 'viewerOverlay', 'viewerCtaAt', 'viewerCtaLabel', 'viewerCtaUrl'];
 
 function ViewerScope({ render, props }) {
   const value = {};

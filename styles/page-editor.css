@@ -211,3 +211,7 @@
 .pk-avatar, .pk-strip-photo, .pk-px-avatar, .pk-px-case-photo, .pk-lq-card img, .ent-quote img, .mn-av, .ps-quote img, .ps-card-img, .rs-ava, .dh-avatar { object-fit: cover; object-position: center; }
 .pk-brand img, .ld-logo-mark, .pk-footer-logo, .pk-px-logo, .pk-px-logo-img, .pk-px-case-logo, .rl-brand img, .rs-tile img, .dh-features img,
 .ps-step-ico, img.lc-ico, .mn-logos img, .mn-feats img, .mn-side-brand img, .mn-chart, .rs-laptop, .dh-cta-art, .pk-neon-book img, .pk-neon-giftico, .pk-showcase-art img { object-fit: contain; object-position: center; }
+
+/* Video viewer extras: text on the video, and a button that appears at a chosen moment */
+.pk-video-overlay { position: absolute; left: 12px; top: 12px; max-width: 70%; z-index: 2; padding: 6px 12px; border-radius: 999px; background: rgba(8,12,24,.62); color: #fff; font-size: 13px; font-weight: 700; pointer-events: none; }
+.pk-video-cta { position: absolute; right: 12px; bottom: 52px; z-index: 2; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
