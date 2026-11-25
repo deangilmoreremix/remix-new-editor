@@ -18,28 +18,17 @@ import { muapi } from './muapi';
 // id). muapi stores the OAuth token against it; we look accounts up by it.
 // ---------------------------------------------------------------------------
 
+// `connectable`: muapi has a connect-url route for these, so the app can start the OAuth popup.
+// The others are connected in the muapi dashboard; their accounts still appear in listAccounts.
 export const SOCIAL_PLATFORMS = [
-  {
-    id: 'youtube',
-    label: 'YouTube',
-    mediaKinds: ['video'],
-    color: '#FF0000',
-    note: 'Video only',
-  },
-  {
-    id: 'tiktok',
-    label: 'TikTok',
-    mediaKinds: ['video'],
-    color: '#00F2EA',
-    note: 'Video only',
-  },
-  {
-    id: 'instagram',
-    label: 'Instagram',
-    mediaKinds: ['image', 'video'],
-    color: '#E1306C',
-    note: 'Image (feed) or video (Reel)',
-  },
+  { id: 'youtube', label: 'YouTube', mediaKinds: ['video'], color: '#FF0000', note: 'Video only', connectable: true },
+  { id: 'tiktok', label: 'TikTok', mediaKinds: ['video'], color: '#00F2EA', note: 'Video only', connectable: true },
+  { id: 'instagram', label: 'Instagram', mediaKinds: ['image', 'video'], color: '#E1306C', note: 'Image (feed) or video (Reel)', connectable: true },
+  { id: 'facebook', label: 'Facebook', mediaKinds: ['image', 'video'], color: '#1877F2', note: 'Image or video', connectable: true },
+  { id: 'linkedin', label: 'LinkedIn', mediaKinds: ['image', 'video'], color: '#0A66C2', note: 'Image or video', connectable: false },
+  { id: 'pinterest', label: 'Pinterest', mediaKinds: ['image', 'video'], color: '#E60023', note: 'Image or video Pin', connectable: false },
+  { id: 'threads', label: 'Threads', mediaKinds: ['image', 'video'], color: '#B3B3B3', note: 'Image or video', connectable: false },
+  { id: 'x', label: 'X', mediaKinds: ['image', 'video'], color: '#E7E9EA', note: 'Image or video', connectable: false },
 ];
 
 export const YOUTUBE_CATEGORIES = [
@@ -198,6 +187,21 @@ async function setYouTubeThumbnail(payload, opts = {}) {
   return pollResult(requestId, opts);
 }
 
+// Change the title, description, tags, category, privacy or made-for-kids flag of an already-published video.
+// muapi: POST youtube-update-metadata { account_id, video_id, ...fields to change }.
+async function updateYouTubeMetadata(payload, opts = {}) {
+  const submit = await muapi.proxyJson(
+    'youtube-update-metadata',
+    { method: 'POST', params: payload, generationType: 'social' },
+    opts.signal,
+  );
+  const requestId = submit?.request_id || submit?.id;
+  if (!requestId) {
+    throw new Error('Updating the video did not return a request_id');
+  }
+  return pollResult(requestId, opts);
+}
+
 const socialPublishing = {
   SOCIAL_PLATFORMS,
   YOUTUBE_CATEGORIES,
@@ -212,6 +216,7 @@ const socialPublishing = {
   getResult,
   publishAndPoll,
   setYouTubeThumbnail,
+  updateYouTubeMetadata,
 };
 
 export default socialPublishing;

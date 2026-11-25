@@ -36,8 +36,12 @@ describe('socialPublishing', () => {
     test('exports SOCIAL_PLATFORMS array with expected platforms', () => {
       expect(Array.isArray(SOCIAL_PLATFORMS)).toBe(true);
       expect(SOCIAL_PLATFORMS.map(p => p.id)).toEqual(
-        expect.arrayContaining(['youtube', 'tiktok', 'instagram'])
+        expect.arrayContaining(['youtube', 'tiktok', 'instagram', 'facebook', 'linkedin', 'pinterest', 'threads', 'x'])
       );
+    });
+
+    test('only platforms with a muapi connect-url route are connectable', () => {
+      expect(SOCIAL_PLATFORMS.filter(p => p.connectable).map(p => p.id)).toEqual(['youtube', 'tiktok', 'instagram', 'facebook']);
     });
 
     test('exports YOUTUBE_CATEGORIES array', () => {
@@ -245,6 +249,26 @@ describe('socialPublishing', () => {
       mockProxyJson.mockResolvedValueOnce({});
       await expect(socialPublishing.setYouTubeThumbnail({ account_id: 1, video_id: 'v', thumbnail_url: 'https://x/t.png' }))
         .rejects.toThrow('did not return a request_id');
+    });
+  });
+
+  describe('updateYouTubeMetadata', () => {
+    test('submits to youtube-update-metadata and polls to completion', async () => {
+      vi.useFakeTimers();
+      mockProxyJson
+        .mockResolvedValueOnce({ request_id: 'req_meta' })
+        .mockResolvedValueOnce({ status: 'completed' });
+      const payload = { account_id: 12, video_id: 'abc123', title: 'New title', privacy: 'unlisted' };
+
+      const promise = socialPublishing.updateYouTubeMetadata(payload);
+      await vi.advanceTimersByTimeAsync(800);
+      await expect(promise).resolves.toEqual({ status: 'completed' });
+      expect(mockProxyJson).toHaveBeenNthCalledWith(
+        1,
+        'youtube-update-metadata',
+        { method: 'POST', params: payload, generationType: 'social' },
+        undefined
+      );
     });
   });
 });
