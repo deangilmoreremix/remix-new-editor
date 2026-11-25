@@ -49,4 +49,29 @@ describe('waitForBackend', () => {
     await waitForBackend({ fetchImpl, maxMs: 60, stepMs: 10, sleep: (ms) => new Promise((r) => setTimeout(r, ms)) });
     expect(Date.now() - started).toBeLessThan(1000);
   });
+
+  it('does not let a stalled config probe keep the dashboard from loading', async () => {
+    // A fetch that never answers and ignores abort, like a stuck connection.
+    const fetchImpl = vi.fn().mockReturnValue(new Promise(() => {}));
+    const started = Date.now();
+    await waitForBackend({ fetchImpl, maxMs: 40, sleep: noSleep });
+    expect(Date.now() - started).toBeLessThan(1000);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not let a config body that never finishes keep the dashboard from loading', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: true, text: () => new Promise(() => {}) });
+    const onWaiting = vi.fn();
+    const started = Date.now();
+    await waitForBackend({ onWaiting, fetchImpl, maxMs: 40, sleep: noSleep });
+    expect(Date.now() - started).toBeLessThan(1000);
+    expect(onWaiting).not.toHaveBeenCalled();
+  });
+
+  it('bounds a health request that ignores its abort signal', async () => {
+    const fetchImpl = vi.fn().mockImplementation((url) => (String(url).endsWith('config.js') ? Promise.resolve(liveConfig) : new Promise(() => {})));
+    const started = Date.now();
+    await waitForBackend({ fetchImpl, maxMs: 60, stepMs: 10, sleep: (ms) => new Promise((r) => setTimeout(r, ms)) });
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
 });

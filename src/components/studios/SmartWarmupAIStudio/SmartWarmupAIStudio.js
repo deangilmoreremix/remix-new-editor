@@ -50,22 +50,29 @@ function frameBackground() {
 // a minute to wake. Wake it while the person watches, instead of letting their first sign-in time out. A demo build has no backend and
 // skips this. Gives up after `maxMs` and loads the dashboard anyway, which then shows its own retry message.
 export async function waitForBackend({ onWaiting, maxMs = 120000, stepMs = 3000, fetchImpl = fetch, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
-  let live = false;
-  try {
-    const res = await fetchImpl(`${APP}/config.js`, { cache: 'no-store' });
-    live = res.ok && /DEMO:\s*["']0["']/.test(await res.text());
-  } catch { /* no config: demo */ }
-  if (!live) return;
-  onWaiting?.();
   const until = Date.now() + maxMs;
-  while (Date.now() < until) {
-    // One request must not outlive the budget, or a hung proxy would keep the dashboard from ever loading.
+  // Everything here is bounded by the same budget: a request that stalls (headers, body or the whole connection) must
+  // never keep the dashboard from loading. `withinMs` gives up on the work itself, so it holds even for a fetch that
+  // ignores its abort signal.
+  const withinMs = (ms, run) => new Promise((resolve) => {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), Math.max(1, Math.min(until - Date.now(), 30000)));
-    try {
-      const res = await fetchImpl('/smartwarmupai-api/health', { cache: 'no-store', signal: ctrl.signal });
-      if (res.ok) return;
-    } catch { /* still waking, or this attempt ran out of time */ } finally { clearTimeout(timer); }
+    const timer = setTimeout(() => { ctrl.abort(); resolve(undefined); }, Math.max(1, ms));
+    Promise.resolve().then(() => run(ctrl.signal)).then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      () => { clearTimeout(timer); resolve(undefined); },
+    );
+  });
+
+  const live = await withinMs(Math.min(maxMs, 10000), async (signal) => {
+    const res = await fetchImpl(`${APP}/config.js`, { cache: 'no-store', signal });
+    return res.ok && /DEMO:\s*["']0["']/.test(await res.text());
+  });
+  if (!live) return; // demo build, no config, or the probe ran out of time: load the dashboard as it is
+  onWaiting?.();
+  while (Date.now() < until) {
+    const ok = await withinMs(Math.min(until - Date.now(), 30000), async (signal) => (await fetchImpl('/smartwarmupai-api/health', { cache: 'no-store', signal })).ok);
+    if (ok) return;
+    if (Date.now() >= until) return;
     await sleep(stepMs);
   }
 }
