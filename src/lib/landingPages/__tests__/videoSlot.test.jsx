@@ -102,11 +102,8 @@ describe('viewer extras: trim, subtitles, start frame, overlay, a button at a mo
     expect(attr(withViewer({ posterAt: 7 }), 'src')).toBe(`${VIDEO}#t=7`);
     expect(attr(withViewer({ posterAt: 7 }, { poster: '/landing-art/x/p.webp' }), 'src')).toBe(VIDEO);
   });
-  it('subtitles need an https .vtt link and turn on by default', () => {
-    const out = withViewer({ subtitles: 'https://cdn.test/subs.vtt' });
-    expect(out).toContain('<track'); expect(out).toContain('kind="subtitles"'); expect(out).toContain('default');
-    expect(withViewer({ subtitles: 'http://cdn.test/subs.vtt' })).not.toContain('<track');
-    expect(withViewer({ subtitles: 'javascript:alert(1)' })).not.toContain('<track');
+  it('subtitles render no track on the server (they load in the browser)', () => {
+    expect(withViewer({ subtitles: 'https://cdn.test/subs.vtt' })).not.toContain('<track');
   });
   it('text on the video fills {{tokens}}', () => {
     const out = renderToString(<PageContext.Provider value={ctx({ video_url: VIDEO }, { tokens: { firstname: 'Ann' } })}><ViewerContext.Provider value={{ overlay: 'Hi {{firstname|there}}, this is for you' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>);
@@ -236,9 +233,39 @@ describe('viewer extras: hosts without CORS, a start-frame range, replays, butto
     return { host, v };
   };
   const set = (v, t) => { Object.defineProperty(v, 'currentTime', { value: t, writable: true, configurable: true }); };
-  it('subtitles never change how the video itself is fetched (videos on hosts without CORS keep playing)', () => {
-    const out = withViewerHtml({ subtitles: 'https://cdn.test/subs.vtt' });
-    expect(out).not.toContain('crossorigin'); expect(out).toContain('<track');
+  it('subtitles are fetched with CORS and played from a same-origin copy; the video is never put in CORS mode', async () => {
+    const created = []; const revoked = [];
+    globalThis.URL.createObjectURL = vi.fn((b) => { const u = `blob:subs-${created.length}`; created.push(b); return u; });
+    globalThis.URL.revokeObjectURL = vi.fn((u) => { revoked.push(u); });
+    const fetchMock = vi.fn(async () => ({ ok: true, blob: async () => new Blob(['WEBVTT\n\n'], { type: 'text/vtt' }) }));
+    vi.stubGlobal('fetch', fetchMock);
+    const host = document.createElement('div'); document.body.appendChild(host);
+    let root;
+    await act(async () => { root = createRoot(host); root.render(<PageContext.Provider value={ctx({ video_url: VIDEO })}><ViewerContext.Provider value={{ subtitles: 'https://cdn.test/subs.vtt' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(fetchMock).toHaveBeenCalledWith('https://cdn.test/subs.vtt', { mode: 'cors' });
+    expect(host.querySelector('video').hasAttribute('crossorigin')).toBe(false);
+    expect(host.querySelector('track')?.getAttribute('src')).toBe('blob:subs-0');
+    expect(host.querySelector('track')?.hasAttribute('default')).toBe(true);
+    act(() => { root.unmount(); });
+    expect(revoked).toContain('blob:subs-0');
+    vi.unstubAllGlobals();
+  });
+  it('only an https link is fetched; a failed fetch leaves the video without a track', async () => {
+    const fetchMock = vi.fn(async () => { throw new Error('blocked'); });
+    vi.stubGlobal('fetch', fetchMock);
+    const mountSubs = async (link) => {
+      const host = document.createElement('div'); document.body.appendChild(host);
+      await act(async () => { createRoot(host).render(<PageContext.Provider value={ctx({ video_url: VIDEO })}><ViewerContext.Provider value={{ subtitles: link }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+      await act(async () => { await Promise.resolve(); });
+      return host;
+    };
+    expect((await mountSubs('http://cdn.test/s.vtt')).querySelector('track')).toBeNull();
+    expect((await mountSubs('javascript:alert(1)')).querySelector('track')).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect((await mountSubs('https://cdn.test/s.vtt')).querySelector('track')).toBeNull();   // the fetch failed
+    expect((await mountSubs('https://cdn.test/s.vtt')).querySelector('video')).not.toBeNull(); // and the video still plays
+    vi.unstubAllGlobals();
   });
   it('a start frame with a stop time makes a valid start-only fragment', () => {
     expect(attr(withViewerHtml({ posterAt: 30, start: 2, end: 12 }), 'src')).toBe(`${VIDEO}#t=30`);
