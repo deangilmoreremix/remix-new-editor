@@ -55,11 +55,6 @@ async function clerkReady(): Promise<HostClerk | undefined> {
     }
 }
 
-/**
- * Exchanges a fresh host Clerk token for a Warmbly session and stores it. Returns it, or null when
- * the host is signed out. Throws when the account needs a step this dashboard has no screen for
- * (two-factor, or linking a password account), since there is no second login to fall back to.
- */
 // The backend scales to zero when idle and takes a while to wake, so the first sign-in after a quiet
 // spell can be answered with a gateway timeout. That is not a refusal: wait for it and ask again.
 const WAKE_RETRY_DELAYS_MS = [4_000, 8_000, 12_000];
@@ -68,8 +63,12 @@ const isStillWaking = (err: unknown) => {
     return status === undefined || status >= 500;
 };
 
-async function exchangeWhenAwake(jwt: string): Promise<LoginResult> {
+async function exchangeWhenAwake(): Promise<LoginResult | null> {
     for (let attempt = 0; ; attempt++) {
+        // Read the token again on every attempt: a Clerk session token lives about a minute, and the waits below
+        // can outlast it. Signed out while waiting means there is nothing left to exchange.
+        const jwt = await hostClerk()?.session?.getToken();
+        if (!jwt) return null;
         try {
             return await exchangeClerk(jwt);
         } catch (err) {
@@ -80,13 +79,17 @@ async function exchangeWhenAwake(jwt: string): Promise<LoginResult> {
     }
 }
 
+/**
+ * Exchanges a fresh host Clerk token for a Warmbly session and stores it. Returns it, or null when
+ * the host is signed out. Throws when the account needs a step this dashboard has no screen for
+ * (two-factor, or linking a password account), since there is no second login to fall back to.
+ */
 export async function syncHostToken(): Promise<Token | null> {
-    const jwt = await hostClerk()?.session?.getToken();
-    if (!jwt) {
+    const res = await exchangeWhenAwake();
+    if (!res) {
         clearTokens();
         return null;
     }
-    const res = await exchangeWhenAwake(jwt);
     if (!res.access_token || !res.access_token_expires_at || !res.refresh_token || !res.refresh_token_expires_at) {
         clearTokens();
         throw new Error("This account needs extra sign-in steps that the host app's sign-in does not cover.");

@@ -138,6 +138,31 @@ describe("host session (one login)", () => {
             await expect(done).resolves.toMatchObject({ access_token: "warmbly-access" });
         });
 
+        it("reads a fresh host token for every attempt, since a Clerk token lives about a minute", async () => {
+            vi.useFakeTimers();
+            let n = 0;
+            clerk({ getToken: async () => `jwt-${++n}` });
+            vi.mocked(exchangeClerk)
+                .mockRejectedValueOnce({ error: "Gateway Timeout", message: "x", status: 504 })
+                .mockResolvedValue(warmblySession());
+            const done = syncHostToken();
+            await vi.advanceTimersByTimeAsync(4_000);
+            await done;
+            expect(vi.mocked(exchangeClerk).mock.calls.map((c) => c[0])).toEqual(["jwt-1", "jwt-2"]);
+        });
+
+        it("stops quietly if the person signs out of the host while the backend is waking", async () => {
+            vi.useFakeTimers();
+            const c = clerk({ getToken: async () => "jwt" });
+            vi.mocked(exchangeClerk).mockRejectedValue({ error: "Gateway Timeout", message: "x", status: 504 });
+            const done = syncHostToken();
+            await vi.advanceTimersByTimeAsync(1);
+            (c as { session: unknown }).session = null;
+            await vi.advanceTimersByTimeAsync(4_000);
+            await expect(done).resolves.toBeNull();
+            expect(exchangeClerk).toHaveBeenCalledTimes(1);
+        });
+
         it("does not retry a refusal", async () => {
             clerk(signedIn());
             vi.mocked(exchangeClerk).mockRejectedValue({ error: "Bad Request", message: "x", status: 400 });
