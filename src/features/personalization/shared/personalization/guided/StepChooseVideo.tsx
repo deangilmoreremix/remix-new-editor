@@ -130,9 +130,29 @@ function demoFilterOptions(
  * here requires no action. The demo library, previously saved videos and a
  * browser-local upload are optional ways to change it. No paid call is made.
  */
+/** Logo label shown on a demo card: reviewed clips are either clean or carry a mark; local clips not labeled yet say so. */
+function brandingLabel(branding: 'none' | 'logo' | 'unreviewed' | undefined): string {
+  return branding === 'none' ? 'No logo' : branding === 'logo' ? 'Has logo' : 'Not reviewed'
+}
+
+function brandingTitle(branding: 'none' | 'logo' | 'unreviewed' | undefined, marks?: string): string {
+  if (marks) return marks
+  if (branding === 'none') return 'Reviewed: no visible logo, watermark or credit'
+  if (branding === 'logo') return 'Has a visible logo, watermark or credit'
+  return 'Not reviewed yet: may show a logo, watermark or credit'
+}
+
+function brandingBackground(branding: 'none' | 'logo' | 'unreviewed' | undefined): string {
+  return branding === 'none' ? 'rgba(16,120,70,.88)' : branding === 'logo' ? 'rgba(150,95,10,.92)' : 'rgba(82,82,91,.92)'
+}
+
 export function StepChooseVideo(): React.JSX.Element {
   const ctx = useDemoPersonalize()
   const { source, previewVideo, setPreviewVideo, previewSettings, updatePreviewComposition, sharedMediaEntries = [] } = ctx
+  // Older or partial contexts (and tests) may not provide it.
+  const fitPreviewToVideo =
+    (ctx as { fitPreviewToVideo?: (url: string, fallback?: { durationSec?: number; aspectRatio?: string }) => void })
+      .fitPreviewToVideo
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadNote, setUploadNote] = useState(false)
   const [hoveredDemoKey, setHoveredDemoKey] = useState<string | null>(null)
@@ -172,14 +192,19 @@ export function StepChooseVideo(): React.JSX.Element {
       title: source.title || 'Your video',
       kind: 'source',
     })
-  }, [source?.sourceMedia, source?.poster, source?.title, previewVideo?.url, setPreviewVideo])
+    fitPreviewToVideo?.(url, { durationSec: source.duration, aspectRatio: source.aspectRatio })
+  }, [source?.sourceMedia, source?.poster, source?.title, previewVideo?.url, setPreviewVideo, fitPreviewToVideo])
 
   const savedVideos = sharedMediaEntries
     .map((entry) => ({ entry, url: savedVideoUrl(entry) }))
     .filter((item): item is { entry: SharedMediaEntry; url: string } => Boolean(item.url))
     .slice(0, 8)
 
-  const pick = (video: PreviewVideoRef) => setPreviewVideo(video)
+  // Every pick sets the preview to that video's own length and shape.
+  const pick = (video: PreviewVideoRef, fallback?: { durationSec?: number; aspectRatio?: string }) => {
+    setPreviewVideo(video)
+    fitPreviewToVideo?.(video.url, fallback)
+  }
 
   const pickDemo = (demo: DemoLibraryEntry) => {
     // A demo without a playable videoSrc must not be selected and must never
@@ -190,9 +215,14 @@ export function StepChooseVideo(): React.JSX.Element {
     // `demoId` is the registry's source-qualified id ("<collection>:<slug>").
     // The source catalogs reuse numeric ids across libraries, so a bare
     // number would point at a different video in another collection.
-    pick({ url: demo.videoSrc, poster: demo.posterSrc || null, title: demo.title, kind: 'demo', demoId: demo.id })
     const videoDemo = DEMO_VIDEO_BY_ENTRY_ID.get(demo.id) ?? toVideoDemo(demo)
-    updatePreviewComposition({ durationInFrames: demoDurationInFrames(videoDemo, fps) })
+    const video: PreviewVideoRef = { url: demo.videoSrc, poster: demo.posterSrc || null, title: demo.title, kind: 'demo', demoId: demo.id }
+    if (fitPreviewToVideo) {
+      pick(video, { durationSec: videoDemo.duration, aspectRatio: videoDemo.aspectRatio ?? demo.aspectRatio })
+    } else {
+      setPreviewVideo(video)
+      updatePreviewComposition({ durationInFrames: demoDurationInFrames(videoDemo, fps) })
+    }
   }
 
   const handleUpload = (file: File | undefined) => {
@@ -277,11 +307,12 @@ export function StepChooseVideo(): React.JSX.Element {
       .map(([value, count]) => ({ value, label: `${value} (${count})` }))
 
     // Logo label — counts for the current filter set.
-    const brandingCounts = { none: 0, logo: 0 }
+    const brandingCounts = { none: 0, logo: 0, unreviewed: 0 }
     for (const row of brandingCandidates) brandingCounts[row.item.entry.branding] += 1
     const brandingOptions: DemoOption[] = [
       { value: 'none', label: `No logo (${brandingCounts.none})` },
       { value: 'logo', label: `Has logo (${brandingCounts.logo})` },
+      { value: 'unreviewed', label: `Not reviewed (${brandingCounts.unreviewed})` },
     ]
 
     // Sub-category — only meaningful inside one business niche, and only when
@@ -692,8 +723,8 @@ export function StepChooseVideo(): React.JSX.Element {
                             </span>
                           )}
                           {active && (
-                            <span data-branding={demo.branding} role="img" aria-label={demo.branding === 'none' ? 'No logo' : 'Has logo'} style={{ ...badgeStyle(demo.branding === 'none' ? 'green' : 'muted'), position: 'absolute', top: 34, right: 6 }}>
-                              {demo.branding === 'none' ? 'No logo' : 'Has logo'}
+                            <span data-branding={demo.branding} role="img" aria-label={brandingLabel(demo.branding)} style={{ ...badgeStyle(demo.branding === 'none' ? 'green' : 'muted'), position: 'absolute', top: 34, right: 6 }}>
+                              {brandingLabel(demo.branding)}
                             </span>
                           )}
                           {/* The "VIDEO" chip sits bottom-left, where the native
@@ -705,11 +736,11 @@ export function StepChooseVideo(): React.JSX.Element {
                               data-testid={`demo-branding-${demo.legacyId}-${demo.slug}`}
                               data-branding={demo.branding}
                               role="img"
-                              aria-label={demo.branding === 'none' ? 'No logo' : 'Has logo'}
-                              title={demo.marks ?? (demo.branding === 'none' ? 'Reviewed: no visible logo, watermark or credit' : 'Has a visible logo, watermark or credit')}
-                              style={{ position: 'absolute', top: 6, right: 6, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#fff', background: demo.branding === 'none' ? 'rgba(16,120,70,.88)' : 'rgba(150,95,10,.92)', padding: '2px 6px', borderRadius: 4 }}
+                              aria-label={brandingLabel(demo.branding)}
+                              title={brandingTitle(demo.branding, demo.marks)}
+                              style={{ position: 'absolute', top: 6, right: 6, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#fff', background: brandingBackground(demo.branding), padding: '2px 6px', borderRadius: 4 }}
                             >
-                              {demo.branding === 'none' ? 'No logo' : 'Has logo'}
+                              {brandingLabel(demo.branding)}
                             </span>
                           )}
                           {!active && (

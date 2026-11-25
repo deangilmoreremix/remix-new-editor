@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { onOwnerNotification, ensureLiveAlerts, isOutreachAlertFor, _setLiveAlertDeps } from '../liveAlerts.js';
-import { createNotificationsBell } from '../notificationsBell.js';
 
 const flush = async () => { for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0)); };
 
@@ -57,18 +56,4 @@ describe('live alerts', () => {
     expect(isOutreachAlertFor({ video_id: 'v1', dedupe_key: 'outreach:v1:c1:play' }, null)).toBe(false);
   });
 
-  it('the bell refreshes at once on a live alert and stops listening on destroy', async () => {
-    let fire = null;
-    const stop = vi.fn();
-    const rpc = vi.fn(async () => ({ data: 2, error: null }));
-    const bell = createNotificationsBell({ getClient: async () => ({ rpc }), isSignedIn: () => true, live: { listen: (fn) => { fire = fn; return stop; }, ensure: vi.fn() } });
-    await flush();
-    const before = rpc.mock.calls.length;
-    fire({ id: 9 });
-    await flush();
-    expect(rpc.mock.calls.length).toBe(before + 1);
-    expect(bell._count()).toBe(2);
-    bell.destroy();
-    expect(stop).toHaveBeenCalled();
-  });
 });

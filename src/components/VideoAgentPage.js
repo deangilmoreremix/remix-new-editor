@@ -8,6 +8,7 @@ import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { saveGeneration } from '../lib/generationHistory.js';
+import { createLandingPageButton, openLandingPageFor } from './studio/landingPageAction.js';
 
 // Backend wiring
 function getBackendBase() {
@@ -139,7 +140,7 @@ export function VideoAgentPage() {
             <!-- Left: Video Preview + Use Cases -->
             <div class="flex-1 flex flex-col">
                 <!-- Video Preview Card -->
-                <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+                <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
                     <div class="aspect-video flex items-center justify-center bg-black rounded-xl overflow-hidden relative" id="video-preview-stage">
                         ${videoUrl ? `
                             <video 
@@ -180,14 +181,14 @@ export function VideoAgentPage() {
                 </div>
                 
                 <!-- Agent Prompt (used by VideoDB + GenAI agents) -->
-                <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+                <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
                     <label class="block text-xs font-bold text-white/70 mb-2 tracking-wide">AGENT PROMPT <span class="text-muted font-normal">(optional — describe what you want, e.g. "find the moment the product is revealed")</span></label>
                     <textarea id="agent-prompt" rows="2" placeholder="Describe the shot, search, or generation you want…" class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-primary/50 resize-none"></textarea>
                     <p id="key-status" class="text-[11px] text-muted mt-2"></p>
                 </div>
 
                 <!-- Use Cases -->
-                <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
+                <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
                     <div class="relative w-full h-28 overflow-hidden">
                         <img src="/thumbnails/videoagent/header-use-cases.png" alt="AI Use Cases" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
                         <div class="absolute inset-0 bg-gradient-to-t from-[#111] via-[#111]/50 to-transparent"></div>
@@ -221,7 +222,7 @@ export function VideoAgentPage() {
             
             <!-- Right Panel - AI Tools -->
             <div class="w-full lg:w-96 flex-shrink-0">
-                <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
+                <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
                     <!-- Tools Header Banner -->
                     <div class="relative w-full h-28 overflow-hidden">
                         <img src="/thumbnails/videoagent/header-tools.png" alt="AI Processing Tools" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
@@ -318,7 +319,7 @@ export function VideoAgentPage() {
         
         <!-- Processing Modal -->
         <div id="processing-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden">
-            <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-3xl p-8 max-w-md w-full mx-4 shadow-3xl">
+            <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-3xl p-8 max-w-md w-full mx-4 shadow-3xl">
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 mx-auto mb-4 bg-primary/20 rounded-full flex items-center justify-center">
                         <div class="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
@@ -1090,6 +1091,13 @@ export function VideoAgentPage() {
                 } catch (_) {}
             };
             resultEl.appendChild(dlBtn);
+            // Create landing page: the same text-link look as "Download result" (videos only)
+            if (!isAudio && /^https:\/\//i.test(String(videoUrl))) {
+                const lpBtn = createLandingPageButton({ like: dlBtn });
+                lpBtn.textContent = '▤ Create landing page';
+                lpBtn.onclick = () => { void openLandingPageFor({ url: String(videoUrl), type: 'video', studio: 'video-agent' }); };
+                resultEl.appendChild(lpBtn);
+            }
         }
 
         // TTS that was spoken live in the browser (no downloadable file).

@@ -1,14 +1,15 @@
 // src/lib/outreach/onboarding.js
 //
-// The SmartVideo welcome (5 steps), shown the first time someone opens Video Outreach:
+// The SmartVideo welcome (6 steps), shown the first time someone opens Video Outreach:
 //   1 what to do first (personal videos / dynamic videos)   2 team size   3 videos per month
 //   4 where you work (company, website, job title)            5 how you heard about SmartVideo
+//   6 your Brand Kit (read from the website in step 4; saved only if you press Save; Skip is always there)
 // Answers are kept in this browser at once and saved to Supabase (public.user_onboarding, one row per
 // signed-in user, readable only by them). When the table is not there yet or the user is offline, the
 // browser copy is kept and saved again next time.
 
 export const ONBOARDING_KEY = 'smartvideo-outreach-onboarding-v1';
-export const ONBOARDING_STEPS = 5;
+export const ONBOARDING_STEPS = 6;
 
 export const GOALS = Object.freeze([
   { id: 'personal', title: 'Record personal videos', text: 'Record a quick video of you and your screen. Send it to one prospect, a customer or your team.', tags: ['Camera and screen', 'Upload a video'] },

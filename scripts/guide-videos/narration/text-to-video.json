@@ -1,0 +1,14 @@
+{
+  "slug": "text-to-video",
+  "name": "Text to Video",
+  "intro": "This is Text to Video in SmartVideo, a simple starting page where you can browse video models and example prompts, then carry your choice into Video Studio.",
+  "features": {
+    "video-generation-reimagined-cards": "The Video Generation Reimagined cards give you a quick summary of what Video Studio offers, from cinematic quality to durations and resolutions. They're information only, not buttons.",
+    "get-started-free": "Get Started Free opens Video Studio right away. It's the fastest route from this page to the video generator if you already know what you want to make.",
+    "gtm-boost": "GTM Boost turns a rough marketing idea into a conversion focused prompt. Choose your angle, audience and goal, then apply it to open Video Studio with the prompt waiting.",
+    "available-models": "Available Models shows featured video models as cards. Click one to open Video Studio, and check its model button afterward to confirm the model you wanted is selected.",
+    "example-prompts": "Example Prompts give you five ready ideas, like a drone shot over a city at sunset. Click Try this to drop the prompt into Video Studio and tweak it.",
+    "start-creating-videos": "At the bottom, Start Creating Videos opens Video Studio once you've browsed. Treat this page as a menu, and set duration and ratio over in the studio."
+  },
+  "outro": "Now you know your way around Text to Video. Choose a model or a prompt, and Video Studio is ready for you."
+}

@@ -32,7 +32,7 @@
     "Result actions: Download, Add to Library, Insert into Timeline, Add AI Captions (video results only), Publish to Social.",
     "Effect Layers with blend modes and opacity (experimental, see limitations).",
     "Motion graphics (Vibe Motion) mode with Generate and Edit (Remix) and a saved gallery of your last 30 results in this browser.",
-    "Extras menu (three dots) with Recipes, Monetize and Prompts, plus Thumbnail and Personalize buttons."
+    "Extras menu (three dots) with Recipes and Prompts, plus Thumbnail and Personalize buttons."
   ],
   "featureExplanations": [
     {

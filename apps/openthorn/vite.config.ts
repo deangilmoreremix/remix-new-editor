@@ -5,6 +5,7 @@ import {
   verifyUser,
   rateLimit,
   runCloudflareDeploy,
+  getCloudflareCredentials,
   getProjectForDeploy,
   persistProjectSiteId,
   encryptForUser,
@@ -61,8 +62,6 @@ export default defineConfig(({ mode, isSsrBuild }) => {
   const env = loadEnv(mode, process.cwd(), '')
   process.env.SUPABASE_URL ||= env.SUPABASE_URL || env.VITE_SUPABASE_URL
   process.env.SUPABASE_ANON_KEY ||= env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY
-  if (env.CLOUDFLARE_ACCOUNT_ID) process.env.CLOUDFLARE_ACCOUNT_ID ||= env.CLOUDFLARE_ACCOUNT_ID
-  if (env.CLOUDFLARE_API_TOKEN) process.env.CLOUDFLARE_API_TOKEN ||= env.CLOUDFLARE_API_TOKEN
   if (env.KEY_ENCRYPTION_SECRET) process.env.KEY_ENCRYPTION_SECRET ||= env.KEY_ENCRYPTION_SECRET
   if (env.SUPABASE_SERVICE_ROLE_KEY) process.env.SUPABASE_SERVICE_ROLE_KEY ||= env.SUPABASE_SERVICE_ROLE_KEY
   if (env.SUPABASE_OAUTH_CLIENT_ID) process.env.SUPABASE_OAUTH_CLIENT_ID ||= env.SUPABASE_OAUTH_CLIENT_ID
@@ -86,13 +85,31 @@ export default defineConfig(({ mode, isSsrBuild }) => {
               if (!body.projectId || !body.html) return sendJson(res, 400, { error: 'Missing projectId or html' })
               const access = await getProjectForDeploy(req.headers.authorization, body.projectId)
               if (!access.ok) return sendJson(res, 403, { error: 'You do not have access to this project.' })
-              const result = await runCloudflareDeploy({ projectId: body.projectId, html: body.html, existingSiteId: access.siteId, title: access.title })
+              const creds = await getCloudflareCredentials(user.id)
+              if (!creds) return sendJson(res, 409, { error: 'cloudflare_not_connected', message: 'Connect your Cloudflare account in Settings → Hosting to publish.' })
+              const result = await runCloudflareDeploy({ projectId: body.projectId, html: body.html, existingSiteId: access.siteId, title: access.title }, creds)
               if (result.siteId !== access.siteId) {
                 await persistProjectSiteId(req.headers.authorization, body.projectId, result.siteId)
               }
               sendJson(res, 200, result)
             } catch (err) {
               sendJson(res, 500, { error: err instanceof Error ? err.message : 'Deploy failed' })
+            }
+          })
+
+          // Same handler as production (api/cloudflare.ts).
+          server.middlewares.use('/api/cloudflare', async (req, res) => {
+            try {
+              const { default: cloudflare } = await server.ssrLoadModule('/api/cloudflare.ts')
+              const body = req.method === 'POST' ? await readJsonBody<Record<string, unknown>>(req) : undefined
+              let status = 200
+              const reply = {
+                status(code: number) { status = code; return reply },
+                json(payload: unknown) { sendJson(res, status, payload) },
+              }
+              await cloudflare({ method: req.method, headers: req.headers, body }, reply)
+            } catch (err) {
+              sendJson(res, 500, { error: err instanceof Error ? err.message : 'Failed' })
             }
           })
 

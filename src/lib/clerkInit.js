@@ -105,4 +105,37 @@ export async function ensureClerkLoaded() {
   return clerkLoadPromise;
 }
 
+/**
+ * Call `onUser(clerk)` once, as soon as a signed-in SmartVid (Clerk) user is available: right away if there
+ * already is one, otherwise when Clerk reports a sign-in. If Clerk cannot be loaded, retry a few times.
+ * Returns a cancel function that removes the listener and any pending retry (call it when the page closes).
+ */
+export function whenClerkUser(onUser, { tries = 10, retryMs = 3000 } = {}) {
+  const state = { done: false, stop: null, timer: null };
+  const cancel = () => {
+    state.done = true;
+    if (typeof state.stop === 'function') state.stop();
+    state.stop = null;
+    if (state.timer) clearTimeout(state.timer);
+    state.timer = null;
+  };
+  const fire = (clerk) => { if (state.done) return; cancel(); onUser(clerk); };
+  const attempt = async (left) => {
+    if (state.done) return;
+    let clerk = null;
+    try { clerk = (await ensureClerkLoaded()) || window.Clerk || null; } catch { clerk = null; }
+    if (state.done) return;
+    if (clerk?.user?.id) { fire(clerk); return; }
+    if (clerk?.addListener) {
+      state.stop = clerk.addListener(({ user }) => { if (user?.id) fire(clerk); });
+      // Clerk may call the listener synchronously, before `state.stop` was set.
+      if (state.done && typeof state.stop === 'function') { state.stop(); state.stop = null; }
+      return;
+    }
+    if (left > 1) state.timer = setTimeout(() => attempt(left - 1), retryMs);
+  };
+  attempt(tries);
+  return cancel;
+}
+
 export { Clerk };

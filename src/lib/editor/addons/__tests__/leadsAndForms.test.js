@@ -162,7 +162,7 @@ describe('List Builder / Personalizer (upstream retarget form)', () => {
     expect(p.elements.map((e) => e.token)).toEqual(['EMAIL', 'FIRST NAME', 'LAST NAME']);
     const tabs = new Set(listBuilderFields(p).map((f) => f.tab));
     expect(tabs.has('Integrations')).toBe(false);
-    expect(new Set(listBuilderFields(defaultListBuilder()).map((f) => f.tab))).toEqual(new Set(['Text', 'Styles', 'Fields', 'Pointer', 'Integrations']));
+    expect(new Set(listBuilderFields(defaultListBuilder()).map((f) => f.tab))).toEqual(new Set(['Text', 'Design', 'Styles', 'Fields', 'Pointer', 'Integrations']));
   });
 
   it('switching kind keeps enabled and swaps defaults', () => {
@@ -271,7 +271,7 @@ describe('schema settings editor', () => {
     const onChange = vi.fn();
     const lb = defaultListBuilder();
     renderAddonEditor(box, { options: lb, fieldsFor: listBuilderFields, onChange });
-    expect([...box.querySelectorAll('[data-addon-tab]')].map((b) => b.textContent)).toEqual(['Text', 'Styles', 'Fields', 'Pointer', 'Integrations']);
+    expect([...box.querySelectorAll('[data-addon-tab]')].map((b) => b.textContent)).toEqual(['Text', 'Design', 'Styles', 'Fields', 'Pointer', 'Integrations']);
     box.querySelector('[data-addon-tab="Fields"]').click();
     box.querySelector('.addon-fieldlist__add').click();
     let next = onChange.mock.calls.at(-1)[0];

@@ -56,6 +56,9 @@ const SOURCE_ADAPTERS = {
   },
 };
 
+/** Uniform media aspect ratio per category (social content is portrait-leaning). */
+const CARD_MEDIA_RATIO = { Social: 4 / 5, default: 16 / 9 };
+
 /** Safe duration formatter. */
 function formatDurationSafe(demo) {
   if (!demo.duration) return '—';
@@ -199,8 +202,9 @@ function createGalleryCard(demo, showLikes = false) {
   card.dataset.mmxCategory = demo.category;
   card.dataset.repoSource = demo.source;
 
-  const [w, h] = (demo.aspectRatio || '16:9').split(':').map(Number);
-  const ratio = w && h ? w / h : 16 / 9;
+  // One uniform media box per section (clips are cropped with object-cover) so
+  // every card in a row has identical media height and the text/buttons line up.
+  const ratio = CARD_MEDIA_RATIO[demo.category] || CARD_MEDIA_RATIO.default;
 
   let likesHtml = '';
   if (showLikes) {
@@ -229,8 +233,8 @@ function createGalleryCard(demo, showLikes = false) {
 
     <div class="flex flex-1 flex-col p-4">
       <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400/80">${escapeHtml(demo.category)}</span>
-      <h3 class="mt-1.5 text-sm font-bold leading-snug text-white">${escapeHtml(demo.title)}</h3>
-      <p class="mt-1 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(demo.useCase || demo.category)}</p>
+      <h3 class="mt-1.5 line-clamp-2 break-words text-sm font-bold leading-snug text-white" title="${escapeHtml(demo.title)}">${escapeHtml(demo.title)}</h3>
+      <p class="mt-1 line-clamp-2 flex-1 text-xs leading-relaxed text-gray-500">${escapeHtml(demo.useCase || demo.category)}</p>
       <div class="mt-4 flex flex-col items-center gap-2" data-repo-card-actions>
         <div class="flex flex-wrap items-center justify-center gap-2" data-repo-primary-actions></div>
         <div class="flex items-center justify-center gap-1.5" data-repo-studio-icons></div>
@@ -293,7 +297,7 @@ function createGalleryCard(demo, showLikes = false) {
           params: icon.params || {},
           label: icon.label,
           title: icon.title,
-          loadPrompt: icon.loadPrompt,
+          loadPrompt: icon.loadPrompt || studioIcons.find((i) => i.route === 'personalize')?.loadPrompt,
         })
       );
     });

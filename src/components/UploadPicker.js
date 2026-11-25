@@ -120,11 +120,43 @@ const MUAPI_LIMITS = UPLOAD_LIMITS;
 // attribute from these so the OS dialog only offers MuAPI-supported types.
 const ACCEPT_IMAGES = 'image/jpeg,image/png,image/webp,image/gif,image/svg+xml,image/avif,image/heic,image/bmp';
 const ACCEPT_VIDEOS = 'video/mp4,video/webm,video/quicktime,video/x-matroska,video/x-msvideo,video/x-m4v';
+const ACCEPT_AUDIO = 'audio/mpeg,audio/wav,audio/aac,audio/ogg,audio/flac,audio/mp4,audio/x-m4a,.mp3,.wav,.aac,.ogg,.oga,.flac,.m4a';
 const ACCEPT_DOCUMENTS = 'application/pdf,application/json,application/zip,application/x-zip-compressed,.pdf,.json,.zip';
 
-function buildAcceptString({ acceptVideo, acceptDocuments }) {
+// A URL-imported File may have an empty type or one the server got wrong.
+// Resolve it from the file extension so the URL flow can tell image, video and
+// audio apart before the accepted-type check.
+const EXT_MIME = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif',
+    avif: 'image/avif', svg: 'image/svg+xml', bmp: 'image/bmp',
+    mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', m4v: 'video/x-m4v', mkv: 'video/x-matroska', avi: 'video/x-msvideo',
+    mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg', oga: 'audio/ogg', m4a: 'audio/mp4', aac: 'audio/aac', flac: 'audio/flac',
+};
+
+export function withInferredMime(file) {
+    if (!file) return file;
+    const ext = String(file.name || '').split('?')[0].split('.').pop().toLowerCase();
+    const type = EXT_MIME[ext];
+    // A known media extension wins over a conflicting declared type (an .m4a
+    // served as video/mp4 is still audio); with no usable extension the
+    // declared type from the response header is kept.
+    if (!type || file.type === type) return file;
+    return new File([file], file.name, { type });
+}
+
+// One predicate for the load-from-URL check: images always, video and audio
+// only when the picker opted in (audio no longer depends on acceptVideo).
+export function isAcceptedUrlFile(file, { acceptVideo = false, acceptAudio = false } = {}) {
+    const t = (file && file.type) || '';
+    return t.startsWith('image/')
+        || (acceptVideo && t.startsWith('video/'))
+        || (acceptAudio && t.startsWith('audio/'));
+}
+
+function buildAcceptString({ acceptVideo, acceptDocuments, acceptAudio }) {
     const parts = [ACCEPT_IMAGES];
     if (acceptVideo) parts.push(ACCEPT_VIDEOS);
+    if (acceptAudio) parts.push(ACCEPT_AUDIO);
     if (acceptDocuments) parts.push(ACCEPT_DOCUMENTS);
     return parts.join(',');
 }
@@ -167,6 +199,7 @@ export function createUploadPicker({
     maxImages: initialMaxImages = 1,
     acceptVideo = true,
     acceptDocuments = true,
+    acceptAudio = false,
     frameMode = false,
     onFilePreview = null,
     singleLabel,
@@ -230,7 +263,7 @@ export function createUploadPicker({
 
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.accept = buildAcceptString({ acceptVideo, acceptDocuments });
+    fileInput.accept = buildAcceptString({ acceptVideo, acceptDocuments, acceptAudio });
     fileInput.className = 'hidden';
 
     // ── Trigger button ────────────────────────────────────────────────────────
@@ -991,7 +1024,7 @@ export function createUploadPicker({
 
         const label = document.createElement('div');
         label.className = 'text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5';
-        label.textContent = 'Paste image or video URL';
+        label.textContent = `Paste ${acceptAudio && acceptVideo ? 'image, video or audio' : acceptAudio ? 'image or audio' : acceptVideo ? 'image or video' : 'image'} URL`;
         wrap.appendChild(label);
 
         const row = document.createElement('div');
@@ -1055,20 +1088,18 @@ export function createUploadPicker({
                 }
 
                 clearTimeout(FETCH_TIMEOUT_ID);
-                const file = await fetchUrlAsFile(url);
+                const file = withInferredMime(await fetchUrlAsFile(url));
 
                 if (file.size > URL_BYTE_CAP) {
                     const maxMB = URL_BYTE_CAP / 1024 / 1024;
                     throw new Error(`Downloaded file is ${(file.size / 1024 / 1024).toFixed(1)}MB; exceeds ${maxMB}MB limit.`);
                 }
                 // Filter by accepted type
-                const isImage = file.type.startsWith('image/');
-                const isVideo = file.type.startsWith('video/');
-                if (!acceptVideo && !isImage) {
-                    throw new Error('Only image URLs are supported here.');
-                }
-                if (acceptVideo && !isImage && !isVideo) {
-                    throw new Error('Only image or video URLs are supported here.');
+                if (!isAcceptedUrlFile(file, { acceptVideo, acceptAudio })) {
+                    const kinds = ['image', ...(acceptVideo ? ['video'] : []), ...(acceptAudio ? ['audio'] : [])];
+                    throw new Error(kinds.length === 1
+                        ? 'Only image URLs are supported here.'
+                        : `Only ${kinds.slice(0, -1).join(', ')} or ${kinds[kinds.length - 1]} URLs are supported here.`);
                 }
                 // Reuse the same upload pipeline as a local file selection
                 uploadFiles([file]);

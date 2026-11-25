@@ -1,6 +1,7 @@
+import { PUBLIC_TOKEN_KEYS } from '../templates.js';
 import { describe, it, expect } from 'vitest';
-import { normalizeCustomer, mergeCustomer, dedupeCustomers, customerTokens, toContactFields, applyCustomerToPuck, brandForConfig, websiteUrl, httpsUrl, hexColor } from '../customerProfile.js';
-import { PUCK_TEMPLATES } from '../puck/designs.js';
+import { normalizeCustomer, mergeCustomer, dedupeCustomers, customerTokens, toContactFields, applyCustomerToEditor, brandForConfig, websiteUrl, httpsUrl, hexColor } from '../customerProfile.js';
+import { EDITABLE_TEMPLATES } from '../editor/designs.js';
 
 const CLIENT = { id: 'c1', name: 'Dana Whitfield', businessName: 'Riverside Plumbing', industry: 'Plumbing', location: 'Austin, TX', phone: '(512) 555-0142', website: 'riversideplumbing.com', offer: 'Free quote', callToAction: 'Book now', ctaHeadline: 'Fast fixes', email: 'dana@riversideplumbing.com', brandDescription: 'Family plumbers since 1999' };
 const ASSETS = { primaryLogo: { url: 'blob:x', uploadedUrl: 'https://cdn.test/logo.png' } };
@@ -76,7 +77,9 @@ describe('dedupe keeps distinct people', () => {
 describe('tokens and contact row', () => {
   const c = normalizeCustomer(CLIENT, 'client', { assets: ASSETS });
   it('customerTokens only returns the public page tokens', () => {
-    expect(Object.keys(customerTokens(c)).sort()).toEqual(['city', 'company', 'companylogo', 'custom1', 'custom2', 'firstname', 'lastname']); // custom1/custom2 = city / the person, for designs that read those
+    const keys = Object.keys(customerTokens(c));
+    expect(keys.sort()).toEqual(expect.arrayContaining(['city', 'company', 'companylogo', 'custom1', 'custom2', 'firstname', 'lastname'])); // custom1/custom2 = city / the person, for designs that read them
+    keys.forEach((k) => expect(PUBLIC_TOKEN_KEYS).toContain(k)); // never anything a viewer may not see (no email)
   });
   it('toContactFields keeps the email (owner only) and skips customers with nothing to personalize', () => {
     expect(toContactFields(c).email).toBe('dana@riversideplumbing.com');
@@ -87,29 +90,29 @@ describe('tokens and contact row', () => {
   });
 });
 
-describe('applyCustomerToPuck on every design', () => {
+describe('applyCustomerToEditor on every design', () => {
   const c = normalizeCustomer(CLIENT, 'client', { assets: ASSETS, brandColors: { primary: '#ff8a1f' } });
   it('writes only brand slots and keeps every section, copy and token', () => {
-    PUCK_TEMPLATES.forEach((t) => {
-      const { data, applied } = applyCustomerToPuck(t.puckData, c);
-      expect(data.content.map((x) => x.type)).toEqual(t.puckData.content.map((x) => x.type));
+    EDITABLE_TEMPLATES.forEach((t) => {
+      const { data, applied } = applyCustomerToEditor(t.editorData, c);
+      expect(data.content.map((x) => x.type)).toEqual(t.editorData.content.map((x) => x.type));
       expect(data.root.props.accent).toBe('#ff8a1f');
       expect(applied).toContain('page colour');
       const nav = data.content.find((x) => /Nav(Bar)?$/.test(x.type));
       if (nav) { expect(nav.props.brand).toBe('Riverside Plumbing'); expect(nav.props.logo).toBe('https://cdn.test/logo.png'); }
       // everything except the brand slots is untouched
       const strip = (d) => JSON.stringify(d.content.map((x) => (/Nav(Bar)?$/.test(x.type) || x.type === 'Footer' ? { type: x.type } : x)));
-      expect(strip(data)).toBe(strip(t.puckData));
+      expect(strip(data)).toBe(strip(t.editorData));
     });
   });
   it('does not mutate its input and does nothing without a customer', () => {
-    const t = PUCK_TEMPLATES[1]; const before = JSON.stringify(t.puckData);
-    applyCustomerToPuck(t.puckData, c); expect(JSON.stringify(t.puckData)).toBe(before);
-    expect(applyCustomerToPuck(t.puckData, null).applied).toEqual([]);
+    const t = EDITABLE_TEMPLATES[1]; const before = JSON.stringify(t.editorData);
+    applyCustomerToEditor(t.editorData, c); expect(JSON.stringify(t.editorData)).toBe(before);
+    expect(applyCustomerToEditor(t.editorData, null).applied).toEqual([]);
   });
   it('keeps the default footer wording out of a real business footer', () => {
-    const t = PUCK_TEMPLATES.find((x) => x.puckData.content.some((y) => y.type === 'Footer'));
-    const { data } = applyCustomerToPuck(t.puckData, c);
+    const t = EDITABLE_TEMPLATES.find((x) => x.editorData.content.some((y) => y.type === 'Footer'));
+    const { data } = applyCustomerToEditor(t.editorData, c);
     expect(data.content.find((x) => x.type === 'Footer').props.text).toContain('Riverside Plumbing');
   });
 });
@@ -142,12 +145,12 @@ describe('the customer\'s personalized picture', () => {
     const list = attachPersonalImages([normalizeCustomer({ id: 'c1', businessName: 'Riverside Plumbing' }, 'client'), normalizeCustomer({ id: 'x', businessName: 'Acme Roofing' }, 'client'), { ...normalizeCustomer({ id: 'y', businessName: 'Mine' }, 'client'), image: 'https://cdn.test/mine.png' }], PROJECTS);
     expect(list.map((c) => c.image)).toEqual(['https://cdn.test/new.webp', 'https://cdn.test/acme-image', 'https://cdn.test/mine.png']);
   });
-  it('applyCustomerToPuck puts it in every design\'s video slot when asked, and not when switched off', () => {
+  it('applyCustomerToEditor puts it in every design\'s video slot when asked, and not when switched off', () => {
     const c = { ...normalizeCustomer(CLIENT, 'client'), image: 'https://cdn.test/personal.png' };
-    PUCK_TEMPLATES.forEach((t) => {
-      const hasSlot = t.puckData.content.some((x) => /Hero|VideoSection/.test(x.type));
-      const on = applyCustomerToPuck(t.puckData, c);
-      const off = applyCustomerToPuck(t.puckData, c, { useImage: false });
+    EDITABLE_TEMPLATES.forEach((t) => {
+      const hasSlot = t.editorData.content.some((x) => /Hero|VideoSection/.test(x.type));
+      const on = applyCustomerToEditor(t.editorData, c);
+      const off = applyCustomerToEditor(t.editorData, c, { useImage: false });
       const slots = (d) => JSON.stringify(d).match(/"slotImage":"https:\/\/cdn\.test\/personal\.png"/g) || [];
       expect(off.data && slots(off.data).length).toBe(0);
       if (hasSlot) { expect(slots(on.data).length).toBeGreaterThan(0); expect(on.applied).toContain('personalized image'); } else expect(slots(on.data).length).toBe(0);
@@ -158,11 +161,11 @@ describe('the customer\'s personalized picture', () => {
 describe('personalized picture without the brand option', () => {
   const c = { ...normalizeCustomer(CLIENT, 'client', { assets: ASSETS, brandColors: { primary: '#ff8a1f' } }), image: 'https://cdn.test/me.png' };
   it('fills only the video slot picture when the brand option is off', () => {
-    const t = PUCK_TEMPLATES.find((x) => x.id === 'puck-pc-roofing');
-    const { data, applied } = applyCustomerToPuck(t.puckData, c, { useImage: true, brand: false });
+    const t = EDITABLE_TEMPLATES.find((x) => x.id === 'editable-pc-roofing');
+    const { data, applied } = applyCustomerToEditor(t.editorData, c, { useImage: true, brand: false });
     expect(data.content.find((x) => x.type === 'Hero').props.slotImage).toBe('https://cdn.test/me.png');
-    expect(data.root.props.accent).toBe(t.puckData.root.props.accent);
-    expect(data.content.find((x) => x.type === 'NavBar').props.brand).toBe(t.puckData.content.find((x) => x.type === 'NavBar').props.brand);
+    expect(data.root.props.accent).toBe(t.editorData.root.props.accent);
+    expect(data.content.find((x) => x.type === 'NavBar').props.brand).toBe(t.editorData.content.find((x) => x.type === 'NavBar').props.brand);
     expect(applied).toEqual(['personalized image']);
   });
 });

@@ -1,8 +1,8 @@
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { muapi } from '../lib/muapi.js';
 import { createNotificationsBell } from '../lib/notificationsBell.js';
-import { supabase, primeSupabaseIdentity } from '../lib/supabase.js';
-import { onOwnerNotification, ensureLiveAlerts } from '../lib/liveAlerts.js';
+import { supabase, rawClient, primeSupabaseIdentity, getSupabaseAccessToken, getClerkUserId } from '../lib/supabase.js';
+import { createVideoPagesButton } from './VideoPagesButton.js';
 
 // App top bar: logo, credit balance, API key and account.
 // Studio navigation lives only in the left side menu (src/components/Sidebar.js),
@@ -76,8 +76,18 @@ export function Header(navigate) {
   const bell = createNotificationsBell({
     navigate,
     getClient: async () => { await primeSupabaseIdentity(); return supabase; },
-    live: { listen: onOwnerNotification, ensure: ensureLiveAlerts },
+    // The signed-in owner's id, read synchronously, so the bell drops alerts for a previous account immediately.
+    getCurrentUserId: getClerkUserId,
+    // Live alerts: the Realtime socket is authenticated with the same minted token as REST calls (null -> polling only).
+    getRealtime: async () => {
+      const userId = getClerkUserId();
+      const token = userId ? await getSupabaseAccessToken() : null;
+      if (!userId || !token || typeof rawClient?.channel !== 'function') return null;
+      await rawClient.realtime.setAuth(token);
+      return { client: rawClient, userId, token };
+    },
   });
+  rightPart.appendChild(createVideoPagesButton());
   rightPart.appendChild(bell.element);
   rightPart.appendChild(balanceChip);
   rightPart.appendChild(keyBtn);

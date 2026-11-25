@@ -65,7 +65,7 @@ export function defaultDraft() {
     // Who sent it (Customize step): shown on the landing page and in the page's menu bar.
     sender: { name: '', title: '', company: '', logo: '', photo: '' },
     // The landing page of this dynamic video (like Sendspark, the page belongs to the video): null = the plain
-    // video page, else { template: <design id>, puck: <your edited page> | null (the design as it comes) }.
+    // video page, else { template: <design id>, editor: <your edited page> | null (the design as it comes) }.
     page: null,
     // Kind of dynamic video (Create Dynamic Videos): 'variables' (the greeting says several details, e.g. name and
     // company), 'greeting' (an AI "Hi {{firstname}}!"), 'same' (everyone hears the recording as is, no AI voice).
@@ -151,10 +151,10 @@ export const DYNAMIC_KINDS = Object.freeze([
   { id: 'same', title: 'Same audio', text: 'Everyone hears your recording as it is, without an AI voice.', greeting: '' },
 ]);
 
-/** A valid { template, puck } page, or null. */
+/** A valid { template, editor } page, or null. */
 export function cleanPage(page) {
-  if (!page || typeof page !== 'object' || typeof page.template !== 'string' || !/^puck-[a-z0-9-]+$/.test(page.template)) return null;
-  return { template: page.template, puck: page.puck && typeof page.puck === 'object' ? page.puck : null };
+  if (!page || typeof page !== 'object' || typeof page.template !== 'string' || !/^editable-[a-z0-9-]+$/.test(page.template)) return null;
+  return { template: page.template, editor: page.editor && typeof page.editor === 'object' ? page.editor : null };
 }
 
 // Drafts from before the page belonged to the video chose it by id: 'design:<id>' is that design as it comes;
@@ -162,7 +162,7 @@ export function cleanPage(page) {
 function pageOf(saved) {
   if (saved.page !== undefined) return { page: cleanPage(saved.page), pageId: undefined };
   const id = typeof saved.pageId === 'string' ? saved.pageId : '';
-  if (id.startsWith('design:')) return { page: cleanPage({ template: id.slice(7), puck: null }), pageId: undefined };
+  if (id.startsWith('design:')) return { page: cleanPage({ template: id.slice(7), editor: null }), pageId: undefined };
   return { page: null, pageId: id || undefined };
 }
 

@@ -93,7 +93,8 @@ describe('sourceRegistry', () => {
   it('turns a picked File into a source and rejects non-video files', () => {
     const f = new File(['abc'], 'My Clip.mp4', { type: 'video/mp4' });
     expect(fromFile(f, 'blob:x')).toMatchObject({ title: 'My Clip', url: 'blob:x', permanent: false, source: { kind: 'upload' } });
-    expect(fromFile(new File(['a'], 'a.png', { type: 'image/png' }), 'blob:y')).toBeNull();
+    expect(fromFile(new File(['a'], 'a.png', { type: 'image/png' }), 'blob:y')).toMatchObject({ type: 'image', title: 'a', url: 'blob:y' });
+    expect(fromFile(new File(['a'], 'a.txt', { type: 'text/plain' }), 'blob:z')).toBeNull();
   });
 
   it('merges by url (first wins) and sorts newest first', () => {

@@ -1,0 +1,7 @@
+{
+  "image-to-image-reference-images": {
+    "selector": "xpath=//button[@aria-label=\"Reference media\" or @title=\"Reference media\"]",
+    "click": true,
+    "then": [{ "text": "Pick a file", "upload": true, "file": "image", "hold": 3500 }]
+  }
+}

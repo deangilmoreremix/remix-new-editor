@@ -1,4 +1,5 @@
 import { createSafeImage, createSafeVideo } from '../lib/security.js';
+import { canMakeLandingPage, openLandingPageFor } from './studio/landingPageAction.js';
 
 let activeInstance = null;
 
@@ -266,11 +267,25 @@ export class MediaDetailView {
         </a>
       `);
     }
+    if (this.mediaUrl && this.mediaType === 'video') {
+      actions.push(`
+        <button class="mdv-action-btn" data-action="free-captions">
+          <span>💬 Free Captions</span>
+        </button>
+      `);
+    }
     if (this.prompt) {
       actions.push(`
         <button class="mdv-action-btn" data-action="copy-prompt">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           <span>Copy Prompt</span>
+        </button>
+      `);
+    }
+    if (canMakeLandingPage({ url: this.mediaUrl, type: this.mediaType }) && !this.actions.some((a) => a.id === 'landing-page')) {
+      actions.push(`
+        <button class="mdv-action-btn mdv-action-ghost" data-action="create-landing-page">
+          <span>Create landing page</span>
         </button>
       `);
     }
@@ -316,8 +331,15 @@ export class MediaDetailView {
       case 'close':
         this.hide();
         break;
+      case 'free-captions':
+        import('../lib/editor/captionActions.js').then(({ addCaptionButton }) => addCaptionButton({ videoUrl: this.mediaUrl, appTheme: 'library' }));
+        break;
       case 'copy-prompt':
         this._copyPrompt();
+        break;
+      case 'create-landing-page':
+        this.hide();
+        void openLandingPageFor({ url: this.mediaUrl, type: this.mediaType, prompt: this.prompt, studio: this.source });
         break;
       case 'toggle-prompt':
         this._togglePrompt();

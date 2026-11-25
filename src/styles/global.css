@@ -525,3 +525,9 @@
 
 /* MediaDetailView */
 @import "./media-detail.css";
+/* Image, Cinema and Video Studio show a result as an overlay on the page; hide the
+   example gallery below it while a result is up so the two don't overlap. */
+.studio-result-showing > .eg-section,
+.studio-result-showing > .eg-show-more {
+    display: none;
+}

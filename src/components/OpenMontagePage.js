@@ -393,19 +393,19 @@ export function OpenMontagePage() {
   // Stage content card (dynamic) — Backlot screenplay viewer when in script stage
   const stageContentCard = document.createElement('div');
   stageContentCard.id = 'om-stage-content';
-  stageContentCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
+  stageContentCard.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
   stageContentCard.innerHTML = getStageContentHTML(state);
   contentCol.appendChild(stageContentCard);
 
   // Storyboard filmstrip
   const storyboardCard = document.createElement('div');
-  storyboardCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
+  storyboardCard.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 md:p-6 shadow-3xl';
   storyboardCard.innerHTML = renderStoryboardFilmstrip(state);
   contentCol.appendChild(storyboardCard);
 
   // Renders / player
   const rendersCard = document.createElement('div');
-  rendersCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-3xl';
+  rendersCard.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-3xl';
   rendersCard.innerHTML = renderPlayerCard(state);
   contentCol.appendChild(rendersCard);
 
@@ -415,7 +415,7 @@ export function OpenMontagePage() {
 
   // Decisions panel
   const decisionsPanel = document.createElement('div');
-  decisionsPanel.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-3xl';
+  decisionsPanel.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-3xl';
   decisionsPanel.innerHTML = `
     <div class="flex items-center justify-between mb-2">
       <h3 class="text-[10px] font-black text-white/80 tracking-wide">DECISIONS</h3>
@@ -429,7 +429,7 @@ export function OpenMontagePage() {
 
   // Activity panel
   const activityPanel = document.createElement('div');
-  activityPanel.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-3xl';
+  activityPanel.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-3xl';
   activityPanel.innerHTML = `
     <div class="flex items-center justify-between mb-2">
       <h3 class="text-[10px] font-black text-white/80 tracking-wide">ACTIVITY</h3>
@@ -451,7 +451,7 @@ export function OpenMontagePage() {
   backlotSection.id = 'om-backlot-section';
   backlotSection.className = 'hidden mt-6';
   backlotSection.innerHTML = `
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
       <div class="flex items-center justify-between px-5 py-3 border-b border-white/10">
         <h3 class="text-xs font-black text-white/80 tracking-wide">BACKLOT — LIVE STORYBOARD</h3>
         <button id="om-close-backlot" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">Close</button>
@@ -601,7 +601,7 @@ export function OpenMontagePage() {
       if (stageId === 'script') {
         stageContent.className = 'bg-[#f5f0e6]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-3xl';
       } else {
-        stageContent.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-3xl';
+        stageContent.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-3xl';
       }
       wireStageContentEvents();
     }

@@ -5,15 +5,21 @@ import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
 import type { HfItem } from '@cinegen/lib/hyperframes/overlay';
 import { createHyperframesOverlay } from '@cinegen/lib/hyperframes/overlay';
 import { createMgOverlay, type MgTemplate } from '@cinegen/lib/occ/mg-templates';
-import { OVERLAY_KINDS, overlayTemplates, createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
+import { OVERLAY_KINDS, FORM_DESIGNS, overlayTemplates, createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
 import type { CardPreview } from './preview-types';
+import type { OverlayPreset } from '@cinegen/lib/overlays/overlay-presets';
 
 export interface AddToTimelineActions {
   onPickAnimation?: (item: HfItem) => void; // omitted when the HyperFrames flag is off
   onPickMotion: (t: MgTemplate) => void;
   onPickTemplateVideo?: (item: TemplateVideo) => void; // Template videos tab (hidden when omitted)
   onPickLandingPage?: (designId: string) => void; // Landing pages tab (hidden when omitted)
-  onAddKind: (kind: OverlayKind) => void;
+  onPickPreset?: (preset: OverlayPreset) => void; // My presets tab (hidden when omitted)
+  onAddLayout?: (layoutId: string) => { ok: boolean; message: string }; // Personalized layouts tab (hidden when omitted)
+  getOverlays?: () => Array<{ type: string; addon?: unknown }>; // the timeline's overlays, for "Check contacts"
+  onMakeAllVideoReady?: (h: { onProgress: (done: number, total: number, who: string) => void; notify: (message: string, kind?: 'info' | 'error' | 'success') => void }) => Promise<{ total: number; done: number; message: string }>; // "Make all Video Ready" on the Personalized layouts tab
+  /** `designId`: a Lead Generator / List Builder design to create it with (the Design cards below). */
+  onAddKind: (kind: OverlayKind, designId?: string) => void;
   onAddTemplate: (templateId: string, phone?: string) => void;
 }
 
@@ -32,8 +38,8 @@ const spanOf = (clips: OverlayClip[]) => Math.max(1, ...clips.map((c) => c.end))
  *  overlaps the form and reads as jumbled text, so the preview copy turns it off. The overlay that is really added is made by createOverlay and keeps it. */
 const forPreview = (clips: OverlayClip[]): OverlayClip[] => clips.map((c) => (c.type === 'list-builder' ? { ...c, config: { ...(c.config as object), pointerEnabled: false } } : c));
 
-const kindPreview = (kind: OverlayKind): CardPreview => {
-  const make = () => forPreview(fromZero([createOverlay(kind, 0, 6)]));
+const kindPreview = (kind: OverlayKind, designId?: string): CardPreview => {
+  const make = () => forPreview(fromZero([createOverlay(kind, 0, 6, designId)]));
   const d = spanOf(make());
   // forms are shown at once; animated overlays are shown a little way in
   return { kind: 'overlay', build: make, duration: d, still: kind === 'lead-form' || kind === 'list-builder' ? 0.2 : Math.min(d * 0.5, 2.5) };
@@ -79,6 +85,17 @@ export function mgEntries(templates: MgTemplate[], onPick: (t: MgTemplate) => vo
 export function buildCatalog(a: Pick<AddToTimelineActions, 'onAddKind' | 'onAddTemplate'>, ui: { close: () => void; askPhone: (templateId: string) => void }): CatalogEntry[] {
   const list: CatalogEntry[] = [];
   for (const k of OVERLAY_KINDS) list.push({ id: k.kind, tab: 'overlays', label: k.label, blurb: k.blurb, badge: 'Overlay', preview: kindPreview(k.kind), run: () => { a.onAddKind(k.kind); ui.close(); }, testId: `add-${k.kind}` });
+  // Every Lead Generator / List Builder design, created through the same createOverlay (so the one-List-Builder rule and the gate apply)
+  for (const k of ['lead-form', 'list-builder'] as const) {
+    const kindLabel = OVERLAY_KINDS.find((x) => x.kind === k)?.label ?? k;
+    for (const d of FORM_DESIGNS) {
+      list.push({
+        id: `design:${k}:${d.id}`, tab: 'overlays', label: `${kindLabel}: ${d.label}`, blurb: `${d.categoryLabel} · ${d.layout}`,
+        badge: `${kindLabel} design`, keywords: `design style template ${d.category} ${d.layout} ${d.label}`,
+        preview: kindPreview(k, d.id), run: () => { a.onAddKind(k, d.id); ui.close(); }, testId: `design-${k}-${d.id}`,
+      });
+    }
+  }
   for (const t of overlayTemplates()) {
     const connect = isConnectTemplate(t.id);
     list.push({ id: `tpl:${t.id}`, tab: 'endscreens', label: t.name, blurb: t.description, badge: connect ? 'Connect form' : 'End screen', preview: templatePreview(t.id), run: () => { if (connect) ui.askPhone(t.id); else { a.onAddTemplate(t.id); ui.close(); } }, testId: `add-tpl:${t.id}` });
@@ -89,7 +106,7 @@ export function buildCatalog(a: Pick<AddToTimelineActions, 'onAddKind' | 'onAddT
 /** The Library sidebar (a sibling of the timeline) opens the modal through this window event; TimelineEditor listens for it. */
 export const OPEN_ADD_MODAL_EVENT = 'cinegen:open-add-to-timeline';
 /** Tabs of the Add to timeline window ('videos' = Template videos). */
-export type AddModalTab = 'all' | CatalogTab | 'videos' | 'landing';
+export type AddModalTab = 'all' | CatalogTab | 'videos' | 'landing' | 'presets' | 'layouts';
 /** What the next-opened window should show: the tab and a search to pre-fill (so a clicked Library card appears in it). Kept here (not in
  *  timeline-editor.tsx) so that file stays close to upstream CineGen. */
 let pendingTab: AddModalTab | undefined;

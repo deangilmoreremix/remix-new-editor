@@ -1,0 +1,16 @@
+{
+  "slug": "video-tools",
+  "name": "Video Tools",
+  "intro": "Video Tools in SmartVideo is the place to work on videos you already have, with tools, recast and motion control tabs.",
+  "features": {
+    "tool-selector-tools-tab": "On the Tools tab, the button at the top shows the selected tool. Open it to pick your job, and the form below adapts to that tool.",
+    "ai-video-upscaler-ai-video-upscaler-pro-topaz-video-upscale-wan-3-0-upscale": "The upscaling tools make low resolution or soft footage sharper and larger, so older clips look cleaner on a bigger screen.",
+    "wan-2-2-edit-video-and-luma-modify-video": "Edit Video and Modify Video change the style, look or elements of an existing clip using a written prompt.",
+    "luma-flash-reframe": "Reframe resizes and reshapes a video, so you can turn a landscape clip into another shape for a different platform.",
+    "ai-captions-vadoo": "AI Captions adds animated burned in subtitles with viral themes, which is handy for social video.",
+    "recast-tab": "The Recast tab drives a character image with the motion from a video, so a still character can perform a real performance or dance.",
+    "motion-control-tab": "Motion Control rebuilds a performance video with new characters and assets while keeping the original motion.",
+    "heygen-video-translate": "Video translate converts your video into other languages, so you can reach a new audience."
+  },
+  "outro": "Pick a tool, drop in your footage, and Video Tools helps you polish what you already shot."
+}

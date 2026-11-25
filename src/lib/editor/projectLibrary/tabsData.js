@@ -3,6 +3,7 @@ import { periodRange } from './analytics/analyticsData.js';
 import { getProjectVideo } from './analytics/analyticsData.js';
 import { projectSections, ctaLabels } from '../publish/sections.js';
 import { clipTimeRange } from '../addons/registry.js';
+import { cleanQuietHours } from './quietHours.js';
 
 export { getProjectVideo };
 const rpc = async (client, name, args) => {
@@ -88,11 +89,15 @@ export const NOTIFICATION_TYPES = Object.freeze([
 
 export const NOTIFICATION_PAGE = 20;
 
-/** One page of a project's alerts, newest first. `hasMore` tells whether another page exists. */
+/**
+ * One page of a project's alerts, newest first. `hasMore` tells whether another page exists.
+ * With no project (the account-level Notification settings) every alert of the signed-in owner is listed (row security limits it to them).
+ */
 export async function listNotifications(client, projectId, { limit = NOTIFICATION_PAGE, offset = 0 } = {}) {
-  const { data, error } = await client.from('owner_notifications')
-    .select('id, video_id, project_id, type, title, summary, suggestion, interest, metrics, read_at, created_at')
-    .or(`project_id.eq.${projectId},project_id.is.null`).order('created_at', { ascending: false }).range(offset, offset + limit);
+  let q = client.from('owner_notifications')
+    .select('id, video_id, project_id, type, title, summary, suggestion, interest, metrics, read_at, created_at');
+  if (projectId) q = q.or(`project_id.eq.${projectId},project_id.is.null`);
+  const { data, error } = await q.order('created_at', { ascending: false }).range(offset, offset + limit);
   if (error) throw new Error(error.message || 'Could not load notifications');
   const rows = data || [];
   return { rows: rows.slice(0, limit), hasMore: rows.length > limit };
@@ -110,31 +115,106 @@ export async function unreadCount(client) {
   return Number(data) || 0;
 }
 
+/** Plain-language groups over `enabled_types`, by the feature that creates the alert. Types outside every group (daily_digest) are left alone. */
+export const NOTIFICATION_GROUPS = Object.freeze([
+  { id: 'leads', label: 'New leads', detail: 'Lead Generator & List Builder', types: Object.freeze(['new_lead']) },
+  { id: 'retarget', label: 'Retarget', detail: 'High interest, follow-up opportunities, rising interests, returning viewers', types: Object.freeze(['high_interest', 'followup_opportunity', 'interest_surge', 'returning_engagement']) },
+  { id: 'activity', label: 'Video activity', detail: 'Milestones, pricing & contact clicks', types: Object.freeze(['milestone', 'pricing_cta', 'contact_cta']) },
+]);
+
+/** 'all' | 'some' | 'none' for one group. */
+export function groupState(enabledTypes, groupId) {
+  const g = NOTIFICATION_GROUPS.find((x) => x.id === groupId);
+  if (!g) return 'none';
+  const on = g.types.filter((t) => (enabledTypes || []).includes(t)).length;
+  return on === 0 ? 'none' : on === g.types.length ? 'all' : 'some';
+}
+
+/** New enabled_types with the whole group switched on/off; every other type (including daily_digest) is preserved. */
+export function setGroup(enabledTypes, groupId, on) {
+  const g = NOTIFICATION_GROUPS.find((x) => x.id === groupId);
+  const current = Array.isArray(enabledTypes) ? enabledTypes : [];
+  if (!g) return [...current];
+  const rest = current.filter((t) => !g.types.includes(t));
+  return on ? [...rest, ...g.types] : rest;
+}
+
+/** Alert types that can send a push (every grouped type; daily_digest never pushes). */
+export const PUSHABLE_TYPES = Object.freeze(NOTIFICATION_GROUPS.flatMap((g) => g.types));
+
+/**
+ * Types that push, as the form shows them. `push_types` NULL/absent = legacy = every enabled type; an array = only types
+ * that are also enabled. daily_digest is never included.
+ */
+export function effectivePushTypes(prefs) {
+  const enabled = Array.isArray(prefs?.enabled_types) ? prefs.enabled_types : [];
+  const chosen = Array.isArray(prefs?.push_types) ? prefs.push_types : enabled;
+  return PUSHABLE_TYPES.filter((t) => enabled.includes(t) && chosen.includes(t));
+}
+
+/** 'all' | 'some' | 'none' of a group's alert-enabled types that also push. */
+export function pushGroupState(enabledTypes, pushTypes, groupId) {
+  const g = NOTIFICATION_GROUPS.find((x) => x.id === groupId);
+  const on = g ? g.types.filter((t) => (enabledTypes || []).includes(t)) : [];
+  const n = on.filter((t) => (pushTypes || []).includes(t)).length;
+  return n === 0 ? 'none' : n === on.length ? 'all' : 'some';
+}
+
+/** New push_types with a group's alert-enabled types switched on/off for push. Types in other groups are untouched. */
+export function setPushGroup(pushTypes, enabledTypes, groupId, on) {
+  const g = NOTIFICATION_GROUPS.find((x) => x.id === groupId);
+  const current = Array.isArray(pushTypes) ? pushTypes : [];
+  if (!g) return [...current];
+  const rest = current.filter((t) => !g.types.includes(t));
+  return on ? [...rest, ...g.types.filter((t) => (enabledTypes || []).includes(t))] : rest;
+}
+
+/** Turn one Alert box on/off. Turning it off also clears its Push (Push only exists for alerts that are on). */
+export function setAlertType(enabledTypes, pushTypes, type, on) {
+  const enabled = (Array.isArray(enabledTypes) ? enabledTypes : []).filter((t) => t !== type);
+  const push = (Array.isArray(pushTypes) ? pushTypes : []).filter((t) => t !== type);
+  return { enabled_types: on ? [...enabled, type] : enabled, push_types: push };
+}
+
 export const DEFAULT_PREFERENCES = Object.freeze({
-  enabled_types: NOTIFICATION_TYPES.map(([k]) => k), in_app: true, email: false, digest_frequency: 'daily', interest_threshold: 60, quiet_hours: null,
+  enabled_types: NOTIFICATION_TYPES.map(([k]) => k), in_app: true, email: false, digest_frequency: 'daily', interest_threshold: 60, quiet_hours: null, push: false, push_types: null,
 });
 
 export async function loadPreferences(client) {
   const { data, error } = await client.from('retarget_preferences').select('*').maybeSingle();
   if (error) throw new Error(error.message || 'Could not load preferences');
-  return { ...DEFAULT_PREFERENCES, ...(data || {}) };
+  return { ...DEFAULT_PREFERENCES, ...(data || {}) }; // a missing push_types column reads as null (= legacy: push every enabled type)
 }
 
 export function cleanPreferences(p) {
   const known = new Set(NOTIFICATION_TYPES.map(([k]) => k));
-  const q = p.quiet_hours && /^\d\d:\d\d$/.test(p.quiet_hours.start || '') && /^\d\d:\d\d$/.test(p.quiet_hours.end || '') ? { start: p.quiet_hours.start, end: p.quiet_hours.end } : null;
+  const enabled = (p.enabled_types || []).filter((t) => known.has(t));
   return {
-    enabled_types: (p.enabled_types || []).filter((t) => known.has(t)),
+    enabled_types: enabled,
     in_app: !!p.in_app, email: !!p.email,
     digest_frequency: ['off', 'daily', 'weekly'].includes(p.digest_frequency) ? p.digest_frequency : 'daily',
     interest_threshold: Math.min(500, Math.max(10, Math.round(Number(p.interest_threshold) || 60))),
-    quiet_hours: q,
+    quiet_hours: cleanQuietHours(p.quiet_hours),
+    push: !!p.push,
+    push_types: effectivePushTypes({ enabled_types: enabled, push_types: p.push_types }), // always an explicit array; null is resolved to its legacy meaning
   };
 }
 
-export async function savePreferences(client, prefs) {
+/** The error PostgREST / Postgres gives for a column that is not there yet (the push_types migration is not applied). */
+export const isMissingPushTypes = (err) => !!err && (/push_types/i.test(String(err.message || err.details || '')) || err.code === 'PGRST204' || err.code === '42703');
+
+/**
+ * Upsert the preferences. If the database predates the push_types column, retry without it and call
+ * `onPushTypesMissing()` so the UI can say per-type push choices need a database update.
+ */
+export async function savePreferences(client, prefs, { onPushTypesMissing } = {}) {
   const row = cleanPreferences(prefs);
-  const { error } = await client.from('retarget_preferences').upsert(row, { onConflict: 'clerk_user_id' });
+  let { error } = await client.from('retarget_preferences').upsert(row, { onConflict: 'clerk_user_id' });
+  if (error && isMissingPushTypes(error)) {
+    const { push_types: _omit, ...legacy } = row;
+    ({ error } = await client.from('retarget_preferences').upsert(legacy, { onConflict: 'clerk_user_id' }));
+    if (!error) { onPushTypesMissing?.(); return legacy; }
+  }
   if (error) throw new Error(error.message || 'Could not save preferences');
   return row;
 }

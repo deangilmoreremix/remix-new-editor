@@ -3,17 +3,17 @@
 // their own list in the project state and saved with it (like Sets).
 import type { OverlayClip, OverlayKind } from '@cinegen/types/workspace';
 // @ts-expect-error plain JS add-on registry from the main app
-import { createAddonClip } from '../../../lib/editor/addons/registry.js';
+import { createAddonClip, getAddon } from '../../../lib/editor/addons/registry.js';
 // @ts-expect-error plain JS add-ons (registers lead-form / click-to-call)
 import '../../../lib/editor/addons/interactiveAddons.js';
-// @ts-expect-error plain JS add-ons (registers Smart Text, Text Mask, Image, Personalized Image, Stickers, Wrapper, Lower Thirds)
-import { getAddon } from '../../../lib/editor/addons/registry.js';
 // @ts-expect-error plain JS add-ons
 import '../../../lib/editor/addons/overlayAddons.js';
 // @ts-expect-error plain JS add-on: a Personalization Studio design as an overlay (filled in for each contact)
 import { defaultStudioDesignOptions } from '../../../lib/editor/addons/studioDesignAddon.js';
-// @ts-expect-error plain JS List Builder defaults
-import { defaultListBuilder } from '../../../lib/editor/addons/listBuilder.js';
+// @ts-expect-error plain JS List Builder defaults + the Lead Generator clip adapter
+import { defaultListBuilder, leadFormToOptin, applyOptinToLeadForm } from '../../../lib/editor/addons/listBuilder.js';
+// @ts-expect-error plain JS: the opt-in form designs (Lead Generator + List Builder + Personalizer share them)
+import { OPTIN_DESIGNS, OPTIN_DESIGN_CATEGORIES, DESIGN_LAYOUTS, COLOR_SCHEMES, getOptinDesign, applyOptinDesign } from '../../../lib/editor/addons/optinDesigns.js';
 
 export const OVERLAY_KINDS: Array<{ kind: OverlayKind; label: string; blurb: string }> = [
   { kind: 'lead-form', label: 'Lead Generator', blurb: 'Opt-in form over the video; pauses playback until the viewer submits or skips.' },
@@ -26,6 +26,10 @@ export const OVERLAY_KINDS: Array<{ kind: OverlayKind; label: string; blurb: str
   { kind: 'overlay-sticker', label: 'Stickers', blurb: 'Emoji, shapes and animated stickers.' },
   { kind: 'overlay-background', label: 'Wrapper', blurb: 'A colour or gradient background behind the video.' },
   { kind: 'overlay-lower-third', label: 'Lower Thirds', blurb: 'Name and title bars that animate in and out.' },
+  { kind: 'addon-pause', label: 'Pause', blurb: 'Pause the video here, for N seconds or until the viewer clicks. Works on the published link.' },
+  { kind: 'addon-skip', label: 'Skip', blurb: 'Jump over this section during playback. Works on the published link.' },
+  { kind: 'addon-loop', label: 'Loop', blurb: 'Repeat this section a set number of times, or forever. Works on the published link.' },
+  { kind: 'addon-hotspot', label: 'Hotspot', blurb: 'A clickable area on the video: open a link, call a number or jump to another point. Works on the published link.' },
   { kind: 'overlay-studio-design', label: 'Studio Design', blurb: 'A Personalization Studio design (headline, logo reveal, call to action...) filled with each contact\'s details.' },
 ];
 
@@ -40,6 +44,13 @@ export const startAfterGate = (overlays: OverlayClip[], startSec: number) => (fi
 const KINDS = new Set<string>([...OVERLAY_KINDS.map((k) => k.kind), 'mg-template', 'hyperframes']);
 
 /** Add-ons driven by the old registry's schema (options live under `addon`), as opposed to the flat forms. */
+/**
+ * Whether a form holds the video at its place on the timeline. A Lead Generator can instead appear "at the end", "when the viewer
+ * pauses" or "on exit intent" (published video only), so the editor must not pause the preview for it at its timeline spot.
+ * The List Builder and every other kind always follow the timeline.
+ */
+export const gatesOnTimeline = (o: { type: string; trigger?: unknown }): boolean => o.type !== 'lead-form' || !o.trigger || o.trigger === 'time';
+
 export const isRegistryOverlay = (kind: string) => !['lead-form', 'list-builder', 'click-to-call'].includes(kind) && !!getAddon(kind);
 
 export function normalizeOverlays(value: unknown): OverlayClip[] {
@@ -47,16 +58,54 @@ export function normalizeOverlays(value: unknown): OverlayClip[] {
   return value.filter((o): o is OverlayClip => !!o && typeof o === 'object' && KINDS.has((o as OverlayClip).type) && typeof (o as OverlayClip).start === 'number');
 }
 
-/** A new overlay at `startSec` (clamped inside the timeline), with the old add-on's default options. */
-export function createOverlay(kind: OverlayKind, startSec: number, timelineSeconds: number): OverlayClip {
+/** The colour schemes a design can be created / recoloured with (the first, '', is the design's own colours). */
+export const FORM_COLOR_SCHEMES: Array<{ id: string; label: string; hue: number | null }> = COLOR_SCHEMES;
+export interface FormDesign { id: string; label: string; category: string; categoryLabel: string; layout: string }
+/** The opt-in form designs, for the Lead Generator and the List Builder / Personalizer (one set, shared by both). */
+export const FORM_DESIGNS: FormDesign[] = (OPTIN_DESIGNS as Array<{ id: string; label: string; category: string; patch: { designLayout: string } }>).map((d) => ({
+  id: d.id, label: d.label, category: d.category,
+  categoryLabel: ((OPTIN_DESIGN_CATEGORIES as Array<[string, string]>).find(([c]) => c === d.category) ?? [d.category, d.category])[1],
+  layout: ((DESIGN_LAYOUTS as Array<[string, string]>).find(([l]) => l === d.patch.designLayout) ?? [d.patch.designLayout, d.patch.designLayout])[1],
+}));
+
+/**
+ * `overlay` with a design applied (a Lead Generator or a List Builder; anything else is returned as it was). The design's look is always set;
+ * its wording and starter boxes only replace the creator's while those are still the defaults — the same rule as the Design tab.
+ */
+export function applyDesignToOverlay(overlay: OverlayClip, designId: string, schemeId = ''): OverlayClip {
+  const design = getOptinDesign(designId);
+  if (!design) return overlay;
+  if (overlay.type === 'list-builder') {
+    const config = ((overlay as { config?: object }).config ?? {}) as Record<string, unknown>;
+    return { ...overlay, config: { ...config, ...applyOptinDesign(config, design, schemeId) } } as OverlayClip;
+  }
+  if (overlay.type === 'lead-form') {
+    // the flat Lead Generator clip: style / design / fields are copied, never mutated (the panel does the same)
+    const o = overlay as unknown as Record<string, unknown>;
+    const clip = { ...o, style: { ...((o.style as object) ?? {}) }, design: { ...((o.design as object) ?? {}) }, fields: Array.isArray(o.fields) ? (o.fields as unknown[]).map((f) => ({ ...(f as object) })) : o.fields };
+    const base = leadFormToOptin(clip);
+    applyOptinToLeadForm(clip, { ...base, ...applyOptinDesign(base, design, schemeId) });
+    return clip as unknown as OverlayClip;
+  }
+  return overlay;
+}
+
+/**
+ * A new overlay at `startSec` (clamped inside the timeline), with the old add-on's default options. Lead Generator and List Builder can be
+ * created with a design (`designId`): everything else about creating them — the List Builder gate at 0s, one per video — is unchanged.
+ */
+export function createOverlay(kind: OverlayKind, startSec: number, timelineSeconds: number, designId?: string, schemeId = ''): OverlayClip {
   const id = `ov-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  let made: OverlayClip;
   if (kind === 'list-builder') {
     // The List Builder is a registration wall on the whole video: a locked gate at 0s (it takes no video time), one per video.
-    return { id, type: kind, name: 'List Builder', start: 0, end: GATE_SECONDS, config: { ...defaultListBuilder('list-builder'), enabled: true } };
+    made = { id, type: kind, name: 'List Builder', start: 0, end: GATE_SECONDS, config: { ...defaultListBuilder('list-builder'), enabled: true } };
+  } else {
+    const clip = createAddonClip(kind, { startSec, timelineSeconds, id }) as Record<string, unknown>;
+    if (isRegistryOverlay(kind)) clip.name = getAddon(kind).label;
+    made = { ...clip, id, type: kind, name: String(clip.name ?? kind), start: Number(clip.start), end: Number(clip.end) } as OverlayClip;
   }
-  const clip = createAddonClip(kind, { startSec, timelineSeconds, id }) as Record<string, unknown>;
-  if (isRegistryOverlay(kind)) clip.name = getAddon(kind).label;
-  return { ...clip, id, type: kind, name: String(clip.name ?? kind), start: Number(clip.start), end: Number(clip.end) } as OverlayClip;
+  return designId ? applyDesignToOverlay(made, designId, schemeId) : made;
 }
 
 // [remix] End Screens and Connect Form template libraries (the old editor's windows → items on the overlay lane)

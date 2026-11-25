@@ -11,6 +11,7 @@
 // click handler that calls `e.preventDefault()` + `navigate(route)` to keep
 // navigation in-app.
 import { navigate } from "../../../lib/router.js";
+import { guideHrefFor } from '../guideLinks.js';
 
 // The standalone landing route never calls initRouter() (src/main.js returns
 // early before the app shell is built), so the in-app navigate() is a no-op
@@ -27,7 +28,7 @@ function navigateOrReload(route, params = {}) {
     return;
   }
   const query = new URLSearchParams(params).toString();
-  const target = query ? `/?${query}#/${route}` : `/#/${route}`;
+  const target = query ? `/${route}?${query}` : `/${route}`;
 
   // On the standalone landing page the in-app router is not mounted, so
   // we fall back to a full page load so main.js can boot the app shell
@@ -46,6 +47,7 @@ function navigateOrReload(route, params = {}) {
 // src/lib/router.js pageLoaders); `label` is the displayed text; `isNew`
 // adds the small "New" pill on the landing page header.
 const NAV_ITEMS = [
+  { label: 'Guides',        href: '/studios/' },
   { label: 'Explore',       route: 'explore' },
   { label: 'Image',         route: 'image' },
   { label: 'Video',         route: 'video' },
@@ -87,7 +89,9 @@ const CTA_LINKS = [
 function buildNavLink(item) {
   const a = document.createElement('a');
   a.className = 'py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm whitespace-nowrap';
-  a.href = `#/${item.route}`;
+  // Public pages with a real path are plain, crawlable links: the /studios hub and,
+  // for every studio that has one, its feature guide (which has an "Open studio" button).
+  const href = item.href || guideHrefFor(item.route);
   a.textContent = item.label;
   if (item.isNew) {
     a.setAttribute('data-new', 'true');
@@ -96,6 +100,11 @@ function buildNavLink(item) {
     pill.textContent = 'New';
     a.appendChild(pill);
   }
+  if (href) {
+    a.href = href;
+    return a;
+  }
+  a.href = `/${item.route}`;
   a.addEventListener('click', (e) => {
     // Prevent the browser from following the `#/...` href as a fragment-only
     // navigation (which would scroll but skip our page-loader); route via the
@@ -116,7 +125,7 @@ export function LandingHeader() {
 
   // Logo (home → in-app navigate to /apps, matches the main Header.js behavior)
   const logo = document.createElement('a');
-  logo.href = '#/apps';
+  logo.href = '/apps';
   logo.className = 'shrink-0 flex items-center gap-2 mr-2 transition hover:text-[#22d3ee] active:opacity-60';
   logo.innerHTML = `
     <div class="w-10 h-10 rounded-xl flex items-center justify-center border border-cyan-400/30 bg-cyan-400/10" style="box-shadow: 0 0 16px rgba(56,189,248,0.12);">

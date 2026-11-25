@@ -1,0 +1,133 @@
+{
+  "tool-selector-tools-tab": {
+    "steps": [],
+    "selector": "div.mt-4.mb-4.flex-col > button",
+    "click": true,
+    "then": [
+      {
+        "selector": "div.fixed button:has-text(\"Topaz Video Upscale\")",
+        "hold": 1500
+      }
+    ]
+  },
+  "ai-video-upscaler-ai-video-upscaler-pro-topaz-video-upscale-wan-3-0-upscale": {
+    "steps": [
+      {
+        "selector": "div.mt-4.mb-4.flex-col > button",
+        "wait": 800
+      },
+      {
+        "selector": "div.fixed button:has-text(\"AI Video Upscaler Pro\")",
+        "wait": 1200
+      },
+      {
+        "selector": "h1:has-text(\"Video Tools\")",
+        "wait": 800
+      }
+    ],
+    "selector": "xpath=//button[@aria-label='Reference media' or @title='Reference media']",
+    "click": true,
+    "then": [
+      {
+        "text": "Pick a file",
+        "upload": true,
+        "file": "video",
+        "hold": 2500
+      }
+    ]
+  },
+  "wan-2-2-edit-video-and-luma-modify-video": {
+    "type": "Turn this clip into a watercolor painting, soft brush strokes",
+    "then": [
+      {
+        "selector": "xpath=//button[@aria-label='Reference media' or @title='Reference media']"
+      },
+      {
+        "text": "Pick a file",
+        "upload": true,
+        "file": "video",
+        "hold": 2500
+      }
+    ]
+  },
+  "luma-flash-reframe": {
+    "selector": "xpath=//button[@aria-label='Reference media' or @title='Reference media']",
+    "click": true,
+    "then": [
+      {
+        "text": "Pick a file",
+        "upload": true,
+        "file": "video",
+        "hold": 2500
+      }
+    ]
+  },
+  "ai-captions-vadoo": {
+    "selector": "xpath=//button[@aria-label='Reference media' or @title='Reference media']",
+    "click": true,
+    "then": [
+      {
+        "text": "Pick a file",
+        "upload": true,
+        "file": "video",
+        "hold": 2500
+      }
+    ]
+  },
+  "heygen-video-translate": {
+    "selector": "xpath=//button[@aria-label='Reference media' or @title='Reference media']",
+    "click": true,
+    "then": [
+      {
+        "text": "Pick a file",
+        "upload": true,
+        "file": "video",
+        "hold": 2500
+      }
+    ]
+  },
+  "recast-tab": {
+    "selector": "xpath=//button[normalize-space(.)='Recast']",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//*[@title='Motion video' or @aria-label='Motion video']",
+        "upload": true,
+        "file": "video",
+        "hold": 2000
+      },
+      {
+        "selector": "xpath=//*[@title='Character image' or @aria-label='Character image' or @title='Character images' or @aria-label='Character images']",
+        "upload": true,
+        "file": "image",
+        "hold": 2000
+      },
+      {
+        "selector": "textarea",
+        "type": "A joyful dance full of energy"
+      }
+    ]
+  },
+  "motion-control-tab": {
+    "selector": "xpath=//button[normalize-space(.)='Motion control']",
+    "click": true,
+    "then": [
+      {
+        "selector": "xpath=//*[@title='Motion video' or @aria-label='Motion video']",
+        "upload": true,
+        "file": "video",
+        "hold": 2000
+      },
+      {
+        "selector": "xpath=//*[@title='Character image' or @aria-label='Character image' or @title='Character images' or @aria-label='Character images']",
+        "upload": true,
+        "file": "image",
+        "hold": 2000
+      },
+      {
+        "selector": "textarea",
+        "type": "Keep the same dance, new outfit"
+      }
+    ]
+  }
+}

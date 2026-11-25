@@ -20,7 +20,6 @@ import { getModelById } from '../lib/models.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { openPromptGallery } from '../lib/promptGalleryIntegration.js';
 import { openRecipeModal } from '../lib/recipeIntegration.js';
-import { openMonetizationHub } from '../lib/monetizationIntegration.js';
 import { showToast } from '../lib/loading.js';
 import { createActionRow, arrangeActionRow, createAdvancedPanel, createStudioActionBar } from './studio/actionRow.js';
 import { createSegmented } from './studio/promptComposer.js';
@@ -71,7 +70,7 @@ const triggerBtn = document.createElement('button');
   updateTrigger();
 
   const dropdown = document.createElement('div');
-  dropdown.className = 'fixed z-[200] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.className = 'fixed z-[200] bg-card-bg border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
   dropdown.style.width = 'calc(100vw - 2rem)';
   dropdown.style.maxWidth = '480px';
   dropdown.style.maxHeight = '70vh';
@@ -136,7 +135,7 @@ const triggerBtn = document.createElement('button');
 
   // Form card
   const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-3xl bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 flex flex-col gap-4 shadow-3xl animate-fade-in-up';
+  formCard.className = 'w-full max-w-3xl bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 flex flex-col gap-4 shadow-3xl animate-fade-in-up';
   formCard.style.animationDelay = '0.2s';
 
   // Video upload
@@ -242,7 +241,7 @@ const triggerBtn = document.createElement('button');
      },
    });
 
-    // Enhancement tools overflow menu (GTM Boost, Recipes, Monetize, Prompts)
+    // Enhancement tools overflow menu (GTM Boost, Recipes, Prompts)
     const enhanceMenu = document.createElement('div');
     enhanceMenu.className = 'overflow-menu shrink-0';
     enhanceMenu.innerHTML = `
@@ -252,7 +251,6 @@ const triggerBtn = document.createElement('button');
       <div class="overflow-menu__panel">
         <button type="button" class="overflow-menu__item" data-enhance="gtm">🎯 GTM Boost</button>
         <button type="button" class="overflow-menu__item" data-enhance="recipe">📋 Recipes</button>
-        <button type="button" class="overflow-menu__item" data-enhance="monetize">💼 Monetize</button>
         <button type="button" class="overflow-menu__item" data-enhance="prompts">📚 Prompts</button>
       </div>
     `;
@@ -283,11 +281,8 @@ const triggerBtn = document.createElement('button');
           }).catch((err) => console.error('[VideoToolsStudio] GTM Boost failed:', err));
         } else if (action === 'recipe') {
           openRecipeModal({
-            onRunRecipe: (url) => {
-            }
+            studio: 'video'
           }).catch((err) => console.error('[Recipe] open failed:', err));
-        } else if (action === 'monetize') {
-          openMonetizationHub().catch((err) => console.error('[Monetization] open failed:', err));
         } else if (action === 'prompts') {
           openPromptGallery({
             appTheme: 'video-tools',
@@ -492,7 +487,7 @@ genBtn.type = 'button';
          registerGeneration('videotools', 'video', result.url, { prompt: params.prompt || '', model: selectedModel?.id || '' });
          resultArea.classList.remove('hidden');
          resultArea.innerHTML = `
-           <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
+           <div class="bg-card-bg/80 border border-white/10 rounded-2xl p-4">
              <video controls class="w-full rounded-xl mb-3" src="${result.url}"></video>
              <a href="${result.url}" download class="block w-full btn-secondary-modern py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download Video</a>
              <button type="button" class="publish-social-btn block w-full mt-2 bg-gradient-to-r from-[#6d5efc] to-[#a855f7] text-white py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Publish to Social</button>

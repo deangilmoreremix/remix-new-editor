@@ -116,6 +116,22 @@ function checkOutputIntegrity(result) {
   }
 }
 
+/**
+ * Settings an app passes explicitly (`params.extraParams`) for a model whose bundled schema does not
+ * list them (e.g. Video Background Remover's background colour). They only fill keys the client has not
+ * already set, and only plain string / number / boolean values under simple names, so they can never
+ * replace a validated field or smuggle in nested data.
+ */
+function mergeExtraParams(finalPayload, extra) {
+    if (!extra || typeof extra !== 'object' || Array.isArray(extra)) return finalPayload;
+    for (const [key, value] of Object.entries(extra)) {
+        if (key in finalPayload || value === undefined || value === null || value === '') continue;
+        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(key)) continue;
+        if (['string', 'number', 'boolean'].includes(typeof value)) finalPayload[key] = value;
+    }
+    return finalPayload;
+}
+
 export class MuapiClient {
     constructor() {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -201,6 +217,15 @@ export class MuapiClient {
         const result = await this.pollForResult(requestId, maxAttempts, interval, effectiveSignal);
         const url = result.outputs?.[0] || result.url || result.output?.url;
         return { ...result, id: result.id || requestId, request_id: requestId, url };
+    }
+
+    /**
+     * Public wrapper around _submitAndPoll for callers that build their own payload.
+     * opts: { signal, onRequestId, generationType, studioType, maxAttempts, interval }
+     */
+    submitAndPoll(endpoint, payload, opts = {}) {
+        const { signal, onRequestId, ...pollOpts } = opts;
+        return this._submitAndPoll(endpoint, payload, { onRequestId }, signal, pollOpts);
     }
 
     /** Vibe Motion: generate a motion-graphics clip from a prompt. */
@@ -855,6 +880,8 @@ export class MuapiClient {
             finalPayload[key] = value;
         }
 
+        mergeExtraParams(finalPayload, params.extraParams);
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -998,6 +1025,8 @@ export class MuapiClient {
 
         // Native audio (Phase 7)
         if (params.native_audio) finalPayload.native_audio = params.native_audio;
+
+        mergeExtraParams(finalPayload, params.extraParams);
 
         try {
              const response = await fetch(this.proxyUrl, {
@@ -1181,6 +1210,8 @@ export class MuapiClient {
             finalPayload[key] = value;
         }
 
+        mergeExtraParams(finalPayload, params.extraParams);
+
         try {
              const response = await fetch(this.proxyUrl, {
                  method: 'POST',
@@ -1232,6 +1263,7 @@ export class MuapiClient {
 
         if (params.model) finalPayload.model = params.model;
         if (params.video_url) finalPayload.video_url = params.video_url;
+        if (params.image_url) finalPayload.image_url = params.image_url;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
         if (params.prompt) finalPayload.prompt = params.prompt;
         // A local-only (data:) thumbnail is a studio preview, not a hosted URL the API can use.
@@ -1612,11 +1644,13 @@ export class MuapiClient {
         return null;
     }
 
-    async text(prompt, model = 'gpt-5-nano', signal) {
+    // MuAPI dashed GPT-6 ids: gpt-6-luna is the cheap text model (no image
+    // input); gpt-6-1-sol accepts `image_url`, so vision defaults to it.
+    async text(prompt, model = 'gpt-6-luna', signal) {
         return MuapiClient.extractText(await this._runPrediction(model, { prompt }, signal));
     }
 
-    async vision(prompt, imageUrl, model = 'gpt-5-nano', signal) {
+    async vision(prompt, imageUrl, model = 'gpt-6-1-sol', signal) {
         return MuapiClient.extractText(await this._runPrediction(model, { prompt, image_url: imageUrl }, signal));
     }
 

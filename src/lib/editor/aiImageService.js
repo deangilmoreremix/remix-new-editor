@@ -44,6 +44,7 @@ export async function generateImage({
   editInstruction,
   n = 1,
   model,
+  background,
 } = {}) {
   if (!prompt || !prompt.trim()) {
     return { ok: false, assets: [], error: 'Prompt is required' };
@@ -64,6 +65,7 @@ export async function generateImage({
         editInstruction,
         n,
         model: useModel,
+        ...(background ? { background } : {}),
       }),
     });
     // Images 2.6: Flare for new images, Sunburst for reference edits.

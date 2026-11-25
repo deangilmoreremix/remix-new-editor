@@ -61,10 +61,10 @@ import type {
   PreviewLayoutId,
   PreviewBrandColors,
   PreviewAspectRatio,
+  DesignSlot,
 } from './types'
 import { EMPTY_GENERATION_STATE } from './types'
-import type { PreviewCaptions, ProtectedZone } from './preview/types'
-import { applyCaptionsPatch } from './captions/captionStyle'
+import type { ProtectedZone } from './preview/types'
 import { measureImageHints, measureLogoTrim } from './preview/imageHintsLoader'
 import { normalizePersonalizationSource, getEligibility } from './sourceNormalizer'
 import {
@@ -112,20 +112,20 @@ import { buildPreviewInput } from './guided/buildPreviewInput'
 import { reorderLayers } from './preview/layerOrder'
 import { normalizeAngle } from './preview/rotation'
 import { fitSettingsToClip, readClipMetadata } from './preview/fitSettingsToClip'
-import { chooseFinalOutputPath } from './finalOutput'
+import { chooseFinalOutputPath, type FinalOutputPath } from './finalOutput'
 import {
   createDefaultPreviewSettings,
   applyLayoutPreset,
   applyDesignTemplate,
   addDesignTemplate,
-  removeDesignLayer,
   resetLayoutToDefaults,
-  resetPreviewDesign,
+  removeDesignSlot,
+  retimeScenes,
   normalizePreviewSettings,
   getCompositionDimensions,
   reflowLayersForAspect,
 } from './preview/presets'
-import { addDesignWithRules, moveDesignLayer } from './preview/designAddons'
+import { addDesignWithRules, moveDesignLayer, removeDesignKeepingLayout } from './preview/designAddons'
 import {
   applyResearchedBrandColors,
   firstParagraphOf,
@@ -976,14 +976,16 @@ export type DemoPersonalizeContextValue = {
   // Generation
   generate: () => Promise<void>
   retry: () => Promise<void>
+  /** Leaves an error or result screen and goes back to editing. Sends nothing; every edit is kept. */
+  returnToEditing: () => void
   generateAgain: () => Promise<void>
   retryBranding: () => Promise<void>
   generation: GenerationState
 
   // Result
   result: GenerationResult | null
-  resultTab: 'prompt' | 'images' | 'videos'
-  setResultTab: (tab: 'prompt' | 'images' | 'videos') => void
+  resultTab: 'prompt' | 'images' | 'videos' | 'email'
+  setResultTab: (tab: 'prompt' | 'images' | 'videos' | 'email') => void
   editInImageStudio: () => void
   editInVideoStudio: () => void
   openImageEditor?: (asset: {
@@ -1078,8 +1080,6 @@ export type DemoPersonalizeContextValue = {
    */
   applyPreviewPlacements: (items: { layerId: string; x: number; y: number; scale?: number }[], options?: { overrideManual?: boolean }) => void
   updatePreviewBrandColors: (patch: Partial<PreviewBrandColors>) => void
-  /** Burned-in captions: merge a patch over them, or `null` to remove them. Counts for undo/redo, saves with the project. */
-  updatePreviewCaptions: (patch: Partial<PreviewCaptions> | null) => void
    updatePreviewComposition: (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard' | 'look' | 'cutout' | 'audioTracks' | 'videoVolume' | 'videoMuted' | 'audioSolo' | 'captions' | 'textStyles'>>) => void
    resetPreviewLayout: () => void
    /**
@@ -1089,8 +1089,13 @@ export type DemoPersonalizeContextValue = {
    remotionDesignTemplates: RemotionDesignTemplate[]
    /** Id of the design currently applied to the preview, or null. */
    activeRemotionDesignId: string | null
-   /** Applies a design, or clears the applied design when given null. */
-   setRemotionDesign: (designId: string | null) => void
+   /** Ids of the opening and closing scenes, or null. */
+   activeRemotionSceneIds: { intro: string | null; outro: string | null }
+   /**
+    * Applies a design to a slot (on top of the video by default, or as the opening/closing scene), or clears that slot
+    * when given null.
+    */
+   setRemotionDesign: (designId: string | null, slot?: DesignSlot) => void
   /** Adds a design on top of the current layout (every existing layer is kept), instead of replacing it. */
   addRemotionDesign: (designId: string) => void
   /** Takes one design layer off the video, leaving the other layers. */
@@ -1116,7 +1121,7 @@ export type DemoPersonalizeContextValue = {
     * Creates the final video. `approveNow` is the customer pressing the create button in Advanced Editing, where the live
     * preview sits beside the controls and there is no separate approve step: that click approves what is on screen.
     */
-   createFinalVideo: (options?: { approveNow?: boolean }) => Promise<void>
+   createFinalVideo: (options?: { approveNow?: boolean; path?: FinalOutputPath }) => Promise<void>
    cancelExport: () => void
    apiKey: string
    setPreviewAudio: (file: File) => Promise<void>
@@ -1279,6 +1284,27 @@ function updateAssetInLibrary(library: AssetLibrary, asset: PersonalizationAsset
   }
 }
 
+
+/**
+ * Points every preview layer that shows one of `oldUrls` at `newUrl`, so an
+ * edited image replaces the original in the video preview and the export.
+ * Returns the same object when nothing changes.
+ */
+export function retargetLayerImages(
+  settings: PersonalizationPreviewSettings,
+  oldUrls: string[],
+  newUrl: string,
+): PersonalizationPreviewSettings {
+  const old = new Set(oldUrls.filter(Boolean))
+  if (old.size === 0 || !newUrl) return settings
+  let changed = false
+  const layers = settings.layers.map((layer) => {
+    if (!layer.imageUrl || !old.has(layer.imageUrl)) return layer
+    changed = true
+    return { ...layer, imageUrl: newUrl }
+  })
+  return changed ? { ...settings, layers } : settings
+}
 
 function replaceAssetInLibrary(library: AssetLibrary, asset: PersonalizationAsset): AssetLibrary {
   switch (asset.role) {
@@ -1739,7 +1765,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
   // Result
   const [result, setResult] = useState<GenerationResult | null>(null)
-  const [resultTab, setResultTab] = useState<'prompt' | 'images' | 'videos'>('prompt')
+  const [resultTab, setResultTab] = useState<'prompt' | 'images' | 'videos' | 'email'>('prompt')
 
   // Shared media
   const [sharedMediaEntries, setSharedMediaEntries] = useState<SharedMediaEntry[]>(getSharedMedia)
@@ -1963,7 +1989,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
   const lastRunWasFinalVideoRef = useRef(false)
   /** Object URL of the last layered video, revoked when a newer one replaces it. */
   const lastLayeredVideoUrlRef = useRef<string | null>(null)
-  const createFinalVideoRef = useRef<((options?: { approveNow?: boolean }) => Promise<void>) | null>(null)
+  const createFinalVideoRef = useRef<((options?: { approveNow?: boolean; path?: FinalOutputPath }) => Promise<void>) | null>(null)
 
   // Guards async uploads against writing state (and revoking blobs) after the
   // provider has unmounted, which would double-revoke blobs released on unmount.
@@ -3305,7 +3331,10 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
       ...target,
       name: file.name,
       url: localUrl,
-      uploadedUrl: target.uploadedUrl,
+      // The old upload is the UNEDITED image. Keeping it would make the video
+      // preview (which prefers uploadedUrl) keep showing the original; the
+      // edited upload replaces it once it is saved below.
+      uploadedUrl: undefined,
       file,
       mimeType: file.type,
       uploadStatus: 'local',
@@ -3332,6 +3361,10 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     }
 
     setAssets((prev) => replaceAssetInLibrary(prev, editedAsset))
+    // Video layers copied the image address when the layout was applied:
+    // point every layer that showed the original at the edited image.
+    const previousUrls = [target.url, target.uploadedUrl, target.editedDataUrl].filter(Boolean) as string[]
+    setPreviewSettings((prev) => retargetLayerImages(prev, previousUrls, localUrl))
 
     let supabaseUrl: string | undefined
     try {
@@ -3382,11 +3415,15 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
             logos: updater(prev.logos),
             products: updater(prev.products),
             brandReferences: updater(prev.brandReferences),
+            primaryLogo: prev.primaryLogo?.id === editedAsset.id ? { ...prev.primaryLogo, url: supabaseUrl!, uploadedUrl: supabaseUrl!, uploadStatus: 'ready' as const } : prev.primaryLogo,
+            primaryIdentity: prev.primaryIdentity?.id === editedAsset.id ? { ...prev.primaryIdentity, url: supabaseUrl!, uploadedUrl: supabaseUrl!, uploadStatus: 'ready' as const } : prev.primaryIdentity,
             firstFrame: prev.firstFrame?.id === editedAsset.id ? { ...prev.firstFrame, url: supabaseUrl!, uploadedUrl: supabaseUrl!, uploadStatus: 'ready' as const } : prev.firstFrame,
             lastFrame: prev.lastFrame?.id === editedAsset.id ? { ...prev.lastFrame, url: supabaseUrl!, uploadedUrl: supabaseUrl!, uploadStatus: 'ready' as const } : prev.lastFrame,
             ctaGraphic: prev.ctaGraphic?.id === editedAsset.id ? { ...prev.ctaGraphic, url: supabaseUrl!, uploadedUrl: supabaseUrl!, uploadStatus: 'ready' as const } : prev.ctaGraphic,
           }
         })
+        // The saved copy replaces the temporary browser copy in the video too.
+        setPreviewSettings((prev) => retargetLayerImages(prev, [localUrl], supabaseUrl!))
       }
     } catch {
       // Supabase persistence failed — fall back to MuAPI upload below
@@ -5519,7 +5556,20 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         resolved = { ...resolved, directInputs: { ...resolved.directInputs, video_url: chosenVideoUrl } }
       }
 
-      const finalPrompt = promptState.edited || promptState.personalized || promptState.original
+      // A video picked straight from the demo library may carry no prompt:
+      // describe the personalization from the business details instead of
+      // sending the model an empty prompt.
+      const businessName = (clientForm.businessName || clientForm.name || '').trim()
+      const fallbackPrompt = [
+        `Recreate this video as a short promotional clip${businessName ? ` for ${businessName}` : ''}.`,
+        clientForm.offer ? `Feature the offer: ${clientForm.offer}.` : '',
+        clientForm.callToAction ? `End on: ${clientForm.callToAction}.` : '',
+        'Keep the original style, pacing and camera movement.',
+      ]
+        .filter(Boolean)
+        .join(' ')
+      const finalPrompt =
+        promptState.edited || promptState.personalized || promptState.original || source.fullPrompt || fallbackPrompt
 
       // Pre-generate CTA end card if exact end-card handling is requested
       if (!burnInLayers && options.exactCtaHandling === 'final-end-card' && source.mediaType !== 'prompt-only') {
@@ -5555,6 +5605,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
         mode,
         options,
         apiKey,
+        openaiKey,
         // Only the final-video render puts the source audio back on.
         restoresSourceAudio: burnInLayers,
         onProgress: (percent, message) => {
@@ -5805,10 +5856,25 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
   // Retry / Generate Again repeat the same kind of run: a final video goes
   // through createFinalVideo again, so its layers (or branded render) are kept.
+  // One retry at a time: a second click (or a click while a run is already going) is ignored, so a failed paid
+  // operation can never be started twice. It repeats the SAME kind of run, never a different one.
+  const retryInFlightRef = useRef(false)
   const retry = useCallback(async () => {
-    if (lastRunWasFinalVideoRef.current && createFinalVideoRef.current) await createFinalVideoRef.current()
-    else await generate()
+    if (retryInFlightRef.current) return
+    retryInFlightRef.current = true
+    try {
+      if (lastRunWasFinalVideoRef.current && createFinalVideoRef.current) await createFinalVideoRef.current()
+      else await generate()
+    } finally {
+      retryInFlightRef.current = false
+    }
   }, [generate])
+
+  // Back to editing from an error or a result screen. Only the generation status resets: the client, assets, footage,
+  // template and every edit stay exactly as they were, and nothing is sent anywhere.
+  const returnToEditing = useCallback(() => {
+    setGeneration({ ...EMPTY_GENERATION_STATE, status: 'idle' })
+  }, [])
 
   const generateAgain = useCallback(async () => {
     if (lastRunWasFinalVideoRef.current && createFinalVideoRef.current) await createFinalVideoRef.current()
@@ -5884,17 +5950,18 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
    * Applies a registered Remotion design to the preview, or clears the applied
    * design when given null.
    *
-   * The design replaces the preview's layer list with its own `design` layer;
-   * brand colours, aspect ratio, fps and duration are untouched. An unknown
+   * The design is added as a `design` layer on top of the layout's layers
+   * (null removes only that layer); brand colours, aspect ratio, fps and
+   * duration are untouched. An unknown
    * design id is refused and reported through `remotionDesignError` instead of
    * silently doing nothing.
    */
-  const setRemotionDesign = useCallback((designId: string | null) => {
+  const setRemotionDesign = useCallback((designId: string | null, slot: DesignSlot = 'overlay') => {
     markSessionStarted()
     if (designId === null) {
       remotionDesignErrorIdRef.current = null
       setRemotionDesignError(null)
-      setPreviewSettings((prev) => resetPreviewDesign(prev, previewSeedRef.current))
+      setPreviewSettings((prev) => removeDesignSlot(prev, slot))
       return
     }
     if (!getRemotionDesignTemplate(designId)) {
@@ -5904,7 +5971,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     }
     remotionDesignErrorIdRef.current = null
     setRemotionDesignError(null)
-    setPreviewSettings((prev) => applyDesignTemplate(prev, designId, previewSeedRef.current))
+    setPreviewSettings((prev) => applyDesignTemplate(prev, designId, previewSeedRef.current, slot))
   }, [])
 
   const addRemotionDesign = useCallback((designId: string) => {
@@ -5936,7 +6003,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
 
   const removePreviewDesignLayer = useCallback((layerId: string) => {
     markSessionStarted()
-    setPreviewSettings((prev) => removeDesignLayer(prev, layerId))
+    setPreviewSettings((prev) => removeDesignKeepingLayout(prev, layerId, previewSeedRef.current))
   }, [])
 
   // ── Undo / redo for edits to the preview ─────────────────────────────────
@@ -6108,20 +6175,6 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     }))
   }, [])
 
-  const updatePreviewCaptions = useCallback((patch: Partial<PreviewCaptions> | null) => {
-    markSessionStarted()
-    setPreviewSettings((prev) => {
-      const captions = applyCaptionsPatch(prev.captions, patch)
-      if (!captions) {
-        if (!prev.captions) return prev
-        const { captions: _removed, ...rest } = prev
-        void _removed
-        return rest
-      }
-      return { ...prev, captions }
-    })
-  }, [])
-
   const updatePreviewComposition = useCallback(
     (patch: Partial<Pick<PersonalizationPreviewSettings, 'aspectRatio' | 'fps' | 'durationInFrames' | 'showEndCard' | 'look' | 'cutout' | 'audioTracks' | 'videoVolume' | 'videoMuted' | 'audioSolo' | 'captions' | 'textStyles'>>) => {
       markSessionStarted()
@@ -6135,6 +6188,8 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
           // anything the customer moved or resized is left exactly where it is.
           next = reflowLayersForAspect(next, prev.aspectRatio, patch.aspectRatio)
         }
+        // A new length or frame rate moves the closing scene to the new end.
+        if (patch.durationInFrames !== undefined || patch.fps !== undefined) return retimeScenes(next)
         return next
       })
     },
@@ -6248,15 +6303,18 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     }
   }, [previewApproved, source, previewSettings, previewVideo, clientForm, assets])
 
-  const createFinalVideo = useCallback(async (options?: { approveNow?: boolean }) => {
+  const createFinalVideo = useCallback(async (options?: { approveNow?: boolean; path?: FinalOutputPath }) => {
     lastRunWasFinalVideoRef.current = true
     const approved = previewApproved || options?.approveNow === true
     // Overlay-only personalizations (branding on the EXISTING selected video)
     // export through the local Remotion render pipeline — never through MuAPI
     // generation. Personalizations that genuinely need AI-generated imagery or
     // video keep the existing generate() flow exactly.
-    if (access !== 'authenticated' || !source) return
-    const finalPath = chooseFinalOutputPath({ personalizationMode: mode || null })
+    //
+    // The branded render runs entirely in the visitor's browser (no server, no storage, no paid request), so it needs
+    // no account. AI generation runs on the visitor's own key (kept in their browser), so it needs none either.
+    if (!source) return
+    const finalPath = options?.path ?? chooseFinalOutputPath({ personalizationMode: mode || null })
 
     if (finalPath === 'ai-generation') {
       const hasLogo = previewSettings.layers.some(
@@ -6876,6 +6934,7 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     // Generation
     generate,
     retry,
+    returnToEditing,
     generateAgain,
     retryBranding,
     generation,
@@ -6928,11 +6987,14 @@ export function DemoPersonalizeProvider({ children, testMode, access: accessProp
     setPreviewProtectedZones,
     applyPreviewPlacements,
     updatePreviewBrandColors,
-    updatePreviewCaptions,
     updatePreviewComposition,
     resetPreviewLayout,
     remotionDesignTemplates,
     activeRemotionDesignId: previewSettings.remotionDesignId ?? null,
+    activeRemotionSceneIds: {
+      intro: previewSettings.remotionSceneIds?.intro ?? null,
+      outro: previewSettings.remotionSceneIds?.outro ?? null,
+    },
     setRemotionDesign,
     addRemotionDesign,
     removePreviewDesignLayer,

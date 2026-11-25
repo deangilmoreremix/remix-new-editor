@@ -168,29 +168,6 @@ export interface PreviewAudioSelection {
   name: string
 }
 
-/** Look of burned-in captions. */
-export type BuiltInCaptionStyleId = 'bold' | 'bar' | 'clean'
-/** A built-in look, or the id of one of the 27 Capite looks (captions/capiteStyles.ts). Checked when a project is read back. */
-export type CaptionStyleId = BuiltInCaptionStyleId | (string & {})
-export type CaptionPosition = 'bottom' | 'middle' | 'top'
-
-export interface PreviewCaptionWord { text: string; startMs: number; endMs: number }
-export interface PreviewCaptionCue { startMs: number; endMs: number; text: string; words?: PreviewCaptionWord[] }
-
-/**
- * Captions drawn INTO the video (preview and export), made on the customer's own device from the video's speech.
- * `forUrl` is the video they were written for: they are drawn only over that video, never over a different one.
- */
-export interface PreviewCaptions {
-  enabled: boolean
-  forUrl: string
-  style: CaptionStyleId
-  position: CaptionPosition
-  cues: PreviewCaptionCue[]
-  /** Language of the words (ISO code such as `es` or `pt-BR`), when known: sets the font fallback, size and reading direction. Absent = work it out from the text. */
-  language?: string
-}
-
 export interface PersonalizationPreviewSettings {
   layout: PreviewLayoutId
   layers: PreviewLayer[]
@@ -231,10 +208,10 @@ export interface PersonalizationPreviewSettings {
    * editor, preview and export — style the same image the same way.
    */
   imageHints?: Record<string, ImageHints>
-  /** Burned-in captions (optional: absent = none). */
-  captions?: PreviewCaptions
   /** A color and film look for the footage (not the brand overlays). Optional so saved projects restore unchanged. */
   look?: import('./effects').LookSettings
+  /** Timed captions over the video, with the spoken word highlighted. Optional so saved projects restore unchanged. */
+  captions?: import('./captions').CaptionSettings
   /** Named looks for text layers and captions, saved with the project. Optional so saved projects restore unchanged. */
   textStyles?: import('./textStyles').SavedTextStyle[]
   /**
@@ -242,6 +219,21 @@ export interface PersonalizationPreviewSettings {
    * Settings only: the measured masks live in memory (preview/cutout/maskStore.ts), never in the project.
    */
   cutout?: import('./cutout/cutoutSettings').CutoutSettings
+  /**
+   * Ids of the full-frame scenes that open and close the video, or null.
+   * Optional so older projects restore; the normalizer falls back to nulls.
+   */
+  remotionSceneIds?: { intro: string | null; outro: string | null }
+}
+
+/** Where a design sits: on top of the video, or as an opening/closing scene. */
+export type DesignSlot = 'overlay' | 'intro' | 'outro'
+
+/** Layer id each design slot uses. */
+export const DESIGN_SLOT_LAYER_IDS: Record<DesignSlot, string> = {
+  overlay: 'design',
+  intro: 'design-intro',
+  outro: 'design-outro',
 }
 
 /** Everything the composition needs to render one frame-accurate scene. */

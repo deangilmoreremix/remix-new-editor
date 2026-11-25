@@ -14,6 +14,8 @@
  */
 import { applyMultiCam, multiCamActive } from '../multiCam.js';
 import { getAddon, addonOptions } from '../addons/registry.js';
+// [hyperframes] HyperFrames/RemotionUI animation overlays (from the CineGen timeline) become the same layer the editor preview and MP4 export render
+import { hyperframesOverlayLayer } from '../../../cinegen/lib/hyperframes/overlay';
 import { resolveOverlayText, safeImageUrl, sanitizeWrapperStyles } from '../addons/overlayRender.js';
 import { voiceSrcFor } from '../personalize/perContact.js';
 import { personalizedImageLook } from '../../personalization/imageStyle.js';
@@ -167,6 +169,11 @@ export function timelineToComposition(state, { fps = 30, quality = '1080p', aspe
         ...(clip.fadeIn > 0 ? { fadeIn: clip.fadeIn } : {}),
         ...(clip.fadeOut > 0 ? { fadeOut: clip.fadeOut } : {}),
       };
+      // Published/shared playback: the animation must not be silently dropped.
+      if (clip.type === 'hyperframes') {
+        layers.push(hyperframesOverlayLayer({ ...clip, start, end }, fps));
+        return;
+      }
       const addon = getAddon(clip.type);
 
       // [remix] Fix E: a compound rendered as ONE group: its own look (fx, opacity, blend, transform, crop, fades, zoom, flip) applies to the offscreen

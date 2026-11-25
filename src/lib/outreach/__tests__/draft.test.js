@@ -281,25 +281,25 @@ describe('the landing page belongs to the dynamic video (like Sendspark)', async
     expect(defaultDraft().page).toBeNull();
   });
   it('keeps your edited page with the video, and drops anything that is not a design', () => {
-    const puck = { content: [{ type: 'Hero', props: { id: 'h', headline: 'Hi {{firstname}}' } }], root: { props: {} } };
-    expect(loadDraft(mem({ page: { template: 'puck-enterprise', puck } })).page).toEqual({ template: 'puck-enterprise', puck });
-    expect(loadDraft(mem({ page: { template: 'clean', puck } })).page).toBeNull();
+    const editor = { content: [{ type: 'Hero', props: { id: 'h', headline: 'Hi {{firstname}}' } }], root: { props: {} } };
+    expect(loadDraft(mem({ page: { template: 'editable-enterprise', editor } })).page).toEqual({ template: 'editable-enterprise', editor });
+    expect(loadDraft(mem({ page: { template: 'clean', editor } })).page).toBeNull();
     expect(cleanPage({ template: '<script>' })).toBeNull();
   });
   it('carries older drafts over: a chosen design becomes that design as it comes', () => {
-    const d = loadDraft(mem({ pageId: 'design:puck-leadiq' }));
-    expect(d.page).toEqual({ template: 'puck-leadiq', puck: null });
+    const d = loadDraft(mem({ pageId: 'design:editable-leadiq' }));
+    expect(d.page).toEqual({ template: 'editable-leadiq', editor: null });
     expect(d.pageId).toBeUndefined();
     const saved = loadDraft(mem({ pageId: 'abc123xyz' }));
     expect(saved.page).toBeNull();
     expect(saved.pageId).toBe('abc123xyz'); // the studio loads that page's content
   });
   it('a new dynamic video keeps the page (its own copy)', () => {
-    const page = { template: 'puck-spark', puck: { content: [], root: { props: {} } } };
+    const page = { template: 'editable-spark', editor: { content: [], root: { props: {} } } };
     const d = newDynamicVideo({ page });
     expect(d.page).toEqual(page);
-    d.page.puck.content.push({ type: 'X', props: {} });
-    expect(page.puck.content).toHaveLength(0);
+    d.page.editor.content.push({ type: 'X', props: {} });
+    expect(page.editor.content).toHaveLength(0);
   });
 });
 

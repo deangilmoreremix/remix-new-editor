@@ -97,7 +97,7 @@ export function EffectsPage() {
   const ctaSection = document.createElement('div');
   ctaSection.className = 'w-full max-w-5xl mb-8';
   ctaSection.innerHTML = `
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-8 md:p-12 shadow-3xl text-center">
+    <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-8 md:p-12 shadow-3xl text-center">
       <h2 class="text-xl md:text-2xl font-bold text-white mb-2">Explore Effects</h2>
       <p class="text-sm text-secondary mb-6">Apply stunning visual effects to your content</p>
       <button class="cta-btn btn-primary-modern">Get Started Free</button>
@@ -109,6 +109,7 @@ export function EffectsPage() {
   const startBtn = container.querySelector('.start-btn');
   if (startBtn) startBtn.onclick = () => navigate('effects');
   container.querySelector('.cta-btn').onclick = () => navigate('effects');
+  container.querySelector('.cta-btn').dataset.helpText = 'Open Effects Studio.';
 
   return container;
 }

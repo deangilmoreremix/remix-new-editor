@@ -233,7 +233,8 @@ export async function mountWatchPage(container, ref, deps = {}) {
     fps: FPS,
     voiceFor: (clip, profile) => (deps.voiceFor || fetchPersonalVoice)({ publishedId: video.id, clip, profile }),
     onLead: async ({ clipId, kind, data, signals, variant }) => {
-      const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data, attribution, signals, variant });
+      // The viewing session (null when analytics is off or the viewer opted out) lets the owner see how much of the video a lead watched.
+      const res = await (deps.onLead || submitViewerLead)({ publishedId: video.id, clipId, kind, data, attribution, signals, variant, session: analytics.sessionId || null });
       if (kind !== 'call-attempt' && res?.stored !== false) {
         analytics.track('lead_submit', { clip: clipId, props: labelFor(clipId) ? { label: labelFor(clipId) } : undefined });
         if (!deps.onLead) fireLeadTrackers(trackersFor(video.project, kind, clipId));

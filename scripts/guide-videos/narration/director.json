@@ -1,0 +1,16 @@
+{
+  "slug": "director",
+  "name": "Director",
+  "intro": "Director is a chat and agents workspace for videos you already have. You load a clip, then ask AI agents to analyze, cut, caption or enhance it.",
+  "features": {
+    "command-box-ai-chat": "The command box is the quickest way in. Type a request in plain language, like summarize this video, and Director picks the matching agent for you.",
+    "ai-agents-panel": "The AI Agents panel shows a card for every agent. Use the category drop-down to narrow the list, and click a card to run that agent.",
+    "quick-actions": "Quick Actions are one-click jobs, such as Summarize, Detect Scenes, Add Subtitles and Create Shorts. Dub Video starts with Spanish, but you can type another language.",
+    "browse-b-roll-from-pexels": "Browse B-Roll opens a stock footage browser powered by Pexels. Pick a clip to add it as B-roll, with the photographer's credit shown.",
+    "processing-panel-and-cancel": "While a job runs, the Processing panel shows each step and a progress bar. If you change your mind, the Cancel button stops the job.",
+    "extra-input-forms": "Some agents need more information, so a small form appears in the chat. Fill it in and press Run, or press Escape to cancel.",
+    "result-panel": "The Result panel shows what an agent produced, like a summary, counts, or a playable video, along with a download link.",
+    "clear-chat-and-back": "Clear Chat wipes the conversation for a fresh start, and the back arrow takes you to the Render studio with your video."
+  },
+  "outro": "That's Director. Load a video, say what you need, and let the agents do the heavy lifting."
+}

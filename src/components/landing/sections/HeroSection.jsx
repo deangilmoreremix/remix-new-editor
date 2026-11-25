@@ -1,3 +1,4 @@
+import { videoSlot, mountLandingVideos } from '../common/landingVideo.js';
 // Hero Section - Smart Video AI Studio
 // Cinematic design with direct-response positioning and premium motion
 
@@ -70,6 +71,11 @@ export function HeroSection() {
           <!-- Ripple effect -->
           <span class="ripple absolute inset-0"></span>
         </button>
+      </div>
+
+      <!-- Product video (real app capture, silent loop) -->
+      <div class="hero-product-video mx-auto mb-12 max-w-4xl">
+        ${videoSlot('a-hero-loop', 'Smart Video in use: typing a prompt in Video Studio, browsing the apps hub, and choosing a model', { eager: true, webm: true, className: 'aspect-video rounded-2xl border border-cyan-400/20 shadow-2xl shadow-cyan-400/10' })}
       </div>
 
       <!-- Social Proof with stagger -->
@@ -248,5 +254,6 @@ export function HeroSection() {
     window.removeEventListener('scroll', scrollListener);
   };
 
+  mountLandingVideos(section);
   return section;
 }

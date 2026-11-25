@@ -2,9 +2,9 @@
   "id": "edit",
   "name": "Edit Studio",
   "route": "#/edit",
-  "description": "Edit Studio is a gallery of 16 focused AI photo-editing tools. You pick a tool, upload a photo, adjust a few settings and click Apply Edit to get a before/after result.",
-  "shortDescription": "16 AI photo tools: remove objects and backgrounds, extend, reframe, effects, face swap and more.",
-  "fullDescription": "Edit Studio opens on a grid of 16 tool cards. Clicking a card opens that tool's own mini-studio with a 'Source image' upload, any extra inputs the tool needs (a mask, an outfit photo, a face photo, a logo), an optional prompt, a Settings panel and an 'Apply Edit' button. A Preview panel on the right shows your photo, then a Before / After comparison slider with Download, Generate Again and 'Use result as new source' buttons. Five of the tools (AI Edit, Upscale, Product Shot, Photo Effects, Character & Reference) have a Model dropdown so you can choose between several AI models; the screen adapts to the model (prompt box, number of extra reference images, settings). Edit Studio works on images only in the current code; the upload picker does not accept video.",
+  "description": "Edit Studio is a gallery of 16 focused AI photo-editing tools plus 72 one-click apps. You pick a tool or app, upload a photo, adjust a few settings and click the Apply Edit or Generate button to get a result.",
+  "shortDescription": "16 AI photo tools plus 72 one-click apps: remove objects and backgrounds, reframe, ad shots, video effects and more.",
+  "fullDescription": "Edit Studio opens on a grid of 16 tool cards. Clicking a card opens that tool's own mini-studio with a 'Source image' upload, any extra inputs the tool needs (a mask, an outfit photo, a face photo, a logo), an optional prompt, a Settings panel and an 'Apply Edit' button. A Preview panel on the right shows your photo, then a Before / After comparison slider with Download, Generate Again and 'Use result as new source' buttons. Five of the tools (AI Edit, Upscale, Product Shot, Photo Effects, Character & Reference) have a Model dropdown so you can choose between several AI models; the screen adapts to the model (prompt box, number of extra reference images, settings). Edit Studio works on images only in the current code; the upload picker does not accept video. Below the tool cards is an Apps section with 72 apps in 7 categories (Professional, Enhance & Style, Face & Identity, Video Editing, Ads & Products, Games & Characters and Trending), with a search box and category filters. Each app card opens that app's own studio with its presets, sliders, an optional prompt box and the price on the Generate button. 27 apps make an image and 45 make a short video, usually from one photo; Video Face Swap and Video Background Remover take a video instead.",
   "bestFor": "Beginners who want to fix or change a photo with a single clear tool, without writing long prompts: removing something from a picture, cutting out a background, putting a product in a scene, trying an outfit, adding a logo, or giving a photo a one-click look.",
   "whenToUse": [
     "You have a photo and want one specific change (remove an object, remove the background, extend it, change the aspect ratio).",
@@ -32,7 +32,8 @@
     "Result actions: Download, Generate Again, 'Use result as new source' (chain edits).",
     "'This session' strip of earlier results (appears once you have 2 or more results).",
     "Pexels stock photo browser as a source (button titled 'Browse stock photos from Pexels').",
-    "Cancel button while an edit is running."
+    "Cancel button while an edit is running.",
+    "72 apps in 7 categories, each with its own presets, sliders and price on the Generate button; 27 make images and 45 make short videos."
   ],
   "featureExplanations": [
     {
@@ -150,7 +151,7 @@
   ],
   "howToUse": "1. Open Edit Studio from the side menu (Edit). 2. Click the card of the tool you want, for example Remove Background. 3. Under 'Source image' click the upload button (or the Pexels button) and add your photo; it shows in Preview and the hint changes to 'Image ready'. 4. If the tool shows an extra panel (mask painter, 'Outfit image', 'New face photo', 'Watermark / logo image'), fill it in. 5. If a Model dropdown is shown, choose a model; read the note under it. 6. If a Prompt or 'Scene description' box is shown, type what you want. 7. Adjust anything in the Settings panel. 8. Click Apply Edit. 9. Use the Compare slider, or the Before and After buttons, to check the result. 10. Click Download to save, Generate Again to retry, or 'Use result as new source' to keep editing the result with another tool.",
   "howToSteps": [
-    "Choose a tool card (or use 'Switch tool' later).",
+    "Choose a tool card or an app card (or use 'Switch tool' later).",
     "Upload the Source image.",
     "Add any extra image or mask the tool needs.",
     "Choose a Model if the dropdown is shown.",
@@ -252,6 +253,11 @@
       "useCase": "Browse and choose a tool."
     },
     {
+      "mode": "Apps section",
+      "description": "Below the 16 tool cards: 72 apps with a search box and category filters. Each card shows an Image or Video badge and opens that app's studio.",
+      "useCase": "Get a finished look, ad shot or video effect from one photo with a preset style."
+    },
+    {
       "mode": "Tool studio view",
       "description": "Inputs on the left, Preview on the right.",
       "useCase": "Do the edit."
@@ -271,7 +277,7 @@
   ],
   "limitations": [
     "Images only: the upload picker does not accept video or documents.",
-    "There are no separate Inpaint or Relight tools; the 16 tools are the ones listed.",
+    "There are no separate Inpaint or Relight tools; the 16 built-in tools are the ones listed.",
     "Each upload is limited to 10MB.",
     "Edits are applied one at a time; the progress bar is an estimate that moves up to about 90% until the result arrives.",
     "The 'This session' history is not saved if you refresh the page (the results themselves are registered in your generation history).",
@@ -435,11 +441,11 @@
   "faqs": [
     {
       "question": "Can Edit Studio edit videos?",
-      "answer": "No. In the current studio the upload accepts images only. For video use Video Tools or Video Studio."
+      "answer": "The 16 tools take images only. The Apps section has two video-editing apps that take a video, Video Face Swap and Video Background Remover. 45 of the 72 apps make a short video, usually from one photo. For general video editing use Video Tools or Video Studio."
     },
     {
       "question": "How many tools are there?",
-      "answer": "16: Remove Object, Remove Background, Extend Image, AI Edit, Reframe, Change Dress, Enhance Skin, Colorize, Add Watermark, Upscale, Face Swap, Product Shot, Ghibli Style, Photo Effects, Change Angle and Character & Reference."
+      "answer": "16: Remove Object, Remove Background, Extend Image, AI Edit, Reframe, Change Dress, Enhance Skin, Colorize, Add Watermark, Upscale, Face Swap, Product Shot, Ghibli Style, Photo Effects, Change Angle and Character & Reference. There are also 72 apps in the Apps section below the tool cards."
     },
     {
       "question": "How do I switch tools without losing my photo?",
@@ -464,6 +470,10 @@
     {
       "question": "Why is there a Cancel button?",
       "answer": "It appears while an edit runs so you can stop waiting and start again."
+    },
+    {
+      "question": "What are the apps in Edit Studio?",
+      "answer": "One-click looks, ad shots and effects built on a preset style. Open the Apps section below the tool cards, search or filter by category, and click an app to open its studio. Each app shows its price on the Generate button. 27 apps make an image and 45 make a short video."
     }
   ],
   "glossary": {

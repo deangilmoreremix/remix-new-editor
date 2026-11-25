@@ -1,8 +1,12 @@
+import { buildUrl } from './routeUrl.js';
+
 const ROUTE_MAP = {
   'Explore': 'explore',
   'Image': 'image',
   'Video': 'video',
   'Storyboard': 'storyboard',
+  'Studio': 'muapi-studio',
+  'SmartVid Studio': 'muapi-studio',
   'Edit': 'edit',
   'Character': 'character',
   'Commercial': 'commercial',
@@ -17,7 +21,6 @@ const ROUTE_MAP = {
   'Smart Video Scheduler': 'smart-video-scheduler',
 
   'Personalizer': 'personalizer',
-  'Video Pages': 'video-pages',
   'Contacts': 'contacts',
   'Social': 'social',
   'Landing': 'landing',
@@ -26,6 +29,7 @@ const ROUTE_MAP = {
   'Video Agent': 'video-agent',
   'Video Agent Studio': 'video-agent-studio',
   'Zack D Studio': 'zackd',
+  'SmartWarmupAI': 'smartwarmupai',
   'AI VFX': 'ai-vfx',
   'Brand Studio': 'brand',
   'Brand DNA': 'brand-dna',
@@ -34,6 +38,8 @@ const ROUTE_MAP = {
   'Photo Studio': 'photo-studio',
   'Brand Photo Studio': 'brand-photo-studio',
   'Animate': 'animate',
+  'Media Hub': 'media-hub',
+  'SmartVidDownloader': 'media-hub',
 };
 
 export function getRouteForItem(item) {
@@ -60,6 +66,7 @@ export const RETIRED_ROUTES = {
   assist: 'apps',
   community: 'explore',
   'pexels-media': 'library',
+  'video-pages': 'library',   // Video Pages is a modal now (Library > My Video Pages, the header button, or any studio's Create landing page)
 };
 
 const pageLoaders = {
@@ -68,6 +75,7 @@ const pageLoaders = {
   cinema: () => import('../components/CinemaStudio.js').then(m => m.CinemaStudio()),
   'cinema-template': () => import('../components/CinemaTemplateStudio.js').then(m => m.CinemaTemplateStudio()),
   apps: () => import('../components/AppsHub.js').then(m => m.AppsHub()),
+  explore: () => import('../components/ExplorePage.js').then(m => m.ExplorePage()),
   templates: () => import('../components/TemplatesPage.js').then(m => m.TemplatesPage()),
   effects: () => import('../components/EffectsStudio.js').then(m => m.EffectsStudio()),
   edit: () => import('../components/EditStudio.js').then(m => m.EditStudio()),
@@ -76,11 +84,10 @@ const pageLoaders = {
   character: () => import('../components/CharacterStudio.js').then(m => m.CharacterStudio()),
   influencer: () => import('../components/InfluencerStudio.js').then(m => m.InfluencerStudio()),
   commercial: () => import('../components/CommercialStudio.js').then(m => m.CommercialStudio()),
-  explore: () => import('../components/ExplorePage.js').then(m => m.ExplorePage()),
   avatar: () => import('../components/AvatarStudio.js').then(m => m.AvatarStudio()),
   'smart-video-scheduler': () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
   brightbean: () => import('../components/SmartVideoScheduler.js').then(m => m.SmartVideoScheduler()),
-  'smart-video-studio': () => import('../components/studios/SmartVideoStudio/SmartVideoStudio.tsx').then(m => m.default || m.SmartVideoStudio),
+  'smart-video-studio': () => import('../components/studios/SmartVideoStudio/SmartVideoStudio.tsx').then(m => m.SmartVideoStudioPage()),
   audio: () => import('../components/AudioStudio.js').then(m => m.AudioStudio()),
   videotools: () => import('../components/VideoToolsStudio.js').then(m => m.VideoToolsStudio()),
   lipsync: () => import('../components/LipSyncStudio.js').then(m => m.LipSyncStudio()),
@@ -92,12 +99,12 @@ const pageLoaders = {
   'motion-director': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   'motion-director/workbench': () => import('../components/MotionDirectorPage.js').then(m => m.MotionDirectorPage()),
   personalizer: () => import('../components/Personalizer.js').then(m => m.Personalizer()),
-  // Video landing pages (public pages live at /p/<slug>, mounted from main.js).
-  'video-pages': () => import('../components/LandingPagesStudio.js').then(m => m.LandingPagesStudio()),
+  // Video landing pages are a modal (components/modals/MyVideoPagesModal.js); public pages live at /p/<slug>, mounted from main.js.
   'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
   'website-builder': () => import('../components/OpenThornStudio.js').then(m => m.OpenThornStudio()),
 
   storyboard: () => import('../components/StoryboardStudio.js').then(m => m.StoryboardStudio()),
+  'muapi-studio': () => import('../components/MuapiStudioPage.js').then(m => m.MuapiStudioPage()),
   'text-to-image': () => import('../components/TextToImagePage.js').then(m => m.TextToImagePage()),
   'image-to-image': () => import('../components/ImageToImagePage.js').then(m => m.ImageToImagePage()),
   'text-to-video': () => import('../components/TextToVideoPage.js').then(m => m.TextToVideoPage()),
@@ -119,9 +126,14 @@ const pageLoaders = {
   'zackd-studio': () => import('../components/studios/ZackDStudio/ZackDStudio.js').then(m => m.ZackDStudio()),
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   workbench: () => import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio()),
+  // SmartWarmupAI studio: email warmup, outreach, inbox, CRM and automations (apps/warmbly-web, rebranded at build time).
+  smartwarmupai: () => import('../components/studios/SmartWarmupAIStudio/SmartWarmupAIStudio.js').then(m => m.SmartWarmupAIStudio()),
+  // Deep links into the studio: #/smartwarmupai/<view> and #/smartwarmupai/help[/<docs path>].
+  ...Object.fromEntries(['dashboard', 'campaigns', 'inbox', 'contacts', 'pipeline', 'mailboxes', 'deliverability', 'automations', 'integrations', 'settings', 'help']
+    .map(v => [`smartwarmupai/${v}`, () => import('../components/studios/SmartWarmupAIStudio/SmartWarmupAIStudio.js').then(m => m.SmartWarmupAIStudio())])),
   // CineGen Studio was replaced by the Workbench; keep old links working.
   cinegen: () => {
-    try { window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/workbench`); } catch { /* ignore */ }
+    try { window.history.replaceState(null, '', `/workbench${window.location.search}`); } catch { /* ignore */ }
     return import('../components/studios/WorkbenchStudio/WorkbenchStudio.js').then(m => m.WorkbenchStudio());
   },
   // The Timeline Editor is CineGen's workspace (vendored in src/cinegen, our colours + features). The unmodified clone can still be shown
@@ -140,12 +152,23 @@ const pageLoaders = {
   'photo-studio': () => import('../components/PhotoStudioPage.js').then(m => m.PhotoStudioPage()),
   'brand-photo-studio': () => import('../components/PhotoStudioPage.js').then(m => m.PhotoStudioPage()),
   animate: () => import('../components/AnimatePage.js').then(m => m.AnimatePage()),
+  'media-hub': () => import('../components/MediaHubPage.js').then(m => m.MediaHubPage()),
+  // SmartVidDownloader (the vendored VidBee app): same page under its product name.
+  smartviddownloader: () => import('../components/MediaHubPage.js').then(m => m.MediaHubPage()),
   // Academy: the page parses its own #/academy/track/<track>[/lesson|template/<id>] hash.
   academy: () => import('../components/academy/AcademyPage.jsx').then(m => m.AcademyPage()),
+  guide: () => import('../components/GuidePage.js').then(m => m.GuidePage()),
 };
 
 // Sub-paths like 'academy/track/<t>/lesson/<id>' are handled by the Academy page itself.
-export const academyKey = (page) => (typeof page === 'string' && page.startsWith('academy/') ? 'academy' : page);
+export const academyKey = (page) => {
+  if (typeof page !== 'string') return page;
+  if (page.startsWith('academy/')) return 'academy';
+  // #/smartwarmupai/help/<docs path> and other studio deep links are parsed by the studio itself.
+  if (page.startsWith('smartwarmupai/')) return 'smartwarmupai';
+  if (page.startsWith('guide/')) return 'guide';
+  return page;
+};
 
 /** True when navigate(page) opens a real page rather than the placeholder. */
 export const isKnownPage = (page) => typeof page === 'string' && (page.startsWith('template/') || Boolean(pageLoaders[academyKey(RETIRED_ROUTES[page] || page)]));
@@ -155,6 +178,12 @@ let currentPageEl = null;
 let contentArea = null;
 let onNavigateCallback = null;
 let isNavigating = false;
+let currentSearch = '';
+
+/** True when `page` (with the current query string) is already the page on screen. */
+export function isCurrentRoute(page) {
+  return currentPage === (RETIRED_ROUTES[page] || page) && currentSearch === (window.location.search || '');
+}
 
 export function getQueryParam(name) {
   if (typeof window === 'undefined') return '';
@@ -167,7 +196,12 @@ export function initRouter(container, callback) {
   onNavigateCallback = callback;
 }
 
-export async function navigate(page, params = {}) {
+/**
+ * Opens a page. `opts.history` controls the address bar: 'push' (default) adds an entry,
+ * 'replace' swaps the current one (first load), 'none' leaves it alone (Back/Forward and
+ * hand-edited URLs, where the browser already moved the URL).
+ */
+export async function navigate(page, params = {}, opts = {}) {
   if (!contentArea) return;
 
   // Prevent concurrent navigation to avoid infinite loops
@@ -179,11 +213,15 @@ export async function navigate(page, params = {}) {
 
   isNavigating = true;
   currentPage = page;
+  // Lets the hover-help layer (components/studio/tooltipLayer.js) tint its cards with this studio's accent; no per-studio wiring needed.
+  contentArea.dataset.studioTheme = page;
 
   // Update URL with params so components can read them via URLSearchParams
-  const searchParams = new URLSearchParams(params).toString();
-  const newUrl = searchParams ? `/?${searchParams}#/${page}` : `/#/${page}`;
-  window.history.pushState({}, '', newUrl);
+  const newUrl = buildUrl(page, params);
+  const mode = opts.history || 'push';
+  if (mode === 'push') window.history.pushState({}, '', newUrl);
+  else if (mode === 'replace') window.history.replaceState({}, '', newUrl);
+  currentSearch = window.location.search || '';
 
   currentPageEl?.cleanup?.();
   currentPageEl = null;

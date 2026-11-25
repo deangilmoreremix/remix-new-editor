@@ -11,11 +11,12 @@ import { TimelineBottomBar } from './timeline-bottom-bar';
 import { ResizeHandle } from './resize-handle';
 import { activeGlTransition } from '@cinegen/lib/occ/transitions';
 import { useRecorder } from '../../../openchatcut/audio/recorder';
+import { LiveCaptionStrip } from './live-caption-strip'; // [remix] live captions while recording (Web Speech API, on this device)
 import { SoundLibraryPopup } from './sound-library-popup';
 import { StockMediaPopup } from './stock-media-popup';
 import { useMediaBrowser } from './use-media-browser';
 import { LibraryPanel, type LibraryActions } from './library-panel'; // [remix] one Library for animations, effects, transitions, looks, overlays & forms, sounds
-import { createOverlay, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
+import { createOverlay, applyDesignToOverlay, findGate, startAfterGate, createTemplateOverlays, isConnectTemplate } from '@cinegen/lib/overlays/overlays';
 import { createHyperframesOverlay, hyperframesItem } from '@cinegen/lib/hyperframes/overlay';
 import { decodeLibraryDrag, type LibraryDrag, type LibraryDropCtx } from '@cinegen/lib/occ/library-dnd';
 import { loadMgTemplates } from '@cinegen/lib/occ/mg-templates';
@@ -93,7 +94,7 @@ function loadPersistedEditView(projectId: string): PersistedEditView {
       return {
         pxPerSecond: 50,
         snapEnabled: true,
-        trackHeight: 110, // [remix] CineGen screenshot rows (~110px); the clone ships 80
+        trackHeight: 80, // same as CineGen upstream (110 pushed V2 out of the video section)
         timelineViews: {},
       };
     }
@@ -101,14 +102,14 @@ function loadPersistedEditView(projectId: string): PersistedEditView {
     return {
       pxPerSecond: Number.isFinite(parsed.pxPerSecond) ? Number(parsed.pxPerSecond) : 50,
       snapEnabled: typeof parsed.snapEnabled === 'boolean' ? parsed.snapEnabled : true,
-      trackHeight: Number.isFinite(parsed.trackHeight) ? Number(parsed.trackHeight) : 110,
+      trackHeight: Number.isFinite(parsed.trackHeight) && Number(parsed.trackHeight) !== 110 ? Number(parsed.trackHeight) : 80, // a saved 110 is the old remix default: use 80
       timelineViews: parsed.timelineViews ?? {},
     };
   } catch {
     return {
       pxPerSecond: 50,
       snapEnabled: true,
-      trackHeight: 110, // [remix] CineGen screenshot rows (~110px); the clone ships 80
+      trackHeight: 80, // same as CineGen upstream (110 pushed V2 out of the video section)
       timelineViews: {},
     };
   }
@@ -504,6 +505,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     updatePersistedTimelineView(timeline.id, { vaSplit: Math.max(0.15, Math.min(0.85, vaSplit)) });
   }, [timeline.id, updatePersistedTimelineView]);
 
+  useEffect(() => { void import('@cinegen/lib/occ/user-fonts').then((m) => m.loadUserFonts()).catch(() => undefined); }, []); // [remix] fonts imported earlier (captions, Smart Text) are registered when the editor opens
   // Spacebar / Arrow keys / Tool shortcuts
   useEffect(() => {
     const FRAME_DURATION = 1 / 24;
@@ -739,7 +741,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
   }, [sourceViewerEntry, state.assets]);
   const stage1 = useStage1Editing({
     timeline, dispatch, selectedClipIds, setSelectedClipIds, currentTime, seek, isPlaying, play, pause, setSpeed,
-    sourceAsset: sourceViewerEntry && !sourceViewerEntry.clip ? resolvedSourceViewerAsset : null, sourceVisible: layout.sourceViewerVisible,
+    sourceAsset: sourceViewerEntry ? resolvedSourceViewerAsset : null, sourceVisible: layout.sourceViewerVisible,
   });
   const sourceViewerNativeVideoEnabled = nativeVideoAvailable
     && activeTool !== 'mask'
@@ -962,8 +964,16 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
     const withRow = <T extends { [k: string]: unknown }>(o: T, ctx?: LibraryDropCtx): T => (typeof ctx?.row === 'number' ? { ...o, row: ctx.row } : o);
     const needClip = (what: string) => `Select a clip on the timeline first, then click ${what}.`;
     return {
-      onAddOverlay: (kind, ctx) => {
-        const overlay = withRow(createOverlay(kind, ctx?.time ?? currentTime, Math.max(sequenceDuration, 10)), ctx);
+      onAddOverlay: (kind, ctx, designId) => {
+        // a design on a List Builder: one per video, so a design picked for it goes to the one that is there
+        const gate = kind === 'list-builder' && designId ? findGate(state.overlays) : undefined;
+        if (gate && designId) {
+          dispatch({ type: 'UPDATE_OVERLAY', overlayId: gate.id, updates: { config: (applyDesignToOverlay(gate, designId) as { config?: object }).config } });
+          selectOverlay(gate.id);
+          return `Applied the design to your List Builder (a video has one).`;
+        }
+        const at = ctx?.time ?? (designId ? (kind === 'list-builder' ? currentTime : startAfterGate(state.overlays, currentTime)) : currentTime);
+        const overlay = withRow(createOverlay(kind, at, Math.max(sequenceDuration, 10), designId), ctx);
         dispatch({ type: 'ADD_OVERLAY', overlay });
         selectOverlay(overlay.id);
         return `Added ${overlay.name} ${ctx?.time !== undefined ? 'where you dropped it' : 'at the playhead'}. Remove it with the × on the Overlays lane.`;
@@ -1154,8 +1164,6 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         className="edit-tab__left-resize"
       />
 
-      {stage1.bar}
-      <Stage4Dock engine={engine} timeline={timeline} dispatch={dispatch} assets={state.assets} selectedClipIds={selectedClipIds} currentTime={currentTime} seek={seek} isPlaying={isPlaying} proxyMode={proxyMode} setProxyMode={setProxyMode} />
       {/* Viewers */}
       <div className="edit-tab__viewers">
         {layout.sourceViewerVisible && (
@@ -1226,6 +1234,7 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
         {dropNote && <div role="status" data-testid="library-drop-note" style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: 'rgba(8,12,18,.92)', border: '1px solid var(--accent, #d9ff00)', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: 12 }}>{dropNote}</div>}
         {recorder.error && <div role="alert" data-testid="record-error" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#7f1d1d', color: '#fff', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>{recorder.error}</div>}
         {recorder.recording && <div role="status" data-testid="recording-chip" style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none', background: '#0b1016', color: '#f87171', border: '1px solid #f87171', padding: '6px 10px', borderRadius: 6, fontSize: 12 }}>● Recording voice-over… click the mic to stop</div>}
+        <LiveCaptionStrip recording={recorder.recording} />
         {soundLibrary && <SoundLibraryPopup onClose={() => setSoundLibrary(false)} onAdd={handleAddSound} />}
         {mediaBrowser.open && <StockMediaPopup onClose={() => mediaBrowser.setOpen(false)} onAdd={mediaBrowser.handleAddStock} onGenerate={mediaBrowser.handleGenerateAi} assets={state.assets} onAddAsset={(a) => mediaBrowser.placeAtPlayhead(a)} />}
 
@@ -1243,6 +1252,9 @@ export function EditTab({ llmJumpRequest = null }: { llmJumpRequest?: LlmJumpReq
             onSnapToggle={() => setSnapEnabled((s) => !s)}
             onAddMarker={handleAddMarker}
           />
+
+          {/* [remix] Clip tools + Media tools: their own row under the tabs, not floating over the tracks */}
+          <div data-testid="edit-tools-row" style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '0 0 auto', minWidth: 0, padding: '1px 6px' }}>{stage1.bar}<Stage4Dock engine={engine} timeline={timeline} dispatch={dispatch} assets={state.assets} selectedClipIds={selectedClipIds} currentTime={currentTime} seek={seek} isPlaying={isPlaying} proxyMode={proxyMode} setProxyMode={setProxyMode} /></div>
 
           {/* Timeline editor -- scrollable track area with integrated ruler */}
           <TimelineEditor

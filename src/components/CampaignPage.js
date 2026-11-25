@@ -5,6 +5,10 @@ import { navigate } from '../lib/brandNavigation.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { getCampaign, listAssets, getBrand } from '../lib/brandStore.js';
 import { createSafeImage } from '../lib/security.js';
+import { goalLabel } from '../lib/campaignGenerator.js';
+import { PLATFORMS } from '../lib/platforms.js';
+
+const platformLabel = (id) => PLATFORMS.find((p) => p.id === id)?.label || id;
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
@@ -38,7 +42,7 @@ export function CampaignPage(params = {}) {
   header.innerHTML = `
     <div class="flex-1">
       <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">Campaign</h1>
-      <p class="text-secondary text-sm mt-1">${brand?.brandName || 'Unknown Brand'} · ${campaign.goal || 'No goal set'}</p>
+      <p class="text-secondary text-sm mt-1">${esc(brand?.brandName || 'Unknown Brand')} · ${esc(goalLabel(campaign.goal) || 'No goal set')}</p>
     </div>
     <button class="btn-secondary-modern" data-action="back">Back to Brand</button>
   `;
@@ -48,17 +52,17 @@ export function CampaignPage(params = {}) {
   infoSection.className = 'mb-8';
   infoSection.innerHTML = `
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4">
+      <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4">
         <div class="text-xs font-bold text-secondary uppercase tracking-wider mb-1">Goal</div>
-        <div class="text-sm text-white">${campaign.goal || '—'}</div>
+        <div class="text-sm text-white">${esc(goalLabel(campaign.goal) || '—')}</div>
       </div>
-      <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4">
+      <div class="bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4">
         <div class="text-xs font-bold text-secondary uppercase tracking-wider mb-1">Created</div>
         <div class="text-sm text-white">${campaign.createdAt ? new Date(campaign.createdAt).toLocaleDateString() : new Date(campaign.updatedAt).toLocaleDateString()}</div>
       </div>
     </div>
     ${campaign.direction ? `
-    <div class="mt-4 bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4">
+    <div class="mt-4 bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4">
       <div class="text-xs font-bold text-secondary uppercase tracking-wider mb-1">Direction</div>
       <div class="text-sm text-white">${campaign.direction}</div>
     </div>
@@ -83,7 +87,7 @@ export function CampaignPage(params = {}) {
     conceptGrid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-4';
     concepts.forEach((concept, idx) => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-5';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-5';
       card.innerHTML = `
         <div class="text-[10px] text-muted uppercase tracking-wider mb-1">Concept ${idx + 1}</div>
         <div class="text-sm font-bold text-white mb-1">${esc(concept.title || concept.headline)}</div>
@@ -122,7 +126,7 @@ export function CampaignPage(params = {}) {
   } else {
     assets.forEach(asset => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden';
       if (asset.imageUrl) {
         const img = createSafeImage(asset.imageUrl, asset.format, 'w-full h-40 object-cover');
         card.appendChild(img);
@@ -130,7 +134,7 @@ export function CampaignPage(params = {}) {
       const body = document.createElement('div');
       body.className = 'p-4';
       body.innerHTML = `
-        <div class="text-xs font-bold text-white mb-1">${asset.platform || 'Asset'}</div>
+        <div class="text-xs font-bold text-white mb-1">${esc(platformLabel(asset.platform) || 'Asset')}</div>
         <div class="text-xs text-secondary mb-2">${asset.format || ''}</div>
         ${asset.headline ? `<div class="text-xs text-white font-bold mb-1">${esc(asset.headline)}</div>` : ''}
         ${asset.body ? `<div class="text-xs text-secondary mb-2">${esc(asset.body)}</div>` : ''}

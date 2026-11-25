@@ -1,0 +1,16 @@
+{
+  "slug": "product-shot-studio",
+  "name": "Product Shot Studio",
+  "intro": "Product Shot Studio turns one product photo into a studio-quality image in a scene you choose, and can also make a short ad video.",
+  "features": {
+    "mode-toggle-product-shot-ad-video": "The mode toggle at the top switches between Product shot for still images and Ad video for a short promo clip.",
+    "model-product-shot-product-photography": "The Model dropdown offers Product Shot for fast catalog images, and Product Photography when you want a lighting-focused result.",
+    "product-media-upload": "Product Media is where you add your product. Upload an image, or browse stock photos from Pexels to test. The product is the star of every result.",
+    "scene-preset": "Scene Preset gives you nine one-click backdrops, from studio white to luxury marble or a cozy wooden table. Pick one to set the mood.",
+    "output-format": "Output Format matches the shape to where you'll use the image, with choices for an ad banner, a social post, a story or a billboard.",
+    "ad-video-script-and-image-references": "In Ad video mode, write a short script in the text box. Your product image is image one, and an optional avatar is image two.",
+    "ad-video-avatar-and-references": "Add an optional avatar or pick one from the presets, plus extra reference images, to give your ad a presenter and style.",
+    "ad-video-format-ratio-resolution-duration": "Ad video also lets you choose a format like UGC or Unboxing, an aspect ratio, a resolution and a duration for your clip."
+  },
+  "outro": "That's Product Shot Studio. Start with a plain, well-lit product photo, try a few scenes, and you've got catalog and ad visuals without a photo shoot."
+}

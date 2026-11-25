@@ -1,0 +1,542 @@
+import { lookup } from 'node:dns/promises'
+import { createReadStream } from 'node:fs'
+import { stat } from 'node:fs/promises'
+import type { ServerResponse } from 'node:http'
+import net from 'node:net'
+import path from 'node:path'
+import cors from '@fastify/cors'
+import { OpenAPIHandler } from '@orpc/openapi/fastify'
+import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
+import { RPCHandler } from '@orpc/server/fastify'
+import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
+import Fastify from 'fastify'
+import { startTaskQueue, stopTaskQueue, taskQueue } from './lib/downloader'
+import { startEngines, stopEngines } from './lib/engines'
+import { resolveReadableMediaFile } from './lib/managed-files'
+import { getAiRun } from './lib/ai-host'
+import { aiRouter } from './lib/ai-router'
+import { contentDisposition } from './lib/content-disposition'
+import { ExportBusyError, exportVideoWithSubtitles } from './lib/video-export-host'
+import { getChat } from './lib/chat-host'
+import { aiChannel, chatChannel, subscribeLive, translateChannel } from './lib/live-events'
+import { listTranslations } from './lib/translate-host'
+import { chatRouter } from './lib/chat-router'
+import { failInterruptedTranslations } from './lib/translate-host'
+import { translateRouter } from './lib/translate-router'
+import { failInterruptedAiRuns } from './lib/ai-host'
+import { projectTaskForApi } from './lib/projection'
+import { withClientAi } from './lib/byok'
+import { rpcRouter } from './lib/rpc-router'
+import { SseHub } from './lib/sse'
+import {
+  getApiSubscriptions,
+  startApiSubscriptions,
+  stopApiSubscriptions
+} from './lib/subscriptions-host'
+import { subscriptionsRouter } from './lib/subscriptions-router'
+import { transcriptsRouter } from './lib/transcripts-router'
+
+const MAX_PROXY_IMAGE_BYTES = 10 * 1024 * 1024
+const MAX_PROXY_REDIRECTS = 5
+
+const isPrivateIpv4 = (ip: string): boolean => {
+  const octets = ip.split('.').map((value) => Number.parseInt(value, 10))
+  if (octets.length !== 4 || octets.some((value) => Number.isNaN(value))) {
+    return false
+  }
+
+  const [a, b] = octets
+  if (a === 10) {
+    return true
+  }
+  if (a === 127) {
+    return true
+  }
+  if (a === 169 && b === 254) {
+    return true
+  }
+  if (a === 172 && b >= 16 && b <= 31) {
+    return true
+  }
+  if (a === 192 && b === 168) {
+    return true
+  }
+  return false
+}
+
+const isPrivateIpv6 = (ip: string): boolean => {
+  const normalized = ip.toLowerCase()
+  if (normalized === '::1') {
+    return true
+  }
+  if (normalized.startsWith('fc') || normalized.startsWith('fd')) {
+    return true
+  }
+  if (normalized.startsWith('fe80:')) {
+    return true
+  }
+  return false
+}
+
+const isBlockedHost = async (url: URL): Promise<boolean> => {
+  const hostname = url.hostname.trim().toLowerCase()
+  if (!hostname) {
+    return true
+  }
+
+  if (hostname === 'localhost' || hostname.endsWith('.localhost') || hostname === '0.0.0.0') {
+    return true
+  }
+
+  if (net.isIP(hostname) === 4) {
+    return isPrivateIpv4(hostname)
+  }
+  if (net.isIP(hostname) === 6) {
+    return isPrivateIpv6(hostname)
+  }
+
+  try {
+    const records = await lookup(hostname, { all: true, verbatim: true })
+    if (records.length === 0) {
+      return true
+    }
+    for (const record of records) {
+      if (record.family === 4 && isPrivateIpv4(record.address)) {
+        return true
+      }
+      if (record.family === 6 && isPrivateIpv6(record.address)) {
+        return true
+      }
+    }
+    return false
+  } catch {
+    return true
+  }
+}
+
+const parseRemoteImageUrl = (value: string): URL | null => {
+  try {
+    const parsed = new URL(value)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null
+    }
+
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+export const createApiServer = async () => {
+  await startTaskQueue()
+  await startApiSubscriptions()
+  void startEngines()
+  const isDev = process.env.NODE_ENV !== 'production'
+
+  const fastify = Fastify({
+    logger: true,
+    disableRequestLogging: isDev
+  })
+
+  await fastify.register(cors, {
+    origin: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    // Lets a cross-origin page read the size and range of media it streams.
+    exposedHeaders: ['Content-Range', 'Content-Length', 'Accept-Ranges']
+  })
+
+  // Bring-your-own-key mode: make the visitor's key (from the request headers) available to this request's handlers.
+  fastify.addHook('onRequest', (request, _reply, done) => {
+    withClientAi(request.headers, done)
+  })
+
+  const rpcHandler = new RPCHandler(rpcRouter)
+  const subscriptionsRpcHandler = new RPCHandler(subscriptionsRouter)
+  const transcriptsRpcHandler = new RPCHandler(transcriptsRouter)
+  const aiRpcHandler = new RPCHandler(aiRouter)
+  const chatRpcHandler = new RPCHandler(chatRouter)
+  const translateRpcHandler = new RPCHandler(translateRouter)
+  failInterruptedAiRuns()
+  failInterruptedTranslations()
+  const openApiHandler = new OpenAPIHandler(rpcRouter, {
+    plugins: [
+      new OpenAPIReferencePlugin({
+        schemaConverters: [new ZodToJsonSchemaConverter()],
+        docsProvider: 'swagger',
+        docsPath: '/docs',
+        specPath: '/openapi.json',
+        docsTitle: 'VidBee API Reference',
+        specGenerateOptions: {
+          info: {
+            title: 'VidBee API',
+            version: '1.0.0'
+          },
+          servers: [{ url: '/openapi' }]
+        }
+      })
+    ]
+  })
+
+  const sseHub = new SseHub()
+
+  // Bridge TaskQueue events → /events SSE. The web client speaks the legacy
+  // task-updated / queue-updated payload shape; we project from internal
+  // Task → DownloadTask using the shared projection so both Desktop IPC and
+  // API SSE present the same fields for the same task.
+  const NON_TERMINAL = new Set(['queued', 'running', 'processing', 'paused', 'retry-scheduled'])
+  const publishQueueUpdated = (): void => {
+    const downloads = taskQueue
+      .list({ limit: 200 })
+      .tasks.filter((t) => NON_TERMINAL.has(t.status))
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map(projectTaskForApi)
+    sseHub.publish('queue-updated', { downloads })
+  }
+
+  taskQueue.on('snapshot-changed', (e) => {
+    sseHub.publish('task-updated', { task: projectTaskForApi(e.task) })
+    publishQueueUpdated()
+  })
+  taskQueue.on('progress', (e) => {
+    const t = taskQueue.get(e.taskId)
+    if (t) {
+      sseHub.publish('task-updated', { task: projectTaskForApi(t) })
+    }
+  })
+  taskQueue.on('transition', (e) => {
+    if (e.to === 'queued' || e.to === 'cancelled' || e.to === 'completed' || e.to === 'failed') {
+      publishQueueUpdated()
+    }
+  })
+  const unsubscribeSubscriptions = getApiSubscriptions().on('changed', () => {
+    sseHub.publish('subscriptions-updated', { at: Date.now() })
+  })
+
+  fastify.get('/health', async () => {
+    return { ok: true }
+  })
+
+  const FILE_CONTENT_TYPES = new Map([
+    ['.m4a', 'audio/mp4'],
+    ['.mkv', 'video/x-matroska'],
+    ['.mp3', 'audio/mpeg'],
+    ['.mp4', 'video/mp4'],
+    ['.webm', 'video/webm'],
+    ['.webp', 'image/webp']
+  ])
+
+  fastify.get<{ Querystring: { path?: string; inline?: string } }>('/files', async (request, reply) => {
+    const rawPath = request.query.path?.trim()
+    if (!rawPath) {
+      return reply.code(400).send({ message: 'Missing path query parameter.' })
+    }
+
+    const resolvedPath = await resolveReadableMediaFile(rawPath)
+    if (!resolvedPath) {
+      return reply.code(404).send({ message: 'File is not available.' })
+    }
+
+    const extension = path.extname(resolvedPath).toLowerCase()
+    const fileName = path.basename(resolvedPath)
+    const size = (await stat(resolvedPath)).size
+    reply.header('content-type', FILE_CONTENT_TYPES.get(extension) ?? 'application/octet-stream')
+    reply.header('content-disposition', contentDisposition(request.query.inline === '1' ? 'inline' : 'attachment', fileName))
+    // Byte ranges let <video> and <audio> seek without downloading the whole file.
+    reply.header('accept-ranges', 'bytes')
+    const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.range ?? '')
+    if (range && size > 0) {
+      let start = range[1] ? Number(range[1]) : 0
+      let end = range[2] ? Number(range[2]) : size - 1
+      if (!range[1] && range[2]) {
+        // "bytes=-N" means the last N bytes.
+        start = Math.max(0, size - Number(range[2]))
+        end = size - 1
+      }
+      end = Math.min(end, size - 1)
+      if (start > end || start >= size) {
+        reply.header('content-range', `bytes */${size}`)
+        return reply.code(416).send()
+      }
+      reply.header('content-range', `bytes ${start}-${end}/${size}`)
+      reply.header('content-length', end - start + 1)
+      return reply.code(206).send(createReadStream(resolvedPath, { start, end }))
+    }
+    reply.header('content-length', size)
+    return reply.send(createReadStream(resolvedPath))
+  })
+
+  fastify.get<{ Querystring: { url?: string } }>('/images/proxy', async (request, reply) => {
+    const sourceUrl = request.query.url?.trim()
+    if (!sourceUrl) {
+      return reply.code(400).send({ message: 'Missing url query parameter.' })
+    }
+
+    const parsedUrl = parseRemoteImageUrl(sourceUrl)
+    if (!parsedUrl) {
+      return reply.code(400).send({ message: 'Invalid remote image URL.' })
+    }
+
+    let response: Response | null = null
+    let currentUrl = parsedUrl
+
+    for (let redirectCount = 0; redirectCount <= MAX_PROXY_REDIRECTS; redirectCount++) {
+      if (await isBlockedHost(currentUrl)) {
+        return reply.code(400).send({ message: 'Remote host is not allowed.' })
+      }
+
+      try {
+        response = await fetch(currentUrl.toString(), {
+          signal: AbortSignal.timeout(15_000),
+          redirect: 'manual'
+        })
+      } catch {
+        return reply.code(502).send({ message: 'Failed to fetch remote image.' })
+      }
+
+      const locationHeader = response.headers.get('location')
+      const isRedirect =
+        response.status >= 300 &&
+        response.status < 400 &&
+        typeof locationHeader === 'string' &&
+        locationHeader.length > 0
+      if (!isRedirect) {
+        break
+      }
+
+      currentUrl = new URL(locationHeader, currentUrl)
+      response.body?.cancel()
+    }
+
+    if (!response) {
+      return reply.code(502).send({ message: 'Failed to fetch remote image.' })
+    }
+
+    if (!response.ok) {
+      return reply.code(502).send({
+        message: `Remote image request failed with status ${response.status}.`
+      })
+    }
+
+    const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
+    if (!contentType.startsWith('image/')) {
+      return reply.code(415).send({ message: 'Remote resource is not an image.' })
+    }
+
+    const contentLengthHeader = response.headers.get('content-length')
+    if (contentLengthHeader) {
+      const declaredSize = Number.parseInt(contentLengthHeader, 10)
+      if (Number.isFinite(declaredSize) && declaredSize > MAX_PROXY_IMAGE_BYTES) {
+        return reply.code(413).send({ message: 'Remote image is too large.' })
+      }
+    }
+
+    if (!response.body) {
+      return reply.code(502).send({ message: 'Remote image response body is empty.' })
+    }
+
+    const reader = response.body.getReader()
+    const chunks: Buffer[] = []
+    let totalBytes = 0
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) {
+        break
+      }
+
+      if (!value) {
+        continue
+      }
+
+      totalBytes += value.byteLength
+      if (totalBytes > MAX_PROXY_IMAGE_BYTES) {
+        await reader.cancel()
+        return reply.code(413).send({ message: 'Remote image is too large.' })
+      }
+
+      chunks.push(Buffer.from(value))
+    }
+
+    const imageBuffer = Buffer.concat(chunks, totalBytes)
+    const cacheControl = response.headers.get('cache-control')
+    const etag = response.headers.get('etag')
+    const lastModified = response.headers.get('last-modified')
+
+    reply.header('Content-Type', contentType)
+    reply.header('Content-Length', imageBuffer.length.toString())
+    reply.header('Cache-Control', cacheControl ?? 'public, max-age=3600')
+    if (etag) {
+      reply.header('ETag', etag)
+    }
+    if (lastModified) {
+      reply.header('Last-Modified', lastModified)
+    }
+
+    return reply.send(imageBuffer)
+  })
+
+  fastify.get('/events', async (request, reply) => {
+    const requestOrigin = request.headers.origin?.trim()
+    const responseHeaders: Record<string, string> = {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+      'Access-Control-Allow-Origin': requestOrigin || '*'
+    }
+
+    if (requestOrigin) {
+      responseHeaders.Vary = 'Origin'
+    }
+
+    reply.hijack()
+    reply.raw.writeHead(200, responseHeaders)
+
+    const response = reply.raw as ServerResponse
+    sseHub.addClient(response)
+
+    request.raw.on('close', () => {
+      sseHub.removeClient(response)
+    })
+  })
+
+  // Video with subtitles: `GET /export/video?downloadId=&mode=soft|burn&language=` (language = a finished translation).
+  fastify.get<{ Querystring: { downloadId?: string; mode?: string; language?: string } }>(
+    '/export/video',
+    async (request, reply) => {
+      const downloadId = request.query.downloadId?.trim()
+      const mode = request.query.mode === 'burn' ? 'burn' : request.query.mode === 'soft' ? 'soft' : null
+      if (!(downloadId && mode)) {
+        return reply.code(400).send({ message: 'Expected downloadId and mode=soft|burn.' })
+      }
+      try {
+        const result = await exportVideoWithSubtitles({
+          downloadId,
+          mode,
+          language: request.query.language ?? ''
+        })
+        const size = (await stat(result.filePath)).size
+        reply.header('content-type', result.mimeType)
+        reply.header('content-length', size)
+        reply.header('content-disposition', contentDisposition('attachment', result.filename))
+        const stream = createReadStream(result.filePath)
+        stream.on('close', result.cleanup)
+        return reply.send(stream)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Export failed.'
+        return reply.code(error instanceof ExportBusyError ? 429 : 400).send({ message })
+      }
+    }
+  )
+
+  // Live AI output: `GET /stream?channel=ai&downloadId=&skillId=`, `?channel=chat&downloadId=` or `?channel=translate&downloadId=`.
+  // Sends one `snapshot`, then `delta` (text chunks) and `state` (full run/chat) events.
+  fastify.get('/stream', async (request, reply) => {
+    const query = request.query as Record<string, string | undefined>
+    const downloadId = query.downloadId?.trim()
+    const skillId = query.skillId?.trim()
+    const isAi = query.channel === 'ai'
+    const isTranslate = query.channel === 'translate'
+    if (!downloadId || (isAi && !skillId) || !(isAi || isTranslate || query.channel === 'chat')) {
+      return reply.code(400).send({
+        error: 'Expected channel=ai&downloadId&skillId, channel=chat&downloadId or channel=translate&downloadId'
+      })
+    }
+    const requestOrigin = request.headers.origin?.trim()
+    reply.hijack()
+    reply.raw.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+      'Access-Control-Allow-Origin': requestOrigin || '*',
+      ...(requestOrigin ? { Vary: 'Origin' } : {})
+    })
+    const response = reply.raw as ServerResponse
+    const send = (event: string, payload: unknown): void => {
+      response.write(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`)
+    }
+    const channel = isAi
+      ? aiChannel(downloadId, skillId ?? '')
+      : isTranslate
+        ? translateChannel(downloadId)
+        : chatChannel(downloadId)
+    // Subscribe before reading the snapshot so no delta is missed in between.
+    const unsubscribe = subscribeLive(channel, (item) => send(item.event, item.payload))
+    send(
+      'snapshot',
+      isAi
+        ? getAiRun(downloadId, skillId ?? '')
+        : isTranslate
+          ? listTranslations(downloadId)
+          : getChat(downloadId)
+    )
+    const heartbeat = setInterval(() => response.write(': heartbeat\n\n'), 15_000)
+    request.raw.on('close', () => {
+      clearInterval(heartbeat)
+      unsubscribe()
+    })
+  })
+
+  // Subscriptions live behind their own oRPC handler so the contract surface
+  // mirrors `subscriptionContract` 1:1 (NEX-132). The match runs before the
+  // generic `/rpc/*` handler because Fastify applies the most-specific route
+  // wins rule for `/rpc/subscriptions/*`.
+  fastify.all('/rpc/subscriptions/*', async (request, reply) => {
+    await subscriptionsRpcHandler.handle(request, reply, {
+      prefix: '/rpc/subscriptions'
+    })
+  })
+
+  fastify.all('/rpc/transcripts/*', async (request, reply) => {
+    await transcriptsRpcHandler.handle(request, reply, {
+      prefix: '/rpc/transcripts'
+    })
+  })
+
+  fastify.all('/rpc/chat/*', async (request, reply) => {
+    await chatRpcHandler.handle(request, reply, {
+      prefix: '/rpc/chat'
+    })
+  })
+
+  fastify.all('/rpc/translate/*', async (request, reply) => {
+    await translateRpcHandler.handle(request, reply, {
+      prefix: '/rpc/translate'
+    })
+  })
+
+  fastify.all('/rpc/ai/*', async (request, reply) => {
+    await aiRpcHandler.handle(request, reply, {
+      prefix: '/rpc/ai'
+    })
+  })
+
+  fastify.all('/rpc/*', async (request, reply) => {
+    await rpcHandler.handle(request, reply, {
+      prefix: '/rpc'
+    })
+  })
+
+  fastify.all('/docs', async (request, reply) => {
+    await openApiHandler.handle(request, reply, {
+      prefix: '/'
+    })
+  })
+
+  fastify.all('/openapi.json', async (request, reply) => {
+    await openApiHandler.handle(request, reply, {
+      prefix: '/'
+    })
+  })
+
+  fastify.addHook('onClose', async () => {
+    unsubscribeSubscriptions()
+    sseHub.closeAll()
+    stopEngines()
+    await stopApiSubscriptions()
+    await stopTaskQueue()
+  })
+
+  return fastify
+}

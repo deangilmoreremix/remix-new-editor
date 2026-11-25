@@ -1,0 +1,87 @@
+{
+  "__overview": {
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "model-picker": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"nano-banana-pro-edit\")",
+    "click": true,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "live-price-and-batch": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "form-and-json-input": {
+    "selector": "[data-studio=\"muapi-studio\"] button:has-text(\"Form\")",
+    "click": true,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")"
+  },
+  "apps": {
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Apps\")",
+    "click": true,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:has-text(\"Generate\")",
+    "hashOk": true
+  },
+  "uploading-files": {
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "wait": 900
+      }
+    ],
+    "selector": "[data-studio=\"muapi-studio\"] button[aria-label=\"Upload file\"]",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")"
+  },
+  "recent-uploads": {
+    "skip": true
+  },
+  "my-generations": {
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "wait": 900
+      }
+    ],
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Approved\")",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")"
+  },
+  "3d-results": {
+    "skip": true
+  },
+  "your-own-muapi-key": {
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "wait": 900
+      }
+    ],
+    "selector": "xpath=//*[@data-studio='muapi-studio']//button[@aria-label='Change your MuAPI key' or @title='Change your MuAPI key']",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")"
+  },
+  "your-own-key-and-a-secure-proxy": {
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "wait": 900
+      }
+    ],
+    "selector": "xpath=//*[@data-studio='muapi-studio']//button[@aria-label='Change your MuAPI key' or @title='Change your MuAPI key']",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")"
+  },
+  "per-account-history": {
+    "steps": [
+      {
+        "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")",
+        "wait": 900
+      }
+    ],
+    "selector": "[data-studio=\"muapi-studio\"] button:text-is(\"Unlabeled\")",
+    "click": false,
+    "waitFor": "[data-studio=\"muapi-studio\"] button:text-is(\"Models\")"
+  }
+}

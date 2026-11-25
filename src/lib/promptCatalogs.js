@@ -120,9 +120,10 @@ export function searchPrompts({ query, category, source } = {}) {
 }
 
 export function getPromptById(id) {
-  for (const [, items] of Object.entries(PROMPT_CATALOGS)) {
+  for (const [src, items] of Object.entries(PROMPT_CATALOGS)) {
     const found = items.find(item => item.id === id);
-    if (found) return found;
+    // Same shape as searchPrompts() results, so the detail pane can show the source.
+    if (found) return { ...found, source: src };
   }
   return null;
 }

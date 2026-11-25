@@ -1,0 +1,50 @@
+/* Studio hover help card (see components/studio/tooltipLayer.js).
+   Colors come from the app tokens so it matches the neon-on-black brand; a studio root with data-studio-theme overrides --tip-accent.
+   No raw hex utilities, so it is safe next to the Cinema files guarded by lint:cinema-hex. */
+:root {
+  --tip-bg: var(--bg-panel, #0a0a0a);
+  --tip-border: var(--border-color, #27272a);
+  --tip-accent: var(--color-primary, #d9ff00);
+  --tip-text: #e4e4e7;
+  --tip-muted: var(--text-secondary, #a1a1aa);
+}
+
+.studio-tip {
+  position: fixed;
+  z-index: 100000;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 20px));
+  padding: 9px 12px 10px;
+  border-radius: 10px;
+  background: var(--tip-bg);
+  color: var(--tip-text);
+  border: 1px solid color-mix(in srgb, var(--tip-accent) 35%, var(--tip-border));
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 0, 0, 0.4);
+  font: 12px/1.45 var(--font-display, Inter, ui-sans-serif, system-ui, sans-serif);
+  pointer-events: none;
+  animation: studio-tip-in 0.12s ease-out;
+}
+.studio-tip__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.studio-tip__name { font-size: 13px; font-weight: 600; color: var(--tip-accent); }
+.studio-tip--plain .studio-tip__name { color: var(--tip-text); font-weight: 500; }
+.studio-tip__key {
+  font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 3px 6px; border-radius: 5px;
+  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14); color: var(--tip-muted);
+}
+.studio-tip__summary { margin: 4px 0 0; color: var(--tip-text); }
+.studio-tip__what {
+  margin: 8px 0 0; padding-top: 8px;
+  border-top: 1px solid var(--tip-border); color: var(--tip-muted);
+}
+
+@keyframes studio-tip-in { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .studio-tip { animation: none; } }
+
+/* Once the layer is mounted, retire the old CSS-only [data-tooltip] bubbles so a control never shows two. The rules stay in global.css
+   as a fallback for when JS has not run. */
+html[data-tip-layer] [data-tooltip]::before,
+html[data-tip-layer] [data-tooltip]::after { display: none; }
+/* Timeline Editor keeps its own help layer, so its data-tooltip bubbles are left alone. */
+html[data-tip-layer] .cinegen-root [data-tooltip]::before,
+html[data-tip-layer] .cinegen-root [data-tooltip]::after { display: revert; }

@@ -8,15 +8,6 @@ interface ProtectedRouteProps {
   pageName?: string
 }
 
-/** Navigate the SmartVideo page that embeds the builder (falls back to this window). */
-function openInApp(path: string) {
-  try {
-    window.top!.location.href = path
-  } catch {
-    window.location.href = path
-  }
-}
-
 /**
  * Access is tied to the SmartVideo account: anyone signed in to SmartVideo,
  * paid or not, is signed in here automatically (see AuthContext SSO).
@@ -31,13 +22,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   let actions: React.ReactNode = null
 
   if (ssoStatus === 'signed_out') {
-    heading = 'Sign in to SmartVideo'
-    subtext = `${BRAND_NAME} uses your SmartVideo account. Sign in to start building.`
-    actions = (
-      <button className={styles.btnPrimary} onClick={() => openInApp('/signin')} type="button">
-        Sign in
-      </button>
-    )
+    // No separate sign-in: the builder connects by itself as soon as the SmartVid account is there.
+    subtext = `${BRAND_NAME} uses your SmartVid account and opens automatically once it is connected.`
   } else if (ssoStatus === 'error') {
     heading = 'Could not connect your account'
     subtext = ssoError ?? 'Please try again.'

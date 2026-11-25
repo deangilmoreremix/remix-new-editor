@@ -2,6 +2,7 @@
 // AI Photo Studio — 6 categories × 5 styles = 30 product-photography presets.
 // Follows the exact pattern of existing studios (vanilla DOM + mountStudioChrome).
 
+import { createStudioHeader } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { listBrands, savePhotoshoot, resolveBrandId } from '../lib/brandStore.js';
 import { navigate } from '../lib/brandNavigation.js';
@@ -19,7 +20,7 @@ const RESOLUTIONS = ['1k', '2k', '4k'];
 export function PhotoStudioPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full overflow-y-auto bg-app-bg custom-scrollbar';
-  mountStudioChrome(container, { currentRoute: 'photo-studio', title: 'Photo Studio' });
+  mountStudioChrome(container, { currentRoute: 'photo-studio' });
 
   const brands = listBrands();
   // ?brandId= (from Brand DNA) or the last-used brand picks the initial brand; the dropdown can change it.
@@ -54,13 +55,7 @@ export function PhotoStudioPage() {
   root.className = 'w-full max-w-3xl mx-auto px-4 py-8 animate-fade-in-up';
 
   // ---- Header ----
-  const header = document.createElement('div');
-  header.className = 'mb-6';
-  header.innerHTML = `
-    <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Photo Studio</h1>
-    <p class="text-secondary text-sm">AI product photography with brand-aware styling.</p>
-  `;
-  root.appendChild(header);
+  root.appendChild(createStudioHeader('photo-studio', 'Photo Studio', 'AI product photography with brand-aware styling.', 'mb-6'));
 
   // ---- Upload + Brand Selector ----
   const uploadRow = document.createElement('div');
@@ -84,6 +79,7 @@ export function PhotoStudioPage() {
   if (brands.length > 0) {
     const brandSelect = document.createElement('select');
     brandSelect.className = 'bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
+    brandSelect.dataset.help = 'photo brand';
     brandSelect.innerHTML = `
       <option value="">No brand logo</option>
       ${brands.map(b => `<option value="${b.id}" ${b.id === selectedBrand?.id ? 'selected' : ''}>${b.brandName}</option>`).join('')}
@@ -141,6 +137,7 @@ export function PhotoStudioPage() {
   muapiModeRow.appendChild(muapiLabel);
 
   const modeToggle = document.createElement('button');
+  modeToggle.dataset.help = 'photo generation mode';
   modeToggle.type = 'button';
   modeToggle.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${state.muapiMode ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
   modeToggle.textContent = state.muapiMode ? 'Direct MuAPI' : 'Brand API';
@@ -175,7 +172,7 @@ export function PhotoStudioPage() {
     advancedMuapiRow.classList.remove('hidden');
 
     const card = document.createElement('div');
-    card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-3';
+    card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-3';
 
     const addField = (label, type, value, onChange, placeholder) => {
       const row = document.createElement('div');
@@ -286,6 +283,7 @@ export function PhotoStudioPage() {
       all.type = 'button';
       all.className = 'text-[10px] font-bold text-primary hover:underline';
       all.textContent = allOn ? 'Clear' : 'Select all';
+      all.dataset.help = 'photo select all';
       all.onclick = () => {
         state.selectedPresets = allOn
           ? state.selectedPresets.filter((k) => !keys.includes(k))
@@ -305,6 +303,7 @@ export function PhotoStudioPage() {
         btn.type = 'button';
         btn.dataset.photoPreset = key;
         btn.title = st.prompt;
+        btn.dataset.helpName = st.label; btn.dataset.helpText = st.prompt; // the style's own prompt is its tooltip
         btn.className = `px-3 py-2 rounded-xl text-xs font-bold transition-all border ${on ? 'bg-primary text-black border-primary' : 'bg-white/5 text-white border-white/10 hover:bg-white/10'}`;
         btn.textContent = `${st.label} · ${st.aspect}`;
         btn.onclick = () => {
@@ -481,7 +480,7 @@ export function PhotoStudioPage() {
 
     state.results.forEach((result, idx) => {
       const card = document.createElement('div');
-      card.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden mb-4';
+      card.className = 'bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden mb-4';
 
       if (result.imageUrl) {
         const img = createSafeImage(result.imageUrl, 'Generated product photo', 'w-full h-64 md:h-80 object-cover');

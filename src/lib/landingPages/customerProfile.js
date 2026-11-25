@@ -9,7 +9,7 @@
  *   dedupeCustomers(list)          same id, or same business/person name, becomes one entry
  *   customerTokens(c)              the public page tokens ({{firstname}}, {{company}}, {{companylogo}}, ...)
  *   toContactFields(c)             a page contact row (email included; it stays owner-only)
- *   applyCustomerToPuck(data, c)   write brand name/logo/colour/links into a page's data (pure, returns what changed)
+ *   applyCustomerToEditor(data, c)   write brand name/logo/colour/links into a page's data (pure, returns what changed)
  *
  * Pure functions, no storage or network: each app gathers the raw records (customerSources.js / useCustomers.ts).
  * Everything is clipped and checked here (https logos only, valid colours, no scripts in links).
@@ -168,6 +168,16 @@ export function customerTokens(c) {
   // The industry designs read their city from {{custom1}} and the person's name from {{custom2}} (e.g. a pet owner).
   if (!t.custom1 && t.city) t.custom1 = t.city;
   if (!t.custom2 && t.firstname) t.custom2 = t.firstname;
+  // Per-person extras, so each personal link can show their own website, offer, colour, picture and video.
+  const b = c.business || {};
+  t.website = t.website || websiteUrl(b.website);
+  t.phone = t.phone || phoneNumber(b.phone);
+  t.offer = t.offer || clip(b.offer, 80);
+  t.cta = t.cta || httpsUrl(b.cta);
+  t.industry = t.industry || clip(b.industry, 80);
+  t.accent = t.accent || hexColor(c.brand?.accent);
+  t.image = t.image || httpsUrl(c.image);
+  t.video = t.video || httpsUrl(c.video);
   return Object.fromEntries(Object.entries(t).filter(([, v]) => v));
 }
 
@@ -229,11 +239,11 @@ export function attachPersonalImages(customers, projects) {
 const DEFAULT_FOOTER = /^Sent by \{\{sender\|us\}\}/;
 
 /**
- * Write one customer's brand into a page's Puck data. Pure: returns { data, applied }.
+ * Write one customer's brand into a page's page data. Pure: returns { data, applied }.
  * Only brand slots change (page colour, menu-bar name and logo, the default footer line, empty links); no other copy.
  */
-export function applyCustomerToPuck(puckData, customer, { useImage = true, brand: writeBrand = true } = {}) {
-  const data = JSON.parse(JSON.stringify(puckData || {}));
+export function applyCustomerToEditor(editorData, customer, { useImage = true, brand: writeBrand = true } = {}) {
+  const data = JSON.parse(JSON.stringify(editorData || {}));
   const applied = [];
   if (!customer || !Array.isArray(data.content)) return { data, applied };
   const { business, brand } = customer;

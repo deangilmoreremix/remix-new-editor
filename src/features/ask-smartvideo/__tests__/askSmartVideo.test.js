@@ -30,7 +30,9 @@ describe('knowledge base coverage', () => {
     expect(studioForRoute('motion-director/workbench')).toBe('motion-director');
     expect(studioForRoute('timeline-classic')).toBe('timeline');
     expect(studioForRoute('influencer-page')).toBe('influencer');
-    expect(studioForRoute('brand-dna')).toBe('brand');
+    // A page with its own guide gets it; otherwise the side menu's studio.
+    expect(studioForRoute('brand-dna')).toBe(kbIds.includes('brand-dna') ? 'brand-dna' : 'brand');
+    expect(studioForRoute('brightbean')).toBe(kbIds.includes('smart-video-scheduler') ? 'smart-video-scheduler' : null);
     expect(studioForRoute('settings')).toBeNull();
     expect(studioForRoute('')).toBeNull();
   });
@@ -261,6 +263,33 @@ describe('endpoint', () => {
     for await (const d of openAIDeltas(sseBody(['data: {"choices":[{"delta":{"con', 'tent":"Hi"}}]}\n', 'data: [DONE]\n']).body)) out.push(d);
     expect(out).toEqual(['Hi']);
   });
+  it('keeps the finish reason of the stream', async () => {
+    const meta = {};
+    const out = [];
+    for await (const d of openAIDeltas(sseBody(['data: {"choices":[{"delta":{"content":"Hi"}}]}\n', 'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n', 'data: [DONE]\n']).body, meta)) out.push(d);
+    expect(out).toEqual(['Hi']);
+    expect(meta.finishReason).toBe('stop');
+  });
+  it('reports an error, not a grounded answer, when the budget runs out before any text', async () => {
+    const fetchImpl = vi.fn(async () => sseBody(['data: {"choices":[{"delta":{},"finish_reason":"length"}]}\n\ndata: [DONE]\n\n']));
+    const text = await (await handle(req({ messages: [{ role: 'user', content: 'how do I remove the background' }] }), { verify: verifyOk, fetchImpl })).text();
+    expect(text).toContain('event: error');
+    expect(text).toContain('ran out of room');
+    expect(text).not.toContain('event: done');
+  });
+  it('reports an error when the stream ends with no text', async () => {
+    const fetchImpl = vi.fn(async () => sseBody(['data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n']));
+    const text = await (await handle(req({ messages: [{ role: 'user', content: 'how do I remove the background' }] }), { verify: verifyOk, fetchImpl })).text();
+    expect(text).toContain('event: error');
+    expect(text).toContain('"code":"upstream"');
+    expect(text).not.toContain('grounded');
+  });
+  it('still finishes a partial answer cut off by the budget', async () => {
+    const fetchImpl = vi.fn(async () => sseBody(['data: {"choices":[{"delta":{"content":"Open Edit"}}]}\n\ndata: {"choices":[{"delta":{},"finish_reason":"length"}]}\n\ndata: [DONE]\n\n']));
+    const text = await (await handle(req({ messages: [{ role: 'user', content: 'how do I remove the background' }] }), { verify: verifyOk, fetchImpl })).text();
+    expect(text).toContain('Open Edit');
+    expect(text).toContain('event: done');
+  });
   it('stops the OpenAI request when the client disconnects', async () => {
     let signal;
     const endless = () => new Response(new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"Hi "}}]}\n\n')); } }));
@@ -275,7 +304,7 @@ describe('endpoint', () => {
   it('does not give a long answer budget to a non-walkthrough question', async () => {
     const fetchImpl = vi.fn(async () => sseBody(['data: [DONE]\n\n']));
     await (await handle(req({ messages: [{ role: 'user', content: 'which video model is best' }] }), { verify: verifyOk, fetchImpl })).text();
-    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).max_tokens).toBe(700);
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).max_completion_tokens).toBe(2000);
   });
   it('does not show the HTTP status number to the user', async () => {
     const r = await handle(req({ messages: [{ role: 'user', content: 'how do I remove the background' }] }), { verify: verifyOk, fetchImpl: async () => new Response('{}', { status: 503 }) });
@@ -289,8 +318,8 @@ describe('endpoint', () => {
       await (await handle(req({ messages: [{ role: 'user', content: q }] }), { verify: verifyOk, fetchImpl })).text();
       return JSON.parse(fetchImpl.mock.calls[0][1].body);
     };
-    expect((await bodyFor('walk me through making a talking video from a photo')).max_tokens).toBeGreaterThanOrEqual(1200);
-    expect((await bodyFor('how do I remove the background')).max_tokens).toBe(700);
+    expect((await bodyFor('walk me through making a talking video from a photo')).max_completion_tokens).toBeGreaterThanOrEqual(4000);
+    expect((await bodyFor('how do I remove the background')).max_completion_tokens).toBe(2000);
   });
   it('rate limits per user', () => {
     const now = Date.now();

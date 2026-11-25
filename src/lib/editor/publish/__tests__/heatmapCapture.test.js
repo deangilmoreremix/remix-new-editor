@@ -111,6 +111,16 @@ describe('heatmap capture: impressions, scroll, watch buckets', () => {
     await flushAll(s.analytics);
     expect(types(s.sent, 'cta_impression')[0].props).toMatchObject({ cta: 'lead1', kind: 'lead_capture' });
   });
+  it('counts each form under its own id (the wall and every Lead Generator), falling back to the single lead clip', async () => {
+    const s = setup({ html: '<form class="addon-optin" data-cta-id="list-builder"></form><form class="addon-optin" data-cta-id="ov-abc"></form><form class="addon-optin"></form>' });
+    const forms = [...s.frame.querySelectorAll('form')];
+    expect(s.ios[0].els).toHaveLength(3);
+    s.ios[0].cb(forms.map((target) => ({ target, isIntersecting: true, intersectionRatio: 1 })));
+    await flushAll(s.analytics);
+    const imps = types(s.sent, 'cta_impression');
+    expect(imps.map((e) => e.props.cta).sort()).toEqual(['lead1', 'list-builder', 'ov-abc']);
+    expect(imps.every((e) => e.props.kind === 'lead_capture')).toBe(true);
+  });
   it('sends scroll milestones once each (the visible part on load counts)', async () => {
     const s = setup();
     // 800px viewport / 2000px page = 40% at load: 25 reached

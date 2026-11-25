@@ -3,7 +3,7 @@
 import type { AssetVisualSummary } from '@cinegen/lib/llm/editorial-workflow';
 import { responsesChat } from '../llm-responses';
 
-const DEFAULT_VISION_MODEL = 'openai/gpt-5.6-sol';
+const DEFAULT_VISION_MODEL = 'openai/gpt-6.1-sol';
 
 /** https and data: images pass through; blob:/relative URLs are downscaled to a data: URL. */
 export async function toVisionImage(url: string, maxSide = 768): Promise<string | null> {
@@ -307,7 +307,7 @@ function extractObjectPayload(value: unknown): Record<string, unknown> | null {
   }
 }
 
-const DEFAULT_DETECT_MODEL = 'openai/gpt-5.6-sol';
+const DEFAULT_DETECT_MODEL = 'openai/gpt-6.1-sol';
 
 async function runVisionObjectProposal(imageUrl: string, prompt: string): Promise<Record<string, unknown> | null> {
   const r = await responsesChat({ user: prompt, images: [imageUrl], json: true });

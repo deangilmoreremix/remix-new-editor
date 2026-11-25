@@ -141,7 +141,7 @@ for (const slug of trackDirs) {
     if (isMp4 || isGif) {
       type = 'video';
       videoSrc = vid ? `/academy/${slug}/videos/${vid.split('/').pop()}` : undefined;
-      gifSrc = gif ? `/academy/${slug}/gifs/${gif.split('/').pop()}` : undefined;
+      gifSrc = gif ? `/academy/${slug}/posters/${baseNoExt(gif.split("/").pop())}.webp` : undefined;
       srcPath = gifSrc || videoSrc;
       thumb = gifSrc || videoSrc;
     } else {

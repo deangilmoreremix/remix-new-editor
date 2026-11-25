@@ -83,7 +83,7 @@ export async function writeWithAI(kind, input, { generate, signal } = {}) {
 /** The MuAPI text call the studio uses (the user's key; small model). */
 export async function muapiGenerate(prompt, signal) {
   const { muapi } = await import('../muapi.js');
-  return muapi.text(prompt, 'gpt-5-nano', signal);
+  return muapi.text(prompt, 'gpt-6-luna', signal);
 }
 
 /**

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ensureProjectRow, linkVideoToProject, readInterestMap, isLinkableProjectId, linkedProjectId } from '@cinegen/lib/leads/project-link';
+import { ensureProjectRow, linkVideoToProject, readInterestMap, isLinkableProjectId, linkedProjectId, enableRetargetForVideo, externalProjectId } from '@cinegen/lib/leads/project-link';
 
 /** Minimal in-memory stand-in for the supabase-js query builder (transport only). */
 function fake(seed: Record<string, any>[] = [], videos: Record<string, any>[] = []) {
@@ -74,5 +74,31 @@ describe('CineGen project link', () => {
   it('surfaces a failed read of the saved mapping instead of silently dropping it', async () => {
     const c = { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: { message: 'denied' } }) }) }) }) };
     await expect(readInterestMap(c as any, ID)).rejects.toThrow(/denied/);
+  });
+});
+
+describe('Turn on Retarget for an existing published video', () => {
+  const video = { id: 'abcdefgh12', title: 'Spring promo', project: { timelineSeconds: 30, tracks: [], aspect: '9:16' }, project_id: null };
+  it('builds an external row from the published copy and points the video at it', async () => {
+    const c = fake([], [video]);
+    const id = await enableRetargetForVideo(c, 'abcdefgh12');
+    expect(id).toBe(await externalProjectId('abcdefgh12'));
+    expect(isLinkableProjectId(id)).toBe(true);
+    const row = c.tables.timeline_projects[0];
+    expect(row).toMatchObject({ id, name: 'Spring promo', duration_s: 30, aspect_ratio: '9:16', settings: { source: 'external' } });
+    expect(c.tables.published_videos[0].project_id).toBe(id);
+  });
+  it('is safe to repeat and keeps an already linked video as it is', async () => {
+    const c = fake([], [video]);
+    const first = await enableRetargetForVideo(c, 'abcdefgh12');
+    expect(await enableRetargetForVideo(c, 'abcdefgh12')).toBe(first);
+    expect(c.tables.timeline_projects).toHaveLength(1);
+  });
+  it('says so when the video does not exist', async () => {
+    await expect(enableRetargetForVideo(fake(), 'nope12345')).rejects.toThrow(/not found/);
+  });
+  it('never takes over an editor-made row', async () => {
+    const c = fake([{ id: await externalProjectId('abcdefgh12'), settings: { source: 'cinegen' } }], [video]);
+    await expect(enableRetargetForVideo(c, 'abcdefgh12')).rejects.toThrow(/another project/);
   });
 });

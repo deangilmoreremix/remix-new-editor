@@ -30,8 +30,9 @@
   position: fixed;
   inset: 0;
   margin: auto;
-  width: min(1180px, calc(100vw - 48px));
-  height: min(780px, calc(100vh - 48px));
+  /* % of the editor area (the Timeline island sits below the studio banner), not of the viewport */
+  width: min(1180px, calc(100% - 48px));
+  height: min(780px, calc(100% - 48px));
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
 }
@@ -42,7 +43,7 @@
 }
 .pm-card__name { font-size: 14px; }
 @media (max-width: 640px) {
-  .pm-window { width: 100vw; height: 100vh; border-radius: 0; border: 0; }
+  .pm-window { width: 100%; height: 100%; border-radius: 0; border: 0; }
   .pm-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 }
 
@@ -401,6 +402,18 @@
 /* Top tabs on narrower windows: anchored to the right of the title instead of centred over it, and bounded so they can never run under it. */
 @media (max-width: 1500px) {
   .cinegen-root .top-nav__tabs { left: auto; right: 150px; transform: none; max-width: calc(100% - 320px); overflow-x: auto; }
+}
+/* [remix] With the Retarget button the tabs sit between the title and the action buttons, whatever their widths are right now (top-tabs.tsx
+   measures both groups): they scroll before they could run under either one. The label drops to an icon on narrower windows. */
+@media (max-width: 1500px) {
+  .cinegen-root .top-nav--retarget .top-nav__tabs {
+    right: calc(var(--top-nav-actions-w, 250px) + 28px);
+    max-width: calc(100% - var(--top-nav-left-w, 390px) - var(--top-nav-actions-w, 250px) - 56px);
+  }
+}
+@media (max-width: 1400px) {
+  .cinegen-root .top-nav--retarget .top-nav__retarget-label { display: none; }
+  .cinegen-root .top-nav--retarget .top-nav__retarget { padding: 0 8px; }
 }
 
 /* ============================================================================================================

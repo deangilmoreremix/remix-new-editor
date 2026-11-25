@@ -8,6 +8,7 @@
  * rest of the session. Every studio's Personalize button and the Lead Finder
  * page go through `openPersonalization()`, which opens the same modal.
  */
+import { onRouteChange as watchRouteChange } from '../../lib/routeUrl.js'
 import React, { useEffect, useSyncExternalStore } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createPortal } from 'react-dom'
@@ -21,6 +22,14 @@ import {
 import { installPersonalizationApiAuth } from './lib/apiAuth'
 import { SocialPublishProvider } from './components/SocialPublishProvider'
 import { useAuthConfig } from './lib/authConfig.ts'
+import { registerCaptionStudio } from './shared/personalization/captions/captionStudioBridge'
+import { openCaptionStudioForPersonalization } from './captionStudioHost.js'
+
+/**
+ * Captions: the personalization editor has no caption editor of its own. It opens the one Caption Studio and draws whatever comes back
+ * (pages + full style) itself, so colours, font and height carry over to the preview and every export.
+ */
+registerCaptionStudio(openCaptionStudioForPersonalization)
 
 /**
  * OpenHiggsBolt's shell listens for `muapi:auth-required` (dispatched by the
@@ -148,8 +157,7 @@ function Bridge() {
   useEffect(() => {
     if (!isOpen || typeof closePersonalize !== 'function') return undefined
     const onRouteChange = () => closePersonalize()
-    window.addEventListener('hashchange', onRouteChange)
-    return () => window.removeEventListener('hashchange', onRouteChange)
+    return watchRouteChange(onRouteChange)
   }, [isOpen, closePersonalize])
   return null
 }
