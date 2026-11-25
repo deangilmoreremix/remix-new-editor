@@ -157,6 +157,27 @@ export function pollResultState(
   return "pending";
 }
 
+/**
+ * The YouTube publish result only carries the watch URL
+ * (https://youtube.com/watch?v=<id>), so the video id is parsed from it.
+ * Mirrors extractYoutubeVideoId in src/lib/socialPublishing.js.
+ */
+export function extractYoutubeVideoId(urlOrId: unknown): string | null {
+  if (typeof urlOrId !== "string" || !urlOrId) return null;
+  const id = /^[A-Za-z0-9_-]{11}$/;
+  if (id.test(urlOrId)) return urlOrId;
+  try {
+    const u = new URL(urlOrId);
+    const v = u.searchParams.get("v");
+    if (v && id.test(v)) return v;
+    const m = u.pathname.match(/\/(?:shorts|embed|live)\/([A-Za-z0-9_-]{11})/) ||
+      (u.hostname === "youtu.be" ? u.pathname.match(/^\/([A-Za-z0-9_-]{11})/) : null);
+    return m ? m[1] : null;
+  } catch {
+    return null;
+  }
+}
+
 export function constantTimeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;

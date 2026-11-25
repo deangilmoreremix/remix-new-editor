@@ -4,6 +4,7 @@ import {
   buildPublishBody,
   classifySubmitFailure,
   constantTimeEqual,
+  extractYoutubeVideoId,
   pollResultState,
   type SchedulePlatform,
 } from "../_shared/scheduledPosts.ts";
@@ -31,6 +32,7 @@ interface PostRow {
   platform: SchedulePlatform;
   account_id: number;
   media_url: string;
+  thumbnail_url: string | null;
   payload: Record<string, unknown>;
   attempts: number;
   request_id: string | null;
@@ -107,6 +109,25 @@ async function submit(row: PostRow) {
   return setStatus(row.id, { status: "failed", error: detail.slice(0, 500) });
 }
 
+// YouTube's publish call has no thumbnail field; a separate call sets it once
+// the video is live. A failure here must not turn a published post into a
+// failed one, so the outcome is recorded in result.thumbnail instead.
+async function applyYoutubeThumbnail(row: PostRow, key: string, result: Record<string, unknown> | null): Promise<string | null> {
+  if (row.platform !== "youtube" || !row.thumbnail_url) return null;
+  const output = (result?.output ?? {}) as Record<string, unknown>;
+  const videoId = extractYoutubeVideoId(output.url ?? result?.url);
+  if (!videoId) return "failed: could not read the video id from the publish result";
+  try {
+    const res = await muapiFetch("youtube-set-thumbnail", key, {
+      method: "POST",
+      body: JSON.stringify({ account_id: row.account_id, video_id: videoId, thumbnail_url: row.thumbnail_url }),
+    });
+    return res.ok ? "applied" : `failed: HTTP ${res.status}`;
+  } catch (err) {
+    return `failed: ${(err as Error)?.message ?? "network error"}`;
+  }
+}
+
 async function poll(row: PostRow) {
   if (!row.request_id) {
     return setStatus(row.id, { status: "failed", error: "Missing Muapi request id." });
@@ -123,7 +144,14 @@ async function poll(row: PostRow) {
     if (!res.ok) return; // transient; the 30-minute cap above ends a permanently failing poll
     const result = await res.json().catch(() => null);
     const state = pollResultState(result);
-    if (state === "done") return setStatus(row.id, { status: "published", result, error: null });
+    if (state === "done") {
+      const thumbnail = await applyYoutubeThumbnail(row, key, result);
+      return setStatus(row.id, {
+        status: "published",
+        result: thumbnail ? { ...result, thumbnail } : result,
+        error: null,
+      });
+    }
     if (state === "failed") {
       const msg = String(result?.error || result?.message || "Publishing failed on the platform.");
       return setStatus(row.id, { status: "failed", result, error: msg.slice(0, 500) });
@@ -150,7 +178,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: inflight } = await supabase
     .from("scheduled_posts")
-    .select("id, clerk_user_id, platform, account_id, media_url, payload, attempts, request_id, updated_at")
+    .select("id, clerk_user_id, platform, account_id, media_url, thumbnail_url, payload, attempts, request_id, updated_at")
     .eq("status", "processing")
     .order("updated_at")
     .limit(POLL_BATCH);

@@ -6,6 +6,7 @@ import {
   buildPublishBody,
   classifySubmitFailure,
   constantTimeEqual,
+  extractYoutubeVideoId,
   pickPublishFields,
   pollResultState,
   validateCreateRequest,
@@ -130,5 +131,21 @@ describe('constantTimeEqual', () => {
     expect(constantTimeEqual('abc123', 'abc123')).toBe(true);
     expect(constantTimeEqual('abc123', 'abc124')).toBe(false);
     expect(constantTimeEqual('abc', 'abcd')).toBe(false);
+  });
+});
+
+describe('extractYoutubeVideoId', () => {
+  test.each([
+    ['https://youtube.com/watch?v=dQw4w9WgXcQ', 'dQw4w9WgXcQ'],
+    ['https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10s', 'dQw4w9WgXcQ'],
+    ['https://youtu.be/dQw4w9WgXcQ', 'dQw4w9WgXcQ'],
+    ['https://www.youtube.com/shorts/dQw4w9WgXcQ', 'dQw4w9WgXcQ'],
+    ['dQw4w9WgXcQ', 'dQw4w9WgXcQ'],
+    ['https://youtube.com/watch?v=short', null],
+    ['https://example.com/page', null],
+    ['', null],
+    [undefined, null],
+  ])('%s -> %s', (input, expected) => {
+    expect(extractYoutubeVideoId(input)).toBe(expected);
   });
 });
