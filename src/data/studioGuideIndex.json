@@ -324,8 +324,8 @@
         "slug": "smart-video-scheduler",
         "name": "Smart Video Scheduler",
         "route": "smart-video-scheduler",
-        "shortDescription": "Content calendar page with Calendar, Schedule and Analytics tabs (preview).",
-        "features": 3,
+        "shortDescription": "Schedule posts to YouTube, TikTok and Instagram and see them on a calendar.",
+        "features": 4,
         "thumbnail": "/guides/smart-video-scheduler/overview.webp"
       },
       {
