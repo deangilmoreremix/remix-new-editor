@@ -764,9 +764,9 @@ The product ships as:
 | Target | Service | Source branch | Build / start | Notes |
 | --- | --- | --- | --- | --- |
 | Netlify | Frontend SPA | `main` | `npm ci --include=optional && npm run build`, publish `dist` | Build-time env in dashboard; runtime secrets come from `import.meta.env` (Vite). |
-| Render | `videoagent-backend` | `develop` | `npm install` → `node server.js`, health `/health` | `OPENAI_API_KEY` set manually after first launch (Render does **not** read `.env`). |
-| Render | `director-backend` | `develop` | Docker (`apps/director/backend/Dockerfile`) | Reads `VIDEO_DB_API_KEY`, `OPENAI_API_KEY`, and Postgres via `director-db`. |
-| Render | `director-frontend` | `develop` | Docker (`apps/director/frontend/Dockerfile`) | `VITE_APP_BACKEND_URL` injected from `director-backend`. |
+| Beam | `videoagent-backend` | `develop` | `npm install` → `node server.js`, health `/health` | Set `OPENAI_API_KEY` as a Beam secret or `--env` value (Beam does **not** read `.env`). |
+| Beam | `director-backend` | `develop` | Docker (`apps/director/backend/Dockerfile`) | Reads `VIDEO_DB_API_KEY`, `OPENAI_API_KEY`, and Postgres via `director-db`. |
+| Beam | `director-frontend` | `develop` | Docker (`apps/director/frontend/Dockerfile`) | `VITE_APP_BACKEND_URL` injected from `director-backend`. |
 
 Netlify applies security headers (`X-Frame-Options: DENY`,
 `X-Content-Type-Options: nosniff`, etc.), SPA auth-route redirects
@@ -775,9 +775,9 @@ Netlify applies security headers (`X-Frame-Options: DENY`,
 var — if unset, the call falls through to the SPA fallback and 404s rather than
 silently mocking).
 
-> **Note:** Render services deploy from `develop`, not `main`. Merging frontend
+> **Note:** Beam services deploy from `develop`, not `main`. Merging frontend
 > changes to `main` only triggers Netlify; backend/Director changes must land on
-> `develop` to reach Render.
+> `develop` to reach Beam.
 
 ---
 
@@ -837,12 +837,12 @@ vars are server/edge/backend only. Copy `.env.example` to `.env` for local dev.
 | `VITE_SUPABASE_ANON_KEY` | Netlify dashboard / `.env` | Supabase anon key (client) | `your-anon-key-here` |
 | `VITE_CLERK_PUBLISHABLE_KEY` | Netlify dashboard / `.env` | Clerk publishable key (client auth) | `pk_test_…` |
 | `CLERK_SECRET_KEY` | Netlify edge / backend secrets | Clerk secret key (server/edge) | `sk_test_…` |
-| `VITE_BACKEND_URL` | Netlify dashboard / `.env` | Routes VideoDB calls through the Render proxy | `https://videoagent-backend.onrender.com` |
+| `VITE_BACKEND_URL` | Netlify dashboard / `.env` | Routes VideoDB calls through the Beam proxy | `https://<videoagent-backend-beam-url>` |
 | `OPENAI_API_KEY` | **Render** dashboard (`gtmBoostService`, `videoAgentService`) | Powers GTM Boost and Video Agent | set manually; `sync: false` |
 | `VIDEO_DB_API_KEY` | Render `director-backend` | VideoDB finishing API key | set manually; `sync: false` |
 | `VIDEO_DB_BASE_URL` | Render `videoagent-backend` | VideoDB base URL | `https://api.videodb.io` |
 | `VIDEO_DB_DEFAULT_COLLECTION` | Render `videoagent-backend` | Default VideoDB collection | `default` |
-| `DIRECTOR_API_URL` | **Netlify build-time** env | Backend URL for `/director-api/*` proxy in prod | `https://director-backend.onrender.com` |
+| `DIRECTOR_API_URL` | **Netlify build-time** env | Backend URL for `/director-api/*` proxy in prod | `https://<director-backend-beam-url>` |
 | `DIRECTOR_BASE_URL` | Render `videoagent-backend` | Director FastAPI base URL | `http://localhost:8000` |
 | `AGENT_ACTIONS_URL` | Render `videoagent-backend` | Internal agent actions endpoint | `http://localhost:3001` |
 | `MUAPI_API_KEY` / `VITE_MUAPI_KEY` | Supabase edge secrets / Netlify | MuAPI key (server proxy vs client) | `your-key` |
@@ -868,7 +868,7 @@ vars are server/edge/backend only. Copy `.env.example` to `.env` for local dev.
 | `VITE_LOG_LEVEL` | Netlify / `.env` | Client log verbosity | `INFO` |
 | `VITE_ERROR_TRACKING_DSN` | Netlify / `.env` | Error-tracking DSN (note: **not** `VITE_ENABLE_ERROR_TRACKING`) | _(empty)_ |
 | `VITE_APP_VERSION` / `VITE_BUILD_HASH` | Netlify / `.env` | Build metadata shown in UI | `1.0.0` / `devel` |
-| `VIDEO_AGENT_BACKEND_URL` | Render `videoagent-backend` + Supabase edge | Public backend URL for the Video Agent edge fn | `https://videoagent-backend.onrender.com` |
+| `VIDEO_AGENT_BACKEND_URL` | Beam `videoagent-backend` + Supabase edge | Public backend URL for the Video Agent edge fn | `https://<videoagent-backend-beam-url>` |
 | `MINIMAX_H3_REPO` | shell (optional) | Fallback path for the manifest generator | `../awesome-minimax-h3-prompts` |
 | `NODE_ENV` / `PORT` | Render (auto) | Runtime env / port | `production` / `10000` |
 | `DEV_BYPASS_SECRET`, `AUTH_VERIFY_TIMEOUT_MS` | Render `videoagent-backend` | Auth middleware tuning | `local-dev-only` / `5000` |
@@ -940,19 +940,18 @@ GTM Boost turns a one-line idea into a structured, cinematic, go-to-market promp
   `node scripts/generate-minimax-h3-manifest.mjs /path/to/awesome-minimax-h3-prompts`;
   otherwise restore the committed generated files and rebuild.
 
-- **Secret not set** — e.g. `OPENAI_API_KEY` missing on Render → GTM Boost and
+- **Secret not set** — e.g. `OPENAI_API_KEY` missing on Beam → GTM Boost and
   Video Agent return 500s; `VIDEO_DB_API_KEY` missing → Director finishing
   fails; `CLERK_SECRET_KEY` / `VITE_CLERK_PUBLISHABLE_KEY` mismatch → login
   loops; `MAIGRET_WORKER_URL` unset → Discover graph data is skipped (degrades,
   doesn't crash).
-  *Recover:* set the key in the relevant dashboard (Render for backend keys,
-  Netlify for `VITE_*` and Netlify function keys). Remember Render does **not**
-  read `.env.local` — use the dashboard or `render env set`.
+  *Recover:* set the key in the relevant dashboard (Beam for backend keys,
+  Netlify for `VITE_*` and Netlify function keys). Remember Beam does **not**
+  read `.env.local` — pass keys with `--env` or a Beam secret.
 
 - **Backend down / unreachable** — `VITE_BACKEND_URL` or `VIDEO_AGENT_BACKEND_URL`
-  points at a spun-down free Render service (cold start) or a wrong region.
-  *Recover:* confirm `videoagent-backend` health at `/health`; for free plans
-  expect a cold-start delay; verify the URL in the dashboard matches the env var.
+  points at a scaled-to-zero Beam service (cold start) or a wrong region.
+  *Recover:* confirm `videoagent-backend` health at `/health`; expect a cold-start delay after idle; verify the URL in the dashboard matches the env var.
 
 - **Director socket proxy 404** — `/director-api/*` on Netlify rewrites to
   `${DIRECTOR_API_URL}/:splat` over HTTP only; Socket.IO upgrades may not proxy.

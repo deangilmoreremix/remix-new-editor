@@ -57,7 +57,6 @@ nav:
     - 'Intro': 'index.md'
     - 'Installation': 'get_started/install.md'
     - Quick Deployment:
-      - 'Render': 'get_started/render.md'
       - 'Railway': 'get_started/railway.md'
     - 'Contributing': 'get_started/contributing.md'
   - Concepts:
@@ -84,7 +83,6 @@ nav:
     - 'API': 'server/api.md'
     - 'Socket.io': 'server/socketio.md'
     - Deployments:
-      - 'Render': 'get_started/render.md'
       - 'Railway': 'get_started/railway.md'
   - 'Utilities':
     - 'Exceptions': 'utilities/exceptions.md'

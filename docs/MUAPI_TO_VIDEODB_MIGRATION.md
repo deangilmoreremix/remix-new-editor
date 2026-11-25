@@ -80,8 +80,7 @@ you want a single vendor. The finishing layer (§1, §2) is the priority.
 
 ## 5. Prerequisites before any move works
 
-1. **Director backend deployed** on Render (blocked by the 2026-07-16 Render outage — all regions).
-   Blueprint `apps/director/render.yaml` validates cleanly (`valid: true`).
+1. **Director backend deployed** on Beam (`beam deploy --dockerfile apps/director/backend/Dockerfile`).
 2. **`VIDEO_DB_API_KEY`** + **`OPENAI_API_KEY`** set on `director-backend` (both `sync: false`).
 3. **Frontend proxy** wired: dev `VITE_DIRECTOR_API_URL`, production `DIRECTOR_API_URL` (Netlify
    `netlify.toml` redirect added in commit `952a27e5`).

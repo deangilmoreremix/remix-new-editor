@@ -13,7 +13,7 @@
  * Auth model
  * ---------
  * This proxy uses a single server-side key (VIDEO_DB_API_KEY) by default so the
- * app can own/index media centrally and deploy cleanly on Render without every
+ * app can own/index media centrally and deploy cleanly on Beam without every
  * user supplying a token. Callers may also pass a user-scoped token via the
  * `x-access-token` header (or `?accessToken=`) to operate on that user's own
  * VideoDB account — a true hybrid. The browser-side videoDb.js client keeps a
