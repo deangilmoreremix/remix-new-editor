@@ -29,7 +29,7 @@ npm run vidbee:start       # VIDBEE_PORT=3300 VIDBEE_DATA_DIR=… VIDBEE_DOWNLOA
 ## Access control (important)
 Upstream VidBee is single-user and has no login; it can browse server folders, change its download directory and run an AI agent with tools.
 The host server is therefore only reachable through `backend/services/vidbeeProxy.js` (Supabase JWT + cookie session). Everything except the built static assets requires a signed-in, allow-listed user
-(`VIDBEE_ALLOWED_USERS`, user id or email; **unset = every signed-in user**). With the shared desktop host below, all allowed users share one library, queue, AI provider key and agent history, so leave `VIDBEE_ALLOWED_USERS` set there.
+(`VIDBEE_ALLOWED_USERS`, user id or email; **unset = nobody, or every signed-in user when `VIDBEE_PER_USER=1` (set it on the backend too)**). With the shared desktop host below, all allowed users share one library, queue, AI provider key and agent history, so leave `VIDBEE_ALLOWED_USERS` set there.
 The Beam web edition can instead give **each user a private library** (`VIDBEE_PER_USER=1`, see `docs/BEAM_DEPLOY.md`): the gate sends an opaque per-user id (`x-smartvid-user`) and each user gets their own API with their own downloads, queue, history and settings.
 The bridge binds to 127.0.0.1 by default; expose it only through the gate.
 

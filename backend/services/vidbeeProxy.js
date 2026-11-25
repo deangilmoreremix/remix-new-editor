@@ -5,7 +5,8 @@
  * download directory), so it is only reachable through this gate:
  *   POST /api/vidbee/session  (Bearer auth + allowlist)  → sets a short-lived HttpOnly cookie
  *   ANY  /vidbee/*            (cookie required)          → streams to the VidBee web server
- * Access: every signed-in user, or only VIDBEE_ALLOWED_USERS="id1,email@x.com" (user id or email) when that is set.
+ * Access: only VIDBEE_ALLOWED_USERS="id1,email@x.com" (user id or email) when that is set; when it is unset, every signed-in
+ * user if VIDBEE_PER_USER=1, otherwise nobody (development: everyone).
  * Each user gets a private library: the gate tells the web edition who is asking (`x-smartvid-user`, an opaque id
  * derived from the user id) and the web edition routes them to their own API with their own data and download folders.
  */
@@ -43,7 +44,9 @@ const readCookie = (req, name) => (req.headers.cookie || '').split(/;\s*/).map((
 
 export const isAllowed = (user, env = process.env) => {
   const list = (env.VIDBEE_ALLOWED_USERS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-  if (!list.length) return true; // no allowlist: every signed-in user (each one only ever sees their own library)
+  // No allowlist: every signed-in user, but only when each user gets a private library (VIDBEE_PER_USER=1, also set on the
+  // web edition). Otherwise everyone would share one library, so it stays closed (open in development only).
+  if (!list.length) return env.VIDBEE_PER_USER === '1' || (env.NODE_ENV || 'development') === 'development';
   return [user?.id, user?.email].filter(Boolean).some((v) => list.includes(String(v).toLowerCase()));
 };
 

@@ -6,8 +6,9 @@ import express from 'express';
 import { installVidBee, isAllowed, isSameOriginMutation, userKey } from './vidbeeProxy.js';
 
 describe('vidbee gate allowlist', () => {
-  it('lets every signed-in user in when no allowlist is set (each gets a private library)', () => {
-    assert.equal(isAllowed({ id: 'u1' }, { NODE_ENV: 'production' }), true);
+  it('without an allowlist, opens to every signed-in user only when libraries are private (VIDBEE_PER_USER=1)', () => {
+    assert.equal(isAllowed({ id: 'u1' }, { NODE_ENV: 'production', VIDBEE_PER_USER: '1' }), true);
+    assert.equal(isAllowed({ id: 'u1' }, { NODE_ENV: 'production' }), false);
     assert.equal(isAllowed({ id: 'u1' }, { NODE_ENV: 'development' }), true);
   });
   it('matches user id or email case-insensitively', () => {
@@ -230,6 +231,7 @@ describe('vidbee per-user library id', () => {
     await new Promise((resolve) => upstream.listen(0, '127.0.0.1', resolve));
     process.env.VIDBEE_WEB_URL = `http://127.0.0.1:${upstream.address().port}`;
     process.env.VIDBEE_GATE_TOKEN = 'k';
+    process.env.VIDBEE_PER_USER = '1'; // no allowlist: open to signed-in users only in per-user mode
     try {
       const callAs = async (id, extra) => {
         const app = express();
@@ -252,6 +254,7 @@ describe('vidbee per-user library id', () => {
     } finally {
       upstream.close();
       delete process.env.VIDBEE_GATE_TOKEN;
+      delete process.env.VIDBEE_PER_USER;
       delete process.env.VIDBEE_WEB_URL;
     }
   });
