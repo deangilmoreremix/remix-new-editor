@@ -25,6 +25,7 @@ import {
   REMOTION_DESIGN_REPOSITORY_URL,
 } from '../catalog'
 import { BATCH_3C_FIXED_SVG_IDS, BATCH_3C_TEMPLATES } from '../designs/batch3c/entries'
+import { parseKpiValue } from '../designs/batch3c/KpiCounterDesign'
 import { mixColor, readableOnDark, toHex6 } from '../designs/batch3c/batch3cShared'
 import type {
   RemotionDesignComponentProps,
@@ -290,18 +291,56 @@ describe('batch 3c adapters', () => {
     }
   })
 
-  it('renders the pinned placeholder data on the chart cards', () => {
+  it('renders the pinned placeholder data on the line and racing chart cards', () => {
     clock.frame = 149
     const line = renderTemplate(get('line-chart-anim'))
     expect(line.container.textContent).toContain('Wk 1')
     expect(line.container.textContent).not.toContain('Jan')
     line.unmount()
-    const kpi = renderTemplate(get('kpi-counter'))
-    expect(kpi.container.textContent).toContain('Placeholder 1')
-    kpi.unmount()
     const race = renderTemplate(get('racing-chart'))
     expect(race.container.textContent).toContain('Placeholder A')
     race.unmount()
+  })
+
+  describe('kpi-counter: the customer types the figures', () => {
+    const kpi = (slots: Record<string, string>) =>
+      renderTemplate(get('kpi-counter'), { textSlots: { title: 'Our year', subtitle: '', ...slots } })
+
+    it('never prints "Placeholder" text, with or without figures', () => {
+      clock.frame = 149
+      const empty = kpi({})
+      expect(empty.container.textContent).not.toMatch(/placeholder/i)
+      expect(empty.container.textContent).toContain('Our year')
+      empty.unmount()
+      const filled = kpi({ kpi1Label: 'Happy clients', kpi1Value: '1,200+' })
+      expect(filled.container.textContent).not.toMatch(/placeholder/i)
+      expect(filled.container.textContent).toContain('Happy clients')
+      filled.unmount()
+    })
+
+    it('draws only the cards that have a usable number', () => {
+      clock.frame = 149
+      const some = kpi({ kpi1Label: 'Rating', kpi1Value: '4.9', kpi2Label: 'No number', kpi2Value: 'lots', kpi3Label: 'Years', kpi3Value: '12 yrs' })
+      const text = some.container.textContent ?? ''
+      expect(text).toContain('Rating')
+      expect(text).toContain('Years')
+      expect(text).not.toContain('No number')
+      some.unmount()
+    })
+
+    it('parses prefixes, thousands commas, decimals and suffixes', () => {
+      expect(parseKpiValue('$2,840,000')).toEqual({ value: 2840000, prefix: '$', suffix: '', decimals: 0 })
+      expect(parseKpiValue('4.9')).toEqual({ value: 4.9, prefix: '', suffix: '', decimals: 1 })
+      expect(parseKpiValue('127%')).toEqual({ value: 127, prefix: '', suffix: '%', decimals: 0 })
+      expect(parseKpiValue('+250 clients')).toMatchObject({ value: 250, prefix: '+', suffix: ' clients' })
+      expect(parseKpiValue('lots')).toBeNull()
+      expect(parseKpiValue('')).toBeNull()
+    })
+
+    it('declares 4 label + 4 number slots with no brand fallback', () => {
+      const free = (get('kpi-counter').textSlots ?? []).filter((slot) => slot.freeText)
+      expect(free.map((slot) => slot.key)).toEqual(['kpi1Label', 'kpi1Value', 'kpi2Label', 'kpi2Value', 'kpi3Label', 'kpi3Value', 'kpi4Label', 'kpi4Value'])
+    })
   })
 
   it('keeps overlays transparent over the video', () => {

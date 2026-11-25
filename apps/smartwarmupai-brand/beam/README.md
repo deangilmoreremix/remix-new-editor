@@ -18,6 +18,11 @@ Only `backend` and `migrate` run. The `worker` and `consumer` services (warmup s
    beam secret create INTERNAL_API_TOKEN "$(openssl rand -hex 24)"
    beam secret create STUDIO_ORIGINS "https://<where the studio is served>"
    beam secret create APP_URL "https://<where the studio is served>"
+   # One login with the host app's Clerk session (POST /v1/auth/clerk). Beam needs every secret listed in app.py to exist,
+   # so create all three. Values: Clerk dashboard > your app > API keys (Frontend API URL and secret key).
+   beam secret create CLERK_ISSUER "https://<your Clerk Frontend API URL>"
+   beam secret create CLERK_SECRET_KEY "sk_live_..."
+   beam secret create CLERK_AUTHORIZED_PARTIES "https://<where the studio is served>"
    ```
    Check `CREDENTIALS_ENCRYPTION_KEY`'s expected length in `apps/warmbly-server/.env.example` first; the dev default is 64 hex characters.
 3. From the repository root: `beam deploy apps/smartwarmupai-brand/beam/app.py:pod`

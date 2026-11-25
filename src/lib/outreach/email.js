@@ -83,14 +83,31 @@ export function thumbnailHtml({ link, thumbnailUrl, width = 480 }) {
 }
 
 /**
- * Embed code for email and outreach tools: the clickable thumbnail plus a text link under it,
- * for inboxes that block images. Email clients don't play video, so the page plays it.
+ * Embed code for email platforms (Sendspark's Embed tab): an HTML5 video that plays where the inbox
+ * allows it (Apple Mail, iOS), with their GIF as the poster and, everywhere else, the GIF itself — all
+ * inside a link to their page — plus a text link under it for inboxes that block images.
+ * `videoUrl` is a short muted preview (optional: without it, just the clickable GIF).
  */
-export function embedSnippet({ link, thumbnailUrl, name = '' }) {
+export function embedSnippet({ link, thumbnailUrl, name = '', videoUrl = '' }) {
   const href = safeHttps(link);
   if (!href) return '';
   const label = name ? `Watch the video for ${name}` : 'Watch the video';
-  return `<div class="video-embed">${thumbnailHtml({ link, thumbnailUrl })}<p style="margin:8px 0 0"><a href="${esc(href)}">${esc(label)} &#9654;</a></p></div>`;
+  const img = thumbnailHtml({ link, thumbnailUrl });
+  const src = safeHttps(videoUrl);
+  const poster = safeHttps(thumbnailUrl);
+  const media = src && poster
+    ? `<a href="${esc(href)}"><video src="${esc(src)}" poster="${esc(poster)}" width="480" autoplay muted loop playsinline style="display:block;max-width:100%;border-radius:12px"><img src="${esc(poster)}" alt="Play the video" width="480" style="display:block;max-width:100%;border-radius:12px;border:0"></video></a>`
+    : img;
+  return `<div class="video-embed">${media}<p style="margin:8px 0 0"><a href="${esc(href)}">${esc(label)} &#9654;</a></p></div>`;
+}
+
+/** Open Outlook on the web with the email ready to send (Outlook's link takes plain text only). */
+export function outlookUrl({ to = '', subject = '', text = '' }) {
+  const u = new URL('https://outlook.office.com/mail/deeplink/compose');
+  if (to) u.searchParams.set('to', to);
+  u.searchParams.set('subject', subject);
+  u.searchParams.set('body', text);
+  return u.toString();
 }
 
 /** Open Gmail with the email ready to send (to, subject and the plain-text body). */

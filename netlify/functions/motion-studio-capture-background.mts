@@ -12,13 +12,14 @@
 import './_personalization/shims/env'
 import { createClient } from '@supabase/supabase-js'
 import { timingSafeEqual } from 'node:crypto'
+import { resolveInternalSecret } from './_personalization/shims/internalSecret'
 import { parseJobRequest, runMotionCapture } from './_personalization/src/server/motionCaptureWorker'
 import type { CaptureStorage } from './_personalization/src/server/motionCapture'
 
 const BUCKET = 'motion-capture'
 
 function internalSecretOk(headers: Record<string, string | undefined>): boolean {
-  const secret = process.env.INTERNAL_FUNCTION_SECRET || process.env.PERSONALIZATION_DISCOVERY_SECRET || ''
+  const secret = resolveInternalSecret(process.env)
   if (!secret) return false
   const provided = headers['x-internal-service-token']
   if (typeof provided !== 'string' || !provided) return false

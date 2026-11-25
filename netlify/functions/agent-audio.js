@@ -26,7 +26,7 @@
  *     For kind 'voice-clone' a finished job reports done even without an audio URL.
  */
 import { withClerkAuth } from './_shared/clerkAuth.js';
-import { muapiPost, extractRealUrl, musicPayload } from './cinegenProviders.js';
+import { muapiPost, muapiResult, extractRealUrl, musicPayload } from './cinegenProviders.js';
 import { userMuapiKey, userOpenAIKey, NEED_MUAPI_KEY, NEED_OPENAI_KEY, BAD_OPENAI_KEY, BAD_MUAPI_KEY, OPENAI_NO_CREDIT } from './_shared/byok.js';
 
 export const VOICES = [
@@ -180,7 +180,7 @@ export async function handle(body, userId, { fetchImpl = fetch, keys = {} } = {}
     const id = String(body.requestId || '');
     if (!/^[A-Za-z0-9_-]{4,128}$/.test(id)) return fail(400, 'bad_request', 'Invalid requestId');
     try {
-      const data = await muapiPost(`/predictions/${encodeURIComponent(id)}/result`, {}, undefined, keys.muapi);
+      const data = await muapiResult(id, undefined, keys.muapi);
       const status = String(data.status || '').toLowerCase();
       if (['completed', 'succeeded', 'success'].includes(status)) {
         const url = extractRealUrl(data);

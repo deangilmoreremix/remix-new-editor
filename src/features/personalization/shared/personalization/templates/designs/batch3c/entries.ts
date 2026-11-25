@@ -22,7 +22,7 @@
 import type { RemotionDesignTemplate } from '../../types'
 import { CharacterJumpingDesign } from './CharacterJumpingDesign'
 import { FireworksBurstDesign } from './FireworksBurstDesign'
-import { KpiCounterDesign, KPI_PLACEHOLDER_METRICS } from './KpiCounterDesign'
+import { KpiCounterDesign, KPI_CARD_COUNT, kpiSlotKeys } from './KpiCounterDesign'
 import { LineChartAnimDesign, LINE_CHART_PLACEHOLDER_POINTS } from './LineChartAnimDesign'
 import { LoopGridWaveDesign } from './LoopGridWaveDesign'
 import { ParallaxPanDesign } from './ParallaxPanDesign'
@@ -89,17 +89,18 @@ export const lineChartAnimTemplate: RemotionDesignTemplate = {
 export const kpiCounterTemplate: RemotionDesignTemplate = {
   id: 'kpi-counter',
   name: 'KPI Counter Cards',
-  description: 'Metric cards slide in and count up on rolling digits.',
+  description: 'Your own figures (type up to four in the editor) slide in and count up on rolling digits.',
   category: 'data-visualization',
   source: repo1Source('src/components/kpi-counter/KpiCounter.tsx'),
   component: KpiCounterDesign,
-  defaultProps: {
-    // PINNED PLACEHOLDER METRICS (C13): labelled "Placeholder 1".."4".
-    metrics: KPI_PLACEHOLDER_METRICS,
-  },
   textSlots: [
     { key: 'title', field: 'headline', label: 'Title', primary: true, maxLength: 40 },
     { key: 'subtitle', field: 'offer', label: 'Subtitle', maxLength: 64 },
+    // The customer's own figures: empty until typed (no brand fallback), a card with no number is not drawn.
+    ...Array.from({ length: KPI_CARD_COUNT }, (_, i) => i + 1).flatMap((n) => [
+      { key: kpiSlotKeys(n).label, field: 'headline' as const, label: `Card ${n} label`, freeText: true, maxLength: 24 },
+      { key: kpiSlotKeys(n).value, field: 'headline' as const, label: `Card ${n} number (digits, e.g. 1200 or 4.9%)`, freeText: true, maxLength: 12 },
+    ]),
   ],
   colors: [
     { role: 'primary', label: 'Card background' },
@@ -119,8 +120,9 @@ export const kpiCounterTemplate: RemotionDesignTemplate = {
       'details: the drums fade at their edges with mask-image and the header glow is a radial-gradient; ' +
       'if the web renderer skips either, the digits and cards still render. Plays as a 120-frame intro ' +
       'card on deep shades of the brand primary. Mapping: headline = title, offer = subtitle, card ' +
-      'accents cycle accent/primary tints. The four figures are PINNED PLACEHOLDERS labelled ' +
-      '"Placeholder 1".."4" because the customer cannot enter metrics; the upstream demo figures are never used.',
+      'accents cycle accent/primary tints. The four figures are typed by the customer (label + number per ' +
+      'card, no brand fallback); a card without a usable number is not drawn, and with none typed only the ' +
+      'title and subtitle show. The upstream demo figures are never used.',
   },
   previewCompatible: true,
 }

@@ -60,6 +60,18 @@ export async function muapiPost(path, payload, signal, userKey) {
   return response.json();
 }
 
+/** A job's result. MuAPI only answers GET here (a POST gets 405 Method Not Allowed). */
+export async function muapiResult(requestId, signal, userKey) {
+  const key = getApiKey(userKey);
+  const path = `/predictions/${encodeURIComponent(requestId)}/result`;
+  const response = await fetch(`${MUAPI_BASE_URL}${path}`, { headers: { 'x-api-key': key }, signal });
+  if (!response.ok) {
+    const text = await response.text();
+    throw Object.assign(new Error(`MuAPI ${path} failed: ${response.status} ${response.statusText} - ${text.slice(0, 200)}`), { status: response.status });
+  }
+  return response.json();
+}
+
 async function pollForResult(requestId, maxAttempts = 60, baseInterval = 2000, signal, userKey) {
   const getInterval = (attempt) => {
     const exponentialDelay = Math.min(baseInterval * Math.pow(1.5, attempt - 1), 30000);
@@ -79,7 +91,7 @@ async function pollForResult(requestId, maxAttempts = 60, baseInterval = 2000, s
     }
 
     try {
-      const data = await muapiPost(`/predictions/${encodeURIComponent(requestId)}/result`, {}, signal, userKey);
+      const data = await muapiResult(requestId, signal, userKey);
 
       const status = (data.status || '').toLowerCase();
       if (status === 'completed' || status === 'succeeded' || status === 'success') {

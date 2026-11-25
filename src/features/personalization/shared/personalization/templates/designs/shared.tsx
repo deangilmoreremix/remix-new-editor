@@ -168,11 +168,14 @@ export function DesignStage({
   props,
   children,
   stageStyle,
+  credit,
 }: {
   designId: string
   props: RemotionDesignComponentProps
   children: React.ReactNode
   stageStyle?: React.CSSProperties
+  /** Credit line drawn in the corner; defaults to the RenderComp line. */
+  credit?: string
 }): React.ReactElement {
   // The frozen upstreams hardcode a system font stack, which makes the export
   // depend on the machine it runs on. `useDesignFonts()` declares the bundled

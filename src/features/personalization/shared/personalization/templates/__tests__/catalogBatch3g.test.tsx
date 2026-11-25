@@ -431,12 +431,20 @@ describe('batch 3g — overlays stay transparent', () => {
 
   it('keeps the grain faint and tinted with the brand text colour', () => {
     const { container } = renderAt(byId('rve-noise-grain'), 3, { color: '#ffeeaa' })
-    const rects = Array.from(container.querySelectorAll('rect'))
-    expect(rects.length).toBe(160 * 90)
-    for (const rect of rects.slice(0, 200)) {
-      expect(rect.getAttribute('fill')).toBe('#ffeeaa')
-      expect(Number(rect.getAttribute('opacity'))).toBeLessThanOrEqual(0.08)
+    const paths = Array.from(container.querySelectorAll('path'))
+    // One path per opacity bucket (8), not one node per cell: 14,400 nodes per 1080p frame crashed the in-browser exporter.
+    expect(paths.length).toBeGreaterThan(0)
+    expect(paths.length).toBeLessThanOrEqual(8)
+    expect(container.querySelectorAll('rect').length).toBe(0)
+    for (const path of paths) {
+      expect(path.getAttribute('fill')).toBe('#ffeeaa')
+      const opacity = Number(path.getAttribute('opacity'))
+      expect(opacity).toBeGreaterThanOrEqual(0.02)
+      expect(opacity).toBeLessThanOrEqual(0.08)
     }
+    // Every cell of the 160 x 90 grid is still drawn (one `M..z` square each).
+    const squares = paths.reduce((sum, path) => sum + (path.getAttribute('d')?.match(/M/g)?.length ?? 0), 0)
+    expect(squares).toBe(160 * 90)
   })
 
   it('tints the vignette with a deep brand shade', () => {
@@ -509,8 +517,10 @@ describe('batch 3g — upstream copies', () => {
     clock.frame = 5
     const grain = render(<NoiseGrain />)
     expect(grain.container.textContent).toContain('Film Grain Overlay')
-    expect(grain.container.querySelectorAll('rect')).toHaveLength(240 * 135)
-    expect(grain.container.querySelector('rect')?.getAttribute('fill')).toBe('white')
+    // Upstream draws one rect per 8 px cell (240 x 135); the copy draws the same cells as <= 8 opacity-bucket paths.
+    const paths = Array.from(grain.container.querySelectorAll('path'))
+    expect(paths.reduce((sum, path) => sum + (path.getAttribute('d')?.match(/M/g)?.length ?? 0), 0)).toBe(240 * 135)
+    expect(paths[0]?.getAttribute('fill')).toBe('white')
     grain.unmount()
   })
 

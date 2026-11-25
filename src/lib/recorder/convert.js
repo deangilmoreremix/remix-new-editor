@@ -18,3 +18,16 @@ export async function convertInBrowser({ src, mimeType, onProgress }) {
   if (!output.target.buffer) throw new Error('Conversion failed');
   return new Blob([output.target.buffer], { type: mimeType.split(';')[0] });
 }
+
+/** Cut a take to [start, end] seconds (Mediabunny), keeping its format. Copies where it can, so it is quick. */
+export async function trimTake(blob, { start = 0, end, onProgress } = {}) {
+  const mimeType = blob.type || 'video/webm';
+  const input = new Input({ formats: ALL_FORMATS, source: new BlobSource(blob) });
+  const output = new Output({ format: getMediabunnyOutput(mimeType), target: new BufferTarget() });
+  const conversion = await Conversion.init({ input, output, trim: { start, ...(end != null ? { end } : {}) } });
+  conversion.onProgress = (p) => onProgress?.(p);
+  if (!conversion.isValid) throw new Error('This take cannot be trimmed in the browser.');
+  await conversion.execute();
+  if (!output.target.buffer) throw new Error('Trimming failed');
+  return new Blob([output.target.buffer], { type: mimeType.split(';')[0] });
+}

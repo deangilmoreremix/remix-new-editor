@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const muapiPost = vi.fn();
-vi.mock('../cinegenProviders.js', async (orig) => ({ ...(await orig()), muapiPost: (...a) => muapiPost(...a) }));
+const muapiResult = vi.fn();
+vi.mock('../cinegenProviders.js', async (orig) => ({ ...(await orig()), muapiPost: (...a) => muapiPost(...a), muapiResult: (...a) => muapiResult(...a) }));
 const { handle, buildRequest } = await import('../agent-audio.js');
 
 describe('agent-audio function', () => {
   const env = { ...process.env };
   const keys = { muapi: 'mu_test_key_0123456789' };
-  beforeEach(() => { muapiPost.mockReset(); });
+  beforeEach(() => { muapiPost.mockReset(); muapiResult.mockReset(); });
   afterEach(() => { process.env = { ...env }; });
 
   it('builds TTS and music requests with validation', () => {
@@ -22,11 +23,12 @@ describe('agent-audio function', () => {
   it('submits and reports status', async () => {
     muapiPost.mockResolvedValueOnce({ request_id: 'abc123' });
     expect(JSON.parse((await handle({ action: 'submit', kind: 'tts', text: 'Hello' }, 'u1', { keys })).body)).toEqual({ ok: true, requestId: 'abc123' });
-    muapiPost.mockResolvedValueOnce({ status: 'processing' });
+    muapiResult.mockResolvedValueOnce({ status: 'processing' });
     expect(JSON.parse((await handle({ action: 'status', requestId: 'abc123' }, 'u1', { keys })).body)).toEqual({ ok: true, status: 'pending' });
-    expect(muapiPost.mock.calls[1][0]).toBe('/predictions/abc123/result');
+    expect(muapiResult.mock.calls[0][0]).toBe('abc123');
+    expect(muapiResult.mock.calls[0][2]).toBe('mu_test_key_0123456789');
     expect(muapiPost.mock.calls[0][3]).toBe('mu_test_key_0123456789');
-    muapiPost.mockResolvedValueOnce({ status: 'completed', outputs: ['https://cdn.muapi.ai/out/a.mp3'] });
+    muapiResult.mockResolvedValueOnce({ status: 'completed', outputs: ['https://cdn.muapi.ai/out/a.mp3'] });
     expect(JSON.parse((await handle({ action: 'status', requestId: 'abc123' }, 'u1', { keys })).body)).toEqual({ ok: true, status: 'done', url: 'https://cdn.muapi.ai/out/a.mp3' });
     expect((await handle({ action: 'status', requestId: '../x' }, 'u1', { keys })).statusCode).toBe(400);
   });
@@ -71,7 +73,7 @@ describe('agent-audio OpenAI speech', () => {
 describe('agent-audio voice cloning', () => {
   const keys = { muapi: 'mu_test_key_0123456789' };
   const clone = { kind: 'voice-clone', audioUrl: 'https://cdn.example.com/me.webm', voiceId: 'my_voice_001', consent: true };
-  beforeEach(() => { muapiPost.mockReset(); });
+  beforeEach(() => { muapiPost.mockReset(); muapiResult.mockReset(); });
 
   it('builds a MiniMax clone request from the sample', () => {
     expect(buildRequest(clone)).toMatchObject({
@@ -105,9 +107,9 @@ describe('agent-audio voice cloning', () => {
   });
 
   it('reports a finished clone as done even with no audio file', async () => {
-    muapiPost.mockResolvedValueOnce({ status: 'completed', outputs: [] });
+    muapiResult.mockResolvedValueOnce({ status: 'completed', outputs: [] });
     expect(JSON.parse((await handle({ action: 'status', requestId: 'clone42', kind: 'voice-clone' }, 'u4', { keys })).body)).toEqual({ ok: true, status: 'done' });
-    muapiPost.mockResolvedValueOnce({ status: 'completed', outputs: [] });
+    muapiResult.mockResolvedValueOnce({ status: 'completed', outputs: [] });
     expect(JSON.parse((await handle({ action: 'status', requestId: 'tts9' }, 'u4', { keys })).body).status).toBe('failed');
   });
 });

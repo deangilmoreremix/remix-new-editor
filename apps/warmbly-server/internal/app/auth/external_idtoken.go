@@ -33,12 +33,24 @@ func (s *authService) WireExternalIDTokens(apple, google IDTokenVerifier) {
 // token. Apple only shares the user's name with the app (never in the token),
 // so the client forwards it for first-sign-in profile prefill.
 func (s *authService) AppleIDTokenAuth(ctx context.Context, rawToken, firstName, lastName, ipaddr, userAgent string) (*models.LoginResult, *errx.Error) {
-	return s.externalIDTokenAuth(ctx, s.appleIDTokens, token.AuthProviderApple, rawToken, firstName, lastName, ipaddr, userAgent)
+	return s.externalIDTokenAuth(ctx, s.appleIDTokens, token.AuthProviderApple, token.AuthProviderApple, rawToken, firstName, lastName, ipaddr, userAgent)
 }
 
 // GoogleIDTokenAuth signs a user in with a native Google Sign-In ID token.
 func (s *authService) GoogleIDTokenAuth(ctx context.Context, rawToken, ipaddr, userAgent string) (*models.LoginResult, *errx.Error) {
-	return s.externalIDTokenAuth(ctx, s.googleIDTokens, token.AuthProviderGoogle, rawToken, "", "", ipaddr, userAgent)
+	return s.externalIDTokenAuth(ctx, s.googleIDTokens, token.AuthProviderGoogle, token.AuthProviderGoogle, rawToken, "", "", ipaddr, userAgent)
+}
+
+// WireClerk attaches the Clerk session-token verifier (a nil verifier disables it).
+func (s *authService) WireClerk(verifier IDTokenVerifier) {
+	s.clerkTokens = verifier
+}
+
+// ClerkTokenAuth signs a person in from the Clerk session they already hold in
+// the host app. Clerk is just another OpenID issuer, so the account is keyed on
+// (issuer, subject) as the generic OIDC identity; the session records "clerk".
+func (s *authService) ClerkTokenAuth(ctx context.Context, rawToken, ipaddr, userAgent string) (*models.LoginResult, *errx.Error) {
+	return s.externalIDTokenAuth(ctx, s.clerkTokens, models.IdentityProviderOIDC, token.AuthProviderClerk, rawToken, "", "", ipaddr, userAgent)
 }
 
 // externalIDTokenAuth is the shared native social sign-in flow: verify the
@@ -46,7 +58,7 @@ func (s *authService) GoogleIDTokenAuth(ctx context.Context, rawToken, ipaddr, u
 // provider-verified identity is already strong auth, so there is no email OTP
 // or captcha step; first sign-in provisions the org and free trial exactly
 // like password registration does.
-func (s *authService) externalIDTokenAuth(ctx context.Context, verifier IDTokenVerifier, provider, rawToken, firstName, lastName, ipaddr, userAgent string) (*models.LoginResult, *errx.Error) {
+func (s *authService) externalIDTokenAuth(ctx context.Context, verifier IDTokenVerifier, provider, sessionProvider, rawToken, firstName, lastName, ipaddr, userAgent string) (*models.LoginResult, *errx.Error) {
 	if verifier == nil {
 		return nil, errx.ErrExternalProvider
 	}
@@ -81,7 +93,7 @@ func (s *authService) externalIDTokenAuth(ctx context.Context, verifier IDTokenV
 
 	// Ban check and the 2FA gate both live in finishLoginAs, so social
 	// sign-in enforces exactly what password login does.
-	return s.finishFederatedLogin(ctx, res, ipaddr, userAgent, provider)
+	return s.finishFederatedLogin(ctx, res, ipaddr, userAgent, sessionProvider)
 }
 
 // federatedResolution is what a verified external identity resolved to. With

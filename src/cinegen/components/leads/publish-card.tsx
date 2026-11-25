@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useWorkspace } from '@cinegen/components/workspace/workspace-shell';
 import { publishIncludes } from '@cinegen/lib/leads/leads';
+import { requestRetarget } from '@cinegen/lib/leads/open-retarget';
 import { createQrEndCard, mp4WatchLink } from '@cinegen/lib/leads/qr-end-card';
 import { LINK_PRESETS, trackedLink } from '@cinegen/lib/leads/share-links';
 // @ts-expect-error plain JS
@@ -70,6 +71,13 @@ export function PublishCard({ pub, leadCount }: { pub: ReturnType<typeof usePubl
       </div>
       {pub.error && <p className="leads-error" role="alert">{pub.error}</p>}
       {pub.guest && <p className="leads-note" data-testid="guest-notice">{GUEST_NOTICE}</p>}
+      {pub.info && pub.retarget && (
+        <div className="leads-note" data-testid="retarget-status" role="status">
+          {pub.retarget === 'on' && <>Retarget is on for this video: follow-up suggestions appear once viewers watch it. <button type="button" className="leads-btn" data-testid="open-retarget" onClick={() => { requestRetarget(); dispatch({ type: 'SET_TAB', tab: 'analytics' }); }}>Open Retarget</button></>}
+          {pub.retarget === 'guest' && 'Retarget needs an account. Sign in and publish again to turn it on for this video.'}
+          {pub.retarget === 'failed' && 'This video was published, but Retarget could not be connected to it yet. Open the Analytics tab or publish again to retry.'}
+        </div>
+      )}
       {pub.info && pub.id && (
         <div className="leads-links">
           <div className="leads-copy"><span className="leads-label">Link</span><input readOnly value={shareLink} className="leads-input" data-testid="share-link" /><button type="button" className="leads-btn" onClick={() => copy('link', shareLink)}>{copied === 'link' ? 'Copied' : 'Copy'}</button></div>

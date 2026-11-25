@@ -42,7 +42,7 @@
  * and keyboard moves always persist in-bounds values).
  */
 
-import { isImageLayerKind, toBox } from '../preview/presets'
+import { TEXT_CHAR_WIDTH_RATIO, isImageLayerKind, toBox } from '../preview/presets'
 import { isRotated, rotatedExtent } from '../preview/rotation'
 import type { PreviewLayer, PreviewLayerKind } from '../preview/types'
 import type { AssetLibrary, PersonalizationAsset } from '../types'
@@ -64,7 +64,7 @@ export const NUDGE_STEP_LARGE = 0.05
 export const TEXT_LINE_HEIGHT = 1.15
 
 /** Character-width ratio shared with toBox's own width estimate. */
-const APPROX_CHAR_WIDTH_RATIO = 0.55
+const APPROX_CHAR_WIDTH_RATIO = TEXT_CHAR_WIDTH_RATIO
 
 /** Guard rail for pathological text lengths. */
 const MAX_TEXT_LINES = 8
@@ -358,6 +358,18 @@ export function nudgeDeltaForKey(
 }
 
 /**
+ * The geometry a layer is DRAWN with, shared by the composition (preview and
+ * export) and the editor stage so the two can never disagree. Text and image
+ * layers are kept inside the safe area, so a saved position near an edge can
+ * not push a logo or headline off the frame. Design layers are drawn exactly
+ * as saved: they are full-frame overlays whose own artwork handles the edges.
+ */
+export function renderedLayerGeometry(layer: PreviewLayer, compW: number, compH: number): PreviewLayer {
+  if (layer.kind === 'design') return layer
+  return clampLayerToBounds(layer, compW, compH)
+}
+
+/**
  * Stage pixels for a layer: the safe-area-clamped composition box multiplied
  * by `stageWidth / compW`. Image layers are square; text layers grow with
  * their content (no height), exactly like the composition.
@@ -371,7 +383,7 @@ export function toStageBox(
 ): StageBoxPx {
   const { width, height } = resolveCompositionSize(compW, compH)
   const factor = stageScaleFactor(stageWidth, width)
-  const bounded = clampLayerToBounds(layer, width, height)
+  const bounded = renderedLayerGeometry(layer, width, height)
   const box = layerBoxMetrics(bounded, width, height, resolvedText)
   return {
     left: box.leftPx * factor,
