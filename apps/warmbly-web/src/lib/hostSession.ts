@@ -24,6 +24,9 @@ type HostClerk = {
 };
 
 let unlisten: (() => void) | undefined;
+// The waiting screen replaces #root, which is only safe before the app has mounted. After that (a token refresh
+// while the person is using the dashboard) a retry stays silent.
+let booting = false;
 
 /** The host app's window when embedded in one (same origin), else this window. */
 function hostWindow(): Window {
@@ -71,7 +74,7 @@ async function exchangeWhenAwake(jwt: string): Promise<LoginResult> {
             return await exchangeClerk(jwt);
         } catch (err) {
             if (attempt >= WAKE_RETRY_DELAYS_MS.length || !isStillWaking(err)) throw err;
-            if (attempt === 0) showHostSessionWaiting();
+            if (attempt === 0 && booting) showHostSessionWaiting();
             await new Promise((resolve) => setTimeout(resolve, WAKE_RETRY_DELAYS_MS[attempt]));
         }
     }
@@ -104,9 +107,18 @@ function toHostSignIn(): Promise<never> {
  * sign-in and this never resolves, so no Warmbly sign-in screen ever shows.
  */
 export async function bootHostSession(): Promise<void> {
-    const clerk = await clerkReady();
-    if (!clerk?.session) await toHostSignIn();
-    await syncHostToken();
+    booting = true;
+    try {
+        const clerk = await clerkReady();
+        if (!clerk?.session) await toHostSignIn();
+        await syncHostToken();
+        listenForHostSignOut(clerk);
+    } finally {
+        booting = false;
+    }
+}
+
+function listenForHostSignOut(clerk: HostClerk | undefined): void {
     // Signed out of the host (here or in another tab): this session ends with it.
     unlisten?.();
     unlisten = clerk?.addListener?.(({ session }) => {

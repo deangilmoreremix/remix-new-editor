@@ -109,7 +109,7 @@ describe("host session (one login)", () => {
     describe("when the backend is waking from idle", () => {
         afterEach(() => vi.useRealTimers());
 
-        it("asks again after a gateway timeout instead of failing, and says it is starting", async () => {
+        it("while starting up, asks again after a gateway timeout instead of failing, and says it is starting", async () => {
             vi.useFakeTimers();
             document.body.innerHTML = '<div id="root"></div>';
             clerk(signedIn());
@@ -117,12 +117,25 @@ describe("host session (one login)", () => {
                 .mockRejectedValueOnce({ error: "Gateway Timeout", message: "x", status: 504 })
                 .mockRejectedValueOnce({ error: "Network Error", message: "x" })
                 .mockResolvedValue(warmblySession());
-            const done = syncHostToken();
+            const done = bootHostSession(); // startup: nothing is mounted yet, so the screen is safe to show
             await vi.advanceTimersByTimeAsync(4_000);
             expect(document.getElementById("root")?.textContent).toMatch(/Starting SmartWarmupAI/);
             await vi.advanceTimersByTimeAsync(8_000);
-            await expect(done).resolves.toMatchObject({ access_token: "warmbly-access" });
+            await expect(done).resolves.toBeUndefined();
             expect(exchangeClerk).toHaveBeenCalledTimes(3);
+        });
+
+        it("stays silent on a refresh while the dashboard is already running, so it is never wiped", async () => {
+            vi.useFakeTimers();
+            document.body.innerHTML = '<div id="root"><main id="app">running dashboard</main></div>';
+            clerk(signedIn());
+            vi.mocked(exchangeClerk)
+                .mockRejectedValueOnce({ error: "Gateway Timeout", message: "x", status: 504 })
+                .mockResolvedValue(warmblySession());
+            const done = syncHostToken(); // a refresh: bootHostSession is not running
+            await vi.advanceTimersByTimeAsync(4_000);
+            expect(document.getElementById("app")?.textContent).toBe("running dashboard");
+            await expect(done).resolves.toMatchObject({ access_token: "warmbly-access" });
         });
 
         it("does not retry a refusal", async () => {

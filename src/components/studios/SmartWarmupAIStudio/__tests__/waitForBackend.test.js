@@ -40,4 +40,13 @@ describe('waitForBackend', () => {
     const fetchImpl = vi.fn().mockImplementation(async (url) => (String(url).endsWith('config.js') ? liveConfig : down()));
     await expect(waitForBackend({ fetchImpl, maxMs: 30, stepMs: 10, sleep: (ms) => new Promise((r) => setTimeout(r, ms)) })).resolves.toBeUndefined();
   });
+
+  it('does not let a request that never answers outlive the limit', async () => {
+    // Like a hung proxy: only an abort ends it.
+    const hang = (url, { signal } = {}) => new Promise((_, reject) => signal?.addEventListener('abort', () => reject(new Error('aborted'))));
+    const fetchImpl = vi.fn().mockImplementation((url, opts) => (String(url).endsWith('config.js') ? Promise.resolve(liveConfig) : hang(url, opts)));
+    const started = Date.now();
+    await waitForBackend({ fetchImpl, maxMs: 60, stepMs: 10, sleep: (ms) => new Promise((r) => setTimeout(r, ms)) });
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
 });

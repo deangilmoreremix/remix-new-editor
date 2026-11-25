@@ -59,10 +59,13 @@ export async function waitForBackend({ onWaiting, maxMs = 120000, stepMs = 3000,
   onWaiting?.();
   const until = Date.now() + maxMs;
   while (Date.now() < until) {
+    // One request must not outlive the budget, or a hung proxy would keep the dashboard from ever loading.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), Math.max(1, Math.min(until - Date.now(), 30000)));
     try {
-      const res = await fetchImpl('/smartwarmupai-api/health', { cache: 'no-store' });
+      const res = await fetchImpl('/smartwarmupai-api/health', { cache: 'no-store', signal: ctrl.signal });
       if (res.ok) return;
-    } catch { /* still waking */ }
+    } catch { /* still waking, or this attempt ran out of time */ } finally { clearTimeout(timer); }
     await sleep(stepMs);
   }
 }
