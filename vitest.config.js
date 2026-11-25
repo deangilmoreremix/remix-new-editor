@@ -35,6 +35,13 @@ export default defineConfig({
   resolve: {
     alias: {
       '../../lib/socialPublishHelpers': path.resolve(__dirname, 'src/lib/socialPublishHelpers.js'),
+      // components/modals/SocialPublishModal.jsx reaches src/lib through the app's `lib/` resolver
+      // (vite.config.js); mirror the modules the modal imports so it can be rendered under test.
+      '../../lib/socialPublishing': path.resolve(__dirname, 'src/lib/socialPublishing.js'),
+      '../../lib/socialSchedule': path.resolve(__dirname, 'src/lib/socialSchedule.js'),
+      '../../lib/socialPostEnhancer': path.resolve(__dirname, 'src/lib/socialPostEnhancer.js'),
+      '../../lib/socialPublisherThumbnail': path.resolve(__dirname, 'src/lib/socialPublisherThumbnail.js'),
+      '../../lib/config/openaiConfig.js': path.resolve(__dirname, 'src/lib/config/openaiConfig.js'),
       '@ohb': path.resolve(__dirname, 'src/features/personalization'),
       // tests/unit/timeline-*.unit.spec.ts import through the `@/` layout:
       // `@` is the PROJECT ROOT, so `@/src/components/Timeline` resolves to
