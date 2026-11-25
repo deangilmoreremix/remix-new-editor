@@ -123,10 +123,11 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
         onPlay={(e) => { seekToStart(e.currentTarget); setStarted(true); once('play', () => handlers.onPlay?.()); }}
         onTimeUpdate={(e) => {
           const v = e.currentTarget;
+          if (!started) return;   // a start-frame seek before play is not watching: no progress, no timed button
           if (ctaOn && v.currentTime >= ctaAt) setCtaShown(true);
           // Progress (25/50/75%) counts over the part that plays: from the start time to the stop time (or the end).
           const known = !!v.duration && Number.isFinite(v.duration);
-          const end = endAt || (known ? v.duration : 0);
+          const end = known ? Math.min(endAt || v.duration, v.duration) : endAt;   // a stop time past the video's real end counts to the real end
           if (end > startAt) { const frac = (v.currentTime - startAt) / (end - startAt); MARKS.forEach((m) => { if (frac >= m.at) once(m.kind, handlers.onProgress); }); }
           if (endAt && v.currentTime >= endAt) { v.pause(); once('complete', () => handlers.onComplete?.()); if (viewer.loop === 'yes') { v.currentTime = startAt; void v.play?.(); } return; }
         }}

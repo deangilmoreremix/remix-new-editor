@@ -133,6 +133,7 @@ describe('viewer extras at play time', () => {
     act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers, preview: false }}><ViewerContext.Provider value={viewer}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
     const v = host.querySelector('video');
     v.pause = vi.fn(); v.play = vi.fn(() => Promise.resolve());
+    act(() => { v.dispatchEvent(new Event('play')); });   // the visitor pressed play
     return { host, v };
   };
   const at = (v, t) => { Object.defineProperty(v, 'currentTime', { value: t, writable: true, configurable: true }); Object.defineProperty(v, 'duration', { value: 60, configurable: true }); act(() => { v.dispatchEvent(new Event('timeupdate')); }); };
@@ -198,12 +199,13 @@ describe('looping with a start time', () => {
 });
 
 describe('watch progress over the trimmed part', () => {
-  const run = (viewer, times, duration = 120) => {
+  const run = (viewer, times, duration = 120, opts = {}) => {
     const marks = [];
     const host = document.createElement('div'); document.body.appendChild(host);
     act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers: { onProgress: (k) => marks.push(k) }, preview: false }}><ViewerContext.Provider value={viewer}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
     const v = host.querySelector('video'); v.pause = vi.fn(); v.play = vi.fn(() => Promise.resolve());
     Object.defineProperty(v, 'duration', { value: duration, configurable: true });
+    if (!opts.beforePlay) act(() => { v.dispatchEvent(new Event('play')); });
     for (const t of times) { Object.defineProperty(v, 'currentTime', { value: t, writable: true, configurable: true }); act(() => { v.dispatchEvent(new Event('timeupdate')); }); }
     return marks;
   };
@@ -216,5 +218,11 @@ describe('watch progress over the trimmed part', () => {
   });
   it('untrimmed video keeps counting over the whole video', () => {
     expect(run({}, [31, 61, 91])).toEqual(['progress_25', 'progress_50', 'progress_75']);
+  });
+  it('a start-frame seek before play is not watching', () => {
+    expect(run({ posterAt: 100 }, [100], 120, { beforePlay: true })).toEqual([]);
+  });
+  it('a stop time past the real end counts to the real end', () => {
+    expect(run({ end: 120 }, [15.1, 30.1, 45.1], 60)).toEqual(['progress_25', 'progress_50', 'progress_75']);
   });
 });
