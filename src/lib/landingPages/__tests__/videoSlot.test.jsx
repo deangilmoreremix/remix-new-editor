@@ -179,3 +179,20 @@ describe('playing again, and the start frame', () => {
     expect(v.currentTime).toBe(0);
   });
 });
+
+describe('looping with a start time', () => {
+  it('each round starts at the start time, also when no stop time is set', () => {
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers: {}, preview: false }}><ViewerContext.Provider value={{ start: 4, loop: 'yes' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    const v = host.querySelector('video'); v.play = vi.fn(() => Promise.resolve());
+    expect(v.loop).toBe(false);   // not the native loop, which would restart at 0
+    Object.defineProperty(v, 'currentTime', { value: 60, writable: true, configurable: true });
+    act(() => { v.dispatchEvent(new Event('ended')); });
+    expect(v.currentTime).toBe(4); expect(v.play).toHaveBeenCalled();
+  });
+  it('without a start time the native loop is used', () => {
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers: {}, preview: false }}><ViewerContext.Provider value={{ loop: 'yes' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    expect(host.querySelector('video').loop).toBe(true);
+  });
+});

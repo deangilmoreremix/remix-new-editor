@@ -112,7 +112,7 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
         ref={ref}
         controls={!!src && viewer.controls !== 'no'}
         {...(autoplay ? { autoPlay: true, muted: true } : {})}
-        loop={viewer.loop === 'yes'}
+        loop={viewer.loop === 'yes' && !startAt}   // with a start time, looping is done by hand so every round starts there
         style={aspect ? { aspectRatio: aspect } : undefined}
         playsInline
         preload="metadata"
@@ -128,7 +128,7 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
           if (!v.duration || !Number.isFinite(v.duration)) return;
           MARKS.forEach((m) => { if (v.currentTime / v.duration >= m.at) once(m.kind, handlers.onProgress); });
         }}
-        onEnded={() => { if (ctaOn) setCtaShown(true); once('complete', () => handlers.onComplete?.()); }}
+        onEnded={(e) => { if (ctaOn) setCtaShown(true); once('complete', () => handlers.onComplete?.()); if (viewer.loop === 'yes' && startAt) { e.currentTarget.currentTime = startAt; void e.currentTarget.play?.(); } }}
       >
         {subtitles ? <track kind="subtitles" src={subtitles} srcLang="en" label="Captions" default /> : null}
       </video>
