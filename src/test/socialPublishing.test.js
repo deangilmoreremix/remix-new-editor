@@ -245,6 +245,11 @@ describe('socialPublishing', () => {
       );
     });
 
+    test('rejects an incomplete payload before calling muapi', async () => {
+      await expect(socialPublishing.setYouTubeThumbnail({ account_id: 1, video_id: 'v' })).rejects.toThrow('needs account_id, video_id and thumbnail_url');
+      expect(mockProxyJson).not.toHaveBeenCalled();
+    });
+
     test('throws when no request_id comes back', async () => {
       mockProxyJson.mockResolvedValueOnce({});
       await expect(socialPublishing.setYouTubeThumbnail({ account_id: 1, video_id: 'v', thumbnail_url: 'https://x/t.png' }))

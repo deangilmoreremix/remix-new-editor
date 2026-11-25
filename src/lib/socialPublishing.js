@@ -171,6 +171,9 @@ async function publishAndPoll(platform, payload, opts = {}) {
 // Replace the thumbnail of an already-published YouTube video.
 // muapi: POST youtube-set-thumbnail { account_id, video_id, thumbnail_url } (public JPEG/PNG, under 2 MB).
 async function setYouTubeThumbnail(payload, opts = {}) {
+  if (!payload?.account_id || !payload?.video_id || !payload?.thumbnail_url) {
+    throw new Error('setYouTubeThumbnail needs account_id, video_id and thumbnail_url');
+  }
   const submit = await muapi.proxyJson(
     'youtube-set-thumbnail',
     { method: 'POST', params: payload, generationType: 'social' },

@@ -8,6 +8,7 @@ import socialPublishing, {
 
 import { enhanceSocialPostText, TONALITIES } from '../../lib/socialPostEnhancer';
 // Pure payload builder (muapi field names and limits per platform), shared with the personalization publisher.
+import { toPublicThumbnailUrl } from '../../src/lib/socialThumbnail.js';
 import { buildPublishPayload } from '../../src/features/personalization/shared/api/socialPayloads';
 import openaiConfig from '../../lib/config/openaiConfig.js';
 // Same palette as the "Personalize this demo" window (black, lime accent, 22px shell), so every publishing window looks like one app.
@@ -36,17 +37,6 @@ import { seedThumbnailFieldsFromSocialCopy } from '../../lib/socialPublisherThum
 // sites; here we only read its `onApply({ imageUrl, revisedPrompt })` result
 // into local form state so a single thumbnail step drives the live preview.
 // ---------------------------------------------------------------------------
-
-// Generated/edited thumbnails are data: or blob: URLs; the platforms need a public link, so those are
-// compressed (YouTube: JPEG/PNG under 2 MB) and uploaded first. Loaded on demand to keep the modal light.
-async function toPublicThumbnailUrl(url) {
-  if (/^https?:\/\//i.test(url)) return url;
-  const [{ prepareThumbnailFile }, { uploadFileToStorage }] = await Promise.all([
-    import('../../src/features/personalization/lib/thumbnailUpload'),
-    import('../../src/lib/hybrid-supabase.js'),
-  ]);
-  return uploadFileToStorage(await prepareThumbnailFile(url));
-}
 
 // Platforms whose payload comes from the shared builder (YouTube, TikTok and Instagram have their own forms).
 const BUILDER_PLATFORMS = ['facebook'];
