@@ -103,3 +103,25 @@ export async function signOutOfHost(): Promise<void> {
     await hostClerk()?.signOut();
     hostWindow().location.replace(HOST_SIGN_IN_URL);
 }
+
+/**
+ * Shown when the host session could not be turned into a dashboard session (the backend is asleep or
+ * unreachable, or this account needs a step the dashboard has no screen for). It does not send the
+ * person back to the host sign-in: they are signed in there, so that would loop.
+ */
+export function showHostSessionFailure(err: unknown): void {
+    console.error("[host session]", err);
+    const root = document.getElementById("root") ?? document.body;
+    root.replaceChildren();
+    const box = document.createElement("div");
+    box.setAttribute("role", "alert");
+    box.style.cssText = "font:14px system-ui,sans-serif;max-width:28rem;margin:20vh auto;padding:0 1rem;text-align:center";
+    const msg = document.createElement("p");
+    msg.textContent = "We couldn't connect you to SmartWarmupAI. The service may be starting up. Please try again in a moment.";
+    const retry = document.createElement("button");
+    retry.textContent = "Try again";
+    retry.style.cssText = "margin-top:.75rem;padding:.5rem 1rem;cursor:pointer";
+    retry.onclick = () => window.location.reload();
+    box.append(msg, retry);
+    root.append(box);
+}

@@ -17,6 +17,9 @@ pod = Pod(
     memory="4Gi",
     disks=[DurableDisk(name="smartwarmupai-data", size="20Gi", mount_path="/data")],
     secrets=SECRETS,
+    # Clerk is the gate: a person Clerk has signed in (verified email) gets an account on first visit. Direct
+    # registration on this API stays closed (DISABLE_REGISTRATION in env.sh). Without this the exchange refuses new people.
+    env={"SSO_AUTO_PROVISION": "true"},
     keep_warm_seconds=600,  # scales to zero after 10 idle minutes (Beam's default for Pods)
     authorized=False,  # the dashboard calls the API from the browser, so the URL must be public; the API has its own auth
 )

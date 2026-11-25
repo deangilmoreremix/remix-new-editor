@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import getToken from "./helper/getToken";
 import exchangeClerk from "./api/client/auth/exchangeClerk";
-import { bootHostSession, signOutOfHost, syncHostToken } from "./hostSession";
+import { bootHostSession, showHostSessionFailure, signOutOfHost, syncHostToken } from "./hostSession";
 
 vi.mock("./api/client/auth/exchangeClerk", () => ({ default: vi.fn() }));
 
@@ -85,5 +85,14 @@ describe("host session (one login)", () => {
         await signOutOfHost().catch(() => {});
         expect(c.signOut).toHaveBeenCalled();
         expect(getToken()).toBeNull();
+    });
+
+    it("shows a message with a retry button, not a blank page, when the session cannot be taken", () => {
+        document.body.innerHTML = '<div id="root"></div>';
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        showHostSessionFailure(new Error("boom"));
+        const root = document.getElementById("root")!;
+        expect(root.querySelector('[role="alert"]')?.textContent).toMatch(/couldn't connect you/);
+        expect(root.querySelector("button")?.textContent).toBe("Try again");
     });
 });
