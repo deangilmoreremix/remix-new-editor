@@ -113,6 +113,7 @@ export function showHostSessionFailure(err: unknown): void {
     console.error("[host session]", err);
     const root = document.getElementById("root") ?? document.body;
     root.replaceChildren();
+    root.classList.add("app-ready"); // the page keeps #root invisible until the app is ready, which never comes here
     const box = document.createElement("div");
     box.setAttribute("role", "alert");
     box.style.cssText = "font:14px system-ui,sans-serif;max-width:28rem;margin:20vh auto;padding:0 1rem;text-align:center";

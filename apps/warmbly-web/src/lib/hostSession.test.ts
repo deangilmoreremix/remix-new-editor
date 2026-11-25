@@ -94,5 +94,6 @@ describe("host session (one login)", () => {
         const root = document.getElementById("root")!;
         expect(root.querySelector('[role="alert"]')?.textContent).toMatch(/couldn't connect you/);
         expect(root.querySelector("button")?.textContent).toBe("Try again");
+        expect(root.classList.contains("app-ready")).toBe(true); // visible, not left at opacity 0
     });
 });
