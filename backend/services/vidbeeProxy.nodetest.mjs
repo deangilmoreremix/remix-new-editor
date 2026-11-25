@@ -6,9 +6,9 @@ import express from 'express';
 import { installVidBee, isAllowed, isSameOriginMutation } from './vidbeeProxy.js';
 
 describe('vidbee gate allowlist', () => {
-  it('denies everyone outside development when unset', () => {
-    assert.equal(isAllowed({ id: 'u1' }, { NODE_ENV: 'production' }), false);
-    assert.equal(isAllowed({ id: 'u1' }, { NODE_ENV: 'development' }), true);
+  it('lets any signed-in user in, and nobody signed out, when no allowlist is set', () => {
+    assert.equal(isAllowed({ id: 'u1' }, { NODE_ENV: 'production' }), true);
+    assert.equal(isAllowed(undefined, { NODE_ENV: 'production' }), false);
   });
   it('matches user id or email case-insensitively', () => {
     const env = { NODE_ENV: 'production', VIDBEE_ALLOWED_USERS: 'U1, Admin@X.com' };

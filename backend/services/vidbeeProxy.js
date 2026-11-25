@@ -5,8 +5,7 @@
  * download directory), so it is only reachable through this gate:
  *   POST /api/vidbee/session  (Bearer auth + allowlist)  → sets a short-lived HttpOnly cookie
  *   ANY  /vidbee/*            (cookie required)          → streams to the VidBee web server
- * Allowlist: VIDBEE_ALLOWED_USERS="id1,email@x.com" (user id or email). Unset = everyone in
- * NODE_ENV=development, nobody otherwise.
+ * Any signed-in user may use it. Optional restriction: VIDBEE_ALLOWED_USERS="id1,email@x.com" (user id or email).
  */
 /* global URL */
 import crypto from 'node:crypto';
@@ -34,10 +33,14 @@ const verify = (token) => {
 };
 const readCookie = (req, name) => (req.headers.cookie || '').split(/;\s*/).map((c) => c.split('=')).find(([k]) => k === name)?.[1];
 
+/** Any signed-in user may use it. Setting VIDBEE_ALLOWED_USERS narrows that to the listed users. All users share one queue and library. */
+const allowList = (env) => (env.VIDBEE_ALLOWED_USERS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+
 export const isAllowed = (user, env = process.env) => {
-  const list = (env.VIDBEE_ALLOWED_USERS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-  if (!list.length) return (env.NODE_ENV || 'development') === 'development';
-  return [user?.id, user?.email].filter(Boolean).some((v) => list.includes(String(v).toLowerCase()));
+  if (!user?.id) return false;
+  const list = allowList(env);
+  if (!list.length) return true;
+  return [user.id, user.email].filter(Boolean).some((v) => list.includes(String(v).toLowerCase()));
 };
 
 /**

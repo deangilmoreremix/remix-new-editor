@@ -29,7 +29,7 @@ npm run vidbee:start       # VIDBEE_PORT=3300 VIDBEE_DATA_DIR=… VIDBEE_DOWNLOA
 ## Access control (important)
 Upstream VidBee is single-user and has no login; it can browse server folders, change its download directory and run an AI agent with tools.
 The host server is therefore only reachable through `backend/services/vidbeeProxy.js` (Supabase JWT + cookie session). Everything except the built static assets requires a signed-in, allow-listed user
-(`VIDBEE_ALLOWED_USERS`, user id or email; unset = everyone only in `NODE_ENV=development`). All allowed users share one library, queue, AI provider key and agent history.
+(`VIDBEE_ALLOWED_USERS`, user id or email; unset = every signed-in user). All users share one library, queue, AI provider key and agent history.
 The bridge binds to 127.0.0.1 by default; expose it only through the gate.
 
 ## What differs from the Electron app
