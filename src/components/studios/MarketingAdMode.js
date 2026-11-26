@@ -85,8 +85,8 @@ export function createMarketingAdMode() {
     onFiles: (files) => upload(files, refsSlot, (urls) => { state.refs = [...state.refs, ...urls]; refsSlot.setPreview(state.refs); }),
     onClear: () => { state.refs = []; },
   });
-  refsSlot.dataset.helpName = 'References';
-  refsSlot.dataset.helpText = 'Optional images that guide the look of the ad.';
+  refsSlot.el.dataset.helpName = 'References';
+  refsSlot.el.dataset.helpText = 'Optional images that guide the look of the ad.';
 
   const formatPill = createPill({ label: state.format.name, title: 'Video format presets' });
   formatPill.dataset.helpName = 'Video format';
