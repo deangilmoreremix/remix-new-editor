@@ -3,11 +3,11 @@
   "apps": {
     "ai-stylist": "Restyle the person in this photo in a new outfit that fits the chosen style. Keep their face, body shape, pose and the background unchanged. Realistic fashion photography, natural fabric folds and lighting. {prompt}",
     "relight": "Relight this photo with the lighting changes described, keeping the subject, pose and scene identical. Physically plausible shadows and highlights, natural skin tones. {prompt}",
-    "outfit-swap": "Dress the person in this photo in the clothing described, keeping their face, pose and background exactly the same. Realistic fit, fabric texture and shadows. {prompt}",
+    "outfit-swap": "Create a full-length photo of a person wearing the exact outfit shown in the reference photo, keeping every garment, colour, pattern and accessory faithful. Natural standing pose, realistic fit, fabric texture and shadows, clean studio background. {prompt}",
     "style-snap": "Change the person's clothing and accessories to the chosen fashion style while keeping their identity, pose and setting. Clean editorial photo, natural light. {prompt}",
     "outfit-vending": "Show this person's outfit broken down item by item, each piece displayed in its own compartment of a glowing street vending machine at night. Neat product-style presentation, vivid neon reflections. {prompt}",
     "glitter-sticker": "Turn this portrait into a die-cut holographic glitter sticker stuck on a weathered city wall. Sparkling foil edges, bold outline, subtle wear and grit around it. {prompt}",
-    "outfit-shot": "A short fashion shoot of this person modelling the outfit, gentle turns and confident poses, soft studio lighting, smooth camera movement. {prompt}",
+    "outfit-shot": "A short fashion shoot: a model wears the clothing shown in the photo, gentle turns and confident poses that show off the fit and fabric, soft studio lighting, smooth camera movement. {prompt}",
     "game-dump": "Recreate this person as a character from a video game of the chosen genre, with matching art style, interface cues and environment. Keep their recognisable features. {prompt}",
     "nano-strike": "Turn this person into a modern tactical-shooter operator in a ruined urban setting, detailed gear, cinematic gritty lighting. Keep their recognisable face. {prompt}",
     "nano-theft": "Illustrate this person as a lead character in a sunny open-world crime game, stylised loading-screen artwork, city skyline behind them, bold colours. {prompt}",
@@ -39,7 +39,7 @@
     "volcano-ad": "The product from the photo rises dramatically out of an erupting volcano, glowing lava and sparks, epic cinematic scale. {prompt}",
     "macroshot-product": "A professional macro photograph of the product from the photo with very shallow depth of field, sharp fine textures and premium studio lighting. {prompt}",
     "recast": "Animate the person in this image as a new character, keeping the motion natural and the framing consistent, cinematic quality. {prompt}",
-    "character-swap": "Replace the person in this scene with the character shown, keeping the pose, lighting, background and overall composition. {prompt}",
+    "character-swap": "Replace the main person in this scene with a new character, using the description given below or a distinct, natural-looking new person if none is given. Keep the pose, lighting, background, perspective and overall composition unchanged. {prompt}",
     "commercial-faces": "Create a polished, ad-ready portrait of a friendly spokesperson based on this photo, clean background, professional lighting, natural expression. {prompt}",
     "headshot-generator": "Turn this photo into a professional headshot in the chosen style: neat attire, soft studio lighting, clean background, natural friendly expression. {prompt}",
     "clipcut": "A fast fashion reel built from this selfie: a quick sequence of different outfits and poses with rhythmic cuts, stylish urban setting. {prompt}",
@@ -67,14 +67,14 @@
     "giallo-horror": "The person from the photo in a stylish 1970s giallo horror scene, saturated red and blue light, moody suspense. {prompt}",
     "renaissance": "The person from the photo as a sitter in a classical oil painting hanging in a museum gallery, rich dark tones, painterly texture. {prompt}",
     "rap-god": "The person from the photo performing in a rap music video, confident swagger, chains and neon lights, night street backdrop. {prompt}",
-    "angles": "Show the same subject from a new camera position as described, keeping the subject, lighting and setting consistent. {prompt}",
+    "angles": "Show the same subject from a new camera position, keeping the subject, lighting and setting consistent. {prompt}",
     "whats-next": "Continue the story of this scene: show the very next moment, with the same characters, location and style. {prompt}",
     "shots": "Re-photograph this scene as a different cinematic shot type as chosen, keeping the same subject and setting. {prompt}",
-    "zooms": "Show the same scene with the camera moved closer or farther away as described, keeping subject and lighting consistent. {prompt}",
+    "zooms": "Show the same scene with the camera moved closer or farther away, keeping the subject and lighting consistent. {prompt}",
     "behind-the-scenes": "A behind-the-scenes look at the filming of this scene: camera crew, lights, monitors and reflectors around the subject. {prompt}",
-    "transitions": "A smooth video transition from the first image to the second in the chosen style, continuous motion and consistent lighting. {prompt}",
+    "transitions": "A short video that transitions between two scenes, one of which is this image, in the chosen style, with continuous motion and consistent lighting. {prompt}",
     "expand-image": "Extend this image outward on all sides, continuing the scene naturally with matching light, perspective and detail. {prompt}",
-    "color-grading": "Colour grade this image as described while keeping the content and composition unchanged. Film-quality tones and natural skin colour. {prompt}"
+    "color-grading": "Colour grade this image in a polished, film-quality look, keeping the content and composition unchanged and skin colour natural. {prompt}"
   },
   "presets": {
     "ai-stylist": {
@@ -137,9 +137,9 @@
     "transitions": {
       "Morph": "a smooth morph where shapes flow into each other",
       "Dissolve": "a soft cross-dissolve",
-      "Zoom through": "a fast zoom through the first image into the second",
+      "Zoom through": "a fast zoom through the scene into the next one",
       "Whip pan": "a quick whip pan blur between the two scenes",
-      "Match cut": "a match cut that lines up shapes in both images"
+      "Match cut": "a match cut that lines up shapes across the two scenes"
     },
     "color-grading": {
       "Natural": "natural balanced colour",
