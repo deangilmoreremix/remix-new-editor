@@ -2,12 +2,12 @@
   "id": "smart-video-scheduler",
   "name": "Smart Video Scheduler",
   "route": "#/smart-video-scheduler",
-  "description": "An early content-calendar page with Calendar, Schedule and Analytics tabs. The Schedule tab opens the Publish to Social window to publish now; timed scheduling is not available yet.",
-  "shortDescription": "Content calendar page with Calendar, Schedule and Analytics tabs (preview). The Schedule tab opens Publish to Social.",
-  "fullDescription": "Smart Video Scheduler (#/smart-video-scheduler, also opened by #/brightbean) is a preview of a content calendar. The page title reads 'Smart Video Scheduler'. Three tabs switch the main area: Calendar shows 'Content Calendar - Your scheduled posts will appear here. Connect your social accounts to start scheduling.', Schedule shows 'Publish a video - Pick a video, add a caption and an AI-generated thumbnail, then publish it to your connected accounts. Timed scheduling is not available yet.' with a 'Publish to Social' button that opens the Publish to Social window (steps: Media, Thumbnail, Copy, Platform, Preview) for YouTube, TikTok, Instagram or Facebook and Analytics shows 'Analytics - Track your post performance across all platforms.' Calendar and Analytics are placeholder messages with no calendar grid or data. You can publish a video right away from the Schedule tab, including creating a thumbnail with AI, but you cannot choose a future date or time: timed scheduling is not built, and muapi's social API publishes immediately.",
-  "bestFor": "People who want to publish a video to YouTube, TikTok, Instagram or Facebook from the scheduler page, and to see what the planned calendar and analytics areas will look like. Scheduling a post for later is not available yet.",
+  "description": "An early page with Calendar, Publish and Analytics tabs. The Publish tab opens the Publish to Social window, which posts right away.",
+  "shortDescription": "Page with Calendar, Publish and Analytics tabs (preview). The Publish tab opens Publish to Social.",
+  "fullDescription": "Smart Video Scheduler (#/smart-video-scheduler, also opened by #/brightbean) is an early page with three tabs. The page title reads 'Smart Video Scheduler'. Calendar shows 'Content Calendar - A calendar of your posts is not available yet. To post a video now, open the Publish tab.' Publish shows 'Publish a video - Choose a video, write the caption, make an AI thumbnail and publish it to your connected accounts right away.' with a 'Publish to Social' button that opens the Publish to Social window (steps: Media, Thumbnail, Copy, Platform, Preview) for YouTube, TikTok, Instagram or Facebook. Analytics shows 'Analytics - Track your post performance across all platforms.' Calendar and Analytics are placeholder messages with no data. Posts are published at the moment you create them: there is no date or time picker.",
+  "bestFor": "People who want to publish a video to YouTube, TikTok, Instagram or Facebook, with an AI thumbnail, from the scheduler page. Posts go out right away.",
   "whenToUse": [
-    "You want to look at the planned content calendar, scheduling and analytics areas.",
+    "You want to publish a video to your social accounts with an AI-generated thumbnail.",
     "You were sent a link to #/smart-video-scheduler or #/brightbean and want to know what it is."
   ],
   "whenToUseAnother": [
@@ -17,23 +17,23 @@
   ],
   "keyFeatures": [
     "Calendar tab: 'Content Calendar' placeholder",
-    "Schedule tab: 'Publish to Social' button that opens the Publish to Social window (publishes now)",
+    "Publish tab: 'Publish to Social' button that opens the Publish to Social window (posts right away)",
     "Analytics tab: 'Analytics' placeholder"
   ],
   "featureExplanations": [
     {
       "feature": "Calendar tab",
-      "explanation": "The tab that is open when the page loads. It shows 'Content Calendar' and the message 'Your scheduled posts will appear here. Connect your social accounts to start scheduling.'",
-      "whyToUse": "To see where scheduled posts are meant to appear.",
+      "explanation": "The tab that is open when the page loads. It shows 'Content Calendar' and the message 'A calendar of your posts is not available yet. To post a video now, open the Publish tab.'",
+      "whyToUse": "To see where a calendar of your posts may appear later.",
       "inputRequired": "None.",
       "restrictions": "Placeholder only: no calendar grid or posts are shown, and there is no button on this page to connect social accounts."
     },
     {
-      "feature": "Schedule tab",
-      "explanation": "Click 'Schedule' to see 'Publish a video' and a 'Publish to Social' button. The button opens the Publish to Social window, where you choose the media, create or pick a thumbnail (including an AI-generated one), write the copy, pick a connected account and publish.",
+      "feature": "Publish tab",
+      "explanation": "Click 'Publish' to see 'Publish a video' and a 'Publish to Social' button. The button opens the Publish to Social window, where you choose the media, create or pick a thumbnail (including an AI-generated one), write the copy, pick a connected account and publish.",
       "whyToUse": "To publish a video with a thumbnail without leaving the scheduler.",
       "inputRequired": "A public link to the video, a connected account and your muapi API key.",
-      "restrictions": "Publishes immediately: there is no date or time picker, and no posting times are suggested."
+      "restrictions": "Publishes immediately: there is no date or time picker."
     },
     {
       "feature": "Analytics tab",
@@ -43,14 +43,14 @@
       "restrictions": "Placeholder only: no numbers or charts are shown."
     }
   ],
-  "howToUse": "1. Open #/smart-video-scheduler (or #/brightbean). 2. Click Schedule. 3. Click Publish to Social and follow the steps: Media, Thumbnail, Copy, Platform, Preview. 4. The Calendar and Analytics tabs show a short message only.",
+  "howToUse": "1. Open #/smart-video-scheduler (or #/brightbean). 2. Click Publish. 3. Click Publish to Social and follow the steps: Media, Thumbnail, Copy, Platform, Preview. 4. The Calendar and Analytics tabs show a short message only.",
   "howToSteps": [
     "Open #/smart-video-scheduler.",
-    "Click Schedule, then Publish to Social.",
+    "Click Publish, then Publish to Social.",
     "Add the media, a thumbnail and the copy, choose an account and publish."
   ],
   "gettingStarted": [
-    "Use the Schedule tab's Publish to Social button to publish now; nothing can be scheduled for later yet.",
+    "Use the Publish tab's Publish to Social button to post right away.",
     "Connect your social accounts and add your muapi API key when the window asks."
   ],
   "inputs": [],
@@ -63,14 +63,14 @@
   "outputs": [],
   "limitations": [
     "Calendar and Analytics are placeholder messages with no data.",
-    "No timed scheduling: posts are published immediately, there is no date or time picker.",
+    "Posts are published immediately; there is no date or time picker.",
     "The selected tab is not remembered; the page always opens on Calendar."
   ],
   "limitationDetails": [
     {
-      "limitation": "No timed scheduling",
+      "limitation": "Posts go out immediately",
       "impact": "You cannot choose a future date or time for a post; Publish to Social posts right away.",
-      "workaround": "Publish when you want the post to go live."
+      "workaround": "Open Publish to Social when you want the post live."
     }
   ],
   "troubleshooting": [
@@ -80,8 +80,8 @@
   "troubleshootingSteps": [],
   "commonProblems": [
     {
-      "problem": "Cannot find a way to schedule a post",
-      "whyItHappens": "Timed scheduling is not built yet; the Schedule tab publishes immediately.",
+      "problem": "Cannot find a way to post at a later time",
+      "whyItHappens": "Posts are published at the moment you create them; there is no date or time picker.",
       "howToFix": "Use Publish to Social when you want the post live."
     }
   ],
@@ -90,7 +90,7 @@
       "title": "Publish a video from the scheduler",
       "steps": [
         "Open #/smart-video-scheduler.",
-        "Click Schedule, then Publish to Social.",
+        "Click Publish, then Publish to Social.",
         "Paste the video link, create a thumbnail, write the copy, pick an account and publish."
       ]
     }
@@ -101,7 +101,7 @@
       "description": "Publish a video to a connected account with a generated thumbnail.",
       "steps": [
         "Open the page",
-        "Click Schedule, then Publish to Social",
+        "Click Publish, then Publish to Social",
         "Create a thumbnail, write the copy, choose an account and publish"
       ],
       "expectedOutput": "The video is posted to the chosen account; on YouTube the thumbnail is applied after the upload."
@@ -109,8 +109,8 @@
   ],
   "faqs": [
     {
-      "question": "Can I schedule social posts here?",
-      "answer": "Not for a future time yet. The Schedule tab has a 'Publish to Social' button that posts right away; there are no date or time controls."
+      "question": "Can I choose a later date or time for a post?",
+      "answer": "No. The Publish tab has a 'Publish to Social' button that posts right away; there are no date or time controls."
     },
     {
       "question": "How do I connect my social accounts?",
@@ -126,11 +126,10 @@
     }
   ],
   "glossary": {
-    "Content calendar": "A plan of which posts go out on which days.",
-    "Scheduling": "Choosing a future date and time for a post to be published."
+    "Content calendar": "A plan of which posts go out on which days."
   },
   "tips": [
-    "Use Publish to Social on the Schedule tab to publish now.",
+    "Use Publish to Social on the Publish tab to post right away.",
     "Add a thumbnail before publishing to Instagram; it is required."
   ],
   "bestPractices": [
@@ -147,7 +146,7 @@
       "studio": "video",
       "relationship": "Make the videos you want to post",
       "whenToMove": "When you need content to publish.",
-      "why": "The scheduler cannot create or post content yet."
+      "why": "The scheduler cannot create content; it only publishes a video you already have."
     },
     {
       "studio": "image",
@@ -169,9 +168,9 @@
     }
   ],
   "notConfirmed": [
-    "Which social platforms the scheduler will support.",
+    "Whether a calendar of published posts will be added to the Calendar tab.",
     "Whether the hero image for this page exists: the page asks for a 'smart-video-scheduler' hero, which did not render in testing.",
-    "Timed scheduling: muapi's social API documents immediate publishing only, so a scheduling backend would be needed."
+    "Posting at a later time is not offered: muapi's social API publishes immediately only."
   ],
   "sourceFiles": [
     "src/components/SmartVideoScheduler.js",
@@ -181,8 +180,8 @@
   ],
   "verification": {
     "status": "code-review",
-    "verifiedAt": "2026-11-25",
+    "verifiedAt": "2026-11-26",
     "verifiedBy": "Code review (LLM-assisted)",
-    "evidence": "Read SmartVideoScheduler.js (hero, three tabs; the Schedule tab's Publish to Social button) and the router. Loaded the page in the dev app, clicked Publish to Social and walked the Publish to Social steps through Thumbnail Studio; the Platform step could not be completed without a muapi key."
+    "evidence": "Read SmartVideoScheduler.js (hero, three tabs; the Publish tab's Publish to Social button) and the router. Loaded the page in the dev app, clicked Publish, then Publish to Social, and walked the steps through Thumbnail Studio; the Platform step could not be completed without a muapi key."
   }
 }
