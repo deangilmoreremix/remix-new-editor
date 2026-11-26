@@ -181,6 +181,7 @@ package-lock.json
 # ...except lockfiles that `npm ci` needs in vendored apps
 !apps/smartwarmupai-help/package-lock.json
 !apps/warmbly-server/**/package-lock.json
+!backend/beam-gate/package-lock.json
 test-results/
 playwright-report/
 

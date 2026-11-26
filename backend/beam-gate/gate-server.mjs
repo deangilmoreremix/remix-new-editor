@@ -8,7 +8,7 @@ import { installVidBee } from './services/vidbeeProxy.js';
 import { auth } from './middleware/auth.js';
 
 const app = express();
-app.set('trust proxy', true); // behind Beam and Netlify: believe x-forwarded-proto so the cookie is marked Secure
+// No `trust proxy`: the gate reads x-forwarded-proto itself to mark the cookie Secure, and nothing else here needs the client address.
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 installVidBee(app, { auth, cors: cors() });
 

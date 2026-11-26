@@ -1,0 +1,10 @@
+{
+  "name": "vidbee-gate",
+  "private": true,
+  "type": "module",
+  "description": "SmartVidDownloader gate for Beam (see README.md). Exact versions, locked: this service holds the session-signing secret.",
+  "dependencies": {
+    "cors": "2.8.6",
+    "express": "4.22.3"
+  }
+}
