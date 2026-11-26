@@ -6,8 +6,8 @@ const NARROW_WIDTH = '68px';
 const WIDE_WIDTH = '232px';
 
 const CHEVRON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
-const EXPAND_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>';
-const COLLAPSE_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>';
+const EXPAND_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>';
+const COLLAPSE_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>';
 
 // Menu state (wide or narrow, and which groups are folded) is remembered per browser.
 const loadState = () => {
@@ -32,6 +32,15 @@ export function Sidebar(navigate) {
   const collapsed = new Set(state.collapsed);
   const persist = () => { state.collapsed = [...collapsed]; saveState(state); };
 
+  // The slide-out menu on small screens is always shown expanded (icons with their names);
+  // the saved wide/narrow choice applies to the desktop strip.
+  let sidebarOpen = false;
+  const isWide = () => state.wide || sidebarOpen;
+
+  // The dim scrollbar every other panel has (the strip scrolls when the list is long).
+  element.style.scrollbarWidth = 'thin';
+  element.style.scrollbarColor = 'rgba(255,255,255,0.14) transparent';
+
   // The app's only studio menu. The list lives in src/lib/studioRoutes.js
   // (NAV_GROUPS) so there is one place to add, rename or retire a studio.
   const navGroups = NAV_GROUPS.map((g) => ({ ...g, items: g.items.map((it) => ({ ...it, icon: getStudioIcon(it.id) })) }));
@@ -42,12 +51,17 @@ export function Sidebar(navigate) {
 
   const buttons = {};
   const groupEls = []; // { title, heading, chevron, body }
+  const toggleItem = {}; // the expand / collapse item: { container, iconBtn, label }
 
-  const createButton = (item) => {
+  // One menu item (icon button + label). The expand / collapse control is built by this same recipe
+  // (`onClick` instead of a route), so it looks exactly like Explore, Apps, Image... and follows the
+  // site's outline-button styling (src/styles/outline-buttons.css) instead of having its own.
+  const createButton = (item, { onClick } = {}) => {
     const container = document.createElement('div');
     container.className = 'flex cursor-pointer group w-full px-2';
 
     const iconBtn = document.createElement('button');
+    iconBtn.type = 'button';
     iconBtn.innerHTML = item.icon;
     iconBtn.className = 'shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-transparent text-secondary group-hover:bg-white/5 group-hover:text-white';
 
@@ -56,6 +70,7 @@ export function Sidebar(navigate) {
     label.dataset.sidebarLabel = '';
 
     container.onclick = () => {
+      if (onClick) { onClick(); return; }
       if (item.id === 'settings') {
         const event = new CustomEvent('navigate', { detail: { page: 'settings' } });
         window.dispatchEvent(event);
@@ -66,15 +81,21 @@ export function Sidebar(navigate) {
 
     container.appendChild(iconBtn);
     container.appendChild(label);
-    container.dataset.sidebarItem = item.id;
-    buttons[item.id] = { container, iconBtn, label };
+    if (onClick) {
+      container.dataset.sidebarToggle = '';
+      Object.assign(toggleItem, { container, iconBtn, label });
+    } else {
+      container.dataset.sidebarItem = item.id;
+      buttons[item.id] = { container, iconBtn, label };
+    }
     return container;
   };
 
   // Narrow: icon over a short wrapped label. Wide: icon and full name side by side.
   const styleItems = () => {
-    Object.values(buttons).forEach(({ container, label }) => {
-      if (state.wide) {
+    [...Object.values(buttons), toggleItem].forEach(({ container, label }) => {
+      if (!container) return;
+      if (isWide()) {
         container.className = 'flex flex-row items-center gap-3 mb-0.5 cursor-pointer group w-full px-2';
         label.className = 'text-xs font-semibold text-secondary group-hover:text-white transition-colors truncate';
       } else {
@@ -87,12 +108,14 @@ export function Sidebar(navigate) {
   const navContainer = document.createElement('div');
   navContainer.className = 'flex flex-col flex-1 w-full items-center pt-2 gap-1';
 
-  // Expand / collapse the whole menu.
-  const widthToggle = document.createElement('button');
-  widthToggle.type = 'button';
-  widthToggle.dataset.sidebarToggle = '';
-  widthToggle.className = 'hidden md:flex items-center justify-center gap-2 w-[calc(100%-16px)] mx-2 mb-2 h-8 rounded-lg text-secondary hover:text-white hover:bg-white/5 transition-colors text-[10px] font-bold uppercase tracking-wider';
-  navContainer.appendChild(widthToggle);
+  // Expand / collapse the whole menu: the first item, in the same style as the others.
+  navContainer.appendChild(createButton({ icon: EXPAND_ICON, label: 'Expand' }, {
+    onClick: () => {
+      state.wide = !state.wide;
+      persist();
+      applyWidth();
+    },
+  }));
 
   navGroups.forEach((group, gi) => {
     const body = document.createElement('div');
@@ -140,19 +163,17 @@ export function Sidebar(navigate) {
   }
 
   function applyWidth() {
-    element.style.width = state.wide ? WIDE_WIDTH : NARROW_WIDTH;
-    widthToggle.innerHTML = state.wide ? `${COLLAPSE_ICON}<span>Collapse</span>` : EXPAND_ICON;
-    widthToggle.setAttribute('aria-expanded', state.wide ? 'true' : 'false');
-    widthToggle.setAttribute('aria-label', state.wide ? 'Collapse menu' : 'Expand menu');
-    widthToggle.title = state.wide ? 'Collapse menu' : 'Expand menu';
+    const wide = isWide();
+    element.style.width = wide ? WIDE_WIDTH : NARROW_WIDTH;
+    // The control shows the action it will do. It is not needed in the slide-out, which is always expanded.
+    const { container, iconBtn, label } = toggleItem;
+    iconBtn.innerHTML = state.wide ? COLLAPSE_ICON : EXPAND_ICON;
+    label.textContent = state.wide ? 'Collapse menu' : 'Expand';
+    iconBtn.setAttribute('aria-expanded', state.wide ? 'true' : 'false');
+    iconBtn.setAttribute('aria-label', state.wide ? 'Collapse menu' : 'Expand menu');
+    container.style.display = sidebarOpen ? 'none' : '';
     styleItems();
   }
-
-  widthToggle.onclick = () => {
-    state.wide = !state.wide;
-    persist();
-    applyWidth();
-  };
 
   applyWidth();
   applyCollapsed();
@@ -205,7 +226,6 @@ export function Sidebar(navigate) {
   const backdrop = document.createElement('div');
   backdrop.className = 'md:hidden fixed inset-0 z-40 bg-black/60 hidden';
 
-  let sidebarOpen = false;
   const openSidebar = () => {
     sidebarOpen = true;
     element.style.display = 'flex';
@@ -213,6 +233,7 @@ export function Sidebar(navigate) {
     element.style.paddingTop = '64px';
     element.classList.add('fixed', 'inset-y-0', 'left-0', 'z-50');
     backdrop.classList.remove('hidden');
+    applyWidth(); // always expanded in the slide-out
   };
   const closeSidebar = () => {
     if (!sidebarOpen) return;
@@ -221,6 +242,7 @@ export function Sidebar(navigate) {
     element.style.paddingTop = '';
     element.classList.remove('fixed', 'inset-y-0', 'left-0', 'z-50');
     backdrop.classList.add('hidden');
+    applyWidth(); // back to the saved choice
   };
 
   toggleBtn.addEventListener('click', () => {
