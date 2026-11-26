@@ -11,6 +11,12 @@
 # update this host (find it with `beam deployment list --format json`: the stub_id, then https://<stub_id>-8080.app.beam.cloud).
 /smartwarmupai-api/*  https://08a7539e-3980-43e8-a201-fde7f16db3e7-8080.app.beam.cloud/:splat  200
 
+# SmartVidDownloader (Beam): the gate (backend/beam-gate) does the sign-in check and the allowlist, then forwards to the downloader pod.
+# The browser only ever talks to smartvid.app, so the session cookie stays first-party. After a new `beam deploy` of the gate
+# (`beam deployment list --format json`: its stub_id, then https://<stub_id>-8080.app.beam.cloud) update both lines.
+/api/vidbee/*  https://6c4ff70a-eadb-4944-a543-1513188a8c34-8080.app.beam.cloud/api/vidbee/:splat  200
+/vidbee/*  https://6c4ff70a-eadb-4944-a543-1513188a8c34-8080.app.beam.cloud/vidbee/:splat  200
+
 # SmartWarmupAI studio (embedded dashboard): client-side routes fall back to its index.html. Real files win (non-forced).
 /smartwarmupai-app/*  /smartwarmupai-app/index.html  200
 
