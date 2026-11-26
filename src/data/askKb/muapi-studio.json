@@ -94,7 +94,7 @@
     },
     {
       "feature": "Your own MuAPI key",
-      "explanation": "The studio uses your own MuAPI API key. The first time you open it, it shows 'Connect your MuAPI key' with an Add API key button that opens Settings. The Key button at the bottom of the rail opens Settings again whenever you want to change it.",
+      "explanation": "The studio uses your own MuAPI API key. If no MuAPI key is saved on this device yet, opening the studio opens the same API keys window you see at sign-up; the studio loads by itself as soon as you save the key there. The Key button at the bottom of the rail opens Settings again whenever you want to change it.",
       "whyToUse": "You pay MuAPI directly for what you generate, and your account's models and limits apply.",
       "inputRequired": "A MuAPI API key.",
       "restrictions": "If MuAPI rejects the key, a banner says 'Your MuAPI key was rejected' and offers Update key. Changing the key switches to the new account's own history."
@@ -111,7 +111,7 @@
   "howToUse": "Open SmartVid Studio from the Image group in the side menu. If asked, add your MuAPI key in Settings. Pick a mode in the left rail, choose a model, fill in the form, check the price on the Generate button, and click Generate. Your results appear in My Generations on the right.",
   "howToSteps": [
     "Open 'SmartVid Studio' in the Image group of the side menu (#/muapi-studio).",
-    "If you see 'Connect your MuAPI key', click Add API key and paste your key into Settings, then close Settings.",
+    "If the API keys window opens, paste your MuAPI key and click Save; the studio then loads by itself. If you closed it, click Open API keys.",
     "Pick a mode in the left rail (Image, Video, Audio, Avatar, 3D, Tools, Text or More).",
     "Choose a model with the model button, or in Image / Video switch to Apps to pick a ready-made app.",
     "Fill in the form: at least the required fields marked '* required'. Drop a file onto an upload field or paste a URL when a model needs a reference.",
@@ -146,7 +146,7 @@
   "inputDetails": [
     {
       "name": "MuAPI API key",
-      "description": "Your own MuAPI key, added in Settings. It is sent with your requests only. Without it the studio shows 'Connect your MuAPI key'."
+      "description": "Your own MuAPI key, added in Settings. It is sent with your requests only. Without it, the studio opens the API keys window instead of loading."
     },
     {
       "name": "Prompt",
@@ -241,8 +241,8 @@
   "limitationDetails": [
     {
       "limitation": "No MuAPI key",
-      "impact": "The studio shows 'Connect your MuAPI key' and cannot generate.",
-      "workaround": "Click Add API key and paste your key in Settings."
+      "impact": "The studio opens the API keys window (or shows Open API keys) instead of loading.",
+      "workaround": "Paste your MuAPI key in the API keys window and click Save."
     },
     {
       "limitation": "Key rejected by MuAPI",
@@ -261,7 +261,7 @@
     }
   ],
   "troubleshooting": [
-    "'Connect your MuAPI key': add your key in Settings with Add API key.",
+    "No MuAPI key saved: add it in the API keys window (Open API keys).",
     "'Your MuAPI key was rejected': click Update key and enter a valid key.",
     "Generate is disabled or the form is empty: wait for the model's settings to load, or choose another model if the error mentions loading.",
     "A file is refused on upload: check the message under the field; it names the problem (wrong kind of file, empty file, or a server error) and has a Retry button.",

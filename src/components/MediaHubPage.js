@@ -4,6 +4,8 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
 
 const backendBase = () => {
+  // VITE_VIDBEE_BACKEND_URL points only SmartVidDownloader at the Beam backend; the shared VITE_BACKEND_URL also switches VideoDB, stock media, Director, etc.
+  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_VIDBEE_BACKEND_URL) return import.meta.env.VITE_VIDBEE_BACKEND_URL.replace(/\/$/, '');
   if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) return import.meta.env.VITE_BACKEND_URL.replace(/\/$/, '');
   // eslint-disable-next-line no-underscore-dangle
   if (typeof window !== 'undefined' && window.__BACKEND_URL__) return window.__BACKEND_URL__.replace(/\/$/, '');

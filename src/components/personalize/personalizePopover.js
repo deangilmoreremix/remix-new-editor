@@ -175,6 +175,7 @@ export function inspectPromptTokens(prompt, profile) {
    getProject,
    getPersonalizableFields,
    getPreview,
+   getResult,
    onApply,
    onClear,
    onSendToPersonalizer,
@@ -255,6 +256,30 @@ export function inspectPromptTokens(prompt, profile) {
     });
   };
 
+  // Video Pages sits in the same row, right after Personalize: it opens the landing page picker with this
+  // studio's current video or picture loaded (else your newest creation), with the lime accent of the studio's main buttons.
+  const pagesBtn = document.createElement('button');
+  pagesBtn.type = 'button';
+  pagesBtn.dataset.studioVideoPages = '';
+  pagesBtn.className = 'btn-personalize group';
+  pagesBtn.setAttribute('data-tooltip', 'Put this video or picture on a landing page');
+  pagesBtn.setAttribute('aria-label', 'Video Pages: put this video or picture on a landing page');
+  pagesBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" class="text-primary"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 8h18"/><path d="M10 12.5l4 2.5-4 2.5z" fill="currentColor"/></svg><span class="text-xs font-bold text-primary">Video Pages</span>';
+  button.after(pagesBtn);
+  pagesBtn.onclick = async (e) => {
+    e.stopPropagation();
+    // Only the studio's finished result goes along (getResult): the personalization preview can be a reference picture,
+    // not the output. Without a result, the picker loads your newest creation from the history.
+    let url = '';
+    try { url = (typeof getResult === 'function' ? getResult() : '') || ''; } catch { url = ''; }
+    const { openVideoPages, latestFromSaved } = await import('../VideoPagesButton.js');
+    // the studio's own output type first (a signed storage URL has no file extension), the extension only when it is unknown
+    let assetType;
+    try { assetType = typeof getAsset === 'function' ? getAsset()?.type : undefined; } catch { assetType = undefined; }
+    const isVideo = assetType === 'video' || (assetType !== 'image' && /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url));
+    openVideoPages(latestFromSaved({ type: isVideo ? 'video' : 'image', url, prompt: getTextarea?.()?.value || '', studio: studioId }));
+  };
+
   button.onclick = (e) => {
     e.stopPropagation();
     open();
@@ -293,6 +318,7 @@ export function inspectPromptTokens(prompt, profile) {
   // window listener doesn't leak one entry per mount.
   const destroy = () => {
     window.removeEventListener('remix:contact-changed', refresh);
+    pagesBtn.remove();
     button.remove();
   };
 

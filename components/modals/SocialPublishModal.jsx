@@ -7,6 +7,9 @@ import socialPublishing, {
 } from '../../lib/socialPublishing';
 
 import { enhanceSocialPostText, TONALITIES } from '../../lib/socialPostEnhancer';
+// Pure payload builder (muapi field names and limits per platform), shared with the personalization publisher.
+import { toPublicThumbnailUrl } from '../../src/lib/socialThumbnail.js';
+import { buildPublishPayload } from '../../src/features/personalization/shared/api/socialPayloads';
 import openaiConfig from '../../lib/config/openaiConfig.js';
 // Same palette as the "Personalize this demo" window (black, lime accent, 22px shell), so every publishing window looks like one app.
 import { C } from '../../src/features/personalization/shared/personalization/guided/tokens';
@@ -34,6 +37,9 @@ import { seedThumbnailFieldsFromSocialCopy } from '../../lib/socialPublisherThum
 // sites; here we only read its `onApply({ imageUrl, revisedPrompt })` result
 // into local form state so a single thumbnail step drives the live preview.
 // ---------------------------------------------------------------------------
+
+// Platforms whose payload comes from the shared builder (YouTube, TikTok and Instagram have their own forms).
+const BUILDER_PLATFORMS = ['facebook'];
 
 const PLATFORM_BY_ID = Object.fromEntries(SOCIAL_PLATFORMS.map((p) => [p.id, p]));
 
@@ -516,6 +522,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
   const [lastResponseIds, setLastResponseIds] = useState({}); // field -> responseId
   const [errorMsg, setErrorMsg] = useState(null);
   const [resultUrl, setResultUrl] = useState('');
+  const [noteMsg, setNoteMsg] = useState(''); // non-fatal follow-up result, e.g. the YouTube thumbnail
 
   const [enhancing, setEnhancing] = useState(null); // field currently being AI-enhanced
   const [renamingId, setRenamingId] = useState(null); // account id being renamed
@@ -537,6 +544,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     caption: '',
     media_type: initialType === 'image' ? 'IMAGE' : 'VIDEO',
     placement: 'reels',
+    alt_placement: 'timeline', // Facebook
     share_to_feed: true,
     cover_url: '',
     thumb_offset: '',
@@ -555,7 +563,8 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
     setAccountsError(null);
     try {
       const list = await socialPublishing.listAccounts(externalUserId);
-      setAccounts(Array.isArray(list) ? list : []);
+      // Only platforms this window can publish to; accounts for others (connected in the muapi dashboard) are left out.
+      setAccounts(Array.isArray(list) ? list.filter((a) => PLATFORM_BY_ID[a.platform_name]) : []);
     } catch (e) {
       setAccountsError(e.message || 'Could not load connected accounts.');
     } finally {
@@ -788,9 +797,20 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
 
   const updateForm = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
+  // Facebook: build and validate with the shared per-platform builder.
+  const buildNewPlatform = useMemo(() => (platform) => buildPublishPayload({
+    platform,
+    accountId: selectedAccountId,
+    mediaUrl,
+    mediaType: mediaType === 'image' ? 'image' : 'video',
+    copy: { caption: form.caption, title: form.title, description: form.description },
+    settings: { placement: form.alt_placement },
+  }), [selectedAccountId, mediaUrl, mediaType, form]);
+
   const buildPayload = useMemo(() => {
     const platform = platformOfSelected;
-    return (platform) => {
+    return (platform, coverUrl = '') => {
+      if (BUILDER_PLATFORMS.includes(platform)) return buildNewPlatform(platform).payload || {};
       const base = { account_id: Number(selectedAccountId), media_url: mediaUrl };
       if (platform === 'youtube') {
         const tags = form.tags.split(',').map((t) => t.trim()).filter(Boolean);
@@ -822,13 +842,15 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         share_to_feed: !!form.share_to_feed,
       };
       if (form.caption.trim()) payload.caption = form.caption.trim();
-      if (form.cover_url.trim()) payload.cover_url = form.cover_url.trim();
+      // A hand-typed cover wins; otherwise the thumbnail from step 2 is the video's cover.
+      const cover = form.cover_url.trim() || coverUrl;
+      if (cover) payload.cover_url = cover;
       if (form.thumb_offset !== '' && Number(form.thumb_offset) >= 0) {
         payload.thumb_offset = Number(form.thumb_offset);
       }
       return payload;
     };
-  }, [selectedAccountId, mediaUrl, form, platformOfSelected]);
+  }, [selectedAccountId, mediaUrl, form, platformOfSelected, buildNewPlatform]);
 
   const handlePublish = useCallback(async () => {
     if (!isValidMediaUrl(mediaUrl)) {
@@ -848,14 +870,29 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       setErrorMsg('Add a thumbnail to make your post pop (your media preview still works without one).');
       return;
     }
+    if (BUILDER_PLATFORMS.includes(platform)) {
+      const built = buildNewPlatform(platform);
+      if (built.errors.length) {
+        setErrorMsg(built.errors.join(' '));
+        return;
+      }
+    }
 
     setStatus('publishing');
     setErrorMsg(null);
+    setNoteMsg('');
     setProgress('Submitting…');
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      const result = await socialPublishing.publishAndPoll(platform, buildPayload(platform), {
+      const thumbUrl = form.thumbnail?.imageUrl || '';
+      let coverUrl = '';
+      if (platform === 'instagram' && form.media_type === 'VIDEO' && !form.cover_url.trim() && thumbUrl) {
+        setProgress('Uploading thumbnail…');
+        coverUrl = await toPublicThumbnailUrl(thumbUrl);
+        setProgress('Submitting…');
+      }
+      const result = await socialPublishing.publishAndPoll(platform, buildPayload(platform, coverUrl), {
         onStatus: (s) => setProgress(statusLabel(s)),
         signal: controller.signal,
       });
@@ -870,6 +907,29 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
         result?.publish_id ||
         '';
       setResultUrl(typeof link === 'string' ? link : '');
+      // YouTube takes the thumbnail in a second call once the video exists (youtube-set-thumbnail).
+      // The video is already live, so a failure here is a note, never a failed publish.
+      let note = '';
+      if (platform === 'youtube' && thumbUrl) {
+        try {
+          setProgress('Setting thumbnail…');
+          const { extractYouTubeVideoId } = await import('../../src/features/personalization/shared/api/publishOrchestrator');
+          const videoId = extractYouTubeVideoId(result?.output || result);
+          if (!videoId) {
+            note = 'The thumbnail was not set because YouTube did not return the video ID. Set it in YouTube Studio.';
+          } else {
+            const thumbnailUrl = await toPublicThumbnailUrl(thumbUrl);
+            await socialPublishing.setYouTubeThumbnail(
+              { account_id: Number(selectedAccountId), video_id: videoId, thumbnail_url: thumbnailUrl },
+              { signal: controller.signal },
+            );
+            note = 'Thumbnail set on YouTube.';
+          }
+        } catch (thumbErr) {
+          note = `The thumbnail could not be set: ${thumbErr.message || thumbErr} (JPEG or PNG under 2 MB; custom thumbnails also need a verified YouTube channel).`;
+        }
+      }
+      setNoteMsg(note);
       setStatus('success');
       if (typeof opts.onPublished === 'function') {
         opts.onPublished({ platform, url: typeof link === 'string' ? link : '', raw: result });
@@ -878,7 +938,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       setErrorMsg(e.message || 'Publishing failed.');
       setStatus('error');
     }
-  }, [mediaUrl, selectedAccount, form, opts, buildPayload]);
+  }, [mediaUrl, selectedAccount, form, opts, buildPayload, buildNewPlatform]);
 
   // --- draft / preview helpers ----------------------------------------------
   const handleSaveDraft = () => {
@@ -1153,6 +1213,26 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
               )}
             </>
           )}
+
+          {platformOfSelected === 'facebook' && (
+            <>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 10 }}>
+                <textarea
+                  style={{ ...inputStyle, flex: 1, minHeight: 56, resize: 'vertical' }}
+                  placeholder="Caption (supports #hashtags)"
+                  value={form.caption}
+                  onChange={(e) => updateForm('caption', e.target.value)}
+                />
+                <EnhanceButton active={enhancing === 'caption'} disabled={!form.caption.trim()} onClick={() => handleEnhance('caption')} />
+                <RerollMenu field="caption" enhancing={enhancing} disabled={!form.caption.trim()} onReroll={handleReroll} currentText={form.caption} />
+              </div>
+              <select style={{ ...inputStyle, marginTop: 10 }} value={form.alt_placement} onChange={(e) => updateForm('alt_placement', e.target.value)}>
+                <option value="timeline">Timeline</option>
+                <option value="reels">Reels</option>
+                <option value="stories">Stories</option>
+              </select>
+            </>
+          )}
         </div>
       )}
 
@@ -1319,6 +1399,7 @@ const SocialPublishModal = ({ options = {}, handleClose }) => {
       {status === 'success' && (
         <div role="status" style={{ color: C.green, fontSize: 14, margin: '0 0 12px', padding: '12px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.35)', borderRadius: 10 }}>
           ✅ Published!
+          {noteMsg && <div style={{ marginTop: 6, fontSize: 13, opacity: 0.85 }}>{noteMsg}</div>}
           {resultUrl && (
             <div style={{ marginTop: 8 }}>
               <a href={resultUrl} target="_blank" rel="noreferrer" style={{ color: C.accent, textDecoration: 'underline', wordBreak: 'break-all' }}>

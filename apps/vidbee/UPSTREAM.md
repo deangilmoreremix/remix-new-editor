@@ -36,6 +36,7 @@ Shown in SmartVid as **SmartVidDownloader**. `brand/rebrand.mjs` rewrites user-f
 - `packages/downloader-core/src/types.ts`: `DownloadRuntimeSettings` gains the optional `downloadWithoutChannelSubfolders` and `downloadMirror` fields that
   `DownloadRuntimeSettingsSchema` already defines (upstream's web client did not type-check without them).
 - `apps/web/server.mjs`: `/export` and `/stream` are added to the paths proxied to the API (needed by video export and live AI streaming).
+- `apps/web/server.mjs` + new `apps/web/user-apis.mjs`: with `VIDBEE_PER_USER=1` the web server routes each request to that user's own API (chosen by the gate's `x-smartvid-user` header, 400 without it) and `user-apis.mjs` starts/stops those APIs with separate data and download folders. `beam/start.sh`, `Dockerfile.beam` and `apps/web/Dockerfile` ship the new file.
 - `pnpm-workspace.yaml`: `onnxruntime-node: false` (the Node binding is not used; browser Whisper uses onnxruntime-web).
 
 ## Changed in the web client

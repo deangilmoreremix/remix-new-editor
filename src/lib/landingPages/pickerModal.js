@@ -629,7 +629,7 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     Promise.race([loaded, limit]).then(() => { clearTimeout(timer); if (overlay.isConnected) showEdit(template); });
   } else {
     if (!onEdit) void cp.load();
-    if (!src) { back = () => showGrid(); showVideos(); } else showGrid();
+    showGrid();   // designs first; with no video yet the bar above them says "Choose a video", and picking a design asks for one
   }
   dialog.focus();
   return { close, element: overlay };

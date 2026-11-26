@@ -199,6 +199,7 @@ function buildProviderForm({ title, description, grabUrl, getKey, setKey, clearK
 export function SettingsModal(onClose) {
     const overlay = document.createElement('div');
     overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-6';
+    overlay.dataset.apiKeysModal = '';
 
     const removeModal = () => {
         if (overlay.parentNode) overlay.parentNode.removeChild(overlay);

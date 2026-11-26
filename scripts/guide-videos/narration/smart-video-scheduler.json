@@ -1,11 +1,11 @@
 {
   "slug": "smart-video-scheduler",
   "name": "Smart Video Scheduler",
-  "intro": "Smart Video Scheduler is an early preview of a content calendar page, showing where scheduling and performance tracking are planned to live.",
+  "intro": "Smart Video Scheduler is an early content-calendar page. Today its Schedule tab opens Publish to Social, and timed scheduling and performance tracking are still to come.",
   "features": {
     "calendar-tab": "The Calendar tab is open when the page loads. It marks the spot where your scheduled posts will appear.",
-    "schedule-tab": "The Schedule tab previews the area where you'll plan your content for the best posting times.",
+    "schedule-tab": "The Schedule tab has a Publish to Social button. It opens the window where you add your video, create a thumbnail, write the copy and publish to a connected account right away.",
     "analytics-tab": "The Analytics tab previews the area where you'll track how your posts perform across platforms."
   },
-  "outro": "That's the preview. For now, publish from the studio where you made your video, and check back as scheduling grows."
+  "outro": "That's the scheduler. Publish from the Schedule tab, and check back as timed scheduling grows."
 }

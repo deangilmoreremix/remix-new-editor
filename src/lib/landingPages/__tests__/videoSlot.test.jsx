@@ -87,3 +87,225 @@ describe('every design shows a video slot people can recognise', () => {
     });
   });
 });
+
+import { ViewerContext } from '../editor/context.js';
+describe('viewer extras: trim, subtitles, start frame, overlay, a button at a moment', () => {
+  const withViewer = (viewer, props = {}, extra = {}) => renderToString(
+    <PageContext.Provider value={ctx({ video_url: VIDEO }, extra)}><ViewerContext.Provider value={viewer}><VideoPlayer {...props} /></ViewerContext.Provider></PageContext.Provider>,
+  );
+  it('start and stop times become a media fragment on the video', () => {
+    expect(attr(withViewer({ start: 5, end: 20 }), 'src')).toBe(`${VIDEO}#t=5,20`);
+    expect(attr(withViewer({ start: 0, end: 0 }), 'src')).toBe(VIDEO);
+    expect(attr(withViewer({ start: 30, end: 10 }), 'src')).toBe(`${VIDEO}#t=30`);   // a stop before the start is ignored
+  });
+  it('shows the chosen frame as the picture only when no picture is set', () => {
+    expect(attr(withViewer({ posterAt: 7 }), 'src')).toBe(`${VIDEO}#t=7`);
+    expect(attr(withViewer({ posterAt: 7 }, { poster: '/landing-art/x/p.webp' }), 'src')).toBe(VIDEO);
+  });
+  it('subtitles render no track on the server (they load in the browser)', () => {
+    expect(withViewer({ subtitles: 'https://cdn.test/subs.vtt' })).not.toContain('<track');
+  });
+  it('text on the video fills {{tokens}}', () => {
+    const out = renderToString(<PageContext.Provider value={ctx({ video_url: VIDEO }, { tokens: { firstname: 'Ann' } })}><ViewerContext.Provider value={{ overlay: 'Hi {{firstname|there}}, this is for you' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>);
+    expect(out).toContain('pk-video-overlay'); expect(out).toContain('Hi Ann, this is for you');
+  });
+  it('the video button shows in the editor, but on a live page only after its moment', () => {
+    const viewer = { ctaAt: 8, ctaLabel: 'Book a call', ctaUrl: 'https://cal.test/me' };
+    const edit = withViewer(viewer, {}, { preview: true }); const live = withViewer(viewer, {}, { preview: false });
+    expect(edit).toContain('pk-video-cta'); expect(edit).toContain('Book a call'); expect(edit).toContain('https://cal.test/me');
+    expect(live).not.toContain('pk-video-cta');
+    expect(withViewer({ ctaAt: 0, ctaLabel: 'x', ctaUrl: 'https://a.test' }, {}, { preview: true })).not.toContain('pk-video-cta');   // 0 = off
+    expect(withViewer({ ctaAt: 5, ctaLabel: 'x', ctaUrl: 'javascript:alert(1)' }, {}, { preview: true })).not.toContain('pk-video-cta');
+  });
+  it('every design with a video offers all of these fields', () => {
+    const withVideo = Object.entries(editorConfig.components).filter(([, c]) => c.fields?.slotImage);
+    expect(withVideo.length).toBeGreaterThan(5);
+    for (const [name, c] of withVideo) for (const k of ['viewerStart', 'viewerEnd', 'viewerPosterAt', 'viewerSubtitles', 'viewerOverlay', 'viewerCtaAt', 'viewerCtaLabel', 'viewerCtaUrl']) expect([name, k, !!c.fields[k]]).toEqual([name, k, true]);
+  });
+});
+
+describe('viewer extras at play time', () => {
+  const mountLive = (viewer, handlers = {}) => {
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers, preview: false }}><ViewerContext.Provider value={viewer}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    const v = host.querySelector('video');
+    v.pause = vi.fn(); v.play = vi.fn(() => Promise.resolve());
+    act(() => { v.dispatchEvent(new Event('play')); });   // the visitor pressed play
+    return { host, v };
+  };
+  const at = (v, t) => { Object.defineProperty(v, 'currentTime', { value: t, writable: true, configurable: true }); Object.defineProperty(v, 'duration', { value: 60, configurable: true }); act(() => { v.dispatchEvent(new Event('timeupdate')); }); };
+  it('the button appears when the video reaches its moment', () => {
+    const { host, v } = mountLive({ ctaAt: 10, ctaLabel: 'Book a call', ctaUrl: 'https://cal.test/me' });
+    at(v, 4); expect(host.querySelector('.pk-video-cta')).toBeNull();
+    at(v, 10.5); expect(host.querySelector('.pk-video-cta')?.textContent).toBe('Book a call');
+  });
+  it('the video stops at its stop time and counts as finished', () => {
+    const onComplete = vi.fn();
+    const { v } = mountLive({ start: 2, end: 12 }, { onComplete });
+    at(v, 12.2);
+    expect(v.pause).toHaveBeenCalled(); expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+  it('with "play again" it restarts from the start time instead', () => {
+    const { v } = mountLive({ start: 2, end: 12, loop: 'yes' });
+    at(v, 12.2);
+    expect(v.currentTime).toBe(2); expect(v.play).toHaveBeenCalled();
+  });
+});
+
+describe('playing again, and the start frame', () => {
+  const mountLive2 = (viewer) => {
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers: {}, preview: false }}><ViewerContext.Provider value={viewer}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    const v = host.querySelector('video'); v.pause = vi.fn(); v.play = vi.fn(() => Promise.resolve());
+    return v;
+  };
+  const set = (v, t) => { Object.defineProperty(v, 'currentTime', { value: t, writable: true, configurable: true }); };
+  it('after the stop time, pressing play starts again from the start time', () => {
+    const v = mountLive2({ start: 2, end: 12 });
+    set(v, 12.1); act(() => { v.dispatchEvent(new Event('play')); });
+    expect(v.currentTime).toBe(2);
+  });
+  it('pause and resume inside the range keeps the position', () => {
+    const v = mountLive2({ start: 2, end: 12 });
+    set(v, 5); act(() => { v.dispatchEvent(new Event('play')); });   // first play from a position in range
+    set(v, 8); act(() => { v.dispatchEvent(new Event('play')); });
+    expect(v.currentTime).toBe(8);
+  });
+  it('a chosen start frame does not skip the intro: play starts at the start time, even 0', () => {
+    const v = mountLive2({ posterAt: 30, start: 0 });
+    set(v, 30); act(() => { v.dispatchEvent(new Event('play')); });
+    expect(v.currentTime).toBe(0);
+  });
+});
+
+describe('looping with a start time', () => {
+  it('each round starts at the start time, also when no stop time is set', () => {
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers: {}, preview: false }}><ViewerContext.Provider value={{ start: 4, loop: 'yes' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    const v = host.querySelector('video'); v.play = vi.fn(() => Promise.resolve());
+    expect(v.loop).toBe(false);   // not the native loop, which would restart at 0
+    Object.defineProperty(v, 'currentTime', { value: 60, writable: true, configurable: true });
+    act(() => { v.dispatchEvent(new Event('ended')); });
+    expect(v.currentTime).toBe(4); expect(v.play).toHaveBeenCalled();
+  });
+  it('without a start time the native loop is used', () => {
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers: {}, preview: false }}><ViewerContext.Provider value={{ loop: 'yes' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    expect(host.querySelector('video').loop).toBe(true);
+  });
+});
+
+describe('watch progress over the trimmed part', () => {
+  const run = (viewer, times, duration = 120, opts = {}) => {
+    const marks = [];
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers: { onProgress: (k) => marks.push(k) }, preview: false }}><ViewerContext.Provider value={viewer}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    const v = host.querySelector('video'); v.pause = vi.fn(); v.play = vi.fn(() => Promise.resolve());
+    Object.defineProperty(v, 'duration', { value: duration, configurable: true });
+    if (!opts.beforePlay) act(() => { v.dispatchEvent(new Event('play')); });
+    for (const t of times) { Object.defineProperty(v, 'currentTime', { value: t, writable: true, configurable: true }); act(() => { v.dispatchEvent(new Event('timeupdate')); }); }
+    return marks;
+  };
+  it('playing seconds 90-100 of 120 does not record every milestone at once', () => {
+    expect(run({ start: 90, end: 100 }, [90.5])).toEqual([]);
+    expect(run({ start: 90, end: 100 }, [92.6, 95.1, 97.6])).toEqual(['progress_25', 'progress_50', 'progress_75']);
+  });
+  it('playing seconds 0-20 reaches the milestones, including at the stop', () => {
+    expect(run({ start: 0, end: 20 }, [5.1, 10.1, 15.1, 20])).toEqual(['progress_25', 'progress_50', 'progress_75']);
+  });
+  it('untrimmed video keeps counting over the whole video', () => {
+    expect(run({}, [31, 61, 91])).toEqual(['progress_25', 'progress_50', 'progress_75']);
+  });
+  it('a start-frame seek before play is not watching', () => {
+    expect(run({ posterAt: 100 }, [100], 120, { beforePlay: true })).toEqual([]);
+  });
+  it('a stop time past the real end counts to the real end', () => {
+    expect(run({ end: 120 }, [15.1, 30.1, 45.1], 60)).toEqual(['progress_25', 'progress_50', 'progress_75']);
+  });
+});
+
+const withViewerHtml = (viewer, props = {}, extra = {}) => renderToString(<PageContext.Provider value={ctx({ video_url: VIDEO }, extra)}><ViewerContext.Provider value={viewer}><VideoPlayer {...props} /></ViewerContext.Provider></PageContext.Provider>);
+describe('viewer extras: hosts without CORS, a start-frame range, replays, button clicks', () => {
+  const live = (viewer, handlers = {}) => {
+    const host = document.createElement('div'); document.body.appendChild(host);
+    act(() => { createRoot(host).render(<PageContext.Provider value={{ page: { video_url: VIDEO }, tokens: {}, handlers, preview: false }}><ViewerContext.Provider value={viewer}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    const v = host.querySelector('video'); v.pause = vi.fn(); v.play = vi.fn(() => Promise.resolve());
+    return { host, v };
+  };
+  const set = (v, t) => { Object.defineProperty(v, 'currentTime', { value: t, writable: true, configurable: true }); };
+  it('subtitles are fetched with CORS and played from a same-origin copy; the video is never put in CORS mode', async () => {
+    const created = []; const revoked = [];
+    globalThis.URL.createObjectURL = vi.fn((b) => { const u = `blob:subs-${created.length}`; created.push(b); return u; });
+    globalThis.URL.revokeObjectURL = vi.fn((u) => { revoked.push(u); });
+    const fetchMock = vi.fn(async () => ({ ok: true, blob: async () => new Blob(['WEBVTT\n\n'], { type: 'text/vtt' }) }));
+    vi.stubGlobal('fetch', fetchMock);
+    const host = document.createElement('div'); document.body.appendChild(host);
+    let root;
+    await act(async () => { root = createRoot(host); root.render(<PageContext.Provider value={ctx({ video_url: VIDEO })}><ViewerContext.Provider value={{ subtitles: 'https://cdn.test/subs.vtt' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(fetchMock).toHaveBeenCalledWith('https://cdn.test/subs.vtt', expect.objectContaining({ mode: 'cors', signal: expect.anything() }));
+    expect(host.querySelector('video').hasAttribute('crossorigin')).toBe(false);
+    expect(host.querySelector('track')?.getAttribute('src')).toBe('blob:subs-0');
+    expect(host.querySelector('track')?.hasAttribute('default')).toBe(true);
+    act(() => { root.unmount(); });
+    expect(revoked).toContain('blob:subs-0');
+    vi.unstubAllGlobals();
+  });
+  it('only an https link is fetched; a failed fetch leaves the video without a track', async () => {
+    const fetchMock = vi.fn(async () => { throw new Error('blocked'); });
+    vi.stubGlobal('fetch', fetchMock);
+    const mountSubs = async (link) => {
+      const host = document.createElement('div'); document.body.appendChild(host);
+      await act(async () => { createRoot(host).render(<PageContext.Provider value={ctx({ video_url: VIDEO })}><ViewerContext.Provider value={{ subtitles: link }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+      await act(async () => { await Promise.resolve(); });
+      return host;
+    };
+    expect((await mountSubs('http://cdn.test/s.vtt')).querySelector('track')).toBeNull();
+    expect((await mountSubs('javascript:alert(1)')).querySelector('track')).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect((await mountSubs('https://cdn.test/s.vtt')).querySelector('track')).toBeNull();   // the fetch failed
+    expect((await mountSubs('https://cdn.test/s.vtt')).querySelector('video')).not.toBeNull(); // and the video still plays
+    vi.unstubAllGlobals();
+  });
+  it('a start frame with a stop time makes a valid start-only fragment', () => {
+    expect(attr(withViewerHtml({ posterAt: 30, start: 2, end: 12 }), 'src')).toBe(`${VIDEO}#t=30`);
+  });
+  it('replaying after the video ended starts at the start time, also with no stop time; a seek before the start is undone', () => {
+    const { v } = live({ start: 10 });
+    set(v, 12); act(() => { v.dispatchEvent(new Event('play')); });   // first play inside the range
+    set(v, 0); act(() => { v.dispatchEvent(new Event('play')); });    // native replay seeks to 0 first
+    expect(v.currentTime).toBe(10);
+  });
+  it('clicking the button on the video is recorded as a button click on a live page', () => {
+    const onCta = vi.fn();
+    const { host, v } = live({ ctaAt: 3, ctaLabel: 'Book', ctaUrl: 'https://cal.test/me' }, { onCta });
+    act(() => { v.dispatchEvent(new Event('play')); });
+    set(v, 4); Object.defineProperty(v, 'duration', { value: 60, configurable: true }); act(() => { v.dispatchEvent(new Event('timeupdate')); });
+    act(() => { host.querySelector('.pk-video-cta').click(); });
+    expect(onCta).toHaveBeenCalledTimes(1);
+  });
+});
+
+import { fillPropTokens } from '../editor/tokenFields.jsx';
+describe('button text keeps its tokens as words', () => {
+  it('a token value with spaces and punctuation is not percent-encoded in a button label or description', () => {
+    const tokens = { company: 'Acme & Sons' };
+    const out = fillPropTokens({ viewerCtaLabel: 'Talk to {{company}}', ctaLabel: 'Book {{company}}', logoAlt: 'Logo of {{company}}', viewerCtaUrl: 'https://x.test/?c={{company}}' }, tokens);
+    expect(out.viewerCtaLabel).toBe('Talk to {{company}}'); expect(out.ctaLabel).toBe('Book {{company}}'); expect(out.logoAlt).toBe('Logo of {{company}}');
+    expect(out.viewerCtaUrl).toContain('Acme%20%26%20Sons');   // links are still encoded
+  });
+});
+
+describe('subtitles request is cancelled when the viewer goes away', () => {
+  it('unmounting aborts the in-flight subtitles request', async () => {
+    let signalSeen;
+    vi.stubGlobal('fetch', vi.fn((_u, opts) => { signalSeen = opts.signal; return new Promise(() => {}); }));
+    const host = document.createElement('div'); document.body.appendChild(host);
+    let root;
+    await act(async () => { root = createRoot(host); root.render(<PageContext.Provider value={ctx({ video_url: VIDEO })}><ViewerContext.Provider value={{ subtitles: 'https://cdn.test/s.vtt' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    expect(signalSeen.aborted).toBe(false);
+    act(() => { root.unmount(); });
+    expect(signalSeen.aborted).toBe(true);
+    vi.unstubAllGlobals();
+  });
+});

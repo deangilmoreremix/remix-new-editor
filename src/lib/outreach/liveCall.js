@@ -74,7 +74,7 @@ export async function joinChannel(name, { onSignal = () => {}, onPresence, prese
  * `role` 'guest' makes the offer, 'host' answers. `send` posts to the call channel.
  * Returns { offer, handle(msg), close }. onState: 'connecting' | 'live' | 'failed' | 'ended'.
  */
-export function createPeerSession({ role, send, localStream, makePeer = () => new RTCPeerConnection({ iceServers: ICE_SERVERS }), onRemoteStream = () => {}, onState = () => {} }) {
+export function createPeerSession({ role, send, localStream, makePeer = () => new window.RTCPeerConnection({ iceServers: ICE_SERVERS }), onRemoteStream = () => {}, onState = () => {} }) {
   const pc = makePeer();
   const queued = []; // candidates that arrive before the other side's description
   let closed = false;

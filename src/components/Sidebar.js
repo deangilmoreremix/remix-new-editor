@@ -1,10 +1,36 @@
 import { parseLocation } from '../lib/routeUrl.js';
 import { getStudioIcon, NAV_GROUPS, getNavItemForRoute } from '../lib/studioRoutes.js';
 
+const STORAGE_KEY = 'sv:sidebar';
+const NARROW_WIDTH = '68px';
+const WIDE_WIDTH = '232px';
+
+const CHEVRON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+const EXPAND_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>';
+const COLLAPSE_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>';
+
+// Menu state (wide or narrow, and which groups are folded) is remembered per browser.
+const loadState = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    return { wide: !!saved.wide, collapsed: Array.isArray(saved.collapsed) ? saved.collapsed : [] };
+  } catch (e) {
+    return { wide: false, collapsed: [] };
+  }
+};
+const saveState = (state) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ wide: state.wide, collapsed: state.collapsed }));
+  } catch (e) { /* private mode or blocked storage: the menu still works, it just forgets */ }
+};
+
 export function Sidebar(navigate) {
   const element = document.createElement('aside');
-  element.className = 'hidden md:flex flex-col items-center py-4 z-40 border-r border-white/5 bg-panel-bg overflow-y-auto custom-scrollbar';
-  element.style.width = '68px';
+  element.className = 'hidden md:flex flex-col items-center py-4 z-40 border-r border-white/5 bg-panel-bg overflow-y-auto overflow-x-hidden custom-scrollbar';
+
+  const state = loadState();
+  const collapsed = new Set(state.collapsed);
+  const persist = () => { state.collapsed = [...collapsed]; saveState(state); };
 
   // The app's only studio menu. The list lives in src/lib/studioRoutes.js
   // (NAV_GROUPS) so there is one place to add, rename or retire a studio.
@@ -15,18 +41,19 @@ export function Sidebar(navigate) {
   ];
 
   const buttons = {};
+  const groupEls = []; // { title, heading, chevron, body }
 
   const createButton = (item) => {
     const container = document.createElement('div');
-    container.className = 'flex flex-col items-center gap-0.5 mb-0.5 cursor-pointer group w-full px-2';
+    container.className = 'flex cursor-pointer group w-full px-2';
 
     const iconBtn = document.createElement('button');
     iconBtn.innerHTML = item.icon;
-    iconBtn.className = 'w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-transparent text-secondary group-hover:bg-white/5 group-hover:text-white';
+    iconBtn.className = 'shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-transparent text-secondary group-hover:bg-white/5 group-hover:text-white';
 
     const label = document.createElement('span');
     label.textContent = item.label;
-    label.className = 'text-[9px] leading-tight text-center font-bold uppercase tracking-wider text-secondary group-hover:text-white transition-colors';
+    label.dataset.sidebarLabel = '';
 
     container.onclick = () => {
       if (item.id === 'settings') {
@@ -44,24 +71,91 @@ export function Sidebar(navigate) {
     return container;
   };
 
+  // Narrow: icon over a short wrapped label. Wide: icon and full name side by side.
+  const styleItems = () => {
+    Object.values(buttons).forEach(({ container, label }) => {
+      if (state.wide) {
+        container.className = 'flex flex-row items-center gap-3 mb-0.5 cursor-pointer group w-full px-2';
+        label.className = 'text-xs font-semibold text-secondary group-hover:text-white transition-colors truncate';
+      } else {
+        container.className = 'flex flex-col items-center gap-0.5 mb-0.5 cursor-pointer group w-full px-1';
+        label.className = 'w-full text-[8px] leading-tight text-center font-bold uppercase tracking-normal break-words text-secondary group-hover:text-white transition-colors';
+      }
+    });
+  };
+
   const navContainer = document.createElement('div');
   navContainer.className = 'flex flex-col flex-1 w-full items-center pt-2 gap-1';
+
+  // Expand / collapse the whole menu.
+  const widthToggle = document.createElement('button');
+  widthToggle.type = 'button';
+  widthToggle.dataset.sidebarToggle = '';
+  widthToggle.className = 'hidden md:flex items-center justify-center gap-2 w-[calc(100%-16px)] mx-2 mb-2 h-8 rounded-lg text-secondary hover:text-white hover:bg-white/5 transition-colors text-[10px] font-bold uppercase tracking-wider';
+  navContainer.appendChild(widthToggle);
+
   navGroups.forEach((group, gi) => {
+    const body = document.createElement('div');
+    body.className = 'w-full flex flex-col items-center';
+    body.dataset.sidebarGroupBody = group.title;
+
     if (gi > 0) {
-      const heading = document.createElement('div');
-      heading.className = 'w-full mt-3 mb-1 pt-3 border-t border-white/5 text-center text-[8px] font-black uppercase tracking-[0.18em] text-white/30';
-      heading.textContent = group.title;
+      const heading = document.createElement('button');
+      heading.type = 'button';
       heading.dataset.sidebarGroup = group.title;
+      heading.className = 'w-full mt-3 mb-1 pt-3 border-t border-white/5 flex items-center justify-center gap-1 text-[8px] font-black uppercase tracking-[0.14em] text-white/30 hover:text-white/70 transition-colors';
+      const title = document.createElement('span');
+      title.textContent = group.title;
+      title.className = 'truncate';
+      const chevron = document.createElement('span');
+      chevron.innerHTML = CHEVRON;
+      chevron.className = 'shrink-0 transition-transform';
+      heading.appendChild(title);
+      heading.appendChild(chevron);
+      heading.onclick = () => {
+        if (collapsed.has(group.title)) collapsed.delete(group.title); else collapsed.add(group.title);
+        persist();
+        applyCollapsed();
+      };
       navContainer.appendChild(heading);
+      groupEls.push({ title: group.title, heading, chevron, body });
     }
-    group.items.forEach(item => navContainer.appendChild(createButton(item)));
+    group.items.forEach((item) => body.appendChild(createButton(item)));
+    navContainer.appendChild(body);
   });
   element.appendChild(navContainer);
 
   const bottomContainer = document.createElement('div');
   bottomContainer.className = 'flex flex-col w-full items-center mt-auto';
-  bottomItems.forEach(item => bottomContainer.appendChild(createButton(item)));
+  bottomItems.forEach((item) => bottomContainer.appendChild(createButton(item)));
   element.appendChild(bottomContainer);
+
+  function applyCollapsed() {
+    groupEls.forEach(({ title, heading, chevron, body }) => {
+      const closed = collapsed.has(title);
+      body.style.display = closed ? 'none' : '';
+      heading.setAttribute('aria-expanded', closed ? 'false' : 'true');
+      chevron.style.transform = closed ? 'rotate(-90deg)' : '';
+    });
+  }
+
+  function applyWidth() {
+    element.style.width = state.wide ? WIDE_WIDTH : NARROW_WIDTH;
+    widthToggle.innerHTML = state.wide ? `${COLLAPSE_ICON}<span>Collapse</span>` : EXPAND_ICON;
+    widthToggle.setAttribute('aria-expanded', state.wide ? 'true' : 'false');
+    widthToggle.setAttribute('aria-label', state.wide ? 'Collapse menu' : 'Expand menu');
+    widthToggle.title = state.wide ? 'Collapse menu' : 'Expand menu';
+    styleItems();
+  }
+
+  widthToggle.onclick = () => {
+    state.wide = !state.wide;
+    persist();
+    applyWidth();
+  };
+
+  applyWidth();
+  applyCollapsed();
 
   const setActive = (page) => {
     const activeId = getNavItemForRoute(page);
@@ -72,6 +166,13 @@ export function Sidebar(navigate) {
       label.style.color = active ? 'var(--color-primary)' : '';
       if (active) {
         container.setAttribute('aria-current', 'page');
+        // The group holding the current studio is always open.
+        const owner = groupEls.find((g) => g.body.contains(container));
+        if (owner && collapsed.has(owner.title)) {
+          collapsed.delete(owner.title);
+          persist();
+          applyCollapsed();
+        }
         // Keep the current studio visible in the scrolling menu without
         // scrolling the page itself.
         requestAnimationFrame(() => {

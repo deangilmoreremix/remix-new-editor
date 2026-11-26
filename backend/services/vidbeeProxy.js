@@ -5,8 +5,10 @@
  * download directory), so it is only reachable through this gate:
  *   POST /api/vidbee/session  (Bearer auth + allowlist)  → sets a short-lived HttpOnly cookie
  *   ANY  /vidbee/*            (cookie required)          → streams to the VidBee web server
- * Allowlist: VIDBEE_ALLOWED_USERS="id1,email@x.com" (user id or email). Unset = everyone in
- * NODE_ENV=development, nobody otherwise.
+ * Access: only VIDBEE_ALLOWED_USERS="id1,email@x.com" (user id or email) when that is set; when it is unset, every signed-in
+ * user if VIDBEE_PER_USER=1, otherwise nobody (development: everyone).
+ * Each user gets a private library: the gate tells the web edition who is asking (`x-smartvid-user`, an opaque id
+ * derived from the user id) and the web edition routes them to their own API with their own data and download folders.
  */
 /* global URL */
 import crypto from 'node:crypto';
@@ -24,19 +26,27 @@ if (!process.env.VIDBEE_SESSION_SECRET && process.env.NODE_ENV === 'production')
 const target = () => new URL(process.env.VIDBEE_WEB_URL || 'http://127.0.0.1:3300');
 
 const sign = (v) => crypto.createHmac('sha256', secret).update(v).digest('hex');
+/** Opaque, stable per-user id (32 hex): names the user's data folders and never reveals the account id or email. */
+export const USER_HEADER = 'x-smartvid-user';
+export const userKey = (userId, env = process.env) =>
+  crypto.createHmac('sha256', env.VIDBEE_GATE_TOKEN || env.VIDBEE_SESSION_SECRET || secret).update(`vidbee-user:${userId}`).digest('hex').slice(0, 32);
 const issue = (userId) => { const exp = Date.now() + TTL_MS; const body = `${Buffer.from(String(userId)).toString('base64url')}.${exp}`; return `${body}.${sign(body)}`; };
-const verify = (token) => {
+/** The user id inside a valid, unexpired session cookie, or null. */
+const readSession = (token) => {
   const parts = String(token || '').split('.');
-  if (parts.length !== 3) return false;
+  if (parts.length !== 3) return null;
   const body = parts.slice(0, 2).join('.');
   const want = sign(body);
-  return parts[2].length === want.length && crypto.timingSafeEqual(Buffer.from(parts[2]), Buffer.from(want)) && Number(parts[1]) > Date.now();
+  const ok = parts[2].length === want.length && crypto.timingSafeEqual(Buffer.from(parts[2]), Buffer.from(want)) && Number(parts[1]) > Date.now();
+  return ok ? Buffer.from(parts[0], 'base64url').toString() : null;
 };
 const readCookie = (req, name) => (req.headers.cookie || '').split(/;\s*/).map((c) => c.split('=')).find(([k]) => k === name)?.[1];
 
 export const isAllowed = (user, env = process.env) => {
   const list = (env.VIDBEE_ALLOWED_USERS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-  if (!list.length) return (env.NODE_ENV || 'development') === 'development';
+  // No allowlist: every signed-in user, but only when each user gets a private library (VIDBEE_PER_USER=1, also set on the
+  // web edition). Otherwise everyone would share one library, so it stays closed (open in development only).
+  if (!list.length) return env.VIDBEE_PER_USER === '1' || (env.NODE_ENV || 'development') === 'development';
   return [user?.id, user?.email].filter(Boolean).some((v) => list.includes(String(v).toLowerCase()));
 };
 
@@ -106,7 +116,8 @@ export function createVidBeeRouters({ auth }) {
   });
 
   const proxy = (req, res) => {
-    if (!verify(readCookie(req, COOKIE))) return fail(req, res, 401, 'Open SmartVidDownloader from the app to start a session.', 'Your session has ended', 'SmartVidDownloader sessions last 8 hours. Reconnect to keep downloading.', { reconnect: true });
+    const userId = readSession(readCookie(req, COOKIE));
+    if (userId === null) return fail(req, res, 401, 'Open SmartVidDownloader from the app to start a session.', 'Your session has ended', 'SmartVidDownloader sessions last 8 hours. Reconnect to keep downloading.', { reconnect: true });
     if (!isSameOriginMutation(req)) return res.status(403).type('text').send('Cross-site request blocked.');
     if (process.env.NODE_ENV === 'production' && !process.env.VIDBEE_WEB_URL) {
       return fail(req, res, 503, 'SmartVidDownloader is not configured (VIDBEE_WEB_URL).', 'SmartVidDownloader is not set up', 'The service address has not been configured on the server.', {});
@@ -118,6 +129,7 @@ export function createVidBeeRouters({ auth }) {
     delete headers.authorization;
     delete headers['x-vidbee-gate'];
     delete headers['x-smartvid-gate'];
+    headers[USER_HEADER] = userKey(userId); // replaces anything the visitor sent: the web edition trusts this header
     // Shared secret: the web edition refuses requests that do not come through this gate (VIDBEE_GATE_TOKEN, same value
     // on both sides). Sent under both header names so either build of the web edition accepts it.
     if (process.env.VIDBEE_GATE_TOKEN) { headers['x-vidbee-gate'] = process.env.VIDBEE_GATE_TOKEN; headers['x-smartvid-gate'] = process.env.VIDBEE_GATE_TOKEN; }
