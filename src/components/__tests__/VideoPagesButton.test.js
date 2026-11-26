@@ -52,3 +52,20 @@ describe('Video Pages header button', () => {
     expect(latestFromSaved({ type: 'image', url: 'https://x.test/a.png' })).toMatchObject({ type: 'image' });
   });
 });
+
+describe('the window opens even when the history never answers', () => {
+  it('waits 1.5 seconds at most, then opens the picker', async () => {
+    vi.useFakeTimers();
+    const open = vi.fn();
+    vi.doMock('../../lib/generationHistory.js', () => ({ loadGenerationHistory: () => new Promise(() => {}) }));
+    vi.doMock('../../lib/landingPages/pickerModal.js', () => ({ openLandingPagePicker: open, toPickerVideo: (v) => v }));
+    vi.doMock('../studio/landingPageAction.js', () => ({ recentItems: async () => [] }));
+    vi.resetModules();
+    const { createVideoPagesButton } = await import('../VideoPagesButton.js');
+    const btn = createVideoPagesButton({ target: new EventTarget() });
+    btn.click();
+    await vi.advanceTimersByTimeAsync(1600);
+    expect(open).toHaveBeenCalledTimes(1);
+    vi.useRealTimers(); vi.resetModules(); vi.doUnmock('../../lib/generationHistory.js'); vi.doUnmock('../../lib/landingPages/pickerModal.js'); vi.doUnmock('../studio/landingPageAction.js');
+  });
+});
