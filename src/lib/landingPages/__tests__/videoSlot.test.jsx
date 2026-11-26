@@ -243,7 +243,7 @@ describe('viewer extras: hosts without CORS, a start-frame range, replays, butto
     let root;
     await act(async () => { root = createRoot(host); root.render(<PageContext.Provider value={ctx({ video_url: VIDEO })}><ViewerContext.Provider value={{ subtitles: 'https://cdn.test/subs.vtt' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
     await act(async () => { await Promise.resolve(); await Promise.resolve(); });
-    expect(fetchMock).toHaveBeenCalledWith('https://cdn.test/subs.vtt', { mode: 'cors' });
+    expect(fetchMock).toHaveBeenCalledWith('https://cdn.test/subs.vtt', expect.objectContaining({ mode: 'cors', signal: expect.anything() }));
     expect(host.querySelector('video').hasAttribute('crossorigin')).toBe(false);
     expect(host.querySelector('track')?.getAttribute('src')).toBe('blob:subs-0');
     expect(host.querySelector('track')?.hasAttribute('default')).toBe(true);
@@ -293,5 +293,19 @@ describe('button text keeps its tokens as words', () => {
     const out = fillPropTokens({ viewerCtaLabel: 'Talk to {{company}}', ctaLabel: 'Book {{company}}', logoAlt: 'Logo of {{company}}', viewerCtaUrl: 'https://x.test/?c={{company}}' }, tokens);
     expect(out.viewerCtaLabel).toBe('Talk to {{company}}'); expect(out.ctaLabel).toBe('Book {{company}}'); expect(out.logoAlt).toBe('Logo of {{company}}');
     expect(out.viewerCtaUrl).toContain('Acme%20%26%20Sons');   // links are still encoded
+  });
+});
+
+describe('subtitles request is cancelled when the viewer goes away', () => {
+  it('unmounting aborts the in-flight subtitles request', async () => {
+    let signalSeen;
+    vi.stubGlobal('fetch', vi.fn((_u, opts) => { signalSeen = opts.signal; return new Promise(() => {}); }));
+    const host = document.createElement('div'); document.body.appendChild(host);
+    let root;
+    await act(async () => { root = createRoot(host); root.render(<PageContext.Provider value={ctx({ video_url: VIDEO })}><ViewerContext.Provider value={{ subtitles: 'https://cdn.test/s.vtt' }}><VideoPlayer /></ViewerContext.Provider></PageContext.Provider>); });
+    expect(signalSeen.aborted).toBe(false);
+    act(() => { root.unmount(); });
+    expect(signalSeen.aborted).toBe(true);
+    vi.unstubAllGlobals();
   });
 });

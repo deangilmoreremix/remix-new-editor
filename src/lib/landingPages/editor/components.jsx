@@ -58,16 +58,19 @@ export function VideoPlayer({ poster = '', slotImage = '', slotVideo = '', baked
   const ref = useRef(null);
   const [started, setStarted] = useState(false);
   // Subtitles are fetched with CORS here and played from a same-origin copy. The video itself is never put in CORS mode, so videos on any https host keep playing.
-  const subtitlesLink = safeUrl(viewer.subtitles) && /^https:/i.test(safeUrl(viewer.subtitles)) ? safeUrl(viewer.subtitles) : '';
+  const subtitlesUrl = safeUrl(viewer.subtitles);
+  const subtitlesLink = subtitlesUrl && /^https:/i.test(subtitlesUrl) ? subtitlesUrl : '';
   const [subtitles, setSubtitles] = useState('');
   useEffect(() => {
     if (!subtitlesLink || typeof fetch !== 'function') { setSubtitles(''); return undefined; }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);   // a slow or unreachable captions host does not hold the request open
     let live = true; let made = '';
-    fetch(subtitlesLink, { mode: 'cors' })
+    fetch(subtitlesLink, { mode: 'cors', signal: controller.signal })
       .then((r) => (r.ok ? r.blob() : Promise.reject(new Error('subtitles'))))
       .then((b) => { if (!live) return; made = URL.createObjectURL(new Blob([b], { type: 'text/vtt' })); setSubtitles(made); })
       .catch(() => { if (live) setSubtitles(''); });
-    return () => { live = false; if (made) URL.revokeObjectURL(made); };
+    return () => { live = false; clearTimeout(timer); controller.abort(); if (made) URL.revokeObjectURL(made); };
   }, [subtitlesLink]);
   const once = (kind, fn) => {
     if (preview || fired.current.has(kind)) return;
