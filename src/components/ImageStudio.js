@@ -883,7 +883,6 @@ generateBtn.type = 'button';
                 advancedPanel.classList.remove('hidden');
             }
         }
-        document.getElementById('tools-btn-label').textContent = showToolsPanel ? 'Tools' : 'Tools';
     };
     
     toolsBtn.onclick = toggleTools;
