@@ -36,6 +36,12 @@ describe("each studio's Video Pages button", () => {
     await vi.waitFor(() => expect(openVideoPages).toHaveBeenCalled());
     expect(openVideoPages.mock.calls[0][0]).toBeNull();
   });
+  it('trusts the studio output type over the file extension (signed URLs have none)', async () => {
+    const { row } = mount('https://storage.test/signed?token=abc', 'video');
+    row.querySelector('[data-studio-video-pages]').click();
+    await vi.waitFor(() => expect(openVideoPages).toHaveBeenCalled());
+    expect(openVideoPages.mock.calls[0][0]).toMatchObject({ type: 'video' });
+  });
   it('is removed with the trigger', () => {
     const { row, handle } = mount();
     handle.destroy();

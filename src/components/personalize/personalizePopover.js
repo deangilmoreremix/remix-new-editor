@@ -273,7 +273,10 @@ export function inspectPromptTokens(prompt, profile) {
     let url = '';
     try { url = (typeof getResult === 'function' ? getResult() : '') || ''; } catch { url = ''; }
     const { openVideoPages, latestFromSaved } = await import('../VideoPagesButton.js');
-    const isVideo = /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
+    // the studio's own output type first (a signed storage URL has no file extension), the extension only when it is unknown
+    let assetType;
+    try { assetType = typeof getAsset === 'function' ? getAsset()?.type : undefined; } catch { assetType = undefined; }
+    const isVideo = assetType === 'video' || (assetType !== 'image' && /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url));
     openVideoPages(latestFromSaved({ type: isVideo ? 'video' : 'image', url, prompt: getTextarea?.()?.value || '', studio: studioId }));
   };
 
