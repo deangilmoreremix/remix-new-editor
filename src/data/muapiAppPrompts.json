@@ -164,5 +164,28 @@
     "exposure": "exposure adjusted by {value}",
     "sharpness": "sharpness at {value} out of 100",
     "grain": "film grain at {value} out of 100"
+  },
+  "placeholders": {
+    "character-swap": "Describe the new character, e.g. a red-haired astronaut in a silver suit",
+    "outfit-swap": "Optional: pose or setting, e.g. standing in a park, full length",
+    "outfit-shot": "Optional: mood or setting, e.g. rooftop at golden hour",
+    "transitions": "Describe the other scene, e.g. a snowy mountain at dawn",
+    "whats-next": "Optional: what should happen next, e.g. the door slowly opens",
+    "angles": "Optional: describe the camera position, e.g. low angle from the left",
+    "zooms": "Optional: how close or far, e.g. pull back to a wide shot",
+    "color-grading": "Optional: describe the mood, e.g. warm golden hour, faded blacks",
+    "breakdown": "Optional: what to separate, e.g. only the clothing and accessories",
+    "headshot-generator": "Optional: attire or backdrop, e.g. navy blazer, light grey wall",
+    "sketch-to-real": "Optional: what the scene is, e.g. a cottage in a green valley",
+    "behind-the-scenes": "Optional: the kind of film set, e.g. a sci-fi movie stage",
+    "outfit-vending": "Optional: vending machine style, e.g. retro Japanese street at night",
+    "poster": "Product name or tagline to feature, e.g. Aurora Headphones",
+    "japanese-show": "Optional: show title or caption text"
+  },
+  "placeholderDefaults": {
+    "video": "Add motion or mood, e.g. slower camera move, warmer light",
+    "ad": "Product name or the feeling you want, e.g. fresh and premium",
+    "preset": "Add details to the chosen style",
+    "image": "Anything specific you want in the result"
   }
 }

@@ -1156,6 +1156,7 @@ export function EditStudio({ embed = false } = {}) {
   }
 
   let appLabel = null;
+  let lastPromptTool = null;
   let costTimer = null;
   const idleLabel = () => appLabel || 'Apply Edit';
 
@@ -1198,7 +1199,10 @@ export function EditStudio({ embed = false } = {}) {
     extrasPanel.classList.add('hidden');
     promptPanel.classList.toggle('hidden', !tool.hasPrompt);
     promptLabel.textContent = 'Prompt refinement (optional)';
-    promptField.placeholder = 'Anything specific you want in the result…';
+    promptField.placeholder = tool.promptPlaceholder || 'Anything specific you want in the result…';
+    // Words typed for one app do not belong in the next one.
+    if (lastPromptTool !== tool.slug) promptField.value = '';
+    lastPromptTool = tool.slug;
     renderAppControls(tool);
     refreshAppCost();
   }
@@ -1313,6 +1317,7 @@ export function EditStudio({ embed = false } = {}) {
       applyApp(tool);
     } else {
       appLabel = null;
+      lastPromptTool = null;
       clearTimeout(costTimer);
       editBtn.textContent = 'Apply Edit';
       buildModelSelect(tool);

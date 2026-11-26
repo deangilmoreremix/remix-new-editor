@@ -42,7 +42,7 @@ vi.mock('../lib/muapiStudioMedia.js', () => ({
 }));
 
 import { EditStudio, EDIT_TOOLS } from '../components/EditStudio.js';
-import { EDIT_APPS } from '../lib/muapiEditApps.js';
+import { EDIT_APPS, buildAppPrompt } from '../lib/muapiEditApps.js';
 import { muapi } from '../lib/muapi.js';
 import { registerGeneration } from '../lib/generationHistory.js';
 
@@ -321,5 +321,48 @@ describe('The price on the button', () => {
     } finally {
       muapi.calculateDynamicCost.mockImplementation(async () => ({ cost: 0.07 }));
     }
+  });
+});
+
+describe('Every app has the controls and prompt box it needs', () => {
+  const promptBox = (el) => el.querySelector('textarea[aria-label="Edit prompt"]');
+
+  test('each app builds a prompt that stands on its own and a hint for its prompt box', () => {
+    for (const app of EDIT_APPS) {
+      expect(app.promptPlaceholder, app.slug).toMatch(/…$/);
+      if (!app.hasPrompt) continue;
+      expect(app.promptBase, app.slug).toContain('{prompt}');
+      const preset = app.controls.find((c) => c.type === 'preset');
+      const built = buildAppPrompt(app, { style_preset: preset?.default });
+      expect(built.length, app.slug).toBeGreaterThan(40);
+      expect(built, app.slug).not.toMatch(/\{prompt\}|undefined|as described/);
+      // A prompt that points at "the chosen style" must actually carry one.
+      if (/chosen|as described/.test(app.promptBase)) expect(preset, app.slug).toBeTruthy();
+    }
+  });
+
+  test('each app shows a control for every setting it has, and the prompt box only when it takes a prompt', () => {
+    for (const app of EDIT_APPS) {
+      const el = mount(app.slug);
+      const settings = [...el.querySelectorAll('[data-control-key]')].map((n) => n.dataset.controlKey);
+      for (const c of app.controls.filter((x) => x.type !== 'camera3d')) {
+        expect(settings, `${app.slug}:${c.key}`).toContain(c.key);
+      }
+      const panel = promptBox(el).parentElement;
+      expect(panel.classList.contains('hidden'), app.slug).toBe(!app.hasPrompt);
+      if (app.hasPrompt) expect(promptBox(el).placeholder, app.slug).toBe(app.promptPlaceholder);
+    }
+  });
+
+  test('the prompt box shows each app\'s own hint and is emptied when you move to another app', () => {
+    const el = mount('app-character-swap');
+    expect(promptBox(el).placeholder).toMatch(/new character/i);
+    promptBox(el).value = 'a red-haired astronaut';
+    const other = EDIT_APPS.find((a) => a.slug === 'app-color-grading');
+    const select = [...el.querySelectorAll('select')].find((s) => [...s.options].some((o) => o.value === other.slug));
+    select.value = other.slug;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(promptBox(el).value).toBe('');
+    expect(promptBox(el).placeholder).toMatch(/mood/i);
   });
 });

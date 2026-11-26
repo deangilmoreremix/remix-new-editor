@@ -39,6 +39,18 @@ function presetPhrase(appId, label, data) {
   return data.presets?.[appId]?.[label] || label;
 }
 
+/** What the prompt box says for one app: its own hint, else one by kind (video, ad, styled, plain). */
+export function promptPlaceholderFor(app, data = prompts) {
+  const own = data.placeholders?.[app.id];
+  if (own) return `${own}…`;
+  const d = data.placeholderDefaults || {};
+  const kind = app.mediaType === 'video' ? 'video'
+    : app.studioCategoryKey === 'ads' ? 'ad'
+      : app.studio.presets.length ? 'preset' : 'image';
+  const text = d[kind] || d.image || 'Anything specific you want in the result';
+  return `${text}…`;
+}
+
 export function buildEditApp(app, data = prompts) {
   const s = app.studio;
   const model = app.endpoint.targetModel || app.endpoint.model;
@@ -114,6 +126,7 @@ export function buildEditApp(app, data = prompts) {
     presetValues,
     hasPrompt: s.requiresPrompt !== false,
     promptBase: data.apps?.[app.id] || '{prompt}',
+    promptPlaceholder: promptPlaceholderFor(app, data),
     presetPhrases: data.presets?.[app.id] || {},
     sliderPhrases: data.sliderPhrases || {},
     defaultCostUsd: s.defaultCostUsd,
