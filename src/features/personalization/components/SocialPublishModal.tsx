@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { X, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import { mergeCopy } from './social-publishing/mergeCopy';
 import { publishOrchestrator, publishOne } from '@ohb/shared/api/publishOrchestrator';
-import { PLATFORM_ORDER, PLATFORM_SPECS, buildPublishPayload, isPublicMediaUrl, type PlatformId } from '@ohb/shared/api/socialPayloads';
+import { PLATFORM_ORDER, PLATFORM_SPECS, buildPublishPayload, isPublicMediaUrl, pickThumbnailUrl, type PlatformId } from '@ohb/shared/api/socialPayloads';
 import { uploadPublishMedia } from '@ohb/lib/muapi';
 import { prepareThumbnailFile } from '@ohb/lib/thumbnailUpload';
 import SocialPublishStepper from './social-publishing/SocialPublishStepper';
@@ -13,6 +13,7 @@ import ThumbnailStep from './social-publishing/steps/ThumbnailStep';
 import DestinationsStep from './social-publishing/steps/DestinationsStep';
 import ReviewPublishStep from './social-publishing/steps/ReviewPublishStep';
 import { SocialStudioPanel } from './social-publishing/studio/SocialStudioPanel';
+import type { PreparedSchedule } from './social-publishing/studio/AutoPublishPanel';
 import type {
   Asset,
   CopyState,
@@ -223,6 +224,27 @@ export default function SocialPublishModal({
     [asset, publishing, publishResults, destinations, resolveAsset, resolveThumbnail, copy, thumbnail, apiKey, updatePublishResults, sessionId],
   );
 
+  /**
+   * Automatic publishing: same preparation as Publish (media + thumbnail hosted, one MuAPI payload per destination),
+   * but the requests are saved as a job for the server instead of being sent now.
+   */
+  const prepareSchedule = useCallback(async (): Promise<PreparedSchedule> => {
+    if (!asset) throw new Error('There is nothing to schedule.');
+    const todo = destinations.filter((d) => d.enabled && d.accountId);
+    const ready = await resolveAsset(asset);
+    const readyThumb = usesThumbnail(todo.map((d) => d.platform)) ? await resolveThumbnail(thumbnail) : thumbnail;
+    const jobs: PreparedSchedule['jobs'] = [];
+    const errors: string[] = [];
+    for (const d of todo) {
+      const built = buildPublishPayload({ platform: d.platform as PlatformId, accountId: d.accountId ?? '', mediaUrl: ready.url, mediaType: ready.type, copy, settings: d.settings, thumbnailUrl: pickThumbnailUrl(readyThumb, d.platform, d.settings) });
+      if (!built.payload) errors.push(`${PLATFORM_SPECS[d.platform as PlatformId]?.label ?? d.platform}: ${built.errors.join(' ')}`);
+      else jobs.push({ platform: d.platform, account_id: d.accountId as string, payload: built.payload });
+    }
+    if (!todo.length) errors.push('Choose at least one connected account in the Destinations step.');
+    const notes = todo.some((d) => d.platform === 'youtube') && readyThumb?.imageUrl ? ['Note: a custom YouTube thumbnail is not applied to automatic posts; set it in YouTube Studio.'] : [];
+    return { jobs, mediaUrl: ready.url, mediaType: ready.type, caption: copy.caption || copy.master || '', hashtags: [], errors, notes };
+  }, [asset, destinations, resolveAsset, resolveThumbnail, thumbnail, copy]);
+
   const handleRetry = useCallback(
     async (platform: string, accountId?: string) => {
       const dest = destinations.find((d) => d.platform === platform && d.accountId === accountId);
@@ -395,6 +417,8 @@ export default function SocialPublishModal({
                     onReplaceAsset={onReplaceAsset}
                     onRestoreDraft={onRestoreDraft}
                     onRetry={handleRetry}
+                    apiKey={apiKey}
+                    onPrepareSchedule={prepareSchedule}
                   >
                     <div>
                       <h3 className="text-[11px] font-bold uppercase tracking-wide text-white/40 mb-3">

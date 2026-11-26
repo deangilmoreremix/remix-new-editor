@@ -2,6 +2,10 @@ import '@testing-library/jest-dom/vitest'
 import React from 'react'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-library/react'
+vi.mock('../../../../../../lib/social/publishJobs.js', () => ({
+  cloudReady: () => false, listJobs: async () => [], autoPublishStatus: vi.fn(), enableAutoPublish: vi.fn(), disableAutoPublish: vi.fn(),
+  scheduleJob: vi.fn(), cancelJob: vi.fn(), retryJob: vi.fn(), rescheduleJob: vi.fn(), describeResult: () => '',
+}))
 import { SocialStudioPanel, derivePlanStatus } from '../SocialStudioPanel'
 import type { CopyState, Destination, PublishResult } from '../../types'
 
