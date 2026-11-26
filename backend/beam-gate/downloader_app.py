@@ -17,6 +17,9 @@ pod = Pod(
     memory="4Gi",
     disks=[DurableDisk(name="smartvid-data", size="10Gi", mount_path="/data", driver="snapshot")],
     secrets=["VIDBEE_GATE_TOKEN"],
+    # One private library per signed-in person (their own downloads, history and settings, under /data/users). The gate sends who is asking
+    # in x-smartvid-user; without this every allowed person would share one library. Needs VIDBEE_GATE_TOKEN (start.sh refuses to start without it).
+    env={"VIDBEE_PER_USER": "1"},
     keep_warm_seconds=600,  # scales to zero when idle
     authorized=False,       # the pod does its own check: it only answers requests carrying the gate's secret
 )

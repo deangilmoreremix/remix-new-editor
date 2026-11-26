@@ -23,7 +23,7 @@ pod = Pod(
     cpu=1,
     memory=1024,
     secrets=SECRETS,
-    env={"NODE_ENV": "production", "PORT": "8080"},
+    env={"NODE_ENV": "production", "PORT": "8080", "VIDBEE_PER_USER": "1"},  # also set on the downloader pod: private library per person
     keep_warm_seconds=600,  # scales to zero when idle, like the other Pods
     authorized=False,       # the browser reaches it through smartvid.app; the gate does its own sign-in check
 )
