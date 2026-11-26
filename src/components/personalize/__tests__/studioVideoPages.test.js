@@ -7,9 +7,9 @@ import { mountPersonalizeTrigger } from '../personalizePopover.js';
 
 describe("each studio's Video Pages button", () => {
   beforeEach(() => { document.body.innerHTML = ''; openVideoPages.mockClear(); });
-  const mount = (previewUrl = '', type = 'video') => {
+  const mount = (resultUrl = '', type = 'video') => {
     const row = document.createElement('div'); document.body.appendChild(row);
-    const handle = mountPersonalizeTrigger({ controlsContainer: row, studioId: 'video', studioName: 'Video Studio', getPreview: () => previewUrl, getAsset: () => ({ type }) });
+    const handle = mountPersonalizeTrigger({ controlsContainer: row, studioId: 'video', studioName: 'Video Studio', getPreview: () => 'https://cdn.test/reference.png', getResult: () => resultUrl, getAsset: () => ({ type }) });
     return { row, handle };
   };
   it('sits right after Personalize in the same row', () => {
@@ -30,7 +30,7 @@ describe("each studio's Video Pages button", () => {
     await vi.waitFor(() => expect(openVideoPages).toHaveBeenCalled());
     expect(openVideoPages.mock.calls[0][0]).toMatchObject({ type: 'image' });
   });
-  it('falls back to your newest creation when the studio has nothing yet', async () => {
+  it('never sends a reference picture: with no result it uses your newest creation', async () => {
     const { row } = mount('');
     row.querySelector('[data-studio-video-pages]').click();
     await vi.waitFor(() => expect(openVideoPages).toHaveBeenCalled());

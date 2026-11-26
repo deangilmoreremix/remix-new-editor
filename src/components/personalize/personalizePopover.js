@@ -175,6 +175,7 @@ export function inspectPromptTokens(prompt, profile) {
    getProject,
    getPersonalizableFields,
    getPreview,
+   getResult,
    onApply,
    onClear,
    onSendToPersonalizer,
@@ -267,11 +268,13 @@ export function inspectPromptTokens(prompt, profile) {
   button.after(pagesBtn);
   pagesBtn.onclick = async (e) => {
     e.stopPropagation();
-    const ctx = readContext();
-    const url = ctx.mediaUrl;
-    const isVideo = ctx.mediaType === 'video' || (!ctx.mediaType && /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url));
+    // Only the studio's finished result goes along (getResult): the personalization preview can be a reference picture,
+    // not the output. Without a result, the picker loads your newest creation from the history.
+    let url = '';
+    try { url = (typeof getResult === 'function' ? getResult() : '') || ''; } catch { url = ''; }
     const { openVideoPages, latestFromSaved } = await import('../VideoPagesButton.js');
-    openVideoPages(latestFromSaved({ type: isVideo ? 'video' : 'image', url, prompt: ctx.prompt, studio: ctx.studioId }));
+    const isVideo = /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
+    openVideoPages(latestFromSaved({ type: isVideo ? 'video' : 'image', url, prompt: getTextarea?.()?.value || '', studio: studioId }));
   };
 
   button.onclick = (e) => {

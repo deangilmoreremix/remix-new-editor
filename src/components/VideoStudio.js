@@ -896,6 +896,7 @@ export function VideoStudio() {
           generationHistory,
         });
       },
+      getResult: () => { const el = document.querySelector('#v-result-video'); return el ? (el.currentSrc || el.src || '') : ''; },
       getProject: () => ({}),
       getPersonalizableFields: () => {
         const textarea = document.getElementById('v-v-prompt-textarea');
