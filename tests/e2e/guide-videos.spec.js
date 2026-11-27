@@ -316,6 +316,32 @@ for (const guide of GUIDES) {
       const url = `${BASE}/__tour_media/${file}`;
       return route.fulfill({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify({ url, file_url: url, data: { url }, result: { url } }) });
     });
+    // Smart Video Viral shows X media from hosts the capture machine may not reach (and plays videos through the app's
+    // own /proxy/video route). Unreachable media left the tour showing empty cards, so answer those requests with real AI
+    // previews and videos that ship in public/media/promptfeed, handed out in a stable order. Nothing leaves the machine.
+    const FEED_DIR = path.join(process.cwd(), 'public/media/promptfeed');
+    const feedImages = fs.existsSync(path.join(FEED_DIR, 'previews')) ? fs.readdirSync(path.join(FEED_DIR, 'previews')).filter((f) => /\.(jpe?g|webp|png)$/i.test(f)).sort() : [];
+    const feedVideos = fs.existsSync(path.join(FEED_DIR, 'videos')) ? fs.readdirSync(path.join(FEED_DIR, 'videos')).filter((f) => /\.mp4$/i.test(f)).sort() : [];
+    if (guide.slug === 'smart-video-viral' && feedImages.length && feedVideos.length) {
+      const assigned = { image: new Map(), video: new Map() };
+      const pick = (kind, url, list) => {
+        const key = url.split('?')[0];
+        if (!assigned[kind].has(key)) assigned[kind].set(key, assigned[kind].size % list.length);
+        return list[assigned[kind].get(key)];
+      };
+      await page.context().route(/cdn\.imglume\.com|pbs\.twimg\.com/, (route) => {
+        const file = pick('image', route.request().url(), feedImages);
+        const type = /\.webp$/i.test(file) ? 'image/webp' : /\.png$/i.test(file) ? 'image/png' : 'image/jpeg';
+        return route.fulfill({ status: 200, contentType: type, headers: CORS, body: fs.readFileSync(path.join(FEED_DIR, 'previews', file)) });
+      });
+      await page.context().route(/\/proxy\/video\//, (route) => {
+        const buf = fs.readFileSync(path.join(FEED_DIR, 'videos', pick('video', route.request().url(), feedVideos)));
+        const range = /bytes=(\d+)-(\d*)/.exec(route.request().headers().range || '');
+        if (!range) return route.fulfill({ status: 200, contentType: 'video/mp4', headers: { ...CORS, 'accept-ranges': 'bytes' }, body: buf });
+        const start = Number(range[1]); const end = range[2] ? Number(range[2]) : buf.length - 1;
+        return route.fulfill({ status: 206, contentType: 'video/mp4', headers: { ...CORS, 'accept-ranges': 'bytes', 'content-range': `bytes ${start}-${end}/${buf.length}` }, body: buf.subarray(start, end + 1) });
+      });
+    }
     // Video Pages needs Supabase and a signed-in user. Run it against a dev server started with a fake
     //   VITE_SUPABASE_URL=http://127.0.0.1:54399 (see the README), and answer its data calls with one sample page here.
     //   Nothing real is read or written.
