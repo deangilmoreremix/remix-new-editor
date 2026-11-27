@@ -9,7 +9,7 @@ import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
-import { mountModelSelector } from '../lib/modelSelectorUI.js';
+import { createPill, openComposerPopover } from './studio/promptComposer.js';
 import { i2iModels } from '../lib/models.js';
 import { createSafeImage } from '../lib/security.js';
 import { getAssetsForStudio } from '../data/exampleGalleryAssets.js';
@@ -347,18 +347,24 @@ export async function InfluencerStudio() {
   header.appendChild(createStudioHeader('influencer', 'AI Influencer Studio', 'Design a consistent AI influencer and their content'));
   container.appendChild(header);
 
+  // Model picker: a pill that opens a popover (one model shown until clicked),
+  // using the shared composer helpers like Video Studio.
   const modelSelectorContainer = document.createElement('div');
-  modelSelectorContainer.className = 'w-full mb-6';
+  modelSelectorContainer.className = 'w-full mb-4 flex justify-start relative';
   modelSelectorContainer.dataset.help = 'model';
+  const modelPill = createPill({ label: selectedModel.name || selectedModel.id, title: 'Model' });
+  modelPill.setAttribute('aria-haspopup', 'menu');
+  modelPill.addEventListener('click', () => openComposerPopover(modelPill, {
+    title: 'Model',
+    className: 'top-[calc(100%+8px)] bottom-auto w-[280px]',
+    items: i2iModels.map((m) => ({
+      label: m.name,
+      selected: m.id === selectedModel.id,
+      onSelect: () => { selectedModel = m; modelPill.setLabel(m.name); },
+    })),
+  }));
+  modelSelectorContainer.appendChild(modelPill);
   container.appendChild(modelSelectorContainer);
-
-  mountModelSelector(modelSelectorContainer, {
-    models: i2iModels,
-    selectedModelId: selectedModel.id,
-    onSelectModel: (model) => {
-      selectedModel = model;
-    },
-  });
 
   const formCard = document.createElement('div');
   formCard.className = 'w-full bg-card-bg/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col gap-5 shadow-3xl animate-fade-in-up';
@@ -716,7 +722,7 @@ export async function InfluencerStudio() {
   try {
     const { consumeAndApply } = await import('../lib/examplesRail.js');
     consumeAndApply('influencer', (staged) => {
-      if (staged.model) selectedModel = staged.model;
+      if (staged.model) { selectedModel = staged.model; modelPill.setLabel(staged.model.name || staged.model.id); }
       if (staged.prompt) {
         promptInput.value = staged.prompt;
         promptInput.dispatchEvent(new Event('input', { bubbles: true }));

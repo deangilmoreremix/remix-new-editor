@@ -106,3 +106,20 @@ export function similarity(a: string, b: string): number {
   for (const w of A) if (B.has(w)) inter++
   return inter / (A.size + B.size - inter)
 }
+
+/**
+ * Automatic jobs send their stored links unchanged when the time comes, possibly days later. A link that only exists for a short
+ * time would be dead by then: device-only files (blob:/data:), and signed/expiring URLs such as MuAPI upload links. So a job may only
+ * use links that are public https and not signed. Time windows are not used: they cannot cover rescheduling, retries or cached uploads.
+ */
+export function isTemporaryMediaUrl(url: string | undefined | null): boolean {
+  if (!url) return false
+  if (!isPublicMediaUrl(url)) return true
+  return /[?&](x-amz-signature|x-amz-expires|x-amz-security-token|signature|expires|se|sig|token)=/i.test(url)
+}
+
+/** Why this media cannot be used by an automatic job ('' when it can). */
+export function deviceOnlyMediaError(mediaUrl: string | undefined): string {
+  if (!mediaUrl || !isTemporaryMediaUrl(mediaUrl)) return ''
+  return 'Automatic posts can only use media that has a permanent public https link. This file is only on this device (or uses a temporary link), and that link would expire before the post goes out. Publish it now instead, or use a result saved from a studio or a permanent link.'
+}

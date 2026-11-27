@@ -57,7 +57,7 @@ function mark(doc, { imageUrl, name, className }) {
  * @param {object} o
  *   page      { title, video_url, poster_url, duration, config }
  *   tokens    { firstname, company, companylogo, ... }  (contact / URL values)
- *   handlers  { onPlay, onProgress(kind), onComplete, onCta, onLead(data) -> Promise<{stored,error}> }
+ *   handlers  { onPlay, onProgress(kind), onComplete, onCta, onLead(data) -> Promise<{stored,error}>, onPlayerChange({playing,time,duration}) }
  *   preview   true in the studio (no events, form submit is a no-op message)
  * @returns {{ root: HTMLElement, video: HTMLVideoElement, destroy(): void }}
  */
@@ -551,6 +551,9 @@ export function renderLandingPage({ page, tokens = {}, handlers = {}, preview = 
   const fired = new Set();
   const once = (kind, fn) => { if (!fired.has(kind)) { fired.add(kind); fn?.(kind); } };
   if (!preview) {
+    // The page's video is also tracked as a published video (plays, watch time, retention): report the player's state as it changes.
+    const report = () => handlers.onPlayerChange?.({ playing: !video.paused && !video.ended, time: video.currentTime, duration: video.duration });
+    ['play', 'pause', 'timeupdate', 'ended'].forEach((ev) => listen(video, ev, report));
     listen(video, 'play', () => once('play', () => handlers.onPlay?.()));
     listen(video, 'timeupdate', () => {
       const d = video.duration;

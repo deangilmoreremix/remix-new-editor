@@ -118,3 +118,19 @@ export async function enableRetargetForVideo(client: Client, videoId: string): P
   await linkVideoToProject(client, videoId, rowId);
   return rowId;
 }
+
+/**
+ * Before publishing from CineGen: make sure this timeline's project row exists and carry the owner's saved audience mapping into
+ * `built`, so Retarget works for the published video and a republish never drops the mapping. Resolves to the row id to pass to
+ * publishVideo, or null when the row could not be written (publishing itself must not fail because of that).
+ * Throws only when the saved mapping cannot be read, so a version that silently loses it is never published.
+ */
+export async function ensureLinkedRow(client: Client, input: { projectId: string; timelineId: string; title: string; built: { timelineSeconds?: number; interestMap?: unknown; [k: string]: unknown }; aspect?: string | null }): Promise<string | null> {
+  const rowId = await linkedProjectId(input.projectId, input.timelineId);
+  const map = await readInterestMap(client, rowId).catch((e: Error) => { throw new Error(`Could not read your saved audience mapping — try publishing again (${e.message || 'unknown error'})`); });
+  if (map) input.built.interestMap = map;
+  try {
+    await ensureProjectRow(client, { projectId: rowId, name: await rowName(input.projectId, input.title), built: input.built, aspect: input.aspect, cinegenProjectId: input.projectId, timelineId: input.timelineId });
+    return rowId;
+  } catch { return null; }
+}

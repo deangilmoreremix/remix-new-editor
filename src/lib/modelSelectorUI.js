@@ -347,7 +347,13 @@ export function mountTemplateModelSelector({
     const spaceAbove = rect.top - gap - getPickerTopLimit();
     const spaceBelow = viewportHeight - rect.bottom - gap - margin;
     const openAbove = spaceAbove >= naturalHeight || spaceAbove >= 240 || spaceAbove >= spaceBelow;
-    const available = Math.max(160, Math.min(viewportHeight * 0.7, openAbove ? spaceAbove : spaceBelow));
+    // Floor of 280px (not 160) so the model list keeps a usable height on short screens,
+    // but never taller than the room between the header and the bottom edge.
+    const room = Math.max(120, viewportHeight - getPickerTopLimit() - margin);
+    const available = Math.min(
+      room,
+      Math.max(Math.min(280, room), Math.min(viewportHeight * 0.7, openAbove ? spaceAbove : spaceBelow)),
+    );
 
     panel.style.maxHeight = `${available}px`;
     panel.style.overflow = "hidden";
@@ -356,7 +362,7 @@ export function mountTemplateModelSelector({
       // Panel has p-3.5 (14px each side) padding plus the "Model" header.
       const header = panel.querySelector(".model-picker-header");
       const headerHeight = header ? header.offsetHeight + 8 : 0;
-      const innerMax = Math.max(120, available - 28 - headerHeight);
+      const innerMax = Math.max(80, available - 28 - headerHeight);
       inner.style.maxHeight = `${innerMax}px`;
       inner.style.minHeight = `${Math.min(350, innerMax)}px`;
     }
@@ -369,6 +375,16 @@ export function mountTemplateModelSelector({
       panel.style.top = `${rect.bottom + gap}px`;
       panel.classList.remove("origin-bottom-left");
       panel.classList.add("origin-top-left");
+    }
+    // The trigger can itself be near/over an edge: keep the whole panel on screen.
+    {
+      const h = panel.offsetHeight;
+      const limit = getPickerTopLimit();
+      const topEdge = openAbove ? rect.top - gap - h : rect.bottom + gap;
+      if (topEdge < limit || topEdge + h > viewportHeight - margin) {
+        panel.style.bottom = "";
+        panel.style.top = `${Math.max(limit, Math.min(topEdge, viewportHeight - margin - h))}px`;
+      }
     }
 
     // Horizontal positioning

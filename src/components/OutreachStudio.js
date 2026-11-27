@@ -151,7 +151,7 @@ function ensureStepTransitionStyle(doc = globalThis.document) {
 }
 
 export function OutreachStudio() {
-  const container = el('div', 'relative w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
+  const container = el('div', 'studio-short-scroll relative w-full h-full flex flex-col overflow-hidden bg-app-bg text-white');
   mountStudioChrome(container, { currentRoute: 'outreach' });
 
   const draft = loadDraft();
@@ -188,7 +188,7 @@ export function OutreachStudio() {
   const campaigns = { loaded: false, loading: false, rows: [], error: '', openId: null, stats: {} };
 
   const stepper = el('div', 'flex flex-wrap gap-2 px-4 md:px-8 pt-5');
-  const scroll = el('div', 'flex-1 overflow-y-auto');
+  const scroll = el('div', 'studio-short-body flex-1 overflow-y-auto');
   // Bottom padding keeps the footer buttons clear of the floating Ask SmartVideo button.
   const inner = el('div', 'max-w-[1400px] mx-auto w-full px-4 md:px-8 pt-5 pb-4 flex flex-col gap-5');
   scroll.appendChild(inner);
@@ -2618,7 +2618,7 @@ export function OutreachStudio() {
           duration: draft.video?.duration || null,
           source: { kind: 'outreach', studio: 'outreach', id: draft.campaign.id },
           config,
-        });
+        }, { linkVideo: false }); // Outreach has its own per-contact analytics and alerts, so its page does not publish a second video record
         await setPagePublished(client, row.id, true);
       }
       const url = pageUrl(row.id);

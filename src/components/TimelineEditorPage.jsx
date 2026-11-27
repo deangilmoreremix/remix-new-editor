@@ -6331,10 +6331,20 @@ export function TimelineEditorPage() {
           // Interest mapping lives with the project (Projects > Retarget); publishing carries it to viewers.
           if (state.projectId) {
             try { state.interestMap = (await (await projectStore()).loadProject(client, state.projectId))?.settings?.interestMap || undefined; } catch { /* publish without a mapping */ }
+          } else if (videoId()) {
+            // An unsaved timeline republished: the video's own project row (made when it was first published) holds the mapping.
+            try {
+              const { data: linked } = await client.from('published_videos').select('project_id').eq('id', videoId()).maybeSingle();
+              if (linked?.project_id) state.interestMap = (await (await projectStore()).loadProject(client, linked.project_id))?.settings?.interestMap || undefined;
+            } catch { /* publish without a mapping */ }
           }
           const project = pub.preparePublishProject(state, { title });
           const id = videoId() || pub.makeSlug();
           const info = await pub.publishVideo(client, { id, project, projectId: state.projectId || null });
+          // An unsaved timeline has no project row, so give the video one: Analytics / Retarget / Alerts need it (accounts only; best-effort).
+          if (!state.projectId && !isGuest()) {
+            try { await (await import('../cinegen/lib/leads/project-link.ts')).enableRetargetForVideo(client, id); } catch { /* the video is published; it can be linked later from Analytics */ }
+          }
           state.publishedVideos = { ...(state.publishedVideos || {}), [publishedKey()]: id };
           debouncedSave();
           // With a business name already chosen, give a new video a readable

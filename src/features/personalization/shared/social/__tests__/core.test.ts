@@ -5,7 +5,7 @@ import { detectCapabilities, aiAvailability } from '../capabilities'
 import { rewriteCaption, summarizeText, translateText, AiUnavailableError, shortenLocal, bulletsLocal } from '../copyTools'
 import { extractKeywords, suggestHashtags, dedupeTags, appendHashtags, detectNiche } from '../hashtags'
 import { parseSubtitles, toSrt, toVtt, shiftCues, validateCues, parseTimestamp } from '../subtitles'
-import { validatePost, validateFileType, hasBlockingErrors, similarity } from '../validation'
+import { validatePost, validateFileType, hasBlockingErrors, similarity, deviceOnlyMediaError, isTemporaryMediaUrl } from '../validation'
 import { computeReframe, clampTrim, presetTrim, estimateVideoBytes, limitResolution, even } from '../mediaPrep'
 import { exportFilename, slug } from '../exportNames'
 import { copyText, readClipboardText, imagesFromPasteEvent } from '../clipboard'
@@ -201,5 +201,24 @@ describe('notifications', () => {
     const plans = [{ id: 'a', scheduledAt: 5, status: 'draft' }, { id: 'b', scheduledAt: 5, status: 'published' }, { id: 'c', scheduledAt: 99, status: 'draft' }]
     expect(dueNow(plans, 10).map((p) => p.id)).toEqual(['a'])
     expect(dueNow(plans, 10, new Set(['a']))).toEqual([])
+  })
+})
+
+describe('media an automatic job may use', () => {
+  it('allows permanent public unsigned https links, whatever the schedule', () => {
+    expect(deviceOnlyMediaError('https://cdn.example.com/a.mp4')).toBe('')
+    expect(deviceOnlyMediaError('https://cdn.example.com/a.mp4?width=720&v=3')).toBe('')
+    expect(deviceOnlyMediaError(undefined)).toBe('')
+  })
+  it('refuses device-only media', () => {
+    for (const u of ['blob:https://x/abc', 'data:image/png;base64,xx', 'http://localhost:3000/a.mp4', 'https://192.168.1.4/a.mp4']) {
+      expect(deviceOnlyMediaError(u)).toMatch(/permanent public https link/)
+    }
+  })
+  it('refuses signed / expiring https links (e.g. presigned uploads) even though they are public', () => {
+    for (const u of ['https://bucket.s3.amazonaws.com/a.mp4?X-Amz-Signature=abc&X-Amz-Expires=3600', 'https://cdn.example.com/a.mp4?Expires=1700000000&Signature=zz', 'https://cdn.example.com/a.mp4?token=abc']) {
+      expect(isTemporaryMediaUrl(u)).toBe(true)
+      expect(deviceOnlyMediaError(u)).not.toBe('')
+    }
   })
 })

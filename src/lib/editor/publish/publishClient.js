@@ -14,10 +14,20 @@ import { isImageTokenKey, shareableImageValue } from '../../personalization/imag
 export const PROJECT_VERSION = 1;
 export const SLUG_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
 
-/** Unguessable share id (10 chars ≈ 57 bits). */
+/**
+ * Unguessable share id (10 chars ≈ 57 bits). Every character is equally likely: a random byte is used only when it
+ * falls in the largest multiple of the alphabet size (`byte % 57` would favour the first 28 letters).
+ */
+const SLUG_LIMIT = 256 - (256 % SLUG_ALPHABET.length);
 export function makeSlug(length = 10, rand = (n) => crypto.getRandomValues(new Uint8Array(n))) {
-  const bytes = rand(length);
-  return Array.from(bytes, (b) => SLUG_ALPHABET[b % SLUG_ALPHABET.length]).join('');
+  let out = '';
+  for (let round = 0; out.length < length && round < 50; round += 1) {
+    for (const b of rand(Math.max(8, (length - out.length) * 2))) {
+      if (b < SLUG_LIMIT && out.length < length) out += SLUG_ALPHABET[b % SLUG_ALPHABET.length];
+    }
+  }
+  if (out.length < length) throw new Error('No randomness available to make an id');
+  return out;
 }
 
 export const watchUrl = (id, origin = globalThis.location?.origin || '') => `${origin}/watch/${encodeURIComponent(id)}`;
@@ -66,7 +76,8 @@ const SLUG_ERRORS = {
   business_required: 'Choose a business name first.',
   not_found: 'Publish the video first.',
   not_authenticated: 'Sign in to change your link.',
-  domain_taken: 'That domain is already used by another business.',
+  domain_taken: 'That domain is already approved for another business.',
+  rate_limited: 'You changed the domain too many times. Try again in an hour.',
   invalid_domain: 'Enter a domain like videos.yourbusiness.com (no https:// or path).',
 };
 const slugFail = (error) => {

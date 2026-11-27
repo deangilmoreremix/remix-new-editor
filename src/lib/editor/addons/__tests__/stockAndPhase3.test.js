@@ -40,6 +40,21 @@ describe('stock media normalizers', () => {
   });
 });
 
+describe('createStockSearch Pixabay cache', () => {
+  it('reuses Pixabay results for minutes, not a day (its file links expire), but Pexels for a day', async () => {
+    vi.useFakeTimers();
+    const pb = vi.fn(async () => ({ hits: [{ id: 1, largeImageURL: 'https://pixabay.com/get/a.jpg', webformatURL: 'https://pixabay.com/get/b.jpg', tags: 'a' }] }));
+    const px = vi.fn(async () => ({ photos: [{ id: 1, src: { large: 'https://i/x.jpg' }, url: 'u' }] }));
+    const search = createStockSearch({ pixabay: { searchImages: pb, searchVideos: pb }, pexels: { searchPhotos: px, searchVideos: px } }, { storage: memStorage() });
+    await search('images', 'pixabay', 'forest'); await search('images', 'pexels', 'forest');
+    vi.advanceTimersByTime(60 * 60 * 1000);
+    await search('images', 'pixabay', 'forest'); await search('images', 'pexels', 'forest');
+    expect(pb).toHaveBeenCalledTimes(2);
+    expect(px).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+});
+
 describe('createStockSearch', () => {
   const clients = () => ({
     pixabay: { searchImages: vi.fn().mockResolvedValue({ hits: [pixabayImageHit] }), searchVideos: vi.fn().mockResolvedValue({ hits: [pixabayVideoHit] }) },
