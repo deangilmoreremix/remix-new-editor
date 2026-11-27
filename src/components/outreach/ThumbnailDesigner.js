@@ -32,28 +32,31 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
   const contacts = (draft.contacts || []).length ? draft.contacts : [SAMPLE];
   let who = contacts[0];
 
-  const overlay = el('div', 'fixed inset-0 z-[1000] flex flex-col overflow-y-auto bg-app-bg text-white');
+  const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-black/70 p-4 text-white');
+  const modal = el('div', 'flex max-h-[92vh] w-full max-w-5xl flex-col overflow-y-auto rounded-3xl border border-white/10 bg-[#0b0c10] shadow-2xl');
   overlay.setAttribute('data-thumb-designer', '');
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-label', 'Thumbnail');
-  const head = el('div', 'flex flex-wrap items-center gap-3 border-b border-white/10 px-5 py-4 md:px-8');
+  const head = el('div', 'flex flex-wrap items-center gap-3 px-6 pb-2 pt-5');
   const titles = el('div', 'mr-auto min-w-0');
-  titles.append(el('h2', 'text-xl font-extrabold', 'Thumbnail'), el('p', 'text-xs text-white/55', 'The picture in your emails. Each prospect gets their own: their name, their website and their logo.'));
+  titles.append(el('h2', 'text-lg font-extrabold', 'Edit Thumbnail'), el('p', 'text-xs text-white/55', 'The picture in your emails. Each prospect gets their own: their name, their website and their logo.'));
   const done = el('button', PLAIN, 'Done');
+  done.classList.add('rounded-full');
   done.type = 'button';
   done.setAttribute('data-thumb-done', '');
   head.appendChild(titles);
   let make = null;
   if (onMake) {
     make = el('button', MAIN, makeLabel);
+    make.classList.add('rounded-full');
     make.type = 'button';
     make.setAttribute('data-thumb-make', '');
     head.appendChild(make);
   }
   head.appendChild(done);
 
-  const body = el('div', 'grid flex-1 gap-6 p-5 md:p-8 lg:grid-cols-[1fr_400px]');
+  const body = el('div', 'grid flex-1 gap-6 p-6 lg:grid-cols-[1fr_400px]');
   // ---- Left: the live picture.
   const left = el('div', 'flex min-w-0 flex-col gap-3');
   const canvas = el('canvas', 'w-full rounded-2xl border border-white/10 bg-black');
@@ -250,7 +253,9 @@ export function openThumbnailDesigner({ draft, save = () => {}, websiteFor = () 
   );
   right.append(tabs, panes.main, panes.preview, panes.styles);
   body.append(left, right);
-  overlay.append(head, body);
+  modal.append(head, body);
+  overlay.appendChild(modal);
+  overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
 
   function paintControls() {
     const s = T.thumbSettings(t());

@@ -185,9 +185,10 @@ export function OutreachStudio() {
   const stepper = el('div', 'flex flex-wrap gap-2 px-4 md:px-8 pt-5');
   const scroll = el('div', 'flex-1 overflow-y-auto');
   // Bottom padding keeps the footer buttons clear of the floating Ask SmartVideo button.
-  const inner = el('div', 'max-w-6xl mx-auto w-full px-4 md:px-8 pt-6 pb-28 flex flex-col gap-5');
+  const inner = el('div', 'max-w-[1400px] mx-auto w-full px-4 md:px-8 pt-5 pb-28 flex flex-col gap-5');
   scroll.appendChild(inner);
-  container.append(demoteBannerHeading(createEditorBanner('outreach', 'Video Outreach', 'Personalized videos for every prospect')), stepper, scroll);
+  const banner = demoteBannerHeading(createEditorBanner('outreach', 'Video Outreach', 'Personalized videos for every prospect'));
+  container.append(banner, stepper, scroll);
   // The step's content slides in when the step changes (View Transitions; see goStep).
   inner.style.viewTransitionName = 'outreach-step';
   ensureStepTransitionStyle();
@@ -866,24 +867,25 @@ export function OutreachStudio() {
   const icon = (k, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]}</svg>`;
   // An on/off switch: outlined, the "on" side tinted lime (never filled).
   function toggle(on, onChange, { label, disabled = false } = {}) {
-    const b = el('button', `relative h-6 w-11 shrink-0 rounded-full border transition-colors disabled:opacity-35 ${on ? 'border-primary/50 bg-primary/[0.18]' : 'border-white/15 bg-white/[0.04]'}`);
+    const b = el('button', `relative h-6 w-11 shrink-0 rounded-full border transition-colors disabled:opacity-35 ${on ? 'border-primary/50 bg-primary/[0.18]' : 'border-transparent bg-white/[0.14]'}`);
     b.type = 'button'; b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', String(on)); b.disabled = disabled;
     if (label) b.setAttribute('aria-label', label);
-    b.appendChild(el('span', `absolute top-0.5 h-[18px] w-[18px] rounded-full transition-all ${on ? 'left-[22px] bg-primary' : 'left-0.5 bg-white/50'}`));
+    b.appendChild(el('span', `absolute top-0.5 h-[18px] w-[18px] rounded-full transition-all ${on ? 'left-[22px] bg-primary' : 'left-0.5 bg-white/80'}`));
     b.addEventListener('click', () => onChange(!on));
     return b;
   }
 
   function renderRecord() {
-    const wrap = el('div', 'flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-panel-bg');
+    const wrap = el('div', 'flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-panel-bg shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]');
     wrap.setAttribute('data-outreach-editor', '');
 
     // ---- Tools along the top.
-    const bar = el('div', 'flex flex-wrap items-center gap-1.5 border-b border-white/10 px-4 py-3');
-    const title = el('div', 'mr-auto min-w-0 truncate text-sm font-bold text-white/80', draft.name || 'Untitled dynamic video');
+    const bar = el('div', 'flex flex-wrap items-center gap-1.5 border-b border-white/10 px-5 py-3.5');
+    const title = el('div', 'mr-auto min-w-0 truncate text-[15px] font-extrabold text-white', draft.name || 'Untitled dynamic video');
     bar.appendChild(title);
+    bar.appendChild(el('span', 'mx-2 h-6 w-px bg-white/10'));
     const tool = (key, k, tip, onClick, { active = false, disabled = false } = {}) => {
-      const b = el('button', `grid h-9 w-9 place-items-center rounded-[10px] border transition-colors disabled:opacity-30 ${active ? 'border-primary/40 bg-primary/[0.1] text-white' : 'border-transparent text-white/65 hover:border-white/15 hover:text-white'}`);
+      const b = el('button', `grid h-10 w-10 place-items-center rounded-full border transition-colors disabled:opacity-30 ${active ? 'border-primary/40 bg-primary/[0.1] text-white' : 'border-transparent text-white/65 hover:border-white/15 hover:text-white'}`);
       b.type = 'button'; b.innerHTML = icon(k); b.title = tip; b.setAttribute('aria-label', tip); b.disabled = disabled;
       b.setAttribute('data-editor-tool', key);
       if (active) b.setAttribute('aria-pressed', 'true');
@@ -905,30 +907,32 @@ export function OutreachStudio() {
     }, { disabled: !live });
     tool('preview', 'eye', 'Preview the prospect page', () => { goStep(3, ''); });
     const share = button('Share video', { primary: true, small: true });
+    share.classList.add('ml-2', 'rounded-full', 'px-4');
     share.setAttribute('data-editor-share', '');
     share.disabled = !has || !!busy;
     share.addEventListener('click', () => { goStep(draft.kind === 'same' ? 3 : 2, ''); });
     const close = button('Close', { small: true });
+    close.classList.add('rounded-full', 'px-4');
     close.setAttribute('data-editor-close', '');
     close.addEventListener('click', () => { goStep(STEPS.length, ''); });
     bar.append(share, close);
 
     // ---- Left: the video, the template and what the page says.
     const body = el('div', 'grid lg:grid-cols-[380px_1fr]');
-    const side = el('div', 'flex flex-col gap-6 border-b border-white/10 p-5 lg:border-b-0 lg:border-r');
+    const side = el('div', 'flex flex-col gap-7 border-b border-white/10 p-6 lg:border-b-0 lg:border-r');
     const modes = el('div', 'grid grid-cols-3 gap-2');
     [['camera', 'user', 'Camera'], ['screen', 'screen', 'Screen'], ['both', 'both', 'Both']].forEach(([mode, k, label]) => {
-      const b = el('button', 'flex flex-col items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] py-4 text-xs font-bold text-white/80 hover:border-primary/40 hover:text-white disabled:opacity-40');
+      const b = el('button', 'flex flex-col items-center gap-2 rounded-2xl border border-transparent bg-white/[0.05] py-5 text-xs font-bold text-primary hover:border-primary/40 hover:bg-white/[0.08] disabled:opacity-40');
       b.type = 'button'; b.disabled = !!busy;
       b.setAttribute('data-editor-record', mode);
-      b.innerHTML = `<span class="text-primary">${icon(k, 20)}</span><span>${label}</span>`;
+      b.innerHTML = `<span>${icon(k, 22)}</span><span>${label}</span>`;
       b.addEventListener('click', () => openRecorder(mode));
       modes.appendChild(b);
     });
     const file = el('input'); file.type = 'file'; file.accept = 'video/*'; file.hidden = true;
     file.addEventListener('change', () => { const f = file.files?.[0]; if (f) addVideo(f, { type: 'upload', name: f.name }); file.value = ''; });
-    const drop = el('div', 'flex flex-wrap items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 px-3 py-3 text-sm text-white/70');
-    const up = el('button', 'font-semibold text-primary hover:underline', 'Upload');
+    const drop = el('div', 'flex flex-wrap items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 px-3 py-3.5 text-sm text-white/80');
+    const up = el('button', 'font-semibold text-primary underline-offset-2 hover:underline', 'Upload');
     up.type = 'button'; up.setAttribute('data-editor-upload', ''); up.addEventListener('click', () => file.click());
     const pick = el('button', 'font-semibold text-primary hover:underline', 'select a video you made');
     pick.type = 'button'; pick.setAttribute('data-editor-select', ''); pick.addEventListener('click', selectMadeVideo);
@@ -940,12 +944,12 @@ export function OutreachStudio() {
 
     // Template: the landing page prospects open.
     const tpl = el('div', 'flex flex-col gap-2');
-    tpl.appendChild(el('div', 'text-[15px] font-bold', 'Template'));
-    const apply = el('button', 'flex items-center justify-between gap-2 rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-white/85 hover:border-primary/40');
+    tpl.appendChild(el('div', 'text-base font-medium text-white', 'Template'));
+    const apply = el('button', 'flex items-center justify-between gap-2 rounded-xl border border-white/10 px-4 py-3.5 text-sm font-semibold text-primary hover:border-primary/40 hover:bg-white/[0.03]');
     apply.type = 'button'; apply.setAttribute('data-editor-template', '');
     if (draft.page && !designs.loaded) loadDesigns();
     const tplName = draft.page ? (designs.list.find((t) => t.id === draft.page.template)?.name || 'Your landing page') : '';
-    apply.innerHTML = `<span class="truncate">${draft.page ? '' : 'Apply template…'}</span><span class="text-primary">${icon('plus', 18)}</span>`;
+    apply.innerHTML = `<span class="flex-1 truncate text-center">${draft.page ? '' : 'Apply template…'}</span><span class="text-primary">${icon('plus', 18)}</span>`;
     if (draft.page) apply.firstChild.textContent = `Template: ${tplName}${draft.page.editor ? ' (edited)' : ''}`;
     apply.addEventListener('click', chooseLandingPage);
     tpl.appendChild(apply);
@@ -953,7 +957,7 @@ export function OutreachStudio() {
 
     // Customize: what the page says, its button, calendar and transcript.
     const cz = el('div', 'flex flex-col gap-4');
-    cz.appendChild(el('div', 'text-[15px] font-bold', 'Customize'));
+    cz.appendChild(el('div', 'text-base font-medium text-white', 'Customize'));
     const UNDER = 'w-full border-0 border-b border-white/15 bg-transparent px-0 py-2 text-sm text-white placeholder:text-white/30 outline-none focus:border-primary/60';
     const line = (label, value, onInput, { area = false, ph = '' } = {}) => {
       const w = el('label', 'flex flex-col gap-1');
@@ -1001,8 +1005,8 @@ export function OutreachStudio() {
     side.append(addBlock, tpl, cz);
 
     // ---- Right: the video, and the open tool under it.
-    const main = el('div', 'flex min-w-0 flex-col items-center gap-4 p-5 md:p-8');
-    const stage = el('div', 'grid aspect-video w-full max-w-3xl place-items-center overflow-hidden rounded-2xl border border-white/10 bg-black');
+    const main = el('div', 'flex min-w-0 flex-col items-center gap-4 bg-white/[0.02] p-5 md:p-10');
+    const stage = el('div', 'grid aspect-video w-full max-w-3xl place-items-center overflow-hidden rounded-2xl bg-white/[0.06]');
     stage.setAttribute('data-editor-video', '');
     const editing = editorTool === 'trim' && has;
     if (!editing && preview) stopPreview();
@@ -2947,16 +2951,17 @@ export function OutreachStudio() {
     const box = el('div', 'flex flex-col gap-4');
     box.setAttribute('data-outreach-library', '');
     // Like Sendspark's Dynamic Videos page: who you are, what it does, and Create Dynamic Video.
-    const head = el('div', 'flex flex-wrap items-center gap-4 border-b border-white/10 pb-5');
+    const head = el('div', 'flex flex-wrap items-center gap-5 border-b border-white/10 pb-6 pt-4');
     const me = globalThis.window?.Clerk?.user || null;
-    const face = el('div', 'grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-lg font-black text-primary');
+    const face = el('div', 'grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-lg font-black text-primary');
     if (me?.imageUrl && /^https:\/\//.test(me.imageUrl)) { const im = el('img', 'h-full w-full object-cover'); im.src = me.imageUrl; im.alt = ''; face.appendChild(im); }
     else face.textContent = (me?.firstName || 'S').slice(0, 1).toUpperCase();
     const title = el('div', 'min-w-0 flex-1');
-    title.append(el('h2', 'text-2xl font-black', 'Dynamic Videos'), el('p', 'text-sm text-secondary', 'Scale yourself: record once, and each prospect gets their own intro, page, thumbnail and link.'));
+    title.append(el('h2', 'text-[26px] font-extrabold leading-tight', 'Dynamic Videos'), el('p', 'text-sm text-white/50', 'Scale yourself: record once, and each prospect gets their own intro, page, thumbnail and link.'));
     const fresh = button('Create Dynamic Video', { primary: true });
     fresh.setAttribute('data-outreach-new', '');
     fresh.disabled = !!busy;
+    fresh.classList.add('rounded-full');
     fresh.addEventListener('click', () => openCreateDynamic());
     head.append(face, title, fresh);
     box.appendChild(head);
@@ -3122,6 +3127,10 @@ export function OutreachStudio() {
     dropPreviewHandles();
     syncHostLine();
     renderStepper();
+    // Like Sendspark, the editor and the videos page have no hero banner: the page itself is the header.
+    banner.hidden = step === 1 || step === STEPS.length;
+    stepper.classList.toggle('pt-5', !banner.hidden);
+    stepper.classList.toggle('pt-4', banner.hidden);
     inner.replaceChildren();
     const elsewhere = !guard.active();
     stepper.inert = elsewhere;
@@ -3326,7 +3335,7 @@ export function OutreachStudio() {
     const inProgress = !draft.campaign && (draft.video || draft.contacts.length);
     const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
     overlay.setAttribute('data-outreach-create', '');
-    const box = el('div', 'flex w-full max-w-3xl flex-col gap-5 rounded-2xl border border-white/10 bg-[#0b0c10] p-6 text-white shadow-2xl');
+    const box = el('div', 'flex w-full max-w-2xl flex-col gap-5 rounded-3xl border border-white/10 bg-[#0b0c10] p-7 text-white shadow-2xl');
     box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Create Dynamic Videos');
     const head = el('div', 'flex items-center justify-between');
     const x = el('button', 'rounded-lg px-2 py-1 text-xl leading-none text-white/60 hover:text-white', '\u00d7');
