@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { createStudioVideoPagesButton } from './studio/studioVideoPagesButton.js';
 import { registerGeneration } from '../lib/generationHistory.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
@@ -316,6 +317,7 @@ export function EditStudio({ embed = false } = {}) {
   let cameraWidget = null; // set while an app with the 3D camera control is open
   let secondary = null;  // { url, assetId }
   let resultUrl = null;
+  let resultKind = 'image';
   let inFlight = false;
   const runs = [];
   let runId = 0;
@@ -813,7 +815,11 @@ export function EditStudio({ embed = false } = {}) {
     viewButtons[id] = btn;
     viewToggle.appendChild(btn);
   }
-  previewHead.append(previewLabel, viewToggle);
+  // Video Pages stays in the always-visible header (before a first edit it opens with your latest creation or the upload chooser).
+  const headTools = document.createElement('div');
+  headTools.className = 'flex items-center gap-2';
+  headTools.append(viewToggle, createStudioVideoPagesButton({ studioId: 'edit', getResult: () => resultUrl || '', getAsset: () => ({ type: resultKind }) }));
+  previewHead.append(previewLabel, headTools);
 
   const stage = document.createElement('div');
   stage.className = 'relative w-full min-h-[320px] lg:min-h-[460px] rounded-xl bg-black/40 border border-white/5 overflow-hidden flex items-center justify-center';
@@ -1033,6 +1039,7 @@ export function EditStudio({ embed = false } = {}) {
 
   function showResult(url, beforeUrl, kind = 'image') {
     resultUrl = url;
+    resultKind = kind;
     reuseBtn.classList.toggle('hidden', kind === 'video');
     if (kind === 'video') {
       showVideo(url, 'RESULT');

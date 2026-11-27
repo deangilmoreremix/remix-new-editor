@@ -1,6 +1,6 @@
 // "My Video Pages" as a modal: the list of your saved landing pages with edit, publish, share and analytics.
 // Video Pages has no studio page of its own: new pages are made from any studio's "Create landing page" button,
-// the header's Video Pages button, or "+ New page" here (all open the same picker + editor, src/lib/landingPages/pickerModal.js).
+// each studio's inline Video Pages button, or "+ New page" here (all open the same picker + editor, src/lib/landingPages/pickerModal.js).
 import { LandingPagesStudio } from '../LandingPagesStudio.js';
 import { lockScroll, unlockScroll } from '../../lib/landingPages/scrollLock.js';
 

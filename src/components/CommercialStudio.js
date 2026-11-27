@@ -20,6 +20,7 @@ import { openRecipeModal } from '../lib/recipeIntegration.js';
 import { showToast } from '../lib/loading.js';
 import { addCaptionButton } from '../lib/editor/captionActions.js';
 import { uploadFileToSupabase } from '../lib/uploadService.js';
+import { createStudioVideoPagesButton } from './studio/studioVideoPagesButton.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -302,7 +303,9 @@ const COMMERCIAL_MODELS = [
   // Action row — unified Image Studio layout (Advanced)
   const actionRow = createActionRow();
   const advanced = createAdvancedPanel({ id: 'commercial-advanced-btn', elements: [dynamicControlsContainer] });
+  let lastResult = { url: '', type: 'image' }; // the latest finished product shot or ad video, for the Video Pages button
   arrangeActionRow(actionRow, { advanced: advanced.button });
+  actionRow.appendChild(createStudioVideoPagesButton({ studioId: 'commercial', getResult: () => lastResult.url, getAsset: () => ({ type: lastResult.type }) }));
 
   const genBtn = document.createElement('button');
  genBtn.type = 'button';
@@ -445,6 +448,7 @@ const COMMERCIAL_MODELS = [
         }
         openSocialPublish({ mediaUrl, mediaType: 'video' });
       };
+      lastResult = { url: res.url, type: 'video' };
       saveGeneration({
         studio: 'commercial', type: 'video', url: res.url, prompt: script, model: 'seedance-2-vip-omni-reference',
         parameters: { format: adMode.state.format.name, aspect_ratio: adMode.state.ratio, resolution: adMode.state.res, duration: adMode.state.duration },
@@ -492,6 +496,7 @@ const COMMERCIAL_MODELS = [
       }
       const result = await muapi.generateI2I(params);
        if (result?.url) {
+         lastResult = { url: result.url, type: 'image' };
          resultArea.classList.remove('hidden');
          resultArea.innerHTML = `
            <div class="bg-card-bg/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
