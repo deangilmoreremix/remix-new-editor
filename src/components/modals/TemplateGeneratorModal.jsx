@@ -9,7 +9,6 @@ import { UPLOAD_LIMITS } from '../../lib/editor/uploadLimits.js';
 import * as pexelsApi from '../../lib/pexelsApi.js';
 import * as pixabayApi from '../../lib/pixabayApi.js';
 import { uploadFileToSupabase } from '../../lib/uploadService.js';
-import { uploadStudioInput } from '../../lib/studioInputUpload.js';
 import {
   STEPS, STEP_LABELS, MAX_VIDEOS, createWizardState, guardStep, nextStepIndex, nextDisabled, nextLabel, clipDuration,
   toggleVideo, toggleAnimation, toBuilderState, previewTexts, hasScript, sceneNames, MAX_ANIMATIONS, splitLowerThird, callMissing, COUNTRY_CODES, phoneValid, captionTrackFor,
@@ -1913,8 +1912,8 @@ export class TemplateGeneratorModal extends BaseModal {
       u.uploadStatus = `Uploading ${file.name}…`;
       this.paint();
       try {
-        // An input for the template: MuAPI upload (storage fallback), like the other studios.
-        const { url } = await uploadStudioInput(file, { category: kind });
+        const userId = typeof window !== 'undefined' ? window.Clerk?.user?.id : undefined;
+        const { url } = await uploadFileToSupabase(file, { category: kind, ...(userId ? { userId } : {}) });
         item.url = url;
         item.preview = url;
         if (kind === 'image') item.poster = url;
