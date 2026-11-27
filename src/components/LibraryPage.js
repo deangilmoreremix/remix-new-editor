@@ -1,8 +1,7 @@
 import { createStudioHeader } from '../lib/thumbnails.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { loadGenerationHistory, confirmDeleteGeneration } from '../lib/generationHistory.js';
-import { showToast } from '../lib/loading.js';
-import { createSafeImage, createSafeVideo, safeSetText } from '../lib/security.js';
+import { showToast } from '../lib/loading.js';import { createSafeImage, createSafeVideo, safeSetText } from '../lib/security.js';
 import { MediaDetailView } from './MediaDetailView.js';
 import { queueAssetForStudio } from './UploadPicker.js';
 

@@ -600,7 +600,7 @@ export function DirectorPage() {
                                         <line x1="17" y1="7" x2="22" y2="7"/>
                                     </svg>
                                     <p class="text-secondary">No video loaded</p>
-                                    <p class="text-xs text-muted mt-2">Open Director from the Render studio to load a video</p>
+                                    <p class="text-xs text-muted mt-2">Open Director with a video URL to load a video</p>
                                 </div>
                             `}
                         </div>
@@ -770,7 +770,7 @@ export function DirectorPage() {
         const agent = DIRECTOR_AGENTS.find((a) => a.id === agentId);
         if (!agent) return;
         if (!videoUrl) {
-            addMessage(`Please open Director with a video URL (from the Render studio) before running ${agent.name}.`, { isError: true });
+            addMessage(`Please open Director with a video URL before running ${agent.name}.`, { isError: true });
             showToast('No video loaded', 'warning');
             return;
         }
@@ -1372,7 +1372,7 @@ export function DirectorPage() {
 
         // Typed commands used to start the job with no video and fail later with a backend error; say so up front.
         if (agentNeedsVideo(agentId) && !videoUrl && !videoId) {
-            addMessage(`${agent.name} works on a video. Open Director with a video URL (from the Render studio) first.`, { isError: true });
+            addMessage(`${agent.name} works on a video. Open Director with a video URL first.`, { isError: true });
             showToast('No video loaded', 'warning');
             return;
         }
@@ -1525,7 +1525,7 @@ export function DirectorPage() {
             const agent = DIRECTOR_AGENTS.find(a => a.id === agentId);
             if (!agent) return;
             if (!videoUrl) {
-                addMessage(`Please open Director with a video URL (from the Render studio) before running ${agent.name}.`, { isError: true });
+                addMessage(`Please open Director with a video URL before running ${agent.name}.`, { isError: true });
                 showToast('No video loaded', 'warning');
                 return;
             }

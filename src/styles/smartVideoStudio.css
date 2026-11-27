@@ -356,11 +356,9 @@
 }
 
 .model-selector-picker {
-  position: absolute;
-  bottom: calc(100% + 12px);
-  left: 0;
-  right: 0;
-  z-index: 50;
+  /* Placed by ModelSelector (top, left, width, max-height) on document.body, above everything in the studio. */
+  position: fixed;
+  z-index: 1000;
   background: var(--studio-bg-soft);
   border-radius: var(--studio-radius-lg);
   padding: 12px;

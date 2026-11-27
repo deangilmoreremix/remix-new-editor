@@ -93,16 +93,15 @@ export MAIGRET_API_KEY=devkey
 uvicorn app.main:app --reload --port 8000
 ```
 
-## Deploy to Render.com
+## Deploy to Beam
 
-1. Push the `services/maigret-worker/` directory to a Git remote (GitHub/GitLab).
-2. In the Render dashboard, click **New → Blueprint** and point it at the repo.
-3. Render reads `render.yaml`, creates the `maigret-worker` web service, and
-   auto-generates a `MAIGRET_API_KEY` value on first apply.
-4. Copy the generated `MAIGRET_API_KEY` from the service's **Environment** tab.
-5. Set `MAIGRET_API_KEY` in your Netlify environment to the same value.
-6. Set `MAIGRET_WORKER_URL` in your Netlify environment to the Render service URL
-   (e.g. `https://maigret-worker.onrender.com`).
+1. Generate a key, e.g. `openssl rand -hex 32`.
+2. From `services/maigret-worker/`, deploy the Dockerfile (use the port the
+   Dockerfile listens on):
+   `beam deploy --dockerfile Dockerfile --name maigret-worker --port 8000 --scale-to-zero --min-replicas 0 --env MAIGRET_API_KEY=<key>`
+3. Set `MAIGRET_API_KEY` in your Netlify environment to the same value.
+4. Set `MAIGRET_WORKER_URL` in your Netlify environment to the URL Beam prints
+   (e.g. `https://<id>-8000.app.beam.cloud`).
 
 The `personalizer-api` function will then call this worker whenever a user
 clicks **Discover** in the Personalize popover.
@@ -176,7 +175,6 @@ services/maigret-worker/
 │   └── cache.py         # Memory + Redis cache backends
 ├── Dockerfile
 ├── docker-compose.yml
-├── render.yaml
 ├── requirements.txt
 ├── .env.example
 └── README.md

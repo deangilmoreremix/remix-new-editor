@@ -844,6 +844,7 @@ export function CinemaStudio() {
         }),
         getProject: () => ({}),
         getPreview: () => customThumbnailUrl || currentSettings.referenceUrl || '',
+        getResult: () => currentResultUrl || '',
         onApply: ({ personalization }) => {
           activePersonalizationContext = personalization || null;
           if (!activePersonalizationContext) return;
