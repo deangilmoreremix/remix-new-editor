@@ -26,6 +26,7 @@ const ROUTE_MAP = {
   'Landing': 'landing',
   'Video Tools': 'videotools',
   'Lip Sync': 'lipsync',
+  'Animation Agent': 'video-agent',
   'Video Agent': 'video-agent',
   'Video Agent Studio': 'video-agent-studio',
   'Zack D Studio': 'zackd',

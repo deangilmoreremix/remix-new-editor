@@ -54,7 +54,7 @@ export function SixEnginesSection() {
       description: 'Streamline workflows with AI assistance',
       icon: '🤖',
       gradient: 'from-yellow-500 to-yellow-400',
-      apps: ['Video Agent', 'Agents', 'Assist', 'Chat'],
+      apps: ['Animation Agent', 'Agents', 'Assist', 'Chat'],
       color: 'yellow'
     },
     {

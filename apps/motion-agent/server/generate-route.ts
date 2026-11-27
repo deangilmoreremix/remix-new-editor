@@ -333,7 +333,7 @@ export async function POST(req: Request) {
   if (!apiKey) {
     return new Response(
       JSON.stringify({
-        error: "The Video Agent uses your own OpenAI key. Add it in SmartVid → Settings → API keys (OpenAI API Key).",
+        error: "The Animation Agent uses your own OpenAI key. Add it in SmartVid → Settings → API keys (OpenAI API Key).",
       }),
       {
         status: 401,
