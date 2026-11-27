@@ -9,6 +9,8 @@ import { exportFilename, downloadBlob } from '@ohb/shared/social/exportNames'
 import { imagesFromPasteEvent } from '@ohb/shared/social/clipboard'
 import type { Asset, ThumbnailState } from '../types'
 import { useCapabilities, useObjectUrls, blobToDataUrl, type MediaMeta, btn, btnPrimary, field, h4 } from './useStudio'
+import { AudioTools } from './AudioTools'
+import { TextOverlayTools } from './TextOverlayTools'
 
 interface Props {
   asset: Asset
@@ -183,6 +185,9 @@ export function MediaTools({ asset, title, meta, onReplaceAsset, onUpdateThumbna
           ) : <p className="text-[11px] text-white/40">Loading video details…</p>}
         </section>
       )}
+
+      {asset.type === 'video' && <AudioTools title={title} getSource={source} onOutput={addOutput} />}
+      {asset.type === 'video' && <TextOverlayTools duration={dur} getSource={source} onOutput={addOutput} />}
 
       <section aria-label="Compression">
         <h4 className={h4}>Compress</h4>
