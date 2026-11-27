@@ -17,6 +17,8 @@
  */
 
 export const STOCK_CACHE_MS = 24 * 60 * 60 * 1000;
+// Pixabay's file links expire, so its results are only reused briefly (a cached link that has expired cannot be added or shown).
+export const PIXABAY_CACHE_MS = 20 * 60 * 1000;
 
 /** [id, label] */
 export const STOCK_SOURCES = [['pixabay', 'Pixabay'], ['pexels', 'Pexels']];
@@ -50,6 +52,8 @@ export function normalizePixabayVideo(hit) {
     source: 'pixabay',
     name: tagName(hit.tags, `Pixabay ${hit.id}`),
     src: play.url,
+    // A smaller file to fall back on when the full one cannot be copied (e.g. too large to keep without cloud storage).
+    fallbackSrc: preview && preview.url !== play.url ? preview.url : undefined,
     preview: preview?.url || play.url,
     thumbnail: play.thumbnail || preview?.thumbnail || '',
     duration: Number(hit.duration) || 0,
@@ -115,12 +119,12 @@ export function normalizePexelsPhoto(photo) {
 
 // ---------------------------------------------------------------- search
 
-function cacheGet(storage, key) {
+function cacheGet(storage, key, maxAge = STOCK_CACHE_MS) {
   try {
     const raw = storage?.getItem(key);
     if (!raw) return null;
     const { at, items } = JSON.parse(raw);
-    return Date.now() - at < STOCK_CACHE_MS ? items : null;
+    return Date.now() - at < maxAge ? items : null;
   } catch {
     return null;
   }
@@ -138,25 +142,26 @@ function cacheSet(storage, key, items) {
  * Returns search(kind: 'images'|'videos', source, query) → { ok, items, error? }.
  */
 export function createStockSearch(clients = {}, { storage = globalThis.localStorage, perPage = 24 } = {}) {
-  return async function search(kind, source, query) {
+  return async function search(kind, source, query, page = 1) {
     const q = String(query || '').trim().slice(0, 100);
     if (!q) return { ok: true, items: [] };
-    const key = `stock:${source}:${kind}:${q.toLowerCase()}`;
-    const cached = cacheGet(storage, key);
+    const pg = Math.max(1, Math.floor(Number(page)) || 1);
+    const key = `stock:${source}:${kind}:${q.toLowerCase()}${pg > 1 ? `:p${pg}` : ''}`;
+    const cached = cacheGet(storage, key, source === 'pixabay' ? PIXABAY_CACHE_MS : STOCK_CACHE_MS);
     if (cached) return { ok: true, items: cached, cached: true };
     try {
       let items;
       if (source === 'pixabay' && kind === 'videos') {
-        const data = await clients.pixabay.searchVideos({ query: q, per_page: perPage, max_duration: 30, safe_search: true });
+        const data = await clients.pixabay.searchVideos({ query: q, per_page: perPage, page: pg, max_duration: 30, safe_search: true });
         items = (data?.hits || []).map(normalizePixabayVideo);
       } else if (source === 'pixabay') {
-        const data = await clients.pixabay.searchImages({ query: q, per_page: perPage, safe_search: true });
+        const data = await clients.pixabay.searchImages({ query: q, per_page: perPage, page: pg, safe_search: true });
         items = (data?.hits || []).map(normalizePixabayImage);
       } else if (source === 'pexels' && kind === 'videos') {
-        const data = await clients.pexels.searchVideos({ query: q, orientation: 'landscape', min_duration: 1, max_duration: 30, per_page: perPage });
+        const data = await clients.pexels.searchVideos({ query: q, orientation: 'landscape', min_duration: 1, max_duration: 30, per_page: perPage, page: pg });
         items = (data?.videos || []).map(normalizePexelsVideo);
       } else if (source === 'pexels') {
-        const data = await clients.pexels.searchPhotos({ query: q, per_page: perPage });
+        const data = await clients.pexels.searchPhotos({ query: q, per_page: perPage, page: pg });
         items = (data?.photos || []).map(normalizePexelsPhoto);
       } else {
         return { ok: false, items: [], error: `Unknown source ${source}` };
