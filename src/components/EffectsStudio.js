@@ -66,7 +66,9 @@ function getEffectsForModel(modelId) {
 
 async function EffectsCatalogStudio() {
   const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden relative';
+  // Mobile: the whole studio scrolls (header + effects list + controls stack
+  // taller than the viewport). Desktop: fixed layout with per-panel scrolling.
+  container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto overflow-x-hidden md:overflow-hidden relative';
   mountStudioChrome(container, { currentRoute: 'effects' });
 
   let activeTab = EFFECT_TABS[0];
@@ -182,10 +184,10 @@ async function EffectsCatalogStudio() {
   container.appendChild(topBar);
 
   const bodyArea = document.createElement('div');
-  bodyArea.className = 'flex flex-1 overflow-hidden';
+  bodyArea.className = 'flex shrink-0 md:shrink md:flex-1 md:min-h-0 md:overflow-hidden';
 
   const effectsPanel = document.createElement('div');
-  effectsPanel.className = 'w-full md:w-[340px] lg:w-[400px] shrink-0 overflow-y-auto px-4 md:px-6 pb-6 md:border-r border-white/5';
+  effectsPanel.className = 'w-full max-h-[60vh] md:max-h-none md:w-[340px] lg:w-[400px] shrink-0 overflow-y-auto custom-scrollbar px-4 md:px-6 pb-6 md:border-r border-white/5';
 
   const searchInput = document.createElement('input');
   searchInput.type = 'text';
@@ -198,7 +200,7 @@ async function EffectsCatalogStudio() {
   effectsPanel.appendChild(effectsGrid);
 
   const previewPanel = document.createElement('div');
-  previewPanel.className = 'hidden md:flex flex-1 flex-col overflow-y-auto';
+  previewPanel.className = 'hidden md:flex flex-1 min-h-0 flex-col overflow-y-auto custom-scrollbar';
 
   const previewTop = document.createElement('div');
   previewTop.className = 'p-4 lg:p-6 flex flex-col gap-4 flex-1';
