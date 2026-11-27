@@ -297,7 +297,7 @@ export function renderGuideHtml(g, allCount) {
     ${g.shortDescription ? `<p class="sg-tag">${esc(g.shortDescription)}</p>` : ''}
     <p class="sg-lead">${esc(g.description)}</p>
     ${g.bestFor ? `<p class="sg-best"><strong>Best for:</strong> ${esc(g.bestFor)}</p>` : ''}
-    <div class="sg-cta"><a class="sg-btn primary" href="${studioHref(g.route)}">Open ${esc(g.name)} →</a>${g.tour ? `<a class="sg-btn ghost" href="#tour"><span aria-hidden="true">▶</span> Watch the tour · ${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}</a>` : ''}<a class="sg-btn ghost" href="#features">See all ${g.features.length} features</a></div>
+    <div class="sg-cta"><a class="sg-btn primary" href="${studioHref(g.route)}">Open ${esc(g.name)} →</a>${g.tour ? `<a class="sg-btn ghost" href="#tour"><span aria-hidden="true">▶</span> Watch the tour · ${Math.floor(g.tour.seconds / 60)}:${String(g.tour.seconds % 60).padStart(2, '0')}</a>` : ''}<a class="sg-btn ghost" href="#features">See all ${g.features.length} features</a>${g.slug === 'smartwarmupai' ? '<a class="sg-btn ghost" href="/email-warmup/">Feature pages</a>' : ''}</div>
   </div><figure class="sg-shot" style="margin:0">${img(g.overview, `${g.name} screenshot`, true)}</figure></section>
   <nav class="sg-toc" aria-label="On this page"><strong>On this page</strong><ul>${toc.map(([id, l]) => `<li><a href="#${id}">${esc(l)}</a></li>`).join('')}</ul></nav>
   ${parts.join('')}
