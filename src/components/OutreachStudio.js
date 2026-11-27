@@ -185,7 +185,7 @@ export function OutreachStudio() {
   const stepper = el('div', 'flex flex-wrap gap-2 px-4 md:px-8 pt-5');
   const scroll = el('div', 'flex-1 overflow-y-auto');
   // Bottom padding keeps the footer buttons clear of the floating Ask SmartVideo button.
-  const inner = el('div', 'max-w-[1400px] mx-auto w-full px-4 md:px-8 pt-5 pb-28 flex flex-col gap-5');
+  const inner = el('div', 'max-w-[1400px] mx-auto w-full px-4 md:px-8 pt-5 pb-4 flex flex-col gap-5');
   scroll.appendChild(inner);
   const banner = demoteBannerHeading(createEditorBanner('outreach', 'Video Outreach', 'Personalized videos for every prospect'));
   container.append(banner, stepper, scroll);
@@ -3162,7 +3162,8 @@ export function OutreachStudio() {
     if (elsewhere) view.inert = true; // read-only while another tab edits
     inner.appendChild(view);
 
-    const footer = el('div', 'flex flex-wrap items-center gap-3');
+    // Pinned to the bottom of the view: Back / Continue and what is missing stay visible however long the step is.
+    const footer = el('div', 'sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center gap-3 border-t border-white/10 bg-app-bg/90 px-4 py-3 backdrop-blur md:-mx-8 md:px-8');
     const errors = step <= SETUP_STEPS + 1 ? stepErrors(draft, step) : [];
     const msg = busy || notice || errors[0] || '';
     const status = el('p', `flex-1 text-sm ${busy ? 'text-primary' : notice && !errors.length ? 'text-emerald-300' : 'text-amber-300'}`, msg);
@@ -3333,9 +3334,9 @@ export function OutreachStudio() {
   // then a new dynamic video starts on the Record step.
   function openCreateDynamic(prefill = {}) {
     const inProgress = !draft.campaign && (draft.video || draft.contacts.length);
-    const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
+    const overlay = el('div', 'fixed inset-0 z-[1000] flex justify-center overflow-y-auto bg-black/70 p-4');
     overlay.setAttribute('data-outreach-create', '');
-    const box = el('div', 'flex w-full max-w-2xl flex-col gap-5 rounded-3xl border border-white/10 bg-[#0b0c10] p-7 text-white shadow-2xl');
+    const box = el('div', 'my-auto flex w-full max-w-2xl flex-col gap-5 rounded-3xl border border-white/10 bg-[#0b0c10] p-7 text-white shadow-2xl');
     box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Create Dynamic Videos');
     const head = el('div', 'flex items-center justify-between');
     const x = el('button', 'rounded-lg px-2 py-1 text-xl leading-none text-white/60 hover:text-white', '\u00d7');
