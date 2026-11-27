@@ -105,6 +105,16 @@ describe('projects panel', () => {
     expect(host.querySelector('.prj-tabs .active').textContent).toBe('Notifications');
   });
 
+  it('openProject (a studio\'s Retarget button) waits for the list, then opens that project on the Retarget tab', async () => {
+    const panel = renderProjectsPanel(host, deps);
+    expect(await panel.openProject('a', 'retarget')).toBe(true);
+    expect(panel._state().ui.selected).toBe('a');
+    expect(panel._state().ui.tab).toBe('retarget');
+  });
+  it('openProject reports a project that is not in the list', async () => {
+    const panel = renderProjectsPanel(host, deps);
+    expect(await panel.openProject('missing')).toBe(false);
+  });
   it('searches and toggles list view', async () => {
     renderProjectsPanel(host, deps);
     await tick(); await tick();

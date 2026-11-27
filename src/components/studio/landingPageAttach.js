@@ -9,6 +9,7 @@
 // landing page picker/editor, the media preview window (it has its own button) or marked data-lp-skip.
 import { routeHash } from '../../lib/routeUrl.js';
 import { createLandingPageButton, openLandingPageFor, canMakeLandingPage } from './landingPageAction.js';
+import { createRetargetButton, retargetFor, canRetarget } from './retargetAction.js';
 
 const VIDEO = /\.(mp4|webm|mov|m4v)(?:[?#]|$)/i;
 const IMAGE = /\.(png|jpe?g|webp|gif|avif)(?:[?#]|$)/i;
@@ -52,7 +53,7 @@ export function attachTo(a, { studio = '' } = {}) {
   const media = mediaOf(a);
   let btn = buttonFor(a);
   if (!media) { if (btn) btn.hidden = true; return null; }          // the link stopped being a picture or video
-  if (btn) { btn.hidden = false; return btn; }
+  if (btn) { btn.hidden = false; syncRetarget(a, btn, media); return btn; }
   btn = createLandingPageButton({ like: a });
   btn.onclick = (e) => {
     e.preventDefault(); e.stopPropagation();
@@ -61,7 +62,23 @@ export function attachTo(a, { studio = '' } = {}) {
     void openLandingPageFor({ url: now.url, type: now.type, studio });
   };
   a.after(btn);
+  syncRetarget(a, btn, media);
   return btn;
+}
+
+// "Retarget" goes right after the landing page button, for videos only (a picture has no viewers to retarget).
+function syncRetarget(a, lpBtn, media) {
+  let rt = null;
+  for (let n = a.nextElementSibling; n && n.dataset?.action; n = n.nextElementSibling) if (n.dataset.action === 'retarget') rt = n;
+  if (!canRetarget(media)) { if (rt) rt.hidden = true; return; }
+  if (rt) { rt.hidden = false; return; }
+  rt = createRetargetButton({ like: a });
+  rt.onclick = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const now = mediaOf(a);
+    if (now && canRetarget(now)) void retargetFor({ url: now.url, type: now.type, studio: lpBtn.dataset.studio || '' });
+  };
+  lpBtn.after(rt);
 }
 
 /** Add buttons to every download link under `root` (and `root` itself). */
