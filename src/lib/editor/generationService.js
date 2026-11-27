@@ -8,6 +8,7 @@ import { GenerationModes, GenerationProviders, createDefaultProject } from './ty
 import { submitOnly, checkStatus, downloadResult } from '../muapi.js';
 import { getModelById, getVideoModelById, getI2IModelById, getAudioModelById } from '../models.js';
 import { circuitBreaker } from '../services/CircuitBreaker.js';
+import { registerGeneration } from '../generationHistory.js';
 
 // ============================================================================
 // CONFIGURATION
@@ -242,6 +243,16 @@ class MuAPIProvider {
     this.requestIds = new Map();
     // Map of generationId -> completed result (cached from submit or poll)
     this.results = new Map();
+    // Map of generationId -> { prompt, model } for video jobs not yet saved to the Library
+    this.libraryMeta = new Map();
+  }
+
+  /** Save a finished video job to the Library once (clip takes, B-roll, text/image-to-video). */
+  saveVideoToLibrary(generationId, url) {
+    const meta = this.libraryMeta.get(generationId);
+    if (!meta || !url) return;
+    this.libraryMeta.delete(generationId);
+    registerGeneration('edit', 'video', url, meta).catch(() => {});
   }
 
   /**
@@ -261,6 +272,10 @@ class MuAPIProvider {
       };
     }
 
+    if (serviceName === 'video_generation') {
+      this.libraryMeta.set(generationId, { prompt: request.prompt || '', model: request.model || '' });
+    }
+
     try {
       const { endpoint, payload, generationType, studioType } = this.buildRequest(request);
       const { requestId, submitData } = await submitOnly(endpoint, payload, null, generationType, studioType);
@@ -273,6 +288,7 @@ class MuAPIProvider {
       if (directUrl) {
         const completed = { generationId, status: 'completed', url: directUrl, progress: 100 };
         this.results.set(generationId, completed);
+        this.saveVideoToLibrary(generationId, directUrl);
         if (requestId) this.requestIds.set(generationId, requestId);
         return { ...completed, requestId, previewUrl: directUrl, assetIds: [], metadata: submitData };
       }
@@ -287,6 +303,7 @@ class MuAPIProvider {
         metadata: submitData,
       };
     } catch (error) {
+      this.libraryMeta.delete(generationId);
       if (error.code !== 'CIRCUIT_BREAKER_OPEN') {
         circuitBreaker.recordFailure(serviceName);
       }
@@ -330,6 +347,8 @@ class MuAPIProvider {
 
     if (normalized.status === 'completed' || normalized.status === 'failed') {
       this.results.set(generationId, normalized);
+      if (normalized.status === 'completed') this.saveVideoToLibrary(generationId, normalized.url);
+      else this.libraryMeta.delete(generationId);
     }
 
     return normalized;
@@ -344,6 +363,7 @@ class MuAPIProvider {
   async cancel(generationId) {
     this.requestIds.delete(generationId);
     this.results.delete(generationId);
+    this.libraryMeta.delete(generationId);
     return { generationId, status: 'locally_cancelled' };
   }
 

@@ -1,5 +1,6 @@
 // Video Creation Engine - Core logic for generating videos from editor components
 // Handles composition, rendering, and export of personalized videos
+import { registerGenerationBlob } from './generationHistory.js';
 
 export default class VideoCreationEngine {
   constructor(options = {}) {
@@ -347,6 +348,9 @@ export default class VideoCreationEngine {
           fileSize: videoBlob.size
         });
       }
+
+      // Keep a copy in the Library (uploaded, since a Blob URL is gone after reload).
+      registerGenerationBlob('personalize', 'video', videoBlob, { prompt: contactData?.name || '' }).catch(() => {});
 
       this.onComplete(videoBlob, contactData);
       return videoBlob;

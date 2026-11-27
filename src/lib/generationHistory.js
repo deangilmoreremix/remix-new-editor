@@ -261,6 +261,31 @@ export async function registerGeneration(studio, type, url, meta = {}) {
 }
 
 /**
+ * Register a finished video that only exists as a local Blob (a canvas or caption
+ * render): upload it to storage first, then save the durable URL to the Library.
+ * Resolves to the saved entry, or null when there is nothing to save or the upload
+ * fails — a render must never fail because the Library copy could not be made.
+ *
+ * @param {string} studio
+ * @param {'image'|'video'|'audio'} type
+ * @param {Blob} blob
+ * @param {object} [meta]  { prompt, model, parameters, ... }
+ * @returns {Promise<object|null>}
+ */
+export async function registerGenerationBlob(studio, type, blob, meta = {}) {
+  if (typeof Blob === 'undefined' || !(blob instanceof Blob) || !blob.size) return null;
+  try {
+    const { uploadFileToSupabase } = await import('./uploadService.js');
+    const ext = (blob.type.split('/')[1] || 'webm').split(';')[0].split('+')[0];
+    const file = new File([blob], `${studio}-${Date.now()}.${ext}`, { type: blob.type || 'video/webm' });
+    const durableUrl = (await uploadFileToSupabase(file, { category: type })).url;
+    return durableUrl ? saveGeneration({ ...meta, studio, type, url: durableUrl }) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Delete a generation from localStorage (Supabase deletion is deferred
  * to a future cleanup pass; the Edge Function doesn't currently expose DELETE).
  *
