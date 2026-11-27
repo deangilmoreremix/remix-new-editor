@@ -492,7 +492,7 @@ export function DirectorPage() {
 
     container.innerHTML = `
         <!-- Header -->
-        <div class="flex items-center justify-between p-4 border-b border-white/5 bg-black/50">
+        <div class="flex flex-wrap items-center justify-between gap-3 p-4 border-b border-white/5 bg-black/50">
             <div class="flex items-center gap-4">
                 <button id="back-btn" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -513,7 +513,7 @@ export function DirectorPage() {
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3">
                 <button id="cancel-btn" data-testid="cancel-btn" class="hidden px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-300 text-sm rounded-lg transition-colors">
                     Cancel
                 </button>
@@ -528,10 +528,10 @@ export function DirectorPage() {
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex overflow-hidden">
-            <!-- Left: Agents Panel -->
-            <div class="w-72 border-r border-white/5 overflow-hidden bg-black/30 flex flex-col">
-                <div class="p-4 overflow-auto flex-1">
+        <div class="flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
+            <!-- Left: Agents Panel (last on phones) -->
+            <div class="order-3 md:order-1 w-full md:w-72 shrink-0 border-t md:border-t-0 md:border-r border-white/5 md:overflow-hidden bg-black/30 flex flex-col">
+                <div class="p-4 overflow-auto md:flex-1 max-h-96 md:max-h-none">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold text-white text-sm uppercase tracking-wider">AI AGENTS</h3>
                         <select id="category-filter" data-testid="category-filter" class="bg-white/5 text-xs text-secondary rounded px-2 py-1 border border-white/10">
@@ -572,12 +572,12 @@ export function DirectorPage() {
                 </div>
             </div>
 
-            <!-- Center: Video + Chat -->
-            <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Center: Video + Chat (first on phones) -->
+            <div class="order-1 md:order-2 flex-none md:flex-1 min-w-0 flex flex-col md:overflow-y-auto">
                 <!-- Video Preview -->
                 <div class="p-4 border-b border-white/5">
                     <div class="bg-black rounded-2xl overflow-hidden">
-                        <div class="aspect-video flex items-center justify-center bg-black/80 relative">
+                        <div class="aspect-video md:max-h-[38vh] flex items-center justify-center bg-black/80 relative">
                             ${videoUrl ? `
                                 <video
                                     id="director-video"
@@ -608,7 +608,7 @@ export function DirectorPage() {
                 </div>
 
                 <!-- Chat Interface -->
-                <div class="flex-1 flex flex-col overflow-hidden p-4">
+                <div class="flex-none flex flex-col p-4">
                     <h3 class="font-bold text-white mb-3 text-sm flex items-center gap-2">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -621,14 +621,14 @@ export function DirectorPage() {
                     <div id="chat-messages" class="flex-1 overflow-auto space-y-3 mb-4 min-h-[180px] max-h-[280px]"></div>
 
                     <!-- Command Input -->
-                    <div class="flex gap-3">
+                    <div class="flex gap-2 md:gap-3">
                         <input
                             type="text"
                             id="command-input" data-testid="command-input"
                             placeholder="Type your command (e.g., 'Summarize this video')"
-                            class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-muted focus:outline-none focus:border-primary/50"
+                            class="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-muted focus:outline-none focus:border-primary/50"
                         >
-                        <button id="send-command-btn" class="px-6 py-3 btn-secondary-modern font-bold rounded-xl hover:scale-105 transition-transform flex items-center gap-2">
+                        <button id="send-command-btn" class="shrink-0 px-4 md:px-6 py-3 btn-secondary-modern font-bold rounded-xl hover:scale-105 transition-transform flex items-center gap-2">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="22" y1="2" x2="11" y2="13"/>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -639,8 +639,8 @@ export function DirectorPage() {
                 </div>
             </div>
 
-            <!-- Right: Tools Panel -->
-            <div class="w-80 border-l border-white/5 p-4 overflow-auto bg-black/30">
+            <!-- Right: Tools Panel (second on phones) -->
+            <div class="order-2 md:order-3 w-full md:w-80 shrink-0 border-t md:border-t-0 md:border-l border-white/5 p-4 md:overflow-auto bg-black/30">
                 <!-- Processing Status -->
                 <div id="processing-status" data-testid="processing-status" class="hidden mb-6">
                     <h4 class="font-bold text-white text-sm mb-3 flex items-center gap-2">
