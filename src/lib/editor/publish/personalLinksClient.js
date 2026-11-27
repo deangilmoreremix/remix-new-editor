@@ -29,13 +29,14 @@ const fail = (error, fallback) => {
 
 /**
  * A link id that reads like the contact ("acme-dental-k7x2p9ab") yet stays unguessable: the id gates a contact's
- * details, so a readable prefix is always followed by at least 8 random characters (16-32 chars in all, the
- * database's rule). Pass a business name, never a person's name. Without a usable label it is plain random.
+ * details, so a readable prefix is always followed by at least 12 random characters (about 70 bits; 16-32 chars in
+ * all, the database's rule: a prefix of at most 19 characters keeps the total within 32). Pass a business name,
+ * never a person's name. Without a usable label it is plain random (20 characters, about 114 bits).
  */
 export function readableLinkId(label, rand) {
-  const base = slugify(label, '').slice(0, 20).replace(/-+$/g, '');
+  const base = slugify(label, '').slice(0, 19).replace(/-+$/g, '');
   if (!base) return makeSlug(20, rand);
-  return `${base}-${makeSlug(Math.max(8, 15 - base.length), rand)}`;
+  return `${base}-${makeSlug(Math.max(12, 15 - base.length), rand)}`;
 }
 export const newLinkId = (label) => readableLinkId(label);
 
@@ -136,7 +137,7 @@ export async function updatePersonalLink(client, id, patch = {}) {
 export async function regeneratePersonalLink(client, id, { makeId = newLinkId } = {}) {
   const { data: cur } = await client.from('video_personalizations').select('variables').eq('id', id).maybeSingle();
   const next = makeId(cur?.variables?.businessName || '');
-  const { data, error } = await client.from('video_personalizations').update({ id: next, revoked: false }).eq('id', id).select(COLS).maybeSingle();
+  const { data, error } = await client.from('video_personalizations').update({ id: next }).eq('id', id).select(COLS).maybeSingle();
   fail(error, 'Could not change the link');
   if (!data) throw new Error('That link no longer exists.');
   return toRow(data);

@@ -34,8 +34,14 @@ export function parseSections(text: string, duration: number): { sections: Secti
   return { sections: sorted.map((r, i) => ({ title: r.title.slice(0, 60) || `Section ${i + 1}`, start: r.start, end: i + 1 < sorted.length ? sorted[i + 1].start : duration })) };
 }
 
+const PAGE_HOSTS = /(^|\.)(youtube\.com|youtu\.be|vimeo\.com|tiktok\.com|instagram\.com|facebook\.com|loom\.com|wistia\.com)$/i;
+
 export function validateVideoUrl(raw: string): string | null {
-  try { const u = new URL(raw.trim()); return u.protocol === 'https:' ? null : 'Use a link that starts with https://'; } catch { return 'Enter a full link, like https://example.com/video.mp4'; }
+  let u: URL;
+  try { u = new URL(raw.trim()); } catch { return 'Enter a full link, like https://example.com/video.mp4'; }
+  if (u.protocol !== 'https:') return 'Use a link that starts with https://';
+  if (PAGE_HOSTS.test(u.hostname)) return 'That is a video page, not a video file. Download the video and upload the file, or paste a direct link to an mp4 or webm file.';
+  return null;
 }
 
 /** The classic project state the player and publish client understand: one video track, one clip per section. */

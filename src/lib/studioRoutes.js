@@ -102,7 +102,7 @@ export const STUDIO_ROUTES = {
   videotools: { label: 'Video Tools', category: 'Video' },
   avatar: { label: 'Avatar Studio', category: 'Video' },
   audio: { label: 'Audio Studio', category: 'Video' },
-  'video-agent': { label: 'Video Agent', category: 'Agents' },
+  'video-agent': { label: 'Animation Agent', category: 'Agents' },
   zackd: { label: 'Zack D Studio', category: 'Agents' },
   'motion-director': { label: 'Motion Director', category: 'Agents' },
   director: { label: 'Director', category: 'Agents' },
@@ -209,7 +209,7 @@ export const NAV_GROUPS = [
     { id: 'zackd', label: 'Zack D' },
   ] },
   { title: 'AI Agents', items: [
-    { id: 'video-agent', label: 'Video Agent' },
+    { id: 'video-agent', label: 'Animation Agent' },
     { id: 'motion-director', label: 'Motion Director' },
     { id: 'director', label: 'Director' },
   ] },

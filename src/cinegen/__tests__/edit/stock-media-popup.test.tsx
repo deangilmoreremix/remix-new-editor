@@ -2,7 +2,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { StockMediaPopup, isAiAsset } from '@cinegen/components/edit/stock-media-popup';
-import { MEDIA_CATEGORIES, MEDIA_GROUPS, FLUX_SIZE, aiPrompt } from '@cinegen/components/edit/stock-categories';
+import { MEDIA_CATEGORIES, MEDIA_GROUPS, FLUX_SIZE, aiPrompt, fluxSize } from '@cinegen/components/edit/stock-categories';
 import type { Asset } from '@cinegen/types/project';
 
 const px = vi.hoisted(() => ({
@@ -239,5 +239,60 @@ describe('stock sources', () => {
     setup();
     fireEvent.click(screen.getByTestId('tab-pixabay-videos'));
     expect((await screen.findByRole('alert')).textContent).toMatch(/Pixabay isn't connected on the server yet/);
+  });
+});
+
+describe('fluxSize', () => {
+  it('keeps every quality level valid for flux-dev', () => {
+    for (const ratio of ['16:9', '9:16', '1:1'] as const) for (const long of [1024, 1536, 2048]) {
+      const { width, height } = fluxSize(ratio, long);
+      expect(width % 64).toBe(0); expect(height % 64).toBe(0);
+      expect(Math.max(width, height)).toBe(long);
+      expect(Math.min(width, height)).toBeGreaterThanOrEqual(128);
+    }
+    expect(fluxSize('16:9', 1024)).toEqual(FLUX_SIZE['16:9']);
+  });
+});
+
+describe('load more', () => {
+  const full = Array.from({ length: 24 }, (_, i) => ({ ...pexelsVideo, id: 100 + i }));
+  it('appends the next page, and disappears when a short page comes back', async () => {
+    px.searchPexelsVideos.mockResolvedValueOnce({ videos: full }).mockResolvedValueOnce({ videos: [{ ...pexelsVideo, id: 500 }] });
+    setup();
+    fireEvent.click(screen.getByTestId('tab-pexels-videos'));
+    await screen.findByTestId('stock-pexels-100');
+    fireEvent.click(screen.getByTestId('load-more'));
+    expect(await screen.findByTestId('stock-pexels-500')).toBeTruthy();
+    expect(screen.getByTestId('stock-pexels-100')).toBeTruthy();
+    expect(px.searchPexelsVideos.mock.calls[1][0].page).toBe(2);
+    expect(screen.queryByTestId('load-more')).toBeNull();
+  });
+  it('is not offered when the first page is short', async () => {
+    px.searchPexelsVideos.mockResolvedValue({ videos: [pexelsVideo] });
+    setup();
+    fireEvent.click(screen.getByTestId('tab-pexels-videos'));
+    await screen.findByTestId('stock-pexels-9');
+    expect(screen.queryByTestId('load-more')).toBeNull();
+  });
+});
+
+describe('AI options', () => {
+  it('passes the chosen image quality to onGenerate', async () => {
+    const p = setup();
+    fireEvent.click(screen.getByTestId('pill-ai-images'));
+    fireEvent.click(screen.getByTestId('cat-forests'));
+    fireEvent.change(screen.getByTestId('ai-quality'), { target: { value: '2048' } });
+    fireEvent.click(screen.getByTestId('ai-generate'));
+    await waitFor(() => expect(p.onGenerate).toHaveBeenCalled());
+    expect(p.onGenerate.mock.calls[0][4]).toMatchObject({ size: 2048 });
+  });
+  it('passes the chosen video resolution and length', async () => {
+    const p = setup();
+    fireEvent.click(screen.getByTestId('cat-forests'));
+    fireEvent.change(screen.getByTestId('ai-resolution'), { target: { value: '1080p' } });
+    fireEvent.change(screen.getByTestId('ai-duration'), { target: { value: '8' } });
+    fireEvent.click(screen.getByTestId('ai-generate'));
+    await waitFor(() => expect(p.onGenerate).toHaveBeenCalled());
+    expect(p.onGenerate.mock.calls[0][4]).toMatchObject({ resolution: '1080p', duration: 8 });
   });
 });

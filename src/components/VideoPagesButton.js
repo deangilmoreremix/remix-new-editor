@@ -25,6 +25,28 @@ export function pickLatest(history) {
 
 const HISTORY_WAIT_MS = 1500;
 
+/** Opens the landing page picker with `latest` (a video/picture) loaded, else your newest creation in the history. Used by the header button and each studio's own button. */
+export async function openVideoPages(latest = null) {
+  // The window opens whatever happens: a slow or failing history (cloud sync, sign-in) is waited for 1.5 seconds at most.
+  let history = [];
+  try {
+    const { loadGenerationHistory } = await import('../lib/generationHistory.js');
+    history = await Promise.race([loadGenerationHistory(), new Promise((resolve) => setTimeout(() => resolve([]), HISTORY_WAIT_MS))]);
+  } catch { history = []; }
+  try {
+    // Your latest creation (this session, else your newest in the history) fills the viewer; nothing has to be uploaded.
+    const video = latest || pickLatest(history);
+    const { openLandingPagePicker, toPickerVideo } = await import('../lib/landingPages/pickerModal.js');
+    const { recentItems } = await import('./studio/landingPageAction.js');
+    const main = video && toPickerVideo(video) ? video : null;
+    // the next five wait in the editor's content tray
+    openLandingPagePicker({ video: main, items: await recentItems({ exclude: [main?.url], load: async () => history }) });
+  } catch {
+    const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
+    openLandingPagePicker({});
+  }
+}
+
 export function createVideoPagesButton({ target = window } = {}) {
   let latest = null;
   const btn = document.createElement('button');
@@ -46,25 +68,6 @@ export function createVideoPagesButton({ target = window } = {}) {
     if (next) { latest = next; sync(); }
   });
 
-  btn.addEventListener('click', async () => {
-    // The window opens whatever happens: a slow or failing history (cloud sync, sign-in) is waited for 1.5 seconds at most.
-    let history = [];
-    try {
-      const { loadGenerationHistory } = await import('../lib/generationHistory.js');
-      history = await Promise.race([loadGenerationHistory(), new Promise((resolve) => setTimeout(() => resolve([]), HISTORY_WAIT_MS))]);
-    } catch { history = []; }
-    try {
-      // Your latest creation (this session, else your newest in the history) fills the viewer; nothing has to be uploaded.
-      const video = latest || pickLatest(history);
-      const { openLandingPagePicker, toPickerVideo } = await import('../lib/landingPages/pickerModal.js');
-      const { recentItems } = await import('./studio/landingPageAction.js');
-      const main = video && toPickerVideo(video) ? video : null;
-      // the next five wait in the editor's content tray
-      openLandingPagePicker({ video: main, items: await recentItems({ exclude: [main?.url], load: async () => history }) });
-    } catch {
-      const { openLandingPagePicker } = await import('../lib/landingPages/pickerModal.js');
-      openLandingPagePicker({});
-    }
-  });
+  btn.addEventListener('click', () => openVideoPages(latest));
   return btn;
 }

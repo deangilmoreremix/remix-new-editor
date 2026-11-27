@@ -64,7 +64,7 @@ export function PlatformPreviews({ asset, platforms, textFor, titleFor, thumbnai
               <span className={`text-[10px] ${over ? 'text-red-300' : 'text-white/40'}`}>{text.length}/{preset.hardCaptionMax ?? preset.captionSoftMax}</span>
             </div>
             {warn && <p role="note" className="mb-2 rounded bg-amber-500/10 border border-amber-500/20 px-2 py-1 text-[11px] text-amber-200">{warn}</p>}
-            <div className={`mx-auto rounded-lg bg-[#111] border border-white/10 overflow-hidden ${mobile ? 'max-w-[300px]' : 'max-w-full'}`}>
+            <div className={`mx-auto rounded-lg bg-card-bg border border-white/10 overflow-hidden ${mobile ? 'max-w-[300px]' : 'max-w-full'}`}>
               {LAYOUT[p] === 'feed' && (
                 <>
                   <div className="flex items-center gap-2 p-2"><div className="w-6 h-6 rounded-full bg-white/20" /><span className="text-[11px] text-white/80">Your account</span></div>

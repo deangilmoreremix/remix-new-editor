@@ -8,7 +8,8 @@ const read = (path: string) => readFileSync(resolve(root, path), 'utf8');
 describe('landing historical composition regression', () => {
   it('keeps the intentionally removed interactive demos off the landing page', () => {
     const landing = read('src/components/landing/LandingPage.jsx');
-    expect(landing).not.toContain('DemosSection');
+    // The old interactive demos (DemosSection), as a whole word: the Studio Demos section added later (StudioDemosSection) is wanted.
+    expect(landing).not.toMatch(/\bDemosSection\b/);
     expect(landing).not.toContain("section-' + 'demos'");
     expect(landing).not.toContain('appendChild(demos)');
 

@@ -130,7 +130,7 @@ const APPS = [
   { name: 'Community', icon: '👥', color: 'purple' },
   { name: 'Assist', icon: '🧠', color: 'emerald' },
   { name: 'Lip Sync', icon: '🎭', color: 'pink' },
-  { name: 'Video Agent', icon: '🤖', color: 'cyan' },
+  { name: 'Animation Agent', icon: '🤖', color: 'cyan' },
   { name: 'Agents', icon: '🤖', color: 'yellow' },
   { name: 'Workflows', icon: '⚙️', color: 'emerald' },
   { name: 'MCP & CLI', icon: '💻', color: 'pink' },

@@ -20,7 +20,7 @@ export function TabPanel({
   const [activeTab, setActiveTab] = useState<TabId>(defaultTab);
 
   const tabs = [
-    { id: "code" as const, label: "Remotion Code", icon: Code },
+    { id: "code" as const, label: "Code", icon: Code },
     { id: "preview" as const, label: "Video Preview", icon: Play },
   ];
 

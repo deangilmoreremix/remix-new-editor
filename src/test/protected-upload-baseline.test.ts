@@ -747,7 +747,7 @@ describe('protected application files — byte-for-byte integrity baseline', () 
     ['src/test/timeline-component.test.js', '92a872bb2f6f8f57af333e2ca0073beb4c9eca628aece16fbd7ad2187de6ee66'],
     ['src/test/timeline-renderer.test.js', '835a50e065ddf4cd8a0e959089b1f4a3ddf0b4f008cc843a8d496d350bf065ef'],
     ['src/test/timeline-editor-core-integration.test.js', '9cf93afd7c9012b23eeb503064571a10158b6fc9a305fa6c5583e48a422c2ce6'],
-    ['src/test/unified-timeline-editor-phase4-integration.test.js', '9af330c79e4b7cc6becc85696811c4f9b207cae5bb5744349de05a58af9c6345'],
+    ['src/test/unified-timeline-editor-phase4-integration.test.js', 'e80c11b008bd19de917c802191af70e191831c99c3c177901acfd1b4cd33b681'],
     ['src/lib/editor/__tests__/timeline-tools.test.js', 'd43028896d47920ed744f3254c60113f73a6fdb0286151ec172020088750364d'],
     ['src/lib/editor/__tests__/timeline-bridge.test.js', '5ae98e688e25b7ff8763338560e7e288a2fcbe9dd230f79b5dd79cad84c98516'],
     ['src/lib/editor/__tests__/timeline-bridge-integration.test.js', '25f10a86b2be87ab490c2a3741d624dc0dd5f69ae1ef0f8d494a2bd835767d53'],

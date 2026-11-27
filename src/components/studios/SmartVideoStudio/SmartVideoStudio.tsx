@@ -98,9 +98,17 @@ export default function SmartVideoStudio() {
     setActiveTab(tabId);
   }, []);
 
+  // The picker lists the registry as it is now; the studio's per-mode lists were taken when it first loaded,
+  // and the catalog can grow after that. Refresh this mode's list so a model chosen from the picker belongs
+  // to it (otherwise the check above would switch straight back to the first model).
   const handleModelSelect = useCallback((model) => {
+    setModelsByTab((prev) => {
+      const fresh = getModelsForTab(activeTab).filter(m => m.enabled);
+      const list = fresh.length ? fresh : (prev[activeTab] || []);
+      return { ...prev, [activeTab]: list.some(m => m.id === model.id) ? list : [...list, model] };
+    });
     setSelectedModel(model);
-  }, []);
+  }, [activeTab]);
 
   // Shows a "processing" card right away, then swaps in the finished (or failed) job.
   const runJob = useCallback(async (modelId, values) => {

@@ -701,6 +701,7 @@ export function ImageStudio() {
           generationHistory,
         });
       },
+      getResult: () => { const el = document.querySelector('#i-result-img'); return el ? (el.currentSrc || el.src || '') : ''; },
       getProject: () => ({}),
       getPersonalizableFields: () => {
         const textarea = document.getElementById('i-prompt-textarea');

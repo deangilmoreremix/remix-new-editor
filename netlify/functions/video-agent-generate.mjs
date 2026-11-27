@@ -17,7 +17,7 @@
  */
 import { POST } from './_shared/videoAgentGenerate.generated.mjs';
 
-export const NEED_KEY_MESSAGE = 'The Video Agent uses your own OpenAI key. Add it in SmartVid → Settings → API keys (OpenAI API Key).';
+export const NEED_KEY_MESSAGE = 'The Animation Agent uses your own OpenAI key. Add it in SmartVid → Settings → API keys (OpenAI API Key).';
 const KEY_RE = /^sk-[A-Za-z0-9_-]{20,}$/;
 
 const MAX_BODY_BYTES = 6 * 1024 * 1024; // attached reference frames are base64 data URLs

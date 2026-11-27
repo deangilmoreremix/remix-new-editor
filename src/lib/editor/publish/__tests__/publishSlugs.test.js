@@ -151,7 +151,11 @@ describe('custom domain', () => {
   });
   it('maps a taken domain to a readable message', async () => {
     const rpc = vi.fn().mockResolvedValue({ data: null, error: { message: 'domain_taken' } });
-    await expect(setCustomDomain({ rpc }, 'videos.acme.com')).rejects.toThrow(/already used/);
+    await expect(setCustomDomain({ rpc }, 'videos.acme.com')).rejects.toThrow(/already approved for another business/);
+  });
+  it('maps the change limit to a readable message', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: { message: 'rate_limited' } });
+    await expect(setCustomDomain({ rpc }, 'videos.acme.com')).rejects.toThrow(/too many times/);
   });
   it('builds the domain link only when a domain and slug exist', () => {
     expect(customDomainUrl({ customDomain: 'videos.acme.com', slug: 'intro' })).toBe('https://videos.acme.com/intro');
@@ -185,9 +189,41 @@ describe('readable personal link ids', () => {
     expect(a).toMatch(rule);
     expect(readableLinkId('Acme Dental')).not.toBe(a);
   });
+  it('always ends in at least 12 random characters and stays within 16-32, for every prefix length', () => {
+    for (let n = 1; n <= 60; n += 1) {
+      const id = readableLinkId('a'.repeat(n).replace(/(.{3})/g, '$1 '));
+      expect(id).toMatch(rule);
+      const random = id.slice(id.lastIndexOf('-') + 1);
+      expect(random.length).toBeGreaterThanOrEqual(12);
+    }
+  });
   it('stays within the database rule for short, long and unusable labels', () => {
     for (const label of ['Al', 'A very long business name that goes on and on', '★★★', '', undefined]) {
       expect(newLinkId(label)).toMatch(rule);
     }
+  });
+});
+
+describe('makeSlug', () => {
+  it('gives every character the same chance (no modulo bias)', async () => {
+    const { makeSlug, SLUG_ALPHABET } = await import('../publishClient.js');
+    // Every byte value 0..255 once: bytes 228-255 would count the first 28 letters a fifth time if they were used.
+    const all = Uint8Array.from({ length: 256 }, (_, i) => i);
+    const id = makeSlug(228, () => all);
+    expect(id).toHaveLength(228);
+    const counts = {};
+    for (const c of id) counts[c] = (counts[c] || 0) + 1;
+    expect(SLUG_ALPHABET.split('').map((c) => counts[c])).toEqual(Array(57).fill(4));
+  });
+  it('skips bytes that would favour some letters, and still returns the right length', async () => {
+    const { makeSlug, SLUG_ALPHABET } = await import('../publishClient.js');
+    const high = new Uint8Array(8).fill(250); // 250 is above the fair limit (228): skipped
+    let calls = 0;
+    const id = makeSlug(5, (n) => { calls += 1; return calls === 1 ? high.slice(0, n) : new Uint8Array(n).fill(0); });
+    expect(id).toBe(SLUG_ALPHABET[0].repeat(5));
+  });
+  it('fails loudly instead of returning a short or predictable id when no usable randomness comes back', async () => {
+    const { makeSlug } = await import('../publishClient.js');
+    expect(() => makeSlug(10, (n) => new Uint8Array(n).fill(255))).toThrow(/randomness/);
   });
 });
