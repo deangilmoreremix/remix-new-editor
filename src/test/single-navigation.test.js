@@ -68,10 +68,17 @@ describe('single navigation', () => {
     const { Sidebar } = await import('../components/Sidebar.js');
     const { sidebar } = Sidebar(vi.fn());
     const toggle = sidebar.querySelector('[data-sidebar-toggle]');
+    const toggleBtn = toggle.querySelector('button');
     expect(sidebar.style.width).toBe('68px');
+    expect(toggle.textContent).toBe('Expand');
     toggle.click();
     expect(sidebar.style.width).toBe('232px');
-    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(toggleBtn.getAttribute('aria-expanded')).toBe('true');
+    expect(toggleBtn.getAttribute('aria-label')).toBe('Collapse menu');
+    expect(toggle.textContent).toBe('Collapse menu');
+    toggle.querySelector('button').click(); // a click on the button itself works too (it bubbles)
+    expect(sidebar.style.width).toBe('68px');
+    toggle.click();
 
     const heading = sidebar.querySelector('[data-sidebar-group="Utilities"]');
     const body = sidebar.querySelector('[data-sidebar-group-body="Utilities"]');
@@ -88,6 +95,42 @@ describe('single navigation', () => {
     // Going to a studio inside a folded group opens it.
     again.dispatchEvent(new CustomEvent('route-changed', { detail: { page: 'viral' } }));
     expect(again.querySelector('[data-sidebar-group-body="Utilities"]').style.display).toBe('');
+  });
+
+  it('the expand control is a normal menu item: same classes as its neighbours, no colors of its own', async () => {
+    localStorage.removeItem('sv:sidebar');
+    window.location.hash = '#/image';
+    const { Sidebar } = await import('../components/Sidebar.js');
+    const { sidebar } = Sidebar(vi.fn());
+    const toggle = sidebar.querySelector('[data-sidebar-toggle]');
+    const neighbour = sidebar.querySelector('[data-sidebar-item="explore"]');
+    // Same recipe as Explore/Apps/Image: so it gets the site's outline-button styling, not a white border.
+    expect(toggle.className).toBe(neighbour.className);
+    expect(toggle.querySelector('button').className).toBe(neighbour.querySelector('button').className);
+    expect(toggle.querySelector('span').className).toBe(neighbour.querySelector('span').className);
+    expect(toggle.outerHTML).not.toMatch(/border-gray|border-white\b/);
+    // It is the first item and is not a route.
+    expect(sidebar.querySelector('[data-sidebar-item], [data-sidebar-toggle]')).toBe(toggle);
+    expect(toggle.hasAttribute('data-sidebar-item')).toBe(false);
+    // The scrollbar is dim like the rest of the app.
+    expect(sidebar.style.scrollbarColor.replace(/\s/g, '')).toBe('rgba(255,255,255,0.14)transparent');
+    expect(sidebar.style.scrollbarWidth).toBe('thin');
+  });
+
+  it('the slide-out menu on small screens is always expanded, then returns to the saved choice', async () => {
+    localStorage.removeItem('sv:sidebar');
+    window.location.hash = '#/image';
+    const { Sidebar } = await import('../components/Sidebar.js');
+    const { sidebar, toggleBtn } = Sidebar(vi.fn());
+    const toggle = sidebar.querySelector('[data-sidebar-toggle]');
+    expect(sidebar.style.width).toBe('68px');
+    toggleBtn.click(); // hamburger opens the slide-out
+    expect(sidebar.style.width).toBe('232px');
+    expect(sidebar.querySelector('[data-sidebar-item="explore"]').className).toContain('flex-row');   // icon and name side by side
+    expect(toggle.style.display).toBe('none');                                                          // no expand control needed there
+    sidebar.dispatchEvent(new CustomEvent('route-changed', { detail: { page: 'apps' } }));            // choosing a page closes it
+    expect(sidebar.style.width).toBe('68px');
+    expect(toggle.style.display).toBe('');
   });
 
   it('Academy is in the side menu: opens the academy page and stays highlighted on tracks and lessons', async () => {
