@@ -73,3 +73,14 @@ export function runJobs<T>(specs: JobSpec<T>[], opts: QueueOptions = {}) {
 }
 
 export const failedJobs = <T,>(s: JobStatus<T>[]) => s.filter((j) => j.state === 'failed')
+
+/** A tiny semaphore: `limit(fn)` runs fn when one of `n` slots is free. Used to keep heavy video encodes to one at a time inside a wider queue. */
+export function createLimiter(n: number) {
+  let active = 0
+  const waiting: Array<() => void> = []
+  return async function limit<T>(fn: () => Promise<T>): Promise<T> {
+    while (active >= Math.max(1, n)) await new Promise<void>((r) => waiting.push(r))
+    active++
+    try { return await fn() } finally { active--; waiting.shift()?.() }
+  }
+}
