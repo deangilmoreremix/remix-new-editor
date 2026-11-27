@@ -1015,7 +1015,7 @@ export function OutreachStudio() {
     side.append(addBlock, tpl, cz);
 
     // ---- Right: the video, and the open tool under it.
-    const main = el('div', 'flex min-w-0 flex-col items-center gap-4 bg-white/[0.02] p-5 md:p-10 lg:min-h-0 lg:overflow-y-auto');
+    const main = el('div', 'flex min-w-0 flex-col items-center gap-4 bg-white/[0.02] p-5 md:p-10 lg:min-h-0 lg:overflow-y-auto [&>*]:shrink-0');
     const stage = el('div', 'grid aspect-video w-full max-w-3xl place-items-center overflow-hidden rounded-2xl bg-white/[0.06]');
     stage.setAttribute('data-editor-video', '');
     const editing = editorTool === 'trim' && has;
@@ -1044,8 +1044,26 @@ export function OutreachStudio() {
       pCta.hidden = !draft.cta?.enabled;
     };
     paintPage();
-    main.appendChild(pc);
-    pc.append(el('div', 'text-sm font-extrabold text-white/80', 'SmartVideo'), pHead, stage, pMsg, pCta);
+    if (draft.page) {
+      // A landing page design is chosen: show that page (what each prospect gets), with your video above it.
+      main.appendChild(stage);
+      const lp = el('div', 'flex w-full max-w-3xl flex-col gap-3');
+      lp.setAttribute('data-editor-page-preview', 'design');
+      const lpHead = el('div', 'flex items-center justify-between gap-3');
+      const lpName = designs.list.find((t) => t.id === draft.page.template)?.name || 'Your landing page';
+      lpHead.append(el('div', 'text-sm font-semibold text-white/80', `Landing page: ${lpName}`));
+      const lpEdit = button('Edit page', { small: true });
+      lpEdit.addEventListener('click', openPageEditor);
+      lpHead.appendChild(lpEdit);
+      const lpHost = el('div', 'w-full overflow-hidden rounded-3xl border border-white/10 bg-panel-bg');
+      lpHost.style.minHeight = '240px';
+      pagePreview(lpHost);
+      lp.append(lpHead, lpHost);
+      main.appendChild(lp);
+    } else {
+      main.appendChild(pc);
+      pc.append(el('div', 'text-sm font-extrabold text-white/80', 'SmartVideo'), pHead, stage, pMsg, pCta);
+    }
     if (editing) {
       const ctl = el('div', 'flex items-center gap-2 text-xs text-white/60');
       ctl.setAttribute('data-edit-controls', '');
