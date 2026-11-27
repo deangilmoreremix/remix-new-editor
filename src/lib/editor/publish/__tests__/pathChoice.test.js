@@ -130,6 +130,26 @@ describe('Choose your path on the published player', () => {
   });
 });
 
+describe('Choose your path when a route returns to earlier footage', () => {
+  it('offers the card again after a route continues backwards', async () => {
+    const box = document.createElement('div');
+    document.body.innerHTML = '';
+    document.body.appendChild(box);
+    choice.addon = { ...choice.addon, thenTime: 0, choice1Until: 15 };
+    const { e, create } = fakeEngine();
+    const player = await mountWatchPage(box, 'abcdefgh12', { fetchVideo: async () => ({ id: 'abcdefgh12', title: 'Demo', project: project() }), createEngine: create, analytics: { track: vi.fn(), onPlayerChange: vi.fn(), destroy: vi.fn() }, onLead: vi.fn() });
+    box.querySelector('[data-bigplay]').click();
+    e.advance(2.5);
+    box.querySelectorAll('.wf-pathchoice__btn')[0].click(); // Pricing: 10 to 15, then back to 0
+    e.advance(12);
+    e.advance(15.2);
+    expect(player.time).toBeCloseTo(0, 1);
+    e.advance(2.5);
+    expect(box.querySelectorAll('.wf-pathchoice')).toHaveLength(1);
+    player.destroy();
+  });
+});
+
 describe('Choose your path at the very start', () => {
   it('stops on the first tick of playback and only once', () => {
     const rt = new AddonRuntime();

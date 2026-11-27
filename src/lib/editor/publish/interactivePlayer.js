@@ -132,7 +132,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
           const to = route.then;
           route = null;
           seekEngine(to);
-          runtime.lastTime = time;
+          runtime.handleSeek(time, clips, T); // events ahead of the destination fire again
           updateInteractive(time);
           emit();
           return;
@@ -150,7 +150,7 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
         const to = route.then;
         route = null;
         seekEngine(to);
-        runtime.lastTime = time;
+        runtime.handleSeek(time, clips, T);
         play();
         return;
       }
