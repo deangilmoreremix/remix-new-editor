@@ -9,7 +9,7 @@ an administrator adds it to the hosting site and approves it, so this is the sig
  owner saves a domain  ->  set_custom_domain()  ->  video_owner_profiles.custom_domain changes
         |
         v   trigger video_owner_profiles_domain_alert (only when the domain changes to a non-null value)
- public.custom_domain_alerts  (one open row per domain; the durable record)
+ public.custom_domain_alerts  (one open row per business and domain; the durable record; it remembers the owner id, so a business rename cannot lose it)
         |  best effort pg_net POST {alert_id}, header x-push-secret
         v
  Netlify function admin-domain-alert  ->  e-mail to ADMIN_ALERT_EMAIL  ->  row gets sent_at
@@ -52,13 +52,13 @@ is set.
 3. Approve, in the Supabase SQL editor:
 
    ```sql
-   update public.video_owner_profiles set custom_domain_verified = true where custom_domain = 'videos.example.com';
+   update public.video_owner_profiles set custom_domain_verified = true where custom_domain = 'videos.example.com' and business_slug = 'acme';
    ```
 
    Or refuse:
 
    ```sql
-   update public.video_owner_profiles set custom_domain = null where custom_domain = 'videos.example.com';
+   update public.video_owner_profiles set custom_domain = null where custom_domain = 'videos.example.com' and business_slug = 'acme';
    ```
 
 ## Checking on it
@@ -68,7 +68,7 @@ is set.
 select id, domain, attempts, last_error, requested_at from public.custom_domain_alerts where sent_at is null;
 ```
 
-`attempts` stops at 8. To retry one after fixing the cause: `update public.custom_domain_alerts set attempts = 0 where id = <id>;`.
+`attempts` stops at 8 and the last error then starts with `gave_up:` (it is also logged by the sweep). To retry one after fixing the cause: `update public.custom_domain_alerts set attempts = 0 where id = <id>;`.
 
 ## Files
 
@@ -76,3 +76,12 @@ select id, domain, attempts, last_error, requested_at from public.custom_domain_
 - `netlify/functions/_shared/domainAlert.js` - recipients, e-mail, send and retry logic
 - `netlify/functions/admin-domain-alert.js` - called by the database
 - `netlify/functions/domain-alert-sweep.mjs` - scheduled retry
+
+## Several businesses, one hostname
+
+Only an approved domain is exclusive (`20261127120000_domain_claims_hardening.sql`). Several businesses may ask for the
+same hostname; the e-mail says how many did, and the approve / refuse SQL names the business, so approve only the one that
+really controls the domain. Approving a second business for the same hostname fails on the unique index. A business can
+change its domain 5 times per hour (`rate_limited`), and a hostname another business has approved is refused
+(`domain_taken`). The sweep keeps at most 10 alerts per run, stops starting new ones after 20 seconds, and deletes alerts
+sent more than 90 days ago.
