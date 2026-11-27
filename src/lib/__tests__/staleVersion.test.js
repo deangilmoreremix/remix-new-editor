@@ -34,9 +34,15 @@ describe('staleVersion', () => {
     guard.stop();
   });
 
-  it('shows the banner for Vite\'s preload error event', () => {
+  it('shows the banner for a missing file or CSS in Vite\'s preload event, not for a module that throws', () => {
     const guard = mountStaleVersionGuard({ win: window });
-    window.dispatchEvent(new Event('vite:preloadError'));
+    const fire = (payload) => { const e = new Event('vite:preloadError'); e.payload = payload; window.dispatchEvent(e); };
+    fire(new TypeError('Cannot read properties of undefined (reading "x")'));   // evaluation error: a bug, not a deploy
+    expect(document.querySelector('[data-stale-version]')).toBeNull();
+    fire(new Error('Unable to preload CSS for /assets/old.css'));
+    expect(document.querySelector('[data-stale-version]')).not.toBeNull();
+    document.body.innerHTML = '';
+    fire(new TypeError('Failed to fetch dynamically imported module: /assets/old.js'));
     expect(document.querySelector('[data-stale-version]')).not.toBeNull();
     guard.stop();
   });
