@@ -8,6 +8,7 @@
 // added again.
 import appsMap from '../data/muapiStudioAppsMap.json';
 import prompts from '../data/muapiAppPrompts.json';
+import modelControls from '../data/muapiAppModelControls.json';
 
 import { APP_CATEGORY_ORDER, isAlreadyInThisRepo } from '../data/editAppsShowcase.js';
 
@@ -49,6 +50,27 @@ export function promptPlaceholderFor(app, data = prompts) {
       : app.studio.presets.length ? 'preset' : 'image';
   const text = d[kind] || d.image || 'Anything specific you want in the result';
   return `${text}…`;
+}
+
+/**
+ * The app's settings plus what its model's live API also accepts (see muapiAppModelControls.json):
+ * a setting the app already has keeps its label and default (when still allowed) with the full list of
+ * choices; a setting it lacks is added at the end.
+ */
+export function withModelSettings(parameters, model, extra = modelControls) {
+  const add = extra[model];
+  if (!add) return parameters;
+  const merged = parameters.map((p) => {
+    const o = add[p.key];
+    if (!o?.options) return p;
+    return { ...p, options: o.options, default: o.options.includes(p.default) ? p.default : (o.default ?? o.options[0]) };
+  });
+  const have = new Set(parameters.map((p) => p.key));
+  for (const [key, o] of Object.entries(add)) {
+    if (have.has(key) || !o.options) continue;
+    merged.push({ key, label: o.label || key.replace(/_/g, ' '), options: o.options, default: o.default ?? o.options[0] });
+  }
+  return merged;
 }
 
 export function buildEditApp(app, data = prompts) {
@@ -94,7 +116,7 @@ export function buildEditApp(app, data = prompts) {
     });
   }
 
-  for (const p of s.parameters) {
+  for (const p of withModelSettings(s.parameters, model)) {
     if (!p.options?.length) continue;
     controls.push({
       type: 'select',
