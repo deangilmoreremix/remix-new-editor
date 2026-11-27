@@ -56,6 +56,18 @@ describe('uploadService', () => {
     expect(state.calls.length).toBe(0);
   });
 
+  it('removes its abort listener once the upload is done, so a reused signal does not collect listeners', async () => {
+    const ctrl = new AbortController();
+    const add = vi.spyOn(ctrl.signal, 'addEventListener');
+    const remove = vi.spyOn(ctrl.signal, 'removeEventListener');
+    await uploadFileToSupabase(video(), { category: 'video', signal: ctrl.signal });
+    await uploadFileToSupabase(video(), { category: 'video', signal: ctrl.signal });
+    const added = add.mock.calls.filter(([t]) => t === 'abort').map(([, fn]) => fn);
+    const removed = remove.mock.calls.filter(([t]) => t === 'abort').map(([, fn]) => fn);
+    expect(added.length).toBe(2);
+    expect(removed).toEqual(added);
+  });
+
   it('does not double the extension', () => {
     expect(buildObjectPath({ name: 't2.mp4' }, 'u1')).toMatch(/_t2\.mp4$/);
     expect(buildObjectPath({ name: 'my clip.final.MOV' }, 'u1')).toMatch(/_my_clip\.final\.mov$/);
