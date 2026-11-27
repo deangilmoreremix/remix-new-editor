@@ -11,6 +11,8 @@ const GAP = 6;
 const MAX_HEIGHT = 420;
 const MIN_WIDTH = 320;
 const EDGE = 8;
+// With less room than this below the box, the list opens above it (when there is more room there).
+const MIN_BELOW_ROOM = 240;
 
 export interface PickerPlacement { top: number; left: number; width: number; maxHeight: number; above: boolean }
 
@@ -18,7 +20,7 @@ export interface PickerPlacement { top: number; left: number; width: number; max
 export function placePicker(rect: { top: number; bottom: number; left: number; width: number }, viewport: { width: number; height: number }): PickerPlacement {
   const below = viewport.height - rect.bottom - GAP - EDGE;
   const aboveRoom = rect.top - GAP - EDGE;
-  const above = below < Math.min(MAX_HEIGHT, 240) && aboveRoom > below;
+  const above = below < Math.min(MAX_HEIGHT, MIN_BELOW_ROOM) && aboveRoom > below;
   const maxHeight = Math.max(160, Math.min(MAX_HEIGHT, above ? aboveRoom : below));
   const width = Math.min(Math.max(rect.width, MIN_WIDTH), viewport.width - EDGE * 2);
   const left = Math.min(Math.max(EDGE, rect.left), viewport.width - width - EDGE);
@@ -92,22 +94,30 @@ export default function ModelSelector({ tabId, selectedModelId, onSelect }: Mode
     setPlacement(placePicker(r, { width: window.innerWidth, height: window.innerHeight }));
   }, []);
 
-  // While open: follow the box when the window resizes or anything scrolls (the settings column scrolls).
+  // While open: follow the box when the window resizes or anything scrolls (the settings column scrolls),
+  // at most once per frame. Measured before paint on open, so the list never shows in the wrong place.
   useLayoutEffect(() => {
-    if (!showPicker) return undefined;
+    if (!showPicker) { setPlacement(null); return undefined; }
     reposition();
-    window.addEventListener('resize', reposition);
-    window.addEventListener('scroll', reposition, true);
+    let frame = 0;
+    const onMove = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => { frame = 0; reposition(); });
+    };
+    window.addEventListener('resize', onMove);
+    window.addEventListener('scroll', onMove, true);
     return () => {
-      window.removeEventListener('resize', reposition);
-      window.removeEventListener('scroll', reposition, true);
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener('resize', onMove);
+      window.removeEventListener('scroll', onMove, true);
     };
   }, [showPicker, reposition]);
 
   // Close on a click outside the box and the list, or on Escape (focus goes back to the box).
   useEffect(() => {
     if (!showPicker) return undefined;
-    const onDown = (e: PointerEvent | MouseEvent) => {
+    // pointerdown covers mouse, touch and pen, so a tap outside closes it on phones too.
+    const onDown = (e: PointerEvent) => {
       const t = e.target as Node;
       if (pickerRef.current?.contains(t) || listRef.current?.contains(t)) return;
       setShowPicker(false);
@@ -120,10 +130,10 @@ export default function ModelSelector({ tabId, selectedModelId, onSelect }: Mode
       setQuery('');
       triggerRef.current?.focus();
     };
-    document.addEventListener('mousedown', onDown);
+    document.addEventListener('pointerdown', onDown);
     document.addEventListener('keydown', onKey);
     return () => {
-      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('pointerdown', onDown);
       document.removeEventListener('keydown', onKey);
     };
   }, [showPicker]);
@@ -201,12 +211,12 @@ export default function ModelSelector({ tabId, selectedModelId, onSelect }: Mode
       </button>
 
       {/* Picker dropdown, on document.body so the scrolling settings column cannot clip it */}
-      {showPicker && typeof document !== 'undefined' && createPortal(
+      {showPicker && placement && typeof document !== 'undefined' && createPortal(
         <div
           ref={listRef}
           className={`model-selector-picker ${placement?.above ? 'is-above' : 'is-below'}`}
           data-model-picker=""
-          style={placement ? { top: placement.top, left: placement.left, width: placement.width, maxHeight: placement.maxHeight } : { visibility: 'hidden' }}
+          style={{ top: placement.top, left: placement.left, width: placement.width, maxHeight: placement.maxHeight }}
         >
           {/* Search */}
           <div className="model-selector-search">

@@ -58,11 +58,11 @@ describe('Model picker', () => {
     expect(document.activeElement).toBe(screen.getByRole('button', { name: /Nano Banana/ }));
   });
 
-  test('a click outside closes it; a click inside does not', async () => {
+  test('a click or tap outside closes it; one inside does not', async () => {
     await open();
-    fireEvent.mouseDown(screen.getByPlaceholderText('Search models...'));
+    fireEvent.pointerDown(screen.getByPlaceholderText('Search models...'));
     expect(document.querySelector('[data-model-picker]')).not.toBeNull();
-    fireEvent.mouseDown(document.body);
+    fireEvent.pointerDown(document.body, { pointerType: 'touch' });
     expect(document.querySelector('[data-model-picker]')).toBeNull();
   });
 
