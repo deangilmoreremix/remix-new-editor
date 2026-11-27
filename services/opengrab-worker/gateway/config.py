@@ -37,7 +37,7 @@ class Settings:
     analyze_timeout_s: int = 60
     scratch_dir: str = "/data/scratch"
     storage_bucket: str = "media-downloads"
-    signed_url_ttl_s: int = 3600
+    signed_url_ttl_s: int = 900
     poll_interval_s: float = 2.0  # 0 turns the background poller off (tests)
 
     @classmethod
@@ -55,6 +55,6 @@ class Settings:
             analyze_timeout_s=_int("ANALYZE_TIMEOUT_S", 60),
             scratch_dir=os.environ.get("SCRATCH_DIR", "/data/scratch"),
             storage_bucket=os.environ.get("STORAGE_BUCKET", "media-downloads"),
-            signed_url_ttl_s=_int("SIGNED_URL_TTL_S", 3600),
+            signed_url_ttl_s=_int("SIGNED_URL_TTL_S", 900),
             poll_interval_s=float(os.environ.get("POLL_INTERVAL_S", 2)),
         )

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Protocol
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 import httpx
 
@@ -57,14 +57,17 @@ class SupabaseBlobs:
         r = await self._client.post(
             self._obj(path), content=_chunks(file),
             headers={**self._headers, "Content-Type": content_type, "Content-Length": str(file.stat().st_size),
-                     "x-upsert": "true", "Cache-Control": "max-age=3600"})
+                     "x-upsert": "true", "Cache-Control": "private, no-store"})
         r.raise_for_status()
 
     async def sign(self, path: str, expires_in: int) -> str:
         r = await self._client.post(f"{self._root}/object/sign/{self._bucket}/{quote(path, safe='/')}",
                                     json={"expiresIn": expires_in}, headers=self._headers)
         r.raise_for_status()
-        return f"{self._root}{r.json()['signedURL']}"
+        # Storage returns the object path unencoded (spaces, accents). Encode it so strict HTTP clients accept the link.
+        signed: str = r.json()["signedURL"]
+        route, _, query = signed.partition("?")
+        return f"{self._root}{quote(unquote(route), safe='/')}" + (f"?{query}" if query else "")
 
     async def remove(self, path: str) -> None:
         r = await self._client.request("DELETE", f"{self._root}/object/{self._bucket}",

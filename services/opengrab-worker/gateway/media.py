@@ -25,7 +25,7 @@ def safe_filename(name: str | None, fallback: str = "media") -> str:
     if not dot:
         stem, ext = name, ""
     ext = re.sub(r"[^A-Za-z0-9]", "", ext)[:8].lower()
-    stem = re.sub(r"\s+", " ", stem).strip(" .")[:120] or fallback
+    stem = re.sub(r"\s+", "_", stem).strip(" ._")[:120] or fallback
     return f"{stem}.{ext}" if ext else stem
 
 
@@ -124,7 +124,7 @@ def check(kind: str, info: MediaInfo, *, max_bytes: int, clip_seconds: float | N
             raise MediaError("no_audio_stream")
     elif not info.has_video:
         raise MediaError("no_video_stream")
-    if kind == "clip" and clip_seconds:
+    if clip_seconds:
         if abs(info.duration - clip_seconds) > max(3.0, clip_seconds * 0.1):
             raise MediaError("clip_length_mismatch")
 

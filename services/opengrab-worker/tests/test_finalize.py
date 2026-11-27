@@ -79,7 +79,7 @@ async def test_compatible_video_is_stored_unchanged(tmp_path, files):
     assert (row["vcodec"], row["acodec"], row["width"], row["height"]) == ("h264", "aac", 160, 120)
     assert 1.5 < row["duration_s"] < 2.6 and row["size_bytes"] == files["h264_aac_mp4"].stat().st_size
     (path,) = blobs.objects
-    assert path == f"remix/u1/{row['id']}/Some Title.mp4" and row["storage_path"] == path
+    assert path == f"remix/u1/{row['id']}/Some_Title.mp4" and row["storage_path"] == path
     assert blobs.objects[path][1] == "video/mp4"
     assert blobs.objects[path][0] == files["h264_aac_mp4"].read_bytes()  # not re-encoded
     assert not (scratch / row["id"]).exists() and up.discarded == ["e1"]
@@ -164,7 +164,7 @@ async def test_full_lifecycle_to_signed_url_and_delete(tmp_path, files):
     j = (await c.get(f"/v1/jobs/{jid}", headers=h())).json()
     assert j["status"] == "done" and j["vcodec"] == "h264" and "storage_path" not in j
     r = (await c.get(f"/v1/jobs/{jid}/download-url", headers=h())).json()
-    assert r["url"].startswith("https://storage.test/") and r["expires_in"] == 3600
+    assert r["url"].startswith("https://storage.test/") and r["expires_in"] == 900
     # other user / other app: no URL, no delete
     for who in (h("remix", "bob"), h("ohb", "u1")):
         assert (await c.get(f"/v1/jobs/{jid}/download-url", headers=who)).status_code == 404
@@ -208,7 +208,7 @@ async def test_restart_recovery(tmp_path, files):
 @pytest.mark.parametrize("raw,expected", [
     ("../../etc/passwd", "passwd"), ("a\\b\\c.mp4", "c.mp4"), ("na\x00me\n.MP4", "name.mp4"),
     ("", "media"), (None, "media"), ("...", "media"), ("x" * 300 + ".mp4", "x" * 120 + ".mp4"),
-    ("clip: \"best\" <of> | 2026?.mp4", "clip best of 2026.mp4"),
+    ("clip: \"best\" <of> | 2026?.mp4", "clip_best_of_2026.mp4"),
 ])
 def test_safe_filename(raw, expected):
     assert media.safe_filename(raw) == expected
@@ -217,3 +217,33 @@ def test_safe_filename(raw, expected):
 def test_sniff_rejects_non_media():
     assert media.sniff_container(b"<html><head>") is None and media.sniff_container(b"#!/bin/sh\nrm") is None
     assert media.sniff_container(b"\x00\x00\x00\x18ftypmp42") == "mp4" and media.sniff_container(b"ID3\x04") == "mp3"
+
+
+async def test_storage_413_is_reported_as_file_too_large(tmp_path, files):
+    class Limit(MemoryBlobs):
+        async def upload(self, *a, **k):
+            req = httpx.Request("POST", "https://x/storage/v1/object/b/p")
+            raise httpx.HTTPStatusError("413", request=req, response=httpx.Response(413, request=req))
+
+    s = Settings(**{**SETTINGS, "scratch_dir": str(tmp_path / "s")})
+    store = MemoryStore()
+    row = await store.create({"app_id": "remix", "user_id": "u1", "upstream_job_id": "e1", "kind": "video",
+                              "source_url": "x", "options": {}, "status": "uploading"})
+    await Finalizer(s, store, FileUpstream(files["h264_aac_mp4"]), Limit()).run(row)
+    got = await store.get("remix", "u1", row["id"])
+    assert got["status"] == "failed" and got["error"] == "file_too_large"
+
+
+async def test_signed_url_is_percent_encoded():
+    import json
+
+    seen = {}
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        seen["path"] = req.url.path
+        return httpx.Response(200, json={"signedURL": "/object/sign/media-downloads/remix/u1/j/Big Buck Bunny.mp4?token=abc"})
+
+    from gateway.blobs import SupabaseBlobs
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    url = await SupabaseBlobs("https://x.supabase.co", "k", "media-downloads", client).sign("remix/u1/j/a b.mp4", 60)
+    assert " " not in url and url.endswith("Big%20Buck%20Bunny.mp4?token=abc") and "/storage/v1/object/sign/" in url

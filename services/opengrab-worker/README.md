@@ -30,7 +30,7 @@ Errors are `{"error": "<code>"}` with stable codes; engine text is never passed 
 |---|---|---|
 | `WORKER_APP_SECRETS` | required | `remix:<secret>,ohb:<secret>`; one secret per app |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | none | Job store and storage. Without them in-memory doubles are used (not for production) |
-| `STORAGE_BUCKET` / `SIGNED_URL_TTL_S` / `SCRATCH_DIR` | media-downloads / 3600 / /data/scratch | Bucket, signed URL lifetime, temp dir |
+| `STORAGE_BUCKET` / `SIGNED_URL_TTL_S` / `SCRATCH_DIR` | media-downloads / 900 / /data/scratch | Bucket, signed URL lifetime, temp dir |
 | `MAX_DURATION_S` / `MAX_FILE_MB` / `MAX_HEIGHT` | 3600 / 2048 / 1080 | Per-job limits |
 | `USER_ACTIVE_JOBS` / `GLOBAL_ACTIVE_JOBS` / `MAX_BATCH` | 2 / 5 / 10 | Concurrency and batch limits |
 
@@ -50,8 +50,20 @@ Also: `GET /v1/jobs/{id}/download-url` (short-lived signed URL, owner only) and 
 Applied to the shared Supabase project: table `media_download_jobs` (RLS on, no client policies or grants) and the private
 bucket `media-downloads`.
 
-**Not verified yet:** the Supabase store and storage calls against the real project (they need the service-role key and
-are only exercised with test doubles), the Beam image build, and any real download.
+**Known limit:** Supabase's CDN caches signed-URL responses regardless of cache headers (observed: `cf-cache-status: HIT` after the object was deleted). A signed link that was already issued can keep working for a while after `DELETE`. New links for a deleted file are refused. Links therefore live 15 minutes by default and are never stored or logged.
+
+**Verified for real** (Beam deploy, a CC-BY video from archive.org, real Supabase table and bucket): analyze; a 60 s clip
+(H.264/AAC MP4, 640x360, video and audio streams both 60.000 s); a 40 s audio clip delivered as MP3 (43.97 s: the engine cuts audio
+at segment boundaries, so audio clips can run a few seconds long); signed-link download; other user / other app get 404;
+unauthenticated access to the private object is refused; the engine is not reachable from outside the container; test rows and
+objects removed afterwards.
+
+**Supabase upload limit:** the project's global upload limit is about 50 MB (a 59 MB upload returned 413 "EntityTooLarge" even though the
+bucket allows 2 GB). The worker therefore runs with `MAX_FILE_MB=48` and reports larger files as `file_too_large`. To allow bigger
+files, raise the limit in the Supabase dashboard (Storage settings; needs a plan that allows it), then raise `MAX_FILE_MB`.
+
+**Not verified yet:** playlists, batch, subtitles and thumbnails, restart recovery on Beam, scale-to-zero behaviour during a long
+download, and sites that block datacenter IPs (YouTube).
 
 **Not built yet:** egress proxy for DNS-rebinding/redirect protection, SSE endpoint, batch and playlist selection,
 subtitle/thumbnail import, duplicate detection, per-user storage quota, app-side API adapters and UI.

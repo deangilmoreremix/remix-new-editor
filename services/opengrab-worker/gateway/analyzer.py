@@ -12,7 +12,8 @@ def summarize(info: dict[str, Any]) -> dict[str, Any]:
     """Reduce a yt-dlp info dict to the fields the apps need. Pure function so it can be tested without a network."""
     formats = info.get("formats") or []
     heights = sorted({f["height"] for f in formats if f.get("height")}, reverse=True)
-    has_audio = any(f.get("acodec") not in (None, "none") for f in formats) or not formats
+    # acodec "none" means video-only; a missing acodec means the site did not say, which is not the same as no audio.
+    has_audio = not formats or any(f.get("acodec") != "none" for f in formats)
     is_playlist = info.get("_type") == "playlist"
     out: dict[str, Any] = {
         "title": info.get("title"),

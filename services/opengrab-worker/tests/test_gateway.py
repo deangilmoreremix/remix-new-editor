@@ -214,6 +214,11 @@ def test_cancel_and_worker_down():
 
 
 # --- analyzer summary -------------------------------------------------------
+def test_unknown_audio_codec_is_not_reported_as_no_audio():
+    assert summarize({"formats": [{"height": 360}]})["has_audio"] is True  # site did not say
+    assert summarize({"formats": [{"height": 360, "acodec": "none"}]})["has_audio"] is False  # video only
+
+
 def test_summarize_maps_fields_and_playlists():
     info = {"title": "x", "id": "abc", "extractor_key": "Vimeo", "duration": 10, "uploader": "me",
             "formats": [{"height": 720, "acodec": "aac"}, {"height": 1080, "acodec": "none"}, {"height": None}],

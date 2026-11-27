@@ -2,6 +2,13 @@
 # Starts the vendored OpenGrab on loopback with a throwaway internal token, then the gateway on $PORT.
 set -eu
 
+# A mounted disk arrives root-owned. Prepare it, then re-run this script as the unprivileged user.
+if [ "$(id -u)" = "0" ]; then
+  mkdir -p /data/downloads /data/scratch
+  chown -R worker:worker /data
+  exec setpriv --reuid=worker --regid=worker --init-groups "$0" "$@"
+fi
+
 : "${WORKER_APP_SECRETS:?set WORKER_APP_SECRETS (app:secret,app:secret)}"
 
 # Internal token: generated per start, shared only between the two processes in this container.

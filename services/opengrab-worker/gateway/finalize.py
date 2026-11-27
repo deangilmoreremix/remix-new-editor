@@ -51,7 +51,7 @@ class Finalizer:
             kind = row["kind"]
             opts = row.get("options") or {}
             clip_len = None
-            if kind == "clip" and opts.get("clip_start") is not None and opts.get("clip_end") is not None:
+            if opts.get("clip_start") is not None and opts.get("clip_end") is not None:
                 clip_len = float(opts["clip_end"]) - float(opts["clip_start"])
             info = await media.probe(src)
             media.check(kind, info, max_bytes=max_bytes, clip_seconds=clip_len)
@@ -77,6 +77,9 @@ class Finalizer:
             log.info("job %s finalized in %.1fs (%d bytes, %s)", job_id, time.monotonic() - started, info.size, kind)
         except media.MediaError as e:
             await self._fail(job_id, e.code)
+        except httpx.HTTPStatusError as e:
+            # 413 means the storage project's upload limit is below the worker's limit, so the file is "too large" there
+            await self._fail(job_id, "file_too_large" if e.response.status_code == 413 else "storage_unavailable")
         except httpx.HTTPError:
             await self._fail(job_id, "storage_unavailable")
         except Exception:  # never leak internals to clients; the stable code is enough, details go to the log
