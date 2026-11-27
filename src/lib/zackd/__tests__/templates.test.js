@@ -43,7 +43,7 @@ describe('zackd templates', () => {
 
   it('every referenced media file is committed to git, not just present on disk (.gitignore excludes *.jpg)', async () => {
     let tracked;
-    try { tracked = new Set(execFileSync('git', ['ls-files', 'public/zackd'], { encoding: 'utf8' }).split('\n').filter(Boolean)); } catch { return; } // no git checkout: skip
+    try { tracked = new Set(execFileSync('git', ['ls-files', 'public/zackd', 'public/thumbnails'], { encoding: 'utf8' }).split('\n').filter(Boolean)); } catch { return; } // no git checkout: skip
     const t = getTemplate('swallow-gum-demo');
     const { getHeroThumbnail } = await import('../../thumbnails.js');
     const files = [t.poster, t.demo, getHeroThumbnail('zackd'), ...Object.values(t.assets).flatMap((a) => [a.keyframe, a.clip])];
