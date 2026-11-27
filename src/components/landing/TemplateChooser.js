@@ -19,7 +19,7 @@ const el = (tag, cls = '', text = '') => {
  * { id, name, description, theme?, layout? }). Clicking a card selects it and calls onPick(id).
  * An item with `editorData` gets a live preview of the real page. Returns { node, select(id), destroy() }.
  */
-export function templateCards({ groups = [], selected = '', onPick = () => {}, deps = {} } = {}) {
+export function templateCards({ groups = [], selected = '', onPick = () => {}, deps = {}, preview = null } = {}) {
   const node = el('div', 'flex flex-col gap-4');
   const cards = new Map();
   const previews = [];
@@ -47,7 +47,7 @@ export function templateCards({ groups = [], selected = '', onPick = () => {}, d
         sw = el('div');
         sw.style.margin = '8px 8px 0';
         sw.setAttribute('aria-label', `Preview of ${t.name}`);
-        previews.push(attachDesignPreview(sw, t.editorData, { deps }));
+        previews.push(attachDesignPreview(sw, t.editorData, { deps, ...(preview || {}) }));
       } else if (t.id) {
         // Every other design: a real picture of it (public/landing-previews, made by scripts/generate-landing-design-previews.mjs).
         // If it cannot load, the page's SHAPE (a wireframe) tinted with its colours stands in, so a card is never blank.
@@ -87,7 +87,7 @@ export function templateCards({ groups = [], selected = '', onPick = () => {}, d
  * The chooser as a modal: pick a card, then "Use this page" calls onPick(id). Esc, the close
  * button or a click outside closes it without picking. Returns { close }.
  */
-export function openTemplateChooser({ title = 'Choose a landing page', subtitle = '', groups = [], selected = '', onPick = () => {}, confirmLabel = 'Use this page', deps = {} } = {}) {
+export function openTemplateChooser({ title = 'Choose a landing page', subtitle = '', groups = [], selected = '', onPick = () => {}, confirmLabel = 'Use this page', deps = {}, preview = null } = {}) {
   const opener = document.activeElement;
   let pick = selected;
   const overlay = el('div', 'fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4');
@@ -111,7 +111,7 @@ export function openTemplateChooser({ title = 'Choose a landing page', subtitle 
   const ok = el('button', 'rounded-full border border-white/[0.12] border-l-2 border-l-primary bg-transparent px-5 py-2 text-sm font-bold text-white/90 hover:bg-white/[0.06] hover:text-white disabled:opacity-40', confirmLabel);
   ok.type = 'button'; ok.setAttribute('data-template-confirm', '');
   ok.disabled = !groups.some(([, l]) => l?.some((t) => t.id === pick));
-  const cards = templateCards({ groups, selected, deps, onPick: (id) => { pick = id; ok.disabled = false; } });
+  const cards = templateCards({ groups, selected, deps, preview, onPick: (id) => { pick = id; ok.disabled = false; } });
   body.appendChild(cards.node);
   foot.append(cancel, ok);
   box.append(head, body, foot);

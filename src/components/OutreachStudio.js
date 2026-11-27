@@ -2464,10 +2464,20 @@ export function OutreachStudio() {
   // Live page previews; dropped whenever the step is drawn again.
   const previewHandles = [];
   const dropPreviewHandles = () => previewHandles.splice(0).forEach((h) => h.destroy());
+  // Your own video (and the first prospect's name) in the page, so a design is judged with the real thing in it.
+  const previewWith = () => {
+    const url = String(draft.video?.url || '');
+    const first = draft.contacts[0];
+    const poster = draft.campaign?.links?.find((l) => l.thumbnailUrl && !/\.gif(\?|$)/i.test(l.thumbnailUrl))?.thumbnailUrl || null;
+    return {
+      ...(/^https:\/\//i.test(url) ? { page: { title: draft.name || '', video_url: url, poster_url: poster } } : {}),
+      ...(first ? { tokens: { ...(first.firstName ? { firstname: first.firstName } : {}), ...(first.company ? { company: first.company } : {}) } } : {}),
+    };
+  };
   const pagePreview = (host, width) => {
     const data = pageEditorData();
     if (!data) return;
-    import('../lib/landingPages/designPreview.js').then((m) => { previewHandles.push(m.attachDesignPreview(host, data)); if (width) host.style.width = width; });
+    import('../lib/landingPages/designPreview.js').then((m) => { previewHandles.push(m.attachDesignPreview(host, data, previewWith())); if (width) host.style.width = width; });
   };
   const PLAIN_CARD = { id: '', name: 'Plain video page', description: 'Just the personal video, header, message and your booking button.', theme: { bg: '#111318', accent: '#d9ff00' }, layout: 'minimal' };
 
@@ -2489,6 +2499,7 @@ export function OutreachStudio() {
       subtitle: 'The page belongs to this video. After choosing, click Edit page to change its words, pictures and sections; your recording plays in it, and each prospect sees their own video.',
       groups: [['No landing page', [PLAIN_CARD]], ['Your landing pages', designs.list]],
       selected: page?.template || '',
+      preview: previewWith(),
       onPick: (id) => {
         if (id === (page?.template || '')) return;
         if (page?.editor && !window.confirm('Replace your edited page? Your changes to it will be lost.')) return;
