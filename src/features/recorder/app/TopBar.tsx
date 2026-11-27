@@ -21,6 +21,7 @@ const topBarContainer: React.CSSProperties = {
   margin: 10,
   alignItems: "center",
   flexDirection: "row",
+  flexWrap: "wrap", // on a phone the folder picker and "Edit video" drop to the next line instead of leaving the screen
   justifyContent: "center",
 };
 

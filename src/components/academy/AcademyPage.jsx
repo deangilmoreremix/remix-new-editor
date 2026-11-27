@@ -230,6 +230,29 @@ function FullLesson({ rawPath }) {
   );
 }
 
+// A clickable row that holds its own buttons (check, bookmark, remove). A <button> cannot contain buttons, so the row is a
+// focusable role="button" div: Enter and Space open it, but only when the row itself has focus, never an inner control.
+function RowButton({ onClick, className, children, ...rest }) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick(e);
+        }
+      }}
+      className={'cursor-pointer ' + className}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+}
+
 function GhostBtn({ onClick, children }) {
   return (
     <button
@@ -482,8 +505,9 @@ function TrackView({ track, onOpenLesson, onOpenTemplate, onBackToHub, bookmarks
               const isBookmarked = bookmarks.includes(l.id);
               const status = progressApi.getStatus(l.id);
               return (
-                <button
+                <RowButton
                   key={l.id}
+                  data-lesson-row=""
                   onClick={() => {
                     progressApi.markInProgress(l.id);
                     onOpenLesson(l.id);
@@ -511,7 +535,7 @@ function TrackView({ track, onOpenLesson, onOpenTemplate, onBackToHub, bookmarks
                     </button>
                   )}
                   <Icon name="ChevronRight" size={16} className="text-white/40 shrink-0" />
-                </button>
+                </RowButton>
               );
             })}
           </div>
@@ -585,7 +609,7 @@ function Hub({ onOpenTrack, bookmarks, onToggleBookmark, onOpenLesson, progressA
           <p className="text-sm font-semibold text-white mb-3">Bookmarks ({bookmarkedLessons.length})</p>
           <div className="space-y-2">
             {bookmarkedLessons.map((l) => (
-              <button
+              <RowButton
                 key={l.id}
                 onClick={() => onOpenLesson(l.id)}
                 className={cardCls + ' w-full text-left hover:border-white/25 transition flex items-center gap-3'}
@@ -602,7 +626,7 @@ function Hub({ onOpenTrack, bookmarks, onToggleBookmark, onOpenLesson, progressA
                 >
                   Remove
                 </button>
-              </button>
+              </RowButton>
             ))}
           </div>
         </div>
