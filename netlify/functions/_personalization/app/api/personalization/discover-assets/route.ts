@@ -326,7 +326,7 @@ export async function POST(req: NextRequest) {
         stage: 'job-create',
         httpStatus: 500,
         safeErrorCode: 'JOB_CREATE_FAILED',
-        safeMessage: 'Failed to create discovery job',
+        safeMessage: err instanceof Error ? err.message : 'Failed to create discovery job',
         correlationId,
         durationMs: Date.now() - startTime,
       })
