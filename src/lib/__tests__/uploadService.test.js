@@ -49,6 +49,13 @@ describe('uploadService', () => {
     expect(state.calls[0].path.startsWith('smartvideo/anonymous/')).toBe(true);
   });
 
+  it('a cancel during the identity step stops the upload before storage is called', async () => {
+    const ctrl = new AbortController();
+    ctrl.abort();
+    await expect(uploadFileToSupabase(video(), { category: 'video', signal: ctrl.signal })).rejects.toMatchObject({ code: 'CANCELLED' });
+    expect(state.calls.length).toBe(0);
+  });
+
   it('does not double the extension', () => {
     expect(buildObjectPath({ name: 't2.mp4' }, 'u1')).toMatch(/_t2\.mp4$/);
     expect(buildObjectPath({ name: 'my clip.final.MOV' }, 'u1')).toMatch(/_my_clip\.final\.mov$/);

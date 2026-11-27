@@ -39,7 +39,8 @@ export function showReloadBanner({ doc = globalThis.document, reload = () => glo
 export function mountStaleVersionGuard({ win = globalThis.window } = {}) {
   if (!win?.addEventListener) return { stop() {} };
   const onRejection = (e) => { if (isStaleChunkError(e?.reason)) { e.preventDefault?.(); showReloadBanner(); } };
-  const onPreload = (e) => { e.preventDefault?.(); showReloadBanner(); };   // Vite's own event for a failed preload
+  // Vite's own event for a failed preload. Not cancelled: the import must still reject so callers' own fallbacks run.
+  const onPreload = () => { showReloadBanner(); };
   // Only these two: a failed dynamic import surfaces as a rejection, a failed preload as Vite's event. (A generic
   // `error` listener could show the banner for unrelated errors whose text happens to match.)
   win.addEventListener('unhandledrejection', onRejection);

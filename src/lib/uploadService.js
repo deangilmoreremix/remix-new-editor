@@ -110,10 +110,29 @@ export async function uploadFileToSupabase(file, options = {}) {
 
   const validation = validateUploadFile(file, { category, maxSize });
 
+  // One deadline (and one cancel) for the whole upload, including the identity step: the token exchange has no
+  // timeout of its own, and an abort during it must not let the storage request start afterwards.
+  const timeoutMs = 120000;
+  let timer;
+  const timeoutPromise = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new UploadError('Upload timed out.', { stage: 'upload', code: 'TIMEOUT' })), timeoutMs);
+    if (signal) {
+      const cancel = () => { clearTimeout(timer); reject(new UploadError('Upload cancelled.', { stage: 'upload', code: 'CANCELLED' })); };
+      if (signal.aborted) cancel(); else signal.addEventListener('abort', cancel, { once: true });
+    }
+  });
+  timeoutPromise.catch(() => {});   // handled by the races below
+
   // The path owner must be the identity the request is really sent as (the policies compare it with the JWT `sub`):
   // the Clerk id only when its verified token is attached; signed out, or with the token exchange down, 'anonymous'.
   let token = null;
-  try { token = await primeSupabaseIdentity(); } catch (e) { console.warn('[upload] identity prime failed; uploading as anonymous', e?.message || e); }
+  try {
+    token = await Promise.race([primeSupabaseIdentity(), timeoutPromise]);
+  } catch (e) {
+    if (e instanceof UploadError) throw e;   // timed out or cancelled while waiting for the identity
+    console.warn('[upload] identity prime failed; uploading as anonymous', e?.message || e);
+  }
+  if (signal?.aborted) throw new UploadError('Upload cancelled.', { stage: 'upload', code: 'CANCELLED' });
   if (!token && getClerkUserId()) console.warn('[upload] signed in but no verified storage token; uploading as anonymous');
   const objectPath = buildObjectPath(file, token ? getClerkUserId() || 'anonymous' : 'anonymous');
   const bucket = resolveSupabaseBucket();
@@ -123,21 +142,12 @@ export async function uploadFileToSupabase(file, options = {}) {
     upsert: false,
   });
 
-  const timeoutMs = 120000;
-  const timeoutPromise = new Promise((_, reject) => {
-    const timer = setTimeout(() => reject(new UploadError('Upload timed out.', { stage: 'upload', code: 'TIMEOUT' })), timeoutMs);
-    if (signal) {
-      signal.addEventListener('abort', () => {
-        clearTimeout(timer);
-        reject(new UploadError('Upload cancelled.', { stage: 'upload', code: 'CANCELLED' }));
-      }, { once: true });
-    }
-  });
-
   let uploadResult;
   try {
     uploadResult = await Promise.race([uploadPromise, timeoutPromise]);
+    clearTimeout(timer);
   } catch (err) {
+    clearTimeout(timer);
     const cause = err instanceof UploadError ? err.cause : err;
     const mapped = new UploadError(err.message || 'Upload failed.', {
       stage: 'upload',
