@@ -31,6 +31,7 @@
  */
 
 import { muapi } from '../../lib/muapi.js';
+import { registerGeneration } from '../../lib/generationHistory.js';
 import {
   FACE_SWAP_MODEL,
   FULL_BODY_MODEL,
@@ -113,6 +114,18 @@ function extractOutputUrl(result) {
  * @returns {Promise<import('./types.js').GenerationResult>}
  */
 export async function runGeneration(input) {
+  const result = await runGenerationUnsaved(input);
+  // Finished videos go to the Library (images already do via the Image Studio handoff).
+  if (result?.type === 'video' && result.url) {
+    registerGeneration('personalize', 'video', result.url, {
+      prompt: input?.prompt || '',
+      model: result.metadata?.model || '',
+    }).catch(() => {});
+  }
+  return result;
+}
+
+async function runGenerationUnsaved(input) {
   const { source, resolved, prompt, mode, options, apiKey, onProgress } = input;
 
   logPersonalizationApi('Generation start', {

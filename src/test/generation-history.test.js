@@ -41,6 +41,10 @@ vi.mock('../lib/supabase.js', () => ({
   getSupabaseUrl: vi.fn(() => 'https://test.supabase.co'),
 }));
 
+vi.mock('../lib/uploadService.js', () => ({
+  uploadFileToSupabase: vi.fn(async () => ({ url: 'https://cdn.test/uploaded.webm' })),
+}));
+
 vi.mock('../lib/userKey.js', () => ({
   getUserKey: vi.fn(() => 'test_user_key'),
 }));
@@ -50,7 +54,7 @@ const fetchMock = vi.fn();
 globalThis.fetch = fetchMock;
 
 // --- Import after mocks are set up ---
-let { saveGeneration, deleteGeneration, loadGenerationHistory } = await import('../lib/generationHistory.js');
+let { saveGeneration, deleteGeneration, loadGenerationHistory, registerGenerationBlob } = await import('../lib/generationHistory.js');
 
 beforeEach(async () => {
   ls = createStorage();
@@ -67,6 +71,7 @@ beforeEach(async () => {
   saveGeneration = mod.saveGeneration;
   deleteGeneration = mod.deleteGeneration;
   loadGenerationHistory = mod.loadGenerationHistory;
+  registerGenerationBlob = mod.registerGenerationBlob;
 });
 
 describe('saveGeneration', () => {
@@ -178,6 +183,40 @@ describe('saveGeneration', () => {
 
     expect(entry.template_id).toBe('template_abc');
     expect(entry.aspect_ratio).toBe('21:9');
+  });
+});
+
+describe('saveGeneration de-duplication', () => {
+  test('keeps one entry when two layers report the same URL', () => {
+    const first = saveGeneration({ studio: 'edit', type: 'video', url: 'https://example.com/same.mp4', prompt: 'a' });
+    const second = saveGeneration({ studio: 'video', type: 'video', url: 'https://example.com/same.mp4', prompt: 'a' });
+
+    expect(second.id).toBe(first.id);
+    expect(JSON.parse(ls.getItem('video_history'))).toHaveLength(1);
+    // Only the first report goes to the cloud.
+    const cloudSaves = fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST');
+    expect(cloudSaves).toHaveLength(1);
+  });
+
+  test('different URLs are both kept', () => {
+    saveGeneration({ studio: 'video', type: 'video', url: 'https://example.com/a.mp4' });
+    saveGeneration({ studio: 'video', type: 'video', url: 'https://example.com/b.mp4' });
+    expect(JSON.parse(ls.getItem('video_history'))).toHaveLength(2);
+  });
+});
+
+describe('registerGenerationBlob', () => {
+  test('uploads a rendered Blob and saves the durable URL', async () => {
+    const entry = await registerGenerationBlob('caption-studio', 'video', new Blob(['x'], { type: 'video/webm' }), { prompt: 'captioned' });
+    expect(entry.url).toBe('https://cdn.test/uploaded.webm');
+    expect(JSON.parse(ls.getItem('video_history'))[0].url).toBe('https://cdn.test/uploaded.webm');
+  });
+
+  test('skips empty or non-Blob input without throwing', async () => {
+    expect(await registerGenerationBlob('x', 'video', null)).toBeNull();
+    expect(await registerGenerationBlob('x', 'video', { size: 5 })).toBeNull();
+    expect(await registerGenerationBlob('x', 'video', new Blob([]))).toBeNull();
+    expect(ls.getItem('video_history')).toBeNull();
   });
 });
 

@@ -1,4 +1,5 @@
 import { MuapiClient } from '../muapi.js';
+import { registerGeneration } from '../generationHistory.js';
 import { SecurityService } from './SecurityService.js';
 import { RetryService } from './RateLimiter.js';
 import { RateLimiter } from './RateLimiter.js';
@@ -176,6 +177,11 @@ export class AIService {
 
       this.cache.set(requestId, result, 600000); // 10 minutes
       this.circuitBreaker.recordSuccess('video_generation');
+      // Editor AI tools (gap fill, extend, retake, node workflows) all come through here.
+      registerGeneration('edit', 'video', result?.url || result?.outputs?.[0], {
+        prompt: params?.prompt || '',
+        model: params?.model || '',
+      }).catch(() => {});
       return result;
 
     } catch (error) {

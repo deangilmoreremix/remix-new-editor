@@ -27,6 +27,7 @@ import { clipEffectiveDuration } from '/src/types/timeline.js';
 import { generateId, timestamp } from '../../../lib/workspace/workspace-context.jsx';
 import { WorkflowNodeData } from '/src/types/workflow.js';
 import { isOpenAIReasoningModel } from '../../../lib/config/openaiConfig.js';
+import { registerGeneration } from '../../../lib/generationHistory.js';
 import { Asset } from '/src/types/project.js';
 
 const STORYBOARD_SYSTEM_PROMPT = `You are a cinematic storyboard director. Given a reference image and a scene description, break the scene into a sequence of cinematic shots that tell the story visually.
@@ -231,6 +232,7 @@ function StoryboarderNodeInner({ id, data, selected }) {
 
       const result = await window.muapi?.generateVideo?.(inputs) ?? { url: '' };
       const videoUrl = extractResultUrl(result, videoModelDef.responseMapping?.path || 'url') || result?.url;
+      if (videoUrl) registerGeneration('storyboard', 'video', videoUrl, { prompt: videoPrompt, model: inputs.model }).catch(() => {});
       updateShot(index, videoUrl ? { videoStatus: 'complete', videoUrl } : { videoStatus: 'error', videoError: 'No video in response' });
     } catch (err) {
       updateShot(index, { videoStatus: 'error', videoError: err instanceof Error ? err.message : 'Video generation failed' });

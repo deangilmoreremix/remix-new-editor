@@ -1,5 +1,6 @@
 import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';
 import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
+import { registerGeneration } from '../lib/generationHistory.js';
 import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
@@ -6575,6 +6576,7 @@ export function TimelineEditorPage() {
               if (storedUrl && !String(storedUrl).startsWith('blob:')) url = storedUrl;
             }
           } catch { /* keep the provider link */ }
+          registerGeneration('timeline', 'video', url, { prompt: job.prompt, model: cfg.model }).catch(() => {});
           const fresh = aiClipConfig(clip);
           clip.aiPerContact = {
             ...fresh,

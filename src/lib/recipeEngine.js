@@ -102,6 +102,8 @@ export function searchRecipes({ query = '', category = '' } = {}) {
   });
 }
 
+import { registerGeneration } from './generationHistory.js';
+
 const STEP_METHOD = {
   image: 'generateImage',
   i2i: 'generateI2I',
@@ -115,6 +117,8 @@ const STEP_METHOD = {
   'lip-sync': 'processLipSync',
   lipsync: 'processLipSync',
 };
+
+const VIDEO_STEP_TYPES = new Set(['t2v', 'i2v', 'avatar', 'video-tool', 'video-tools', 'audio2video', 'lip-sync', 'lipsync']);
 
 const STEP_PARAM_KEYS = [
   'model', 'prompt', 'image_url', 'video_url', 'audio_url', 'duration',
@@ -240,6 +244,10 @@ export async function runRecipe(muapiClient, recipe, options = {}) {
         throw cancelled();
       }
       onLog(`Done: ${url ? 'output ready' : 'no output'}`);
+      // Every finished video step is saved to the Library, not just the last one.
+      if (url && VIDEO_STEP_TYPES.has(step.type)) {
+        registerGeneration('recipe', 'video', url, { prompt, model: step.model || '' }).catch(() => {});
+      }
       onStep({ index, total, label: step.label, status: 'done', url });
       // A step that returns nothing must not silently feed the next one the
       // previous step's output, so chaining restarts from this step's result.

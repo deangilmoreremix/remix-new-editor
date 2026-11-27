@@ -29,3 +29,38 @@ describe('MuAPIProvider.poll transient failures', () => {
     expect(checkStatus).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('MuAPIProvider saves finished video jobs to the Library', () => {
+  const saved = () => JSON.parse(localStorage.getItem('video_history') || '[]').map((h) => h.url);
+  beforeEach(() => { checkStatus.mockReset(); localStorage.removeItem('video_history'); });
+
+  it('saves a queued take once it completes on poll', async () => {
+    const p = new MuAPIProvider();
+    p.requestIds.set('g3', 'req3');
+    p.libraryMeta.set('g3', { prompt: 'a take', model: 'ltx-2-fast' });
+    checkStatus.mockResolvedValue({ status: 'completed', url: 'https://cdn/take.mp4' });
+    await p.poll('g3');
+    await new Promise((r) => setTimeout(r, 0));
+    expect(saved()).toEqual(['https://cdn/take.mp4']);
+  });
+
+  it('does not save a failed job, and forgets it', async () => {
+    const p = new MuAPIProvider();
+    p.requestIds.set('g4', 'req4');
+    p.libraryMeta.set('g4', { prompt: 'x', model: 'm' });
+    checkStatus.mockResolvedValue({ status: 'failed', error: 'bad' });
+    await p.poll('g4');
+    await new Promise((r) => setTimeout(r, 0));
+    expect(saved()).toEqual([]);
+    expect(p.libraryMeta.has('g4')).toBe(false);
+  });
+
+  it('ignores jobs that are not videos (no metadata recorded)', async () => {
+    const p = new MuAPIProvider();
+    p.requestIds.set('g5', 'req5');
+    checkStatus.mockResolvedValue({ status: 'completed', url: 'https://cdn/pic.png' });
+    await p.poll('g5');
+    await new Promise((r) => setTimeout(r, 0));
+    expect(saved()).toEqual([]);
+  });
+});

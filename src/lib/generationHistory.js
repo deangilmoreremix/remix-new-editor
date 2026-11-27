@@ -203,6 +203,10 @@ export function saveGeneration(data) {
   const storageKey = getStorageKey(type);
   try {
     const history = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    // Several layers can report the same finished output (a studio and the engine
+    // under it); keep one Library entry per URL and skip the cloud save and event.
+    const existing = history.find((h) => h && h.url === url);
+    if (existing) return existing;
     history.unshift(entry);
     localStorage.setItem(storageKey, JSON.stringify(history.slice(0, MAX_HISTORY)));
   } catch (e) {
@@ -254,6 +258,31 @@ export async function registerGeneration(studio, type, url, meta = {}) {
     if (!durableUrl) return null;
   }
   return saveGeneration({ ...meta, studio, type, url: durableUrl });
+}
+
+/**
+ * Register a finished video that only exists as a local Blob (a canvas or caption
+ * render): upload it to storage first, then save the durable URL to the Library.
+ * Resolves to the saved entry, or null when there is nothing to save or the upload
+ * fails — a render must never fail because the Library copy could not be made.
+ *
+ * @param {string} studio
+ * @param {'image'|'video'|'audio'} type
+ * @param {Blob} blob
+ * @param {object} [meta]  { prompt, model, parameters, ... }
+ * @returns {Promise<object|null>}
+ */
+export async function registerGenerationBlob(studio, type, blob, meta = {}) {
+  if (typeof Blob === 'undefined' || !(blob instanceof Blob) || !blob.size) return null;
+  try {
+    const { uploadFileToSupabase } = await import('./uploadService.js');
+    const ext = (blob.type.split('/')[1] || 'webm').split(';')[0].split('+')[0];
+    const file = new File([blob], `${studio}-${Date.now()}.${ext}`, { type: blob.type || 'video/webm' });
+    const durableUrl = (await uploadFileToSupabase(file, { category: type })).url;
+    return durableUrl ? saveGeneration({ ...meta, studio, type, url: durableUrl }) : null;
+  } catch {
+    return null;
+  }
 }
 
 /**

@@ -22,6 +22,7 @@ import { Sidebar } from './components/Sidebar.js';
 import { initRouter, navigate, getCurrentPage, isCurrentRoute, isKnownPage } from './lib/router.js';
 import { mountAskSmartVideo } from './features/ask-smartvideo/AskSmartVideo.js';
 import { mountGenerationNotifications } from './components/studio/generationNotifications.js';
+import { mountCaptionLibrarySave } from './lib/captionLibrarySave.js';
 import { mountStudioTooltips } from './components/studio/tooltipLayer.js';
 import { mountLandingPageButtons } from './components/studio/landingPageAttach.js';
 import { ensureClerkLoaded } from './lib/clerkInit.js';
@@ -232,6 +233,7 @@ try {
   const { header: headerEl, headerAuthSlot } = Header((page) => navigate(page));
   app.appendChild(headerEl);
   mountGenerationNotifications((page) => navigate(page));
+  mountCaptionLibrarySave();
   mountStudioTooltips();
   mountLandingPageButtons(); // "Create landing page" beside every studio's Download link, in that studio's own style
   mountAskSmartVideo({ navigate: (page) => navigate(page), getPage: () => getCurrentPage() || '' });
