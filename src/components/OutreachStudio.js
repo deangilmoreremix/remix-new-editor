@@ -876,13 +876,17 @@ export function OutreachStudio() {
   }
 
   function renderRecord() {
-    const wrap = el('div', 'flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-panel-bg shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]');
+    // Like Sendspark's editor: it takes the whole window (own top bar, Share video and Close), not a card inside the page.
+    const wrap = el('div', 'fixed inset-0 z-[900] flex flex-col overflow-hidden bg-app-bg text-white');
+    let paintPage = () => {};
     wrap.setAttribute('data-outreach-editor', '');
 
     // ---- Tools along the top.
-    const bar = el('div', 'flex flex-wrap items-center gap-1.5 border-b border-white/10 px-5 py-3.5');
-    const title = el('div', 'mr-auto min-w-0 truncate text-[15px] font-extrabold text-white', draft.name || 'Untitled dynamic video');
-    bar.appendChild(title);
+    const bar = el('div', 'flex shrink-0 flex-wrap items-center gap-1.5 border-b border-white/10 bg-panel-bg px-5 py-3');
+    const brandMark = el('div', 'mr-auto flex min-w-0 items-center gap-3');
+    const logo = el('span', 'grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary text-black'); logo.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>';
+    brandMark.append(logo, el('span', 'text-[15px] font-extrabold', 'SmartVideo'), el('span', 'text-white/25', '/'), el('span', 'min-w-0 truncate text-sm font-semibold text-white/70', draft.name || 'Untitled dynamic video'));
+    bar.appendChild(brandMark);
     bar.appendChild(el('span', 'mx-2 h-6 w-px bg-white/10'));
     const TOOL_LABELS = { captions: 'Captions', language: 'Language', script: 'Script', trim: 'Edit', thumbnail: 'Thumbnail', link: 'Copy link', preview: 'Preview' };
     const tool = (key, k, tip, onClick, { active = false, disabled = false } = {}) => {
@@ -919,8 +923,8 @@ export function OutreachStudio() {
     bar.append(share, close);
 
     // ---- Left: the video, the template and what the page says.
-    const body = el('div', 'grid lg:grid-cols-[380px_1fr]');
-    const side = el('div', 'flex flex-col gap-7 border-b border-white/10 p-6 lg:border-b-0 lg:border-r');
+    const body = el('div', 'grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[380px_1fr] lg:overflow-hidden');
+    const side = el('div', 'flex flex-col gap-7 border-b border-white/10 p-6 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r');
     const modes = el('div', 'grid grid-cols-3 gap-2');
     [['camera', 'user', 'Camera'], ['screen', 'screen', 'Screen'], ['both', 'both', 'Both']].forEach(([mode, k, label]) => {
       const b = el('button', 'flex flex-col items-center gap-2 rounded-2xl border border-transparent bg-white/[0.05] py-5 text-xs font-bold text-primary hover:border-primary/40 hover:bg-white/[0.08] disabled:opacity-40');
@@ -965,7 +969,7 @@ export function OutreachStudio() {
       w.appendChild(el('span', 'text-xs text-white/50', label));
       const i = el(area ? 'textarea' : 'input', `${UNDER} ${area ? 'min-h-[56px] resize-y' : ''}`);
       i.value = value || ''; i.placeholder = ph;
-      i.addEventListener('input', () => { onInput(i.value); persist(); });
+      i.addEventListener('input', () => { onInput(i.value); persist(); paintPage(); });
       w.appendChild(i);
       return w;
     };
@@ -1006,7 +1010,7 @@ export function OutreachStudio() {
     side.append(addBlock, tpl, cz);
 
     // ---- Right: the video, and the open tool under it.
-    const main = el('div', 'flex min-w-0 flex-col items-center gap-4 bg-white/[0.02] p-5 md:p-10');
+    const main = el('div', 'flex min-w-0 flex-col items-center gap-4 bg-white/[0.02] p-5 md:p-10 lg:min-h-0 lg:overflow-y-auto');
     const stage = el('div', 'grid aspect-video w-full max-w-3xl place-items-center overflow-hidden rounded-2xl bg-white/[0.06]');
     stage.setAttribute('data-editor-video', '');
     const editing = editorTool === 'trim' && has;
@@ -1021,7 +1025,22 @@ export function OutreachStudio() {
       ph.appendChild(el('span', 'text-sm', 'Record or upload your video'));
       stage.appendChild(ph);
     }
-    main.appendChild(stage);
+    // The page a prospect opens (header, video, message, button), like Sendspark's editor preview.
+    const pc = el('div', 'flex w-full max-w-3xl flex-col items-center gap-5 rounded-3xl border border-white/10 bg-panel-bg px-6 py-8 shadow-[0_24px_60px_-28px_rgba(0,0,0,0.9)]');
+    pc.setAttribute('data-editor-page-preview', '');
+    const pHead = el('h2', 'text-center text-2xl font-extrabold');
+    const pMsg = el('p', 'max-w-xl text-center text-sm text-white/70');
+    const pCta = el('span', 'inline-flex rounded-full bg-primary px-7 py-3 text-sm font-extrabold text-black');
+    paintPage = () => {
+      pHead.textContent = fillTemplate(draft.header, {}, draft.fallbacks) || 'Your header';
+      pMsg.textContent = fillTemplate(draft.message, {}, draft.fallbacks);
+      pMsg.hidden = !pMsg.textContent;
+      pCta.textContent = draft.cta?.label || 'Book a call';
+      pCta.hidden = !draft.cta?.enabled;
+    };
+    paintPage();
+    main.appendChild(pc);
+    pc.append(el('div', 'text-sm font-extrabold text-white/80', 'SmartVideo'), pHead, stage, pMsg, pCta);
     if (editing) {
       const ctl = el('div', 'flex items-center gap-2 text-xs text-white/60');
       ctl.setAttribute('data-edit-controls', '');
@@ -1053,9 +1072,16 @@ export function OutreachStudio() {
       drawer.appendChild(box);
     }
     if (draft.video && !draft.video.hasAudio) drawer.appendChild(el('p', 'mt-3 text-xs text-amber-300', 'This video has no sound, so it cannot be used as your voice sample. You can still record a separate sample in the next step.'));
+    // An open tool goes above the preview, so it is seen at once without scrolling.
+    if (drawer.childElementCount) { drawer.classList.add('order-first'); drawer.setAttribute('data-editor-drawer', editorTool); }
     main.appendChild(drawer);
     body.append(side, main);
-    wrap.append(bar, body);
+    // What is missing or in progress, since the page footer sits behind the full-screen editor.
+    const errs = stepErrors(draft, 1);
+    const stMsg = busy || notice || errs[0] || '';
+    const st = el('p', `shrink-0 empty:hidden border-t border-white/10 bg-panel-bg px-5 py-2 text-sm ${busy ? 'text-primary' : notice && !errs.length ? 'text-emerald-300' : 'text-amber-300'}`, stMsg);
+    st.setAttribute('data-outreach-busy', '');
+    wrap.append(bar, body, st);
     return wrap;
   }
 
@@ -3133,7 +3159,7 @@ export function OutreachStudio() {
     stepper.classList.add('pt-4');
     inner.replaceChildren();
     const elsewhere = !guard.active();
-    stepper.inert = elsewhere;
+    stepper.inert = elsewhere || step === 1;
     if (elsewhere || changedElsewhere) {
       const bar = el('div', 'sticky top-0 z-20 flex flex-wrap items-center gap-3 rounded-xl border border-amber-300/40 bg-[#2a2410] px-4 py-3 text-sm shadow-lg');
       bar.setAttribute('data-outreach-other-tab', elsewhere ? 'blocked' : 'changed');
@@ -3191,6 +3217,7 @@ export function OutreachStudio() {
     }
     footer.appendChild(status);
     if (elsewhere) footer.inert = true;
+    footer.hidden = step === 1;
     inner.appendChild(footer);
   }
 
