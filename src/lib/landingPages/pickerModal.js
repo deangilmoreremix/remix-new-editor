@@ -629,7 +629,10 @@ export function openLandingPagePicker({ video = null, items = [], template = nul
     Promise.race([loaded, limit]).then(() => { clearTimeout(timer); if (overlay.isConnected) showEdit(template); });
   } else {
     if (!onEdit) void cp.load();
-    showGrid();   // designs first; with no video yet the bar above them says "Choose a video", and picking a design asks for one
+    // With a video: designs first. With none yet: straight to "upload / pick / paste a link"; choosing one then shows the
+    // designs (every design needs a video, so starting on the designs only bounced people back to this chooser).
+    if (src || onEdit) showGrid();
+    else { back = () => showGrid(); showVideos(); }
   }
   dialog.focus();
   return { close, element: overlay };

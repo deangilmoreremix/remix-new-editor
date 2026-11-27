@@ -106,6 +106,9 @@ vi.mock('../lib/supabase.js', () => {
     isSupabaseConfigured: () => true,
     getSupabaseUrl: () => 'https://supabase.example.com',
     getSupabaseAnonKey: () => 'anon-key',
+    // uploadService primes the signed-in identity and names the path after it (signed out here: 'anonymous').
+    getClerkUserId: () => null,
+    primeSupabaseIdentity: async () => {},
   };
 });
 

@@ -9,7 +9,8 @@
  * The returned URL can be passed to generation providers.
  */
 
-import { supabase, isSupabaseConfigured, getSupabaseUrl, getSupabaseAnonKey } from './supabase.js';
+import { supabase, isSupabaseConfigured, getSupabaseUrl, getSupabaseAnonKey, getClerkUserId, primeSupabaseIdentity } from './supabase.js';
+import { describeUploadError } from './resultActions/storageUpload.js';
 import { UPLOAD_LIMITS, UPLOAD_MIME_TYPES, UPLOAD_EXTENSIONS, categoryFromMimeType, isAllowedMimeType, isAllowedExtension } from './editor/uploadLimits.js';
 
 // Progress/cancel contract for callers:
@@ -35,12 +36,18 @@ function normalizeExtension(name) {
   return parts.pop().replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'bin';
 }
 
-function buildObjectPath(file, userId) {
+// Storage path: `smartvideo/<identity>/<unique>_<name>.<ext>`.
+// The shared `uploads` bucket only lets this app write under `smartvideo/<JWT sub or 'anonymous'>/`
+// (the smartvideo_uploads_* policies). The identity therefore always comes from the signed-in Clerk session
+// (or 'anonymous'), never from a caller-supplied id such as the per-MuAPI-key hash, which the policies would reject.
+// (Writing `user_<id>/…` at the top level was rejected by storage for every signed-in user.)
+export function buildObjectPath(file, identity = 'anonymous') {
   const ext = normalizeExtension(file.name);
-  const safeBase = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_').slice(0, 80);
+  const base = String(file.name || 'file').replace(/\.[^./\\]+$/, '');   // drop the extension; it is added once below
+  const safeBase = base.replace(/[^a-zA-Z0-9_.-]/g, '_').slice(0, 80) || 'file';
   const unique = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-  const userPrefix = userId && userId !== 'anonymous' ? userId : 'anonymous';
-  return `${userPrefix}/${unique}_${safeBase}.${ext}`;
+  const owner = identity && identity !== 'anonymous' ? String(identity).replace(/[^a-zA-Z0-9_-]/g, '_') : 'anonymous';
+  return `smartvideo/${owner}/${unique}_${safeBase}.${ext}`;
 }
 
 export function resolveSupabaseBucket() {
@@ -91,7 +98,8 @@ export function validateUploadFile(file, overrides) {
 }
 
 export async function uploadFileToSupabase(file, options = {}) {
-  const { signal, onProgress, category, maxSize, userId } = options;
+  // `userId` is accepted for older callers but no longer chooses the path (see buildObjectPath).
+  const { signal, category, maxSize } = options;
 
   if (!isSupabaseConfigured()) {
     throw new UploadError('Upload service is not configured. Missing Supabase environment variables.', {
@@ -102,7 +110,9 @@ export async function uploadFileToSupabase(file, options = {}) {
 
   const validation = validateUploadFile(file, { category, maxSize });
 
-  const objectPath = buildObjectPath(file, userId);
+  // Make sure the upload carries the signed-in user's verified token, so the path owner matches the JWT `sub`.
+  try { await primeSupabaseIdentity(); } catch { /* signed out or token exchange down: upload as anonymous */ }
+  const objectPath = buildObjectPath(file, getClerkUserId() || 'anonymous');
   const bucket = resolveSupabaseBucket();
 
   const uploadPromise = supabase.storage.from(bucket).upload(objectPath, file, {
@@ -133,6 +143,17 @@ export async function uploadFileToSupabase(file, options = {}) {
       cause,
     });
     throw mapped;
+  }
+  // supabase-js reports a refused upload as `{ error }` instead of throwing: without this check every refused
+  // upload looked like a success with a link to a file that does not exist.
+  if (uploadResult?.error) {
+    const err = uploadResult.error;
+    throw new UploadError(describeUploadError(err), {
+      stage: 'upload',
+      code: 'UPLOAD_FAILED',
+      status: Number(err.statusCode ?? err.status) || undefined,
+      cause: err,
+    });
   }
 
   const { data: urlData, error: urlError } = supabase.storage.from(bucket).getPublicUrl(objectPath);
