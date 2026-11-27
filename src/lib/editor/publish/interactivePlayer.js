@@ -90,11 +90,12 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
   let playing = false;
   let time = 0;
   let gateOpen = false;
+  let pathCard = null; // "Choose your path" card on screen; it goes when the viewer picks or leaves the decision point
   let route = null; // "Choose your path": { until, then } of the route being played
   let resumeTimer = null;
   let destroyed = false;
 
-  const emit = () => onChange?.({ playing, time, duration: model.durationInFrames / fps, gating: gateOpen });
+  const emit = () => onChange?.({ playing, time, duration: model.durationInFrames / fps, gating: gateOpen || !!pathCard }); // an open card, like a form, hides the big play button so it cannot cover the choices
 
   const interactiveClips = clips.filter((c) => c.type === 'click-to-call' || c.type === 'addon-hotspot' || ctaTarget(addonOptions(c)));
   const onCall = ({ clip, phone }) => {
@@ -179,7 +180,6 @@ export function createInteractivePlayer({ project, stage, frame, createEngine, p
 
   // "Choose your path": the card pauses the video; a pick jumps to that route and, if the route has an end,
   // playback hops on to the clip's "continue at" time when it gets there.
-  let pathCard = null; // the card on screen; it goes when the viewer picks or leaves the decision point
   const closePathCard = () => { pathCard?.remove(); pathCard = null; };
   function openPathChoice(clip) {
     closePathCard();

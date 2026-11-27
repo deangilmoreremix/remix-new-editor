@@ -84,6 +84,7 @@ describe('Choose your path on the published player', () => {
     expect(e.playing).toBe(false);
     const buttons = box.querySelectorAll('.wf-pathchoice__btn');
     expect(buttons).toHaveLength(2);
+    expect(box.querySelector('[data-bigplay]').hidden).toBe(true); // the play button must not cover the card
     buttons[1].click();
     expect(player.time).toBeCloseTo(18, 1);
     expect(e.playing).toBe(true);
