@@ -57,17 +57,8 @@ const APP_GAPS = {
   "ai-dance-effects": [
     "prompt"
   ],
-  "ai-dress-change": [
-    "garment_image_url"
-  ],
-  "ai-object-eraser": [
-    "mask_image_url"
-  ],
   "gpt4o-edit": [
     "mask_image_url"
-  ],
-  "elevenlabs-text-to-dialogue-v3": [
-    "dialogue"
   ],
   "gemini-2-5-pro-tts": [
     "dialogue_turns",
@@ -98,13 +89,6 @@ const APP_GAPS = {
   ],
   "suno-add-vocals": [
     "title"
-  ],
-  "suno-convert-to-wav": [
-    "audio_id",
-    "task_id"
-  ],
-  "suno-generate-mashup": [
-    "audios_list"
   ]
 };
 
@@ -114,10 +98,7 @@ const APP_GAPS = {
 // (changing the app's studio UI is a product decision, not an MCP one). "app-candidate" = worth adding to the app UI if wanted.
 const APP_GAP_DECISIONS = {
   'ai-dance-effects': { decision: 'mcp-only', why: 'The app picks a preset dance; the model also accepts a free-text prompt.' },
-  'ai-dress-change': { decision: 'app-candidate', why: 'The model lists a garment image; the app client does not send one.' },
-  'ai-object-eraser': { decision: 'app-candidate', why: 'The model lists a mask image; the app client does not send one.' },
   'gpt4o-edit': { decision: 'mcp-only', why: 'Optional mask for targeted edits; the app edits the whole image.' },
-  'elevenlabs-text-to-dialogue-v3': { decision: 'app-candidate', why: 'The model dialogue input is not sent by the app client.' },
   'gemini-2-5-pro-tts': { decision: 'mcp-only', why: 'Multi-speaker turns and speaker voices are optional; the app sends one voice.' },
   'gemini-3-1-flash-tts': { decision: 'mcp-only', why: 'Multi-speaker turns and speaker voices are optional; the app sends one voice.' },
   'ltx-2.3-video-extend': { decision: 'mcp-only', why: 'Optional prompt to steer the extension; the app extends without one.' },
@@ -127,8 +108,6 @@ const APP_GAP_DECISIONS = {
   'minimax-music-3.0': { decision: 'mcp-only', why: 'Optional lyrics; the app generates instrumentals from a prompt.' },
   'suno-add-instrumental': { decision: 'mcp-only', why: 'Optional tags and title; the app adds an instrumental with defaults.' },
   'suno-add-vocals': { decision: 'mcp-only', why: 'Optional title only.' },
-  'suno-convert-to-wav': { decision: 'app-candidate', why: 'The model lists earlier track ids (audio_id, task_id); the app client does not send them.' },
-  'suno-generate-mashup': { decision: 'app-candidate', why: 'The model lists the tracks to mash up; the app client does not send them.' },
 };
 
 describe('every app gap has a recorded decision', () => {

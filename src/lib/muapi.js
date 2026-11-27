@@ -1323,6 +1323,21 @@ export class MuapiClient {
         // Native audio (Phase 7)
         if (params.native_audio) finalPayload.native_audio = params.native_audio;
 
+        // Models that opt in (`forwardInputs` in src/lib/models.js) take exactly the fields their own
+        // schema lists (turns, track ids, track lists...), not the generic speech/music set above, so the
+        // studio and the MCP send the same request. `model` is the registry id here, never the schema's
+        // own version field, so it is left out and the backend default applies.
+        if (modelInfo?.forwardInputs) {
+            for (const key of Object.keys(finalPayload)) delete finalPayload[key];
+            for (const key of Object.keys(modelInfo.inputs || {})) {
+                if (key === 'model') continue;
+                const value = params[key] ?? (key === 'prompt' ? spokenText : undefined);
+                if (value === undefined || value === null || value === '') continue;
+                if (Array.isArray(value) && value.length === 0) continue;
+                finalPayload[key] = value;
+            }
+        }
+
         try {
              const response = await fetch(this.proxyUrl, {
                  method: 'POST',

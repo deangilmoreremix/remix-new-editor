@@ -9220,7 +9220,14 @@ export const i2iModels = [
     "family": "tools",
     "imageField": "model_image_url",
     "hasPrompt": false,
-    "inputs": {}
+    "inputs": {
+      "garment_image_url": {
+        "type": "string",
+        "title": "Outfit image",
+        "description": "A clear photo of the clothing item.",
+        "field": "image"
+      }
+    }
   },
   {
     "id": "ai-background-remover",
@@ -9378,7 +9385,14 @@ export const i2iModels = [
     "family": "tools",
     "imageField": "image_url",
     "hasPrompt": false,
-    "inputs": {}
+    "inputs": {
+      "mask_image_url": {
+        "type": "string",
+        "title": "Mask image",
+        "description": "White marks what to remove, black what to keep.",
+        "field": "image"
+      }
+    }
   },
   {
     "id": "flux-kontext-pro-i2i",
@@ -31547,6 +31561,7 @@ export const audioModels = [
       "name": "Suno Geneate Mashup",
       "endpoint": "suno-generate-mashup",
       "family": "suno",
+      "forwardInputs": true,
       "description": "Create a mashup using 1-5 audio tracks.",
       "required": [
         "audios_list"
@@ -31860,6 +31875,8 @@ export const audioModels = [
       "name": "ElevenLabs Text to Dialogue V3",
       "endpoint": "elevenlabs-text-to-dialogue-v3",
       "family": "audio-generation",
+      "forwardInputs": true,
+      "hasPrompt": false,
       "description": "Generate expressive, multilingual text-to-dialogue content using the ElevenLabs Text To Dialogue V3 model.",
       "required": [
         "dialogue"
@@ -32091,6 +32108,8 @@ export const audioModels = [
       "name": "Suno Convert to WAV",
       "endpoint": "suno-convert-to-wav",
       "family": "suno",
+      "forwardInputs": true,
+      "hasPrompt": false,
       "description": "Converts an existing Suno-generated music track to high-quality, uncompressed WAV format for professional editing and processing.",
       "required": [
         "task_id",
