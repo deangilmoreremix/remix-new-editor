@@ -14,6 +14,7 @@ import { apiKeyManager } from '../../../lib/apiKeyManager.js';
 import { WORKBENCH_APP_PATH, consumeWorkbenchHandoff, isWorkbenchEligible, toWorkbenchAsset } from '../../../lib/workbench.js';
 import { loadGenerationHistory, saveGeneration } from '../../../lib/generationHistory.js';
 import { uploadFileToSupabase } from '../../../lib/uploadService.js';
+import { uploadStudioInput } from '../../../lib/studioInputUpload.js';
 
 // BYOK: the user's own OpenAI key (API key modal) is re-sent on this timer and when the
 // window regains focus, so a key added or changed in Settings reaches the editor quickly.
@@ -110,8 +111,8 @@ export function WorkbenchStudio() {
     const file = blob instanceof File ? blob : new File([blob], `upload-${Date.now()}`, { type: blob.type });
     setStatus(`Uploading ${file.name}…`);
     try {
-      const userId = window.Clerk?.user?.id;
-      const { url } = await uploadFileToSupabase(file, { category, ...(userId ? { userId } : {}) });
+      // An input to edit with: MuAPI upload (storage fallback), like the other studios.
+      const { url } = await uploadStudioInput(file, { category });
       post({ type: 'sv:uploaded', id, url });
       setStatus(`${file.name} saved`);
     } catch (e) {
