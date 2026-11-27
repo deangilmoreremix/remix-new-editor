@@ -31,7 +31,9 @@ export function CineGenEditorPage(): HTMLElement {
   if (bannerText) bannerText.style.paddingLeft = '28px';
   el.appendChild(banner);
   const host = document.createElement('div');
-  Object.assign(host.style, { flex: '1 1 0%', minHeight: '0', position: 'relative', overflow: 'hidden', contain: 'layout', display: 'flex', flexDirection: 'column' });
+  // No `contain` here: layout containment would make the modals' `position: fixed` relative to this host (below the banner), so the banner would paint over their top.
+  // The outer frame is already the containing block, so modals cover the whole editor area, banner included.
+  Object.assign(host.style, { flex: '1 1 0%', minHeight: '0', position: 'relative', zIndex: '20', overflow: 'hidden', display: 'flex', flexDirection: 'column' }); // zIndex 20: above the banner's own z-10 text layer, so modals paint over it
   el.appendChild(host);
   const root = createRoot(host);
   // Bring over projects saved by the earlier build (once), then show the project manager.
