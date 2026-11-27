@@ -14,7 +14,7 @@ import DestinationsStep from './social-publishing/steps/DestinationsStep';
 import ReviewPublishStep from './social-publishing/steps/ReviewPublishStep';
 import { SocialStudioPanel } from './social-publishing/studio/SocialStudioPanel';
 import type { PreparedSchedule } from './social-publishing/studio/AutoPublishPanel';
-import { temporaryMediaScheduleError } from '@ohb/shared/social/validation';
+import { deviceOnlyMediaError, isTemporaryMediaUrl } from '@ohb/shared/social/validation';
 import type {
   Asset,
   CopyState,
@@ -226,31 +226,30 @@ export default function SocialPublishModal({
   );
 
   /**
-   * Automatic publishing: same preparation as Publish (media + thumbnail hosted, one MuAPI payload per destination),
-   * but the requests are saved as a job for the server instead of being sent now.
+   * Automatic publishing: one MuAPI payload per destination, saved as a job for the server. Nothing is uploaded here: a job may only
+   * use links that stay valid (public, unsigned https), because the server sends them unchanged, possibly days later, and the job
+   * can be rescheduled or retried. Device-only media is refused; a device-only cover is left out with a note.
    */
-  const prepareSchedule = useCallback(async (scheduledAt: number): Promise<PreparedSchedule> => {
+  const prepareSchedule = useCallback(async (): Promise<PreparedSchedule> => {
     if (!asset) throw new Error('There is nothing to schedule.');
     const todo = destinations.filter((d) => d.enabled && d.accountId);
-    // Checked BEFORE anything is uploaded: a temporary MuAPI upload link would expire before a far-ahead job runs.
-    const coverUrls = usesThumbnail(todo.map((d) => d.platform))
-      ? [thumbnail?.imageUrl, ...Object.values(thumbnail?.variants ?? {})]
-      : [];
-    const tooFar = temporaryMediaScheduleError({ mediaUrl: asset.url, coverUrls, scheduledAt });
-    if (tooFar) throw new Error(tooFar);
-    const ready = await resolveAsset(asset);
-    const readyThumb = usesThumbnail(todo.map((d) => d.platform)) ? await resolveThumbnail(thumbnail) : thumbnail;
+    const mediaProblem = deviceOnlyMediaError(asset.url);
+    if (mediaProblem) throw new Error(mediaProblem);
     const jobs: PreparedSchedule['jobs'] = [];
     const errors: string[] = [];
+    const notes: string[] = [];
     for (const d of todo) {
-      const built = buildPublishPayload({ platform: d.platform as PlatformId, accountId: d.accountId ?? '', mediaUrl: ready.url, mediaType: ready.type, copy, settings: d.settings, thumbnailUrl: pickThumbnailUrl(readyThumb, d.platform, d.settings) });
+      const cover = asset.type === 'video' && d.platform === 'instagram' ? pickThumbnailUrl(thumbnail, d.platform, d.settings) : undefined;
+      const coverOk = cover && !isTemporaryMediaUrl(cover) ? cover : undefined;
+      if (cover && !coverOk) notes.push('The cover image is only on this device, so Instagram uses its default cover for the automatic post.');
+      const built = buildPublishPayload({ platform: d.platform as PlatformId, accountId: d.accountId ?? '', mediaUrl: asset.url, mediaType: asset.type, copy, settings: d.settings, thumbnailUrl: coverOk });
       if (!built.payload) errors.push(`${PLATFORM_SPECS[d.platform as PlatformId]?.label ?? d.platform}: ${built.errors.join(' ')}`);
       else jobs.push({ platform: d.platform, account_id: d.accountId as string, payload: built.payload });
     }
     if (!todo.length) errors.push('Choose at least one connected account in the Destinations step.');
-    const notes = todo.some((d) => d.platform === 'youtube') && readyThumb?.imageUrl ? ['Note: a custom YouTube thumbnail is not applied to automatic posts; set it in YouTube Studio.'] : [];
-    return { jobs, mediaUrl: ready.url, mediaType: ready.type, caption: copy.caption || copy.master || '', hashtags: [], errors, notes };
-  }, [asset, destinations, resolveAsset, resolveThumbnail, thumbnail, copy]);
+    if (todo.some((d) => d.platform === 'youtube') && thumbnail?.imageUrl) notes.push('A custom YouTube thumbnail is not applied to automatic posts; set it in YouTube Studio.');
+    return { jobs, mediaUrl: asset.url, mediaType: asset.type, caption: copy.caption || copy.master || '', hashtags: [], errors, notes: [...new Set(notes)] };
+  }, [asset, destinations, thumbnail, copy]);
 
   const handleRetry = useCallback(
     async (platform: string, accountId?: string) => {

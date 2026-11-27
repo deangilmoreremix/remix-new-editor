@@ -23,6 +23,7 @@ export const PUBLISH_ENDPOINTS = Object.freeze({
 export const destKey = (j) => `${j.platform}:${j.account_id}`;
 const DONE = new Set(['completed', 'succeeded', 'success']);
 const FAIL = new Set(['failed', 'error']);
+const CANCELLED = new Set(['cancelled', 'canceled']);
 const clip = (s, n = 300) => String(s ?? '').slice(0, n);
 const resultUrl = (o) => (o && typeof o === 'object' ? o.url || o.link || o.permalink || null : null);
 
@@ -39,6 +40,8 @@ function describeHttp(status, detail) {
 }
 /** Retryable = might work next time without the owner changing anything. */
 export const isTransient = (status) => status === undefined || status === 429 || status >= 500;
+/** Replies after which MuAPI certainly did NOT take the post, so sending it again cannot duplicate it. Other 5xx are unknown. */
+export const isSafeResend = (status) => status === 429 || status === 503;
 
 async function muapi(fetchImpl, key, path, { method = 'GET', body } = {}) {
   const res = await fetchImpl(`${MUAPI_BASE}/api/v1/${path}`, {
@@ -56,16 +59,9 @@ async function muapi(fetchImpl, key, path, { method = 'GET', body } = {}) {
 export async function processJob(row, { key, fetchImpl, now = () => Date.now(), deadline, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), save }) {
   const results = Array.isArray(row.results) ? row.results.map((r) => ({ ...r })) : [];
   const jobs = Array.isArray(row.jobs) ? row.jobs : [];
-  // A manual retry (the owner pressed Retry) arrives as attempts === 0 with EVERY destination already finished: a job only
-  // reaches `failed` once all destinations are terminal, and finishing sets attempts >= 1. A job that is merely resuming (a tick ran
-  // out of time) always has at least one destination unfinished, so it never looks like a retry. The owner's explicit choice
-  // re-sends destinations that were cleanly rejected, but never one whose outcome is unknown (ambiguous): those may already be live.
-  const finished = (r) => r && (r.status === 'published' || r.status === 'failed');
-  if ((row.attempts || 0) === 0 && results.length > 0 && results.length >= jobs.length && jobs.every((j) => finished(results.find((r) => r.platform === j.platform && String(r.account_id) === String(j.account_id))))) {
-    for (const r of results) {
-      if (r.status === 'failed' && !r.ambiguous) { r.status = 'pending'; delete r.request_id; delete r.permanent; delete r.retryable; delete r.error; }
-    }
-  }
+  // A manual Retry is applied by the database (scheduled_posts_guard resets cleanly failed destinations to 'pending' and leaves ambiguous ones
+  // alone), so nothing here has to guess whether the owner asked for it.
+  const maxAttempts = row.max_attempts || 3;
   const find = (j) => results.find((r) => r.platform === j.platform && String(r.account_id) === String(j.account_id));
   const persist = async () => { await save({ results }); };
   const rec = (j) => {
@@ -89,7 +85,8 @@ export async function processJob(row, { key, fetchImpl, now = () => Date.now(), 
 
     if (!r.request_id) {
       if (r.status === 'failed' && !r.retryable) continue; // not eligible for an automatic re-send
-      Object.assign(r, { status: 'submitting', error: undefined, retryable: undefined, started_at: new Date(now()).toISOString() });
+      if (r.status === 'failed' && r.retry_at && now() < Date.parse(r.retry_at)) continue; // wait out this destination's own backoff
+      Object.assign(r, { status: 'submitting', error: undefined, retryable: undefined, retry_at: undefined, started_at: new Date(now()).toISOString() });
       await persist(); // written BEFORE the request: this is the duplicate guard
       let resp;
       try { resp = await muapi(fetchImpl, key, endpoint, { method: 'POST', body: j.payload }); }
@@ -99,12 +96,20 @@ export async function processJob(row, { key, fetchImpl, now = () => Date.now(), 
         await persist(); continue;
       }
       const reqId = String(resp.data?.request_id || resp.data?.id || '');
-      if (!resp.ok) {
-        const transient = isTransient(resp.status);
-        // A 5xx/429 means MuAPI did not accept the post, so a later attempt is safe.
-        Object.assign(r, { status: 'failed', retryable: transient, permanent: !transient, error: describeHttp(resp.status, resp.data?.detail || resp.data?.error) });
+      if (!resp.ok && !reqId) {
+        // No request id: MuAPI did not give us anything to follow. Only 429/503 are certain refusals (safe to try again later, with a
+        // backoff and a limit per destination); any other 5xx may have been accepted behind the gateway, so the outcome is unknown.
+        const n = (r.attempts || 0) + 1;
+        const safe = isSafeResend(resp.status) && n < maxAttempts;
+        const unknown = resp.status >= 500 && !isSafeResend(resp.status);
+        Object.assign(r, safe
+          ? { status: 'failed', attempts: n, retryable: true, permanent: false, retry_at: new Date(now() + backoffMs(n)).toISOString(), error: describeHttp(resp.status, resp.data?.detail || resp.data?.error) }
+          : unknown
+            ? { status: 'failed', attempts: n, retryable: false, permanent: true, ambiguous: true, error: `MuAPI answered ${resp.status} and it is unknown whether the post went out. Check the platform before posting it again.` }
+            : { status: 'failed', attempts: n, retryable: false, permanent: true, error: describeHttp(resp.status, resp.data?.detail || resp.data?.error) });
         await persist(); continue;
       }
+      // A reply that carries a request id (even with an error status) means MuAPI took the post: follow it, never re-send it.
       if (!reqId) {
         const out = resp.data?.output ?? resp.data?.data?.output;
         if (String(resp.data?.status || '').toLowerCase() === 'completed' && out) { Object.assign(r, { status: 'published', url: resultUrl(out), published_at: new Date(now()).toISOString() }); }
@@ -136,6 +141,7 @@ export async function processJob(row, { key, fetchImpl, now = () => Date.now(), 
       }
       const st = String(p.data?.status || '').toLowerCase();
       if (DONE.has(st)) Object.assign(r, { status: 'published', url: resultUrl(p.data?.output ?? p.data), published_at: new Date(now()).toISOString() });
+      else if (CANCELLED.has(st)) Object.assign(r, { status: 'failed', permanent: true, error: 'The platform cancelled this post, so it was not published.' });
       else if (FAIL.has(st)) Object.assign(r, { status: 'failed', permanent: true, error: clip(typeof p.data?.error === 'string' ? p.data.error : p.data?.error?.message || 'The platform rejected the post.') });
     }
     await persist();
@@ -156,7 +162,8 @@ export function summarize(row, jobs, results, nowMs) {
   const attempts = (row.attempts || 0) + 1;
   const retryable = failed.some((r) => r.retryable);
   if (retryable && attempts < (row.max_attempts || 3)) {
-    return { final: false, patch: { status: 'scheduled', attempts, next_attempt_at: new Date(nowMs + backoffMs(attempts)).toISOString(), last_error: clip(failed.find((r) => r.retryable)?.error, 500), locked_until: null } };
+    const wait = Math.max(nowMs + backoffMs(attempts), ...failed.filter((r) => r.retryable && r.retry_at).map((r) => Date.parse(r.retry_at)));
+    return { final: false, patch: { status: 'scheduled', attempts, next_attempt_at: new Date(wait).toISOString(), last_error: clip(failed.find((r) => r.retryable)?.error, 500), locked_until: null } };
   }
   const err = failed.map((r) => `${r.platform}: ${r.error}`).join(' ');
   return { final: true, outcome: 'failed', patch: { status: 'failed', attempts, last_error: clip(err, 500), locked_until: null }, published: published.length, total: jobs.length };

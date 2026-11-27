@@ -90,49 +90,63 @@ describe('publishing a due job', () => {
     expect(s.patch.last_error).toMatch(/not connected/i)
   })
 
-  it('manual retry (attempts reset) re-sends a cleanly failed destination but not an ambiguous one', async () => {
+  it('after a manual retry (database already reset the clean failures) only the pending destination is sent; the ambiguous one never is', async () => {
     const jobs = [
       { platform: 'instagram', account_id: 5, payload: { a: 1 } },
       { platform: 'x', account_id: 6, payload: { b: 1 } },
     ]
     const results = [
-      { platform: 'instagram', account_id: 5, status: 'failed', permanent: true, error: 'gone' },
-      { platform: 'x', account_id: 6, status: 'failed', permanent: true, ambiguous: true, error: 'unknown' },
+      { platform: 'instagram', account_id: 5, status: 'pending' }, // reset by scheduled_posts_guard
+      { platform: 'x', account_id: 6, status: 'failed', permanent: true, ambiguous: true, error: 'unknown' }, // left alone by the guard
     ]
     const { fetchImpl, calls } = harness((url) => (url.includes('instagram-publish') ? json(200, { request_id: 'r2' }) : json(200, { status: 'completed', output: { url: 'https://i' } })))
     await run(job({ jobs, results, attempts: 0 }), fetchImpl)
     expect(calls.filter((c) => c.method === 'POST').map((c) => c.url.split('/').pop())).toEqual(['instagram-publish'])
   })
 
-  it('a failed result LOOKUP on an accepted post is unknown, kept, and never re-sent by Retry', async () => {
-    const { fetchImpl, calls } = harness((url) => (url.includes('-publish') ? json(200, { request_id: 'r1' }) : json(404, {})))
-    const first = (await run(job(), fetchImpl)).s
-    expect(calls.filter((c) => c.method === 'POST')).toHaveLength(1) // submitted exactly once
-    expect(first.outcome).toBe('failed')
-    const res = first.patch
-    expect(res.last_error).toMatch(/already sent|may still go live/i)
-    // the stored result keeps the request id and is ambiguous
-    const saved = []
-    calls.length = 0
-    await processJob(job(), { key: KEY, fetchImpl, now: () => 1, deadline: 99999, sleep: async () => {}, save: async (p) => saved.push(JSON.parse(JSON.stringify(p.results))) })
-    const stored = saved.at(-1)[0]
-    expect(stored).toMatchObject({ status: 'failed', ambiguous: true, request_id: 'r1' })
-    // owner presses Retry (attempts reset to 0, everything finished): must NOT submit again
-    const h2 = harness(() => json(200, { request_id: 'r2' }))
-    await run(job({ attempts: 0, results: [stored] }), h2.fetchImpl)
-    expect(h2.calls.filter((c) => c.method === 'POST')).toHaveLength(0)
+  it('a reply that carries a request id is followed, never re-sent, even with a 5xx status', async () => {
+    const { fetchImpl, calls } = harness((url) => (url.includes('-publish') ? json(502, { request_id: 'r-gw' }) : json(200, { status: 'completed', output: { url: 'https://live' } })))
+    const { s, saves } = await run(job(), fetchImpl)
+    expect(calls.filter((c) => c.method === 'POST')).toHaveLength(1)
+    expect(saves.at(-1)[0]).toMatchObject({ status: 'published', request_id: 'r-gw' })
+    expect(s.outcome).toBe('published')
   })
 
-  it('a resumed first attempt is not mistaken for a manual retry', async () => {
-    const jobs = [{ platform: 'instagram', account_id: 5, payload: { a: 1 } }, { platform: 'x', account_id: 6, payload: { b: 1 } }]
-    // instagram failed permanently earlier in this run; x is still processing (tick ran out of time). attempts is still 0.
-    const results = [
-      { platform: 'instagram', account_id: 5, status: 'failed', permanent: true, error: 'gone' },
-      { platform: 'x', account_id: 6, status: 'processing', request_id: 'rx' },
-    ]
-    const { fetchImpl, calls } = harness(() => json(200, { status: 'processing' }))
-    await run(job({ jobs, results, attempts: 0 }), fetchImpl, { now: (() => { let t = 0; return () => (t += 40000) })(), deadline: 100000 })
-    expect(calls.filter((c) => c.method === 'POST')).toHaveLength(0) // no automatic resubmission
+  it('only 429/503 are safe to send again; other 5xx without an id are "unknown" and never retried', async () => {
+    for (const code of [500, 502, 504]) {
+      const { fetchImpl } = harness(() => json(code, {}))
+      const { s, saves } = await run(job(), fetchImpl)
+      expect(saves.at(-1)[0]).toMatchObject({ status: 'failed', ambiguous: true, retryable: false })
+      expect(s).toMatchObject({ final: true, outcome: 'failed' })
+    }
+    for (const code of [429, 503]) {
+      const { fetchImpl } = harness(() => json(code, {}))
+      const { saves } = await run(job(), fetchImpl)
+      expect(saves.at(-1)[0]).toMatchObject({ status: 'failed', retryable: true })
+      expect(saves.at(-1)[0].retry_at).toBeTruthy()
+    }
+  })
+
+  it('a retryable destination waits for its own backoff, and stops at the attempt limit', async () => {
+    const later = new Date(Date.now() + 3_600_000).toISOString()
+    const waiting = job({ results: [{ platform: 'instagram', account_id: 5, status: 'failed', retryable: true, attempts: 1, retry_at: later }] })
+    const h = harness(() => json(200, { request_id: 'r' }))
+    let t = Date.now()
+    await run(waiting, h.fetchImpl, { now: () => t })
+    expect(h.calls).toHaveLength(0) // not sent before retry_at
+    const exhausted = job({ max_attempts: 2, results: [{ platform: 'instagram', account_id: 5, status: 'failed', retryable: true, attempts: 1, retry_at: new Date(0).toISOString() }] })
+    const h2 = harness(() => json(503, {}))
+    const { saves } = await run(exhausted, h2.fetchImpl)
+    expect(saves.at(-1)[0]).toMatchObject({ status: 'failed', retryable: false, permanent: true, attempts: 2 })
+  })
+
+  it('a cancelled prediction is final (not published, not stuck)', async () => {
+    const { fetchImpl } = harness((url) => (url.includes('-publish') ? json(200, { request_id: 'rc' }) : json(200, { status: 'cancelled' })))
+    const { s, saves } = await run(job(), fetchImpl)
+    expect(s).toMatchObject({ final: true, outcome: 'failed' })
+    expect(saves.at(-1)[0]).toMatchObject({ status: 'failed', permanent: true, request_id: 'rc' })
+    expect(saves.at(-1)[0].error).toMatch(/cancelled/)
+    expect(saves.at(-1)[0].ambiguous).toBeUndefined()
   })
 
   it('stops at the deadline and resumes later without losing the request id', async () => {

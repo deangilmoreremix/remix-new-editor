@@ -50,7 +50,7 @@ app but is not connected to this modal in this pass. **Missing**.
 | Local transcription | **Not wired** | Whisper WebGPU | existing `captions.worker.js`, `src/lib/editor/remotion/transcribe.worker.js` | WebGPU; CPU fallback | none | existing tests | not connected to the Social modal |
 | Burned-in captions | **Not wired** | Remotion captions (licence above) | existing `src/lib/editor/remotion/captions.js` | WebCodecs | none | existing | not connected; licence condition applies |
 | Audio adjustment (Web Audio) | **Missing** | Web Audio | — | all modern | — | — | not built |
-| Media that only exists on the device (automatic jobs) | **Limited** | — | `shared/social/validation.ts` (`temporaryMediaScheduleError`), `SocialPublishModal.tsx` | all | — | 5 unit tests | MuAPI upload links expire in ~1 hour, so such media (and a device-only cover) can only be scheduled within 50 minutes; later needs a permanent public https link. A durable-storage upload is the follow-up |
+| Media that only exists on the device (automatic jobs) | **Limited, strict** | — | `shared/social/validation.ts` (`deviceOnlyMediaError`, `isTemporaryMediaUrl`), `SocialPublishModal.tsx` | all | — | unit tests | Jobs may only use permanent public https links (no blob/data, no signed/expiring URLs). Device-only media must be published now. Device-only Instagram covers are left out with a note. Durable storage upload is the follow-up |
 | Scheduled YouTube custom thumbnail | **Missing** for automatic jobs | — | — | — | — | UI warns | the follow-up `youtube-set-thumbnail` call is only done by the interactive Publish path |
 
 ## 3. Honest verification status

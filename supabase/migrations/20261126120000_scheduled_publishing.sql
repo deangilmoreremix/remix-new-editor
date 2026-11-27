@@ -64,6 +64,22 @@ alter table public.scheduled_posts add constraint scheduled_posts_auto_needs_job
 
 -- ---------------------------------------------------------------- guard trigger
 -- Clients may create/reschedule/cancel/retry; only the server writes progress.
+-- A manual Retry: destinations that were cleanly refused go back to 'pending' (so they are sent again); destinations whose outcome
+-- is unknown (ambiguous) are left exactly as they are, because they may already be live. Done here, in the same statement as the
+-- owner's request, so the server never has to guess whether a retry was asked for.
+create or replace function public.reset_failed_results(r jsonb)
+returns jsonb
+language sql
+immutable
+set search_path = ''
+as $$
+  select coalesce(jsonb_agg(
+    case when e ->> 'status' = 'failed' and coalesce((e ->> 'ambiguous')::boolean, false) = false
+         then jsonb_build_object('platform', e -> 'platform', 'account_id', e -> 'account_id', 'status', 'pending')
+         else e end), '[]'::jsonb)
+  from jsonb_array_elements(coalesce(r, '[]'::jsonb)) e;
+$$;
+
 -- Does the CALLER (verified Clerk sub) have a stored key? A definer helper, because clients cannot read the table.
 create or replace function public.has_publish_credentials()
 returns boolean
@@ -135,6 +151,7 @@ begin
   if new.status = 'scheduled' and old.status in ('failed', 'cancelled') then
     -- manual retry / re-activate: fresh try, finished destinations are never re-sent (the server skips them)
     new.attempts := 0; new.last_error := null; new.next_attempt_at := now(); new.cancelled_at := null;
+    new.results := public.reset_failed_results(old.results);
     if new.auto_publish and (new.scheduled_for is null or new.scheduled_for < now()) then new.scheduled_for := now(); end if;
   end if;
   if new.status = 'scheduled' and new.scheduled_for is distinct from old.scheduled_for then
