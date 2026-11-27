@@ -56,10 +56,12 @@ async function muapi(fetchImpl, key, path, { method = 'GET', body } = {}) {
 export async function processJob(row, { key, fetchImpl, now = () => Date.now(), deadline, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), save }) {
   const results = Array.isArray(row.results) ? row.results.map((r) => ({ ...r })) : [];
   const jobs = Array.isArray(row.jobs) ? row.jobs : [];
-  // attempts === 0 with failed results means the owner pressed Retry (the first run has no results yet, and automatic
-  // retries have attempts >= 1). Their explicit choice re-sends destinations that were cleanly rejected, but never one whose
-  // outcome is unknown (ambiguous): those could already be live.
-  if ((row.attempts || 0) === 0) {
+  // A manual retry (the owner pressed Retry) arrives as attempts === 0 with EVERY destination already finished: a job only
+  // reaches `failed` once all destinations are terminal, and finishing sets attempts >= 1. A job that is merely resuming (a tick ran
+  // out of time) always has at least one destination unfinished, so it never looks like a retry. The owner's explicit choice
+  // re-sends destinations that were cleanly rejected, but never one whose outcome is unknown (ambiguous): those may already be live.
+  const finished = (r) => r && (r.status === 'published' || r.status === 'failed');
+  if ((row.attempts || 0) === 0 && results.length > 0 && results.length >= jobs.length && jobs.every((j) => finished(results.find((r) => r.platform === j.platform && String(r.account_id) === String(j.account_id))))) {
     for (const r of results) {
       if (r.status === 'failed' && !r.ambiguous) { r.status = 'pending'; delete r.request_id; delete r.permanent; delete r.retryable; delete r.error; }
     }
@@ -118,7 +120,12 @@ export async function processJob(row, { key, fetchImpl, now = () => Date.now(), 
       await sleep(2000);
       let p;
       try { p = await muapi(fetchImpl, key, `predictions/${encodeURIComponent(r.request_id)}/result`); } catch { continue; }
-      if (!p.ok) { if (!isTransient(p.status)) { Object.assign(r, { status: 'failed', permanent: true, error: describeHttp(p.status) }); } continue; }
+      if (!p.ok) {
+        // MuAPI already accepted this post. A failed LOOKUP (401/403/404…) does not mean it was rejected: keep the request id and
+        // mark the outcome unknown so no retry can send it again. Transient errors just try again.
+        if (!isTransient(p.status)) Object.assign(r, { status: 'failed', permanent: true, ambiguous: true, error: `${describeHttp(p.status)} The post was already sent, so it may still go live. Check the platform before posting it again.` });
+        continue;
+      }
       const st = String(p.data?.status || '').toLowerCase();
       if (DONE.has(st)) Object.assign(r, { status: 'published', url: resultUrl(p.data?.output ?? p.data), published_at: new Date(now()).toISOString() });
       else if (FAIL.has(st)) Object.assign(r, { status: 'failed', permanent: true, error: clip(typeof p.data?.error === 'string' ? p.data.error : p.data?.error?.message || 'The platform rejected the post.') });
@@ -196,5 +203,5 @@ export async function runTick({ call, fetchImpl = fetch, env = process.env, now 
 
 async function notify(call, row, s) {
   try { await call('owner_notifications', { method: 'POST', body: notificationFor(row, s), prefer: 'resolution=ignore-duplicates,return=minimal' }); }
-  catch { /* the job result is already stored; a missing alert must never undo it */ }
+  catch (e) { console.error('[scheduled-publish] could not write the owner notification', e?.status || 'error'); /* the job result is already stored; a missing alert must never undo it */ }
 }

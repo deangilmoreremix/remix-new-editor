@@ -140,8 +140,8 @@ export function SocialStudioPanel(p: SocialStudioPanelProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   })), [cloud.jobs])
   const moveCloud = async (planId: string, to: number) => {
-    const j = cloud.jobs.find((x) => `job:${x.id}` === planId)
-    await rescheduleJob(planId.slice(4), new Date(to), schedule.timeZone, j?.status === 'failed' ? 'scheduled' : 'scheduled')
+    // moving a waiting job keeps it scheduled; moving a failed one schedules it again at the new time
+    await rescheduleJob(planId.slice(4), new Date(to), schedule.timeZone)
     await cloud.reload()
   }
   const errorCount = findings.filter((f) => f.severity === 'error').length

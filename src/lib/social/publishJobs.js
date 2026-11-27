@@ -16,7 +16,7 @@ export const cloudReady = () => { try { return Boolean(isSupabaseConfigured() &&
 async function keyCall(method, body, fetchImpl = fetch) {
   const token = await getClerkSessionToken();
   if (!token) throw new Error('Sign in to use automatic publishing.');
-  const res = await fetchImpl(KEY_ENDPOINT, { method, headers: { Authorization: `Bearer ${token}`, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  const res = await fetchImpl(KEY_ENDPOINT, { signal: AbortSignal.timeout(15000), method, headers: { Authorization: `Bearer ${token}`, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
   let data = {};
   try { data = await res.json(); } catch { /* empty body */ }
   if (!res.ok) throw new Error(data.error || `Automatic publishing is unavailable right now (${res.status}).`);

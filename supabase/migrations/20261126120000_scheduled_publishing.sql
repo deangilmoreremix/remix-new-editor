@@ -86,6 +86,10 @@ begin
   if tg_op = 'INSERT' then
     new.results := '[]'::jsonb; new.attempts := 0; new.locked_until := null; new.next_attempt_at := null;
     new.published_at := null; new.cancelled_at := null; new.last_error := null;
+    -- defence in depth (the RLS policy checks this too): a job can only be created for the caller
+    if new.clerk_user_id is distinct from (select auth.jwt() ->> 'sub') then
+      raise exception 'jobs can only be created for your own account' using errcode = '42501';
+    end if;
     if new.status not in ('draft', 'scheduled') then
       raise exception 'new posts start as draft or scheduled' using errcode = '42501';
     end if;

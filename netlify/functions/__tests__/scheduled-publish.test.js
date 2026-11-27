@@ -104,6 +104,37 @@ describe('publishing a due job', () => {
     expect(calls.filter((c) => c.method === 'POST').map((c) => c.url.split('/').pop())).toEqual(['instagram-publish'])
   })
 
+  it('a failed result LOOKUP on an accepted post is unknown, kept, and never re-sent by Retry', async () => {
+    const { fetchImpl, calls } = harness((url) => (url.includes('-publish') ? json(200, { request_id: 'r1' }) : json(404, {})))
+    const first = (await run(job(), fetchImpl)).s
+    expect(calls.filter((c) => c.method === 'POST')).toHaveLength(1) // submitted exactly once
+    expect(first.outcome).toBe('failed')
+    const res = first.patch
+    expect(res.last_error).toMatch(/already sent|may still go live/i)
+    // the stored result keeps the request id and is ambiguous
+    const saved = []
+    calls.length = 0
+    await processJob(job(), { key: KEY, fetchImpl, now: () => 1, deadline: 99999, sleep: async () => {}, save: async (p) => saved.push(JSON.parse(JSON.stringify(p.results))) })
+    const stored = saved.at(-1)[0]
+    expect(stored).toMatchObject({ status: 'failed', ambiguous: true, request_id: 'r1' })
+    // owner presses Retry (attempts reset to 0, everything finished): must NOT submit again
+    const h2 = harness(() => json(200, { request_id: 'r2' }))
+    await run(job({ attempts: 0, results: [stored] }), h2.fetchImpl)
+    expect(h2.calls.filter((c) => c.method === 'POST')).toHaveLength(0)
+  })
+
+  it('a resumed first attempt is not mistaken for a manual retry', async () => {
+    const jobs = [{ platform: 'instagram', account_id: 5, payload: { a: 1 } }, { platform: 'x', account_id: 6, payload: { b: 1 } }]
+    // instagram failed permanently earlier in this run; x is still processing (tick ran out of time). attempts is still 0.
+    const results = [
+      { platform: 'instagram', account_id: 5, status: 'failed', permanent: true, error: 'gone' },
+      { platform: 'x', account_id: 6, status: 'processing', request_id: 'rx' },
+    ]
+    const { fetchImpl, calls } = harness(() => json(200, { status: 'processing' }))
+    await run(job({ jobs, results, attempts: 0 }), fetchImpl, { now: (() => { let t = 0; return () => (t += 40000) })(), deadline: 100000 })
+    expect(calls.filter((c) => c.method === 'POST')).toHaveLength(0) // no automatic resubmission
+  })
+
   it('stops at the deadline and resumes later without losing the request id', async () => {
     const { fetchImpl } = harness((url) => (url.includes('-publish') ? json(200, { request_id: 'r1' }) : json(200, { status: 'processing' })))
     let t = 0
